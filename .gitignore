@@ -1,0 +1,60 @@
+# Java / Maven
+target/
+*.class
+*.jar
+*.war
+*.ear
+*.log
+.gradle/
+build/
+
+# Quarkus
+.quarkus/
+
+# Node.js / npm / pnpm
+node_modules/
+dist/
+build/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-store/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+*.env
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+
+# OS
+.DS_Store
+Thumbs.db
+*.tmp
+
+# Testing
+coverage/
+.nyc_output/
+playwright-report/
+test-results/
+
+# Misc
+*.bak
+*.backup
+
+# Specify workflow files (not needed in version control)
+.specify/memory/*.json

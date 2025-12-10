@@ -1,0 +1,42 @@
+services:
+  postgres:
+    image: postgis/postgis:16-3.4
+    container_name: tribly-postgres
+    environment:
+      POSTGRES_USER: tribly
+      POSTGRES_PASSWORD: tribly_dev_password
+      POSTGRES_DB: tribly
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tribly"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: tribly-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@tribly.app
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    profiles:
+      - tools
+
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: tribly-mailhog
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    profiles:
+      - tools
+
+volumes:
+  postgres_data:

@@ -1,0 +1,353 @@
+-- Flyway Migration V1: Initial Schema for Tribly Cycling Platform
+-- Enable PostGIS
+CREATE EXTENSION IF NOT EXISTS postgis;
+
+-- Users
+CREATE TABLE users (
+    id BIGSERIAL PRIMARY KEY,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    display_name VARCHAR(255) NOT NULL,
+    avatar_url VARCHAR(500),
+    strava_id VARCHAR(50) UNIQUE,
+    garmin_id VARCHAR(50) UNIQUE,
+    google_id VARCHAR(100) UNIQUE,
+    facebook_id VARCHAR(100) UNIQUE,
+    locale VARCHAR(10) DEFAULT 'en',
+    timezone VARCHAR(50) DEFAULT 'UTC',
+    last_login_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    deleted BOOLEAN NOT NULL DEFAULT FALSE,
+    version BIGINT DEFAULT 0
+);
+
+-- Teams
+CREATE TABLE teams (
+    id BIGSERIAL PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    slug VARCHAR(100) NOT NULL UNIQUE,
+    description TEXT,
+    logo_url VARCHAR(500),
+    cover_image_url VARCHAR(500),
+    is_public BOOLEAN NOT NULL DEFAULT FALSE,
+    settings JSONB DEFAULT '{}',
+    max_members INTEGER,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    deleted BOOLEAN NOT NULL DEFAULT FALSE,
+    version BIGINT DEFAULT 0
+);
+
+-- User-Team association
+CREATE TABLE user_teams (
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL REFERENCES users(id),
+    team_id BIGINT NOT NULL REFERENCES teams(id),
+    role VARCHAR(20) NOT NULL CHECK (role IN ('ADMIN', 'ORGANIZER', 'MEMBER')),
+    joined_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    invited_by BIGINT REFERENCES users(id),
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    deleted BOOLEAN NOT NULL DEFAULT FALSE,
+    version BIGINT DEFAULT 0,
+    UNIQUE(user_id, team_id)
+);
+
+-- Team domains for multi-tenancy
+CREATE TABLE team_domains (
+    id BIGSERIAL PRIMARY KEY,
+    team_id BIGINT NOT NULL REFERENCES teams(id),
+    domain VARCHAR(255) NOT NULL UNIQUE,
+    verified BOOLEAN NOT NULL DEFAULT FALSE,
+    verification_token VARCHAR(100),
+    is_primary BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    deleted BOOLEAN NOT NULL DEFAULT FALSE,
+    version BIGINT DEFAULT 0
+);
+
+-- Places
+CREATE TABLE places (
+    id BIGSERIAL PRIMARY KEY,
+    team_id BIGINT NOT NULL REFERENCES teams(id),
+    created_by_id BIGINT NOT NULL REFERENCES users(id),
+    name VARCHAR(255) NOT NULL,
+    type VARCHAR(20) NOT NULL CHECK (type IN ('MEETUP', 'CAFE', 'RESTAURANT', 'HOTEL', 'CAMPSITE', 'WATER', 'OTHER')),
+    address TEXT,
+    lat DECIMAL(10, 8) NOT NULL,
+    lng DECIMAL(11, 8) NOT NULL,
+    phone VARCHAR(50),
+    website VARCHAR(500),
+    notes TEXT,
+    is_public BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    deleted BOOLEAN NOT NULL DEFAULT FALSE,
+    version BIGINT DEFAULT 0
+);
+
+-- Routes
+CREATE TABLE routes (
+    id BIGSERIAL PRIMARY KEY,
+    team_id BIGINT NOT NULL REFERENCES teams(id),
+    created_by_id BIGINT NOT NULL REFERENCES users(id),
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    distance INTEGER,
+    elevation_gain INTEGER,
+    elevation_loss INTEGER,
+    difficulty VARCHAR(20) CHECK (difficulty IN ('EASY', 'MODERATE', 'HARD', 'EXPERT')),
+    surface_type VARCHAR(20) CHECK (surface_type IN ('ROAD', 'GRAVEL', 'MTB', 'MIXED')),
+    is_public BOOLEAN NOT NULL DEFAULT FALSE,
+    thumbnail_url VARCHAR(500),
+    start_lat DECIMAL(10, 8),
+    start_lng DECIMAL(11, 8),
+    end_lat DECIMAL(10, 8),
+    end_lng DECIMAL(11, 8),
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    deleted BOOLEAN NOT NULL DEFAULT FALSE,
+    version BIGINT DEFAULT 0
+);
+
+-- GPX tracks
+CREATE TABLE gpx_tracks (
+    id BIGSERIAL PRIMARY KEY,
+    route_id BIGINT NOT NULL REFERENCES routes(id),
+    name VARCHAR(255),
+    geometry GEOMETRY(LineString, 4326) NOT NULL,
+    original_file_name VARCHAR(255),
+    track_points JSONB NOT NULL,
+    processed_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    deleted BOOLEAN NOT NULL DEFAULT FALSE,
+    version BIGINT DEFAULT 0
+);
+
+-- Route climbs
+CREATE TABLE route_climbs (
+    id BIGSERIAL PRIMARY KEY,
+    route_id BIGINT NOT NULL REFERENCES routes(id),
+    name VARCHAR(255),
+    start_distance INTEGER NOT NULL,
+    end_distance INTEGER NOT NULL,
+    elevation_gain INTEGER NOT NULL,
+    average_gradient DECIMAL(5, 2) NOT NULL,
+    max_gradient DECIMAL(5, 2) NOT NULL,
+    category VARCHAR(10) CHECK (category IN ('HC', 'CAT1', 'CAT2', 'CAT3', 'CAT4')),
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    deleted BOOLEAN NOT NULL DEFAULT FALSE,
+    version BIGINT DEFAULT 0
+);
+
+-- Route POIs
+CREATE TABLE route_points_of_interest (
+    id BIGSERIAL PRIMARY KEY,
+    route_id BIGINT NOT NULL REFERENCES routes(id),
+    place_id BIGINT REFERENCES places(id),
+    name VARCHAR(255) NOT NULL,
+    type VARCHAR(20) NOT NULL CHECK (type IN ('CAFE', 'WATER', 'VIEWPOINT', 'DANGER', 'INFO')),
+    distance INTEGER NOT NULL,
+    lat DECIMAL(10, 8) NOT NULL,
+    lng DECIMAL(11, 8) NOT NULL,
+    notes TEXT,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    deleted BOOLEAN NOT NULL DEFAULT FALSE,
+    version BIGINT DEFAULT 0
+);
+
+-- Rides
+CREATE TABLE rides (
+    id BIGSERIAL PRIMARY KEY,
+    team_id BIGINT NOT NULL REFERENCES teams(id),
+    created_by_id BIGINT NOT NULL REFERENCES users(id),
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    date DATE NOT NULL,
+    start_time TIME,
+    route_id BIGINT REFERENCES routes(id),
+    meeting_point_id BIGINT REFERENCES places(id),
+    status VARCHAR(20) NOT NULL DEFAULT 'DRAFT' CHECK (status IN ('DRAFT', 'PUBLISHED', 'CANCELLED')),
+    visibility VARCHAR(20) NOT NULL DEFAULT 'TEAM' CHECK (visibility IN ('TEAM', 'PUBLIC')),
+    recurrence_rule VARCHAR(255),
+    parent_ride_id BIGINT REFERENCES rides(id),
+    trip_id BIGINT,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    deleted BOOLEAN NOT NULL DEFAULT FALSE,
+    version BIGINT DEFAULT 0
+);
+
+-- Ride groups
+CREATE TABLE ride_groups (
+    id BIGSERIAL PRIMARY KEY,
+    ride_id BIGINT NOT NULL REFERENCES rides(id),
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    route_id BIGINT REFERENCES routes(id),
+    average_speed INTEGER,
+    max_participants INTEGER,
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    deleted BOOLEAN NOT NULL DEFAULT FALSE,
+    version BIGINT DEFAULT 0
+);
+
+-- Ride participations
+CREATE TABLE ride_participations (
+    id BIGSERIAL PRIMARY KEY,
+    ride_group_id BIGINT NOT NULL REFERENCES ride_groups(id),
+    user_id BIGINT NOT NULL REFERENCES users(id),
+    status VARCHAR(20) NOT NULL CHECK (status IN ('REGISTERED', 'CONFIRMED', 'CANCELLED', 'COMPLETED')),
+    registered_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    notes TEXT,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    deleted BOOLEAN NOT NULL DEFAULT FALSE,
+    version BIGINT DEFAULT 0,
+    UNIQUE(ride_group_id, user_id)
+);
+
+-- Trips
+CREATE TABLE trips (
+    id BIGSERIAL PRIMARY KEY,
+    team_id BIGINT NOT NULL REFERENCES teams(id),
+    created_by_id BIGINT NOT NULL REFERENCES users(id),
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    start_date DATE NOT NULL,
+    end_date DATE NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'PLANNING' CHECK (status IN ('PLANNING', 'PUBLISHED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED')),
+    visibility VARCHAR(20) NOT NULL DEFAULT 'TEAM' CHECK (visibility IN ('TEAM', 'PUBLIC')),
+    cover_image_url VARCHAR(500),
+    max_participants INTEGER,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    deleted BOOLEAN NOT NULL DEFAULT FALSE,
+    version BIGINT DEFAULT 0
+);
+
+-- Add FK from rides to trips
+ALTER TABLE rides ADD CONSTRAINT fk_rides_trip FOREIGN KEY (trip_id) REFERENCES trips(id);
+
+-- Trip days
+CREATE TABLE trip_days (
+    id BIGSERIAL PRIMARY KEY,
+    trip_id BIGINT NOT NULL REFERENCES trips(id),
+    date DATE NOT NULL,
+    title VARCHAR(255),
+    description TEXT,
+    accommodation_id BIGINT REFERENCES places(id),
+    sort_order INTEGER NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    deleted BOOLEAN NOT NULL DEFAULT FALSE,
+    version BIGINT DEFAULT 0
+);
+
+-- Trip day rides
+CREATE TABLE trip_day_rides (
+    id BIGSERIAL PRIMARY KEY,
+    trip_day_id BIGINT NOT NULL REFERENCES trip_days(id),
+    ride_id BIGINT NOT NULL REFERENCES rides(id),
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    deleted BOOLEAN NOT NULL DEFAULT FALSE,
+    version BIGINT DEFAULT 0
+);
+
+-- Trip participations
+CREATE TABLE trip_participations (
+    id BIGSERIAL PRIMARY KEY,
+    trip_id BIGINT NOT NULL REFERENCES trips(id),
+    user_id BIGINT NOT NULL REFERENCES users(id),
+    status VARCHAR(20) NOT NULL CHECK (status IN ('INTERESTED', 'REGISTERED', 'CONFIRMED', 'CANCELLED')),
+    registered_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    deleted BOOLEAN NOT NULL DEFAULT FALSE,
+    version BIGINT DEFAULT 0,
+    UNIQUE(trip_id, user_id)
+);
+
+-- Message threads
+CREATE TABLE message_threads (
+    id BIGSERIAL PRIMARY KEY,
+    team_id BIGINT NOT NULL REFERENCES teams(id),
+    type VARCHAR(20) NOT NULL CHECK (type IN ('TEAM', 'RIDE', 'TRIP', 'DIRECT')),
+    ride_id BIGINT REFERENCES rides(id),
+    trip_id BIGINT REFERENCES trips(id),
+    title VARCHAR(255),
+    last_message_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    deleted BOOLEAN NOT NULL DEFAULT FALSE,
+    version BIGINT DEFAULT 0
+);
+
+-- Messages
+CREATE TABLE messages (
+    id BIGSERIAL PRIMARY KEY,
+    thread_id BIGINT NOT NULL REFERENCES message_threads(id),
+    author_id BIGINT NOT NULL REFERENCES users(id),
+    content TEXT NOT NULL,
+    parent_id BIGINT REFERENCES messages(id),
+    edited_at TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    deleted BOOLEAN NOT NULL DEFAULT FALSE,
+    version BIGINT DEFAULT 0
+);
+
+-- Message thread participants
+CREATE TABLE message_thread_participants (
+    id BIGSERIAL PRIMARY KEY,
+    thread_id BIGINT NOT NULL REFERENCES message_threads(id),
+    user_id BIGINT NOT NULL REFERENCES users(id),
+    last_read_at TIMESTAMP WITH TIME ZONE,
+    muted_until TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    deleted BOOLEAN NOT NULL DEFAULT FALSE,
+    version BIGINT DEFAULT 0,
+    UNIQUE(thread_id, user_id)
+);
+
+-- Notifications
+CREATE TABLE notifications (
+    id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL REFERENCES users(id),
+    type VARCHAR(50) NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    body TEXT,
+    data JSONB DEFAULT '{}',
+    read_at TIMESTAMP WITH TIME ZONE,
+    sent_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    channel VARCHAR(20) NOT NULL CHECK (channel IN ('IN_APP', 'EMAIL', 'PUSH')),
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    deleted BOOLEAN NOT NULL DEFAULT FALSE,
+    version BIGINT DEFAULT 0
+);
+
+-- Indexes
+CREATE INDEX idx_users_email ON users(email) WHERE deleted = FALSE;
+CREATE INDEX idx_users_strava ON users(strava_id) WHERE deleted = FALSE;
+CREATE INDEX idx_teams_slug ON teams(slug) WHERE deleted = FALSE;
+CREATE INDEX idx_teams_public ON teams(is_public) WHERE deleted = FALSE AND is_public = TRUE;
+CREATE INDEX idx_user_teams_user ON user_teams(user_id) WHERE deleted = FALSE;
+CREATE INDEX idx_user_teams_team ON user_teams(team_id) WHERE deleted = FALSE;
+CREATE INDEX idx_team_domains_domain ON team_domains(domain) WHERE deleted = FALSE;
+CREATE INDEX idx_routes_team ON routes(team_id) WHERE deleted = FALSE;
+CREATE INDEX idx_rides_team_date ON rides(team_id, date) WHERE deleted = FALSE;
+CREATE INDEX idx_rides_status ON rides(team_id, status) WHERE deleted = FALSE;
+CREATE INDEX idx_trips_team ON trips(team_id) WHERE deleted = FALSE;
+CREATE INDEX idx_notifications_user ON notifications(user_id, read_at) WHERE deleted = FALSE;
+CREATE INDEX idx_gpx_tracks_geometry ON gpx_tracks USING GIST(geometry);
+CREATE INDEX idx_places_location ON places USING GIST(ST_SetSRID(ST_MakePoint(lng, lat), 4326));

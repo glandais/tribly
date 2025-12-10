@@ -26,18 +26,18 @@
 
 **Purpose**: Project initialization, monorepo structure, and development environment
 
-- [ ] T001 Create monorepo root structure with pom.xml parent POM
-- [ ] T002 [P] Initialize backend Quarkus project in backend/ with pom.xml
-- [ ] T003 [P] Initialize frontend React/Vite project in frontend/ with package.json
-- [ ] T004 [P] Initialize e2e Playwright project in e2e/ with package.json
-- [ ] T005 Create docker-compose.yml with PostgreSQL 16 and PostGIS extension
-- [ ] T006 [P] Copy contracts/openapi.yaml from specs to contracts/
-- [ ] T007 Configure backend OpenAPI code generation in backend/pom.xml
-- [ ] T008 Configure frontend OpenAPI client generation in frontend/package.json
-- [ ] T009 [P] Configure ESLint and Prettier for frontend in frontend/.eslintrc.js
-- [ ] T010 [P] Configure Checkstyle for backend in backend/checkstyle.xml
-- [ ] T011 Create .env.example files for backend and frontend
-- [ ] T012 Create README.md with quickstart instructions
+- [x] T001 Create monorepo root structure with pom.xml parent POM
+- [x] T002 [P] Initialize backend Quarkus project in backend/ with pom.xml
+- [x] T003 [P] Initialize frontend React/Vite project in frontend/ with package.json
+- [x] T004 [P] Initialize e2e Playwright project in e2e/ with package.json
+- [x] T005 Create docker-compose.yml with PostgreSQL 16 and PostGIS extension
+- [x] T006 [P] Copy contracts/openapi.yaml from specs to contracts/
+- [x] T007 Configure backend OpenAPI code generation in backend/pom.xml
+- [x] T008 Configure frontend OpenAPI client generation in frontend/package.json
+- [x] T009 [P] Configure ESLint and Prettier for frontend in frontend/.eslintrc.js
+- [x] T010 [P] Configure Checkstyle for backend in backend/checkstyle.xml
+- [x] T011 Create .env.example files for backend and frontend
+- [x] T012 Create README.md with quickstart instructions
 
 ---
 
@@ -49,33 +49,33 @@
 
 ### Database Foundation
 
-- [ ] T013 Create Flyway migration V1__initial_schema.sql in backend/src/main/resources/db/migration/
-- [ ] T014 Implement BaseEntity abstract class in backend/src/main/java/com/tribly/domain/common/BaseEntity.java
-- [ ] T015 [P] Create TeamRole enum in backend/src/main/java/com/tribly/domain/team/TeamRole.java
-- [ ] T016 [P] Create RideStatus enum in backend/src/main/java/com/tribly/domain/ride/RideStatus.java
-- [ ] T017 [P] Create TripStatus enum in backend/src/main/java/com/tribly/domain/trip/TripStatus.java
-- [ ] T018 [P] Create Visibility enum in backend/src/main/java/com/tribly/domain/common/Visibility.java
-- [ ] T019 [P] Create PlaceType enum in backend/src/main/java/com/tribly/domain/place/PlaceType.java
+- [x] T013 Create Flyway migration V1__initial_schema.sql in backend/src/main/resources/db/migration/
+- [x] T014 Implement BaseEntity abstract class in backend/src/main/java/com/tribly/domain/common/BaseEntity.java
+- [x] T015 [P] Create TeamRole enum in backend/src/main/java/com/tribly/domain/team/TeamRole.java
+- [x] T016 [P] Create RideStatus enum in backend/src/main/java/com/tribly/domain/ride/RideStatus.java
+- [x] T017 [P] Create TripStatus enum in backend/src/main/java/com/tribly/domain/trip/TripStatus.java
+- [x] T018 [P] Create Visibility enum in backend/src/main/java/com/tribly/domain/common/Visibility.java
+- [x] T019 [P] Create PlaceType enum in backend/src/main/java/com/tribly/domain/place/PlaceType.java
 
 ### Backend Infrastructure
 
-- [ ] T020 Configure application.properties with database, OIDC, and JWT settings in backend/src/main/resources/
-- [ ] T021 Implement GlobalExceptionMapper in backend/src/main/java/com/tribly/infrastructure/exception/GlobalExceptionMapper.java
-- [ ] T022 [P] Create ErrorResponse DTO in backend/src/main/java/com/tribly/api/dto/ErrorResponse.java
-- [ ] T023 Implement TenantContext for multi-tenancy in backend/src/main/java/com/tribly/infrastructure/multitenancy/TenantContext.java
-- [ ] T024 Implement TenantFilter request filter in backend/src/main/java/com/tribly/infrastructure/multitenancy/TenantFilter.java
-- [ ] T025 Configure CORS in backend/src/main/java/com/tribly/config/CorsConfig.java
+- [x] T020 Configure application.properties with database, OIDC, and JWT settings in backend/src/main/resources/
+- [x] T021 Implement GlobalExceptionMapper in backend/src/main/java/com/tribly/infrastructure/exception/GlobalExceptionMapper.java
+- [x] T022 [P] Create ErrorResponse DTO in backend/src/main/java/com/tribly/api/dto/ErrorResponse.java
+- [x] T023 Implement TenantContext for multi-tenancy in backend/src/main/java/com/tribly/infrastructure/multitenancy/TenantContext.java
+- [x] T024 Implement TenantFilter request filter in backend/src/main/java/com/tribly/infrastructure/multitenancy/TenantFilter.java
+- [x] T025 Configure CORS in backend/src/main/java/com/tribly/config/CorsConfig.java
 
 ### Frontend Infrastructure
 
-- [ ] T026 Generate API client from OpenAPI using pnpm generate-api
-- [ ] T027 Configure TanStack Query provider in frontend/src/main.tsx
-- [ ] T028 [P] Create Zustand auth store in frontend/src/store/authStore.ts
-- [ ] T029 [P] Create API client configuration in frontend/src/api/client.ts
-- [ ] T030 Setup React Router with route structure in frontend/src/App.tsx
-- [ ] T031 [P] Create common Layout component in frontend/src/components/common/Layout.tsx
-- [ ] T032 [P] Create LoadingSpinner component in frontend/src/components/common/LoadingSpinner.tsx
-- [ ] T033 [P] Create ErrorBoundary component in frontend/src/components/common/ErrorBoundary.tsx
+- [x] T026 Generate API client from OpenAPI using pnpm generate-api
+- [x] T027 Configure TanStack Query provider in frontend/src/main.tsx
+- [x] T028 [P] Create Zustand auth store in frontend/src/store/authStore.ts
+- [x] T029 [P] Create API client configuration in frontend/src/api/client.ts
+- [x] T030 Setup React Router with route structure in frontend/src/App.tsx
+- [x] T031 [P] Create common Layout component in frontend/src/components/common/Layout.tsx
+- [x] T032 [P] Create LoadingSpinner component in frontend/src/components/common/LoadingSpinner.tsx
+- [x] T033 [P] Create ErrorBoundary component in frontend/src/components/common/ErrorBoundary.tsx
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
