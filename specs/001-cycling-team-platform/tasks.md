@@ -89,28 +89,28 @@
 
 ### Tests for User Story 1
 
-- [ ] T034 [P] [US1] Contract test for OAuth endpoints in backend/src/test/java/com/tribly/contract/AuthContractTest.java
-- [ ] T035 [P] [US1] Integration test for Strava OAuth flow in backend/src/test/java/com/tribly/integration/StravaAuthTest.java
-- [ ] T036 [P] [US1] E2E test for login flow in e2e/tests/auth.spec.ts
+- [x] T034 [P] [US1] Contract test for OAuth endpoints in backend/src/test/java/com/tribly/contract/AuthContractTest.java
+- [x] T035 [P] [US1] Integration test for Strava OAuth flow in backend/src/test/java/com/tribly/integration/StravaAuthTest.java
+- [x] T036 [P] [US1] E2E test for login flow in e2e/tests/auth.spec.ts
 
 ### Backend Implementation for User Story 1
 
-- [ ] T037 [P] [US1] Create User entity in backend/src/main/java/com/tribly/domain/user/User.java
-- [ ] T038 [US1] Create UserRepository in backend/src/main/java/com/tribly/domain/user/UserRepository.java
-- [ ] T039 [US1] Implement StravaOAuthService in backend/src/main/java/com/tribly/service/auth/StravaOAuthService.java
-- [ ] T040 [US1] Implement JwtService for token generation in backend/src/main/java/com/tribly/service/auth/JwtService.java
-- [ ] T041 [US1] Implement AuthResource REST endpoints in backend/src/main/java/com/tribly/api/auth/AuthResource.java
-- [ ] T042 [US1] Implement UserResource for profile management in backend/src/main/java/com/tribly/api/users/UserResource.java
-- [ ] T043 [US1] Create SecurityIdentityAugmentor for JWT validation in backend/src/main/java/com/tribly/infrastructure/security/SecurityIdentityAugmentor.java
+- [x] T037 [P] [US1] Create User entity in backend/src/main/java/com/tribly/domain/user/User.java
+- [x] T038 [US1] Create UserRepository in backend/src/main/java/com/tribly/domain/user/UserRepository.java
+- [x] T039 [US1] Implement StravaOAuthService in backend/src/main/java/com/tribly/service/auth/StravaOAuthService.java
+- [x] T040 [US1] Implement JwtService for token generation in backend/src/main/java/com/tribly/service/auth/JwtService.java
+- [x] T041 [US1] Implement AuthResource REST endpoints in backend/src/main/java/com/tribly/api/auth/AuthResource.java
+- [x] T042 [US1] Implement UserResource for profile management in backend/src/main/java/com/tribly/api/users/UserResource.java
+- [x] T043 [US1] Create SecurityIdentityAugmentor for JWT validation in backend/src/main/java/com/tribly/infrastructure/security/SecurityIdentityAugmentor.java
 
 ### Frontend Implementation for User Story 1
 
-- [ ] T044 [P] [US1] Create LoginPage in frontend/src/pages/auth/LoginPage.tsx
-- [ ] T045 [P] [US1] Create OAuthCallbackPage in frontend/src/pages/auth/OAuthCallbackPage.tsx
-- [ ] T046 [US1] Create useAuth hook in frontend/src/hooks/useAuth.ts
-- [ ] T047 [US1] Create ProtectedRoute component in frontend/src/components/auth/ProtectedRoute.tsx
-- [ ] T048 [US1] Create UserProfilePage in frontend/src/pages/auth/UserProfilePage.tsx
-- [ ] T049 [US1] Create UserAvatar component in frontend/src/components/common/UserAvatar.tsx
+- [x] T044 [P] [US1] Create LoginPage in frontend/src/pages/auth/LoginPage.tsx
+- [x] T045 [P] [US1] Create OAuthCallbackPage in frontend/src/pages/auth/OAuthCallbackPage.tsx
+- [x] T046 [US1] Create useAuth hook in frontend/src/hooks/useAuth.ts
+- [x] T047 [US1] Create ProtectedRoute component in frontend/src/components/auth/ProtectedRoute.tsx
+- [x] T048 [US1] Create UserProfilePage in frontend/src/pages/auth/UserProfilePage.tsx
+- [x] T049 [US1] Create UserAvatar component in frontend/src/components/common/UserAvatar.tsx
 
 **Checkpoint**: US1 complete - users can authenticate via Strava
 
@@ -124,32 +124,32 @@
 
 ### Tests for User Story 2
 
-- [ ] T050 [P] [US2] Contract test for team endpoints in backend/src/test/java/com/tribly/contract/TeamContractTest.java
-- [ ] T051 [P] [US2] Integration test for team CRUD in backend/src/test/java/com/tribly/integration/TeamServiceTest.java
-- [ ] T052 [P] [US2] E2E test for team creation in e2e/tests/team.spec.ts
+- [x] T050 [P] [US2] Contract test for team endpoints in backend/src/test/java/com/tribly/contract/TeamContractTest.java
+- [x] T051 [P] [US2] Integration test for team CRUD in backend/src/test/java/com/tribly/integration/TeamServiceTest.java
+- [x] T052 [P] [US2] E2E test for team creation in e2e/tests/team.spec.ts
 
 ### Backend Implementation for User Story 2
 
-- [ ] T053 [P] [US2] Create Team entity in backend/src/main/java/com/tribly/domain/team/Team.java
-- [ ] T054 [P] [US2] Create UserTeam entity in backend/src/main/java/com/tribly/domain/team/UserTeam.java
-- [ ] T055 [P] [US2] Create TeamDomain entity in backend/src/main/java/com/tribly/domain/team/TeamDomain.java
-- [ ] T056 [US2] Create TeamRepository in backend/src/main/java/com/tribly/domain/team/TeamRepository.java
-- [ ] T057 [US2] Create UserTeamRepository in backend/src/main/java/com/tribly/domain/team/UserTeamRepository.java
-- [ ] T058 [US2] Implement TeamService in backend/src/main/java/com/tribly/service/team/TeamService.java
-- [ ] T059 [US2] Implement TeamMembershipService in backend/src/main/java/com/tribly/service/team/TeamMembershipService.java
-- [ ] T060 [US2] Implement TeamResource REST endpoints in backend/src/main/java/com/tribly/api/teams/TeamResource.java
-- [ ] T061 [US2] Implement TeamMemberResource in backend/src/main/java/com/tribly/api/teams/TeamMemberResource.java
-- [ ] T062 [US2] Add Hibernate tenant filter to Team-owned entities
+- [x] T053 [P] [US2] Create Team entity in backend/src/main/java/com/tribly/domain/team/Team.java
+- [x] T054 [P] [US2] Create UserTeam entity in backend/src/main/java/com/tribly/domain/team/UserTeam.java
+- [x] T055 [P] [US2] Create TeamDomain entity in backend/src/main/java/com/tribly/domain/team/TeamDomain.java
+- [x] T056 [US2] Create TeamRepository in backend/src/main/java/com/tribly/domain/team/TeamRepository.java
+- [x] T057 [US2] Create UserTeamRepository in backend/src/main/java/com/tribly/domain/team/UserTeamRepository.java
+- [x] T058 [US2] Implement TeamService in backend/src/main/java/com/tribly/service/team/TeamService.java
+- [x] T059 [US2] Implement TeamMembershipService in backend/src/main/java/com/tribly/service/team/TeamMembershipService.java
+- [x] T060 [US2] Implement TeamResource REST endpoints in backend/src/main/java/com/tribly/api/teams/TeamResource.java
+- [x] T061 [US2] Implement TeamMemberResource in backend/src/main/java/com/tribly/api/teams/TeamMemberResource.java
+- [x] T062 [US2] Add Hibernate tenant filter to Team-owned entities
 
 ### Frontend Implementation for User Story 2
 
-- [ ] T063 [P] [US2] Create TeamListPage in frontend/src/pages/team/TeamListPage.tsx
-- [ ] T064 [P] [US2] Create TeamDetailPage in frontend/src/pages/team/TeamDetailPage.tsx
-- [ ] T065 [P] [US2] Create CreateTeamPage in frontend/src/pages/team/CreateTeamPage.tsx
-- [ ] T066 [US2] Create TeamCard component in frontend/src/components/team/TeamCard.tsx
-- [ ] T067 [US2] Create TeamMemberList component in frontend/src/components/team/TeamMemberList.tsx
-- [ ] T068 [US2] Create useTeam hook in frontend/src/hooks/useTeam.ts
-- [ ] T069 [US2] Create TeamSettingsPage in frontend/src/pages/team/TeamSettingsPage.tsx
+- [x] T063 [P] [US2] Create TeamListPage in frontend/src/pages/team/TeamListPage.tsx
+- [x] T064 [P] [US2] Create TeamDetailPage in frontend/src/pages/team/TeamDetailPage.tsx
+- [x] T065 [P] [US2] Create CreateTeamPage in frontend/src/pages/team/CreateTeamPage.tsx
+- [x] T066 [US2] Create TeamCard component in frontend/src/components/team/TeamCard.tsx
+- [x] T067 [US2] Create TeamMemberList component in frontend/src/components/team/TeamMemberList.tsx
+- [x] T068 [US2] Create useTeam hook in frontend/src/hooks/useTeam.ts
+- [x] T069 [US2] Create TeamSettingsPage in frontend/src/pages/team/TeamSettingsPage.tsx
 
 **Checkpoint**: US2 complete - users can create and join teams
 

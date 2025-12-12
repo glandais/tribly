@@ -1,6 +1,14 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Layout } from './components/common/Layout';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
+import { LoginPage } from './pages/auth/LoginPage';
+import { OAuthCallbackPage } from './pages/auth/OAuthCallbackPage';
+import { UserProfilePage } from './pages/auth/UserProfilePage';
+import { AuthenticatedRoute, UnauthenticatedRoute } from './components/auth/ProtectedRoute';
+import { TeamListPage } from './pages/team/TeamListPage';
+import { TeamDetailPage } from './pages/team/TeamDetailPage';
+import { CreateTeamPage } from './pages/team/CreateTeamPage';
+import { TeamSettingsPage } from './pages/team/TeamSettingsPage';
 
 function HomePage() {
   return (
@@ -28,15 +36,54 @@ function App() {
           <Route path="/" element={<Layout />}>
             <Route index element={<HomePage />} />
 
-            {/* Auth routes - to be implemented */}
-            <Route path="login" element={<div>Login Page</div>} />
-            <Route path="auth/callback/:provider" element={<div>OAuth Callback</div>} />
+            {/* Auth routes */}
+            <Route
+              path="login"
+              element={
+                <UnauthenticatedRoute>
+                  <LoginPage />
+                </UnauthenticatedRoute>
+              }
+            />
+            <Route path="auth/callback/:provider" element={<OAuthCallbackPage />} />
 
-            {/* Team routes - to be implemented */}
-            <Route path="teams" element={<div>Teams List</div>} />
-            <Route path="teams/new" element={<div>Create Team</div>} />
-            <Route path="teams/:teamSlug" element={<div>Team Detail</div>} />
-            <Route path="teams/:teamSlug/settings" element={<div>Team Settings</div>} />
+            {/* User profile routes */}
+            <Route
+              path="profile"
+              element={
+                <AuthenticatedRoute>
+                  <UserProfilePage />
+                </AuthenticatedRoute>
+              }
+            />
+            <Route
+              path="profile/settings"
+              element={
+                <AuthenticatedRoute>
+                  <UserProfilePage />
+                </AuthenticatedRoute>
+              }
+            />
+
+            {/* Team routes */}
+            <Route path="teams" element={<TeamListPage />} />
+            <Route
+              path="teams/new"
+              element={
+                <AuthenticatedRoute>
+                  <CreateTeamPage />
+                </AuthenticatedRoute>
+              }
+            />
+            <Route path="teams/:teamSlug" element={<TeamDetailPage />} />
+            <Route
+              path="teams/:teamSlug/settings"
+              element={
+                <AuthenticatedRoute>
+                  <TeamSettingsPage />
+                </AuthenticatedRoute>
+              }
+            />
 
             {/* Ride routes - to be implemented */}
             <Route path="teams/:teamSlug/rides" element={<div>Rides List</div>} />
@@ -52,10 +99,6 @@ function App() {
             <Route path="teams/:teamSlug/routes" element={<div>Routes List</div>} />
             <Route path="teams/:teamSlug/routes/new" element={<div>Create Route</div>} />
             <Route path="teams/:teamSlug/routes/:routeId" element={<div>Route Detail</div>} />
-
-            {/* User profile routes - to be implemented */}
-            <Route path="profile" element={<div>User Profile</div>} />
-            <Route path="profile/settings" element={<div>Profile Settings</div>} />
 
             {/* Catch all */}
             <Route path="*" element={<NotFoundPage />} />
