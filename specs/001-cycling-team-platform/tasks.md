@@ -163,36 +163,36 @@
 
 ### Tests for User Story 3
 
-- [ ] T070 [P] [US3] Contract test for ride endpoints in backend/src/test/java/com/tribly/contract/RideContractTest.java
-- [ ] T071 [P] [US3] Integration test for ride CRUD in backend/src/test/java/com/tribly/integration/RideServiceTest.java
-- [ ] T072 [P] [US3] E2E test for ride creation flow in e2e/tests/ride.spec.ts
+- [x] T070 [P] [US3] Contract test for ride endpoints in backend/src/test/java/com/tribly/contract/RideContractTest.java
+- [x] T071 [P] [US3] Integration test for ride CRUD in backend/src/test/java/com/tribly/integration/RideServiceTest.java
+- [x] T072 [P] [US3] E2E test for ride creation flow in e2e/tests/ride.spec.ts
 
 ### Backend Implementation for User Story 3
 
-- [ ] T073 [P] [US3] Create Place entity in backend/src/main/java/com/tribly/domain/place/Place.java
-- [ ] T074 [P] [US3] Create Ride entity in backend/src/main/java/com/tribly/domain/ride/Ride.java
-- [ ] T075 [P] [US3] Create RideGroup entity in backend/src/main/java/com/tribly/domain/ride/RideGroup.java
-- [ ] T076 [P] [US3] Create RideParticipation entity in backend/src/main/java/com/tribly/domain/ride/RideParticipation.java
-- [ ] T077 [US3] Create RideRepository in backend/src/main/java/com/tribly/domain/ride/RideRepository.java
-- [ ] T078 [US3] Create PlaceRepository in backend/src/main/java/com/tribly/domain/place/PlaceRepository.java
-- [ ] T079 [US3] Implement RideService in backend/src/main/java/com/tribly/service/ride/RideService.java
-- [ ] T080 [US3] Implement RideGroupService in backend/src/main/java/com/tribly/service/ride/RideGroupService.java
-- [ ] T081 [US3] Implement RideParticipationService in backend/src/main/java/com/tribly/service/ride/RideParticipationService.java
-- [ ] T082 [US3] Implement PlaceService in backend/src/main/java/com/tribly/service/place/PlaceService.java
-- [ ] T083 [US3] Implement RideResource REST endpoints in backend/src/main/java/com/tribly/api/rides/RideResource.java
-- [ ] T084 [US3] Implement PlaceResource REST endpoints in backend/src/main/java/com/tribly/api/places/PlaceResource.java
+- [x] T073 [P] [US3] Create Place entity in backend/src/main/java/com/tribly/domain/place/Place.java
+- [x] T074 [P] [US3] Create Ride entity in backend/src/main/java/com/tribly/domain/ride/Ride.java
+- [x] T075 [P] [US3] Create RideGroup entity in backend/src/main/java/com/tribly/domain/ride/RideGroup.java
+- [x] T076 [P] [US3] Create RideParticipation entity in backend/src/main/java/com/tribly/domain/ride/RideParticipation.java
+- [x] T077 [US3] Create RideRepository in backend/src/main/java/com/tribly/domain/ride/RideRepository.java
+- [x] T078 [US3] Create PlaceRepository in backend/src/main/java/com/tribly/domain/place/PlaceRepository.java
+- [x] T079 [US3] Implement RideService in backend/src/main/java/com/tribly/service/ride/RideService.java
+- [x] T080 [US3] Implement RideGroupService in backend/src/main/java/com/tribly/service/ride/RideGroupService.java
+- [x] T081 [US3] Implement RideParticipationService in backend/src/main/java/com/tribly/service/ride/RideParticipationService.java
+- [x] T082 [US3] Implement PlaceService in backend/src/main/java/com/tribly/service/place/PlaceService.java
+- [x] T083 [US3] Implement RideResource REST endpoints in backend/src/main/java/com/tribly/api/rides/RideResource.java
+- [x] T084 [US3] Implement PlaceResource REST endpoints in backend/src/main/java/com/tribly/api/places/PlaceResource.java
 
 ### Frontend Implementation for User Story 3
 
-- [ ] T085 [P] [US3] Create RideListPage in frontend/src/pages/ride/RideListPage.tsx
-- [ ] T086 [P] [US3] Create RideDetailPage in frontend/src/pages/ride/RideDetailPage.tsx
-- [ ] T087 [P] [US3] Create CreateRidePage in frontend/src/pages/ride/CreateRidePage.tsx
-- [ ] T088 [US3] Create RideCard component in frontend/src/components/ride/RideCard.tsx
-- [ ] T089 [US3] Create RideGroupCard component in frontend/src/components/ride/RideGroupCard.tsx
-- [ ] T090 [US3] Create ParticipantList component in frontend/src/components/ride/ParticipantList.tsx
-- [ ] T091 [US3] Create RideForm component in frontend/src/components/ride/RideForm.tsx
-- [ ] T092 [US3] Create PlaceSelector component in frontend/src/components/place/PlaceSelector.tsx
-- [ ] T093 [US3] Create useRide hook in frontend/src/hooks/useRide.ts
+- [x] T085 [P] [US3] Create RideListPage in frontend/src/pages/ride/RideListPage.tsx
+- [x] T086 [P] [US3] Create RideDetailPage in frontend/src/pages/ride/RideDetailPage.tsx
+- [x] T087 [P] [US3] Create CreateRidePage in frontend/src/pages/ride/CreateRidePage.tsx
+- [x] T088 [US3] Create RideCard component in frontend/src/components/ride/RideCard.tsx
+- [x] T089 [US3] Create RideGroupCard component in frontend/src/components/ride/RideGroupCard.tsx
+- [x] T090 [US3] Create ParticipantList component in frontend/src/components/ride/ParticipantList.tsx
+- [x] T091 [US3] Create RideForm component in frontend/src/components/ride/RideForm.tsx
+- [x] T092 [US3] Create PlaceSelector component in frontend/src/components/place/PlaceSelector.tsx
+- [x] T093 [US3] Create useRide hook in frontend/src/hooks/useRide.ts
 
 **Checkpoint**: US3 complete - teams can organize rides (MVP complete!)
 

@@ -1,0 +1,51 @@
+package com.tribly.domain.ride;
+
+import io.quarkus.hibernate.orm.panache.PanacheRepository;
+import jakarta.enterprise.context.ApplicationScoped;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
+
+@ApplicationScoped
+public class RideRepository implements PanacheRepository<Ride> {
+
+    public Optional<Ride> findByIdAndTeam(Long rideId, Long teamId) {
+        return find("id = ?1 and team.id = ?2 and deleted = false", rideId, teamId).firstResultOptional();
+    }
+
+    public List<Ride> findByTeam(Long teamId, int page, int size) {
+        return find("team.id = ?1 and deleted = false order by date desc", teamId)
+                .page(page, size)
+                .list();
+    }
+
+    public List<Ride> findByTeamAndDateRange(Long teamId, LocalDate from, LocalDate to, int page, int size) {
+        return find("team.id = ?1 and deleted = false and date >= ?2 and date <= ?3 order by date",
+                teamId, from, to)
+                .page(page, size)
+                .list();
+    }
+
+    public List<Ride> findByTeamAndStatus(Long teamId, RideStatus status, int page, int size) {
+        return find("team.id = ?1 and status = ?2 and deleted = false order by date desc",
+                teamId, status)
+                .page(page, size)
+                .list();
+    }
+
+    public List<Ride> findUpcomingByTeam(Long teamId, int page, int size) {
+        return find("team.id = ?1 and deleted = false and status = ?2 and date >= ?3 order by date",
+                teamId, RideStatus.PUBLISHED, LocalDate.now())
+                .page(page, size)
+                .list();
+    }
+
+    public long countByTeam(Long teamId) {
+        return count("team.id = ?1 and deleted = false", teamId);
+    }
+
+    public long countByTeamAndStatus(Long teamId, RideStatus status) {
+        return count("team.id = ?1 and status = ?2 and deleted = false", teamId, status);
+    }
+}

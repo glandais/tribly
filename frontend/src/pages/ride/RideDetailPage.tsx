@@ -1,0 +1,229 @@
+import { useState } from 'react';
+import { Link, useParams } from 'react-router-dom';
+import { useTeam } from '../../hooks/useTeam';
+import { useRide, useUpdateRide, useDeleteRide, useJoinRide, useLeaveRide, RideStatus } from '../../hooks/useRide';
+import { useAuth } from '../../hooks/useAuth';
+import { LoadingPage, LoadingSpinner } from '../../components/common/LoadingSpinner';
+import { RideGroupCard } from '../../components/ride/RideGroupCard';
+
+const statusColors: Record<RideStatus, string> = {
+  DRAFT: 'bg-gray-100 text-gray-800',
+  PUBLISHED: 'bg-green-100 text-green-800',
+  CANCELLED: 'bg-red-100 text-red-800',
+  COMPLETED: 'bg-blue-100 text-blue-800',
+};
+
+export function RideDetailPage() {
+  const { teamSlug, rideId } = useParams<{ teamSlug: string; rideId: string }>();
+  const { isAuthenticated } = useAuth();
+  const [joiningGroupId, setJoiningGroupId] = useState<number | null>(null);
+
+  const { data: team, isLoading: isLoadingTeam } = useTeam(teamSlug);
+  const { data: ride, isLoading: isLoadingRide, error } = useRide(team?.id, rideId ? Number(rideId) : undefined);
+
+  const updateMutation = useUpdateRide(team?.id, Number(rideId));
+  const deleteMutation = useDeleteRide(team?.id, teamSlug!);
+  const joinMutation = useJoinRide(team?.id, Number(rideId));
+  const leaveMutation = useLeaveRide(team?.id, Number(rideId));
+
+  if (isLoadingTeam || isLoadingRide) {
+    return <LoadingPage message="Loading ride..." />;
+  }
+
+  if (error || !ride) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="text-center py-12">
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Ride Not Found</h1>
+          <p className="text-gray-600 mb-6">The ride you're looking for doesn't exist.</p>
+          <Link
+            to={`/teams/${teamSlug}/rides`}
+            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
+          >
+            Back to Rides
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const isMember = !!team?.userRole;
+  const isAdmin = team?.userRole === 'ADMIN';
+  const isOrganizer = team?.userRole === 'ORGANIZER';
+  const canEdit = isAdmin || isOrganizer;
+  const canJoinRide = isMember && ride.status === 'PUBLISHED';
+
+  const rideDate = new Date(ride.date);
+  const formattedDate = rideDate.toLocaleDateString(undefined, {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+
+  const handlePublish = () => {
+    updateMutation.mutate({ status: 'PUBLISHED' });
+  };
+
+  const handleCancel = () => {
+    if (confirm('Are you sure you want to cancel this ride?')) {
+      updateMutation.mutate({ status: 'CANCELLED' });
+    }
+  };
+
+  const handleDelete = () => {
+    if (confirm('Are you sure you want to delete this ride? This cannot be undone.')) {
+      deleteMutation.mutate(Number(rideId));
+    }
+  };
+
+  const handleJoinGroup = (groupId: number) => {
+    setJoiningGroupId(groupId);
+    joinMutation.mutate(
+      { groupId },
+      {
+        onSettled: () => setJoiningGroupId(null),
+      }
+    );
+  };
+
+  const handleLeaveGroup = (groupId: number) => {
+    setJoiningGroupId(groupId);
+    leaveMutation.mutate(groupId, {
+      onSettled: () => setJoiningGroupId(null),
+    });
+  };
+
+  return (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Breadcrumb */}
+      <div className="mb-6">
+        <nav className="flex items-center space-x-2 text-sm text-gray-500">
+          <Link to={`/teams/${teamSlug}`} className="hover:text-gray-700">
+            {team?.name}
+          </Link>
+          <span>/</span>
+          <Link to={`/teams/${teamSlug}/rides`} className="hover:text-gray-700">
+            Rides
+          </Link>
+          <span>/</span>
+          <span className="text-gray-900">{ride.title}</span>
+        </nav>
+      </div>
+
+      {/* Header */}
+      <div className="bg-white rounded-lg shadow border border-gray-200 p-6 mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl font-bold text-gray-900">{ride.title}</h1>
+              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColors[ride.status]}`}>
+                {ride.status}
+              </span>
+            </div>
+            {ride.description && (
+              <p className="mt-2 text-gray-600">{ride.description}</p>
+            )}
+            <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-gray-500">
+              <span className="flex items-center">
+                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                {formattedDate}
+              </span>
+              {ride.startTime && (
+                <span className="flex items-center">
+                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  {ride.startTime.substring(0, 5)}
+                </span>
+              )}
+              <span className="flex items-center">
+                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                {ride.participantCount} participant{ride.participantCount !== 1 ? 's' : ''}
+              </span>
+            </div>
+          </div>
+
+          {canEdit && (
+            <div className="flex items-center gap-2">
+              {ride.status === 'DRAFT' && (
+                <button
+                  onClick={handlePublish}
+                  disabled={updateMutation.isPending}
+                  className="inline-flex items-center px-3 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-green-600 hover:bg-green-700 disabled:opacity-50"
+                >
+                  {updateMutation.isPending ? <LoadingSpinner size="sm" className="mr-2" /> : null}
+                  Publish
+                </button>
+              )}
+              {ride.status === 'PUBLISHED' && (
+                <button
+                  onClick={handleCancel}
+                  disabled={updateMutation.isPending}
+                  className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+                >
+                  Cancel Ride
+                </button>
+              )}
+              <button
+                onClick={handleDelete}
+                disabled={deleteMutation.isPending}
+                className="inline-flex items-center px-3 py-2 border border-red-300 rounded-md text-sm font-medium text-red-700 bg-white hover:bg-red-50 disabled:opacity-50"
+              >
+                Delete
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Groups */}
+      <div className="mb-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">Groups</h2>
+        {ride.groups && ride.groups.length > 0 ? (
+          <div className="space-y-3">
+            {ride.groups.map((group) => (
+              <RideGroupCard
+                key={group.id}
+                group={group}
+                canJoin={canJoinRide}
+                onJoin={() => handleJoinGroup(group.id)}
+                onLeave={() => handleLeaveGroup(group.id)}
+                isLoading={joiningGroupId === group.id && (joinMutation.isPending || leaveMutation.isPending)}
+              />
+            ))}
+          </div>
+        ) : (
+          <p className="text-gray-500">No groups defined for this ride.</p>
+        )}
+      </div>
+
+      {/* Info for non-members */}
+      {!isMember && isAuthenticated && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <p className="text-yellow-800">
+            Join this team to participate in rides.{' '}
+            <Link to={`/teams/${teamSlug}`} className="font-medium underline">
+              View team
+            </Link>
+          </p>
+        </div>
+      )}
+
+      {!isAuthenticated && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <p className="text-blue-800">
+            Sign in and join this team to participate in rides.{' '}
+            <Link to="/login" className="font-medium underline">
+              Sign in
+            </Link>
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}

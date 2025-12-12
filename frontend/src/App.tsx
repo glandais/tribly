@@ -9,6 +9,9 @@ import { TeamListPage } from './pages/team/TeamListPage';
 import { TeamDetailPage } from './pages/team/TeamDetailPage';
 import { CreateTeamPage } from './pages/team/CreateTeamPage';
 import { TeamSettingsPage } from './pages/team/TeamSettingsPage';
+import { RideListPage } from './pages/ride/RideListPage';
+import { RideDetailPage } from './pages/ride/RideDetailPage';
+import { CreateRidePage } from './pages/ride/CreateRidePage';
 
 function HomePage() {
   return (
@@ -85,10 +88,17 @@ function App() {
               }
             />
 
-            {/* Ride routes - to be implemented */}
-            <Route path="teams/:teamSlug/rides" element={<div>Rides List</div>} />
-            <Route path="teams/:teamSlug/rides/new" element={<div>Create Ride</div>} />
-            <Route path="teams/:teamSlug/rides/:rideId" element={<div>Ride Detail</div>} />
+            {/* Ride routes */}
+            <Route path="teams/:teamSlug/rides" element={<RideListPage />} />
+            <Route
+              path="teams/:teamSlug/rides/new"
+              element={
+                <AuthenticatedRoute>
+                  <CreateRidePage />
+                </AuthenticatedRoute>
+              }
+            />
+            <Route path="teams/:teamSlug/rides/:rideId" element={<RideDetailPage />} />
 
             {/* Trip routes - to be implemented */}
             <Route path="teams/:teamSlug/trips" element={<div>Trips List</div>} />
