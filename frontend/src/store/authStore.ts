@@ -9,8 +9,7 @@ export interface User {
   id: string;
   email: string;
   displayName: string;
-  avatarUrl: string | null;
-  stravaId: string | null;
+  avatarUrl?: string | null;
   locale?: string;
   timezone?: string;
   dbId?: number;
@@ -26,8 +25,7 @@ export interface AuthState {
 
 export interface AuthActions {
   initialize: () => Promise<void>;
-  login: (idpHint?: string) => void;
-  loginWithStrava: () => void;
+  login: () => void;
   logout: () => void;
   setUser: (user: User | null) => void;
   setLoading: (isLoading: boolean) => void;
@@ -55,8 +53,6 @@ const mapKeycloakProfileToUser = (
     id: profile.id,
     email: profile.email,
     displayName: profile.displayName,
-    avatarUrl: profile.avatarUrl,
-    stravaId: profile.stravaId,
   };
 };
 
@@ -99,20 +95,9 @@ export const useAuthStore = create<AuthStore>()((set, get) => ({
     }
   },
 
-  login: (idpHint?: string) => {
-    const options: Keycloak.KeycloakLoginOptions = {
-      redirectUri: window.location.origin + '/',
-    };
-    if (idpHint) {
-      options.idpHint = idpHint;
-    }
-    keycloak.login(options);
-  },
-
-  loginWithStrava: () => {
+  login: () => {
     keycloak.login({
       redirectUri: window.location.origin + '/',
-      idpHint: 'strava',
     });
   },
 

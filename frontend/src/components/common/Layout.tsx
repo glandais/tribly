@@ -1,8 +1,8 @@
 import { Outlet, Link } from 'react-router-dom';
-import { useAuthStore } from '../../store/authStore';
+import { useAuth } from '../../hooks/useAuth';
 
 export function Layout() {
-  const { user, isAuthenticated, logout } = useAuthStore();
+  const { user, isAuthenticated, logout } = useAuth();
 
   return (
     <div className="min-h-screen bg-gray-50">

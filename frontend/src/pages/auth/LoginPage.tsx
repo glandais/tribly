@@ -1,11 +1,10 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuthStore } from '../../store/authStore';
+import { useAuth } from '../../hooks/useAuth';
 
 export function LoginPage() {
   const navigate = useNavigate();
-  const { isAuthenticated, isInitialized, isLoading, loginWithStrava, login } =
-    useAuthStore();
+  const { isAuthenticated, isInitialized, isLoading, login } = useAuth();
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -32,35 +31,25 @@ export function LoginPage() {
           <p className="mt-2 text-gray-600">Sign in to manage your cycling team</p>
         </div>
 
-        <div className="mt-8 space-y-4">
-          <button
-            onClick={loginWithStrava}
-            className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-[#FC4C02] hover:bg-[#E34402] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FC4C02] transition-colors"
-          >
-            <svg
-              className="w-6 h-6"
-              viewBox="0 0 24 24"
-              fill="currentColor"
-            >
-              <path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169" />
-            </svg>
-            Continue with Strava
-          </button>
-
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300" />
-            </div>
-            <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">Or</span>
-            </div>
-          </div>
-
+        <div className="mt-8">
           <button
             onClick={() => login()}
-            className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-gray-300 text-base font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+            className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
           >
-            Other Sign-in Options
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"
+              />
+            </svg>
+            Sign In
           </button>
         </div>
 

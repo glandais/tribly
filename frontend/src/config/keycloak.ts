@@ -2,7 +2,7 @@ import Keycloak from 'keycloak-js';
 
 const keycloakConfig = {
   url: import.meta.env.VITE_KEYCLOAK_URL || 'http://localhost:8180',
-  realm: import.meta.env.VITE_KEYCLOAK_REALM || 'tribly',
+  realm: import.meta.env.VITE_KEYCLOAK_REALM || 'quarkus',
   clientId: import.meta.env.VITE_KEYCLOAK_CLIENT_ID || 'tribly-frontend',
 };
 
@@ -64,8 +64,6 @@ export interface KeycloakUserProfile {
   id: string;
   email: string;
   displayName: string;
-  avatarUrl: string | null;
-  stravaId: string | null;
 }
 
 export const getUserProfile = (): KeycloakUserProfile | null => {
@@ -80,8 +78,6 @@ export const getUserProfile = (): KeycloakUserProfile | null => {
       (tokenParsed.name as string) ||
       (tokenParsed.preferred_username as string) ||
       '',
-    avatarUrl: (tokenParsed.avatar_url as string) || null,
-    stravaId: (tokenParsed.strava_id as string) || null,
   };
 };
 

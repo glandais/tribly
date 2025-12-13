@@ -249,7 +249,7 @@ export function TeamDetailPage() {
           <TeamMemberList
             members={membersData.members}
             currentUserRole={team.userRole}
-            currentUserId={user?.id ?? null}
+            currentUserId={user?.dbId ?? null}
             onUpdateRole={(memberId, role) =>
               updateRoleMutation.mutate({ memberId, role })
             }

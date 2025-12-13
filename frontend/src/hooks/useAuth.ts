@@ -1,7 +1,6 @@
 import { useCallback, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useAuthStore, User } from '../store/authStore';
+import { useAuthStore } from '../store/authStore';
 import apiClient, { ApiClientError } from '../api/client';
 
 interface UpdateUserRequest {
@@ -15,13 +14,11 @@ interface BackendUser {
   email: string;
   displayName: string;
   avatarUrl: string | null;
-  stravaId: string | null;
   locale: string;
   timezone: string;
 }
 
 export function useAuth() {
-  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const {
     user,
@@ -31,10 +28,8 @@ export function useAuth() {
     error,
     initialize,
     login,
-    loginWithStrava,
     logout: storeLogout,
     setUser,
-    setLoading,
     setError,
     clearError,
   } = useAuthStore();
@@ -64,6 +59,7 @@ export function useAuth() {
       setUser({
         ...user,
         dbId: backendUser.id,
+        avatarUrl: backendUser.avatarUrl,
         locale: backendUser.locale,
         timezone: backendUser.timezone,
       });
@@ -114,7 +110,6 @@ export function useAuth() {
     isLoading,
     error,
     login,
-    loginWithStrava,
     logout,
     updateProfile: updateProfileMutation.mutate,
     isUpdatingProfile: updateProfileMutation.isPending,

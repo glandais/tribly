@@ -1,5 +1,5 @@
 import { Navigate, useLocation } from 'react-router-dom';
-import { useAuthStore } from '../../store/authStore';
+import { useAuth } from '../../hooks/useAuth';
 import { LoadingPage } from '../common/LoadingSpinner';
 
 interface ProtectedRouteProps {
@@ -14,9 +14,9 @@ export function ProtectedRoute({
   redirectTo = '/login',
 }: ProtectedRouteProps) {
   const location = useLocation();
-  const { isAuthenticated, isLoading } = useAuthStore();
+  const { isAuthenticated, isLoading, isInitialized } = useAuth();
 
-  if (isLoading) {
+  if (!isInitialized || isLoading) {
     return <LoadingPage message="Checking authentication..." />;
   }
 

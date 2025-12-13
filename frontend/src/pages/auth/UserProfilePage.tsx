@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
-import { UserAvatar } from '../../components/common/UserAvatar';
 
 export function UserProfilePage() {
   const {
@@ -50,13 +49,19 @@ export function UserProfilePage() {
 
         <div className="p-6 space-y-6">
           <div className="flex items-center gap-6">
-            <UserAvatar user={user} size="xl" />
+            <div
+              className="h-16 w-16 rounded-full bg-indigo-500 flex items-center justify-center text-white text-xl font-medium"
+            >
+              {user.displayName
+                .split(' ')
+                .map((n) => n[0])
+                .join('')
+                .toUpperCase()
+                .slice(0, 2)}
+            </div>
             <div>
               <h2 className="text-lg font-medium text-gray-900">{user.displayName}</h2>
               <p className="text-gray-500">{user.email}</p>
-              {user.stravaId && (
-                <p className="text-sm text-orange-600 mt-1">Connected with Strava</p>
-              )}
             </div>
           </div>
 

@@ -9,6 +9,15 @@
       "directAccessGrantsEnabled": true,
       "redirectUris": ["*"],
       "webOrigins": ["*"]
+    },
+    {
+      "clientId": "tribly-frontend",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "redirectUris": ["http://localhost:5173/*", "http://localhost:5174/*", "http://localhost:3000/*"],
+      "webOrigins": ["http://localhost:5173", "http://localhost:5174", "http://localhost:3000"]
     }
   ],
   "roles": {

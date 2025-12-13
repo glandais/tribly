@@ -26,6 +26,9 @@ importers:
       date-fns:
         specifier: ^4.1.0
         version: 4.1.0
+      keycloak-js:
+        specifier: ^26.0.7
+        version: 26.2.2
       leaflet:
         specifier: ^1.9.4
         version: 1.9.4
@@ -1586,6 +1589,9 @@ packages:
 
   jsonfile@6.2.0:
     resolution: {integrity: sha512-FGuPw30AdOIUTRMC2OMRtQV+jkVj2cfPqSeWXv1NEAJ1qZ5zb1X6z1mFhbfOB/iy3ssJCD+3KuZ8r8C3uVFlAg==}
+
+  keycloak-js@26.2.2:
+    resolution: {integrity: sha512-ug7pNZ1xNkd7PPkerOJCEU2VnUhS7CYStDOCFJgqCNQ64h53ppxaKrh4iXH0xM8hFu5b1W6e6lsyYWqBMvaQFg==}
 
   keyv@4.5.4:
     resolution: {integrity: sha512-oxVHkHR/EJf2CNXnWxRLW6mg7JyCCUcG0DtEGmL2ctUo1PNTin1PUil+r/+4r5MpVgC/fn1kjsx7mjSujKqIpw==}
@@ -3733,6 +3739,8 @@ snapshots:
       universalify: 2.0.1
     optionalDependencies:
       graceful-fs: 4.2.11
+
+  keycloak-js@26.2.2: {}
 
   keyv@4.5.4:
     dependencies:
