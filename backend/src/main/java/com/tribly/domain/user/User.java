@@ -27,9 +27,6 @@ public class User extends BaseEntity {
     @Column(name = "avatar_url", length = 500)
     private String avatarUrl;
 
-    @Column(name = "strava_id", unique = true, length = 50)
-    private String stravaId;
-
     @Column(name = "garmin_id", unique = true, length = 50)
     private String garminId;
 
@@ -78,14 +75,6 @@ public class User extends BaseEntity {
 
     public void setAvatarUrl(String avatarUrl) {
         this.avatarUrl = avatarUrl;
-    }
-
-    public String getStravaId() {
-        return stravaId;
-    }
-
-    public void setStravaId(String stravaId) {
-        this.stravaId = stravaId;
     }
 
     public String getGarminId() {
@@ -140,10 +129,4 @@ public class User extends BaseEntity {
         this.lastLoginAt = Instant.now();
     }
 
-    public static User fromStrava(String stravaId, String email, String displayName, String avatarUrl) {
-        User user = new User(email, displayName);
-        user.setStravaId(stravaId);
-        user.setAvatarUrl(avatarUrl);
-        return user;
-    }
 }

@@ -1,14 +1,14 @@
 package com.tribly.integration;
 
-import com.tribly.domain.team.TeamRepository;
-import com.tribly.domain.team.UserTeamRepository;
 import com.tribly.domain.ride.RideGroupRepository;
 import com.tribly.domain.ride.RideParticipationRepository;
 import com.tribly.domain.ride.RideRepository;
+import com.tribly.domain.team.TeamRepository;
+import com.tribly.domain.team.UserTeamRepository;
 import com.tribly.domain.user.User;
 import com.tribly.domain.user.UserRepository;
-import com.tribly.service.auth.JwtService;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.keycloak.client.KeycloakTestClient;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,6 +19,9 @@ import static org.hamcrest.Matchers.*;
 
 @QuarkusTest
 class RideServiceTest {
+
+    public static final String USERNAME_ADMIN = "user1";
+    public static final String USERNAME_TEST = "user2";
 
     @Inject
     RideRepository rideRepository;
@@ -38,42 +41,30 @@ class RideServiceTest {
     @Inject
     UserRepository userRepository;
 
-    @Inject
-    JwtService jwtService;
-
-    private User adminUser;
-    private User memberUser;
-    private String adminToken;
-    private String memberToken;
     private String teamSlug;
     private Long teamId;
+
+    KeycloakTestClient keycloakClient = new KeycloakTestClient();
+
+    protected String getAccessToken(String userName) {
+        return keycloakClient.getAccessToken(userName, userName, "tribly-backend");
+    }
 
     @BeforeEach
     @Transactional
     void setUp() {
         // Clean up in correct order
-        participationRepository.delete("rideGroup.ride.team.slug like ?1", "ride-test-%");
-        rideGroupRepository.delete("ride.team.slug like ?1", "ride-test-%");
-        rideRepository.delete("team.slug like ?1", "ride-test-%");
-        userTeamRepository.delete("user.email like ?1", "ride-test-%");
-        teamRepository.delete("slug like ?1", "ride-test-%");
-        userRepository.delete("email like ?1", "ride-test-%");
-
-        adminUser = new User("ride-test-admin@example.com", "Ride Admin");
-        adminUser.setStravaId("ride-admin-strava-" + System.currentTimeMillis());
-        userRepository.persistAndFlush(adminUser);
-
-        memberUser = new User("ride-test-member@example.com", "Ride Member");
-        memberUser.setStravaId("ride-member-strava-" + System.currentTimeMillis());
-        userRepository.persistAndFlush(memberUser);
-
-        adminToken = jwtService.generateToken(adminUser);
-        memberToken = jwtService.generateToken(memberUser);
+        participationRepository.deleteAll();
+        rideGroupRepository.deleteAll();
+        rideRepository.deleteAll();
+        userTeamRepository.deleteAll();
+        teamRepository.deleteAll();
+        userRepository.deleteAll();
     }
 
     private void createTeamViaHttp() {
         var response = given()
-                .header("Authorization", "Bearer " + adminToken)
+                .auth().oauth2(getAccessToken(USERNAME_ADMIN))
                 .contentType("application/json")
                 .body("{\"name\": \"Ride Test Team " + System.currentTimeMillis() + "\", \"isPublic\": true}")
                 .when()
@@ -88,7 +79,7 @@ class RideServiceTest {
 
     private void memberJoinsTeam() {
         given()
-                .header("Authorization", "Bearer " + memberToken)
+                .auth().oauth2(getAccessToken(USERNAME_TEST))
                 .contentType("application/json")
                 .when()
                 .post("/v1/teams/" + teamSlug + "/members/join")
@@ -101,7 +92,7 @@ class RideServiceTest {
         createTeamViaHttp();
 
         given()
-                .header("Authorization", "Bearer " + adminToken)
+                .auth().oauth2(getAccessToken(USERNAME_ADMIN))
                 .contentType("application/json")
                 .body("{\"title\": \"Sunday Morning Ride\", \"date\": \"2025-01-20\"}")
                 .when()
@@ -120,7 +111,7 @@ class RideServiceTest {
         memberJoinsTeam();
 
         given()
-                .header("Authorization", "Bearer " + memberToken)
+                .auth().oauth2(getAccessToken(USERNAME_TEST))
                 .contentType("application/json")
                 .body("{\"title\": \"Forbidden Ride\", \"date\": \"2025-01-20\"}")
                 .when()
@@ -146,7 +137,7 @@ class RideServiceTest {
                 """;
 
         given()
-                .header("Authorization", "Bearer " + adminToken)
+                .auth().oauth2(getAccessToken(USERNAME_ADMIN))
                 .contentType("application/json")
                 .body(body)
                 .when()
@@ -162,7 +153,7 @@ class RideServiceTest {
         createTeamViaHttp();
 
         Integer rideId = given()
-                .header("Authorization", "Bearer " + adminToken)
+                .auth().oauth2(getAccessToken(USERNAME_ADMIN))
                 .contentType("application/json")
                 .body("{\"title\": \"Get Test Ride\", \"date\": \"2025-01-22\"}")
                 .when()
@@ -172,7 +163,7 @@ class RideServiceTest {
                 .extract().path("id");
 
         given()
-                .header("Authorization", "Bearer " + adminToken)
+                .auth().oauth2(getAccessToken(USERNAME_ADMIN))
                 .when()
                 .get("/v1/teams/" + teamId + "/rides/" + rideId)
                 .then()
@@ -188,7 +179,7 @@ class RideServiceTest {
 
         // Create two rides
         given()
-                .header("Authorization", "Bearer " + adminToken)
+                .auth().oauth2(getAccessToken(USERNAME_ADMIN))
                 .contentType("application/json")
                 .body("{\"title\": \"Ride 1\", \"date\": \"2025-01-23\"}")
                 .when()
@@ -197,7 +188,7 @@ class RideServiceTest {
                 .statusCode(201);
 
         given()
-                .header("Authorization", "Bearer " + adminToken)
+                .auth().oauth2(getAccessToken(USERNAME_ADMIN))
                 .contentType("application/json")
                 .body("{\"title\": \"Ride 2\", \"date\": \"2025-01-24\"}")
                 .when()
@@ -206,7 +197,7 @@ class RideServiceTest {
                 .statusCode(201);
 
         given()
-                .header("Authorization", "Bearer " + adminToken)
+                .auth().oauth2(getAccessToken(USERNAME_ADMIN))
                 .when()
                 .get("/v1/teams/" + teamId + "/rides")
                 .then()
@@ -220,7 +211,7 @@ class RideServiceTest {
         createTeamViaHttp();
 
         Integer rideId = given()
-                .header("Authorization", "Bearer " + adminToken)
+                .auth().oauth2(getAccessToken(USERNAME_ADMIN))
                 .contentType("application/json")
                 .body("{\"title\": \"Original Title\", \"date\": \"2025-01-25\"}")
                 .when()
@@ -230,7 +221,7 @@ class RideServiceTest {
                 .extract().path("id");
 
         given()
-                .header("Authorization", "Bearer " + adminToken)
+                .auth().oauth2(getAccessToken(USERNAME_ADMIN))
                 .contentType("application/json")
                 .body("{\"title\": \"Updated Title\", \"status\": \"PUBLISHED\"}")
                 .when()
@@ -246,7 +237,7 @@ class RideServiceTest {
         createTeamViaHttp();
 
         Integer rideId = given()
-                .header("Authorization", "Bearer " + adminToken)
+                .auth().oauth2(getAccessToken(USERNAME_ADMIN))
                 .contentType("application/json")
                 .body("{\"title\": \"To Be Deleted\", \"date\": \"2025-01-26\"}")
                 .when()
@@ -256,7 +247,7 @@ class RideServiceTest {
                 .extract().path("id");
 
         given()
-                .header("Authorization", "Bearer " + adminToken)
+                .auth().oauth2(getAccessToken(USERNAME_ADMIN))
                 .when()
                 .delete("/v1/teams/" + teamId + "/rides/" + rideId)
                 .then()
@@ -264,7 +255,7 @@ class RideServiceTest {
 
         // Verify it's gone
         given()
-                .header("Authorization", "Bearer " + adminToken)
+                .auth().oauth2(getAccessToken(USERNAME_ADMIN))
                 .when()
                 .get("/v1/teams/" + teamId + "/rides/" + rideId)
                 .then()
@@ -278,7 +269,7 @@ class RideServiceTest {
 
         // Create and publish ride
         Integer rideId = given()
-                .header("Authorization", "Bearer " + adminToken)
+                .auth().oauth2(getAccessToken(USERNAME_ADMIN))
                 .contentType("application/json")
                 .body("{\"title\": \"Join Test Ride\", \"date\": \"2025-01-27\"}")
                 .when()
@@ -289,7 +280,7 @@ class RideServiceTest {
 
         // Publish the ride
         given()
-                .header("Authorization", "Bearer " + adminToken)
+                .auth().oauth2(getAccessToken(USERNAME_ADMIN))
                 .contentType("application/json")
                 .body("{\"status\": \"PUBLISHED\"}")
                 .when()
@@ -299,7 +290,7 @@ class RideServiceTest {
 
         // Get the group ID
         Integer groupId = given()
-                .header("Authorization", "Bearer " + adminToken)
+                .auth().oauth2(getAccessToken(USERNAME_ADMIN))
                 .when()
                 .get("/v1/teams/" + teamId + "/rides/" + rideId + "/groups")
                 .then()
@@ -308,7 +299,7 @@ class RideServiceTest {
 
         // Member joins the ride
         given()
-                .header("Authorization", "Bearer " + memberToken)
+                .auth().oauth2(getAccessToken(USERNAME_TEST))
                 .contentType("application/json")
                 .body("{\"notes\": \"Looking forward to it!\"}")
                 .when()
@@ -325,7 +316,7 @@ class RideServiceTest {
 
         // Create ride (stays in DRAFT)
         Integer rideId = given()
-                .header("Authorization", "Bearer " + adminToken)
+                .auth().oauth2(getAccessToken(USERNAME_ADMIN))
                 .contentType("application/json")
                 .body("{\"title\": \"Draft Ride\", \"date\": \"2025-01-28\"}")
                 .when()
@@ -336,7 +327,7 @@ class RideServiceTest {
 
         // Get the group ID
         Integer groupId = given()
-                .header("Authorization", "Bearer " + adminToken)
+                .auth().oauth2(getAccessToken(USERNAME_ADMIN))
                 .when()
                 .get("/v1/teams/" + teamId + "/rides/" + rideId + "/groups")
                 .then()
@@ -345,7 +336,7 @@ class RideServiceTest {
 
         // Member tries to join (should fail - ride not published)
         given()
-                .header("Authorization", "Bearer " + memberToken)
+                .auth().oauth2(getAccessToken(USERNAME_TEST))
                 .contentType("application/json")
                 .when()
                 .post("/v1/teams/" + teamId + "/rides/" + rideId + "/groups/" + groupId + "/join")
@@ -360,7 +351,7 @@ class RideServiceTest {
 
         // Create and publish ride
         Integer rideId = given()
-                .header("Authorization", "Bearer " + adminToken)
+                .auth().oauth2(getAccessToken(USERNAME_ADMIN))
                 .contentType("application/json")
                 .body("{\"title\": \"Leave Test Ride\", \"date\": \"2025-01-29\"}")
                 .when()
@@ -371,7 +362,7 @@ class RideServiceTest {
 
         // Publish the ride
         given()
-                .header("Authorization", "Bearer " + adminToken)
+                .auth().oauth2(getAccessToken(USERNAME_ADMIN))
                 .contentType("application/json")
                 .body("{\"status\": \"PUBLISHED\"}")
                 .when()
@@ -381,7 +372,7 @@ class RideServiceTest {
 
         // Get the group ID
         Integer groupId = given()
-                .header("Authorization", "Bearer " + adminToken)
+                .auth().oauth2(getAccessToken(USERNAME_ADMIN))
                 .when()
                 .get("/v1/teams/" + teamId + "/rides/" + rideId + "/groups")
                 .then()
@@ -390,7 +381,7 @@ class RideServiceTest {
 
         // Member joins
         given()
-                .header("Authorization", "Bearer " + memberToken)
+                .auth().oauth2(getAccessToken(USERNAME_TEST))
                 .contentType("application/json")
                 .when()
                 .post("/v1/teams/" + teamId + "/rides/" + rideId + "/groups/" + groupId + "/join")
@@ -399,7 +390,7 @@ class RideServiceTest {
 
         // Member leaves
         given()
-                .header("Authorization", "Bearer " + memberToken)
+                .auth().oauth2(getAccessToken(USERNAME_TEST))
                 .contentType("application/json")
                 .when()
                 .post("/v1/teams/" + teamId + "/rides/" + rideId + "/groups/" + groupId + "/leave")
@@ -412,7 +403,7 @@ class RideServiceTest {
         createTeamViaHttp();
 
         Integer rideId = given()
-                .header("Authorization", "Bearer " + adminToken)
+                .auth().oauth2(getAccessToken(USERNAME_ADMIN))
                 .contentType("application/json")
                 .body("{\"title\": \"Group Test Ride\", \"date\": \"2025-01-30\"}")
                 .when()
@@ -422,7 +413,7 @@ class RideServiceTest {
                 .extract().path("id");
 
         given()
-                .header("Authorization", "Bearer " + adminToken)
+                .auth().oauth2(getAccessToken(USERNAME_ADMIN))
                 .contentType("application/json")
                 .body("{\"name\": \"Extra Fast Group\", \"averageSpeed\": 35}")
                 .when()

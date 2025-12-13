@@ -77,19 +77,11 @@ public class UserResource {
     }
 
     private User getCurrentUserEntity() {
-        // Get user from augmented security identity (set by UserSecurityIdentityAugmentor)
-        User user = securityIdentity.getAttribute("user");
-        if (user != null) {
-            return user;
-        }
-
-        // Fallback: get userId attribute and lookup
         Long userId = securityIdentity.getAttribute("userId");
         if (userId != null) {
             return userRepository.findActiveById(userId)
                     .orElseThrow(() -> BusinessException.notFound("User", userId));
         }
-
         throw new NotAuthorizedException("User not found in security context");
     }
 
@@ -98,7 +90,6 @@ public class UserResource {
             String email,
             String displayName,
             String avatarUrl,
-            String stravaId,
             String locale,
             String timezone,
             String createdAt
@@ -109,7 +100,6 @@ public class UserResource {
                     user.getEmail(),
                     user.getDisplayName(),
                     user.getAvatarUrl(),
-                    user.getStravaId(),
                     user.getLocale(),
                     user.getTimezone(),
                     user.getCreatedAt() != null ? user.getCreatedAt().toString() : null

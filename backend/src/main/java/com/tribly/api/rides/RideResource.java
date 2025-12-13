@@ -4,6 +4,7 @@ import com.tribly.domain.common.Visibility;
 import com.tribly.domain.ride.*;
 import com.tribly.infrastructure.exception.BusinessException;
 import com.tribly.service.ride.RideService;
+import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -31,7 +32,11 @@ public class RideResource {
     RideService rideService;
 
     @Inject
-    JsonWebToken jwt;
+    SecurityIdentity securityIdentity;
+
+    private Long getCurrentUserId() {
+        return securityIdentity.getAttribute("userId");
+    }
 
     @GET
     public Response listRides(
@@ -204,14 +209,6 @@ public class RideResource {
         rideService.leaveGroup(teamId, rideId, groupId, userId);
 
         return Response.noContent().build();
-    }
-
-    private Long getCurrentUserId() {
-        String subject = jwt.getSubject();
-        if (subject == null) {
-            throw new NotAuthorizedException("No valid token");
-        }
-        return Long.parseLong(subject);
     }
 
     // Request DTOs

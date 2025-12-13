@@ -12,10 +12,6 @@ public class UserRepository implements PanacheRepository<User> {
         return find("email = ?1 and deleted = false", email).firstResultOptional();
     }
 
-    public Optional<User> findByStravaId(String stravaId) {
-        return find("stravaId = ?1 and deleted = false", stravaId).firstResultOptional();
-    }
-
     public Optional<User> findByGoogleId(String googleId) {
         return find("googleId = ?1 and deleted = false", googleId).firstResultOptional();
     }
@@ -32,7 +28,4 @@ public class UserRepository implements PanacheRepository<User> {
         return count("email = ?1 and deleted = false", email) > 0;
     }
 
-    public boolean existsByStravaId(String stravaId) {
-        return count("stravaId = ?1 and deleted = false", stravaId) > 0;
-    }
 }

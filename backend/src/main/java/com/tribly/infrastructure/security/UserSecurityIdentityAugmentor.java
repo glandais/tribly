@@ -38,9 +38,8 @@ public class UserSecurityIdentityAugmentor implements SecurityIdentityAugmentor 
     SecurityIdentity augmentIdentity(SecurityIdentity identity) {
         try {
             if (identity.getPrincipal() instanceof JsonWebToken jwt) {
-                // Extract claims from Keycloak token
-                String keycloakId = jwt.getSubject();
                 String email = jwt.getClaim("email");
+
                 String preferredUsername = jwt.getClaim("preferred_username");
 
                 // Get display name from various possible claims
@@ -57,22 +56,10 @@ public class UserSecurityIdentityAugmentor implements SecurityIdentityAugmentor 
                     displayName = preferredUsername != null ? preferredUsername : email;
                 }
 
-                // Get Strava-specific claims (from identity provider mappers)
-                String avatarUrl = jwt.getClaim("avatar_url");
-                String stravaId = jwt.getClaim("strava_id");
-
-                if (email == null || email.isBlank()) {
-                    LOG.warn("No email claim in Keycloak token");
-                    return identity;
-                }
-
                 // Sync user to database
                 User user = userSyncService.syncUser(
-                        keycloakId,
                         email,
-                        displayName,
-                        avatarUrl,
-                        stravaId
+                        displayName
                 );
 
                 // Build augmented identity with user attributes
@@ -81,7 +68,6 @@ public class UserSecurityIdentityAugmentor implements SecurityIdentityAugmentor 
                         .addAttribute("email", user.getEmail())
                         .addAttribute("displayName", user.getDisplayName())
                         .addAttribute("user", user)
-                        .addAttribute("keycloakId", keycloakId)
                         .build();
             }
         } catch (Exception e) {

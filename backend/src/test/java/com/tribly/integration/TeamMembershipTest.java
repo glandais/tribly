@@ -1,12 +1,15 @@
 package com.tribly.integration;
 
+import com.tribly.domain.ride.RideGroupRepository;
+import com.tribly.domain.ride.RideParticipationRepository;
+import com.tribly.domain.ride.RideRepository;
 import com.tribly.domain.team.TeamRepository;
 import com.tribly.domain.team.UserTeamRepository;
 import com.tribly.domain.user.User;
 import com.tribly.domain.user.UserRepository;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.oidc.server.OidcWiremockTestResource;
+import io.quarkus.test.keycloak.client.KeycloakTestClient;
 import io.smallrye.jwt.build.Jwt;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -19,87 +22,66 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
 @QuarkusTest
-@QuarkusTestResource(OidcWiremockTestResource.class)
 class TeamMembershipTest {
+
+    public static final String USERNAME_ADMIN = "user1";
+    public static final String USERNAME_TEST = "user2";
+    public static final String USERNAME2_TEST = "user3";
+
+    @Inject
+    RideRepository rideRepository;
+
+    @Inject
+    RideGroupRepository rideGroupRepository;
+
+    @Inject
+    RideParticipationRepository participationRepository;
 
     @Inject
     TeamRepository teamRepository;
 
     @Inject
-    UserRepository userRepository;
+    UserTeamRepository userTeamRepository;
 
     @Inject
-    UserTeamRepository userTeamRepository;
+    UserRepository userRepository;
 
     private User adminUser;
     private User memberUser;
     private User thirdUser;
-    private String adminToken;
-    private String memberToken;
-    private String thirdUserToken;
+
+    KeycloakTestClient keycloakClient = new KeycloakTestClient();
+
+    protected String getAccessToken(String userName) {
+        return keycloakClient.getAccessToken(userName, userName, "tribly-backend");
+    }
 
     @BeforeEach
     @Transactional
     void setUp() {
         // Clean up in correct order
-        userTeamRepository.delete("user.email like ?1", "membership-test-%");
-        teamRepository.delete("slug like ?1", "membership-test-%");
-        userRepository.delete("email like ?1", "membership-test-%");
+        participationRepository.deleteAll();
+        rideGroupRepository.deleteAll();
+        rideRepository.deleteAll();
+        userTeamRepository.deleteAll();
+        teamRepository.deleteAll();
+        userRepository.deleteAll();
 
-        long timestamp = System.currentTimeMillis();
-
-        adminUser = new User("membership-test-admin@example.com", "Admin User");
-        adminUser.setStravaId("membership-admin-strava-" + timestamp);
+        adminUser = new User("user1@example.com", "Admin User");
         userRepository.persistAndFlush(adminUser);
 
-        memberUser = new User("membership-test-member@example.com", "Member User");
-        memberUser.setStravaId("membership-member-strava-" + timestamp);
+        memberUser = new User("user2@example.com", "Member User");
         userRepository.persistAndFlush(memberUser);
 
-        thirdUser = new User("membership-test-third@example.com", "Third User");
-        thirdUser.setStravaId("membership-third-strava-" + timestamp);
+        thirdUser = new User("user3@example.com", "Third User");
         userRepository.persistAndFlush(thirdUser);
-
-        adminToken = generateToken(
-                "keycloak-admin-" + timestamp,
-                adminUser.getEmail(),
-                adminUser.getDisplayName(),
-                adminUser.getStravaId()
-        );
-        memberToken = generateToken(
-                "keycloak-member-" + timestamp,
-                memberUser.getEmail(),
-                memberUser.getDisplayName(),
-                memberUser.getStravaId()
-        );
-        thirdUserToken = generateToken(
-                "keycloak-third-" + timestamp,
-                thirdUser.getEmail(),
-                thirdUser.getDisplayName(),
-                thirdUser.getStravaId()
-        );
-    }
-
-    /**
-     * Generate a JWT token compatible with OidcWiremock.
-     * The WireMock server automatically configures the test environment to accept these tokens.
-     */
-    private String generateToken(String subject, String email, String name, String stravaId) {
-        return Jwt.subject(subject)
-                .issuer("https://server.example.com")
-                .audience("https://service.example.com")
-                .groups(Set.of("user"))
-                .claim("email", email)
-                .claim("name", name)
-                .claim("strava_id", stravaId)
-                .sign();
     }
 
     @Test
     void joinTeam_alreadyMember_shouldReturn409() {
         // Create team
         String slug = given()
-                .header("Authorization", "Bearer " + adminToken)
+                .auth().oauth2(getAccessToken(USERNAME_ADMIN))
                 .contentType("application/json")
                 .body("{\"name\": \"Membership Test Team\", \"isPublic\": true}")
                 .when()
@@ -110,7 +92,7 @@ class TeamMembershipTest {
 
         // Member joins
         given()
-                .header("Authorization", "Bearer " + memberToken)
+                .auth().oauth2(getAccessToken(USERNAME_TEST))
                 .contentType("application/json")
                 .when()
                 .post("/v1/teams/" + slug + "/members/join")
@@ -119,7 +101,7 @@ class TeamMembershipTest {
 
         // Member tries to join again - should fail
         given()
-                .header("Authorization", "Bearer " + memberToken)
+                .auth().oauth2(getAccessToken(USERNAME_TEST))
                 .contentType("application/json")
                 .when()
                 .post("/v1/teams/" + slug + "/members/join")
@@ -132,7 +114,7 @@ class TeamMembershipTest {
     void updateMemberRole_asAdmin_shouldSucceed() {
         // Create team
         String slug = given()
-                .header("Authorization", "Bearer " + adminToken)
+                .auth().oauth2(getAccessToken(USERNAME_ADMIN))
                 .contentType("application/json")
                 .body("{\"name\": \"Role Update Team\", \"isPublic\": true}")
                 .when()
@@ -143,7 +125,7 @@ class TeamMembershipTest {
 
         // Member joins
         given()
-                .header("Authorization", "Bearer " + memberToken)
+                .auth().oauth2(getAccessToken(USERNAME_TEST))
                 .contentType("application/json")
                 .when()
                 .post("/v1/teams/" + slug + "/members/join")
@@ -152,7 +134,7 @@ class TeamMembershipTest {
 
         // Admin promotes member to admin
         given()
-                .header("Authorization", "Bearer " + adminToken)
+                .auth().oauth2(getAccessToken(USERNAME_ADMIN))
                 .contentType("application/json")
                 .body("{\"role\": \"ADMIN\"}")
                 .when()
@@ -166,7 +148,7 @@ class TeamMembershipTest {
     void updateMemberRole_asMember_shouldBeDenied() {
         // Create team
         String slug = given()
-                .header("Authorization", "Bearer " + adminToken)
+                .auth().oauth2(getAccessToken(USERNAME_ADMIN))
                 .contentType("application/json")
                 .body("{\"name\": \"Role Denied Team\", \"isPublic\": true}")
                 .when()
@@ -177,7 +159,7 @@ class TeamMembershipTest {
 
         // Two members join
         given()
-                .header("Authorization", "Bearer " + memberToken)
+                .auth().oauth2(getAccessToken(USERNAME_TEST))
                 .contentType("application/json")
                 .when()
                 .post("/v1/teams/" + slug + "/members/join")
@@ -185,7 +167,7 @@ class TeamMembershipTest {
                 .statusCode(201);
 
         given()
-                .header("Authorization", "Bearer " + thirdUserToken)
+                .auth().oauth2(getAccessToken(USERNAME2_TEST))
                 .contentType("application/json")
                 .when()
                 .post("/v1/teams/" + slug + "/members/join")
@@ -194,7 +176,7 @@ class TeamMembershipTest {
 
         // Member tries to promote another member - should be denied
         given()
-                .header("Authorization", "Bearer " + memberToken)
+                .auth().oauth2(getAccessToken(USERNAME_TEST))
                 .contentType("application/json")
                 .body("{\"role\": \"ADMIN\"}")
                 .when()
@@ -207,7 +189,7 @@ class TeamMembershipTest {
     void removeMember_asAdmin_shouldSucceed() {
         // Create team
         String slug = given()
-                .header("Authorization", "Bearer " + adminToken)
+                .auth().oauth2(getAccessToken(USERNAME_ADMIN))
                 .contentType("application/json")
                 .body("{\"name\": \"Remove Member Team\", \"isPublic\": true}")
                 .when()
@@ -218,7 +200,7 @@ class TeamMembershipTest {
 
         // Member joins
         given()
-                .header("Authorization", "Bearer " + memberToken)
+                .auth().oauth2(getAccessToken(USERNAME_TEST))
                 .contentType("application/json")
                 .when()
                 .post("/v1/teams/" + slug + "/members/join")
@@ -227,7 +209,7 @@ class TeamMembershipTest {
 
         // Admin removes member
         given()
-                .header("Authorization", "Bearer " + adminToken)
+                .auth().oauth2(getAccessToken(USERNAME_ADMIN))
                 .when()
                 .delete("/v1/teams/" + slug + "/members/" + memberUser.getId())
                 .then()
@@ -235,7 +217,7 @@ class TeamMembershipTest {
 
         // Verify member count decreased
         given()
-                .header("Authorization", "Bearer " + adminToken)
+                .auth().oauth2(getAccessToken(USERNAME_ADMIN))
                 .when()
                 .get("/v1/teams/" + slug + "/members")
                 .then()
@@ -247,7 +229,7 @@ class TeamMembershipTest {
     void removeMember_asMember_shouldBeDenied() {
         // Create team
         String slug = given()
-                .header("Authorization", "Bearer " + adminToken)
+                .auth().oauth2(getAccessToken(USERNAME_ADMIN))
                 .contentType("application/json")
                 .body("{\"name\": \"Remove Denied Team\", \"isPublic\": true}")
                 .when()
@@ -258,7 +240,7 @@ class TeamMembershipTest {
 
         // Two members join
         given()
-                .header("Authorization", "Bearer " + memberToken)
+                .auth().oauth2(getAccessToken(USERNAME_TEST))
                 .contentType("application/json")
                 .when()
                 .post("/v1/teams/" + slug + "/members/join")
@@ -266,7 +248,7 @@ class TeamMembershipTest {
                 .statusCode(201);
 
         given()
-                .header("Authorization", "Bearer " + thirdUserToken)
+                .auth().oauth2(getAccessToken(USERNAME2_TEST))
                 .contentType("application/json")
                 .when()
                 .post("/v1/teams/" + slug + "/members/join")
@@ -275,7 +257,7 @@ class TeamMembershipTest {
 
         // Member tries to remove another member - should be denied
         given()
-                .header("Authorization", "Bearer " + memberToken)
+                .auth().oauth2(getAccessToken(USERNAME_TEST))
                 .when()
                 .delete("/v1/teams/" + slug + "/members/" + thirdUser.getId())
                 .then()
@@ -286,7 +268,7 @@ class TeamMembershipTest {
     void removeLastAdmin_shouldBeDenied() {
         // Create team (admin is the only admin)
         String slug = given()
-                .header("Authorization", "Bearer " + adminToken)
+                .auth().oauth2(getAccessToken(USERNAME_ADMIN))
                 .contentType("application/json")
                 .body("{\"name\": \"Last Admin Team\", \"isPublic\": true}")
                 .when()
@@ -297,7 +279,7 @@ class TeamMembershipTest {
 
         // Admin tries to leave (self-removal as last admin)
         given()
-                .header("Authorization", "Bearer " + adminToken)
+                .auth().oauth2(getAccessToken(USERNAME_ADMIN))
                 .contentType("application/json")
                 .when()
                 .post("/v1/teams/" + slug + "/members/leave")
@@ -310,7 +292,7 @@ class TeamMembershipTest {
     void demoteLastAdmin_shouldBeDenied() {
         // Create team
         String slug = given()
-                .header("Authorization", "Bearer " + adminToken)
+                .auth().oauth2(getAccessToken(USERNAME_ADMIN))
                 .contentType("application/json")
                 .body("{\"name\": \"Demote Admin Team\", \"isPublic\": true}")
                 .when()
@@ -321,7 +303,7 @@ class TeamMembershipTest {
 
         // Admin tries to demote themselves (last admin)
         given()
-                .header("Authorization", "Bearer " + adminToken)
+                .auth().oauth2(getAccessToken(USERNAME_ADMIN))
                 .contentType("application/json")
                 .body("{\"role\": \"MEMBER\"}")
                 .when()
@@ -335,7 +317,7 @@ class TeamMembershipTest {
     void getTeamMembers_withPagination_shouldWork() {
         // Create team
         String slug = given()
-                .header("Authorization", "Bearer " + adminToken)
+                .auth().oauth2(getAccessToken(USERNAME_ADMIN))
                 .contentType("application/json")
                 .body("{\"name\": \"Pagination Team\", \"isPublic\": true}")
                 .when()
@@ -346,7 +328,7 @@ class TeamMembershipTest {
 
         // Two members join
         given()
-                .header("Authorization", "Bearer " + memberToken)
+                .auth().oauth2(getAccessToken(USERNAME_TEST))
                 .contentType("application/json")
                 .when()
                 .post("/v1/teams/" + slug + "/members/join")
@@ -354,7 +336,7 @@ class TeamMembershipTest {
                 .statusCode(201);
 
         given()
-                .header("Authorization", "Bearer " + thirdUserToken)
+                .auth().oauth2(getAccessToken(USERNAME2_TEST))
                 .contentType("application/json")
                 .when()
                 .post("/v1/teams/" + slug + "/members/join")
@@ -363,7 +345,7 @@ class TeamMembershipTest {
 
         // Get members with pagination
         given()
-                .header("Authorization", "Bearer " + adminToken)
+                .auth().oauth2(getAccessToken(USERNAME_ADMIN))
                 .queryParam("page", 0)
                 .queryParam("size", 2)
                 .when()
@@ -377,7 +359,7 @@ class TeamMembershipTest {
 
         // Get second page
         given()
-                .header("Authorization", "Bearer " + adminToken)
+                .auth().oauth2(getAccessToken(USERNAME_ADMIN))
                 .queryParam("page", 1)
                 .queryParam("size", 2)
                 .when()
@@ -392,7 +374,7 @@ class TeamMembershipTest {
     void addMember_byAdmin_shouldSucceed() {
         // Create private team
         String slug = given()
-                .header("Authorization", "Bearer " + adminToken)
+                .auth().oauth2(getAccessToken(USERNAME_ADMIN))
                 .contentType("application/json")
                 .body("{\"name\": \"Add Member Team\", \"isPublic\": false}")
                 .when()
@@ -403,7 +385,7 @@ class TeamMembershipTest {
 
         // Admin adds member to private team
         given()
-                .header("Authorization", "Bearer " + adminToken)
+                .auth().oauth2(getAccessToken(USERNAME_ADMIN))
                 .contentType("application/json")
                 .body("{\"userId\": " + memberUser.getId() + ", \"role\": \"MEMBER\"}")
                 .when()
@@ -414,7 +396,7 @@ class TeamMembershipTest {
 
         // Verify member was added
         given()
-                .header("Authorization", "Bearer " + adminToken)
+                .auth().oauth2(getAccessToken(USERNAME_ADMIN))
                 .when()
                 .get("/v1/teams/" + slug + "/members")
                 .then()

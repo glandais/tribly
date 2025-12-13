@@ -8,7 +8,6 @@ CREATE TABLE users (
     email VARCHAR(255) NOT NULL UNIQUE,
     display_name VARCHAR(255) NOT NULL,
     avatar_url VARCHAR(500),
-    strava_id VARCHAR(50) UNIQUE,
     garmin_id VARCHAR(50) UNIQUE,
     google_id VARCHAR(100) UNIQUE,
     facebook_id VARCHAR(100) UNIQUE,
@@ -338,7 +337,6 @@ CREATE TABLE notifications (
 
 -- Indexes
 CREATE INDEX idx_users_email ON users(email) WHERE deleted = FALSE;
-CREATE INDEX idx_users_strava ON users(strava_id) WHERE deleted = FALSE;
 CREATE INDEX idx_teams_slug ON teams(slug) WHERE deleted = FALSE;
 CREATE INDEX idx_teams_public ON teams(is_public) WHERE deleted = FALSE AND is_public = TRUE;
 CREATE INDEX idx_user_teams_user ON user_teams(user_id) WHERE deleted = FALSE;

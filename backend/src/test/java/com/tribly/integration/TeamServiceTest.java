@@ -1,5 +1,8 @@
 package com.tribly.integration;
 
+import com.tribly.domain.ride.RideGroupRepository;
+import com.tribly.domain.ride.RideParticipationRepository;
+import com.tribly.domain.ride.RideRepository;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.team.TeamRepository;
 import com.tribly.domain.team.TeamRole;
@@ -7,14 +10,10 @@ import com.tribly.domain.team.UserTeam;
 import com.tribly.domain.team.UserTeamRepository;
 import com.tribly.domain.user.User;
 import com.tribly.domain.user.UserRepository;
-import com.tribly.service.team.TeamMembershipService;
 import com.tribly.service.team.TeamService;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.oidc.server.OidcWiremockTestResource;
-import io.quarkus.test.security.TestSecurity;
-import io.quarkus.test.security.oidc.Claim;
-import io.quarkus.test.security.oidc.OidcSecurity;
+import io.quarkus.test.keycloak.client.KeycloakTestClient;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,50 +24,63 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 @QuarkusTest
-@QuarkusTestResource(OidcWiremockTestResource.class)
 class TeamServiceTest {
+
+    public static final String USERNAME_ADMIN = "user1";
+    public static final String USERNAME_TEST = "user2";
 
     @Inject
     TeamService teamService;
 
     @Inject
-    TeamMembershipService teamMembershipService;
+    RideRepository rideRepository;
+
+    @Inject
+    RideGroupRepository rideGroupRepository;
+
+    @Inject
+    RideParticipationRepository participationRepository;
 
     @Inject
     TeamRepository teamRepository;
 
     @Inject
-    UserRepository userRepository;
+    UserTeamRepository userTeamRepository;
 
     @Inject
-    UserTeamRepository userTeamRepository;
+    UserRepository userRepository;
 
     private User adminUser;
     private User memberUser;
     private Team publicTeam;
     private Team privateTeam;
 
-    private static final String ADMIN_EMAIL = "team-admin@example.com";
-    private static final String ADMIN_STRAVA_ID = "team-admin-strava";
-    private static final String MEMBER_EMAIL = "team-member@example.com";
-    private static final String MEMBER_STRAVA_ID = "team-member-strava";
+    KeycloakTestClient keycloakClient = new KeycloakTestClient();
+
+    protected String getAccessToken(String userName) {
+        return keycloakClient.getAccessToken(userName, userName, "tribly-backend");
+    }
+
+    private static final String ADMIN_EMAIL = "user1@example.com";
+    private static final String MEMBER_EMAIL = "user2@example.com";
 
     @BeforeEach
     @Transactional
     void setUp() {
-        // Clean up in correct order: user_teams first, then teams and users
-        userTeamRepository.delete("user.email in (?1, ?2)", ADMIN_EMAIL, MEMBER_EMAIL);
-        teamRepository.delete("slug like ?1", "test-%");
-        userRepository.delete("email in (?1, ?2)", ADMIN_EMAIL, MEMBER_EMAIL);
+        // Clean up in correct order
+        participationRepository.deleteAll();
+        rideGroupRepository.deleteAll();
+        rideRepository.deleteAll();
+        userTeamRepository.deleteAll();
+        teamRepository.deleteAll();
+        userRepository.deleteAll();
 
         // Create admin user
         adminUser = new User(ADMIN_EMAIL, "Admin User");
-        adminUser.setStravaId(ADMIN_STRAVA_ID);
         userRepository.persistAndFlush(adminUser);
 
         // Create member user
         memberUser = new User(MEMBER_EMAIL, "Member User");
-        memberUser.setStravaId(MEMBER_STRAVA_ID);
         userRepository.persistAndFlush(memberUser);
 
         // Create public team with admin as owner
@@ -102,14 +114,9 @@ class TeamServiceTest {
     }
 
     @Test
-    @TestSecurity(user = "admin-keycloak-id", roles = "user")
-    @OidcSecurity(claims = {
-            @Claim(key = "email", value = ADMIN_EMAIL),
-            @Claim(key = "name", value = "Admin User"),
-            @Claim(key = "strava_id", value = ADMIN_STRAVA_ID)
-    })
     void createTeamViaApi_shouldCreateTeamSuccessfully() {
         given()
+                .auth().oauth2(getAccessToken(USERNAME_ADMIN))
                 .contentType("application/json")
                 .body("{\"name\": \"API Test Team\", \"description\": \"Created via API\", \"isPublic\": true}")
                 .when()
@@ -122,14 +129,9 @@ class TeamServiceTest {
     }
 
     @Test
-    @TestSecurity(user = "admin-keycloak-id", roles = "user")
-    @OidcSecurity(claims = {
-            @Claim(key = "email", value = ADMIN_EMAIL),
-            @Claim(key = "name", value = "Admin User"),
-            @Claim(key = "strava_id", value = ADMIN_STRAVA_ID)
-    })
     void getMyTeams_shouldReturnUserTeams() {
         given()
+                .auth().oauth2(getAccessToken(USERNAME_ADMIN))
                 .when()
                 .get("/v1/teams/my")
                 .then()
@@ -139,14 +141,9 @@ class TeamServiceTest {
     }
 
     @Test
-    @TestSecurity(user = "member-keycloak-id", roles = "user")
-    @OidcSecurity(claims = {
-            @Claim(key = "email", value = MEMBER_EMAIL),
-            @Claim(key = "name", value = "Member User"),
-            @Claim(key = "strava_id", value = MEMBER_STRAVA_ID)
-    })
     void joinPublicTeam_shouldAddUserAsMember() {
         given()
+                .auth().oauth2(getAccessToken(USERNAME_TEST))
                 .contentType("application/json")
                 .when()
                 .post("/v1/teams/" + publicTeam.getSlug() + "/members/join")
@@ -156,14 +153,9 @@ class TeamServiceTest {
     }
 
     @Test
-    @TestSecurity(user = "member-keycloak-id", roles = "user")
-    @OidcSecurity(claims = {
-            @Claim(key = "email", value = MEMBER_EMAIL),
-            @Claim(key = "name", value = "Member User"),
-            @Claim(key = "strava_id", value = MEMBER_STRAVA_ID)
-    })
     void joinPrivateTeam_shouldBeDenied() {
         given()
+                .auth().oauth2(getAccessToken(USERNAME_TEST))
                 .contentType("application/json")
                 .when()
                 .post("/v1/teams/" + privateTeam.getSlug() + "/members/join")
@@ -172,14 +164,9 @@ class TeamServiceTest {
     }
 
     @Test
-    @TestSecurity(user = "admin-keycloak-id", roles = "user")
-    @OidcSecurity(claims = {
-            @Claim(key = "email", value = ADMIN_EMAIL),
-            @Claim(key = "name", value = "Admin User"),
-            @Claim(key = "strava_id", value = ADMIN_STRAVA_ID)
-    })
     void updateTeam_asAdmin_shouldSucceed() {
         given()
+                .auth().oauth2(getAccessToken(USERNAME_ADMIN))
                 .contentType("application/json")
                 .body("{\"name\": \"Updated Name\", \"description\": \"New description\"}")
                 .when()
@@ -191,18 +178,12 @@ class TeamServiceTest {
     }
 
     @Test
-    @Transactional
-    @TestSecurity(user = "member-keycloak-id", roles = "user")
-    @OidcSecurity(claims = {
-            @Claim(key = "email", value = MEMBER_EMAIL),
-            @Claim(key = "name", value = "Member User"),
-            @Claim(key = "strava_id", value = MEMBER_STRAVA_ID)
-    })
     void updateTeam_asNonAdmin_shouldBeDenied() {
-        // Add member to team first
-        teamMembershipService.addMember(publicTeam.getId(), memberUser.getId(), TeamRole.MEMBER, adminUser.getId());
+        // Add member to team first via HTTP (pure HTTP pattern)
+        addMemberViaApi(publicTeam.getSlug(), memberUser.getId());
 
         given()
+                .auth().oauth2(getAccessToken(USERNAME_TEST))
                 .contentType("application/json")
                 .body("{\"name\": \"Hacked Name\"}")
                 .when()
@@ -211,19 +192,24 @@ class TeamServiceTest {
                 .statusCode(403);
     }
 
+    private void addMemberViaApi(String teamSlug, Long userId) {
+        given()
+                .auth().oauth2(getAccessToken(USERNAME_ADMIN))
+                .contentType("application/json")
+                .body("{\"userId\": " + userId + ", \"role\": \"MEMBER\"}")
+                .when()
+                .post("/v1/teams/" + teamSlug + "/members")
+                .then()
+                .statusCode(201);
+    }
+
     @Test
-    @Transactional
-    @TestSecurity(user = "member-keycloak-id", roles = "user")
-    @OidcSecurity(claims = {
-            @Claim(key = "email", value = MEMBER_EMAIL),
-            @Claim(key = "name", value = "Member User"),
-            @Claim(key = "strava_id", value = MEMBER_STRAVA_ID)
-    })
     void leaveTeam_shouldRemoveMembership() {
-        // Add member to team first
-        teamMembershipService.addMember(publicTeam.getId(), memberUser.getId(), TeamRole.MEMBER, adminUser.getId());
+        // Add member to team first via HTTP (pure HTTP pattern)
+        addMemberViaApi(publicTeam.getSlug(), memberUser.getId());
 
         given()
+                .auth().oauth2(getAccessToken(USERNAME_TEST))
                 .contentType("application/json")
                 .when()
                 .post("/v1/teams/" + publicTeam.getSlug() + "/members/leave")
@@ -232,18 +218,12 @@ class TeamServiceTest {
     }
 
     @Test
-    @Transactional
-    @TestSecurity(user = "admin-keycloak-id", roles = "user")
-    @OidcSecurity(claims = {
-            @Claim(key = "email", value = ADMIN_EMAIL),
-            @Claim(key = "name", value = "Admin User"),
-            @Claim(key = "strava_id", value = ADMIN_STRAVA_ID)
-    })
     void getTeamMembers_shouldReturnMemberList() {
-        // Add member to team first
-        teamMembershipService.addMember(publicTeam.getId(), memberUser.getId(), TeamRole.MEMBER, adminUser.getId());
+        // Add member to team first via HTTP (pure HTTP pattern)
+        addMemberViaApi(publicTeam.getSlug(), memberUser.getId());
 
         given()
+                .auth().oauth2(getAccessToken(USERNAME_ADMIN))
                 .when()
                 .get("/v1/teams/" + publicTeam.getSlug() + "/members")
                 .then()
@@ -253,14 +233,9 @@ class TeamServiceTest {
     }
 
     @Test
-    @TestSecurity(user = "admin-keycloak-id", roles = "user")
-    @OidcSecurity(claims = {
-            @Claim(key = "email", value = ADMIN_EMAIL),
-            @Claim(key = "name", value = "Admin User"),
-            @Claim(key = "strava_id", value = ADMIN_STRAVA_ID)
-    })
     void deleteTeam_asAdmin_shouldSucceed() {
         given()
+                .auth().oauth2(getAccessToken(USERNAME_ADMIN))
                 .when()
                 .delete("/v1/teams/" + publicTeam.getSlug())
                 .then()
@@ -275,18 +250,12 @@ class TeamServiceTest {
     }
 
     @Test
-    @Transactional
-    @TestSecurity(user = "member-keycloak-id", roles = "user")
-    @OidcSecurity(claims = {
-            @Claim(key = "email", value = MEMBER_EMAIL),
-            @Claim(key = "name", value = "Member User"),
-            @Claim(key = "strava_id", value = MEMBER_STRAVA_ID)
-    })
     void deleteTeam_asNonAdmin_shouldBeDenied() {
-        // Add member to team first
-        teamMembershipService.addMember(publicTeam.getId(), memberUser.getId(), TeamRole.MEMBER, adminUser.getId());
+        // Add member to team first via HTTP (pure HTTP pattern)
+        addMemberViaApi(publicTeam.getSlug(), memberUser.getId());
 
         given()
+                .auth().oauth2(getAccessToken(USERNAME_TEST))
                 .when()
                 .delete("/v1/teams/" + publicTeam.getSlug())
                 .then()
@@ -294,14 +263,9 @@ class TeamServiceTest {
     }
 
     @Test
-    @TestSecurity(user = "member-keycloak-id", roles = "user")
-    @OidcSecurity(claims = {
-            @Claim(key = "email", value = MEMBER_EMAIL),
-            @Claim(key = "name", value = "Member User"),
-            @Claim(key = "strava_id", value = MEMBER_STRAVA_ID)
-    })
     void deleteTeam_asNonMember_shouldBeDenied() {
         given()
+                .auth().oauth2(getAccessToken(USERNAME_TEST))
                 .when()
                 .delete("/v1/teams/" + privateTeam.getSlug())
                 .then()

@@ -26,31 +26,18 @@ public class UserSyncService {
      * Sync user from Keycloak claims to local database.
      * Creates new user if not exists, updates existing user's profile.
      *
-     * @param keycloakId  The Keycloak user ID (sub claim)
      * @param email       User's email from Keycloak
      * @param displayName User's display name (from name claim or constructed from given/family name)
-     * @param avatarUrl   User's avatar URL (from Strava profile)
-     * @param stravaId    User's Strava ID (from identity provider)
      * @return The synced User entity
      */
     @Transactional
-    public User syncUser(String keycloakId, String email, String displayName,
-                         String avatarUrl, String stravaId) {
-
-        // First, try to find by Strava ID (for existing users or those logged in via Strava)
-        Optional<User> existingByStrava = Optional.empty();
-        if (stravaId != null && !stravaId.isBlank()) {
-            existingByStrava = userRepository.findByStravaId(stravaId);
-        }
+    public User syncUser(String email, String displayName) {
 
         // Then try by email
         Optional<User> existingByEmail = userRepository.findByEmail(email);
 
         User user;
-        if (existingByStrava.isPresent()) {
-            user = existingByStrava.get();
-            LOG.debugv("Found existing user by Strava ID: {0}", stravaId);
-        } else if (existingByEmail.isPresent()) {
+        if (existingByEmail.isPresent()) {
             user = existingByEmail.get();
             LOG.debugv("Found existing user by email: {0}", email);
         } else {
@@ -63,13 +50,6 @@ public class UserSyncService {
         if (displayName != null && !displayName.isBlank()) {
             user.setDisplayName(displayName);
         }
-        if (avatarUrl != null && !avatarUrl.isBlank()) {
-            user.setAvatarUrl(avatarUrl);
-        }
-        if (stravaId != null && !stravaId.isBlank() && user.getStravaId() == null) {
-            // Only set Strava ID if not already set (avoid overwriting)
-            user.setStravaId(stravaId);
-        }
 
         // Record login
         user.recordLogin();
@@ -78,20 +58,4 @@ public class UserSyncService {
         return user;
     }
 
-    /**
-     * Find existing user by Strava ID or email.
-     *
-     * @param email    User's email
-     * @param stravaId User's Strava ID
-     * @return Optional containing the user if found
-     */
-    public Optional<User> findExistingUser(String email, String stravaId) {
-        if (stravaId != null && !stravaId.isBlank()) {
-            Optional<User> byStrava = userRepository.findByStravaId(stravaId);
-            if (byStrava.isPresent()) {
-                return byStrava;
-            }
-        }
-        return userRepository.findByEmail(email);
-    }
 }
