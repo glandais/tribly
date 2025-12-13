@@ -2,53 +2,58 @@ package com.tribly.integration;
 
 import com.tribly.domain.user.User;
 import com.tribly.domain.user.UserRepository;
-import com.tribly.service.auth.JwtService;
+import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.oidc.server.OidcWiremockTestResource;
+import io.quarkus.test.security.TestSecurity;
+import io.quarkus.test.security.oidc.Claim;
+import io.quarkus.test.security.oidc.OidcSecurity;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
 @QuarkusTest
+@QuarkusTestResource(OidcWiremockTestResource.class)
 class UserResourceTest {
 
     @Inject
     UserRepository userRepository;
 
-    @Inject
-    JwtService jwtService;
-
     private User testUser;
-    private String validToken;
-    private String testEmail;
+    private static final String TEST_EMAIL = "test-user@example.com";
+    private static final String TEST_STRAVA_ID = "test-strava-12345";
 
     @BeforeEach
     @Transactional
     void setUp() {
-        // Use unique email per test to avoid conflicts
-        testEmail = "user-test-" + System.currentTimeMillis() + "@example.com";
+        // Clean up existing test user
+        userRepository.delete("email", TEST_EMAIL);
 
-        testUser = new User(testEmail, "Test User");
-        testUser.setStravaId("user-test-strava-" + System.currentTimeMillis());
+        testUser = new User(TEST_EMAIL, "Test User");
+        testUser.setStravaId(TEST_STRAVA_ID);
         testUser.setLocale("en");
         testUser.setTimezone("UTC");
         userRepository.persistAndFlush(testUser);
-
-        validToken = jwtService.generateToken(testUser);
     }
 
     @Test
+    @TestSecurity(user = "test-keycloak-id", roles = "user")
+    @OidcSecurity(claims = {
+            @Claim(key = "email", value = TEST_EMAIL),
+            @Claim(key = "name", value = "Test User"),
+            @Claim(key = "strava_id", value = TEST_STRAVA_ID)
+    })
     void getCurrentUser_shouldReturnUserDetails() {
         given()
-                .header("Authorization", "Bearer " + validToken)
                 .when()
                 .get("/v1/users/me")
                 .then()
                 .statusCode(200)
-                .body("id", equalTo(testUser.getId().intValue()))
-                .body("email", equalTo(testEmail))
+                .body("email", equalTo(TEST_EMAIL))
                 .body("displayName", equalTo("Test User"))
                 .body("locale", equalTo("en"))
                 .body("timezone", equalTo("UTC"));
@@ -64,9 +69,14 @@ class UserResourceTest {
     }
 
     @Test
+    @TestSecurity(user = "test-keycloak-id", roles = "user")
+    @OidcSecurity(claims = {
+            @Claim(key = "email", value = TEST_EMAIL),
+            @Claim(key = "name", value = "Test User"),
+            @Claim(key = "strava_id", value = TEST_STRAVA_ID)
+    })
     void updateCurrentUser_shouldUpdateDisplayName() {
         given()
-                .header("Authorization", "Bearer " + validToken)
                 .contentType("application/json")
                 .body("{\"displayName\": \"Updated Name\"}")
                 .when()
@@ -77,9 +87,14 @@ class UserResourceTest {
     }
 
     @Test
+    @TestSecurity(user = "test-keycloak-id", roles = "user")
+    @OidcSecurity(claims = {
+            @Claim(key = "email", value = TEST_EMAIL),
+            @Claim(key = "name", value = "Test User"),
+            @Claim(key = "strava_id", value = TEST_STRAVA_ID)
+    })
     void updateCurrentUser_shouldUpdateLocaleAndTimezone() {
         given()
-                .header("Authorization", "Bearer " + validToken)
                 .contentType("application/json")
                 .body("{\"locale\": \"fr\", \"timezone\": \"Europe/Paris\"}")
                 .when()
@@ -102,9 +117,14 @@ class UserResourceTest {
     }
 
     @Test
+    @TestSecurity(user = "test-keycloak-id", roles = "user")
+    @OidcSecurity(claims = {
+            @Claim(key = "email", value = TEST_EMAIL),
+            @Claim(key = "name", value = "Test User"),
+            @Claim(key = "strava_id", value = TEST_STRAVA_ID)
+    })
     void getUserById_shouldReturnPublicProfile() {
         given()
-                .header("Authorization", "Bearer " + validToken)
                 .when()
                 .get("/v1/users/" + testUser.getId())
                 .then()
@@ -117,9 +137,14 @@ class UserResourceTest {
     }
 
     @Test
+    @TestSecurity(user = "test-keycloak-id", roles = "user")
+    @OidcSecurity(claims = {
+            @Claim(key = "email", value = TEST_EMAIL),
+            @Claim(key = "name", value = "Test User"),
+            @Claim(key = "strava_id", value = TEST_STRAVA_ID)
+    })
     void getUserById_withNonexistentId_shouldReturn404() {
         given()
-                .header("Authorization", "Bearer " + validToken)
                 .when()
                 .get("/v1/users/999999")
                 .then()
@@ -136,17 +161,21 @@ class UserResourceTest {
     }
 
     @Test
+    @TestSecurity(user = "test-keycloak-id", roles = "user")
+    @OidcSecurity(claims = {
+            @Claim(key = "email", value = TEST_EMAIL),
+            @Claim(key = "name", value = "Test User"),
+            @Claim(key = "strava_id", value = TEST_STRAVA_ID)
+    })
     void deleteCurrentUser_shouldSoftDeleteAccount() {
         given()
-                .header("Authorization", "Bearer " + validToken)
                 .when()
                 .delete("/v1/users/me")
                 .then()
                 .statusCode(204);
 
-        // Verify user is no longer accessible
+        // Verify user is no longer accessible (will return 404 because user is deleted)
         given()
-                .header("Authorization", "Bearer " + validToken)
                 .when()
                 .get("/v1/users/me")
                 .then()

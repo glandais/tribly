@@ -30,7 +30,8 @@
     "@hookform/resolvers": "^3.9.1",
     "axios": "^1.7.9",
     "date-fns": "^4.1.0",
-    "clsx": "^2.1.1"
+    "clsx": "^2.1.1",
+    "keycloak-js": "^26.0.7"
   },
   "devDependencies": {
     "@types/react": "^18.3.14",

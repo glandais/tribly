@@ -1,3 +1,5 @@
+import { useAuthStore } from '../store/authStore';
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/v1';
 
 export interface ApiError {
@@ -46,7 +48,8 @@ class ApiClient {
       'Content-Type': 'application/json',
     });
 
-    const token = localStorage.getItem('auth_token');
+    // Get token from Keycloak via auth store
+    const token = useAuthStore.getState().getToken();
     if (token) {
       headers.set('Authorization', `Bearer ${token}`);
     }

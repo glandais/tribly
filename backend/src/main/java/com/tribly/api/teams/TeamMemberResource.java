@@ -7,6 +7,7 @@ import com.tribly.domain.user.User;
 import com.tribly.infrastructure.exception.BusinessException;
 import com.tribly.service.team.TeamMembershipService;
 import com.tribly.service.team.TeamService;
+import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -15,7 +16,6 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import org.eclipse.microprofile.jwt.JsonWebToken;
 
 import java.net.URI;
 import java.util.List;
@@ -33,7 +33,7 @@ public class TeamMemberResource {
     TeamMembershipService membershipService;
 
     @Inject
-    JsonWebToken jwt;
+    SecurityIdentity securityIdentity;
 
     @GET
     public Response getMembers(
@@ -125,11 +125,11 @@ public class TeamMemberResource {
     }
 
     private Long getCurrentUserId() {
-        String subject = jwt.getSubject();
-        if (subject == null) {
+        Long userId = securityIdentity.getAttribute("userId");
+        if (userId == null) {
             throw new NotAuthorizedException("No valid token");
         }
-        return Long.parseLong(subject);
+        return userId;
     }
 
     public record AddMemberRequest(

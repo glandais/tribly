@@ -3,16 +3,15 @@ package com.tribly.api.users;
 import com.tribly.domain.user.User;
 import com.tribly.domain.user.UserRepository;
 import com.tribly.infrastructure.exception.BusinessException;
+import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import org.eclipse.microprofile.jwt.JsonWebToken;
 import org.jboss.logging.Logger;
 
 @Path("/v1/users")
@@ -27,7 +26,7 @@ public class UserResource {
     UserRepository userRepository;
 
     @Inject
-    JsonWebToken jwt;
+    SecurityIdentity securityIdentity;
 
     @GET
     @Path("/me")
@@ -78,14 +77,20 @@ public class UserResource {
     }
 
     private User getCurrentUserEntity() {
-        String subject = jwt.getSubject();
-        if (subject == null) {
-            throw new NotAuthorizedException("No valid token");
+        // Get user from augmented security identity (set by UserSecurityIdentityAugmentor)
+        User user = securityIdentity.getAttribute("user");
+        if (user != null) {
+            return user;
         }
 
-        Long userId = Long.parseLong(subject);
-        return userRepository.findActiveById(userId)
-                .orElseThrow(() -> BusinessException.notFound("User", userId));
+        // Fallback: get userId attribute and lookup
+        Long userId = securityIdentity.getAttribute("userId");
+        if (userId != null) {
+            return userRepository.findActiveById(userId)
+                    .orElseThrow(() -> BusinessException.notFound("User", userId));
+        }
+
+        throw new NotAuthorizedException("User not found in security context");
     }
 
     public record UserDto(

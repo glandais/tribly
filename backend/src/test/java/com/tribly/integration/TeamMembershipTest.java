@@ -4,17 +4,22 @@ import com.tribly.domain.team.TeamRepository;
 import com.tribly.domain.team.UserTeamRepository;
 import com.tribly.domain.user.User;
 import com.tribly.domain.user.UserRepository;
-import com.tribly.service.auth.JwtService;
+import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.oidc.server.OidcWiremockTestResource;
+import io.smallrye.jwt.build.Jwt;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.Set;
+
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
 @QuarkusTest
+@QuarkusTestResource(OidcWiremockTestResource.class)
 class TeamMembershipTest {
 
     @Inject
@@ -25,9 +30,6 @@ class TeamMembershipTest {
 
     @Inject
     UserTeamRepository userTeamRepository;
-
-    @Inject
-    JwtService jwtService;
 
     private User adminUser;
     private User memberUser;
@@ -44,21 +46,53 @@ class TeamMembershipTest {
         teamRepository.delete("slug like ?1", "membership-test-%");
         userRepository.delete("email like ?1", "membership-test-%");
 
+        long timestamp = System.currentTimeMillis();
+
         adminUser = new User("membership-test-admin@example.com", "Admin User");
-        adminUser.setStravaId("membership-admin-strava");
+        adminUser.setStravaId("membership-admin-strava-" + timestamp);
         userRepository.persistAndFlush(adminUser);
 
         memberUser = new User("membership-test-member@example.com", "Member User");
-        memberUser.setStravaId("membership-member-strava");
+        memberUser.setStravaId("membership-member-strava-" + timestamp);
         userRepository.persistAndFlush(memberUser);
 
         thirdUser = new User("membership-test-third@example.com", "Third User");
-        thirdUser.setStravaId("membership-third-strava");
+        thirdUser.setStravaId("membership-third-strava-" + timestamp);
         userRepository.persistAndFlush(thirdUser);
 
-        adminToken = jwtService.generateToken(adminUser);
-        memberToken = jwtService.generateToken(memberUser);
-        thirdUserToken = jwtService.generateToken(thirdUser);
+        adminToken = generateToken(
+                "keycloak-admin-" + timestamp,
+                adminUser.getEmail(),
+                adminUser.getDisplayName(),
+                adminUser.getStravaId()
+        );
+        memberToken = generateToken(
+                "keycloak-member-" + timestamp,
+                memberUser.getEmail(),
+                memberUser.getDisplayName(),
+                memberUser.getStravaId()
+        );
+        thirdUserToken = generateToken(
+                "keycloak-third-" + timestamp,
+                thirdUser.getEmail(),
+                thirdUser.getDisplayName(),
+                thirdUser.getStravaId()
+        );
+    }
+
+    /**
+     * Generate a JWT token compatible with OidcWiremock.
+     * The WireMock server automatically configures the test environment to accept these tokens.
+     */
+    private String generateToken(String subject, String email, String name, String stravaId) {
+        return Jwt.subject(subject)
+                .issuer("https://server.example.com")
+                .audience("https://service.example.com")
+                .groups(Set.of("user"))
+                .claim("email", email)
+                .claim("name", name)
+                .claim("strava_id", stravaId)
+                .sign();
     }
 
     @Test

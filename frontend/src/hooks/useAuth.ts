@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore, User } from '../store/authStore';
@@ -10,40 +10,80 @@ interface UpdateUserRequest {
   timezone?: string;
 }
 
+interface BackendUser {
+  id: number;
+  email: string;
+  displayName: string;
+  avatarUrl: string | null;
+  stravaId: string | null;
+  locale: string;
+  timezone: string;
+}
+
 export function useAuth() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const {
     user,
-    token,
     isAuthenticated,
+    isInitialized,
     isLoading,
     error,
+    initialize,
     login,
+    loginWithStrava,
     logout: storeLogout,
+    setUser,
     setLoading,
     setError,
     clearError,
   } = useAuthStore();
 
-  const { data: currentUser, refetch: refetchUser } = useQuery({
+  // Initialize Keycloak on mount
+  useEffect(() => {
+    if (!isInitialized) {
+      initialize();
+    }
+  }, [isInitialized, initialize]);
+
+  // Fetch current user from backend (syncs Keycloak user to DB)
+  const { data: backendUser, refetch: refetchUser } = useQuery({
     queryKey: ['currentUser'],
     queryFn: async () => {
-      const response = await apiClient.get<User>('/users/me');
+      const response = await apiClient.get<BackendUser>('/users/me');
       return response;
     },
-    enabled: isAuthenticated && !!token,
+    enabled: isAuthenticated && isInitialized,
     staleTime: 1000 * 60 * 5,
     retry: false,
   });
 
+  // Update store with backend user data (including database ID)
+  useEffect(() => {
+    if (backendUser && user) {
+      setUser({
+        ...user,
+        dbId: backendUser.id,
+        locale: backendUser.locale,
+        timezone: backendUser.timezone,
+      });
+    }
+  }, [backendUser?.id]);
+
   const updateProfileMutation = useMutation({
     mutationFn: async (data: UpdateUserRequest) => {
-      return apiClient.put<User>('/users/me', data);
+      return apiClient.put<BackendUser>('/users/me', data);
     },
     onSuccess: (updatedUser) => {
       queryClient.setQueryData(['currentUser'], updatedUser);
-      useAuthStore.getState().setUser(updatedUser);
+      if (user) {
+        setUser({
+          ...user,
+          displayName: updatedUser.displayName,
+          locale: updatedUser.locale,
+          timezone: updatedUser.timezone,
+        });
+      }
     },
     onError: (error: ApiClientError) => {
       setError(error.error.message);
@@ -63,51 +103,19 @@ export function useAuth() {
   });
 
   const logout = useCallback(() => {
-    apiClient.post('/auth/logout').catch(() => {});
-
-    storeLogout();
     queryClient.clear();
-    navigate('/login');
-  }, [storeLogout, queryClient, navigate]);
-
-  const loginWithStrava = useCallback(() => {
-    const redirectUri = `${window.location.origin}/auth/callback/strava`;
-    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || '/v1';
-    window.location.href = `${apiBaseUrl}/auth/oauth/strava?redirect_uri=${encodeURIComponent(redirectUri)}`;
-  }, []);
-
-  const refreshToken = useCallback(async () => {
-    if (!token) return false;
-
-    try {
-      setLoading(true);
-      const response = await apiClient.post<{
-        accessToken: string;
-        refreshToken: string;
-        expiresIn: number;
-        user: User;
-      }>('/auth/refresh', { refreshToken: token });
-
-      login(response.user, response.accessToken);
-      return true;
-    } catch (error) {
-      logout();
-      return false;
-    } finally {
-      setLoading(false);
-    }
-  }, [token, login, logout, setLoading]);
+    storeLogout();
+  }, [storeLogout, queryClient]);
 
   return {
-    user: currentUser || user,
-    token,
+    user: user ? { ...user, dbId: backendUser?.id } : null,
     isAuthenticated,
+    isInitialized,
     isLoading,
     error,
     login,
-    logout,
     loginWithStrava,
-    refreshToken,
+    logout,
     updateProfile: updateProfileMutation.mutate,
     isUpdatingProfile: updateProfileMutation.isPending,
     deleteAccount: deleteAccountMutation.mutate,

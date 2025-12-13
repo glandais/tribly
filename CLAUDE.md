@@ -15,7 +15,8 @@ tests/
 
 ## Commands
 
-npm test && npm run lint
+- Backend: Use `mvn` (not `./mvnw`) for Maven commands
+- Frontend: `npm test && npm run lint`
 
 ## Code Style
 

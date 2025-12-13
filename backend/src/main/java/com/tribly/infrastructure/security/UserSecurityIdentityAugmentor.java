@@ -1,7 +1,7 @@
 package com.tribly.infrastructure.security;
 
 import com.tribly.domain.user.User;
-import com.tribly.domain.user.UserRepository;
+import com.tribly.service.auth.UserSyncService;
 import io.quarkus.security.identity.AuthenticationRequestContext;
 import io.quarkus.security.identity.SecurityIdentity;
 import io.quarkus.security.identity.SecurityIdentityAugmentor;
@@ -13,15 +13,17 @@ import jakarta.inject.Inject;
 import org.eclipse.microprofile.jwt.JsonWebToken;
 import org.jboss.logging.Logger;
 
-import java.util.Optional;
-
+/**
+ * Security identity augmentor that syncs Keycloak users to the local database
+ * and enriches the SecurityIdentity with user attributes.
+ */
 @ApplicationScoped
 public class UserSecurityIdentityAugmentor implements SecurityIdentityAugmentor {
 
     private static final Logger LOG = Logger.getLogger(UserSecurityIdentityAugmentor.class);
 
     @Inject
-    UserRepository userRepository;
+    UserSyncService userSyncService;
 
     @Override
     public Uni<SecurityIdentity> augment(SecurityIdentity identity, AuthenticationRequestContext context) {
@@ -36,26 +38,54 @@ public class UserSecurityIdentityAugmentor implements SecurityIdentityAugmentor 
     SecurityIdentity augmentIdentity(SecurityIdentity identity) {
         try {
             if (identity.getPrincipal() instanceof JsonWebToken jwt) {
-                String subject = jwt.getSubject();
-                if (subject != null) {
-                    Long userId = Long.parseLong(subject);
-                    Optional<User> userOpt = userRepository.findActiveById(userId);
+                // Extract claims from Keycloak token
+                String keycloakId = jwt.getSubject();
+                String email = jwt.getClaim("email");
+                String preferredUsername = jwt.getClaim("preferred_username");
 
-                    if (userOpt.isPresent()) {
-                        User user = userOpt.get();
-                        return QuarkusSecurityIdentity.builder(identity)
-                                .addAttribute("userId", user.getId())
-                                .addAttribute("email", user.getEmail())
-                                .addAttribute("displayName", user.getDisplayName())
-                                .addAttribute("user", user)
-                                .build();
-                    } else {
-                        LOG.warnv("User with id {0} not found for JWT subject", userId);
+                // Get display name from various possible claims
+                String displayName = jwt.getClaim("name");
+                if (displayName == null || displayName.isBlank()) {
+                    String givenName = jwt.getClaim("given_name");
+                    String familyName = jwt.getClaim("family_name");
+                    if (givenName != null || familyName != null) {
+                        displayName = ((givenName != null ? givenName : "") + " " +
+                                (familyName != null ? familyName : "")).trim();
                     }
                 }
+                if (displayName == null || displayName.isBlank()) {
+                    displayName = preferredUsername != null ? preferredUsername : email;
+                }
+
+                // Get Strava-specific claims (from identity provider mappers)
+                String avatarUrl = jwt.getClaim("avatar_url");
+                String stravaId = jwt.getClaim("strava_id");
+
+                if (email == null || email.isBlank()) {
+                    LOG.warn("No email claim in Keycloak token");
+                    return identity;
+                }
+
+                // Sync user to database
+                User user = userSyncService.syncUser(
+                        keycloakId,
+                        email,
+                        displayName,
+                        avatarUrl,
+                        stravaId
+                );
+
+                // Build augmented identity with user attributes
+                return QuarkusSecurityIdentity.builder(identity)
+                        .addAttribute("userId", user.getId())
+                        .addAttribute("email", user.getEmail())
+                        .addAttribute("displayName", user.getDisplayName())
+                        .addAttribute("user", user)
+                        .addAttribute("keycloakId", keycloakId)
+                        .build();
             }
         } catch (Exception e) {
-            LOG.error("Error augmenting security identity", e);
+            LOG.error("Error augmenting security identity from Keycloak", e);
         }
 
         return identity;

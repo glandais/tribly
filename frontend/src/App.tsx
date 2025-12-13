@@ -2,7 +2,6 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Layout } from './components/common/Layout';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { LoginPage } from './pages/auth/LoginPage';
-import { OAuthCallbackPage } from './pages/auth/OAuthCallbackPage';
 import { UserProfilePage } from './pages/auth/UserProfilePage';
 import { AuthenticatedRoute, UnauthenticatedRoute } from './components/auth/ProtectedRoute';
 import { TeamListPage } from './pages/team/TeamListPage';
@@ -48,8 +47,6 @@ function App() {
                 </UnauthenticatedRoute>
               }
             />
-            <Route path="auth/callback/:provider" element={<OAuthCallbackPage />} />
-
             {/* User profile routes */}
             <Route
               path="profile"

@@ -4,6 +4,7 @@ import com.tribly.domain.team.Team;
 import com.tribly.domain.team.TeamRole;
 import com.tribly.infrastructure.exception.BusinessException;
 import com.tribly.service.team.TeamService;
+import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
@@ -14,7 +15,6 @@ import jakarta.validation.constraints.Size;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import org.eclipse.microprofile.jwt.JsonWebToken;
 
 import java.net.URI;
 import java.util.List;
@@ -29,7 +29,7 @@ public class TeamResource {
     TeamService teamService;
 
     @Inject
-    JsonWebToken jwt;
+    SecurityIdentity securityIdentity;
 
     @GET
     @PermitAll
@@ -148,23 +148,18 @@ public class TeamResource {
     }
 
     private Long getCurrentUserId() {
-        String subject = jwt.getSubject();
-        if (subject == null) {
+        Long userId = securityIdentity.getAttribute("userId");
+        if (userId == null) {
             throw new NotAuthorizedException("No valid token");
         }
-        return Long.parseLong(subject);
+        return userId;
     }
 
     private Long getCurrentUserIdOrNull() {
-        String subject = jwt.getSubject();
-        if (subject == null) {
+        if (securityIdentity.isAnonymous()) {
             return null;
         }
-        try {
-            return Long.parseLong(subject);
-        } catch (NumberFormatException e) {
-            return null;
-        }
+        return securityIdentity.getAttribute("userId");
     }
 
     public record CreateTeamRequest(
