@@ -1,166 +1,165 @@
-# tribly Development Guidelines
+# CLAUDE.md
 
-Auto-generated from all feature plans. Last updated: 2025-12-10
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Active Technologies
+## Project Overview
 
-- Java 21 (backend), TypeScript 5.x (frontend) + Quarkus 3.x (backend), React 18+ with Vite (frontend), OpenAPI Generator (contract-first) (001-cycling-team-platform)
+Tribly is a multi-tenant web platform for cycling teams to organize rides, trips, manage GPX routes with interactive maps, and communicate. It uses a contract-first API development approach.
 
-## Project Structure
+## Tech Stack
 
-```text
-src/
-tests/
-```
+- **Backend**: Java 21, Quarkus 3.30.x, PostgreSQL 16 with PostGIS, Hibernate ORM with Panache, Flyway migrations
+- **Frontend**: TypeScript 5.x, React 18+, Vite, TailwindCSS, Zustand (state), React Query (data fetching)
+- **Auth**: Keycloak OIDC (Dev Services in dev/test, external server in prod)
+- **API**: OpenAPI 3.1 contract-first with code generation
+- **Testing**: JUnit 5 + REST Assured (backend), Vitest + Testing Library (frontend), Playwright (E2E)
 
 ## Commands
 
-- Backend: Use `mvn` (not `./mvnw`) for Maven commands
-- Frontend: `npm test && npm run lint`
-
-## Code Style
-
-Java 21 (backend), TypeScript 5.x (frontend): Follow standard conventions
-
-## Recent Changes
-
-- 001-cycling-team-platform: Added Java 21 (backend), TypeScript 5.x (frontend) + Quarkus 3.x (backend), React 18+ with Vite (frontend), OpenAPI Generator (contract-first)
-
-<!-- MANUAL ADDITIONS START -->
-
-## Session Learnings (2025-12-11)
-
-### Quarkus/Hibernate Testing Issues
-
-#### 1. RestAssured Follows Redirects by Default
-- **Problem**: `AuthContractTest` expected 302 but got 400
-- **Root Cause**: RestAssured followed the redirect to Strava (with invalid test client_id)
-- **Fix**: Add `.redirects().follow(false)` to test OAuth redirect endpoints without actually calling the external provider
-```java
-given()
-    .redirects().follow(false)
-    .queryParam("redirect_uri", "...")
-    .when()
-    .get("/v1/auth/oauth/strava")
-    .then()
-    .statusCode(302);
+### Backend (from `backend/` directory)
+```bash
+mvn quarkus:dev           # Start dev mode with hot reload (auto-starts Keycloak + Postgres via Dev Services)
+mvn test                  # Run unit/integration tests
+mvn test -Dtest=ClassName # Run single test class
+mvn verify                # Run all tests including integration
+mvn checkstyle:check      # Check code style
 ```
 
-#### 2. JWT Claims Don't Accept Null Values
-- **Problem**: `NullPointerException` when generating JWT tokens
-- **Root Cause**: `Jwt.claim("avatar", user.getAvatarUrl())` fails if avatarUrl is null
-- **Fix**: Conditionally add claims only when values are non-null
-```java
-var builder = Jwt.issuer(issuer)...
-if (user.getAvatarUrl() != null) {
-    builder.claim("avatar", user.getAvatarUrl());
-}
-return builder.sign();
+### Frontend (from `frontend/` directory)
+```bash
+pnpm dev                  # Start Vite dev server
+pnpm build                # Type check + production build
+pnpm test                 # Run Vitest tests
+pnpm lint                 # ESLint check
+pnpm lint:fix             # ESLint auto-fix
+pnpm generate-api         # Generate API client from OpenAPI spec
 ```
 
-#### 3. Entity IDs Null After Persist with IDENTITY Strategy
-- **Problem**: `user.getId()` returns null even after `persist()`
-- **Root Cause**: With `GenerationType.IDENTITY`, IDs are only assigned after INSERT
-- **Fix**: Use `persistAndFlush()` instead of `persist()` when you need the ID immediately
-```java
-userRepository.persistAndFlush(testUser);  // ID available after this
-validToken = jwtService.generateToken(testUser);  // Now works
+### E2E Tests (from `e2e/` directory)
+```bash
+pnpm test                 # Run Playwright tests
+pnpm test:ui              # Run with Playwright UI
+pnpm test:headed          # Run with visible browser
 ```
 
-#### 4. Foreign Key Constraint Violations in Test Cleanup
-- **Problem**: `ConstraintViolationException` when deleting users in `@BeforeEach`
-- **Root Cause**: Users still referenced in `user_teams` table
-- **Fix**: Delete dependent records first (correct FK cleanup order)
-```java
-@BeforeEach
-@Transactional
-void setUp() {
-    userTeamRepository.delete("user.email like ?1", "team-test-%");  // First
-    teamRepository.delete("slug like ?1", "test-%");                  // Second
-    userRepository.delete("email like ?1", "team-test-%");           // Last
-    // ... create new test data
-}
+### Infrastructure
+```bash
+docker compose up -d postgres  # Start PostgreSQL only
+docker compose --profile tools up -d  # Include pgAdmin + Mailhog
 ```
 
-#### 5. SecurityIdentityAugmentor Needs Request Context
-- **Problem**: `ContextNotActiveException` - no transaction/request context active
-- **Root Cause**: `runBlocking()` lambda runs outside CDI request context
-- **Fix**: Extract to separate method with `@ActivateRequestContext`
-```java
-@Override
-public Uni<SecurityIdentity> augment(SecurityIdentity identity, AuthenticationRequestContext context) {
-    return context.runBlocking(() -> augmentIdentity(identity));
-}
+## Architecture
 
-@ActivateRequestContext
-SecurityIdentity augmentIdentity(SecurityIdentity identity) {
-    // Database access works here
-}
+### Backend Structure (`backend/src/main/java/com/tribly/`)
+
+```
+api/           # REST controllers and DTOs
+  dto/         # Request/response objects
+  users/       # User endpoints
+  teams/       # Team endpoints
+  rides/       # Ride endpoints
+domain/        # Core business entities (JPA/Panache)
+  user/        # User, UserRepository
+  team/        # Team, UserTeam (membership), repositories
+  ride/        # Ride, RideGroup entities
+  route/       # Route entity with GPX data
+  trip/        # Trip, TripStage entities
+  place/       # Meeting places
+  common/      # Shared base entities
+service/       # Business logic services
+infrastructure/# Cross-cutting: security, config, integrations
+config/        # Application configuration classes
 ```
 
-#### 6. @Transactional + RestAssured HTTP = Transaction Isolation Issue
-- **Problem**: HTTP requests can't see data created in the same test method
-- **Root Cause**: `@Transactional` on test holds transaction open; RestAssured runs in separate thread with its own transaction that can't see uncommitted data
-- **Fix**: Don't mix service calls and HTTP requests in `@Transactional` tests. Choose one pattern:
-  - **Pure service tests**: Use `@Transactional`, only call injected services, use JUnit assertions
-  - **Pure HTTP tests**: No `@Transactional`, use RestAssured for all setup and assertions
+**Key patterns:**
+- Panache Active Record pattern for repositories (`extends PanacheRepository<Entity>`)
+- DTOs separate from domain entities
+- Services contain business logic, controllers are thin
+- Flyway migrations in `src/main/resources/db/migration/`
+
+### Frontend Structure (`frontend/src/`)
+
+```
+api/           # API client (generated from OpenAPI)
+components/    # Reusable React components
+pages/         # Route-level page components
+hooks/         # Custom React hooks
+store/         # Zustand state stores
+config/        # App configuration
+utils/         # Utility functions
+```
+
+### Contract-First Development
+
+1. OpenAPI spec lives in `contracts/openapi.yaml`
+2. Backend implements the spec manually
+3. Frontend generates typed client: `pnpm generate-api`
+
+## Quarkus/Hibernate Testing Patterns
+
+### Test Transaction Isolation
+
+**Never mix `@Transactional` tests with RestAssured HTTP calls:**
+
 ```java
-// ❌ WRONG: Mixed pattern - HTTP can't see uncommitted team
+// WRONG: HTTP can't see uncommitted data
 @Test
 @Transactional
-void joinTeam_wrong() {
-    Team team = teamService.createTeam(...);  // Not committed yet
-    given().post("/v1/teams/" + team.getSlug() + "/join");  // Can't find team!
+void testWrong() {
+    Team team = teamService.createTeam(...);  // Not committed
+    given().post("/teams/" + team.getSlug() + "/join");  // Can't find team!
 }
 
-// ✅ RIGHT: Pure HTTP pattern - each request commits
+// RIGHT: Pure HTTP pattern
 @Test
-void joinTeam_correct() {
-    String slug = given()
-        .body("{\"name\": \"Team\"}")
-        .post("/v1/teams")
-        .extract().path("slug");  // Committed!
-    given().post("/v1/teams/" + slug + "/join");  // Works!
+void testCorrect() {
+    String slug = given().body("...").post("/teams").extract().path("slug");
+    given().post("/teams/" + slug + "/join");  // Works!
 }
 
-// ✅ RIGHT: Pure service pattern - same transaction
+// RIGHT: Pure service pattern
 @Test
 @Transactional
-void createTeam_correct() {
+void testCorrect2() {
     Team team = teamService.createTeam(...);
-    assertEquals("Team", team.getName());  // Same transaction, works!
+    assertEquals("Team", team.getName());  // Same transaction
 }
 ```
 
-### Quarkus Configuration Notes
+### Common Gotchas
 
-#### Test Profile Database Configuration
-- Use `%test.` prefix for test-specific configuration
-- DevServices requires removing default JDBC URL (use profile-specific URLs for prod/dev only)
-- For PostGIS, use image: `postgis/postgis:16-3.4-alpine`
+1. **Entity ID null after persist**: Use `persistAndFlush()` when you need the ID immediately with `GenerationType.IDENTITY`
+2. **RestAssured follows redirects**: Add `.redirects().follow(false)` when testing OAuth redirects
+3. **JWT null claims**: Check for null before adding claims with `Jwt.claim()`
+4. **FK constraint in test cleanup**: Delete child records before parent records in `@BeforeEach`
+5. **SecurityIdentityAugmentor context**: Use `@ActivateRequestContext` on methods needing CDI context
 
-```properties
-# Production/Dev only - tests use DevServices
-%prod.quarkus.datasource.jdbc.url=jdbc:postgresql://...
-%dev.quarkus.datasource.jdbc.url=jdbc:postgresql://...
+### Test Configuration
 
-# Test profile - DevServices auto-starts container
-%test.quarkus.datasource.devservices.enabled=true
-%test.quarkus.datasource.devservices.image-name=postgis/postgis:16-3.4-alpine
-```
+- Tests use Quarkus Dev Services (auto-starts containers)
+- PostGIS image: `postgis/postgis:16-3.4-alpine`
+- Test keys in `src/test/resources/keys/`
+- Prefix test properties with `%test.`
 
-#### JWT Test Keys
-- Generate test keys in `src/test/resources/keys/`
-- Configure test paths without leading slash:
-```properties
-%test.mp.jwt.verify.publickey.location=keys/public.pem
-%test.smallrye.jwt.sign.key.location=keys/private.pem
-```
+## Frontend/Vite Notes
 
-### Frontend/Vite Notes
+- Use `import.meta.env.DEV` not `process.env.NODE_ENV`
+- Use `globalThis` not `global` for browser compatibility
+- Keycloak JS adapter for auth: `keycloak-js`
 
-#### Environment Variables
-- Use `import.meta.env.DEV` instead of `process.env.NODE_ENV` for Vite projects
-- Use `globalThis` instead of `global` for browser compatibility
+## Development URLs
 
-<!-- MANUAL ADDITIONS END -->
+- Backend API: http://localhost:8080/v1
+- Swagger UI: http://localhost:8080/q/swagger-ui
+- Health: http://localhost:8080/q/health
+- Frontend: http://localhost:5173
+- Keycloak (dev): http://localhost:8180
+- pgAdmin (tools profile): http://localhost:5050
+- Mailhog UI (tools profile): http://localhost:8025
+
+## Specifications
+
+Feature specs, plans, and data models are in `/specs/001-cycling-team-platform/`:
+- `spec.md` - Full feature specification with user stories
+- `plan.md` - Implementation phases
+- `data-model.md` - Database schema design
