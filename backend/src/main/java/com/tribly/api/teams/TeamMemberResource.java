@@ -1,5 +1,6 @@
 package com.tribly.api.teams;
 
+import com.tribly.api.AbstractAuthenticatedResource;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.team.TeamRole;
 import com.tribly.domain.team.UserTeam;
@@ -7,7 +8,6 @@ import com.tribly.domain.user.User;
 import com.tribly.infrastructure.exception.BusinessException;
 import com.tribly.service.team.TeamMembershipService;
 import com.tribly.service.team.TeamService;
-import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -24,16 +24,13 @@ import java.util.List;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @RolesAllowed("user")
-public class TeamMemberResource {
+public class TeamMemberResource extends AbstractAuthenticatedResource {
 
     @Inject
     TeamService teamService;
 
     @Inject
     TeamMembershipService membershipService;
-
-    @Inject
-    SecurityIdentity securityIdentity;
 
     @GET
     public Response getMembers(
@@ -122,14 +119,6 @@ public class TeamMemberResource {
     private Team getTeamBySlug(String slug) {
         return teamService.getTeamBySlug(slug)
                 .orElseThrow(() -> BusinessException.notFound("Team with slug '" + slug + "' not found"));
-    }
-
-    private Long getCurrentUserId() {
-        Long userId = securityIdentity.getAttribute("userId");
-        if (userId == null) {
-            throw new NotAuthorizedException("No valid token");
-        }
-        return userId;
     }
 
     public record AddMemberRequest(

@@ -138,8 +138,10 @@ public class TeamService {
     }
 
     public Optional<TeamRole> getUserRoleBySlug(Long userId, String teamSlug) {
-        return userTeamRepository.findByUserAndTeamSlug(userId, teamSlug)
-                .map(UserTeam::getRole);
+        Optional<UserTeam> userTeam = userTeamRepository.findByUserAndTeamSlug(userId, teamSlug);
+        LOG.infov("getUserRoleBySlug: userId={0}, teamSlug={1}, found={2}",
+                userId, teamSlug, userTeam.isPresent());
+        return userTeam.map(UserTeam::getRole);
     }
 
     private String generateSlug(String input) {

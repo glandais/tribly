@@ -3,12 +3,15 @@ package com.tribly.domain.team;
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import io.quarkus.panache.common.Page;
 import jakarta.enterprise.context.ApplicationScoped;
+import org.jboss.logging.Logger;
 
 import java.util.List;
 import java.util.Optional;
 
 @ApplicationScoped
 public class UserTeamRepository implements PanacheRepository<UserTeam> {
+
+    private static final Logger LOG = Logger.getLogger(UserTeamRepository.class);
 
     public Optional<UserTeam> findByUserAndTeam(Long userId, Long teamId) {
         return find("user.id = ?1 and team.id = ?2 and deleted = false", userId, teamId)
@@ -46,7 +49,13 @@ public class UserTeamRepository implements PanacheRepository<UserTeam> {
     }
 
     public Optional<UserTeam> findByUserAndTeamSlug(Long userId, String teamSlug) {
-        return getEntityManager()
+        LOG.infov("findByUserAndTeamSlug: Querying for userId={0}, teamSlug={1}", userId, teamSlug);
+
+        // Debug: Count all UserTeam records for this user
+        long userTeamCount = count("user.id = ?1 and deleted = false", userId);
+        LOG.infov("findByUserAndTeamSlug: User {0} has {1} total team memberships", userId, userTeamCount);
+
+        Optional<UserTeam> result = getEntityManager()
                 .createQuery(
                         "SELECT ut FROM UserTeam ut " +
                                 "JOIN ut.team t " +
@@ -57,5 +66,8 @@ public class UserTeamRepository implements PanacheRepository<UserTeam> {
                 .setParameter("teamSlug", teamSlug)
                 .getResultStream()
                 .findFirst();
+
+        LOG.infov("findByUserAndTeamSlug: Query result present={0}", result.isPresent());
+        return result;
     }
 }

@@ -1,10 +1,10 @@
 package com.tribly.api.teams;
 
+import com.tribly.api.AbstractAuthenticatedResource;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.team.TeamRole;
 import com.tribly.infrastructure.exception.BusinessException;
 import com.tribly.service.team.TeamService;
-import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
@@ -18,18 +18,14 @@ import jakarta.ws.rs.core.Response;
 
 import java.net.URI;
 import java.util.List;
-import java.util.Optional;
 
 @Path("/v1/teams")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-public class TeamResource {
+public class TeamResource extends AbstractAuthenticatedResource {
 
     @Inject
     TeamService teamService;
-
-    @Inject
-    SecurityIdentity securityIdentity;
 
     @GET
     @PermitAll
@@ -145,21 +141,6 @@ public class TeamResource {
 
         teamService.deleteTeam(team.getId(), userId);
         return Response.noContent().build();
-    }
-
-    private Long getCurrentUserId() {
-        Long userId = securityIdentity.getAttribute("userId");
-        if (userId == null) {
-            throw new NotAuthorizedException("No valid token");
-        }
-        return userId;
-    }
-
-    private Long getCurrentUserIdOrNull() {
-        if (securityIdentity.isAnonymous()) {
-            return null;
-        }
-        return securityIdentity.getAttribute("userId");
     }
 
     public record CreateTeamRequest(

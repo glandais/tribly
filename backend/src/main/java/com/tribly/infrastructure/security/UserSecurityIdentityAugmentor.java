@@ -69,6 +69,9 @@ public class UserSecurityIdentityAugmentor implements SecurityIdentityAugmentor 
                         .addAttribute("displayName", user.getDisplayName())
                         .addAttribute("user", user)
                         .build();
+            } else {
+                LOG.warnv("augmentIdentity: Principal is not a JWT, cannot augment. PrincipalClass={0}",
+                        identity.getPrincipal().getClass().getName());
             }
         } catch (Exception e) {
             LOG.error("Error augmenting security identity from Keycloak", e);

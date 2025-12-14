@@ -1,11 +1,9 @@
 package com.tribly.api.users;
 
+import com.tribly.api.AbstractAuthenticatedResource;
 import com.tribly.domain.user.User;
-import com.tribly.domain.user.UserRepository;
 import com.tribly.infrastructure.exception.BusinessException;
-import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.annotation.security.RolesAllowed;
-import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Size;
@@ -18,15 +16,9 @@ import org.jboss.logging.Logger;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @RolesAllowed("user")
-public class UserResource {
+public class UserResource extends AbstractAuthenticatedResource {
 
     private static final Logger LOG = Logger.getLogger(UserResource.class);
-
-    @Inject
-    UserRepository userRepository;
-
-    @Inject
-    SecurityIdentity securityIdentity;
 
     @GET
     @Path("/me")
@@ -74,15 +66,6 @@ public class UserResource {
 
         LOG.infov("User {0} deleted their account", user.getId());
         return Response.noContent().build();
-    }
-
-    private User getCurrentUserEntity() {
-        Long userId = securityIdentity.getAttribute("userId");
-        if (userId != null) {
-            return userRepository.findActiveById(userId)
-                    .orElseThrow(() -> BusinessException.notFound("User", userId));
-        }
-        throw new NotAuthorizedException("User not found in security context");
     }
 
     public record UserDto(

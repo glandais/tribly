@@ -1,10 +1,10 @@
 package com.tribly.api.rides;
 
+import com.tribly.api.AbstractAuthenticatedResource;
 import com.tribly.domain.common.Visibility;
 import com.tribly.domain.ride.*;
 import com.tribly.infrastructure.exception.BusinessException;
 import com.tribly.service.ride.RideService;
-import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -15,7 +15,6 @@ import jakarta.validation.constraints.Size;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import org.eclipse.microprofile.jwt.JsonWebToken;
 
 import java.net.URI;
 import java.time.LocalDate;
@@ -26,17 +25,10 @@ import java.util.List;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @RolesAllowed("user")
-public class RideResource {
+public class RideResource extends AbstractAuthenticatedResource {
 
     @Inject
     RideService rideService;
-
-    @Inject
-    SecurityIdentity securityIdentity;
-
-    private Long getCurrentUserId() {
-        return securityIdentity.getAttribute("userId");
-    }
 
     @GET
     public Response listRides(
