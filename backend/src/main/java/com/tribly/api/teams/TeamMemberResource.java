@@ -41,13 +41,8 @@ public class TeamMemberResource extends AbstractAuthenticatedResource {
         Team team = getTeamBySlug(slug);
         Long userId = getCurrentUserId();
 
-        TeamRole userRole = teamService.getUserRole(userId, team.getId()).orElse(null);
-        if (userRole == null && !team.isPublic()) {
-            throw BusinessException.forbidden("You must be a member to view this team's members");
-        }
-
-        List<UserTeam> members = membershipService.getTeamMembers(team.getId(), page, size);
-        long total = membershipService.countTeamMembers(team.getId());
+        List<UserTeam> members = membershipService.getTeamMembers(team, userId, page, size);
+        long total = membershipService.countTeamMembers(team, userId);
 
         List<MemberDto> dtos = members.stream().map(MemberDto::from).toList();
         return Response.ok(new MemberListResponse(dtos, total, page, size)).build();

@@ -4,6 +4,7 @@ import com.tribly.domain.team.*;
 import com.tribly.domain.user.User;
 import com.tribly.domain.user.UserRepository;
 import com.tribly.infrastructure.exception.BusinessException;
+import com.tribly.service.security.TeamSecurityService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -30,6 +31,9 @@ public class TeamService {
 
     @Inject
     UserRepository userRepository;
+
+    @Inject
+    TeamSecurityService securityService;
 
     @Transactional
     public Team createTeam(CreateTeamRequest request, Long creatorId) {
@@ -84,12 +88,7 @@ public class TeamService {
         Team team = teamRepository.findActiveById(teamId)
                 .orElseThrow(() -> BusinessException.notFound("Team", teamId));
 
-        UserTeam membership = userTeamRepository.findByUserAndTeam(userId, teamId)
-                .orElseThrow(() -> BusinessException.forbidden("You are not a member of this team"));
-
-        if (!membership.isAdmin()) {
-            throw BusinessException.forbidden("Only admins can update team settings");
-        }
+        securityService.requireAdmin(userId, teamId);
 
         if (request.name() != null) {
             team.setName(request.name());
@@ -120,12 +119,7 @@ public class TeamService {
         Team team = teamRepository.findActiveById(teamId)
                 .orElseThrow(() -> BusinessException.notFound("Team", teamId));
 
-        UserTeam membership = userTeamRepository.findByUserAndTeam(userId, teamId)
-                .orElseThrow(() -> BusinessException.forbidden("You are not a member of this team"));
-
-        if (!membership.isAdmin()) {
-            throw BusinessException.forbidden("Only admins can delete the team");
-        }
+        securityService.requireAdmin(userId, teamId);
 
         team.softDelete();
         teamRepository.persist(team);

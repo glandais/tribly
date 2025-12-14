@@ -40,15 +40,12 @@ public class RideResource extends AbstractAuthenticatedResource {
             @QueryParam("size") @DefaultValue("20") int size) {
 
         Long userId = getCurrentUserId();
-        if (!rideService.isMember(userId, teamId)) {
-            throw BusinessException.forbidden("You are not a member of this team");
-        }
 
         LocalDate from = fromStr != null ? LocalDate.parse(fromStr) : null;
         LocalDate to = toStr != null ? LocalDate.parse(toStr) : null;
 
-        List<Ride> rides = rideService.listRides(teamId, from, to, status, page, size);
-        long total = rideService.countRides(teamId);
+        List<Ride> rides = rideService.listRides(teamId, userId, from, to, status, page, size);
+        long total = rideService.countRides(teamId, userId);
 
         List<RideDto> dtos = rides.stream().map(RideDto::from).toList();
         return Response.ok(new RideListResponse(dtos, total, page, size)).build();
@@ -89,11 +86,8 @@ public class RideResource extends AbstractAuthenticatedResource {
     @Path("/{rideId}")
     public Response getRide(@PathParam("teamId") Long teamId, @PathParam("rideId") Long rideId) {
         Long userId = getCurrentUserId();
-        if (!rideService.isMember(userId, teamId)) {
-            throw BusinessException.forbidden("You are not a member of this team");
-        }
 
-        Ride ride = rideService.getRide(teamId, rideId)
+        Ride ride = rideService.getRide(teamId, rideId, userId)
                 .orElseThrow(() -> BusinessException.notFound("Ride", rideId));
 
         return Response.ok(RideDetailDto.from(ride)).build();
@@ -138,11 +132,8 @@ public class RideResource extends AbstractAuthenticatedResource {
     @Path("/{rideId}/groups")
     public Response listGroups(@PathParam("teamId") Long teamId, @PathParam("rideId") Long rideId) {
         Long userId = getCurrentUserId();
-        if (!rideService.isMember(userId, teamId)) {
-            throw BusinessException.forbidden("You are not a member of this team");
-        }
 
-        List<RideGroup> groups = rideService.listGroups(teamId, rideId);
+        List<RideGroup> groups = rideService.listGroups(teamId, rideId, userId);
         List<RideGroupDto> dtos = groups.stream().map(RideGroupDto::from).toList();
         return Response.ok(new RideGroupListResponse(dtos)).build();
     }

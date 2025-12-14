@@ -4,12 +4,10 @@ import com.tribly.domain.common.Visibility;
 import com.tribly.domain.ride.*;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.team.TeamRepository;
-import com.tribly.domain.team.TeamRole;
-import com.tribly.domain.team.UserTeam;
-import com.tribly.domain.team.UserTeamRepository;
 import com.tribly.domain.user.User;
 import com.tribly.domain.user.UserRepository;
 import com.tribly.infrastructure.exception.BusinessException;
+import com.tribly.service.security.TeamSecurityService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -38,10 +36,10 @@ public class RideService {
     TeamRepository teamRepository;
 
     @Inject
-    UserTeamRepository userTeamRepository;
+    UserRepository userRepository;
 
     @Inject
-    UserRepository userRepository;
+    TeamSecurityService securityService;
 
     @Transactional
     public Ride createRide(Long teamId, CreateRideRequest request, Long creatorId) {
@@ -51,12 +49,8 @@ public class RideService {
         User creator = userRepository.findActiveById(creatorId)
                 .orElseThrow(() -> BusinessException.notFound("User", creatorId));
 
-        UserTeam membership = userTeamRepository.findByUserAndTeam(creatorId, teamId)
-                .orElseThrow(() -> BusinessException.forbidden("You are not a member of this team"));
-
-        if (!canCreateRide(membership)) {
-            throw BusinessException.forbidden("Only admins and organizers can create rides");
-        }
+        // Security check: must be admin or organizer to create rides
+        securityService.requireCanCreateRide(creatorId, teamId);
 
         Ride ride = new Ride(team, creator, request.title(), request.date());
         ride.setDescription(request.description());
@@ -87,11 +81,16 @@ public class RideService {
         return ride;
     }
 
-    public Optional<Ride> getRide(Long teamId, Long rideId) {
+    public Optional<Ride> getRide(Long teamId, Long rideId, Long userId) {
+        // Security check: must be a team member to view rides
+        securityService.requireMembership(userId, teamId);
         return rideRepository.findByIdAndTeam(rideId, teamId);
     }
 
-    public List<Ride> listRides(Long teamId, LocalDate from, LocalDate to, RideStatus status, int page, int size) {
+    public List<Ride> listRides(Long teamId, Long userId, LocalDate from, LocalDate to, RideStatus status, int page, int size) {
+        // Security check: must be a team member to view rides
+        securityService.requireMembership(userId, teamId);
+
         if (from != null && to != null) {
             return rideRepository.findByTeamAndDateRange(teamId, from, to, page, size);
         }
@@ -101,7 +100,9 @@ public class RideService {
         return rideRepository.findByTeam(teamId, page, size);
     }
 
-    public long countRides(Long teamId) {
+    public long countRides(Long teamId, Long userId) {
+        // Security check: must be a team member to count rides
+        securityService.requireMembership(userId, teamId);
         return rideRepository.countByTeam(teamId);
     }
 
@@ -110,12 +111,8 @@ public class RideService {
         Ride ride = rideRepository.findByIdAndTeam(rideId, teamId)
                 .orElseThrow(() -> BusinessException.notFound("Ride", rideId));
 
-        UserTeam membership = userTeamRepository.findByUserAndTeam(userId, teamId)
-                .orElseThrow(() -> BusinessException.forbidden("You are not a member of this team"));
-
-        if (!canEditRide(membership, ride, userId)) {
-            throw BusinessException.forbidden("You don't have permission to edit this ride");
-        }
+        // Security check: must be admin or creator (if organizer) to edit
+        securityService.requireCanEditRide(userId, teamId, ride);
 
         if (request.title() != null) {
             ride.setTitle(request.title());
@@ -146,12 +143,8 @@ public class RideService {
         Ride ride = rideRepository.findByIdAndTeam(rideId, teamId)
                 .orElseThrow(() -> BusinessException.notFound("Ride", rideId));
 
-        UserTeam membership = userTeamRepository.findByUserAndTeam(userId, teamId)
-                .orElseThrow(() -> BusinessException.forbidden("You are not a member of this team"));
-
-        if (!canEditRide(membership, ride, userId)) {
-            throw BusinessException.forbidden("You don't have permission to delete this ride");
-        }
+        // Security check: must be admin or creator (if organizer) to delete
+        securityService.requireCanEditRide(userId, teamId, ride);
 
         ride.softDelete();
         rideRepository.persist(ride);
@@ -163,12 +156,8 @@ public class RideService {
         Ride ride = rideRepository.findByIdAndTeam(rideId, teamId)
                 .orElseThrow(() -> BusinessException.notFound("Ride", rideId));
 
-        UserTeam membership = userTeamRepository.findByUserAndTeam(userId, teamId)
-                .orElseThrow(() -> BusinessException.forbidden("You are not a member of this team"));
-
-        if (!canEditRide(membership, ride, userId)) {
-            throw BusinessException.forbidden("You don't have permission to add groups to this ride");
-        }
+        // Security check: must be admin or creator (if organizer) to add groups
+        securityService.requireCanEditRide(userId, teamId, ride);
 
         int maxSortOrder = ride.getGroups().stream()
                 .mapToInt(RideGroup::getSortOrder)
@@ -188,7 +177,10 @@ public class RideService {
         return group;
     }
 
-    public List<RideGroup> listGroups(Long teamId, Long rideId) {
+    public List<RideGroup> listGroups(Long teamId, Long rideId, Long userId) {
+        // Security check: must be a team member to view groups
+        securityService.requireMembership(userId, teamId);
+
         Ride ride = rideRepository.findByIdAndTeam(rideId, teamId)
                 .orElseThrow(() -> BusinessException.notFound("Ride", rideId));
         return rideGroupRepository.findByRide(rideId);
@@ -209,8 +201,8 @@ public class RideService {
         User user = userRepository.findActiveById(userId)
                 .orElseThrow(() -> BusinessException.notFound("User", userId));
 
-        UserTeam membership = userTeamRepository.findByUserAndTeam(userId, teamId)
-                .orElseThrow(() -> BusinessException.forbidden("You must be a team member to join rides"));
+        // Security check: must be a team member to join rides
+        securityService.requireMembership(userId, teamId);
 
         Optional<RideParticipation> existingParticipation = participationRepository.findByUserAndRide(userId, rideId);
         if (existingParticipation.isPresent()) {
@@ -246,24 +238,6 @@ public class RideService {
         participationRepository.persist(participation);
 
         LOG.infov("User {0} left group {1} in ride {2}", userId, groupId, rideId);
-    }
-
-    public boolean isMember(Long userId, Long teamId) {
-        return userTeamRepository.findByUserAndTeam(userId, teamId).isPresent();
-    }
-
-    private boolean canCreateRide(UserTeam membership) {
-        return membership.getRole() == TeamRole.ADMIN || membership.getRole() == TeamRole.ORGANIZER;
-    }
-
-    private boolean canEditRide(UserTeam membership, Ride ride, Long userId) {
-        if (membership.getRole() == TeamRole.ADMIN) {
-            return true;
-        }
-        if (membership.getRole() == TeamRole.ORGANIZER && ride.getCreatedBy().getId().equals(userId)) {
-            return true;
-        }
-        return false;
     }
 
     public record CreateRideRequest(

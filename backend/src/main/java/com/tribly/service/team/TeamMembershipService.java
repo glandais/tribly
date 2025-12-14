@@ -4,6 +4,7 @@ import com.tribly.domain.team.*;
 import com.tribly.domain.user.User;
 import com.tribly.domain.user.UserRepository;
 import com.tribly.infrastructure.exception.BusinessException;
+import com.tribly.service.security.TeamSecurityService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -26,16 +27,25 @@ public class TeamMembershipService {
     @Inject
     UserRepository userRepository;
 
-    public List<UserTeam> getTeamMembers(Long teamId, int page, int size) {
-        return userTeamRepository.findByTeam(teamId, page, size);
+    @Inject
+    TeamSecurityService securityService;
+
+    public List<UserTeam> getTeamMembers(Team team, Long userId, int page, int size) {
+        // Security check: public teams visible to all, private teams require membership
+        securityService.requirePublicOrMember(userId, team);
+        return userTeamRepository.findByTeam(team.getId(), page, size);
     }
 
-    public List<UserTeam> getTeamMembers(Long teamId) {
-        return userTeamRepository.findByTeam(teamId);
+    public List<UserTeam> getTeamMembers(Team team, Long userId) {
+        // Security check: public teams visible to all, private teams require membership
+        securityService.requirePublicOrMember(userId, team);
+        return userTeamRepository.findByTeam(team.getId());
     }
 
-    public long countTeamMembers(Long teamId) {
-        return userTeamRepository.countByTeam(teamId);
+    public long countTeamMembers(Team team, Long userId) {
+        // Security check: public teams visible to all, private teams require membership
+        securityService.requirePublicOrMember(userId, team);
+        return userTeamRepository.countByTeam(team.getId());
     }
 
     public Optional<UserTeam> getMembership(Long userId, Long teamId) {
@@ -50,17 +60,10 @@ public class TeamMembershipService {
         User user = userRepository.findActiveById(userId)
                 .orElseThrow(() -> BusinessException.notFound("User", userId));
 
-        if (!team.isPublic()) {
-            throw BusinessException.forbidden("This team is private. You need an invitation to join.");
-        }
-
-        if (userTeamRepository.existsByUserAndTeam(userId, teamId)) {
-            throw BusinessException.conflict("You are already a member of this team", "ALREADY_MEMBER");
-        }
-
-        if (!team.hasCapacity()) {
-            throw BusinessException.businessRule("This team has reached its maximum member capacity", "TEAM_FULL");
-        }
+        // Security checks
+        securityService.requirePublicTeamForJoin(team);
+        securityService.requireNotAlreadyMember(userId, teamId);
+        securityService.requireTeamCapacity(team);
 
         UserTeam membership = new UserTeam(user, team, TeamRole.MEMBER);
         userTeamRepository.persist(membership);
@@ -74,23 +77,13 @@ public class TeamMembershipService {
         Team team = teamRepository.findActiveById(teamId)
                 .orElseThrow(() -> BusinessException.notFound("Team", teamId));
 
-        UserTeam actorMembership = userTeamRepository.findByUserAndTeam(actingUserId, teamId)
-                .orElseThrow(() -> BusinessException.forbidden("You are not a member of this team"));
-
-        if (!actorMembership.canManageMembers()) {
-            throw BusinessException.forbidden("Only admins can add members");
-        }
+        // Security checks
+        securityService.requireCanManageMembers(actingUserId, teamId);
+        securityService.requireNotAlreadyMember(targetUserId, teamId);
+        securityService.requireTeamCapacity(team);
 
         User targetUser = userRepository.findActiveById(targetUserId)
                 .orElseThrow(() -> BusinessException.notFound("User", targetUserId));
-
-        if (userTeamRepository.existsByUserAndTeam(targetUserId, teamId)) {
-            throw BusinessException.conflict("User is already a member of this team", "ALREADY_MEMBER");
-        }
-
-        if (!team.hasCapacity()) {
-            throw BusinessException.businessRule("This team has reached its maximum member capacity", "TEAM_FULL");
-        }
 
         User actingUser = userRepository.findActiveById(actingUserId).orElse(null);
         UserTeam membership = new UserTeam(targetUser, team, role, actingUser);
@@ -103,22 +96,13 @@ public class TeamMembershipService {
 
     @Transactional
     public UserTeam updateMemberRole(Long teamId, Long targetUserId, TeamRole newRole, Long actingUserId) {
-        UserTeam actorMembership = userTeamRepository.findByUserAndTeam(actingUserId, teamId)
-                .orElseThrow(() -> BusinessException.forbidden("You are not a member of this team"));
-
-        if (!actorMembership.canManageMembers()) {
-            throw BusinessException.forbidden("Only admins can update member roles");
-        }
+        // Security checks
+        securityService.requireCanManageMembers(actingUserId, teamId);
 
         UserTeam targetMembership = userTeamRepository.findByUserAndTeam(targetUserId, teamId)
                 .orElseThrow(() -> BusinessException.notFound("Membership not found"));
 
-        if (targetMembership.getRole() == TeamRole.ADMIN && newRole != TeamRole.ADMIN) {
-            long adminCount = userTeamRepository.countAdminsByTeam(teamId);
-            if (adminCount <= 1) {
-                throw BusinessException.businessRule("Cannot remove the last admin", "LAST_ADMIN");
-            }
-        }
+        securityService.requireNotLastAdminDemotion(teamId, targetMembership, newRole);
 
         targetMembership.setRole(newRole);
         userTeamRepository.persist(targetMembership);
@@ -130,24 +114,13 @@ public class TeamMembershipService {
 
     @Transactional
     public void removeMember(Long teamId, Long targetUserId, Long actingUserId) {
-        UserTeam actorMembership = userTeamRepository.findByUserAndTeam(actingUserId, teamId)
-                .orElseThrow(() -> BusinessException.forbidden("You are not a member of this team"));
+        // Security checks
+        securityService.requireCanRemoveMember(actingUserId, targetUserId, teamId);
 
         UserTeam targetMembership = userTeamRepository.findByUserAndTeam(targetUserId, teamId)
                 .orElseThrow(() -> BusinessException.notFound("Membership not found"));
 
-        boolean isSelfRemoval = targetUserId.equals(actingUserId);
-
-        if (!isSelfRemoval && !actorMembership.canManageMembers()) {
-            throw BusinessException.forbidden("Only admins can remove members");
-        }
-
-        if (targetMembership.getRole() == TeamRole.ADMIN) {
-            long adminCount = userTeamRepository.countAdminsByTeam(teamId);
-            if (adminCount <= 1) {
-                throw BusinessException.businessRule("Cannot remove the last admin", "LAST_ADMIN");
-            }
-        }
+        securityService.requireNotLastAdmin(teamId, targetMembership);
 
         targetMembership.softDelete();
         userTeamRepository.persist(targetMembership);
