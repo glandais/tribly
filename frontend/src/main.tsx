@@ -11,11 +11,13 @@ const queryClient = new QueryClient({
       staleTime: 1000 * 60 * 5,
       gcTime: 1000 * 60 * 30,
       retry: (failureCount, error) => {
+        // Allow one retry for 401 errors to handle token refresh race condition
         if (error instanceof Error && error.message.includes('401')) {
-          return false;
+          return failureCount < 1;
         }
         return failureCount < 3;
       },
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 5000),
       refetchOnWindowFocus: false,
     },
     mutations: {

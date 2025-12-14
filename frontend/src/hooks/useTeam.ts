@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import apiClient from '../api/client';
+import { useAuthStore } from '../store/authStore';
 
 export interface Team {
   id: number;
@@ -94,8 +95,12 @@ export function useMyTeams() {
 }
 
 export function useTeam(slug: string | undefined) {
+  // Include isAuthenticated in query key to refetch when auth state changes
+  // This ensures userRole is correctly populated after login
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+
   return useQuery({
-    queryKey: ['team', slug],
+    queryKey: ['team', slug, { isAuthenticated }],
     queryFn: async () => {
       return apiClient.get<TeamDetail>(`/teams/${slug}`);
     },

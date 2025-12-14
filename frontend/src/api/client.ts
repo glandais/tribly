@@ -1,6 +1,10 @@
 import { useAuthStore } from '../store/authStore';
+import keycloak from '../config/keycloak';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/v1';
+
+// Minimum token validity in seconds before refresh
+const MIN_TOKEN_VALIDITY = 30;
 
 export interface ApiError {
   code: string;
@@ -41,6 +45,26 @@ class ApiClient {
 
   setTeamSlug(slug: string | null) {
     this.teamSlug = slug;
+  }
+
+  /**
+   * Ensures the token is fresh before making requests.
+   * Returns true if authenticated and token is valid, false otherwise.
+   */
+  private async ensureFreshToken(): Promise<boolean> {
+    if (!keycloak.authenticated) {
+      return false;
+    }
+
+    try {
+      // updateToken returns true if token was refreshed, false if still valid
+      await keycloak.updateToken(MIN_TOKEN_VALIDITY);
+      return true;
+    } catch {
+      // Token refresh failed - user needs to re-authenticate
+      console.warn('Token refresh failed');
+      return false;
+    }
   }
 
   private getHeaders(): Headers {
@@ -99,6 +123,7 @@ class ApiClient {
   }
 
   async get<T>(endpoint: string, options?: RequestOptions): Promise<T> {
+    await this.ensureFreshToken();
     const url = this.buildUrl(endpoint, options?.params);
     const response = await fetch(url, {
       ...options,
@@ -109,6 +134,7 @@ class ApiClient {
   }
 
   async post<T>(endpoint: string, body?: unknown, options?: RequestOptions): Promise<T> {
+    await this.ensureFreshToken();
     const url = this.buildUrl(endpoint, options?.params);
     const response = await fetch(url, {
       ...options,
@@ -120,6 +146,7 @@ class ApiClient {
   }
 
   async put<T>(endpoint: string, body?: unknown, options?: RequestOptions): Promise<T> {
+    await this.ensureFreshToken();
     const url = this.buildUrl(endpoint, options?.params);
     const response = await fetch(url, {
       ...options,
@@ -131,6 +158,7 @@ class ApiClient {
   }
 
   async patch<T>(endpoint: string, body?: unknown, options?: RequestOptions): Promise<T> {
+    await this.ensureFreshToken();
     const url = this.buildUrl(endpoint, options?.params);
     const response = await fetch(url, {
       ...options,
@@ -142,6 +170,7 @@ class ApiClient {
   }
 
   async delete<T>(endpoint: string, options?: RequestOptions): Promise<T> {
+    await this.ensureFreshToken();
     const url = this.buildUrl(endpoint, options?.params);
     const response = await fetch(url, {
       ...options,
@@ -152,6 +181,7 @@ class ApiClient {
   }
 
   async upload<T>(endpoint: string, file: File, options?: RequestOptions): Promise<T> {
+    await this.ensureFreshToken();
     const url = this.buildUrl(endpoint, options?.params);
     const formData = new FormData();
     formData.append('file', file);
