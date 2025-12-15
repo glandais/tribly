@@ -6,6 +6,7 @@ import { LoginPage } from './pages/auth/LoginPage';
 import { UserProfilePage } from './pages/auth/UserProfilePage';
 import { AuthenticatedRoute, UnauthenticatedRoute } from './components/auth/ProtectedRoute';
 import { TeamListPage } from './pages/team/TeamListPage';
+import { MyTeamsPage } from './pages/team/MyTeamsPage';
 import { TeamDetailPage } from './pages/team/TeamDetailPage';
 import { TeamMembersPage } from './pages/team/TeamMembersPage';
 import { CreateTeamPage } from './pages/team/CreateTeamPage';
@@ -87,6 +88,14 @@ function App() {
 
             {/* Team routes */}
             <Route path="teams" element={<TeamListPage />} />
+            <Route
+              path="myteams"
+              element={
+                <AuthenticatedRoute>
+                  <MyTeamsPage />
+                </AuthenticatedRoute>
+              }
+            />
             <Route
               path="teams/new"
               element={

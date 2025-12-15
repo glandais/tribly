@@ -1,37 +1,26 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useTeams, useMyTeams } from '../../hooks/useTeam';
+import { useTeams } from '../../hooks/useTeam';
 import { useAuth } from '../../hooks/useAuth';
 import { TeamCard, TeamCardSkeleton } from '../../components/team/TeamCard';
-
-type TabType = 'public' | 'my';
 
 export function TeamListPage() {
   const { t } = useTranslation('teams');
   const { t: tCommon } = useTranslation('common');
   const { t: tErrors } = useTranslation('errors');
-  const [activeTab, setActiveTab] = useState<TabType>('public');
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(0);
   const { isAuthenticated } = useAuth();
 
   const {
-    data: publicTeamsData,
-    isLoading: isLoadingPublic,
-    error: publicError,
+    data: teamsData,
+    isLoading,
+    error,
   } = useTeams({ search, page, size: 12 });
 
-  const {
-    data: myTeams,
-    isLoading: isLoadingMy,
-    error: myError,
-  } = useMyTeams();
-
-  const teams = activeTab === 'public' ? publicTeamsData?.teams : myTeams;
-  const isLoading = activeTab === 'public' ? isLoadingPublic : isLoadingMy;
-  const error = activeTab === 'public' ? publicError : myError;
-  const total = activeTab === 'public' ? publicTeamsData?.total ?? 0 : myTeams?.length ?? 0;
+  const teams = teamsData?.teams;
+  const total = teamsData?.total ?? 0;
   const pageSize = 12;
   const totalPages = Math.ceil(total / pageSize);
 
@@ -67,68 +56,33 @@ export function TeamListPage() {
         )}
       </div>
 
-      {isAuthenticated && (
-        <div className="border-b border-gray-200 mb-6">
-          <nav className="-mb-px flex space-x-8">
-            <button
-              onClick={() => {
-                setActiveTab('public');
-                setPage(0);
-              }}
-              className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'public'
-                  ? 'border-indigo-500 text-indigo-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              {t('list.tabs.public')}
-            </button>
-            <button
-              onClick={() => {
-                setActiveTab('my');
-                setPage(0);
-              }}
-              className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'my'
-                  ? 'border-indigo-500 text-indigo-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              {t('list.tabs.my')}
-            </button>
-          </nav>
-        </div>
-      )}
-
-      {activeTab === 'public' && (
-        <div className="mb-6">
-          <div className="relative">
-            <input
-              type="text"
-              placeholder={t('list.search.placeholder')}
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setPage(0);
-              }}
-              className="w-full sm:max-w-md px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+      <div className="mb-6">
+        <div className="relative">
+          <input
+            type="text"
+            placeholder={t('list.search.placeholder')}
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(0);
+            }}
+            className="w-full sm:max-w-md px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+          />
+          <svg
+            className="absolute left-3 top-2.5 h-5 w-5 text-gray-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
             />
-            <svg
-              className="absolute left-3 top-2.5 h-5 w-5 text-gray-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
-          </div>
+          </svg>
         </div>
-      )}
+      </div>
 
       {error && (
         <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
@@ -149,12 +103,12 @@ export function TeamListPage() {
               <TeamCard
                 key={team.id}
                 team={team}
-                showRole={activeTab === 'my'}
+                showRole={false}
               />
             ))}
           </div>
 
-          {activeTab === 'public' && totalPages > 1 && (
+          {totalPages > 1 && (
             <div className="mt-8 flex items-center justify-center gap-2">
               <button
                 onClick={() => setPage((p) => Math.max(0, p - 1))}
@@ -193,9 +147,7 @@ export function TeamListPage() {
           </svg>
           <h3 className="mt-2 text-sm font-medium text-gray-900">{t('list.empty.title')}</h3>
           <p className="mt-1 text-sm text-gray-500">
-            {activeTab === 'my'
-              ? t('list.empty.myTeams')
-              : t('list.empty.publicTeams')}
+            {t('list.empty.publicTeams')}
           </p>
           {isAuthenticated && (
             <div className="mt-6">

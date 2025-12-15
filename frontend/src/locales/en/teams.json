@@ -17,6 +17,16 @@
       "createAction": "Create a Team"
     }
   },
+  "myTeams": {
+    "title": "My Teams",
+    "subtitle": "Teams you are a member of",
+    "createTeam": "Create Team",
+    "empty": {
+      "title": "No teams yet",
+      "description": "You haven't joined any teams. Create one or join a public team.",
+      "createAction": "Create a Team"
+    }
+  },
   "create": {
     "title": "Create a Team",
     "subtitle": "Start your cycling community and invite others to join",

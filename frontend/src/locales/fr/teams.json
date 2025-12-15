@@ -17,6 +17,16 @@
       "createAction": "Créer une équipe"
     }
   },
+  "myTeams": {
+    "title": "Mes équipes",
+    "subtitle": "Équipes dont vous êtes membre",
+    "createTeam": "Créer une équipe",
+    "empty": {
+      "title": "Aucune équipe",
+      "description": "Vous n'avez rejoint aucune équipe. Créez-en une ou rejoignez une équipe publique.",
+      "createAction": "Créer une équipe"
+    }
+  },
   "create": {
     "title": "Créer une équipe",
     "subtitle": "Lancez votre communauté cycliste et invitez d'autres personnes",

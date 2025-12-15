@@ -25,6 +25,14 @@ export function Layout() {
                 >
                   {t('nav.teams')}
                 </Link>
+                {isAuthenticated && (
+                  <Link
+                    to="/myteams"
+                    className="text-gray-500 hover:text-gray-700 inline-flex items-center px-1 pt-1 text-sm font-medium"
+                  >
+                    {t('nav.myTeams')}
+                  </Link>
+                )}
               </div>
             </div>
             <div className="flex items-center">
