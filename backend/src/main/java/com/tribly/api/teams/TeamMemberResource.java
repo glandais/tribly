@@ -132,7 +132,6 @@ public class TeamMemberResource extends AbstractAuthenticatedResource {
             String userId,
             String displayName,
             String avatarUrl,
-            String email,
             String role,
             String joinedAt
     ) {
@@ -143,7 +142,6 @@ public class TeamMemberResource extends AbstractAuthenticatedResource {
                     TsidUtils.toString(user.getId()),
                     user.getDisplayName(),
                     user.getAvatarUrl(),
-                    user.getEmail(),
                     userTeam.getRole().name(),
                     userTeam.getJoinedAt() != null ? userTeam.getJoinedAt().toString() : null
             );

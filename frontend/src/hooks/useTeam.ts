@@ -29,7 +29,6 @@ export interface TeamMember {
   userId: string;
   displayName: string;
   avatarUrl: string | null;
-  email: string;
   role: 'ADMIN' | 'ORGANIZER' | 'MEMBER';
   joinedAt: string | null;
 }

@@ -98,7 +98,6 @@ export function TeamMemberList({
                         <span className="ml-2 text-xs text-gray-500">{t('detail.members.you')}</span>
                       )}
                     </p>
-                    <p className="text-sm text-gray-500 truncate">{member.email}</p>
                     <p className="text-xs text-gray-400">
                       {t('detail.members.joined', { date: formatDate(member.joinedAt) })}
                     </p>
