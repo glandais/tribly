@@ -26,7 +26,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
-@Path("/v1/teams/{slug}/rides")
+@Path("/api/teams/{slug}/rides")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @RolesAllowed("user")
@@ -88,7 +88,7 @@ public class RideResource extends AbstractAuthenticatedResource {
                 userId
         );
 
-        return Response.created(URI.create("/v1/teams/" + slug + "/rides/" + ride.getSlug()))
+        return Response.created(URI.create("/api/teams/" + slug + "/rides/" + ride.getSlug()))
                 .entity(RideDto.from(ride))
                 .build();
     }
@@ -188,7 +188,7 @@ public class RideResource extends AbstractAuthenticatedResource {
                 userId
         );
 
-        return Response.created(URI.create("/v1/teams/" + slug + "/rides/" + rideSlug + "/groups/" + TsidUtils.toString(group.getId())))
+        return Response.created(URI.create("/api/teams/" + slug + "/rides/" + rideSlug + "/groups/" + TsidUtils.toString(group.getId())))
                 .entity(RideGroupDto.from(group))
                 .build();
     }
@@ -256,7 +256,7 @@ public class RideResource extends AbstractAuthenticatedResource {
 
         RideParticipation participation = rideService.joinGroup(team.getId(), ride.getId(), TsidUtils.toLong(groupId), userId, notes);
 
-        return Response.created(URI.create("/v1/teams/" + slug + "/rides/" + rideSlug + "/groups/" + groupId + "/participants/" + TsidUtils.toString(participation.getId())))
+        return Response.created(URI.create("/api/teams/" + slug + "/rides/" + rideSlug + "/groups/" + groupId + "/participants/" + TsidUtils.toString(participation.getId())))
                 .entity(RideParticipationDto.from(participation))
                 .build();
     }

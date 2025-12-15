@@ -275,6 +275,7 @@ const { data: ride } = useRide(teamSlug, rideSlug);
 - Use `import.meta.env.DEV` not `process.env.NODE_ENV`
 - Use `globalThis` not `global` for browser compatibility
 - Keycloak JS adapter for auth: `keycloak-js`
+- **No .env files**: All configuration (Keycloak, maps) is fetched from `/api/config` endpoint at startup
 
 ## Internationalization (i18n)
 
@@ -349,7 +350,7 @@ Language syncs with user profile locale preference in `UserProfilePage.tsx`:
 
 ## Development URLs
 
-- Backend API: http://localhost:8080/v1
+- Backend API: http://localhost:8080/api
 - Swagger UI: http://localhost:8080/q/swagger-ui
 - Health: http://localhost:8080/q/health
 - Frontend: http://localhost:5173

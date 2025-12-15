@@ -74,7 +74,7 @@ class UserResourceTest {
         given()
                 .auth().oauth2(getAccessToken(USERNAME_TEST))
                 .when()
-                .get("/v1/users/me")
+                .get("/api/users/me")
                 .then()
                 .statusCode(200)
                 .body("email", equalTo(TEST_EMAIL))
@@ -86,7 +86,7 @@ class UserResourceTest {
     void getCurrentUser_withoutAuth_shouldReturn401() {
         given()
                 .when()
-                .get("/v1/users/me")
+                .get("/api/users/me")
                 .then()
                 .statusCode(401);
     }
@@ -98,7 +98,7 @@ class UserResourceTest {
                 .contentType("application/json")
                 .body("{\"displayName\": \"Updated Name\"}")
                 .when()
-                .put("/v1/users/me")
+                .put("/api/users/me")
                 .then()
                 .statusCode(200)
                 .body("displayName", equalTo("Updated Name"));
@@ -111,7 +111,7 @@ class UserResourceTest {
                 .contentType("application/json")
                 .body("{\"locale\": \"fr\", \"timezone\": \"Europe/Paris\"}")
                 .when()
-                .put("/v1/users/me")
+                .put("/api/users/me")
                 .then()
                 .statusCode(200)
                 .body("locale", equalTo("fr"))
@@ -124,7 +124,7 @@ class UserResourceTest {
                 .contentType("application/json")
                 .body("{\"displayName\": \"Hacker\"}")
                 .when()
-                .put("/v1/users/me")
+                .put("/api/users/me")
                 .then()
                 .statusCode(401);
     }
@@ -134,7 +134,7 @@ class UserResourceTest {
         given()
                 .auth().oauth2(getAccessToken(USERNAME_TEST))
                 .when()
-                .get("/v1/users/" + TsidUtils.toString(testUser.getId()))
+                .get("/api/users/" + TsidUtils.toString(testUser.getId()))
                 .then()
                 .statusCode(200)
                 .body("id", equalTo(TsidUtils.toString(testUser.getId())))
@@ -148,7 +148,7 @@ class UserResourceTest {
         given()
                 .auth().oauth2(getAccessToken(USERNAME_TEST))
                 .when()
-                .get("/v1/users/" + TsidUtils.toString(999999L))
+                .get("/api/users/" + TsidUtils.toString(999999L))
                 .then()
                 .statusCode(404);
     }
@@ -157,7 +157,7 @@ class UserResourceTest {
     void getUserById_withoutAuth_shouldReturn401() {
         given()
                 .when()
-                .get("/v1/users/" + testUser.getId())
+                .get("/api/users/" + testUser.getId())
                 .then()
                 .statusCode(401);
     }
@@ -167,7 +167,7 @@ class UserResourceTest {
         given()
                 .auth().oauth2(getAccessToken(USERNAME_TEST))
                 .when()
-                .delete("/v1/users/me")
+                .delete("/api/users/me")
                 .then()
                 .statusCode(204);
 
@@ -175,7 +175,7 @@ class UserResourceTest {
         given()
                 .auth().oauth2(getAccessToken(USERNAME2_TEST))
                 .when()
-                .get("/v1/users/" + TsidUtils.toString(testUser.getId()))
+                .get("/api/users/" + TsidUtils.toString(testUser.getId()))
                 .then()
                 .statusCode(404);
     }
@@ -184,7 +184,7 @@ class UserResourceTest {
     void deleteCurrentUser_withoutAuth_shouldReturn401() {
         given()
                 .when()
-                .delete("/v1/users/me")
+                .delete("/api/users/me")
                 .then()
                 .statusCode(401);
     }

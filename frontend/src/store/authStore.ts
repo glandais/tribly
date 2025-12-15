@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import keycloak, {
+import {
+  getKeycloak,
   initKeycloak,
   getUserProfile,
   KeycloakUserProfile,
@@ -96,15 +97,21 @@ export const useAuthStore = create<AuthStore>()((set, get) => ({
   },
 
   login: () => {
-    keycloak.login({
-      redirectUri: window.location.origin + '/',
-    });
+    const keycloak = getKeycloak();
+    if (keycloak) {
+      keycloak.login({
+        redirectUri: window.location.origin + '/',
+      });
+    }
   },
 
   logout: () => {
-    keycloak.logout({
-      redirectUri: window.location.origin + '/login',
-    });
+    const keycloak = getKeycloak();
+    if (keycloak) {
+      keycloak.logout({
+        redirectUri: window.location.origin + '/login',
+      });
+    }
     set({ ...initialState, isInitialized: true, isLoading: false });
   },
 
@@ -117,7 +124,7 @@ export const useAuthStore = create<AuthStore>()((set, get) => ({
 
   clearError: () => set({ error: null }),
 
-  getToken: () => keycloak.token,
+  getToken: () => getKeycloak()?.token,
 }));
 
 export const selectUser = (state: AuthStore) => state.user;

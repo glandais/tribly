@@ -22,7 +22,7 @@ class RideContractTest {
     void listRides_withoutAuth_shouldReturn401() {
         given()
                 .when()
-                .get("/v1/teams/" + TEAM_ID + "/rides")
+                .get("/api/teams/" + TEAM_ID + "/rides")
                 .then()
                 .statusCode(401);
     }
@@ -35,7 +35,7 @@ class RideContractTest {
                 .contentType("application/json")
                 .body("{\"title\": \"Test Ride\", \"date\": \"2025-01-15\"}")
                 .when()
-                .post("/v1/teams/" + TEAM_ID + "/rides")
+                .post("/api/teams/" + TEAM_ID + "/rides")
                 .then()
                 .statusCode(401);
     }
@@ -46,7 +46,7 @@ class RideContractTest {
     void getRide_withoutAuth_shouldReturn401() {
         given()
                 .when()
-                .get("/v1/teams/" + TEAM_ID + "/rides/" + RIDE_ID)
+                .get("/api/teams/" + TEAM_ID + "/rides/" + RIDE_ID)
                 .then()
                 .statusCode(401);
     }
@@ -59,7 +59,7 @@ class RideContractTest {
                 .contentType("application/json")
                 .body("{\"title\": \"Updated Ride\"}")
                 .when()
-                .patch("/v1/teams/" + TEAM_ID + "/rides/" + RIDE_ID)
+                .patch("/api/teams/" + TEAM_ID + "/rides/" + RIDE_ID)
                 .then()
                 .statusCode(401);
     }
@@ -70,7 +70,7 @@ class RideContractTest {
     void deleteRide_withoutAuth_shouldReturn401() {
         given()
                 .when()
-                .delete("/v1/teams/" + TEAM_ID + "/rides/" + RIDE_ID)
+                .delete("/api/teams/" + TEAM_ID + "/rides/" + RIDE_ID)
                 .then()
                 .statusCode(401);
     }
@@ -81,7 +81,7 @@ class RideContractTest {
     void listRideGroups_withoutAuth_shouldReturn401() {
         given()
                 .when()
-                .get("/v1/teams/" + TEAM_ID + "/rides/" + RIDE_ID + "/groups")
+                .get("/api/teams/" + TEAM_ID + "/rides/" + RIDE_ID + "/groups")
                 .then()
                 .statusCode(401);
     }
@@ -94,7 +94,7 @@ class RideContractTest {
                 .contentType("application/json")
                 .body("{\"name\": \"Fast Group\", \"averageSpeed\": 30}")
                 .when()
-                .post("/v1/teams/" + TEAM_ID + "/rides/" + RIDE_ID + "/groups")
+                .post("/api/teams/" + TEAM_ID + "/rides/" + RIDE_ID + "/groups")
                 .then()
                 .statusCode(401);
     }
@@ -106,7 +106,7 @@ class RideContractTest {
         given()
                 .contentType("application/json")
                 .when()
-                .post("/v1/teams/" + TEAM_ID + "/rides/" + RIDE_ID + "/groups/" + GROUP_ID + "/join")
+                .post("/api/teams/" + TEAM_ID + "/rides/" + RIDE_ID + "/groups/" + GROUP_ID + "/join")
                 .then()
                 .statusCode(401);
     }
@@ -118,7 +118,7 @@ class RideContractTest {
         given()
                 .contentType("application/json")
                 .when()
-                .post("/v1/teams/" + TEAM_ID + "/rides/" + RIDE_ID + "/groups/" + GROUP_ID + "/leave")
+                .post("/api/teams/" + TEAM_ID + "/rides/" + RIDE_ID + "/groups/" + GROUP_ID + "/leave")
                 .then()
                 .statusCode(401);
     }

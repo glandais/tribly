@@ -13,7 +13,7 @@ class TeamContractTest {
     void listPublicTeams_shouldReturnEmptyList() {
         given()
                 .when()
-                .get("/v1/teams")
+                .get("/api/teams")
                 .then()
                 .statusCode(200)
                 .body("teams", is(notNullValue()))
@@ -28,7 +28,7 @@ class TeamContractTest {
                 .queryParam("page", 1)
                 .queryParam("size", 10)
                 .when()
-                .get("/v1/teams")
+                .get("/api/teams")
                 .then()
                 .statusCode(200)
                 .body("page", equalTo(1))
@@ -40,7 +40,7 @@ class TeamContractTest {
         given()
                 .queryParam("search", "cycling")
                 .when()
-                .get("/v1/teams")
+                .get("/api/teams")
                 .then()
                 .statusCode(200)
                 .body("teams", is(notNullValue()));
@@ -50,7 +50,7 @@ class TeamContractTest {
     void getTeam_withNonexistentSlug_shouldReturn404() {
         given()
                 .when()
-                .get("/v1/teams/nonexistent-team-slug")
+                .get("/api/teams/nonexistent-team-slug")
                 .then()
                 .statusCode(404);
     }
@@ -61,7 +61,7 @@ class TeamContractTest {
                 .contentType("application/json")
                 .body("{\"name\": \"Test Team\"}")
                 .when()
-                .post("/v1/teams")
+                .post("/api/teams")
                 .then()
                 .statusCode(401);
     }
@@ -70,7 +70,7 @@ class TeamContractTest {
     void getMyTeams_withoutAuth_shouldReturn401() {
         given()
                 .when()
-                .get("/v1/teams/my")
+                .get("/api/teams/my")
                 .then()
                 .statusCode(401);
     }
@@ -80,7 +80,7 @@ class TeamContractTest {
         given()
                 .contentType("application/json")
                 .when()
-                .post("/v1/teams/some-team/members/join")
+                .post("/api/teams/some-team/members/join")
                 .then()
                 .statusCode(401);
     }
@@ -89,7 +89,7 @@ class TeamContractTest {
     void getMembers_withoutAuth_shouldReturn401() {
         given()
                 .when()
-                .get("/v1/teams/some-team/members")
+                .get("/api/teams/some-team/members")
                 .then()
                 .statusCode(401);
     }

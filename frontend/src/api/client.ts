@@ -1,7 +1,7 @@
 import { useAuthStore } from '../store/authStore';
-import keycloak from '../config/keycloak';
+import { getKeycloak } from '../config/keycloak';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/v1';
+const API_BASE_URL = '/api';
 
 // Minimum token validity in seconds before refresh
 const MIN_TOKEN_VALIDITY = 30;
@@ -52,7 +52,8 @@ class ApiClient {
    * Returns true if authenticated and token is valid, false otherwise.
    */
   private async ensureFreshToken(): Promise<boolean> {
-    if (!keycloak.authenticated) {
+    const keycloak = getKeycloak();
+    if (!keycloak?.authenticated) {
       return false;
     }
 

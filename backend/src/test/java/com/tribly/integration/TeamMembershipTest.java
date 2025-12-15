@@ -86,7 +86,7 @@ class TeamMembershipTest {
                 .contentType("application/json")
                 .body("{\"name\": \"Membership Test Team\", \"isPublic\": true}")
                 .when()
-                .post("/v1/teams")
+                .post("/api/teams")
                 .then()
                 .statusCode(201)
                 .extract().path("slug");
@@ -96,7 +96,7 @@ class TeamMembershipTest {
                 .auth().oauth2(getAccessToken(USERNAME_TEST))
                 .contentType("application/json")
                 .when()
-                .post("/v1/teams/" + slug + "/members/join")
+                .post("/api/teams/" + slug + "/members/join")
                 .then()
                 .statusCode(201);
 
@@ -105,7 +105,7 @@ class TeamMembershipTest {
                 .auth().oauth2(getAccessToken(USERNAME_TEST))
                 .contentType("application/json")
                 .when()
-                .post("/v1/teams/" + slug + "/members/join")
+                .post("/api/teams/" + slug + "/members/join")
                 .then()
                 .statusCode(409)
                 .body("code", equalTo("ALREADY_MEMBER"));
@@ -119,7 +119,7 @@ class TeamMembershipTest {
                 .contentType("application/json")
                 .body("{\"name\": \"Role Update Team\", \"isPublic\": true}")
                 .when()
-                .post("/v1/teams")
+                .post("/api/teams")
                 .then()
                 .statusCode(201)
                 .extract().path("slug");
@@ -129,7 +129,7 @@ class TeamMembershipTest {
                 .auth().oauth2(getAccessToken(USERNAME_TEST))
                 .contentType("application/json")
                 .when()
-                .post("/v1/teams/" + slug + "/members/join")
+                .post("/api/teams/" + slug + "/members/join")
                 .then()
                 .statusCode(201);
 
@@ -139,7 +139,7 @@ class TeamMembershipTest {
                 .contentType("application/json")
                 .body("{\"role\": \"ADMIN\"}")
                 .when()
-                .put("/v1/teams/" + slug + "/members/" + TsidUtils.toString(memberUser.getId()))
+                .put("/api/teams/" + slug + "/members/" + TsidUtils.toString(memberUser.getId()))
                 .then()
                 .statusCode(200)
                 .body("role", equalTo("ADMIN"));
@@ -153,7 +153,7 @@ class TeamMembershipTest {
                 .contentType("application/json")
                 .body("{\"name\": \"Role Denied Team\", \"isPublic\": true}")
                 .when()
-                .post("/v1/teams")
+                .post("/api/teams")
                 .then()
                 .statusCode(201)
                 .extract().path("slug");
@@ -163,7 +163,7 @@ class TeamMembershipTest {
                 .auth().oauth2(getAccessToken(USERNAME_TEST))
                 .contentType("application/json")
                 .when()
-                .post("/v1/teams/" + slug + "/members/join")
+                .post("/api/teams/" + slug + "/members/join")
                 .then()
                 .statusCode(201);
 
@@ -171,7 +171,7 @@ class TeamMembershipTest {
                 .auth().oauth2(getAccessToken(USERNAME2_TEST))
                 .contentType("application/json")
                 .when()
-                .post("/v1/teams/" + slug + "/members/join")
+                .post("/api/teams/" + slug + "/members/join")
                 .then()
                 .statusCode(201);
 
@@ -181,7 +181,7 @@ class TeamMembershipTest {
                 .contentType("application/json")
                 .body("{\"role\": \"ADMIN\"}")
                 .when()
-                .put("/v1/teams/" + slug + "/members/" + TsidUtils.toString(thirdUser.getId()))
+                .put("/api/teams/" + slug + "/members/" + TsidUtils.toString(thirdUser.getId()))
                 .then()
                 .statusCode(403);
     }
@@ -194,7 +194,7 @@ class TeamMembershipTest {
                 .contentType("application/json")
                 .body("{\"name\": \"Remove Member Team\", \"isPublic\": true}")
                 .when()
-                .post("/v1/teams")
+                .post("/api/teams")
                 .then()
                 .statusCode(201)
                 .extract().path("slug");
@@ -204,7 +204,7 @@ class TeamMembershipTest {
                 .auth().oauth2(getAccessToken(USERNAME_TEST))
                 .contentType("application/json")
                 .when()
-                .post("/v1/teams/" + slug + "/members/join")
+                .post("/api/teams/" + slug + "/members/join")
                 .then()
                 .statusCode(201);
 
@@ -212,7 +212,7 @@ class TeamMembershipTest {
         given()
                 .auth().oauth2(getAccessToken(USERNAME_ADMIN))
                 .when()
-                .delete("/v1/teams/" + slug + "/members/" + TsidUtils.toString(memberUser.getId()))
+                .delete("/api/teams/" + slug + "/members/" + TsidUtils.toString(memberUser.getId()))
                 .then()
                 .statusCode(204);
 
@@ -220,7 +220,7 @@ class TeamMembershipTest {
         given()
                 .auth().oauth2(getAccessToken(USERNAME_ADMIN))
                 .when()
-                .get("/v1/teams/" + slug + "/members")
+                .get("/api/teams/" + slug + "/members")
                 .then()
                 .statusCode(200)
                 .body("total", equalTo(1));
@@ -234,7 +234,7 @@ class TeamMembershipTest {
                 .contentType("application/json")
                 .body("{\"name\": \"Remove Denied Team\", \"isPublic\": true}")
                 .when()
-                .post("/v1/teams")
+                .post("/api/teams")
                 .then()
                 .statusCode(201)
                 .extract().path("slug");
@@ -244,7 +244,7 @@ class TeamMembershipTest {
                 .auth().oauth2(getAccessToken(USERNAME_TEST))
                 .contentType("application/json")
                 .when()
-                .post("/v1/teams/" + slug + "/members/join")
+                .post("/api/teams/" + slug + "/members/join")
                 .then()
                 .statusCode(201);
 
@@ -252,7 +252,7 @@ class TeamMembershipTest {
                 .auth().oauth2(getAccessToken(USERNAME2_TEST))
                 .contentType("application/json")
                 .when()
-                .post("/v1/teams/" + slug + "/members/join")
+                .post("/api/teams/" + slug + "/members/join")
                 .then()
                 .statusCode(201);
 
@@ -260,7 +260,7 @@ class TeamMembershipTest {
         given()
                 .auth().oauth2(getAccessToken(USERNAME_TEST))
                 .when()
-                .delete("/v1/teams/" + slug + "/members/" + TsidUtils.toString(thirdUser.getId()))
+                .delete("/api/teams/" + slug + "/members/" + TsidUtils.toString(thirdUser.getId()))
                 .then()
                 .statusCode(403);
     }
@@ -273,7 +273,7 @@ class TeamMembershipTest {
                 .contentType("application/json")
                 .body("{\"name\": \"Last Admin Team\", \"isPublic\": true}")
                 .when()
-                .post("/v1/teams")
+                .post("/api/teams")
                 .then()
                 .statusCode(201)
                 .extract().path("slug");
@@ -283,7 +283,7 @@ class TeamMembershipTest {
                 .auth().oauth2(getAccessToken(USERNAME_ADMIN))
                 .contentType("application/json")
                 .when()
-                .post("/v1/teams/" + slug + "/members/leave")
+                .post("/api/teams/" + slug + "/members/leave")
                 .then()
                 .statusCode(400)
                 .body("code", equalTo("LAST_ADMIN"));
@@ -297,7 +297,7 @@ class TeamMembershipTest {
                 .contentType("application/json")
                 .body("{\"name\": \"Demote Admin Team\", \"isPublic\": true}")
                 .when()
-                .post("/v1/teams")
+                .post("/api/teams")
                 .then()
                 .statusCode(201)
                 .extract().path("slug");
@@ -308,7 +308,7 @@ class TeamMembershipTest {
                 .contentType("application/json")
                 .body("{\"role\": \"MEMBER\"}")
                 .when()
-                .put("/v1/teams/" + slug + "/members/" + TsidUtils.toString(adminUser.getId()))
+                .put("/api/teams/" + slug + "/members/" + TsidUtils.toString(adminUser.getId()))
                 .then()
                 .statusCode(400)
                 .body("code", equalTo("LAST_ADMIN"));
@@ -322,7 +322,7 @@ class TeamMembershipTest {
                 .contentType("application/json")
                 .body("{\"name\": \"Pagination Team\", \"isPublic\": true}")
                 .when()
-                .post("/v1/teams")
+                .post("/api/teams")
                 .then()
                 .statusCode(201)
                 .extract().path("slug");
@@ -332,7 +332,7 @@ class TeamMembershipTest {
                 .auth().oauth2(getAccessToken(USERNAME_TEST))
                 .contentType("application/json")
                 .when()
-                .post("/v1/teams/" + slug + "/members/join")
+                .post("/api/teams/" + slug + "/members/join")
                 .then()
                 .statusCode(201);
 
@@ -340,7 +340,7 @@ class TeamMembershipTest {
                 .auth().oauth2(getAccessToken(USERNAME2_TEST))
                 .contentType("application/json")
                 .when()
-                .post("/v1/teams/" + slug + "/members/join")
+                .post("/api/teams/" + slug + "/members/join")
                 .then()
                 .statusCode(201);
 
@@ -350,7 +350,7 @@ class TeamMembershipTest {
                 .queryParam("page", 0)
                 .queryParam("size", 2)
                 .when()
-                .get("/v1/teams/" + slug + "/members")
+                .get("/api/teams/" + slug + "/members")
                 .then()
                 .statusCode(200)
                 .body("members", hasSize(2))
@@ -364,7 +364,7 @@ class TeamMembershipTest {
                 .queryParam("page", 1)
                 .queryParam("size", 2)
                 .when()
-                .get("/v1/teams/" + slug + "/members")
+                .get("/api/teams/" + slug + "/members")
                 .then()
                 .statusCode(200)
                 .body("members", hasSize(1))
@@ -379,7 +379,7 @@ class TeamMembershipTest {
                 .contentType("application/json")
                 .body("{\"name\": \"Add Member Team\", \"isPublic\": false}")
                 .when()
-                .post("/v1/teams")
+                .post("/api/teams")
                 .then()
                 .statusCode(201)
                 .extract().path("slug");
@@ -390,7 +390,7 @@ class TeamMembershipTest {
                 .contentType("application/json")
                 .body("{\"userId\": \"" + TsidUtils.toString(memberUser.getId()) + "\", \"role\": \"MEMBER\"}")
                 .when()
-                .post("/v1/teams/" + slug + "/members")
+                .post("/api/teams/" + slug + "/members")
                 .then()
                 .statusCode(201)
                 .body("role", equalTo("MEMBER"));
@@ -399,7 +399,7 @@ class TeamMembershipTest {
         given()
                 .auth().oauth2(getAccessToken(USERNAME_ADMIN))
                 .when()
-                .get("/v1/teams/" + slug + "/members")
+                .get("/api/teams/" + slug + "/members")
                 .then()
                 .statusCode(200)
                 .body("total", equalTo(2));

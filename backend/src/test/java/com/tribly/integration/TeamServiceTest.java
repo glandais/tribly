@@ -121,7 +121,7 @@ class TeamServiceTest {
                 .contentType("application/json")
                 .body("{\"name\": \"API Test Team\", \"description\": \"Created via API\", \"isPublic\": true}")
                 .when()
-                .post("/v1/teams")
+                .post("/api/teams")
                 .then()
                 .statusCode(201)
                 .body("name", equalTo("API Test Team"))
@@ -134,7 +134,7 @@ class TeamServiceTest {
         given()
                 .auth().oauth2(getAccessToken(USERNAME_ADMIN))
                 .when()
-                .get("/v1/teams/my")
+                .get("/api/teams/my")
                 .then()
                 .statusCode(200)
                 .body("$", hasSize(greaterThanOrEqualTo(2)))
@@ -147,7 +147,7 @@ class TeamServiceTest {
                 .auth().oauth2(getAccessToken(USERNAME_TEST))
                 .contentType("application/json")
                 .when()
-                .post("/v1/teams/" + publicTeam.getSlug() + "/members/join")
+                .post("/api/teams/" + publicTeam.getSlug() + "/members/join")
                 .then()
                 .statusCode(201)
                 .body("role", equalTo("MEMBER"));
@@ -159,7 +159,7 @@ class TeamServiceTest {
                 .auth().oauth2(getAccessToken(USERNAME_TEST))
                 .contentType("application/json")
                 .when()
-                .post("/v1/teams/" + privateTeam.getSlug() + "/members/join")
+                .post("/api/teams/" + privateTeam.getSlug() + "/members/join")
                 .then()
                 .statusCode(403);
     }
@@ -171,7 +171,7 @@ class TeamServiceTest {
                 .contentType("application/json")
                 .body("{\"name\": \"Updated Name\", \"description\": \"New description\"}")
                 .when()
-                .put("/v1/teams/" + publicTeam.getSlug())
+                .put("/api/teams/" + publicTeam.getSlug())
                 .then()
                 .statusCode(200)
                 .body("name", equalTo("Updated Name"))
@@ -188,7 +188,7 @@ class TeamServiceTest {
                 .contentType("application/json")
                 .body("{\"name\": \"Hacked Name\"}")
                 .when()
-                .put("/v1/teams/" + publicTeam.getSlug())
+                .put("/api/teams/" + publicTeam.getSlug())
                 .then()
                 .statusCode(403);
     }
@@ -199,7 +199,7 @@ class TeamServiceTest {
                 .contentType("application/json")
                 .body("{\"userId\": \"" + TsidUtils.toString(userId) + "\", \"role\": \"MEMBER\"}")
                 .when()
-                .post("/v1/teams/" + teamSlug + "/members")
+                .post("/api/teams/" + teamSlug + "/members")
                 .then()
                 .statusCode(201);
     }
@@ -213,7 +213,7 @@ class TeamServiceTest {
                 .auth().oauth2(getAccessToken(USERNAME_TEST))
                 .contentType("application/json")
                 .when()
-                .post("/v1/teams/" + publicTeam.getSlug() + "/members/leave")
+                .post("/api/teams/" + publicTeam.getSlug() + "/members/leave")
                 .then()
                 .statusCode(204);
     }
@@ -226,7 +226,7 @@ class TeamServiceTest {
         given()
                 .auth().oauth2(getAccessToken(USERNAME_ADMIN))
                 .when()
-                .get("/v1/teams/" + publicTeam.getSlug() + "/members")
+                .get("/api/teams/" + publicTeam.getSlug() + "/members")
                 .then()
                 .statusCode(200)
                 .body("members", hasSize(2))
@@ -238,14 +238,14 @@ class TeamServiceTest {
         given()
                 .auth().oauth2(getAccessToken(USERNAME_ADMIN))
                 .when()
-                .delete("/v1/teams/" + publicTeam.getSlug())
+                .delete("/api/teams/" + publicTeam.getSlug())
                 .then()
                 .statusCode(204);
 
         // Verify team is no longer accessible
         given()
                 .when()
-                .get("/v1/teams/" + publicTeam.getSlug())
+                .get("/api/teams/" + publicTeam.getSlug())
                 .then()
                 .statusCode(404);
     }
@@ -258,7 +258,7 @@ class TeamServiceTest {
         given()
                 .auth().oauth2(getAccessToken(USERNAME_TEST))
                 .when()
-                .delete("/v1/teams/" + publicTeam.getSlug())
+                .delete("/api/teams/" + publicTeam.getSlug())
                 .then()
                 .statusCode(403);
     }
@@ -268,7 +268,7 @@ class TeamServiceTest {
         given()
                 .auth().oauth2(getAccessToken(USERNAME_TEST))
                 .when()
-                .delete("/v1/teams/" + privateTeam.getSlug())
+                .delete("/api/teams/" + privateTeam.getSlug())
                 .then()
                 .statusCode(403);
     }

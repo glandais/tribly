@@ -21,7 +21,7 @@ import jakarta.ws.rs.core.Response;
 import java.net.URI;
 import java.util.List;
 
-@Path("/v1/teams/{slug}/members")
+@Path("/api/teams/{slug}/members")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @RolesAllowed("user")
@@ -56,7 +56,7 @@ public class TeamMemberResource extends AbstractAuthenticatedResource {
         Long userId = getCurrentUserId();
 
         UserTeam membership = membershipService.joinTeam(team.getId(), userId);
-        return Response.created(URI.create("/v1/teams/" + slug + "/members/" + userId))
+        return Response.created(URI.create("/api/teams/" + slug + "/members/" + userId))
                 .entity(MemberDto.from(membership))
                 .build();
     }
@@ -80,7 +80,7 @@ public class TeamMemberResource extends AbstractAuthenticatedResource {
         Long targetUserId = TsidUtils.toLong(request.userId());
         UserTeam membership = membershipService.addMember(team.getId(), targetUserId, role, actingUserId);
 
-        return Response.created(URI.create("/v1/teams/" + slug + "/members/" + request.userId()))
+        return Response.created(URI.create("/api/teams/" + slug + "/members/" + request.userId()))
                 .entity(MemberDto.from(membership))
                 .build();
     }

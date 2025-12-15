@@ -69,7 +69,7 @@ class RideServiceTest {
                 .contentType("application/json")
                 .body("{\"name\": \"Ride Test Team " + System.currentTimeMillis() + "\", \"isPublic\": true}")
                 .when()
-                .post("/v1/teams")
+                .post("/api/teams")
                 .then()
                 .statusCode(201)
                 .extract();
@@ -83,7 +83,7 @@ class RideServiceTest {
                 .auth().oauth2(getAccessToken(USERNAME_TEST))
                 .contentType("application/json")
                 .when()
-                .post("/v1/teams/" + teamSlug + "/members/join")
+                .post("/api/teams/" + teamSlug + "/members/join")
                 .then()
                 .statusCode(201);
     }
@@ -97,7 +97,7 @@ class RideServiceTest {
                 .contentType("application/json")
                 .body("{\"title\": \"Sunday Morning Ride\", \"date\": \"2025-01-20\"}")
                 .when()
-                .post("/v1/teams/" + teamSlug + "/rides")
+                .post("/api/teams/" + teamSlug + "/rides")
                 .then()
                 .statusCode(201)
                 .body("title", equalTo("Sunday Morning Ride"))
@@ -116,7 +116,7 @@ class RideServiceTest {
                 .contentType("application/json")
                 .body("{\"title\": \"Forbidden Ride\", \"date\": \"2025-01-20\"}")
                 .when()
-                .post("/v1/teams/" + teamSlug + "/rides")
+                .post("/api/teams/" + teamSlug + "/rides")
                 .then()
                 .statusCode(403);
     }
@@ -142,7 +142,7 @@ class RideServiceTest {
                 .contentType("application/json")
                 .body(body)
                 .when()
-                .post("/v1/teams/" + teamSlug + "/rides")
+                .post("/api/teams/" + teamSlug + "/rides")
                 .then()
                 .statusCode(201)
                 .body("title", equalTo("Multi-Group Ride"))
@@ -158,7 +158,7 @@ class RideServiceTest {
                 .contentType("application/json")
                 .body("{\"title\": \"Get Test Ride\", \"date\": \"2025-01-22\"}")
                 .when()
-                .post("/v1/teams/" + teamSlug + "/rides")
+                .post("/api/teams/" + teamSlug + "/rides")
                 .then()
                 .statusCode(201)
                 .extract().path("slug");
@@ -166,7 +166,7 @@ class RideServiceTest {
         given()
                 .auth().oauth2(getAccessToken(USERNAME_ADMIN))
                 .when()
-                .get("/v1/teams/" + teamSlug + "/rides/" + rideSlug)
+                .get("/api/teams/" + teamSlug + "/rides/" + rideSlug)
                 .then()
                 .statusCode(200)
                 .body("slug", equalTo(rideSlug))
@@ -184,7 +184,7 @@ class RideServiceTest {
                 .contentType("application/json")
                 .body("{\"title\": \"Ride 1\", \"date\": \"2025-01-23\"}")
                 .when()
-                .post("/v1/teams/" + teamSlug + "/rides")
+                .post("/api/teams/" + teamSlug + "/rides")
                 .then()
                 .statusCode(201);
 
@@ -193,14 +193,14 @@ class RideServiceTest {
                 .contentType("application/json")
                 .body("{\"title\": \"Ride 2\", \"date\": \"2025-01-24\"}")
                 .when()
-                .post("/v1/teams/" + teamSlug + "/rides")
+                .post("/api/teams/" + teamSlug + "/rides")
                 .then()
                 .statusCode(201);
 
         given()
                 .auth().oauth2(getAccessToken(USERNAME_ADMIN))
                 .when()
-                .get("/v1/teams/" + teamSlug + "/rides")
+                .get("/api/teams/" + teamSlug + "/rides")
                 .then()
                 .statusCode(200)
                 .body("rides", hasSize(greaterThanOrEqualTo(2)))
@@ -216,7 +216,7 @@ class RideServiceTest {
                 .contentType("application/json")
                 .body("{\"title\": \"Original Title\", \"date\": \"2025-01-25\"}")
                 .when()
-                .post("/v1/teams/" + teamSlug + "/rides")
+                .post("/api/teams/" + teamSlug + "/rides")
                 .then()
                 .statusCode(201)
                 .extract().path("slug");
@@ -226,7 +226,7 @@ class RideServiceTest {
                 .contentType("application/json")
                 .body("{\"title\": \"Updated Title\", \"status\": \"PUBLISHED\"}")
                 .when()
-                .patch("/v1/teams/" + teamSlug + "/rides/" + rideSlug)
+                .patch("/api/teams/" + teamSlug + "/rides/" + rideSlug)
                 .then()
                 .statusCode(200)
                 .body("title", equalTo("Updated Title"))
@@ -242,7 +242,7 @@ class RideServiceTest {
                 .contentType("application/json")
                 .body("{\"title\": \"To Be Deleted\", \"date\": \"2025-01-26\"}")
                 .when()
-                .post("/v1/teams/" + teamSlug + "/rides")
+                .post("/api/teams/" + teamSlug + "/rides")
                 .then()
                 .statusCode(201)
                 .extract().path("slug");
@@ -250,7 +250,7 @@ class RideServiceTest {
         given()
                 .auth().oauth2(getAccessToken(USERNAME_ADMIN))
                 .when()
-                .delete("/v1/teams/" + teamSlug + "/rides/" + rideSlug)
+                .delete("/api/teams/" + teamSlug + "/rides/" + rideSlug)
                 .then()
                 .statusCode(204);
 
@@ -258,7 +258,7 @@ class RideServiceTest {
         given()
                 .auth().oauth2(getAccessToken(USERNAME_ADMIN))
                 .when()
-                .get("/v1/teams/" + teamSlug + "/rides/" + rideSlug)
+                .get("/api/teams/" + teamSlug + "/rides/" + rideSlug)
                 .then()
                 .statusCode(404);
     }
@@ -274,7 +274,7 @@ class RideServiceTest {
                 .contentType("application/json")
                 .body("{\"title\": \"Join Test Ride\", \"date\": \"2025-01-27\"}")
                 .when()
-                .post("/v1/teams/" + teamSlug + "/rides")
+                .post("/api/teams/" + teamSlug + "/rides")
                 .then()
                 .statusCode(201)
                 .extract().path("slug");
@@ -285,7 +285,7 @@ class RideServiceTest {
                 .contentType("application/json")
                 .body("{\"status\": \"PUBLISHED\"}")
                 .when()
-                .patch("/v1/teams/" + teamSlug + "/rides/" + rideSlug)
+                .patch("/api/teams/" + teamSlug + "/rides/" + rideSlug)
                 .then()
                 .statusCode(200);
 
@@ -293,7 +293,7 @@ class RideServiceTest {
         String groupId = given()
                 .auth().oauth2(getAccessToken(USERNAME_ADMIN))
                 .when()
-                .get("/v1/teams/" + teamSlug + "/rides/" + rideSlug + "/groups")
+                .get("/api/teams/" + teamSlug + "/rides/" + rideSlug + "/groups")
                 .then()
                 .statusCode(200)
                 .extract().path("data[0].id");
@@ -304,7 +304,7 @@ class RideServiceTest {
                 .contentType("application/json")
                 .body("{\"notes\": \"Looking forward to it!\"}")
                 .when()
-                .post("/v1/teams/" + teamSlug + "/rides/" + rideSlug + "/groups/" + groupId + "/join")
+                .post("/api/teams/" + teamSlug + "/rides/" + rideSlug + "/groups/" + groupId + "/join")
                 .then()
                 .statusCode(201)
                 .body("status", equalTo("REGISTERED"));
@@ -321,7 +321,7 @@ class RideServiceTest {
                 .contentType("application/json")
                 .body("{\"title\": \"Draft Ride\", \"date\": \"2025-01-28\"}")
                 .when()
-                .post("/v1/teams/" + teamSlug + "/rides")
+                .post("/api/teams/" + teamSlug + "/rides")
                 .then()
                 .statusCode(201)
                 .extract().path("slug");
@@ -330,7 +330,7 @@ class RideServiceTest {
         String groupId = given()
                 .auth().oauth2(getAccessToken(USERNAME_ADMIN))
                 .when()
-                .get("/v1/teams/" + teamSlug + "/rides/" + rideSlug + "/groups")
+                .get("/api/teams/" + teamSlug + "/rides/" + rideSlug + "/groups")
                 .then()
                 .statusCode(200)
                 .extract().path("data[0].id");
@@ -340,7 +340,7 @@ class RideServiceTest {
                 .auth().oauth2(getAccessToken(USERNAME_TEST))
                 .contentType("application/json")
                 .when()
-                .post("/v1/teams/" + teamSlug + "/rides/" + rideSlug + "/groups/" + groupId + "/join")
+                .post("/api/teams/" + teamSlug + "/rides/" + rideSlug + "/groups/" + groupId + "/join")
                 .then()
                 .statusCode(400);
     }
@@ -356,7 +356,7 @@ class RideServiceTest {
                 .contentType("application/json")
                 .body("{\"title\": \"Leave Test Ride\", \"date\": \"2025-01-29\"}")
                 .when()
-                .post("/v1/teams/" + teamSlug + "/rides")
+                .post("/api/teams/" + teamSlug + "/rides")
                 .then()
                 .statusCode(201)
                 .extract().path("slug");
@@ -367,7 +367,7 @@ class RideServiceTest {
                 .contentType("application/json")
                 .body("{\"status\": \"PUBLISHED\"}")
                 .when()
-                .patch("/v1/teams/" + teamSlug + "/rides/" + rideSlug)
+                .patch("/api/teams/" + teamSlug + "/rides/" + rideSlug)
                 .then()
                 .statusCode(200);
 
@@ -375,7 +375,7 @@ class RideServiceTest {
         String groupId = given()
                 .auth().oauth2(getAccessToken(USERNAME_ADMIN))
                 .when()
-                .get("/v1/teams/" + teamSlug + "/rides/" + rideSlug + "/groups")
+                .get("/api/teams/" + teamSlug + "/rides/" + rideSlug + "/groups")
                 .then()
                 .statusCode(200)
                 .extract().path("data[0].id");
@@ -385,7 +385,7 @@ class RideServiceTest {
                 .auth().oauth2(getAccessToken(USERNAME_TEST))
                 .contentType("application/json")
                 .when()
-                .post("/v1/teams/" + teamSlug + "/rides/" + rideSlug + "/groups/" + groupId + "/join")
+                .post("/api/teams/" + teamSlug + "/rides/" + rideSlug + "/groups/" + groupId + "/join")
                 .then()
                 .statusCode(201);
 
@@ -394,7 +394,7 @@ class RideServiceTest {
                 .auth().oauth2(getAccessToken(USERNAME_TEST))
                 .contentType("application/json")
                 .when()
-                .post("/v1/teams/" + teamSlug + "/rides/" + rideSlug + "/groups/" + groupId + "/leave")
+                .post("/api/teams/" + teamSlug + "/rides/" + rideSlug + "/groups/" + groupId + "/leave")
                 .then()
                 .statusCode(204);
     }
@@ -408,7 +408,7 @@ class RideServiceTest {
                 .contentType("application/json")
                 .body("{\"title\": \"Group Test Ride\", \"date\": \"2025-01-30\"}")
                 .when()
-                .post("/v1/teams/" + teamSlug + "/rides")
+                .post("/api/teams/" + teamSlug + "/rides")
                 .then()
                 .statusCode(201)
                 .extract().path("slug");
@@ -418,7 +418,7 @@ class RideServiceTest {
                 .contentType("application/json")
                 .body("{\"name\": \"Extra Fast Group\", \"averageSpeed\": 35}")
                 .when()
-                .post("/v1/teams/" + teamSlug + "/rides/" + rideSlug + "/groups")
+                .post("/api/teams/" + teamSlug + "/rides/" + rideSlug + "/groups")
                 .then()
                 .statusCode(201)
                 .body("name", equalTo("Extra Fast Group"))

@@ -1,18 +1,12 @@
 import Keycloak from 'keycloak-js';
+import { fetchAppConfig } from './appConfig';
 
-const keycloakConfig = {
-  url: import.meta.env.VITE_KEYCLOAK_URL || 'http://localhost:8180',
-  realm: import.meta.env.VITE_KEYCLOAK_REALM || 'quarkus',
-  clientId: import.meta.env.VITE_KEYCLOAK_CLIENT_ID || 'tribly-frontend',
-};
-
-export const keycloak = new Keycloak(keycloakConfig);
-
+let keycloak: Keycloak | null = null;
 let initialized = false;
 let initPromise: Promise<boolean> | null = null;
 
 export const initKeycloak = async (): Promise<boolean> => {
-  if (initialized) {
+  if (initialized && keycloak) {
     return keycloak.authenticated ?? false;
   }
 
@@ -22,6 +16,14 @@ export const initKeycloak = async (): Promise<boolean> => {
 
   initPromise = (async () => {
     try {
+      const config = await fetchAppConfig();
+
+      keycloak = new Keycloak({
+        url: config.keycloak.url,
+        realm: config.keycloak.realm,
+        clientId: config.keycloak.clientId,
+      });
+
       const authenticated = await keycloak.init({
         onLoad: 'check-sso',
         silentCheckSsoRedirectUri: window.location.origin + '/silent-check-sso.html',
@@ -34,9 +36,9 @@ export const initKeycloak = async (): Promise<boolean> => {
       // Setup token refresh
       if (authenticated) {
         setInterval(() => {
-          keycloak.updateToken(70).catch(() => {
+          keycloak!.updateToken(70).catch(() => {
             console.warn('Failed to refresh token, logging out');
-            keycloak.logout();
+            keycloak!.logout();
           });
         }, 60000);
       }
@@ -52,12 +54,16 @@ export const initKeycloak = async (): Promise<boolean> => {
   return initPromise;
 };
 
+export const getKeycloak = (): Keycloak | null => {
+  return keycloak;
+};
+
 export const getToken = (): string | undefined => {
-  return keycloak.token;
+  return keycloak?.token;
 };
 
 export const isAuthenticated = (): boolean => {
-  return !!keycloak.authenticated;
+  return !!keycloak?.authenticated;
 };
 
 export interface KeycloakUserProfile {
@@ -67,7 +73,7 @@ export interface KeycloakUserProfile {
 }
 
 export const getUserProfile = (): KeycloakUserProfile | null => {
-  if (!keycloak.tokenParsed) return null;
+  if (!keycloak?.tokenParsed) return null;
 
   const tokenParsed = keycloak.tokenParsed as Record<string, unknown>;
 
@@ -81,4 +87,4 @@ export const getUserProfile = (): KeycloakUserProfile | null => {
   };
 };
 
-export default keycloak;
+export default { getKeycloak, initKeycloak, getToken, isAuthenticated, getUserProfile };

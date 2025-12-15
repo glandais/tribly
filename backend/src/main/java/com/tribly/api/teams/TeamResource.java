@@ -20,7 +20,7 @@ import jakarta.ws.rs.core.Response;
 import java.net.URI;
 import java.util.List;
 
-@Path("/v1/teams")
+@Path("/api/teams")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class TeamResource extends AbstractAuthenticatedResource {
@@ -100,7 +100,7 @@ public class TeamResource extends AbstractAuthenticatedResource {
                 userId
         );
 
-        return Response.created(URI.create("/v1/teams/" + team.getSlug()))
+        return Response.created(URI.create("/api/teams/" + team.getSlug()))
                 .entity(TeamDto.from(team))
                 .build();
     }
