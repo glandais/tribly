@@ -5,6 +5,11 @@
     "CANCELLED": "Cancelled",
     "COMPLETED": "Completed"
   },
+  "visibility": {
+    "PUBLIC": "Public",
+    "TEAM": "Team only",
+    "PRIVATE": "Private"
+  },
   "list": {
     "title": "Rides",
     "subtitle": "Upcoming and past rides for {{teamName}}",
@@ -43,7 +48,8 @@
       "visibility": {
         "label": "Visibility",
         "team": "Team only",
-        "public": "Public"
+        "public": "Public",
+        "privateTeamHint": "Public rides are not available for private teams"
       },
       "groups": {
         "label": "Groups",

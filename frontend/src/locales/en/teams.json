@@ -85,7 +85,12 @@
       "edit": "Edit",
       "remove": "Remove",
       "save": "Save",
-      "confirmRemove": "Are you sure you want to remove this member?"
+      "confirmRemove": "Are you sure you want to remove this member?",
+      "addMember": "Add Member",
+      "searchUser": "Search for a user",
+      "searchPlaceholder": "Search by name...",
+      "role": "Role",
+      "addError": "Failed to add member. Please try again."
     }
   },
   "settings": {

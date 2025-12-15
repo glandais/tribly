@@ -271,18 +271,22 @@ export function EditRidePage() {
               />
               <span className="ml-2 text-sm text-gray-700">{t('create.form.visibility.team')}</span>
             </label>
-            <label className="flex items-center">
+            <label className={`flex items-center ${!team.isPublic ? 'opacity-50 cursor-not-allowed' : ''}`}>
               <input
                 type="radio"
                 name="visibility"
                 value="PUBLIC"
                 checked={visibility === 'PUBLIC'}
                 onChange={() => setVisibility('PUBLIC')}
-                className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
+                disabled={!team.isPublic}
+                className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500 disabled:cursor-not-allowed"
               />
               <span className="ml-2 text-sm text-gray-700">{t('create.form.visibility.public')}</span>
             </label>
           </div>
+          {!team.isPublic && (
+            <p className="mt-2 text-sm text-gray-500">{t('create.form.visibility.privateTeamHint')}</p>
+          )}
         </div>
 
         {/* Scheduled Publication */}

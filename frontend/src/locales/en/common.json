@@ -1,8 +1,16 @@
 {
   "nav": {
     "teams": "Teams",
+    "profile": "Profile",
+    "settings": "Settings",
+    "members": "Members",
+    "trips": "Trips",
+    "routes": "Routes",
     "signIn": "Sign in",
     "signOut": "Sign out"
+  },
+  "actions": {
+    "new": "New"
   },
   "footer": {
     "copyright": "© {{year}} Tribly. All rights reserved."
@@ -17,7 +25,8 @@
     "previous": "Previous",
     "next": "Next",
     "confirm": "Confirm",
-    "close": "Close"
+    "close": "Close",
+    "loading": "Loading..."
   },
   "status": {
     "loading": "Loading...",

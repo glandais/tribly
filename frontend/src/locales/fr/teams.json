@@ -85,7 +85,12 @@
       "edit": "Modifier",
       "remove": "Retirer",
       "save": "Enregistrer",
-      "confirmRemove": "Êtes-vous sûr de vouloir retirer ce membre ?"
+      "confirmRemove": "Êtes-vous sûr de vouloir retirer ce membre ?",
+      "addMember": "Ajouter un membre",
+      "searchUser": "Rechercher un utilisateur",
+      "searchPlaceholder": "Rechercher par nom...",
+      "role": "Rôle",
+      "addError": "Échec de l'ajout du membre. Veuillez réessayer."
     }
   },
   "settings": {

@@ -111,25 +111,7 @@ tribly/
 ### Backend (.env)
 
 ```bash
-# Database
-QUARKUS_DATASOURCE_JDBC_URL=jdbc:postgresql://localhost:5432/tribly
-QUARKUS_DATASOURCE_USERNAME=tribly
-QUARKUS_DATASOURCE_PASSWORD=tribly_dev_password
 
-# OAuth Providers (get from provider consoles)
-STRAVA_CLIENT_ID=your_strava_client_id
-STRAVA_CLIENT_SECRET=your_strava_client_secret
-GOOGLE_CLIENT_ID=your_google_client_id
-GOOGLE_CLIENT_SECRET=your_google_client_secret
-
-# JWT
-JWT_SECRET=dev_secret_change_in_production_min_32_chars
-JWT_ISSUER=http://localhost:8080
-JWT_EXPIRATION=3600
-
-# Application
-QUARKUS_HTTP_PORT=8080
-QUARKUS_LOG_LEVEL=DEBUG
 ```
 
 ### Frontend (.env)

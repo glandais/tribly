@@ -27,15 +27,6 @@ public class User extends BaseEntity {
     @Column(name = "avatar_url", length = 500)
     private String avatarUrl;
 
-    @Column(name = "garmin_id", unique = true, length = 50)
-    private String garminId;
-
-    @Column(name = "google_id", unique = true, length = 100)
-    private String googleId;
-
-    @Column(name = "facebook_id", unique = true, length = 100)
-    private String facebookId;
-
     @Column(name = "locale", length = 10)
     private String locale = "en";
 
@@ -75,30 +66,6 @@ public class User extends BaseEntity {
 
     public void setAvatarUrl(String avatarUrl) {
         this.avatarUrl = avatarUrl;
-    }
-
-    public String getGarminId() {
-        return garminId;
-    }
-
-    public void setGarminId(String garminId) {
-        this.garminId = garminId;
-    }
-
-    public String getGoogleId() {
-        return googleId;
-    }
-
-    public void setGoogleId(String googleId) {
-        this.googleId = googleId;
-    }
-
-    public String getFacebookId() {
-        return facebookId;
-    }
-
-    public void setFacebookId(String facebookId) {
-        this.facebookId = facebookId;
     }
 
     public String getLocale() {

@@ -201,6 +201,29 @@ export function useLeaveTeam(slug: string) {
   });
 }
 
+export function useAddMember(slug: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      userId,
+      role = 'MEMBER',
+    }: {
+      userId: string;
+      role?: 'ADMIN' | 'ORGANIZER' | 'MEMBER';
+    }) => {
+      return apiClient.post<TeamMember>(`/teams/${slug}/members`, {
+        userId,
+        role,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['team', slug] });
+      queryClient.invalidateQueries({ queryKey: ['teamMembers', slug] });
+    },
+  });
+}
+
 export function useUpdateMemberRole(slug: string) {
   const queryClient = useQueryClient();
 

@@ -59,6 +59,12 @@ public class RideService {
         // Security check: must be admin or organizer to create rides
         securityService.requireCanCreateRide(creatorId, teamId);
 
+        // Validate visibility: private teams can only have team-only rides
+        Visibility visibility = request.visibility() != null ? request.visibility() : Visibility.TEAM;
+        if (!team.isPublic() && visibility == Visibility.PUBLIC) {
+            throw BusinessException.validation("Private teams can only have team-only rides");
+        }
+
         // Generate slug from title, ensure unique within team
         String slug = generateSlug(request.title());
         if (rideRepository.existsByTeamAndSlug(teamId, slug)) {
@@ -68,7 +74,7 @@ public class RideService {
         Ride ride = new Ride(team, creator, request.title(), slug, request.date());
         ride.setDescription(request.description());
         ride.setStartTime(request.startTime());
-        ride.setVisibility(request.visibility() != null ? request.visibility() : Visibility.TEAM);
+        ride.setVisibility(visibility);
         ride.setStatus(RideStatus.DRAFT);
         ride.setPublishAt(request.publishAt());
 
@@ -110,28 +116,62 @@ public class RideService {
     }
 
     public List<Ride> listRides(Long teamId, Long userId, LocalDate from, LocalDate to, RideStatus status, int page, int size) {
-        // Security check: must be a team member to view rides
-        var membership = securityService.requireMembership(userId, teamId);
+        Team team = teamRepository.findActiveById(teamId)
+                .orElseThrow(() -> BusinessException.notFound("Team", teamId));
 
-        // Only admins and organizers can see draft rides
-        boolean canSeeDrafts = membership.isOrganizer();
+        var membershipOpt = securityService.getMembership(userId, teamId);
+        boolean isMember = membershipOpt.isPresent();
+        boolean canSeeDrafts = isMember && membershipOpt.get().isOrganizer();
 
+        List<Ride> rides;
         if (from != null && to != null) {
-            return rideRepository.findByTeamAndDateRange(teamId, from, to, canSeeDrafts, page, size);
+            rides = rideRepository.findByTeamAndDateRange(teamId, from, to, canSeeDrafts, page, size);
+        } else if (status != null) {
+            rides = rideRepository.findByTeamAndStatus(teamId, status, page, size);
+        } else {
+            rides = rideRepository.findByTeam(teamId, canSeeDrafts, page, size);
         }
-        if (status != null) {
-            return rideRepository.findByTeamAndStatus(teamId, status, page, size);
+
+        // For non-members of public teams, filter to show only public rides
+        if (!isMember && team.isPublic()) {
+            rides = rides.stream()
+                    .filter(ride -> ride.getVisibility() == Visibility.PUBLIC)
+                    .toList();
+        } else if (!isMember) {
+            // Private team - no access for non-members
+            throw BusinessException.forbidden("You are not a member of this team");
         }
-        return rideRepository.findByTeam(teamId, canSeeDrafts, page, size);
+
+        return rides;
     }
 
     public long countRides(Long teamId, Long userId) {
-        // Security check: must be a team member to count rides
-        var membership = securityService.requireMembership(userId, teamId);
+        Team team = teamRepository.findActiveById(teamId)
+                .orElseThrow(() -> BusinessException.notFound("Team", teamId));
 
-        // Only admins and organizers can see draft rides
-        boolean canSeeDrafts = membership.isOrganizer();
-        return rideRepository.countByTeam(teamId, canSeeDrafts);
+        var membershipOpt = securityService.getMembership(userId, teamId);
+        boolean isMember = membershipOpt.isPresent();
+        boolean canSeeDrafts = isMember && membershipOpt.get().isOrganizer();
+
+        // Private team - no access for non-members
+        if (!isMember && !team.isPublic()) {
+            throw BusinessException.forbidden("You are not a member of this team");
+        }
+
+        // Get base count
+        long count = rideRepository.countByTeam(teamId, canSeeDrafts);
+
+        // For non-members of public teams, we need to count only public rides
+        // Note: This is an approximation since the repository method doesn't filter by visibility
+        // For accurate counts, we would need to add a repository method that filters by visibility
+        if (!isMember && team.isPublic()) {
+            // Count only public, non-draft rides for non-members
+            return rideRepository.findByTeam(teamId, false, 0, Integer.MAX_VALUE).stream()
+                    .filter(ride -> ride.getVisibility() == Visibility.PUBLIC)
+                    .count();
+        }
+
+        return count;
     }
 
     @Transactional
@@ -141,6 +181,16 @@ public class RideService {
 
         // Security check: must be admin or creator (if organizer) to edit
         securityService.requireCanEditRide(userId, teamId, ride);
+
+        // Validate visibility: private teams can only have team-only rides
+        if (request.visibility() != null) {
+            Team team = teamRepository.findActiveById(teamId)
+                    .orElseThrow(() -> BusinessException.notFound("Team", teamId));
+            if (!team.isPublic() && request.visibility() == Visibility.PUBLIC) {
+                throw BusinessException.validation("Private teams can only have team-only rides");
+            }
+            ride.setVisibility(request.visibility());
+        }
 
         if (request.title() != null) {
             ride.setTitle(request.title());
@@ -156,9 +206,6 @@ public class RideService {
         }
         if (request.status() != null) {
             ride.setStatus(request.status());
-        }
-        if (request.visibility() != null) {
-            ride.setVisibility(request.visibility());
         }
         // publishAt can be explicitly set to null to remove scheduled publishing
         ride.setPublishAt(request.publishAt());
@@ -208,11 +255,22 @@ public class RideService {
     }
 
     public List<RideGroup> listGroups(Long teamId, Long rideId, Long userId) {
-        // Security check: must be a team member to view groups
-        securityService.requireMembership(userId, teamId);
+        Team team = teamRepository.findActiveById(teamId)
+                .orElseThrow(() -> BusinessException.notFound("Team", teamId));
 
         Ride ride = rideRepository.findByIdAndTeam(rideId, teamId)
                 .orElseThrow(() -> BusinessException.notFound("Ride", rideId));
+
+        var membershipOpt = securityService.getMembership(userId, teamId);
+        boolean isMember = membershipOpt.isPresent();
+
+        // For non-members, only allow viewing groups of public rides from public teams
+        if (!isMember) {
+            if (!team.isPublic() || ride.getVisibility() != Visibility.PUBLIC || ride.getStatus() == RideStatus.DRAFT) {
+                throw BusinessException.forbidden("You don't have permission to view this ride's groups");
+            }
+        }
+
         return rideGroupRepository.findByRide(rideId);
     }
 
@@ -271,17 +329,35 @@ public class RideService {
     }
 
     public Optional<Ride> getRideBySlug(Long teamId, String rideSlug, Long userId) {
-        // Security check: must be a team member to view rides
-        var membership = securityService.requireMembership(userId, teamId);
+        Team team = teamRepository.findActiveById(teamId)
+                .orElseThrow(() -> BusinessException.notFound("Team", teamId));
 
-        Optional<Ride> ride = rideRepository.findByTeamAndSlug(teamId, rideSlug);
+        var membershipOpt = securityService.getMembership(userId, teamId);
+        boolean isMember = membershipOpt.isPresent();
 
-        // Only admins and organizers can see draft rides
-        if (ride.isPresent() && ride.get().getStatus() == RideStatus.DRAFT && !membership.isOrganizer()) {
+        Optional<Ride> rideOpt = rideRepository.findByTeamAndSlug(teamId, rideSlug);
+
+        if (rideOpt.isEmpty()) {
             return Optional.empty();
         }
 
-        return ride;
+        Ride ride = rideOpt.get();
+
+        // Draft rides are only visible to admins and organizers
+        if (ride.getStatus() == RideStatus.DRAFT) {
+            if (!isMember || !membershipOpt.get().isOrganizer()) {
+                return Optional.empty();
+            }
+        }
+
+        // For non-members, only allow viewing public rides from public teams
+        if (!isMember) {
+            if (!team.isPublic() || ride.getVisibility() != Visibility.PUBLIC) {
+                throw BusinessException.forbidden("You don't have permission to view this ride");
+            }
+        }
+
+        return Optional.of(ride);
     }
 
     @Transactional

@@ -6,6 +6,7 @@ import { useRide, useUpdateRide, useDeleteRide, useJoinRide, useLeaveRide, RideS
 import { useAuth } from '../../hooks/useAuth';
 import { LoadingPage, LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { RideGroupCard } from '../../components/ride/RideGroupCard';
+import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 
 const statusColors: Record<RideStatus, string> = {
   DRAFT: 'bg-gray-100 text-gray-800',
@@ -19,6 +20,10 @@ export function RideDetailPage() {
   const { teamSlug, rideSlug } = useParams<{ teamSlug: string; rideSlug: string }>();
   const { isAuthenticated } = useAuth();
   const [joiningGroupId, setJoiningGroupId] = useState<string | null>(null);
+  const [showUnpublishConfirm, setShowUnpublishConfirm] = useState(false);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [showUncancelConfirm, setShowUncancelConfirm] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const { data: team, isLoading: isLoadingTeam } = useTeam(teamSlug);
   const { data: ride, isLoading: isLoadingRide, error } = useRide(teamSlug, rideSlug);
@@ -68,27 +73,23 @@ export function RideDetailPage() {
   };
 
   const handleUnpublish = () => {
-    if (confirm(t('detail.confirmations.unpublish'))) {
-      updateMutation.mutate({ status: 'DRAFT' });
-    }
+    updateMutation.mutate({ status: 'DRAFT' });
+    setShowUnpublishConfirm(false);
   };
 
   const handleCancel = () => {
-    if (confirm(t('detail.confirmations.cancel'))) {
-      updateMutation.mutate({ status: 'CANCELLED' });
-    }
+    updateMutation.mutate({ status: 'CANCELLED' });
+    setShowCancelConfirm(false);
   };
 
   const handleUncancel = () => {
-    if (confirm(t('detail.confirmations.uncancel'))) {
-      updateMutation.mutate({ status: 'DRAFT' });
-    }
+    updateMutation.mutate({ status: 'DRAFT' });
+    setShowUncancelConfirm(false);
   };
 
   const handleDelete = () => {
-    if (confirm(t('detail.confirmations.delete'))) {
-      deleteMutation.mutate(rideSlug!);
-    }
+    deleteMutation.mutate(rideSlug!);
+    setShowDeleteConfirm(false);
   };
 
   const handleJoinGroup = (groupId: string) => {
@@ -110,21 +111,6 @@ export function RideDetailPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Breadcrumb */}
-      <div className="mb-6">
-        <nav className="flex items-center space-x-2 text-sm text-gray-500">
-          <Link to={`/teams/${teamSlug}`} className="hover:text-gray-700">
-            {team?.name}
-          </Link>
-          <span>/</span>
-          <Link to={`/teams/${teamSlug}/rides`} className="hover:text-gray-700">
-            {t('breadcrumb.rides')}
-          </Link>
-          <span>/</span>
-          <span className="text-gray-900">{ride.title}</span>
-        </nav>
-      </div>
-
       {/* Header */}
       <div className="bg-white rounded-lg shadow border border-gray-200 p-6 mb-6">
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
@@ -199,16 +185,14 @@ export function RideDetailPage() {
               {ride.status === 'PUBLISHED' && (
                 <>
                   <button
-                    onClick={handleUnpublish}
-                    disabled={updateMutation.isPending}
-                    className="inline-flex items-center px-3 py-2 border border-yellow-300 rounded-md text-sm font-medium text-yellow-700 bg-white hover:bg-yellow-50 disabled:opacity-50"
+                    onClick={() => setShowUnpublishConfirm(true)}
+                    className="inline-flex items-center px-3 py-2 border border-yellow-300 rounded-md text-sm font-medium text-yellow-700 bg-white hover:bg-yellow-50"
                   >
                     {t('detail.actions.unpublish')}
                   </button>
                   <button
-                    onClick={handleCancel}
-                    disabled={updateMutation.isPending}
-                    className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+                    onClick={() => setShowCancelConfirm(true)}
+                    className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
                   >
                     {t('detail.actions.cancel')}
                   </button>
@@ -216,18 +200,15 @@ export function RideDetailPage() {
               )}
               {ride.status === 'CANCELLED' && (
                 <button
-                  onClick={handleUncancel}
-                  disabled={updateMutation.isPending}
-                  className="inline-flex items-center px-3 py-2 border border-green-300 rounded-md text-sm font-medium text-green-700 bg-white hover:bg-green-50 disabled:opacity-50"
+                  onClick={() => setShowUncancelConfirm(true)}
+                  className="inline-flex items-center px-3 py-2 border border-green-300 rounded-md text-sm font-medium text-green-700 bg-white hover:bg-green-50"
                 >
-                  {updateMutation.isPending ? <LoadingSpinner size="sm" className="mr-2" /> : null}
                   {t('detail.actions.uncancel')}
                 </button>
               )}
               <button
-                onClick={handleDelete}
-                disabled={deleteMutation.isPending}
-                className="inline-flex items-center px-3 py-2 border border-red-300 rounded-md text-sm font-medium text-red-700 bg-white hover:bg-red-50 disabled:opacity-50"
+                onClick={() => setShowDeleteConfirm(true)}
+                className="inline-flex items-center px-3 py-2 border border-red-300 rounded-md text-sm font-medium text-red-700 bg-white hover:bg-red-50"
               >
                 {t('detail.actions.delete')}
               </button>
@@ -279,6 +260,48 @@ export function RideDetailPage() {
           </p>
         </div>
       )}
+
+      {/* Confirmation Dialogs */}
+      <ConfirmDialog
+        isOpen={showUnpublishConfirm}
+        onClose={() => setShowUnpublishConfirm(false)}
+        onConfirm={handleUnpublish}
+        title={t('detail.actions.unpublish')}
+        message={t('detail.confirmations.unpublish')}
+        confirmText={t('detail.actions.unpublish')}
+        variant="warning"
+        isLoading={updateMutation.isPending}
+      />
+      <ConfirmDialog
+        isOpen={showCancelConfirm}
+        onClose={() => setShowCancelConfirm(false)}
+        onConfirm={handleCancel}
+        title={t('detail.actions.cancel')}
+        message={t('detail.confirmations.cancel')}
+        confirmText={t('detail.actions.cancel')}
+        variant="warning"
+        isLoading={updateMutation.isPending}
+      />
+      <ConfirmDialog
+        isOpen={showUncancelConfirm}
+        onClose={() => setShowUncancelConfirm(false)}
+        onConfirm={handleUncancel}
+        title={t('detail.actions.uncancel')}
+        message={t('detail.confirmations.uncancel')}
+        confirmText={t('detail.actions.uncancel')}
+        variant="info"
+        isLoading={updateMutation.isPending}
+      />
+      <ConfirmDialog
+        isOpen={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        onConfirm={handleDelete}
+        title={t('detail.actions.delete')}
+        message={t('detail.confirmations.delete')}
+        confirmText={t('detail.actions.delete')}
+        variant="danger"
+        isLoading={deleteMutation.isPending}
+      />
     </div>
   );
 }

@@ -31,20 +31,14 @@ public class TeamMembershipService {
     TeamSecurityService securityService;
 
     public List<UserTeam> getTeamMembers(Team team, Long userId, int page, int size) {
-        // Security check: public teams visible to all, private teams require membership
-        securityService.requirePublicOrMember(userId, team);
+        // Security check: only team admins can view member list
+        securityService.requireAdmin(userId, team.getId());
         return userTeamRepository.findByTeam(team.getId(), page, size);
     }
 
-    public List<UserTeam> getTeamMembers(Team team, Long userId) {
-        // Security check: public teams visible to all, private teams require membership
-        securityService.requirePublicOrMember(userId, team);
-        return userTeamRepository.findByTeam(team.getId());
-    }
-
     public long countTeamMembers(Team team, Long userId) {
-        // Security check: public teams visible to all, private teams require membership
-        securityService.requirePublicOrMember(userId, team);
+        // Security check: only team admins can view member list
+        securityService.requireAdmin(userId, team.getId());
         return userTeamRepository.countByTeam(team.getId());
     }
 

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { UserAvatar } from '../common/UserAvatar';
 import { LoadingSpinner } from '../common/LoadingSpinner';
+import { ConfirmDialog } from '../common/ConfirmDialog';
 import type { TeamMember } from '../../hooks/useTeam';
 
 interface TeamMemberListProps {
@@ -33,6 +34,8 @@ export function TeamMemberList({
   const { t: tCommon } = useTranslation('common');
   const [editingMemberId, setEditingMemberId] = useState<string | null>(null);
   const [selectedRole, setSelectedRole] = useState<'ADMIN' | 'ORGANIZER' | 'MEMBER'>('MEMBER');
+  const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
+  const [memberToRemove, setMemberToRemove] = useState<string | null>(null);
 
   const canManageMembers = currentUserRole === 'ADMIN';
   const canAssignOrganizers = currentUserRole === 'ADMIN' || currentUserRole === 'ORGANIZER';
@@ -45,8 +48,15 @@ export function TeamMemberList({
   };
 
   const handleRemove = (memberId: string) => {
-    if (onRemoveMember && confirm(t('detail.members.confirmRemove'))) {
-      onRemoveMember(memberId);
+    setMemberToRemove(memberId);
+    setShowRemoveConfirm(true);
+  };
+
+  const handleConfirmRemove = () => {
+    if (onRemoveMember && memberToRemove) {
+      onRemoveMember(memberToRemove);
+      setShowRemoveConfirm(false);
+      setMemberToRemove(null);
     }
   };
 
@@ -162,6 +172,20 @@ export function TeamMemberList({
           );
         })}
       </ul>
+
+      <ConfirmDialog
+        isOpen={showRemoveConfirm}
+        onClose={() => {
+          setShowRemoveConfirm(false);
+          setMemberToRemove(null);
+        }}
+        onConfirm={handleConfirmRemove}
+        title={t('detail.members.remove')}
+        message={t('detail.members.confirmRemove')}
+        confirmText={t('detail.members.remove')}
+        variant="danger"
+        isLoading={isRemoving}
+      />
     </div>
   );
 }

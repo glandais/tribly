@@ -58,3 +58,5 @@ test-results/
 
 # Specify workflow files (not needed in version control)
 .specify/memory/*.json
+
+.playwright-mcp

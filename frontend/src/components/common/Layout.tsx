@@ -1,10 +1,13 @@
 import { Outlet, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../hooks/useAuth';
+import { useBreadcrumb } from '../../hooks/useBreadcrumb';
+import { Breadcrumb } from './Breadcrumb';
 
 export function Layout() {
   const { t } = useTranslation('common');
   const { user, isAuthenticated, logout } = useAuth();
+  const breadcrumbItems = useBreadcrumb();
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -15,16 +18,14 @@ export function Layout() {
               <Link to="/" className="flex-shrink-0 flex items-center">
                 <span className="text-2xl font-bold text-indigo-600">Tribly</span>
               </Link>
-              {isAuthenticated && (
-                <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
-                  <Link
-                    to="/teams"
-                    className="text-gray-500 hover:text-gray-700 inline-flex items-center px-1 pt-1 text-sm font-medium"
-                  >
-                    {t('nav.teams')}
-                  </Link>
-                </div>
-              )}
+              <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
+                <Link
+                  to="/teams"
+                  className="text-gray-500 hover:text-gray-700 inline-flex items-center px-1 pt-1 text-sm font-medium"
+                >
+                  {t('nav.teams')}
+                </Link>
+              </div>
             </div>
             <div className="flex items-center">
               {isAuthenticated ? (
@@ -69,6 +70,9 @@ export function Layout() {
       </header>
 
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <div className="px-4 sm:px-0">
+          <Breadcrumb items={breadcrumbItems} />
+        </div>
         <Outlet />
       </main>
 

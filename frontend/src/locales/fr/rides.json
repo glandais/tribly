@@ -5,6 +5,11 @@
     "CANCELLED": "Annulée",
     "COMPLETED": "Terminée"
   },
+  "visibility": {
+    "PUBLIC": "Publique",
+    "TEAM": "Équipe uniquement",
+    "PRIVATE": "Privée"
+  },
   "list": {
     "title": "Sorties",
     "subtitle": "Sorties à venir et passées pour {{teamName}}",
@@ -43,7 +48,8 @@
       "visibility": {
         "label": "Visibilité",
         "team": "Équipe uniquement",
-        "public": "Publique"
+        "public": "Publique",
+        "privateTeamHint": "Les sorties publiques ne sont pas disponibles pour les équipes privées"
       },
       "groups": {
         "label": "Groupes",

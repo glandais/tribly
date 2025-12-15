@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Ride, RideStatus } from '../../hooks/useRide';
+import { Ride, RideStatus, Visibility } from '../../hooks/useRide';
 
 interface RideCardProps {
   ride: Ride;
@@ -12,6 +12,12 @@ const statusColors: Record<RideStatus, string> = {
   PUBLISHED: 'bg-green-100 text-green-800',
   CANCELLED: 'bg-red-100 text-red-800',
   COMPLETED: 'bg-blue-100 text-blue-800',
+};
+
+const visibilityColors: Record<Visibility, string> = {
+  PUBLIC: 'bg-indigo-100 text-indigo-800',
+  TEAM: 'bg-gray-100 text-gray-600',
+  PRIVATE: 'bg-gray-100 text-gray-600',
 };
 
 export function RideCard({ ride, teamSlug }: RideCardProps) {
@@ -40,11 +46,29 @@ export function RideCard({ ride, teamSlug }: RideCardProps) {
               </p>
             )}
           </div>
-          <span
-            className={`ml-3 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColors[ride.status]}`}
-          >
-            {t(`status.${ride.status}`)}
-          </span>
+          <div className="ml-3 flex flex-col items-end gap-1">
+            <span
+              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColors[ride.status]}`}
+            >
+              {t(`status.${ride.status}`)}
+            </span>
+            <span
+              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${visibilityColors[ride.visibility]}`}
+            >
+              {ride.visibility === 'PUBLIC' && (
+                <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                  <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
+                </svg>
+              )}
+              {ride.visibility === 'TEAM' && (
+                <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+                </svg>
+              )}
+              {t(`visibility.${ride.visibility}`)}
+            </span>
+          </div>
         </div>
 
         <div className="mt-4 flex items-center gap-4 text-sm text-gray-500">

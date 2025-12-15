@@ -12,10 +12,19 @@ export function CreateRidePage() {
   const { teamSlug } = useParams<{ teamSlug: string }>();
   const { data: team, isLoading: isLoadingTeam } = useTeam(teamSlug);
 
+  // Calculate next Sunday
+  const getNextSunday = () => {
+    const today = new Date();
+    const daysUntilSunday = (7 - today.getDay()) % 7 || 7;
+    const nextSunday = new Date(today);
+    nextSunday.setDate(today.getDate() + daysUntilSunday);
+    return nextSunday.toISOString().split('T')[0];
+  };
+
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [date, setDate] = useState('');
-  const [startTime, setStartTime] = useState('');
+  const [date, setDate] = useState(getNextSunday());
+  const [startTime, setStartTime] = useState('08:00');
   const [visibility, setVisibility] = useState<Visibility>('TEAM');
   const [publishAt, setPublishAt] = useState('');
   const [groups, setGroups] = useState<CreateGroupRequest[]>([
@@ -189,18 +198,22 @@ export function CreateRidePage() {
               />
               <span className="ml-2 text-sm text-gray-700">{t('create.form.visibility.team')}</span>
             </label>
-            <label className="flex items-center">
+            <label className={`flex items-center ${!team.isPublic ? 'opacity-50 cursor-not-allowed' : ''}`}>
               <input
                 type="radio"
                 name="visibility"
                 value="PUBLIC"
                 checked={visibility === 'PUBLIC'}
                 onChange={() => setVisibility('PUBLIC')}
-                className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
+                disabled={!team.isPublic}
+                className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500 disabled:cursor-not-allowed"
               />
               <span className="ml-2 text-sm text-gray-700">{t('create.form.visibility.public')}</span>
             </label>
           </div>
+          {!team.isPublic && (
+            <p className="mt-2 text-sm text-gray-500">{t('create.form.visibility.privateTeamHint')}</p>
+          )}
         </div>
 
         {/* Scheduled Publication */}

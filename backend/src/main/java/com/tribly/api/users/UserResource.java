@@ -13,6 +13,8 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.jboss.logging.Logger;
 
+import java.util.List;
+
 @Path("/api/users")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
@@ -56,6 +58,18 @@ public class UserResource extends AbstractAuthenticatedResource {
                 .orElseThrow(() -> BusinessException.notFound("User", id));
 
         return Response.ok(PublicUserDto.from(user)).build();
+    }
+
+    @GET
+    @Path("/search")
+    public Response searchUsers(@QueryParam("q") String query, @QueryParam("limit") @DefaultValue("10") int limit) {
+        if (query == null || query.trim().isEmpty()) {
+            return Response.ok(List.of()).build();
+        }
+
+        List<User> users = userRepository.searchByDisplayName(query.trim(), Math.min(limit, 20));
+        List<PublicUserDto> dtos = users.stream().map(PublicUserDto::from).toList();
+        return Response.ok(dtos).build();
     }
 
     @DELETE

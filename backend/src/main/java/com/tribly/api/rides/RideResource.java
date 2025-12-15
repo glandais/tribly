@@ -8,6 +8,7 @@ import com.tribly.infrastructure.exception.BusinessException;
 import com.tribly.infrastructure.id.TsidUtils;
 import com.tribly.service.ride.RideService;
 import com.tribly.service.team.TeamService;
+import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -29,7 +30,6 @@ import java.util.List;
 @Path("/api/teams/{slug}/rides")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-@RolesAllowed("user")
 public class RideResource extends AbstractAuthenticatedResource {
 
     @Inject
@@ -39,6 +39,7 @@ public class RideResource extends AbstractAuthenticatedResource {
     TeamService teamService;
 
     @GET
+    @PermitAll
     public Response listRides(
             @PathParam("slug") String slug,
             @QueryParam("from") String fromStr,
@@ -48,7 +49,7 @@ public class RideResource extends AbstractAuthenticatedResource {
             @QueryParam("size") @DefaultValue("20") int size) {
 
         Team team = getTeamBySlug(slug);
-        Long userId = getCurrentUserId();
+        Long userId = getCurrentUserIdOrNull();
 
         LocalDate from = fromStr != null ? LocalDate.parse(fromStr) : null;
         LocalDate to = toStr != null ? LocalDate.parse(toStr) : null;
@@ -61,6 +62,7 @@ public class RideResource extends AbstractAuthenticatedResource {
     }
 
     @POST
+    @RolesAllowed("user")
     public Response createRide(@PathParam("slug") String slug, @Valid CreateRideRequest request) {
         Team team = getTeamBySlug(slug);
         Long userId = getCurrentUserId();
@@ -95,9 +97,10 @@ public class RideResource extends AbstractAuthenticatedResource {
 
     @GET
     @Path("/{rideSlug}")
+    @PermitAll
     public Response getRide(@PathParam("slug") String slug, @PathParam("rideSlug") String rideSlug) {
         Team team = getTeamBySlug(slug);
-        Long userId = getCurrentUserId();
+        Long userId = getCurrentUserIdOrNull();
 
         Ride ride = rideService.getRideBySlug(team.getId(), rideSlug, userId)
                 .orElseThrow(() -> BusinessException.notFound("Ride with slug '" + rideSlug + "' not found"));
@@ -108,6 +111,7 @@ public class RideResource extends AbstractAuthenticatedResource {
     @PATCH
     @Path("/{rideSlug}")
     @Transactional
+    @RolesAllowed("user")
     public Response updateRide(
             @PathParam("slug") String slug,
             @PathParam("rideSlug") String rideSlug,
@@ -139,6 +143,7 @@ public class RideResource extends AbstractAuthenticatedResource {
 
     @DELETE
     @Path("/{rideSlug}")
+    @RolesAllowed("user")
     public Response deleteRide(@PathParam("slug") String slug, @PathParam("rideSlug") String rideSlug) {
         Team team = getTeamBySlug(slug);
         Long userId = getCurrentUserId();
@@ -152,9 +157,10 @@ public class RideResource extends AbstractAuthenticatedResource {
 
     @GET
     @Path("/{rideSlug}/groups")
+    @PermitAll
     public Response listGroups(@PathParam("slug") String slug, @PathParam("rideSlug") String rideSlug) {
         Team team = getTeamBySlug(slug);
-        Long userId = getCurrentUserId();
+        Long userId = getCurrentUserIdOrNull();
 
         Ride ride = rideService.getRideBySlug(team.getId(), rideSlug, userId)
                 .orElseThrow(() -> BusinessException.notFound("Ride with slug '" + rideSlug + "' not found"));
@@ -166,6 +172,7 @@ public class RideResource extends AbstractAuthenticatedResource {
 
     @POST
     @Path("/{rideSlug}/groups")
+    @RolesAllowed("user")
     public Response createGroup(
             @PathParam("slug") String slug,
             @PathParam("rideSlug") String rideSlug,
@@ -195,6 +202,7 @@ public class RideResource extends AbstractAuthenticatedResource {
 
     @PATCH
     @Path("/{rideSlug}/groups/{groupId}")
+    @RolesAllowed("user")
     public Response updateGroup(
             @PathParam("slug") String slug,
             @PathParam("rideSlug") String rideSlug,
@@ -223,6 +231,7 @@ public class RideResource extends AbstractAuthenticatedResource {
 
     @DELETE
     @Path("/{rideSlug}/groups/{groupId}")
+    @RolesAllowed("user")
     public Response deleteGroup(
             @PathParam("slug") String slug,
             @PathParam("rideSlug") String rideSlug,
@@ -241,6 +250,7 @@ public class RideResource extends AbstractAuthenticatedResource {
 
     @POST
     @Path("/{rideSlug}/groups/{groupId}/join")
+    @RolesAllowed("user")
     public Response joinGroup(
             @PathParam("slug") String slug,
             @PathParam("rideSlug") String rideSlug,
@@ -263,6 +273,7 @@ public class RideResource extends AbstractAuthenticatedResource {
 
     @POST
     @Path("/{rideSlug}/groups/{groupId}/leave")
+    @RolesAllowed("user")
     public Response leaveGroup(
             @PathParam("slug") String slug,
             @PathParam("rideSlug") String rideSlug,

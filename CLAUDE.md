@@ -348,6 +348,120 @@ Language syncs with user profile locale preference in `UserProfilePage.tsx`:
 - `useEffect` syncs i18n when `user.locale` changes
 - `handleSave` calls `i18n.changeLanguage(locale)` on profile update
 
+## UI Components
+
+### ConfirmDialog
+
+The project uses a reusable `ConfirmDialog` component for all user confirmations instead of native `confirm()` dialogs.
+
+**Location**: `frontend/src/components/common/ConfirmDialog.tsx`
+
+**Props**:
+- `isOpen: boolean` - Controls dialog visibility
+- `onClose: () => void` - Called when user cancels or clicks backdrop
+- `onConfirm: () => void` - Called when user confirms the action
+- `title: string` - Dialog title (usually the action name)
+- `message: string` - Confirmation message explaining the action
+- `confirmText?: string` - Custom confirm button text (defaults to "Confirm")
+- `cancelText?: string` - Custom cancel button text (defaults to "Cancel")
+- `variant?: 'danger' | 'warning' | 'info'` - Visual style (defaults to 'warning')
+- `isLoading?: boolean` - Shows loading state on confirm button
+
+**Variants**:
+- `danger` - Red styling for destructive actions (delete, remove)
+- `warning` - Yellow styling for significant changes (unpublish, cancel)
+- `info` - Blue styling for informational confirmations (uncancel, restore)
+
+**Usage Pattern**:
+
+```tsx
+import { useState } from 'react';
+import { ConfirmDialog } from '../components/common/ConfirmDialog';
+
+function Component() {
+  const [showConfirm, setShowConfirm] = useState(false);
+  const deleteMutation = useDeleteItem();
+
+  const handleDelete = () => {
+    deleteMutation.mutate(itemId);
+    setShowConfirm(false);
+  };
+
+  return (
+    <>
+      <button onClick={() => setShowConfirm(true)}>
+        Delete
+      </button>
+
+      <ConfirmDialog
+        isOpen={showConfirm}
+        onClose={() => setShowConfirm(false)}
+        onConfirm={handleDelete}
+        title={t('actions.delete')}
+        message={t('confirmations.delete')}
+        confirmText={t('actions.delete')}
+        variant="danger"
+        isLoading={deleteMutation.isPending}
+      />
+    </>
+  );
+}
+```
+
+**Multi-Dialog Pattern** (when component has multiple confirmation types):
+
+```tsx
+function Component() {
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+
+  const handleDelete = () => {
+    deleteMutation.mutate(id);
+    setShowDeleteConfirm(false);
+  };
+
+  const handleCancel = () => {
+    cancelMutation.mutate({ status: 'CANCELLED' });
+    setShowCancelConfirm(false);
+  };
+
+  return (
+    <>
+      <button onClick={() => setShowDeleteConfirm(true)}>Delete</button>
+      <button onClick={() => setShowCancelConfirm(true)}>Cancel</button>
+
+      <ConfirmDialog
+        isOpen={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        onConfirm={handleDelete}
+        title={t('actions.delete')}
+        message={t('confirmations.delete')}
+        variant="danger"
+        isLoading={deleteMutation.isPending}
+      />
+
+      <ConfirmDialog
+        isOpen={showCancelConfirm}
+        onClose={() => setShowCancelConfirm(false)}
+        onConfirm={handleCancel}
+        title={t('actions.cancel')}
+        message={t('confirmations.cancel')}
+        variant="warning"
+        isLoading={updateMutation.isPending}
+      />
+    </>
+  );
+}
+```
+
+**Translation Keys**:
+- Confirmation messages go in the appropriate namespace (e.g., `teams.json`, `rides.json`)
+- Common button text is in `common.json`: `buttons.cancel`, `buttons.confirm`, `buttons.loading`
+
+**Never use**:
+- Native `confirm()` dialogs - always use `ConfirmDialog` instead
+- Native `alert()` dialogs - use toast notifications or error messages instead
+
 ## Development URLs
 
 - Backend API: http://localhost:8080/api

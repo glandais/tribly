@@ -1,0 +1,97 @@
+import { useLocation, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { useTeam } from './useTeam';
+import { useRide } from './useRide';
+import type { BreadcrumbItem } from '../components/common/Breadcrumb';
+
+export function useBreadcrumb(): BreadcrumbItem[] {
+  const location = useLocation();
+  const { teamSlug, rideSlug } = useParams<{ teamSlug?: string; rideSlug?: string }>();
+  const { t: tCommon } = useTranslation('common');
+  const { t: tRides } = useTranslation('rides');
+
+  // Fetch team data if we're on a team-related route
+  const { data: team } = useTeam(teamSlug);
+
+  // Fetch ride data if we're on a ride-related route
+  const { data: ride } = useRide(teamSlug, rideSlug);
+
+  const items: BreadcrumbItem[] = [];
+
+  // Home page - no breadcrumb
+  if (location.pathname === '/') {
+    return items;
+  }
+
+  // Teams list page
+  if (location.pathname === '/teams') {
+    items.push({ label: tCommon('nav.teams') });
+    return items;
+  }
+
+  // Profile page
+  if (location.pathname.startsWith('/profile')) {
+    items.push({ label: tCommon('nav.profile') });
+    return items;
+  }
+
+  // Team-related pages
+  if (teamSlug) {
+    // Teams root
+    items.push({ label: tCommon('nav.teams'), path: '/teams' });
+
+    // Team name
+    if (team) {
+      items.push({ label: team.name, path: `/teams/${teamSlug}` });
+    }
+
+    // Team settings
+    if (location.pathname === `/teams/${teamSlug}/settings`) {
+      items.push({ label: tCommon('nav.settings') });
+      return items;
+    }
+
+    // Team members
+    if (location.pathname === `/teams/${teamSlug}/members`) {
+      items.push({ label: tCommon('nav.members') });
+      return items;
+    }
+
+    // Rides section
+    if (location.pathname.includes('/rides')) {
+      items.push({ label: tRides('breadcrumb.rides'), path: `/teams/${teamSlug}/rides` });
+
+      // New ride
+      if (location.pathname === `/teams/${teamSlug}/rides/new`) {
+        items.push({ label: tCommon('actions.new') });
+        return items;
+      }
+
+      // Ride detail or edit
+      if (rideSlug && ride) {
+        items.push({ label: ride.title, path: `/teams/${teamSlug}/rides/${rideSlug}` });
+
+        // Edit ride
+        if (location.pathname === `/teams/${teamSlug}/rides/${rideSlug}/edit`) {
+          items.push({ label: tCommon('buttons.edit') });
+        }
+      }
+
+      return items;
+    }
+
+    // Trips section (placeholder)
+    if (location.pathname.includes('/trips')) {
+      items.push({ label: tCommon('nav.trips'), path: `/teams/${teamSlug}/trips` });
+      return items;
+    }
+
+    // Routes section (placeholder)
+    if (location.pathname.includes('/routes')) {
+      items.push({ label: tCommon('nav.routes'), path: `/teams/${teamSlug}/routes` });
+      return items;
+    }
+  }
+
+  return items;
+}

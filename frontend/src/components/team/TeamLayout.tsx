@@ -1,5 +1,9 @@
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useLeaveTeam, useJoinTeam } from '../../hooks/useTeam';
+import { useAuth } from '../../hooks/useAuth';
+import { ConfirmDialog } from '../common/ConfirmDialog';
 import type { TeamDetail } from '../../hooks/useTeam';
 
 interface TeamLayoutProps {
@@ -11,8 +15,29 @@ interface TeamLayoutProps {
 export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
   const { t, i18n } = useTranslation('teams');
   const { t: tCommon } = useTranslation('common');
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
 
+  const isMember = !!team.userRole;
   const isAdmin = team.userRole === 'ADMIN';
+  const canJoin = isAuthenticated && !isMember && team.isPublic;
+  const canLeave = isMember && !isAdmin;
+
+  const joinMutation = useJoinTeam(team.slug);
+  const leaveMutation = useLeaveTeam(team.slug);
+
+  const handleJoin = () => {
+    joinMutation.mutate();
+  };
+
+  const handleLeave = () => {
+    leaveMutation.mutate(undefined, {
+      onSuccess: () => {
+        navigate('/teams');
+      },
+    });
+  };
 
   const tabs = [
     { id: 'rides', path: `/teams/${team.slug}/rides`, label: t('detail.tabs.rides') },
@@ -99,8 +124,27 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
             </div>
           </div>
 
-          {isAdmin && (
-            <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3">
+            {canJoin && (
+              <button
+                onClick={handleJoin}
+                disabled={joinMutation.isPending}
+                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+              >
+                {joinMutation.isPending ? t('detail.actions.joining') : t('detail.actions.join')}
+              </button>
+            )}
+
+            {canLeave && (
+              <button
+                onClick={() => setShowLeaveConfirm(true)}
+                className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              >
+                {t('detail.actions.leave')}
+              </button>
+            )}
+
+            {isAdmin && (
               <Link
                 to={`/teams/${team.slug}/settings`}
                 className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
@@ -115,8 +159,8 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
                 </svg>
                 {t('detail.actions.edit')}
               </Link>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
 
@@ -141,6 +185,18 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
 
       {/* Page Content */}
       <div>{children}</div>
+
+      {/* Leave Team Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={showLeaveConfirm}
+        onClose={() => setShowLeaveConfirm(false)}
+        onConfirm={handleLeave}
+        title={t('detail.actions.leave')}
+        message={t('detail.actions.confirmLeave')}
+        confirmText={t('detail.actions.leave')}
+        variant="warning"
+        isLoading={leaveMutation.isPending}
+      />
     </div>
   );
 }
