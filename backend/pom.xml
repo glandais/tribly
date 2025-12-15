@@ -109,6 +109,12 @@
             <artifactId>quarkus-mailer</artifactId>
         </dependency>
 
+        <!-- Scheduler -->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-scheduler</artifactId>
+        </dependency>
+
         <!-- REST Client for OAuth -->
         <dependency>
             <groupId>io.quarkus</groupId>

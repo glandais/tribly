@@ -14,7 +14,9 @@ import jakarta.transaction.Transactional;
 import org.jboss.logging.Logger;
 
 import java.text.Normalizer;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Locale;
@@ -68,6 +70,7 @@ public class RideService {
         ride.setStartTime(request.startTime());
         ride.setVisibility(request.visibility() != null ? request.visibility() : Visibility.TEAM);
         ride.setStatus(RideStatus.DRAFT);
+        ride.setPublishAt(request.publishAt());
 
         rideRepository.persist(ride);
 
@@ -143,6 +146,8 @@ public class RideService {
         if (request.visibility() != null) {
             ride.setVisibility(request.visibility());
         }
+        // publishAt can be explicitly set to null to remove scheduled publishing
+        ride.setPublishAt(request.publishAt());
 
         rideRepository.persist(ride);
         LOG.infov("Ride {0} updated by user {1}", rideId, userId);
@@ -319,6 +324,7 @@ public class RideService {
             Visibility visibility,
             Long routeId,
             Long meetingPointId,
+            Instant publishAt,
             List<CreateRideGroupRequest> groups
     ) {}
 
@@ -330,7 +336,8 @@ public class RideService {
             RideStatus status,
             Visibility visibility,
             Long routeId,
-            Long meetingPointId
+            Long meetingPointId,
+            Instant publishAt
     ) {}
 
     public record CreateRideGroupRequest(

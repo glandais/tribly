@@ -29,6 +29,7 @@ export function EditRidePage() {
   const [date, setDate] = useState('');
   const [startTime, setStartTime] = useState('');
   const [visibility, setVisibility] = useState<Visibility>('TEAM');
+  const [publishAt, setPublishAt] = useState('');
   const [groups, setGroups] = useState<EditableGroup[]>([]);
   const [initialized, setInitialized] = useState(false);
 
@@ -44,6 +45,8 @@ export function EditRidePage() {
       setDate(ride.date);
       setStartTime(ride.startTime?.substring(0, 5) || '');
       setVisibility(ride.visibility);
+      // Convert ISO string to datetime-local format (YYYY-MM-DDTHH:mm)
+      setPublishAt(ride.publishAt ? new Date(ride.publishAt).toISOString().slice(0, 16) : '');
       setGroups(ride.groups?.map(g => ({
         id: g.id,
         name: g.name,
@@ -82,6 +85,7 @@ export function EditRidePage() {
       date,
       startTime: startTime || undefined,
       visibility,
+      publishAt: publishAt ? new Date(publishAt).toISOString() : null,
     });
 
     // Process group changes
@@ -279,6 +283,21 @@ export function EditRidePage() {
               <span className="ml-2 text-sm text-gray-700">{t('create.form.visibility.public')}</span>
             </label>
           </div>
+        </div>
+
+        {/* Scheduled Publication */}
+        <div>
+          <label htmlFor="publishAt" className="block text-sm font-medium text-gray-700">
+            {t('create.form.publishAt.label')}
+          </label>
+          <input
+            type="datetime-local"
+            id="publishAt"
+            value={publishAt}
+            onChange={(e) => setPublishAt(e.target.value)}
+            className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+          />
+          <p className="mt-1 text-sm text-gray-500">{t('create.form.publishAt.hint')}</p>
         </div>
 
         {/* Groups */}

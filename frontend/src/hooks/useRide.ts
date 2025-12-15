@@ -16,6 +16,7 @@ export interface Ride {
   visibility: Visibility;
   participantCount: number;
   groupCount: number;
+  publishAt: string | null;
   createdAt: string | null;
 }
 
@@ -58,6 +59,7 @@ export interface CreateRideRequest {
   date: string;
   startTime?: string;
   visibility?: Visibility;
+  publishAt?: string;
   groups?: CreateGroupRequest[];
 }
 
@@ -75,6 +77,7 @@ export interface UpdateRideRequest {
   startTime?: string;
   status?: RideStatus;
   visibility?: Visibility;
+  publishAt?: string | null;
 }
 
 interface UseRidesOptions {

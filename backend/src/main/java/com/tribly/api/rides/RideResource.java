@@ -20,7 +20,9 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
 import java.net.URI;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
@@ -80,6 +82,7 @@ public class RideResource extends AbstractAuthenticatedResource {
                         request.visibility(),
                         TsidUtils.toLong(request.routeId()),
                         TsidUtils.toLong(request.meetingPointId()),
+                        request.publishAt(),
                         groupRequests
                 ),
                 userId
@@ -125,7 +128,8 @@ public class RideResource extends AbstractAuthenticatedResource {
                         request.status(),
                         request.visibility(),
                         TsidUtils.toLong(request.routeId()),
-                        TsidUtils.toLong(request.meetingPointId())
+                        TsidUtils.toLong(request.meetingPointId()),
+                        request.publishAt()
                 ),
                 userId
         );
@@ -284,6 +288,7 @@ public class RideResource extends AbstractAuthenticatedResource {
             String routeId,
             String meetingPointId,
             Visibility visibility,
+            Instant publishAt,
             List<CreateGroupRequest> groups
     ) {}
 
@@ -295,7 +300,8 @@ public class RideResource extends AbstractAuthenticatedResource {
             RideStatus status,
             Visibility visibility,
             String routeId,
-            String meetingPointId
+            String meetingPointId,
+            Instant publishAt
     ) {}
 
     public record CreateGroupRequest(
@@ -328,6 +334,7 @@ public class RideResource extends AbstractAuthenticatedResource {
             String visibility,
             int participantCount,
             int groupCount,
+            String publishAt,
             String createdAt
     ) {
         public static RideDto from(Ride ride) {
@@ -342,6 +349,7 @@ public class RideResource extends AbstractAuthenticatedResource {
                     ride.getVisibility().name(),
                     ride.getParticipantCount(),
                     ride.getGroupCount(),
+                    ride.getPublishAt() != null ? ride.getPublishAt().toString() : null,
                     ride.getCreatedAt() != null ? ride.getCreatedAt().toString() : null
             );
         }
@@ -359,6 +367,7 @@ public class RideResource extends AbstractAuthenticatedResource {
             int participantCount,
             int groupCount,
             List<RideGroupDto> groups,
+            String publishAt,
             String createdAt
     ) {
         public static RideDetailDto from(Ride ride) {
@@ -379,6 +388,7 @@ public class RideResource extends AbstractAuthenticatedResource {
                     ride.getParticipantCount(),
                     ride.getGroupCount(),
                     groupDtos,
+                    ride.getPublishAt() != null ? ride.getPublishAt().toString() : null,
                     ride.getCreatedAt() != null ? ride.getCreatedAt().toString() : null
             );
         }

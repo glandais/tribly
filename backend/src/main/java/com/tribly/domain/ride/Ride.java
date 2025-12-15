@@ -12,7 +12,9 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -74,6 +76,9 @@ public class Ride extends BaseEntity {
 
     @Column(name = "recurrence_rule")
     private String recurrenceRule;
+
+    @Column(name = "publish_at")
+    private Instant publishAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_ride_id")
@@ -187,6 +192,14 @@ public class Ride extends BaseEntity {
 
     public void setRecurrenceRule(String recurrenceRule) {
         this.recurrenceRule = recurrenceRule;
+    }
+
+    public Instant getPublishAt() {
+        return publishAt;
+    }
+
+    public void setPublishAt(Instant publishAt) {
+        this.publishAt = publishAt;
     }
 
     public Ride getParentRide() {

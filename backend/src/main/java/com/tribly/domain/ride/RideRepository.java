@@ -3,7 +3,9 @@ package com.tribly.domain.ride;
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -55,5 +57,13 @@ public class RideRepository implements PanacheRepository<Ride> {
 
     public boolean existsByTeamAndSlug(Long teamId, String slug) {
         return count("team.id = ?1 and slug = ?2 and deleted = false", teamId, slug) > 0;
+    }
+
+    /**
+     * Find rides that should be auto-published (DRAFT status with publishAt in the past).
+     */
+    public List<Ride> findRidesToAutoPublish(RideStatus status, Instant now) {
+        return find("status = ?1 and publishAt is not null and publishAt <= ?2 and deleted = false",
+                status, now).list();
     }
 }

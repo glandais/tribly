@@ -17,6 +17,7 @@ export function CreateRidePage() {
   const [date, setDate] = useState('');
   const [startTime, setStartTime] = useState('');
   const [visibility, setVisibility] = useState<Visibility>('TEAM');
+  const [publishAt, setPublishAt] = useState('');
   const [groups, setGroups] = useState<CreateGroupRequest[]>([
     { name: t('create.form.groups.defaultName'), averageSpeed: undefined, maxParticipants: undefined },
   ]);
@@ -46,6 +47,7 @@ export function CreateRidePage() {
       date,
       startTime: startTime || undefined,
       visibility,
+      publishAt: publishAt ? new Date(publishAt).toISOString() : undefined,
       groups: filteredGroups.length > 0 ? filteredGroups : undefined,
     });
   };
@@ -199,6 +201,22 @@ export function CreateRidePage() {
               <span className="ml-2 text-sm text-gray-700">{t('create.form.visibility.public')}</span>
             </label>
           </div>
+        </div>
+
+        {/* Scheduled Publication */}
+        <div>
+          <label htmlFor="publishAt" className="block text-sm font-medium text-gray-700">
+            {t('create.form.publishAt.label')}
+          </label>
+          <input
+            type="datetime-local"
+            id="publishAt"
+            value={publishAt}
+            onChange={(e) => setPublishAt(e.target.value)}
+            min={new Date().toISOString().slice(0, 16)}
+            className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+          />
+          <p className="mt-1 text-sm text-gray-500">{t('create.form.publishAt.hint')}</p>
         </div>
 
         {/* Groups */}

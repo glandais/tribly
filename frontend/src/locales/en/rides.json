@@ -64,6 +64,10 @@
         "remove": "Remove",
         "empty": "No groups defined. Add at least one group.",
         "hint": "Create different groups for varying skill levels or speeds"
+      },
+      "publishAt": {
+        "label": "Schedule Publication",
+        "hint": "Leave empty to publish manually, or set a date/time for automatic publication"
       }
     },
     "button": "Create Ride",
@@ -96,6 +100,7 @@
       "cancel": "Are you sure you want to cancel this ride?",
       "delete": "Are you sure you want to delete this ride? This cannot be undone."
     },
+    "scheduledPublish": "Scheduled to publish on {{date}}",
     "groups": {
       "title": "Groups",
       "empty": "No groups defined for this ride.",

@@ -64,6 +64,10 @@
         "remove": "Supprimer",
         "empty": "Aucun groupe défini. Ajoutez au moins un groupe.",
         "hint": "Créez différents groupes pour différents niveaux ou vitesses"
+      },
+      "publishAt": {
+        "label": "Publication programmée",
+        "hint": "Laissez vide pour publier manuellement, ou définissez une date/heure pour une publication automatique"
       }
     },
     "button": "Créer la sortie",
@@ -96,6 +100,7 @@
       "cancel": "Êtes-vous sûr de vouloir annuler cette sortie ?",
       "delete": "Êtes-vous sûr de vouloir supprimer cette sortie ? Cette action est irréversible."
     },
+    "scheduledPublish": "Publication programmée le {{date}}",
     "groups": {
       "title": "Groupes",
       "empty": "Aucun groupe défini pour cette sortie.",
