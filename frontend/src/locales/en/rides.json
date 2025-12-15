@@ -93,11 +93,13 @@
       "publish": "Publish",
       "unpublish": "Unpublish",
       "cancel": "Cancel Ride",
+      "uncancel": "Restore Ride",
       "delete": "Delete"
     },
     "confirmations": {
       "unpublish": "Are you sure you want to unpublish this ride? It will return to draft status.",
       "cancel": "Are you sure you want to cancel this ride?",
+      "uncancel": "Are you sure you want to restore this ride? It will return to draft status.",
       "delete": "Are you sure you want to delete this ride? This cannot be undone."
     },
     "scheduledPublish": "Scheduled to publish on {{date}}",

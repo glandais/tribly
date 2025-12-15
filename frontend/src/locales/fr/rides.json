@@ -93,11 +93,13 @@
       "publish": "Publier",
       "unpublish": "Dépublier",
       "cancel": "Annuler la sortie",
+      "uncancel": "Restaurer la sortie",
       "delete": "Supprimer"
     },
     "confirmations": {
       "unpublish": "Êtes-vous sûr de vouloir dépublier cette sortie ? Elle repassera en brouillon.",
       "cancel": "Êtes-vous sûr de vouloir annuler cette sortie ?",
+      "uncancel": "Êtes-vous sûr de vouloir restaurer cette sortie ? Elle repassera en brouillon.",
       "delete": "Êtes-vous sûr de vouloir supprimer cette sortie ? Cette action est irréversible."
     },
     "scheduledPublish": "Publication programmée le {{date}}",

@@ -79,6 +79,12 @@ export function RideDetailPage() {
     }
   };
 
+  const handleUncancel = () => {
+    if (confirm(t('detail.confirmations.uncancel'))) {
+      updateMutation.mutate({ status: 'DRAFT' });
+    }
+  };
+
   const handleDelete = () => {
     if (confirm(t('detail.confirmations.delete'))) {
       deleteMutation.mutate(rideSlug!);
@@ -207,6 +213,16 @@ export function RideDetailPage() {
                     {t('detail.actions.cancel')}
                   </button>
                 </>
+              )}
+              {ride.status === 'CANCELLED' && (
+                <button
+                  onClick={handleUncancel}
+                  disabled={updateMutation.isPending}
+                  className="inline-flex items-center px-3 py-2 border border-green-300 rounded-md text-sm font-medium text-green-700 bg-white hover:bg-green-50 disabled:opacity-50"
+                >
+                  {updateMutation.isPending ? <LoadingSpinner size="sm" className="mr-2" /> : null}
+                  {t('detail.actions.uncancel')}
+                </button>
               )}
               <button
                 onClick={handleDelete}
