@@ -18,6 +18,11 @@ public class UserTeamRepository implements PanacheRepository<UserTeam> {
                 .firstResultOptional();
     }
 
+    public Optional<UserTeam> findByUserAndTeamIncludingDeleted(Long userId, Long teamId) {
+        return find("user.id = ?1 and team.id = ?2", userId, teamId)
+                .firstResultOptional();
+    }
+
     public boolean existsByUserAndTeam(Long userId, Long teamId) {
         return count("user.id = ?1 and team.id = ?2 and deleted = false", userId, teamId) > 0;
     }

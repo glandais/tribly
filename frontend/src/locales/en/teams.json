@@ -58,10 +58,10 @@
       "message": "There was an error loading this team. Please try again."
     },
     "tabs": {
-      "overview": "Overview",
       "rides": "Rides",
       "trips": "Trips",
-      "routes": "Routes"
+      "routes": "Routes",
+      "members": "Members"
     },
     "info": {
       "memberCount_one": "{{count}} member",
@@ -72,7 +72,7 @@
     "actions": {
       "join": "Join Team",
       "leave": "Leave Team",
-      "settings": "Settings",
+      "edit": "Edit",
       "joining": "Joining...",
       "leaving": "Leaving...",
       "confirmLeave": "Are you sure you want to leave this team?"

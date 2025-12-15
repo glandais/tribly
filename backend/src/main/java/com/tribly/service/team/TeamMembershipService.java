@@ -62,9 +62,26 @@ public class TeamMembershipService {
 
         // Security checks
         securityService.requirePublicTeamForJoin(team);
-        securityService.requireNotAlreadyMember(userId, teamId);
         securityService.requireTeamCapacity(team);
 
+        // Check for existing membership (including soft-deleted)
+        Optional<UserTeam> existingMembership = userTeamRepository.findByUserAndTeamIncludingDeleted(userId, teamId);
+
+        if (existingMembership.isPresent()) {
+            UserTeam membership = existingMembership.get();
+            if (!membership.isDeleted()) {
+                throw BusinessException.conflict("User is already a member of this team");
+            }
+            // Restore soft-deleted membership
+            membership.setDeleted(false);
+            membership.setRole(TeamRole.MEMBER);
+            membership.setJoinedAt(java.time.Instant.now());
+            userTeamRepository.persist(membership);
+            LOG.infov("User {0} rejoined team {1}", userId, team.getSlug());
+            return membership;
+        }
+
+        // Create new membership
         UserTeam membership = new UserTeam(user, team, TeamRole.MEMBER);
         userTeamRepository.persist(membership);
 
@@ -79,12 +96,32 @@ public class TeamMembershipService {
 
         // Security checks
         securityService.requireCanManageMembers(actingUserId, teamId);
-        securityService.requireNotAlreadyMember(targetUserId, teamId);
         securityService.requireTeamCapacity(team);
 
         User targetUser = userRepository.findActiveById(targetUserId)
                 .orElseThrow(() -> BusinessException.notFound("User", targetUserId));
 
+        // Check for existing membership (including soft-deleted)
+        Optional<UserTeam> existingMembership = userTeamRepository.findByUserAndTeamIncludingDeleted(targetUserId, teamId);
+
+        if (existingMembership.isPresent()) {
+            UserTeam membership = existingMembership.get();
+            if (!membership.isDeleted()) {
+                throw BusinessException.conflict("User is already a member of this team");
+            }
+            // Restore soft-deleted membership
+            User actingUser = userRepository.findActiveById(actingUserId).orElse(null);
+            membership.setDeleted(false);
+            membership.setRole(role);
+            membership.setJoinedAt(java.time.Instant.now());
+            membership.setInvitedBy(actingUser);
+            userTeamRepository.persist(membership);
+            LOG.infov("User {0} re-added to team {1} with role {2} by user {3}",
+                    targetUserId, team.getSlug(), role, actingUserId);
+            return membership;
+        }
+
+        // Create new membership
         User actingUser = userRepository.findActiveById(actingUserId).orElse(null);
         UserTeam membership = new UserTeam(targetUser, team, role, actingUser);
         userTeamRepository.persist(membership);

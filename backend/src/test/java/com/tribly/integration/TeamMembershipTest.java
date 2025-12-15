@@ -108,7 +108,7 @@ class TeamMembershipTest {
                 .post("/api/teams/" + slug + "/members/join")
                 .then()
                 .statusCode(409)
-                .body("code", equalTo("ALREADY_MEMBER"));
+                .body("code", equalTo("CONFLICT"));
     }
 
     @Test

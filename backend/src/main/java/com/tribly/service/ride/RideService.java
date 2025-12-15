@@ -97,27 +97,41 @@ public class RideService {
 
     public Optional<Ride> getRide(Long teamId, Long rideId, Long userId) {
         // Security check: must be a team member to view rides
-        securityService.requireMembership(userId, teamId);
-        return rideRepository.findByIdAndTeam(rideId, teamId);
+        var membership = securityService.requireMembership(userId, teamId);
+
+        Optional<Ride> ride = rideRepository.findByIdAndTeam(rideId, teamId);
+
+        // Only admins and organizers can see draft rides
+        if (ride.isPresent() && ride.get().getStatus() == RideStatus.DRAFT && !membership.isOrganizer()) {
+            return Optional.empty();
+        }
+
+        return ride;
     }
 
     public List<Ride> listRides(Long teamId, Long userId, LocalDate from, LocalDate to, RideStatus status, int page, int size) {
         // Security check: must be a team member to view rides
-        securityService.requireMembership(userId, teamId);
+        var membership = securityService.requireMembership(userId, teamId);
+
+        // Only admins and organizers can see draft rides
+        boolean canSeeDrafts = membership.isOrganizer();
 
         if (from != null && to != null) {
-            return rideRepository.findByTeamAndDateRange(teamId, from, to, page, size);
+            return rideRepository.findByTeamAndDateRange(teamId, from, to, canSeeDrafts, page, size);
         }
         if (status != null) {
             return rideRepository.findByTeamAndStatus(teamId, status, page, size);
         }
-        return rideRepository.findByTeam(teamId, page, size);
+        return rideRepository.findByTeam(teamId, canSeeDrafts, page, size);
     }
 
     public long countRides(Long teamId, Long userId) {
         // Security check: must be a team member to count rides
-        securityService.requireMembership(userId, teamId);
-        return rideRepository.countByTeam(teamId);
+        var membership = securityService.requireMembership(userId, teamId);
+
+        // Only admins and organizers can see draft rides
+        boolean canSeeDrafts = membership.isOrganizer();
+        return rideRepository.countByTeam(teamId, canSeeDrafts);
     }
 
     @Transactional
@@ -258,8 +272,16 @@ public class RideService {
 
     public Optional<Ride> getRideBySlug(Long teamId, String rideSlug, Long userId) {
         // Security check: must be a team member to view rides
-        securityService.requireMembership(userId, teamId);
-        return rideRepository.findByTeamAndSlug(teamId, rideSlug);
+        var membership = securityService.requireMembership(userId, teamId);
+
+        Optional<Ride> ride = rideRepository.findByTeamAndSlug(teamId, rideSlug);
+
+        // Only admins and organizers can see draft rides
+        if (ride.isPresent() && ride.get().getStatus() == RideStatus.DRAFT && !membership.isOrganizer()) {
+            return Optional.empty();
+        }
+
+        return ride;
     }
 
     @Transactional

@@ -7,6 +7,7 @@ import { UserProfilePage } from './pages/auth/UserProfilePage';
 import { AuthenticatedRoute, UnauthenticatedRoute } from './components/auth/ProtectedRoute';
 import { TeamListPage } from './pages/team/TeamListPage';
 import { TeamDetailPage } from './pages/team/TeamDetailPage';
+import { TeamMembersPage } from './pages/team/TeamMembersPage';
 import { CreateTeamPage } from './pages/team/CreateTeamPage';
 import { TeamSettingsPage } from './pages/team/TeamSettingsPage';
 import { RideListPage } from './pages/ride/RideListPage';
@@ -95,6 +96,14 @@ function App() {
               }
             />
             <Route path="teams/:teamSlug" element={<TeamDetailPage />} />
+            <Route
+              path="teams/:teamSlug/members"
+              element={
+                <AuthenticatedRoute>
+                  <TeamMembersPage />
+                </AuthenticatedRoute>
+              }
+            />
             <Route
               path="teams/:teamSlug/settings"
               element={

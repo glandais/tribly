@@ -111,7 +111,7 @@ export function TeamMemberList({
                         <option value="MEMBER">{tCommon('roles.MEMBER')}</option>
                       </select>
                       <button
-                        onClick={() => handleRoleChange(member.id)}
+                        onClick={() => handleRoleChange(member.userId)}
                         disabled={isUpdating}
                         className="text-sm text-indigo-600 hover:text-indigo-900 disabled:opacity-50"
                       >
@@ -147,7 +147,7 @@ export function TeamMemberList({
 
                       {canRemove && (
                         <button
-                          onClick={() => handleRemove(member.id)}
+                          onClick={() => handleRemove(member.userId)}
                           disabled={isRemoving}
                           className="text-sm text-red-600 hover:text-red-900 disabled:opacity-50"
                         >

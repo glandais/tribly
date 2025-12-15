@@ -342,7 +342,7 @@ class RideServiceTest {
                 .when()
                 .post("/api/teams/" + teamSlug + "/rides/" + rideSlug + "/groups/" + groupId + "/join")
                 .then()
-                .statusCode(400);
+                .statusCode(404);
     }
 
     @Test

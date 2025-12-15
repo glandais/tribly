@@ -1,30 +1,23 @@
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, Navigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
   useTeam,
-  useTeamMembers,
   useJoinTeam,
   useLeaveTeam,
-  useUpdateMemberRole,
-  useRemoveMember,
 } from '../../hooks/useTeam';
 import { useAuth } from '../../hooks/useAuth';
 import { LoadingPage } from '../../components/common/LoadingSpinner';
-import { TeamMemberList, TeamMemberListSkeleton } from '../../components/team/TeamMemberList';
 
 export function TeamDetailPage() {
   const { t, i18n } = useTranslation('teams');
   const { t: tCommon } = useTranslation('common');
   const { teamSlug } = useParams<{ teamSlug: string }>();
-  const { user, isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
 
   const { data: team, isLoading, error } = useTeam(teamSlug);
-  const { data: membersData, isLoading: isLoadingMembers } = useTeamMembers(teamSlug);
 
   const joinMutation = useJoinTeam(teamSlug || '');
   const leaveMutation = useLeaveTeam(teamSlug || '');
-  const updateRoleMutation = useUpdateMemberRole(teamSlug || '');
-  const removeMemberMutation = useRemoveMember(teamSlug || '');
 
   if (isLoading) {
     return <LoadingPage message={t('detail.loading')} />;
@@ -60,6 +53,11 @@ export function TeamDetailPage() {
   const isAdmin = team.userRole === 'ADMIN';
   const canJoin = isAuthenticated && !isMember && team.isPublic;
   const canLeave = isMember && !isAdmin;
+
+  // Redirect to rides tab as default
+  if (isMember) {
+    return <Navigate to={`/teams/${teamSlug}/rides`} replace />;
+  }
 
   const handleJoin = () => {
     joinMutation.mutate();
@@ -179,89 +177,8 @@ export function TeamDetailPage() {
               </button>
             )}
 
-            {isAdmin && (
-              <Link
-                to={`/teams/${teamSlug}/settings`}
-                className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-              >
-                <svg
-                  className="w-4 h-4 mr-2"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-                  />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                  />
-                </svg>
-                {t('detail.actions.settings')}
-              </Link>
-            )}
           </div>
         </div>
-      </div>
-
-      {/* Team Navigation */}
-      {isMember && (
-        <div className="mt-8 border-b border-gray-200">
-          <nav className="-mb-px flex space-x-8">
-            <Link
-              to={`/teams/${teamSlug}`}
-              className="border-indigo-500 text-indigo-600 py-4 px-1 border-b-2 font-medium text-sm"
-            >
-              {t('detail.tabs.overview')}
-            </Link>
-            <Link
-              to={`/teams/${teamSlug}/rides`}
-              className="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 py-4 px-1 border-b-2 font-medium text-sm"
-            >
-              {t('detail.tabs.rides')}
-            </Link>
-            <Link
-              to={`/teams/${teamSlug}/trips`}
-              className="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 py-4 px-1 border-b-2 font-medium text-sm"
-            >
-              {t('detail.tabs.trips')}
-            </Link>
-            <Link
-              to={`/teams/${teamSlug}/routes`}
-              className="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 py-4 px-1 border-b-2 font-medium text-sm"
-            >
-              {t('detail.tabs.routes')}
-            </Link>
-          </nav>
-        </div>
-      )}
-
-      {/* Members Section */}
-      <div className="mt-8">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">{t('detail.members.title')}</h2>
-        {isLoadingMembers ? (
-          <TeamMemberListSkeleton count={5} />
-        ) : membersData?.members && membersData.members.length > 0 ? (
-          <TeamMemberList
-            members={membersData.members}
-            currentUserRole={team.userRole}
-            currentUserId={user?.dbId ?? null}
-            onUpdateRole={(memberId, role) =>
-              updateRoleMutation.mutate({ memberId, role })
-            }
-            onRemoveMember={(memberId) => removeMemberMutation.mutate(memberId)}
-            isUpdating={updateRoleMutation.isPending}
-            isRemoving={removeMemberMutation.isPending}
-          />
-        ) : (
-          <p className="text-gray-500">{t('detail.members.empty')}</p>
-        )}
       </div>
     </div>
   );

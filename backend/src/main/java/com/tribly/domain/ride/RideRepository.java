@@ -16,15 +16,27 @@ public class RideRepository implements PanacheRepository<Ride> {
         return find("id = ?1 and team.id = ?2 and deleted = false", rideId, teamId).firstResultOptional();
     }
 
-    public List<Ride> findByTeam(Long teamId, int page, int size) {
-        return find("team.id = ?1 and deleted = false order by date desc", teamId)
+    public List<Ride> findByTeam(Long teamId, boolean includeDrafts, int page, int size) {
+        if (includeDrafts) {
+            return find("team.id = ?1 and deleted = false order by date desc", teamId)
+                    .page(page, size)
+                    .list();
+        }
+        return find("team.id = ?1 and deleted = false and status != ?2 order by date desc",
+                teamId, RideStatus.DRAFT)
                 .page(page, size)
                 .list();
     }
 
-    public List<Ride> findByTeamAndDateRange(Long teamId, LocalDate from, LocalDate to, int page, int size) {
-        return find("team.id = ?1 and deleted = false and date >= ?2 and date <= ?3 order by date",
-                teamId, from, to)
+    public List<Ride> findByTeamAndDateRange(Long teamId, LocalDate from, LocalDate to, boolean includeDrafts, int page, int size) {
+        if (includeDrafts) {
+            return find("team.id = ?1 and deleted = false and date >= ?2 and date <= ?3 order by date",
+                    teamId, from, to)
+                    .page(page, size)
+                    .list();
+        }
+        return find("team.id = ?1 and deleted = false and date >= ?2 and date <= ?3 and status != ?4 order by date",
+                teamId, from, to, RideStatus.DRAFT)
                 .page(page, size)
                 .list();
     }
@@ -43,8 +55,11 @@ public class RideRepository implements PanacheRepository<Ride> {
                 .list();
     }
 
-    public long countByTeam(Long teamId) {
-        return count("team.id = ?1 and deleted = false", teamId);
+    public long countByTeam(Long teamId, boolean includeDrafts) {
+        if (includeDrafts) {
+            return count("team.id = ?1 and deleted = false", teamId);
+        }
+        return count("team.id = ?1 and deleted = false and status != ?2", teamId, RideStatus.DRAFT);
     }
 
     public long countByTeamAndStatus(Long teamId, RideStatus status) {
