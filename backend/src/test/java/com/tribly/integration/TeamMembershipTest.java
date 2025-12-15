@@ -7,6 +7,7 @@ import com.tribly.domain.team.TeamRepository;
 import com.tribly.domain.team.UserTeamRepository;
 import com.tribly.domain.user.User;
 import com.tribly.domain.user.UserRepository;
+import com.tribly.infrastructure.id.TsidUtils;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.keycloak.client.KeycloakTestClient;
@@ -138,7 +139,7 @@ class TeamMembershipTest {
                 .contentType("application/json")
                 .body("{\"role\": \"ADMIN\"}")
                 .when()
-                .put("/v1/teams/" + slug + "/members/" + memberUser.getId())
+                .put("/v1/teams/" + slug + "/members/" + TsidUtils.toString(memberUser.getId()))
                 .then()
                 .statusCode(200)
                 .body("role", equalTo("ADMIN"));
@@ -180,7 +181,7 @@ class TeamMembershipTest {
                 .contentType("application/json")
                 .body("{\"role\": \"ADMIN\"}")
                 .when()
-                .put("/v1/teams/" + slug + "/members/" + thirdUser.getId())
+                .put("/v1/teams/" + slug + "/members/" + TsidUtils.toString(thirdUser.getId()))
                 .then()
                 .statusCode(403);
     }
@@ -211,7 +212,7 @@ class TeamMembershipTest {
         given()
                 .auth().oauth2(getAccessToken(USERNAME_ADMIN))
                 .when()
-                .delete("/v1/teams/" + slug + "/members/" + memberUser.getId())
+                .delete("/v1/teams/" + slug + "/members/" + TsidUtils.toString(memberUser.getId()))
                 .then()
                 .statusCode(204);
 
@@ -259,7 +260,7 @@ class TeamMembershipTest {
         given()
                 .auth().oauth2(getAccessToken(USERNAME_TEST))
                 .when()
-                .delete("/v1/teams/" + slug + "/members/" + thirdUser.getId())
+                .delete("/v1/teams/" + slug + "/members/" + TsidUtils.toString(thirdUser.getId()))
                 .then()
                 .statusCode(403);
     }
@@ -307,7 +308,7 @@ class TeamMembershipTest {
                 .contentType("application/json")
                 .body("{\"role\": \"MEMBER\"}")
                 .when()
-                .put("/v1/teams/" + slug + "/members/" + adminUser.getId())
+                .put("/v1/teams/" + slug + "/members/" + TsidUtils.toString(adminUser.getId()))
                 .then()
                 .statusCode(400)
                 .body("code", equalTo("LAST_ADMIN"));
@@ -387,7 +388,7 @@ class TeamMembershipTest {
         given()
                 .auth().oauth2(getAccessToken(USERNAME_ADMIN))
                 .contentType("application/json")
-                .body("{\"userId\": " + memberUser.getId() + ", \"role\": \"MEMBER\"}")
+                .body("{\"userId\": \"" + TsidUtils.toString(memberUser.getId()) + "\", \"role\": \"MEMBER\"}")
                 .when()
                 .post("/v1/teams/" + slug + "/members")
                 .then()

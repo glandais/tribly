@@ -7,6 +7,7 @@ import com.tribly.domain.team.TeamRepository;
 import com.tribly.domain.team.UserTeamRepository;
 import com.tribly.domain.user.User;
 import com.tribly.domain.user.UserRepository;
+import com.tribly.infrastructure.id.TsidUtils;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.keycloak.client.KeycloakTestClient;
 import jakarta.inject.Inject;
@@ -133,11 +134,11 @@ class UserResourceTest {
         given()
                 .auth().oauth2(getAccessToken(USERNAME_TEST))
                 .when()
-                .get("/v1/users/" + testUser.getId())
+                .get("/v1/users/" + TsidUtils.toString(testUser.getId()))
                 .then()
                 .statusCode(200)
-                .body("id", equalTo(testUser.getId().intValue()))
-                .body("displayName", equalTo("user1"))
+                .body("id", equalTo(TsidUtils.toString(testUser.getId())))
+                .body("displayName", equalTo("User One"))
                 // Public profile should not include email
                 .body("$", not(hasKey("email")));
     }
@@ -147,7 +148,7 @@ class UserResourceTest {
         given()
                 .auth().oauth2(getAccessToken(USERNAME_TEST))
                 .when()
-                .get("/v1/users/999999")
+                .get("/v1/users/" + TsidUtils.toString(999999L))
                 .then()
                 .statusCode(404);
     }
@@ -174,7 +175,7 @@ class UserResourceTest {
         given()
                 .auth().oauth2(getAccessToken(USERNAME2_TEST))
                 .when()
-                .get("/v1/users/" + testUser.getId())
+                .get("/v1/users/" + TsidUtils.toString(testUser.getId()))
                 .then()
                 .statusCode(404);
     }
