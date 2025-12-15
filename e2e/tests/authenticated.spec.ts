@@ -11,7 +11,7 @@ test.describe('Authenticated User - Navigation', () => {
   test('should navigate to profile page', async ({ page }) => {
     await page.goto('/');
     await expect(page.getByRole('button', { name: /sign out/i })).toBeVisible({ timeout: 15000 });
-    await page.getByRole('link', { name: /user1/i }).click();
+    await page.getByRole('link', { name: /User One/i }).click();
     await expect(page).toHaveURL('/profile');
   });
 
@@ -161,8 +161,8 @@ test.describe('Team Creation and Detail Flow', () => {
 
     // Verify user is shown as member (the Members section is always visible)
     await expect(page.getByText('Members')).toBeVisible();
-    // Check for user1 in the members list (using (you) marker to be specific)
-    await expect(page.getByText('user1(you)')).toBeVisible();
+    // Check for User One in the members list (using (you) marker to be specific)
+    await expect(page.getByText('User One(you)')).toBeVisible();
   });
 
   test('should access team settings', async ({ page }) => {
@@ -290,8 +290,8 @@ test.describe('Rides Flow', () => {
     await expect(page.getByRole('button', { name: 'Create Ride' })).toBeEnabled();
     await page.getByRole('button', { name: 'Create Ride' }).click();
 
-    // Should redirect to ride detail page
-    await expect(page).toHaveURL(/\/rides\/\d+/, { timeout: 15000 });
+    // Should redirect to ride detail page (TSID format - alphanumeric string)
+    await expect(page).toHaveURL(/\/rides\/[a-z0-9]+/, { timeout: 15000 });
     await expect(page.getByRole('heading', { name: 'E2E Test Ride' })).toBeVisible();
     await expect(page.getByText(/participants/i)).toBeVisible();
   });

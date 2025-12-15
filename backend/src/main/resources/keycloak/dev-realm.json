@@ -30,6 +30,8 @@
     {
       "username": "admin",
       "email": "admin@example.com",
+      "firstName": "Admin",
+      "lastName": "User",
       "enabled": true,
       "credentials": [{"type": "password", "value": "admin"}],
       "realmRoles": ["admin", "user"]
@@ -37,6 +39,8 @@
     {
       "username": "user1",
       "email": "user1@example.com",
+      "firstName": "User",
+      "lastName": "One",
       "enabled": true,
       "credentials": [{"type": "password", "value": "user1"}],
       "realmRoles": ["user"]
@@ -44,6 +48,8 @@
     {
       "username": "user2",
       "email": "user2@example.com",
+      "firstName": "User",
+      "lastName": "Two",
       "enabled": true,
       "credentials": [{"type": "password", "value": "user2"}],
       "realmRoles": ["user"]
@@ -51,6 +57,8 @@
     {
       "username": "user3",
       "email": "user3@example.com",
+      "firstName": "User",
+      "lastName": "Three",
       "enabled": true,
       "credentials": [{"type": "password", "value": "user3"}],
       "realmRoles": ["user"]
