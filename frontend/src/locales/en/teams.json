@@ -1,0 +1,146 @@
+{
+  "list": {
+    "title": "Teams",
+    "subtitle": "Browse cycling teams or create your own",
+    "createTeam": "Create Team",
+    "tabs": {
+      "public": "Public Teams",
+      "my": "My Teams"
+    },
+    "search": {
+      "placeholder": "Search teams..."
+    },
+    "empty": {
+      "title": "No teams found",
+      "myTeams": "You haven't joined any teams yet.",
+      "publicTeams": "No public teams match your search.",
+      "createAction": "Create a Team"
+    }
+  },
+  "create": {
+    "title": "Create a Team",
+    "subtitle": "Start your cycling community and invite others to join",
+    "backToTeams": "Back to Teams",
+    "form": {
+      "name": {
+        "label": "Team Name",
+        "placeholder": "Enter team name"
+      },
+      "description": {
+        "label": "Description",
+        "placeholder": "Describe your team, riding style, or community...",
+        "charCount": "{{count}}/{{max}} characters"
+      },
+      "isPublic": {
+        "label": "Public Team",
+        "public": "Anyone can find and join this team",
+        "private": "Only invited members can join this team"
+      },
+      "maxMembers": {
+        "label": "Maximum Members (optional)",
+        "placeholder": "No limit",
+        "hint": "Leave empty for unlimited members"
+      }
+    },
+    "button": "Create Team",
+    "creating": "Creating...",
+    "error": "Failed to create team. Please try again."
+  },
+  "detail": {
+    "loading": "Loading team...",
+    "notFound": {
+      "title": "Team Not Found",
+      "message": "The team you're looking for doesn't exist or has been removed.",
+      "backToTeams": "Back to Teams"
+    },
+    "error": {
+      "title": "Error Loading Team",
+      "message": "There was an error loading this team. Please try again."
+    },
+    "tabs": {
+      "overview": "Overview",
+      "rides": "Rides",
+      "trips": "Trips",
+      "routes": "Routes"
+    },
+    "info": {
+      "memberCount_one": "{{count}} member",
+      "memberCount_other": "{{count}} members",
+      "maxMembers": "/ {{max}} max",
+      "created": "Created {{date}}"
+    },
+    "actions": {
+      "join": "Join Team",
+      "leave": "Leave Team",
+      "settings": "Settings",
+      "joining": "Joining...",
+      "leaving": "Leaving...",
+      "confirmLeave": "Are you sure you want to leave this team?"
+    },
+    "members": {
+      "title": "Members",
+      "empty": "No members found.",
+      "you": "(you)",
+      "joined": "Joined {{date}}",
+      "edit": "Edit",
+      "remove": "Remove",
+      "save": "Save",
+      "confirmRemove": "Are you sure you want to remove this member?"
+    }
+  },
+  "settings": {
+    "title": "Team Settings",
+    "subtitle": "Manage your team's profile and settings",
+    "backToTeam": "Back to {{teamName}}",
+    "loading": "Loading team settings...",
+    "error": {
+      "title": "Error",
+      "loadFailed": "Failed to load team settings. Please try again.",
+      "accessDenied": "Access Denied",
+      "adminRequired": "You need to be an admin to access team settings."
+    },
+    "form": {
+      "name": {
+        "label": "Team Name"
+      },
+      "description": {
+        "label": "Description",
+        "charCount": "{{count}}/{{max}} characters"
+      },
+      "logoUrl": {
+        "label": "Logo URL",
+        "placeholder": "https://example.com/logo.png"
+      },
+      "coverImageUrl": {
+        "label": "Cover Image URL",
+        "placeholder": "https://example.com/cover.jpg"
+      },
+      "isPublic": {
+        "label": "Public Team",
+        "public": "Anyone can find and join this team",
+        "private": "Only invited members can join this team"
+      },
+      "maxMembers": {
+        "label": "Maximum Members",
+        "placeholder": "No limit",
+        "hint": "Current members: {{count}}. Leave empty for unlimited."
+      }
+    },
+    "success": "Team settings updated successfully!",
+    "updateError": "Failed to update team. Please try again.",
+    "saving": "Saving...",
+    "saveChanges": "Save Changes",
+    "dangerZone": {
+      "title": "Danger Zone",
+      "description": "Once you delete a team, there is no going back. Please be certain.",
+      "deleteTeam": "Delete Team",
+      "deleteWarning": "Are you sure you want to delete <strong>{{teamName}}</strong>? This action cannot be undone and will remove all team data including rides, trips, and routes.",
+      "confirmDelete": "Yes, Delete Team",
+      "deleting": "Deleting..."
+    }
+  },
+  "card": {
+    "memberCount": "{{count}} member",
+    "memberCount_plural": "{{count}} members"
+  }
+}

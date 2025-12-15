@@ -1,11 +1,14 @@
 import { useState } from 'react';
 import { Link, useParams, Navigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useTeam } from '../../hooks/useTeam';
 import { useCreateRide, CreateGroupRequest, Visibility } from '../../hooks/useRide';
 import { LoadingPage, LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { ApiClientError } from '../../api/client';
 
 export function CreateRidePage() {
+  const { t } = useTranslation('rides');
+  const { t: tCommon } = useTranslation('common');
   const { teamSlug } = useParams<{ teamSlug: string }>();
   const { data: team, isLoading: isLoadingTeam } = useTeam(teamSlug);
 
@@ -15,13 +18,13 @@ export function CreateRidePage() {
   const [startTime, setStartTime] = useState('');
   const [visibility, setVisibility] = useState<Visibility>('TEAM');
   const [groups, setGroups] = useState<CreateGroupRequest[]>([
-    { name: 'Main Group', averageSpeed: undefined, maxParticipants: undefined },
+    { name: t('create.form.groups.defaultName'), averageSpeed: undefined, maxParticipants: undefined },
   ]);
 
   const createMutation = useCreateRide(teamSlug);
 
   if (isLoadingTeam) {
-    return <LoadingPage message="Loading team..." />;
+    return <LoadingPage message={t('loading')} />;
   }
 
   if (!team) {
@@ -78,10 +81,10 @@ export function CreateRidePage() {
           <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
-          Back to Rides
+          {t('create.backToRides')}
         </Link>
-        <h1 className="mt-4 text-3xl font-bold text-gray-900">Create a Ride</h1>
-        <p className="mt-1 text-gray-600">Schedule a new ride for {team.name}</p>
+        <h1 className="mt-4 text-3xl font-bold text-gray-900">{t('create.title')}</h1>
+        <p className="mt-1 text-gray-600">{t('create.subtitle', { teamName: team.name })}</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -90,7 +93,7 @@ export function CreateRidePage() {
             <p className="text-red-700">
               {createMutation.error instanceof ApiClientError
                 ? createMutation.error.error.message
-                : 'Failed to create ride. Please try again.'}
+                : t('create.error')}
             </p>
           </div>
         )}
@@ -98,7 +101,7 @@ export function CreateRidePage() {
         {/* Title */}
         <div>
           <label htmlFor="title" className="block text-sm font-medium text-gray-700">
-            Ride Title <span className="text-red-500">*</span>
+            {t('create.form.title.label')} <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
@@ -111,7 +114,7 @@ export function CreateRidePage() {
             className={`mt-1 block w-full px-4 py-2 border rounded-lg focus:ring-indigo-500 focus:border-indigo-500 ${
               getFieldError('title') ? 'border-red-300' : 'border-gray-300'
             }`}
-            placeholder="e.g., Sunday Morning Ride"
+            placeholder={t('create.form.title.placeholder')}
           />
           {getFieldError('title') && (
             <p className="mt-1 text-sm text-red-600">{getFieldError('title')}</p>
@@ -121,7 +124,7 @@ export function CreateRidePage() {
         {/* Description */}
         <div>
           <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-            Description
+            {t('create.form.description.label')}
           </label>
           <textarea
             id="description"
@@ -130,7 +133,7 @@ export function CreateRidePage() {
             rows={3}
             maxLength={5000}
             className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
-            placeholder="Describe the ride, route highlights, coffee stops..."
+            placeholder={t('create.form.description.placeholder')}
           />
         </div>
 
@@ -138,7 +141,7 @@ export function CreateRidePage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label htmlFor="date" className="block text-sm font-medium text-gray-700">
-              Date <span className="text-red-500">*</span>
+              {t('create.form.date.label')} <span className="text-red-500">*</span>
             </label>
             <input
               type="date"
@@ -157,7 +160,7 @@ export function CreateRidePage() {
           </div>
           <div>
             <label htmlFor="startTime" className="block text-sm font-medium text-gray-700">
-              Start Time
+              {t('create.form.startTime.label')}
             </label>
             <input
               type="time"
@@ -171,7 +174,7 @@ export function CreateRidePage() {
 
         {/* Visibility */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Visibility</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">{t('create.form.visibility.label')}</label>
           <div className="space-y-2">
             <label className="flex items-center">
               <input
@@ -182,7 +185,7 @@ export function CreateRidePage() {
                 onChange={() => setVisibility('TEAM')}
                 className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
               />
-              <span className="ml-2 text-sm text-gray-700">Team only</span>
+              <span className="ml-2 text-sm text-gray-700">{t('create.form.visibility.team')}</span>
             </label>
             <label className="flex items-center">
               <input
@@ -193,7 +196,7 @@ export function CreateRidePage() {
                 onChange={() => setVisibility('PUBLIC')}
                 className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
               />
-              <span className="ml-2 text-sm text-gray-700">Public</span>
+              <span className="ml-2 text-sm text-gray-700">{t('create.form.visibility.public')}</span>
             </label>
           </div>
         </div>
@@ -201,27 +204,27 @@ export function CreateRidePage() {
         {/* Groups */}
         <div>
           <div className="flex items-center justify-between mb-2">
-            <label className="block text-sm font-medium text-gray-700">Groups</label>
+            <label className="block text-sm font-medium text-gray-700">{t('create.form.groups.label')}</label>
             <button
               type="button"
               onClick={handleAddGroup}
               className="text-sm text-indigo-600 hover:text-indigo-700"
             >
-              + Add Group
+              {t('create.form.groups.add')}
             </button>
           </div>
           <div className="space-y-3">
             {groups.map((group, index) => (
               <div key={index} className="border border-gray-200 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-sm font-medium text-gray-700">Group {index + 1}</span>
+                  <span className="text-sm font-medium text-gray-700">{t('create.form.groups.new')} {index + 1}</span>
                   {groups.length > 1 && (
                     <button
                       type="button"
                       onClick={() => handleRemoveGroup(index)}
                       className="text-sm text-red-600 hover:text-red-700"
                     >
-                      Remove
+                      {t('create.form.groups.remove')}
                     </button>
                   )}
                 </div>
@@ -231,7 +234,7 @@ export function CreateRidePage() {
                       type="text"
                       value={group.name}
                       onChange={(e) => handleUpdateGroup(index, { name: e.target.value })}
-                      placeholder="Group name"
+                      placeholder={t('create.form.groups.name.placeholder')}
                       className="block w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-indigo-500 focus:border-indigo-500"
                     />
                   </div>
@@ -240,7 +243,7 @@ export function CreateRidePage() {
                       type="number"
                       value={group.averageSpeed || ''}
                       onChange={(e) => handleUpdateGroup(index, { averageSpeed: e.target.value ? Number(e.target.value) : undefined })}
-                      placeholder="Speed (km/h)"
+                      placeholder={t('create.form.groups.speed.placeholder')}
                       min={0}
                       className="block w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-indigo-500 focus:border-indigo-500"
                     />
@@ -250,7 +253,7 @@ export function CreateRidePage() {
                       type="number"
                       value={group.maxParticipants || ''}
                       onChange={(e) => handleUpdateGroup(index, { maxParticipants: e.target.value ? Number(e.target.value) : undefined })}
-                      placeholder="Max riders"
+                      placeholder={t('create.form.groups.maxParticipants.placeholder')}
                       min={1}
                       className="block w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-indigo-500 focus:border-indigo-500"
                     />
@@ -260,7 +263,7 @@ export function CreateRidePage() {
             ))}
           </div>
           <p className="mt-2 text-sm text-gray-500">
-            Create different groups for varying skill levels or speeds
+            {t('create.form.groups.hint')}
           </p>
         </div>
 
@@ -270,7 +273,7 @@ export function CreateRidePage() {
             to={`/teams/${teamSlug}/rides`}
             className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
           >
-            Cancel
+            {tCommon('buttons.cancel')}
           </Link>
           <button
             type="submit"
@@ -280,10 +283,10 @@ export function CreateRidePage() {
             {createMutation.isPending ? (
               <>
                 <LoadingSpinner size="sm" color="white" className="mr-2" />
-                Creating...
+                {t('create.creating')}
               </>
             ) : (
-              'Create Ride'
+              t('create.button')
             )}
           </button>
         </div>

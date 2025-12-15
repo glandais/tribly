@@ -1,0 +1,146 @@
+{
+  "list": {
+    "title": "Équipes",
+    "subtitle": "Parcourez les équipes cyclistes ou créez la vôtre",
+    "createTeam": "Créer une équipe",
+    "tabs": {
+      "public": "Équipes publiques",
+      "my": "Mes équipes"
+    },
+    "search": {
+      "placeholder": "Rechercher des équipes..."
+    },
+    "empty": {
+      "title": "Aucune équipe trouvée",
+      "myTeams": "Vous n'avez rejoint aucune équipe.",
+      "publicTeams": "Aucune équipe publique ne correspond à votre recherche.",
+      "createAction": "Créer une équipe"
+    }
+  },
+  "create": {
+    "title": "Créer une équipe",
+    "subtitle": "Lancez votre communauté cycliste et invitez d'autres personnes",
+    "backToTeams": "Retour aux équipes",
+    "form": {
+      "name": {
+        "label": "Nom de l'équipe",
+        "placeholder": "Entrez le nom de l'équipe"
+      },
+      "description": {
+        "label": "Description",
+        "placeholder": "Décrivez votre équipe, votre style de cyclisme ou votre communauté...",
+        "charCount": "{{count}}/{{max}} caractères"
+      },
+      "isPublic": {
+        "label": "Équipe publique",
+        "public": "Tout le monde peut trouver et rejoindre cette équipe",
+        "private": "Seuls les membres invités peuvent rejoindre cette équipe"
+      },
+      "maxMembers": {
+        "label": "Nombre maximum de membres (optionnel)",
+        "placeholder": "Sans limite",
+        "hint": "Laissez vide pour un nombre illimité de membres"
+      }
+    },
+    "button": "Créer l'équipe",
+    "creating": "Création...",
+    "error": "Échec de la création de l'équipe. Veuillez réessayer."
+  },
+  "detail": {
+    "loading": "Chargement de l'équipe...",
+    "notFound": {
+      "title": "Équipe non trouvée",
+      "message": "L'équipe que vous recherchez n'existe pas ou a été supprimée.",
+      "backToTeams": "Retour aux équipes"
+    },
+    "error": {
+      "title": "Erreur de chargement",
+      "message": "Une erreur est survenue lors du chargement de cette équipe. Veuillez réessayer."
+    },
+    "tabs": {
+      "overview": "Aperçu",
+      "rides": "Sorties",
+      "trips": "Voyages",
+      "routes": "Itinéraires"
+    },
+    "info": {
+      "memberCount_one": "{{count}} membre",
+      "memberCount_other": "{{count}} membres",
+      "maxMembers": "/ {{max}} max",
+      "created": "Créé le {{date}}"
+    },
+    "actions": {
+      "join": "Rejoindre l'équipe",
+      "leave": "Quitter l'équipe",
+      "settings": "Paramètres",
+      "joining": "Adhésion...",
+      "leaving": "Départ...",
+      "confirmLeave": "Êtes-vous sûr de vouloir quitter cette équipe ?"
+    },
+    "members": {
+      "title": "Membres",
+      "empty": "Aucun membre trouvé.",
+      "you": "(vous)",
+      "joined": "A rejoint le {{date}}",
+      "edit": "Modifier",
+      "remove": "Retirer",
+      "save": "Enregistrer",
+      "confirmRemove": "Êtes-vous sûr de vouloir retirer ce membre ?"
+    }
+  },
+  "settings": {
+    "title": "Paramètres de l'équipe",
+    "subtitle": "Gérer le profil et les paramètres de votre équipe",
+    "backToTeam": "Retour à {{teamName}}",
+    "loading": "Chargement des paramètres...",
+    "error": {
+      "title": "Erreur",
+      "loadFailed": "Échec du chargement des paramètres. Veuillez réessayer.",
+      "accessDenied": "Accès refusé",
+      "adminRequired": "Vous devez être administrateur pour accéder aux paramètres de l'équipe."
+    },
+    "form": {
+      "name": {
+        "label": "Nom de l'équipe"
+      },
+      "description": {
+        "label": "Description",
+        "charCount": "{{count}}/{{max}} caractères"
+      },
+      "logoUrl": {
+        "label": "URL du logo",
+        "placeholder": "https://exemple.com/logo.png"
+      },
+      "coverImageUrl": {
+        "label": "URL de l'image de couverture",
+        "placeholder": "https://exemple.com/couverture.jpg"
+      },
+      "isPublic": {
+        "label": "Équipe publique",
+        "public": "Tout le monde peut trouver et rejoindre cette équipe",
+        "private": "Seuls les membres invités peuvent rejoindre cette équipe"
+      },
+      "maxMembers": {
+        "label": "Nombre maximum de membres",
+        "placeholder": "Sans limite",
+        "hint": "Membres actuels : {{count}}. Laissez vide pour illimité."
+      }
+    },
+    "success": "Paramètres de l'équipe mis à jour avec succès !",
+    "updateError": "Échec de la mise à jour de l'équipe. Veuillez réessayer.",
+    "saving": "Enregistrement...",
+    "saveChanges": "Enregistrer les modifications",
+    "dangerZone": {
+      "title": "Zone de danger",
+      "description": "Une fois que vous supprimez une équipe, il n'y a pas de retour en arrière. Soyez certain.",
+      "deleteTeam": "Supprimer l'équipe",
+      "deleteWarning": "Êtes-vous sûr de vouloir supprimer <strong>{{teamName}}</strong> ? Cette action est irréversible et supprimera toutes les données de l'équipe, y compris les sorties, les voyages et les itinéraires.",
+      "confirmDelete": "Oui, supprimer l'équipe",
+      "deleting": "Suppression..."
+    }
+  },
+  "card": {
+    "memberCount": "{{count}} membre",
+    "memberCount_plural": "{{count}} membres"
+  }
+}

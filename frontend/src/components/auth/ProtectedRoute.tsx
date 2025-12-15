@@ -1,4 +1,5 @@
 import { Navigate, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../hooks/useAuth';
 import { LoadingPage } from '../common/LoadingSpinner';
 
@@ -13,11 +14,12 @@ export function ProtectedRoute({
   requireAuth = true,
   redirectTo = '/login',
 }: ProtectedRouteProps) {
+  const { t } = useTranslation('common');
   const location = useLocation();
   const { isAuthenticated, isLoading, isInitialized } = useAuth();
 
   if (!isInitialized || isLoading) {
-    return <LoadingPage message="Checking authentication..." />;
+    return <LoadingPage message={t('status.checkingAuth')} />;
   }
 
   if (requireAuth && !isAuthenticated) {

@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import type { Team, TeamWithRole } from '../../hooks/useTeam';
 
 interface TeamCardProps {
@@ -11,11 +12,7 @@ function isTeamWithRole(team: Team | TeamWithRole): team is TeamWithRole {
 }
 
 export function TeamCard({ team, showRole = false }: TeamCardProps) {
-  const roleLabels = {
-    ADMIN: 'Admin',
-    ORGANIZER: 'Organizer',
-    MEMBER: 'Member',
-  };
+  const { t } = useTranslation('common');
 
   const roleBadgeColors = {
     ADMIN: 'bg-purple-100 text-purple-800',
@@ -76,7 +73,7 @@ export function TeamCard({ team, showRole = false }: TeamCardProps) {
                 d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
               />
             </svg>
-            {team.memberCount} {team.memberCount === 1 ? 'member' : 'members'}
+            {t('memberCount', { count: team.memberCount })}
           </div>
 
           <div className="flex items-center gap-2">
@@ -93,14 +90,14 @@ export function TeamCard({ team, showRole = false }: TeamCardProps) {
                     clipRule="evenodd"
                   />
                 </svg>
-                Private
+                {t('visibility.private')}
               </span>
             )}
             {showRole && isTeamWithRole(team) && (
               <span
                 className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${roleBadgeColors[team.role]}`}
               >
-                {roleLabels[team.role]}
+                {t(`roles.${team.role}`)}
               </span>
             )}
           </div>

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useParams, Navigate, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useTeam } from '../../hooks/useTeam';
 import { useRide, useUpdateRide, useCreateGroup, useUpdateGroup, useDeleteGroup, Visibility } from '../../hooks/useRide';
 import { LoadingPage, LoadingSpinner } from '../../components/common/LoadingSpinner';
@@ -16,6 +17,8 @@ interface EditableGroup {
 }
 
 export function EditRidePage() {
+  const { t } = useTranslation('rides');
+  const { t: tCommon } = useTranslation('common');
   const { teamSlug, rideSlug } = useParams<{ teamSlug: string; rideSlug: string }>();
   const navigate = useNavigate();
   const { data: team, isLoading: isLoadingTeam } = useTeam(teamSlug);
@@ -53,7 +56,7 @@ export function EditRidePage() {
   }, [ride, initialized]);
 
   if (isLoadingTeam || isLoadingRide) {
-    return <LoadingPage message="Loading ride..." />;
+    return <LoadingPage message={t('loading')} />;
   }
 
   if (!team || !ride) {
@@ -159,10 +162,10 @@ export function EditRidePage() {
           <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
-          Back to Ride
+          {t('edit.backToRide')}
         </Link>
-        <h1 className="mt-4 text-3xl font-bold text-gray-900">Edit Ride</h1>
-        <p className="mt-1 text-gray-600">Update ride details for {team.name}</p>
+        <h1 className="mt-4 text-3xl font-bold text-gray-900">{t('edit.title')}</h1>
+        <p className="mt-1 text-gray-600">{t('edit.subtitle', { teamName: team.name })}</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -171,7 +174,7 @@ export function EditRidePage() {
             <p className="text-red-700">
               {updateMutation.error instanceof ApiClientError
                 ? updateMutation.error.error.message
-                : 'Failed to update ride. Please try again.'}
+                : t('edit.error')}
             </p>
           </div>
         )}
@@ -179,7 +182,7 @@ export function EditRidePage() {
         {/* Title */}
         <div>
           <label htmlFor="title" className="block text-sm font-medium text-gray-700">
-            Ride Title <span className="text-red-500">*</span>
+            {t('create.form.title.label')} <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
@@ -192,7 +195,7 @@ export function EditRidePage() {
             className={`mt-1 block w-full px-4 py-2 border rounded-lg focus:ring-indigo-500 focus:border-indigo-500 ${
               getFieldError('title') ? 'border-red-300' : 'border-gray-300'
             }`}
-            placeholder="e.g., Sunday Morning Ride"
+            placeholder={t('create.form.title.placeholder')}
           />
           {getFieldError('title') && (
             <p className="mt-1 text-sm text-red-600">{getFieldError('title')}</p>
@@ -202,7 +205,7 @@ export function EditRidePage() {
         {/* Description */}
         <div>
           <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-            Description
+            {t('create.form.description.label')}
           </label>
           <textarea
             id="description"
@@ -211,7 +214,7 @@ export function EditRidePage() {
             rows={3}
             maxLength={5000}
             className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
-            placeholder="Describe the ride, route highlights, coffee stops..."
+            placeholder={t('create.form.description.placeholder')}
           />
         </div>
 
@@ -219,7 +222,7 @@ export function EditRidePage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label htmlFor="date" className="block text-sm font-medium text-gray-700">
-              Date <span className="text-red-500">*</span>
+              {t('create.form.date.label')} <span className="text-red-500">*</span>
             </label>
             <input
               type="date"
@@ -237,7 +240,7 @@ export function EditRidePage() {
           </div>
           <div>
             <label htmlFor="startTime" className="block text-sm font-medium text-gray-700">
-              Start Time
+              {t('create.form.startTime.label')}
             </label>
             <input
               type="time"
@@ -251,7 +254,7 @@ export function EditRidePage() {
 
         {/* Visibility */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Visibility</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">{t('create.form.visibility.label')}</label>
           <div className="space-y-2">
             <label className="flex items-center">
               <input
@@ -262,7 +265,7 @@ export function EditRidePage() {
                 onChange={() => setVisibility('TEAM')}
                 className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
               />
-              <span className="ml-2 text-sm text-gray-700">Team only</span>
+              <span className="ml-2 text-sm text-gray-700">{t('create.form.visibility.team')}</span>
             </label>
             <label className="flex items-center">
               <input
@@ -273,7 +276,7 @@ export function EditRidePage() {
                 onChange={() => setVisibility('PUBLIC')}
                 className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
               />
-              <span className="ml-2 text-sm text-gray-700">Public</span>
+              <span className="ml-2 text-sm text-gray-700">{t('create.form.visibility.public')}</span>
             </label>
           </div>
         </div>
@@ -281,13 +284,13 @@ export function EditRidePage() {
         {/* Groups */}
         <div>
           <div className="flex items-center justify-between mb-2">
-            <label className="block text-sm font-medium text-gray-700">Groups</label>
+            <label className="block text-sm font-medium text-gray-700">{t('create.form.groups.label')}</label>
             <button
               type="button"
               onClick={handleAddGroup}
               className="text-sm text-indigo-600 hover:text-indigo-700"
             >
-              + Add Group
+              {t('create.form.groups.add')}
             </button>
           </div>
           <div className="space-y-3">
@@ -304,8 +307,8 @@ export function EditRidePage() {
               >
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-sm font-medium text-gray-700">
-                    {group.isNew ? 'New Group' : `Group ${index + 1}`}
-                    {group.isDeleted && <span className="ml-2 text-red-600">(will be deleted)</span>}
+                    {group.isNew ? t('create.form.groups.new') : `${t('create.form.groups.label')} ${index + 1}`}
+                    {group.isDeleted && <span className="ml-2 text-red-600">{t('create.form.groups.willBeDeleted')}</span>}
                   </span>
                   {group.isDeleted ? (
                     <button
@@ -313,7 +316,7 @@ export function EditRidePage() {
                       onClick={() => handleRestoreGroup(index)}
                       className="text-sm text-indigo-600 hover:text-indigo-700"
                     >
-                      Restore
+                      {t('create.form.groups.restore')}
                     </button>
                   ) : (
                     <button
@@ -321,7 +324,7 @@ export function EditRidePage() {
                       onClick={() => handleRemoveGroup(index)}
                       className="text-sm text-red-600 hover:text-red-700"
                     >
-                      Remove
+                      {t('create.form.groups.remove')}
                     </button>
                   )}
                 </div>
@@ -332,7 +335,7 @@ export function EditRidePage() {
                         type="text"
                         value={group.name}
                         onChange={(e) => handleUpdateGroup(index, { name: e.target.value })}
-                        placeholder="Group name"
+                        placeholder={t('create.form.groups.name.placeholder')}
                         required
                         className="block w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-indigo-500 focus:border-indigo-500"
                       />
@@ -342,7 +345,7 @@ export function EditRidePage() {
                         type="number"
                         value={group.averageSpeed || ''}
                         onChange={(e) => handleUpdateGroup(index, { averageSpeed: e.target.value ? Number(e.target.value) : undefined })}
-                        placeholder="Speed (km/h)"
+                        placeholder={t('create.form.groups.speed.placeholder')}
                         min={0}
                         className="block w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-indigo-500 focus:border-indigo-500"
                       />
@@ -352,7 +355,7 @@ export function EditRidePage() {
                         type="number"
                         value={group.maxParticipants || ''}
                         onChange={(e) => handleUpdateGroup(index, { maxParticipants: e.target.value ? Number(e.target.value) : undefined })}
-                        placeholder="Max riders"
+                        placeholder={t('create.form.groups.maxParticipants.placeholder')}
                         min={1}
                         className="block w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-indigo-500 focus:border-indigo-500"
                       />
@@ -362,11 +365,11 @@ export function EditRidePage() {
               </div>
             ))}
             {groups.length === 0 && (
-              <p className="text-sm text-gray-500 italic">No groups defined. Add at least one group.</p>
+              <p className="text-sm text-gray-500 italic">{t('create.form.groups.empty')}</p>
             )}
           </div>
           <p className="mt-2 text-sm text-gray-500">
-            Create different groups for varying skill levels or speeds
+            {t('create.form.groups.hint')}
           </p>
         </div>
 
@@ -376,7 +379,7 @@ export function EditRidePage() {
             to={`/teams/${teamSlug}/rides/${rideSlug}`}
             className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
           >
-            Cancel
+            {tCommon('buttons.cancel')}
           </Link>
           <button
             type="submit"
@@ -386,10 +389,10 @@ export function EditRidePage() {
             {isSaving ? (
               <>
                 <LoadingSpinner size="sm" color="white" className="mr-2" />
-                Saving...
+                {t('edit.saving')}
               </>
             ) : (
-              'Save Changes'
+              t('edit.button')
             )}
           </button>
         </div>

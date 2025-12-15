@@ -1,0 +1,39 @@
+{
+  "notFound": {
+    "title": "404",
+    "message": "Page non trouvée",
+    "backHome": "Retour à l'accueil"
+  },
+  "boundary": {
+    "title": "Une erreur est survenue",
+    "message": "Nous sommes désolés, mais quelque chose d'inattendu s'est produit. Veuillez réessayer.",
+    "retry": "Réessayer",
+    "reload": "Recharger la page"
+  },
+  "generic": {
+    "title": "Une erreur est survenue",
+    "message": "Quelque chose s'est mal passé. Veuillez réessayer.",
+    "retry": "Réessayer"
+  },
+  "network": {
+    "title": "Erreur de connexion",
+    "message": "Impossible de se connecter au serveur. Vérifiez votre connexion internet."
+  },
+  "unauthorized": {
+    "title": "Non autorisé",
+    "message": "Vous n'avez pas la permission d'effectuer cette action."
+  },
+  "forbidden": {
+    "title": "Accès refusé",
+    "message": "Vous n'avez pas accès à cette ressource."
+  },
+  "validation": {
+    "title": "Erreur de validation",
+    "checkFields": "Veuillez vérifier les champs du formulaire."
+  },
+  "api": {
+    "failedToLoad": "Échec du chargement des données",
+    "failedToSave": "Échec de l'enregistrement",
+    "failedToDelete": "Échec de la suppression"
+  }
+}

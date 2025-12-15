@@ -1,0 +1,36 @@
+{
+  "title": "Profile Settings",
+  "form": {
+    "displayName": {
+      "label": "Display Name"
+    },
+    "email": {
+      "label": "Email"
+    },
+    "language": {
+      "label": "Language",
+      "options": {
+        "en": "English",
+        "fr": "Français"
+      }
+    },
+    "timezone": {
+      "label": "Timezone"
+    }
+  },
+  "actions": {
+    "editProfile": "Edit Profile",
+    "save": "Save"
+  },
+  "account": {
+    "title": "Account Actions",
+    "signOut": "Sign Out",
+    "dangerZone": {
+      "title": "Danger Zone",
+      "deleteDescription": "Permanently delete your account and all associated data.",
+      "deleteButton": "Delete Account",
+      "confirmMessage": "Are you sure? This action cannot be undone.",
+      "confirmButton": "Yes, Delete My Account"
+    }
+  }
+}

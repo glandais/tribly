@@ -1,10 +1,13 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useCreateTeam } from '../../hooks/useTeam';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { ApiClientError } from '../../api/client';
 
 export function CreateTeamPage() {
+  const { t } = useTranslation('teams');
+  const { t: tCommon } = useTranslation('common');
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [isPublic, setIsPublic] = useState(true);
@@ -49,11 +52,11 @@ export function CreateTeamPage() {
               d="M15 19l-7-7 7-7"
             />
           </svg>
-          Back to Teams
+          {t('create.backToTeams')}
         </Link>
-        <h1 className="mt-4 text-3xl font-bold text-gray-900">Create a Team</h1>
+        <h1 className="mt-4 text-3xl font-bold text-gray-900">{t('create.title')}</h1>
         <p className="mt-1 text-gray-600">
-          Start your cycling community and invite others to join
+          {t('create.subtitle')}
         </p>
       </div>
 
@@ -63,14 +66,14 @@ export function CreateTeamPage() {
             <p className="text-red-700">
               {createMutation.error instanceof ApiClientError
                 ? createMutation.error.error.message
-                : 'Failed to create team. Please try again.'}
+                : t('create.error')}
             </p>
           </div>
         )}
 
         <div>
           <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-            Team Name <span className="text-red-500">*</span>
+            {t('create.form.name.label')} <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
@@ -83,7 +86,7 @@ export function CreateTeamPage() {
             className={`mt-1 block w-full px-4 py-2 border rounded-lg focus:ring-indigo-500 focus:border-indigo-500 ${
               getFieldError('name') ? 'border-red-300' : 'border-gray-300'
             }`}
-            placeholder="Enter team name"
+            placeholder={t('create.form.name.placeholder')}
           />
           {getFieldError('name') && (
             <p className="mt-1 text-sm text-red-600">{getFieldError('name')}</p>
@@ -92,7 +95,7 @@ export function CreateTeamPage() {
 
         <div>
           <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-            Description
+            {t('create.form.description.label')}
           </label>
           <textarea
             id="description"
@@ -101,10 +104,10 @@ export function CreateTeamPage() {
             rows={4}
             maxLength={2000}
             className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
-            placeholder="Describe your team, riding style, or community..."
+            placeholder={t('create.form.description.placeholder')}
           />
           <p className="mt-1 text-sm text-gray-500">
-            {description.length}/2000 characters
+            {t('create.form.description.charCount', { count: description.length, max: 2000 })}
           </p>
         </div>
 
@@ -120,19 +123,19 @@ export function CreateTeamPage() {
           </div>
           <div className="ml-3">
             <label htmlFor="isPublic" className="text-sm font-medium text-gray-700">
-              Public Team
+              {t('create.form.isPublic.label')}
             </label>
             <p className="text-sm text-gray-500">
               {isPublic
-                ? 'Anyone can find and join this team'
-                : 'Only invited members can join this team'}
+                ? t('create.form.isPublic.public')
+                : t('create.form.isPublic.private')}
             </p>
           </div>
         </div>
 
         <div>
           <label htmlFor="maxMembers" className="block text-sm font-medium text-gray-700">
-            Maximum Members (optional)
+            {t('create.form.maxMembers.label')}
           </label>
           <input
             type="number"
@@ -141,10 +144,10 @@ export function CreateTeamPage() {
             onChange={(e) => setMaxMembers(e.target.value ? Number(e.target.value) : '')}
             min={1}
             className="mt-1 block w-full sm:w-32 px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
-            placeholder="No limit"
+            placeholder={t('create.form.maxMembers.placeholder')}
           />
           <p className="mt-1 text-sm text-gray-500">
-            Leave empty for unlimited members
+            {t('create.form.maxMembers.hint')}
           </p>
         </div>
 
@@ -153,7 +156,7 @@ export function CreateTeamPage() {
             to="/teams"
             className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
-            Cancel
+            {tCommon('buttons.cancel')}
           </Link>
           <button
             type="submit"
@@ -163,10 +166,10 @@ export function CreateTeamPage() {
             {createMutation.isPending ? (
               <>
                 <LoadingSpinner size="sm" color="white" className="mr-2" />
-                Creating...
+                {t('create.creating')}
               </>
             ) : (
-              'Create Team'
+              t('create.button')
             )}
           </button>
         </div>

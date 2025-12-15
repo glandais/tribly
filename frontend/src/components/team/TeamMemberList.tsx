@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { UserAvatar } from '../common/UserAvatar';
 import { LoadingSpinner } from '../common/LoadingSpinner';
 import type { TeamMember } from '../../hooks/useTeam';
@@ -12,12 +13,6 @@ interface TeamMemberListProps {
   isUpdating?: boolean;
   isRemoving?: boolean;
 }
-
-const roleLabels = {
-  ADMIN: 'Admin',
-  ORGANIZER: 'Organizer',
-  MEMBER: 'Member',
-};
 
 const roleBadgeColors = {
   ADMIN: 'bg-purple-100 text-purple-800',
@@ -34,6 +29,8 @@ export function TeamMemberList({
   isUpdating = false,
   isRemoving = false,
 }: TeamMemberListProps) {
+  const { t, i18n } = useTranslation('teams');
+  const { t: tCommon } = useTranslation('common');
   const [editingMemberId, setEditingMemberId] = useState<string | null>(null);
   const [selectedRole, setSelectedRole] = useState<'ADMIN' | 'ORGANIZER' | 'MEMBER'>('MEMBER');
 
@@ -48,14 +45,14 @@ export function TeamMemberList({
   };
 
   const handleRemove = (memberId: string) => {
-    if (onRemoveMember && confirm('Are you sure you want to remove this member?')) {
+    if (onRemoveMember && confirm(t('detail.members.confirmRemove'))) {
       onRemoveMember(memberId);
     }
   };
 
   const formatDate = (dateStr: string | null) => {
-    if (!dateStr) return 'Unknown';
-    return new Date(dateStr).toLocaleDateString(undefined, {
+    if (!dateStr) return tCommon('unknown');
+    return new Date(dateStr).toLocaleDateString(i18n.language, {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -88,12 +85,12 @@ export function TeamMemberList({
                     <p className="text-sm font-medium text-gray-900 truncate">
                       {member.displayName}
                       {isCurrentUser && (
-                        <span className="ml-2 text-xs text-gray-500">(you)</span>
+                        <span className="ml-2 text-xs text-gray-500">{t('detail.members.you')}</span>
                       )}
                     </p>
                     <p className="text-sm text-gray-500 truncate">{member.email}</p>
                     <p className="text-xs text-gray-400">
-                      Joined {formatDate(member.joinedAt)}
+                      {t('detail.members.joined', { date: formatDate(member.joinedAt) })}
                     </p>
                   </div>
                 </div>
@@ -109,23 +106,23 @@ export function TeamMemberList({
                         className="text-sm border border-gray-300 rounded-md px-2 py-1 focus:ring-indigo-500 focus:border-indigo-500"
                         disabled={isUpdating}
                       >
-                        {canManageMembers && <option value="ADMIN">Admin</option>}
-                        {canAssignOrganizers && <option value="ORGANIZER">Organizer</option>}
-                        <option value="MEMBER">Member</option>
+                        {canManageMembers && <option value="ADMIN">{tCommon('roles.ADMIN')}</option>}
+                        {canAssignOrganizers && <option value="ORGANIZER">{tCommon('roles.ORGANIZER')}</option>}
+                        <option value="MEMBER">{tCommon('roles.MEMBER')}</option>
                       </select>
                       <button
                         onClick={() => handleRoleChange(member.id)}
                         disabled={isUpdating}
                         className="text-sm text-indigo-600 hover:text-indigo-900 disabled:opacity-50"
                       >
-                        {isUpdating ? <LoadingSpinner size="sm" /> : 'Save'}
+                        {isUpdating ? <LoadingSpinner size="sm" /> : t('detail.members.save')}
                       </button>
                       <button
                         onClick={() => setEditingMemberId(null)}
                         disabled={isUpdating}
                         className="text-sm text-gray-600 hover:text-gray-900 disabled:opacity-50"
                       >
-                        Cancel
+                        {tCommon('buttons.cancel')}
                       </button>
                     </>
                   ) : (
@@ -133,7 +130,7 @@ export function TeamMemberList({
                       <span
                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${roleBadgeColors[member.role]}`}
                       >
-                        {roleLabels[member.role]}
+                        {tCommon(`roles.${member.role}`)}
                       </span>
 
                       {canEdit && (
@@ -144,7 +141,7 @@ export function TeamMemberList({
                           }}
                           className="text-sm text-gray-600 hover:text-gray-900"
                         >
-                          Edit
+                          {t('detail.members.edit')}
                         </button>
                       )}
 
@@ -154,7 +151,7 @@ export function TeamMemberList({
                           disabled={isRemoving}
                           className="text-sm text-red-600 hover:text-red-900 disabled:opacity-50"
                         >
-                          {isRemoving ? <LoadingSpinner size="sm" /> : 'Remove'}
+                          {isRemoving ? <LoadingSpinner size="sm" /> : t('detail.members.remove')}
                         </button>
                       )}
                     </>

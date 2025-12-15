@@ -1,0 +1,67 @@
+{
+  "nav": {
+    "teams": "Teams",
+    "signIn": "Sign in",
+    "signOut": "Sign out"
+  },
+  "footer": {
+    "copyright": "© {{year}} Tribly. All rights reserved."
+  },
+  "buttons": {
+    "cancel": "Cancel",
+    "save": "Save",
+    "edit": "Edit",
+    "delete": "Delete",
+    "create": "Create",
+    "back": "Back",
+    "previous": "Previous",
+    "next": "Next",
+    "confirm": "Confirm",
+    "close": "Close"
+  },
+  "status": {
+    "loading": "Loading...",
+    "saving": "Saving...",
+    "deleting": "Deleting...",
+    "creating": "Creating...",
+    "checkingAuth": "Checking authentication..."
+  },
+  "pagination": {
+    "page": "Page {{current}} of {{total}}"
+  },
+  "validation": {
+    "required": "This field is required",
+    "minLength": "Minimum {{min}} characters",
+    "maxLength": "Maximum {{max}} characters"
+  },
+  "units": {
+    "member": "member",
+    "member_plural": "members",
+    "participant": "participant",
+    "participant_plural": "participants",
+    "group": "group",
+    "group_plural": "groups",
+    "characters": "characters"
+  },
+  "roles": {
+    "ADMIN": "Admin",
+    "ORGANIZER": "Organizer",
+    "MEMBER": "Member"
+  },
+  "visibility": {
+    "private": "Private",
+    "public": "Public",
+    "team": "Team only"
+  },
+  "memberCount_one": "{{count}} member",
+  "memberCount_other": "{{count}} members",
+  "unknown": "Unknown",
+  "placeholder": {
+    "tripsList": "Trips List",
+    "createTrip": "Create Trip",
+    "tripDetail": "Trip Detail",
+    "routesList": "Routes List",
+    "createRoute": "Create Route",
+    "routeDetail": "Route Detail"
+  }
+}

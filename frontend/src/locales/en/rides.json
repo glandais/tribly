@@ -1,0 +1,129 @@
+{
+  "status": {
+    "DRAFT": "Draft",
+    "PUBLISHED": "Published",
+    "CANCELLED": "Cancelled",
+    "COMPLETED": "Completed"
+  },
+  "list": {
+    "title": "Rides",
+    "subtitle": "Upcoming and past rides for {{teamName}}",
+    "createRide": "Create Ride",
+    "empty": {
+      "title": "No rides yet",
+      "member": "No rides are scheduled at the moment.",
+      "admin": "Get started by creating your first ride.",
+      "createAction": "Create a Ride"
+    },
+    "notFound": {
+      "title": "Team Not Found",
+      "message": "The team you're looking for doesn't exist.",
+      "backToTeams": "Back to Teams"
+    }
+  },
+  "create": {
+    "title": "Create a Ride",
+    "subtitle": "Plan a ride for {{teamName}}",
+    "backToRides": "Back to Rides",
+    "form": {
+      "title": {
+        "label": "Ride Title",
+        "placeholder": "e.g., Sunday Morning Ride"
+      },
+      "description": {
+        "label": "Description",
+        "placeholder": "Describe the ride, route highlights, coffee stops..."
+      },
+      "date": {
+        "label": "Date"
+      },
+      "startTime": {
+        "label": "Start Time"
+      },
+      "visibility": {
+        "label": "Visibility",
+        "team": "Team only",
+        "public": "Public"
+      },
+      "groups": {
+        "label": "Groups",
+        "add": "+ Add Group",
+        "defaultName": "Main Group",
+        "name": {
+          "placeholder": "Group name"
+        },
+        "speed": {
+          "placeholder": "Speed (km/h)"
+        },
+        "maxParticipants": {
+          "placeholder": "Max riders"
+        },
+        "new": "New Group",
+        "willBeDeleted": "(will be deleted)",
+        "restore": "Restore",
+        "remove": "Remove",
+        "empty": "No groups defined. Add at least one group.",
+        "hint": "Create different groups for varying skill levels or speeds"
+      }
+    },
+    "button": "Create Ride",
+    "creating": "Creating...",
+    "error": "Failed to create ride. Please try again."
+  },
+  "edit": {
+    "title": "Edit Ride",
+    "subtitle": "Update ride details for {{teamName}}",
+    "backToRide": "Back to Ride",
+    "button": "Save Changes",
+    "saving": "Saving...",
+    "error": "Failed to update ride. Please try again."
+  },
+  "detail": {
+    "notFound": {
+      "title": "Ride Not Found",
+      "message": "The ride you're looking for doesn't exist.",
+      "backToRides": "Back to Rides"
+    },
+    "actions": {
+      "edit": "Edit",
+      "publish": "Publish",
+      "unpublish": "Unpublish",
+      "cancel": "Cancel Ride",
+      "delete": "Delete"
+    },
+    "confirmations": {
+      "unpublish": "Are you sure you want to unpublish this ride? It will return to draft status.",
+      "cancel": "Are you sure you want to cancel this ride?",
+      "delete": "Are you sure you want to delete this ride? This cannot be undone."
+    },
+    "groups": {
+      "title": "Groups",
+      "empty": "No groups defined for this ride.",
+      "speed": "{{speed}} km/h",
+      "participants": "{{current}}/{{max}} participants",
+      "participantsNoMax": "{{current}} participants",
+      "join": "Join",
+      "leave": "Leave",
+      "full": "Full",
+      "joined": "Joined"
+    },
+    "nonMember": {
+      "message": "Join this team to participate in rides.",
+      "viewTeam": "View team"
+    },
+    "notAuthenticated": {
+      "message": "Sign in and join this team to participate in rides.",
+      "signIn": "Sign in"
+    }
+  },
+  "card": {
+    "participantCount_one": "{{count}} participant",
+    "participantCount_other": "{{count}} participants",
+    "groupCount_one": "{{count}} group",
+    "groupCount_other": "{{count}} groups"
+  },
+  "breadcrumb": {
+    "rides": "Rides"
+  },
+  "loading": "Loading ride..."
+}

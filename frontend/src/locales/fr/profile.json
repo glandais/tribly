@@ -1,0 +1,36 @@
+{
+  "title": "Paramètres du profil",
+  "form": {
+    "displayName": {
+      "label": "Nom d'affichage"
+    },
+    "email": {
+      "label": "Email"
+    },
+    "language": {
+      "label": "Langue",
+      "options": {
+        "en": "English",
+        "fr": "Français"
+      }
+    },
+    "timezone": {
+      "label": "Fuseau horaire"
+    }
+  },
+  "actions": {
+    "editProfile": "Modifier le profil",
+    "save": "Enregistrer"
+  },
+  "account": {
+    "title": "Actions du compte",
+    "signOut": "Se déconnecter",
+    "dangerZone": {
+      "title": "Zone de danger",
+      "deleteDescription": "Supprimer définitivement votre compte et toutes les données associées.",
+      "deleteButton": "Supprimer le compte",
+      "confirmMessage": "Êtes-vous sûr ? Cette action est irréversible.",
+      "confirmButton": "Oui, supprimer mon compte"
+    }
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "nav": {
+    "teams": "Équipes",
+    "signIn": "Se connecter",
+    "signOut": "Se déconnecter"
+  },
+  "footer": {
+    "copyright": "© {{year}} Tribly. Tous droits réservés."
+  },
+  "buttons": {
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "create": "Créer",
+    "back": "Retour",
+    "previous": "Précédent",
+    "next": "Suivant",
+    "confirm": "Confirmer",
+    "close": "Fermer"
+  },
+  "status": {
+    "loading": "Chargement...",
+    "saving": "Enregistrement...",
+    "deleting": "Suppression...",
+    "creating": "Création...",
+    "checkingAuth": "Vérification de l'authentification..."
+  },
+  "pagination": {
+    "page": "Page {{current}} sur {{total}}"
+  },
+  "validation": {
+    "required": "Ce champ est requis",
+    "minLength": "Minimum {{min}} caractères",
+    "maxLength": "Maximum {{max}} caractères"
+  },
+  "units": {
+    "member": "membre",
+    "member_plural": "membres",
+    "participant": "participant",
+    "participant_plural": "participants",
+    "group": "groupe",
+    "group_plural": "groupes",
+    "characters": "caractères"
+  },
+  "roles": {
+    "ADMIN": "Admin",
+    "ORGANIZER": "Organisateur",
+    "MEMBER": "Membre"
+  },
+  "visibility": {
+    "private": "Privé",
+    "public": "Public",
+    "team": "Équipe uniquement"
+  },
+  "memberCount_one": "{{count}} membre",
+  "memberCount_other": "{{count}} membres",
+  "unknown": "Inconnu",
+  "placeholder": {
+    "tripsList": "Liste des voyages",
+    "createTrip": "Créer un voyage",
+    "tripDetail": "Détail du voyage",
+    "routesList": "Liste des itinéraires",
+    "createRoute": "Créer un itinéraire",
+    "routeDetail": "Détail de l'itinéraire"
+  }
+}

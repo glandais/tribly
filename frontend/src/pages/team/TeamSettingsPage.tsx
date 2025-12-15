@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useTeam, useUpdateTeam, useDeleteTeam } from '../../hooks/useTeam';
 import { LoadingPage, LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { ApiClientError } from '../../api/client';
 
 export function TeamSettingsPage() {
+  const { t } = useTranslation('teams');
+  const { t: tCommon } = useTranslation('common');
   const { teamSlug } = useParams<{ teamSlug: string }>();
 
   const { data: team, isLoading, error } = useTeam(teamSlug);
@@ -31,22 +34,22 @@ export function TeamSettingsPage() {
   }, [team]);
 
   if (isLoading) {
-    return <LoadingPage message="Loading team settings..." />;
+    return <LoadingPage message={t('settings.loading')} />;
   }
 
   if (error || !team) {
     return (
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-center py-12">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Error</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">{t('settings.error.title')}</h1>
           <p className="text-gray-600 mb-6">
-            Failed to load team settings. Please try again.
+            {t('settings.error.loadFailed')}
           </p>
           <Link
             to="/teams"
             className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
           >
-            Back to Teams
+            {t('detail.notFound.backToTeams')}
           </Link>
         </div>
       </div>
@@ -57,15 +60,15 @@ export function TeamSettingsPage() {
     return (
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-center py-12">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h1>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">{t('settings.error.accessDenied')}</h1>
           <p className="text-gray-600 mb-6">
-            You need to be an admin to access team settings.
+            {t('settings.error.adminRequired')}
           </p>
           <Link
             to={`/teams/${teamSlug}`}
             className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
           >
-            Back to Team
+            {t('settings.backToTeam', { teamName: team.name })}
           </Link>
         </div>
       </div>
@@ -115,18 +118,18 @@ export function TeamSettingsPage() {
               d="M15 19l-7-7 7-7"
             />
           </svg>
-          Back to {team.name}
+          {t('settings.backToTeam', { teamName: team.name })}
         </Link>
-        <h1 className="mt-4 text-3xl font-bold text-gray-900">Team Settings</h1>
+        <h1 className="mt-4 text-3xl font-bold text-gray-900">{t('settings.title')}</h1>
         <p className="mt-1 text-gray-600">
-          Manage your team's profile and settings
+          {t('settings.subtitle')}
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {updateMutation.isSuccess && (
           <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-            <p className="text-green-700">Team settings updated successfully!</p>
+            <p className="text-green-700">{t('settings.success')}</p>
           </div>
         )}
 
@@ -135,14 +138,14 @@ export function TeamSettingsPage() {
             <p className="text-red-700">
               {updateMutation.error instanceof ApiClientError
                 ? updateMutation.error.error.message
-                : 'Failed to update team. Please try again.'}
+                : t('settings.updateError')}
             </p>
           </div>
         )}
 
         <div>
           <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-            Team Name
+            {t('settings.form.name.label')}
           </label>
           <input
             type="text"
@@ -163,7 +166,7 @@ export function TeamSettingsPage() {
 
         <div>
           <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-            Description
+            {t('settings.form.description.label')}
           </label>
           <textarea
             id="description"
@@ -174,13 +177,13 @@ export function TeamSettingsPage() {
             className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
           />
           <p className="mt-1 text-sm text-gray-500">
-            {description.length}/2000 characters
+            {t('settings.form.description.charCount', { count: description.length, max: 2000 })}
           </p>
         </div>
 
         <div>
           <label htmlFor="logoUrl" className="block text-sm font-medium text-gray-700">
-            Logo URL
+            {t('settings.form.logoUrl.label')}
           </label>
           <input
             type="url"
@@ -188,13 +191,13 @@ export function TeamSettingsPage() {
             value={logoUrl}
             onChange={(e) => setLogoUrl(e.target.value)}
             className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
-            placeholder="https://example.com/logo.png"
+            placeholder={t('settings.form.logoUrl.placeholder')}
           />
         </div>
 
         <div>
           <label htmlFor="coverImageUrl" className="block text-sm font-medium text-gray-700">
-            Cover Image URL
+            {t('settings.form.coverImageUrl.label')}
           </label>
           <input
             type="url"
@@ -202,7 +205,7 @@ export function TeamSettingsPage() {
             value={coverImageUrl}
             onChange={(e) => setCoverImageUrl(e.target.value)}
             className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
-            placeholder="https://example.com/cover.jpg"
+            placeholder={t('settings.form.coverImageUrl.placeholder')}
           />
         </div>
 
@@ -218,19 +221,19 @@ export function TeamSettingsPage() {
           </div>
           <div className="ml-3">
             <label htmlFor="isPublic" className="text-sm font-medium text-gray-700">
-              Public Team
+              {t('settings.form.isPublic.label')}
             </label>
             <p className="text-sm text-gray-500">
               {isPublic
-                ? 'Anyone can find and join this team'
-                : 'Only invited members can join this team'}
+                ? t('settings.form.isPublic.public')
+                : t('settings.form.isPublic.private')}
             </p>
           </div>
         </div>
 
         <div>
           <label htmlFor="maxMembers" className="block text-sm font-medium text-gray-700">
-            Maximum Members
+            {t('settings.form.maxMembers.label')}
           </label>
           <input
             type="number"
@@ -239,10 +242,10 @@ export function TeamSettingsPage() {
             onChange={(e) => setMaxMembers(e.target.value ? Number(e.target.value) : '')}
             min={team.memberCount}
             className="mt-1 block w-full sm:w-32 px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
-            placeholder="No limit"
+            placeholder={t('settings.form.maxMembers.placeholder')}
           />
           <p className="mt-1 text-sm text-gray-500">
-            Current members: {team.memberCount}. Leave empty for unlimited.
+            {t('settings.form.maxMembers.hint', { count: team.memberCount })}
           </p>
         </div>
 
@@ -251,7 +254,7 @@ export function TeamSettingsPage() {
             to={`/teams/${teamSlug}`}
             className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
-            Cancel
+            {tCommon('buttons.cancel')}
           </Link>
           <button
             type="submit"
@@ -261,10 +264,10 @@ export function TeamSettingsPage() {
             {updateMutation.isPending ? (
               <>
                 <LoadingSpinner size="sm" color="white" className="mr-2" />
-                Saving...
+                {t('settings.saving')}
               </>
             ) : (
-              'Save Changes'
+              t('settings.saveChanges')
             )}
           </button>
         </div>
@@ -272,9 +275,9 @@ export function TeamSettingsPage() {
 
       {/* Danger Zone */}
       <div className="mt-12 pt-8 border-t border-gray-200">
-        <h2 className="text-lg font-semibold text-red-600">Danger Zone</h2>
+        <h2 className="text-lg font-semibold text-red-600">{t('settings.dangerZone.title')}</h2>
         <p className="mt-1 text-sm text-gray-600">
-          Once you delete a team, there is no going back. Please be certain.
+          {t('settings.dangerZone.description')}
         </p>
 
         {!showDeleteConfirm ? (
@@ -282,14 +285,11 @@ export function TeamSettingsPage() {
             onClick={() => setShowDeleteConfirm(true)}
             className="mt-4 inline-flex items-center px-4 py-2 border border-red-300 rounded-md shadow-sm text-sm font-medium text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
           >
-            Delete Team
+            {t('settings.dangerZone.deleteTeam')}
           </button>
         ) : (
           <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-sm text-red-700 mb-4">
-              Are you sure you want to delete <strong>{team.name}</strong>? This action cannot be
-              undone and will remove all team data including rides, trips, and routes.
-            </p>
+            <p className="text-sm text-red-700 mb-4" dangerouslySetInnerHTML={{ __html: t('settings.dangerZone.deleteWarning', { teamName: team.name }) }} />
             <div className="flex items-center gap-3">
               <button
                 onClick={handleDelete}
@@ -299,10 +299,10 @@ export function TeamSettingsPage() {
                 {deleteMutation.isPending ? (
                   <>
                     <LoadingSpinner size="sm" color="white" className="mr-2" />
-                    Deleting...
+                    {t('settings.dangerZone.deleting')}
                   </>
                 ) : (
-                  'Yes, Delete Team'
+                  t('settings.dangerZone.confirmDelete')
                 )}
               </button>
               <button
@@ -310,7 +310,7 @@ export function TeamSettingsPage() {
                 disabled={deleteMutation.isPending}
                 className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
               >
-                Cancel
+                {tCommon('buttons.cancel')}
               </button>
             </div>
           </div>

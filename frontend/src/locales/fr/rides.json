@@ -1,0 +1,129 @@
+{
+  "status": {
+    "DRAFT": "Brouillon",
+    "PUBLISHED": "Publiée",
+    "CANCELLED": "Annulée",
+    "COMPLETED": "Terminée"
+  },
+  "list": {
+    "title": "Sorties",
+    "subtitle": "Sorties à venir et passées pour {{teamName}}",
+    "createRide": "Créer une sortie",
+    "empty": {
+      "title": "Aucune sortie",
+      "member": "Aucune sortie n'est prévue pour le moment.",
+      "admin": "Commencez par créer votre première sortie.",
+      "createAction": "Créer une sortie"
+    },
+    "notFound": {
+      "title": "Équipe non trouvée",
+      "message": "L'équipe que vous recherchez n'existe pas.",
+      "backToTeams": "Retour aux équipes"
+    }
+  },
+  "create": {
+    "title": "Créer une sortie",
+    "subtitle": "Planifiez une sortie pour {{teamName}}",
+    "backToRides": "Retour aux sorties",
+    "form": {
+      "title": {
+        "label": "Titre de la sortie",
+        "placeholder": "ex. Sortie du dimanche matin"
+      },
+      "description": {
+        "label": "Description",
+        "placeholder": "Décrivez la sortie, les points forts du parcours, les arrêts café..."
+      },
+      "date": {
+        "label": "Date"
+      },
+      "startTime": {
+        "label": "Heure de départ"
+      },
+      "visibility": {
+        "label": "Visibilité",
+        "team": "Équipe uniquement",
+        "public": "Publique"
+      },
+      "groups": {
+        "label": "Groupes",
+        "add": "+ Ajouter un groupe",
+        "defaultName": "Groupe principal",
+        "name": {
+          "placeholder": "Nom du groupe"
+        },
+        "speed": {
+          "placeholder": "Vitesse (km/h)"
+        },
+        "maxParticipants": {
+          "placeholder": "Max coureurs"
+        },
+        "new": "Nouveau groupe",
+        "willBeDeleted": "(sera supprimé)",
+        "restore": "Restaurer",
+        "remove": "Supprimer",
+        "empty": "Aucun groupe défini. Ajoutez au moins un groupe.",
+        "hint": "Créez différents groupes pour différents niveaux ou vitesses"
+      }
+    },
+    "button": "Créer la sortie",
+    "creating": "Création...",
+    "error": "Échec de la création de la sortie. Veuillez réessayer."
+  },
+  "edit": {
+    "title": "Modifier la sortie",
+    "subtitle": "Modifier les détails de la sortie pour {{teamName}}",
+    "backToRide": "Retour à la sortie",
+    "button": "Enregistrer les modifications",
+    "saving": "Enregistrement...",
+    "error": "Échec de la mise à jour de la sortie. Veuillez réessayer."
+  },
+  "detail": {
+    "notFound": {
+      "title": "Sortie non trouvée",
+      "message": "La sortie que vous recherchez n'existe pas.",
+      "backToRides": "Retour aux sorties"
+    },
+    "actions": {
+      "edit": "Modifier",
+      "publish": "Publier",
+      "unpublish": "Dépublier",
+      "cancel": "Annuler la sortie",
+      "delete": "Supprimer"
+    },
+    "confirmations": {
+      "unpublish": "Êtes-vous sûr de vouloir dépublier cette sortie ? Elle repassera en brouillon.",
+      "cancel": "Êtes-vous sûr de vouloir annuler cette sortie ?",
+      "delete": "Êtes-vous sûr de vouloir supprimer cette sortie ? Cette action est irréversible."
+    },
+    "groups": {
+      "title": "Groupes",
+      "empty": "Aucun groupe défini pour cette sortie.",
+      "speed": "{{speed}} km/h",
+      "participants": "{{current}}/{{max}} participants",
+      "participantsNoMax": "{{current}} participants",
+      "join": "Rejoindre",
+      "leave": "Quitter",
+      "full": "Complet",
+      "joined": "Inscrit"
+    },
+    "nonMember": {
+      "message": "Rejoignez cette équipe pour participer aux sorties.",
+      "viewTeam": "Voir l'équipe"
+    },
+    "notAuthenticated": {
+      "message": "Connectez-vous et rejoignez cette équipe pour participer aux sorties.",
+      "signIn": "Se connecter"
+    }
+  },
+  "card": {
+    "participantCount_one": "{{count}} participant",
+    "participantCount_other": "{{count}} participants",
+    "groupCount_one": "{{count}} groupe",
+    "groupCount_other": "{{count}} groupes"
+  },
+  "breadcrumb": {
+    "rides": "Sorties"
+  },
+  "loading": "Chargement de la sortie..."
+}

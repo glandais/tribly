@@ -1,7 +1,9 @@
 import { Outlet, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../hooks/useAuth';
 
 export function Layout() {
+  const { t } = useTranslation('common');
   const { user, isAuthenticated, logout } = useAuth();
 
   return (
@@ -19,7 +21,7 @@ export function Layout() {
                     to="/teams"
                     className="text-gray-500 hover:text-gray-700 inline-flex items-center px-1 pt-1 text-sm font-medium"
                   >
-                    Teams
+                    {t('nav.teams')}
                   </Link>
                 </div>
               )}
@@ -50,7 +52,7 @@ export function Layout() {
                     onClick={logout}
                     className="text-gray-500 hover:text-gray-700 text-sm font-medium"
                   >
-                    Sign out
+                    {t('nav.signOut')}
                   </button>
                 </div>
               ) : (
@@ -58,7 +60,7 @@ export function Layout() {
                   to="/login"
                   className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
                 >
-                  Sign in
+                  {t('nav.signIn')}
                 </Link>
               )}
             </div>
@@ -73,7 +75,7 @@ export function Layout() {
       <footer className="bg-white border-t border-gray-200 mt-auto">
         <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
           <p className="text-center text-gray-500 text-sm">
-            &copy; {new Date().getFullYear()} Tribly. All rights reserved.
+            {t('footer.copyright', { year: new Date().getFullYear() })}
           </p>
         </div>
       </footer>

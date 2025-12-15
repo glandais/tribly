@@ -276,6 +276,77 @@ const { data: ride } = useRide(teamSlug, rideSlug);
 - Use `globalThis` not `global` for browser compatibility
 - Keycloak JS adapter for auth: `keycloak-js`
 
+## Internationalization (i18n)
+
+The frontend uses `react-i18next` for internationalization with French as default and English as alternative.
+
+### Structure
+
+```
+frontend/src/
+  i18n/index.ts           # i18n configuration
+  locales/
+    fr/                   # French (default)
+      common.json         # Nav, buttons, status, roles
+      auth.json           # Login, home page
+      teams.json          # Team pages
+      rides.json          # Ride pages
+      profile.json        # User profile
+      errors.json         # Error messages
+    en/                   # English
+      (same structure)
+```
+
+### Usage Patterns
+
+```tsx
+// Basic usage with namespace
+import { useTranslation } from 'react-i18next';
+
+function Component() {
+  const { t } = useTranslation('teams');
+  return <h1>{t('list.title')}</h1>;
+}
+
+// Multiple namespaces
+const { t } = useTranslation('teams');
+const { t: tCommon } = useTranslation('common');
+
+// Interpolation
+t('detail.info.memberCount', { count: 5 })  // "5 members"
+
+// Pluralization (use _one/_other suffixes)
+// teams.json: "memberCount_one": "{{count}} member", "memberCount_other": "{{count}} members"
+t('memberCount', { count: n })
+
+// Locale-aware date formatting - use i18n.language
+const { t, i18n } = useTranslation('rides');
+date.toLocaleDateString(i18n.language, { month: 'long', day: 'numeric' })
+
+// Trans component for embedded elements (links, etc.) - lets translation control word order
+import { Trans } from 'react-i18next';
+// auth.json: "termsText": "By signing in, you agree to our <termsLink>Terms</termsLink>"
+<Trans
+  i18nKey="login.termsText"
+  ns="auth"
+  components={{
+    termsLink: <a href="/terms" className="text-indigo-600" />,
+  }}
+/>
+
+// Class components - use Translation render prop
+import { Translation } from 'react-i18next';
+<Translation ns="errors">
+  {(t) => <h1>{t('boundary.title')}</h1>}
+</Translation>
+```
+
+### Language Switching
+
+Language syncs with user profile locale preference in `UserProfilePage.tsx`:
+- `useEffect` syncs i18n when `user.locale` changes
+- `handleSave` calls `i18n.changeLanguage(locale)` on profile update
+
 ## Development URLs
 
 - Backend API: http://localhost:8080/v1

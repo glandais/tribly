@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useTeam } from '../../hooks/useTeam';
 import { useRide, useUpdateRide, useDeleteRide, useJoinRide, useLeaveRide, RideStatus } from '../../hooks/useRide';
 import { useAuth } from '../../hooks/useAuth';
@@ -14,6 +15,7 @@ const statusColors: Record<RideStatus, string> = {
 };
 
 export function RideDetailPage() {
+  const { t, i18n } = useTranslation('rides');
   const { teamSlug, rideSlug } = useParams<{ teamSlug: string; rideSlug: string }>();
   const { isAuthenticated } = useAuth();
   const [joiningGroupId, setJoiningGroupId] = useState<string | null>(null);
@@ -27,20 +29,20 @@ export function RideDetailPage() {
   const leaveMutation = useLeaveRide(teamSlug, rideSlug!);
 
   if (isLoadingTeam || isLoadingRide) {
-    return <LoadingPage message="Loading ride..." />;
+    return <LoadingPage message={t('loading')} />;
   }
 
   if (error || !ride) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-center py-12">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Ride Not Found</h1>
-          <p className="text-gray-600 mb-6">The ride you're looking for doesn't exist.</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">{t('detail.notFound.title')}</h1>
+          <p className="text-gray-600 mb-6">{t('detail.notFound.message')}</p>
           <Link
             to={`/teams/${teamSlug}/rides`}
             className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
           >
-            Back to Rides
+            {t('detail.notFound.backToRides')}
           </Link>
         </div>
       </div>
@@ -54,7 +56,7 @@ export function RideDetailPage() {
   const canJoinRide = isMember && ride.status === 'PUBLISHED';
 
   const rideDate = new Date(ride.date);
-  const formattedDate = rideDate.toLocaleDateString(undefined, {
+  const formattedDate = rideDate.toLocaleDateString(i18n.language, {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
@@ -66,19 +68,19 @@ export function RideDetailPage() {
   };
 
   const handleUnpublish = () => {
-    if (confirm('Are you sure you want to unpublish this ride? It will return to draft status.')) {
+    if (confirm(t('detail.confirmations.unpublish'))) {
       updateMutation.mutate({ status: 'DRAFT' });
     }
   };
 
   const handleCancel = () => {
-    if (confirm('Are you sure you want to cancel this ride?')) {
+    if (confirm(t('detail.confirmations.cancel'))) {
       updateMutation.mutate({ status: 'CANCELLED' });
     }
   };
 
   const handleDelete = () => {
-    if (confirm('Are you sure you want to delete this ride? This cannot be undone.')) {
+    if (confirm(t('detail.confirmations.delete'))) {
       deleteMutation.mutate(rideSlug!);
     }
   };
@@ -110,7 +112,7 @@ export function RideDetailPage() {
           </Link>
           <span>/</span>
           <Link to={`/teams/${teamSlug}/rides`} className="hover:text-gray-700">
-            Rides
+            {t('breadcrumb.rides')}
           </Link>
           <span>/</span>
           <span className="text-gray-900">{ride.title}</span>
@@ -124,7 +126,7 @@ export function RideDetailPage() {
             <div className="flex items-center gap-3">
               <h1 className="text-2xl font-bold text-gray-900">{ride.title}</h1>
               <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColors[ride.status]}`}>
-                {ride.status}
+                {t(`status.${ride.status}`)}
               </span>
             </div>
             {ride.description && (
@@ -149,7 +151,7 @@ export function RideDetailPage() {
                 <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
-                {ride.participantCount} participant{ride.participantCount !== 1 ? 's' : ''}
+                {t('card.participantCount', { count: ride.participantCount })}
               </span>
             </div>
           </div>
@@ -163,7 +165,7 @@ export function RideDetailPage() {
                 <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                 </svg>
-                Edit
+                {t('detail.actions.edit')}
               </Link>
               {ride.status === 'DRAFT' && (
                 <button
@@ -172,7 +174,7 @@ export function RideDetailPage() {
                   className="inline-flex items-center px-3 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-green-600 hover:bg-green-700 disabled:opacity-50"
                 >
                   {updateMutation.isPending ? <LoadingSpinner size="sm" className="mr-2" /> : null}
-                  Publish
+                  {t('detail.actions.publish')}
                 </button>
               )}
               {ride.status === 'PUBLISHED' && (
@@ -182,14 +184,14 @@ export function RideDetailPage() {
                     disabled={updateMutation.isPending}
                     className="inline-flex items-center px-3 py-2 border border-yellow-300 rounded-md text-sm font-medium text-yellow-700 bg-white hover:bg-yellow-50 disabled:opacity-50"
                   >
-                    Unpublish
+                    {t('detail.actions.unpublish')}
                   </button>
                   <button
                     onClick={handleCancel}
                     disabled={updateMutation.isPending}
                     className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
                   >
-                    Cancel Ride
+                    {t('detail.actions.cancel')}
                   </button>
                 </>
               )}
@@ -198,7 +200,7 @@ export function RideDetailPage() {
                 disabled={deleteMutation.isPending}
                 className="inline-flex items-center px-3 py-2 border border-red-300 rounded-md text-sm font-medium text-red-700 bg-white hover:bg-red-50 disabled:opacity-50"
               >
-                Delete
+                {t('detail.actions.delete')}
               </button>
             </div>
           )}
@@ -207,7 +209,7 @@ export function RideDetailPage() {
 
       {/* Groups */}
       <div className="mb-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Groups</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('detail.groups.title')}</h2>
         {ride.groups && ride.groups.length > 0 ? (
           <div className="space-y-3">
             {ride.groups.map((group) => (
@@ -222,7 +224,7 @@ export function RideDetailPage() {
             ))}
           </div>
         ) : (
-          <p className="text-gray-500">No groups defined for this ride.</p>
+          <p className="text-gray-500">{t('detail.groups.empty')}</p>
         )}
       </div>
 
@@ -230,9 +232,9 @@ export function RideDetailPage() {
       {!isMember && isAuthenticated && (
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
           <p className="text-yellow-800">
-            Join this team to participate in rides.{' '}
+            {t('detail.nonMember.message')}{' '}
             <Link to={`/teams/${teamSlug}`} className="font-medium underline">
-              View team
+              {t('detail.nonMember.viewTeam')}
             </Link>
           </p>
         </div>
@@ -241,9 +243,9 @@ export function RideDetailPage() {
       {!isAuthenticated && (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <p className="text-blue-800">
-            Sign in and join this team to participate in rides.{' '}
+            {t('detail.notAuthenticated.message')}{' '}
             <Link to="/login" className="font-medium underline">
-              Sign in
+              {t('detail.notAuthenticated.signIn')}
             </Link>
           </p>
         </div>

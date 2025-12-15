@@ -1,8 +1,36 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../hooks/useAuth';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 
+// Available timezones with their IANA identifiers
+const TIMEZONES = [
+  'UTC',
+  'Europe/London',
+  'Europe/Paris',
+  'Europe/Berlin',
+  'America/New_York',
+  'America/Los_Angeles',
+];
+
+// Format timezone name using browser's Intl API
+function formatTimezoneName(timezone: string, locale: string): string {
+  try {
+    const formatter = new Intl.DateTimeFormat(locale, {
+      timeZone: timezone,
+      timeZoneName: 'long',
+    });
+    const parts = formatter.formatToParts(new Date());
+    const tzPart = parts.find((p) => p.type === 'timeZoneName');
+    return tzPart?.value || timezone;
+  } catch {
+    return timezone;
+  }
+}
+
 export function UserProfilePage() {
+  const { t, i18n } = useTranslation('profile');
+  const { t: tCommon } = useTranslation('common');
   const {
     user,
     isLoading,
@@ -19,6 +47,13 @@ export function UserProfilePage() {
   const [timezone, setTimezone] = useState(user?.timezone || 'UTC');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
+  // Sync i18n language when user locale changes
+  useEffect(() => {
+    if (user?.locale && user.locale !== i18n.language) {
+      i18n.changeLanguage(user.locale);
+    }
+  }, [user?.locale, i18n]);
+
   if (isLoading || !user) {
     return (
       <div className="flex justify-center py-12">
@@ -31,7 +66,13 @@ export function UserProfilePage() {
     updateProfile(
       { displayName, locale, timezone },
       {
-        onSuccess: () => setIsEditing(false),
+        onSuccess: () => {
+          setIsEditing(false);
+          // Change i18n language immediately
+          if (locale !== i18n.language) {
+            i18n.changeLanguage(locale);
+          }
+        },
       }
     );
   };
@@ -44,7 +85,7 @@ export function UserProfilePage() {
     <div className="max-w-2xl mx-auto">
       <div className="bg-white shadow rounded-lg">
         <div className="px-6 py-4 border-b border-gray-200">
-          <h1 className="text-xl font-semibold text-gray-900">Profile Settings</h1>
+          <h1 className="text-xl font-semibold text-gray-900">{t('title')}</h1>
         </div>
 
         <div className="p-6 space-y-6">
@@ -74,7 +115,7 @@ export function UserProfilePage() {
                   htmlFor="displayName"
                   className="block text-sm font-medium text-gray-700"
                 >
-                  Display Name
+                  {t('form.displayName.label')}
                 </label>
                 <input
                   type="text"
@@ -90,7 +131,7 @@ export function UserProfilePage() {
                   htmlFor="locale"
                   className="block text-sm font-medium text-gray-700"
                 >
-                  Language
+                  {t('form.language.label')}
                 </label>
                 <select
                   id="locale"
@@ -98,10 +139,8 @@ export function UserProfilePage() {
                   onChange={(e) => setLocale(e.target.value)}
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                 >
-                  <option value="en">English</option>
-                  <option value="fr">Français</option>
-                  <option value="es">Español</option>
-                  <option value="de">Deutsch</option>
+                  <option value="en">{t('form.language.options.en')}</option>
+                  <option value="fr">{t('form.language.options.fr')}</option>
                 </select>
               </div>
 
@@ -110,7 +149,7 @@ export function UserProfilePage() {
                   htmlFor="timezone"
                   className="block text-sm font-medium text-gray-700"
                 >
-                  Timezone
+                  {t('form.timezone.label')}
                 </label>
                 <select
                   id="timezone"
@@ -118,12 +157,11 @@ export function UserProfilePage() {
                   onChange={(e) => setTimezone(e.target.value)}
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                 >
-                  <option value="UTC">UTC</option>
-                  <option value="Europe/London">Europe/London</option>
-                  <option value="Europe/Paris">Europe/Paris</option>
-                  <option value="Europe/Berlin">Europe/Berlin</option>
-                  <option value="America/New_York">America/New York</option>
-                  <option value="America/Los_Angeles">America/Los Angeles</option>
+                  {TIMEZONES.map((tz) => (
+                    <option key={tz} value={tz}>
+                      {formatTimezoneName(tz, i18n.language)}
+                    </option>
+                  ))}
                 </select>
               </div>
 
@@ -133,33 +171,33 @@ export function UserProfilePage() {
                   disabled={isUpdatingProfile}
                   className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50"
                 >
-                  {isUpdatingProfile ? <LoadingSpinner size="sm" color="white" /> : 'Save'}
+                  {isUpdatingProfile ? <LoadingSpinner size="sm" color="white" /> : t('actions.save')}
                 </button>
                 <button
                   onClick={() => setIsEditing(false)}
                   className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
                 >
-                  Cancel
+                  {tCommon('buttons.cancel')}
                 </button>
               </div>
             </div>
           ) : (
             <div className="space-y-4">
               <div>
-                <dt className="text-sm font-medium text-gray-500">Display Name</dt>
+                <dt className="text-sm font-medium text-gray-500">{t('form.displayName.label')}</dt>
                 <dd className="mt-1 text-sm text-gray-900">{user.displayName}</dd>
               </div>
               <div>
-                <dt className="text-sm font-medium text-gray-500">Email</dt>
+                <dt className="text-sm font-medium text-gray-500">{t('form.email.label')}</dt>
                 <dd className="mt-1 text-sm text-gray-900">{user.email}</dd>
               </div>
               <div>
-                <dt className="text-sm font-medium text-gray-500">Language</dt>
-                <dd className="mt-1 text-sm text-gray-900">{user.locale || 'English'}</dd>
+                <dt className="text-sm font-medium text-gray-500">{t('form.language.label')}</dt>
+                <dd className="mt-1 text-sm text-gray-900">{t(`form.language.options.${user.locale}`)}</dd>
               </div>
               <div>
-                <dt className="text-sm font-medium text-gray-500">Timezone</dt>
-                <dd className="mt-1 text-sm text-gray-900">{user.timezone || 'UTC'}</dd>
+                <dt className="text-sm font-medium text-gray-500">{t('form.timezone.label')}</dt>
+                <dd className="mt-1 text-sm text-gray-900">{formatTimezoneName(user.timezone || 'UTC', i18n.language)}</dd>
               </div>
 
               <div className="pt-4">
@@ -167,7 +205,7 @@ export function UserProfilePage() {
                   onClick={() => setIsEditing(true)}
                   className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
                 >
-                  Edit Profile
+                  {t('actions.editProfile')}
                 </button>
               </div>
             </div>
@@ -176,25 +214,25 @@ export function UserProfilePage() {
           <hr className="border-gray-200" />
 
           <div className="space-y-4">
-            <h3 className="text-lg font-medium text-gray-900">Account Actions</h3>
+            <h3 className="text-lg font-medium text-gray-900">{t('account.title')}</h3>
 
             <button
               onClick={logout}
               className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
             >
-              Sign Out
+              {t('account.signOut')}
             </button>
 
             <div className="pt-4 border-t border-gray-200">
-              <h4 className="text-sm font-medium text-red-600">Danger Zone</h4>
+              <h4 className="text-sm font-medium text-red-600">{t('account.dangerZone.title')}</h4>
               <p className="mt-1 text-sm text-gray-500">
-                Permanently delete your account and all associated data.
+                {t('account.dangerZone.deleteDescription')}
               </p>
 
               {showDeleteConfirm ? (
                 <div className="mt-4 p-4 bg-red-50 rounded-md">
                   <p className="text-sm text-red-700 mb-4">
-                    Are you sure? This action cannot be undone.
+                    {t('account.dangerZone.confirmMessage')}
                   </p>
                   <div className="flex gap-3">
                     <button
@@ -205,14 +243,14 @@ export function UserProfilePage() {
                       {isDeletingAccount ? (
                         <LoadingSpinner size="sm" color="white" />
                       ) : (
-                        'Yes, Delete My Account'
+                        t('account.dangerZone.confirmButton')
                       )}
                     </button>
                     <button
                       onClick={() => setShowDeleteConfirm(false)}
                       className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
                     >
-                      Cancel
+                      {tCommon('buttons.cancel')}
                     </button>
                   </div>
                 </div>
@@ -221,7 +259,7 @@ export function UserProfilePage() {
                   onClick={() => setShowDeleteConfirm(true)}
                   className="mt-4 inline-flex items-center px-4 py-2 border border-red-300 text-sm font-medium rounded-md text-red-700 bg-white hover:bg-red-50"
                 >
-                  Delete Account
+                  {t('account.dangerZone.deleteButton')}
                 </button>
               )}
             </div>

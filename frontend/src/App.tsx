@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Layout } from './components/common/Layout';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { LoginPage } from './pages/auth/LoginPage';
@@ -14,19 +15,36 @@ import { CreateRidePage } from './pages/ride/CreateRidePage';
 import { EditRidePage } from './pages/ride/EditRidePage';
 
 function HomePage() {
+  const { t } = useTranslation('auth');
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh]">
-      <h1 className="text-4xl font-bold text-gray-900 mb-4">Welcome to Tribly</h1>
-      <p className="text-lg text-gray-600">Your cycling team management platform</p>
+      <h1 className="text-4xl font-bold text-gray-900 mb-4">{t('home.title')}</h1>
+      <p className="text-lg text-gray-600">{t('home.subtitle')}</p>
     </div>
   );
 }
 
 function NotFoundPage() {
+  const { t } = useTranslation('errors');
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh]">
-      <h1 className="text-4xl font-bold text-gray-900 mb-4">404</h1>
-      <p className="text-lg text-gray-600">Page not found</p>
+      <h1 className="text-4xl font-bold text-gray-900 mb-4">{t('notFound.title')}</h1>
+      <p className="text-lg text-gray-600 mb-6">{t('notFound.message')}</p>
+      <Link
+        to="/"
+        className="text-indigo-600 hover:text-indigo-500 font-medium"
+      >
+        {t('notFound.backHome')}
+      </Link>
+    </div>
+  );
+}
+
+function Placeholder({ textKey }: { textKey: string }) {
+  const { t } = useTranslation('common');
+  return (
+    <div className="flex items-center justify-center min-h-[40vh]">
+      <p className="text-lg text-gray-500">{t(textKey)}</p>
     </div>
   );
 }
@@ -107,14 +125,14 @@ function App() {
             />
 
             {/* Trip routes - to be implemented */}
-            <Route path="teams/:teamSlug/trips" element={<div>Trips List</div>} />
-            <Route path="teams/:teamSlug/trips/new" element={<div>Create Trip</div>} />
-            <Route path="teams/:teamSlug/trips/:tripId" element={<div>Trip Detail</div>} />
+            <Route path="teams/:teamSlug/trips" element={<Placeholder textKey="placeholder.tripsList" />} />
+            <Route path="teams/:teamSlug/trips/new" element={<Placeholder textKey="placeholder.createTrip" />} />
+            <Route path="teams/:teamSlug/trips/:tripId" element={<Placeholder textKey="placeholder.tripDetail" />} />
 
             {/* Route routes - to be implemented */}
-            <Route path="teams/:teamSlug/routes" element={<div>Routes List</div>} />
-            <Route path="teams/:teamSlug/routes/new" element={<div>Create Route</div>} />
-            <Route path="teams/:teamSlug/routes/:routeId" element={<div>Route Detail</div>} />
+            <Route path="teams/:teamSlug/routes" element={<Placeholder textKey="placeholder.routesList" />} />
+            <Route path="teams/:teamSlug/routes/new" element={<Placeholder textKey="placeholder.createRoute" />} />
+            <Route path="teams/:teamSlug/routes/:routeId" element={<Placeholder textKey="placeholder.routeDetail" />} />
 
             {/* Catch all */}
             <Route path="*" element={<NotFoundPage />} />

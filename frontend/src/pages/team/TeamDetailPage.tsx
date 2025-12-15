@@ -1,4 +1,5 @@
 import { Link, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   useTeam,
   useTeamMembers,
@@ -12,6 +13,8 @@ import { LoadingPage } from '../../components/common/LoadingSpinner';
 import { TeamMemberList, TeamMemberListSkeleton } from '../../components/team/TeamMemberList';
 
 export function TeamDetailPage() {
+  const { t, i18n } = useTranslation('teams');
+  const { t: tCommon } = useTranslation('common');
   const { teamSlug } = useParams<{ teamSlug: string }>();
   const { user, isAuthenticated } = useAuth();
 
@@ -24,7 +27,7 @@ export function TeamDetailPage() {
   const removeMemberMutation = useRemoveMember(teamSlug || '');
 
   if (isLoading) {
-    return <LoadingPage message="Loading team..." />;
+    return <LoadingPage message={t('detail.loading')} />;
   }
 
   if (error) {
@@ -33,18 +36,16 @@ export function TeamDetailPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-center py-12">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">
-            {is404 ? 'Team Not Found' : 'Error Loading Team'}
+            {is404 ? t('detail.notFound.title') : t('detail.error.title')}
           </h1>
           <p className="text-gray-600 mb-6">
-            {is404
-              ? "The team you're looking for doesn't exist or has been removed."
-              : 'There was an error loading this team. Please try again.'}
+            {is404 ? t('detail.notFound.message') : t('detail.error.message')}
           </p>
           <Link
             to="/teams"
             className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
           >
-            Back to Teams
+            {t('detail.notFound.backToTeams')}
           </Link>
         </div>
       </div>
@@ -65,7 +66,7 @@ export function TeamDetailPage() {
   };
 
   const handleLeave = () => {
-    if (confirm('Are you sure you want to leave this team?')) {
+    if (confirm(t('detail.actions.confirmLeave'))) {
       leaveMutation.mutate();
     }
   };
@@ -119,7 +120,7 @@ export function TeamDetailPage() {
                       clipRule="evenodd"
                     />
                   </svg>
-                  Private
+                  {tCommon('visibility.private')}
                 </span>
               )}
             </div>
@@ -141,15 +142,16 @@ export function TeamDetailPage() {
                     d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
                   />
                 </svg>
-                {team.memberCount} {team.memberCount === 1 ? 'member' : 'members'}
-                {team.maxMembers && ` / ${team.maxMembers} max`}
+                {t('detail.info.memberCount', { count: team.memberCount })}
+                {team.maxMembers && t('detail.info.maxMembers', { max: team.maxMembers })}
               </span>
               {team.createdAt && (
                 <span>
-                  Created{' '}
-                  {new Date(team.createdAt).toLocaleDateString(undefined, {
-                    year: 'numeric',
-                    month: 'long',
+                  {t('detail.info.created', {
+                    date: new Date(team.createdAt).toLocaleDateString(i18n.language, {
+                      year: 'numeric',
+                      month: 'long',
+                    }),
                   })}
                 </span>
               )}
@@ -163,7 +165,7 @@ export function TeamDetailPage() {
                 disabled={joinMutation.isPending}
                 className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
               >
-                {joinMutation.isPending ? 'Joining...' : 'Join Team'}
+                {joinMutation.isPending ? t('detail.actions.joining') : t('detail.actions.join')}
               </button>
             )}
 
@@ -173,7 +175,7 @@ export function TeamDetailPage() {
                 disabled={leaveMutation.isPending}
                 className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
               >
-                {leaveMutation.isPending ? 'Leaving...' : 'Leave Team'}
+                {leaveMutation.isPending ? t('detail.actions.leaving') : t('detail.actions.leave')}
               </button>
             )}
 
@@ -201,7 +203,7 @@ export function TeamDetailPage() {
                     d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
                   />
                 </svg>
-                Settings
+                {t('detail.actions.settings')}
               </Link>
             )}
           </div>
@@ -216,25 +218,25 @@ export function TeamDetailPage() {
               to={`/teams/${teamSlug}`}
               className="border-indigo-500 text-indigo-600 py-4 px-1 border-b-2 font-medium text-sm"
             >
-              Overview
+              {t('detail.tabs.overview')}
             </Link>
             <Link
               to={`/teams/${teamSlug}/rides`}
               className="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 py-4 px-1 border-b-2 font-medium text-sm"
             >
-              Rides
+              {t('detail.tabs.rides')}
             </Link>
             <Link
               to={`/teams/${teamSlug}/trips`}
               className="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 py-4 px-1 border-b-2 font-medium text-sm"
             >
-              Trips
+              {t('detail.tabs.trips')}
             </Link>
             <Link
               to={`/teams/${teamSlug}/routes`}
               className="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 py-4 px-1 border-b-2 font-medium text-sm"
             >
-              Routes
+              {t('detail.tabs.routes')}
             </Link>
           </nav>
         </div>
@@ -242,7 +244,7 @@ export function TeamDetailPage() {
 
       {/* Members Section */}
       <div className="mt-8">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Members</h2>
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">{t('detail.members.title')}</h2>
         {isLoadingMembers ? (
           <TeamMemberListSkeleton count={5} />
         ) : membersData?.members && membersData.members.length > 0 ? (
@@ -258,7 +260,7 @@ export function TeamDetailPage() {
             isRemoving={removeMemberMutation.isPending}
           />
         ) : (
-          <p className="text-gray-500">No members found.</p>
+          <p className="text-gray-500">{t('detail.members.empty')}</p>
         )}
       </div>
     </div>

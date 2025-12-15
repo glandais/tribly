@@ -47,10 +47,10 @@ export function LoadingSpinner({
 }
 
 interface LoadingPageProps {
-  message?: string;
+  message: string;
 }
 
-export function LoadingPage({ message = 'Loading...' }: LoadingPageProps) {
+export function LoadingPage({ message }: LoadingPageProps) {
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh]">
       <LoadingSpinner size="lg" />

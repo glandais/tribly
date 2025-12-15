@@ -1,8 +1,11 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation, Trans } from 'react-i18next';
 import { useAuth } from '../../hooks/useAuth';
 
 export function LoginPage() {
+  const { t } = useTranslation('auth');
+  const { t: tCommon } = useTranslation('common');
   const navigate = useNavigate();
   const { isAuthenticated, isInitialized, isLoading, login } = useAuth();
 
@@ -17,7 +20,7 @@ export function LoginPage() {
       <div className="min-h-[70vh] flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
+          <p className="mt-4 text-gray-600">{tCommon('status.loading')}</p>
         </div>
       </div>
     );
@@ -27,8 +30,8 @@ export function LoginPage() {
     <div className="min-h-[70vh] flex items-center justify-center">
       <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-xl shadow-lg">
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900">Welcome to Tribly</h1>
-          <p className="mt-2 text-gray-600">Sign in to manage your cycling team</p>
+          <h1 className="text-3xl font-bold text-gray-900">{t('login.title')}</h1>
+          <p className="mt-2 text-gray-600">{t('login.subtitle')}</p>
         </div>
 
         <div className="mt-8">
@@ -49,19 +52,19 @@ export function LoginPage() {
                 d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"
               />
             </svg>
-            Sign In
+            {t('login.button')}
           </button>
         </div>
 
         <p className="mt-8 text-center text-sm text-gray-500">
-          By signing in, you agree to our{' '}
-          <a href="/terms" className="font-medium text-indigo-600 hover:text-indigo-500">
-            Terms of Service
-          </a>{' '}
-          and{' '}
-          <a href="/privacy" className="font-medium text-indigo-600 hover:text-indigo-500">
-            Privacy Policy
-          </a>
+          <Trans
+            i18nKey="login.termsText"
+            ns="auth"
+            components={{
+              termsLink: <a href="/terms" className="font-medium text-indigo-600 hover:text-indigo-500" />,
+              privacyLink: <a href="/privacy" className="font-medium text-indigo-600 hover:text-indigo-500" />,
+            }}
+          />
         </p>
       </div>
     </div>

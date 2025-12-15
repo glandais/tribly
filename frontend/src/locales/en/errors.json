@@ -1,0 +1,39 @@
+{
+  "notFound": {
+    "title": "404",
+    "message": "Page not found",
+    "backHome": "Back to Home"
+  },
+  "boundary": {
+    "title": "Something went wrong",
+    "message": "We're sorry, but something unexpected happened. Please try again.",
+    "retry": "Try again",
+    "reload": "Reload page"
+  },
+  "generic": {
+    "title": "An error occurred",
+    "message": "Something went wrong. Please try again.",
+    "retry": "Retry"
+  },
+  "network": {
+    "title": "Connection Error",
+    "message": "Unable to connect to the server. Check your internet connection."
+  },
+  "unauthorized": {
+    "title": "Unauthorized",
+    "message": "You don't have permission to perform this action."
+  },
+  "forbidden": {
+    "title": "Access Denied",
+    "message": "You don't have access to this resource."
+  },
+  "validation": {
+    "title": "Validation Error",
+    "checkFields": "Please check the form fields."
+  },
+  "api": {
+    "failedToLoad": "Failed to load data",
+    "failedToSave": "Failed to save",
+    "failedToDelete": "Failed to delete"
+  }
+}
