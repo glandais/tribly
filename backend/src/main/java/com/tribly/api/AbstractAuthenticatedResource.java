@@ -1,8 +1,7 @@
 package com.tribly.api;
 
 import com.tribly.domain.user.User;
-import com.tribly.domain.user.UserRepository;
-import com.tribly.infrastructure.exception.BusinessException;
+import com.tribly.service.user.UserService;
 import io.quarkus.security.identity.CurrentIdentityAssociation;
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.inject.Inject;
@@ -24,53 +23,10 @@ import java.util.Optional;
 public abstract class AbstractAuthenticatedResource {
 
     @Inject
-    protected UserRepository userRepository;
+    protected UserService userService;
 
     @Inject
     protected CurrentIdentityAssociation currentIdentityAssociation;
-
-    /**
-     * Gets the SecurityIdentity, ensuring the augmented identity is fully resolved.
-     *
-     * <p>Uses the deferred identity to ensure the SecurityIdentityAugmentor has completed
-     * its work before returning the identity.
-     *
-     * @return the fully augmented SecurityIdentity
-     */
-    protected SecurityIdentity getSecurityIdentity() {
-        return currentIdentityAssociation.getDeferredIdentity().await().indefinitely();
-    }
-
-    /**
-     * Gets the current user's ID from the SecurityIdentity, with fallback to JWT email lookup.
-     *
-     * <p>This method handles the race condition where the SecurityIdentityAugmentor might not
-     * have completed. If the userId attribute is not present, it falls back to looking up
-     * the user by email from the JWT claims.
-     *
-     * @param identity the security identity to extract user ID from
-     * @return the user ID, or null if not authenticated or user not found
-     */
-    protected Long getUserIdFromIdentity(SecurityIdentity identity) {
-        // First try the augmented attribute
-        Long userId = identity.getAttribute("userId");
-        if (userId != null) {
-            return userId;
-        }
-
-        // Fallback: if we have a JWT principal, look up user by email
-        if (identity.getPrincipal() instanceof JsonWebToken jwt) {
-            String email = jwt.getClaim("email");
-            if (email != null) {
-                Optional<User> user = userRepository.findByEmail(email);
-                if (user.isPresent()) {
-                    return user.get().getId();
-                }
-            }
-        }
-
-        return null;
-    }
 
     /**
      * Gets the current authenticated user's ID.
@@ -108,26 +64,53 @@ public abstract class AbstractAuthenticatedResource {
      *
      * @return the User entity
      * @throws NotAuthorizedException if no valid authentication is present
-     * @throws BusinessException if the user is not found in the database
      */
     protected User getCurrentUserEntity() {
         Long userId = getCurrentUserId();
-        return userRepository.findActiveById(userId)
-                .orElseThrow(() -> BusinessException.notFound("User", userId));
+        return userService.getActiveById(userId);
     }
 
     /**
-     * Gets the current user's entity, returning null for anonymous users.
+     * Gets the SecurityIdentity, ensuring the augmented identity is fully resolved.
      *
-     * <p>Use this method for endpoints that support both authenticated and anonymous access.
+     * <p>Uses the deferred identity to ensure the SecurityIdentityAugmentor has completed
+     * its work before returning the identity.
      *
-     * @return the User entity, or null if anonymous
+     * @return the fully augmented SecurityIdentity
      */
-    protected User getCurrentUserEntityOrNull() {
-        Long userId = getCurrentUserIdOrNull();
-        if (userId == null) {
-            return null;
-        }
-        return userRepository.findActiveById(userId).orElse(null);
+    private SecurityIdentity getSecurityIdentity() {
+        return currentIdentityAssociation.getDeferredIdentity().await().indefinitely();
     }
+
+    /**
+     * Gets the current user's ID from the SecurityIdentity, with fallback to JWT email lookup.
+     *
+     * <p>This method handles the race condition where the SecurityIdentityAugmentor might not
+     * have completed. If the userId attribute is not present, it falls back to looking up
+     * the user by email from the JWT claims.
+     *
+     * @param identity the security identity to extract user ID from
+     * @return the user ID, or null if not authenticated or user not found
+     */
+    private Long getUserIdFromIdentity(SecurityIdentity identity) {
+        // First try the augmented attribute
+        Long userId = identity.getAttribute("userId");
+        if (userId != null) {
+            return userId;
+        }
+
+        // Fallback: if we have a JWT principal, look up user by email
+        if (identity.getPrincipal() instanceof JsonWebToken jwt) {
+            String email = jwt.getClaim("email");
+            if (email != null) {
+                Optional<User> user = userService.findByEmail(email);
+                if (user.isPresent()) {
+                    return user.get().getId();
+                }
+            }
+        }
+
+        return null;
+    }
+
 }

@@ -32,21 +32,9 @@ public class UserResource extends AbstractAuthenticatedResource {
 
     @PUT
     @Path("/me")
-    @Transactional
     public Response updateCurrentUser(@Valid UpdateUserRequest request) {
-        User user = getCurrentUserEntity();
-
-        if (request.displayName() != null) {
-            user.setDisplayName(request.displayName());
-        }
-        if (request.locale() != null) {
-            user.setLocale(request.locale());
-        }
-        if (request.timezone() != null) {
-            user.setTimezone(request.timezone());
-        }
-
-        userRepository.persist(user);
+        Long userId = getCurrentUserId();
+        User user = userService.updateUser(userId, request.displayName(), request.locale(), request.timezone());
         return Response.ok(UserDto.from(user)).build();
     }
 
@@ -54,9 +42,7 @@ public class UserResource extends AbstractAuthenticatedResource {
     @Path("/{id}")
     public Response getUserById(@PathParam("id") String id) {
         Long userId = TsidUtils.toLong(id);
-        User user = userRepository.findActiveById(userId)
-                .orElseThrow(() -> BusinessException.notFound("User", id));
-
+        User user = userService.getActiveById(userId);
         return Response.ok(PublicUserDto.from(user)).build();
     }
 
@@ -67,20 +53,18 @@ public class UserResource extends AbstractAuthenticatedResource {
             return Response.ok(List.of()).build();
         }
 
-        List<User> users = userRepository.searchByDisplayName(query.trim(), Math.min(limit, 20));
+        List<User> users = userService.searchByDisplayName(query.trim(), Math.min(limit, 20));
         List<PublicUserDto> dtos = users.stream().map(PublicUserDto::from).toList();
         return Response.ok(dtos).build();
     }
 
     @DELETE
     @Path("/me")
-    @Transactional
     public Response deleteCurrentUser() {
-        User user = getCurrentUserEntity();
-        user.softDelete();
-        userRepository.persist(user);
+        Long userId = getCurrentUserId();
+        userService.deleteUser(userId);
 
-        LOG.infov("User {0} deleted their account", user.getId());
+        LOG.infov("User {0} deleted their account", userId);
         return Response.noContent().build();
     }
 

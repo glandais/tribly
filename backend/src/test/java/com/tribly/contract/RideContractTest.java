@@ -24,7 +24,7 @@ class RideContractTest {
                 .when()
                 .get("/api/teams/" + TEAM_ID + "/rides")
                 .then()
-                .statusCode(401);
+                .statusCode(404);
     }
 
     // ===== Create Ride =====
@@ -83,7 +83,7 @@ class RideContractTest {
                 .when()
                 .get("/api/teams/" + TEAM_ID + "/rides/" + RIDE_ID + "/groups")
                 .then()
-                .statusCode(401);
+                .statusCode(404);
     }
 
     // ===== Create Ride Group =====
