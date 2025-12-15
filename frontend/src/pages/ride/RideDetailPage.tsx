@@ -14,17 +14,17 @@ const statusColors: Record<RideStatus, string> = {
 };
 
 export function RideDetailPage() {
-  const { teamSlug, rideId } = useParams<{ teamSlug: string; rideId: string }>();
+  const { teamSlug, rideSlug } = useParams<{ teamSlug: string; rideSlug: string }>();
   const { isAuthenticated } = useAuth();
   const [joiningGroupId, setJoiningGroupId] = useState<string | null>(null);
 
   const { data: team, isLoading: isLoadingTeam } = useTeam(teamSlug);
-  const { data: ride, isLoading: isLoadingRide, error } = useRide(teamSlug, rideId);
+  const { data: ride, isLoading: isLoadingRide, error } = useRide(teamSlug, rideSlug);
 
-  const updateMutation = useUpdateRide(teamSlug, rideId!);
+  const updateMutation = useUpdateRide(teamSlug, rideSlug!);
   const deleteMutation = useDeleteRide(teamSlug);
-  const joinMutation = useJoinRide(teamSlug, rideId!);
-  const leaveMutation = useLeaveRide(teamSlug, rideId!);
+  const joinMutation = useJoinRide(teamSlug, rideSlug!);
+  const leaveMutation = useLeaveRide(teamSlug, rideSlug!);
 
   if (isLoadingTeam || isLoadingRide) {
     return <LoadingPage message="Loading ride..." />;
@@ -73,7 +73,7 @@ export function RideDetailPage() {
 
   const handleDelete = () => {
     if (confirm('Are you sure you want to delete this ride? This cannot be undone.')) {
-      deleteMutation.mutate(rideId!);
+      deleteMutation.mutate(rideSlug!);
     }
   };
 

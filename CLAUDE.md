@@ -10,7 +10,8 @@ Tribly is a multi-tenant web platform for cycling teams to organize rides, trips
 
 - **Backend**: Java 21, Quarkus 3.30.x, PostgreSQL 16 with PostGIS, Hibernate ORM with Panache, Flyway migrations
 - **Frontend**: TypeScript 5.x, React 18+, Vite, TailwindCSS, Zustand (state), React Query (data fetching)
-- **Auth**: Keycloak OIDC (Dev Services in dev/test, external server in prod)
+- **Auth**: Keycloak OIDC (docker-compose in dev, Dev Services in test, external server in prod)
+- **IDs**: TSID (Time-Sorted IDs) via hypersistence-utils - stored as Long internally, exposed as lowercase strings in API
 - **API**: OpenAPI 3.1 contract-first with code generation
 - **Testing**: JUnit 5 + REST Assured (backend), Vitest + Testing Library (frontend), Playwright (E2E)
 
@@ -18,7 +19,7 @@ Tribly is a multi-tenant web platform for cycling teams to organize rides, trips
 
 ### Backend (from `backend/` directory)
 ```bash
-mvn quarkus:dev           # Start dev mode with hot reload (auto-starts Keycloak + Postgres via Dev Services)
+mvn quarkus:dev           # Start dev mode with hot reload (requires docker-compose up for Keycloak + Postgres)
 mvn test                  # Run unit/integration tests
 mvn test -Dtest=ClassName # Run single test class
 mvn verify                # Run all tests including integration
@@ -44,8 +45,10 @@ pnpm test:headed          # Run with visible browser
 
 ### Infrastructure
 ```bash
-docker compose up -d postgres  # Start PostgreSQL only
+docker compose up -d                  # Start PostgreSQL + Keycloak (required for dev mode)
+docker compose up -d postgres         # Start PostgreSQL only
 docker compose --profile tools up -d  # Include pgAdmin + Mailhog
+docker compose logs -f keycloak       # View Keycloak logs
 ```
 
 ## Architecture
@@ -140,6 +143,132 @@ void testCorrect2() {
 - PostGIS image: `postgis/postgis:16-3.4-alpine`
 - Test keys in `src/test/resources/keys/`
 - Prefix test properties with `%test.`
+
+## TSID (Time-Sorted IDs)
+
+The project uses TSID instead of sequential Long IDs for all entities:
+
+- **Library**: `io.hypersistence:hypersistence-utils-hibernate-63`
+- **Internal storage**: Long (BIGINT in PostgreSQL)
+- **API exposure**: Lowercase string (e.g., `0h4a8xzk8jv80`)
+- **Conversion**: `TsidUtils.toString(Long)` and `TsidUtils.toLong(String)`
+- **Entity annotation**: `@Tsid` on ID field in `BaseEntity`
+
+```java
+// In entities (BaseEntity)
+@Id
+@Tsid
+private Long id;
+
+// In DTOs - convert to/from String
+public static TeamDto from(Team team) {
+    return new TeamDto(TsidUtils.toString(team.getId()), ...);
+}
+
+// In resources - convert path params
+@GET @Path("/{id}")
+public Response get(@PathParam("id") String id) {
+    Long entityId = TsidUtils.toLong(id);
+    // ...
+}
+```
+
+## URL Slugs
+
+The project uses human-readable slugs in URLs instead of IDs for entities that are accessed via URL (Teams, Rides, Trips, Routes, etc.):
+
+- **Unique constraint**: Slugs are unique per team (not globally), enforced by DB constraint `UNIQUE (team_id, slug)`
+- **Format**: Lowercase letters, numbers, and hyphens only (`^[a-z0-9-]+$`)
+- **Generation**: Auto-generated from title/name, with timestamp suffix for collision handling
+
+### Backend Implementation
+
+```java
+// Entity - add slug field with unique-per-team constraint
+@Entity
+@Table(name = "rides", uniqueConstraints = {
+    @UniqueConstraint(name = "uk_rides_team_slug", columnNames = {"team_id", "slug"})
+})
+public class Ride extends BaseEntity {
+    @NotBlank @Size(max = 100)
+    @Pattern(regexp = "^[a-z0-9-]+$")
+    @Column(name = "slug", nullable = false)
+    private String slug;
+}
+
+// Repository - slug lookup methods
+public Optional<Ride> findByTeamAndSlug(Long teamId, String slug) {
+    return find("team.id = ?1 and slug = ?2 and deleted = false", teamId, slug).firstResultOptional();
+}
+
+// Service - slug generation
+private String generateSlug(String input) {
+    String nowhitespace = WHITESPACE.matcher(input).replaceAll("-");
+    String normalized = Normalizer.normalize(nowhitespace, Normalizer.Form.NFD);
+    String slug = NONLATIN.matcher(normalized).replaceAll("");
+    return slug.toLowerCase(Locale.ENGLISH).replaceAll("-+", "-").replaceAll("^-|-$", "");
+}
+
+// Resource - use slug in path params
+@GET @Path("/{rideSlug}")
+public Response getRide(@PathParam("slug") String teamSlug, @PathParam("rideSlug") String rideSlug) {
+    Ride ride = rideService.getRideBySlug(team.getId(), rideSlug, userId)
+            .orElseThrow(() -> BusinessException.notFound("Ride not found"));
+    return Response.ok(RideDetailDto.from(ride)).build();
+}
+```
+
+### Frontend Implementation
+
+```typescript
+// Routes use slugs not IDs
+<Route path="teams/:teamSlug/rides/:rideSlug" element={<RideDetailPage />} />
+
+// Hooks accept slug parameters
+const { data: ride } = useRide(teamSlug, rideSlug);
+
+// Links use entity.slug
+<Link to={`/teams/${teamSlug}/rides/${ride.slug}`}>
+```
+
+### URL Structure
+
+```
+/teams/{teamSlug}                    # Team detail
+/teams/{teamSlug}/rides              # Ride list
+/teams/{teamSlug}/rides/{rideSlug}   # Ride detail
+/teams/{teamSlug}/trips/{tripSlug}   # Trip detail
+/teams/{teamSlug}/routes/{routeSlug} # Route detail
+```
+
+## Keycloak Configuration
+
+### Dev Mode vs Test Mode
+
+- **Dev mode** (`mvn quarkus:dev`): Uses docker-compose Keycloak at `localhost:8180`
+  - Requires `docker compose up -d` before starting
+  - Realm: `quarkus` (imported from `dev-realm.json`)
+  - Dev Services disabled: `%dev.quarkus.keycloak.devservices.enabled=false`
+
+- **Test mode** (`mvn test`): Uses Quarkus Keycloak Dev Services
+  - Auto-starts isolated Keycloak container
+  - Same realm file: `keycloak/dev-realm.json`
+  - Dev Services enabled: `%test.quarkus.keycloak.devservices.enabled=true`
+
+### Test Users (dev-realm.json)
+
+| Username | Password | Roles | Name |
+|----------|----------|-------|------|
+| admin | admin | admin, user | Admin User |
+| user1 | user1 | user | User One |
+| user2 | user2 | user | User Two |
+| user3 | user3 | user | User Three |
+
+### Keycloak Gotchas
+
+1. **Profile update prompt**: Users must have `firstName` and `lastName` set in realm config, otherwise Keycloak prompts for profile update after login
+2. **Realm reimport**: To pick up realm changes, stop Keycloak, remove container (`docker compose rm -f keycloak`), and restart
+3. **Client configuration**: `tribly-frontend` client must have correct redirect URIs for the frontend ports
 
 ## Frontend/Vite Notes
 

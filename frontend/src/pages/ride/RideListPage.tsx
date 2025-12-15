@@ -9,7 +9,7 @@ export function RideListPage() {
   const { teamSlug } = useParams<{ teamSlug: string }>();
   const { isAuthenticated } = useAuth();
   const { data: team, isLoading: isLoadingTeam } = useTeam(teamSlug);
-  const { data: ridesData, isLoading: isLoadingRides } = useRides(team?.id);
+  const { data: ridesData, isLoading: isLoadingRides } = useRides(teamSlug);
 
   if (isLoadingTeam) {
     return <LoadingPage message="Loading team..." />;

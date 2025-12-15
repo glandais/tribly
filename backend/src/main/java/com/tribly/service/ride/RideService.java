@@ -13,15 +13,20 @@ import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import org.jboss.logging.Logger;
 
+import java.text.Normalizer;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
+import java.util.regex.Pattern;
 
 @ApplicationScoped
 public class RideService {
 
     private static final Logger LOG = Logger.getLogger(RideService.class);
+    private static final Pattern NONLATIN = Pattern.compile("[^\\w-]");
+    private static final Pattern WHITESPACE = Pattern.compile("[\\s]");
 
     @Inject
     RideRepository rideRepository;
@@ -52,7 +57,13 @@ public class RideService {
         // Security check: must be admin or organizer to create rides
         securityService.requireCanCreateRide(creatorId, teamId);
 
-        Ride ride = new Ride(team, creator, request.title(), request.date());
+        // Generate slug from title, ensure unique within team
+        String slug = generateSlug(request.title());
+        if (rideRepository.existsByTeamAndSlug(teamId, slug)) {
+            slug = slug + "-" + System.currentTimeMillis() % 10000;
+        }
+
+        Ride ride = new Ride(team, creator, request.title(), slug, request.date());
         ride.setDescription(request.description());
         ride.setStartTime(request.startTime());
         ride.setVisibility(request.visibility() != null ? request.visibility() : Visibility.TEAM);
@@ -238,6 +249,19 @@ public class RideService {
         participationRepository.persist(participation);
 
         LOG.infov("User {0} left group {1} in ride {2}", userId, groupId, rideId);
+    }
+
+    public Optional<Ride> getRideBySlug(Long teamId, String rideSlug, Long userId) {
+        // Security check: must be a team member to view rides
+        securityService.requireMembership(userId, teamId);
+        return rideRepository.findByTeamAndSlug(teamId, rideSlug);
+    }
+
+    private String generateSlug(String input) {
+        String nowhitespace = WHITESPACE.matcher(input).replaceAll("-");
+        String normalized = Normalizer.normalize(nowhitespace, Normalizer.Form.NFD);
+        String slug = NONLATIN.matcher(normalized).replaceAll("");
+        return slug.toLowerCase(Locale.ENGLISH).replaceAll("-+", "-").replaceAll("^-|-$", "");
     }
 
     public record CreateRideRequest(

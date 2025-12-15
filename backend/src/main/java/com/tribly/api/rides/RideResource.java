@@ -85,35 +85,38 @@ public class RideResource extends AbstractAuthenticatedResource {
                 userId
         );
 
-        return Response.created(URI.create("/v1/teams/" + slug + "/rides/" + TsidUtils.toString(ride.getId())))
+        return Response.created(URI.create("/v1/teams/" + slug + "/rides/" + ride.getSlug()))
                 .entity(RideDto.from(ride))
                 .build();
     }
 
     @GET
-    @Path("/{rideId}")
-    public Response getRide(@PathParam("slug") String slug, @PathParam("rideId") String rideId) {
+    @Path("/{rideSlug}")
+    public Response getRide(@PathParam("slug") String slug, @PathParam("rideSlug") String rideSlug) {
         Team team = getTeamBySlug(slug);
         Long userId = getCurrentUserId();
 
-        Ride ride = rideService.getRide(team.getId(), TsidUtils.toLong(rideId), userId)
-                .orElseThrow(() -> BusinessException.notFound("Ride", rideId));
+        Ride ride = rideService.getRideBySlug(team.getId(), rideSlug, userId)
+                .orElseThrow(() -> BusinessException.notFound("Ride with slug '" + rideSlug + "' not found"));
 
         return Response.ok(RideDetailDto.from(ride)).build();
     }
 
     @PATCH
-    @Path("/{rideId}")
+    @Path("/{rideSlug}")
     @Transactional
     public Response updateRide(
             @PathParam("slug") String slug,
-            @PathParam("rideId") String rideId,
+            @PathParam("rideSlug") String rideSlug,
             @Valid UpdateRideRequest request) {
 
         Team team = getTeamBySlug(slug);
         Long userId = getCurrentUserId();
 
-        Ride ride = rideService.updateRide(team.getId(), TsidUtils.toLong(rideId),
+        Ride ride = rideService.getRideBySlug(team.getId(), rideSlug, userId)
+                .orElseThrow(() -> BusinessException.notFound("Ride with slug '" + rideSlug + "' not found"));
+
+        Ride updatedRide = rideService.updateRide(team.getId(), ride.getId(),
                 new RideService.UpdateRideRequest(
                         request.title(),
                         request.description(),
@@ -127,40 +130,50 @@ public class RideResource extends AbstractAuthenticatedResource {
                 userId
         );
 
-        return Response.ok(RideDto.from(ride)).build();
+        return Response.ok(RideDto.from(updatedRide)).build();
     }
 
     @DELETE
-    @Path("/{rideId}")
-    public Response deleteRide(@PathParam("slug") String slug, @PathParam("rideId") String rideId) {
+    @Path("/{rideSlug}")
+    public Response deleteRide(@PathParam("slug") String slug, @PathParam("rideSlug") String rideSlug) {
         Team team = getTeamBySlug(slug);
         Long userId = getCurrentUserId();
-        rideService.deleteRide(team.getId(), TsidUtils.toLong(rideId), userId);
+
+        Ride ride = rideService.getRideBySlug(team.getId(), rideSlug, userId)
+                .orElseThrow(() -> BusinessException.notFound("Ride with slug '" + rideSlug + "' not found"));
+
+        rideService.deleteRide(team.getId(), ride.getId(), userId);
         return Response.noContent().build();
     }
 
     @GET
-    @Path("/{rideId}/groups")
-    public Response listGroups(@PathParam("slug") String slug, @PathParam("rideId") String rideId) {
+    @Path("/{rideSlug}/groups")
+    public Response listGroups(@PathParam("slug") String slug, @PathParam("rideSlug") String rideSlug) {
         Team team = getTeamBySlug(slug);
         Long userId = getCurrentUserId();
 
-        List<RideGroup> groups = rideService.listGroups(team.getId(), TsidUtils.toLong(rideId), userId);
+        Ride ride = rideService.getRideBySlug(team.getId(), rideSlug, userId)
+                .orElseThrow(() -> BusinessException.notFound("Ride with slug '" + rideSlug + "' not found"));
+
+        List<RideGroup> groups = rideService.listGroups(team.getId(), ride.getId(), userId);
         List<RideGroupDto> dtos = groups.stream().map(RideGroupDto::from).toList();
         return Response.ok(new RideGroupListResponse(dtos)).build();
     }
 
     @POST
-    @Path("/{rideId}/groups")
+    @Path("/{rideSlug}/groups")
     public Response createGroup(
             @PathParam("slug") String slug,
-            @PathParam("rideId") String rideId,
+            @PathParam("rideSlug") String rideSlug,
             @Valid CreateGroupRequest request) {
 
         Team team = getTeamBySlug(slug);
         Long userId = getCurrentUserId();
 
-        RideGroup group = rideService.createGroup(team.getId(), TsidUtils.toLong(rideId),
+        Ride ride = rideService.getRideBySlug(team.getId(), rideSlug, userId)
+                .orElseThrow(() -> BusinessException.notFound("Ride with slug '" + rideSlug + "' not found"));
+
+        RideGroup group = rideService.createGroup(team.getId(), ride.getId(),
                 new RideService.CreateRideGroupRequest(
                         request.name(),
                         request.description(),
@@ -171,16 +184,16 @@ public class RideResource extends AbstractAuthenticatedResource {
                 userId
         );
 
-        return Response.created(URI.create("/v1/teams/" + slug + "/rides/" + rideId + "/groups/" + TsidUtils.toString(group.getId())))
+        return Response.created(URI.create("/v1/teams/" + slug + "/rides/" + rideSlug + "/groups/" + TsidUtils.toString(group.getId())))
                 .entity(RideGroupDto.from(group))
                 .build();
     }
 
     @POST
-    @Path("/{rideId}/groups/{groupId}/join")
+    @Path("/{rideSlug}/groups/{groupId}/join")
     public Response joinGroup(
             @PathParam("slug") String slug,
-            @PathParam("rideId") String rideId,
+            @PathParam("rideSlug") String rideSlug,
             @PathParam("groupId") String groupId,
             JoinGroupRequest request) {
 
@@ -188,23 +201,30 @@ public class RideResource extends AbstractAuthenticatedResource {
         Long userId = getCurrentUserId();
         String notes = request != null ? request.notes() : null;
 
-        RideParticipation participation = rideService.joinGroup(team.getId(), TsidUtils.toLong(rideId), TsidUtils.toLong(groupId), userId, notes);
+        Ride ride = rideService.getRideBySlug(team.getId(), rideSlug, userId)
+                .orElseThrow(() -> BusinessException.notFound("Ride with slug '" + rideSlug + "' not found"));
 
-        return Response.created(URI.create("/v1/teams/" + slug + "/rides/" + rideId + "/groups/" + groupId + "/participants/" + TsidUtils.toString(participation.getId())))
+        RideParticipation participation = rideService.joinGroup(team.getId(), ride.getId(), TsidUtils.toLong(groupId), userId, notes);
+
+        return Response.created(URI.create("/v1/teams/" + slug + "/rides/" + rideSlug + "/groups/" + groupId + "/participants/" + TsidUtils.toString(participation.getId())))
                 .entity(RideParticipationDto.from(participation))
                 .build();
     }
 
     @POST
-    @Path("/{rideId}/groups/{groupId}/leave")
+    @Path("/{rideSlug}/groups/{groupId}/leave")
     public Response leaveGroup(
             @PathParam("slug") String slug,
-            @PathParam("rideId") String rideId,
+            @PathParam("rideSlug") String rideSlug,
             @PathParam("groupId") String groupId) {
 
         Team team = getTeamBySlug(slug);
         Long userId = getCurrentUserId();
-        rideService.leaveGroup(team.getId(), TsidUtils.toLong(rideId), TsidUtils.toLong(groupId), userId);
+
+        Ride ride = rideService.getRideBySlug(team.getId(), rideSlug, userId)
+                .orElseThrow(() -> BusinessException.notFound("Ride with slug '" + rideSlug + "' not found"));
+
+        rideService.leaveGroup(team.getId(), ride.getId(), TsidUtils.toLong(groupId), userId);
 
         return Response.noContent().build();
     }
@@ -245,6 +265,7 @@ public class RideResource extends AbstractAuthenticatedResource {
     // Response DTOs
     public record RideDto(
             String id,
+            String slug,
             String title,
             String description,
             LocalDate date,
@@ -258,6 +279,7 @@ public class RideResource extends AbstractAuthenticatedResource {
         public static RideDto from(Ride ride) {
             return new RideDto(
                     TsidUtils.toString(ride.getId()),
+                    ride.getSlug(),
                     ride.getTitle(),
                     ride.getDescription(),
                     ride.getDate(),
@@ -273,6 +295,7 @@ public class RideResource extends AbstractAuthenticatedResource {
 
     public record RideDetailDto(
             String id,
+            String slug,
             String title,
             String description,
             LocalDate date,
@@ -292,6 +315,7 @@ public class RideResource extends AbstractAuthenticatedResource {
 
             return new RideDetailDto(
                     TsidUtils.toString(ride.getId()),
+                    ride.getSlug(),
                     ride.getTitle(),
                     ride.getDescription(),
                     ride.getDate(),

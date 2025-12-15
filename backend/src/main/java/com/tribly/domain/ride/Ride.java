@@ -9,6 +9,7 @@ import com.tribly.domain.user.User;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 import java.time.LocalDate;
@@ -17,7 +18,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "rides")
+@Table(name = "rides", uniqueConstraints = {
+    @UniqueConstraint(name = "uk_rides_team_slug", columnNames = {"team_id", "slug"})
+})
 public class Ride extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -34,6 +37,12 @@ public class Ride extends BaseEntity {
     @Size(max = 255)
     @Column(name = "title", nullable = false)
     private String title;
+
+    @NotBlank
+    @Size(max = 100)
+    @Pattern(regexp = "^[a-z0-9-]+$", message = "Slug must contain only lowercase letters, numbers, and hyphens")
+    @Column(name = "slug", nullable = false)
+    private String slug;
 
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
@@ -76,10 +85,11 @@ public class Ride extends BaseEntity {
     public Ride() {
     }
 
-    public Ride(Team team, User createdBy, String title, LocalDate date) {
+    public Ride(Team team, User createdBy, String title, String slug, LocalDate date) {
         this.team = team;
         this.createdBy = createdBy;
         this.title = title;
+        this.slug = slug;
         this.date = date;
     }
 
@@ -105,6 +115,14 @@ public class Ride extends BaseEntity {
 
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    public String getSlug() {
+        return slug;
+    }
+
+    public void setSlug(String slug) {
+        this.slug = slug;
     }
 
     public String getDescription() {

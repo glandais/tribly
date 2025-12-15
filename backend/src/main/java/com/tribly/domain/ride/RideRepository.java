@@ -48,4 +48,12 @@ public class RideRepository implements PanacheRepository<Ride> {
     public long countByTeamAndStatus(Long teamId, RideStatus status) {
         return count("team.id = ?1 and status = ?2 and deleted = false", teamId, status);
     }
+
+    public Optional<Ride> findByTeamAndSlug(Long teamId, String slug) {
+        return find("team.id = ?1 and slug = ?2 and deleted = false", teamId, slug).firstResultOptional();
+    }
+
+    public boolean existsByTeamAndSlug(Long teamId, String slug) {
+        return count("team.id = ?1 and slug = ?2 and deleted = false", teamId, slug) > 0;
+    }
 }

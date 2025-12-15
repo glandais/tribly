@@ -95,7 +95,7 @@ function App() {
                 </AuthenticatedRoute>
               }
             />
-            <Route path="teams/:teamSlug/rides/:rideId" element={<RideDetailPage />} />
+            <Route path="teams/:teamSlug/rides/:rideSlug" element={<RideDetailPage />} />
 
             {/* Trip routes - to be implemented */}
             <Route path="teams/:teamSlug/trips" element={<div>Trips List</div>} />

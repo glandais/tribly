@@ -23,7 +23,7 @@ export function RideCard({ ride, teamSlug }: RideCardProps) {
 
   return (
     <Link
-      to={`/teams/${teamSlug}/rides/${ride.id}`}
+      to={`/teams/${teamSlug}/rides/${ride.slug}`}
       className="block bg-white rounded-lg shadow hover:shadow-md transition-shadow border border-gray-200"
     >
       <div className="p-5">

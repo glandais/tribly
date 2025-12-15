@@ -7,6 +7,7 @@ export type Visibility = 'PUBLIC' | 'TEAM' | 'PRIVATE';
 
 export interface Ride {
   id: string;
+  slug: string;
   title: string;
   description: string | null;
   date: string;
@@ -101,24 +102,24 @@ export function useRides(teamSlug: string | undefined, options: UseRidesOptions 
   });
 }
 
-export function useRide(teamSlug: string | undefined, rideId: string | undefined) {
+export function useRide(teamSlug: string | undefined, rideSlug: string | undefined) {
   return useQuery({
-    queryKey: ['ride', teamSlug, rideId],
+    queryKey: ['ride', teamSlug, rideSlug],
     queryFn: async () => {
-      return apiClient.get<RideDetail>(`/teams/${teamSlug}/rides/${rideId}`);
+      return apiClient.get<RideDetail>(`/teams/${teamSlug}/rides/${rideSlug}`);
     },
-    enabled: !!teamSlug && !!rideId,
+    enabled: !!teamSlug && !!rideSlug,
     staleTime: 1000 * 60 * 2,
   });
 }
 
-export function useRideGroups(teamSlug: string | undefined, rideId: string | undefined) {
+export function useRideGroups(teamSlug: string | undefined, rideSlug: string | undefined) {
   return useQuery({
-    queryKey: ['rideGroups', teamSlug, rideId],
+    queryKey: ['rideGroups', teamSlug, rideSlug],
     queryFn: async () => {
-      return apiClient.get<RideGroupListResponse>(`/teams/${teamSlug}/rides/${rideId}/groups`);
+      return apiClient.get<RideGroupListResponse>(`/teams/${teamSlug}/rides/${rideSlug}/groups`);
     },
-    enabled: !!teamSlug && !!rideId,
+    enabled: !!teamSlug && !!rideSlug,
     staleTime: 1000 * 60 * 2,
   });
 }
@@ -133,20 +134,20 @@ export function useCreateRide(teamSlug: string | undefined) {
     },
     onSuccess: (ride) => {
       queryClient.invalidateQueries({ queryKey: ['rides', teamSlug] });
-      navigate(`/teams/${teamSlug}/rides/${ride.id}`);
+      navigate(`/teams/${teamSlug}/rides/${ride.slug}`);
     },
   });
 }
 
-export function useUpdateRide(teamSlug: string | undefined, rideId: string) {
+export function useUpdateRide(teamSlug: string | undefined, rideSlug: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (data: UpdateRideRequest) => {
-      return apiClient.patch<Ride>(`/teams/${teamSlug}/rides/${rideId}`, data);
+      return apiClient.patch<Ride>(`/teams/${teamSlug}/rides/${rideSlug}`, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['ride', teamSlug, rideId] });
+      queryClient.invalidateQueries({ queryKey: ['ride', teamSlug, rideSlug] });
       queryClient.invalidateQueries({ queryKey: ['rides', teamSlug] });
     },
   });
@@ -157,8 +158,8 @@ export function useDeleteRide(teamSlug: string | undefined) {
   const navigate = useNavigate();
 
   return useMutation({
-    mutationFn: async (rideId: string) => {
-      return apiClient.delete(`/teams/${teamSlug}/rides/${rideId}`);
+    mutationFn: async (rideSlug: string) => {
+      return apiClient.delete(`/teams/${teamSlug}/rides/${rideSlug}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['rides', teamSlug] });
@@ -167,48 +168,48 @@ export function useDeleteRide(teamSlug: string | undefined) {
   });
 }
 
-export function useCreateGroup(teamSlug: string | undefined, rideId: string) {
+export function useCreateGroup(teamSlug: string | undefined, rideSlug: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (data: CreateGroupRequest) => {
-      return apiClient.post<RideGroup>(`/teams/${teamSlug}/rides/${rideId}/groups`, data);
+      return apiClient.post<RideGroup>(`/teams/${teamSlug}/rides/${rideSlug}/groups`, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['ride', teamSlug, rideId] });
-      queryClient.invalidateQueries({ queryKey: ['rideGroups', teamSlug, rideId] });
+      queryClient.invalidateQueries({ queryKey: ['ride', teamSlug, rideSlug] });
+      queryClient.invalidateQueries({ queryKey: ['rideGroups', teamSlug, rideSlug] });
     },
   });
 }
 
-export function useJoinRide(teamSlug: string | undefined, rideId: string) {
+export function useJoinRide(teamSlug: string | undefined, rideSlug: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async ({ groupId, notes }: { groupId: string; notes?: string }) => {
       return apiClient.post<RideParticipation>(
-        `/teams/${teamSlug}/rides/${rideId}/groups/${groupId}/join`,
+        `/teams/${teamSlug}/rides/${rideSlug}/groups/${groupId}/join`,
         notes ? { notes } : undefined
       );
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['ride', teamSlug, rideId] });
-      queryClient.invalidateQueries({ queryKey: ['rideGroups', teamSlug, rideId] });
+      queryClient.invalidateQueries({ queryKey: ['ride', teamSlug, rideSlug] });
+      queryClient.invalidateQueries({ queryKey: ['rideGroups', teamSlug, rideSlug] });
       queryClient.invalidateQueries({ queryKey: ['rides', teamSlug] });
     },
   });
 }
 
-export function useLeaveRide(teamSlug: string | undefined, rideId: string) {
+export function useLeaveRide(teamSlug: string | undefined, rideSlug: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (groupId: string) => {
-      return apiClient.post(`/teams/${teamSlug}/rides/${rideId}/groups/${groupId}/leave`);
+      return apiClient.post(`/teams/${teamSlug}/rides/${rideSlug}/groups/${groupId}/leave`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['ride', teamSlug, rideId] });
-      queryClient.invalidateQueries({ queryKey: ['rideGroups', teamSlug, rideId] });
+      queryClient.invalidateQueries({ queryKey: ['ride', teamSlug, rideSlug] });
+      queryClient.invalidateQueries({ queryKey: ['rideGroups', teamSlug, rideSlug] });
       queryClient.invalidateQueries({ queryKey: ['rides', teamSlug] });
     },
   });
