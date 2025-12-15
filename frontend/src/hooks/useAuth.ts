@@ -10,7 +10,7 @@ interface UpdateUserRequest {
 }
 
 interface BackendUser {
-  id: number;
+  id: string;
   email: string;
   displayName: string;
   avatarUrl: string | null;

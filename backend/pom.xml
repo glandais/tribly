@@ -21,6 +21,7 @@
         <compiler-plugin.version>3.13.0</compiler-plugin.version>
         <surefire-plugin.version>3.5.2</surefire-plugin.version>
         <jpx.version>3.2.0</jpx.version>
+        <hypersistence-utils-hibernate.version>3.13.3</hypersistence-utils-hibernate.version>
     </properties>
 
     <dependencyManagement>
@@ -60,6 +61,11 @@
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-jdbc-postgresql</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.hypersistence</groupId>
+            <artifactId>hypersistence-utils-hibernate-71</artifactId>
+            <version>${hypersistence-utils-hibernate.version}</version>
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>

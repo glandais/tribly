@@ -4,6 +4,7 @@ import com.tribly.api.AbstractAuthenticatedResource;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.team.TeamRole;
 import com.tribly.infrastructure.exception.BusinessException;
+import com.tribly.infrastructure.id.TsidUtils;
 import com.tribly.service.team.TeamService;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
@@ -160,7 +161,7 @@ public class TeamResource extends AbstractAuthenticatedResource {
     ) {}
 
     public record TeamDto(
-            Long id,
+            String id,
             String name,
             String slug,
             String description,
@@ -171,7 +172,7 @@ public class TeamResource extends AbstractAuthenticatedResource {
     ) {
         public static TeamDto from(Team team) {
             return new TeamDto(
-                    team.getId(),
+                    TsidUtils.toString(team.getId()),
                     team.getName(),
                     team.getSlug(),
                     team.getDescription(),
@@ -184,7 +185,7 @@ public class TeamResource extends AbstractAuthenticatedResource {
     }
 
     public record TeamWithRoleDto(
-            Long id,
+            String id,
             String name,
             String slug,
             String description,
@@ -195,7 +196,7 @@ public class TeamResource extends AbstractAuthenticatedResource {
     ) {
         public static TeamWithRoleDto from(Team team, TeamRole role) {
             return new TeamWithRoleDto(
-                    team.getId(),
+                    TsidUtils.toString(team.getId()),
                     team.getName(),
                     team.getSlug(),
                     team.getDescription(),
@@ -208,7 +209,7 @@ public class TeamResource extends AbstractAuthenticatedResource {
     }
 
     public record TeamDetailDto(
-            Long id,
+            String id,
             String name,
             String slug,
             String description,
@@ -222,7 +223,7 @@ public class TeamResource extends AbstractAuthenticatedResource {
     ) {
         public static TeamDetailDto from(Team team, TeamRole role) {
             return new TeamDetailDto(
-                    team.getId(),
+                    TsidUtils.toString(team.getId()),
                     team.getName(),
                     team.getSlug(),
                     team.getDescription(),

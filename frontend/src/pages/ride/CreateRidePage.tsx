@@ -18,7 +18,7 @@ export function CreateRidePage() {
     { name: 'Main Group', averageSpeed: undefined, maxParticipants: undefined },
   ]);
 
-  const createMutation = useCreateRide(team?.id, teamSlug!);
+  const createMutation = useCreateRide(teamSlug);
 
   if (isLoadingTeam) {
     return <LoadingPage message="Loading team..." />;

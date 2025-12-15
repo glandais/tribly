@@ -16,15 +16,15 @@ const statusColors: Record<RideStatus, string> = {
 export function RideDetailPage() {
   const { teamSlug, rideId } = useParams<{ teamSlug: string; rideId: string }>();
   const { isAuthenticated } = useAuth();
-  const [joiningGroupId, setJoiningGroupId] = useState<number | null>(null);
+  const [joiningGroupId, setJoiningGroupId] = useState<string | null>(null);
 
   const { data: team, isLoading: isLoadingTeam } = useTeam(teamSlug);
-  const { data: ride, isLoading: isLoadingRide, error } = useRide(team?.id, rideId ? Number(rideId) : undefined);
+  const { data: ride, isLoading: isLoadingRide, error } = useRide(teamSlug, rideId);
 
-  const updateMutation = useUpdateRide(team?.id, Number(rideId));
-  const deleteMutation = useDeleteRide(team?.id, teamSlug!);
-  const joinMutation = useJoinRide(team?.id, Number(rideId));
-  const leaveMutation = useLeaveRide(team?.id, Number(rideId));
+  const updateMutation = useUpdateRide(teamSlug, rideId!);
+  const deleteMutation = useDeleteRide(teamSlug);
+  const joinMutation = useJoinRide(teamSlug, rideId!);
+  const leaveMutation = useLeaveRide(teamSlug, rideId!);
 
   if (isLoadingTeam || isLoadingRide) {
     return <LoadingPage message="Loading ride..." />;
@@ -73,11 +73,11 @@ export function RideDetailPage() {
 
   const handleDelete = () => {
     if (confirm('Are you sure you want to delete this ride? This cannot be undone.')) {
-      deleteMutation.mutate(Number(rideId));
+      deleteMutation.mutate(rideId!);
     }
   };
 
-  const handleJoinGroup = (groupId: number) => {
+  const handleJoinGroup = (groupId: string) => {
     setJoiningGroupId(groupId);
     joinMutation.mutate(
       { groupId },
@@ -87,7 +87,7 @@ export function RideDetailPage() {
     );
   };
 
-  const handleLeaveGroup = (groupId: number) => {
+  const handleLeaveGroup = (groupId: string) => {
     setJoiningGroupId(groupId);
     leaveMutation.mutate(groupId, {
       onSettled: () => setJoiningGroupId(null),

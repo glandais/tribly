@@ -6,6 +6,7 @@ import com.tribly.domain.team.TeamRole;
 import com.tribly.domain.team.UserTeam;
 import com.tribly.domain.user.User;
 import com.tribly.infrastructure.exception.BusinessException;
+import com.tribly.infrastructure.id.TsidUtils;
 import com.tribly.service.team.TeamMembershipService;
 import com.tribly.service.team.TeamService;
 import jakarta.annotation.security.RolesAllowed;
@@ -76,7 +77,8 @@ public class TeamMemberResource extends AbstractAuthenticatedResource {
         Long actingUserId = getCurrentUserId();
 
         TeamRole role = request.role() != null ? request.role() : TeamRole.MEMBER;
-        UserTeam membership = membershipService.addMember(team.getId(), request.userId(), role, actingUserId);
+        Long targetUserId = TsidUtils.toLong(request.userId());
+        UserTeam membership = membershipService.addMember(team.getId(), targetUserId, role, actingUserId);
 
         return Response.created(URI.create("/v1/teams/" + slug + "/members/" + request.userId()))
                 .entity(MemberDto.from(membership))
@@ -88,13 +90,13 @@ public class TeamMemberResource extends AbstractAuthenticatedResource {
     @Transactional
     public Response updateMemberRole(
             @PathParam("slug") String slug,
-            @PathParam("memberId") Long memberId,
+            @PathParam("memberId") String memberId,
             @Valid UpdateMemberRoleRequest request) {
 
         Team team = getTeamBySlug(slug);
         Long actingUserId = getCurrentUserId();
 
-        UserTeam membership = membershipService.updateMemberRole(team.getId(), memberId, request.role(), actingUserId);
+        UserTeam membership = membershipService.updateMemberRole(team.getId(), TsidUtils.toLong(memberId), request.role(), actingUserId);
         return Response.ok(MemberDto.from(membership)).build();
     }
 
@@ -102,12 +104,12 @@ public class TeamMemberResource extends AbstractAuthenticatedResource {
     @Path("/{memberId}")
     public Response removeMember(
             @PathParam("slug") String slug,
-            @PathParam("memberId") Long memberId) {
+            @PathParam("memberId") String memberId) {
 
         Team team = getTeamBySlug(slug);
         Long actingUserId = getCurrentUserId();
 
-        membershipService.removeMember(team.getId(), memberId, actingUserId);
+        membershipService.removeMember(team.getId(), TsidUtils.toLong(memberId), actingUserId);
         return Response.noContent().build();
     }
 
@@ -117,7 +119,7 @@ public class TeamMemberResource extends AbstractAuthenticatedResource {
     }
 
     public record AddMemberRequest(
-            @NotNull Long userId,
+            @NotNull String userId,
             TeamRole role
     ) {}
 
@@ -126,8 +128,8 @@ public class TeamMemberResource extends AbstractAuthenticatedResource {
     ) {}
 
     public record MemberDto(
-            Long id,
-            Long userId,
+            String id,
+            String userId,
             String displayName,
             String avatarUrl,
             String email,
@@ -137,8 +139,8 @@ public class TeamMemberResource extends AbstractAuthenticatedResource {
         public static MemberDto from(UserTeam userTeam) {
             User user = userTeam.getUser();
             return new MemberDto(
-                    userTeam.getId(),
-                    user.getId(),
+                    TsidUtils.toString(userTeam.getId()),
+                    TsidUtils.toString(user.getId()),
                     user.getDisplayName(),
                     user.getAvatarUrl(),
                     user.getEmail(),

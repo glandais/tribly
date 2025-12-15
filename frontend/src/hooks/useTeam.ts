@@ -4,7 +4,7 @@ import apiClient from '../api/client';
 import { useAuthStore } from '../store/authStore';
 
 export interface Team {
-  id: number;
+  id: string;
   name: string;
   slug: string;
   description: string | null;
@@ -25,8 +25,8 @@ export interface TeamDetail extends Team {
 }
 
 export interface TeamMember {
-  id: number;
-  userId: number;
+  id: string;
+  userId: string;
   displayName: string;
   avatarUrl: string | null;
   email: string;
@@ -209,7 +209,7 @@ export function useUpdateMemberRole(slug: string) {
       memberId,
       role,
     }: {
-      memberId: number;
+      memberId: string;
       role: 'ADMIN' | 'ORGANIZER' | 'MEMBER';
     }) => {
       return apiClient.put<TeamMember>(`/teams/${slug}/members/${memberId}`, {
@@ -226,7 +226,7 @@ export function useRemoveMember(slug: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (memberId: number) => {
+    mutationFn: async (memberId: string) => {
       return apiClient.delete(`/teams/${slug}/members/${memberId}`);
     },
     onSuccess: () => {

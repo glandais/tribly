@@ -6,9 +6,9 @@ import type { TeamMember } from '../../hooks/useTeam';
 interface TeamMemberListProps {
   members: TeamMember[];
   currentUserRole: 'ADMIN' | 'ORGANIZER' | 'MEMBER' | null;
-  currentUserId: number | null;
-  onUpdateRole?: (memberId: number, role: 'ADMIN' | 'ORGANIZER' | 'MEMBER') => void;
-  onRemoveMember?: (memberId: number) => void;
+  currentUserId: string | null;
+  onUpdateRole?: (memberId: string, role: 'ADMIN' | 'ORGANIZER' | 'MEMBER') => void;
+  onRemoveMember?: (memberId: string) => void;
   isUpdating?: boolean;
   isRemoving?: boolean;
 }
@@ -34,20 +34,20 @@ export function TeamMemberList({
   isUpdating = false,
   isRemoving = false,
 }: TeamMemberListProps) {
-  const [editingMemberId, setEditingMemberId] = useState<number | null>(null);
+  const [editingMemberId, setEditingMemberId] = useState<string | null>(null);
   const [selectedRole, setSelectedRole] = useState<'ADMIN' | 'ORGANIZER' | 'MEMBER'>('MEMBER');
 
   const canManageMembers = currentUserRole === 'ADMIN';
   const canAssignOrganizers = currentUserRole === 'ADMIN' || currentUserRole === 'ORGANIZER';
 
-  const handleRoleChange = (memberId: number) => {
+  const handleRoleChange = (memberId: string) => {
     if (onUpdateRole) {
       onUpdateRole(memberId, selectedRole);
       setEditingMemberId(null);
     }
   };
 
-  const handleRemove = (memberId: number) => {
+  const handleRemove = (memberId: string) => {
     if (onRemoveMember && confirm('Are you sure you want to remove this member?')) {
       onRemoveMember(memberId);
     }

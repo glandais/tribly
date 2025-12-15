@@ -3,6 +3,7 @@ package com.tribly.api.users;
 import com.tribly.api.AbstractAuthenticatedResource;
 import com.tribly.domain.user.User;
 import com.tribly.infrastructure.exception.BusinessException;
+import com.tribly.infrastructure.id.TsidUtils;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
@@ -49,8 +50,9 @@ public class UserResource extends AbstractAuthenticatedResource {
 
     @GET
     @Path("/{id}")
-    public Response getUserById(@PathParam("id") Long id) {
-        User user = userRepository.findActiveById(id)
+    public Response getUserById(@PathParam("id") String id) {
+        Long userId = TsidUtils.toLong(id);
+        User user = userRepository.findActiveById(userId)
                 .orElseThrow(() -> BusinessException.notFound("User", id));
 
         return Response.ok(PublicUserDto.from(user)).build();
@@ -69,7 +71,7 @@ public class UserResource extends AbstractAuthenticatedResource {
     }
 
     public record UserDto(
-            Long id,
+            String id,
             String email,
             String displayName,
             String avatarUrl,
@@ -79,7 +81,7 @@ public class UserResource extends AbstractAuthenticatedResource {
     ) {
         public static UserDto from(User user) {
             return new UserDto(
-                    user.getId(),
+                    TsidUtils.toString(user.getId()),
                     user.getEmail(),
                     user.getDisplayName(),
                     user.getAvatarUrl(),
@@ -91,13 +93,13 @@ public class UserResource extends AbstractAuthenticatedResource {
     }
 
     public record PublicUserDto(
-            Long id,
+            String id,
             String displayName,
             String avatarUrl
     ) {
         public static PublicUserDto from(User user) {
             return new PublicUserDto(
-                    user.getId(),
+                    TsidUtils.toString(user.getId()),
                     user.getDisplayName(),
                     user.getAvatarUrl()
             );

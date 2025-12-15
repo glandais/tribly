@@ -43,6 +43,14 @@ public class BusinessException extends RuntimeException {
         );
     }
 
+    public static BusinessException notFound(String entity, String id) {
+        return new BusinessException(
+                String.format("%s with id '%s' not found", entity, id),
+                ErrorType.NOT_FOUND,
+                entity.toUpperCase() + "_NOT_FOUND"
+        );
+    }
+
     public static BusinessException conflict(String message) {
         return new BusinessException(message, ErrorType.CONFLICT);
     }

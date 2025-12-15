@@ -12,7 +12,7 @@ export interface User {
   avatarUrl?: string | null;
   locale?: string;
   timezone?: string;
-  dbId?: number;
+  dbId?: string;
 }
 
 export interface AuthState {
