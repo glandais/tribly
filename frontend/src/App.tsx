@@ -11,6 +11,7 @@ import { TeamSettingsPage } from './pages/team/TeamSettingsPage';
 import { RideListPage } from './pages/ride/RideListPage';
 import { RideDetailPage } from './pages/ride/RideDetailPage';
 import { CreateRidePage } from './pages/ride/CreateRidePage';
+import { EditRidePage } from './pages/ride/EditRidePage';
 
 function HomePage() {
   return (
@@ -96,6 +97,14 @@ function App() {
               }
             />
             <Route path="teams/:teamSlug/rides/:rideSlug" element={<RideDetailPage />} />
+            <Route
+              path="teams/:teamSlug/rides/:rideSlug/edit"
+              element={
+                <AuthenticatedRoute>
+                  <EditRidePage />
+                </AuthenticatedRoute>
+              }
+            />
 
             {/* Trip routes - to be implemented */}
             <Route path="teams/:teamSlug/trips" element={<div>Trips List</div>} />

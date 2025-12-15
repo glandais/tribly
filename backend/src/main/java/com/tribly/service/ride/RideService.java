@@ -257,6 +257,53 @@ public class RideService {
         return rideRepository.findByTeamAndSlug(teamId, rideSlug);
     }
 
+    @Transactional
+    public RideGroup updateGroup(Long teamId, Long rideId, Long groupId, UpdateRideGroupRequest request, Long userId) {
+        Ride ride = rideRepository.findByIdAndTeam(rideId, teamId)
+                .orElseThrow(() -> BusinessException.notFound("Ride", rideId));
+
+        // Security check: must be admin or creator (if organizer) to edit groups
+        securityService.requireCanEditRide(userId, teamId, ride);
+
+        RideGroup group = rideGroupRepository.findByIdAndRide(groupId, rideId)
+                .orElseThrow(() -> BusinessException.notFound("Group", groupId));
+
+        if (request.name() != null) {
+            group.setName(request.name());
+        }
+        if (request.description() != null) {
+            group.setDescription(request.description());
+        }
+        if (request.averageSpeed() != null) {
+            group.setAverageSpeed(request.averageSpeed());
+        }
+        if (request.maxParticipants() != null) {
+            group.setMaxParticipants(request.maxParticipants());
+        }
+
+        rideGroupRepository.persist(group);
+        LOG.infov("Group {0} updated in ride {1} by user {2}", groupId, rideId, userId);
+        return group;
+    }
+
+    @Transactional
+    public void deleteGroup(Long teamId, Long rideId, Long groupId, Long userId) {
+        Ride ride = rideRepository.findByIdAndTeam(rideId, teamId)
+                .orElseThrow(() -> BusinessException.notFound("Ride", rideId));
+
+        // Security check: must be admin or creator (if organizer) to delete groups
+        securityService.requireCanEditRide(userId, teamId, ride);
+
+        RideGroup group = rideGroupRepository.findByIdAndRide(groupId, rideId)
+                .orElseThrow(() -> BusinessException.notFound("Group", groupId));
+
+        // Soft delete the group
+        group.setDeleted(true);
+        rideGroupRepository.persist(group);
+
+        LOG.infov("Group {0} deleted from ride {1} by user {2}", groupId, rideId, userId);
+    }
+
     private String generateSlug(String input) {
         String nowhitespace = WHITESPACE.matcher(input).replaceAll("-");
         String normalized = Normalizer.normalize(nowhitespace, Normalizer.Form.NFD);
@@ -287,6 +334,14 @@ public class RideService {
     ) {}
 
     public record CreateRideGroupRequest(
+            String name,
+            String description,
+            Integer averageSpeed,
+            Integer maxParticipants,
+            Long routeId
+    ) {}
+
+    public record UpdateRideGroupRequest(
             String name,
             String description,
             Integer averageSpeed,

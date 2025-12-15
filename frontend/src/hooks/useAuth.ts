@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '../store/authStore';
 import apiClient, { ApiClientError } from '../api/client';
@@ -16,10 +16,28 @@ interface BackendUser {
   avatarUrl: string | null;
   locale: string;
   timezone: string;
+  createdAt: string | null;
+}
+
+// Get browser's preferred language (e.g., "en", "fr", "en-US" -> "en")
+function getBrowserLocale(): string {
+  const lang = navigator.language || (navigator as { userLanguage?: string }).userLanguage || 'en';
+  // Return just the language code (e.g., "en" from "en-US")
+  return lang.split('-')[0].toLowerCase();
+}
+
+// Get browser's timezone (e.g., "Europe/Paris", "America/New_York")
+function getBrowserTimezone(): string {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone;
+  } catch {
+    return 'UTC';
+  }
 }
 
 export function useAuth() {
   const queryClient = useQueryClient();
+  const preferencesInitialized = useRef(false);
   const {
     user,
     isAuthenticated,
@@ -63,6 +81,40 @@ export function useAuth() {
         locale: backendUser.locale,
         timezone: backendUser.timezone,
       });
+    }
+  }, [backendUser?.id]);
+
+  // Auto-initialize user preferences from browser on first login
+  // Detects if user still has default values and updates with browser info
+  useEffect(() => {
+    if (
+      backendUser &&
+      !preferencesInitialized.current &&
+      backendUser.locale === 'en' &&
+      backendUser.timezone === 'UTC'
+    ) {
+      preferencesInitialized.current = true;
+      const browserLocale = getBrowserLocale();
+      const browserTimezone = getBrowserTimezone();
+
+      // Only update if browser values differ from defaults
+      if (browserLocale !== 'en' || browserTimezone !== 'UTC') {
+        apiClient.put<BackendUser>('/users/me', {
+          locale: browserLocale,
+          timezone: browserTimezone,
+        }).then((updatedUser) => {
+          queryClient.setQueryData(['currentUser'], updatedUser);
+          if (user) {
+            setUser({
+              ...user,
+              locale: updatedUser.locale,
+              timezone: updatedUser.timezone,
+            });
+          }
+        }).catch(() => {
+          // Silently fail - this is a nice-to-have feature
+        });
+      }
     }
   }, [backendUser?.id]);
 

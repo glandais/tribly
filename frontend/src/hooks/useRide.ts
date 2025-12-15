@@ -182,6 +182,41 @@ export function useCreateGroup(teamSlug: string | undefined, rideSlug: string) {
   });
 }
 
+export interface UpdateGroupRequest {
+  name?: string;
+  description?: string;
+  averageSpeed?: number;
+  maxParticipants?: number;
+}
+
+export function useUpdateGroup(teamSlug: string | undefined, rideSlug: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ groupId, data }: { groupId: string; data: UpdateGroupRequest }) => {
+      return apiClient.patch<RideGroup>(`/teams/${teamSlug}/rides/${rideSlug}/groups/${groupId}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ride', teamSlug, rideSlug] });
+      queryClient.invalidateQueries({ queryKey: ['rideGroups', teamSlug, rideSlug] });
+    },
+  });
+}
+
+export function useDeleteGroup(teamSlug: string | undefined, rideSlug: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (groupId: string) => {
+      return apiClient.delete(`/teams/${teamSlug}/rides/${rideSlug}/groups/${groupId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['ride', teamSlug, rideSlug] });
+      queryClient.invalidateQueries({ queryKey: ['rideGroups', teamSlug, rideSlug] });
+    },
+  });
+}
+
 export function useJoinRide(teamSlug: string | undefined, rideSlug: string) {
   const queryClient = useQueryClient();
 

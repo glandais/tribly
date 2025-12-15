@@ -189,6 +189,52 @@ public class RideResource extends AbstractAuthenticatedResource {
                 .build();
     }
 
+    @PATCH
+    @Path("/{rideSlug}/groups/{groupId}")
+    public Response updateGroup(
+            @PathParam("slug") String slug,
+            @PathParam("rideSlug") String rideSlug,
+            @PathParam("groupId") String groupId,
+            @Valid UpdateGroupRequest request) {
+
+        Team team = getTeamBySlug(slug);
+        Long userId = getCurrentUserId();
+
+        Ride ride = rideService.getRideBySlug(team.getId(), rideSlug, userId)
+                .orElseThrow(() -> BusinessException.notFound("Ride with slug '" + rideSlug + "' not found"));
+
+        RideGroup group = rideService.updateGroup(team.getId(), ride.getId(), TsidUtils.toLong(groupId),
+                new RideService.UpdateRideGroupRequest(
+                        request.name(),
+                        request.description(),
+                        request.averageSpeed(),
+                        request.maxParticipants(),
+                        TsidUtils.toLong(request.routeId())
+                ),
+                userId
+        );
+
+        return Response.ok(RideGroupDto.from(group)).build();
+    }
+
+    @DELETE
+    @Path("/{rideSlug}/groups/{groupId}")
+    public Response deleteGroup(
+            @PathParam("slug") String slug,
+            @PathParam("rideSlug") String rideSlug,
+            @PathParam("groupId") String groupId) {
+
+        Team team = getTeamBySlug(slug);
+        Long userId = getCurrentUserId();
+
+        Ride ride = rideService.getRideBySlug(team.getId(), rideSlug, userId)
+                .orElseThrow(() -> BusinessException.notFound("Ride with slug '" + rideSlug + "' not found"));
+
+        rideService.deleteGroup(team.getId(), ride.getId(), TsidUtils.toLong(groupId), userId);
+
+        return Response.noContent().build();
+    }
+
     @POST
     @Path("/{rideSlug}/groups/{groupId}/join")
     public Response joinGroup(
@@ -254,6 +300,14 @@ public class RideResource extends AbstractAuthenticatedResource {
 
     public record CreateGroupRequest(
             @NotBlank @Size(min = 1, max = 100) String name,
+            String description,
+            Integer averageSpeed,
+            Integer maxParticipants,
+            String routeId
+    ) {}
+
+    public record UpdateGroupRequest(
+            @Size(min = 1, max = 100) String name,
             String description,
             Integer averageSpeed,
             Integer maxParticipants,

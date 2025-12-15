@@ -65,6 +65,12 @@ export function RideDetailPage() {
     updateMutation.mutate({ status: 'PUBLISHED' });
   };
 
+  const handleUnpublish = () => {
+    if (confirm('Are you sure you want to unpublish this ride? It will return to draft status.')) {
+      updateMutation.mutate({ status: 'DRAFT' });
+    }
+  };
+
   const handleCancel = () => {
     if (confirm('Are you sure you want to cancel this ride?')) {
       updateMutation.mutate({ status: 'CANCELLED' });
@@ -150,6 +156,15 @@ export function RideDetailPage() {
 
           {canEdit && (
             <div className="flex items-center gap-2">
+              <Link
+                to={`/teams/${teamSlug}/rides/${rideSlug}/edit`}
+                className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+              >
+                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                Edit
+              </Link>
               {ride.status === 'DRAFT' && (
                 <button
                   onClick={handlePublish}
@@ -161,13 +176,22 @@ export function RideDetailPage() {
                 </button>
               )}
               {ride.status === 'PUBLISHED' && (
-                <button
-                  onClick={handleCancel}
-                  disabled={updateMutation.isPending}
-                  className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
-                >
-                  Cancel Ride
-                </button>
+                <>
+                  <button
+                    onClick={handleUnpublish}
+                    disabled={updateMutation.isPending}
+                    className="inline-flex items-center px-3 py-2 border border-yellow-300 rounded-md text-sm font-medium text-yellow-700 bg-white hover:bg-yellow-50 disabled:opacity-50"
+                  >
+                    Unpublish
+                  </button>
+                  <button
+                    onClick={handleCancel}
+                    disabled={updateMutation.isPending}
+                    className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+                  >
+                    Cancel Ride
+                  </button>
+                </>
               )}
               <button
                 onClick={handleDelete}
