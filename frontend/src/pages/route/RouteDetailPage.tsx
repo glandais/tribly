@@ -27,6 +27,7 @@ export function RouteDetailPage() {
   const handleDelete = async () => {
     if (routeId) {
       await deleteRoute.mutateAsync(routeId);
+      navigate(`/teams/${teamSlug}/routes`);
     }
   };
 

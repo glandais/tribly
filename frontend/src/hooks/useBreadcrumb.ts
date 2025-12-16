@@ -10,7 +10,6 @@ export function useBreadcrumb(): BreadcrumbItem[] {
   const { teamSlug, rideSlug, routeId } = useParams<{ teamSlug?: string; rideSlug?: string; routeId?: string }>();
   const { t: tCommon } = useTranslation('common');
   const { t: tRides } = useTranslation('rides');
-  const { t: tRoutes } = useTranslation('routes');
 
   // Fetch team data if we're on a team-related route
   const { data: team } = useTeam(teamSlug);
