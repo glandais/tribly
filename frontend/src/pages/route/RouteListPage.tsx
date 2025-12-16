@@ -73,7 +73,7 @@ export function RouteListPage() {
               {/* Thumbnail */}
               {route.thumbnailUrl ? (
                 <img
-                  src={route.thumbnailUrl}
+                  src={`/api/download/teams/${teamSlug}/routes/${route.id}/thumbnail`}
                   alt={route.name}
                   className="w-full h-48 object-cover"
                 />

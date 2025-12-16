@@ -57,7 +57,7 @@ export function ConfirmDialog({
   const styles = variantStyles[variant];
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
+    <div className="fixed inset-0 z-[9999] overflow-y-auto">
       <div className="flex min-h-screen items-center justify-center p-4">
         {/* Backdrop */}
         <div
@@ -67,7 +67,7 @@ export function ConfirmDialog({
 
         {/* Dialog */}
         <div
-          className={`relative w-full max-w-md transform rounded-lg ${styles.bg} ${styles.border} border p-6 shadow-xl transition-all`}
+          className={`relative w-full max-w-md transform rounded-lg ${styles.bg} ${styles.border} border p-6 shadow-xl transition-all z-[10000]`}
         >
           <h3 className={`text-lg font-semibold ${styles.text} mb-3`}>{title}</h3>
           <p className={`text-sm ${styles.messageText} mb-6`}>{message}</p>

@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useTeam, useUpdateTeam, useDeleteTeam } from '../../hooks/useTeam';
 import { LoadingPage, LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { ApiClientError } from '../../api/client';
+import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 
 export function TeamSettingsPage() {
   const { t } = useTranslation('teams');
@@ -280,42 +281,24 @@ export function TeamSettingsPage() {
           {t('settings.dangerZone.description')}
         </p>
 
-        {!showDeleteConfirm ? (
-          <button
-            onClick={() => setShowDeleteConfirm(true)}
-            className="mt-4 inline-flex items-center px-4 py-2 border border-red-300 rounded-md shadow-sm text-sm font-medium text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-          >
-            {t('settings.dangerZone.deleteTeam')}
-          </button>
-        ) : (
-          <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-sm text-red-700 mb-4" dangerouslySetInnerHTML={{ __html: t('settings.dangerZone.deleteWarning', { teamName: team.name }) }} />
-            <div className="flex items-center gap-3">
-              <button
-                onClick={handleDelete}
-                disabled={deleteMutation.isPending}
-                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 disabled:opacity-50"
-              >
-                {deleteMutation.isPending ? (
-                  <>
-                    <LoadingSpinner size="sm" color="white" className="mr-2" />
-                    {t('settings.dangerZone.deleting')}
-                  </>
-                ) : (
-                  t('settings.dangerZone.confirmDelete')
-                )}
-              </button>
-              <button
-                onClick={() => setShowDeleteConfirm(false)}
-                disabled={deleteMutation.isPending}
-                className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-              >
-                {tCommon('buttons.cancel')}
-              </button>
-            </div>
-          </div>
-        )}
+        <button
+          onClick={() => setShowDeleteConfirm(true)}
+          className="mt-4 inline-flex items-center px-4 py-2 border border-red-300 rounded-md shadow-sm text-sm font-medium text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+        >
+          {t('settings.dangerZone.deleteTeam')}
+        </button>
       </div>
+
+      <ConfirmDialog
+        isOpen={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        onConfirm={handleDelete}
+        title={t('settings.dangerZone.title')}
+        message={t('settings.dangerZone.deleteWarning', { teamName: team?.name })}
+        confirmText={t('settings.dangerZone.confirmDelete')}
+        variant="danger"
+        isLoading={deleteMutation.isPending}
+      />
     </div>
   );
 }

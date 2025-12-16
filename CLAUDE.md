@@ -350,9 +350,11 @@ Language syncs with user profile locale preference in `UserProfilePage.tsx`:
 
 ## UI Components
 
-### ConfirmDialog
+### ConfirmDialog ⚠️ IMPORTANT
 
-The project uses a reusable `ConfirmDialog` component for all user confirmations instead of native `confirm()` dialogs.
+**ALWAYS use `ConfirmDialog` for user confirmations. NEVER create custom confirmation dialogs or use inline confirmation patterns.**
+
+The project uses a reusable `ConfirmDialog` component for all user confirmations instead of native `confirm()` dialogs or custom modal implementations.
 
 **Location**: `frontend/src/components/common/ConfirmDialog.tsx`
 
@@ -458,9 +460,56 @@ function Component() {
 - Confirmation messages go in the appropriate namespace (e.g., `teams.json`, `rides.json`)
 - Common button text is in `common.json`: `buttons.cancel`, `buttons.confirm`, `buttons.loading`
 
-**Never use**:
-- Native `confirm()` dialogs - always use `ConfirmDialog` instead
-- Native `alert()` dialogs - use toast notifications or error messages instead
+**❌ Anti-Patterns (Never Use)**:
+
+1. **Native dialogs**: Don't use `confirm()` or `alert()` - always use `ConfirmDialog` instead
+2. **Custom modal implementations**: Don't create one-off confirmation modals with manual JSX
+3. **Inline confirmation patterns**: Don't use conditional rendering of confirm buttons (e.g., `showConfirm ? <ConfirmButtons /> : <ActionButton />`)
+4. **Inline danger zones**: Don't show confirmation UI inline - always use the modal pattern
+
+**Examples of what NOT to do**:
+
+```tsx
+// ❌ WRONG: Custom modal with manual JSX
+{showDeleteConfirm && (
+  <div className="fixed inset-0 ...">
+    <div className="bg-white ...">
+      <h3>Are you sure?</h3>
+      <button onClick={handleDelete}>Delete</button>
+      <button onClick={() => setShowDeleteConfirm(false)}>Cancel</button>
+    </div>
+  </div>
+)}
+
+// ❌ WRONG: Inline confirmation pattern
+{showDeleteConfirm ? (
+  <div className="bg-red-50">
+    <button onClick={handleDelete}>Confirm Delete</button>
+    <button onClick={() => setShowDeleteConfirm(false)}>Cancel</button>
+  </div>
+) : (
+  <button onClick={() => setShowDeleteConfirm(true)}>Delete</button>
+)}
+
+// ✅ RIGHT: Use ConfirmDialog component
+<button onClick={() => setShowDeleteConfirm(true)}>Delete</button>
+<ConfirmDialog
+  isOpen={showDeleteConfirm}
+  onClose={() => setShowDeleteConfirm(false)}
+  onConfirm={handleDelete}
+  title="Delete Item"
+  message="Are you sure you want to delete this item?"
+  variant="danger"
+/>
+```
+
+**Why ConfirmDialog is better**:
+- Consistent UI/UX across the application
+- Proper z-index handling (appears above maps and other overlays)
+- Built-in loading states and accessibility
+- Translation-ready with consistent button text
+- Mobile-responsive with proper backdrop
+- Prevents code duplication
 
 ## Development URLs
 

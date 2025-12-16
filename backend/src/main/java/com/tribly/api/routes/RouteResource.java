@@ -11,6 +11,7 @@ import com.tribly.infrastructure.exception.BusinessException;
 import com.tribly.infrastructure.id.TsidUtils;
 import com.tribly.service.route.RouteService;
 import com.tribly.service.team.TeamService;
+import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.validation.constraints.NotBlank;
@@ -33,7 +34,6 @@ import java.util.List;
 @Path("/api/teams/{slug}/routes")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-@RolesAllowed("user")
 public class RouteResource extends AbstractAuthenticatedResource {
 
     @Inject
@@ -46,6 +46,7 @@ public class RouteResource extends AbstractAuthenticatedResource {
      * List routes for a team.
      */
     @GET
+    @PermitAll
     public Response listRoutes(
             @PathParam("slug") String teamSlug,
             @QueryParam("page") @DefaultValue("0") int page,
@@ -67,6 +68,7 @@ public class RouteResource extends AbstractAuthenticatedResource {
      */
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @RolesAllowed("user")
     public Response createRoute(
             @PathParam("slug") String teamSlug,
             @RestForm @NotBlank String name,
@@ -107,6 +109,7 @@ public class RouteResource extends AbstractAuthenticatedResource {
      */
     @GET
     @Path("/{routeId}")
+    @PermitAll
     public Response getRoute(
             @PathParam("slug") String teamSlug,
             @PathParam("routeId") String routeId) {
@@ -126,6 +129,7 @@ public class RouteResource extends AbstractAuthenticatedResource {
      */
     @PATCH
     @Path("/{routeId}")
+    @RolesAllowed("user")
     public Response updateRoute(
             @PathParam("slug") String teamSlug,
             @PathParam("routeId") String routeId,
@@ -152,6 +156,7 @@ public class RouteResource extends AbstractAuthenticatedResource {
      */
     @DELETE
     @Path("/{routeId}")
+    @RolesAllowed("user")
     public Response deleteRoute(
             @PathParam("slug") String teamSlug,
             @PathParam("routeId") String routeId) {
@@ -169,14 +174,15 @@ public class RouteResource extends AbstractAuthenticatedResource {
      */
     @GET
     @Path("/{routeId}/climbs")
+    @PermitAll
     public Response getClimbs(
             @PathParam("slug") String teamSlug,
             @PathParam("routeId") String routeId) {
-
         Team team = getTeamBySlug(teamSlug);
+        Long userId = getCurrentUserIdOrNull();
         Long routeIdLong = TsidUtils.toLong(routeId);
 
-        List<RouteClimb> climbs = routeService.getClimbs(routeIdLong);
+        List<RouteClimb> climbs = routeService.getClimbs(team.getId(), routeIdLong, userId);
         List<RouteClimbDto> dtos = climbs.stream().map(RouteClimbDto::from).toList();
         return Response.ok(new ClimbListResponse(dtos)).build();
     }
@@ -186,72 +192,16 @@ public class RouteResource extends AbstractAuthenticatedResource {
      */
     @GET
     @Path("/{routeId}/track")
+    @PermitAll
     public Response getTrack(
             @PathParam("slug") String teamSlug,
             @PathParam("routeId") String routeId) {
-
         Team team = getTeamBySlug(teamSlug);
+        Long userId = getCurrentUserIdOrNull();
         Long routeIdLong = TsidUtils.toLong(routeId);
 
-        GpxTrack track = routeService.getTrack(routeIdLong);
+        GpxTrack track = routeService.getTrack(team.getId(), routeIdLong, userId);
         return Response.ok(GpxTrackDto.from(track)).build();
-    }
-
-    /**
-     * Download filtered GPX file.
-     */
-    @GET
-    @Path("/{routeId}/download/gpx")
-    @Produces("application/gpx+xml")
-    public Response downloadGpx(
-            @PathParam("slug") String teamSlug,
-            @PathParam("routeId") String routeId) {
-
-        Team team = getTeamBySlug(teamSlug);
-        Long routeIdLong = TsidUtils.toLong(routeId);
-
-        File gpxFile = routeService.getFilteredGpxFile(routeIdLong);
-        return Response.ok(gpxFile)
-                .header("Content-Disposition", "attachment; filename=\"route.gpx\"")
-                .build();
-    }
-
-    /**
-     * Download FIT file.
-     */
-    @GET
-    @Path("/{routeId}/download/fit")
-    @Produces("application/octet-stream")
-    public Response downloadFit(
-            @PathParam("slug") String teamSlug,
-            @PathParam("routeId") String routeId) {
-
-        Team team = getTeamBySlug(teamSlug);
-        Long routeIdLong = TsidUtils.toLong(routeId);
-
-        File fitFile = routeService.getFitFile(routeIdLong);
-        return Response.ok(fitFile)
-                .header("Content-Disposition", "attachment; filename=\"route.fit\"")
-                .build();
-    }
-
-    /**
-     * Get route thumbnail image.
-     */
-    @GET
-    @Path("/{routeId}/thumbnail")
-    @Produces("image/png")
-    public Response getThumbnail(
-            @PathParam("slug") String teamSlug,
-            @PathParam("routeId") String routeId) {
-
-        Team team = getTeamBySlug(teamSlug);
-        Long routeIdLong = TsidUtils.toLong(routeId);
-
-        File thumbnail = routeService.getThumbnailFile(routeIdLong);
-        return Response.ok(thumbnail)
-                .header("Cache-Control", "public, max-age=86400")
-                .build();
     }
 
     private Team getTeamBySlug(String slug) {

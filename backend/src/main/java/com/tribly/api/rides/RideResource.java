@@ -2,7 +2,10 @@ package com.tribly.api.rides;
 
 import com.tribly.api.AbstractAuthenticatedResource;
 import com.tribly.domain.common.Visibility;
-import com.tribly.domain.ride.*;
+import com.tribly.domain.ride.Ride;
+import com.tribly.domain.ride.RideGroup;
+import com.tribly.domain.ride.RideParticipation;
+import com.tribly.domain.ride.RideStatus;
 import com.tribly.domain.team.Team;
 import com.tribly.infrastructure.exception.BusinessException;
 import com.tribly.infrastructure.id.TsidUtils;
@@ -23,7 +26,6 @@ import jakarta.ws.rs.core.Response;
 import java.net.URI;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 

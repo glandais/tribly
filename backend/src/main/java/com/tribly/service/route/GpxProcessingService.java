@@ -137,7 +137,7 @@ public class GpxProcessingService {
             try {
                 // Use OpenStreetMap tiles, 512x512 max size, 0.1 margin
                 tileMapProducer.createTileMap(thumbnailFile, gpx,
-                        "https://{abc}.tile.openstreetmap.org/{z}/{x}/{y}.png", 0.1, 512);
+                        "https://a.tile.openstreetmap.org/{z}/{x}/{y}.png", 0.1, 512);
                 LOG.infov("Generated thumbnail to {0}", thumbnailFile);
             } catch (Exception e) {
                 LOG.warnv("Thumbnail generation failed for route {0}: {1}", routeId, e.getMessage());

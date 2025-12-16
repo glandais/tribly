@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { MapContainer, TileLayer, Polyline } from 'react-leaflet';
 import { useRoute, useRouteClimbs, useGpxTrack, useDeleteRoute } from '../../hooks/useRoute';
 import { useTeam } from '../../hooks/useTeam';
-import { useAuthStore } from '../../store/authStore';
+import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import 'leaflet/dist/leaflet.css';
 
 export function RouteDetailPage() {
@@ -27,33 +27,6 @@ export function RouteDetailPage() {
   const handleDelete = async () => {
     if (routeId) {
       await deleteRoute.mutateAsync(routeId);
-    }
-  };
-
-  const handleDownload = async (format: 'gpx' | 'fit') => {
-    try {
-      const token = useAuthStore.getState().getToken();
-      const response = await fetch(`/api/teams/${teamSlug}/routes/${routeId}/download/${format}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error('Download failed');
-      }
-
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `route.${format}`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-    } catch (error) {
-      console.error('Download failed:', error);
     }
   };
 
@@ -147,34 +120,16 @@ export function RouteDetailPage() {
         </div>
       </div>
 
-      {/* Delete Confirmation Modal */}
-      {showDeleteConfirm && (
-        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full">
-            <h3 className="text-lg font-medium text-gray-900 mb-4">
-              {t('detail.deleteConfirm.title')}
-            </h3>
-            <p className="text-gray-600 mb-6">
-              {t('detail.deleteConfirm.message')}
-            </p>
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={() => setShowDeleteConfirm(false)}
-                className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
-              >
-                {tCommon('buttons.cancel')}
-              </button>
-              <button
-                onClick={handleDelete}
-                disabled={deleteRoute.isPending}
-                className="px-4 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-red-600 hover:bg-red-700 disabled:opacity-50"
-              >
-                {deleteRoute.isPending ? tCommon('status.deleting') : tCommon('buttons.delete')}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDialog
+        isOpen={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        onConfirm={handleDelete}
+        title={t('detail.deleteConfirm.title')}
+        message={t('detail.deleteConfirm.message')}
+        confirmText={tCommon('buttons.delete')}
+        variant="danger"
+        isLoading={deleteRoute.isPending}
+      />
 
       {/* Map */}
       <div className="mb-8 rounded-lg overflow-hidden shadow-lg">
@@ -326,24 +281,24 @@ export function RouteDetailPage() {
       <div className="bg-white rounded-lg shadow p-6">
         <h2 className="text-xl font-bold text-gray-900 mb-4">{t('detail.download.title')}</h2>
         <div className="flex flex-wrap gap-3">
-          <button
-            onClick={() => handleDownload('gpx')}
+          <a
+            href={`/api/download/teams/${teamSlug}/routes/${routeId}/gpx`}
             className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
           >
             <svg className="w-5 h-5 mr-2 -ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
             </svg>
             {t('detail.download.gpx')}
-          </button>
-          <button
-            onClick={() => handleDownload('fit')}
+          </a>
+          <a
+            href={`/api/download/teams/${teamSlug}/routes/${routeId}/fit`}
             className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
           >
             <svg className="w-5 h-5 mr-2 -ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
             </svg>
             {t('detail.download.fit')}
-          </button>
+          </a>
         </div>
       </div>
     </div>

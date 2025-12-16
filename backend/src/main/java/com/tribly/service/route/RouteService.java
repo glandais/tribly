@@ -138,9 +138,6 @@ public class RouteService {
      * Get a route by ID with access control.
      */
     public Optional<Route> getRoute(Long teamId, Long routeId, Long userId) {
-        Team team = teamRepository.findActiveById(teamId)
-                .orElseThrow(() -> BusinessException.notFound("Team", teamId));
-
         Route route = routeRepository.findByIdAndTeam(routeId, teamId)
                 .orElseThrow(() -> BusinessException.notFound("Route", routeId));
 
@@ -255,37 +252,47 @@ public class RouteService {
     /**
      * Get climbs for a route.
      */
-    public List<RouteClimb> getClimbs(Long routeId) {
-        return routeClimbRepository.findByRoute(routeId);
+    public List<RouteClimb> getClimbs(Long teamId, Long routeId, Long userId) {
+        Route route = getRoute(teamId, routeId, userId)
+                .orElseThrow(() -> BusinessException.notFound("Route", routeId));
+        return routeClimbRepository.findByRoute(route.getId());
     }
 
     /**
      * Get GPX track for a route.
      */
-    public GpxTrack getTrack(Long routeId) {
-        return gpxTrackRepository.findByRoute(routeId)
+    public GpxTrack getTrack(Long teamId, Long routeId, Long userId) {
+        Route route = getRoute(teamId, routeId, userId)
+                .orElseThrow(() -> BusinessException.notFound("Route", routeId));
+        return gpxTrackRepository.findByRoute(route.getId())
                 .orElseThrow(() -> BusinessException.notFound("GPX track not found for route " + routeId));
     }
 
     /**
      * Get filtered GPX file for download.
      */
-    public File getFilteredGpxFile(Long routeId) {
-        return gpxProcessingService.getFilteredGpxFile(routeId);
+    public File getFilteredGpxFile(Long teamId, Long routeId, Long userId) {
+        Route route = getRoute(teamId, routeId, userId)
+                .orElseThrow(() -> BusinessException.notFound("Route", routeId));
+        return gpxProcessingService.getFilteredGpxFile(route.getId());
     }
 
     /**
      * Get FIT file for download.
      */
-    public File getFitFile(Long routeId) {
-        return gpxProcessingService.getFitFile(routeId);
+    public File getFitFile(Long teamId, Long routeId, Long userId) {
+        Route route = getRoute(teamId, routeId, userId)
+                .orElseThrow(() -> BusinessException.notFound("Route", routeId));
+        return gpxProcessingService.getFitFile(route.getId());
     }
 
     /**
      * Get thumbnail image.
      */
-    public File getThumbnailFile(Long routeId) {
-        return gpxProcessingService.getThumbnailFile(routeId);
+    public File getThumbnailFile(Long teamId, Long routeId, Long userId) {
+        Route route = getRoute(teamId, routeId, userId)
+                .orElseThrow(() -> BusinessException.notFound("Route", routeId));
+        return gpxProcessingService.getThumbnailFile(route.getId());
     }
 
     // Request DTOs

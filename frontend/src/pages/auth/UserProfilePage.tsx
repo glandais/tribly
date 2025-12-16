@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../hooks/useAuth';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
+import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 
 // Available timezones with their IANA identifiers
 const TIMEZONES = [
@@ -229,43 +230,27 @@ export function UserProfilePage() {
                 {t('account.dangerZone.deleteDescription')}
               </p>
 
-              {showDeleteConfirm ? (
-                <div className="mt-4 p-4 bg-red-50 rounded-md">
-                  <p className="text-sm text-red-700 mb-4">
-                    {t('account.dangerZone.confirmMessage')}
-                  </p>
-                  <div className="flex gap-3">
-                    <button
-                      onClick={handleDelete}
-                      disabled={isDeletingAccount}
-                      className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 disabled:opacity-50"
-                    >
-                      {isDeletingAccount ? (
-                        <LoadingSpinner size="sm" color="white" />
-                      ) : (
-                        t('account.dangerZone.confirmButton')
-                      )}
-                    </button>
-                    <button
-                      onClick={() => setShowDeleteConfirm(false)}
-                      className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-                    >
-                      {tCommon('buttons.cancel')}
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <button
-                  onClick={() => setShowDeleteConfirm(true)}
-                  className="mt-4 inline-flex items-center px-4 py-2 border border-red-300 text-sm font-medium rounded-md text-red-700 bg-white hover:bg-red-50"
-                >
-                  {t('account.dangerZone.deleteButton')}
-                </button>
-              )}
+              <button
+                onClick={() => setShowDeleteConfirm(true)}
+                className="mt-4 inline-flex items-center px-4 py-2 border border-red-300 text-sm font-medium rounded-md text-red-700 bg-white hover:bg-red-50"
+              >
+                {t('account.dangerZone.deleteButton')}
+              </button>
             </div>
           </div>
         </div>
       </div>
+
+      <ConfirmDialog
+        isOpen={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        onConfirm={handleDelete}
+        title={t('account.dangerZone.title')}
+        message={t('account.dangerZone.confirmMessage')}
+        confirmText={t('account.dangerZone.confirmButton')}
+        variant="danger"
+        isLoading={isDeletingAccount}
+      />
     </div>
   );
 }
