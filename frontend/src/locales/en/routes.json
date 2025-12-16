@@ -1,0 +1,95 @@
+{
+  "difficulty": {
+    "EASY": "Easy",
+    "MODERATE": "Moderate",
+    "HARD": "Hard",
+    "EXPERT": "Expert"
+  },
+  "surfaceType": {
+    "ROAD": "Road",
+    "GRAVEL": "Gravel",
+    "MTB": "MTB",
+    "MIXED": "Mixed"
+  },
+  "climbCategory": {
+    "HC": "Hors Catégorie",
+    "CAT1": "Category 1",
+    "CAT2": "Category 2",
+    "CAT3": "Category 3",
+    "CAT4": "Category 4"
+  },
+  "list": {
+    "title": "Routes",
+    "subtitle": "GPX routes and itineraries for the team",
+    "createRoute": "Create route",
+    "empty": {
+      "title": "No routes",
+      "description": "No routes are available at the moment.",
+      "createAction": "Create a route"
+    }
+  },
+  "create": {
+    "title": "Create route",
+    "subtitle": "Upload a GPX file to create a new route",
+    "backToList": "Back to routes",
+    "form": {
+      "gpxFile": "GPX File",
+      "gpxFileHint": ".gpx format only, maximum size 10 MB",
+      "name": "Route name",
+      "description": "Description",
+      "difficulty": "Difficulty",
+      "surfaceType": "Surface type",
+      "isPublic": "Public route"
+    },
+    "submit": "Create route",
+    "validation": {
+      "invalidFileType": "File must be in .gpx format",
+      "fileTooLarge": "File is too large (maximum 10 MB)",
+      "fileRequired": "A GPX file is required"
+    }
+  },
+  "edit": {
+    "title": "Edit route",
+    "subtitle": "Edit route information",
+    "backToDetail": "Back to route",
+    "form": {
+      "name": "Route name",
+      "description": "Description",
+      "difficulty": "Difficulty",
+      "surfaceType": "Surface type",
+      "isPublic": "Public route"
+    }
+  },
+  "detail": {
+    "backToList": "Back to routes",
+    "deleteConfirm": {
+      "title": "Delete route",
+      "message": "Are you sure you want to delete this route? This action is irreversible."
+    },
+    "stats": {
+      "distance": "Distance",
+      "elevationGain": "Elevation gain",
+      "elevationLoss": "Elevation loss"
+    },
+    "info": {
+      "title": "Route information",
+      "difficulty": "Difficulty",
+      "surfaceType": "Surface type",
+      "visibility": "Visibility",
+      "createdAt": "Created on"
+    },
+    "climbs": {
+      "title": "Climbs",
+      "unnamed": "Climb {{number}}",
+      "distance": "From {{start}} km to {{end}} km",
+      "gain": "Elevation gain",
+      "avgGradient": "Average gradient",
+      "maxGradient": "Maximum gradient"
+    },
+    "download": {
+      "title": "Download",
+      "gpx": "Download GPX",
+      "fit": "Download FIT"
+    }
+  }
+}

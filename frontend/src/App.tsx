@@ -15,6 +15,10 @@ import { RideListPage } from './pages/ride/RideListPage';
 import { RideDetailPage } from './pages/ride/RideDetailPage';
 import { CreateRidePage } from './pages/ride/CreateRidePage';
 import { EditRidePage } from './pages/ride/EditRidePage';
+import { RouteListPage } from './pages/route/RouteListPage';
+import { RouteDetailPage } from './pages/route/RouteDetailPage';
+import { CreateRoutePage } from './pages/route/CreateRoutePage';
+import { EditRoutePage } from './pages/route/EditRoutePage';
 
 function HomePage() {
   const { t } = useTranslation('auth');
@@ -147,10 +151,25 @@ function App() {
             <Route path="teams/:teamSlug/trips/new" element={<Placeholder textKey="placeholder.createTrip" />} />
             <Route path="teams/:teamSlug/trips/:tripId" element={<Placeholder textKey="placeholder.tripDetail" />} />
 
-            {/* Route routes - to be implemented */}
-            <Route path="teams/:teamSlug/routes" element={<Placeholder textKey="placeholder.routesList" />} />
-            <Route path="teams/:teamSlug/routes/new" element={<Placeholder textKey="placeholder.createRoute" />} />
-            <Route path="teams/:teamSlug/routes/:routeId" element={<Placeholder textKey="placeholder.routeDetail" />} />
+            {/* Route routes */}
+            <Route path="teams/:teamSlug/routes" element={<RouteListPage />} />
+            <Route
+              path="teams/:teamSlug/routes/new"
+              element={
+                <AuthenticatedRoute>
+                  <CreateRoutePage />
+                </AuthenticatedRoute>
+              }
+            />
+            <Route path="teams/:teamSlug/routes/:routeId" element={<RouteDetailPage />} />
+            <Route
+              path="teams/:teamSlug/routes/:routeId/edit"
+              element={
+                <AuthenticatedRoute>
+                  <EditRoutePage />
+                </AuthenticatedRoute>
+              }
+            />
 
             {/* Catch all */}
             <Route path="*" element={<NotFoundPage />} />

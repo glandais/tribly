@@ -60,3 +60,4 @@ test-results/
 .specify/memory/*.json
 
 .playwright-mcp
+backend/data

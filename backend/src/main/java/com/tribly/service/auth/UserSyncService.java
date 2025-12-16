@@ -5,6 +5,7 @@ import com.tribly.domain.user.UserRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import org.hibernate.StaleObjectStateException;
 import org.jboss.logging.Logger;
 
 import java.util.Optional;
@@ -25,6 +26,7 @@ public class UserSyncService {
     /**
      * Sync user from Keycloak claims to local database.
      * Creates new user if not exists, updates existing user's profile.
+     * Handles optimistic locking conflicts with retry.
      *
      * @param email       User's email from Keycloak
      * @param displayName User's display name (from name claim or constructed from given/family name)
@@ -32,8 +34,31 @@ public class UserSyncService {
      */
     @Transactional
     public User syncUser(String email, String displayName) {
+        int maxRetries = 3;
+        int attempt = 0;
 
-        // Then try by email
+        while (attempt < maxRetries) {
+            try {
+                return syncUserInternal(email, displayName);
+            } catch (StaleObjectStateException e) {
+                attempt++;
+                if (attempt >= maxRetries) {
+                    LOG.errorv("Failed to sync user after {0} attempts due to optimistic locking conflict: {1}",
+                            maxRetries, email);
+                    throw e;
+                }
+                LOG.warnv("Optimistic locking conflict on user sync attempt {0}/{1} for {2}, retrying...",
+                        attempt, maxRetries, email);
+                // Clear the persistence context to avoid stale entities
+                userRepository.getEntityManager().clear();
+            }
+        }
+
+        throw new IllegalStateException("Should not reach here");
+    }
+
+    private User syncUserInternal(String email, String displayName) {
+        // Try by email
         Optional<User> existingByEmail = userRepository.findByEmail(email);
 
         User user;

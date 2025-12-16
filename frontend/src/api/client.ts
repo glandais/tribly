@@ -137,11 +137,19 @@ class ApiClient {
   async post<T>(endpoint: string, body?: unknown, options?: RequestOptions): Promise<T> {
     await this.ensureFreshToken();
     const url = this.buildUrl(endpoint, options?.params);
+
+    // Handle FormData separately - don't stringify and don't set Content-Type
+    const isFormData = body instanceof FormData;
+    const headers = this.getHeaders();
+    if (isFormData) {
+      headers.delete('Content-Type'); // Let browser set multipart/form-data with boundary
+    }
+
     const response = await fetch(url, {
       ...options,
       method: 'POST',
-      headers: this.getHeaders(),
-      body: body ? JSON.stringify(body) : undefined,
+      headers,
+      body: isFormData ? body : (body ? JSON.stringify(body) : undefined),
     });
     return this.handleResponse<T>(response);
   }

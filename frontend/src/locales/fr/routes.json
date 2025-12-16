@@ -1,0 +1,95 @@
+{
+  "difficulty": {
+    "EASY": "Facile",
+    "MODERATE": "Modéré",
+    "HARD": "Difficile",
+    "EXPERT": "Expert"
+  },
+  "surfaceType": {
+    "ROAD": "Route",
+    "GRAVEL": "Gravel",
+    "MTB": "VTT",
+    "MIXED": "Mixte"
+  },
+  "climbCategory": {
+    "HC": "Hors Catégorie",
+    "CAT1": "1ère Catégorie",
+    "CAT2": "2ème Catégorie",
+    "CAT3": "3ème Catégorie",
+    "CAT4": "4ème Catégorie"
+  },
+  "list": {
+    "title": "Parcours",
+    "subtitle": "Parcours et itinéraires GPX pour l'équipe",
+    "createRoute": "Créer un parcours",
+    "empty": {
+      "title": "Aucun parcours",
+      "description": "Aucun parcours n'est disponible pour le moment.",
+      "createAction": "Créer un parcours"
+    }
+  },
+  "create": {
+    "title": "Créer un parcours",
+    "subtitle": "Téléchargez un fichier GPX pour créer un nouveau parcours",
+    "backToList": "Retour aux parcours",
+    "form": {
+      "gpxFile": "Fichier GPX",
+      "gpxFileHint": "Format .gpx uniquement, taille maximale 10 Mo",
+      "name": "Nom du parcours",
+      "description": "Description",
+      "difficulty": "Difficulté",
+      "surfaceType": "Type de revêtement",
+      "isPublic": "Parcours public"
+    },
+    "submit": "Créer le parcours",
+    "validation": {
+      "invalidFileType": "Le fichier doit être au format .gpx",
+      "fileTooLarge": "Le fichier est trop volumineux (maximum 10 Mo)",
+      "fileRequired": "Un fichier GPX est requis"
+    }
+  },
+  "edit": {
+    "title": "Modifier le parcours",
+    "subtitle": "Modifier les informations du parcours",
+    "backToDetail": "Retour au parcours",
+    "form": {
+      "name": "Nom du parcours",
+      "description": "Description",
+      "difficulty": "Difficulté",
+      "surfaceType": "Type de revêtement",
+      "isPublic": "Parcours public"
+    }
+  },
+  "detail": {
+    "backToList": "Retour aux parcours",
+    "deleteConfirm": {
+      "title": "Supprimer le parcours",
+      "message": "Êtes-vous sûr de vouloir supprimer ce parcours ? Cette action est irréversible."
+    },
+    "stats": {
+      "distance": "Distance",
+      "elevationGain": "Dénivelé positif",
+      "elevationLoss": "Dénivelé négatif"
+    },
+    "info": {
+      "title": "Informations du parcours",
+      "difficulty": "Difficulté",
+      "surfaceType": "Type de revêtement",
+      "visibility": "Visibilité",
+      "createdAt": "Créé le"
+    },
+    "climbs": {
+      "title": "Cols et montées",
+      "unnamed": "Montée {{number}}",
+      "distance": "De {{start}} km à {{end}} km",
+      "gain": "Dénivelé",
+      "avgGradient": "Pente moyenne",
+      "maxGradient": "Pente maximale"
+    },
+    "download": {
+      "title": "Télécharger",
+      "gpx": "Télécharger GPX",
+      "fit": "Télécharger FIT"
+    }
+  }
+}

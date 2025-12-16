@@ -20,8 +20,8 @@
         <quarkus.platform.version>3.30.2</quarkus.platform.version>
         <compiler-plugin.version>3.13.0</compiler-plugin.version>
         <surefire-plugin.version>3.5.2</surefire-plugin.version>
-        <jpx.version>3.2.0</jpx.version>
         <hypersistence-utils-hibernate.version>3.13.3</hypersistence-utils-hibernate.version>
+        <gpx.version>1.2.7</gpx.version>
     </properties>
 
     <dependencyManagement>
@@ -86,9 +86,9 @@
 
         <!-- GPX Processing -->
         <dependency>
-            <groupId>io.jenetics</groupId>
-            <artifactId>jpx</artifactId>
-            <version>${jpx.version}</version>
+            <groupId>io.github.glandais.gpx2web</groupId>
+            <artifactId>gpx</artifactId>
+            <version>${gpx.version}</version>
         </dependency>
 
         <!-- Validation -->
