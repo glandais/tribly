@@ -45,7 +45,8 @@ jobs:
 
       - name: Install pnpm
         uses: pnpm/action-setup@v3
-        # Uses version from package.json packageManager field
+        with:
+          package_json_file: frontend/package.json
 
       - name: Get pnpm store directory
         shell: bash
