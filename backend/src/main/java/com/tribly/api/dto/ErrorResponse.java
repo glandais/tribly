@@ -5,12 +5,12 @@ import java.util.List;
 import java.util.Map;
 
 public record ErrorResponse(
-    String code,
-    String message,
-    String path,
-    Instant timestamp,
-    List<FieldError> errors,
-    Map<String, Object> details
+        String code,
+        String message,
+        String path,
+        Instant timestamp,
+        List<FieldError> errors,
+        Map<String, Object> details
 ) {
     public ErrorResponse(String code, String message, String path) {
         this(code, message, path, Instant.now(), null, null);
@@ -21,10 +21,11 @@ public record ErrorResponse(
     }
 
     public record FieldError(
-        String field,
-        String message,
-        Object rejectedValue
-    ) {}
+            String field,
+            String message,
+            Object rejectedValue
+    ) {
+    }
 
     public static ErrorResponse notFound(String path, String message) {
         return new ErrorResponse("NOT_FOUND", message, path);

@@ -8,9 +8,16 @@ import com.tribly.service.route.RouteService;
 import com.tribly.service.team.TeamService;
 import jakarta.annotation.security.PermitAll;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.*;
-import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Response;
+import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
 import java.io.File;
 
@@ -19,7 +26,8 @@ import java.io.File;
  * Uses cookie-based authentication via download tenant (HTTP auth permission).
  */
 @Path("/api/download/teams/{slug}/routes/{routeId}")
-public class DownloadResource extends AbstractAuthenticatedResource  {
+@Tag(name = "Route Downloads", description = "Route file downloads and images")
+public class DownloadResource extends AbstractAuthenticatedResource {
 
     @Inject
     TeamService teamService;
@@ -34,9 +42,14 @@ public class DownloadResource extends AbstractAuthenticatedResource  {
     @Path("/gpx")
     @Produces("application/gpx+xml")
     @PermitAll
+    @Operation(summary = "Download GPX file", description = "Download the route as a GPX file")
+    @APIResponses({
+            @APIResponse(responseCode = "200", description = "GPX file downloaded successfully"),
+            @APIResponse(responseCode = "404", description = "Team or route not found")
+    })
     public Response downloadGpx(
-            @PathParam("slug") String teamSlug,
-            @PathParam("routeId") String routeId) {
+            @Parameter(description = "Team URL slug") @PathParam("slug") String teamSlug,
+            @Parameter(description = "Route ID (TSID)") @PathParam("routeId") String routeId) {
 
         Team team = getTeamBySlug(teamSlug);
         Long userId = getCurrentUserIdOrNull();
@@ -55,9 +68,14 @@ public class DownloadResource extends AbstractAuthenticatedResource  {
     @Path("/fit")
     @Produces("application/octet-stream")
     @PermitAll
+    @Operation(summary = "Download FIT file", description = "Download the route as a FIT file for Garmin devices")
+    @APIResponses({
+            @APIResponse(responseCode = "200", description = "FIT file downloaded successfully"),
+            @APIResponse(responseCode = "404", description = "Team or route not found")
+    })
     public Response downloadFit(
-            @PathParam("slug") String teamSlug,
-            @PathParam("routeId") String routeId) {
+            @Parameter(description = "Team URL slug") @PathParam("slug") String teamSlug,
+            @Parameter(description = "Route ID (TSID)") @PathParam("routeId") String routeId) {
 
         Team team = getTeamBySlug(teamSlug);
         Long userId = getCurrentUserIdOrNull();
@@ -76,9 +94,14 @@ public class DownloadResource extends AbstractAuthenticatedResource  {
     @Path("/thumbnail")
     @Produces("image/png")
     @PermitAll
+    @Operation(summary = "Get route thumbnail", description = "Get a thumbnail image of the route")
+    @APIResponses({
+            @APIResponse(responseCode = "200", description = "Thumbnail retrieved successfully"),
+            @APIResponse(responseCode = "404", description = "Team or route not found")
+    })
     public Response getThumbnail(
-            @PathParam("slug") String teamSlug,
-            @PathParam("routeId") String routeId) {
+            @Parameter(description = "Team URL slug") @PathParam("slug") String teamSlug,
+            @Parameter(description = "Route ID (TSID)") @PathParam("routeId") String routeId) {
 
         Team team = getTeamBySlug(teamSlug);
         Long userId = getCurrentUserIdOrNull();

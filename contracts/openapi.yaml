@@ -1,2216 +1,2303 @@
+---
 openapi: 3.1.0
-info:
-  title: Tribly - Cycling Team Management API
-  description: |
-    API for the Tribly cycling team management platform.
-    Supports multi-tenancy via custom domains, OAuth2 authentication,
-    and comprehensive team, ride, trip, and route management.
-  version: 1.0.0
-  contact:
-    name: Tribly Team
-  license:
-    name: Proprietary
-
-servers:
-  - url: https://api.tribly.app/v1
-    description: Production server
-  - url: http://localhost:8080/v1
-    description: Local development
-
-tags:
-  - name: Auth
-    description: Authentication and authorization
-  - name: Users
-    description: User profile management
-  - name: Teams
-    description: Team management
-  - name: Rides
-    description: Ride event management
-  - name: Trips
-    description: Multi-day trip management
-  - name: Routes
-    description: Route and GPX management
-  - name: Places
-    description: Location management
-  - name: Messages
-    description: Team messaging
-  - name: Notifications
-    description: User notifications
-  - name: Admin
-    description: Administrative operations
-
-security:
-  - BearerAuth: []
-
-paths:
-  # ============== AUTH ==============
-  /auth/oauth/{provider}:
-    get:
-      operationId: initiateOAuth
-      summary: Initiate OAuth flow
-      tags: [Auth]
-      security: []
-      parameters:
-        - name: provider
-          in: path
-          required: true
-          schema:
-            type: string
-            enum: [strava, google, facebook]
-        - name: redirect_uri
-          in: query
-          required: true
-          schema:
-            type: string
-            format: uri
-      responses:
-        '302':
-          description: Redirect to OAuth provider
-
-  /auth/oauth/{provider}/callback:
-    get:
-      operationId: handleOAuthCallback
-      summary: Handle OAuth callback
-      tags: [Auth]
-      security: []
-      parameters:
-        - name: provider
-          in: path
-          required: true
-          schema:
-            type: string
-            enum: [strava, google, facebook]
-        - name: code
-          in: query
-          required: true
-          schema:
-            type: string
-        - name: state
-          in: query
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Authentication successful
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AuthResponse'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-
-  /auth/refresh:
-    post:
-      operationId: refreshToken
-      summary: Refresh access token
-      tags: [Auth]
-      security: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [refreshToken]
-              properties:
-                refreshToken:
-                  type: string
-      responses:
-        '200':
-          description: Token refreshed
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AuthResponse'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-
-  /auth/logout:
-    post:
-      operationId: logout
-      summary: Logout current session
-      tags: [Auth]
-      responses:
-        '204':
-          description: Logged out successfully
-
-  # ============== USERS ==============
-  /users/me:
-    get:
-      operationId: getCurrentUser
-      summary: Get current user profile
-      tags: [Users]
-      responses:
-        '200':
-          description: User profile
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-        '401':
-          $ref: '#/components/responses/Unauthorized'
-    patch:
-      operationId: updateCurrentUser
-      summary: Update current user profile
-      tags: [Users]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UserUpdate'
-      responses:
-        '200':
-          description: User updated
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-
-  /users/me/teams:
-    get:
-      operationId: getCurrentUserTeams
-      summary: Get teams for current user
-      tags: [Users]
-      responses:
-        '200':
-          description: User's teams
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/TeamMembership'
-
-  # ============== TEAMS ==============
-  /teams:
-    get:
-      operationId: listTeams
-      summary: List public teams (catalog)
-      tags: [Teams]
-      security: []
-      parameters:
-        - $ref: '#/components/parameters/PageParam'
-        - $ref: '#/components/parameters/PageSizeParam'
-        - name: search
-          in: query
-          schema:
-            type: string
-      responses:
-        '200':
-          description: List of public teams
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TeamListResponse'
-    post:
-      operationId: createTeam
-      summary: Create a new team
-      tags: [Teams]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TeamCreate'
-      responses:
-        '201':
-          description: Team created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Team'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-
-  /teams/{teamId}:
-    get:
-      operationId: getTeam
-      summary: Get team details
-      tags: [Teams]
-      parameters:
-        - $ref: '#/components/parameters/TeamIdParam'
-      responses:
-        '200':
-          description: Team details
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Team'
-        '404':
-          $ref: '#/components/responses/NotFound'
-    patch:
-      operationId: updateTeam
-      summary: Update team details
-      tags: [Teams]
-      parameters:
-        - $ref: '#/components/parameters/TeamIdParam'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TeamUpdate'
-      responses:
-        '200':
-          description: Team updated
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Team'
-        '403':
-          $ref: '#/components/responses/Forbidden'
-    delete:
-      operationId: deleteTeam
-      summary: Delete team (soft delete)
-      tags: [Teams]
-      parameters:
-        - $ref: '#/components/parameters/TeamIdParam'
-      responses:
-        '204':
-          description: Team deleted
-        '403':
-          $ref: '#/components/responses/Forbidden'
-
-  /teams/{teamId}/members:
-    get:
-      operationId: listTeamMembers
-      summary: List team members
-      tags: [Teams]
-      parameters:
-        - $ref: '#/components/parameters/TeamIdParam'
-        - $ref: '#/components/parameters/PageParam'
-        - $ref: '#/components/parameters/PageSizeParam'
-      responses:
-        '200':
-          description: Team members
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TeamMemberListResponse'
-    post:
-      operationId: inviteTeamMember
-      summary: Invite user to team
-      tags: [Teams]
-      parameters:
-        - $ref: '#/components/parameters/TeamIdParam'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TeamInvite'
-      responses:
-        '201':
-          description: Invitation sent
-        '400':
-          $ref: '#/components/responses/BadRequest'
-
-  /teams/{teamId}/members/{userId}:
-    patch:
-      operationId: updateTeamMember
-      summary: Update member role
-      tags: [Teams]
-      parameters:
-        - $ref: '#/components/parameters/TeamIdParam'
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int64
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [role]
-              properties:
-                role:
-                  $ref: '#/components/schemas/TeamRole'
-      responses:
-        '200':
-          description: Member updated
-        '403':
-          $ref: '#/components/responses/Forbidden'
-    delete:
-      operationId: removeTeamMember
-      summary: Remove member from team
-      tags: [Teams]
-      parameters:
-        - $ref: '#/components/parameters/TeamIdParam'
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int64
-      responses:
-        '204':
-          description: Member removed
-        '403':
-          $ref: '#/components/responses/Forbidden'
-
-  /teams/{teamId}/domains:
-    get:
-      operationId: listTeamDomains
-      summary: List team custom domains
-      tags: [Teams]
-      parameters:
-        - $ref: '#/components/parameters/TeamIdParam'
-      responses:
-        '200':
-          description: Team domains
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/TeamDomain'
-    post:
-      operationId: addTeamDomain
-      summary: Add custom domain to team
-      tags: [Teams]
-      parameters:
-        - $ref: '#/components/parameters/TeamIdParam'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [domain]
-              properties:
-                domain:
-                  type: string
-                  format: hostname
-      responses:
-        '201':
-          description: Domain added (pending verification)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TeamDomain'
-
-  # ============== RIDES ==============
-  /teams/{teamId}/rides:
-    get:
-      operationId: listRides
-      summary: List team rides
-      tags: [Rides]
-      parameters:
-        - $ref: '#/components/parameters/TeamIdParam'
-        - $ref: '#/components/parameters/PageParam'
-        - $ref: '#/components/parameters/PageSizeParam'
-        - name: from
-          in: query
-          schema:
-            type: string
-            format: date
-        - name: to
-          in: query
-          schema:
-            type: string
-            format: date
-        - name: status
-          in: query
-          schema:
-            $ref: '#/components/schemas/RideStatus'
-      responses:
-        '200':
-          description: List of rides
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RideListResponse'
-    post:
-      operationId: createRide
-      summary: Create a new ride
-      tags: [Rides]
-      parameters:
-        - $ref: '#/components/parameters/TeamIdParam'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/RideCreate'
-      responses:
-        '201':
-          description: Ride created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Ride'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-
-  /teams/{teamId}/rides/{rideId}:
-    get:
-      operationId: getRide
-      summary: Get ride details
-      tags: [Rides]
-      parameters:
-        - $ref: '#/components/parameters/TeamIdParam'
-        - $ref: '#/components/parameters/RideIdParam'
-      responses:
-        '200':
-          description: Ride details
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RideDetail'
-        '404':
-          $ref: '#/components/responses/NotFound'
-    patch:
-      operationId: updateRide
-      summary: Update ride
-      tags: [Rides]
-      parameters:
-        - $ref: '#/components/parameters/TeamIdParam'
-        - $ref: '#/components/parameters/RideIdParam'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/RideUpdate'
-      responses:
-        '200':
-          description: Ride updated
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Ride'
-    delete:
-      operationId: deleteRide
-      summary: Delete ride
-      tags: [Rides]
-      parameters:
-        - $ref: '#/components/parameters/TeamIdParam'
-        - $ref: '#/components/parameters/RideIdParam'
-      responses:
-        '204':
-          description: Ride deleted
-
-  /teams/{teamId}/rides/{rideId}/groups:
-    get:
-      operationId: listRideGroups
-      summary: List ride groups
-      tags: [Rides]
-      parameters:
-        - $ref: '#/components/parameters/TeamIdParam'
-        - $ref: '#/components/parameters/RideIdParam'
-      responses:
-        '200':
+components:
+  schemas:
+    AddMemberRequest:
+      description: Request to add a member to the team
+      type: object
+      required:
+      - userId
+      properties:
+        userId:
+          type: string
+          description: User ID (TSID) to add
+          examples:
+          - 0h4a8xzk8jv80
+        role:
+          type: string
+          description: Role to assign (defaults to MEMBER)
+          enum:
+          - ADMIN
+          - MEMBER
+    ClimbListResponse:
+      description: Climb list response
+      type: object
+      properties:
+        climbs:
+          type: array
+          items:
+            $ref: "#/components/schemas/RouteClimbDto"
+          description: List of climbs on the route
+    ConfigDto:
+      description: Application configuration
+      type: object
+      properties:
+        keycloak:
+          description: Keycloak authentication configuration
+          type: object
+          $ref: "#/components/schemas/KeycloakConfig"
+        map:
+          description: Map configuration
+          type: object
+          $ref: "#/components/schemas/MapConfig"
+    CreateGroupRequest:
+      description: Ride group creation request
+      type: object
+      required:
+      - name
+      properties:
+        name:
+          type: string
+          description: Group name
+          examples:
+          - Fast Group
+          pattern: \S
+          minLength: 1
+          maxLength: 100
+        description:
+          type: string
+          description: Group description
+        averageSpeed:
+          type: integer
+          format: int32
+          description: Average speed in km/h
+          examples:
+          - 25
+        maxParticipants:
+          type: integer
+          format: int32
+          description: Maximum participants
+        routeId:
+          type: string
+          description: Route ID (TSID) for this group
+    CreateRideRequest:
+      description: Ride creation request
+      type: object
+      required:
+      - title
+      - date
+      properties:
+        title:
+          type: string
+          description: Ride title
+          examples:
+          - Sunday Morning Ride
+          pattern: \S
+          minLength: 3
+          maxLength: 200
+        description:
+          type: string
+          description: Ride description
+          maxLength: 5000
+        date:
+          description: Ride date
+          type: string
+          examples:
+          - 2025-06-15
+          $ref: "#/components/schemas/LocalDate"
+        startTime:
+          description: Start time
+          type: string
+          examples:
+          - 09:00
+          $ref: "#/components/schemas/LocalTime"
+        routeId:
+          type: string
+          description: Route ID (TSID)
+        meetingPointId:
+          type: string
+          description: Meeting point ID (TSID)
+        visibility:
+          type: string
+          description: Visibility level
+          enum:
+          - PUBLIC
+          - MEMBERS_ONLY
+          - PRIVATE
+        publishAt:
+          description: Publication timestamp (for scheduled publishing)
+          type: string
+          $ref: "#/components/schemas/Instant"
+        groups:
+          type: array
+          items:
+            $ref: "#/components/schemas/CreateGroupRequest"
+          description: Ride groups to create
+    CreateTeamRequest:
+      description: Team creation request
+      type: object
+      required:
+      - name
+      properties:
+        name:
+          type: string
+          description: Team name
+          examples:
+          - Awesome Cycling Team
+          pattern: \S
+          minLength: 2
+          maxLength: 255
+        description:
+          type: string
+          description: Team description
+          examples:
+          - A team for weekend warriors
+          maxLength: 2000
+        isPublic:
+          type: boolean
+          description: Whether the team is publicly visible
+          examples:
+          - true
+        maxMembers:
+          type: integer
+          format: int32
+          description: Maximum number of members (null = unlimited)
+          examples:
+          - 50
+    GpxTrackDto:
+      description: GPX track with track points
+      type: object
+      properties:
+        id:
+          type: string
+          description: Track ID (TSID)
+        name:
+          type: string
+          description: Track name
+        trackPoints:
+          type: array
+          items:
+            $ref: "#/components/schemas/TrackPointDto"
+          description: List of track points
+        processedAt:
+          type: string
+          description: Processing timestamp
+    Instant:
+      type: string
+      format: date-time
+      examples:
+      - 2022-03-10T16:15:50Z
+    JoinGroupRequest:
+      description: Request to join a ride group
+      type: object
+      properties:
+        notes:
+          type: string
+          description: Optional notes for the organizer
+    KeycloakConfig:
+      type: object
+      description: Keycloak configuration
+      properties:
+        url:
+          type: string
+          description: Keycloak server URL
+          examples:
+          - http://localhost:8180
+        realm:
+          type: string
+          description: Keycloak realm name
+          examples:
+          - quarkus
+        clientId:
+          type: string
+          description: Keycloak client ID
+          examples:
+          - tribly-frontend
+    LocalDate:
+      type: string
+      format: date
+      examples:
+      - 2022-03-10
+    LocalTime:
+      type: string
+      format: local-time
+      examples:
+      - 13:45:30.123456789
+      externalDocs:
+        description: As defined by 'partial-time' in RFC3339
+        url: https://www.rfc-editor.org/rfc/rfc3339.html#section-5.6
+    MapConfig:
+      type: object
+      description: Map configuration
+      properties:
+        tileUrl:
+          type: string
+          description: Map tile URL template
+          examples:
+          - "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        attribution:
+          type: string
+          description: Map attribution text
+    MemberDto:
+      description: Team member information
+      type: object
+      properties:
+        id:
+          type: string
+          description: Membership ID (TSID)
+        userId:
+          type: string
+          description: User ID (TSID)
+        displayName:
+          type: string
+          description: User display name
+        avatarUrl:
+          type: string
+          description: User avatar URL
+        role:
+          type: string
+          description: Member role
+          enum:
+          - OWNER
+          - ADMIN
+          - MEMBER
+        joinedAt:
+          type: string
+          description: When the user joined the team
+    MemberListResponse:
+      description: Paginated member list response
+      type: object
+      properties:
+        members:
+          type: array
+          items:
+            $ref: "#/components/schemas/MemberDto"
+          description: List of members
+        total:
+          type: integer
+          format: int64
+          description: Total number of members
+        page:
+          type: integer
+          format: int32
+          description: Current page number
+        size:
+          type: integer
+          format: int32
+          description: Page size
+    PublicUserDto:
+      description: Public user information (limited fields)
+      type: object
+      properties:
+        id:
+          type: string
+          description: User ID (TSID)
+          examples:
+          - 0h4a8xzk8jv80
+        displayName:
+          type: string
+          description: User display name
+        avatarUrl:
+          type: string
+          description: User avatar URL
+    RideDetailDto:
+      description: Detailed ride information
+      type: object
+      properties:
+        id:
+          type: string
+          description: Ride ID (TSID)
+        slug:
+          type: string
+          description: Ride URL slug
+        title:
+          type: string
+          description: Ride title
+        description:
+          type: string
+          description: Ride description
+        date:
+          description: Ride date
+          type: string
+          $ref: "#/components/schemas/LocalDate"
+        startTime:
+          description: Start time
+          type: string
+          $ref: "#/components/schemas/LocalTime"
+        status:
+          type: string
+          description: Ride status
+        visibility:
+          type: string
+          description: Visibility level
+        participantCount:
+          type: integer
+          format: int32
+          description: Number of participants
+        groupCount:
+          type: integer
+          format: int32
+          description: Number of groups
+        groups:
+          type: array
+          items:
+            $ref: "#/components/schemas/RideGroupDto"
           description: Ride groups
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/RideGroup'
-    post:
-      operationId: createRideGroup
-      summary: Create ride group
-      tags: [Rides]
-      parameters:
-        - $ref: '#/components/parameters/TeamIdParam'
-        - $ref: '#/components/parameters/RideIdParam'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/RideGroupCreate'
-      responses:
-        '201':
-          description: Group created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RideGroup'
-
-  /teams/{teamId}/rides/{rideId}/groups/{groupId}/join:
-    post:
-      operationId: joinRideGroup
-      summary: Join a ride group
-      tags: [Rides]
-      parameters:
-        - $ref: '#/components/parameters/TeamIdParam'
-        - $ref: '#/components/parameters/RideIdParam'
-        - name: groupId
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int64
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                notes:
-                  type: string
-      responses:
-        '201':
-          description: Joined ride group
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RideParticipation'
-        '409':
-          description: Already registered or group full
-
-  /teams/{teamId}/rides/{rideId}/groups/{groupId}/leave:
-    post:
-      operationId: leaveRideGroup
-      summary: Leave a ride group
-      tags: [Rides]
-      parameters:
-        - $ref: '#/components/parameters/TeamIdParam'
-        - $ref: '#/components/parameters/RideIdParam'
-        - name: groupId
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int64
-      responses:
-        '204':
-          description: Left ride group
-
-  # ============== TRIPS ==============
-  /teams/{teamId}/trips:
-    get:
-      operationId: listTrips
-      summary: List team trips
-      tags: [Trips]
-      parameters:
-        - $ref: '#/components/parameters/TeamIdParam'
-        - $ref: '#/components/parameters/PageParam'
-        - $ref: '#/components/parameters/PageSizeParam'
-        - name: status
-          in: query
-          schema:
-            $ref: '#/components/schemas/TripStatus'
-      responses:
-        '200':
-          description: List of trips
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TripListResponse'
-    post:
-      operationId: createTrip
-      summary: Create a new trip
-      tags: [Trips]
-      parameters:
-        - $ref: '#/components/parameters/TeamIdParam'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TripCreate'
-      responses:
-        '201':
-          description: Trip created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Trip'
-
-  /teams/{teamId}/trips/{tripId}:
-    get:
-      operationId: getTrip
-      summary: Get trip details
-      tags: [Trips]
-      parameters:
-        - $ref: '#/components/parameters/TeamIdParam'
-        - $ref: '#/components/parameters/TripIdParam'
-      responses:
-        '200':
-          description: Trip details with days
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TripDetail'
-    patch:
-      operationId: updateTrip
-      summary: Update trip
-      tags: [Trips]
-      parameters:
-        - $ref: '#/components/parameters/TeamIdParam'
-        - $ref: '#/components/parameters/TripIdParam'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/TripUpdate'
-      responses:
-        '200':
-          description: Trip updated
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Trip'
-    delete:
-      operationId: deleteTrip
-      summary: Delete trip
-      tags: [Trips]
-      parameters:
-        - $ref: '#/components/parameters/TeamIdParam'
-        - $ref: '#/components/parameters/TripIdParam'
-      responses:
-        '204':
-          description: Trip deleted
-
-  /teams/{teamId}/trips/{tripId}/join:
-    post:
-      operationId: joinTrip
-      summary: Register for a trip
-      tags: [Trips]
-      parameters:
-        - $ref: '#/components/parameters/TeamIdParam'
-        - $ref: '#/components/parameters/TripIdParam'
-      responses:
-        '201':
-          description: Registered for trip
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TripParticipation'
-
-  # ============== ROUTES ==============
-  /teams/{teamId}/routes:
-    get:
-      operationId: listRoutes
-      summary: List team routes
-      tags: [Routes]
-      parameters:
-        - $ref: '#/components/parameters/TeamIdParam'
-        - $ref: '#/components/parameters/PageParam'
-        - $ref: '#/components/parameters/PageSizeParam'
-        - name: difficulty
-          in: query
-          schema:
-            $ref: '#/components/schemas/RouteDifficulty'
-        - name: surfaceType
-          in: query
-          schema:
-            $ref: '#/components/schemas/SurfaceType'
-        - name: minDistance
-          in: query
-          schema:
-            type: integer
-        - name: maxDistance
-          in: query
-          schema:
-            type: integer
-      responses:
-        '200':
+        publishAt:
+          type: string
+          description: Publication timestamp
+        createdAt:
+          type: string
+          description: Creation timestamp
+    RideDto:
+      description: Ride summary data
+      type: object
+      properties:
+        id:
+          type: string
+          description: Ride ID (TSID)
+        slug:
+          type: string
+          description: Ride URL slug
+        title:
+          type: string
+          description: Ride title
+        description:
+          type: string
+          description: Ride description
+        date:
+          description: Ride date
+          type: string
+          $ref: "#/components/schemas/LocalDate"
+        startTime:
+          description: Start time
+          type: string
+          $ref: "#/components/schemas/LocalTime"
+        status:
+          type: string
+          description: Ride status
+          enum:
+          - DRAFT
+          - PUBLISHED
+          - CANCELLED
+          - COMPLETED
+        visibility:
+          type: string
+          description: Visibility level
+          enum:
+          - PUBLIC
+          - MEMBERS_ONLY
+          - PRIVATE
+        participantCount:
+          type: integer
+          format: int32
+          description: Number of participants
+        groupCount:
+          type: integer
+          format: int32
+          description: Number of groups
+        publishAt:
+          type: string
+          description: Publication timestamp
+        createdAt:
+          type: string
+          description: Creation timestamp
+    RideGroupDto:
+      type: object
+      description: Ride group information
+      properties:
+        id:
+          type: string
+          description: Group ID (TSID)
+        name:
+          type: string
+          description: Group name
+        description:
+          type: string
+          description: Group description
+        averageSpeed:
+          type: integer
+          format: int32
+          description: Average speed in km/h
+        maxParticipants:
+          type: integer
+          format: int32
+          description: Maximum participants
+        currentParticipants:
+          type: integer
+          format: int32
+          description: Current number of participants
+        sortOrder:
+          type: integer
+          format: int32
+          description: Sort order
+    RideGroupListResponse:
+      description: Ride group list response
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/RideGroupDto"
+          description: List of ride groups
+    RideListResponse:
+      description: Paginated ride list response
+      type: object
+      properties:
+        rides:
+          type: array
+          items:
+            $ref: "#/components/schemas/RideDto"
+          description: List of rides
+        total:
+          type: integer
+          format: int64
+          description: Total number of rides
+        page:
+          type: integer
+          format: int32
+          description: Current page number
+        size:
+          type: integer
+          format: int32
+          description: Page size
+    RideParticipationDto:
+      description: Ride participation information
+      type: object
+      properties:
+        id:
+          type: string
+          description: Participation ID (TSID)
+        userId:
+          type: string
+          description: User ID (TSID)
+        status:
+          type: string
+          description: Participation status
+        registeredAt:
+          type: string
+          description: Registration timestamp
+        notes:
+          type: string
+          description: Participant notes
+    RideStatus:
+      type: string
+      enum:
+      - DRAFT
+      - PUBLISHED
+      - CANCELLED
+    RouteClimbDto:
+      description: Climb segment information
+      type: object
+      properties:
+        id:
+          type: string
+          description: Climb ID (TSID)
+        name:
+          type: string
+          description: Climb name (if named)
+        startDistance:
+          type: integer
+          format: int32
+          description: Start distance from route start in meters
+        endDistance:
+          type: integer
+          format: int32
+          description: End distance from route start in meters
+        elevationGain:
+          type: integer
+          format: int32
+          description: Elevation gain in meters
+        averageGradient:
+          type: number
+          description: Average gradient percentage
+        maxGradient:
+          type: number
+          description: Maximum gradient percentage
+        category:
+          type: string
+          description: "Climb category (HC, 1, 2, 3, 4)"
+    RouteDetailDto:
+      description: Detailed route information
+      type: object
+      properties:
+        id:
+          type: string
+          description: Route ID (TSID)
+        name:
+          type: string
+          description: Route name
+        description:
+          type: string
+          description: Route description
+        distance:
+          type: integer
+          format: int32
+          description: Distance in meters
+        elevationGain:
+          type: integer
+          format: int32
+          description: Total elevation gain in meters
+        elevationLoss:
+          type: integer
+          format: int32
+          description: Total elevation loss in meters
+        difficulty:
+          type: string
+          description: Route difficulty
+        surfaceType:
+          type: string
+          description: Surface type
+        isPublic:
+          type: boolean
+          description: Whether the route is public
+        thumbnailUrl:
+          type: string
+          description: Thumbnail image URL
+        startLat:
+          type: number
+          description: Start point latitude
+        startLng:
+          type: number
+          description: Start point longitude
+        endLat:
+          type: number
+          description: End point latitude
+        endLng:
+          type: number
+          description: End point longitude
+        createdById:
+          type: string
+          description: Creator user ID (TSID)
+        createdAt:
+          type: string
+          description: Creation timestamp
+        updatedAt:
+          type: string
+          description: Last update timestamp
+    RouteDifficulty:
+      type: string
+      enum:
+      - EASY
+      - MODERATE
+      - HARD
+      - EXPERT
+    RouteDto:
+      description: Route summary data
+      type: object
+      properties:
+        id:
+          type: string
+          description: Route ID (TSID)
+        name:
+          type: string
+          description: Route name
+        description:
+          type: string
+          description: Route description
+        distance:
+          type: integer
+          format: int32
+          description: Distance in meters
+        elevationGain:
+          type: integer
+          format: int32
+          description: Total elevation gain in meters
+        elevationLoss:
+          type: integer
+          format: int32
+          description: Total elevation loss in meters
+        difficulty:
+          type: string
+          description: Route difficulty
+          enum:
+          - EASY
+          - MODERATE
+          - HARD
+          - VERY_HARD
+        surfaceType:
+          type: string
+          description: Surface type
+          enum:
+          - ASPHALT
+          - GRAVEL
+          - MIXED
+        isPublic:
+          type: boolean
+          description: Whether the route is public
+        thumbnailUrl:
+          type: string
+          description: Thumbnail image URL
+        createdAt:
+          type: string
+          description: Creation timestamp
+    RouteListResponse:
+      description: Paginated route list response
+      type: object
+      properties:
+        routes:
+          type: array
+          items:
+            $ref: "#/components/schemas/RouteDto"
           description: List of routes
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/RouteListResponse'
-    post:
-      operationId: createRoute
-      summary: Create a new route
-      tags: [Routes]
-      parameters:
-        - $ref: '#/components/parameters/TeamIdParam'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/RouteCreate'
-      responses:
-        '201':
-          description: Route created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Route'
-
-  /teams/{teamId}/routes/{routeId}:
+        total:
+          type: integer
+          format: int64
+          description: Total number of routes
+        page:
+          type: integer
+          format: int32
+          description: Current page number
+        size:
+          type: integer
+          format: int32
+          description: Page size
+    SurfaceType:
+      type: string
+      enum:
+      - ROAD
+      - GRAVEL
+      - MTB
+      - MIXED
+    TeamDetailDto:
+      description: Detailed team information
+      type: object
+      properties:
+        id:
+          type: string
+          description: Team ID (TSID)
+          examples:
+          - 0h4a8xzk8jv80
+        name:
+          type: string
+          description: Team name
+        slug:
+          type: string
+          description: Team URL slug
+        description:
+          type: string
+          description: Team description
+        logoUrl:
+          type: string
+          description: Logo image URL
+        coverImageUrl:
+          type: string
+          description: Cover image URL
+        isPublic:
+          type: boolean
+          description: Whether the team is public
+        memberCount:
+          type: integer
+          format: int32
+          description: Number of team members
+        maxMembers:
+          type: integer
+          format: int32
+          description: Maximum number of members (null = unlimited)
+        userRole:
+          type: string
+          description: Current user's role (null if not a member)
+          enum:
+          - OWNER
+          - ADMIN
+          - MEMBER
+        createdAt:
+          type: string
+          description: Team creation timestamp
+    TeamDto:
+      description: Team summary data
+      type: object
+      properties:
+        id:
+          type: string
+          description: Team ID (TSID)
+          examples:
+          - 0h4a8xzk8jv80
+        name:
+          type: string
+          description: Team name
+          examples:
+          - Awesome Cycling Team
+        slug:
+          type: string
+          description: Team URL slug
+          examples:
+          - awesome-cycling-team
+        description:
+          type: string
+          description: Team description
+        logoUrl:
+          type: string
+          description: Logo image URL
+        coverImageUrl:
+          type: string
+          description: Cover image URL
+        isPublic:
+          type: boolean
+          description: Whether the team is public
+        memberCount:
+          type: integer
+          format: int32
+          description: Number of team members
+    TeamListResponse:
+      description: Paginated team list response
+      type: object
+      properties:
+        teams:
+          type: array
+          items:
+            $ref: "#/components/schemas/TeamDto"
+          description: List of teams
+        total:
+          type: integer
+          format: int64
+          description: Total number of teams
+        page:
+          type: integer
+          format: int32
+          description: Current page number
+        size:
+          type: integer
+          format: int32
+          description: Page size
+    TeamWithRoleDto:
+      description: Team data with user's role
+      type: object
+      properties:
+        id:
+          type: string
+          description: Team ID (TSID)
+          examples:
+          - 0h4a8xzk8jv80
+        name:
+          type: string
+          description: Team name
+        slug:
+          type: string
+          description: Team URL slug
+        description:
+          type: string
+          description: Team description
+        logoUrl:
+          type: string
+          description: Logo image URL
+        isPublic:
+          type: boolean
+          description: Whether the team is public
+        memberCount:
+          type: integer
+          format: int32
+          description: Number of team members
+        role:
+          type: string
+          description: User's role in the team
+          examples:
+          - MEMBER
+          enum:
+          - OWNER
+          - ADMIN
+          - MEMBER
+    TrackPointDto:
+      type: object
+      description: GPS track point
+      properties:
+        lat:
+          type: number
+          format: double
+          description: Latitude
+        lng:
+          type: number
+          format: double
+          description: Longitude
+        ele:
+          type: number
+          format: double
+          description: Elevation in meters
+        dist:
+          type: number
+          format: double
+          description: Distance from start in meters
+    UpdateGroupRequest:
+      description: Ride group update request
+      type: object
+      properties:
+        name:
+          type: string
+          description: Group name
+          minLength: 1
+          maxLength: 100
+        description:
+          type: string
+          description: Group description
+        averageSpeed:
+          type: integer
+          format: int32
+          description: Average speed in km/h
+        maxParticipants:
+          type: integer
+          format: int32
+          description: Maximum participants
+        routeId:
+          type: string
+          description: Route ID (TSID)
+    UpdateMemberRoleRequest:
+      description: Request to update a member's role
+      type: object
+      required:
+      - role
+      properties:
+        role:
+          type: string
+          description: New role
+          enum:
+          - ADMIN
+          - MEMBER
+    UpdateRideRequest:
+      description: Ride update request
+      type: object
+      properties:
+        title:
+          type: string
+          description: Ride title
+          minLength: 3
+          maxLength: 200
+        description:
+          type: string
+          description: Ride description
+          maxLength: 5000
+        date:
+          description: Ride date
+          type: string
+          $ref: "#/components/schemas/LocalDate"
+        startTime:
+          description: Start time
+          type: string
+          $ref: "#/components/schemas/LocalTime"
+        status:
+          type: string
+          description: Ride status
+          enum:
+          - DRAFT
+          - PUBLISHED
+          - CANCELLED
+          - COMPLETED
+        visibility:
+          type: string
+          description: Visibility level
+          enum:
+          - PUBLIC
+          - MEMBERS_ONLY
+          - PRIVATE
+        routeId:
+          type: string
+          description: Route ID (TSID)
+        meetingPointId:
+          type: string
+          description: Meeting point ID (TSID)
+        publishAt:
+          description: Publication timestamp
+          type: string
+          $ref: "#/components/schemas/Instant"
+    UpdateRouteRequest:
+      description: Route update request
+      type: object
+      properties:
+        name:
+          type: string
+          description: Route name
+        description:
+          type: string
+          description: Route description
+        difficulty:
+          type: string
+          description: Route difficulty
+          enum:
+          - EASY
+          - MODERATE
+          - HARD
+          - VERY_HARD
+        surfaceType:
+          type: string
+          description: Surface type
+          enum:
+          - ASPHALT
+          - GRAVEL
+          - MIXED
+        isPublic:
+          type: boolean
+          description: Whether the route is publicly visible
+    UpdateTeamRequest:
+      description: Team update request
+      type: object
+      properties:
+        name:
+          type: string
+          description: Team name
+          minLength: 2
+          maxLength: 255
+        description:
+          type: string
+          description: Team description
+          maxLength: 2000
+        isPublic:
+          type: boolean
+          description: Whether the team is publicly visible
+        logoUrl:
+          type: string
+          description: Logo image URL
+        coverImageUrl:
+          type: string
+          description: Cover image URL
+        maxMembers:
+          type: integer
+          format: int32
+          description: Maximum number of members (null = unlimited)
+    UpdateUserRequest:
+      description: User profile update request
+      type: object
+      properties:
+        displayName:
+          type: string
+          description: User display name
+          examples:
+          - John Doe
+          minLength: 1
+          maxLength: 255
+        locale:
+          type: string
+          description: "User locale (e.g. 'en', 'fr')"
+          examples:
+          - en
+          maxLength: 10
+        timezone:
+          type: string
+          description: User timezone (e.g. 'Europe/Paris')
+          examples:
+          - Europe/Paris
+          maxLength: 50
+    UserDto:
+      description: User profile data
+      type: object
+      properties:
+        id:
+          type: string
+          description: User ID (TSID)
+          examples:
+          - 0h4a8xzk8jv80
+        email:
+          type: string
+          description: User email address
+        displayName:
+          type: string
+          description: User display name
+        avatarUrl:
+          type: string
+          description: User avatar URL
+        locale:
+          type: string
+          description: "User locale (e.g. 'en', 'fr')"
+          examples:
+          - en
+        timezone:
+          type: string
+          description: User timezone (e.g. 'Europe/Paris')
+          examples:
+          - Europe/Paris
+        createdAt:
+          type: string
+          description: Account creation timestamp
+  securitySchemes:
+    SecurityScheme:
+      type: openIdConnect
+      openIdConnectUrl: http://localhost:8180/realms/tribly/.well-known/openid-configuration
+      description: Authentication
+tags:
+- name: Configuration
+  description: Application configuration endpoints
+- name: Rides
+  description: Ride management and participation operations
+- name: Route Downloads
+  description: Route file downloads and images
+- name: Routes
+  description: GPX route management operations
+- name: Team Members
+  description: Team membership management operations
+- name: Teams
+  description: Team management operations
+- name: Users
+  description: User profile management operations
+paths:
+  /api/config:
     get:
-      operationId: getRoute
-      summary: Get route details
-      tags: [Routes]
-      parameters:
-        - $ref: '#/components/parameters/TeamIdParam'
-        - $ref: '#/components/parameters/RouteIdParam'
+      summary: Get application configuration
+      description: Get frontend configuration including Keycloak and map settings
+      tags:
+      - Configuration
       responses:
-        '200':
-          description: Route details with GPX tracks
+        "200":
+          description: Configuration retrieved successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RouteDetail'
-    patch:
-      operationId: updateRoute
-      summary: Update route
-      tags: [Routes]
+                $ref: "#/components/schemas/ConfigDto"
+  /api/download/teams/{slug}/routes/{routeId}/fit:
+    get:
+      summary: Download FIT file
+      description: Download the route as a FIT file for Garmin devices
+      tags:
+      - Route Downloads
       parameters:
-        - $ref: '#/components/parameters/TeamIdParam'
-        - $ref: '#/components/parameters/RouteIdParam'
-      requestBody:
+      - description: Route ID (TSID)
+        name: routeId
+        in: path
         required: true
+        schema:
+          type: string
+      - description: Team URL slug
+        name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: FIT file downloaded successfully
+          content:
+            application/octet-stream: {}
+        "404":
+          description: Team or route not found
+  /api/download/teams/{slug}/routes/{routeId}/gpx:
+    get:
+      summary: Download GPX file
+      description: Download the route as a GPX file
+      tags:
+      - Route Downloads
+      parameters:
+      - description: Route ID (TSID)
+        name: routeId
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Team URL slug
+        name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: GPX file downloaded successfully
+          content:
+            application/gpx+xml: {}
+        "404":
+          description: Team or route not found
+  /api/download/teams/{slug}/routes/{routeId}/thumbnail:
+    get:
+      summary: Get route thumbnail
+      description: Get a thumbnail image of the route
+      tags:
+      - Route Downloads
+      parameters:
+      - description: Route ID (TSID)
+        name: routeId
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Team URL slug
+        name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Thumbnail retrieved successfully
+          content:
+            image/png: {}
+        "404":
+          description: Team or route not found
+  /api/teams:
+    get:
+      summary: List public teams
+      description: Get a paginated list of public teams with optional search
+      tags:
+      - Teams
+      parameters:
+      - description: Page number (0-indexed)
+        name: page
+        in: query
+        schema:
+          type: integer
+          format: int32
+          default: 0
+      - description: Search query to filter teams by name
+        name: search
+        in: query
+        schema:
+          type: string
+      - description: Page size
+        name: size
+        in: query
+        schema:
+          type: integer
+          format: int32
+          default: 20
+      responses:
+        "200":
+          description: Teams retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TeamListResponse"
+    post:
+      summary: Create team
+      description: Create a new team. The current user will be set as the team owner.
+      tags:
+      - Teams
+      requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RouteUpdate'
+              $ref: "#/components/schemas/CreateTeamRequest"
+        required: true
       responses:
-        '200':
-          description: Route updated
+        "201":
+          description: Team created successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Route'
-    delete:
-      operationId: deleteRoute
-      summary: Delete route
-      tags: [Routes]
-      parameters:
-        - $ref: '#/components/parameters/TeamIdParam'
-        - $ref: '#/components/parameters/RouteIdParam'
+                $ref: "#/components/schemas/TeamDto"
+        "400":
+          description: Invalid request
+        "401":
+          description: Unauthorized
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme:
+        - user
+  /api/teams/my:
+    get:
+      summary: Get my teams
+      description: Get all teams the current user is a member of
+      tags:
+      - Teams
       responses:
-        '204':
-          description: Route deleted
-
-  /teams/{teamId}/routes/{routeId}/gpx:
-    post:
-      operationId: uploadGpx
-      summary: Upload GPX file for route
-      tags: [Routes]
+        "200":
+          description: User teams retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TeamWithRoleDto"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme:
+        - user
+  /api/teams/{slug}:
+    put:
+      summary: Update team
+      description: Update team information. Requires ADMIN role.
+      tags:
+      - Teams
       parameters:
-        - $ref: '#/components/parameters/TeamIdParam'
-        - $ref: '#/components/parameters/RouteIdParam'
-      requestBody:
+      - description: Team URL slug
+        name: slug
+        in: path
         required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateTeamRequest"
+        required: true
+      responses:
+        "200":
+          description: Team updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TeamDto"
+        "400":
+          description: Invalid request
+        "401":
+          description: Unauthorized
+        "403":
+          description: User is not a team admin
+        "404":
+          description: Team not found
+      security:
+      - SecurityScheme:
+        - user
+    get:
+      summary: Get team by slug
+      description: Get detailed team information by URL slug
+      tags:
+      - Teams
+      parameters:
+      - description: Team URL slug
+        name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Team retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TeamDetailDto"
+        "404":
+          description: Team not found
+        "403":
+          description: Team is private and user is not a member
+    delete:
+      summary: Delete team
+      description: Soft delete a team. Requires OWNER role.
+      tags:
+      - Teams
+      parameters:
+      - description: Team URL slug
+        name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "204":
+          description: Team deleted successfully
+        "401":
+          description: Unauthorized
+        "403":
+          description: User is not the team owner
+        "404":
+          description: Team not found
+      security:
+      - SecurityScheme:
+        - user
+  /api/teams/{slug}/members:
+    get:
+      summary: Get team members
+      description: Get paginated list of team members
+      tags:
+      - Team Members
+      parameters:
+      - description: Team URL slug
+        name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Page number
+        name: page
+        in: query
+        schema:
+          type: integer
+          format: int32
+          default: 0
+      - description: Page size
+        name: size
+        in: query
+        schema:
+          type: integer
+          format: int32
+          default: 50
+      responses:
+        "200":
+          description: Members retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MemberListResponse"
+        "401":
+          description: Unauthorized
+        "404":
+          description: Team not found
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme:
+        - user
+    post:
+      summary: Add team member
+      description: Add a member to the team. Requires ADMIN role.
+      tags:
+      - Team Members
+      parameters:
+      - description: Team URL slug
+        name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AddMemberRequest"
+        required: true
+      responses:
+        "201":
+          description: Member added successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MemberDto"
+        "400":
+          description: Invalid request or user already a member
+        "401":
+          description: Unauthorized
+        "403":
+          description: User is not a team admin
+        "404":
+          description: Team or user not found
+      security:
+      - SecurityScheme:
+        - user
+  /api/teams/{slug}/members/join:
+    post:
+      summary: Join team
+      description: Request to join a team
+      tags:
+      - Team Members
+      parameters:
+      - description: Team URL slug
+        name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "201":
+          description: Successfully joined team
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MemberDto"
+        "400":
+          description: Team is full or user is already a member
+        "401":
+          description: Unauthorized
+        "404":
+          description: Team not found
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme:
+        - user
+  /api/teams/{slug}/members/leave:
+    post:
+      summary: Leave team
+      description: Leave a team
+      tags:
+      - Team Members
+      parameters:
+      - description: Team URL slug
+        name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "204":
+          description: Successfully left team
+        "400":
+          description: Cannot leave - user is the owner
+        "401":
+          description: Unauthorized
+        "404":
+          description: Team not found or user is not a member
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme:
+        - user
+  /api/teams/{slug}/members/{memberId}:
+    put:
+      summary: Update member role
+      description: Update a team member's role. Requires ADMIN role.
+      tags:
+      - Team Members
+      parameters:
+      - description: Member user ID (TSID)
+        name: memberId
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Team URL slug
+        name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateMemberRoleRequest"
+        required: true
+      responses:
+        "200":
+          description: Role updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MemberDto"
+        "400":
+          description: Invalid request
+        "401":
+          description: Unauthorized
+        "403":
+          description: User is not a team admin
+        "404":
+          description: Team or member not found
+      security:
+      - SecurityScheme:
+        - user
+    delete:
+      summary: Remove team member
+      description: Remove a member from the team. Requires ADMIN role.
+      tags:
+      - Team Members
+      parameters:
+      - description: Member user ID (TSID)
+        name: memberId
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Team URL slug
+        name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "204":
+          description: Member removed successfully
+        "401":
+          description: Unauthorized
+        "403":
+          description: User is not a team admin
+        "404":
+          description: Team or member not found
+      security:
+      - SecurityScheme:
+        - user
+  /api/teams/{slug}/rides:
+    get:
+      summary: List rides
+      description: Get paginated list of rides for a team with optional filtering
+      tags:
+      - Rides
+      parameters:
+      - description: Team URL slug
+        name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Start date filter (ISO format)
+        name: from
+        in: query
+        schema:
+          type: string
+      - description: Page number
+        name: page
+        in: query
+        schema:
+          type: integer
+          format: int32
+          default: 0
+      - description: Page size
+        name: size
+        in: query
+        schema:
+          type: integer
+          format: int32
+          default: 20
+      - description: Status filter
+        name: status
+        in: query
+        schema:
+          $ref: "#/components/schemas/RideStatus"
+      - description: End date filter (ISO format)
+        name: to
+        in: query
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Rides retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RideListResponse"
+        "404":
+          description: Team not found
+    post:
+      summary: Create ride
+      description: Create a new ride with optional groups
+      tags:
+      - Rides
+      parameters:
+      - description: Team URL slug
+        name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateRideRequest"
+        required: true
+      responses:
+        "201":
+          description: Ride created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RideDto"
+        "400":
+          description: Invalid request
+        "401":
+          description: Unauthorized
+        "403":
+          description: User is not a team member
+        "404":
+          description: Team not found
+      security:
+      - SecurityScheme:
+        - user
+  /api/teams/{slug}/rides/{rideSlug}:
+    patch:
+      summary: Update ride
+      description: Update ride information. Requires organizer permissions.
+      tags:
+      - Rides
+      parameters:
+      - description: Ride URL slug
+        name: rideSlug
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Team URL slug
+        name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateRideRequest"
+        required: true
+      responses:
+        "200":
+          description: Ride updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RideDto"
+        "400":
+          description: Invalid request
+        "401":
+          description: Unauthorized
+        "403":
+          description: User is not authorized to update this ride
+        "404":
+          description: Team or ride not found
+      security:
+      - SecurityScheme:
+        - user
+    get:
+      summary: Get ride details
+      description: Get detailed ride information including groups
+      tags:
+      - Rides
+      parameters:
+      - description: Ride URL slug
+        name: rideSlug
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Team URL slug
+        name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Ride retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RideDetailDto"
+        "404":
+          description: Team or ride not found
+    delete:
+      summary: Delete ride
+      description: Soft delete a ride. Requires organizer permissions.
+      tags:
+      - Rides
+      parameters:
+      - description: Ride URL slug
+        name: rideSlug
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Team URL slug
+        name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "204":
+          description: Ride deleted successfully
+        "401":
+          description: Unauthorized
+        "403":
+          description: User is not authorized to delete this ride
+        "404":
+          description: Team or ride not found
+      security:
+      - SecurityScheme:
+        - user
+  /api/teams/{slug}/rides/{rideSlug}/groups:
+    get:
+      summary: List ride groups
+      description: Get all groups for a ride
+      tags:
+      - Rides
+      parameters:
+      - description: Ride URL slug
+        name: rideSlug
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Team URL slug
+        name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Groups retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RideGroupListResponse"
+        "404":
+          description: Team or ride not found
+    post:
+      summary: Create ride group
+      description: Create a new group for a ride. Requires organizer permissions.
+      tags:
+      - Rides
+      parameters:
+      - description: Ride URL slug
+        name: rideSlug
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Team URL slug
+        name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateGroupRequest"
+        required: true
+      responses:
+        "201":
+          description: Group created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RideGroupDto"
+        "400":
+          description: Invalid request
+        "401":
+          description: Unauthorized
+        "403":
+          description: User is not authorized to modify this ride
+        "404":
+          description: Team or ride not found
+      security:
+      - SecurityScheme:
+        - user
+  /api/teams/{slug}/rides/{rideSlug}/groups/{groupId}:
+    patch:
+      summary: Update ride group
+      description: Update a ride group. Requires organizer permissions.
+      tags:
+      - Rides
+      parameters:
+      - description: Group ID (TSID)
+        name: groupId
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Ride URL slug
+        name: rideSlug
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Team URL slug
+        name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateGroupRequest"
+        required: true
+      responses:
+        "200":
+          description: Group updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RideGroupDto"
+        "400":
+          description: Invalid request
+        "401":
+          description: Unauthorized
+        "403":
+          description: User is not authorized to modify this ride
+        "404":
+          description: "Team, ride, or group not found"
+      security:
+      - SecurityScheme:
+        - user
+    delete:
+      summary: Delete ride group
+      description: Delete a ride group. Requires organizer permissions.
+      tags:
+      - Rides
+      parameters:
+      - description: Group ID (TSID)
+        name: groupId
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Ride URL slug
+        name: rideSlug
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Team URL slug
+        name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "204":
+          description: Group deleted successfully
+        "401":
+          description: Unauthorized
+        "403":
+          description: User is not authorized to modify this ride
+        "404":
+          description: "Team, ride, or group not found"
+      security:
+      - SecurityScheme:
+        - user
+  /api/teams/{slug}/rides/{rideSlug}/groups/{groupId}/join:
+    post:
+      summary: Join ride group
+      description: Join a ride group
+      tags:
+      - Rides
+      parameters:
+      - description: Group ID (TSID)
+        name: groupId
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Ride URL slug
+        name: rideSlug
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Team URL slug
+        name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/JoinGroupRequest"
+        required: true
+      responses:
+        "201":
+          description: Successfully joined group
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RideParticipationDto"
+        "400":
+          description: Group is full or user already joined
+        "401":
+          description: Unauthorized
+        "404":
+          description: "Team, ride, or group not found"
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme:
+        - user
+  /api/teams/{slug}/rides/{rideSlug}/groups/{groupId}/leave:
+    post:
+      summary: Leave ride group
+      description: Leave a ride group
+      tags:
+      - Rides
+      parameters:
+      - description: Group ID (TSID)
+        name: groupId
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Ride URL slug
+        name: rideSlug
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Team URL slug
+        name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "204":
+          description: Successfully left group
+        "401":
+          description: Unauthorized
+        "404":
+          description: "Team, ride, group, or participation not found"
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme:
+        - user
+  /api/teams/{slug}/routes:
+    get:
+      summary: List routes
+      description: Get paginated list of routes for a team
+      tags:
+      - Routes
+      parameters:
+      - description: Team URL slug
+        name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Page number (0-indexed)
+        name: page
+        in: query
+        schema:
+          type: integer
+          format: int32
+          default: 0
+      - description: Page size
+        name: size
+        in: query
+        schema:
+          type: integer
+          format: int32
+          default: 20
+      responses:
+        "200":
+          description: Routes retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RouteListResponse"
+        "404":
+          description: Team not found
+    post:
+      summary: Create route
+      description: Create a new route by uploading a GPX file
+      tags:
+      - Routes
+      parameters:
+      - description: Team URL slug
+        name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
         content:
           multipart/form-data:
             schema:
               type: object
-              required: [file]
+              required:
+              - name
               properties:
-                file:
+                name:
+                  type: string
+                  pattern: \S
+                description:
+                  type: string
+                difficulty:
+                  $ref: "#/components/schemas/RouteDifficulty"
+                surfaceType:
+                  $ref: "#/components/schemas/SurfaceType"
+                isPublic:
+                  type: boolean
+                gpxFile:
                   type: string
                   format: binary
-      responses:
-        '201':
-          description: GPX processed
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GpxTrack'
-        '400':
-          description: Invalid GPX file
-    get:
-      operationId: downloadGpx
-      summary: Download route as GPX
-      tags: [Routes]
-      parameters:
-        - $ref: '#/components/parameters/TeamIdParam'
-        - $ref: '#/components/parameters/RouteIdParam'
-      responses:
-        '200':
-          description: GPX file
-          content:
-            application/gpx+xml:
-              schema:
-                type: string
-                format: binary
-
-  /teams/{teamId}/routes/{routeId}/fit:
-    get:
-      operationId: downloadFit
-      summary: Download route as FIT (Garmin)
-      tags: [Routes]
-      parameters:
-        - $ref: '#/components/parameters/TeamIdParam'
-        - $ref: '#/components/parameters/RouteIdParam'
-      responses:
-        '200':
-          description: FIT file
-          content:
-            application/octet-stream:
-              schema:
-                type: string
-                format: binary
-
-  # ============== PLACES ==============
-  /teams/{teamId}/places:
-    get:
-      operationId: listPlaces
-      summary: List team places
-      tags: [Places]
-      parameters:
-        - $ref: '#/components/parameters/TeamIdParam'
-        - $ref: '#/components/parameters/PageParam'
-        - $ref: '#/components/parameters/PageSizeParam'
-        - name: type
-          in: query
-          schema:
-            $ref: '#/components/schemas/PlaceType'
-        - name: near
-          in: query
-          description: "lat,lng format"
-          schema:
-            type: string
-        - name: radius
-          in: query
-          description: Radius in meters
-          schema:
-            type: integer
-            default: 10000
-      responses:
-        '200':
-          description: List of places
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PlaceListResponse'
-    post:
-      operationId: createPlace
-      summary: Create a new place
-      tags: [Places]
-      parameters:
-        - $ref: '#/components/parameters/TeamIdParam'
-      requestBody:
+            encoding:
+              difficulty:
+                contentType: text/plain
+              surfaceType:
+                contentType: text/plain
+              isPublic:
+                contentType: text/plain
         required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PlaceCreate'
       responses:
-        '201':
-          description: Place created
+        "201":
+          description: Route created successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Place'
-
-  /teams/{teamId}/places/{placeId}:
-    get:
-      operationId: getPlace
-      summary: Get place details
-      tags: [Places]
-      parameters:
-        - $ref: '#/components/parameters/TeamIdParam'
-        - name: placeId
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int64
-      responses:
-        '200':
-          description: Place details
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Place'
+                $ref: "#/components/schemas/RouteDto"
+        "400":
+          description: Invalid request or GPX file
+        "401":
+          description: Unauthorized
+        "403":
+          description: User is not a team member
+        "404":
+          description: Team not found
+      security:
+      - SecurityScheme:
+        - user
+  /api/teams/{slug}/routes/{routeId}:
     patch:
-      operationId: updatePlace
-      summary: Update place
-      tags: [Places]
+      summary: Update route
+      description: "Update route metadata (name, description, difficulty, etc.). Does\
+        \ not update the GPX file."
+      tags:
+      - Routes
       parameters:
-        - $ref: '#/components/parameters/TeamIdParam'
-        - name: placeId
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int64
-      requestBody:
+      - description: Route ID (TSID)
+        name: routeId
+        in: path
         required: true
+        schema:
+          type: string
+      - description: Team URL slug
+        name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PlaceUpdate'
+              $ref: "#/components/schemas/UpdateRouteRequest"
+        required: true
       responses:
-        '200':
-          description: Place updated
+        "200":
+          description: Route updated successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Place'
+                $ref: "#/components/schemas/RouteDto"
+        "400":
+          description: Invalid request
+        "401":
+          description: Unauthorized
+        "403":
+          description: User is not authorized to update this route
+        "404":
+          description: Team or route not found
+      security:
+      - SecurityScheme:
+        - user
+    get:
+      summary: Get route details
+      description: Get detailed route information including GPS coordinates and statistics
+      tags:
+      - Routes
+      parameters:
+      - description: Route ID (TSID)
+        name: routeId
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Team URL slug
+        name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Route retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RouteDetailDto"
+        "404":
+          description: Team or route not found
     delete:
-      operationId: deletePlace
-      summary: Delete place
-      tags: [Places]
+      summary: Delete route
+      description: Soft delete a route. Requires route creator or team admin permissions.
+      tags:
+      - Routes
       parameters:
-        - $ref: '#/components/parameters/TeamIdParam'
-        - name: placeId
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int64
-      responses:
-        '204':
-          description: Place deleted
-
-  # ============== MESSAGES ==============
-  /teams/{teamId}/messages/threads:
-    get:
-      operationId: listMessageThreads
-      summary: List message threads
-      tags: [Messages]
-      parameters:
-        - $ref: '#/components/parameters/TeamIdParam'
-        - $ref: '#/components/parameters/PageParam'
-        - $ref: '#/components/parameters/PageSizeParam'
-        - name: type
-          in: query
-          schema:
-            $ref: '#/components/schemas/MessageThreadType'
-      responses:
-        '200':
-          description: Message threads
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MessageThreadListResponse'
-
-  /teams/{teamId}/messages/threads/{threadId}:
-    get:
-      operationId: getMessageThread
-      summary: Get thread with messages
-      tags: [Messages]
-      parameters:
-        - $ref: '#/components/parameters/TeamIdParam'
-        - name: threadId
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int64
-        - $ref: '#/components/parameters/PageParam'
-        - $ref: '#/components/parameters/PageSizeParam'
-      responses:
-        '200':
-          description: Thread with messages
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MessageThreadDetail'
-
-  /teams/{teamId}/messages/threads/{threadId}/messages:
-    post:
-      operationId: postMessage
-      summary: Post message to thread
-      tags: [Messages]
-      parameters:
-        - $ref: '#/components/parameters/TeamIdParam'
-        - name: threadId
-          in: path
-          required: true
-          schema:
-            type: integer
-            format: int64
-      requestBody:
+      - description: Route ID (TSID)
+        name: routeId
+        in: path
         required: true
+        schema:
+          type: string
+      - description: Team URL slug
+        name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "204":
+          description: Route deleted successfully
+        "401":
+          description: Unauthorized
+        "403":
+          description: User is not authorized to delete this route
+        "404":
+          description: Team or route not found
+      security:
+      - SecurityScheme:
+        - user
+  /api/teams/{slug}/routes/{routeId}/climbs:
+    get:
+      summary: Get route climbs
+      description: Get all categorized climbs (hills) on a route
+      tags:
+      - Routes
+      parameters:
+      - description: Route ID (TSID)
+        name: routeId
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Team URL slug
+        name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Climbs retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClimbListResponse"
+        "404":
+          description: Team or route not found
+  /api/teams/{slug}/routes/{routeId}/track:
+    get:
+      summary: Get route track
+      description: "Get GPS track points (latitude, longitude, elevation) for displaying\
+        \ the route on a map"
+      tags:
+      - Routes
+      parameters:
+      - description: Route ID (TSID)
+        name: routeId
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Team URL slug
+        name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Track retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GpxTrackDto"
+        "404":
+          description: Team or route not found
+  /api/users/me:
+    put:
+      summary: Update current user
+      description: Update the current user's profile
+      tags:
+      - Users
+      requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/MessageCreate'
-      responses:
-        '201':
-          description: Message posted
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Message'
-
-  # ============== NOTIFICATIONS ==============
-  /notifications:
-    get:
-      operationId: listNotifications
-      summary: List user notifications
-      tags: [Notifications]
-      parameters:
-        - $ref: '#/components/parameters/PageParam'
-        - $ref: '#/components/parameters/PageSizeParam'
-        - name: unreadOnly
-          in: query
-          schema:
-            type: boolean
-            default: false
-      responses:
-        '200':
-          description: User notifications
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/NotificationListResponse'
-
-  /notifications/mark-read:
-    post:
-      operationId: markNotificationsRead
-      summary: Mark notifications as read
-      tags: [Notifications]
-      requestBody:
+              $ref: "#/components/schemas/UpdateUserRequest"
         required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                ids:
-                  type: array
-                  items:
-                    type: integer
-                    format: int64
-                all:
-                  type: boolean
       responses:
-        '204':
-          description: Notifications marked as read
-
-  # ============== PUBLIC CATALOG ==============
-  /catalog/teams:
-    get:
-      operationId: listPublicTeams
-      summary: Browse public teams
-      tags: [Teams]
-      security: []
-      parameters:
-        - $ref: '#/components/parameters/PageParam'
-        - $ref: '#/components/parameters/PageSizeParam'
-        - name: search
-          in: query
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Public teams
+        "200":
+          description: User updated successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TeamListResponse'
-
-  /catalog/routes:
+                $ref: "#/components/schemas/UserDto"
+        "400":
+          description: Invalid request
+        "401":
+          description: Unauthorized
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme:
+        - user
     get:
-      operationId: listPublicRoutes
-      summary: Browse public routes
-      tags: [Routes]
-      security: []
-      parameters:
-        - $ref: '#/components/parameters/PageParam'
-        - $ref: '#/components/parameters/PageSizeParam'
-        - name: near
-          in: query
-          schema:
-            type: string
-        - name: radius
-          in: query
-          schema:
-            type: integer
-        - name: difficulty
-          in: query
-          schema:
-            $ref: '#/components/schemas/RouteDifficulty'
+      summary: Get current user
+      description: Get the current authenticated user's profile
+      tags:
+      - Users
       responses:
-        '200':
-          description: Public routes
+        "200":
+          description: User profile retrieved successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RouteListResponse'
-
-components:
-  securitySchemes:
-    BearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
-
-  parameters:
-    TeamIdParam:
-      name: teamId
-      in: path
-      required: true
-      schema:
-        type: integer
-        format: int64
-    RideIdParam:
-      name: rideId
-      in: path
-      required: true
-      schema:
-        type: integer
-        format: int64
-    TripIdParam:
-      name: tripId
-      in: path
-      required: true
-      schema:
-        type: integer
-        format: int64
-    RouteIdParam:
-      name: routeId
-      in: path
-      required: true
-      schema:
-        type: integer
-        format: int64
-    PageParam:
-      name: page
-      in: query
-      schema:
-        type: integer
-        minimum: 1
-        default: 1
-    PageSizeParam:
-      name: pageSize
-      in: query
-      schema:
-        type: integer
-        minimum: 1
-        maximum: 100
-        default: 20
-
-  responses:
-    BadRequest:
-      description: Invalid request
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-    Unauthorized:
-      description: Authentication required
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-    Forbidden:
-      description: Permission denied
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-    NotFound:
-      description: Resource not found
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-
-  schemas:
-    # ===== Common =====
-    ErrorResponse:
-      type: object
-      required: [error]
-      properties:
-        error:
-          type: object
-          required: [code, message]
-          properties:
-            code:
-              type: string
-            message:
-              type: string
-            details:
-              type: array
-              items:
-                type: object
-                properties:
-                  field:
-                    type: string
-                  message:
-                    type: string
-
-    PaginationMeta:
-      type: object
-      properties:
-        page:
+                $ref: "#/components/schemas/UserDto"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme:
+        - user
+    delete:
+      summary: Delete current user
+      description: Delete the current user's account
+      tags:
+      - Users
+      responses:
+        "204":
+          description: User deleted successfully
+        "401":
+          description: Unauthorized
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme:
+        - user
+  /api/users/search:
+    get:
+      summary: Search users
+      description: Search users by display name
+      tags:
+      - Users
+      parameters:
+      - description: Maximum results (max 20)
+        name: limit
+        in: query
+        schema:
           type: integer
-        pageSize:
-          type: integer
-        total:
-          type: integer
-        totalPages:
-          type: integer
-
-    # ===== Auth =====
-    AuthResponse:
-      type: object
-      required: [accessToken, refreshToken, user]
-      properties:
-        accessToken:
-          type: string
-        refreshToken:
-          type: string
-        expiresIn:
-          type: integer
-        user:
-          $ref: '#/components/schemas/User'
-
-    # ===== Users =====
-    User:
-      type: object
-      required: [id, email, displayName]
-      properties:
-        id:
-          type: integer
-          format: int64
-        email:
-          type: string
-          format: email
-        displayName:
-          type: string
-        avatarUrl:
-          type: string
-          format: uri
-        locale:
-          type: string
-        timezone:
-          type: string
-        stravaConnected:
-          type: boolean
-        garminConnected:
-          type: boolean
-        createdAt:
-          type: string
-          format: date-time
-
-    UserUpdate:
-      type: object
-      properties:
-        displayName:
-          type: string
-          minLength: 2
-          maxLength: 100
-        avatarUrl:
-          type: string
-          format: uri
-        locale:
-          type: string
-        timezone:
-          type: string
-
-    # ===== Teams =====
-    Team:
-      type: object
-      required: [id, name, slug]
-      properties:
-        id:
-          type: integer
-          format: int64
-        name:
-          type: string
-        slug:
-          type: string
-        description:
-          type: string
-        logoUrl:
-          type: string
-          format: uri
-        coverImageUrl:
-          type: string
-          format: uri
-        isPublic:
-          type: boolean
-        memberCount:
-          type: integer
-        createdAt:
-          type: string
-          format: date-time
-
-    TeamCreate:
-      type: object
-      required: [name]
-      properties:
-        name:
-          type: string
-          minLength: 2
-          maxLength: 100
-        description:
-          type: string
-          maxLength: 2000
-        isPublic:
-          type: boolean
-          default: false
-
-    TeamUpdate:
-      type: object
-      properties:
-        name:
-          type: string
-          minLength: 2
-          maxLength: 100
-        description:
-          type: string
-          maxLength: 2000
-        logoUrl:
-          type: string
-          format: uri
-        coverImageUrl:
-          type: string
-          format: uri
-        isPublic:
-          type: boolean
-
-    TeamListResponse:
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/Team'
-        meta:
-          $ref: '#/components/schemas/PaginationMeta'
-
-    TeamRole:
-      type: string
-      enum: [ADMIN, ORGANIZER, MEMBER]
-
-    TeamMembership:
-      type: object
-      properties:
-        team:
-          $ref: '#/components/schemas/Team'
-        role:
-          $ref: '#/components/schemas/TeamRole'
-        joinedAt:
-          type: string
-          format: date-time
-
-    TeamMember:
-      type: object
-      properties:
-        user:
-          $ref: '#/components/schemas/User'
-        role:
-          $ref: '#/components/schemas/TeamRole'
-        joinedAt:
-          type: string
-          format: date-time
-
-    TeamMemberListResponse:
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/TeamMember'
-        meta:
-          $ref: '#/components/schemas/PaginationMeta'
-
-    TeamInvite:
-      type: object
-      required: [email]
-      properties:
-        email:
-          type: string
-          format: email
-        role:
-          $ref: '#/components/schemas/TeamRole'
-
-    TeamDomain:
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int64
-        domain:
-          type: string
-        verified:
-          type: boolean
-        verificationToken:
-          type: string
-        isPrimary:
-          type: boolean
-
-    # ===== Rides =====
-    RideStatus:
-      type: string
-      enum: [DRAFT, PUBLISHED, CANCELLED]
-
-    Visibility:
-      type: string
-      enum: [TEAM, PUBLIC]
-
-    Ride:
-      type: object
-      required: [id, title, date, status]
-      properties:
-        id:
-          type: integer
-          format: int64
-        title:
-          type: string
-        description:
-          type: string
-        date:
-          type: string
-          format: date
-        startTime:
-          type: string
-          format: time
-        status:
-          $ref: '#/components/schemas/RideStatus'
-        visibility:
-          $ref: '#/components/schemas/Visibility'
-        routeId:
-          type: integer
-          format: int64
-        meetingPointId:
-          type: integer
-          format: int64
-        participantCount:
-          type: integer
-        groupCount:
-          type: integer
-        createdBy:
-          $ref: '#/components/schemas/User'
-        createdAt:
-          type: string
-          format: date-time
-
-    RideDetail:
-      allOf:
-        - $ref: '#/components/schemas/Ride'
-        - type: object
-          properties:
-            route:
-              $ref: '#/components/schemas/Route'
-            meetingPoint:
-              $ref: '#/components/schemas/Place'
-            groups:
-              type: array
-              items:
-                $ref: '#/components/schemas/RideGroupWithParticipants'
-
-    RideCreate:
-      type: object
-      required: [title, date]
-      properties:
-        title:
-          type: string
-          minLength: 3
-          maxLength: 200
-        description:
-          type: string
-          maxLength: 5000
-        date:
-          type: string
-          format: date
-        startTime:
-          type: string
-          format: time
-        routeId:
-          type: integer
-          format: int64
-        meetingPointId:
-          type: integer
-          format: int64
-        visibility:
-          $ref: '#/components/schemas/Visibility'
-        recurrenceRule:
-          type: string
-        groups:
-          type: array
-          items:
-            $ref: '#/components/schemas/RideGroupCreate'
-
-    RideUpdate:
-      type: object
-      properties:
-        title:
-          type: string
-          minLength: 3
-          maxLength: 200
-        description:
-          type: string
-          maxLength: 5000
-        date:
-          type: string
-          format: date
-        startTime:
-          type: string
-          format: time
-        routeId:
-          type: integer
-          format: int64
-        meetingPointId:
-          type: integer
-          format: int64
-        status:
-          $ref: '#/components/schemas/RideStatus'
-        visibility:
-          $ref: '#/components/schemas/Visibility'
-
-    RideListResponse:
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/Ride'
-        meta:
-          $ref: '#/components/schemas/PaginationMeta'
-
-    RideGroup:
-      type: object
-      required: [id, name]
-      properties:
-        id:
-          type: integer
-          format: int64
-        name:
-          type: string
-        description:
-          type: string
-        routeId:
-          type: integer
-          format: int64
-        averageSpeed:
-          type: integer
-        maxParticipants:
-          type: integer
-        currentParticipants:
-          type: integer
-        sortOrder:
-          type: integer
-
-    RideGroupWithParticipants:
-      allOf:
-        - $ref: '#/components/schemas/RideGroup'
-        - type: object
-          properties:
-            participants:
-              type: array
-              items:
-                $ref: '#/components/schemas/RideParticipation'
-
-    RideGroupCreate:
-      type: object
-      required: [name]
-      properties:
-        name:
-          type: string
-          minLength: 1
-          maxLength: 100
-        description:
-          type: string
-        routeId:
-          type: integer
-          format: int64
-        averageSpeed:
-          type: integer
-          minimum: 10
-          maximum: 50
-        maxParticipants:
-          type: integer
-          minimum: 1
-
-    RideParticipation:
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int64
-        user:
-          $ref: '#/components/schemas/User'
-        status:
-          type: string
-          enum: [REGISTERED, CONFIRMED, CANCELLED, COMPLETED]
-        registeredAt:
-          type: string
-          format: date-time
-        notes:
-          type: string
-
-    # ===== Trips =====
-    TripStatus:
-      type: string
-      enum: [PLANNING, PUBLISHED, IN_PROGRESS, COMPLETED, CANCELLED]
-
-    Trip:
-      type: object
-      required: [id, title, startDate, endDate, status]
-      properties:
-        id:
-          type: integer
-          format: int64
-        title:
-          type: string
-        description:
-          type: string
-        startDate:
-          type: string
-          format: date
-        endDate:
-          type: string
-          format: date
-        status:
-          $ref: '#/components/schemas/TripStatus'
-        visibility:
-          $ref: '#/components/schemas/Visibility'
-        coverImageUrl:
-          type: string
-          format: uri
-        maxParticipants:
-          type: integer
-        participantCount:
-          type: integer
-        dayCount:
-          type: integer
-        createdBy:
-          $ref: '#/components/schemas/User'
-        createdAt:
-          type: string
-          format: date-time
-
-    TripDetail:
-      allOf:
-        - $ref: '#/components/schemas/Trip'
-        - type: object
-          properties:
-            days:
-              type: array
-              items:
-                $ref: '#/components/schemas/TripDay'
-            participants:
-              type: array
-              items:
-                $ref: '#/components/schemas/TripParticipation'
-
-    TripCreate:
-      type: object
-      required: [title, startDate, endDate]
-      properties:
-        title:
-          type: string
-          minLength: 3
-          maxLength: 200
-        description:
-          type: string
-          maxLength: 5000
-        startDate:
-          type: string
-          format: date
-        endDate:
-          type: string
-          format: date
-        visibility:
-          $ref: '#/components/schemas/Visibility'
-        coverImageUrl:
-          type: string
-          format: uri
-        maxParticipants:
-          type: integer
-          minimum: 1
-
-    TripUpdate:
-      type: object
-      properties:
-        title:
-          type: string
-          minLength: 3
-          maxLength: 200
-        description:
-          type: string
-          maxLength: 5000
-        startDate:
-          type: string
-          format: date
-        endDate:
-          type: string
-          format: date
-        status:
-          $ref: '#/components/schemas/TripStatus'
-        visibility:
-          $ref: '#/components/schemas/Visibility'
-        coverImageUrl:
-          type: string
-          format: uri
-        maxParticipants:
-          type: integer
-          minimum: 1
-
-    TripListResponse:
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/Trip'
-        meta:
-          $ref: '#/components/schemas/PaginationMeta'
-
-    TripDay:
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int64
-        date:
-          type: string
-          format: date
-        title:
-          type: string
-        description:
-          type: string
-        accommodation:
-          $ref: '#/components/schemas/Place'
-        rides:
-          type: array
-          items:
-            $ref: '#/components/schemas/Ride'
-        sortOrder:
-          type: integer
-
-    TripParticipation:
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int64
-        user:
-          $ref: '#/components/schemas/User'
-        status:
-          type: string
-          enum: [INTERESTED, REGISTERED, CONFIRMED, CANCELLED]
-        registeredAt:
-          type: string
-          format: date-time
-
-    # ===== Routes =====
-    RouteDifficulty:
-      type: string
-      enum: [EASY, MODERATE, HARD, EXPERT]
-
-    SurfaceType:
-      type: string
-      enum: [ROAD, GRAVEL, MTB, MIXED]
-
-    Route:
-      type: object
-      required: [id, name]
-      properties:
-        id:
-          type: integer
-          format: int64
-        name:
-          type: string
-        description:
-          type: string
-        distance:
-          type: integer
-          description: Distance in meters
-        elevationGain:
-          type: integer
-          description: Elevation gain in meters
-        elevationLoss:
-          type: integer
-          description: Elevation loss in meters
-        difficulty:
-          $ref: '#/components/schemas/RouteDifficulty'
-        surfaceType:
-          $ref: '#/components/schemas/SurfaceType'
-        isPublic:
-          type: boolean
-        thumbnailUrl:
-          type: string
-          format: uri
-        startPoint:
-          $ref: '#/components/schemas/GeoPoint'
-        endPoint:
-          $ref: '#/components/schemas/GeoPoint'
-        createdBy:
-          $ref: '#/components/schemas/User'
-        createdAt:
-          type: string
-          format: date-time
-
-    RouteDetail:
-      allOf:
-        - $ref: '#/components/schemas/Route'
-        - type: object
-          properties:
-            tracks:
-              type: array
-              items:
-                $ref: '#/components/schemas/GpxTrack'
-            climbs:
-              type: array
-              items:
-                $ref: '#/components/schemas/RouteClimb'
-            pointsOfInterest:
-              type: array
-              items:
-                $ref: '#/components/schemas/RoutePointOfInterest'
-
-    RouteCreate:
-      type: object
-      required: [name]
-      properties:
-        name:
-          type: string
-          minLength: 3
-          maxLength: 200
-        description:
-          type: string
-          maxLength: 5000
-        difficulty:
-          $ref: '#/components/schemas/RouteDifficulty'
-        surfaceType:
-          $ref: '#/components/schemas/SurfaceType'
-        isPublic:
-          type: boolean
-          default: false
-
-    RouteUpdate:
-      type: object
-      properties:
-        name:
-          type: string
-          minLength: 3
-          maxLength: 200
-        description:
-          type: string
-          maxLength: 5000
-        difficulty:
-          $ref: '#/components/schemas/RouteDifficulty'
-        surfaceType:
-          $ref: '#/components/schemas/SurfaceType'
-        isPublic:
-          type: boolean
-
-    RouteListResponse:
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/Route'
-        meta:
-          $ref: '#/components/schemas/PaginationMeta'
-
-    GpxTrack:
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int64
-        name:
-          type: string
-        originalFileName:
-          type: string
-        trackPoints:
-          type: array
-          items:
-            $ref: '#/components/schemas/TrackPoint'
-        processedAt:
-          type: string
-          format: date-time
-
-    TrackPoint:
-      type: object
-      properties:
-        lat:
-          type: number
-          format: double
-        lng:
-          type: number
-          format: double
-        ele:
-          type: number
-          format: double
-        time:
-          type: string
-          format: date-time
-
-    RouteClimb:
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int64
-        name:
-          type: string
-        startDistance:
-          type: integer
-        endDistance:
-          type: integer
-        elevationGain:
-          type: integer
-        averageGradient:
-          type: number
-          format: double
-        maxGradient:
-          type: number
-          format: double
-        category:
-          type: string
-          enum: [HC, CAT1, CAT2, CAT3, CAT4]
-
-    RoutePointOfInterest:
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int64
-        name:
-          type: string
-        type:
-          type: string
-          enum: [CAFE, WATER, VIEWPOINT, DANGER, INFO]
-        distance:
-          type: integer
-        location:
-          $ref: '#/components/schemas/GeoPoint'
-        notes:
-          type: string
-
-    GeoPoint:
-      type: object
-      properties:
-        lat:
-          type: number
-          format: double
-        lng:
-          type: number
-          format: double
-
-    # ===== Places =====
-    PlaceType:
-      type: string
-      enum: [MEETUP, CAFE, RESTAURANT, HOTEL, CAMPSITE, WATER, OTHER]
-
-    Place:
-      type: object
-      required: [id, name, type, lat, lng]
-      properties:
-        id:
-          type: integer
-          format: int64
-        name:
-          type: string
-        type:
-          $ref: '#/components/schemas/PlaceType'
-        address:
-          type: string
-        lat:
-          type: number
-          format: double
-        lng:
-          type: number
-          format: double
-        phone:
-          type: string
-        website:
-          type: string
-          format: uri
-        notes:
-          type: string
-        isPublic:
-          type: boolean
-        createdBy:
-          $ref: '#/components/schemas/User'
-        createdAt:
-          type: string
-          format: date-time
-
-    PlaceCreate:
-      type: object
-      required: [name, type, lat, lng]
-      properties:
-        name:
-          type: string
-          minLength: 2
-          maxLength: 200
-        type:
-          $ref: '#/components/schemas/PlaceType'
-        address:
-          type: string
-        lat:
-          type: number
-          format: double
-        lng:
-          type: number
-          format: double
-        phone:
-          type: string
-        website:
-          type: string
-          format: uri
-        notes:
-          type: string
-        isPublic:
-          type: boolean
-          default: false
-
-    PlaceUpdate:
-      type: object
-      properties:
-        name:
-          type: string
-          minLength: 2
-          maxLength: 200
-        type:
-          $ref: '#/components/schemas/PlaceType'
-        address:
-          type: string
-        lat:
-          type: number
-          format: double
-        lng:
-          type: number
-          format: double
-        phone:
-          type: string
-        website:
-          type: string
-          format: uri
-        notes:
-          type: string
-        isPublic:
-          type: boolean
-
-    PlaceListResponse:
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/Place'
-        meta:
-          $ref: '#/components/schemas/PaginationMeta'
-
-    # ===== Messages =====
-    MessageThreadType:
-      type: string
-      enum: [TEAM, RIDE, TRIP, DIRECT]
-
-    MessageThread:
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int64
-        type:
-          $ref: '#/components/schemas/MessageThreadType'
-        title:
-          type: string
-        rideId:
-          type: integer
-          format: int64
-        tripId:
-          type: integer
-          format: int64
-        lastMessageAt:
-          type: string
-          format: date-time
-        unreadCount:
-          type: integer
-
-    MessageThreadDetail:
-      allOf:
-        - $ref: '#/components/schemas/MessageThread'
-        - type: object
-          properties:
-            messages:
-              type: array
-              items:
-                $ref: '#/components/schemas/Message'
-            meta:
-              $ref: '#/components/schemas/PaginationMeta'
-
-    MessageThreadListResponse:
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/MessageThread'
-        meta:
-          $ref: '#/components/schemas/PaginationMeta'
-
-    Message:
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int64
-        author:
-          $ref: '#/components/schemas/User'
-        content:
-          type: string
-        parentId:
-          type: integer
-          format: int64
-        createdAt:
-          type: string
-          format: date-time
-        editedAt:
-          type: string
-          format: date-time
-
-    MessageCreate:
-      type: object
-      required: [content]
-      properties:
-        content:
-          type: string
-          minLength: 1
-          maxLength: 10000
-        parentId:
-          type: integer
-          format: int64
-
-    # ===== Notifications =====
-    Notification:
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int64
-        type:
-          type: string
-        title:
-          type: string
-        body:
-          type: string
-        data:
-          type: object
-        readAt:
-          type: string
-          format: date-time
-        sentAt:
-          type: string
-          format: date-time
-
-    NotificationListResponse:
-      type: object
-      properties:
-        data:
-          type: array
-          items:
-            $ref: '#/components/schemas/Notification'
-        meta:
-          $ref: '#/components/schemas/PaginationMeta'
-        unreadCount:
-          type: integer
+          format: int32
+          default: 10
+      - description: Search query
+        name: q
+        in: query
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PublicUserDto"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme:
+        - user
+  /api/users/{id}:
+    get:
+      summary: Get user by ID
+      description: Get public user information by ID
+      tags:
+      - Users
+      parameters:
+      - description: User ID (TSID)
+        name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: User retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicUserDto"
+        "401":
+          description: Unauthorized
+        "404":
+          description: User not found
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme:
+        - user
+info:
+  title: Tribly API
+  version: 1.0.0
+  description: API for Tribly Cycling Team Management Platform
+servers:
+- url: http://localhost:8080
+  description: Auto generated value
+- url: http://0.0.0.0:8080
+  description: Auto generated value

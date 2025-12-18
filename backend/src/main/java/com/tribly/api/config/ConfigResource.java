@@ -7,10 +7,17 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
 @Path("/api/config")
 @Produces(MediaType.APPLICATION_JSON)
 @PermitAll
+@Tag(name = "Configuration", description = "Application configuration endpoints")
 public class ConfigResource {
 
     @ConfigProperty(name = "tribly.keycloak.url")
@@ -29,6 +36,14 @@ public class ConfigResource {
     String mapAttribution;
 
     @GET
+    @Operation(summary = "Get application configuration", description = "Get frontend configuration including Keycloak and map settings")
+    @APIResponses({
+            @APIResponse(
+                    responseCode = "200",
+                    description = "Configuration retrieved successfully",
+                    content = @Content(schema = @Schema(implementation = ConfigDto.class))
+            )
+    })
     public Response getConfig() {
         return Response.ok(new ConfigDto(
                 new KeycloakConfig(keycloakUrl, keycloakRealm, keycloakClientId),
@@ -36,19 +51,36 @@ public class ConfigResource {
         )).build();
     }
 
+    @Schema(description = "Application configuration")
     public record ConfigDto(
+            @Schema(description = "Keycloak authentication configuration")
             KeycloakConfig keycloak,
+
+            @Schema(description = "Map configuration")
             MapConfig map
-    ) {}
+    ) {
+    }
 
+    @Schema(description = "Keycloak configuration")
     public record KeycloakConfig(
+            @Schema(description = "Keycloak server URL", examples = "http://localhost:8180")
             String url,
-            String realm,
-            String clientId
-    ) {}
 
+            @Schema(description = "Keycloak realm name", examples = "quarkus")
+            String realm,
+
+            @Schema(description = "Keycloak client ID", examples = "tribly-frontend")
+            String clientId
+    ) {
+    }
+
+    @Schema(description = "Map configuration")
     public record MapConfig(
+            @Schema(description = "Map tile URL template", examples = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png")
             String tileUrl,
+
+            @Schema(description = "Map attribution text")
             String attribution
-    ) {}
+    ) {
+    }
 }

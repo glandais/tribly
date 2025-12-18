@@ -17,6 +17,13 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
 import java.net.URI;
 import java.util.List;
@@ -25,6 +32,7 @@ import java.util.List;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @RolesAllowed("user")
+@Tag(name = "Team Members", description = "Team membership management operations")
 public class TeamMemberResource extends AbstractAuthenticatedResource {
 
     @Inject
@@ -34,10 +42,20 @@ public class TeamMemberResource extends AbstractAuthenticatedResource {
     TeamMembershipService membershipService;
 
     @GET
+    @Operation(summary = "Get team members", description = "Get paginated list of team members")
+    @APIResponses({
+            @APIResponse(
+                    responseCode = "200",
+                    description = "Members retrieved successfully",
+                    content = @Content(schema = @Schema(implementation = MemberListResponse.class))
+            ),
+            @APIResponse(responseCode = "401", description = "Unauthorized"),
+            @APIResponse(responseCode = "404", description = "Team not found")
+    })
     public Response getMembers(
-            @PathParam("slug") String slug,
-            @QueryParam("page") @DefaultValue("0") int page,
-            @QueryParam("size") @DefaultValue("50") int size) {
+            @Parameter(description = "Team URL slug") @PathParam("slug") String slug,
+            @Parameter(description = "Page number") @QueryParam("page") @DefaultValue("0") int page,
+            @Parameter(description = "Page size") @QueryParam("size") @DefaultValue("50") int size) {
 
         Team team = getTeamBySlug(slug);
         Long userId = getCurrentUserId();
@@ -51,7 +69,18 @@ public class TeamMemberResource extends AbstractAuthenticatedResource {
 
     @POST
     @Path("/join")
-    public Response joinTeam(@PathParam("slug") String slug) {
+    @Operation(summary = "Join team", description = "Request to join a team")
+    @APIResponses({
+            @APIResponse(
+                    responseCode = "201",
+                    description = "Successfully joined team",
+                    content = @Content(schema = @Schema(implementation = MemberDto.class))
+            ),
+            @APIResponse(responseCode = "400", description = "Team is full or user is already a member"),
+            @APIResponse(responseCode = "401", description = "Unauthorized"),
+            @APIResponse(responseCode = "404", description = "Team not found")
+    })
+    public Response joinTeam(@Parameter(description = "Team URL slug") @PathParam("slug") String slug) {
         Team team = getTeamBySlug(slug);
         Long userId = getCurrentUserId();
 
@@ -63,7 +92,14 @@ public class TeamMemberResource extends AbstractAuthenticatedResource {
 
     @POST
     @Path("/leave")
-    public Response leaveTeam(@PathParam("slug") String slug) {
+    @Operation(summary = "Leave team", description = "Leave a team")
+    @APIResponses({
+            @APIResponse(responseCode = "204", description = "Successfully left team"),
+            @APIResponse(responseCode = "400", description = "Cannot leave - user is the owner"),
+            @APIResponse(responseCode = "401", description = "Unauthorized"),
+            @APIResponse(responseCode = "404", description = "Team not found or user is not a member")
+    })
+    public Response leaveTeam(@Parameter(description = "Team URL slug") @PathParam("slug") String slug) {
         Team team = getTeamBySlug(slug);
         Long userId = getCurrentUserId();
 
@@ -72,7 +108,19 @@ public class TeamMemberResource extends AbstractAuthenticatedResource {
     }
 
     @POST
-    public Response addMember(@PathParam("slug") String slug, @Valid AddMemberRequest request) {
+    @Operation(summary = "Add team member", description = "Add a member to the team. Requires ADMIN role.")
+    @APIResponses({
+            @APIResponse(
+                    responseCode = "201",
+                    description = "Member added successfully",
+                    content = @Content(schema = @Schema(implementation = MemberDto.class))
+            ),
+            @APIResponse(responseCode = "400", description = "Invalid request or user already a member"),
+            @APIResponse(responseCode = "401", description = "Unauthorized"),
+            @APIResponse(responseCode = "403", description = "User is not a team admin"),
+            @APIResponse(responseCode = "404", description = "Team or user not found")
+    })
+    public Response addMember(@Parameter(description = "Team URL slug") @PathParam("slug") String slug, @Valid AddMemberRequest request) {
         Team team = getTeamBySlug(slug);
         Long actingUserId = getCurrentUserId();
 
@@ -88,9 +136,21 @@ public class TeamMemberResource extends AbstractAuthenticatedResource {
     @PUT
     @Path("/{memberId}")
     @Transactional
+    @Operation(summary = "Update member role", description = "Update a team member's role. Requires ADMIN role.")
+    @APIResponses({
+            @APIResponse(
+                    responseCode = "200",
+                    description = "Role updated successfully",
+                    content = @Content(schema = @Schema(implementation = MemberDto.class))
+            ),
+            @APIResponse(responseCode = "400", description = "Invalid request"),
+            @APIResponse(responseCode = "401", description = "Unauthorized"),
+            @APIResponse(responseCode = "403", description = "User is not a team admin"),
+            @APIResponse(responseCode = "404", description = "Team or member not found")
+    })
     public Response updateMemberRole(
-            @PathParam("slug") String slug,
-            @PathParam("memberId") String memberId,
+            @Parameter(description = "Team URL slug") @PathParam("slug") String slug,
+            @Parameter(description = "Member user ID (TSID)") @PathParam("memberId") String memberId,
             @Valid UpdateMemberRoleRequest request) {
 
         Team team = getTeamBySlug(slug);
@@ -102,9 +162,16 @@ public class TeamMemberResource extends AbstractAuthenticatedResource {
 
     @DELETE
     @Path("/{memberId}")
+    @Operation(summary = "Remove team member", description = "Remove a member from the team. Requires ADMIN role.")
+    @APIResponses({
+            @APIResponse(responseCode = "204", description = "Member removed successfully"),
+            @APIResponse(responseCode = "401", description = "Unauthorized"),
+            @APIResponse(responseCode = "403", description = "User is not a team admin"),
+            @APIResponse(responseCode = "404", description = "Team or member not found")
+    })
     public Response removeMember(
-            @PathParam("slug") String slug,
-            @PathParam("memberId") String memberId) {
+            @Parameter(description = "Team URL slug") @PathParam("slug") String slug,
+            @Parameter(description = "Member user ID (TSID)") @PathParam("memberId") String memberId) {
 
         Team team = getTeamBySlug(slug);
         Long actingUserId = getCurrentUserId();
@@ -118,21 +185,41 @@ public class TeamMemberResource extends AbstractAuthenticatedResource {
                 .orElseThrow(() -> BusinessException.notFound("Team with slug '" + slug + "' not found"));
     }
 
+    @Schema(description = "Request to add a member to the team")
     public record AddMemberRequest(
+            @Schema(description = "User ID (TSID) to add", examples = "0h4a8xzk8jv80", required = true)
             @NotNull String userId,
+
+            @Schema(description = "Role to assign (defaults to MEMBER)", enumeration = {"ADMIN", "MEMBER"})
             TeamRole role
-    ) {}
+    ) {
+    }
 
+    @Schema(description = "Request to update a member's role")
     public record UpdateMemberRoleRequest(
+            @Schema(description = "New role", enumeration = {"ADMIN", "MEMBER"}, required = true)
             @NotNull TeamRole role
-    ) {}
+    ) {
+    }
 
+    @Schema(description = "Team member information")
     public record MemberDto(
+            @Schema(description = "Membership ID (TSID)")
             String id,
+
+            @Schema(description = "User ID (TSID)")
             String userId,
+
+            @Schema(description = "User display name")
             String displayName,
+
+            @Schema(description = "User avatar URL")
             String avatarUrl,
+
+            @Schema(description = "Member role", enumeration = {"OWNER", "ADMIN", "MEMBER"})
             String role,
+
+            @Schema(description = "When the user joined the team")
             String joinedAt
     ) {
         public static MemberDto from(UserTeam userTeam) {
@@ -148,10 +235,19 @@ public class TeamMemberResource extends AbstractAuthenticatedResource {
         }
     }
 
+    @Schema(description = "Paginated member list response")
     public record MemberListResponse(
+            @Schema(description = "List of members")
             List<MemberDto> members,
+
+            @Schema(description = "Total number of members")
             long total,
+
+            @Schema(description = "Current page number")
             int page,
+
+            @Schema(description = "Page size")
             int size
-    ) {}
+    ) {
+    }
 }

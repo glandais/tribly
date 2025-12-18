@@ -95,8 +95,155 @@ utils/         # Utility functions
 ### Contract-First Development
 
 1. OpenAPI spec lives in `contracts/openapi.yaml`
-2. Backend implements the spec manually
+2. Backend implements the spec manually with OpenAPI annotations
 3. Frontend generates typed client: `pnpm generate-api`
+
+## OpenAPI Annotations
+
+The project uses SmallRye OpenAPI (MicroProfile OpenAPI) to generate the OpenAPI contract from code annotations. **All REST resources MUST be fully annotated** to generate proper schemas.
+
+### Configuration
+
+Add to `application.properties`:
+```properties
+quarkus.smallrye-openapi.store-schema-directory=../contracts
+```
+
+This generates `contracts/openapi.yaml` automatically when running Quarkus.
+
+### Required Annotations
+
+**Class Level:**
+```java
+@Path("/api/teams/{slug}/rides")
+@Produces(MediaType.APPLICATION_JSON)
+@Consumes(MediaType.APPLICATION_JSON)
+@Tag(name = "Rides", description = "Ride management and participation operations")
+public class RideResource extends AbstractAuthenticatedResource {
+```
+
+**Method Level:**
+```java
+@POST
+@RolesAllowed("user")
+@Operation(summary = "Create ride", description = "Create a new ride with optional groups")
+@APIResponses({
+    @APIResponse(
+        responseCode = "201",
+        description = "Ride created successfully",
+        content = @Content(schema = @Schema(implementation = RideDto.class))
+    ),
+    @APIResponse(responseCode = "400", description = "Invalid request"),
+    @APIResponse(responseCode = "401", description = "Unauthorized"),
+    @APIResponse(responseCode = "404", description = "Team not found")
+})
+public Response createRide(
+    @Parameter(description = "Team URL slug") @PathParam("slug") String slug,
+    @Valid CreateRideRequest request) {
+```
+
+**Parameter Annotations:**
+- `@Parameter(description = "...")` on ALL `@PathParam`, `@QueryParam`, `@HeaderParam`
+- Always provide clear descriptions for API documentation
+
+**DTO Annotations:**
+```java
+@Schema(description = "Ride creation request")
+public record CreateRideRequest(
+    @Schema(description = "Ride title", examples = "Sunday Morning Ride", required = true)
+    @NotBlank @Size(min = 3, max = 200) String title,
+
+    @Schema(description = "Ride date", examples = "2025-06-15", required = true)
+    @NotNull LocalDate date,
+
+    @Schema(description = "Visibility level", enumeration = {"PUBLIC", "MEMBERS_ONLY", "PRIVATE"})
+    Visibility visibility
+) {}
+```
+
+### Schema Annotation Patterns
+
+**Arrays:**
+```java
+@APIResponse(
+    responseCode = "200",
+    description = "Teams retrieved successfully",
+    content = @Content(schema = @Schema(implementation = TeamDto[].class))
+)
+```
+
+**Enumerations:**
+```java
+@Schema(description = "Ride status", enumeration = {"DRAFT", "PUBLISHED", "CANCELLED", "COMPLETED"})
+String status
+```
+
+**Required Fields:**
+```java
+@Schema(description = "Team name", examples = "Awesome Cycling Team", required = true)
+@NotBlank String name
+```
+
+**Examples:**
+```java
+@Schema(description = "User ID (TSID)", examples = "0h4a8xzk8jv80")
+String id
+```
+
+### Multipart Form Data
+
+For file uploads with `@RestForm`:
+```java
+@POST
+@Consumes(MediaType.MULTIPART_FORM_DATA)
+@Operation(summary = "Create route", description = "Create a new route by uploading a GPX file")
+@APIResponses({
+    @APIResponse(
+        responseCode = "201",
+        description = "Route created successfully",
+        content = @Content(schema = @Schema(implementation = RouteDto.class))
+    ),
+    @APIResponse(responseCode = "400", description = "Invalid request or GPX file")
+})
+public Response createRoute(
+    @Parameter(description = "Team URL slug") @PathParam("slug") String teamSlug,
+    @RestForm @NotBlank String name,
+    @RestForm String description,
+    @RestForm @PartType(MediaType.TEXT_PLAIN) RouteDifficulty difficulty,
+    @RestForm("gpxFile") FileUpload gpxFile) throws Exception {
+```
+
+### Common Response Codes
+
+Use these standard response codes consistently:
+- `200` - OK (GET, PATCH success)
+- `201` - Created (POST success, include Location header)
+- `204` - No Content (DELETE success)
+- `400` - Bad Request (validation errors)
+- `401` - Unauthorized (authentication required)
+- `403` - Forbidden (authorization failed)
+- `404` - Not Found (entity not found)
+
+### Verification
+
+After adding annotations, verify the generated contract:
+1. Start Quarkus: `mvn quarkus:dev`
+2. Check generated file: `cat contracts/openapi.yaml`
+3. View Swagger UI: http://localhost:8080/q/swagger-ui
+
+**Common Issue**: Empty schemas (`schema: {}`) indicate missing `@Schema(implementation = ...)` in `@APIResponse`.
+
+### Required Imports
+
+```java
+import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
+```
 
 ## Quarkus/Hibernate Testing Patterns
 
@@ -148,7 +295,7 @@ void testCorrect2() {
 
 The project uses TSID instead of sequential Long IDs for all entities:
 
-- **Library**: `io.hypersistence:hypersistence-utils-hibernate-63`
+- **Library**: `io.hypersistence:hypersistence-utils-hibernate-71` (version 3.14.1)
 - **Internal storage**: Long (BIGINT in PostgreSQL)
 - **API exposure**: Lowercase string (e.g., `0h4a8xzk8jv80`)
 - **Conversion**: `TsidUtils.toString(Long)` and `TsidUtils.toLong(String)`

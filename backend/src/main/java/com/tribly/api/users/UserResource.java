@@ -2,15 +2,20 @@ package com.tribly.api.users;
 
 import com.tribly.api.AbstractAuthenticatedResource;
 import com.tribly.domain.user.User;
-import com.tribly.infrastructure.exception.BusinessException;
 import com.tribly.infrastructure.id.TsidUtils;
 import jakarta.annotation.security.RolesAllowed;
-import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Size;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import org.jboss.logging.Logger;
 
 import java.util.List;
@@ -19,12 +24,22 @@ import java.util.List;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @RolesAllowed("user")
+@Tag(name = "Users", description = "User profile management operations")
 public class UserResource extends AbstractAuthenticatedResource {
 
     private static final Logger LOG = Logger.getLogger(UserResource.class);
 
     @GET
     @Path("/me")
+    @Operation(summary = "Get current user", description = "Get the current authenticated user's profile")
+    @APIResponses({
+            @APIResponse(
+                    responseCode = "200",
+                    description = "User profile retrieved successfully",
+                    content = @Content(schema = @Schema(implementation = UserDto.class))
+            ),
+            @APIResponse(responseCode = "401", description = "Unauthorized")
+    })
     public Response getCurrentUser() {
         User user = getCurrentUserEntity();
         return Response.ok(UserDto.from(user)).build();
@@ -32,6 +47,16 @@ public class UserResource extends AbstractAuthenticatedResource {
 
     @PUT
     @Path("/me")
+    @Operation(summary = "Update current user", description = "Update the current user's profile")
+    @APIResponses({
+            @APIResponse(
+                    responseCode = "200",
+                    description = "User updated successfully",
+                    content = @Content(schema = @Schema(implementation = UserDto.class))
+            ),
+            @APIResponse(responseCode = "400", description = "Invalid request"),
+            @APIResponse(responseCode = "401", description = "Unauthorized")
+    })
     public Response updateCurrentUser(@Valid UpdateUserRequest request) {
         Long userId = getCurrentUserId();
         User user = userService.updateUser(userId, request.displayName(), request.locale(), request.timezone());
@@ -40,7 +65,17 @@ public class UserResource extends AbstractAuthenticatedResource {
 
     @GET
     @Path("/{id}")
-    public Response getUserById(@PathParam("id") String id) {
+    @Operation(summary = "Get user by ID", description = "Get public user information by ID")
+    @APIResponses({
+            @APIResponse(
+                    responseCode = "200",
+                    description = "User retrieved successfully",
+                    content = @Content(schema = @Schema(implementation = PublicUserDto.class))
+            ),
+            @APIResponse(responseCode = "401", description = "Unauthorized"),
+            @APIResponse(responseCode = "404", description = "User not found")
+    })
+    public Response getUserById(@Parameter(description = "User ID (TSID)") @PathParam("id") String id) {
         Long userId = TsidUtils.toLong(id);
         User user = userService.getActiveById(userId);
         return Response.ok(PublicUserDto.from(user)).build();
@@ -48,7 +83,18 @@ public class UserResource extends AbstractAuthenticatedResource {
 
     @GET
     @Path("/search")
-    public Response searchUsers(@QueryParam("q") String query, @QueryParam("limit") @DefaultValue("10") int limit) {
+    @Operation(summary = "Search users", description = "Search users by display name")
+    @APIResponses({
+            @APIResponse(
+                    responseCode = "200",
+                    description = "Search results",
+                    content = @Content(schema = @Schema(implementation = PublicUserDto[].class))
+            ),
+            @APIResponse(responseCode = "401", description = "Unauthorized")
+    })
+    public Response searchUsers(
+            @Parameter(description = "Search query") @QueryParam("q") String query,
+            @Parameter(description = "Maximum results (max 20)") @QueryParam("limit") @DefaultValue("10") int limit) {
         if (query == null || query.trim().isEmpty()) {
             return Response.ok(List.of()).build();
         }
@@ -60,6 +106,11 @@ public class UserResource extends AbstractAuthenticatedResource {
 
     @DELETE
     @Path("/me")
+    @Operation(summary = "Delete current user", description = "Delete the current user's account")
+    @APIResponses({
+            @APIResponse(responseCode = "204", description = "User deleted successfully"),
+            @APIResponse(responseCode = "401", description = "Unauthorized")
+    })
     public Response deleteCurrentUser() {
         Long userId = getCurrentUserId();
         userService.deleteUser(userId);
@@ -68,13 +119,27 @@ public class UserResource extends AbstractAuthenticatedResource {
         return Response.noContent().build();
     }
 
+    @Schema(description = "User profile data")
     public record UserDto(
+            @Schema(description = "User ID (TSID)", examples = "0h4a8xzk8jv80")
             String id,
+
+            @Schema(description = "User email address")
             String email,
+
+            @Schema(description = "User display name")
             String displayName,
+
+            @Schema(description = "User avatar URL")
             String avatarUrl,
+
+            @Schema(description = "User locale (e.g. 'en', 'fr')", examples = "en")
             String locale,
+
+            @Schema(description = "User timezone (e.g. 'Europe/Paris')", examples = "Europe/Paris")
             String timezone,
+
+            @Schema(description = "Account creation timestamp")
             String createdAt
     ) {
         public static UserDto from(User user) {
@@ -90,9 +155,15 @@ public class UserResource extends AbstractAuthenticatedResource {
         }
     }
 
+    @Schema(description = "Public user information (limited fields)")
     public record PublicUserDto(
+            @Schema(description = "User ID (TSID)", examples = "0h4a8xzk8jv80")
             String id,
+
+            @Schema(description = "User display name")
             String displayName,
+
+            @Schema(description = "User avatar URL")
             String avatarUrl
     ) {
         public static PublicUserDto from(User user) {
@@ -104,14 +175,19 @@ public class UserResource extends AbstractAuthenticatedResource {
         }
     }
 
+    @Schema(description = "User profile update request")
     public record UpdateUserRequest(
+            @Schema(description = "User display name", examples = "John Doe")
             @Size(min = 1, max = 255)
             String displayName,
 
+            @Schema(description = "User locale (e.g. 'en', 'fr')", examples = "en")
             @Size(max = 10)
             String locale,
 
+            @Schema(description = "User timezone (e.g. 'Europe/Paris')", examples = "Europe/Paris")
             @Size(max = 50)
             String timezone
-    ) {}
+    ) {
+    }
 }

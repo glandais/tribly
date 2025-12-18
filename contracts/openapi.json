@@ -1,0 +1,2994 @@
+{
+  "openapi" : "3.1.0",
+  "components" : {
+    "schemas" : {
+      "AddMemberRequest" : {
+        "description" : "Request to add a member to the team",
+        "type" : "object",
+        "required" : [ "userId" ],
+        "properties" : {
+          "userId" : {
+            "type" : "string",
+            "description" : "User ID (TSID) to add",
+            "examples" : [ "0h4a8xzk8jv80" ]
+          },
+          "role" : {
+            "type" : "string",
+            "description" : "Role to assign (defaults to MEMBER)",
+            "enum" : [ "ADMIN", "MEMBER" ]
+          }
+        }
+      },
+      "ClimbListResponse" : {
+        "description" : "Climb list response",
+        "type" : "object",
+        "properties" : {
+          "climbs" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/RouteClimbDto"
+            },
+            "description" : "List of climbs on the route"
+          }
+        }
+      },
+      "ConfigDto" : {
+        "description" : "Application configuration",
+        "type" : "object",
+        "properties" : {
+          "keycloak" : {
+            "description" : "Keycloak authentication configuration",
+            "type" : "object",
+            "$ref" : "#/components/schemas/KeycloakConfig"
+          },
+          "map" : {
+            "description" : "Map configuration",
+            "type" : "object",
+            "$ref" : "#/components/schemas/MapConfig"
+          }
+        }
+      },
+      "CreateGroupRequest" : {
+        "description" : "Ride group creation request",
+        "type" : "object",
+        "required" : [ "name" ],
+        "properties" : {
+          "name" : {
+            "type" : "string",
+            "description" : "Group name",
+            "examples" : [ "Fast Group" ],
+            "pattern" : "\\S",
+            "minLength" : 1,
+            "maxLength" : 100
+          },
+          "description" : {
+            "type" : "string",
+            "description" : "Group description"
+          },
+          "averageSpeed" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Average speed in km/h",
+            "examples" : [ 25 ]
+          },
+          "maxParticipants" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Maximum participants"
+          },
+          "routeId" : {
+            "type" : "string",
+            "description" : "Route ID (TSID) for this group"
+          }
+        }
+      },
+      "CreateRideRequest" : {
+        "description" : "Ride creation request",
+        "type" : "object",
+        "required" : [ "title", "date" ],
+        "properties" : {
+          "title" : {
+            "type" : "string",
+            "description" : "Ride title",
+            "examples" : [ "Sunday Morning Ride" ],
+            "pattern" : "\\S",
+            "minLength" : 3,
+            "maxLength" : 200
+          },
+          "description" : {
+            "type" : "string",
+            "description" : "Ride description",
+            "maxLength" : 5000
+          },
+          "date" : {
+            "description" : "Ride date",
+            "type" : "string",
+            "examples" : [ "2025-06-15" ],
+            "$ref" : "#/components/schemas/LocalDate"
+          },
+          "startTime" : {
+            "description" : "Start time",
+            "type" : "string",
+            "examples" : [ "09:00" ],
+            "$ref" : "#/components/schemas/LocalTime"
+          },
+          "routeId" : {
+            "type" : "string",
+            "description" : "Route ID (TSID)"
+          },
+          "meetingPointId" : {
+            "type" : "string",
+            "description" : "Meeting point ID (TSID)"
+          },
+          "visibility" : {
+            "type" : "string",
+            "description" : "Visibility level",
+            "enum" : [ "PUBLIC", "MEMBERS_ONLY", "PRIVATE" ]
+          },
+          "publishAt" : {
+            "description" : "Publication timestamp (for scheduled publishing)",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Instant"
+          },
+          "groups" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/CreateGroupRequest"
+            },
+            "description" : "Ride groups to create"
+          }
+        }
+      },
+      "CreateTeamRequest" : {
+        "description" : "Team creation request",
+        "type" : "object",
+        "required" : [ "name" ],
+        "properties" : {
+          "name" : {
+            "type" : "string",
+            "description" : "Team name",
+            "examples" : [ "Awesome Cycling Team" ],
+            "pattern" : "\\S",
+            "minLength" : 2,
+            "maxLength" : 255
+          },
+          "description" : {
+            "type" : "string",
+            "description" : "Team description",
+            "examples" : [ "A team for weekend warriors" ],
+            "maxLength" : 2000
+          },
+          "isPublic" : {
+            "type" : "boolean",
+            "description" : "Whether the team is publicly visible",
+            "examples" : [ true ]
+          },
+          "maxMembers" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Maximum number of members (null = unlimited)",
+            "examples" : [ 50 ]
+          }
+        }
+      },
+      "GpxTrackDto" : {
+        "description" : "GPX track with track points",
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "description" : "Track ID (TSID)"
+          },
+          "name" : {
+            "type" : "string",
+            "description" : "Track name"
+          },
+          "trackPoints" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/TrackPointDto"
+            },
+            "description" : "List of track points"
+          },
+          "processedAt" : {
+            "type" : "string",
+            "description" : "Processing timestamp"
+          }
+        }
+      },
+      "Instant" : {
+        "type" : "string",
+        "format" : "date-time",
+        "examples" : [ "2022-03-10T16:15:50Z" ]
+      },
+      "JoinGroupRequest" : {
+        "description" : "Request to join a ride group",
+        "type" : "object",
+        "properties" : {
+          "notes" : {
+            "type" : "string",
+            "description" : "Optional notes for the organizer"
+          }
+        }
+      },
+      "KeycloakConfig" : {
+        "type" : "object",
+        "description" : "Keycloak configuration",
+        "properties" : {
+          "url" : {
+            "type" : "string",
+            "description" : "Keycloak server URL",
+            "examples" : [ "http://localhost:8180" ]
+          },
+          "realm" : {
+            "type" : "string",
+            "description" : "Keycloak realm name",
+            "examples" : [ "quarkus" ]
+          },
+          "clientId" : {
+            "type" : "string",
+            "description" : "Keycloak client ID",
+            "examples" : [ "tribly-frontend" ]
+          }
+        }
+      },
+      "LocalDate" : {
+        "type" : "string",
+        "format" : "date",
+        "examples" : [ "2022-03-10" ]
+      },
+      "LocalTime" : {
+        "type" : "string",
+        "format" : "local-time",
+        "examples" : [ "13:45:30.123456789" ],
+        "externalDocs" : {
+          "description" : "As defined by 'partial-time' in RFC3339",
+          "url" : "https://www.rfc-editor.org/rfc/rfc3339.html#section-5.6"
+        }
+      },
+      "MapConfig" : {
+        "type" : "object",
+        "description" : "Map configuration",
+        "properties" : {
+          "tileUrl" : {
+            "type" : "string",
+            "description" : "Map tile URL template",
+            "examples" : [ "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" ]
+          },
+          "attribution" : {
+            "type" : "string",
+            "description" : "Map attribution text"
+          }
+        }
+      },
+      "MemberDto" : {
+        "description" : "Team member information",
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "description" : "Membership ID (TSID)"
+          },
+          "userId" : {
+            "type" : "string",
+            "description" : "User ID (TSID)"
+          },
+          "displayName" : {
+            "type" : "string",
+            "description" : "User display name"
+          },
+          "avatarUrl" : {
+            "type" : "string",
+            "description" : "User avatar URL"
+          },
+          "role" : {
+            "type" : "string",
+            "description" : "Member role",
+            "enum" : [ "OWNER", "ADMIN", "MEMBER" ]
+          },
+          "joinedAt" : {
+            "type" : "string",
+            "description" : "When the user joined the team"
+          }
+        }
+      },
+      "MemberListResponse" : {
+        "description" : "Paginated member list response",
+        "type" : "object",
+        "properties" : {
+          "members" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/MemberDto"
+            },
+            "description" : "List of members"
+          },
+          "total" : {
+            "type" : "integer",
+            "format" : "int64",
+            "description" : "Total number of members"
+          },
+          "page" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Current page number"
+          },
+          "size" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Page size"
+          }
+        }
+      },
+      "PublicUserDto" : {
+        "description" : "Public user information (limited fields)",
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "description" : "User ID (TSID)",
+            "examples" : [ "0h4a8xzk8jv80" ]
+          },
+          "displayName" : {
+            "type" : "string",
+            "description" : "User display name"
+          },
+          "avatarUrl" : {
+            "type" : "string",
+            "description" : "User avatar URL"
+          }
+        }
+      },
+      "RideDetailDto" : {
+        "description" : "Detailed ride information",
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "description" : "Ride ID (TSID)"
+          },
+          "slug" : {
+            "type" : "string",
+            "description" : "Ride URL slug"
+          },
+          "title" : {
+            "type" : "string",
+            "description" : "Ride title"
+          },
+          "description" : {
+            "type" : "string",
+            "description" : "Ride description"
+          },
+          "date" : {
+            "description" : "Ride date",
+            "type" : "string",
+            "$ref" : "#/components/schemas/LocalDate"
+          },
+          "startTime" : {
+            "description" : "Start time",
+            "type" : "string",
+            "$ref" : "#/components/schemas/LocalTime"
+          },
+          "status" : {
+            "type" : "string",
+            "description" : "Ride status"
+          },
+          "visibility" : {
+            "type" : "string",
+            "description" : "Visibility level"
+          },
+          "participantCount" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Number of participants"
+          },
+          "groupCount" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Number of groups"
+          },
+          "groups" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/RideGroupDto"
+            },
+            "description" : "Ride groups"
+          },
+          "publishAt" : {
+            "type" : "string",
+            "description" : "Publication timestamp"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "description" : "Creation timestamp"
+          }
+        }
+      },
+      "RideDto" : {
+        "description" : "Ride summary data",
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "description" : "Ride ID (TSID)"
+          },
+          "slug" : {
+            "type" : "string",
+            "description" : "Ride URL slug"
+          },
+          "title" : {
+            "type" : "string",
+            "description" : "Ride title"
+          },
+          "description" : {
+            "type" : "string",
+            "description" : "Ride description"
+          },
+          "date" : {
+            "description" : "Ride date",
+            "type" : "string",
+            "$ref" : "#/components/schemas/LocalDate"
+          },
+          "startTime" : {
+            "description" : "Start time",
+            "type" : "string",
+            "$ref" : "#/components/schemas/LocalTime"
+          },
+          "status" : {
+            "type" : "string",
+            "description" : "Ride status",
+            "enum" : [ "DRAFT", "PUBLISHED", "CANCELLED", "COMPLETED" ]
+          },
+          "visibility" : {
+            "type" : "string",
+            "description" : "Visibility level",
+            "enum" : [ "PUBLIC", "MEMBERS_ONLY", "PRIVATE" ]
+          },
+          "participantCount" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Number of participants"
+          },
+          "groupCount" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Number of groups"
+          },
+          "publishAt" : {
+            "type" : "string",
+            "description" : "Publication timestamp"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "description" : "Creation timestamp"
+          }
+        }
+      },
+      "RideGroupDto" : {
+        "type" : "object",
+        "description" : "Ride group information",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "description" : "Group ID (TSID)"
+          },
+          "name" : {
+            "type" : "string",
+            "description" : "Group name"
+          },
+          "description" : {
+            "type" : "string",
+            "description" : "Group description"
+          },
+          "averageSpeed" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Average speed in km/h"
+          },
+          "maxParticipants" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Maximum participants"
+          },
+          "currentParticipants" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Current number of participants"
+          },
+          "sortOrder" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Sort order"
+          }
+        }
+      },
+      "RideGroupListResponse" : {
+        "description" : "Ride group list response",
+        "type" : "object",
+        "properties" : {
+          "data" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/RideGroupDto"
+            },
+            "description" : "List of ride groups"
+          }
+        }
+      },
+      "RideListResponse" : {
+        "description" : "Paginated ride list response",
+        "type" : "object",
+        "properties" : {
+          "rides" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/RideDto"
+            },
+            "description" : "List of rides"
+          },
+          "total" : {
+            "type" : "integer",
+            "format" : "int64",
+            "description" : "Total number of rides"
+          },
+          "page" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Current page number"
+          },
+          "size" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Page size"
+          }
+        }
+      },
+      "RideParticipationDto" : {
+        "description" : "Ride participation information",
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "description" : "Participation ID (TSID)"
+          },
+          "userId" : {
+            "type" : "string",
+            "description" : "User ID (TSID)"
+          },
+          "status" : {
+            "type" : "string",
+            "description" : "Participation status"
+          },
+          "registeredAt" : {
+            "type" : "string",
+            "description" : "Registration timestamp"
+          },
+          "notes" : {
+            "type" : "string",
+            "description" : "Participant notes"
+          }
+        }
+      },
+      "RideStatus" : {
+        "type" : "string",
+        "enum" : [ "DRAFT", "PUBLISHED", "CANCELLED" ]
+      },
+      "RouteClimbDto" : {
+        "description" : "Climb segment information",
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "description" : "Climb ID (TSID)"
+          },
+          "name" : {
+            "type" : "string",
+            "description" : "Climb name (if named)"
+          },
+          "startDistance" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Start distance from route start in meters"
+          },
+          "endDistance" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "End distance from route start in meters"
+          },
+          "elevationGain" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Elevation gain in meters"
+          },
+          "averageGradient" : {
+            "type" : "number",
+            "description" : "Average gradient percentage"
+          },
+          "maxGradient" : {
+            "type" : "number",
+            "description" : "Maximum gradient percentage"
+          },
+          "category" : {
+            "type" : "string",
+            "description" : "Climb category (HC, 1, 2, 3, 4)"
+          }
+        }
+      },
+      "RouteDetailDto" : {
+        "description" : "Detailed route information",
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "description" : "Route ID (TSID)"
+          },
+          "name" : {
+            "type" : "string",
+            "description" : "Route name"
+          },
+          "description" : {
+            "type" : "string",
+            "description" : "Route description"
+          },
+          "distance" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Distance in meters"
+          },
+          "elevationGain" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Total elevation gain in meters"
+          },
+          "elevationLoss" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Total elevation loss in meters"
+          },
+          "difficulty" : {
+            "type" : "string",
+            "description" : "Route difficulty"
+          },
+          "surfaceType" : {
+            "type" : "string",
+            "description" : "Surface type"
+          },
+          "isPublic" : {
+            "type" : "boolean",
+            "description" : "Whether the route is public"
+          },
+          "thumbnailUrl" : {
+            "type" : "string",
+            "description" : "Thumbnail image URL"
+          },
+          "startLat" : {
+            "type" : "number",
+            "description" : "Start point latitude"
+          },
+          "startLng" : {
+            "type" : "number",
+            "description" : "Start point longitude"
+          },
+          "endLat" : {
+            "type" : "number",
+            "description" : "End point latitude"
+          },
+          "endLng" : {
+            "type" : "number",
+            "description" : "End point longitude"
+          },
+          "createdById" : {
+            "type" : "string",
+            "description" : "Creator user ID (TSID)"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "description" : "Creation timestamp"
+          },
+          "updatedAt" : {
+            "type" : "string",
+            "description" : "Last update timestamp"
+          }
+        }
+      },
+      "RouteDifficulty" : {
+        "type" : "string",
+        "enum" : [ "EASY", "MODERATE", "HARD", "EXPERT" ]
+      },
+      "RouteDto" : {
+        "description" : "Route summary data",
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "description" : "Route ID (TSID)"
+          },
+          "name" : {
+            "type" : "string",
+            "description" : "Route name"
+          },
+          "description" : {
+            "type" : "string",
+            "description" : "Route description"
+          },
+          "distance" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Distance in meters"
+          },
+          "elevationGain" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Total elevation gain in meters"
+          },
+          "elevationLoss" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Total elevation loss in meters"
+          },
+          "difficulty" : {
+            "type" : "string",
+            "description" : "Route difficulty",
+            "enum" : [ "EASY", "MODERATE", "HARD", "VERY_HARD" ]
+          },
+          "surfaceType" : {
+            "type" : "string",
+            "description" : "Surface type",
+            "enum" : [ "ASPHALT", "GRAVEL", "MIXED" ]
+          },
+          "isPublic" : {
+            "type" : "boolean",
+            "description" : "Whether the route is public"
+          },
+          "thumbnailUrl" : {
+            "type" : "string",
+            "description" : "Thumbnail image URL"
+          },
+          "createdAt" : {
+            "type" : "string",
+            "description" : "Creation timestamp"
+          }
+        }
+      },
+      "RouteListResponse" : {
+        "description" : "Paginated route list response",
+        "type" : "object",
+        "properties" : {
+          "routes" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/RouteDto"
+            },
+            "description" : "List of routes"
+          },
+          "total" : {
+            "type" : "integer",
+            "format" : "int64",
+            "description" : "Total number of routes"
+          },
+          "page" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Current page number"
+          },
+          "size" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Page size"
+          }
+        }
+      },
+      "SurfaceType" : {
+        "type" : "string",
+        "enum" : [ "ROAD", "GRAVEL", "MTB", "MIXED" ]
+      },
+      "TeamDetailDto" : {
+        "description" : "Detailed team information",
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "description" : "Team ID (TSID)",
+            "examples" : [ "0h4a8xzk8jv80" ]
+          },
+          "name" : {
+            "type" : "string",
+            "description" : "Team name"
+          },
+          "slug" : {
+            "type" : "string",
+            "description" : "Team URL slug"
+          },
+          "description" : {
+            "type" : "string",
+            "description" : "Team description"
+          },
+          "logoUrl" : {
+            "type" : "string",
+            "description" : "Logo image URL"
+          },
+          "coverImageUrl" : {
+            "type" : "string",
+            "description" : "Cover image URL"
+          },
+          "isPublic" : {
+            "type" : "boolean",
+            "description" : "Whether the team is public"
+          },
+          "memberCount" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Number of team members"
+          },
+          "maxMembers" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Maximum number of members (null = unlimited)"
+          },
+          "userRole" : {
+            "type" : "string",
+            "description" : "Current user's role (null if not a member)",
+            "enum" : [ "OWNER", "ADMIN", "MEMBER" ]
+          },
+          "createdAt" : {
+            "type" : "string",
+            "description" : "Team creation timestamp"
+          }
+        }
+      },
+      "TeamDto" : {
+        "description" : "Team summary data",
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "description" : "Team ID (TSID)",
+            "examples" : [ "0h4a8xzk8jv80" ]
+          },
+          "name" : {
+            "type" : "string",
+            "description" : "Team name",
+            "examples" : [ "Awesome Cycling Team" ]
+          },
+          "slug" : {
+            "type" : "string",
+            "description" : "Team URL slug",
+            "examples" : [ "awesome-cycling-team" ]
+          },
+          "description" : {
+            "type" : "string",
+            "description" : "Team description"
+          },
+          "logoUrl" : {
+            "type" : "string",
+            "description" : "Logo image URL"
+          },
+          "coverImageUrl" : {
+            "type" : "string",
+            "description" : "Cover image URL"
+          },
+          "isPublic" : {
+            "type" : "boolean",
+            "description" : "Whether the team is public"
+          },
+          "memberCount" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Number of team members"
+          }
+        }
+      },
+      "TeamListResponse" : {
+        "description" : "Paginated team list response",
+        "type" : "object",
+        "properties" : {
+          "teams" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/TeamDto"
+            },
+            "description" : "List of teams"
+          },
+          "total" : {
+            "type" : "integer",
+            "format" : "int64",
+            "description" : "Total number of teams"
+          },
+          "page" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Current page number"
+          },
+          "size" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Page size"
+          }
+        }
+      },
+      "TeamWithRoleDto" : {
+        "description" : "Team data with user's role",
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "description" : "Team ID (TSID)",
+            "examples" : [ "0h4a8xzk8jv80" ]
+          },
+          "name" : {
+            "type" : "string",
+            "description" : "Team name"
+          },
+          "slug" : {
+            "type" : "string",
+            "description" : "Team URL slug"
+          },
+          "description" : {
+            "type" : "string",
+            "description" : "Team description"
+          },
+          "logoUrl" : {
+            "type" : "string",
+            "description" : "Logo image URL"
+          },
+          "isPublic" : {
+            "type" : "boolean",
+            "description" : "Whether the team is public"
+          },
+          "memberCount" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Number of team members"
+          },
+          "role" : {
+            "type" : "string",
+            "description" : "User's role in the team",
+            "examples" : [ "MEMBER" ],
+            "enum" : [ "OWNER", "ADMIN", "MEMBER" ]
+          }
+        }
+      },
+      "TrackPointDto" : {
+        "type" : "object",
+        "description" : "GPS track point",
+        "properties" : {
+          "lat" : {
+            "type" : "number",
+            "format" : "double",
+            "description" : "Latitude"
+          },
+          "lng" : {
+            "type" : "number",
+            "format" : "double",
+            "description" : "Longitude"
+          },
+          "ele" : {
+            "type" : "number",
+            "format" : "double",
+            "description" : "Elevation in meters"
+          },
+          "dist" : {
+            "type" : "number",
+            "format" : "double",
+            "description" : "Distance from start in meters"
+          }
+        }
+      },
+      "UpdateGroupRequest" : {
+        "description" : "Ride group update request",
+        "type" : "object",
+        "properties" : {
+          "name" : {
+            "type" : "string",
+            "description" : "Group name",
+            "minLength" : 1,
+            "maxLength" : 100
+          },
+          "description" : {
+            "type" : "string",
+            "description" : "Group description"
+          },
+          "averageSpeed" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Average speed in km/h"
+          },
+          "maxParticipants" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Maximum participants"
+          },
+          "routeId" : {
+            "type" : "string",
+            "description" : "Route ID (TSID)"
+          }
+        }
+      },
+      "UpdateMemberRoleRequest" : {
+        "description" : "Request to update a member's role",
+        "type" : "object",
+        "required" : [ "role" ],
+        "properties" : {
+          "role" : {
+            "type" : "string",
+            "description" : "New role",
+            "enum" : [ "ADMIN", "MEMBER" ]
+          }
+        }
+      },
+      "UpdateRideRequest" : {
+        "description" : "Ride update request",
+        "type" : "object",
+        "properties" : {
+          "title" : {
+            "type" : "string",
+            "description" : "Ride title",
+            "minLength" : 3,
+            "maxLength" : 200
+          },
+          "description" : {
+            "type" : "string",
+            "description" : "Ride description",
+            "maxLength" : 5000
+          },
+          "date" : {
+            "description" : "Ride date",
+            "type" : "string",
+            "$ref" : "#/components/schemas/LocalDate"
+          },
+          "startTime" : {
+            "description" : "Start time",
+            "type" : "string",
+            "$ref" : "#/components/schemas/LocalTime"
+          },
+          "status" : {
+            "type" : "string",
+            "description" : "Ride status",
+            "enum" : [ "DRAFT", "PUBLISHED", "CANCELLED", "COMPLETED" ]
+          },
+          "visibility" : {
+            "type" : "string",
+            "description" : "Visibility level",
+            "enum" : [ "PUBLIC", "MEMBERS_ONLY", "PRIVATE" ]
+          },
+          "routeId" : {
+            "type" : "string",
+            "description" : "Route ID (TSID)"
+          },
+          "meetingPointId" : {
+            "type" : "string",
+            "description" : "Meeting point ID (TSID)"
+          },
+          "publishAt" : {
+            "description" : "Publication timestamp",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Instant"
+          }
+        }
+      },
+      "UpdateRouteRequest" : {
+        "description" : "Route update request",
+        "type" : "object",
+        "properties" : {
+          "name" : {
+            "type" : "string",
+            "description" : "Route name"
+          },
+          "description" : {
+            "type" : "string",
+            "description" : "Route description"
+          },
+          "difficulty" : {
+            "type" : "string",
+            "description" : "Route difficulty",
+            "enum" : [ "EASY", "MODERATE", "HARD", "VERY_HARD" ]
+          },
+          "surfaceType" : {
+            "type" : "string",
+            "description" : "Surface type",
+            "enum" : [ "ASPHALT", "GRAVEL", "MIXED" ]
+          },
+          "isPublic" : {
+            "type" : "boolean",
+            "description" : "Whether the route is publicly visible"
+          }
+        }
+      },
+      "UpdateTeamRequest" : {
+        "description" : "Team update request",
+        "type" : "object",
+        "properties" : {
+          "name" : {
+            "type" : "string",
+            "description" : "Team name",
+            "minLength" : 2,
+            "maxLength" : 255
+          },
+          "description" : {
+            "type" : "string",
+            "description" : "Team description",
+            "maxLength" : 2000
+          },
+          "isPublic" : {
+            "type" : "boolean",
+            "description" : "Whether the team is publicly visible"
+          },
+          "logoUrl" : {
+            "type" : "string",
+            "description" : "Logo image URL"
+          },
+          "coverImageUrl" : {
+            "type" : "string",
+            "description" : "Cover image URL"
+          },
+          "maxMembers" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Maximum number of members (null = unlimited)"
+          }
+        }
+      },
+      "UpdateUserRequest" : {
+        "description" : "User profile update request",
+        "type" : "object",
+        "properties" : {
+          "displayName" : {
+            "type" : "string",
+            "description" : "User display name",
+            "examples" : [ "John Doe" ],
+            "minLength" : 1,
+            "maxLength" : 255
+          },
+          "locale" : {
+            "type" : "string",
+            "description" : "User locale (e.g. 'en', 'fr')",
+            "examples" : [ "en" ],
+            "maxLength" : 10
+          },
+          "timezone" : {
+            "type" : "string",
+            "description" : "User timezone (e.g. 'Europe/Paris')",
+            "examples" : [ "Europe/Paris" ],
+            "maxLength" : 50
+          }
+        }
+      },
+      "UserDto" : {
+        "description" : "User profile data",
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "description" : "User ID (TSID)",
+            "examples" : [ "0h4a8xzk8jv80" ]
+          },
+          "email" : {
+            "type" : "string",
+            "description" : "User email address"
+          },
+          "displayName" : {
+            "type" : "string",
+            "description" : "User display name"
+          },
+          "avatarUrl" : {
+            "type" : "string",
+            "description" : "User avatar URL"
+          },
+          "locale" : {
+            "type" : "string",
+            "description" : "User locale (e.g. 'en', 'fr')",
+            "examples" : [ "en" ]
+          },
+          "timezone" : {
+            "type" : "string",
+            "description" : "User timezone (e.g. 'Europe/Paris')",
+            "examples" : [ "Europe/Paris" ]
+          },
+          "createdAt" : {
+            "type" : "string",
+            "description" : "Account creation timestamp"
+          }
+        }
+      }
+    },
+    "securitySchemes" : {
+      "SecurityScheme" : {
+        "type" : "openIdConnect",
+        "openIdConnectUrl" : "http://localhost:8180/realms/tribly/.well-known/openid-configuration",
+        "description" : "Authentication"
+      }
+    }
+  },
+  "tags" : [ {
+    "name" : "Configuration",
+    "description" : "Application configuration endpoints"
+  }, {
+    "name" : "Rides",
+    "description" : "Ride management and participation operations"
+  }, {
+    "name" : "Route Downloads",
+    "description" : "Route file downloads and images"
+  }, {
+    "name" : "Routes",
+    "description" : "GPX route management operations"
+  }, {
+    "name" : "Team Members",
+    "description" : "Team membership management operations"
+  }, {
+    "name" : "Teams",
+    "description" : "Team management operations"
+  }, {
+    "name" : "Users",
+    "description" : "User profile management operations"
+  } ],
+  "paths" : {
+    "/api/config" : {
+      "get" : {
+        "summary" : "Get application configuration",
+        "description" : "Get frontend configuration including Keycloak and map settings",
+        "tags" : [ "Configuration" ],
+        "responses" : {
+          "200" : {
+            "description" : "Configuration retrieved successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ConfigDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/download/teams/{slug}/routes/{routeId}/fit" : {
+      "get" : {
+        "summary" : "Download FIT file",
+        "description" : "Download the route as a FIT file for Garmin devices",
+        "tags" : [ "Route Downloads" ],
+        "parameters" : [ {
+          "description" : "Route ID (TSID)",
+          "name" : "routeId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Team URL slug",
+          "name" : "slug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "FIT file downloaded successfully",
+            "content" : {
+              "application/octet-stream" : { }
+            }
+          },
+          "404" : {
+            "description" : "Team or route not found"
+          }
+        }
+      }
+    },
+    "/api/download/teams/{slug}/routes/{routeId}/gpx" : {
+      "get" : {
+        "summary" : "Download GPX file",
+        "description" : "Download the route as a GPX file",
+        "tags" : [ "Route Downloads" ],
+        "parameters" : [ {
+          "description" : "Route ID (TSID)",
+          "name" : "routeId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Team URL slug",
+          "name" : "slug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "GPX file downloaded successfully",
+            "content" : {
+              "application/gpx+xml" : { }
+            }
+          },
+          "404" : {
+            "description" : "Team or route not found"
+          }
+        }
+      }
+    },
+    "/api/download/teams/{slug}/routes/{routeId}/thumbnail" : {
+      "get" : {
+        "summary" : "Get route thumbnail",
+        "description" : "Get a thumbnail image of the route",
+        "tags" : [ "Route Downloads" ],
+        "parameters" : [ {
+          "description" : "Route ID (TSID)",
+          "name" : "routeId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Team URL slug",
+          "name" : "slug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Thumbnail retrieved successfully",
+            "content" : {
+              "image/png" : { }
+            }
+          },
+          "404" : {
+            "description" : "Team or route not found"
+          }
+        }
+      }
+    },
+    "/api/teams" : {
+      "get" : {
+        "summary" : "List public teams",
+        "description" : "Get a paginated list of public teams with optional search",
+        "tags" : [ "Teams" ],
+        "parameters" : [ {
+          "description" : "Page number (0-indexed)",
+          "name" : "page",
+          "in" : "query",
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 0
+          }
+        }, {
+          "description" : "Search query to filter teams by name",
+          "name" : "search",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Page size",
+          "name" : "size",
+          "in" : "query",
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 20
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Teams retrieved successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TeamListResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post" : {
+        "summary" : "Create team",
+        "description" : "Create a new team. The current user will be set as the team owner.",
+        "tags" : [ "Teams" ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CreateTeamRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "description" : "Team created successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TeamDto"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Invalid request"
+          },
+          "401" : {
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
+    "/api/teams/my" : {
+      "get" : {
+        "summary" : "Get my teams",
+        "description" : "Get all teams the current user is a member of",
+        "tags" : [ "Teams" ],
+        "responses" : {
+          "200" : {
+            "description" : "User teams retrieved successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/TeamWithRoleDto"
+                  }
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
+    "/api/teams/{slug}" : {
+      "put" : {
+        "summary" : "Update team",
+        "description" : "Update team information. Requires ADMIN role.",
+        "tags" : [ "Teams" ],
+        "parameters" : [ {
+          "description" : "Team URL slug",
+          "name" : "slug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/UpdateTeamRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Team updated successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TeamDto"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Invalid request"
+          },
+          "401" : {
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "description" : "User is not a team admin"
+          },
+          "404" : {
+            "description" : "Team not found"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      },
+      "get" : {
+        "summary" : "Get team by slug",
+        "description" : "Get detailed team information by URL slug",
+        "tags" : [ "Teams" ],
+        "parameters" : [ {
+          "description" : "Team URL slug",
+          "name" : "slug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Team retrieved successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TeamDetailDto"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Team not found"
+          },
+          "403" : {
+            "description" : "Team is private and user is not a member"
+          }
+        }
+      },
+      "delete" : {
+        "summary" : "Delete team",
+        "description" : "Soft delete a team. Requires OWNER role.",
+        "tags" : [ "Teams" ],
+        "parameters" : [ {
+          "description" : "Team URL slug",
+          "name" : "slug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "Team deleted successfully"
+          },
+          "401" : {
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "description" : "User is not the team owner"
+          },
+          "404" : {
+            "description" : "Team not found"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
+    "/api/teams/{slug}/members" : {
+      "get" : {
+        "summary" : "Get team members",
+        "description" : "Get paginated list of team members",
+        "tags" : [ "Team Members" ],
+        "parameters" : [ {
+          "description" : "Team URL slug",
+          "name" : "slug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Page number",
+          "name" : "page",
+          "in" : "query",
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 0
+          }
+        }, {
+          "description" : "Page size",
+          "name" : "size",
+          "in" : "query",
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 50
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Members retrieved successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MemberListResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized"
+          },
+          "404" : {
+            "description" : "Team not found"
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      },
+      "post" : {
+        "summary" : "Add team member",
+        "description" : "Add a member to the team. Requires ADMIN role.",
+        "tags" : [ "Team Members" ],
+        "parameters" : [ {
+          "description" : "Team URL slug",
+          "name" : "slug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/AddMemberRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "description" : "Member added successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MemberDto"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Invalid request or user already a member"
+          },
+          "401" : {
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "description" : "User is not a team admin"
+          },
+          "404" : {
+            "description" : "Team or user not found"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
+    "/api/teams/{slug}/members/join" : {
+      "post" : {
+        "summary" : "Join team",
+        "description" : "Request to join a team",
+        "tags" : [ "Team Members" ],
+        "parameters" : [ {
+          "description" : "Team URL slug",
+          "name" : "slug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "201" : {
+            "description" : "Successfully joined team",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MemberDto"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Team is full or user is already a member"
+          },
+          "401" : {
+            "description" : "Unauthorized"
+          },
+          "404" : {
+            "description" : "Team not found"
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
+    "/api/teams/{slug}/members/leave" : {
+      "post" : {
+        "summary" : "Leave team",
+        "description" : "Leave a team",
+        "tags" : [ "Team Members" ],
+        "parameters" : [ {
+          "description" : "Team URL slug",
+          "name" : "slug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "Successfully left team"
+          },
+          "400" : {
+            "description" : "Cannot leave - user is the owner"
+          },
+          "401" : {
+            "description" : "Unauthorized"
+          },
+          "404" : {
+            "description" : "Team not found or user is not a member"
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
+    "/api/teams/{slug}/members/{memberId}" : {
+      "put" : {
+        "summary" : "Update member role",
+        "description" : "Update a team member's role. Requires ADMIN role.",
+        "tags" : [ "Team Members" ],
+        "parameters" : [ {
+          "description" : "Member user ID (TSID)",
+          "name" : "memberId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Team URL slug",
+          "name" : "slug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/UpdateMemberRoleRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Role updated successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MemberDto"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Invalid request"
+          },
+          "401" : {
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "description" : "User is not a team admin"
+          },
+          "404" : {
+            "description" : "Team or member not found"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      },
+      "delete" : {
+        "summary" : "Remove team member",
+        "description" : "Remove a member from the team. Requires ADMIN role.",
+        "tags" : [ "Team Members" ],
+        "parameters" : [ {
+          "description" : "Member user ID (TSID)",
+          "name" : "memberId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Team URL slug",
+          "name" : "slug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "Member removed successfully"
+          },
+          "401" : {
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "description" : "User is not a team admin"
+          },
+          "404" : {
+            "description" : "Team or member not found"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
+    "/api/teams/{slug}/rides" : {
+      "get" : {
+        "summary" : "List rides",
+        "description" : "Get paginated list of rides for a team with optional filtering",
+        "tags" : [ "Rides" ],
+        "parameters" : [ {
+          "description" : "Team URL slug",
+          "name" : "slug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Start date filter (ISO format)",
+          "name" : "from",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Page number",
+          "name" : "page",
+          "in" : "query",
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 0
+          }
+        }, {
+          "description" : "Page size",
+          "name" : "size",
+          "in" : "query",
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 20
+          }
+        }, {
+          "description" : "Status filter",
+          "name" : "status",
+          "in" : "query",
+          "schema" : {
+            "$ref" : "#/components/schemas/RideStatus"
+          }
+        }, {
+          "description" : "End date filter (ISO format)",
+          "name" : "to",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Rides retrieved successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/RideListResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Team not found"
+          }
+        }
+      },
+      "post" : {
+        "summary" : "Create ride",
+        "description" : "Create a new ride with optional groups",
+        "tags" : [ "Rides" ],
+        "parameters" : [ {
+          "description" : "Team URL slug",
+          "name" : "slug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CreateRideRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "description" : "Ride created successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/RideDto"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Invalid request"
+          },
+          "401" : {
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "description" : "User is not a team member"
+          },
+          "404" : {
+            "description" : "Team not found"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
+    "/api/teams/{slug}/rides/{rideSlug}" : {
+      "patch" : {
+        "summary" : "Update ride",
+        "description" : "Update ride information. Requires organizer permissions.",
+        "tags" : [ "Rides" ],
+        "parameters" : [ {
+          "description" : "Ride URL slug",
+          "name" : "rideSlug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Team URL slug",
+          "name" : "slug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/UpdateRideRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Ride updated successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/RideDto"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Invalid request"
+          },
+          "401" : {
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "description" : "User is not authorized to update this ride"
+          },
+          "404" : {
+            "description" : "Team or ride not found"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      },
+      "get" : {
+        "summary" : "Get ride details",
+        "description" : "Get detailed ride information including groups",
+        "tags" : [ "Rides" ],
+        "parameters" : [ {
+          "description" : "Ride URL slug",
+          "name" : "rideSlug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Team URL slug",
+          "name" : "slug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Ride retrieved successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/RideDetailDto"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Team or ride not found"
+          }
+        }
+      },
+      "delete" : {
+        "summary" : "Delete ride",
+        "description" : "Soft delete a ride. Requires organizer permissions.",
+        "tags" : [ "Rides" ],
+        "parameters" : [ {
+          "description" : "Ride URL slug",
+          "name" : "rideSlug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Team URL slug",
+          "name" : "slug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "Ride deleted successfully"
+          },
+          "401" : {
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "description" : "User is not authorized to delete this ride"
+          },
+          "404" : {
+            "description" : "Team or ride not found"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
+    "/api/teams/{slug}/rides/{rideSlug}/groups" : {
+      "get" : {
+        "summary" : "List ride groups",
+        "description" : "Get all groups for a ride",
+        "tags" : [ "Rides" ],
+        "parameters" : [ {
+          "description" : "Ride URL slug",
+          "name" : "rideSlug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Team URL slug",
+          "name" : "slug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Groups retrieved successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/RideGroupListResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Team or ride not found"
+          }
+        }
+      },
+      "post" : {
+        "summary" : "Create ride group",
+        "description" : "Create a new group for a ride. Requires organizer permissions.",
+        "tags" : [ "Rides" ],
+        "parameters" : [ {
+          "description" : "Ride URL slug",
+          "name" : "rideSlug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Team URL slug",
+          "name" : "slug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CreateGroupRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "description" : "Group created successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/RideGroupDto"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Invalid request"
+          },
+          "401" : {
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "description" : "User is not authorized to modify this ride"
+          },
+          "404" : {
+            "description" : "Team or ride not found"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
+    "/api/teams/{slug}/rides/{rideSlug}/groups/{groupId}" : {
+      "patch" : {
+        "summary" : "Update ride group",
+        "description" : "Update a ride group. Requires organizer permissions.",
+        "tags" : [ "Rides" ],
+        "parameters" : [ {
+          "description" : "Group ID (TSID)",
+          "name" : "groupId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Ride URL slug",
+          "name" : "rideSlug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Team URL slug",
+          "name" : "slug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/UpdateGroupRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Group updated successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/RideGroupDto"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Invalid request"
+          },
+          "401" : {
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "description" : "User is not authorized to modify this ride"
+          },
+          "404" : {
+            "description" : "Team, ride, or group not found"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      },
+      "delete" : {
+        "summary" : "Delete ride group",
+        "description" : "Delete a ride group. Requires organizer permissions.",
+        "tags" : [ "Rides" ],
+        "parameters" : [ {
+          "description" : "Group ID (TSID)",
+          "name" : "groupId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Ride URL slug",
+          "name" : "rideSlug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Team URL slug",
+          "name" : "slug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "Group deleted successfully"
+          },
+          "401" : {
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "description" : "User is not authorized to modify this ride"
+          },
+          "404" : {
+            "description" : "Team, ride, or group not found"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
+    "/api/teams/{slug}/rides/{rideSlug}/groups/{groupId}/join" : {
+      "post" : {
+        "summary" : "Join ride group",
+        "description" : "Join a ride group",
+        "tags" : [ "Rides" ],
+        "parameters" : [ {
+          "description" : "Group ID (TSID)",
+          "name" : "groupId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Ride URL slug",
+          "name" : "rideSlug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Team URL slug",
+          "name" : "slug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/JoinGroupRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "description" : "Successfully joined group",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/RideParticipationDto"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Group is full or user already joined"
+          },
+          "401" : {
+            "description" : "Unauthorized"
+          },
+          "404" : {
+            "description" : "Team, ride, or group not found"
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
+    "/api/teams/{slug}/rides/{rideSlug}/groups/{groupId}/leave" : {
+      "post" : {
+        "summary" : "Leave ride group",
+        "description" : "Leave a ride group",
+        "tags" : [ "Rides" ],
+        "parameters" : [ {
+          "description" : "Group ID (TSID)",
+          "name" : "groupId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Ride URL slug",
+          "name" : "rideSlug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Team URL slug",
+          "name" : "slug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "Successfully left group"
+          },
+          "401" : {
+            "description" : "Unauthorized"
+          },
+          "404" : {
+            "description" : "Team, ride, group, or participation not found"
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
+    "/api/teams/{slug}/routes" : {
+      "get" : {
+        "summary" : "List routes",
+        "description" : "Get paginated list of routes for a team",
+        "tags" : [ "Routes" ],
+        "parameters" : [ {
+          "description" : "Team URL slug",
+          "name" : "slug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Page number (0-indexed)",
+          "name" : "page",
+          "in" : "query",
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 0
+          }
+        }, {
+          "description" : "Page size",
+          "name" : "size",
+          "in" : "query",
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 20
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Routes retrieved successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/RouteListResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Team not found"
+          }
+        }
+      },
+      "post" : {
+        "summary" : "Create route",
+        "description" : "Create a new route by uploading a GPX file",
+        "tags" : [ "Routes" ],
+        "parameters" : [ {
+          "description" : "Team URL slug",
+          "name" : "slug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "multipart/form-data" : {
+              "schema" : {
+                "type" : "object",
+                "required" : [ "name" ],
+                "properties" : {
+                  "name" : {
+                    "type" : "string",
+                    "pattern" : "\\S"
+                  },
+                  "description" : {
+                    "type" : "string"
+                  },
+                  "difficulty" : {
+                    "$ref" : "#/components/schemas/RouteDifficulty"
+                  },
+                  "surfaceType" : {
+                    "$ref" : "#/components/schemas/SurfaceType"
+                  },
+                  "isPublic" : {
+                    "type" : "boolean"
+                  },
+                  "gpxFile" : {
+                    "type" : "string",
+                    "format" : "binary"
+                  }
+                }
+              },
+              "encoding" : {
+                "difficulty" : {
+                  "contentType" : "text/plain"
+                },
+                "surfaceType" : {
+                  "contentType" : "text/plain"
+                },
+                "isPublic" : {
+                  "contentType" : "text/plain"
+                }
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "description" : "Route created successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/RouteDto"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Invalid request or GPX file"
+          },
+          "401" : {
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "description" : "User is not a team member"
+          },
+          "404" : {
+            "description" : "Team not found"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
+    "/api/teams/{slug}/routes/{routeId}" : {
+      "patch" : {
+        "summary" : "Update route",
+        "description" : "Update route metadata (name, description, difficulty, etc.). Does not update the GPX file.",
+        "tags" : [ "Routes" ],
+        "parameters" : [ {
+          "description" : "Route ID (TSID)",
+          "name" : "routeId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Team URL slug",
+          "name" : "slug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/UpdateRouteRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Route updated successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/RouteDto"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Invalid request"
+          },
+          "401" : {
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "description" : "User is not authorized to update this route"
+          },
+          "404" : {
+            "description" : "Team or route not found"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      },
+      "get" : {
+        "summary" : "Get route details",
+        "description" : "Get detailed route information including GPS coordinates and statistics",
+        "tags" : [ "Routes" ],
+        "parameters" : [ {
+          "description" : "Route ID (TSID)",
+          "name" : "routeId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Team URL slug",
+          "name" : "slug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Route retrieved successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/RouteDetailDto"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Team or route not found"
+          }
+        }
+      },
+      "delete" : {
+        "summary" : "Delete route",
+        "description" : "Soft delete a route. Requires route creator or team admin permissions.",
+        "tags" : [ "Routes" ],
+        "parameters" : [ {
+          "description" : "Route ID (TSID)",
+          "name" : "routeId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Team URL slug",
+          "name" : "slug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "Route deleted successfully"
+          },
+          "401" : {
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "description" : "User is not authorized to delete this route"
+          },
+          "404" : {
+            "description" : "Team or route not found"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
+    "/api/teams/{slug}/routes/{routeId}/climbs" : {
+      "get" : {
+        "summary" : "Get route climbs",
+        "description" : "Get all categorized climbs (hills) on a route",
+        "tags" : [ "Routes" ],
+        "parameters" : [ {
+          "description" : "Route ID (TSID)",
+          "name" : "routeId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Team URL slug",
+          "name" : "slug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Climbs retrieved successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ClimbListResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Team or route not found"
+          }
+        }
+      }
+    },
+    "/api/teams/{slug}/routes/{routeId}/track" : {
+      "get" : {
+        "summary" : "Get route track",
+        "description" : "Get GPS track points (latitude, longitude, elevation) for displaying the route on a map",
+        "tags" : [ "Routes" ],
+        "parameters" : [ {
+          "description" : "Route ID (TSID)",
+          "name" : "routeId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Team URL slug",
+          "name" : "slug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Track retrieved successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/GpxTrackDto"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Team or route not found"
+          }
+        }
+      }
+    },
+    "/api/users/me" : {
+      "put" : {
+        "summary" : "Update current user",
+        "description" : "Update the current user's profile",
+        "tags" : [ "Users" ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/UpdateUserRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "User updated successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/UserDto"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Invalid request"
+          },
+          "401" : {
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      },
+      "get" : {
+        "summary" : "Get current user",
+        "description" : "Get the current authenticated user's profile",
+        "tags" : [ "Users" ],
+        "responses" : {
+          "200" : {
+            "description" : "User profile retrieved successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/UserDto"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      },
+      "delete" : {
+        "summary" : "Delete current user",
+        "description" : "Delete the current user's account",
+        "tags" : [ "Users" ],
+        "responses" : {
+          "204" : {
+            "description" : "User deleted successfully"
+          },
+          "401" : {
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
+    "/api/users/search" : {
+      "get" : {
+        "summary" : "Search users",
+        "description" : "Search users by display name",
+        "tags" : [ "Users" ],
+        "parameters" : [ {
+          "description" : "Maximum results (max 20)",
+          "name" : "limit",
+          "in" : "query",
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 10
+          }
+        }, {
+          "description" : "Search query",
+          "name" : "q",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Search results",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/PublicUserDto"
+                  }
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
+    "/api/users/{id}" : {
+      "get" : {
+        "summary" : "Get user by ID",
+        "description" : "Get public user information by ID",
+        "tags" : [ "Users" ],
+        "parameters" : [ {
+          "description" : "User ID (TSID)",
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "User retrieved successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PublicUserDto"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized"
+          },
+          "404" : {
+            "description" : "User not found"
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    }
+  },
+  "info" : {
+    "title" : "Tribly API",
+    "version" : "1.0.0",
+    "description" : "API for Tribly Cycling Team Management Platform"
+  },
+  "servers" : [ {
+    "url" : "http://localhost:8080",
+    "description" : "Auto generated value"
+  }, {
+    "url" : "http://0.0.0.0:8080",
+    "description" : "Auto generated value"
+  } ]
+}
