@@ -49,7 +49,7 @@
     "@vitest/ui": "^2.1.8",
     "autoprefixer": "^10.4.23",
     "eslint": "^9.39.2",
-    "eslint-plugin-react-hooks": "^5.1.0",
+    "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.25",
     "globals": "^15.13.0",
     "jsdom": "^25.0.1",
