@@ -1,19 +1,19 @@
-import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useTranslation, Trans } from 'react-i18next';
-import { useAuth } from '../../hooks/useAuth';
+import { useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useTranslation, Trans } from 'react-i18next'
+import { useAuth } from '../../hooks/useAuth'
 
 export function LoginPage() {
-  const { t } = useTranslation('auth');
-  const { t: tCommon } = useTranslation('common');
-  const navigate = useNavigate();
-  const { isAuthenticated, isInitialized, isLoading, login } = useAuth();
+  const { t } = useTranslation('auth')
+  const { t: tCommon } = useTranslation('common')
+  const navigate = useNavigate()
+  const { isAuthenticated, isInitialized, isLoading, login } = useAuth()
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/');
+      navigate('/')
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate])
 
   if (!isInitialized || isLoading) {
     return (
@@ -23,7 +23,7 @@ export function LoginPage() {
           <p className="mt-4 text-gray-600">{tCommon('status.loading')}</p>
         </div>
       </div>
-    );
+    )
   }
 
   return (
@@ -39,12 +39,7 @@ export function LoginPage() {
             onClick={() => login()}
             className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
           >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -61,12 +56,16 @@ export function LoginPage() {
             i18nKey="login.termsText"
             ns="auth"
             components={{
-              termsLink: <a href="/terms" className="font-medium text-indigo-600 hover:text-indigo-500" />,
-              privacyLink: <a href="/privacy" className="font-medium text-indigo-600 hover:text-indigo-500" />,
+              termsLink: (
+                <a href="/terms" className="font-medium text-indigo-600 hover:text-indigo-500" />
+              ),
+              privacyLink: (
+                <a href="/privacy" className="font-medium text-indigo-600 hover:text-indigo-500" />
+              ),
             }}
           />
         </p>
       </div>
     </div>
-  );
+  )
 }

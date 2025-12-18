@@ -1,50 +1,53 @@
-import { useState, useCallback } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import { useCreateRoute } from '../../hooks/useRoute';
+import { useState, useCallback } from 'react'
+import { useParams, Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+import { useCreateRoute } from '../../hooks/useRoute'
 
 export function CreateRoutePage() {
-  const { teamSlug } = useParams<{ teamSlug: string }>();
-  const { t } = useTranslation('routes');
-  const { t: tCommon } = useTranslation('common');
-  const { t: tErrors } = useTranslation('errors');
+  const { teamSlug } = useParams<{ teamSlug: string }>()
+  const { t } = useTranslation('routes')
+  const { t: tCommon } = useTranslation('common')
+  const { t: tErrors } = useTranslation('errors')
 
-  const createRoute = useCreateRoute(teamSlug!);
+  const createRoute = useCreateRoute(teamSlug!)
 
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [difficulty, setDifficulty] = useState<'EASY' | 'MODERATE' | 'HARD' | 'EXPERT'>('MODERATE');
-  const [surfaceType, setSurfaceType] = useState<'ROAD' | 'GRAVEL' | 'MTB' | 'MIXED'>('ROAD');
-  const [isPublic, setIsPublic] = useState(false);
-  const [gpxFile, setGpxFile] = useState<File | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [name, setName] = useState('')
+  const [description, setDescription] = useState('')
+  const [difficulty, setDifficulty] = useState<'EASY' | 'MODERATE' | 'HARD' | 'EXPERT'>('MODERATE')
+  const [surfaceType, setSurfaceType] = useState<'ROAD' | 'GRAVEL' | 'MTB' | 'MIXED'>('ROAD')
+  const [isPublic, setIsPublic] = useState(false)
+  const [gpxFile, setGpxFile] = useState<File | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
-  const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      // Validate file type
-      if (!file.name.endsWith('.gpx')) {
-        setError(t('create.validation.invalidFileType'));
-        setGpxFile(null);
-        return;
+  const handleFileChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0]
+      if (file) {
+        // Validate file type
+        if (!file.name.endsWith('.gpx')) {
+          setError(t('create.validation.invalidFileType'))
+          setGpxFile(null)
+          return
+        }
+        // Validate file size (10MB max)
+        if (file.size > 10 * 1024 * 1024) {
+          setError(t('create.validation.fileTooLarge'))
+          setGpxFile(null)
+          return
+        }
+        setError(null)
+        setGpxFile(file)
       }
-      // Validate file size (10MB max)
-      if (file.size > 10 * 1024 * 1024) {
-        setError(t('create.validation.fileTooLarge'));
-        setGpxFile(null);
-        return;
-      }
-      setError(null);
-      setGpxFile(file);
-    }
-  }, [t]);
+    },
+    [t]
+  )
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
 
     if (!gpxFile) {
-      setError(t('create.validation.fileRequired'));
-      return;
+      setError(t('create.validation.fileRequired'))
+      return
     }
 
     try {
@@ -55,11 +58,11 @@ export function CreateRoutePage() {
         surfaceType,
         isPublic,
         gpxFile,
-      });
+      })
     } catch (err) {
-      setError(err instanceof Error ? err.message : tErrors('api.unknown'));
+      setError(err instanceof Error ? err.message : tErrors('api.unknown'))
     }
-  };
+  }
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -102,9 +105,7 @@ export function CreateRoutePage() {
               required
             />
           </div>
-          <p className="mt-2 text-sm text-gray-500">
-            {t('create.form.gpxFileHint')}
-          </p>
+          <p className="mt-2 text-sm text-gray-500">{t('create.form.gpxFileHint')}</p>
         </div>
 
         {/* Name */}
@@ -210,5 +211,5 @@ export function CreateRoutePage() {
         </div>
       </form>
     </div>
-  );
+  )
 }

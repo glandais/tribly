@@ -1,55 +1,59 @@
-import { useState } from 'react';
-import { Link, useParams, Navigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import { useTeam } from '../../hooks/useTeam';
-import { useCreateRide, CreateGroupRequest, Visibility } from '../../hooks/useRide';
-import { LoadingPage, LoadingSpinner } from '../../components/common/LoadingSpinner';
-import { ApiClientError } from '../../api/client';
+import { useState } from 'react'
+import { Link, useParams, Navigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+import { useTeam } from '../../hooks/useTeam'
+import { useCreateRide, CreateGroupRequest, Visibility } from '../../hooks/useRide'
+import { LoadingPage, LoadingSpinner } from '../../components/common/LoadingSpinner'
+import { ApiClientError } from '../../api/client'
 
 export function CreateRidePage() {
-  const { t } = useTranslation('rides');
-  const { t: tCommon } = useTranslation('common');
-  const { teamSlug } = useParams<{ teamSlug: string }>();
-  const { data: team, isLoading: isLoadingTeam } = useTeam(teamSlug);
+  const { t } = useTranslation('rides')
+  const { t: tCommon } = useTranslation('common')
+  const { teamSlug } = useParams<{ teamSlug: string }>()
+  const { data: team, isLoading: isLoadingTeam } = useTeam(teamSlug)
 
   // Calculate next Sunday
   const getNextSunday = () => {
-    const today = new Date();
-    const daysUntilSunday = (7 - today.getDay()) % 7 || 7;
-    const nextSunday = new Date(today);
-    nextSunday.setDate(today.getDate() + daysUntilSunday);
-    return nextSunday.toISOString().split('T')[0];
-  };
+    const today = new Date()
+    const daysUntilSunday = (7 - today.getDay()) % 7 || 7
+    const nextSunday = new Date(today)
+    nextSunday.setDate(today.getDate() + daysUntilSunday)
+    return nextSunday.toISOString().split('T')[0]
+  }
 
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [date, setDate] = useState(getNextSunday());
-  const [startTime, setStartTime] = useState('08:00');
-  const [visibility, setVisibility] = useState<Visibility>('TEAM');
-  const [publishAt, setPublishAt] = useState('');
+  const [title, setTitle] = useState('')
+  const [description, setDescription] = useState('')
+  const [date, setDate] = useState(getNextSunday())
+  const [startTime, setStartTime] = useState('08:00')
+  const [visibility, setVisibility] = useState<Visibility>('TEAM')
+  const [publishAt, setPublishAt] = useState('')
   const [groups, setGroups] = useState<CreateGroupRequest[]>([
-    { name: t('create.form.groups.defaultName'), averageSpeed: undefined, maxParticipants: undefined },
-  ]);
+    {
+      name: t('create.form.groups.defaultName'),
+      averageSpeed: undefined,
+      maxParticipants: undefined,
+    },
+  ])
 
-  const createMutation = useCreateRide(teamSlug);
+  const createMutation = useCreateRide(teamSlug)
 
   if (isLoadingTeam) {
-    return <LoadingPage message={t('loading')} />;
+    return <LoadingPage message={t('loading')} />
   }
 
   if (!team) {
-    return <Navigate to="/teams" replace />;
+    return <Navigate to="/teams" replace />
   }
 
-  const canCreate = team.userRole === 'ADMIN' || team.userRole === 'ORGANIZER';
+  const canCreate = team.userRole === 'ADMIN' || team.userRole === 'ORGANIZER'
 
   if (!canCreate) {
-    return <Navigate to={`/teams/${teamSlug}/rides`} replace />;
+    return <Navigate to={`/teams/${teamSlug}/rides`} replace />
   }
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const filteredGroups = groups.filter((g) => g.name.trim());
+    e.preventDefault()
+    const filteredGroups = groups.filter((g) => g.name.trim())
     createMutation.mutate({
       title,
       description: description || undefined,
@@ -58,29 +62,29 @@ export function CreateRidePage() {
       visibility,
       publishAt: publishAt ? new Date(publishAt).toISOString() : undefined,
       groups: filteredGroups.length > 0 ? filteredGroups : undefined,
-    });
-  };
+    })
+  }
 
   const handleAddGroup = () => {
-    setGroups([...groups, { name: '', averageSpeed: undefined, maxParticipants: undefined }]);
-  };
+    setGroups([...groups, { name: '', averageSpeed: undefined, maxParticipants: undefined }])
+  }
 
   const handleRemoveGroup = (index: number) => {
     if (groups.length > 1) {
-      setGroups(groups.filter((_, i) => i !== index));
+      setGroups(groups.filter((_, i) => i !== index))
     }
-  };
+  }
 
   const handleUpdateGroup = (index: number, updates: Partial<CreateGroupRequest>) => {
-    setGroups(groups.map((g, i) => (i === index ? { ...g, ...updates } : g)));
-  };
+    setGroups(groups.map((g, i) => (i === index ? { ...g, ...updates } : g)))
+  }
 
   const getFieldError = (field: string) => {
     if (createMutation.error instanceof ApiClientError) {
-      return createMutation.error.error.errors?.find((e) => e.field === field)?.message;
+      return createMutation.error.error.errors?.find((e) => e.field === field)?.message
     }
-    return undefined;
-  };
+    return undefined
+  }
 
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -90,7 +94,12 @@ export function CreateRidePage() {
           className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700"
         >
           <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15 19l-7-7 7-7"
+            />
           </svg>
           {t('create.backToRides')}
         </Link>
@@ -99,15 +108,18 @@ export function CreateRidePage() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {createMutation.error && !(createMutation.error instanceof ApiClientError && createMutation.error.error.errors) && (
-          <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-700">
-              {createMutation.error instanceof ApiClientError
-                ? createMutation.error.error.message
-                : t('create.error')}
-            </p>
-          </div>
-        )}
+        {createMutation.error &&
+          !(
+            createMutation.error instanceof ApiClientError && createMutation.error.error.errors
+          ) && (
+            <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-red-700">
+                {createMutation.error instanceof ApiClientError
+                  ? createMutation.error.error.message
+                  : t('create.error')}
+              </p>
+            </div>
+          )}
 
         {/* Title */}
         <div>
@@ -185,7 +197,9 @@ export function CreateRidePage() {
 
         {/* Visibility */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">{t('create.form.visibility.label')}</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            {t('create.form.visibility.label')}
+          </label>
           <div className="space-y-2">
             <label className="flex items-center">
               <input
@@ -198,7 +212,9 @@ export function CreateRidePage() {
               />
               <span className="ml-2 text-sm text-gray-700">{t('create.form.visibility.team')}</span>
             </label>
-            <label className={`flex items-center ${!team.isPublic ? 'opacity-50 cursor-not-allowed' : ''}`}>
+            <label
+              className={`flex items-center ${!team.isPublic ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
               <input
                 type="radio"
                 name="visibility"
@@ -208,11 +224,15 @@ export function CreateRidePage() {
                 disabled={!team.isPublic}
                 className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500 disabled:cursor-not-allowed"
               />
-              <span className="ml-2 text-sm text-gray-700">{t('create.form.visibility.public')}</span>
+              <span className="ml-2 text-sm text-gray-700">
+                {t('create.form.visibility.public')}
+              </span>
             </label>
           </div>
           {!team.isPublic && (
-            <p className="mt-2 text-sm text-gray-500">{t('create.form.visibility.privateTeamHint')}</p>
+            <p className="mt-2 text-sm text-gray-500">
+              {t('create.form.visibility.privateTeamHint')}
+            </p>
           )}
         </div>
 
@@ -235,7 +255,9 @@ export function CreateRidePage() {
         {/* Groups */}
         <div>
           <div className="flex items-center justify-between mb-2">
-            <label className="block text-sm font-medium text-gray-700">{t('create.form.groups.label')}</label>
+            <label className="block text-sm font-medium text-gray-700">
+              {t('create.form.groups.label')}
+            </label>
             <button
               type="button"
               onClick={handleAddGroup}
@@ -248,7 +270,9 @@ export function CreateRidePage() {
             {groups.map((group, index) => (
               <div key={index} className="border border-gray-200 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-sm font-medium text-gray-700">{t('create.form.groups.new')} {index + 1}</span>
+                  <span className="text-sm font-medium text-gray-700">
+                    {t('create.form.groups.new')} {index + 1}
+                  </span>
                   {groups.length > 1 && (
                     <button
                       type="button"
@@ -273,7 +297,11 @@ export function CreateRidePage() {
                     <input
                       type="number"
                       value={group.averageSpeed || ''}
-                      onChange={(e) => handleUpdateGroup(index, { averageSpeed: e.target.value ? Number(e.target.value) : undefined })}
+                      onChange={(e) =>
+                        handleUpdateGroup(index, {
+                          averageSpeed: e.target.value ? Number(e.target.value) : undefined,
+                        })
+                      }
                       placeholder={t('create.form.groups.speed.placeholder')}
                       min={0}
                       className="block w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-indigo-500 focus:border-indigo-500"
@@ -283,7 +311,11 @@ export function CreateRidePage() {
                     <input
                       type="number"
                       value={group.maxParticipants || ''}
-                      onChange={(e) => handleUpdateGroup(index, { maxParticipants: e.target.value ? Number(e.target.value) : undefined })}
+                      onChange={(e) =>
+                        handleUpdateGroup(index, {
+                          maxParticipants: e.target.value ? Number(e.target.value) : undefined,
+                        })
+                      }
                       placeholder={t('create.form.groups.maxParticipants.placeholder')}
                       min={1}
                       className="block w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-indigo-500 focus:border-indigo-500"
@@ -293,9 +325,7 @@ export function CreateRidePage() {
               </div>
             ))}
           </div>
-          <p className="mt-2 text-sm text-gray-500">
-            {t('create.form.groups.hint')}
-          </p>
+          <p className="mt-2 text-sm text-gray-500">{t('create.form.groups.hint')}</p>
         </div>
 
         {/* Actions */}
@@ -323,5 +353,5 @@ export function CreateRidePage() {
         </div>
       </form>
     </div>
-  );
+  )
 }

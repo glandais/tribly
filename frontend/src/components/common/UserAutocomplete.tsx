@@ -1,71 +1,71 @@
-import { useState, useRef, useEffect } from 'react';
-import { useUserSearch, UserSearchResult } from '../../hooks/useUserSearch';
+import { useState, useRef, useEffect } from 'react'
+import { useUserSearch, UserSearchResult } from '../../hooks/useUserSearch'
 
 interface UserAutocompleteProps {
-  onSelect: (user: UserSearchResult) => void;
-  placeholder?: string;
-  className?: string;
+  onSelect: (user: UserSearchResult) => void
+  placeholder?: string
+  className?: string
 }
 
 export function UserAutocomplete({ onSelect, placeholder, className = '' }: UserAutocompleteProps) {
-  const [query, setQuery] = useState('');
-  const [isOpen, setIsOpen] = useState(false);
-  const [selectedIndex, setSelectedIndex] = useState(-1);
-  const wrapperRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [query, setQuery] = useState('')
+  const [isOpen, setIsOpen] = useState(false)
+  const [selectedIndex, setSelectedIndex] = useState(-1)
+  const wrapperRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
 
-  const { data: users = [], isLoading } = useUserSearch(query, isOpen);
+  const { data: users = [], isLoading } = useUserSearch(query, isOpen)
 
   // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
+        setIsOpen(false)
       }
     }
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   const handleInputChange = (value: string) => {
-    setQuery(value);
-    setIsOpen(value.trim().length >= 2);
-    setSelectedIndex(-1);
-  };
+    setQuery(value)
+    setIsOpen(value.trim().length >= 2)
+    setSelectedIndex(-1)
+  }
 
   const handleSelect = (user: UserSearchResult) => {
-    onSelect(user);
-    setQuery('');
-    setIsOpen(false);
-    setSelectedIndex(-1);
-  };
+    onSelect(user)
+    setQuery('')
+    setIsOpen(false)
+    setSelectedIndex(-1)
+  }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (!isOpen || users.length === 0) return;
+    if (!isOpen || users.length === 0) return
 
     switch (e.key) {
       case 'ArrowDown':
-        e.preventDefault();
-        setSelectedIndex((prev) => (prev < users.length - 1 ? prev + 1 : prev));
-        break;
+        e.preventDefault()
+        setSelectedIndex((prev) => (prev < users.length - 1 ? prev + 1 : prev))
+        break
       case 'ArrowUp':
-        e.preventDefault();
-        setSelectedIndex((prev) => (prev > 0 ? prev - 1 : -1));
-        break;
+        e.preventDefault()
+        setSelectedIndex((prev) => (prev > 0 ? prev - 1 : -1))
+        break
       case 'Enter':
-        e.preventDefault();
+        e.preventDefault()
         if (selectedIndex >= 0 && selectedIndex < users.length) {
-          handleSelect(users[selectedIndex]);
+          handleSelect(users[selectedIndex])
         }
-        break;
+        break
       case 'Escape':
-        e.preventDefault();
-        setIsOpen(false);
-        setSelectedIndex(-1);
-        break;
+        e.preventDefault()
+        setIsOpen(false)
+        setSelectedIndex(-1)
+        break
     }
-  };
+  }
 
   return (
     <div ref={wrapperRef} className={`relative ${className}`}>
@@ -82,9 +82,25 @@ export function UserAutocomplete({ onSelect, placeholder, className = '' }: User
         />
         {isLoading && (
           <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-            <svg className="animate-spin h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            <svg
+              className="animate-spin h-5 w-5 text-gray-400"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              ></circle>
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              ></path>
             </svg>
           </div>
         )}
@@ -129,5 +145,5 @@ export function UserAutocomplete({ onSelect, placeholder, className = '' }: User
         </div>
       )}
     </div>
-  );
+  )
 }

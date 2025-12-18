@@ -1,41 +1,41 @@
-import { useState, useEffect } from 'react';
-import { Link, useParams } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import { useTeam, useUpdateTeam, useDeleteTeam } from '../../hooks/useTeam';
-import { LoadingPage, LoadingSpinner } from '../../components/common/LoadingSpinner';
-import { ApiClientError } from '../../api/client';
-import { ConfirmDialog } from '../../components/common/ConfirmDialog';
+import { useState, useEffect } from 'react'
+import { Link, useParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+import { useTeam, useUpdateTeam, useDeleteTeam } from '../../hooks/useTeam'
+import { LoadingPage, LoadingSpinner } from '../../components/common/LoadingSpinner'
+import { ApiClientError } from '../../api/client'
+import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 
 export function TeamSettingsPage() {
-  const { t } = useTranslation('teams');
-  const { t: tCommon } = useTranslation('common');
-  const { teamSlug } = useParams<{ teamSlug: string }>();
+  const { t } = useTranslation('teams')
+  const { t: tCommon } = useTranslation('common')
+  const { teamSlug } = useParams<{ teamSlug: string }>()
 
-  const { data: team, isLoading, error } = useTeam(teamSlug);
-  const updateMutation = useUpdateTeam(teamSlug || '');
-  const deleteMutation = useDeleteTeam(teamSlug || '');
+  const { data: team, isLoading, error } = useTeam(teamSlug)
+  const updateMutation = useUpdateTeam(teamSlug || '')
+  const deleteMutation = useDeleteTeam(teamSlug || '')
 
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [isPublic, setIsPublic] = useState(true);
-  const [logoUrl, setLogoUrl] = useState('');
-  const [coverImageUrl, setCoverImageUrl] = useState('');
-  const [maxMembers, setMaxMembers] = useState<number | ''>('');
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [name, setName] = useState('')
+  const [description, setDescription] = useState('')
+  const [isPublic, setIsPublic] = useState(true)
+  const [logoUrl, setLogoUrl] = useState('')
+  const [coverImageUrl, setCoverImageUrl] = useState('')
+  const [maxMembers, setMaxMembers] = useState<number | ''>('')
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   useEffect(() => {
     if (team) {
-      setName(team.name);
-      setDescription(team.description || '');
-      setIsPublic(team.isPublic);
-      setLogoUrl(team.logoUrl || '');
-      setCoverImageUrl(team.coverImageUrl || '');
-      setMaxMembers(team.maxMembers || '');
+      setName(team.name)
+      setDescription(team.description || '')
+      setIsPublic(team.isPublic)
+      setLogoUrl(team.logoUrl || '')
+      setCoverImageUrl(team.coverImageUrl || '')
+      setMaxMembers(team.maxMembers || '')
     }
-  }, [team]);
+  }, [team])
 
   if (isLoading) {
-    return <LoadingPage message={t('settings.loading')} />;
+    return <LoadingPage message={t('settings.loading')} />
   }
 
   if (error || !team) {
@@ -43,9 +43,7 @@ export function TeamSettingsPage() {
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-center py-12">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">{t('settings.error.title')}</h1>
-          <p className="text-gray-600 mb-6">
-            {t('settings.error.loadFailed')}
-          </p>
+          <p className="text-gray-600 mb-6">{t('settings.error.loadFailed')}</p>
           <Link
             to="/teams"
             className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
@@ -54,17 +52,17 @@ export function TeamSettingsPage() {
           </Link>
         </div>
       </div>
-    );
+    )
   }
 
   if (team.userRole !== 'ADMIN') {
     return (
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-center py-12">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">{t('settings.error.accessDenied')}</h1>
-          <p className="text-gray-600 mb-6">
-            {t('settings.error.adminRequired')}
-          </p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            {t('settings.error.accessDenied')}
+          </h1>
+          <p className="text-gray-600 mb-6">{t('settings.error.adminRequired')}</p>
           <Link
             to={`/teams/${teamSlug}`}
             className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
@@ -73,31 +71,32 @@ export function TeamSettingsPage() {
           </Link>
         </div>
       </div>
-    );
+    )
   }
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
     updateMutation.mutate({
       name: name !== team.name ? name : undefined,
       description: description !== team.description ? description : undefined,
       isPublic: isPublic !== team.isPublic ? isPublic : undefined,
       logoUrl: logoUrl !== team.logoUrl ? logoUrl || undefined : undefined,
       coverImageUrl: coverImageUrl !== team.coverImageUrl ? coverImageUrl || undefined : undefined,
-      maxMembers: maxMembers !== team.maxMembers ? (maxMembers ? Number(maxMembers) : undefined) : undefined,
-    });
-  };
+      maxMembers:
+        maxMembers !== team.maxMembers ? (maxMembers ? Number(maxMembers) : undefined) : undefined,
+    })
+  }
 
   const handleDelete = () => {
-    deleteMutation.mutate();
-  };
+    deleteMutation.mutate()
+  }
 
   const getFieldError = (field: string) => {
     if (updateMutation.error instanceof ApiClientError) {
-      return updateMutation.error.error.errors?.find((e) => e.field === field)?.message;
+      return updateMutation.error.error.errors?.find((e) => e.field === field)?.message
     }
-    return undefined;
-  };
+    return undefined
+  }
 
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -106,12 +105,7 @@ export function TeamSettingsPage() {
           to={`/teams/${teamSlug}`}
           className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700"
         >
-          <svg
-            className="w-4 h-4 mr-1"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
+          <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -122,9 +116,7 @@ export function TeamSettingsPage() {
           {t('settings.backToTeam', { teamName: team.name })}
         </Link>
         <h1 className="mt-4 text-3xl font-bold text-gray-900">{t('settings.title')}</h1>
-        <p className="mt-1 text-gray-600">
-          {t('settings.subtitle')}
-        </p>
+        <p className="mt-1 text-gray-600">{t('settings.subtitle')}</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -134,15 +126,18 @@ export function TeamSettingsPage() {
           </div>
         )}
 
-        {updateMutation.error && !(updateMutation.error instanceof ApiClientError && updateMutation.error.error.errors) && (
-          <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-700">
-              {updateMutation.error instanceof ApiClientError
-                ? updateMutation.error.error.message
-                : t('settings.updateError')}
-            </p>
-          </div>
-        )}
+        {updateMutation.error &&
+          !(
+            updateMutation.error instanceof ApiClientError && updateMutation.error.error.errors
+          ) && (
+            <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-red-700">
+                {updateMutation.error instanceof ApiClientError
+                  ? updateMutation.error.error.message
+                  : t('settings.updateError')}
+              </p>
+            </div>
+          )}
 
         <div>
           <label htmlFor="name" className="block text-sm font-medium text-gray-700">
@@ -225,9 +220,7 @@ export function TeamSettingsPage() {
               {t('settings.form.isPublic.label')}
             </label>
             <p className="text-sm text-gray-500">
-              {isPublic
-                ? t('settings.form.isPublic.public')
-                : t('settings.form.isPublic.private')}
+              {isPublic ? t('settings.form.isPublic.public') : t('settings.form.isPublic.private')}
             </p>
           </div>
         </div>
@@ -277,9 +270,7 @@ export function TeamSettingsPage() {
       {/* Danger Zone */}
       <div className="mt-12 pt-8 border-t border-gray-200">
         <h2 className="text-lg font-semibold text-red-600">{t('settings.dangerZone.title')}</h2>
-        <p className="mt-1 text-sm text-gray-600">
-          {t('settings.dangerZone.description')}
-        </p>
+        <p className="mt-1 text-sm text-gray-600">{t('settings.dangerZone.description')}</p>
 
         <button
           onClick={() => setShowDeleteConfirm(true)}
@@ -300,5 +291,5 @@ export function TeamSettingsPage() {
         isLoading={deleteMutation.isPending}
       />
     </div>
-  );
+  )
 }

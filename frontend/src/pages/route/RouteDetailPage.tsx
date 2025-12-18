@@ -1,46 +1,52 @@
-import { useState } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import { MapContainer, TileLayer, Polyline } from 'react-leaflet';
-import { useRoute, useRouteClimbs, useGpxTrack, useDeleteRoute } from '../../hooks/useRoute';
-import { useTeam } from '../../hooks/useTeam';
-import { ConfirmDialog } from '../../components/common/ConfirmDialog';
-import 'leaflet/dist/leaflet.css';
+import { useState } from 'react'
+import { useParams, Link, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+import { MapContainer, TileLayer, Polyline } from 'react-leaflet'
+import { useRoute, useRouteClimbs, useGpxTrack, useDeleteRoute } from '../../hooks/useRoute'
+import { useTeam } from '../../hooks/useTeam'
+import { ConfirmDialog } from '../../components/common/ConfirmDialog'
+import 'leaflet/dist/leaflet.css'
 
 export function RouteDetailPage() {
-  const { teamSlug, routeId } = useParams<{ teamSlug: string; routeId: string }>();
-  const { t } = useTranslation('routes');
-  const { t: tCommon } = useTranslation('common');
-  const { t: tErrors } = useTranslation('errors');
-  const navigate = useNavigate();
+  const { teamSlug, routeId } = useParams<{ teamSlug: string; routeId: string }>()
+  const { t } = useTranslation('routes')
+  const { t: tCommon } = useTranslation('common')
+  const { t: tErrors } = useTranslation('errors')
+  const navigate = useNavigate()
 
-  const { data: team } = useTeam(teamSlug);
-  const { data: route, isLoading: routeLoading } = useRoute(teamSlug, routeId);
-  const { data: climbsData, isLoading: climbsLoading } = useRouteClimbs(teamSlug, routeId);
-  const { data: gpxTrack, isLoading: trackLoading } = useGpxTrack(teamSlug, routeId);
-  const deleteRoute = useDeleteRoute(teamSlug!);
+  const { data: team } = useTeam(teamSlug)
+  const { data: route, isLoading: routeLoading } = useRoute(teamSlug, routeId)
+  const { data: climbsData, isLoading: climbsLoading } = useRouteClimbs(teamSlug, routeId)
+  const { data: gpxTrack, isLoading: trackLoading } = useGpxTrack(teamSlug, routeId)
+  const deleteRoute = useDeleteRoute(teamSlug!)
 
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
-  const canEdit = team && (team.userRole === 'ADMIN' || team.userRole === 'ORGANIZER');
+  const canEdit = team && (team.userRole === 'ADMIN' || team.userRole === 'ORGANIZER')
 
   const handleDelete = async () => {
     if (routeId) {
-      await deleteRoute.mutateAsync(routeId);
-      navigate(`/teams/${teamSlug}/routes`);
+      await deleteRoute.mutateAsync(routeId)
+      navigate(`/teams/${teamSlug}/routes`)
     }
-  };
+  }
 
   const getClimbCategoryColor = (category: string) => {
     switch (category) {
-      case 'HC': return 'bg-purple-100 text-purple-800 border-purple-300';
-      case 'CAT1': return 'bg-red-100 text-red-800 border-red-300';
-      case 'CAT2': return 'bg-orange-100 text-orange-800 border-orange-300';
-      case 'CAT3': return 'bg-yellow-100 text-yellow-800 border-yellow-300';
-      case 'CAT4': return 'bg-green-100 text-green-800 border-green-300';
-      default: return 'bg-gray-100 text-gray-800 border-gray-300';
+      case 'HC':
+        return 'bg-purple-100 text-purple-800 border-purple-300'
+      case 'CAT1':
+        return 'bg-red-100 text-red-800 border-red-300'
+      case 'CAT2':
+        return 'bg-orange-100 text-orange-800 border-orange-300'
+      case 'CAT3':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-300'
+      case 'CAT4':
+        return 'bg-green-100 text-green-800 border-green-300'
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-300'
     }
-  };
+  }
 
   if (routeLoading || climbsLoading || trackLoading) {
     return (
@@ -55,7 +61,7 @@ export function RouteDetailPage() {
           </div>
         </div>
       </div>
-    );
+    )
   }
 
   if (!route || !gpxTrack) {
@@ -71,19 +77,23 @@ export function RouteDetailPage() {
           </Link>
         </div>
       </div>
-    );
+    )
   }
 
-  const trackPoints = gpxTrack.trackPoints.map((p) => [p.lat, p.lng] as [number, number]);
-  const bounds = trackPoints.length > 0
-    ? (trackPoints.reduce(
-        (acc, [lat, lng]) => [
-          [Math.min(acc[0][0], lat), Math.min(acc[0][1], lng)],
-          [Math.max(acc[1][0], lat), Math.max(acc[1][1], lng)],
-        ],
-        [[trackPoints[0][0], trackPoints[0][1]], [trackPoints[0][0], trackPoints[0][1]]]
-      ) as [[number, number], [number, number]])
-    : undefined;
+  const trackPoints = gpxTrack.trackPoints.map((p) => [p.lat, p.lng] as [number, number])
+  const bounds =
+    trackPoints.length > 0
+      ? (trackPoints.reduce(
+          (acc, [lat, lng]) => [
+            [Math.min(acc[0][0], lat), Math.min(acc[0][1], lng)],
+            [Math.max(acc[1][0], lat), Math.max(acc[1][1], lng)],
+          ],
+          [
+            [trackPoints[0][0], trackPoints[0][1]],
+            [trackPoints[0][0], trackPoints[0][1]],
+          ]
+        ) as [[number, number], [number, number]])
+      : undefined
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -98,9 +108,7 @@ export function RouteDetailPage() {
         <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">{route.name}</h1>
-            {route.description && (
-              <p className="mt-2 text-gray-600">{route.description}</p>
-            )}
+            {route.description && <p className="mt-2 text-gray-600">{route.description}</p>}
           </div>
           {canEdit && (
             <div className="mt-4 sm:mt-0 flex gap-3">
@@ -154,8 +162,18 @@ export function RouteDetailPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center">
-            <svg className="h-8 w-8 text-indigo-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+            <svg
+              className="h-8 w-8 text-indigo-600 mr-3"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
+              />
             </svg>
             <div>
               <p className="text-sm text-gray-500">{t('detail.stats.distance')}</p>
@@ -168,8 +186,18 @@ export function RouteDetailPage() {
 
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center">
-            <svg className="h-8 w-8 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+            <svg
+              className="h-8 w-8 text-green-600 mr-3"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M5 10l7-7m0 0l7 7m-7-7v18"
+              />
             </svg>
             <div>
               <p className="text-sm text-gray-500">{t('detail.stats.elevationGain')}</p>
@@ -180,8 +208,18 @@ export function RouteDetailPage() {
 
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex items-center">
-            <svg className="h-8 w-8 text-red-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+            <svg
+              className="h-8 w-8 text-red-600 mr-3"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 14l-7 7m0 0l-7-7m7 7V3"
+              />
             </svg>
             <div>
               <p className="text-sm text-gray-500">{t('detail.stats.elevationLoss')}</p>
@@ -248,12 +286,14 @@ export function RouteDetailPage() {
                     <p className="text-sm text-gray-600">
                       {t('detail.climbs.distance', {
                         start: (climb.startDistance / 1000).toFixed(1),
-                        end: (climb.endDistance / 1000).toFixed(1)
+                        end: (climb.endDistance / 1000).toFixed(1),
                       })}
                     </p>
                   </div>
                   {climb.category && (
-                    <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getClimbCategoryColor(climb.category)}`}>
+                    <span
+                      className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getClimbCategoryColor(climb.category)}`}
+                    >
                       {t(`climbCategory.${climb.category}`)}
                     </span>
                   )}
@@ -265,11 +305,15 @@ export function RouteDetailPage() {
                   </div>
                   <div>
                     <span className="text-gray-500">{t('detail.climbs.avgGradient')}: </span>
-                    <span className="font-medium text-gray-900">{climb.averageGradient.toFixed(1)}%</span>
+                    <span className="font-medium text-gray-900">
+                      {climb.averageGradient.toFixed(1)}%
+                    </span>
                   </div>
                   <div>
                     <span className="text-gray-500">{t('detail.climbs.maxGradient')}: </span>
-                    <span className="font-medium text-gray-900">{climb.maxGradient.toFixed(1)}%</span>
+                    <span className="font-medium text-gray-900">
+                      {climb.maxGradient.toFixed(1)}%
+                    </span>
                   </div>
                 </div>
               </div>
@@ -286,8 +330,18 @@ export function RouteDetailPage() {
             href={`/api/download/teams/${teamSlug}/routes/${routeId}/gpx`}
             className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
           >
-            <svg className="w-5 h-5 mr-2 -ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            <svg
+              className="w-5 h-5 mr-2 -ml-1"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+              />
             </svg>
             {t('detail.download.gpx')}
           </a>
@@ -295,13 +349,23 @@ export function RouteDetailPage() {
             href={`/api/download/teams/${teamSlug}/routes/${routeId}/fit`}
             className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
           >
-            <svg className="w-5 h-5 mr-2 -ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            <svg
+              className="w-5 h-5 mr-2 -ml-1"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+              />
             </svg>
             {t('detail.download.fit')}
           </a>
         </div>
       </div>
     </div>
-  );
+  )
 }

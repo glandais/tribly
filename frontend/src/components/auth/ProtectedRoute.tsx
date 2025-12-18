@@ -1,12 +1,12 @@
-import { Navigate, useLocation } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import { useAuth } from '../../hooks/useAuth';
-import { LoadingPage } from '../common/LoadingSpinner';
+import { Navigate, useLocation } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+import { useAuth } from '../../hooks/useAuth'
+import { LoadingPage } from '../common/LoadingSpinner'
 
 interface ProtectedRouteProps {
-  children: React.ReactNode;
-  requireAuth?: boolean;
-  redirectTo?: string;
+  children: React.ReactNode
+  requireAuth?: boolean
+  redirectTo?: string
 }
 
 export function ProtectedRoute({
@@ -14,28 +14,28 @@ export function ProtectedRoute({
   requireAuth = true,
   redirectTo = '/login',
 }: ProtectedRouteProps) {
-  const { t } = useTranslation('common');
-  const location = useLocation();
-  const { isAuthenticated, isLoading, isInitialized } = useAuth();
+  const { t } = useTranslation('common')
+  const location = useLocation()
+  const { isAuthenticated, isLoading, isInitialized } = useAuth()
 
   if (!isInitialized || isLoading) {
-    return <LoadingPage message={t('status.checkingAuth')} />;
+    return <LoadingPage message={t('status.checkingAuth')} />
   }
 
   if (requireAuth && !isAuthenticated) {
-    return <Navigate to={redirectTo} state={{ from: location }} replace />;
+    return <Navigate to={redirectTo} state={{ from: location }} replace />
   }
 
   if (!requireAuth && isAuthenticated) {
-    const from = location.state?.from?.pathname || '/';
-    return <Navigate to={from} replace />;
+    const from = location.state?.from?.pathname || '/'
+    return <Navigate to={from} replace />
   }
 
-  return <>{children}</>;
+  return <>{children}</>
 }
 
 export function AuthenticatedRoute({ children }: { children: React.ReactNode }) {
-  return <ProtectedRoute requireAuth>{children}</ProtectedRoute>;
+  return <ProtectedRoute requireAuth>{children}</ProtectedRoute>
 }
 
 export function UnauthenticatedRoute({ children }: { children: React.ReactNode }) {
@@ -43,5 +43,5 @@ export function UnauthenticatedRoute({ children }: { children: React.ReactNode }
     <ProtectedRoute requireAuth={false} redirectTo="/">
       {children}
     </ProtectedRoute>
-  );
+  )
 }

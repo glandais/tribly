@@ -1,15 +1,15 @@
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next'
 
 interface ConfirmDialogProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onConfirm: () => void;
-  title: string;
-  message: string;
-  confirmText?: string;
-  cancelText?: string;
-  variant?: 'danger' | 'warning' | 'info';
-  isLoading?: boolean;
+  isOpen: boolean
+  onClose: () => void
+  onConfirm: () => void
+  title: string
+  message: string
+  confirmText?: string
+  cancelText?: string
+  variant?: 'danger' | 'warning' | 'info'
+  isLoading?: boolean
 }
 
 export function ConfirmDialog({
@@ -23,9 +23,9 @@ export function ConfirmDialog({
   variant = 'warning',
   isLoading = false,
 }: ConfirmDialogProps) {
-  const { t } = useTranslation('common');
+  const { t } = useTranslation('common')
 
-  if (!isOpen) return null;
+  if (!isOpen) return null
 
   const variantStyles = {
     danger: {
@@ -33,8 +33,7 @@ export function ConfirmDialog({
       border: 'border-red-200',
       text: 'text-red-900',
       messageText: 'text-red-700',
-      button:
-        'bg-red-600 hover:bg-red-700 focus:ring-red-500 text-white disabled:bg-red-300',
+      button: 'bg-red-600 hover:bg-red-700 focus:ring-red-500 text-white disabled:bg-red-300',
     },
     warning: {
       bg: 'bg-yellow-50',
@@ -49,12 +48,11 @@ export function ConfirmDialog({
       border: 'border-blue-200',
       text: 'text-blue-900',
       messageText: 'text-blue-700',
-      button:
-        'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500 text-white disabled:bg-blue-300',
+      button: 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500 text-white disabled:bg-blue-300',
     },
-  };
+  }
 
-  const styles = variantStyles[variant];
+  const styles = variantStyles[variant]
 
   return (
     <div className="fixed inset-0 z-[9999] overflow-y-auto">
@@ -91,5 +89,5 @@ export function ConfirmDialog({
         </div>
       </div>
     </div>
-  );
+  )
 }

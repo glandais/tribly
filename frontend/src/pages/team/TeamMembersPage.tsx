@@ -1,39 +1,45 @@
-import { useState } from 'react';
-import { useParams, Navigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import { useTeam, useTeamMembers, useUpdateMemberRole, useRemoveMember, useAddMember } from '../../hooks/useTeam';
-import { useAuth } from '../../hooks/useAuth';
-import { LoadingPage } from '../../components/common/LoadingSpinner';
-import { TeamMemberList, TeamMemberListSkeleton } from '../../components/team/TeamMemberList';
-import { TeamLayout } from '../../components/team/TeamLayout';
-import { UserAutocomplete } from '../../components/common/UserAutocomplete';
-import type { UserSearchResult } from '../../hooks/useUserSearch';
+import { useState } from 'react'
+import { useParams, Navigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+import {
+  useTeam,
+  useTeamMembers,
+  useUpdateMemberRole,
+  useRemoveMember,
+  useAddMember,
+} from '../../hooks/useTeam'
+import { useAuth } from '../../hooks/useAuth'
+import { LoadingPage } from '../../components/common/LoadingSpinner'
+import { TeamMemberList, TeamMemberListSkeleton } from '../../components/team/TeamMemberList'
+import { TeamLayout } from '../../components/team/TeamLayout'
+import { UserAutocomplete } from '../../components/common/UserAutocomplete'
+import type { UserSearchResult } from '../../hooks/useUserSearch'
 
 export function TeamMembersPage() {
-  const { t } = useTranslation('teams');
-  const { t: tCommon } = useTranslation('common');
-  const { teamSlug } = useParams<{ teamSlug: string }>();
-  const { user } = useAuth();
-  const [showAddMember, setShowAddMember] = useState(false);
-  const [selectedRole, setSelectedRole] = useState<'ADMIN' | 'ORGANIZER' | 'MEMBER'>('MEMBER');
+  const { t } = useTranslation('teams')
+  const { t: tCommon } = useTranslation('common')
+  const { teamSlug } = useParams<{ teamSlug: string }>()
+  const { user } = useAuth()
+  const [showAddMember, setShowAddMember] = useState(false)
+  const [selectedRole, setSelectedRole] = useState<'ADMIN' | 'ORGANIZER' | 'MEMBER'>('MEMBER')
 
-  const { data: team, isLoading: isLoadingTeam } = useTeam(teamSlug);
-  const { data: membersData, isLoading: isLoadingMembers } = useTeamMembers(teamSlug);
-  const updateRoleMutation = useUpdateMemberRole(teamSlug || '');
-  const removeMemberMutation = useRemoveMember(teamSlug || '');
-  const addMemberMutation = useAddMember(teamSlug || '');
+  const { data: team, isLoading: isLoadingTeam } = useTeam(teamSlug)
+  const { data: membersData, isLoading: isLoadingMembers } = useTeamMembers(teamSlug)
+  const updateRoleMutation = useUpdateMemberRole(teamSlug || '')
+  const removeMemberMutation = useRemoveMember(teamSlug || '')
+  const addMemberMutation = useAddMember(teamSlug || '')
 
   if (isLoadingTeam) {
-    return <LoadingPage message={t('detail.loading')} />;
+    return <LoadingPage message={t('detail.loading')} />
   }
 
   if (!team) {
-    return <Navigate to="/teams" replace />;
+    return <Navigate to="/teams" replace />
   }
 
   // Only admins can see member list
   if (team.userRole !== 'ADMIN') {
-    return <Navigate to={`/teams/${teamSlug}/rides`} replace />;
+    return <Navigate to={`/teams/${teamSlug}/rides`} replace />
   }
 
   const handleAddMember = (selectedUser: UserSearchResult) => {
@@ -41,12 +47,12 @@ export function TeamMembersPage() {
       { userId: selectedUser.id, role: selectedRole },
       {
         onSuccess: () => {
-          setShowAddMember(false);
-          setSelectedRole('MEMBER');
+          setShowAddMember(false)
+          setSelectedRole('MEMBER')
         },
       }
-    );
-  };
+    )
+  }
 
   return (
     <TeamLayout team={team} currentTab="members">
@@ -58,7 +64,12 @@ export function TeamMembersPage() {
             className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4v16m8-8H4"
+              />
             </svg>
             {t('detail.members.addMember')}
           </button>
@@ -85,11 +96,16 @@ export function TeamMembersPage() {
           <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
               <div className="px-6 py-4 border-b border-gray-200">
-                <h3 className="text-lg font-medium text-gray-900">{t('detail.members.addMember')}</h3>
+                <h3 className="text-lg font-medium text-gray-900">
+                  {t('detail.members.addMember')}
+                </h3>
               </div>
               <div className="px-6 py-4 space-y-4">
                 <div>
-                  <label htmlFor="user-search" className="block text-sm font-medium text-gray-700 mb-2">
+                  <label
+                    htmlFor="user-search"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
                     {t('detail.members.searchUser')}
                   </label>
                   <UserAutocomplete
@@ -104,7 +120,9 @@ export function TeamMembersPage() {
                   <select
                     id="role"
                     value={selectedRole}
-                    onChange={(e) => setSelectedRole(e.target.value as 'ADMIN' | 'ORGANIZER' | 'MEMBER')}
+                    onChange={(e) =>
+                      setSelectedRole(e.target.value as 'ADMIN' | 'ORGANIZER' | 'MEMBER')
+                    }
                     className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
                   >
                     <option value="MEMBER">{tCommon('roles.MEMBER')}</option>
@@ -114,15 +132,17 @@ export function TeamMembersPage() {
                 </div>
                 {addMemberMutation.error && (
                   <div className="text-sm text-red-600">
-                    {addMemberMutation.error instanceof Error ? addMemberMutation.error.message : t('detail.members.addError')}
+                    {addMemberMutation.error instanceof Error
+                      ? addMemberMutation.error.message
+                      : t('detail.members.addError')}
                   </div>
                 )}
               </div>
               <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-3">
                 <button
                   onClick={() => {
-                    setShowAddMember(false);
-                    setSelectedRole('MEMBER');
+                    setShowAddMember(false)
+                    setSelectedRole('MEMBER')
                   }}
                   disabled={addMemberMutation.isPending}
                   className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
@@ -135,5 +155,5 @@ export function TeamMembersPage() {
         )}
       </div>
     </TeamLayout>
-  );
+  )
 }

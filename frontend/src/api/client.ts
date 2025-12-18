@@ -1,24 +1,24 @@
-import { useAuthStore } from '../store/authStore';
-import { getKeycloak } from '../config/keycloak';
+import { useAuthStore } from '../store/authStore'
+import { getKeycloak } from '../config/keycloak'
 
-const API_BASE_URL = '/api';
+const API_BASE_URL = '/api'
 
 // Minimum token validity in seconds before refresh
-const MIN_TOKEN_VALIDITY = 30;
+const MIN_TOKEN_VALIDITY = 30
 
 export interface ApiError {
-  code: string;
-  message: string;
-  path: string;
-  timestamp: string;
-  errors?: FieldError[];
-  details?: Record<string, unknown>;
+  code: string
+  message: string
+  path: string
+  timestamp: string
+  errors?: FieldError[]
+  details?: Record<string, unknown>
 }
 
 export interface FieldError {
-  field: string;
-  message: string;
-  rejectedValue?: unknown;
+  field: string
+  message: string
+  rejectedValue?: unknown
 }
 
 export class ApiClientError extends Error {
@@ -26,25 +26,25 @@ export class ApiClientError extends Error {
     public status: number,
     public error: ApiError
   ) {
-    super(error.message);
-    this.name = 'ApiClientError';
+    super(error.message)
+    this.name = 'ApiClientError'
   }
 }
 
 interface RequestOptions extends RequestInit {
-  params?: Record<string, string | number | boolean | undefined>;
+  params?: Record<string, string | number | boolean | undefined>
 }
 
 class ApiClient {
-  private baseUrl: string;
-  private teamSlug: string | null = null;
+  private baseUrl: string
+  private teamSlug: string | null = null
 
   constructor(baseUrl: string) {
-    this.baseUrl = baseUrl;
+    this.baseUrl = baseUrl
   }
 
   setTeamSlug(slug: string | null) {
-    this.teamSlug = slug;
+    this.teamSlug = slug
   }
 
   /**
@@ -52,161 +52,164 @@ class ApiClient {
    * Returns true if authenticated and token is valid, false otherwise.
    */
   private async ensureFreshToken(): Promise<boolean> {
-    const keycloak = getKeycloak();
+    const keycloak = getKeycloak()
     if (!keycloak?.authenticated) {
-      return false;
+      return false
     }
 
     try {
       // updateToken returns true if token was refreshed, false if still valid
-      await keycloak.updateToken(MIN_TOKEN_VALIDITY);
-      return true;
+      await keycloak.updateToken(MIN_TOKEN_VALIDITY)
+      return true
     } catch {
       // Token refresh failed - user needs to re-authenticate
-      console.warn('Token refresh failed');
-      return false;
+      console.warn('Token refresh failed')
+      return false
     }
   }
 
   private getHeaders(): Headers {
     const headers = new Headers({
       'Content-Type': 'application/json',
-    });
+    })
 
     // Get token from Keycloak via auth store
-    const token = useAuthStore.getState().getToken();
+    const token = useAuthStore.getState().getToken()
     if (token) {
-      headers.set('Authorization', `Bearer ${token}`);
+      headers.set('Authorization', `Bearer ${token}`)
     }
 
     if (this.teamSlug) {
-      headers.set('X-Team-Slug', this.teamSlug);
+      headers.set('X-Team-Slug', this.teamSlug)
     }
 
-    return headers;
+    return headers
   }
 
-  private buildUrl(endpoint: string, params?: Record<string, string | number | boolean | undefined>): string {
-    const url = new URL(`${this.baseUrl}${endpoint}`, window.location.origin);
+  private buildUrl(
+    endpoint: string,
+    params?: Record<string, string | number | boolean | undefined>
+  ): string {
+    const url = new URL(`${this.baseUrl}${endpoint}`, window.location.origin)
 
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
         if (value !== undefined) {
-          url.searchParams.append(key, String(value));
+          url.searchParams.append(key, String(value))
         }
-      });
+      })
     }
 
-    return url.toString();
+    return url.toString()
   }
 
   private async handleResponse<T>(response: Response): Promise<T> {
     if (!response.ok) {
-      let error: ApiError;
+      let error: ApiError
       try {
-        error = await response.json();
+        error = await response.json()
       } catch {
         error = {
           code: 'UNKNOWN_ERROR',
           message: response.statusText || 'An unknown error occurred',
           path: response.url,
           timestamp: new Date().toISOString(),
-        };
+        }
       }
-      throw new ApiClientError(response.status, error);
+      throw new ApiClientError(response.status, error)
     }
 
     if (response.status === 204) {
-      return undefined as T;
+      return undefined as T
     }
 
-    return response.json();
+    return response.json()
   }
 
   async get<T>(endpoint: string, options?: RequestOptions): Promise<T> {
-    await this.ensureFreshToken();
-    const url = this.buildUrl(endpoint, options?.params);
+    await this.ensureFreshToken()
+    const url = this.buildUrl(endpoint, options?.params)
     const response = await fetch(url, {
       ...options,
       method: 'GET',
       headers: this.getHeaders(),
-    });
-    return this.handleResponse<T>(response);
+    })
+    return this.handleResponse<T>(response)
   }
 
   async post<T>(endpoint: string, body?: unknown, options?: RequestOptions): Promise<T> {
-    await this.ensureFreshToken();
-    const url = this.buildUrl(endpoint, options?.params);
+    await this.ensureFreshToken()
+    const url = this.buildUrl(endpoint, options?.params)
 
     // Handle FormData separately - don't stringify and don't set Content-Type
-    const isFormData = body instanceof FormData;
-    const headers = this.getHeaders();
+    const isFormData = body instanceof FormData
+    const headers = this.getHeaders()
     if (isFormData) {
-      headers.delete('Content-Type'); // Let browser set multipart/form-data with boundary
+      headers.delete('Content-Type') // Let browser set multipart/form-data with boundary
     }
 
     const response = await fetch(url, {
       ...options,
       method: 'POST',
       headers,
-      body: isFormData ? body : (body ? JSON.stringify(body) : undefined),
-    });
-    return this.handleResponse<T>(response);
+      body: isFormData ? body : body ? JSON.stringify(body) : undefined,
+    })
+    return this.handleResponse<T>(response)
   }
 
   async put<T>(endpoint: string, body?: unknown, options?: RequestOptions): Promise<T> {
-    await this.ensureFreshToken();
-    const url = this.buildUrl(endpoint, options?.params);
+    await this.ensureFreshToken()
+    const url = this.buildUrl(endpoint, options?.params)
     const response = await fetch(url, {
       ...options,
       method: 'PUT',
       headers: this.getHeaders(),
       body: body ? JSON.stringify(body) : undefined,
-    });
-    return this.handleResponse<T>(response);
+    })
+    return this.handleResponse<T>(response)
   }
 
   async patch<T>(endpoint: string, body?: unknown, options?: RequestOptions): Promise<T> {
-    await this.ensureFreshToken();
-    const url = this.buildUrl(endpoint, options?.params);
+    await this.ensureFreshToken()
+    const url = this.buildUrl(endpoint, options?.params)
     const response = await fetch(url, {
       ...options,
       method: 'PATCH',
       headers: this.getHeaders(),
       body: body ? JSON.stringify(body) : undefined,
-    });
-    return this.handleResponse<T>(response);
+    })
+    return this.handleResponse<T>(response)
   }
 
   async delete<T>(endpoint: string, options?: RequestOptions): Promise<T> {
-    await this.ensureFreshToken();
-    const url = this.buildUrl(endpoint, options?.params);
+    await this.ensureFreshToken()
+    const url = this.buildUrl(endpoint, options?.params)
     const response = await fetch(url, {
       ...options,
       method: 'DELETE',
       headers: this.getHeaders(),
-    });
-    return this.handleResponse<T>(response);
+    })
+    return this.handleResponse<T>(response)
   }
 
   async upload<T>(endpoint: string, file: File, options?: RequestOptions): Promise<T> {
-    await this.ensureFreshToken();
-    const url = this.buildUrl(endpoint, options?.params);
-    const formData = new FormData();
-    formData.append('file', file);
+    await this.ensureFreshToken()
+    const url = this.buildUrl(endpoint, options?.params)
+    const formData = new FormData()
+    formData.append('file', file)
 
-    const headers = this.getHeaders();
-    headers.delete('Content-Type');
+    const headers = this.getHeaders()
+    headers.delete('Content-Type')
 
     const response = await fetch(url, {
       ...options,
       method: 'POST',
       headers,
       body: formData,
-    });
-    return this.handleResponse<T>(response);
+    })
+    return this.handleResponse<T>(response)
   }
 }
 
-export const apiClient = new ApiClient(API_BASE_URL);
-export default apiClient;
+export const apiClient = new ApiClient(API_BASE_URL)
+export default apiClient

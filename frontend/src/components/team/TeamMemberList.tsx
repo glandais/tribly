@@ -1,25 +1,25 @@
-import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import { UserAvatar } from '../common/UserAvatar';
-import { LoadingSpinner } from '../common/LoadingSpinner';
-import { ConfirmDialog } from '../common/ConfirmDialog';
-import type { TeamMember } from '../../hooks/useTeam';
+import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import { UserAvatar } from '../common/UserAvatar'
+import { LoadingSpinner } from '../common/LoadingSpinner'
+import { ConfirmDialog } from '../common/ConfirmDialog'
+import type { TeamMember } from '../../hooks/useTeam'
 
 interface TeamMemberListProps {
-  members: TeamMember[];
-  currentUserRole: 'ADMIN' | 'ORGANIZER' | 'MEMBER' | null;
-  currentUserId: string | null;
-  onUpdateRole?: (memberId: string, role: 'ADMIN' | 'ORGANIZER' | 'MEMBER') => void;
-  onRemoveMember?: (memberId: string) => void;
-  isUpdating?: boolean;
-  isRemoving?: boolean;
+  members: TeamMember[]
+  currentUserRole: 'ADMIN' | 'ORGANIZER' | 'MEMBER' | null
+  currentUserId: string | null
+  onUpdateRole?: (memberId: string, role: 'ADMIN' | 'ORGANIZER' | 'MEMBER') => void
+  onRemoveMember?: (memberId: string) => void
+  isUpdating?: boolean
+  isRemoving?: boolean
 }
 
 const roleBadgeColors = {
   ADMIN: 'bg-purple-100 text-purple-800',
   ORGANIZER: 'bg-blue-100 text-blue-800',
   MEMBER: 'bg-gray-100 text-gray-800',
-};
+}
 
 export function TeamMemberList({
   members,
@@ -30,55 +30,52 @@ export function TeamMemberList({
   isUpdating = false,
   isRemoving = false,
 }: TeamMemberListProps) {
-  const { t, i18n } = useTranslation('teams');
-  const { t: tCommon } = useTranslation('common');
-  const [editingMemberId, setEditingMemberId] = useState<string | null>(null);
-  const [selectedRole, setSelectedRole] = useState<'ADMIN' | 'ORGANIZER' | 'MEMBER'>('MEMBER');
-  const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
-  const [memberToRemove, setMemberToRemove] = useState<string | null>(null);
+  const { t, i18n } = useTranslation('teams')
+  const { t: tCommon } = useTranslation('common')
+  const [editingMemberId, setEditingMemberId] = useState<string | null>(null)
+  const [selectedRole, setSelectedRole] = useState<'ADMIN' | 'ORGANIZER' | 'MEMBER'>('MEMBER')
+  const [showRemoveConfirm, setShowRemoveConfirm] = useState(false)
+  const [memberToRemove, setMemberToRemove] = useState<string | null>(null)
 
-  const canManageMembers = currentUserRole === 'ADMIN';
-  const canAssignOrganizers = currentUserRole === 'ADMIN' || currentUserRole === 'ORGANIZER';
+  const canManageMembers = currentUserRole === 'ADMIN'
+  const canAssignOrganizers = currentUserRole === 'ADMIN' || currentUserRole === 'ORGANIZER'
 
   const handleRoleChange = (memberId: string) => {
     if (onUpdateRole) {
-      onUpdateRole(memberId, selectedRole);
-      setEditingMemberId(null);
+      onUpdateRole(memberId, selectedRole)
+      setEditingMemberId(null)
     }
-  };
+  }
 
   const handleRemove = (memberId: string) => {
-    setMemberToRemove(memberId);
-    setShowRemoveConfirm(true);
-  };
+    setMemberToRemove(memberId)
+    setShowRemoveConfirm(true)
+  }
 
   const handleConfirmRemove = () => {
     if (onRemoveMember && memberToRemove) {
-      onRemoveMember(memberToRemove);
-      setShowRemoveConfirm(false);
-      setMemberToRemove(null);
+      onRemoveMember(memberToRemove)
+      setShowRemoveConfirm(false)
+      setMemberToRemove(null)
     }
-  };
+  }
 
   const formatDate = (dateStr: string | null) => {
-    if (!dateStr) return tCommon('unknown');
+    if (!dateStr) return tCommon('unknown')
     return new Date(dateStr).toLocaleDateString(i18n.language, {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
-    });
-  };
+    })
+  }
 
   return (
     <div className="bg-white shadow-sm rounded-lg border border-gray-200">
       <ul className="divide-y divide-gray-200">
         {members.map((member) => {
-          const isCurrentUser = member.userId === currentUserId;
-          const canEdit =
-            canManageMembers &&
-            !isCurrentUser &&
-            member.role !== 'ADMIN';
-          const canRemove = canManageMembers && !isCurrentUser;
+          const isCurrentUser = member.userId === currentUserId
+          const canEdit = canManageMembers && !isCurrentUser && member.role !== 'ADMIN'
+          const canRemove = canManageMembers && !isCurrentUser
 
           return (
             <li key={member.id} className="p-4">
@@ -95,7 +92,9 @@ export function TeamMemberList({
                     <p className="text-sm font-medium text-gray-900 truncate">
                       {member.displayName}
                       {isCurrentUser && (
-                        <span className="ml-2 text-xs text-gray-500">{t('detail.members.you')}</span>
+                        <span className="ml-2 text-xs text-gray-500">
+                          {t('detail.members.you')}
+                        </span>
                       )}
                     </p>
                     <p className="text-xs text-gray-400">
@@ -115,8 +114,12 @@ export function TeamMemberList({
                         className="text-sm border border-gray-300 rounded-md px-2 py-1 focus:ring-indigo-500 focus:border-indigo-500"
                         disabled={isUpdating}
                       >
-                        {canManageMembers && <option value="ADMIN">{tCommon('roles.ADMIN')}</option>}
-                        {canAssignOrganizers && <option value="ORGANIZER">{tCommon('roles.ORGANIZER')}</option>}
+                        {canManageMembers && (
+                          <option value="ADMIN">{tCommon('roles.ADMIN')}</option>
+                        )}
+                        {canAssignOrganizers && (
+                          <option value="ORGANIZER">{tCommon('roles.ORGANIZER')}</option>
+                        )}
                         <option value="MEMBER">{tCommon('roles.MEMBER')}</option>
                       </select>
                       <button
@@ -145,8 +148,8 @@ export function TeamMemberList({
                       {canEdit && (
                         <button
                           onClick={() => {
-                            setSelectedRole(member.role);
-                            setEditingMemberId(member.id);
+                            setSelectedRole(member.role)
+                            setEditingMemberId(member.id)
                           }}
                           className="text-sm text-gray-600 hover:text-gray-900"
                         >
@@ -168,15 +171,15 @@ export function TeamMemberList({
                 </div>
               </div>
             </li>
-          );
+          )
         })}
       </ul>
 
       <ConfirmDialog
         isOpen={showRemoveConfirm}
         onClose={() => {
-          setShowRemoveConfirm(false);
-          setMemberToRemove(null);
+          setShowRemoveConfirm(false)
+          setMemberToRemove(null)
         }}
         onConfirm={handleConfirmRemove}
         title={t('detail.members.remove')}
@@ -186,7 +189,7 @@ export function TeamMemberList({
         isLoading={isRemoving}
       />
     </div>
-  );
+  )
 }
 
 export function TeamMemberListSkeleton({ count = 3 }: { count?: number }) {
@@ -207,5 +210,5 @@ export function TeamMemberListSkeleton({ count = 3 }: { count?: number }) {
         ))}
       </ul>
     </div>
-  );
+  )
 }

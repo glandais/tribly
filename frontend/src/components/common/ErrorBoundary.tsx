@@ -1,40 +1,40 @@
-import { Component, ErrorInfo, ReactNode } from 'react';
-import { Translation } from 'react-i18next';
+import { Component, ErrorInfo, ReactNode } from 'react'
+import { Translation } from 'react-i18next'
 
 interface ErrorBoundaryProps {
-  children: ReactNode;
-  fallback?: ReactNode;
-  onError?: (error: Error, errorInfo: ErrorInfo) => void;
+  children: ReactNode
+  fallback?: ReactNode
+  onError?: (error: Error, errorInfo: ErrorInfo) => void
 }
 
 interface ErrorBoundaryState {
-  hasError: boolean;
-  error: Error | null;
+  hasError: boolean
+  error: Error | null
 }
 
 export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   constructor(props: ErrorBoundaryProps) {
-    super(props);
-    this.state = { hasError: false, error: null };
+    super(props)
+    this.state = { hasError: false, error: null }
   }
 
   static getDerivedStateFromError(error: Error): ErrorBoundaryState {
-    return { hasError: true, error };
+    return { hasError: true, error }
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
-    this.props.onError?.(error, errorInfo);
+    console.error('ErrorBoundary caught an error:', error, errorInfo)
+    this.props.onError?.(error, errorInfo)
   }
 
   handleRetry = () => {
-    this.setState({ hasError: false, error: null });
-  };
+    this.setState({ hasError: false, error: null })
+  }
 
   render() {
     if (this.state.hasError) {
       if (this.props.fallback) {
-        return this.props.fallback;
+        return this.props.fallback
       }
 
       return (
@@ -57,12 +57,8 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                     />
                   </svg>
                 </div>
-                <h2 className="text-xl font-semibold text-gray-900 mb-2">
-                  {t('boundary.title')}
-                </h2>
-                <p className="text-gray-600 mb-6">
-                  {t('boundary.message')}
-                </p>
+                <h2 className="text-xl font-semibold text-gray-900 mb-2">{t('boundary.title')}</h2>
+                <p className="text-gray-600 mb-6">{t('boundary.message')}</p>
                 {this.state.error && import.meta.env.DEV && (
                   <div className="mb-6 p-4 bg-gray-100 rounded-md text-left">
                     <p className="text-sm font-mono text-red-600 break-all">
@@ -88,17 +84,17 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
             </div>
           )}
         </Translation>
-      );
+      )
     }
 
-    return this.props.children;
+    return this.props.children
   }
 }
 
 interface ErrorMessageProps {
-  title?: string;
-  message: string;
-  onRetry?: () => void;
+  title?: string
+  message: string
+  onRetry?: () => void
 }
 
 export function ErrorMessage({ title, message, onRetry }: ErrorMessageProps) {
@@ -108,11 +104,7 @@ export function ErrorMessage({ title, message, onRetry }: ErrorMessageProps) {
         <div className="rounded-md bg-red-50 p-4">
           <div className="flex">
             <div className="flex-shrink-0">
-              <svg
-                className="h-5 w-5 text-red-400"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
+              <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
                 <path
                   fillRule="evenodd"
                   d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
@@ -141,5 +133,5 @@ export function ErrorMessage({ title, message, onRetry }: ErrorMessageProps) {
         </div>
       )}
     </Translation>
-  );
+  )
 }

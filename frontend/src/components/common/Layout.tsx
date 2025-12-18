@@ -1,13 +1,13 @@
-import { Outlet, Link } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import { useAuth } from '../../hooks/useAuth';
-import { useBreadcrumb } from '../../hooks/useBreadcrumb';
-import { Breadcrumb } from './Breadcrumb';
+import { Outlet, Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+import { useAuth } from '../../hooks/useAuth'
+import { useBreadcrumb } from '../../hooks/useBreadcrumb'
+import { Breadcrumb } from './Breadcrumb'
 
 export function Layout() {
-  const { t } = useTranslation('common');
-  const { user, isAuthenticated, logout } = useAuth();
-  const breadcrumbItems = useBreadcrumb();
+  const { t } = useTranslation('common')
+  const { user, isAuthenticated, logout } = useAuth()
+  const breadcrumbItems = useBreadcrumb()
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -92,5 +92,5 @@ export function Layout() {
         </div>
       </footer>
     </div>
-  );
+  )
 }

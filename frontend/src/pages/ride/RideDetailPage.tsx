@@ -1,40 +1,47 @@
-import { useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import { useTeam } from '../../hooks/useTeam';
-import { useRide, useUpdateRide, useDeleteRide, useJoinRide, useLeaveRide, RideStatus } from '../../hooks/useRide';
-import { useAuth } from '../../hooks/useAuth';
-import { LoadingPage, LoadingSpinner } from '../../components/common/LoadingSpinner';
-import { RideGroupCard } from '../../components/ride/RideGroupCard';
-import { ConfirmDialog } from '../../components/common/ConfirmDialog';
+import { useState } from 'react'
+import { Link, useParams } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+import { useTeam } from '../../hooks/useTeam'
+import {
+  useRide,
+  useUpdateRide,
+  useDeleteRide,
+  useJoinRide,
+  useLeaveRide,
+  RideStatus,
+} from '../../hooks/useRide'
+import { useAuth } from '../../hooks/useAuth'
+import { LoadingPage, LoadingSpinner } from '../../components/common/LoadingSpinner'
+import { RideGroupCard } from '../../components/ride/RideGroupCard'
+import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 
 const statusColors: Record<RideStatus, string> = {
   DRAFT: 'bg-gray-100 text-gray-800',
   PUBLISHED: 'bg-green-100 text-green-800',
   CANCELLED: 'bg-red-100 text-red-800',
   COMPLETED: 'bg-blue-100 text-blue-800',
-};
+}
 
 export function RideDetailPage() {
-  const { t, i18n } = useTranslation('rides');
-  const { teamSlug, rideSlug } = useParams<{ teamSlug: string; rideSlug: string }>();
-  const { isAuthenticated } = useAuth();
-  const [joiningGroupId, setJoiningGroupId] = useState<string | null>(null);
-  const [showUnpublishConfirm, setShowUnpublishConfirm] = useState(false);
-  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
-  const [showUncancelConfirm, setShowUncancelConfirm] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const { t, i18n } = useTranslation('rides')
+  const { teamSlug, rideSlug } = useParams<{ teamSlug: string; rideSlug: string }>()
+  const { isAuthenticated } = useAuth()
+  const [joiningGroupId, setJoiningGroupId] = useState<string | null>(null)
+  const [showUnpublishConfirm, setShowUnpublishConfirm] = useState(false)
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false)
+  const [showUncancelConfirm, setShowUncancelConfirm] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
-  const { data: team, isLoading: isLoadingTeam } = useTeam(teamSlug);
-  const { data: ride, isLoading: isLoadingRide, error } = useRide(teamSlug, rideSlug);
+  const { data: team, isLoading: isLoadingTeam } = useTeam(teamSlug)
+  const { data: ride, isLoading: isLoadingRide, error } = useRide(teamSlug, rideSlug)
 
-  const updateMutation = useUpdateRide(teamSlug, rideSlug!);
-  const deleteMutation = useDeleteRide(teamSlug);
-  const joinMutation = useJoinRide(teamSlug, rideSlug!);
-  const leaveMutation = useLeaveRide(teamSlug, rideSlug!);
+  const updateMutation = useUpdateRide(teamSlug, rideSlug!)
+  const deleteMutation = useDeleteRide(teamSlug)
+  const joinMutation = useJoinRide(teamSlug, rideSlug!)
+  const leaveMutation = useLeaveRide(teamSlug, rideSlug!)
 
   if (isLoadingTeam || isLoadingRide) {
-    return <LoadingPage message={t('loading')} />;
+    return <LoadingPage message={t('loading')} />
   }
 
   if (error || !ride) {
@@ -51,63 +58,63 @@ export function RideDetailPage() {
           </Link>
         </div>
       </div>
-    );
+    )
   }
 
-  const isMember = !!team?.userRole;
-  const isAdmin = team?.userRole === 'ADMIN';
-  const isOrganizer = team?.userRole === 'ORGANIZER';
-  const canEdit = isAdmin || isOrganizer;
-  const canJoinRide = isMember && ride.status === 'PUBLISHED';
+  const isMember = !!team?.userRole
+  const isAdmin = team?.userRole === 'ADMIN'
+  const isOrganizer = team?.userRole === 'ORGANIZER'
+  const canEdit = isAdmin || isOrganizer
+  const canJoinRide = isMember && ride.status === 'PUBLISHED'
 
-  const rideDate = new Date(ride.date);
+  const rideDate = new Date(ride.date)
   const formattedDate = rideDate.toLocaleDateString(i18n.language, {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
     day: 'numeric',
-  });
+  })
 
   const handlePublish = () => {
-    updateMutation.mutate({ status: 'PUBLISHED' });
-  };
+    updateMutation.mutate({ status: 'PUBLISHED' })
+  }
 
   const handleUnpublish = () => {
-    updateMutation.mutate({ status: 'DRAFT' });
-    setShowUnpublishConfirm(false);
-  };
+    updateMutation.mutate({ status: 'DRAFT' })
+    setShowUnpublishConfirm(false)
+  }
 
   const handleCancel = () => {
-    updateMutation.mutate({ status: 'CANCELLED' });
-    setShowCancelConfirm(false);
-  };
+    updateMutation.mutate({ status: 'CANCELLED' })
+    setShowCancelConfirm(false)
+  }
 
   const handleUncancel = () => {
-    updateMutation.mutate({ status: 'DRAFT' });
-    setShowUncancelConfirm(false);
-  };
+    updateMutation.mutate({ status: 'DRAFT' })
+    setShowUncancelConfirm(false)
+  }
 
   const handleDelete = () => {
-    deleteMutation.mutate(rideSlug!);
-    setShowDeleteConfirm(false);
-  };
+    deleteMutation.mutate(rideSlug!)
+    setShowDeleteConfirm(false)
+  }
 
   const handleJoinGroup = (groupId: string) => {
-    setJoiningGroupId(groupId);
+    setJoiningGroupId(groupId)
     joinMutation.mutate(
       { groupId },
       {
         onSettled: () => setJoiningGroupId(null),
       }
-    );
-  };
+    )
+  }
 
   const handleLeaveGroup = (groupId: string) => {
-    setJoiningGroupId(groupId);
+    setJoiningGroupId(groupId)
     leaveMutation.mutate(groupId, {
       onSettled: () => setJoiningGroupId(null),
-    });
-  };
+    })
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -117,17 +124,22 @@ export function RideDetailPage() {
           <div>
             <div className="flex items-center gap-3">
               <h1 className="text-2xl font-bold text-gray-900">{ride.title}</h1>
-              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColors[ride.status]}`}>
+              <span
+                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColors[ride.status]}`}
+              >
                 {t(`status.${ride.status}`)}
               </span>
             </div>
-            {ride.description && (
-              <p className="mt-2 text-gray-600">{ride.description}</p>
-            )}
+            {ride.description && <p className="mt-2 text-gray-600">{ride.description}</p>}
             {ride.status === 'DRAFT' && ride.publishAt && (
               <div className="mt-2 text-sm text-amber-600 flex items-center">
                 <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
                 </svg>
                 {t('detail.scheduledPublish', {
                   date: new Date(ride.publishAt).toLocaleString(i18n.language, {
@@ -140,21 +152,41 @@ export function RideDetailPage() {
             <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-gray-500">
               <span className="flex items-center">
                 <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
                 </svg>
                 {formattedDate}
               </span>
               {ride.startTime && (
                 <span className="flex items-center">
-                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <svg
+                    className="w-4 h-4 mr-1"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
                   </svg>
                   {ride.startTime.substring(0, 5)}
                 </span>
               )}
               <span className="flex items-center">
                 <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                  />
                 </svg>
                 {t('card.participantCount', { count: ride.participantCount })}
               </span>
@@ -168,7 +200,12 @@ export function RideDetailPage() {
                 className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
               >
                 <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                  />
                 </svg>
                 {t('detail.actions.edit')}
               </Link>
@@ -229,7 +266,9 @@ export function RideDetailPage() {
                 canJoin={canJoinRide}
                 onJoin={() => handleJoinGroup(group.id)}
                 onLeave={() => handleLeaveGroup(group.id)}
-                isLoading={joiningGroupId === group.id && (joinMutation.isPending || leaveMutation.isPending)}
+                isLoading={
+                  joiningGroupId === group.id && (joinMutation.isPending || leaveMutation.isPending)
+                }
               />
             ))}
           </div>
@@ -303,5 +342,5 @@ export function RideDetailPage() {
         isLoading={deleteMutation.isPending}
       />
     </div>
-  );
+  )
 }

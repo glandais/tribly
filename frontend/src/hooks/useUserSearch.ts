@@ -1,10 +1,10 @@
-import { useQuery } from '@tanstack/react-query';
-import { apiClient } from '../api/client';
+import { useQuery } from '@tanstack/react-query'
+import { apiClient } from '../api/client'
 
 export interface UserSearchResult {
-  id: string;
-  displayName: string;
-  avatarUrl: string | null;
+  id: string
+  displayName: string
+  avatarUrl: string | null
 }
 
 export function useUserSearch(query: string, enabled: boolean = true) {
@@ -12,11 +12,11 @@ export function useUserSearch(query: string, enabled: boolean = true) {
     queryKey: ['users', 'search', query],
     queryFn: async () => {
       if (!query || query.trim().length < 2) {
-        return [];
+        return []
       }
-      return apiClient.get<UserSearchResult[]>(`/users/search?q=${encodeURIComponent(query)}`);
+      return apiClient.get<UserSearchResult[]>(`/users/search?q=${encodeURIComponent(query)}`)
     },
     enabled: enabled && query.trim().length >= 2,
     staleTime: 30000, // 30 seconds
-  });
+  })
 }

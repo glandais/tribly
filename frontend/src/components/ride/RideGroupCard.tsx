@@ -1,13 +1,13 @@
-import { useTranslation } from 'react-i18next';
-import { RideGroup } from '../../hooks/useRide';
+import { useTranslation } from 'react-i18next'
+import { RideGroup } from '../../hooks/useRide'
 
 interface RideGroupCardProps {
-  group: RideGroup;
-  isJoined?: boolean;
-  canJoin?: boolean;
-  onJoin?: () => void;
-  onLeave?: () => void;
-  isLoading?: boolean;
+  group: RideGroup
+  isJoined?: boolean
+  canJoin?: boolean
+  onJoin?: () => void
+  onLeave?: () => void
+  isLoading?: boolean
 }
 
 export function RideGroupCard({
@@ -18,11 +18,14 @@ export function RideGroupCard({
   onLeave,
   isLoading,
 }: RideGroupCardProps) {
-  const { t } = useTranslation('rides');
-  const isFull = group.maxParticipants !== null && group.currentParticipants >= group.maxParticipants;
+  const { t } = useTranslation('rides')
+  const isFull =
+    group.maxParticipants !== null && group.currentParticipants >= group.maxParticipants
 
   return (
-    <div className={`bg-white rounded-lg border p-4 ${isJoined ? 'border-indigo-500 ring-1 ring-indigo-500' : 'border-gray-200'}`}>
+    <div
+      className={`bg-white rounded-lg border p-4 ${isJoined ? 'border-indigo-500 ring-1 ring-indigo-500' : 'border-gray-200'}`}
+    >
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <div className="flex items-center gap-2">
@@ -33,18 +36,11 @@ export function RideGroupCard({
               </span>
             )}
           </div>
-          {group.description && (
-            <p className="mt-1 text-sm text-gray-600">{group.description}</p>
-          )}
+          {group.description && <p className="mt-1 text-sm text-gray-600">{group.description}</p>}
           <div className="mt-2 flex items-center gap-4 text-sm text-gray-500">
             {group.averageSpeed && (
               <span className="flex items-center">
-                <svg
-                  className="w-4 h-4 mr-1"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
+                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -56,12 +52,7 @@ export function RideGroupCard({
               </span>
             )}
             <span className="flex items-center">
-              <svg
-                className="w-4 h-4 mr-1"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
+              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -70,7 +61,10 @@ export function RideGroupCard({
                 />
               </svg>
               {group.maxParticipants
-                ? t('detail.groups.participants', { current: group.currentParticipants, max: group.maxParticipants })
+                ? t('detail.groups.participants', {
+                    current: group.currentParticipants,
+                    max: group.maxParticipants,
+                  })
                 : t('detail.groups.participantsNoMax', { current: group.currentParticipants })}
             </span>
           </div>
@@ -103,5 +97,5 @@ export function RideGroupCard({
         )}
       </div>
     </div>
-  );
+  )
 }

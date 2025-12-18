@@ -1,10 +1,10 @@
-import { Link } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import { Ride, RideStatus, Visibility } from '../../hooks/useRide';
+import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+import { Ride, RideStatus, Visibility } from '../../hooks/useRide'
 
 interface RideCardProps {
-  ride: Ride;
-  teamSlug: string;
+  ride: Ride
+  teamSlug: string
 }
 
 const statusColors: Record<RideStatus, string> = {
@@ -12,22 +12,22 @@ const statusColors: Record<RideStatus, string> = {
   PUBLISHED: 'bg-green-100 text-green-800',
   CANCELLED: 'bg-red-100 text-red-800',
   COMPLETED: 'bg-blue-100 text-blue-800',
-};
+}
 
 const visibilityColors: Record<Visibility, string> = {
   PUBLIC: 'bg-indigo-100 text-indigo-800',
   TEAM: 'bg-gray-100 text-gray-600',
   PRIVATE: 'bg-gray-100 text-gray-600',
-};
+}
 
 export function RideCard({ ride, teamSlug }: RideCardProps) {
-  const { t, i18n } = useTranslation('rides');
-  const rideDate = new Date(ride.date);
+  const { t, i18n } = useTranslation('rides')
+  const rideDate = new Date(ride.date)
   const formattedDate = rideDate.toLocaleDateString(i18n.language, {
     weekday: 'short',
     month: 'short',
     day: 'numeric',
-  });
+  })
 
   return (
     <Link
@@ -37,13 +37,9 @@ export function RideCard({ ride, teamSlug }: RideCardProps) {
       <div className="p-5">
         <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0">
-            <h3 className="text-lg font-semibold text-gray-900 truncate">
-              {ride.title}
-            </h3>
+            <h3 className="text-lg font-semibold text-gray-900 truncate">{ride.title}</h3>
             {ride.description && (
-              <p className="mt-1 text-sm text-gray-600 line-clamp-2">
-                {ride.description}
-              </p>
+              <p className="mt-1 text-sm text-gray-600 line-clamp-2">{ride.description}</p>
             )}
           </div>
           <div className="ml-3 flex flex-col items-end gap-1">
@@ -58,7 +54,11 @@ export function RideCard({ ride, teamSlug }: RideCardProps) {
               {ride.visibility === 'PUBLIC' && (
                 <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                  <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
+                  <path
+                    fillRule="evenodd"
+                    d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
+                    clipRule="evenodd"
+                  />
                 </svg>
               )}
               {ride.visibility === 'TEAM' && (
@@ -73,12 +73,7 @@ export function RideCard({ ride, teamSlug }: RideCardProps) {
 
         <div className="mt-4 flex items-center gap-4 text-sm text-gray-500">
           <span className="flex items-center">
-            <svg
-              className="w-4 h-4 mr-1"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
+            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -90,12 +85,7 @@ export function RideCard({ ride, teamSlug }: RideCardProps) {
           </span>
           {ride.startTime && (
             <span className="flex items-center">
-              <svg
-                className="w-4 h-4 mr-1"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
+              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -107,12 +97,7 @@ export function RideCard({ ride, teamSlug }: RideCardProps) {
             </span>
           )}
           <span className="flex items-center">
-            <svg
-              className="w-4 h-4 mr-1"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
+            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -123,12 +108,7 @@ export function RideCard({ ride, teamSlug }: RideCardProps) {
             {t('card.participantCount', { count: ride.participantCount })}
           </span>
           <span className="flex items-center">
-            <svg
-              className="w-4 h-4 mr-1"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
+            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -141,7 +121,7 @@ export function RideCard({ ride, teamSlug }: RideCardProps) {
         </div>
       </div>
     </Link>
-  );
+  )
 }
 
 export function RideCardSkeleton() {
@@ -160,5 +140,5 @@ export function RideCardSkeleton() {
         <div className="h-4 bg-gray-200 rounded w-24"></div>
       </div>
     </div>
-  );
+  )
 }

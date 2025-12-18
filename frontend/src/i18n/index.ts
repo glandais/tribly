@@ -1,32 +1,32 @@
-import i18n from 'i18next';
-import { initReactI18next } from 'react-i18next';
-import LanguageDetector from 'i18next-browser-languagedetector';
+import i18n from 'i18next'
+import { initReactI18next } from 'react-i18next'
+import LanguageDetector from 'i18next-browser-languagedetector'
 
 // French translations
-import frCommon from '../locales/fr/common.json';
-import frAuth from '../locales/fr/auth.json';
-import frTeams from '../locales/fr/teams.json';
-import frRides from '../locales/fr/rides.json';
-import frRoutes from '../locales/fr/routes.json';
-import frProfile from '../locales/fr/profile.json';
-import frErrors from '../locales/fr/errors.json';
+import frCommon from '../locales/fr/common.json'
+import frAuth from '../locales/fr/auth.json'
+import frTeams from '../locales/fr/teams.json'
+import frRides from '../locales/fr/rides.json'
+import frRoutes from '../locales/fr/routes.json'
+import frProfile from '../locales/fr/profile.json'
+import frErrors from '../locales/fr/errors.json'
 
 // English translations
-import enCommon from '../locales/en/common.json';
-import enAuth from '../locales/en/auth.json';
-import enTeams from '../locales/en/teams.json';
-import enRides from '../locales/en/rides.json';
-import enRoutes from '../locales/en/routes.json';
-import enProfile from '../locales/en/profile.json';
-import enErrors from '../locales/en/errors.json';
+import enCommon from '../locales/en/common.json'
+import enAuth from '../locales/en/auth.json'
+import enTeams from '../locales/en/teams.json'
+import enRides from '../locales/en/rides.json'
+import enRoutes from '../locales/en/routes.json'
+import enProfile from '../locales/en/profile.json'
+import enErrors from '../locales/en/errors.json'
 
-export const supportedLanguages = ['fr', 'en'] as const;
-export type SupportedLanguage = typeof supportedLanguages[number];
+export const supportedLanguages = ['fr', 'en'] as const
+export type SupportedLanguage = (typeof supportedLanguages)[number]
 
 export const languageNames: Record<SupportedLanguage, string> = {
   fr: 'Français',
   en: 'English',
-};
+}
 
 const resources = {
   fr: {
@@ -47,7 +47,7 @@ const resources = {
     profile: enProfile,
     errors: enErrors,
   },
-};
+}
 
 i18n
   .use(LanguageDetector)
@@ -68,6 +68,6 @@ i18n
       caches: ['localStorage'],
       lookupLocalStorage: 'i18nextLng',
     },
-  });
+  })
 
-export default i18n;
+export default i18n

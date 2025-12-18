@@ -1,53 +1,57 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import { useLeaveTeam, useJoinTeam } from '../../hooks/useTeam';
-import { useAuth } from '../../hooks/useAuth';
-import { ConfirmDialog } from '../common/ConfirmDialog';
-import type { TeamDetail } from '../../hooks/useTeam';
+import { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+import { useLeaveTeam, useJoinTeam } from '../../hooks/useTeam'
+import { useAuth } from '../../hooks/useAuth'
+import { ConfirmDialog } from '../common/ConfirmDialog'
+import type { TeamDetail } from '../../hooks/useTeam'
 
 interface TeamLayoutProps {
-  team: TeamDetail;
-  currentTab: 'rides' | 'trips' | 'routes' | 'members';
-  children: React.ReactNode;
+  team: TeamDetail
+  currentTab: 'rides' | 'trips' | 'routes' | 'members'
+  children: React.ReactNode
 }
 
 export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
-  const { t, i18n } = useTranslation('teams');
-  const { t: tCommon } = useTranslation('common');
-  const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
-  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
+  const { t, i18n } = useTranslation('teams')
+  const { t: tCommon } = useTranslation('common')
+  const navigate = useNavigate()
+  const { isAuthenticated } = useAuth()
+  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false)
 
-  const isMember = !!team.userRole;
-  const isAdmin = team.userRole === 'ADMIN';
-  const canJoin = isAuthenticated && !isMember && team.isPublic;
-  const canLeave = isMember && !isAdmin;
+  const isMember = !!team.userRole
+  const isAdmin = team.userRole === 'ADMIN'
+  const canJoin = isAuthenticated && !isMember && team.isPublic
+  const canLeave = isMember && !isAdmin
 
-  const joinMutation = useJoinTeam(team.slug);
-  const leaveMutation = useLeaveTeam(team.slug);
+  const joinMutation = useJoinTeam(team.slug)
+  const leaveMutation = useLeaveTeam(team.slug)
 
   const handleJoin = () => {
-    joinMutation.mutate();
-  };
+    joinMutation.mutate()
+  }
 
   const handleLeave = () => {
     leaveMutation.mutate(undefined, {
       onSuccess: () => {
-        navigate('/teams');
+        navigate('/teams')
       },
-    });
-  };
+    })
+  }
 
   const tabs = [
     { id: 'rides', path: `/teams/${team.slug}/rides`, label: t('detail.tabs.rides') },
     { id: 'trips', path: `/teams/${team.slug}/trips`, label: t('detail.tabs.trips') },
     { id: 'routes', path: `/teams/${team.slug}/routes`, label: t('detail.tabs.routes') },
-  ];
+  ]
 
   // Only admins can see members tab
   if (isAdmin) {
-    tabs.push({ id: 'members', path: `/teams/${team.slug}/members`, label: t('detail.tabs.members') });
+    tabs.push({
+      id: 'members',
+      path: `/teams/${team.slug}/members`,
+      label: t('detail.tabs.members'),
+    })
   }
 
   return (
@@ -73,7 +77,9 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
             />
           ) : (
             <div className="w-24 h-24 rounded-xl border-4 border-white bg-indigo-600 shadow-lg flex items-center justify-center">
-              <span className="text-3xl font-bold text-white">{team.name.charAt(0).toUpperCase()}</span>
+              <span className="text-3xl font-bold text-white">
+                {team.name.charAt(0).toUpperCase()}
+              </span>
             </div>
           )}
         </div>
@@ -198,5 +204,5 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
         isLoading={leaveMutation.isPending}
       />
     </div>
-  );
+  )
 }

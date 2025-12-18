@@ -1,38 +1,38 @@
-import { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import { useRoute, useUpdateRoute } from '../../hooks/useRoute';
+import { useState, useEffect } from 'react'
+import { useParams, Link, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+import { useRoute, useUpdateRoute } from '../../hooks/useRoute'
 
 export function EditRoutePage() {
-  const { teamSlug, routeId } = useParams<{ teamSlug: string; routeId: string }>();
-  const { t } = useTranslation('routes');
-  const { t: tCommon } = useTranslation('common');
-  const { t: tErrors } = useTranslation('errors');
-  const navigate = useNavigate();
+  const { teamSlug, routeId } = useParams<{ teamSlug: string; routeId: string }>()
+  const { t } = useTranslation('routes')
+  const { t: tCommon } = useTranslation('common')
+  const { t: tErrors } = useTranslation('errors')
+  const navigate = useNavigate()
 
-  const { data: route, isLoading } = useRoute(teamSlug, routeId);
-  const updateRoute = useUpdateRoute(teamSlug!, routeId!);
+  const { data: route, isLoading } = useRoute(teamSlug, routeId)
+  const updateRoute = useUpdateRoute(teamSlug!, routeId!)
 
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [difficulty, setDifficulty] = useState<'EASY' | 'MODERATE' | 'HARD' | 'EXPERT'>('MODERATE');
-  const [surfaceType, setSurfaceType] = useState<'ROAD' | 'GRAVEL' | 'MTB' | 'MIXED'>('ROAD');
-  const [isPublic, setIsPublic] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [name, setName] = useState('')
+  const [description, setDescription] = useState('')
+  const [difficulty, setDifficulty] = useState<'EASY' | 'MODERATE' | 'HARD' | 'EXPERT'>('MODERATE')
+  const [surfaceType, setSurfaceType] = useState<'ROAD' | 'GRAVEL' | 'MTB' | 'MIXED'>('ROAD')
+  const [isPublic, setIsPublic] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   // Load route data into form
   useEffect(() => {
     if (route) {
-      setName(route.name);
-      setDescription(route.description || '');
-      setDifficulty(route.difficulty || 'MODERATE');
-      setSurfaceType(route.surfaceType || 'ROAD');
-      setIsPublic(route.isPublic);
+      setName(route.name)
+      setDescription(route.description || '')
+      setDifficulty(route.difficulty || 'MODERATE')
+      setSurfaceType(route.surfaceType || 'ROAD')
+      setIsPublic(route.isPublic)
     }
-  }, [route]);
+  }, [route])
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
 
     try {
       await updateRoute.mutateAsync({
@@ -41,12 +41,12 @@ export function EditRoutePage() {
         difficulty,
         surfaceType,
         isPublic,
-      });
-      navigate(`/teams/${teamSlug}/routes/${routeId}`);
+      })
+      navigate(`/teams/${teamSlug}/routes/${routeId}`)
     } catch (err) {
-      setError(err instanceof Error ? err.message : tErrors('api.unknown'));
+      setError(err instanceof Error ? err.message : tErrors('api.unknown'))
     }
-  };
+  }
 
   if (isLoading) {
     return (
@@ -64,7 +64,7 @@ export function EditRoutePage() {
           </div>
         </div>
       </div>
-    );
+    )
   }
 
   if (!route) {
@@ -74,7 +74,7 @@ export function EditRoutePage() {
           <p className="text-gray-500">{tErrors('api.notFound')}</p>
         </div>
       </div>
-    );
+    )
   }
 
   return (
@@ -200,5 +200,5 @@ export function EditRoutePage() {
         </div>
       </form>
     </div>
-  );
+  )
 }

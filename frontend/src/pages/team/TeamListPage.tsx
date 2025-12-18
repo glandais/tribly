@@ -1,37 +1,31 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import { useTeams } from '../../hooks/useTeam';
-import { useAuth } from '../../hooks/useAuth';
-import { TeamCard, TeamCardSkeleton } from '../../components/team/TeamCard';
+import { useState } from 'react'
+import { Link } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
+import { useTeams } from '../../hooks/useTeam'
+import { useAuth } from '../../hooks/useAuth'
+import { TeamCard, TeamCardSkeleton } from '../../components/team/TeamCard'
 
 export function TeamListPage() {
-  const { t } = useTranslation('teams');
-  const { t: tCommon } = useTranslation('common');
-  const { t: tErrors } = useTranslation('errors');
-  const [search, setSearch] = useState('');
-  const [page, setPage] = useState(0);
-  const { isAuthenticated } = useAuth();
+  const { t } = useTranslation('teams')
+  const { t: tCommon } = useTranslation('common')
+  const { t: tErrors } = useTranslation('errors')
+  const [search, setSearch] = useState('')
+  const [page, setPage] = useState(0)
+  const { isAuthenticated } = useAuth()
 
-  const {
-    data: teamsData,
-    isLoading,
-    error,
-  } = useTeams({ search, page, size: 12 });
+  const { data: teamsData, isLoading, error } = useTeams({ search, page, size: 12 })
 
-  const teams = teamsData?.teams;
-  const total = teamsData?.total ?? 0;
-  const pageSize = 12;
-  const totalPages = Math.ceil(total / pageSize);
+  const teams = teamsData?.teams
+  const total = teamsData?.total ?? 0
+  const pageSize = 12
+  const totalPages = Math.ceil(total / pageSize)
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">{t('list.title')}</h1>
-          <p className="mt-1 text-gray-600">
-            {t('list.subtitle')}
-          </p>
+          <p className="mt-1 text-gray-600">{t('list.subtitle')}</p>
         </div>
         {isAuthenticated && (
           <Link
@@ -63,8 +57,8 @@ export function TeamListPage() {
             placeholder={t('list.search.placeholder')}
             value={search}
             onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(0);
+              setSearch(e.target.value)
+              setPage(0)
             }}
             className="w-full sm:max-w-md px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
           />
@@ -100,11 +94,7 @@ export function TeamListPage() {
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {teams.map((team) => (
-              <TeamCard
-                key={team.id}
-                team={team}
-                showRole={false}
-              />
+              <TeamCard key={team.id} team={team} showRole={false} />
             ))}
           </div>
 
@@ -146,9 +136,7 @@ export function TeamListPage() {
             />
           </svg>
           <h3 className="mt-2 text-sm font-medium text-gray-900">{t('list.empty.title')}</h3>
-          <p className="mt-1 text-sm text-gray-500">
-            {t('list.empty.publicTeams')}
-          </p>
+          <p className="mt-1 text-sm text-gray-500">{t('list.empty.publicTeams')}</p>
           {isAuthenticated && (
             <div className="mt-6">
               <Link
@@ -175,5 +163,5 @@ export function TeamListPage() {
         </div>
       )}
     </div>
-  );
+  )
 }

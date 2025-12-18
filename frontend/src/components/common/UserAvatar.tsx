@@ -1,9 +1,9 @@
-import { User } from '../../store/authStore';
+import { User } from '../../store/authStore'
 
 interface UserAvatarProps {
-  user: Pick<User, 'displayName' | 'avatarUrl'>;
-  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
-  className?: string;
+  user: Pick<User, 'displayName' | 'avatarUrl'>
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
+  className?: string
 }
 
 const sizeClasses = {
@@ -12,7 +12,7 @@ const sizeClasses = {
   md: 'h-10 w-10 text-base',
   lg: 'h-12 w-12 text-lg',
   xl: 'h-16 w-16 text-xl',
-};
+}
 
 export function UserAvatar({ user, size = 'md', className = '' }: UserAvatarProps) {
   const initials = user.displayName
@@ -20,7 +20,7 @@ export function UserAvatar({ user, size = 'md', className = '' }: UserAvatarProp
     .map((n) => n[0])
     .join('')
     .toUpperCase()
-    .slice(0, 2);
+    .slice(0, 2)
 
   if (user.avatarUrl) {
     return (
@@ -29,7 +29,7 @@ export function UserAvatar({ user, size = 'md', className = '' }: UserAvatarProp
         alt={user.displayName}
         className={`${sizeClasses[size]} rounded-full object-cover ${className}`}
       />
-    );
+    )
   }
 
   return (
@@ -38,28 +38,24 @@ export function UserAvatar({ user, size = 'md', className = '' }: UserAvatarProp
     >
       {initials}
     </div>
-  );
+  )
 }
 
 interface UserAvatarGroupProps {
-  users: Array<Pick<User, 'id' | 'displayName' | 'avatarUrl'>>;
-  max?: number;
-  size?: 'xs' | 'sm' | 'md';
+  users: Array<Pick<User, 'id' | 'displayName' | 'avatarUrl'>>
+  max?: number
+  size?: 'xs' | 'sm' | 'md'
 }
 
 export function UserAvatarGroup({ users, max = 5, size = 'sm' }: UserAvatarGroupProps) {
-  const visibleUsers = users.slice(0, max);
-  const remainingCount = users.length - max;
+  const visibleUsers = users.slice(0, max)
+  const remainingCount = users.length - max
 
   return (
     <div className="flex -space-x-2">
       {visibleUsers.map((user) => (
         <div key={user.id} className="relative">
-          <UserAvatar
-            user={user}
-            size={size}
-            className="ring-2 ring-white"
-          />
+          <UserAvatar user={user} size={size} className="ring-2 ring-white" />
         </div>
       ))}
       {remainingCount > 0 && (
@@ -70,5 +66,5 @@ export function UserAvatarGroup({ users, max = 5, size = 'sm' }: UserAvatarGroup
         </div>
       )}
     </div>
-  );
+  )
 }
