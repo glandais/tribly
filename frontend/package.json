@@ -18,7 +18,7 @@
     "generate-api": "openapi-typescript-codegen --input ../contracts/openapi.yaml --output ./src/api/generated --client fetch"
   },
   "dependencies": {
-    "@hookform/resolvers": "^3.9.1",
+    "@hookform/resolvers": "^5.2.2",
     "@tanstack/react-query": "^5.62.0",
     "@tanstack/react-query-devtools": "^5.62.0",
     "axios": "^1.7.9",
