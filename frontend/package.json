@@ -15,7 +15,7 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
-    "generate-api": "openapi-typescript-codegen --input ../contracts/openapi.yaml --output ./src/api/generated --client fetch"
+    "generate-api": "rm -rf src/api && openapi-generator-cli generate -i ../contracts/openapi.json -g typescript-axios -o src/api --additional-properties=supportsES6=true,npmName=@tribly/api,modelPropertyNaming=snake_case,stringEnums=true && rm -rf src/api/docs && prettier --write \"src/api/**/*.ts\""
   },
   "dependencies": {
     "@tanstack/react-query": "^5.62.0",
@@ -33,6 +33,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
+    "@openapitools/openapi-generator-cli": "^2.25.0",
     "@tailwindcss/postcss": "^4.1.18",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.1",

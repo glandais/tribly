@@ -231,7 +231,20 @@ After adding annotations, verify the generated contract:
 2. Check generated file: `cat contracts/openapi.yaml`
 3. View Swagger UI: http://localhost:8080/q/swagger-ui
 
-**Common Issue**: Empty schemas (`schema: {}`) indicate missing `@Schema(implementation = ...)` in `@APIResponse`.
+**Common Issues**:
+- Empty schemas (`schema: {}`) indicate missing `@Schema(implementation = ...)` in `@APIResponse`
+- **NEVER add `examples` to `LocalTime` fields**: Quarkus generates unquoted time values in YAML that break the OpenAPI parser. The auto-generated LocalTime schema includes examples automatically.
+
+**Example - DON'T do this:**
+```java
+// ❌ WRONG - causes YAML parsing errors
+@Schema(description = "Start time", examples = "09:00")
+LocalTime startTime
+
+// ✅ RIGHT - let Quarkus auto-generate the schema
+@Schema(description = "Start time")
+LocalTime startTime
+```
 
 ### Required Imports
 

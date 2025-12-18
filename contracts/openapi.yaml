@@ -1021,6 +1021,7 @@ paths:
     get:
       summary: Get application configuration
       description: Get frontend configuration including Keycloak and map settings
+      operationId: getConfig
       tags:
       - Configuration
       responses:
@@ -1034,6 +1035,7 @@ paths:
     get:
       summary: Download FIT file
       description: Download the route as a FIT file for Garmin devices
+      operationId: downloadFit
       tags:
       - Route Downloads
       parameters:
@@ -1060,6 +1062,7 @@ paths:
     get:
       summary: Download GPX file
       description: Download the route as a GPX file
+      operationId: downloadGpx
       tags:
       - Route Downloads
       parameters:
@@ -1086,6 +1089,7 @@ paths:
     get:
       summary: Get route thumbnail
       description: Get a thumbnail image of the route
+      operationId: getThumbnail
       tags:
       - Route Downloads
       parameters:
@@ -1112,6 +1116,7 @@ paths:
     get:
       summary: List public teams
       description: Get a paginated list of public teams with optional search
+      operationId: listTeams
       tags:
       - Teams
       parameters:
@@ -1144,6 +1149,7 @@ paths:
     post:
       summary: Create team
       description: Create a new team. The current user will be set as the team owner.
+      operationId: createTeam
       tags:
       - Teams
       requestBody:
@@ -1172,6 +1178,7 @@ paths:
     get:
       summary: Get my teams
       description: Get all teams the current user is a member of
+      operationId: getMyTeams
       tags:
       - Teams
       responses:
@@ -1194,6 +1201,7 @@ paths:
     put:
       summary: Update team
       description: Update team information. Requires ADMIN role.
+      operationId: updateTeam
       tags:
       - Teams
       parameters:
@@ -1230,6 +1238,7 @@ paths:
     get:
       summary: Get team by slug
       description: Get detailed team information by URL slug
+      operationId: getTeam
       tags:
       - Teams
       parameters:
@@ -1253,6 +1262,7 @@ paths:
     delete:
       summary: Delete team
       description: Soft delete a team. Requires OWNER role.
+      operationId: deleteTeam
       tags:
       - Teams
       parameters:
@@ -1278,6 +1288,7 @@ paths:
     get:
       summary: Get team members
       description: Get paginated list of team members
+      operationId: getMembers
       tags:
       - Team Members
       parameters:
@@ -1320,6 +1331,7 @@ paths:
     post:
       summary: Add team member
       description: Add a member to the team. Requires ADMIN role.
+      operationId: addMember
       tags:
       - Team Members
       parameters:
@@ -1357,6 +1369,7 @@ paths:
     post:
       summary: Join team
       description: Request to join a team
+      operationId: joinTeam
       tags:
       - Team Members
       parameters:
@@ -1388,6 +1401,7 @@ paths:
     post:
       summary: Leave team
       description: Leave a team
+      operationId: leaveTeam
       tags:
       - Team Members
       parameters:
@@ -1415,6 +1429,7 @@ paths:
     put:
       summary: Update member role
       description: Update a team member's role. Requires ADMIN role.
+      operationId: updateMemberRole
       tags:
       - Team Members
       parameters:
@@ -1457,6 +1472,7 @@ paths:
     delete:
       summary: Remove team member
       description: Remove a member from the team. Requires ADMIN role.
+      operationId: removeMember
       tags:
       - Team Members
       parameters:
@@ -1488,6 +1504,7 @@ paths:
     get:
       summary: List rides
       description: Get paginated list of rides for a team with optional filtering
+      operationId: listRides
       tags:
       - Rides
       parameters:
@@ -1538,6 +1555,7 @@ paths:
     post:
       summary: Create ride
       description: Create a new ride with optional groups
+      operationId: createRide
       tags:
       - Rides
       parameters:
@@ -1575,6 +1593,7 @@ paths:
     patch:
       summary: Update ride
       description: Update ride information. Requires organizer permissions.
+      operationId: updateRide
       tags:
       - Rides
       parameters:
@@ -1617,6 +1636,7 @@ paths:
     get:
       summary: Get ride details
       description: Get detailed ride information including groups
+      operationId: getRide
       tags:
       - Rides
       parameters:
@@ -1644,6 +1664,7 @@ paths:
     delete:
       summary: Delete ride
       description: Soft delete a ride. Requires organizer permissions.
+      operationId: deleteRide
       tags:
       - Rides
       parameters:
@@ -1675,6 +1696,7 @@ paths:
     get:
       summary: List ride groups
       description: Get all groups for a ride
+      operationId: listGroups
       tags:
       - Rides
       parameters:
@@ -1702,6 +1724,7 @@ paths:
     post:
       summary: Create ride group
       description: Create a new group for a ride. Requires organizer permissions.
+      operationId: createGroup
       tags:
       - Rides
       parameters:
@@ -1745,6 +1768,7 @@ paths:
     patch:
       summary: Update ride group
       description: Update a ride group. Requires organizer permissions.
+      operationId: updateGroup
       tags:
       - Rides
       parameters:
@@ -1793,6 +1817,7 @@ paths:
     delete:
       summary: Delete ride group
       description: Delete a ride group. Requires organizer permissions.
+      operationId: deleteGroup
       tags:
       - Rides
       parameters:
@@ -1830,6 +1855,7 @@ paths:
     post:
       summary: Join ride group
       description: Join a ride group
+      operationId: joinGroup
       tags:
       - Rides
       parameters:
@@ -1879,6 +1905,7 @@ paths:
     post:
       summary: Leave ride group
       description: Leave a ride group
+      operationId: leaveGroup
       tags:
       - Rides
       parameters:
@@ -1916,6 +1943,7 @@ paths:
     get:
       summary: List routes
       description: Get paginated list of routes for a team
+      operationId: listRoutes
       tags:
       - Routes
       parameters:
@@ -1951,6 +1979,7 @@ paths:
     post:
       summary: Create route
       description: Create a new route by uploading a GPX file
+      operationId: createRoute
       tags:
       - Routes
       parameters:
@@ -2013,6 +2042,7 @@ paths:
       summary: Update route
       description: "Update route metadata (name, description, difficulty, etc.). Does\
         \ not update the GPX file."
+      operationId: updateRoute
       tags:
       - Routes
       parameters:
@@ -2055,6 +2085,7 @@ paths:
     get:
       summary: Get route details
       description: Get detailed route information including GPS coordinates and statistics
+      operationId: getRoute
       tags:
       - Routes
       parameters:
@@ -2082,6 +2113,7 @@ paths:
     delete:
       summary: Delete route
       description: Soft delete a route. Requires route creator or team admin permissions.
+      operationId: deleteRoute
       tags:
       - Routes
       parameters:
@@ -2113,6 +2145,7 @@ paths:
     get:
       summary: Get route climbs
       description: Get all categorized climbs (hills) on a route
+      operationId: getClimbs
       tags:
       - Routes
       parameters:
@@ -2142,6 +2175,7 @@ paths:
       summary: Get route track
       description: "Get GPS track points (latitude, longitude, elevation) for displaying\
         \ the route on a map"
+      operationId: getTrack
       tags:
       - Routes
       parameters:
@@ -2170,6 +2204,7 @@ paths:
     put:
       summary: Update current user
       description: Update the current user's profile
+      operationId: updateCurrentUser
       tags:
       - Users
       requestBody:
@@ -2197,6 +2232,7 @@ paths:
     get:
       summary: Get current user
       description: Get the current authenticated user's profile
+      operationId: getCurrentUser
       tags:
       - Users
       responses:
@@ -2216,6 +2252,7 @@ paths:
     delete:
       summary: Delete current user
       description: Delete the current user's account
+      operationId: deleteCurrentUser
       tags:
       - Users
       responses:
@@ -2232,6 +2269,7 @@ paths:
     get:
       summary: Search users
       description: Search users by display name
+      operationId: searchUsers
       tags:
       - Users
       parameters:
@@ -2267,6 +2305,7 @@ paths:
     get:
       summary: Get user by ID
       description: Get public user information by ID
+      operationId: getUserById
       tags:
       - Users
       parameters:
