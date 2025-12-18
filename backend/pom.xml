@@ -17,10 +17,10 @@
     <properties>
         <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
         <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
-        <quarkus.platform.version>3.30.3</quarkus.platform.version>
+        <quarkus.platform.version>3.30.4</quarkus.platform.version>
         <compiler-plugin.version>3.14.1</compiler-plugin.version>
         <surefire-plugin.version>3.5.4</surefire-plugin.version>
-        <hypersistence-utils-hibernate.version>3.14.0</hypersistence-utils-hibernate.version>
+        <hypersistence-utils-hibernate.version>3.14.1</hypersistence-utils-hibernate.version>
         <gpx.version>1.2.7</gpx.version>
     </properties>
 
