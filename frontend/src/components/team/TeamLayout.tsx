@@ -121,8 +121,9 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
                 <span>
                   {t('detail.info.created', {
                     date: new Date(team.createdAt).toLocaleDateString(i18n.language, {
-                      year: 'numeric',
+                      day: 'numeric',
                       month: 'long',
+                      year: 'numeric',
                     }),
                   })}
                 </span>
