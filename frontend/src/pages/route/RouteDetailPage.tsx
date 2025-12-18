@@ -52,11 +52,11 @@ export function RouteDetailPage() {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/4 mb-4" />
-          <div className="h-96 bg-gray-200 rounded mb-8" />
+          <div className="h-8 bg-gray-200 rounded-sm w-1/4 mb-4" />
+          <div className="h-96 bg-gray-200 rounded-sm mb-8" />
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="h-24 bg-gray-200 rounded" />
+              <div key={i} className="h-24 bg-gray-200 rounded-sm" />
             ))}
           </div>
         </div>
@@ -114,13 +114,13 @@ export function RouteDetailPage() {
             <div className="mt-4 sm:mt-0 flex gap-3">
               <Link
                 to={`/teams/${teamSlug}/routes/${routeId}/edit`}
-                className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                className="px-4 py-2 border border-gray-300 rounded-md shadow-xs text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
               >
                 {tCommon('buttons.edit')}
               </Link>
               <button
                 onClick={() => setShowDeleteConfirm(true)}
-                className="px-4 py-2 border border-red-300 rounded-md shadow-sm text-sm font-medium text-red-700 bg-white hover:bg-red-50"
+                className="px-4 py-2 border border-red-300 rounded-md shadow-xs text-sm font-medium text-red-700 bg-white hover:bg-red-50"
               >
                 {tCommon('buttons.delete')}
               </button>
@@ -160,7 +160,7 @@ export function RouteDetailPage() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white rounded-lg shadow-sm p-6">
           <div className="flex items-center">
             <svg
               className="h-8 w-8 text-indigo-600 mr-3"
@@ -184,7 +184,7 @@ export function RouteDetailPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white rounded-lg shadow-sm p-6">
           <div className="flex items-center">
             <svg
               className="h-8 w-8 text-green-600 mr-3"
@@ -206,7 +206,7 @@ export function RouteDetailPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white rounded-lg shadow-sm p-6">
           <div className="flex items-center">
             <svg
               className="h-8 w-8 text-red-600 mr-3"
@@ -230,7 +230,7 @@ export function RouteDetailPage() {
       </div>
 
       {/* Route Info */}
-      <div className="bg-white rounded-lg shadow p-6 mb-8">
+      <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
         <h2 className="text-xl font-bold text-gray-900 mb-4">{t('detail.info.title')}</h2>
         <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {route.difficulty && (
@@ -268,7 +268,7 @@ export function RouteDetailPage() {
 
       {/* Climbs Section */}
       {climbsData && climbsData.climbs.length > 0 && (
-        <div className="bg-white rounded-lg shadow p-6 mb-8">
+        <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
           <h2 className="text-xl font-bold text-gray-900 mb-4">
             {t('detail.climbs.title')} ({climbsData.climbs.length})
           </h2>
@@ -323,12 +323,12 @@ export function RouteDetailPage() {
       )}
 
       {/* Download Section */}
-      <div className="bg-white rounded-lg shadow p-6">
+      <div className="bg-white rounded-lg shadow-sm p-6">
         <h2 className="text-xl font-bold text-gray-900 mb-4">{t('detail.download.title')}</h2>
         <div className="flex flex-wrap gap-3">
           <a
             href={`/api/download/teams/${teamSlug}/routes/${routeId}/gpx`}
-            className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+            className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-xs text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
           >
             <svg
               className="w-5 h-5 mr-2 -ml-1"
@@ -347,7 +347,7 @@ export function RouteDetailPage() {
           </a>
           <a
             href={`/api/download/teams/${teamSlug}/routes/${routeId}/fit`}
-            className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+            className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-xs text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
           >
             <svg
               className="w-5 h-5 mr-2 -ml-1"

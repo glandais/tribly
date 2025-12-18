@@ -84,7 +84,7 @@ export function UserProfilePage() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <div className="bg-white shadow rounded-lg">
+      <div className="bg-white shadow-sm rounded-lg">
         <div className="px-6 py-4 border-b border-gray-200">
           <h1 className="text-xl font-semibold text-gray-900">{t('title')}</h1>
         </div>
@@ -118,7 +118,7 @@ export function UserProfilePage() {
                   id="displayName"
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-xs focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                 />
               </div>
 
@@ -130,7 +130,7 @@ export function UserProfilePage() {
                   id="locale"
                   value={locale}
                   onChange={(e) => setLocale(e.target.value)}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-xs focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                 >
                   <option value="en">{t('form.language.options.en')}</option>
                   <option value="fr">{t('form.language.options.fr')}</option>
@@ -145,7 +145,7 @@ export function UserProfilePage() {
                   id="timezone"
                   value={timezone}
                   onChange={(e) => setTimezone(e.target.value)}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-xs focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                 >
                   {TIMEZONES.map((tz) => (
                     <option key={tz} value={tz}>

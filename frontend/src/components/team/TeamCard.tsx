@@ -23,13 +23,13 @@ export function TeamCard({ team, showRole = false }: TeamCardProps) {
   return (
     <Link
       to={`/teams/${team.slug}`}
-      className="block bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md hover:border-gray-300 transition-all"
+      className="block bg-white rounded-lg shadow-xs border border-gray-200 hover:shadow-md hover:border-gray-300 transition-all"
     >
       <div className="relative">
         {team.coverImageUrl ? (
           <img src={team.coverImageUrl} alt="" className="w-full h-32 object-cover rounded-t-lg" />
         ) : (
-          <div className="w-full h-32 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-t-lg" />
+          <div className="w-full h-32 bg-linear-to-r from-indigo-500 to-purple-600 rounded-t-lg" />
         )}
         {team.logoUrl && (
           <img
@@ -65,7 +65,7 @@ export function TeamCard({ team, showRole = false }: TeamCardProps) {
 
           <div className="flex items-center gap-2">
             {!team.isPublic && (
-              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
+              <span className="inline-flex items-center px-2 py-0.5 rounded-sm text-xs font-medium bg-yellow-100 text-yellow-800">
                 <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
                   <path
                     fillRule="evenodd"
@@ -78,7 +78,7 @@ export function TeamCard({ team, showRole = false }: TeamCardProps) {
             )}
             {showRole && isTeamWithRole(team) && (
               <span
-                className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${roleBadgeColors[team.role]}`}
+                className={`inline-flex items-center px-2 py-0.5 rounded-sm text-xs font-medium ${roleBadgeColors[team.role]}`}
               >
                 {t(`roles.${team.role}`)}
               </span>
@@ -98,13 +98,13 @@ export function TeamCardSkeleton({ count = 1 }: TeamCardSkeletonProps) {
   return (
     <>
       {Array.from({ length: count }).map((_, i) => (
-        <div key={i} className="bg-white rounded-lg shadow-sm border border-gray-200 animate-pulse">
+        <div key={i} className="bg-white rounded-lg shadow-xs border border-gray-200 animate-pulse">
           <div className="w-full h-32 bg-gray-200 rounded-t-lg" />
           <div className="p-4">
-            <div className="h-5 bg-gray-200 rounded w-3/4 mb-2" />
-            <div className="h-4 bg-gray-200 rounded w-full mb-1" />
-            <div className="h-4 bg-gray-200 rounded w-2/3 mb-4" />
-            <div className="h-4 bg-gray-200 rounded w-1/4" />
+            <div className="h-5 bg-gray-200 rounded-sm w-3/4 mb-2" />
+            <div className="h-4 bg-gray-200 rounded-sm w-full mb-1" />
+            <div className="h-4 bg-gray-200 rounded-sm w-2/3 mb-4" />
+            <div className="h-4 bg-gray-200 rounded-sm w-1/4" />
           </div>
         </div>
       ))}

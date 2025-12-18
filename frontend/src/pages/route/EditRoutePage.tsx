@@ -53,13 +53,13 @@ export function EditRoutePage() {
     return (
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/4 mb-4" />
-          <div className="h-4 bg-gray-200 rounded w-1/2 mb-8" />
+          <div className="h-8 bg-gray-200 rounded-sm w-1/4 mb-4" />
+          <div className="h-4 bg-gray-200 rounded-sm w-1/2 mb-8" />
           <div className="space-y-6">
             {[...Array(5)].map((_, i) => (
               <div key={i}>
-                <div className="h-4 bg-gray-200 rounded w-1/4 mb-2" />
-                <div className="h-10 bg-gray-200 rounded" />
+                <div className="h-4 bg-gray-200 rounded-sm w-1/4 mb-2" />
+                <div className="h-10 bg-gray-200 rounded-sm" />
               </div>
             ))}
           </div>
@@ -109,7 +109,7 @@ export function EditRoutePage() {
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-xs focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
             required
             maxLength={255}
           />
@@ -126,7 +126,7 @@ export function EditRoutePage() {
             rows={4}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-xs focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
           />
         </div>
 
@@ -140,7 +140,7 @@ export function EditRoutePage() {
             name="difficulty"
             value={difficulty}
             onChange={(e) => setDifficulty(e.target.value as typeof difficulty)}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-xs focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
           >
             <option value="EASY">{t('difficulty.EASY')}</option>
             <option value="MODERATE">{t('difficulty.MODERATE')}</option>
@@ -159,7 +159,7 @@ export function EditRoutePage() {
             name="surfaceType"
             value={surfaceType}
             onChange={(e) => setSurfaceType(e.target.value as typeof surfaceType)}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-xs focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
           >
             <option value="ROAD">{t('surfaceType.ROAD')}</option>
             <option value="GRAVEL">{t('surfaceType.GRAVEL')}</option>
@@ -176,7 +176,7 @@ export function EditRoutePage() {
             type="checkbox"
             checked={isPublic}
             onChange={(e) => setIsPublic(e.target.checked)}
-            className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+            className="h-4 w-4 rounded-sm border-gray-300 text-indigo-600 focus:ring-indigo-500"
           />
           <label htmlFor="isPublic" className="ml-2 block text-sm text-gray-900">
             {t('edit.form.isPublic')}
@@ -187,14 +187,14 @@ export function EditRoutePage() {
         <div className="flex justify-end gap-3">
           <Link
             to={`/teams/${teamSlug}/routes/${routeId}`}
-            className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            className="px-4 py-2 border border-gray-300 rounded-md shadow-xs text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
             {tCommon('buttons.cancel')}
           </Link>
           <button
             type="submit"
             disabled={updateRoute.isPending}
-            className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {updateRoute.isPending ? tCommon('status.saving') : tCommon('buttons.save')}
           </button>

@@ -32,7 +32,7 @@ export function RideCard({ ride, teamSlug }: RideCardProps) {
   return (
     <Link
       to={`/teams/${teamSlug}/rides/${ride.slug}`}
-      className="block bg-white rounded-lg shadow hover:shadow-md transition-shadow border border-gray-200"
+      className="block bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow border border-gray-200"
     >
       <div className="p-5">
         <div className="flex items-start justify-between">
@@ -126,18 +126,18 @@ export function RideCard({ ride, teamSlug }: RideCardProps) {
 
 export function RideCardSkeleton() {
   return (
-    <div className="bg-white rounded-lg shadow border border-gray-200 p-5 animate-pulse">
+    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-5 animate-pulse">
       <div className="flex items-start justify-between">
         <div className="flex-1">
-          <div className="h-5 bg-gray-200 rounded w-3/4 mb-2"></div>
-          <div className="h-4 bg-gray-200 rounded w-full"></div>
+          <div className="h-5 bg-gray-200 rounded-sm w-3/4 mb-2"></div>
+          <div className="h-4 bg-gray-200 rounded-sm w-full"></div>
         </div>
-        <div className="h-5 bg-gray-200 rounded w-16 ml-3"></div>
+        <div className="h-5 bg-gray-200 rounded-sm w-16 ml-3"></div>
       </div>
       <div className="mt-4 flex items-center gap-4">
-        <div className="h-4 bg-gray-200 rounded w-20"></div>
-        <div className="h-4 bg-gray-200 rounded w-16"></div>
-        <div className="h-4 bg-gray-200 rounded w-24"></div>
+        <div className="h-4 bg-gray-200 rounded-sm w-20"></div>
+        <div className="h-4 bg-gray-200 rounded-sm w-16"></div>
+        <div className="h-4 bg-gray-200 rounded-sm w-24"></div>
       </div>
     </div>
   )

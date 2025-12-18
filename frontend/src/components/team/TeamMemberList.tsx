@@ -70,7 +70,7 @@ export function TeamMemberList({
   }
 
   return (
-    <div className="bg-white shadow-sm rounded-lg border border-gray-200">
+    <div className="bg-white shadow-xs rounded-lg border border-gray-200">
       <ul className="divide-y divide-gray-200">
         {members.map((member) => {
           const isCurrentUser = member.userId === currentUserId
@@ -194,17 +194,17 @@ export function TeamMemberList({
 
 export function TeamMemberListSkeleton({ count = 3 }: { count?: number }) {
   return (
-    <div className="bg-white shadow-sm rounded-lg border border-gray-200">
+    <div className="bg-white shadow-xs rounded-lg border border-gray-200">
       <ul className="divide-y divide-gray-200">
         {Array.from({ length: count }).map((_, i) => (
           <li key={i} className="p-4 animate-pulse">
             <div className="flex items-center">
               <div className="w-10 h-10 bg-gray-200 rounded-full" />
               <div className="ml-3 flex-1">
-                <div className="h-4 bg-gray-200 rounded w-1/4 mb-2" />
-                <div className="h-3 bg-gray-200 rounded w-1/3" />
+                <div className="h-4 bg-gray-200 rounded-sm w-1/4 mb-2" />
+                <div className="h-3 bg-gray-200 rounded-sm w-1/3" />
               </div>
-              <div className="h-5 bg-gray-200 rounded w-16" />
+              <div className="h-5 bg-gray-200 rounded-sm w-16" />
             </div>
           </li>
         ))}

@@ -48,7 +48,7 @@ export function TeamSettingsPage() {
           <p className="text-gray-600 mb-6">{t('settings.error.loadFailed')}</p>
           <Link
             to="/teams"
-            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
+            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
           >
             {t('detail.notFound.backToTeams')}
           </Link>
@@ -67,7 +67,7 @@ export function TeamSettingsPage() {
           <p className="text-gray-600 mb-6">{t('settings.error.adminRequired')}</p>
           <Link
             to={`/teams/${teamSlug}`}
-            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
+            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
           >
             {t('settings.backToTeam', { teamName: team.name })}
           </Link>
@@ -214,7 +214,7 @@ export function TeamSettingsPage() {
               id="isPublic"
               checked={isPublic}
               onChange={(e) => setIsPublic(e.target.checked)}
-              className="h-4 w-4 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500"
+              className="h-4 w-4 text-indigo-600 border-gray-300 rounded-sm focus:ring-indigo-500"
             />
           </div>
           <div className="ml-3">
@@ -248,14 +248,14 @@ export function TeamSettingsPage() {
         <div className="pt-4 flex items-center justify-end gap-3">
           <Link
             to={`/teams/${teamSlug}`}
-            className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            className="px-4 py-2 border border-gray-300 rounded-md shadow-xs text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
             {tCommon('buttons.cancel')}
           </Link>
           <button
             type="submit"
             disabled={updateMutation.isPending}
-            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
           >
             {updateMutation.isPending ? (
               <>
@@ -276,7 +276,7 @@ export function TeamSettingsPage() {
 
         <button
           onClick={() => setShowDeleteConfirm(true)}
-          className="mt-4 inline-flex items-center px-4 py-2 border border-red-300 rounded-md shadow-sm text-sm font-medium text-red-700 bg-white hover:bg-red-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+          className="mt-4 inline-flex items-center px-4 py-2 border border-red-300 rounded-md shadow-xs text-sm font-medium text-red-700 bg-white hover:bg-red-50 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
         >
           {t('settings.dangerZone.deleteTeam')}
         </button>

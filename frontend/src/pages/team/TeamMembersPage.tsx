@@ -61,7 +61,7 @@ export function TeamMembersPage() {
           <h2 className="text-xl font-semibold text-gray-900">{t('detail.members.title')}</h2>
           <button
             onClick={() => setShowAddMember(true)}
-            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
@@ -123,7 +123,7 @@ export function TeamMembersPage() {
                     onChange={(e) =>
                       setSelectedRole(e.target.value as 'ADMIN' | 'ORGANIZER' | 'MEMBER')
                     }
-                    className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
+                    className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-xs focus:ring-indigo-500 focus:border-indigo-500"
                   >
                     <option value="MEMBER">{tCommon('roles.MEMBER')}</option>
                     <option value="ORGANIZER">{tCommon('roles.ORGANIZER')}</option>
@@ -145,7 +145,7 @@ export function TeamMembersPage() {
                     setSelectedRole('MEMBER')
                   }}
                   disabled={addMemberMutation.isPending}
-                  className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+                  className="px-4 py-2 border border-gray-300 rounded-md shadow-xs text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
                 >
                   {tCommon('buttons.cancel')}
                 </button>

@@ -31,7 +31,7 @@ export function RideGroupCard({
           <div className="flex items-center gap-2">
             <h4 className="text-base font-medium text-gray-900">{group.name}</h4>
             {isJoined && (
-              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-100 text-indigo-800">
+              <span className="inline-flex items-center px-2 py-0.5 rounded-sm text-xs font-medium bg-indigo-100 text-indigo-800">
                 {t('detail.groups.joined')}
               </span>
             )}

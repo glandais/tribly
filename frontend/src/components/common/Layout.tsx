@@ -11,11 +11,11 @@ export function Layout() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm">
+      <header className="bg-white shadow-xs">
         <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex items-center">
-              <Link to="/" className="flex-shrink-0 flex items-center">
+              <Link to="/" className="shrink-0 flex items-center">
                 <span className="text-2xl font-bold text-indigo-600">Tribly</span>
               </Link>
               <div className="hidden sm:ml-6 sm:flex sm:space-x-8">

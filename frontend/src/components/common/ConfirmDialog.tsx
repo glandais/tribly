@@ -55,7 +55,7 @@ export function ConfirmDialog({
   const styles = variantStyles[variant]
 
   return (
-    <div className="fixed inset-0 z-[9999] overflow-y-auto">
+    <div className="fixed inset-0 z-9999 overflow-y-auto">
       <div className="flex min-h-screen items-center justify-center p-4">
         {/* Backdrop */}
         <div
@@ -65,7 +65,7 @@ export function ConfirmDialog({
 
         {/* Dialog */}
         <div
-          className={`relative w-full max-w-md transform rounded-lg ${styles.bg} ${styles.border} border p-6 shadow-xl transition-all z-[10000]`}
+          className={`relative w-full max-w-md transform rounded-lg ${styles.bg} ${styles.border} border p-6 shadow-xl transition-all z-10000`}
         >
           <h3 className={`text-lg font-semibold ${styles.text} mb-3`}>{title}</h3>
           <p className={`text-sm ${styles.messageText} mb-6`}>{message}</p>
@@ -74,14 +74,14 @@ export function ConfirmDialog({
             <button
               onClick={onClose}
               disabled={isLoading}
-              className="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 disabled:opacity-50"
+              className="px-4 py-2 border border-gray-300 rounded-md shadow-xs text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 disabled:opacity-50"
             >
               {cancelText || t('buttons.cancel')}
             </button>
             <button
               onClick={onConfirm}
               disabled={isLoading}
-              className={`px-4 py-2 rounded-md shadow-sm text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 ${styles.button}`}
+              className={`px-4 py-2 rounded-md shadow-xs text-sm font-medium focus:outline-hidden focus:ring-2 focus:ring-offset-2 ${styles.button}`}
             >
               {isLoading ? t('buttons.loading') : confirmText || t('buttons.confirm')}
             </button>

@@ -32,7 +32,7 @@ export function RideListPage() {
           {canCreate && (
             <Link
               to={`/teams/${teamSlug}/rides/new`}
-              className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
+              className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
             >
               <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
@@ -61,7 +61,7 @@ export function RideListPage() {
             ))}
           </div>
         ) : (
-          <div className="text-center py-12 bg-white rounded-lg shadow border border-gray-200">
+          <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
             <svg
               className="mx-auto h-12 w-12 text-gray-400"
               fill="none"
@@ -82,7 +82,7 @@ export function RideListPage() {
             {canCreate && (
               <Link
                 to={`/teams/${teamSlug}/rides/new`}
-                className="mt-4 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
+                className="mt-4 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
               >
                 {t('list.empty.createAction')}
               </Link>
