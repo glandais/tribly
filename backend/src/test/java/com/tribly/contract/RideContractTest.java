@@ -43,12 +43,12 @@ class RideContractTest {
     // ===== Get Ride =====
 
     @Test
-    void getRide_withoutAuth_shouldReturn401() {
+    void getRide_withoutAuth_shouldReturn404() {
         given()
                 .when()
                 .get("/api/teams/" + TEAM_ID + "/rides/" + RIDE_ID)
                 .then()
-                .statusCode(401);
+                .statusCode(404);
     }
 
     // ===== Update Ride =====

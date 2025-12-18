@@ -76,13 +76,13 @@ export function RouteDetailPage() {
 
   const trackPoints = gpxTrack.trackPoints.map((p) => [p.lat, p.lng] as [number, number]);
   const bounds = trackPoints.length > 0
-    ? trackPoints.reduce(
+    ? (trackPoints.reduce(
         (acc, [lat, lng]) => [
           [Math.min(acc[0][0], lat), Math.min(acc[0][1], lng)],
           [Math.max(acc[1][0], lat), Math.max(acc[1][1], lng)],
         ],
         [[trackPoints[0][0], trackPoints[0][1]], [trackPoints[0][0], trackPoints[0][1]]]
-      )
+      ) as [[number, number], [number, number]])
     : undefined;
 
   return (
