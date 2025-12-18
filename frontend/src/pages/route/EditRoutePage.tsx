@@ -23,6 +23,7 @@ export function EditRoutePage() {
   // Load route data into form
   useEffect(() => {
     if (route) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Form initialization from server data
       setName(route.name)
       setDescription(route.description || '')
       setDifficulty(route.difficulty || 'MODERATE')

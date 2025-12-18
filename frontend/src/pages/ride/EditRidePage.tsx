@@ -45,8 +45,10 @@ export function EditRidePage() {
   const updateGroupMutation = useUpdateGroup(teamSlug, rideSlug!)
   const deleteGroupMutation = useDeleteGroup(teamSlug, rideSlug!)
 
+  // Initialize form state from fetched ride data
   useEffect(() => {
     if (ride && !initialized) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Form initialization from server data
       setTitle(ride.title)
       setDescription(ride.description || '')
       setDate(ride.date)

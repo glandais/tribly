@@ -23,8 +23,10 @@ export function TeamSettingsPage() {
   const [maxMembers, setMaxMembers] = useState<number | ''>('')
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
+  // Initialize form state from fetched team data
   useEffect(() => {
     if (team) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Form initialization from server data
       setName(team.name)
       setDescription(team.description || '')
       setIsPublic(team.isPublic)
