@@ -1,8 +1,10 @@
 package com.tribly.api.routes;
 
+import com.tribly.domain.route.ClimbCategory;
 import com.tribly.domain.route.RouteClimb;
 import com.tribly.infrastructure.id.TsidUtils;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.jspecify.annotations.Nullable;
 
 import java.math.BigDecimal;
 
@@ -11,29 +13,29 @@ import java.math.BigDecimal;
  */
 @Schema(description = "Climb segment information")
 public record RouteClimbDto(
-        @Schema(description = "Climb ID (TSID)")
+        @Schema(description = "Climb ID (TSID)", required = true)
         String id,
 
-        @Schema(description = "Climb name (if named)")
+        @Nullable @Schema(description = "Climb name (if named)", nullable = true)
         String name,
 
-        @Schema(description = "Start distance from route start in meters")
+        @Schema(description = "Start distance from route start in meters", required = true)
         Integer startDistance,
 
-        @Schema(description = "End distance from route start in meters")
+        @Schema(description = "End distance from route start in meters", required = true)
         Integer endDistance,
 
-        @Schema(description = "Elevation gain in meters")
+        @Schema(description = "Elevation gain in meters", required = true)
         Integer elevationGain,
 
-        @Schema(description = "Average gradient percentage")
+        @Schema(description = "Average gradient percentage", required = true)
         BigDecimal averageGradient,
 
-        @Schema(description = "Maximum gradient percentage")
+        @Schema(description = "Maximum gradient percentage", required = true)
         BigDecimal maxGradient,
 
-        @Schema(description = "Climb category (HC, 1, 2, 3, 4)")
-        String category
+        @Nullable @Schema(description = "Climb category (HC, 1, 2, 3, 4)", nullable = true)
+        ClimbCategory category
 ) {
     public static RouteClimbDto from(RouteClimb climb) {
         return new RouteClimbDto(
@@ -44,7 +46,7 @@ public record RouteClimbDto(
                 climb.getElevationGain(),
                 climb.getAverageGradient(),
                 climb.getMaxGradient(),
-                climb.getCategory() != null ? climb.getCategory().name() : null
+                climb.getCategory()
         );
     }
 }

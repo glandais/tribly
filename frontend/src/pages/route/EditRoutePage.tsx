@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { useRoute, useUpdateRoute } from '../../hooks/useRoute'
+import { RouteDifficulty, SurfaceType, useRoute, useUpdateRoute } from '../../hooks/useRoute'
 
 export function EditRoutePage() {
   const { teamSlug, routeId } = useParams<{ teamSlug: string; routeId: string }>()
@@ -15,8 +15,8 @@ export function EditRoutePage() {
 
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
-  const [difficulty, setDifficulty] = useState<'EASY' | 'MODERATE' | 'HARD' | 'EXPERT'>('MODERATE')
-  const [surfaceType, setSurfaceType] = useState<'ROAD' | 'GRAVEL' | 'MTB' | 'MIXED'>('ROAD')
+  const [difficulty, setDifficulty] = useState<RouteDifficulty>(RouteDifficulty.Moderate)
+  const [surfaceType, setSurfaceType] = useState<SurfaceType>(SurfaceType.Road)
   const [isPublic, setIsPublic] = useState(false)
   const [error, setError] = useState<string | null>(null)
 

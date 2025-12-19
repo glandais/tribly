@@ -95,11 +95,14 @@ Class | Method | HTTP request | Description
 ### Documentation For Models
 
  - [AddMemberRequest](docs/AddMemberRequest.md)
+ - [ClimbCategory](docs/ClimbCategory.md)
  - [ClimbListResponse](docs/ClimbListResponse.md)
  - [ConfigDto](docs/ConfigDto.md)
  - [CreateGroupRequest](docs/CreateGroupRequest.md)
  - [CreateRideRequest](docs/CreateRideRequest.md)
  - [CreateTeamRequest](docs/CreateTeamRequest.md)
+ - [ErrorResponse](docs/ErrorResponse.md)
+ - [FieldError](docs/FieldError.md)
  - [GpxTrackDto](docs/GpxTrackDto.md)
  - [JoinGroupRequest](docs/JoinGroupRequest.md)
  - [KeycloakConfig](docs/KeycloakConfig.md)
@@ -123,6 +126,7 @@ Class | Method | HTTP request | Description
  - [TeamDetailDto](docs/TeamDetailDto.md)
  - [TeamDto](docs/TeamDto.md)
  - [TeamListResponse](docs/TeamListResponse.md)
+ - [TeamRole](docs/TeamRole.md)
  - [TeamWithRoleDto](docs/TeamWithRoleDto.md)
  - [TrackPointDto](docs/TrackPointDto.md)
  - [UpdateGroupRequest](docs/UpdateGroupRequest.md)
@@ -132,6 +136,7 @@ Class | Method | HTTP request | Description
  - [UpdateTeamRequest](docs/UpdateTeamRequest.md)
  - [UpdateUserRequest](docs/UpdateUserRequest.md)
  - [UserDto](docs/UserDto.md)
+ - [Visibility](docs/Visibility.md)
 
 
 <a id="documentation-for-authorization"></a>

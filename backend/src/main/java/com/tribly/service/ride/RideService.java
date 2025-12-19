@@ -12,11 +12,11 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import org.jboss.logging.Logger;
+import org.jspecify.annotations.Nullable;
 
 import java.text.Normalizer;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Locale;
@@ -115,13 +115,12 @@ public class RideService {
         return ride;
     }
 
-    public List<Ride> listRides(Long teamId, Long userId, LocalDate from, LocalDate to, RideStatus status, int page, int size) {
+    public List<Ride> listRides(Long teamId, @Nullable Long userId, @Nullable LocalDate from, @Nullable LocalDate to, @Nullable RideStatus status, int page, int size) {
         Team team = teamRepository.findActiveById(teamId)
                 .orElseThrow(() -> BusinessException.notFound("Team", teamId));
 
-        var membershipOpt = securityService.getMembership(userId, teamId);
-        boolean isMember = membershipOpt.isPresent();
-        boolean canSeeDrafts = isMember && membershipOpt.get().isOrganizer();
+        boolean isMember = securityService.isMember(userId, teamId);
+        boolean canSeeDrafts = securityService.canSeeDrafts(userId, teamId);
 
         List<Ride> rides;
         if (from != null && to != null) {
@@ -145,13 +144,12 @@ public class RideService {
         return rides;
     }
 
-    public long countRides(Long teamId, Long userId) {
+    public long countRides(Long teamId, @Nullable Long userId) {
         Team team = teamRepository.findActiveById(teamId)
                 .orElseThrow(() -> BusinessException.notFound("Team", teamId));
 
-        var membershipOpt = securityService.getMembership(userId, teamId);
-        boolean isMember = membershipOpt.isPresent();
-        boolean canSeeDrafts = isMember && membershipOpt.get().isOrganizer();
+        boolean isMember = securityService.isMember(userId, teamId);
+        boolean canSeeDrafts = securityService.canSeeDrafts(userId, teamId);
 
         // Private team - no access for non-members
         if (!isMember && !team.isPublic()) {
@@ -254,15 +252,14 @@ public class RideService {
         return group;
     }
 
-    public List<RideGroup> listGroups(Long teamId, Long rideId, Long userId) {
+    public List<RideGroup> listGroups(Long teamId, Long rideId, @Nullable Long userId) {
         Team team = teamRepository.findActiveById(teamId)
                 .orElseThrow(() -> BusinessException.notFound("Team", teamId));
 
         Ride ride = rideRepository.findByIdAndTeam(rideId, teamId)
                 .orElseThrow(() -> BusinessException.notFound("Ride", rideId));
 
-        var membershipOpt = securityService.getMembership(userId, teamId);
-        boolean isMember = membershipOpt.isPresent();
+        boolean isMember = securityService.isMember(userId, teamId);
 
         // For non-members, only allow viewing groups of public rides from public teams
         if (!isMember) {
@@ -275,7 +272,7 @@ public class RideService {
     }
 
     @Transactional
-    public RideParticipation joinGroup(Long teamId, Long rideId, Long groupId, Long userId, String notes) {
+    public RideParticipation joinGroup(Long teamId, Long rideId, Long groupId, Long userId, @Nullable String notes) {
         Ride ride = rideRepository.findByIdAndTeam(rideId, teamId)
                 .orElseThrow(() -> BusinessException.notFound("Ride", rideId));
 
@@ -328,12 +325,12 @@ public class RideService {
         LOG.infov("User {0} left group {1} in ride {2}", userId, groupId, rideId);
     }
 
-    public Optional<Ride> getRideBySlug(Long teamId, String rideSlug, Long userId) {
+    public Optional<Ride> getRideBySlug(Long teamId, String rideSlug, @Nullable Long userId) {
         Team team = teamRepository.findActiveById(teamId)
                 .orElseThrow(() -> BusinessException.notFound("Team", teamId));
 
-        var membershipOpt = securityService.getMembership(userId, teamId);
-        boolean isMember = membershipOpt.isPresent();
+        boolean isMember = securityService.isMember(userId, teamId);
+        boolean canSeeDrafts = securityService.canSeeDrafts(userId, teamId);
 
         Optional<Ride> rideOpt = rideRepository.findByTeamAndSlug(teamId, rideSlug);
 
@@ -345,7 +342,7 @@ public class RideService {
 
         // Draft rides are only visible to admins and organizers
         if (ride.getStatus() == RideStatus.DRAFT) {
-            if (!isMember || !membershipOpt.get().isOrganizer()) {
+            if (!isMember || !canSeeDrafts) {
                 return Optional.empty();
             }
         }
@@ -416,41 +413,45 @@ public class RideService {
 
     public record CreateRideRequest(
             String title,
-            String description,
+            @Nullable String description,
             LocalDate date,
-            LocalTime startTime,
-            Visibility visibility,
-            Long routeId,
-            Long meetingPointId,
-            Instant publishAt,
-            List<CreateRideGroupRequest> groups
-    ) {}
+            @Nullable LocalTime startTime,
+            @Nullable Visibility visibility,
+            @Nullable Long routeId,
+            @Nullable Long meetingPointId,
+            @Nullable Instant publishAt,
+            @Nullable List<CreateRideGroupRequest> groups
+    ) {
+    }
 
     public record UpdateRideRequest(
-            String title,
-            String description,
-            LocalDate date,
-            LocalTime startTime,
-            RideStatus status,
-            Visibility visibility,
-            Long routeId,
-            Long meetingPointId,
-            Instant publishAt
-    ) {}
+            @Nullable String title,
+            @Nullable String description,
+            @Nullable LocalDate date,
+            @Nullable LocalTime startTime,
+            @Nullable RideStatus status,
+            @Nullable Visibility visibility,
+            @Nullable Long routeId,
+            @Nullable Long meetingPointId,
+            @Nullable Instant publishAt
+    ) {
+    }
 
     public record CreateRideGroupRequest(
             String name,
-            String description,
-            Integer averageSpeed,
-            Integer maxParticipants,
-            Long routeId
-    ) {}
+            @Nullable String description,
+            @Nullable Integer averageSpeed,
+            @Nullable Integer maxParticipants,
+            @Nullable Long routeId
+    ) {
+    }
 
     public record UpdateRideGroupRequest(
-            String name,
-            String description,
-            Integer averageSpeed,
-            Integer maxParticipants,
-            Long routeId
-    ) {}
+            @Nullable String name,
+            @Nullable String description,
+            @Nullable Integer averageSpeed,
+            @Nullable Integer maxParticipants,
+            @Nullable Long routeId
+    ) {
+    }
 }

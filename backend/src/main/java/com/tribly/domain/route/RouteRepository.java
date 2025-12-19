@@ -20,13 +20,6 @@ public class RouteRepository implements PanacheRepository<Route> {
     }
 
     /**
-     * Find an active (non-deleted) route by ID.
-     */
-    public Optional<Route> findActiveById(Long id) {
-        return find("id = ?1 and deleted = false", id).firstResultOptional();
-    }
-
-    /**
      * Find all routes for a team with pagination.
      */
     public List<Route> findByTeam(Long teamId, int page, int size) {

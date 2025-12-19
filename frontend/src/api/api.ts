@@ -1,3 +1,4 @@
+// @ts-nocheck
 /* tslint:disable */
 /* eslint-disable */
 /**
@@ -41,16 +42,18 @@ export interface AddMemberRequest {
    * User ID (TSID) to add
    */
   userId: string
-  /**
-   * Role to assign (defaults to MEMBER)
-   */
-  role?: AddMemberRequestRoleEnum
+  role?: TeamRole | null
 }
 
-export enum AddMemberRequestRoleEnum {
-  Admin = 'ADMIN',
-  Member = 'MEMBER',
-}
+export const ClimbCategory = {
+  Hc: 'HC',
+  Cat1: 'CAT1',
+  Cat2: 'CAT2',
+  Cat3: 'CAT3',
+  Cat4: 'CAT4',
+} as const
+
+export type ClimbCategory = (typeof ClimbCategory)[keyof typeof ClimbCategory]
 
 /**
  * Climb list response
@@ -59,7 +62,7 @@ export interface ClimbListResponse {
   /**
    * List of climbs on the route
    */
-  climbs?: Array<RouteClimbDto>
+  climbs: Array<RouteClimbDto>
 }
 /**
  * Application configuration
@@ -68,11 +71,11 @@ export interface ConfigDto {
   /**
    * Keycloak authentication configuration
    */
-  keycloak?: KeycloakConfig
+  keycloak: KeycloakConfig
   /**
    * Map configuration
    */
-  map?: MapConfig
+  map: MapConfig
 }
 /**
  * Ride group creation request
@@ -85,19 +88,19 @@ export interface CreateGroupRequest {
   /**
    * Group description
    */
-  description?: string
+  description?: string | null
   /**
    * Average speed in km/h
    */
-  averageSpeed?: number
+  averageSpeed?: number | null
   /**
    * Maximum participants
    */
-  maxParticipants?: number
+  maxParticipants?: number | null
   /**
    * Route ID (TSID) for this group
    */
-  routeId?: string
+  routeId?: string | null
 }
 /**
  * Ride creation request
@@ -110,32 +113,23 @@ export interface CreateRideRequest {
   /**
    * Ride description
    */
-  description?: string
+  description?: string | null
   date: string
   startTime?: string
   /**
    * Route ID (TSID)
    */
-  routeId?: string
+  routeId?: string | null
   /**
    * Meeting point ID (TSID)
    */
-  meetingPointId?: string
-  /**
-   * Visibility level
-   */
-  visibility?: CreateRideRequestVisibilityEnum
+  meetingPointId?: string | null
+  visibility?: Visibility | null
   publishAt?: string
   /**
    * Ride groups to create
    */
-  groups?: Array<CreateGroupRequest>
-}
-
-export enum CreateRideRequestVisibilityEnum {
-  Public = 'PUBLIC',
-  MembersOnly = 'MEMBERS_ONLY',
-  Private = 'PRIVATE',
+  groups?: Array<CreateGroupRequest> | null
 }
 
 /**
@@ -149,15 +143,46 @@ export interface CreateTeamRequest {
   /**
    * Team description
    */
-  description?: string
+  description?: string | null
   /**
    * Whether the team is publicly visible
    */
-  isPublic?: boolean
+  isPublic?: boolean | null
   /**
    * Maximum number of members (null = unlimited)
    */
-  maxMembers?: number
+  maxMembers?: number | null
+}
+/**
+ * Error response
+ */
+export interface ErrorResponse {
+  /**
+   * Error code
+   */
+  code: string
+  /**
+   * Error message
+   */
+  message: string
+  /**
+   * Request path
+   */
+  path: string
+  timestamp: string
+  /**
+   * Field validation errors
+   */
+  errors?: Array<FieldError> | null
+  /**
+   * Additional details
+   */
+  details?: { [key: string]: any }
+}
+export interface FieldError {
+  field?: string
+  message?: string
+  rejectedValue?: any
 }
 /**
  * GPX track with track points
@@ -166,7 +191,7 @@ export interface GpxTrackDto {
   /**
    * Track ID (TSID)
    */
-  id?: string
+  id: string
   /**
    * Track name
    */
@@ -174,11 +199,11 @@ export interface GpxTrackDto {
   /**
    * List of track points
    */
-  trackPoints?: Array<TrackPointDto>
+  trackPoints: Array<TrackPointDto>
   /**
    * Processing timestamp
    */
-  processedAt?: string
+  processedAt?: string | null
 }
 /**
  * Request to join a ride group
@@ -187,7 +212,7 @@ export interface JoinGroupRequest {
   /**
    * Optional notes for the organizer
    */
-  notes?: string
+  notes?: string | null
 }
 /**
  * Keycloak configuration
@@ -196,15 +221,15 @@ export interface KeycloakConfig {
   /**
    * Keycloak server URL
    */
-  url?: string
+  url: string
   /**
    * Keycloak realm name
    */
-  realm?: string
+  realm: string
   /**
    * Keycloak client ID
    */
-  clientId?: string
+  clientId: string
 }
 /**
  * Map configuration
@@ -213,11 +238,11 @@ export interface MapConfig {
   /**
    * Map tile URL template
    */
-  tileUrl?: string
+  tileUrl: string
   /**
    * Map attribution text
    */
-  attribution?: string
+  attribution: string
 }
 /**
  * Team member information
@@ -226,33 +251,27 @@ export interface MemberDto {
   /**
    * Membership ID (TSID)
    */
-  id?: string
+  id: string
   /**
    * User ID (TSID)
    */
-  userId?: string
+  userId: string
   /**
    * User display name
    */
-  displayName?: string
+  displayName: string
   /**
    * User avatar URL
    */
-  avatarUrl?: string
+  avatarUrl?: string | null
   /**
    * Member role
    */
-  role?: MemberDtoRoleEnum
+  role: TeamRole
   /**
    * When the user joined the team
    */
-  joinedAt?: string
-}
-
-export enum MemberDtoRoleEnum {
-  Owner = 'OWNER',
-  Admin = 'ADMIN',
-  Member = 'MEMBER',
+  joinedAt?: string | null
 }
 
 /**
@@ -262,19 +281,19 @@ export interface MemberListResponse {
   /**
    * List of members
    */
-  members?: Array<MemberDto>
+  members: Array<MemberDto>
   /**
    * Total number of members
    */
-  total?: number
+  total: number
   /**
    * Current page number
    */
-  page?: number
+  page: number
   /**
    * Page size
    */
-  size?: number
+  size: number
 }
 /**
  * Public user information (limited fields)
@@ -283,15 +302,15 @@ export interface PublicUserDto {
   /**
    * User ID (TSID)
    */
-  id?: string
+  id: string
   /**
    * User display name
    */
-  displayName?: string
+  displayName: string
   /**
    * User avatar URL
    */
-  avatarUrl?: string
+  avatarUrl?: string | null
 }
 /**
  * Detailed ride information
@@ -300,50 +319,51 @@ export interface RideDetailDto {
   /**
    * Ride ID (TSID)
    */
-  id?: string
+  id: string
   /**
    * Ride URL slug
    */
-  slug?: string
+  slug: string
   /**
    * Ride title
    */
-  title?: string
+  title: string
   /**
    * Ride description
    */
-  description?: string
-  date?: string
+  description?: string | null
+  date: string
   startTime?: string
   /**
    * Ride status
    */
-  status?: string
+  status: RideStatus
   /**
    * Visibility level
    */
-  visibility?: string
+  visibility: Visibility
   /**
    * Number of participants
    */
-  participantCount?: number
+  participantCount: number
   /**
    * Number of groups
    */
-  groupCount?: number
+  groupCount: number
   /**
    * Ride groups
    */
-  groups?: Array<RideGroupDto>
+  groups: Array<RideGroupDto>
   /**
    * Publication timestamp
    */
-  publishAt?: string
+  publishAt?: string | null
   /**
    * Creation timestamp
    */
-  createdAt?: string
+  createdAt?: string | null
 }
+
 /**
  * Ride summary data
  */
@@ -351,57 +371,45 @@ export interface RideDto {
   /**
    * Ride ID (TSID)
    */
-  id?: string
+  id: string
   /**
    * Ride URL slug
    */
-  slug?: string
+  slug: string
   /**
    * Ride title
    */
-  title?: string
+  title: string
   /**
    * Ride description
    */
-  description?: string
-  date?: string
+  description?: string | null
+  date: string
   startTime?: string
   /**
    * Ride status
    */
-  status?: RideDtoStatusEnum
+  status: RideStatus
   /**
    * Visibility level
    */
-  visibility?: RideDtoVisibilityEnum
+  visibility: Visibility
   /**
    * Number of participants
    */
-  participantCount?: number
+  participantCount: number
   /**
    * Number of groups
    */
-  groupCount?: number
+  groupCount: number
   /**
    * Publication timestamp
    */
-  publishAt?: string
+  publishAt?: string | null
   /**
    * Creation timestamp
    */
-  createdAt?: string
-}
-
-export enum RideDtoStatusEnum {
-  Draft = 'DRAFT',
-  Published = 'PUBLISHED',
-  Cancelled = 'CANCELLED',
-  Completed = 'COMPLETED',
-}
-export enum RideDtoVisibilityEnum {
-  Public = 'PUBLIC',
-  MembersOnly = 'MEMBERS_ONLY',
-  Private = 'PRIVATE',
+  createdAt?: string | null
 }
 
 /**
@@ -411,31 +419,31 @@ export interface RideGroupDto {
   /**
    * Group ID (TSID)
    */
-  id?: string
+  id: string
   /**
    * Group name
    */
-  name?: string
+  name: string
   /**
    * Group description
    */
-  description?: string
+  description?: string | null
   /**
    * Average speed in km/h
    */
-  averageSpeed?: number
+  averageSpeed?: number | null
   /**
    * Maximum participants
    */
-  maxParticipants?: number
+  maxParticipants?: number | null
   /**
    * Current number of participants
    */
-  currentParticipants?: number
+  currentParticipants: number
   /**
    * Sort order
    */
-  sortOrder?: number
+  sortOrder: number
 }
 /**
  * Ride group list response
@@ -444,7 +452,7 @@ export interface RideGroupListResponse {
   /**
    * List of ride groups
    */
-  data?: Array<RideGroupDto>
+  data: Array<RideGroupDto>
 }
 /**
  * Paginated ride list response
@@ -453,19 +461,19 @@ export interface RideListResponse {
   /**
    * List of rides
    */
-  rides?: Array<RideDto>
+  rides: Array<RideDto>
   /**
    * Total number of rides
    */
-  total?: number
+  total: number
   /**
    * Current page number
    */
-  page?: number
+  page: number
   /**
    * Page size
    */
-  size?: number
+  size: number
 }
 /**
  * Ride participation information
@@ -474,30 +482,32 @@ export interface RideParticipationDto {
   /**
    * Participation ID (TSID)
    */
-  id?: string
+  id: string
   /**
    * User ID (TSID)
    */
-  userId?: string
+  userId: string
   /**
    * Participation status
    */
-  status?: string
+  status: string
   /**
    * Registration timestamp
    */
-  registeredAt?: string
+  registeredAt?: string | null
   /**
    * Participant notes
    */
-  notes?: string
+  notes?: string | null
 }
 
-export enum RideStatus {
-  Draft = 'DRAFT',
-  Published = 'PUBLISHED',
-  Cancelled = 'CANCELLED',
-}
+export const RideStatus = {
+  Draft: 'DRAFT',
+  Published: 'PUBLISHED',
+  Cancelled: 'CANCELLED',
+} as const
+
+export type RideStatus = (typeof RideStatus)[keyof typeof RideStatus]
 
 /**
  * Climb segment information
@@ -506,36 +516,34 @@ export interface RouteClimbDto {
   /**
    * Climb ID (TSID)
    */
-  id?: string
+  id: string
   /**
    * Climb name (if named)
    */
-  name?: string
+  name?: string | null
   /**
    * Start distance from route start in meters
    */
-  startDistance?: number
+  startDistance: number
   /**
    * End distance from route start in meters
    */
-  endDistance?: number
+  endDistance: number
   /**
    * Elevation gain in meters
    */
-  elevationGain?: number
+  elevationGain: number
   /**
    * Average gradient percentage
    */
-  averageGradient?: number
+  averageGradient: number
   /**
    * Maximum gradient percentage
    */
-  maxGradient?: number
-  /**
-   * Climb category (HC, 1, 2, 3, 4)
-   */
-  category?: string
+  maxGradient: number
+  category?: ClimbCategory | null
 }
+
 /**
  * Detailed route information
  */
@@ -543,79 +551,81 @@ export interface RouteDetailDto {
   /**
    * Route ID (TSID)
    */
-  id?: string
+  id: string
   /**
    * Route name
    */
-  name?: string
+  name: string
   /**
    * Route description
    */
-  description?: string
+  description: string
   /**
    * Distance in meters
    */
-  distance?: number
+  distance: number
   /**
    * Total elevation gain in meters
    */
-  elevationGain?: number
+  elevationGain: number
   /**
    * Total elevation loss in meters
    */
-  elevationLoss?: number
+  elevationLoss: number
   /**
    * Route difficulty
    */
-  difficulty?: string
+  difficulty: RouteDifficulty
   /**
    * Surface type
    */
-  surfaceType?: string
+  surfaceType: SurfaceType
   /**
    * Whether the route is public
    */
-  isPublic?: boolean
+  isPublic: boolean
   /**
    * Thumbnail image URL
    */
-  thumbnailUrl?: string
+  thumbnailUrl: string
   /**
    * Start point latitude
    */
-  startLat?: number
+  startLat: number
   /**
    * Start point longitude
    */
-  startLng?: number
+  startLng: number
   /**
    * End point latitude
    */
-  endLat?: number
+  endLat: number
   /**
    * End point longitude
    */
-  endLng?: number
+  endLng: number
   /**
    * Creator user ID (TSID)
    */
-  createdById?: string
+  createdById: string
   /**
    * Creation timestamp
    */
-  createdAt?: string
+  createdAt: string
   /**
    * Last update timestamp
    */
-  updatedAt?: string
+  updatedAt: string
 }
 
-export enum RouteDifficulty {
-  Easy = 'EASY',
-  Moderate = 'MODERATE',
-  Hard = 'HARD',
-  Expert = 'EXPERT',
-}
+export const RouteDifficulty = {
+  Easy: 'EASY',
+  Moderate: 'MODERATE',
+  Hard: 'HARD',
+  Expert: 'EXPERT',
+} as const
+
+export type RouteDifficulty = (typeof RouteDifficulty)[keyof typeof RouteDifficulty]
 
 /**
  * Route summary data
@@ -624,59 +634,47 @@ export interface RouteDto {
   /**
    * Route ID (TSID)
    */
-  id?: string
+  id: string
   /**
    * Route name
    */
-  name?: string
+  name: string
   /**
    * Route description
    */
-  description?: string
+  description?: string | null
   /**
    * Distance in meters
    */
-  distance?: number
+  distance: number
   /**
    * Total elevation gain in meters
    */
-  elevationGain?: number
+  elevationGain: number
   /**
    * Total elevation loss in meters
    */
-  elevationLoss?: number
+  elevationLoss: number
   /**
    * Route difficulty
    */
-  difficulty?: RouteDtoDifficultyEnum
+  difficulty: RouteDifficulty
   /**
    * Surface type
    */
-  surfaceType?: RouteDtoSurfaceTypeEnum
+  surfaceType: SurfaceType
   /**
    * Whether the route is public
    */
-  isPublic?: boolean
+  isPublic: boolean
   /**
    * Thumbnail image URL
    */
-  thumbnailUrl?: string
+  thumbnailUrl: string
   /**
    * Creation timestamp
    */
-  createdAt?: string
-}
-
-export enum RouteDtoDifficultyEnum {
-  Easy = 'EASY',
-  Moderate = 'MODERATE',
-  Hard = 'HARD',
-  VeryHard = 'VERY_HARD',
-}
-export enum RouteDtoSurfaceTypeEnum {
-  Asphalt = 'ASPHALT',
-  Gravel = 'GRAVEL',
-  Mixed = 'MIXED',
+  createdAt: string
 }
 
 /**
@@ -686,27 +684,29 @@ export interface RouteListResponse {
   /**
    * List of routes
    */
-  routes?: Array<RouteDto>
+  routes: Array<RouteDto>
   /**
    * Total number of routes
    */
-  total?: number
+  total: number
   /**
    * Current page number
    */
-  page?: number
+  page: number
   /**
    * Page size
    */
-  size?: number
+  size: number
 }
 
-export enum SurfaceType {
-  Road = 'ROAD',
-  Gravel = 'GRAVEL',
-  Mtb = 'MTB',
-  Mixed = 'MIXED',
-}
+export const SurfaceType = {
+  Road: 'ROAD',
+  Gravel: 'GRAVEL',
+  Mtb: 'MTB',
+  Mixed: 'MIXED',
+} as const
+
+export type SurfaceType = (typeof SurfaceType)[keyof typeof SurfaceType]
 
 /**
  * Detailed team information
@@ -715,53 +715,44 @@ export interface TeamDetailDto {
   /**
    * Team ID (TSID)
    */
-  id?: string
+  id: string
   /**
    * Team name
    */
-  name?: string
+  name: string
   /**
    * Team URL slug
    */
-  slug?: string
+  slug: string
   /**
    * Team description
    */
-  description?: string
+  description?: string | null
   /**
    * Logo image URL
    */
-  logoUrl?: string
+  logoUrl?: string | null
   /**
    * Cover image URL
    */
-  coverImageUrl?: string
+  coverImageUrl?: string | null
   /**
    * Whether the team is public
    */
-  isPublic?: boolean
+  isPublic: boolean
   /**
    * Number of team members
    */
-  memberCount?: number
+  memberCount: number
   /**
    * Maximum number of members (null = unlimited)
    */
-  maxMembers?: number
-  /**
-   * Current user\'s role (null if not a member)
-   */
-  userRole?: TeamDetailDtoUserRoleEnum
+  maxMembers?: number | null
+  userRole?: TeamRole | null
   /**
    * Team creation timestamp
    */
-  createdAt?: string
-}
-
-export enum TeamDetailDtoUserRoleEnum {
-  Owner = 'OWNER',
-  Admin = 'ADMIN',
-  Member = 'MEMBER',
+  createdAt?: string | null
 }
 
 /**
@@ -771,35 +762,35 @@ export interface TeamDto {
   /**
    * Team ID (TSID)
    */
-  id?: string
+  id: string
   /**
    * Team name
    */
-  name?: string
+  name: string
   /**
    * Team URL slug
    */
-  slug?: string
+  slug: string
   /**
    * Team description
    */
-  description?: string
+  description?: string | null
   /**
    * Logo image URL
    */
-  logoUrl?: string
+  logoUrl?: string | null
   /**
    * Cover image URL
    */
-  coverImageUrl?: string
+  coverImageUrl?: string | null
   /**
    * Whether the team is public
    */
-  isPublic?: boolean
+  isPublic: boolean
   /**
    * Number of team members
    */
-  memberCount?: number
+  memberCount: number
 }
 /**
  * Paginated team list response
@@ -808,20 +799,29 @@ export interface TeamListResponse {
   /**
    * List of teams
    */
-  teams?: Array<TeamDto>
+  teams: Array<TeamDto>
   /**
    * Total number of teams
    */
-  total?: number
+  total: number
   /**
    * Current page number
    */
-  page?: number
+  page: number
   /**
    * Page size
    */
-  size?: number
+  size: number
 }
+
+export const TeamRole = {
+  Admin: 'ADMIN',
+  Organizer: 'ORGANIZER',
+  Member: 'MEMBER',
+} as const
+
+export type TeamRole = (typeof TeamRole)[keyof typeof TeamRole]
+
 /**
  * Team data with user\'s role
  */
@@ -829,41 +829,39 @@ export interface TeamWithRoleDto {
   /**
    * Team ID (TSID)
    */
-  id?: string
+  id: string
   /**
    * Team name
    */
-  name?: string
+  name: string
   /**
    * Team URL slug
    */
-  slug?: string
+  slug: string
   /**
    * Team description
    */
-  description?: string
+  description?: string | null
   /**
    * Logo image URL
    */
-  logoUrl?: string
+  logoUrl?: string | null
+  /**
+   * Cover image URL
+   */
+  coverImageUrl?: string | null
   /**
    * Whether the team is public
    */
-  isPublic?: boolean
+  isPublic: boolean
   /**
    * Number of team members
    */
-  memberCount?: number
+  memberCount: number
   /**
    * User\'s role in the team
    */
-  role?: TeamWithRoleDtoRoleEnum
-}
-
-export enum TeamWithRoleDtoRoleEnum {
-  Owner = 'OWNER',
-  Admin = 'ADMIN',
-  Member = 'MEMBER',
+  role: TeamRole
 }
 
 /**
@@ -873,19 +871,19 @@ export interface TrackPointDto {
   /**
    * Latitude
    */
-  lat?: number
+  lat: number
   /**
    * Longitude
    */
-  lng?: number
+  lng: number
   /**
    * Elevation in meters
    */
-  ele?: number
+  ele: number
   /**
    * Distance from start in meters
    */
-  dist?: number
+  dist: number
 }
 /**
  * Ride group update request
@@ -894,23 +892,23 @@ export interface UpdateGroupRequest {
   /**
    * Group name
    */
-  name?: string
+  name?: string | null
   /**
    * Group description
    */
-  description?: string
+  description?: string | null
   /**
    * Average speed in km/h
    */
-  averageSpeed?: number
+  averageSpeed?: number | null
   /**
    * Maximum participants
    */
-  maxParticipants?: number
+  maxParticipants?: number | null
   /**
    * Route ID (TSID)
    */
-  routeId?: string
+  routeId?: string | null
 }
 /**
  * Request to update a member\'s role
@@ -919,12 +917,7 @@ export interface UpdateMemberRoleRequest {
   /**
    * New role
    */
-  role: UpdateMemberRoleRequestRoleEnum
-}
-
-export enum UpdateMemberRoleRequestRoleEnum {
-  Admin = 'ADMIN',
-  Member = 'MEMBER',
+  role: TeamRole
 }
 
 /**
@@ -934,42 +927,24 @@ export interface UpdateRideRequest {
   /**
    * Ride title
    */
-  title?: string
+  title?: string | null
   /**
    * Ride description
    */
-  description?: string
+  description?: string | null
   date?: string
   startTime?: string
-  /**
-   * Ride status
-   */
-  status?: UpdateRideRequestStatusEnum
-  /**
-   * Visibility level
-   */
-  visibility?: UpdateRideRequestVisibilityEnum
+  status?: RideStatus | null
+  visibility?: Visibility | null
   /**
    * Route ID (TSID)
    */
-  routeId?: string
+  routeId?: string | null
   /**
    * Meeting point ID (TSID)
    */
-  meetingPointId?: string
+  meetingPointId?: string | null
   publishAt?: string
-}
-
-export enum UpdateRideRequestStatusEnum {
-  Draft = 'DRAFT',
-  Published = 'PUBLISHED',
-  Cancelled = 'CANCELLED',
-  Completed = 'COMPLETED',
-}
-export enum UpdateRideRequestVisibilityEnum {
-  Public = 'PUBLIC',
-  MembersOnly = 'MEMBERS_ONLY',
-  Private = 'PRIVATE',
 }
 
 /**
@@ -979,35 +954,17 @@ export interface UpdateRouteRequest {
   /**
    * Route name
    */
-  name?: string
+  name?: string | null
   /**
    * Route description
    */
-  description?: string
-  /**
-   * Route difficulty
-   */
-  difficulty?: UpdateRouteRequestDifficultyEnum
-  /**
-   * Surface type
-   */
-  surfaceType?: UpdateRouteRequestSurfaceTypeEnum
+  description?: string | null
+  difficulty?: RouteDifficulty | null
+  surfaceType?: SurfaceType | null
   /**
    * Whether the route is publicly visible
    */
-  isPublic?: boolean
-}
-
-export enum UpdateRouteRequestDifficultyEnum {
-  Easy = 'EASY',
-  Moderate = 'MODERATE',
-  Hard = 'HARD',
-  VeryHard = 'VERY_HARD',
-}
-export enum UpdateRouteRequestSurfaceTypeEnum {
-  Asphalt = 'ASPHALT',
-  Gravel = 'GRAVEL',
-  Mixed = 'MIXED',
+  isPublic?: boolean | null
 }
 
 /**
@@ -1017,27 +974,27 @@ export interface UpdateTeamRequest {
   /**
    * Team name
    */
-  name?: string
+  name?: string | null
   /**
    * Team description
    */
-  description?: string
+  description?: string | null
   /**
    * Whether the team is publicly visible
    */
-  isPublic?: boolean
+  isPublic?: boolean | null
   /**
    * Logo image URL
    */
-  logoUrl?: string
+  logoUrl?: string | null
   /**
    * Cover image URL
    */
-  coverImageUrl?: string
+  coverImageUrl?: string | null
   /**
    * Maximum number of members (null = unlimited)
    */
-  maxMembers?: number
+  maxMembers?: number | null
 }
 /**
  * User profile update request
@@ -1046,15 +1003,15 @@ export interface UpdateUserRequest {
   /**
    * User display name
    */
-  displayName?: string
+  displayName?: string | null
   /**
    * User locale (e.g. \'en\', \'fr\')
    */
-  locale?: string
+  locale?: string | null
   /**
    * User timezone (e.g. \'Europe/Paris\')
    */
-  timezone?: string
+  timezone?: string | null
 }
 /**
  * User profile data
@@ -1063,32 +1020,39 @@ export interface UserDto {
   /**
    * User ID (TSID)
    */
-  id?: string
+  id: string
   /**
    * User email address
    */
-  email?: string
+  email: string
   /**
    * User display name
    */
-  displayName?: string
+  displayName: string
   /**
    * User avatar URL
    */
-  avatarUrl?: string
+  avatarUrl?: string | null
   /**
    * User locale (e.g. \'en\', \'fr\')
    */
-  locale?: string
+  locale?: string | null
   /**
    * User timezone (e.g. \'Europe/Paris\')
    */
-  timezone?: string
+  timezone?: string | null
   /**
    * Account creation timestamp
    */
-  createdAt?: string
+  createdAt?: string | null
 }
+
+export const Visibility = {
+  Team: 'TEAM',
+  Public: 'PUBLIC',
+} as const
+
+export type Visibility = (typeof Visibility)[keyof typeof Visibility]
 
 /**
  * ConfigurationApi - axios parameter creator

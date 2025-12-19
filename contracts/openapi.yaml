@@ -14,14 +14,26 @@ components:
           examples:
           - 0h4a8xzk8jv80
         role:
-          type: string
           description: Role to assign (defaults to MEMBER)
-          enum:
-          - ADMIN
-          - MEMBER
+          type:
+          - string
+          - "null"
+          anyOf:
+          - $ref: "#/components/schemas/TeamRole"
+          - type: "null"
+    ClimbCategory:
+      type: string
+      enum:
+      - HC
+      - CAT1
+      - CAT2
+      - CAT3
+      - CAT4
     ClimbListResponse:
       description: Climb list response
       type: object
+      required:
+      - climbs
       properties:
         climbs:
           type: array
@@ -31,6 +43,9 @@ components:
     ConfigDto:
       description: Application configuration
       type: object
+      required:
+      - keycloak
+      - map
       properties:
         keycloak:
           description: Keycloak authentication configuration
@@ -55,20 +70,28 @@ components:
           minLength: 1
           maxLength: 100
         description:
-          type: string
+          type:
+          - string
+          - "null"
           description: Group description
         averageSpeed:
-          type: integer
+          type:
+          - integer
+          - "null"
           format: int32
           description: Average speed in km/h
           examples:
           - 25
         maxParticipants:
-          type: integer
+          type:
+          - integer
+          - "null"
           format: int32
           description: Maximum participants
         routeId:
-          type: string
+          type:
+          - string
+          - "null"
           description: Route ID (TSID) for this group
     CreateRideRequest:
       description: Ride creation request
@@ -86,7 +109,9 @@ components:
           minLength: 3
           maxLength: 200
         description:
-          type: string
+          type:
+          - string
+          - "null"
           description: Ride description
           maxLength: 5000
         date:
@@ -97,29 +122,44 @@ components:
           $ref: "#/components/schemas/LocalDate"
         startTime:
           description: Start time
-          type: string
+          type:
+          - string
+          - "null"
           examples:
           - 09:00
-          $ref: "#/components/schemas/LocalTime"
+          anyOf:
+          - $ref: "#/components/schemas/LocalTime"
+          - type: "null"
         routeId:
-          type: string
+          type:
+          - string
+          - "null"
           description: Route ID (TSID)
         meetingPointId:
-          type: string
+          type:
+          - string
+          - "null"
           description: Meeting point ID (TSID)
         visibility:
-          type: string
           description: Visibility level
-          enum:
-          - PUBLIC
-          - MEMBERS_ONLY
-          - PRIVATE
+          type:
+          - string
+          - "null"
+          anyOf:
+          - $ref: "#/components/schemas/Visibility"
+          - type: "null"
         publishAt:
           description: Publication timestamp (for scheduled publishing)
-          type: string
-          $ref: "#/components/schemas/Instant"
+          type:
+          - string
+          - "null"
+          anyOf:
+          - $ref: "#/components/schemas/Instant"
+          - type: "null"
         groups:
-          type: array
+          type:
+          - array
+          - "null"
           items:
             $ref: "#/components/schemas/CreateGroupRequest"
           description: Ride groups to create
@@ -138,25 +178,77 @@ components:
           minLength: 2
           maxLength: 255
         description:
-          type: string
+          type:
+          - string
+          - "null"
           description: Team description
           examples:
           - A team for weekend warriors
           maxLength: 2000
         isPublic:
-          type: boolean
+          type:
+          - boolean
+          - "null"
           description: Whether the team is publicly visible
           examples:
           - true
         maxMembers:
-          type: integer
+          type:
+          - integer
+          - "null"
           format: int32
           description: Maximum number of members (null = unlimited)
           examples:
           - 50
+    ErrorResponse:
+      description: Error response
+      type: object
+      required:
+      - code
+      - message
+      - path
+      - timestamp
+      properties:
+        code:
+          type: string
+          description: Error code
+        message:
+          type: string
+          description: Error message
+        path:
+          type: string
+          description: Request path
+        timestamp:
+          description: Timestamp
+          type: string
+          $ref: "#/components/schemas/Instant"
+        errors:
+          type:
+          - array
+          - "null"
+          items:
+            $ref: "#/components/schemas/FieldError"
+          description: Field validation errors
+        details:
+          type:
+          - object
+          - "null"
+          additionalProperties: {}
+          description: Additional details
+    FieldError:
+      type: object
+      properties:
+        field:
+          type: string
+        message:
+          type: string
+        rejectedValue: {}
     GpxTrackDto:
       description: GPX track with track points
       type: object
+      required:
+      - id
+      - trackPoints
       properties:
         id:
           type: string
@@ -170,7 +262,9 @@ components:
             $ref: "#/components/schemas/TrackPointDto"
           description: List of track points
         processedAt:
-          type: string
+          type:
+          - string
+          - "null"
           description: Processing timestamp
     Instant:
       type: string
@@ -182,11 +276,17 @@ components:
       type: object
       properties:
         notes:
-          type: string
+          type:
+          - string
+          - "null"
           description: Optional notes for the organizer
     KeycloakConfig:
       type: object
       description: Keycloak configuration
+      required:
+      - url
+      - realm
+      - clientId
       properties:
         url:
           type: string
@@ -219,6 +319,9 @@ components:
     MapConfig:
       type: object
       description: Map configuration
+      required:
+      - tileUrl
+      - attribution
       properties:
         tileUrl:
           type: string
@@ -231,6 +334,11 @@ components:
     MemberDto:
       description: Team member information
       type: object
+      required:
+      - id
+      - userId
+      - displayName
+      - role
       properties:
         id:
           type: string
@@ -242,21 +350,27 @@ components:
           type: string
           description: User display name
         avatarUrl:
-          type: string
+          type:
+          - string
+          - "null"
           description: User avatar URL
         role:
-          type: string
           description: Member role
-          enum:
-          - OWNER
-          - ADMIN
-          - MEMBER
-        joinedAt:
           type: string
+          $ref: "#/components/schemas/TeamRole"
+        joinedAt:
+          type:
+          - string
+          - "null"
           description: When the user joined the team
     MemberListResponse:
       description: Paginated member list response
       type: object
+      required:
+      - members
+      - total
+      - page
+      - size
       properties:
         members:
           type: array
@@ -278,6 +392,9 @@ components:
     PublicUserDto:
       description: Public user information (limited fields)
       type: object
+      required:
+      - id
+      - displayName
       properties:
         id:
           type: string
@@ -288,11 +405,23 @@ components:
           type: string
           description: User display name
         avatarUrl:
-          type: string
+          type:
+          - string
+          - "null"
           description: User avatar URL
     RideDetailDto:
       description: Detailed ride information
       type: object
+      required:
+      - id
+      - slug
+      - title
+      - date
+      - status
+      - visibility
+      - participantCount
+      - groupCount
+      - groups
       properties:
         id:
           type: string
@@ -304,7 +433,9 @@ components:
           type: string
           description: Ride title
         description:
-          type: string
+          type:
+          - string
+          - "null"
           description: Ride description
         date:
           description: Ride date
@@ -312,14 +443,20 @@ components:
           $ref: "#/components/schemas/LocalDate"
         startTime:
           description: Start time
-          type: string
-          $ref: "#/components/schemas/LocalTime"
+          type:
+          - string
+          - "null"
+          anyOf:
+          - $ref: "#/components/schemas/LocalTime"
+          - type: "null"
         status:
-          type: string
           description: Ride status
-        visibility:
           type: string
+          $ref: "#/components/schemas/RideStatus"
+        visibility:
           description: Visibility level
+          type: string
+          $ref: "#/components/schemas/Visibility"
         participantCount:
           type: integer
           format: int32
@@ -334,14 +471,27 @@ components:
             $ref: "#/components/schemas/RideGroupDto"
           description: Ride groups
         publishAt:
-          type: string
+          type:
+          - string
+          - "null"
           description: Publication timestamp
         createdAt:
-          type: string
+          type:
+          - string
+          - "null"
           description: Creation timestamp
     RideDto:
       description: Ride summary data
       type: object
+      required:
+      - id
+      - slug
+      - title
+      - date
+      - status
+      - visibility
+      - participantCount
+      - groupCount
       properties:
         id:
           type: string
@@ -353,7 +503,9 @@ components:
           type: string
           description: Ride title
         description:
-          type: string
+          type:
+          - string
+          - "null"
           description: Ride description
         date:
           description: Ride date
@@ -361,23 +513,20 @@ components:
           $ref: "#/components/schemas/LocalDate"
         startTime:
           description: Start time
-          type: string
-          $ref: "#/components/schemas/LocalTime"
+          type:
+          - string
+          - "null"
+          anyOf:
+          - $ref: "#/components/schemas/LocalTime"
+          - type: "null"
         status:
-          type: string
           description: Ride status
-          enum:
-          - DRAFT
-          - PUBLISHED
-          - CANCELLED
-          - COMPLETED
-        visibility:
           type: string
+          $ref: "#/components/schemas/RideStatus"
+        visibility:
           description: Visibility level
-          enum:
-          - PUBLIC
-          - MEMBERS_ONLY
-          - PRIVATE
+          type: string
+          $ref: "#/components/schemas/Visibility"
         participantCount:
           type: integer
           format: int32
@@ -387,14 +536,23 @@ components:
           format: int32
           description: Number of groups
         publishAt:
-          type: string
+          type:
+          - string
+          - "null"
           description: Publication timestamp
         createdAt:
-          type: string
+          type:
+          - string
+          - "null"
           description: Creation timestamp
     RideGroupDto:
       type: object
       description: Ride group information
+      required:
+      - id
+      - name
+      - currentParticipants
+      - sortOrder
       properties:
         id:
           type: string
@@ -403,14 +561,20 @@ components:
           type: string
           description: Group name
         description:
-          type: string
+          type:
+          - string
+          - "null"
           description: Group description
         averageSpeed:
-          type: integer
+          type:
+          - integer
+          - "null"
           format: int32
           description: Average speed in km/h
         maxParticipants:
-          type: integer
+          type:
+          - integer
+          - "null"
           format: int32
           description: Maximum participants
         currentParticipants:
@@ -424,6 +588,8 @@ components:
     RideGroupListResponse:
       description: Ride group list response
       type: object
+      required:
+      - data
       properties:
         data:
           type: array
@@ -433,6 +599,11 @@ components:
     RideListResponse:
       description: Paginated ride list response
       type: object
+      required:
+      - rides
+      - total
+      - page
+      - size
       properties:
         rides:
           type: array
@@ -454,6 +625,10 @@ components:
     RideParticipationDto:
       description: Ride participation information
       type: object
+      required:
+      - id
+      - userId
+      - status
       properties:
         id:
           type: string
@@ -465,10 +640,14 @@ components:
           type: string
           description: Participation status
         registeredAt:
-          type: string
+          type:
+          - string
+          - "null"
           description: Registration timestamp
         notes:
-          type: string
+          type:
+          - string
+          - "null"
           description: Participant notes
     RideStatus:
       type: string
@@ -479,12 +658,21 @@ components:
     RouteClimbDto:
       description: Climb segment information
       type: object
+      required:
+      - id
+      - startDistance
+      - endDistance
+      - elevationGain
+      - averageGradient
+      - maxGradient
       properties:
         id:
           type: string
           description: Climb ID (TSID)
         name:
-          type: string
+          type:
+          - string
+          - "null"
           description: Climb name (if named)
         startDistance:
           type: integer
@@ -505,11 +693,34 @@ components:
           type: number
           description: Maximum gradient percentage
         category:
-          type: string
           description: "Climb category (HC, 1, 2, 3, 4)"
+          type:
+          - string
+          - "null"
+          anyOf:
+          - $ref: "#/components/schemas/ClimbCategory"
+          - type: "null"
     RouteDetailDto:
       description: Detailed route information
       type: object
+      required:
+      - id
+      - name
+      - description
+      - distance
+      - elevationGain
+      - elevationLoss
+      - difficulty
+      - surfaceType
+      - isPublic
+      - thumbnailUrl
+      - startLat
+      - startLng
+      - endLat
+      - endLng
+      - createdById
+      - createdAt
+      - updatedAt
       properties:
         id:
           type: string
@@ -533,11 +744,13 @@ components:
           format: int32
           description: Total elevation loss in meters
         difficulty:
-          type: string
           description: Route difficulty
-        surfaceType:
           type: string
+          $ref: "#/components/schemas/RouteDifficulty"
+        surfaceType:
           description: Surface type
+          type: string
+          $ref: "#/components/schemas/SurfaceType"
         isPublic:
           type: boolean
           description: Whether the route is public
@@ -575,6 +788,17 @@ components:
     RouteDto:
       description: Route summary data
       type: object
+      required:
+      - id
+      - name
+      - distance
+      - elevationGain
+      - elevationLoss
+      - difficulty
+      - surfaceType
+      - isPublic
+      - thumbnailUrl
+      - createdAt
       properties:
         id:
           type: string
@@ -583,7 +807,9 @@ components:
           type: string
           description: Route name
         description:
-          type: string
+          type:
+          - string
+          - "null"
           description: Route description
         distance:
           type: integer
@@ -598,20 +824,13 @@ components:
           format: int32
           description: Total elevation loss in meters
         difficulty:
-          type: string
           description: Route difficulty
-          enum:
-          - EASY
-          - MODERATE
-          - HARD
-          - VERY_HARD
-        surfaceType:
           type: string
+          $ref: "#/components/schemas/RouteDifficulty"
+        surfaceType:
           description: Surface type
-          enum:
-          - ASPHALT
-          - GRAVEL
-          - MIXED
+          type: string
+          $ref: "#/components/schemas/SurfaceType"
         isPublic:
           type: boolean
           description: Whether the route is public
@@ -624,6 +843,11 @@ components:
     RouteListResponse:
       description: Paginated route list response
       type: object
+      required:
+      - routes
+      - total
+      - page
+      - size
       properties:
         routes:
           type: array
@@ -652,6 +876,12 @@ components:
     TeamDetailDto:
       description: Detailed team information
       type: object
+      required:
+      - id
+      - name
+      - slug
+      - isPublic
+      - memberCount
       properties:
         id:
           type: string
@@ -665,13 +895,19 @@ components:
           type: string
           description: Team URL slug
         description:
-          type: string
+          type:
+          - string
+          - "null"
           description: Team description
         logoUrl:
-          type: string
+          type:
+          - string
+          - "null"
           description: Logo image URL
         coverImageUrl:
-          type: string
+          type:
+          - string
+          - "null"
           description: Cover image URL
         isPublic:
           type: boolean
@@ -681,22 +917,33 @@ components:
           format: int32
           description: Number of team members
         maxMembers:
-          type: integer
+          type:
+          - integer
+          - "null"
           format: int32
           description: Maximum number of members (null = unlimited)
         userRole:
-          type: string
           description: Current user's role (null if not a member)
-          enum:
-          - OWNER
-          - ADMIN
-          - MEMBER
+          type:
+          - string
+          - "null"
+          anyOf:
+          - $ref: "#/components/schemas/TeamRole"
+          - type: "null"
         createdAt:
-          type: string
+          type:
+          - string
+          - "null"
           description: Team creation timestamp
     TeamDto:
       description: Team summary data
       type: object
+      required:
+      - id
+      - name
+      - slug
+      - isPublic
+      - memberCount
       properties:
         id:
           type: string
@@ -714,13 +961,19 @@ components:
           examples:
           - awesome-cycling-team
         description:
-          type: string
+          type:
+          - string
+          - "null"
           description: Team description
         logoUrl:
-          type: string
+          type:
+          - string
+          - "null"
           description: Logo image URL
         coverImageUrl:
-          type: string
+          type:
+          - string
+          - "null"
           description: Cover image URL
         isPublic:
           type: boolean
@@ -732,6 +985,11 @@ components:
     TeamListResponse:
       description: Paginated team list response
       type: object
+      required:
+      - teams
+      - total
+      - page
+      - size
       properties:
         teams:
           type: array
@@ -750,9 +1008,22 @@ components:
           type: integer
           format: int32
           description: Page size
+    TeamRole:
+      type: string
+      enum:
+      - ADMIN
+      - ORGANIZER
+      - MEMBER
     TeamWithRoleDto:
       description: Team data with user's role
       type: object
+      required:
+      - id
+      - name
+      - slug
+      - isPublic
+      - memberCount
+      - role
       properties:
         id:
           type: string
@@ -762,15 +1033,28 @@ components:
         name:
           type: string
           description: Team name
+          examples:
+          - Awesome Cycling Team
         slug:
           type: string
           description: Team URL slug
+          examples:
+          - awesome-cycling-team
         description:
-          type: string
+          type:
+          - string
+          - "null"
           description: Team description
         logoUrl:
-          type: string
+          type:
+          - string
+          - "null"
           description: Logo image URL
+        coverImageUrl:
+          type:
+          - string
+          - "null"
+          description: Cover image URL
         isPublic:
           type: boolean
           description: Whether the team is public
@@ -779,17 +1063,19 @@ components:
           format: int32
           description: Number of team members
         role:
-          type: string
           description: User's role in the team
+          type: string
           examples:
           - MEMBER
-          enum:
-          - OWNER
-          - ADMIN
-          - MEMBER
+          $ref: "#/components/schemas/TeamRole"
     TrackPointDto:
       type: object
       description: GPS track point
+      required:
+      - lat
+      - lng
+      - ele
+      - dist
       properties:
         lat:
           type: number
@@ -812,23 +1098,33 @@ components:
       type: object
       properties:
         name:
-          type: string
+          type:
+          - string
+          - "null"
           description: Group name
           minLength: 1
           maxLength: 100
         description:
-          type: string
+          type:
+          - string
+          - "null"
           description: Group description
         averageSpeed:
-          type: integer
+          type:
+          - integer
+          - "null"
           format: int32
           description: Average speed in km/h
         maxParticipants:
-          type: integer
+          type:
+          - integer
+          - "null"
           format: int32
           description: Maximum participants
         routeId:
-          type: string
+          type:
+          - string
+          - "null"
           description: Route ID (TSID)
     UpdateMemberRoleRequest:
       description: Request to update a member's role
@@ -837,109 +1133,147 @@ components:
       - role
       properties:
         role:
-          type: string
           description: New role
-          enum:
-          - ADMIN
-          - MEMBER
+          type: string
+          $ref: "#/components/schemas/TeamRole"
     UpdateRideRequest:
       description: Ride update request
       type: object
       properties:
         title:
-          type: string
+          type:
+          - string
+          - "null"
           description: Ride title
           minLength: 3
           maxLength: 200
         description:
-          type: string
+          type:
+          - string
+          - "null"
           description: Ride description
           maxLength: 5000
         date:
           description: Ride date
-          type: string
-          $ref: "#/components/schemas/LocalDate"
+          type:
+          - string
+          - "null"
+          anyOf:
+          - $ref: "#/components/schemas/LocalDate"
+          - type: "null"
         startTime:
           description: Start time
-          type: string
-          $ref: "#/components/schemas/LocalTime"
+          type:
+          - string
+          - "null"
+          anyOf:
+          - $ref: "#/components/schemas/LocalTime"
+          - type: "null"
         status:
-          type: string
           description: Ride status
-          enum:
-          - DRAFT
-          - PUBLISHED
-          - CANCELLED
-          - COMPLETED
+          type:
+          - string
+          - "null"
+          anyOf:
+          - $ref: "#/components/schemas/RideStatus"
+          - type: "null"
         visibility:
-          type: string
           description: Visibility level
-          enum:
-          - PUBLIC
-          - MEMBERS_ONLY
-          - PRIVATE
+          type:
+          - string
+          - "null"
+          anyOf:
+          - $ref: "#/components/schemas/Visibility"
+          - type: "null"
         routeId:
-          type: string
+          type:
+          - string
+          - "null"
           description: Route ID (TSID)
         meetingPointId:
-          type: string
+          type:
+          - string
+          - "null"
           description: Meeting point ID (TSID)
         publishAt:
           description: Publication timestamp
-          type: string
-          $ref: "#/components/schemas/Instant"
+          type:
+          - string
+          - "null"
+          anyOf:
+          - $ref: "#/components/schemas/Instant"
+          - type: "null"
     UpdateRouteRequest:
       description: Route update request
       type: object
       properties:
         name:
-          type: string
+          type:
+          - string
+          - "null"
           description: Route name
         description:
-          type: string
+          type:
+          - string
+          - "null"
           description: Route description
         difficulty:
-          type: string
           description: Route difficulty
-          enum:
-          - EASY
-          - MODERATE
-          - HARD
-          - VERY_HARD
+          type:
+          - string
+          - "null"
+          anyOf:
+          - $ref: "#/components/schemas/RouteDifficulty"
+          - type: "null"
         surfaceType:
-          type: string
           description: Surface type
-          enum:
-          - ASPHALT
-          - GRAVEL
-          - MIXED
+          type:
+          - string
+          - "null"
+          anyOf:
+          - $ref: "#/components/schemas/SurfaceType"
+          - type: "null"
         isPublic:
-          type: boolean
+          type:
+          - boolean
+          - "null"
           description: Whether the route is publicly visible
     UpdateTeamRequest:
       description: Team update request
       type: object
       properties:
         name:
-          type: string
+          type:
+          - string
+          - "null"
           description: Team name
           minLength: 2
           maxLength: 255
         description:
-          type: string
+          type:
+          - string
+          - "null"
           description: Team description
           maxLength: 2000
         isPublic:
-          type: boolean
+          type:
+          - boolean
+          - "null"
           description: Whether the team is publicly visible
         logoUrl:
-          type: string
+          type:
+          - string
+          - "null"
           description: Logo image URL
         coverImageUrl:
-          type: string
+          type:
+          - string
+          - "null"
           description: Cover image URL
         maxMembers:
-          type: integer
+          type:
+          - integer
+          - "null"
           format: int32
           description: Maximum number of members (null = unlimited)
     UpdateUserRequest:
@@ -947,20 +1281,26 @@ components:
       type: object
       properties:
         displayName:
-          type: string
+          type:
+          - string
+          - "null"
           description: User display name
           examples:
           - John Doe
           minLength: 1
           maxLength: 255
         locale:
-          type: string
+          type:
+          - string
+          - "null"
           description: "User locale (e.g. 'en', 'fr')"
           examples:
           - en
           maxLength: 10
         timezone:
-          type: string
+          type:
+          - string
+          - "null"
           description: User timezone (e.g. 'Europe/Paris')
           examples:
           - Europe/Paris
@@ -968,6 +1308,10 @@ components:
     UserDto:
       description: User profile data
       type: object
+      required:
+      - id
+      - email
+      - displayName
       properties:
         id:
           type: string
@@ -981,25 +1325,38 @@ components:
           type: string
           description: User display name
         avatarUrl:
-          type: string
+          type:
+          - string
+          - "null"
           description: User avatar URL
         locale:
-          type: string
+          type:
+          - string
+          - "null"
           description: "User locale (e.g. 'en', 'fr')"
           examples:
           - en
         timezone:
-          type: string
+          type:
+          - string
+          - "null"
           description: User timezone (e.g. 'Europe/Paris')
           examples:
           - Europe/Paris
         createdAt:
-          type: string
+          type:
+          - string
+          - "null"
           description: Account creation timestamp
+    Visibility:
+      type: string
+      enum:
+      - TEAM
+      - PUBLIC
   securitySchemes:
     SecurityScheme:
       type: openIdConnect
-      openIdConnectUrl: http://localhost:8180/realms/tribly/.well-known/openid-configuration
+      openIdConnectUrl: http://localhost:8180/realms/quarkus/.well-known/openid-configuration
       description: Authentication
 tags:
 - name: Configuration
@@ -1058,6 +1415,10 @@ paths:
             application/octet-stream: {}
         "404":
           description: Team or route not found
+          content:
+            application/octet-stream:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/download/teams/{slug}/routes/{routeId}/gpx:
     get:
       summary: Download GPX file
@@ -1085,6 +1446,10 @@ paths:
             application/gpx+xml: {}
         "404":
           description: Team or route not found
+          content:
+            application/gpx+xml:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/download/teams/{slug}/routes/{routeId}/thumbnail:
     get:
       summary: Get route thumbnail
@@ -1112,6 +1477,10 @@ paths:
             image/png: {}
         "404":
           description: Team or route not found
+          content:
+            image/png:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/teams:
     get:
       summary: List public teams
@@ -1167,8 +1536,16 @@ paths:
                 $ref: "#/components/schemas/TeamDto"
         "400":
           description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "401":
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "403":
           description: Not Allowed
       security:
@@ -1192,6 +1569,10 @@ paths:
                   $ref: "#/components/schemas/TeamWithRoleDto"
         "401":
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "403":
           description: Not Allowed
       security:
@@ -1226,12 +1607,28 @@ paths:
                 $ref: "#/components/schemas/TeamDto"
         "400":
           description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "401":
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "403":
           description: User is not a team admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: Team not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
       security:
       - SecurityScheme:
         - user
@@ -1257,8 +1654,16 @@ paths:
                 $ref: "#/components/schemas/TeamDetailDto"
         "404":
           description: Team not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "403":
           description: Team is private and user is not a member
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
     delete:
       summary: Delete team
       description: Soft delete a team. Requires OWNER role.
@@ -1277,10 +1682,22 @@ paths:
           description: Team deleted successfully
         "401":
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "403":
           description: User is not the team owner
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: Team not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
       security:
       - SecurityScheme:
         - user
@@ -1321,8 +1738,16 @@ paths:
                 $ref: "#/components/schemas/MemberListResponse"
         "401":
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: Team not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "403":
           description: Not Allowed
       security:
@@ -1356,12 +1781,28 @@ paths:
                 $ref: "#/components/schemas/MemberDto"
         "400":
           description: Invalid request or user already a member
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "401":
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "403":
           description: User is not a team admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: Team or user not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
       security:
       - SecurityScheme:
         - user
@@ -1388,10 +1829,22 @@ paths:
                 $ref: "#/components/schemas/MemberDto"
         "400":
           description: Team is full or user is already a member
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "401":
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: Team not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "403":
           description: Not Allowed
       security:
@@ -1416,10 +1869,22 @@ paths:
           description: Successfully left team
         "400":
           description: Cannot leave - user is the owner
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "401":
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: Team not found or user is not a member
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "403":
           description: Not Allowed
       security:
@@ -1460,12 +1925,28 @@ paths:
                 $ref: "#/components/schemas/MemberDto"
         "400":
           description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "401":
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "403":
           description: User is not a team admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: Team or member not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
       security:
       - SecurityScheme:
         - user
@@ -1493,10 +1974,22 @@ paths:
           description: Member removed successfully
         "401":
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "403":
           description: User is not a team admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: Team or member not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
       security:
       - SecurityScheme:
         - user
@@ -1552,6 +2045,10 @@ paths:
                 $ref: "#/components/schemas/RideListResponse"
         "404":
           description: Team not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
     post:
       summary: Create ride
       description: Create a new ride with optional groups
@@ -1580,12 +2077,28 @@ paths:
                 $ref: "#/components/schemas/RideDto"
         "400":
           description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "401":
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "403":
           description: User is not a team member
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: Team not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
       security:
       - SecurityScheme:
         - user
@@ -1624,12 +2137,28 @@ paths:
                 $ref: "#/components/schemas/RideDto"
         "400":
           description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "401":
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "403":
           description: User is not authorized to update this ride
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: Team or ride not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
       security:
       - SecurityScheme:
         - user
@@ -1661,6 +2190,10 @@ paths:
                 $ref: "#/components/schemas/RideDetailDto"
         "404":
           description: Team or ride not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
     delete:
       summary: Delete ride
       description: Soft delete a ride. Requires organizer permissions.
@@ -1685,10 +2218,22 @@ paths:
           description: Ride deleted successfully
         "401":
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "403":
           description: User is not authorized to delete this ride
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: Team or ride not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
       security:
       - SecurityScheme:
         - user
@@ -1721,6 +2266,10 @@ paths:
                 $ref: "#/components/schemas/RideGroupListResponse"
         "404":
           description: Team or ride not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
     post:
       summary: Create ride group
       description: Create a new group for a ride. Requires organizer permissions.
@@ -1755,12 +2304,28 @@ paths:
                 $ref: "#/components/schemas/RideGroupDto"
         "400":
           description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "401":
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "403":
           description: User is not authorized to modify this ride
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: Team or ride not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
       security:
       - SecurityScheme:
         - user
@@ -1805,12 +2370,28 @@ paths:
                 $ref: "#/components/schemas/RideGroupDto"
         "400":
           description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "401":
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "403":
           description: User is not authorized to modify this ride
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: "Team, ride, or group not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
       security:
       - SecurityScheme:
         - user
@@ -1844,10 +2425,22 @@ paths:
           description: Group deleted successfully
         "401":
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "403":
           description: User is not authorized to modify this ride
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: "Team, ride, or group not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
       security:
       - SecurityScheme:
         - user
@@ -1892,10 +2485,22 @@ paths:
                 $ref: "#/components/schemas/RideParticipationDto"
         "400":
           description: Group is full or user already joined
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "401":
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: "Team, ride, or group not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "403":
           description: Not Allowed
       security:
@@ -1932,8 +2537,16 @@ paths:
           description: Successfully left group
         "401":
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: "Team, ride, group, or participation not found"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "403":
           description: Not Allowed
       security:
@@ -1976,6 +2589,10 @@ paths:
                 $ref: "#/components/schemas/RouteListResponse"
         "404":
           description: Team not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
     post:
       summary: Create route
       description: Create a new route by uploading a GPX file
@@ -2028,12 +2645,28 @@ paths:
                 $ref: "#/components/schemas/RouteDto"
         "400":
           description: Invalid request or GPX file
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "401":
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "403":
           description: User is not a team member
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: Team not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
       security:
       - SecurityScheme:
         - user
@@ -2073,12 +2706,28 @@ paths:
                 $ref: "#/components/schemas/RouteDto"
         "400":
           description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "401":
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "403":
           description: User is not authorized to update this route
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: Team or route not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
       security:
       - SecurityScheme:
         - user
@@ -2110,6 +2759,10 @@ paths:
                 $ref: "#/components/schemas/RouteDetailDto"
         "404":
           description: Team or route not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
     delete:
       summary: Delete route
       description: Soft delete a route. Requires route creator or team admin permissions.
@@ -2134,10 +2787,22 @@ paths:
           description: Route deleted successfully
         "401":
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "403":
           description: User is not authorized to delete this route
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: Team or route not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
       security:
       - SecurityScheme:
         - user
@@ -2170,6 +2835,10 @@ paths:
                 $ref: "#/components/schemas/ClimbListResponse"
         "404":
           description: Team or route not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/teams/{slug}/routes/{routeId}/track:
     get:
       summary: Get route track
@@ -2200,6 +2869,10 @@ paths:
                 $ref: "#/components/schemas/GpxTrackDto"
         "404":
           description: Team or route not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/users/me:
     put:
       summary: Update current user
@@ -2222,8 +2895,16 @@ paths:
                 $ref: "#/components/schemas/UserDto"
         "400":
           description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "401":
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "403":
           description: Not Allowed
       security:
@@ -2244,6 +2925,10 @@ paths:
                 $ref: "#/components/schemas/UserDto"
         "401":
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "403":
           description: Not Allowed
       security:
@@ -2260,6 +2945,10 @@ paths:
           description: User deleted successfully
         "401":
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "403":
           description: Not Allowed
       security:
@@ -2296,6 +2985,10 @@ paths:
                   $ref: "#/components/schemas/PublicUserDto"
         "401":
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "403":
           description: Not Allowed
       security:
@@ -2324,8 +3017,16 @@ paths:
                 $ref: "#/components/schemas/PublicUserDto"
         "401":
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "403":
           description: Not Allowed
       security:

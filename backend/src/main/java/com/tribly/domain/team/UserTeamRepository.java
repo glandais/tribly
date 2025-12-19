@@ -33,20 +33,8 @@ public class UserTeamRepository implements PanacheRepository<UserTeam> {
                 .list();
     }
 
-    public List<UserTeam> findByTeam(Long teamId) {
-        return find("team.id = ?1 and deleted = false", teamId).list();
-    }
-
     public long countByTeam(Long teamId) {
         return count("team.id = ?1 and deleted = false", teamId);
-    }
-
-    public List<UserTeam> findByUser(Long userId) {
-        return find("user.id = ?1 and deleted = false", userId).list();
-    }
-
-    public List<UserTeam> findAdminsByTeam(Long teamId) {
-        return find("team.id = ?1 and role = ?2 and deleted = false", teamId, TeamRole.ADMIN).list();
     }
 
     public long countAdminsByTeam(Long teamId) {

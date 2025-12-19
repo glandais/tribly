@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect } from 'react'
-import { useUserSearch, UserSearchResult } from '../../hooks/useUserSearch'
+import { useUserSearch } from '../../hooks/useUserSearch'
+import type { PublicUserDto } from '../../hooks/useUserSearch'
 
 interface UserAutocompleteProps {
-  onSelect: (user: UserSearchResult) => void
+  onSelect: (user: PublicUserDto) => void
   placeholder?: string
   className?: string
 }
@@ -34,7 +35,7 @@ export function UserAutocomplete({ onSelect, placeholder, className = '' }: User
     setSelectedIndex(-1)
   }
 
-  const handleSelect = (user: UserSearchResult) => {
+  const handleSelect = (user: PublicUserDto) => {
     onSelect(user)
     setQuery('')
     setIsOpen(false)
@@ -109,7 +110,7 @@ export function UserAutocomplete({ onSelect, placeholder, className = '' }: User
       {isOpen && users.length > 0 && (
         <div className="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md border border-gray-200 overflow-auto">
           <ul className="py-1">
-            {users.map((user: UserSearchResult, index: number) => (
+            {users.map((user: PublicUserDto, index: number) => (
               <li key={user.id}>
                 <button
                   type="button"

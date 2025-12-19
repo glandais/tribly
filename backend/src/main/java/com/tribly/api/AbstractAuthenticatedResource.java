@@ -1,12 +1,14 @@
 package com.tribly.api;
 
 import com.tribly.domain.user.User;
+import com.tribly.service.security.TeamSecurityService;
 import com.tribly.service.user.UserService;
 import io.quarkus.security.identity.CurrentIdentityAssociation;
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.NotAuthorizedException;
 import org.eclipse.microprofile.jwt.JsonWebToken;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Optional;
 
@@ -24,6 +26,9 @@ public abstract class AbstractAuthenticatedResource {
 
     @Inject
     protected UserService userService;
+
+    @Inject
+    TeamSecurityService securityService;
 
     @Inject
     protected CurrentIdentityAssociation currentIdentityAssociation;
@@ -51,6 +56,7 @@ public abstract class AbstractAuthenticatedResource {
      *
      * @return the user ID, or null if anonymous
      */
+    @Nullable
     protected Long getCurrentUserIdOrNull() {
         SecurityIdentity identity = getSecurityIdentity();
         if (identity.isAnonymous()) {
@@ -92,6 +98,7 @@ public abstract class AbstractAuthenticatedResource {
      * @param identity the security identity to extract user ID from
      * @return the user ID, or null if not authenticated or user not found
      */
+    @Nullable
     private Long getUserIdFromIdentity(SecurityIdentity identity) {
         // First try the augmented attribute
         Long userId = identity.getAttribute("userId");

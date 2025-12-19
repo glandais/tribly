@@ -15,7 +15,7 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
-    "generate-api": "rm -rf src/api && openapi-generator-cli generate -i ../contracts/openapi.json -g typescript-axios -o src/api --additional-properties=supportsES6=true,npmName=@tribly/api,modelPropertyNaming=snake_case,stringEnums=true && rm -rf src/api/docs && prettier --write \"src/api/**/*.ts\""
+    "generate-api": "rm -rf src/api && openapi-generator-cli generate -i ../contracts/openapi.json -g typescript-axios -o src/api --additional-properties=supportsES6=true,npmName=@tribly/api,modelPropertyNaming=snake_case && rm -rf src/api/docs && prettier --write \"src/api/**/*.ts\" && find src/api -name '*.ts' -exec sed -i '1s|^|// @ts-nocheck\\n|' {} \\;"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.62.0",

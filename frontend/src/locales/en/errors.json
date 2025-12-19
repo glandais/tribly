@@ -34,6 +34,33 @@
   "api": {
     "failedToLoad": "Failed to load data",
     "failedToSave": "Failed to save",
-    "failedToDelete": "Failed to delete"
+    "failedToDelete": "Failed to delete",
+    "networkError": "Network error. Please check your connection.",
+    "unauthorized": "You must be logged in to perform this action.",
+    "forbidden": "You don't have permission to perform this action.",
+    "notFound": "The requested resource was not found.",
+    "serverError": "Server error. Please try again later.",
+    "unknown": "An unexpected error occurred"
+  },
+  "notifications": {
+    "teamCreated": "Team created successfully",
+    "teamUpdated": "Team updated successfully",
+    "teamDeleted": "Team deleted successfully",
+    "rideCreated": "Ride created successfully",
+    "rideUpdated": "Ride updated successfully",
+    "rideDeleted": "Ride deleted successfully",
+    "rideCancelled": "Ride cancelled successfully",
+    "rideJoined": "Successfully joined the ride",
+    "rideLeft": "Successfully left the ride",
+    "groupCreated": "Group created successfully",
+    "groupUpdated": "Group updated successfully",
+    "groupDeleted": "Group deleted successfully",
+    "memberAdded": "Member added to team",
+    "memberRemoved": "Member removed from team",
+    "routeCreated": "Route created successfully",
+    "routeUpdated": "Route updated successfully",
+    "routeDeleted": "Route deleted successfully",
+    "profileUpdated": "Profile updated successfully",
+    "accountDeleted": "Account deleted successfully"
   }
 }

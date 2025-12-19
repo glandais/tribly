@@ -2,8 +2,9 @@ package com.tribly.infrastructure.cache;
 
 import io.github.glandais.gpx.util.CacheFolderProvider;
 import jakarta.inject.Singleton;
-import java.io.File;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+
+import java.io.File;
 
 @Singleton
 public class CacheFolderProviderImpl implements CacheFolderProvider {

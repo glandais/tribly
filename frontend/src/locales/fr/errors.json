@@ -34,6 +34,33 @@
   "api": {
     "failedToLoad": "Échec du chargement des données",
     "failedToSave": "Échec de l'enregistrement",
-    "failedToDelete": "Échec de la suppression"
+    "failedToDelete": "Échec de la suppression",
+    "networkError": "Erreur réseau. Veuillez vérifier votre connexion.",
+    "unauthorized": "Vous devez être connecté pour effectuer cette action.",
+    "forbidden": "Vous n'avez pas la permission d'effectuer cette action.",
+    "notFound": "La ressource demandée est introuvable.",
+    "serverError": "Erreur serveur. Veuillez réessayer plus tard.",
+    "unknown": "Une erreur inattendue s'est produite"
+  },
+  "notifications": {
+    "teamCreated": "Équipe créée avec succès",
+    "teamUpdated": "Équipe mise à jour avec succès",
+    "teamDeleted": "Équipe supprimée avec succès",
+    "rideCreated": "Sortie créée avec succès",
+    "rideUpdated": "Sortie mise à jour avec succès",
+    "rideDeleted": "Sortie supprimée avec succès",
+    "rideCancelled": "Sortie annulée avec succès",
+    "rideJoined": "Inscription à la sortie confirmée",
+    "rideLeft": "Désinscription de la sortie confirmée",
+    "groupCreated": "Groupe créé avec succès",
+    "groupUpdated": "Groupe mis à jour avec succès",
+    "groupDeleted": "Groupe supprimé avec succès",
+    "memberAdded": "Membre ajouté à l'équipe",
+    "memberRemoved": "Membre retiré de l'équipe",
+    "routeCreated": "Itinéraire créé avec succès",
+    "routeUpdated": "Itinéraire mis à jour avec succès",
+    "routeDeleted": "Itinéraire supprimé avec succès",
+    "profileUpdated": "Profil mis à jour avec succès",
+    "accountDeleted": "Compte supprimé avec succès"
   }
 }

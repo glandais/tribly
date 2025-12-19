@@ -1,23 +1,9 @@
 import { useCallback, useEffect, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuthStore } from '../store/authStore'
-import apiClient, { ApiClientError } from '../api/client'
-
-interface UpdateUserRequest {
-  displayName?: string
-  locale?: string
-  timezone?: string
-}
-
-interface BackendUser {
-  id: string
-  email: string
-  displayName: string
-  avatarUrl: string | null
-  locale: string
-  timezone: string
-  createdAt: string | null
-}
+import { useNotificationStore } from '../store/notificationStore'
+import { usersApi, unwrapResponse } from '../lib/apiClient'
+import type { UserDto, UpdateUserRequest } from '../api/api'
 
 // Get browser's preferred language (e.g., "en", "fr", "en-US" -> "en")
 function getBrowserLocale(): string {
@@ -48,7 +34,6 @@ export function useAuth() {
     login,
     logout: storeLogout,
     setUser,
-    setError,
     clearError,
   } = useAuthStore()
 
@@ -63,8 +48,7 @@ export function useAuth() {
   const { data: backendUser, refetch: refetchUser } = useQuery({
     queryKey: ['currentUser'],
     queryFn: async () => {
-      const response = await apiClient.get<BackendUser>('/users/me')
-      return response
+      return await unwrapResponse(usersApi.getCurrentUser())
     },
     enabled: isAuthenticated && isInitialized,
     staleTime: 1000 * 60 * 5,
@@ -79,8 +63,8 @@ export function useAuth() {
         ...user,
         dbId: backendUser.id,
         avatarUrl: backendUser.avatarUrl,
-        locale: backendUser.locale,
-        timezone: backendUser.timezone,
+        locale: backendUser.locale || undefined,
+        timezone: backendUser.timezone || undefined,
       })
     }
   }, [backendUser?.id])
@@ -101,18 +85,19 @@ export function useAuth() {
 
       // Only update if browser values differ from defaults
       if (browserLocale !== 'en' || browserTimezone !== 'UTC') {
-        apiClient
-          .put<BackendUser>('/users/me', {
+        unwrapResponse(
+          usersApi.updateCurrentUser({
             locale: browserLocale,
             timezone: browserTimezone,
           })
-          .then((updatedUser) => {
+        )
+          .then((updatedUser: UserDto) => {
             queryClient.setQueryData(['currentUser'], updatedUser)
             if (user) {
               setUser({
                 ...user,
-                locale: updatedUser.locale,
-                timezone: updatedUser.timezone,
+                locale: updatedUser.locale ?? undefined,
+                timezone: updatedUser.timezone ?? undefined,
               })
             }
           })
@@ -125,33 +110,43 @@ export function useAuth() {
 
   const updateProfileMutation = useMutation({
     mutationFn: async (data: UpdateUserRequest) => {
-      return apiClient.put<BackendUser>('/users/me', data)
+      return await unwrapResponse(usersApi.updateCurrentUser(data))
     },
     onSuccess: (updatedUser) => {
       queryClient.setQueryData(['currentUser'], updatedUser)
-      if (user) {
+      if (user && updatedUser) {
         setUser({
           ...user,
           displayName: updatedUser.displayName,
-          locale: updatedUser.locale,
-          timezone: updatedUser.timezone,
+          locale: updatedUser.locale ?? undefined,
+          timezone: updatedUser.timezone ?? undefined,
         })
       }
-    },
-    onError: (error: ApiClientError) => {
-      setError(error.error.message)
+
+      // Show success notification
+      useNotificationStore.getState().addNotification({
+        message: '',
+        type: 'success',
+        duration: 4000,
+        translationKey: 'notifications.profileUpdated',
+      })
     },
   })
 
   const deleteAccountMutation = useMutation({
     mutationFn: async () => {
-      return apiClient.delete('/users/me')
+      await unwrapResponse(usersApi.deleteCurrentUser())
     },
     onSuccess: () => {
+      // Show success notification before logout
+      useNotificationStore.getState().addNotification({
+        message: '',
+        type: 'success',
+        duration: 4000,
+        translationKey: 'notifications.accountDeleted',
+      })
+
       logout()
-    },
-    onError: (error: ApiClientError) => {
-      setError(error.error.message)
     },
   })
 

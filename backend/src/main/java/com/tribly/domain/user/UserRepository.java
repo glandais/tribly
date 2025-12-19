@@ -17,10 +17,6 @@ public class UserRepository implements PanacheRepository<User> {
         return find("id = ?1 and deleted = false", id).firstResultOptional();
     }
 
-    public boolean existsByEmail(String email) {
-        return count("email = ?1 and deleted = false", email) > 0;
-    }
-
     public List<User> searchByDisplayName(String query, int limit) {
         return find("LOWER(displayName) LIKE LOWER(?1) and deleted = false", "%" + query + "%")
                 .page(0, limit)

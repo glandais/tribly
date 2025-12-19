@@ -3,8 +3,8 @@ import { Link, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useTeam, useUpdateTeam, useDeleteTeam } from '../../hooks/useTeam'
 import { LoadingPage, LoadingSpinner } from '../../components/common/LoadingSpinner'
-import { ApiClientError } from '../../api/client'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
+import { ApiClientError } from '../../lib/apiClient'
 
 export function TeamSettingsPage() {
   const { t } = useTranslation('teams')

@@ -8,18 +8,17 @@ import {
   useDeleteRide,
   useJoinRide,
   useLeaveRide,
-  RideStatus,
 } from '../../hooks/useRide'
+import { RideStatus } from '../../hooks/useRide'
 import { useAuth } from '../../hooks/useAuth'
 import { LoadingPage, LoadingSpinner } from '../../components/common/LoadingSpinner'
 import { RideGroupCard } from '../../components/ride/RideGroupCard'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 
 const statusColors: Record<RideStatus, string> = {
-  DRAFT: 'bg-gray-100 text-gray-800',
-  PUBLISHED: 'bg-green-100 text-green-800',
-  CANCELLED: 'bg-red-100 text-red-800',
-  COMPLETED: 'bg-blue-100 text-blue-800',
+  [RideStatus.Draft]: 'bg-gray-100 text-gray-800',
+  [RideStatus.Published]: 'bg-green-100 text-green-800',
+  [RideStatus.Cancelled]: 'bg-red-100 text-red-800',
 }
 
 export function RideDetailPage() {
@@ -65,7 +64,7 @@ export function RideDetailPage() {
   const isAdmin = team?.userRole === 'ADMIN'
   const isOrganizer = team?.userRole === 'ORGANIZER'
   const canEdit = isAdmin || isOrganizer
-  const canJoinRide = isMember && ride.status === 'PUBLISHED'
+  const canJoinRide = isMember && ride.status === RideStatus.Published
 
   const rideDate = new Date(ride.date)
   const formattedDate = rideDate.toLocaleDateString(i18n.language, {
@@ -76,21 +75,21 @@ export function RideDetailPage() {
   })
 
   const handlePublish = () => {
-    updateMutation.mutate({ status: 'PUBLISHED' })
+    updateMutation.mutate({ status: RideStatus.Published })
   }
 
   const handleUnpublish = () => {
-    updateMutation.mutate({ status: 'DRAFT' })
+    updateMutation.mutate({ status: RideStatus.Draft })
     setShowUnpublishConfirm(false)
   }
 
   const handleCancel = () => {
-    updateMutation.mutate({ status: 'CANCELLED' })
+    updateMutation.mutate({ status: RideStatus.Cancelled })
     setShowCancelConfirm(false)
   }
 
   const handleUncancel = () => {
-    updateMutation.mutate({ status: 'DRAFT' })
+    updateMutation.mutate({ status: RideStatus.Draft })
     setShowUncancelConfirm(false)
   }
 
@@ -131,7 +130,7 @@ export function RideDetailPage() {
               </span>
             </div>
             {ride.description && <p className="mt-2 text-gray-600">{ride.description}</p>}
-            {ride.status === 'DRAFT' && ride.publishAt && (
+            {ride.status === RideStatus.Draft && ride.publishAt && (
               <div className="mt-2 text-sm text-amber-600 flex items-center">
                 <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
@@ -209,7 +208,7 @@ export function RideDetailPage() {
                 </svg>
                 {t('detail.actions.edit')}
               </Link>
-              {ride.status === 'DRAFT' && (
+              {ride.status === RideStatus.Draft && (
                 <button
                   onClick={handlePublish}
                   disabled={updateMutation.isPending}
@@ -219,7 +218,7 @@ export function RideDetailPage() {
                   {t('detail.actions.publish')}
                 </button>
               )}
-              {ride.status === 'PUBLISHED' && (
+              {ride.status === RideStatus.Published && (
                 <>
                   <button
                     onClick={() => setShowUnpublishConfirm(true)}
@@ -235,7 +234,7 @@ export function RideDetailPage() {
                   </button>
                 </>
               )}
-              {ride.status === 'CANCELLED' && (
+              {ride.status === RideStatus.Cancelled && (
                 <button
                   onClick={() => setShowUncancelConfirm(true)}
                   className="inline-flex items-center px-3 py-2 border border-green-300 rounded-md text-sm font-medium text-green-700 bg-white hover:bg-green-50"

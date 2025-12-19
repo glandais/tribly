@@ -4,19 +4,22 @@ import com.tribly.domain.common.BaseEntity;
 import com.tribly.domain.route.Route;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.Getter;
+import lombok.Setter;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
 
+@Setter
+@Getter
 @Entity
 @Table(name = "ride_groups")
 public class RideGroup extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ride_id", nullable = false)
-    @NotNull
     private Ride ride;
 
     @NotBlank
@@ -25,16 +28,20 @@ public class RideGroup extends BaseEntity {
     private String name;
 
     @Column(name = "description", columnDefinition = "TEXT")
+    @Nullable
     private String description;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "route_id")
+    @Nullable
     private Route route;
 
     @Column(name = "average_speed")
+    @Nullable
     private Integer averageSpeed;
 
     @Column(name = "max_participants")
+    @Nullable
     private Integer maxParticipants;
 
     @Column(name = "sort_order", nullable = false)
@@ -51,78 +58,9 @@ public class RideGroup extends BaseEntity {
         this.name = name;
     }
 
-    public Ride getRide() {
-        return ride;
-    }
-
-    public void setRide(Ride ride) {
-        this.ride = ride;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public Route getRoute() {
-        return route;
-    }
-
-    public void setRoute(Route route) {
-        this.route = route;
-    }
-
-    public Integer getAverageSpeed() {
-        return averageSpeed;
-    }
-
-    public void setAverageSpeed(Integer averageSpeed) {
-        this.averageSpeed = averageSpeed;
-    }
-
-    public Integer getMaxParticipants() {
-        return maxParticipants;
-    }
-
-    public void setMaxParticipants(Integer maxParticipants) {
-        this.maxParticipants = maxParticipants;
-    }
-
-    public int getSortOrder() {
-        return sortOrder;
-    }
-
-    public void setSortOrder(int sortOrder) {
-        this.sortOrder = sortOrder;
-    }
-
-    public List<RideParticipation> getParticipations() {
-        return participations;
-    }
-
-    public void setParticipations(List<RideParticipation> participations) {
-        this.participations = participations;
-    }
-
     public void addParticipation(RideParticipation participation) {
         participations.add(participation);
         participation.setRideGroup(this);
-    }
-
-    public void removeParticipation(RideParticipation participation) {
-        participations.remove(participation);
-        participation.setRideGroup(null);
     }
 
     public int getCurrentParticipants() {

@@ -1,6 +1,7 @@
 package com.tribly.api.routes;
 
 import com.tribly.api.AbstractAuthenticatedResource;
+import com.tribly.api.dto.ErrorResponse;
 import com.tribly.domain.team.Team;
 import com.tribly.infrastructure.exception.BusinessException;
 import com.tribly.infrastructure.id.TsidUtils;
@@ -14,6 +15,8 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
@@ -45,7 +48,8 @@ public class DownloadResource extends AbstractAuthenticatedResource {
     @Operation(summary = "Download GPX file", description = "Download the route as a GPX file")
     @APIResponses({
             @APIResponse(responseCode = "200", description = "GPX file downloaded successfully"),
-            @APIResponse(responseCode = "404", description = "Team or route not found")
+            @APIResponse(responseCode = "404", description = "Team or route not found",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     public Response downloadGpx(
             @Parameter(description = "Team URL slug") @PathParam("slug") String teamSlug,
@@ -71,7 +75,8 @@ public class DownloadResource extends AbstractAuthenticatedResource {
     @Operation(summary = "Download FIT file", description = "Download the route as a FIT file for Garmin devices")
     @APIResponses({
             @APIResponse(responseCode = "200", description = "FIT file downloaded successfully"),
-            @APIResponse(responseCode = "404", description = "Team or route not found")
+            @APIResponse(responseCode = "404", description = "Team or route not found",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     public Response downloadFit(
             @Parameter(description = "Team URL slug") @PathParam("slug") String teamSlug,
@@ -97,7 +102,8 @@ public class DownloadResource extends AbstractAuthenticatedResource {
     @Operation(summary = "Get route thumbnail", description = "Get a thumbnail image of the route")
     @APIResponses({
             @APIResponse(responseCode = "200", description = "Thumbnail retrieved successfully"),
-            @APIResponse(responseCode = "404", description = "Team or route not found")
+            @APIResponse(responseCode = "404", description = "Team or route not found",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     public Response getThumbnail(
             @Parameter(description = "Team URL slug") @PathParam("slug") String teamSlug,

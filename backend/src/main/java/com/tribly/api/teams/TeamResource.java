@@ -1,6 +1,7 @@
 package com.tribly.api.teams;
 
 import com.tribly.api.AbstractAuthenticatedResource;
+import com.tribly.api.dto.ErrorResponse;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.team.TeamRole;
 import com.tribly.infrastructure.exception.BusinessException;
@@ -23,6 +24,7 @@ import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
+import org.jspecify.annotations.Nullable;
 
 import java.net.URI;
 import java.util.List;
@@ -47,7 +49,7 @@ public class TeamResource extends AbstractAuthenticatedResource {
             )
     })
     public Response listTeams(
-            @Parameter(description = "Search query to filter teams by name") @QueryParam("search") String search,
+            @Parameter(description = "Search query to filter teams by name") @QueryParam(value = "search") @Nullable String search,
             @Parameter(description = "Page number (0-indexed)") @QueryParam("page") @DefaultValue("0") int page,
             @Parameter(description = "Page size") @QueryParam("size") @DefaultValue("20") int size) {
 
@@ -76,7 +78,8 @@ public class TeamResource extends AbstractAuthenticatedResource {
                     description = "User teams retrieved successfully",
                     content = @Content(schema = @Schema(implementation = TeamWithRoleDto[].class))
             ),
-            @APIResponse(responseCode = "401", description = "Unauthorized")
+            @APIResponse(responseCode = "401", description = "Unauthorized",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     public Response getMyTeams() {
         Long userId = getCurrentUserId();
@@ -100,8 +103,10 @@ public class TeamResource extends AbstractAuthenticatedResource {
                     description = "Team retrieved successfully",
                     content = @Content(schema = @Schema(implementation = TeamDetailDto.class))
             ),
-            @APIResponse(responseCode = "404", description = "Team not found"),
-            @APIResponse(responseCode = "403", description = "Team is private and user is not a member")
+            @APIResponse(responseCode = "404", description = "Team not found",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @APIResponse(responseCode = "403", description = "Team is private and user is not a member",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     public Response getTeam(@Parameter(description = "Team URL slug") @PathParam("slug") String slug) {
         Team team = teamService.getTeamBySlug(slug)
@@ -129,8 +134,10 @@ public class TeamResource extends AbstractAuthenticatedResource {
                     description = "Team created successfully",
                     content = @Content(schema = @Schema(implementation = TeamDto.class))
             ),
-            @APIResponse(responseCode = "400", description = "Invalid request"),
-            @APIResponse(responseCode = "401", description = "Unauthorized")
+            @APIResponse(responseCode = "400", description = "Invalid request",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @APIResponse(responseCode = "401", description = "Unauthorized",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     public Response createTeam(@Valid CreateTeamRequest request) {
         Long userId = getCurrentUserId();
@@ -161,10 +168,14 @@ public class TeamResource extends AbstractAuthenticatedResource {
                     description = "Team updated successfully",
                     content = @Content(schema = @Schema(implementation = TeamDto.class))
             ),
-            @APIResponse(responseCode = "400", description = "Invalid request"),
-            @APIResponse(responseCode = "401", description = "Unauthorized"),
-            @APIResponse(responseCode = "403", description = "User is not a team admin"),
-            @APIResponse(responseCode = "404", description = "Team not found")
+            @APIResponse(responseCode = "400", description = "Invalid request",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @APIResponse(responseCode = "401", description = "Unauthorized",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @APIResponse(responseCode = "403", description = "User is not a team admin",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @APIResponse(responseCode = "404", description = "Team not found",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     public Response updateTeam(@Parameter(description = "Team URL slug") @PathParam("slug") String slug, @Valid UpdateTeamRequest request) {
         Long userId = getCurrentUserId();
@@ -194,9 +205,12 @@ public class TeamResource extends AbstractAuthenticatedResource {
     @Operation(summary = "Delete team", description = "Soft delete a team. Requires OWNER role.")
     @APIResponses({
             @APIResponse(responseCode = "204", description = "Team deleted successfully"),
-            @APIResponse(responseCode = "401", description = "Unauthorized"),
-            @APIResponse(responseCode = "403", description = "User is not the team owner"),
-            @APIResponse(responseCode = "404", description = "Team not found")
+            @APIResponse(responseCode = "401", description = "Unauthorized",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @APIResponse(responseCode = "403", description = "User is not the team owner",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @APIResponse(responseCode = "404", description = "Team not found",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     public Response deleteTeam(@Parameter(description = "Team URL slug") @PathParam("slug") String slug) {
         Long userId = getCurrentUserId();
@@ -213,63 +227,63 @@ public class TeamResource extends AbstractAuthenticatedResource {
             @Schema(description = "Team name", examples = "Awesome Cycling Team", required = true)
             @NotBlank @Size(min = 2, max = 255) String name,
 
-            @Schema(description = "Team description", examples = "A team for weekend warriors")
+            @Nullable @Schema(description = "Team description", examples = "A team for weekend warriors", nullable = true)
             @Size(max = 2000) String description,
 
-            @Schema(description = "Whether the team is publicly visible", examples = "true")
+            @Nullable @Schema(description = "Whether the team is publicly visible", examples = "true", nullable = true)
             Boolean isPublic,
 
-            @Schema(description = "Maximum number of members (null = unlimited)", examples = "50")
+            @Nullable @Schema(description = "Maximum number of members (null = unlimited)", examples = "50", nullable = true)
             Integer maxMembers
     ) {
     }
 
     @Schema(description = "Team update request")
     public record UpdateTeamRequest(
-            @Schema(description = "Team name")
+            @Nullable @Schema(description = "Team name", nullable = true)
             @Size(min = 2, max = 255) String name,
 
-            @Schema(description = "Team description")
+            @Nullable @Schema(description = "Team description", nullable = true)
             @Size(max = 2000) String description,
 
-            @Schema(description = "Whether the team is publicly visible")
+            @Nullable @Schema(description = "Whether the team is publicly visible", nullable = true)
             Boolean isPublic,
 
-            @Schema(description = "Logo image URL")
+            @Nullable @Schema(description = "Logo image URL", nullable = true)
             String logoUrl,
 
-            @Schema(description = "Cover image URL")
+            @Nullable @Schema(description = "Cover image URL", nullable = true)
             String coverImageUrl,
 
-            @Schema(description = "Maximum number of members (null = unlimited)")
+            @Nullable @Schema(description = "Maximum number of members (null = unlimited)", nullable = true)
             Integer maxMembers
     ) {
     }
 
     @Schema(description = "Team summary data")
     public record TeamDto(
-            @Schema(description = "Team ID (TSID)", examples = "0h4a8xzk8jv80")
+            @Schema(description = "Team ID (TSID)", examples = "0h4a8xzk8jv80", required = true)
             String id,
 
-            @Schema(description = "Team name", examples = "Awesome Cycling Team")
+            @Schema(description = "Team name", examples = "Awesome Cycling Team", required = true)
             String name,
 
-            @Schema(description = "Team URL slug", examples = "awesome-cycling-team")
+            @Schema(description = "Team URL slug", examples = "awesome-cycling-team", required = true)
             String slug,
 
-            @Schema(description = "Team description")
+            @Nullable @Schema(description = "Team description", nullable = true)
             String description,
 
-            @Schema(description = "Logo image URL")
+            @Nullable @Schema(description = "Logo image URL", nullable = true)
             String logoUrl,
 
-            @Schema(description = "Cover image URL")
+            @Nullable @Schema(description = "Cover image URL", nullable = true)
             String coverImageUrl,
 
-            @Schema(description = "Whether the team is public")
+            @Schema(description = "Whether the team is public", required = true)
             boolean isPublic,
 
-            @Schema(description = "Number of team members")
+            @Schema(description = "Number of team members", required = true)
             int memberCount
     ) {
         public static TeamDto from(Team team) {
@@ -288,29 +302,33 @@ public class TeamResource extends AbstractAuthenticatedResource {
 
     @Schema(description = "Team data with user's role")
     public record TeamWithRoleDto(
-            @Schema(description = "Team ID (TSID)", examples = "0h4a8xzk8jv80")
+
+            @Schema(description = "Team ID (TSID)", examples = "0h4a8xzk8jv80", required = true)
             String id,
 
-            @Schema(description = "Team name")
+            @Schema(description = "Team name", examples = "Awesome Cycling Team", required = true)
             String name,
 
-            @Schema(description = "Team URL slug")
+            @Schema(description = "Team URL slug", examples = "awesome-cycling-team", required = true)
             String slug,
 
-            @Schema(description = "Team description")
+            @Nullable @Schema(description = "Team description", nullable = true)
             String description,
 
-            @Schema(description = "Logo image URL")
+            @Nullable @Schema(description = "Logo image URL", nullable = true)
             String logoUrl,
 
-            @Schema(description = "Whether the team is public")
+            @Nullable @Schema(description = "Cover image URL", nullable = true)
+            String coverImageUrl,
+
+            @Schema(description = "Whether the team is public", required = true)
             boolean isPublic,
 
-            @Schema(description = "Number of team members")
+            @Schema(description = "Number of team members", required = true)
             int memberCount,
 
-            @Schema(description = "User's role in the team", examples = "MEMBER", enumeration = {"OWNER", "ADMIN", "MEMBER"})
-            String role
+            @Schema(description = "User's role in the team", examples = "MEMBER", required = true)
+            TeamRole role
     ) {
         public static TeamWithRoleDto from(Team team, TeamRole role) {
             return new TeamWithRoleDto(
@@ -319,49 +337,50 @@ public class TeamResource extends AbstractAuthenticatedResource {
                     team.getSlug(),
                     team.getDescription(),
                     team.getLogoUrl(),
+                    team.getCoverImageUrl(),
                     team.isPublic(),
                     team.getMemberCount(),
-                    role.name()
+                    role
             );
         }
     }
 
     @Schema(description = "Detailed team information")
     public record TeamDetailDto(
-            @Schema(description = "Team ID (TSID)", examples = "0h4a8xzk8jv80")
+            @Schema(description = "Team ID (TSID)", examples = "0h4a8xzk8jv80", required = true)
             String id,
 
-            @Schema(description = "Team name")
+            @Schema(description = "Team name", required = true)
             String name,
 
-            @Schema(description = "Team URL slug")
+            @Schema(description = "Team URL slug", required = true)
             String slug,
 
-            @Schema(description = "Team description")
+            @Nullable @Schema(description = "Team description", nullable = true)
             String description,
 
-            @Schema(description = "Logo image URL")
+            @Nullable @Schema(description = "Logo image URL", nullable = true)
             String logoUrl,
 
-            @Schema(description = "Cover image URL")
+            @Nullable @Schema(description = "Cover image URL", nullable = true)
             String coverImageUrl,
 
-            @Schema(description = "Whether the team is public")
+            @Schema(description = "Whether the team is public", required = true)
             boolean isPublic,
 
-            @Schema(description = "Number of team members")
+            @Schema(description = "Number of team members", required = true)
             int memberCount,
 
-            @Schema(description = "Maximum number of members (null = unlimited)")
+            @Nullable @Schema(description = "Maximum number of members (null = unlimited)", nullable = true)
             Integer maxMembers,
 
-            @Schema(description = "Current user's role (null if not a member)", enumeration = {"OWNER", "ADMIN", "MEMBER"})
-            String userRole,
+            @Nullable @Schema(description = "Current user's role (null if not a member)", nullable = true)
+            TeamRole userRole,
 
-            @Schema(description = "Team creation timestamp")
+            @Nullable @Schema(description = "Team creation timestamp", nullable = true)
             String createdAt
     ) {
-        public static TeamDetailDto from(Team team, TeamRole role) {
+        public static TeamDetailDto from(Team team, @Nullable TeamRole role) {
             return new TeamDetailDto(
                     TsidUtils.toString(team.getId()),
                     team.getName(),
@@ -372,24 +391,24 @@ public class TeamResource extends AbstractAuthenticatedResource {
                     team.isPublic(),
                     team.getMemberCount(),
                     team.getMaxMembers(),
-                    role != null ? role.name() : null,
-                    team.getCreatedAt() != null ? team.getCreatedAt().toString() : null
+                    role,
+                    team.getCreatedAt().toString()
             );
         }
     }
 
     @Schema(description = "Paginated team list response")
     public record TeamListResponse(
-            @Schema(description = "List of teams")
+            @Schema(description = "List of teams", required = true)
             List<TeamDto> teams,
 
-            @Schema(description = "Total number of teams")
+            @Schema(description = "Total number of teams", required = true)
             long total,
 
-            @Schema(description = "Current page number")
+            @Schema(description = "Current page number", required = true)
             int page,
 
-            @Schema(description = "Page size")
+            @Schema(description = "Page size", required = true)
             int size
     ) {
     }

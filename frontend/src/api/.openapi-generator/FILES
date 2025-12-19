@@ -7,12 +7,15 @@ base.ts
 common.ts
 configuration.ts
 docs/AddMemberRequest.md
+docs/ClimbCategory.md
 docs/ClimbListResponse.md
 docs/ConfigDto.md
 docs/ConfigurationApi.md
 docs/CreateGroupRequest.md
 docs/CreateRideRequest.md
 docs/CreateTeamRequest.md
+docs/ErrorResponse.md
+docs/FieldError.md
 docs/GpxTrackDto.md
 docs/JoinGroupRequest.md
 docs/KeycloakConfig.md
@@ -40,6 +43,7 @@ docs/TeamDetailDto.md
 docs/TeamDto.md
 docs/TeamListResponse.md
 docs/TeamMembersApi.md
+docs/TeamRole.md
 docs/TeamWithRoleDto.md
 docs/TeamsApi.md
 docs/TrackPointDto.md
@@ -51,6 +55,7 @@ docs/UpdateTeamRequest.md
 docs/UpdateUserRequest.md
 docs/UserDto.md
 docs/UsersApi.md
+docs/Visibility.md
 git_push.sh
 index.ts
 package.json

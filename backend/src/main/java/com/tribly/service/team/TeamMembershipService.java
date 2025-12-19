@@ -8,6 +8,7 @@ import com.tribly.service.security.TeamSecurityService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import jakarta.ws.rs.NotFoundException;
 import org.jboss.logging.Logger;
 
 import java.util.List;
@@ -40,10 +41,6 @@ public class TeamMembershipService {
         // Security check: only team admins can view member list
         securityService.requireAdmin(userId, team.getId());
         return userTeamRepository.countByTeam(team.getId());
-    }
-
-    public Optional<UserTeam> getMembership(Long userId, Long teamId) {
-        return userTeamRepository.findByUserAndTeam(userId, teamId);
     }
 
     @Transactional
@@ -116,7 +113,7 @@ public class TeamMembershipService {
         }
 
         // Create new membership
-        User actingUser = userRepository.findActiveById(actingUserId).orElse(null);
+        User actingUser = userRepository.findActiveById(actingUserId).orElseThrow(NotFoundException::new);
         UserTeam membership = new UserTeam(targetUser, team, role, actingUser);
         userTeamRepository.persist(membership);
 

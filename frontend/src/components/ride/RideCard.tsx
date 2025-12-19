@@ -1,23 +1,22 @@
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Ride, RideStatus, Visibility } from '../../hooks/useRide'
+import { RideStatus, Visibility } from '../../hooks/useRide'
+import type { RideDto } from '../../hooks/useRide'
 
 interface RideCardProps {
-  ride: Ride
+  ride: RideDto
   teamSlug: string
 }
 
 const statusColors: Record<RideStatus, string> = {
-  DRAFT: 'bg-gray-100 text-gray-800',
-  PUBLISHED: 'bg-green-100 text-green-800',
-  CANCELLED: 'bg-red-100 text-red-800',
-  COMPLETED: 'bg-blue-100 text-blue-800',
+  [RideStatus.Draft]: 'bg-gray-100 text-gray-800',
+  [RideStatus.Published]: 'bg-green-100 text-green-800',
+  [RideStatus.Cancelled]: 'bg-red-100 text-red-800',
 }
 
 const visibilityColors: Record<Visibility, string> = {
-  PUBLIC: 'bg-indigo-100 text-indigo-800',
-  TEAM: 'bg-gray-100 text-gray-600',
-  PRIVATE: 'bg-gray-100 text-gray-600',
+  [Visibility.Public]: 'bg-indigo-100 text-indigo-800',
+  [Visibility.Team]: 'bg-gray-100 text-gray-600',
 }
 
 export function RideCard({ ride, teamSlug }: RideCardProps) {
@@ -51,7 +50,7 @@ export function RideCard({ ride, teamSlug }: RideCardProps) {
             <span
               className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${visibilityColors[ride.visibility]}`}
             >
-              {ride.visibility === 'PUBLIC' && (
+              {ride.visibility === Visibility.Public && (
                 <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
                   <path

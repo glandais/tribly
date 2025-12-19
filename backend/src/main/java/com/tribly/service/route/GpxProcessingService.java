@@ -24,11 +24,12 @@ import org.jboss.logging.Logger;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * Service for processing GPX files for route management.
@@ -61,11 +62,11 @@ public class GpxProcessingService {
     TileMapProducer tileMapProducer;
 
     @ConfigProperty(name = "gpx.storage.path")
-    String storagePath;
+    String storagePath = "/tmp";
 
     /**
      * Process uploaded GPX file through complete pipeline.
-     *
+     * <p>
      * Pipeline steps:
      * 1. Parse GPX
      * 2. Resample to 10m intervals
@@ -75,9 +76,9 @@ public class GpxProcessingService {
      * 6. Generate files (original, filtered, FIT, thumbnail)
      * 7. Convert to PostGIS WKT and JSONB track points
      *
-     * @param routeId Route ID for file storage path
+     * @param routeId        Route ID for file storage path
      * @param gpxInputStream Input stream of uploaded GPX file
-     * @param fileName Original filename
+     * @param fileName       Original filename
      * @return ProcessedGpx containing all extracted data
      */
     public ProcessedGpx processGpxUpload(Long routeId, InputStream gpxInputStream, String fileName) {
@@ -90,7 +91,7 @@ public class GpxProcessingService {
                 throw BusinessException.validation("GPX file contains no tracks or routes");
             }
 
-            GPXPath path = gpx.paths().get(0);
+            GPXPath path = gpx.paths().getFirst();
             LOG.infov("Parsed GPX with {0} points", path.getPoints().size());
 
             // Step 2: Resample to 10m intervals
@@ -206,8 +207,8 @@ public class GpxProcessingService {
      */
     private RouteMetadata extractMetadata(GPXPath path) {
         List<Point> points = path.getPoints();
-        Point start = points.get(0);
-        Point end = points.get(points.size() - 1);
+        Point start = points.getFirst();
+        Point end = points.getLast();
 
         return new RouteMetadata(
                 (int) Math.round(path.getDist()),
@@ -222,7 +223,7 @@ public class GpxProcessingService {
 
     /**
      * Categorize climb based on elevation gain and average gradient.
-     *
+     * <p>
      * Categories:
      * - HC (Hors Catégorie): > 1500m elevation or (> 1000m and > 8% grade)
      * - CAT1: 800-1500m elevation
@@ -265,16 +266,18 @@ public class GpxProcessingService {
         try {
             Path routeDir = Path.of(storagePath, "routes", routeId.toString());
             if (Files.exists(routeDir)) {
-                Files.walk(routeDir)
-                        .sorted((a, b) -> b.compareTo(a)) // Delete files before directories
-                        .forEach(path -> {
-                            try {
-                                Files.delete(path);
-                            } catch (IOException e) {
-                                LOG.warnv("Failed to delete {0}: {1}", path, e.getMessage());
-                            }
-                        });
-                LOG.infov("Deleted route files for route {0}", routeId);
+                try (Stream<Path> paths = Files.walk(routeDir)) {
+                    paths
+                            .sorted(Comparator.reverseOrder()) // Delete files before directories
+                            .forEach(path -> {
+                                try {
+                                    Files.delete(path);
+                                } catch (IOException e) {
+                                    LOG.warnv("Failed to delete {0}: {1}", path, e.getMessage());
+                                }
+                            });
+                    LOG.infov("Deleted route files for route {0}", routeId);
+                }
             }
         } catch (Exception e) {
             LOG.errorv("Failed to delete route files for route {0}", routeId, e);
@@ -322,7 +325,8 @@ public class GpxProcessingService {
             List<GpxTrack.TrackPoint> trackPoints,
             List<Climb> climbs,
             RouteMetadata metadata
-    ) {}
+    ) {
+    }
 
     /**
      * Extracted route metadata from GPX.
@@ -335,5 +339,6 @@ public class GpxProcessingService {
             double startLng,
             double endLat,
             double endLng
-    ) {}
+    ) {
+    }
 }

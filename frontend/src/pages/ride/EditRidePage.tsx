@@ -11,7 +11,7 @@ import {
   Visibility,
 } from '../../hooks/useRide'
 import { LoadingPage, LoadingSpinner } from '../../components/common/LoadingSpinner'
-import { ApiClientError } from '../../api/client'
+import { ApiClientError } from '../../lib/apiClient'
 
 interface EditableGroup {
   id?: string
@@ -35,7 +35,7 @@ export function EditRidePage() {
   const [description, setDescription] = useState('')
   const [date, setDate] = useState('')
   const [startTime, setStartTime] = useState('')
-  const [visibility, setVisibility] = useState<Visibility>('TEAM')
+  const [visibility, setVisibility] = useState<Visibility>(Visibility.Team)
   const [publishAt, setPublishAt] = useState('')
   const [groups, setGroups] = useState<EditableGroup[]>([])
   const [initialized, setInitialized] = useState(false)
@@ -99,7 +99,7 @@ export function EditRidePage() {
       date,
       startTime: startTime || undefined,
       visibility,
-      publishAt: publishAt ? new Date(publishAt).toISOString() : null,
+      publishAt: publishAt ? new Date(publishAt).toISOString() : undefined,
     })
 
     // Process group changes
@@ -290,8 +290,8 @@ export function EditRidePage() {
                 type="radio"
                 name="visibility"
                 value="TEAM"
-                checked={visibility === 'TEAM'}
-                onChange={() => setVisibility('TEAM')}
+                checked={visibility === Visibility.Team}
+                onChange={() => setVisibility(Visibility.Team)}
                 className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
               />
               <span className="ml-2 text-sm text-gray-700">{t('create.form.visibility.team')}</span>
@@ -303,8 +303,8 @@ export function EditRidePage() {
                 type="radio"
                 name="visibility"
                 value="PUBLIC"
-                checked={visibility === 'PUBLIC'}
-                onChange={() => setVisibility('PUBLIC')}
+                checked={visibility === Visibility.Public}
+                onChange={() => setVisibility(Visibility.Public)}
                 disabled={!team.isPublic}
                 className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500 disabled:cursor-not-allowed"
               />

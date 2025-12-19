@@ -1,8 +1,11 @@
 package com.tribly.api.routes;
 
 import com.tribly.domain.route.Route;
+import com.tribly.domain.route.RouteDifficulty;
+import com.tribly.domain.route.SurfaceType;
 import com.tribly.infrastructure.id.TsidUtils;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.jspecify.annotations.Nullable;
 
 import java.math.BigDecimal;
 
@@ -11,55 +14,55 @@ import java.math.BigDecimal;
  */
 @Schema(description = "Detailed route information")
 public record RouteDetailDto(
-        @Schema(description = "Route ID (TSID)")
+        @Schema(description = "Route ID (TSID)", required = true)
         String id,
 
-        @Schema(description = "Route name")
+        @Schema(description = "Route name", required = true)
         String name,
 
-        @Schema(description = "Route description")
+        @Nullable @Schema(description = "Route description", required = true)
         String description,
 
-        @Schema(description = "Distance in meters")
+        @Schema(description = "Distance in meters", required = true)
         Integer distance,
 
-        @Schema(description = "Total elevation gain in meters")
+        @Schema(description = "Total elevation gain in meters", required = true)
         Integer elevationGain,
 
-        @Schema(description = "Total elevation loss in meters")
+        @Schema(description = "Total elevation loss in meters", required = true)
         Integer elevationLoss,
 
-        @Schema(description = "Route difficulty")
-        String difficulty,
+        @Schema(description = "Route difficulty", required = true)
+        RouteDifficulty difficulty,
 
-        @Schema(description = "Surface type")
-        String surfaceType,
+        @Schema(description = "Surface type", required = true)
+        SurfaceType surfaceType,
 
-        @Schema(description = "Whether the route is public")
+        @Schema(description = "Whether the route is public", required = true)
         boolean isPublic,
 
-        @Schema(description = "Thumbnail image URL")
+        @Schema(description = "Thumbnail image URL", required = true)
         String thumbnailUrl,
 
-        @Schema(description = "Start point latitude")
+        @Schema(description = "Start point latitude", required = true)
         BigDecimal startLat,
 
-        @Schema(description = "Start point longitude")
+        @Schema(description = "Start point longitude", required = true)
         BigDecimal startLng,
 
-        @Schema(description = "End point latitude")
+        @Schema(description = "End point latitude", required = true)
         BigDecimal endLat,
 
-        @Schema(description = "End point longitude")
+        @Schema(description = "End point longitude", required = true)
         BigDecimal endLng,
 
-        @Schema(description = "Creator user ID (TSID)")
+        @Schema(description = "Creator user ID (TSID)", required = true)
         String createdById,
 
-        @Schema(description = "Creation timestamp")
+        @Schema(description = "Creation timestamp", required = true)
         String createdAt,
 
-        @Schema(description = "Last update timestamp")
+        @Schema(description = "Last update timestamp", required = true)
         String updatedAt
 ) {
     public static RouteDetailDto from(Route route) {
@@ -70,8 +73,8 @@ public record RouteDetailDto(
                 route.getDistance(),
                 route.getElevationGain(),
                 route.getElevationLoss(),
-                route.getDifficulty() != null ? route.getDifficulty().name() : null,
-                route.getSurfaceType() != null ? route.getSurfaceType().name() : null,
+                route.getDifficulty(),
+                route.getSurfaceType(),
                 route.isPublic(),
                 route.getThumbnailUrl(),
                 route.getStartLat(),
@@ -79,8 +82,8 @@ public record RouteDetailDto(
                 route.getEndLat(),
                 route.getEndLng(),
                 TsidUtils.toString(route.getCreatedBy().getId()),
-                route.getCreatedAt() != null ? route.getCreatedAt().toString() : null,
-                route.getUpdatedAt() != null ? route.getUpdatedAt().toString() : null
+                route.getCreatedAt().toString(),
+                route.getUpdatedAt().toString()
         );
     }
 }

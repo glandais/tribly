@@ -9,6 +9,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import org.jboss.logging.Logger;
+import org.jspecify.annotations.Nullable;
 
 import java.text.Normalizer;
 import java.util.List;
@@ -61,10 +62,6 @@ public class TeamService {
 
     public Optional<Team> getTeamBySlug(String slug) {
         return teamRepository.findBySlug(slug);
-    }
-
-    public Optional<Team> getTeamById(Long id) {
-        return teamRepository.findActiveById(id);
     }
 
     public List<Team> getUserTeams(Long userId) {
@@ -147,17 +144,19 @@ public class TeamService {
 
     public record CreateTeamRequest(
             String name,
-            String description,
-            Boolean isPublic,
-            Integer maxMembers
-    ) {}
+            @Nullable String description,
+            @Nullable Boolean isPublic,
+            @Nullable Integer maxMembers
+    ) {
+    }
 
     public record UpdateTeamRequest(
-            String name,
-            String description,
-            Boolean isPublic,
-            String logoUrl,
-            String coverImageUrl,
-            Integer maxMembers
-    ) {}
+            @Nullable String name,
+            @Nullable String description,
+            @Nullable Boolean isPublic,
+            @Nullable String logoUrl,
+            @Nullable String coverImageUrl,
+            @Nullable Integer maxMembers
+    ) {
+    }
 }

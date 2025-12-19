@@ -1,6 +1,7 @@
 package com.tribly.api.rides;
 
 import com.tribly.api.AbstractAuthenticatedResource;
+import com.tribly.api.dto.ErrorResponse;
 import com.tribly.domain.common.Visibility;
 import com.tribly.domain.ride.Ride;
 import com.tribly.domain.ride.RideGroup;
@@ -17,7 +18,6 @@ import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
@@ -29,6 +29,7 @@ import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
+import org.jspecify.annotations.Nullable;
 
 import java.net.URI;
 import java.time.Instant;
@@ -57,13 +58,14 @@ public class RideResource extends AbstractAuthenticatedResource {
                     description = "Rides retrieved successfully",
                     content = @Content(schema = @Schema(implementation = RideListResponse.class))
             ),
-            @APIResponse(responseCode = "404", description = "Team not found")
+            @APIResponse(responseCode = "404", description = "Team not found",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     public Response listRides(
             @Parameter(description = "Team URL slug") @PathParam("slug") String slug,
-            @Parameter(description = "Start date filter (ISO format)") @QueryParam("from") String fromStr,
-            @Parameter(description = "End date filter (ISO format)") @QueryParam("to") String toStr,
-            @Parameter(description = "Status filter") @QueryParam("status") RideStatus status,
+            @Parameter(description = "Start date filter (ISO format)") @QueryParam("from") @Nullable String fromStr,
+            @Parameter(description = "End date filter (ISO format)") @QueryParam("to") @Nullable String toStr,
+            @Parameter(description = "Status filter") @QueryParam("status") @Nullable RideStatus status,
             @Parameter(description = "Page number") @QueryParam("page") @DefaultValue("0") int page,
             @Parameter(description = "Page size") @QueryParam("size") @DefaultValue("20") int size) {
 
@@ -89,10 +91,14 @@ public class RideResource extends AbstractAuthenticatedResource {
                     description = "Ride created successfully",
                     content = @Content(schema = @Schema(implementation = RideDto.class))
             ),
-            @APIResponse(responseCode = "400", description = "Invalid request"),
-            @APIResponse(responseCode = "401", description = "Unauthorized"),
-            @APIResponse(responseCode = "403", description = "User is not a team member"),
-            @APIResponse(responseCode = "404", description = "Team not found")
+            @APIResponse(responseCode = "400", description = "Invalid request",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @APIResponse(responseCode = "401", description = "Unauthorized",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @APIResponse(responseCode = "403", description = "User is not a team member",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @APIResponse(responseCode = "404", description = "Team not found",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     public Response createRide(@Parameter(description = "Team URL slug") @PathParam("slug") String slug, @Valid CreateRideRequest request) {
         Team team = getTeamBySlug(slug);
@@ -102,7 +108,7 @@ public class RideResource extends AbstractAuthenticatedResource {
         if (request.groups() != null) {
             groupRequests = request.groups().stream()
                     .map(g -> new RideService.CreateRideGroupRequest(
-                            g.name(), g.description(), g.averageSpeed(), g.maxParticipants(), TsidUtils.toLong(g.routeId())))
+                            g.name(), g.description(), g.averageSpeed(), g.maxParticipants(), TsidUtils.toLongNullable(g.routeId())))
                     .toList();
         }
 
@@ -113,8 +119,8 @@ public class RideResource extends AbstractAuthenticatedResource {
                         request.date(),
                         request.startTime(),
                         request.visibility(),
-                        TsidUtils.toLong(request.routeId()),
-                        TsidUtils.toLong(request.meetingPointId()),
+                        TsidUtils.toLongNullable(request.routeId()),
+                        TsidUtils.toLongNullable(request.meetingPointId()),
                         request.publishAt(),
                         groupRequests
                 ),
@@ -136,7 +142,8 @@ public class RideResource extends AbstractAuthenticatedResource {
                     description = "Ride retrieved successfully",
                     content = @Content(schema = @Schema(implementation = RideDetailDto.class))
             ),
-            @APIResponse(responseCode = "404", description = "Team or ride not found")
+            @APIResponse(responseCode = "404", description = "Team or ride not found",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     public Response getRide(
             @Parameter(description = "Team URL slug") @PathParam("slug") String slug,
@@ -161,10 +168,14 @@ public class RideResource extends AbstractAuthenticatedResource {
                     description = "Ride updated successfully",
                     content = @Content(schema = @Schema(implementation = RideDto.class))
             ),
-            @APIResponse(responseCode = "400", description = "Invalid request"),
-            @APIResponse(responseCode = "401", description = "Unauthorized"),
-            @APIResponse(responseCode = "403", description = "User is not authorized to update this ride"),
-            @APIResponse(responseCode = "404", description = "Team or ride not found")
+            @APIResponse(responseCode = "400", description = "Invalid request",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @APIResponse(responseCode = "401", description = "Unauthorized",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @APIResponse(responseCode = "403", description = "User is not authorized to update this ride",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @APIResponse(responseCode = "404", description = "Team or ride not found",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     public Response updateRide(
             @Parameter(description = "Team URL slug") @PathParam("slug") String slug,
@@ -185,8 +196,8 @@ public class RideResource extends AbstractAuthenticatedResource {
                         request.startTime(),
                         request.status(),
                         request.visibility(),
-                        TsidUtils.toLong(request.routeId()),
-                        TsidUtils.toLong(request.meetingPointId()),
+                        TsidUtils.toLongNullable(request.routeId()),
+                        TsidUtils.toLongNullable(request.meetingPointId()),
                         request.publishAt()
                 ),
                 userId
@@ -201,9 +212,12 @@ public class RideResource extends AbstractAuthenticatedResource {
     @Operation(summary = "Delete ride", description = "Soft delete a ride. Requires organizer permissions.")
     @APIResponses({
             @APIResponse(responseCode = "204", description = "Ride deleted successfully"),
-            @APIResponse(responseCode = "401", description = "Unauthorized"),
-            @APIResponse(responseCode = "403", description = "User is not authorized to delete this ride"),
-            @APIResponse(responseCode = "404", description = "Team or ride not found")
+            @APIResponse(responseCode = "401", description = "Unauthorized",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @APIResponse(responseCode = "403", description = "User is not authorized to delete this ride",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @APIResponse(responseCode = "404", description = "Team or ride not found",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     public Response deleteRide(
             @Parameter(description = "Team URL slug") @PathParam("slug") String slug,
@@ -228,7 +242,8 @@ public class RideResource extends AbstractAuthenticatedResource {
                     description = "Groups retrieved successfully",
                     content = @Content(schema = @Schema(implementation = RideGroupListResponse.class))
             ),
-            @APIResponse(responseCode = "404", description = "Team or ride not found")
+            @APIResponse(responseCode = "404", description = "Team or ride not found",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
     })
     public Response listGroups(
             @Parameter(description = "Team URL slug") @PathParam("slug") String slug,
@@ -254,10 +269,14 @@ public class RideResource extends AbstractAuthenticatedResource {
                     description = "Group created successfully",
                     content = @Content(schema = @Schema(implementation = RideGroupDto.class))
             ),
-            @APIResponse(responseCode = "400", description = "Invalid request"),
-            @APIResponse(responseCode = "401", description = "Unauthorized"),
-            @APIResponse(responseCode = "403", description = "User is not authorized to modify this ride"),
-            @APIResponse(responseCode = "404", description = "Team or ride not found")
+            @APIResponse(responseCode = "400", description = "Invalid request",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @APIResponse(responseCode = "401", description = "Unauthorized",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @APIResponse(responseCode = "403", description = "User is not authorized to modify this ride",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @APIResponse(responseCode = "404", description = "Team or ride not found",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     public Response createGroup(
             @Parameter(description = "Team URL slug") @PathParam("slug") String slug,
@@ -276,7 +295,7 @@ public class RideResource extends AbstractAuthenticatedResource {
                         request.description(),
                         request.averageSpeed(),
                         request.maxParticipants(),
-                        TsidUtils.toLong(request.routeId())
+                        TsidUtils.toLongNullable(request.routeId())
                 ),
                 userId
         );
@@ -296,10 +315,14 @@ public class RideResource extends AbstractAuthenticatedResource {
                     description = "Group updated successfully",
                     content = @Content(schema = @Schema(implementation = RideGroupDto.class))
             ),
-            @APIResponse(responseCode = "400", description = "Invalid request"),
-            @APIResponse(responseCode = "401", description = "Unauthorized"),
-            @APIResponse(responseCode = "403", description = "User is not authorized to modify this ride"),
-            @APIResponse(responseCode = "404", description = "Team, ride, or group not found")
+            @APIResponse(responseCode = "400", description = "Invalid request",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @APIResponse(responseCode = "401", description = "Unauthorized",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @APIResponse(responseCode = "403", description = "User is not authorized to modify this ride",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @APIResponse(responseCode = "404", description = "Team, ride, or group not found",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     public Response updateGroup(
             @Parameter(description = "Team URL slug") @PathParam("slug") String slug,
@@ -319,7 +342,7 @@ public class RideResource extends AbstractAuthenticatedResource {
                         request.description(),
                         request.averageSpeed(),
                         request.maxParticipants(),
-                        TsidUtils.toLong(request.routeId())
+                        TsidUtils.toLongNullable(request.routeId())
                 ),
                 userId
         );
@@ -333,9 +356,12 @@ public class RideResource extends AbstractAuthenticatedResource {
     @Operation(summary = "Delete ride group", description = "Delete a ride group. Requires organizer permissions.")
     @APIResponses({
             @APIResponse(responseCode = "204", description = "Group deleted successfully"),
-            @APIResponse(responseCode = "401", description = "Unauthorized"),
-            @APIResponse(responseCode = "403", description = "User is not authorized to modify this ride"),
-            @APIResponse(responseCode = "404", description = "Team, ride, or group not found")
+            @APIResponse(responseCode = "401", description = "Unauthorized",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @APIResponse(responseCode = "403", description = "User is not authorized to modify this ride",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @APIResponse(responseCode = "404", description = "Team, ride, or group not found",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     public Response deleteGroup(
             @Parameter(description = "Team URL slug") @PathParam("slug") String slug,
@@ -363,15 +389,18 @@ public class RideResource extends AbstractAuthenticatedResource {
                     description = "Successfully joined group",
                     content = @Content(schema = @Schema(implementation = RideParticipationDto.class))
             ),
-            @APIResponse(responseCode = "400", description = "Group is full or user already joined"),
-            @APIResponse(responseCode = "401", description = "Unauthorized"),
-            @APIResponse(responseCode = "404", description = "Team, ride, or group not found")
+            @APIResponse(responseCode = "400", description = "Group is full or user already joined",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @APIResponse(responseCode = "401", description = "Unauthorized",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @APIResponse(responseCode = "404", description = "Team, ride, or group not found",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     public Response joinGroup(
             @Parameter(description = "Team URL slug") @PathParam("slug") String slug,
             @Parameter(description = "Ride URL slug") @PathParam("rideSlug") String rideSlug,
             @Parameter(description = "Group ID (TSID)") @PathParam("groupId") String groupId,
-            JoinGroupRequest request) {
+            @Nullable JoinGroupRequest request) {
 
         Team team = getTeamBySlug(slug);
         Long userId = getCurrentUserId();
@@ -393,8 +422,10 @@ public class RideResource extends AbstractAuthenticatedResource {
     @Operation(summary = "Leave ride group", description = "Leave a ride group")
     @APIResponses({
             @APIResponse(responseCode = "204", description = "Successfully left group"),
-            @APIResponse(responseCode = "401", description = "Unauthorized"),
-            @APIResponse(responseCode = "404", description = "Team, ride, group, or participation not found")
+            @APIResponse(responseCode = "401", description = "Unauthorized",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @APIResponse(responseCode = "404", description = "Team, ride, group, or participation not found",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     public Response leaveGroup(
             @Parameter(description = "Team URL slug") @PathParam("slug") String slug,
@@ -418,59 +449,59 @@ public class RideResource extends AbstractAuthenticatedResource {
             @Schema(description = "Ride title", examples = "Sunday Morning Ride", required = true)
             @NotBlank @Size(min = 3, max = 200) String title,
 
-            @Schema(description = "Ride description")
+            @Nullable @Schema(description = "Ride description", nullable = true)
             @Size(max = 5000) String description,
 
             @Schema(description = "Ride date", examples = "2025-06-15", required = true)
-            @NotNull LocalDate date,
+            LocalDate date,
 
-            @Schema(description = "Start time", examples = "09:00")
+            @Nullable @Schema(description = "Start time", examples = "09:00", nullable = true)
             LocalTime startTime,
 
-            @Schema(description = "Route ID (TSID)")
+            @Nullable @Schema(description = "Route ID (TSID)", nullable = true)
             String routeId,
 
-            @Schema(description = "Meeting point ID (TSID)")
+            @Nullable @Schema(description = "Meeting point ID (TSID)", nullable = true)
             String meetingPointId,
 
-            @Schema(description = "Visibility level", enumeration = {"PUBLIC", "MEMBERS_ONLY", "PRIVATE"})
+            @Nullable @Schema(description = "Visibility level", nullable = true)
             Visibility visibility,
 
-            @Schema(description = "Publication timestamp (for scheduled publishing)")
+            @Nullable @Schema(description = "Publication timestamp (for scheduled publishing)", nullable = true)
             Instant publishAt,
 
-            @Schema(description = "Ride groups to create")
+            @Nullable @Schema(description = "Ride groups to create", nullable = true)
             List<CreateGroupRequest> groups
     ) {
     }
 
     @Schema(description = "Ride update request")
     public record UpdateRideRequest(
-            @Schema(description = "Ride title")
+            @Nullable @Schema(description = "Ride title", nullable = true)
             @Size(min = 3, max = 200) String title,
 
-            @Schema(description = "Ride description")
+            @Nullable @Schema(description = "Ride description", nullable = true)
             @Size(max = 5000) String description,
 
-            @Schema(description = "Ride date")
+            @Nullable @Schema(description = "Ride date", nullable = true)
             LocalDate date,
 
-            @Schema(description = "Start time")
+            @Nullable @Schema(description = "Start time", nullable = true)
             LocalTime startTime,
 
-            @Schema(description = "Ride status", enumeration = {"DRAFT", "PUBLISHED", "CANCELLED", "COMPLETED"})
+            @Nullable @Schema(description = "Ride status", nullable = true)
             RideStatus status,
 
-            @Schema(description = "Visibility level", enumeration = {"PUBLIC", "MEMBERS_ONLY", "PRIVATE"})
+            @Nullable @Schema(description = "Visibility level", nullable = true)
             Visibility visibility,
 
-            @Schema(description = "Route ID (TSID)")
+            @Nullable @Schema(description = "Route ID (TSID)", nullable = true)
             String routeId,
 
-            @Schema(description = "Meeting point ID (TSID)")
+            @Nullable @Schema(description = "Meeting point ID (TSID)", nullable = true)
             String meetingPointId,
 
-            @Schema(description = "Publication timestamp")
+            @Nullable @Schema(description = "Publication timestamp", nullable = true)
             Instant publishAt
     ) {
     }
@@ -480,42 +511,42 @@ public class RideResource extends AbstractAuthenticatedResource {
             @Schema(description = "Group name", examples = "Fast Group", required = true)
             @NotBlank @Size(min = 1, max = 100) String name,
 
-            @Schema(description = "Group description")
+            @Nullable @Schema(description = "Group description", nullable = true)
             String description,
 
-            @Schema(description = "Average speed in km/h", examples = "25")
+            @Nullable @Schema(description = "Average speed in km/h", examples = "25", nullable = true)
             Integer averageSpeed,
 
-            @Schema(description = "Maximum participants")
+            @Nullable @Schema(description = "Maximum participants", nullable = true)
             Integer maxParticipants,
 
-            @Schema(description = "Route ID (TSID) for this group")
+            @Nullable @Schema(description = "Route ID (TSID) for this group", nullable = true)
             String routeId
     ) {
     }
 
     @Schema(description = "Ride group update request")
     public record UpdateGroupRequest(
-            @Schema(description = "Group name")
+            @Nullable @Schema(description = "Group name", nullable = true)
             @Size(min = 1, max = 100) String name,
 
-            @Schema(description = "Group description")
+            @Nullable @Schema(description = "Group description", nullable = true)
             String description,
 
-            @Schema(description = "Average speed in km/h")
+            @Nullable @Schema(description = "Average speed in km/h", nullable = true)
             Integer averageSpeed,
 
-            @Schema(description = "Maximum participants")
+            @Nullable @Schema(description = "Maximum participants", nullable = true)
             Integer maxParticipants,
 
-            @Schema(description = "Route ID (TSID)")
+            @Nullable @Schema(description = "Route ID (TSID)", nullable = true)
             String routeId
     ) {
     }
 
     @Schema(description = "Request to join a ride group")
     public record JoinGroupRequest(
-            @Schema(description = "Optional notes for the organizer")
+            @Nullable @Schema(description = "Optional notes for the organizer", nullable = true)
             String notes
     ) {
     }
@@ -523,40 +554,40 @@ public class RideResource extends AbstractAuthenticatedResource {
     // Response DTOs
     @Schema(description = "Ride summary data")
     public record RideDto(
-            @Schema(description = "Ride ID (TSID)")
+            @Schema(description = "Ride ID (TSID)", required = true)
             String id,
 
-            @Schema(description = "Ride URL slug")
+            @Schema(description = "Ride URL slug", required = true)
             String slug,
 
-            @Schema(description = "Ride title")
+            @Schema(description = "Ride title", required = true)
             String title,
 
-            @Schema(description = "Ride description")
+            @Nullable @Schema(description = "Ride description", nullable = true)
             String description,
 
-            @Schema(description = "Ride date")
+            @Schema(description = "Ride date", required = true)
             LocalDate date,
 
-            @Schema(description = "Start time")
+            @Nullable @Schema(description = "Start time", nullable = true)
             LocalTime startTime,
 
-            @Schema(description = "Ride status", enumeration = {"DRAFT", "PUBLISHED", "CANCELLED", "COMPLETED"})
-            String status,
+            @Schema(description = "Ride status", required = true)
+            RideStatus status,
 
-            @Schema(description = "Visibility level", enumeration = {"PUBLIC", "MEMBERS_ONLY", "PRIVATE"})
-            String visibility,
+            @Schema(description = "Visibility level", required = true)
+            Visibility visibility,
 
-            @Schema(description = "Number of participants")
+            @Schema(description = "Number of participants", required = true)
             int participantCount,
 
-            @Schema(description = "Number of groups")
+            @Schema(description = "Number of groups", required = true)
             int groupCount,
 
-            @Schema(description = "Publication timestamp")
+            @Nullable @Schema(description = "Publication timestamp", nullable = true)
             String publishAt,
 
-            @Schema(description = "Creation timestamp")
+            @Nullable @Schema(description = "Creation timestamp", nullable = true)
             String createdAt
     ) {
         public static RideDto from(Ride ride) {
@@ -567,55 +598,55 @@ public class RideResource extends AbstractAuthenticatedResource {
                     ride.getDescription(),
                     ride.getDate(),
                     ride.getStartTime(),
-                    ride.getStatus().name(),
-                    ride.getVisibility().name(),
+                    ride.getStatus(),
+                    ride.getVisibility(),
                     ride.getParticipantCount(),
                     ride.getGroupCount(),
                     ride.getPublishAt() != null ? ride.getPublishAt().toString() : null,
-                    ride.getCreatedAt() != null ? ride.getCreatedAt().toString() : null
+                    ride.getCreatedAt().toString()
             );
         }
     }
 
     @Schema(description = "Detailed ride information")
     public record RideDetailDto(
-            @Schema(description = "Ride ID (TSID)")
+            @Schema(description = "Ride ID (TSID)", required = true)
             String id,
 
-            @Schema(description = "Ride URL slug")
+            @Schema(description = "Ride URL slug", required = true)
             String slug,
 
-            @Schema(description = "Ride title")
+            @Schema(description = "Ride title", required = true)
             String title,
 
-            @Schema(description = "Ride description")
+            @Nullable @Schema(description = "Ride description", nullable = true)
             String description,
 
-            @Schema(description = "Ride date")
+            @Schema(description = "Ride date", required = true)
             LocalDate date,
 
-            @Schema(description = "Start time")
+            @Nullable @Schema(description = "Start time", nullable = true)
             LocalTime startTime,
 
-            @Schema(description = "Ride status")
-            String status,
+            @Schema(description = "Ride status", required = true)
+            RideStatus status,
 
-            @Schema(description = "Visibility level")
-            String visibility,
+            @Schema(description = "Visibility level", required = true)
+            Visibility visibility,
 
-            @Schema(description = "Number of participants")
+            @Schema(description = "Number of participants", required = true)
             int participantCount,
 
-            @Schema(description = "Number of groups")
+            @Schema(description = "Number of groups", required = true)
             int groupCount,
 
-            @Schema(description = "Ride groups")
+            @Schema(description = "Ride groups", required = true)
             List<RideGroupDto> groups,
 
-            @Schema(description = "Publication timestamp")
+            @Nullable @Schema(description = "Publication timestamp", nullable = true)
             String publishAt,
 
-            @Schema(description = "Creation timestamp")
+            @Nullable @Schema(description = "Creation timestamp", nullable = true)
             String createdAt
     ) {
         public static RideDetailDto from(Ride ride) {
@@ -631,38 +662,38 @@ public class RideResource extends AbstractAuthenticatedResource {
                     ride.getDescription(),
                     ride.getDate(),
                     ride.getStartTime(),
-                    ride.getStatus().name(),
-                    ride.getVisibility().name(),
+                    ride.getStatus(),
+                    ride.getVisibility(),
                     ride.getParticipantCount(),
                     ride.getGroupCount(),
                     groupDtos,
                     ride.getPublishAt() != null ? ride.getPublishAt().toString() : null,
-                    ride.getCreatedAt() != null ? ride.getCreatedAt().toString() : null
+                    ride.getCreatedAt().toString()
             );
         }
     }
 
     @Schema(description = "Ride group information")
     public record RideGroupDto(
-            @Schema(description = "Group ID (TSID)")
+            @Schema(description = "Group ID (TSID)", required = true)
             String id,
 
-            @Schema(description = "Group name")
+            @Schema(description = "Group name", required = true)
             String name,
 
-            @Schema(description = "Group description")
+            @Nullable @Schema(description = "Group description", nullable = true)
             String description,
 
-            @Schema(description = "Average speed in km/h")
+            @Nullable @Schema(description = "Average speed in km/h", nullable = true)
             Integer averageSpeed,
 
-            @Schema(description = "Maximum participants")
+            @Nullable @Schema(description = "Maximum participants", nullable = true)
             Integer maxParticipants,
 
-            @Schema(description = "Current number of participants")
+            @Schema(description = "Current number of participants", required = true)
             int currentParticipants,
 
-            @Schema(description = "Sort order")
+            @Schema(description = "Sort order", required = true)
             int sortOrder
     ) {
         public static RideGroupDto from(RideGroup group) {
@@ -680,19 +711,19 @@ public class RideResource extends AbstractAuthenticatedResource {
 
     @Schema(description = "Ride participation information")
     public record RideParticipationDto(
-            @Schema(description = "Participation ID (TSID)")
+            @Schema(description = "Participation ID (TSID)", required = true)
             String id,
 
-            @Schema(description = "User ID (TSID)")
+            @Schema(description = "User ID (TSID)", required = true)
             String userId,
 
-            @Schema(description = "Participation status")
+            @Schema(description = "Participation status", required = true)
             String status,
 
-            @Schema(description = "Registration timestamp")
+            @Nullable @Schema(description = "Registration timestamp", nullable = true)
             String registeredAt,
 
-            @Schema(description = "Participant notes")
+            @Nullable @Schema(description = "Participant notes", nullable = true)
             String notes
     ) {
         public static RideParticipationDto from(RideParticipation participation) {
@@ -700,7 +731,7 @@ public class RideResource extends AbstractAuthenticatedResource {
                     TsidUtils.toString(participation.getId()),
                     TsidUtils.toString(participation.getUser().getId()),
                     participation.getStatus().name(),
-                    participation.getRegisteredAt() != null ? participation.getRegisteredAt().toString() : null,
+                    participation.getRegisteredAt().toString(),
                     participation.getNotes()
             );
         }
@@ -708,23 +739,23 @@ public class RideResource extends AbstractAuthenticatedResource {
 
     @Schema(description = "Paginated ride list response")
     public record RideListResponse(
-            @Schema(description = "List of rides")
+            @Schema(description = "List of rides", required = true)
             List<RideDto> rides,
 
-            @Schema(description = "Total number of rides")
+            @Schema(description = "Total number of rides", required = true)
             long total,
 
-            @Schema(description = "Current page number")
+            @Schema(description = "Current page number", required = true)
             int page,
 
-            @Schema(description = "Page size")
+            @Schema(description = "Page size", required = true)
             int size
     ) {
     }
 
     @Schema(description = "Ride group list response")
     public record RideGroupListResponse(
-            @Schema(description = "List of ride groups")
+            @Schema(description = "List of ride groups", required = true)
             List<RideGroupDto> data
     ) {
     }

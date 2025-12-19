@@ -1,73 +1,40 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
-import apiClient from '../api/client'
+import { routesApi, unwrapResponse } from '../lib/apiClient'
+import { useNotificationStore } from '../store/notificationStore'
+import type {
+  RouteDto,
+  RouteDetailDto,
+  RouteClimbDto,
+  TrackPointDto,
+  GpxTrackDto,
+  RouteListResponse,
+  ClimbListResponse,
+  UpdateRouteRequest,
+} from '../api/api'
+import { RouteDifficulty, SurfaceType } from '../api/api'
 
-export interface Route {
-  id: string
-  name: string
-  description: string | null
-  distance: number
-  elevationGain: number
-  elevationLoss: number
-  difficulty: 'EASY' | 'MODERATE' | 'HARD' | 'EXPERT' | null
-  surfaceType: 'ROAD' | 'GRAVEL' | 'MTB' | 'MIXED' | null
-  isPublic: boolean
-  thumbnailUrl: string | null
-  createdAt: string
+// Re-export types for convenience
+export type {
+  RouteDto,
+  RouteDetailDto,
+  RouteClimbDto,
+  TrackPointDto,
+  GpxTrackDto,
+  RouteListResponse,
+  ClimbListResponse,
+  UpdateRouteRequest,
 }
 
-export interface RouteDetail extends Route {
-  startLat: number | null
-  startLng: number | null
-  endLat: number | null
-  endLng: number | null
-  createdById: string
-  updatedAt: string
-}
-
-export interface RouteClimb {
-  id: string
-  name: string | null
-  startDistance: number
-  endDistance: number
-  elevationGain: number
-  averageGradient: number
-  maxGradient: number
-  category: 'HC' | 'CAT1' | 'CAT2' | 'CAT3' | 'CAT4' | null
-}
-
-export interface TrackPoint {
-  lat: number
-  lng: number
-  ele: number
-  dist: number
-}
-
-export interface GpxTrack {
-  id: string
-  name: string
-  trackPoints: TrackPoint[]
-  processedAt: string
-}
-
-export interface RouteListResponse {
-  routes: Route[]
-  total: number
-  page: number
-  size: number
-}
-
-export interface ClimbListResponse {
-  climbs: RouteClimb[]
-}
+// Re-export enums as values (not types)
+export { RouteDifficulty, SurfaceType }
 
 export function useRoutes(teamSlug: string | undefined, page = 0, size = 20) {
   return useQuery({
     queryKey: ['routes', teamSlug, page, size],
     queryFn: async () => {
-      return apiClient.get<RouteListResponse>(`/teams/${teamSlug}/routes`, {
-        params: { page, size },
-      })
+      if (!teamSlug) throw new Error('Team slug is required')
+      return await unwrapResponse(routesApi.listRoutes(teamSlug, page, size))
     },
     enabled: !!teamSlug,
     staleTime: 1000 * 60 * 2,
@@ -78,7 +45,8 @@ export function useRoute(teamSlug: string | undefined, routeId: string | undefin
   return useQuery({
     queryKey: ['route', teamSlug, routeId],
     queryFn: async () => {
-      return apiClient.get<RouteDetail>(`/teams/${teamSlug}/routes/${routeId}`)
+      if (!teamSlug || !routeId) throw new Error('Team slug and route ID are required')
+      return await unwrapResponse(routesApi.getRoute(routeId, teamSlug))
     },
     enabled: !!teamSlug && !!routeId,
     staleTime: 1000 * 60 * 2,
@@ -89,7 +57,8 @@ export function useRouteClimbs(teamSlug: string | undefined, routeId: string | u
   return useQuery({
     queryKey: ['routeClimbs', teamSlug, routeId],
     queryFn: async () => {
-      return apiClient.get<ClimbListResponse>(`/teams/${teamSlug}/routes/${routeId}/climbs`)
+      if (!teamSlug || !routeId) throw new Error('Team slug and route ID are required')
+      return await unwrapResponse(routesApi.getClimbs(routeId, teamSlug))
     },
     enabled: !!teamSlug && !!routeId,
     staleTime: 1000 * 60 * 2,
@@ -100,7 +69,8 @@ export function useGpxTrack(teamSlug: string | undefined, routeId: string | unde
   return useQuery({
     queryKey: ['gpxTrack', teamSlug, routeId],
     queryFn: async () => {
-      return apiClient.get<GpxTrack>(`/teams/${teamSlug}/routes/${routeId}/track`)
+      if (!teamSlug || !routeId) throw new Error('Team slug and route ID are required')
+      return await unwrapResponse(routesApi.getTrack(routeId, teamSlug))
     },
     enabled: !!teamSlug && !!routeId,
     staleTime: 1000 * 60 * 5, // Track data is less likely to change
@@ -115,24 +85,37 @@ export function useCreateRoute(teamSlug: string) {
     mutationFn: async (data: {
       name: string
       description?: string
-      difficulty?: 'EASY' | 'MODERATE' | 'HARD' | 'EXPERT'
-      surfaceType?: 'ROAD' | 'GRAVEL' | 'MTB' | 'MIXED'
+      difficulty?: RouteDifficulty
+      surfaceType?: SurfaceType
       isPublic?: boolean
       gpxFile: File
     }) => {
-      const formData = new FormData()
-      formData.append('name', data.name)
-      if (data.description) formData.append('description', data.description)
-      if (data.difficulty) formData.append('difficulty', data.difficulty)
-      if (data.surfaceType) formData.append('surfaceType', data.surfaceType)
-      if (data.isPublic !== undefined) formData.append('isPublic', String(data.isPublic))
-      formData.append('gpxFile', data.gpxFile)
-
-      return apiClient.post<Route>(`/teams/${teamSlug}/routes`, formData)
+      return await unwrapResponse(
+        routesApi.createRoute(
+          teamSlug,
+          data.name,
+          data.description,
+          data.difficulty,
+          data.surfaceType,
+          data.isPublic,
+          data.gpxFile
+        )
+      )
     },
     onSuccess: (route) => {
       queryClient.invalidateQueries({ queryKey: ['routes', teamSlug] })
-      navigate(`/teams/${teamSlug}/routes/${route.id}`)
+
+      // Show success notification
+      useNotificationStore.getState().addNotification({
+        message: '',
+        type: 'success',
+        duration: 4000,
+        translationKey: 'notifications.routeCreated',
+      })
+
+      if (route) {
+        navigate(`/teams/${teamSlug}/routes/${route.id}`)
+      }
     },
   })
 }
@@ -141,18 +124,20 @@ export function useUpdateRoute(teamSlug: string, routeId: string) {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (data: {
-      name?: string
-      description?: string
-      difficulty?: 'EASY' | 'MODERATE' | 'HARD' | 'EXPERT'
-      surfaceType?: 'ROAD' | 'GRAVEL' | 'MTB' | 'MIXED'
-      isPublic?: boolean
-    }) => {
-      return apiClient.patch<Route>(`/teams/${teamSlug}/routes/${routeId}`, data)
+    mutationFn: async (data: UpdateRouteRequest) => {
+      return await unwrapResponse(routesApi.updateRoute(routeId, teamSlug, data))
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['route', teamSlug, routeId] })
       queryClient.invalidateQueries({ queryKey: ['routes', teamSlug] })
+
+      // Show success notification
+      useNotificationStore.getState().addNotification({
+        message: '',
+        type: 'success',
+        duration: 4000,
+        translationKey: 'notifications.routeUpdated',
+      })
     },
   })
 }
@@ -163,10 +148,19 @@ export function useDeleteRoute(teamSlug: string) {
 
   return useMutation({
     mutationFn: async (routeId: string) => {
-      return apiClient.delete(`/teams/${teamSlug}/routes/${routeId}`)
+      await unwrapResponse(routesApi.deleteRoute(routeId, teamSlug))
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['routes', teamSlug] })
+
+      // Show success notification
+      useNotificationStore.getState().addNotification({
+        message: '',
+        type: 'success',
+        duration: 4000,
+        translationKey: 'notifications.routeDeleted',
+      })
+
       navigate(`/teams/${teamSlug}/routes`)
     },
   })

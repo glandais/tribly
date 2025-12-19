@@ -2,7 +2,9 @@ package com.tribly.domain.route;
 
 import com.tribly.domain.common.BaseEntity;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
+import lombok.Setter;
+import org.jspecify.annotations.Nullable;
 
 import java.math.BigDecimal;
 
@@ -10,6 +12,8 @@ import java.math.BigDecimal;
  * Represents a climb segment detected within a route.
  * Contains metrics like elevation gain, gradients, and climb categorization.
  */
+@Setter
+@Getter
 @Entity
 @Table(name = "route_climbs")
 public class RouteClimb extends BaseEntity {
@@ -19,40 +23,36 @@ public class RouteClimb extends BaseEntity {
     private Route route;
 
     @Column(name = "name")
+    @Nullable
     private String name;
 
     /**
      * Distance from route start where climb begins (in meters).
      */
-    @NotNull
     @Column(name = "start_distance", nullable = false)
     private Integer startDistance;
 
     /**
      * Distance from route start where climb ends (in meters).
      */
-    @NotNull
     @Column(name = "end_distance", nullable = false)
     private Integer endDistance;
 
     /**
      * Total elevation gain for this climb (in meters).
      */
-    @NotNull
     @Column(name = "elevation_gain", nullable = false)
     private Integer elevationGain;
 
     /**
      * Average gradient percentage for the climb.
      */
-    @NotNull
     @Column(name = "average_gradient", precision = 5, scale = 2, nullable = false)
     private BigDecimal averageGradient;
 
     /**
      * Maximum gradient percentage encountered in the climb.
      */
-    @NotNull
     @Column(name = "max_gradient", precision = 5, scale = 2, nullable = false)
     private BigDecimal maxGradient;
 
@@ -61,6 +61,7 @@ public class RouteClimb extends BaseEntity {
      */
     @Enumerated(EnumType.STRING)
     @Column(name = "category", length = 10)
+    @Nullable
     private ClimbCategory category;
 
     // Constructors
@@ -70,67 +71,4 @@ public class RouteClimb extends BaseEntity {
 
     // Getters and Setters
 
-    public Route getRoute() {
-        return route;
-    }
-
-    public void setRoute(Route route) {
-        this.route = route;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public Integer getStartDistance() {
-        return startDistance;
-    }
-
-    public void setStartDistance(Integer startDistance) {
-        this.startDistance = startDistance;
-    }
-
-    public Integer getEndDistance() {
-        return endDistance;
-    }
-
-    public void setEndDistance(Integer endDistance) {
-        this.endDistance = endDistance;
-    }
-
-    public Integer getElevationGain() {
-        return elevationGain;
-    }
-
-    public void setElevationGain(Integer elevationGain) {
-        this.elevationGain = elevationGain;
-    }
-
-    public BigDecimal getAverageGradient() {
-        return averageGradient;
-    }
-
-    public void setAverageGradient(BigDecimal averageGradient) {
-        this.averageGradient = averageGradient;
-    }
-
-    public BigDecimal getMaxGradient() {
-        return maxGradient;
-    }
-
-    public void setMaxGradient(BigDecimal maxGradient) {
-        this.maxGradient = maxGradient;
-    }
-
-    public ClimbCategory getCategory() {
-        return category;
-    }
-
-    public void setCategory(ClimbCategory category) {
-        this.category = category;
-    }
 }

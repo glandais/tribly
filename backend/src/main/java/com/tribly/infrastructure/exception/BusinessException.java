@@ -1,5 +1,8 @@
 package com.tribly.infrastructure.exception;
 
+import lombok.Getter;
+
+@Getter
 public class BusinessException extends RuntimeException {
 
     private final ErrorType errorType;
@@ -13,14 +16,6 @@ public class BusinessException extends RuntimeException {
 
     public BusinessException(String message, ErrorType errorType) {
         this(message, errorType, errorType.name());
-    }
-
-    public ErrorType getErrorType() {
-        return errorType;
-    }
-
-    public String getErrorCode() {
-        return errorCode;
     }
 
     public enum ErrorType {

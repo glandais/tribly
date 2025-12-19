@@ -1,5 +1,6 @@
 package com.tribly.service.route;
 
+import com.tribly.api.AbstractAuthenticatedResource;
 import com.tribly.domain.route.*;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.team.TeamRepository;
@@ -13,6 +14,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import org.jboss.logging.Logger;
+import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.io.InputStream;
@@ -26,7 +28,7 @@ import java.util.Optional;
  * Handles CRUD operations, GPX processing orchestration, and security checks.
  */
 @ApplicationScoped
-public class RouteService {
+public class RouteService extends AbstractAuthenticatedResource {
 
     private static final Logger LOG = Logger.getLogger(RouteService.class);
 
@@ -57,7 +59,7 @@ public class RouteService {
      */
     @Transactional
     public Route createRoute(Long teamId, CreateRouteRequest request,
-                            InputStream gpxFile, String fileName, Long creatorId) {
+                             InputStream gpxFile, String fileName, Long creatorId) {
         // Security check: reuse ride permissions (admins & organizers can create routes)
         securityService.requireCanCreateRide(creatorId, teamId);
 
@@ -75,7 +77,7 @@ public class RouteService {
         route.setDescription(request.description());
         route.setDifficulty(request.difficulty());
         route.setSurfaceType(request.surfaceType());
-        route.setPublic(request.isPublic() != null && request.isPublic());
+        route.setPublic(request.isPublic());
 
         // Persist to get ID for file storage
         routeRepository.persistAndFlush(route);
@@ -137,16 +139,13 @@ public class RouteService {
     /**
      * Get a route by ID with access control.
      */
-    public Optional<Route> getRoute(Long teamId, Long routeId, Long userId) {
+    public Optional<Route> getRoute(Long teamId, Long routeId, @Nullable Long userId) {
         Route route = routeRepository.findByIdAndTeam(routeId, teamId)
                 .orElseThrow(() -> BusinessException.notFound("Route", routeId));
 
         // Access control: public routes accessible to all, private routes only to members
-        if (!route.isPublic()) {
-            var membership = securityService.getMembership(userId, teamId);
-            if (membership.isEmpty()) {
-                throw BusinessException.forbidden("You are not a member of this team");
-            }
+        if (!route.isPublic() && !securityService.isMember(userId, teamId)) {
+            throw BusinessException.forbidden("You are not a member of this team");
         }
 
         return Optional.of(route);
@@ -155,12 +154,11 @@ public class RouteService {
     /**
      * List routes for a team with pagination and access control.
      */
-    public List<Route> getRoutes(Long teamId, Long userId, int page, int size) {
+    public List<Route> getRoutes(Long teamId, @Nullable Long userId, int page, int size) {
         Team team = teamRepository.findActiveById(teamId)
                 .orElseThrow(() -> BusinessException.notFound("Team", teamId));
 
-        var membershipOpt = securityService.getMembership(userId, teamId);
-        boolean isMember = membershipOpt.isPresent();
+        boolean isMember = securityService.isMember(userId, teamId);
 
         // Private team - no access for non-members
         if (!isMember && !team.isPublic()) {
@@ -178,12 +176,11 @@ public class RouteService {
     /**
      * Count routes for a team with access control.
      */
-    public long countRoutes(Long teamId, Long userId) {
+    public long countRoutes(Long teamId, @Nullable Long userId) {
         Team team = teamRepository.findActiveById(teamId)
                 .orElseThrow(() -> BusinessException.notFound("Team", teamId));
 
-        var membershipOpt = securityService.getMembership(userId, teamId);
-        boolean isMember = membershipOpt.isPresent();
+        boolean isMember = securityService.isMember(userId, teamId);
 
         // Private team - no access for non-members
         if (!isMember && !team.isPublic()) {
@@ -252,7 +249,7 @@ public class RouteService {
     /**
      * Get climbs for a route.
      */
-    public List<RouteClimb> getClimbs(Long teamId, Long routeId, Long userId) {
+    public List<RouteClimb> getClimbs(Long teamId, Long routeId, @Nullable Long userId) {
         Route route = getRoute(teamId, routeId, userId)
                 .orElseThrow(() -> BusinessException.notFound("Route", routeId));
         return routeClimbRepository.findByRoute(route.getId());
@@ -261,7 +258,7 @@ public class RouteService {
     /**
      * Get GPX track for a route.
      */
-    public GpxTrack getTrack(Long teamId, Long routeId, Long userId) {
+    public GpxTrack getTrack(Long teamId, Long routeId, @Nullable Long userId) {
         Route route = getRoute(teamId, routeId, userId)
                 .orElseThrow(() -> BusinessException.notFound("Route", routeId));
         return gpxTrackRepository.findByRoute(route.getId())
@@ -271,7 +268,7 @@ public class RouteService {
     /**
      * Get filtered GPX file for download.
      */
-    public File getFilteredGpxFile(Long teamId, Long routeId, Long userId) {
+    public File getFilteredGpxFile(Long teamId, Long routeId, @Nullable Long userId) {
         Route route = getRoute(teamId, routeId, userId)
                 .orElseThrow(() -> BusinessException.notFound("Route", routeId));
         return gpxProcessingService.getFilteredGpxFile(route.getId());
@@ -280,7 +277,7 @@ public class RouteService {
     /**
      * Get FIT file for download.
      */
-    public File getFitFile(Long teamId, Long routeId, Long userId) {
+    public File getFitFile(Long teamId, Long routeId, @Nullable Long userId) {
         Route route = getRoute(teamId, routeId, userId)
                 .orElseThrow(() -> BusinessException.notFound("Route", routeId));
         return gpxProcessingService.getFitFile(route.getId());
@@ -289,7 +286,7 @@ public class RouteService {
     /**
      * Get thumbnail image.
      */
-    public File getThumbnailFile(Long teamId, Long routeId, Long userId) {
+    public File getThumbnailFile(Long teamId, Long routeId, @Nullable Long userId) {
         Route route = getRoute(teamId, routeId, userId)
                 .orElseThrow(() -> BusinessException.notFound("Route", routeId));
         return gpxProcessingService.getThumbnailFile(route.getId());
@@ -303,13 +300,15 @@ public class RouteService {
             RouteDifficulty difficulty,
             SurfaceType surfaceType,
             Boolean isPublic
-    ) {}
+    ) {
+    }
 
     public record UpdateRouteRequest(
-            String name,
-            String description,
-            RouteDifficulty difficulty,
-            SurfaceType surfaceType,
-            Boolean isPublic
-    ) {}
+            @Nullable String name,
+            @Nullable String description,
+            @Nullable RouteDifficulty difficulty,
+            @Nullable SurfaceType surfaceType,
+            @Nullable Boolean isPublic
+    ) {
+    }
 }

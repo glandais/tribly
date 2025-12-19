@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useCreateTeam } from '../../hooks/useTeam'
 import { LoadingSpinner } from '../../components/common/LoadingSpinner'
-import { ApiClientError } from '../../api/client'
+import { ApiClientError } from '../../lib/apiClient'
 
 export function CreateTeamPage() {
   const { t } = useTranslation('teams')

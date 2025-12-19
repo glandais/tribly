@@ -3,6 +3,7 @@ package com.tribly.api.routes;
 import com.tribly.domain.route.GpxTrack;
 import com.tribly.infrastructure.id.TsidUtils;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 
@@ -11,16 +12,16 @@ import java.util.List;
  */
 @Schema(description = "GPX track with track points")
 public record GpxTrackDto(
-        @Schema(description = "Track ID (TSID)")
+        @Schema(description = "Track ID (TSID)", required = true)
         String id,
 
-        @Schema(description = "Track name")
+        @Nullable @Schema(description = "Track name")
         String name,
 
-        @Schema(description = "List of track points")
+        @Schema(description = "List of track points", required = true)
         List<TrackPointDto> trackPoints,
 
-        @Schema(description = "Processing timestamp")
+        @Nullable @Schema(description = "Processing timestamp", nullable = true)
         String processedAt
 ) {
     public static GpxTrackDto from(GpxTrack track) {
@@ -32,22 +33,22 @@ public record GpxTrackDto(
                 TsidUtils.toString(track.getId()),
                 track.getName(),
                 points,
-                track.getProcessedAt() != null ? track.getProcessedAt().toString() : null
+                track.getProcessedAt().toString()
         );
     }
 
     @Schema(description = "GPS track point")
     public record TrackPointDto(
-            @Schema(description = "Latitude")
+            @Schema(description = "Latitude", required = true)
             double lat,
 
-            @Schema(description = "Longitude")
+            @Schema(description = "Longitude", required = true)
             double lng,
 
-            @Schema(description = "Elevation in meters")
+            @Schema(description = "Elevation in meters", required = true)
             double ele,
 
-            @Schema(description = "Distance from start in meters")
+            @Schema(description = "Distance from start in meters", required = true)
             double dist
     ) {
     }

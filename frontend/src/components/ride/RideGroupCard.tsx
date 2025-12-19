@@ -1,8 +1,8 @@
 import { useTranslation } from 'react-i18next'
-import { RideGroup } from '../../hooks/useRide'
+import type { RideGroupDto } from '../../hooks/useRide'
 
 interface RideGroupCardProps {
-  group: RideGroup
+  group: RideGroupDto
   isJoined?: boolean
   canJoin?: boolean
   onJoin?: () => void
@@ -19,8 +19,7 @@ export function RideGroupCard({
   isLoading,
 }: RideGroupCardProps) {
   const { t } = useTranslation('rides')
-  const isFull =
-    group.maxParticipants !== null && group.currentParticipants >= group.maxParticipants
+  const isFull = group.maxParticipants && group.currentParticipants >= group.maxParticipants
 
   return (
     <div

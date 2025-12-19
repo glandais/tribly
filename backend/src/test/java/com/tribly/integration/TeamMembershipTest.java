@@ -8,19 +8,16 @@ import com.tribly.domain.team.UserTeamRepository;
 import com.tribly.domain.user.User;
 import com.tribly.domain.user.UserRepository;
 import com.tribly.infrastructure.id.TsidUtils;
-import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.keycloak.client.KeycloakTestClient;
-import io.smallrye.jwt.build.Jwt;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.Set;
-
 import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasSize;
 
 @QuarkusTest
 class TeamMembershipTest {
@@ -51,7 +48,7 @@ class TeamMembershipTest {
     private User memberUser;
     private User thirdUser;
 
-    KeycloakTestClient keycloakClient = new KeycloakTestClient();
+    final KeycloakTestClient keycloakClient = new KeycloakTestClient();
 
     protected String getAccessToken(String userName) {
         return keycloakClient.getAccessToken(userName, userName, "tribly-backend");

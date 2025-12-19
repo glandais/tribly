@@ -19,13 +19,6 @@ public class RouteClimbRepository implements PanacheRepository<RouteClimb> {
     }
 
     /**
-     * Count climbs for a route.
-     */
-    public long countByRoute(Long routeId) {
-        return count("route.id = ?1 and deleted = false", routeId);
-    }
-
-    /**
      * Find climbs by category for a route.
      */
     public List<RouteClimb> findByRouteAndCategory(Long routeId, ClimbCategory category) {
@@ -34,10 +27,4 @@ public class RouteClimbRepository implements PanacheRepository<RouteClimb> {
                 .list();
     }
 
-    /**
-     * Delete all climbs for a route (soft delete).
-     */
-    public void deleteByRoute(Long routeId) {
-        update("deleted = true where route.id = ?1", routeId);
-    }
 }

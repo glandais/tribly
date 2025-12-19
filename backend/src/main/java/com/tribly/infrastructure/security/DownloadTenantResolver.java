@@ -3,12 +3,13 @@ package com.tribly.infrastructure.security;
 import io.quarkus.oidc.TenantResolver;
 import io.vertx.ext.web.RoutingContext;
 import jakarta.enterprise.context.ApplicationScoped;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.jspecify.annotations.Nullable;
 
 @ApplicationScoped
 public class DownloadTenantResolver implements TenantResolver {
 
     @Override
+    @Nullable
     public String resolve(RoutingContext context) {
         String path = context.request().path();
 

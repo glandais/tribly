@@ -1,13 +1,13 @@
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import type { Team, TeamWithRole } from '../../hooks/useTeam'
+import type { TeamDto, TeamWithRoleDto } from '../../hooks/useTeam'
 
 interface TeamCardProps {
-  team: Team | TeamWithRole
+  team: TeamDto | TeamWithRoleDto
   showRole?: boolean
 }
 
-function isTeamWithRole(team: Team | TeamWithRole): team is TeamWithRole {
+function isTeamWithRole(team: TeamDto | TeamWithRoleDto): team is TeamWithRoleDto {
   return 'role' in team
 }
 

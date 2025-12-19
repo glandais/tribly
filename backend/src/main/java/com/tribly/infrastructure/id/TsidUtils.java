@@ -1,6 +1,7 @@
 package com.tribly.infrastructure.id;
 
 import io.hypersistence.tsid.TSID;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Utility class for converting between Long IDs and String TSID representations.
@@ -27,9 +28,6 @@ public final class TsidUtils {
      * @return the lowercase TSID string, or null if id is null
      */
     public static String toString(Long id) {
-        if (id == null) {
-            return null;
-        }
         return TSID.from(id).toLowerCase();
     }
 
@@ -41,6 +39,11 @@ public final class TsidUtils {
      * @throws IllegalArgumentException if the string is not a valid TSID
      */
     public static Long toLong(String tsid) {
+        return TSID.from(tsid).toLong();
+    }
+
+    @Nullable
+    public static Long toLongNullable(@Nullable String tsid) {
         if (tsid == null) {
             return null;
         }

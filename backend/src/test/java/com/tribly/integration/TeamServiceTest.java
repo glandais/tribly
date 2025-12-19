@@ -6,13 +6,11 @@ import com.tribly.domain.ride.RideRepository;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.team.TeamRepository;
 import com.tribly.domain.team.TeamRole;
-import com.tribly.domain.team.UserTeam;
 import com.tribly.domain.team.UserTeamRepository;
 import com.tribly.domain.user.User;
 import com.tribly.domain.user.UserRepository;
 import com.tribly.infrastructure.id.TsidUtils;
 import com.tribly.service.team.TeamService;
-import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.keycloak.client.KeycloakTestClient;
 import jakarta.inject.Inject;
@@ -56,7 +54,7 @@ class TeamServiceTest {
     private Team publicTeam;
     private Team privateTeam;
 
-    KeycloakTestClient keycloakClient = new KeycloakTestClient();
+    final KeycloakTestClient keycloakClient = new KeycloakTestClient();
 
     protected String getAccessToken(String userName) {
         return keycloakClient.getAccessToken(userName, userName, "tribly-backend");

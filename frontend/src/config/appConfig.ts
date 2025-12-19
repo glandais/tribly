@@ -1,19 +1,9 @@
-export interface AppConfig {
-  keycloak: {
-    url: string
-    realm: string
-    clientId: string
-  }
-  map: {
-    tileUrl: string
-    attribution: string
-  }
-}
+import { ConfigDto } from '@/api'
 
-let cachedConfig: AppConfig | null = null
-let configPromise: Promise<AppConfig> | null = null
+let cachedConfig: ConfigDto | null = null
+let configPromise: Promise<ConfigDto> | null = null
 
-export async function fetchAppConfig(): Promise<AppConfig> {
+export async function fetchAppConfig(): Promise<ConfigDto> {
   if (cachedConfig) {
     return cachedConfig
   }
@@ -34,6 +24,6 @@ export async function fetchAppConfig(): Promise<AppConfig> {
   return configPromise
 }
 
-export function getAppConfig(): AppConfig | null {
+export function getAppConfig(): ConfigDto | null {
   return cachedConfig
 }

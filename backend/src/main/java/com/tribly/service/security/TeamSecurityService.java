@@ -1,14 +1,11 @@
 package com.tribly.service.security;
 
 import com.tribly.domain.ride.Ride;
-import com.tribly.domain.team.Team;
-import com.tribly.domain.team.TeamRepository;
-import com.tribly.domain.team.TeamRole;
-import com.tribly.domain.team.UserTeam;
-import com.tribly.domain.team.UserTeamRepository;
+import com.tribly.domain.team.*;
 import com.tribly.infrastructure.exception.BusinessException;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Optional;
 
@@ -43,25 +40,26 @@ public class TeamSecurityService {
     // ==================== Membership Checks ====================
 
     /**
-     * Gets the user's membership in a team.
-     *
-     * @param userId the user ID
-     * @param teamId the team ID
-     * @return the membership, or empty if not a member
-     */
-    public Optional<UserTeam> getMembership(Long userId, Long teamId) {
-        return userTeamRepository.findByUserAndTeam(userId, teamId);
-    }
-
-    /**
      * Checks if a user is a member of a team.
      *
      * @param userId the user ID
      * @param teamId the team ID
      * @return true if the user is a member
      */
-    public boolean isMember(Long userId, Long teamId) {
+    public boolean isMember(@Nullable Long userId, Long teamId) {
+        if (userId == null) {
+            return false;
+        }
         return userTeamRepository.findByUserAndTeam(userId, teamId).isPresent();
+    }
+
+    public boolean canSeeDrafts(@Nullable Long userId, Long teamId) {
+        if (userId == null) {
+            return false;
+        }
+        return userTeamRepository.findByUserAndTeam(userId, teamId)
+                .map(UserTeam::isOrganizer)
+                .orElse(false);
     }
 
     /**
@@ -84,31 +82,13 @@ public class TeamSecurityService {
      *
      * @param userId the user ID
      * @param teamId the team ID
-     * @return the membership
      * @throws BusinessException with FORBIDDEN if not an admin
      */
-    public UserTeam requireAdmin(Long userId, Long teamId) {
+    public void requireAdmin(Long userId, Long teamId) {
         UserTeam membership = requireMembership(userId, teamId);
         if (!membership.isAdmin()) {
             throw BusinessException.forbidden("Only admins can perform this action");
         }
-        return membership;
-    }
-
-    /**
-     * Requires the user to be an admin or organizer of the team.
-     *
-     * @param userId the user ID
-     * @param teamId the team ID
-     * @return the membership
-     * @throws BusinessException with FORBIDDEN if not an admin or organizer
-     */
-    public UserTeam requireOrganizer(Long userId, Long teamId) {
-        UserTeam membership = requireMembership(userId, teamId);
-        if (!membership.isOrganizer()) {
-            throw BusinessException.forbidden("Only admins and organizers can perform this action");
-        }
-        return membership;
     }
 
     /**
@@ -116,15 +96,13 @@ public class TeamSecurityService {
      *
      * @param userId the user ID
      * @param teamId the team ID
-     * @return the membership
      * @throws BusinessException with FORBIDDEN if cannot manage members
      */
-    public UserTeam requireCanManageMembers(Long userId, Long teamId) {
+    public void requireCanManageMembers(Long userId, Long teamId) {
         UserTeam membership = requireMembership(userId, teamId);
         if (!membership.canManageMembers()) {
             throw BusinessException.forbidden("Only admins can manage team members");
         }
-        return membership;
     }
 
     // ==================== Ride Permission Checks ====================
@@ -134,15 +112,13 @@ public class TeamSecurityService {
      *
      * @param userId the user ID
      * @param teamId the team ID
-     * @return the membership
      * @throws BusinessException with FORBIDDEN if cannot create rides
      */
-    public UserTeam requireCanCreateRide(Long userId, Long teamId) {
+    public void requireCanCreateRide(Long userId, Long teamId) {
         UserTeam membership = requireMembership(userId, teamId);
         if (!membership.canCreateRides()) {
             throw BusinessException.forbidden("Only admins and organizers can create rides");
         }
-        return membership;
     }
 
     /**
@@ -157,64 +133,32 @@ public class TeamSecurityService {
      *
      * @param userId the user ID
      * @param teamId the team ID
-     * @param ride the ride to edit
-     * @return the membership
+     * @param ride   the ride to edit
      * @throws BusinessException with FORBIDDEN if cannot edit the ride
      */
-    public UserTeam requireCanEditRide(Long userId, Long teamId, Ride ride) {
+    public void requireCanEditRide(Long userId, Long teamId, Ride ride) {
         UserTeam membership = requireMembership(userId, teamId);
         if (!canEditRide(membership, ride, userId)) {
             throw BusinessException.forbidden("You don't have permission to edit this ride");
         }
-        return membership;
     }
 
     /**
      * Checks if a user can edit a specific ride.
      *
      * @param membership the user's team membership
-     * @param ride the ride to check
-     * @param userId the user ID
+     * @param ride       the ride to check
+     * @param userId     the user ID
      * @return true if the user can edit the ride
      */
     public boolean canEditRide(UserTeam membership, Ride ride, Long userId) {
         if (membership.isAdmin()) {
             return true;
         }
-        if (membership.getRole() == TeamRole.ORGANIZER && ride.getCreatedBy().getId().equals(userId)) {
-            return true;
-        }
-        return false;
+        return membership.getRole() == TeamRole.ORGANIZER && ride.getCreatedBy().getId().equals(userId);
     }
 
     // ==================== Team Visibility Checks ====================
-
-    /**
-     * Requires the team to be public, or the user to be a member.
-     *
-     * <p>Use this for endpoints where:
-     * <ul>
-     *   <li>Public teams are accessible to everyone</li>
-     *   <li>Private teams are only accessible to members</li>
-     * </ul>
-     *
-     * @param userId the user ID (can be null for anonymous access)
-     * @param team the team to check
-     * @throws BusinessException with FORBIDDEN if private and not a member
-     */
-    public void requirePublicOrMember(Long userId, Team team) {
-        if (team.isPublic()) {
-            return; // Public teams are accessible to everyone
-        }
-
-        if (userId == null) {
-            throw BusinessException.forbidden("This team is private");
-        }
-
-        if (!isMember(userId, team.getId())) {
-            throw BusinessException.forbidden("This team is private");
-        }
-    }
 
     /**
      * Requires the team to be public for self-join operations.
@@ -245,7 +189,7 @@ public class TeamSecurityService {
     /**
      * Checks that removing a user won't leave the team without an admin.
      *
-     * @param teamId the team ID
+     * @param teamId           the team ID
      * @param targetMembership the membership being removed or demoted
      * @throws BusinessException with BUSINESS_RULE if this would remove the last admin
      */
@@ -261,9 +205,9 @@ public class TeamSecurityService {
     /**
      * Checks that demoting a user won't leave the team without an admin.
      *
-     * @param teamId the team ID
+     * @param teamId           the team ID
      * @param targetMembership the membership being demoted
-     * @param newRole the new role
+     * @param newRole          the new role
      * @throws BusinessException with BUSINESS_RULE if this would remove the last admin
      */
     public void requireNotLastAdminDemotion(Long teamId, UserTeam targetMembership, TeamRole newRole) {
@@ -277,9 +221,9 @@ public class TeamSecurityService {
     /**
      * Checks if a user can remove a member (self or with admin rights).
      *
-     * @param actorId the user performing the action
+     * @param actorId  the user performing the action
      * @param targetId the user being removed
-     * @param teamId the team ID
+     * @param teamId   the team ID
      * @throws BusinessException with FORBIDDEN if not allowed
      */
     public void requireCanRemoveMember(Long actorId, Long targetId, Long teamId) {

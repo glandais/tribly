@@ -1,6 +1,7 @@
 package com.tribly.api.routes;
 
 import com.tribly.api.AbstractAuthenticatedResource;
+import com.tribly.api.dto.ErrorResponse;
 import com.tribly.domain.route.*;
 import com.tribly.domain.team.Team;
 import com.tribly.infrastructure.exception.BusinessException;
@@ -24,6 +25,7 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import org.jboss.resteasy.reactive.PartType;
 import org.jboss.resteasy.reactive.RestForm;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
+import org.jspecify.annotations.Nullable;
 
 import java.io.FileInputStream;
 import java.net.URI;
@@ -57,7 +59,8 @@ public class RouteResource extends AbstractAuthenticatedResource {
                     description = "Routes retrieved successfully",
                     content = @Content(schema = @Schema(implementation = RouteListResponse.class))
             ),
-            @APIResponse(responseCode = "404", description = "Team not found")
+            @APIResponse(responseCode = "404", description = "Team not found",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
     })
     public Response listRoutes(
             @Parameter(description = "Team URL slug") @PathParam("slug") String teamSlug,
@@ -88,10 +91,14 @@ public class RouteResource extends AbstractAuthenticatedResource {
                     description = "Route created successfully",
                     content = @Content(schema = @Schema(implementation = RouteDto.class))
             ),
-            @APIResponse(responseCode = "400", description = "Invalid request or GPX file"),
-            @APIResponse(responseCode = "401", description = "Unauthorized"),
-            @APIResponse(responseCode = "403", description = "User is not a team member"),
-            @APIResponse(responseCode = "404", description = "Team not found")
+            @APIResponse(responseCode = "400", description = "Invalid request or GPX file",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @APIResponse(responseCode = "401", description = "Unauthorized",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @APIResponse(responseCode = "403", description = "User is not a team member",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @APIResponse(responseCode = "404", description = "Team not found",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     public Response createRoute(
             @Parameter(description = "Team URL slug") @PathParam("slug") String teamSlug,
@@ -100,7 +107,7 @@ public class RouteResource extends AbstractAuthenticatedResource {
             @RestForm @PartType(MediaType.TEXT_PLAIN) RouteDifficulty difficulty,
             @RestForm @PartType(MediaType.TEXT_PLAIN) SurfaceType surfaceType,
             @RestForm @PartType(MediaType.TEXT_PLAIN) Boolean isPublic,
-            @RestForm("gpxFile") FileUpload gpxFile) throws Exception {
+            @RestForm("gpxFile") @Nullable FileUpload gpxFile) throws Exception {
 
         Team team = getTeamBySlug(teamSlug);
         Long userId = getCurrentUserId();
@@ -141,7 +148,8 @@ public class RouteResource extends AbstractAuthenticatedResource {
                     description = "Route retrieved successfully",
                     content = @Content(schema = @Schema(implementation = RouteDetailDto.class))
             ),
-            @APIResponse(responseCode = "404", description = "Team or route not found")
+            @APIResponse(responseCode = "404", description = "Team or route not found",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
     })
     public Response getRoute(
             @Parameter(description = "Team URL slug") @PathParam("slug") String teamSlug,
@@ -170,10 +178,14 @@ public class RouteResource extends AbstractAuthenticatedResource {
                     description = "Route updated successfully",
                     content = @Content(schema = @Schema(implementation = RouteDto.class))
             ),
-            @APIResponse(responseCode = "400", description = "Invalid request"),
-            @APIResponse(responseCode = "401", description = "Unauthorized"),
-            @APIResponse(responseCode = "403", description = "User is not authorized to update this route"),
-            @APIResponse(responseCode = "404", description = "Team or route not found")
+            @APIResponse(responseCode = "400", description = "Invalid request",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @APIResponse(responseCode = "401", description = "Unauthorized",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @APIResponse(responseCode = "403", description = "User is not authorized to update this route",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @APIResponse(responseCode = "404", description = "Team or route not found",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     public Response updateRoute(
             @Parameter(description = "Team URL slug") @PathParam("slug") String teamSlug,
@@ -205,9 +217,12 @@ public class RouteResource extends AbstractAuthenticatedResource {
     @Operation(summary = "Delete route", description = "Soft delete a route. Requires route creator or team admin permissions.")
     @APIResponses({
             @APIResponse(responseCode = "204", description = "Route deleted successfully"),
-            @APIResponse(responseCode = "401", description = "Unauthorized"),
-            @APIResponse(responseCode = "403", description = "User is not authorized to delete this route"),
-            @APIResponse(responseCode = "404", description = "Team or route not found")
+            @APIResponse(responseCode = "401", description = "Unauthorized",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @APIResponse(responseCode = "403", description = "User is not authorized to delete this route",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+            @APIResponse(responseCode = "404", description = "Team or route not found",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     public Response deleteRoute(
             @Parameter(description = "Team URL slug") @PathParam("slug") String teamSlug,
@@ -234,7 +249,8 @@ public class RouteResource extends AbstractAuthenticatedResource {
                     description = "Climbs retrieved successfully",
                     content = @Content(schema = @Schema(implementation = ClimbListResponse.class))
             ),
-            @APIResponse(responseCode = "404", description = "Team or route not found")
+            @APIResponse(responseCode = "404", description = "Team or route not found",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
     })
     public Response getClimbs(
             @Parameter(description = "Team URL slug") @PathParam("slug") String teamSlug,
@@ -261,7 +277,8 @@ public class RouteResource extends AbstractAuthenticatedResource {
                     description = "Track retrieved successfully",
                     content = @Content(schema = @Schema(implementation = GpxTrackDto.class))
             ),
-            @APIResponse(responseCode = "404", description = "Team or route not found")
+            @APIResponse(responseCode = "404", description = "Team or route not found",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
     })
     public Response getTrack(
             @Parameter(description = "Team URL slug") @PathParam("slug") String teamSlug,
@@ -283,42 +300,42 @@ public class RouteResource extends AbstractAuthenticatedResource {
 
     @Schema(description = "Route update request")
     public record UpdateRouteRequest(
-            @Schema(description = "Route name")
+            @Nullable @Schema(description = "Route name", nullable = true)
             String name,
 
-            @Schema(description = "Route description")
+            @Nullable @Schema(description = "Route description", nullable = true)
             String description,
 
-            @Schema(description = "Route difficulty", enumeration = {"EASY", "MODERATE", "HARD", "VERY_HARD"})
+            @Nullable @Schema(description = "Route difficulty", nullable = true)
             RouteDifficulty difficulty,
 
-            @Schema(description = "Surface type", enumeration = {"ASPHALT", "GRAVEL", "MIXED"})
+            @Nullable @Schema(description = "Surface type", nullable = true)
             SurfaceType surfaceType,
 
-            @Schema(description = "Whether the route is publicly visible")
+            @Nullable @Schema(description = "Whether the route is publicly visible", nullable = true)
             Boolean isPublic
     ) {
     }
 
     @Schema(description = "Paginated route list response")
     public record RouteListResponse(
-            @Schema(description = "List of routes")
+            @Schema(description = "List of routes", required = true)
             List<RouteDto> routes,
 
-            @Schema(description = "Total number of routes")
+            @Schema(description = "Total number of routes", required = true)
             long total,
 
-            @Schema(description = "Current page number")
+            @Schema(description = "Current page number", required = true)
             int page,
 
-            @Schema(description = "Page size")
+            @Schema(description = "Page size", required = true)
             int size
     ) {
     }
 
     @Schema(description = "Climb list response")
     public record ClimbListResponse(
-            @Schema(description = "List of climbs on the route")
+            @Schema(description = "List of climbs on the route", required = true)
             List<RouteClimbDto> climbs
     ) {
     }

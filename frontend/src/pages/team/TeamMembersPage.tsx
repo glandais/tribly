@@ -13,7 +13,8 @@ import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { TeamMemberList, TeamMemberListSkeleton } from '../../components/team/TeamMemberList'
 import { TeamLayout } from '../../components/team/TeamLayout'
 import { UserAutocomplete } from '../../components/common/UserAutocomplete'
-import type { UserSearchResult } from '../../hooks/useUserSearch'
+import type { PublicUserDto } from '../../hooks/useUserSearch'
+import { TeamRole } from '@/api'
 
 export function TeamMembersPage() {
   const { t } = useTranslation('teams')
@@ -21,7 +22,7 @@ export function TeamMembersPage() {
   const { teamSlug } = useParams<{ teamSlug: string }>()
   const { user } = useAuth()
   const [showAddMember, setShowAddMember] = useState(false)
-  const [selectedRole, setSelectedRole] = useState<'ADMIN' | 'ORGANIZER' | 'MEMBER'>('MEMBER')
+  const [selectedRole, setSelectedRole] = useState<TeamRole>(TeamRole.Member)
 
   const { data: team, isLoading: isLoadingTeam } = useTeam(teamSlug)
   const { data: membersData, isLoading: isLoadingMembers } = useTeamMembers(teamSlug)
@@ -42,13 +43,13 @@ export function TeamMembersPage() {
     return <Navigate to={`/teams/${teamSlug}/rides`} replace />
   }
 
-  const handleAddMember = (selectedUser: UserSearchResult) => {
+  const handleAddMember = (selectedUser: PublicUserDto) => {
     addMemberMutation.mutate(
       { userId: selectedUser.id, role: selectedRole },
       {
         onSuccess: () => {
           setShowAddMember(false)
-          setSelectedRole('MEMBER')
+          setSelectedRole(TeamRole.Member)
         },
       }
     )
@@ -120,14 +121,12 @@ export function TeamMembersPage() {
                   <select
                     id="role"
                     value={selectedRole}
-                    onChange={(e) =>
-                      setSelectedRole(e.target.value as 'ADMIN' | 'ORGANIZER' | 'MEMBER')
-                    }
+                    onChange={(e) => setSelectedRole(e.target.value as TeamRole)}
                     className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-xs focus:ring-indigo-500 focus:border-indigo-500"
                   >
-                    <option value="MEMBER">{tCommon('roles.MEMBER')}</option>
-                    <option value="ORGANIZER">{tCommon('roles.ORGANIZER')}</option>
-                    <option value="ADMIN">{tCommon('roles.ADMIN')}</option>
+                    <option value={TeamRole.Member}>{tCommon('roles.MEMBER')}</option>
+                    <option value={TeamRole.Organizer}>{tCommon('roles.ORGANIZER')}</option>
+                    <option value={TeamRole.Admin}>{tCommon('roles.ADMIN')}</option>
                   </select>
                 </div>
                 {addMemberMutation.error && (
@@ -142,7 +141,7 @@ export function TeamMembersPage() {
                 <button
                   onClick={() => {
                     setShowAddMember(false)
-                    setSelectedRole('MEMBER')
+                    setSelectedRole(TeamRole.Member)
                   }}
                   disabled={addMemberMutation.isPending}
                   className="px-4 py-2 border border-gray-300 rounded-md shadow-xs text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"

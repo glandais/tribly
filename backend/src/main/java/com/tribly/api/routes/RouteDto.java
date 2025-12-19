@@ -1,45 +1,48 @@
 package com.tribly.api.routes;
 
 import com.tribly.domain.route.Route;
+import com.tribly.domain.route.RouteDifficulty;
+import com.tribly.domain.route.SurfaceType;
 import com.tribly.infrastructure.id.TsidUtils;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Route DTO for list view.
  */
 @Schema(description = "Route summary data")
 public record RouteDto(
-        @Schema(description = "Route ID (TSID)")
+        @Schema(description = "Route ID (TSID)", required = true)
         String id,
 
-        @Schema(description = "Route name")
+        @Schema(description = "Route name", required = true)
         String name,
 
-        @Schema(description = "Route description")
+        @Nullable @Schema(description = "Route description", nullable = true)
         String description,
 
-        @Schema(description = "Distance in meters")
+        @Schema(description = "Distance in meters", required = true)
         Integer distance,
 
-        @Schema(description = "Total elevation gain in meters")
+        @Schema(description = "Total elevation gain in meters", required = true)
         Integer elevationGain,
 
-        @Schema(description = "Total elevation loss in meters")
+        @Schema(description = "Total elevation loss in meters", required = true)
         Integer elevationLoss,
 
-        @Schema(description = "Route difficulty", enumeration = {"EASY", "MODERATE", "HARD", "VERY_HARD"})
-        String difficulty,
+        @Schema(description = "Route difficulty", required = true)
+        RouteDifficulty difficulty,
 
-        @Schema(description = "Surface type", enumeration = {"ASPHALT", "GRAVEL", "MIXED"})
-        String surfaceType,
+        @Schema(description = "Surface type", required = true)
+        SurfaceType surfaceType,
 
-        @Schema(description = "Whether the route is public")
+        @Schema(description = "Whether the route is public", required = true)
         boolean isPublic,
 
-        @Schema(description = "Thumbnail image URL")
+        @Schema(description = "Thumbnail image URL", required = true)
         String thumbnailUrl,
 
-        @Schema(description = "Creation timestamp")
+        @Schema(description = "Creation timestamp", required = true)
         String createdAt
 ) {
     public static RouteDto from(Route route) {
@@ -50,11 +53,11 @@ public record RouteDto(
                 route.getDistance(),
                 route.getElevationGain(),
                 route.getElevationLoss(),
-                route.getDifficulty() != null ? route.getDifficulty().name() : null,
-                route.getSurfaceType() != null ? route.getSurfaceType().name() : null,
+                route.getDifficulty(),
+                route.getSurfaceType(),
                 route.isPublic(),
                 route.getThumbnailUrl(),
-                route.getCreatedAt() != null ? route.getCreatedAt().toString() : null
+                route.getCreatedAt().toString()
         );
     }
 }

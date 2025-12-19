@@ -3,13 +3,14 @@ import { useTranslation } from 'react-i18next'
 import { UserAvatar } from '../common/UserAvatar'
 import { LoadingSpinner } from '../common/LoadingSpinner'
 import { ConfirmDialog } from '../common/ConfirmDialog'
-import type { TeamMember } from '../../hooks/useTeam'
+import type { MemberDto } from '../../hooks/useTeam'
+import { TeamRole } from '@/api'
 
 interface TeamMemberListProps {
-  members: TeamMember[]
-  currentUserRole: 'ADMIN' | 'ORGANIZER' | 'MEMBER' | null
+  members: MemberDto[]
+  currentUserRole: TeamRole | null
   currentUserId: string | null
-  onUpdateRole?: (memberId: string, role: 'ADMIN' | 'ORGANIZER' | 'MEMBER') => void
+  onUpdateRole?: (memberId: string, role: TeamRole) => void
   onRemoveMember?: (memberId: string) => void
   isUpdating?: boolean
   isRemoving?: boolean
@@ -33,12 +34,13 @@ export function TeamMemberList({
   const { t, i18n } = useTranslation('teams')
   const { t: tCommon } = useTranslation('common')
   const [editingMemberId, setEditingMemberId] = useState<string | null>(null)
-  const [selectedRole, setSelectedRole] = useState<'ADMIN' | 'ORGANIZER' | 'MEMBER'>('MEMBER')
+  const [selectedRole, setSelectedRole] = useState<TeamRole>(TeamRole.Member)
   const [showRemoveConfirm, setShowRemoveConfirm] = useState(false)
   const [memberToRemove, setMemberToRemove] = useState<string | null>(null)
 
-  const canManageMembers = currentUserRole === 'ADMIN'
-  const canAssignOrganizers = currentUserRole === 'ADMIN' || currentUserRole === 'ORGANIZER'
+  const canManageMembers = currentUserRole === TeamRole.Admin
+  const canAssignOrganizers =
+    currentUserRole === TeamRole.Admin || currentUserRole === TeamRole.Organizer
 
   const handleRoleChange = (memberId: string) => {
     if (onUpdateRole) {
@@ -60,7 +62,7 @@ export function TeamMemberList({
     }
   }
 
-  const formatDate = (dateStr: string | null) => {
+  const formatDate = (dateStr: string | null | undefined) => {
     if (!dateStr) return tCommon('unknown')
     return new Date(dateStr).toLocaleDateString(i18n.language, {
       year: 'numeric',
@@ -108,9 +110,7 @@ export function TeamMemberList({
                     <>
                       <select
                         value={selectedRole}
-                        onChange={(e) =>
-                          setSelectedRole(e.target.value as 'ADMIN' | 'ORGANIZER' | 'MEMBER')
-                        }
+                        onChange={(e) => setSelectedRole(e.target.value as TeamRole)}
                         className="text-sm border border-gray-300 rounded-md px-2 py-1 focus:ring-indigo-500 focus:border-indigo-500"
                         disabled={isUpdating}
                       >

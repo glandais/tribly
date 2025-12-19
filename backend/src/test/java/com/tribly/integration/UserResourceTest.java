@@ -46,7 +46,7 @@ class UserResourceTest {
 
     private User testUser;
 
-    KeycloakTestClient keycloakClient = new KeycloakTestClient();
+    final KeycloakTestClient keycloakClient = new KeycloakTestClient();
 
     protected String getAccessToken(String userName) {
         return keycloakClient.getAccessToken(userName, userName, "tribly-backend");

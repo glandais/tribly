@@ -17,7 +17,4 @@ public class RideGroupRepository implements PanacheRepository<RideGroup> {
         return find("ride.id = ?1 and deleted = false order by sortOrder", rideId).list();
     }
 
-    public long countByRide(Long rideId) {
-        return count("ride.id = ?1 and deleted = false", rideId);
-    }
 }

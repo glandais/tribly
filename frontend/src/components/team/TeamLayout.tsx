@@ -4,10 +4,10 @@ import { useTranslation } from 'react-i18next'
 import { useLeaveTeam, useJoinTeam } from '../../hooks/useTeam'
 import { useAuth } from '../../hooks/useAuth'
 import { ConfirmDialog } from '../common/ConfirmDialog'
-import type { TeamDetail } from '../../hooks/useTeam'
+import type { TeamDetailDto } from '../../hooks/useTeam'
 
 interface TeamLayoutProps {
-  team: TeamDetail
+  team: TeamDetailDto
   currentTab: 'rides' | 'trips' | 'routes' | 'members'
   children: React.ReactNode
 }

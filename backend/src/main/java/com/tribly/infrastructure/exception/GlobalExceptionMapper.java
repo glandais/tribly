@@ -14,6 +14,7 @@ import jakarta.ws.rs.core.UriInfo;
 import jakarta.ws.rs.ext.ExceptionMapper;
 import jakarta.ws.rs.ext.Provider;
 import org.jboss.logging.Logger;
+import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -24,74 +25,72 @@ public class GlobalExceptionMapper implements ExceptionMapper<Throwable> {
     private static final Logger LOG = Logger.getLogger(GlobalExceptionMapper.class);
 
     @Context
+    @Nullable
     UriInfo uriInfo;
 
     @Override
     public Response toResponse(Throwable exception) {
         String path = uriInfo != null ? uriInfo.getPath() : "unknown";
 
-        if (exception instanceof NotFoundException) {
-            return notFound(path, exception.getMessage());
-        }
-
-        if (exception instanceof EntityNotFoundException) {
-            return notFound(path, exception.getMessage());
-        }
-
-        if (exception instanceof NotAuthorizedException) {
-            return unauthorized(path, "Authentication required");
-        }
-
-        if (exception instanceof ForbiddenException) {
-            return forbidden(path, exception.getMessage());
-        }
-
-        if (exception instanceof ConstraintViolationException cve) {
-            return validationError(path, cve);
-        }
-
-        if (exception instanceof IllegalArgumentException) {
-            return badRequest(path, exception.getMessage());
-        }
-
-        if (exception instanceof BusinessException be) {
-            return businessError(path, be);
-        }
-
-        if (exception instanceof WebApplicationException wae) {
-            Response originalResponse = wae.getResponse();
-            return Response.status(originalResponse.getStatus())
-                    .entity(new ErrorResponse(
-                            "HTTP_ERROR",
-                            exception.getMessage(),
-                            path
-                    ))
-                    .build();
+        switch (exception) {
+            case NotFoundException ignored -> {
+                return notFound(path, exception.getMessage());
+            }
+            case EntityNotFoundException ignored -> {
+                return notFound(path, exception.getMessage());
+            }
+            case NotAuthorizedException ignored -> {
+                return unauthorized(path);
+            }
+            case ForbiddenException ignored -> {
+                return forbidden(path, exception.getMessage());
+            }
+            case ConstraintViolationException cve -> {
+                return validationError(path, cve);
+            }
+            case IllegalArgumentException ignored -> {
+                return badRequest(path, exception.getMessage());
+            }
+            case BusinessException be -> {
+                return businessError(path, be);
+            }
+            case WebApplicationException wae -> {
+                Response originalResponse = wae.getResponse();
+                return Response.status(originalResponse.getStatus())
+                        .entity(new ErrorResponse(
+                                "HTTP_ERROR",
+                                exception.getMessage(),
+                                path
+                        ))
+                        .build();
+            }
+            default -> {
+            }
         }
 
         LOG.error("Unhandled exception", exception);
-        return internal(path, "An unexpected error occurred");
+        return internal(path);
     }
 
-    private Response notFound(String path, String message) {
+    private Response notFound(String path, @Nullable String message) {
         return Response.status(Response.Status.NOT_FOUND)
                 .entity(ErrorResponse.notFound(path, message != null ? message : "Resource not found"))
                 .build();
     }
 
-    private Response unauthorized(String path, String message) {
+    private Response unauthorized(String path) {
         return Response.status(Response.Status.UNAUTHORIZED)
-                .entity(ErrorResponse.unauthorized(path, message))
+                .entity(ErrorResponse.unauthorized(path, "Authentication required"))
                 .build();
     }
 
-    private Response forbidden(String path, String message) {
+    private Response forbidden(String path, @Nullable String message) {
         return Response.status(Response.Status.FORBIDDEN)
                 .entity(ErrorResponse.forbidden(path, message != null ? message : "Access denied"))
                 .build();
     }
 
-    private Response badRequest(String path, String message) {
+    private Response badRequest(String path, @Nullable String message) {
         return Response.status(Response.Status.BAD_REQUEST)
                 .entity(ErrorResponse.badRequest(path, message != null ? message : "Invalid request"))
                 .build();
@@ -126,7 +125,6 @@ public class GlobalExceptionMapper implements ExceptionMapper<Throwable> {
             case NOT_FOUND -> Response.Status.NOT_FOUND;
             case CONFLICT -> Response.Status.CONFLICT;
             case FORBIDDEN -> Response.Status.FORBIDDEN;
-            case VALIDATION -> Response.Status.BAD_REQUEST;
             default -> Response.Status.BAD_REQUEST;
         };
 
@@ -135,9 +133,9 @@ public class GlobalExceptionMapper implements ExceptionMapper<Throwable> {
                 .build();
     }
 
-    private Response internal(String path, String message) {
+    private Response internal(String path) {
         return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                .entity(ErrorResponse.internal(path, message))
+                .entity(ErrorResponse.internal(path, "An unexpected error occurred"))
                 .build();
     }
 }

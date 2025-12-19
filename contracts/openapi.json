@@ -13,15 +13,24 @@
             "examples" : [ "0h4a8xzk8jv80" ]
           },
           "role" : {
-            "type" : "string",
             "description" : "Role to assign (defaults to MEMBER)",
-            "enum" : [ "ADMIN", "MEMBER" ]
+            "type" : [ "string", "null" ],
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/TeamRole"
+            }, {
+              "type" : "null"
+            } ]
           }
         }
+      },
+      "ClimbCategory" : {
+        "type" : "string",
+        "enum" : [ "HC", "CAT1", "CAT2", "CAT3", "CAT4" ]
       },
       "ClimbListResponse" : {
         "description" : "Climb list response",
         "type" : "object",
+        "required" : [ "climbs" ],
         "properties" : {
           "climbs" : {
             "type" : "array",
@@ -35,6 +44,7 @@
       "ConfigDto" : {
         "description" : "Application configuration",
         "type" : "object",
+        "required" : [ "keycloak", "map" ],
         "properties" : {
           "keycloak" : {
             "description" : "Keycloak authentication configuration",
@@ -62,22 +72,22 @@
             "maxLength" : 100
           },
           "description" : {
-            "type" : "string",
+            "type" : [ "string", "null" ],
             "description" : "Group description"
           },
           "averageSpeed" : {
-            "type" : "integer",
+            "type" : [ "integer", "null" ],
             "format" : "int32",
             "description" : "Average speed in km/h",
             "examples" : [ 25 ]
           },
           "maxParticipants" : {
-            "type" : "integer",
+            "type" : [ "integer", "null" ],
             "format" : "int32",
             "description" : "Maximum participants"
           },
           "routeId" : {
-            "type" : "string",
+            "type" : [ "string", "null" ],
             "description" : "Route ID (TSID) for this group"
           }
         }
@@ -96,7 +106,7 @@
             "maxLength" : 200
           },
           "description" : {
-            "type" : "string",
+            "type" : [ "string", "null" ],
             "description" : "Ride description",
             "maxLength" : 5000
           },
@@ -108,30 +118,42 @@
           },
           "startTime" : {
             "description" : "Start time",
-            "type" : "string",
+            "type" : [ "string", "null" ],
             "examples" : [ "09:00" ],
-            "$ref" : "#/components/schemas/LocalTime"
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/LocalTime"
+            }, {
+              "type" : "null"
+            } ]
           },
           "routeId" : {
-            "type" : "string",
+            "type" : [ "string", "null" ],
             "description" : "Route ID (TSID)"
           },
           "meetingPointId" : {
-            "type" : "string",
+            "type" : [ "string", "null" ],
             "description" : "Meeting point ID (TSID)"
           },
           "visibility" : {
-            "type" : "string",
             "description" : "Visibility level",
-            "enum" : [ "PUBLIC", "MEMBERS_ONLY", "PRIVATE" ]
+            "type" : [ "string", "null" ],
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/Visibility"
+            }, {
+              "type" : "null"
+            } ]
           },
           "publishAt" : {
             "description" : "Publication timestamp (for scheduled publishing)",
-            "type" : "string",
-            "$ref" : "#/components/schemas/Instant"
+            "type" : [ "string", "null" ],
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/Instant"
+            }, {
+              "type" : "null"
+            } ]
           },
           "groups" : {
-            "type" : "array",
+            "type" : [ "array", "null" ],
             "items" : {
               "$ref" : "#/components/schemas/CreateGroupRequest"
             },
@@ -153,27 +175,76 @@
             "maxLength" : 255
           },
           "description" : {
-            "type" : "string",
+            "type" : [ "string", "null" ],
             "description" : "Team description",
             "examples" : [ "A team for weekend warriors" ],
             "maxLength" : 2000
           },
           "isPublic" : {
-            "type" : "boolean",
+            "type" : [ "boolean", "null" ],
             "description" : "Whether the team is publicly visible",
             "examples" : [ true ]
           },
           "maxMembers" : {
-            "type" : "integer",
+            "type" : [ "integer", "null" ],
             "format" : "int32",
             "description" : "Maximum number of members (null = unlimited)",
             "examples" : [ 50 ]
           }
         }
       },
+      "ErrorResponse" : {
+        "description" : "Error response",
+        "type" : "object",
+        "required" : [ "code", "message", "path", "timestamp" ],
+        "properties" : {
+          "code" : {
+            "type" : "string",
+            "description" : "Error code"
+          },
+          "message" : {
+            "type" : "string",
+            "description" : "Error message"
+          },
+          "path" : {
+            "type" : "string",
+            "description" : "Request path"
+          },
+          "timestamp" : {
+            "description" : "Timestamp",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Instant"
+          },
+          "errors" : {
+            "type" : [ "array", "null" ],
+            "items" : {
+              "$ref" : "#/components/schemas/FieldError"
+            },
+            "description" : "Field validation errors"
+          },
+          "details" : {
+            "type" : [ "object", "null" ],
+            "additionalProperties" : { },
+            "description" : "Additional details"
+          }
+        }
+      },
+      "FieldError" : {
+        "type" : "object",
+        "properties" : {
+          "field" : {
+            "type" : "string"
+          },
+          "message" : {
+            "type" : "string"
+          },
+          "rejectedValue" : { }
+        }
+      },
       "GpxTrackDto" : {
         "description" : "GPX track with track points",
         "type" : "object",
+        "required" : [ "id", "trackPoints" ],
         "properties" : {
           "id" : {
             "type" : "string",
@@ -191,7 +262,7 @@
             "description" : "List of track points"
           },
           "processedAt" : {
-            "type" : "string",
+            "type" : [ "string", "null" ],
             "description" : "Processing timestamp"
           }
         }
@@ -206,7 +277,7 @@
         "type" : "object",
         "properties" : {
           "notes" : {
-            "type" : "string",
+            "type" : [ "string", "null" ],
             "description" : "Optional notes for the organizer"
           }
         }
@@ -214,6 +285,7 @@
       "KeycloakConfig" : {
         "type" : "object",
         "description" : "Keycloak configuration",
+        "required" : [ "url", "realm", "clientId" ],
         "properties" : {
           "url" : {
             "type" : "string",
@@ -249,6 +321,7 @@
       "MapConfig" : {
         "type" : "object",
         "description" : "Map configuration",
+        "required" : [ "tileUrl", "attribution" ],
         "properties" : {
           "tileUrl" : {
             "type" : "string",
@@ -264,6 +337,7 @@
       "MemberDto" : {
         "description" : "Team member information",
         "type" : "object",
+        "required" : [ "id", "userId", "displayName", "role" ],
         "properties" : {
           "id" : {
             "type" : "string",
@@ -278,16 +352,16 @@
             "description" : "User display name"
           },
           "avatarUrl" : {
-            "type" : "string",
+            "type" : [ "string", "null" ],
             "description" : "User avatar URL"
           },
           "role" : {
-            "type" : "string",
             "description" : "Member role",
-            "enum" : [ "OWNER", "ADMIN", "MEMBER" ]
+            "type" : "string",
+            "$ref" : "#/components/schemas/TeamRole"
           },
           "joinedAt" : {
-            "type" : "string",
+            "type" : [ "string", "null" ],
             "description" : "When the user joined the team"
           }
         }
@@ -295,6 +369,7 @@
       "MemberListResponse" : {
         "description" : "Paginated member list response",
         "type" : "object",
+        "required" : [ "members", "total", "page", "size" ],
         "properties" : {
           "members" : {
             "type" : "array",
@@ -323,6 +398,7 @@
       "PublicUserDto" : {
         "description" : "Public user information (limited fields)",
         "type" : "object",
+        "required" : [ "id", "displayName" ],
         "properties" : {
           "id" : {
             "type" : "string",
@@ -334,7 +410,7 @@
             "description" : "User display name"
           },
           "avatarUrl" : {
-            "type" : "string",
+            "type" : [ "string", "null" ],
             "description" : "User avatar URL"
           }
         }
@@ -342,6 +418,7 @@
       "RideDetailDto" : {
         "description" : "Detailed ride information",
         "type" : "object",
+        "required" : [ "id", "slug", "title", "date", "status", "visibility", "participantCount", "groupCount", "groups" ],
         "properties" : {
           "id" : {
             "type" : "string",
@@ -356,7 +433,7 @@
             "description" : "Ride title"
           },
           "description" : {
-            "type" : "string",
+            "type" : [ "string", "null" ],
             "description" : "Ride description"
           },
           "date" : {
@@ -366,16 +443,22 @@
           },
           "startTime" : {
             "description" : "Start time",
-            "type" : "string",
-            "$ref" : "#/components/schemas/LocalTime"
+            "type" : [ "string", "null" ],
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/LocalTime"
+            }, {
+              "type" : "null"
+            } ]
           },
           "status" : {
+            "description" : "Ride status",
             "type" : "string",
-            "description" : "Ride status"
+            "$ref" : "#/components/schemas/RideStatus"
           },
           "visibility" : {
+            "description" : "Visibility level",
             "type" : "string",
-            "description" : "Visibility level"
+            "$ref" : "#/components/schemas/Visibility"
           },
           "participantCount" : {
             "type" : "integer",
@@ -395,11 +478,11 @@
             "description" : "Ride groups"
           },
           "publishAt" : {
-            "type" : "string",
+            "type" : [ "string", "null" ],
             "description" : "Publication timestamp"
           },
           "createdAt" : {
-            "type" : "string",
+            "type" : [ "string", "null" ],
             "description" : "Creation timestamp"
           }
         }
@@ -407,6 +490,7 @@
       "RideDto" : {
         "description" : "Ride summary data",
         "type" : "object",
+        "required" : [ "id", "slug", "title", "date", "status", "visibility", "participantCount", "groupCount" ],
         "properties" : {
           "id" : {
             "type" : "string",
@@ -421,7 +505,7 @@
             "description" : "Ride title"
           },
           "description" : {
-            "type" : "string",
+            "type" : [ "string", "null" ],
             "description" : "Ride description"
           },
           "date" : {
@@ -431,18 +515,22 @@
           },
           "startTime" : {
             "description" : "Start time",
-            "type" : "string",
-            "$ref" : "#/components/schemas/LocalTime"
+            "type" : [ "string", "null" ],
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/LocalTime"
+            }, {
+              "type" : "null"
+            } ]
           },
           "status" : {
-            "type" : "string",
             "description" : "Ride status",
-            "enum" : [ "DRAFT", "PUBLISHED", "CANCELLED", "COMPLETED" ]
+            "type" : "string",
+            "$ref" : "#/components/schemas/RideStatus"
           },
           "visibility" : {
-            "type" : "string",
             "description" : "Visibility level",
-            "enum" : [ "PUBLIC", "MEMBERS_ONLY", "PRIVATE" ]
+            "type" : "string",
+            "$ref" : "#/components/schemas/Visibility"
           },
           "participantCount" : {
             "type" : "integer",
@@ -455,11 +543,11 @@
             "description" : "Number of groups"
           },
           "publishAt" : {
-            "type" : "string",
+            "type" : [ "string", "null" ],
             "description" : "Publication timestamp"
           },
           "createdAt" : {
-            "type" : "string",
+            "type" : [ "string", "null" ],
             "description" : "Creation timestamp"
           }
         }
@@ -467,6 +555,7 @@
       "RideGroupDto" : {
         "type" : "object",
         "description" : "Ride group information",
+        "required" : [ "id", "name", "currentParticipants", "sortOrder" ],
         "properties" : {
           "id" : {
             "type" : "string",
@@ -477,16 +566,16 @@
             "description" : "Group name"
           },
           "description" : {
-            "type" : "string",
+            "type" : [ "string", "null" ],
             "description" : "Group description"
           },
           "averageSpeed" : {
-            "type" : "integer",
+            "type" : [ "integer", "null" ],
             "format" : "int32",
             "description" : "Average speed in km/h"
           },
           "maxParticipants" : {
-            "type" : "integer",
+            "type" : [ "integer", "null" ],
             "format" : "int32",
             "description" : "Maximum participants"
           },
@@ -505,6 +594,7 @@
       "RideGroupListResponse" : {
         "description" : "Ride group list response",
         "type" : "object",
+        "required" : [ "data" ],
         "properties" : {
           "data" : {
             "type" : "array",
@@ -518,6 +608,7 @@
       "RideListResponse" : {
         "description" : "Paginated ride list response",
         "type" : "object",
+        "required" : [ "rides", "total", "page", "size" ],
         "properties" : {
           "rides" : {
             "type" : "array",
@@ -546,6 +637,7 @@
       "RideParticipationDto" : {
         "description" : "Ride participation information",
         "type" : "object",
+        "required" : [ "id", "userId", "status" ],
         "properties" : {
           "id" : {
             "type" : "string",
@@ -560,11 +652,11 @@
             "description" : "Participation status"
           },
           "registeredAt" : {
-            "type" : "string",
+            "type" : [ "string", "null" ],
             "description" : "Registration timestamp"
           },
           "notes" : {
-            "type" : "string",
+            "type" : [ "string", "null" ],
             "description" : "Participant notes"
           }
         }
@@ -576,13 +668,14 @@
       "RouteClimbDto" : {
         "description" : "Climb segment information",
         "type" : "object",
+        "required" : [ "id", "startDistance", "endDistance", "elevationGain", "averageGradient", "maxGradient" ],
         "properties" : {
           "id" : {
             "type" : "string",
             "description" : "Climb ID (TSID)"
           },
           "name" : {
-            "type" : "string",
+            "type" : [ "string", "null" ],
             "description" : "Climb name (if named)"
           },
           "startDistance" : {
@@ -609,14 +702,20 @@
             "description" : "Maximum gradient percentage"
           },
           "category" : {
-            "type" : "string",
-            "description" : "Climb category (HC, 1, 2, 3, 4)"
+            "description" : "Climb category (HC, 1, 2, 3, 4)",
+            "type" : [ "string", "null" ],
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/ClimbCategory"
+            }, {
+              "type" : "null"
+            } ]
           }
         }
       },
       "RouteDetailDto" : {
         "description" : "Detailed route information",
         "type" : "object",
+        "required" : [ "id", "name", "description", "distance", "elevationGain", "elevationLoss", "difficulty", "surfaceType", "isPublic", "thumbnailUrl", "startLat", "startLng", "endLat", "endLng", "createdById", "createdAt", "updatedAt" ],
         "properties" : {
           "id" : {
             "type" : "string",
@@ -646,12 +745,14 @@
             "description" : "Total elevation loss in meters"
           },
           "difficulty" : {
+            "description" : "Route difficulty",
             "type" : "string",
-            "description" : "Route difficulty"
+            "$ref" : "#/components/schemas/RouteDifficulty"
           },
           "surfaceType" : {
+            "description" : "Surface type",
             "type" : "string",
-            "description" : "Surface type"
+            "$ref" : "#/components/schemas/SurfaceType"
           },
           "isPublic" : {
             "type" : "boolean",
@@ -698,6 +799,7 @@
       "RouteDto" : {
         "description" : "Route summary data",
         "type" : "object",
+        "required" : [ "id", "name", "distance", "elevationGain", "elevationLoss", "difficulty", "surfaceType", "isPublic", "thumbnailUrl", "createdAt" ],
         "properties" : {
           "id" : {
             "type" : "string",
@@ -708,7 +810,7 @@
             "description" : "Route name"
           },
           "description" : {
-            "type" : "string",
+            "type" : [ "string", "null" ],
             "description" : "Route description"
           },
           "distance" : {
@@ -727,14 +829,14 @@
             "description" : "Total elevation loss in meters"
           },
           "difficulty" : {
-            "type" : "string",
             "description" : "Route difficulty",
-            "enum" : [ "EASY", "MODERATE", "HARD", "VERY_HARD" ]
+            "type" : "string",
+            "$ref" : "#/components/schemas/RouteDifficulty"
           },
           "surfaceType" : {
-            "type" : "string",
             "description" : "Surface type",
-            "enum" : [ "ASPHALT", "GRAVEL", "MIXED" ]
+            "type" : "string",
+            "$ref" : "#/components/schemas/SurfaceType"
           },
           "isPublic" : {
             "type" : "boolean",
@@ -753,6 +855,7 @@
       "RouteListResponse" : {
         "description" : "Paginated route list response",
         "type" : "object",
+        "required" : [ "routes", "total", "page", "size" ],
         "properties" : {
           "routes" : {
             "type" : "array",
@@ -785,6 +888,7 @@
       "TeamDetailDto" : {
         "description" : "Detailed team information",
         "type" : "object",
+        "required" : [ "id", "name", "slug", "isPublic", "memberCount" ],
         "properties" : {
           "id" : {
             "type" : "string",
@@ -800,15 +904,15 @@
             "description" : "Team URL slug"
           },
           "description" : {
-            "type" : "string",
+            "type" : [ "string", "null" ],
             "description" : "Team description"
           },
           "logoUrl" : {
-            "type" : "string",
+            "type" : [ "string", "null" ],
             "description" : "Logo image URL"
           },
           "coverImageUrl" : {
-            "type" : "string",
+            "type" : [ "string", "null" ],
             "description" : "Cover image URL"
           },
           "isPublic" : {
@@ -821,17 +925,21 @@
             "description" : "Number of team members"
           },
           "maxMembers" : {
-            "type" : "integer",
+            "type" : [ "integer", "null" ],
             "format" : "int32",
             "description" : "Maximum number of members (null = unlimited)"
           },
           "userRole" : {
-            "type" : "string",
             "description" : "Current user's role (null if not a member)",
-            "enum" : [ "OWNER", "ADMIN", "MEMBER" ]
+            "type" : [ "string", "null" ],
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/TeamRole"
+            }, {
+              "type" : "null"
+            } ]
           },
           "createdAt" : {
-            "type" : "string",
+            "type" : [ "string", "null" ],
             "description" : "Team creation timestamp"
           }
         }
@@ -839,6 +947,7 @@
       "TeamDto" : {
         "description" : "Team summary data",
         "type" : "object",
+        "required" : [ "id", "name", "slug", "isPublic", "memberCount" ],
         "properties" : {
           "id" : {
             "type" : "string",
@@ -856,15 +965,15 @@
             "examples" : [ "awesome-cycling-team" ]
           },
           "description" : {
-            "type" : "string",
+            "type" : [ "string", "null" ],
             "description" : "Team description"
           },
           "logoUrl" : {
-            "type" : "string",
+            "type" : [ "string", "null" ],
             "description" : "Logo image URL"
           },
           "coverImageUrl" : {
-            "type" : "string",
+            "type" : [ "string", "null" ],
             "description" : "Cover image URL"
           },
           "isPublic" : {
@@ -881,6 +990,7 @@
       "TeamListResponse" : {
         "description" : "Paginated team list response",
         "type" : "object",
+        "required" : [ "teams", "total", "page", "size" ],
         "properties" : {
           "teams" : {
             "type" : "array",
@@ -906,9 +1016,14 @@
           }
         }
       },
+      "TeamRole" : {
+        "type" : "string",
+        "enum" : [ "ADMIN", "ORGANIZER", "MEMBER" ]
+      },
       "TeamWithRoleDto" : {
         "description" : "Team data with user's role",
         "type" : "object",
+        "required" : [ "id", "name", "slug", "isPublic", "memberCount", "role" ],
         "properties" : {
           "id" : {
             "type" : "string",
@@ -917,19 +1032,25 @@
           },
           "name" : {
             "type" : "string",
-            "description" : "Team name"
+            "description" : "Team name",
+            "examples" : [ "Awesome Cycling Team" ]
           },
           "slug" : {
             "type" : "string",
-            "description" : "Team URL slug"
+            "description" : "Team URL slug",
+            "examples" : [ "awesome-cycling-team" ]
           },
           "description" : {
-            "type" : "string",
+            "type" : [ "string", "null" ],
             "description" : "Team description"
           },
           "logoUrl" : {
-            "type" : "string",
+            "type" : [ "string", "null" ],
             "description" : "Logo image URL"
+          },
+          "coverImageUrl" : {
+            "type" : [ "string", "null" ],
+            "description" : "Cover image URL"
           },
           "isPublic" : {
             "type" : "boolean",
@@ -941,16 +1062,17 @@
             "description" : "Number of team members"
           },
           "role" : {
-            "type" : "string",
             "description" : "User's role in the team",
+            "type" : "string",
             "examples" : [ "MEMBER" ],
-            "enum" : [ "OWNER", "ADMIN", "MEMBER" ]
+            "$ref" : "#/components/schemas/TeamRole"
           }
         }
       },
       "TrackPointDto" : {
         "type" : "object",
         "description" : "GPS track point",
+        "required" : [ "lat", "lng", "ele", "dist" ],
         "properties" : {
           "lat" : {
             "type" : "number",
@@ -979,27 +1101,27 @@
         "type" : "object",
         "properties" : {
           "name" : {
-            "type" : "string",
+            "type" : [ "string", "null" ],
             "description" : "Group name",
             "minLength" : 1,
             "maxLength" : 100
           },
           "description" : {
-            "type" : "string",
+            "type" : [ "string", "null" ],
             "description" : "Group description"
           },
           "averageSpeed" : {
-            "type" : "integer",
+            "type" : [ "integer", "null" ],
             "format" : "int32",
             "description" : "Average speed in km/h"
           },
           "maxParticipants" : {
-            "type" : "integer",
+            "type" : [ "integer", "null" ],
             "format" : "int32",
             "description" : "Maximum participants"
           },
           "routeId" : {
-            "type" : "string",
+            "type" : [ "string", "null" ],
             "description" : "Route ID (TSID)"
           }
         }
@@ -1010,9 +1132,9 @@
         "required" : [ "role" ],
         "properties" : {
           "role" : {
-            "type" : "string",
             "description" : "New role",
-            "enum" : [ "ADMIN", "MEMBER" ]
+            "type" : "string",
+            "$ref" : "#/components/schemas/TeamRole"
           }
         }
       },
@@ -1021,48 +1143,68 @@
         "type" : "object",
         "properties" : {
           "title" : {
-            "type" : "string",
+            "type" : [ "string", "null" ],
             "description" : "Ride title",
             "minLength" : 3,
             "maxLength" : 200
           },
           "description" : {
-            "type" : "string",
+            "type" : [ "string", "null" ],
             "description" : "Ride description",
             "maxLength" : 5000
           },
           "date" : {
             "description" : "Ride date",
-            "type" : "string",
-            "$ref" : "#/components/schemas/LocalDate"
+            "type" : [ "string", "null" ],
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/LocalDate"
+            }, {
+              "type" : "null"
+            } ]
           },
           "startTime" : {
             "description" : "Start time",
-            "type" : "string",
-            "$ref" : "#/components/schemas/LocalTime"
+            "type" : [ "string", "null" ],
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/LocalTime"
+            }, {
+              "type" : "null"
+            } ]
           },
           "status" : {
-            "type" : "string",
             "description" : "Ride status",
-            "enum" : [ "DRAFT", "PUBLISHED", "CANCELLED", "COMPLETED" ]
+            "type" : [ "string", "null" ],
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/RideStatus"
+            }, {
+              "type" : "null"
+            } ]
           },
           "visibility" : {
-            "type" : "string",
             "description" : "Visibility level",
-            "enum" : [ "PUBLIC", "MEMBERS_ONLY", "PRIVATE" ]
+            "type" : [ "string", "null" ],
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/Visibility"
+            }, {
+              "type" : "null"
+            } ]
           },
           "routeId" : {
-            "type" : "string",
+            "type" : [ "string", "null" ],
             "description" : "Route ID (TSID)"
           },
           "meetingPointId" : {
-            "type" : "string",
+            "type" : [ "string", "null" ],
             "description" : "Meeting point ID (TSID)"
           },
           "publishAt" : {
             "description" : "Publication timestamp",
-            "type" : "string",
-            "$ref" : "#/components/schemas/Instant"
+            "type" : [ "string", "null" ],
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/Instant"
+            }, {
+              "type" : "null"
+            } ]
           }
         }
       },
@@ -1071,25 +1213,33 @@
         "type" : "object",
         "properties" : {
           "name" : {
-            "type" : "string",
+            "type" : [ "string", "null" ],
             "description" : "Route name"
           },
           "description" : {
-            "type" : "string",
+            "type" : [ "string", "null" ],
             "description" : "Route description"
           },
           "difficulty" : {
-            "type" : "string",
             "description" : "Route difficulty",
-            "enum" : [ "EASY", "MODERATE", "HARD", "VERY_HARD" ]
+            "type" : [ "string", "null" ],
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/RouteDifficulty"
+            }, {
+              "type" : "null"
+            } ]
           },
           "surfaceType" : {
-            "type" : "string",
             "description" : "Surface type",
-            "enum" : [ "ASPHALT", "GRAVEL", "MIXED" ]
+            "type" : [ "string", "null" ],
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/SurfaceType"
+            }, {
+              "type" : "null"
+            } ]
           },
           "isPublic" : {
-            "type" : "boolean",
+            "type" : [ "boolean", "null" ],
             "description" : "Whether the route is publicly visible"
           }
         }
@@ -1099,30 +1249,30 @@
         "type" : "object",
         "properties" : {
           "name" : {
-            "type" : "string",
+            "type" : [ "string", "null" ],
             "description" : "Team name",
             "minLength" : 2,
             "maxLength" : 255
           },
           "description" : {
-            "type" : "string",
+            "type" : [ "string", "null" ],
             "description" : "Team description",
             "maxLength" : 2000
           },
           "isPublic" : {
-            "type" : "boolean",
+            "type" : [ "boolean", "null" ],
             "description" : "Whether the team is publicly visible"
           },
           "logoUrl" : {
-            "type" : "string",
+            "type" : [ "string", "null" ],
             "description" : "Logo image URL"
           },
           "coverImageUrl" : {
-            "type" : "string",
+            "type" : [ "string", "null" ],
             "description" : "Cover image URL"
           },
           "maxMembers" : {
-            "type" : "integer",
+            "type" : [ "integer", "null" ],
             "format" : "int32",
             "description" : "Maximum number of members (null = unlimited)"
           }
@@ -1133,20 +1283,20 @@
         "type" : "object",
         "properties" : {
           "displayName" : {
-            "type" : "string",
+            "type" : [ "string", "null" ],
             "description" : "User display name",
             "examples" : [ "John Doe" ],
             "minLength" : 1,
             "maxLength" : 255
           },
           "locale" : {
-            "type" : "string",
+            "type" : [ "string", "null" ],
             "description" : "User locale (e.g. 'en', 'fr')",
             "examples" : [ "en" ],
             "maxLength" : 10
           },
           "timezone" : {
-            "type" : "string",
+            "type" : [ "string", "null" ],
             "description" : "User timezone (e.g. 'Europe/Paris')",
             "examples" : [ "Europe/Paris" ],
             "maxLength" : 50
@@ -1156,6 +1306,7 @@
       "UserDto" : {
         "description" : "User profile data",
         "type" : "object",
+        "required" : [ "id", "email", "displayName" ],
         "properties" : {
           "id" : {
             "type" : "string",
@@ -1171,30 +1322,34 @@
             "description" : "User display name"
           },
           "avatarUrl" : {
-            "type" : "string",
+            "type" : [ "string", "null" ],
             "description" : "User avatar URL"
           },
           "locale" : {
-            "type" : "string",
+            "type" : [ "string", "null" ],
             "description" : "User locale (e.g. 'en', 'fr')",
             "examples" : [ "en" ]
           },
           "timezone" : {
-            "type" : "string",
+            "type" : [ "string", "null" ],
             "description" : "User timezone (e.g. 'Europe/Paris')",
             "examples" : [ "Europe/Paris" ]
           },
           "createdAt" : {
-            "type" : "string",
+            "type" : [ "string", "null" ],
             "description" : "Account creation timestamp"
           }
         }
+      },
+      "Visibility" : {
+        "type" : "string",
+        "enum" : [ "TEAM", "PUBLIC" ]
       }
     },
     "securitySchemes" : {
       "SecurityScheme" : {
         "type" : "openIdConnect",
-        "openIdConnectUrl" : "http://localhost:8180/realms/tribly/.well-known/openid-configuration",
+        "openIdConnectUrl" : "http://localhost:8180/realms/quarkus/.well-known/openid-configuration",
         "description" : "Authentication"
       }
     }
@@ -1273,7 +1428,14 @@
             }
           },
           "404" : {
-            "description" : "Team or route not found"
+            "description" : "Team or route not found",
+            "content" : {
+              "application/octet-stream" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         }
       }
@@ -1309,7 +1471,14 @@
             }
           },
           "404" : {
-            "description" : "Team or route not found"
+            "description" : "Team or route not found",
+            "content" : {
+              "application/gpx+xml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         }
       }
@@ -1345,7 +1514,14 @@
             }
           },
           "404" : {
-            "description" : "Team or route not found"
+            "description" : "Team or route not found",
+            "content" : {
+              "image/png" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         }
       }
@@ -1422,10 +1598,24 @@
             }
           },
           "400" : {
-            "description" : "Invalid request"
+            "description" : "Invalid request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "401" : {
-            "description" : "Unauthorized"
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "403" : {
             "description" : "Not Allowed"
@@ -1457,7 +1647,14 @@
             }
           },
           "401" : {
-            "description" : "Unauthorized"
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "403" : {
             "description" : "Not Allowed"
@@ -1505,16 +1702,44 @@
             }
           },
           "400" : {
-            "description" : "Invalid request"
+            "description" : "Invalid request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "401" : {
-            "description" : "Unauthorized"
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "403" : {
-            "description" : "User is not a team admin"
+            "description" : "User is not a team admin",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "404" : {
-            "description" : "Team not found"
+            "description" : "Team not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         },
         "security" : [ {
@@ -1547,10 +1772,24 @@
             }
           },
           "404" : {
-            "description" : "Team not found"
+            "description" : "Team not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "403" : {
-            "description" : "Team is private and user is not a member"
+            "description" : "Team is private and user is not a member",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         }
       },
@@ -1573,13 +1812,34 @@
             "description" : "Team deleted successfully"
           },
           "401" : {
-            "description" : "Unauthorized"
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "403" : {
-            "description" : "User is not the team owner"
+            "description" : "User is not the team owner",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "404" : {
-            "description" : "Team not found"
+            "description" : "Team not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         },
         "security" : [ {
@@ -1632,10 +1892,24 @@
             }
           },
           "401" : {
-            "description" : "Unauthorized"
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "404" : {
-            "description" : "Team not found"
+            "description" : "Team not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "403" : {
             "description" : "Not Allowed"
@@ -1681,16 +1955,44 @@
             }
           },
           "400" : {
-            "description" : "Invalid request or user already a member"
+            "description" : "Invalid request or user already a member",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "401" : {
-            "description" : "Unauthorized"
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "403" : {
-            "description" : "User is not a team admin"
+            "description" : "User is not a team admin",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "404" : {
-            "description" : "Team or user not found"
+            "description" : "Team or user not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         },
         "security" : [ {
@@ -1725,13 +2027,34 @@
             }
           },
           "400" : {
-            "description" : "Team is full or user is already a member"
+            "description" : "Team is full or user is already a member",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "401" : {
-            "description" : "Unauthorized"
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "404" : {
-            "description" : "Team not found"
+            "description" : "Team not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "403" : {
             "description" : "Not Allowed"
@@ -1762,13 +2085,34 @@
             "description" : "Successfully left team"
           },
           "400" : {
-            "description" : "Cannot leave - user is the owner"
+            "description" : "Cannot leave - user is the owner",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "401" : {
-            "description" : "Unauthorized"
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "404" : {
-            "description" : "Team not found or user is not a member"
+            "description" : "Team not found or user is not a member",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "403" : {
             "description" : "Not Allowed"
@@ -1824,16 +2168,44 @@
             }
           },
           "400" : {
-            "description" : "Invalid request"
+            "description" : "Invalid request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "401" : {
-            "description" : "Unauthorized"
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "403" : {
-            "description" : "User is not a team admin"
+            "description" : "User is not a team admin",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "404" : {
-            "description" : "Team or member not found"
+            "description" : "Team or member not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         },
         "security" : [ {
@@ -1867,13 +2239,34 @@
             "description" : "Member removed successfully"
           },
           "401" : {
-            "description" : "Unauthorized"
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "403" : {
-            "description" : "User is not a team admin"
+            "description" : "User is not a team admin",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "404" : {
-            "description" : "Team or member not found"
+            "description" : "Team or member not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         },
         "security" : [ {
@@ -1947,7 +2340,14 @@
             }
           },
           "404" : {
-            "description" : "Team not found"
+            "description" : "Team not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         }
       },
@@ -1987,16 +2387,44 @@
             }
           },
           "400" : {
-            "description" : "Invalid request"
+            "description" : "Invalid request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "401" : {
-            "description" : "Unauthorized"
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "403" : {
-            "description" : "User is not a team member"
+            "description" : "User is not a team member",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "404" : {
-            "description" : "Team not found"
+            "description" : "Team not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         },
         "security" : [ {
@@ -2049,16 +2477,44 @@
             }
           },
           "400" : {
-            "description" : "Invalid request"
+            "description" : "Invalid request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "401" : {
-            "description" : "Unauthorized"
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "403" : {
-            "description" : "User is not authorized to update this ride"
+            "description" : "User is not authorized to update this ride",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "404" : {
-            "description" : "Team or ride not found"
+            "description" : "Team or ride not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         },
         "security" : [ {
@@ -2099,7 +2555,14 @@
             }
           },
           "404" : {
-            "description" : "Team or ride not found"
+            "description" : "Team or ride not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         }
       },
@@ -2130,13 +2593,34 @@
             "description" : "Ride deleted successfully"
           },
           "401" : {
-            "description" : "Unauthorized"
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "403" : {
-            "description" : "User is not authorized to delete this ride"
+            "description" : "User is not authorized to delete this ride",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "404" : {
-            "description" : "Team or ride not found"
+            "description" : "Team or ride not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         },
         "security" : [ {
@@ -2179,7 +2663,14 @@
             }
           },
           "404" : {
-            "description" : "Team or ride not found"
+            "description" : "Team or ride not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         }
       },
@@ -2227,16 +2718,44 @@
             }
           },
           "400" : {
-            "description" : "Invalid request"
+            "description" : "Invalid request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "401" : {
-            "description" : "Unauthorized"
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "403" : {
-            "description" : "User is not authorized to modify this ride"
+            "description" : "User is not authorized to modify this ride",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "404" : {
-            "description" : "Team or ride not found"
+            "description" : "Team or ride not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         },
         "security" : [ {
@@ -2297,16 +2816,44 @@
             }
           },
           "400" : {
-            "description" : "Invalid request"
+            "description" : "Invalid request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "401" : {
-            "description" : "Unauthorized"
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "403" : {
-            "description" : "User is not authorized to modify this ride"
+            "description" : "User is not authorized to modify this ride",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "404" : {
-            "description" : "Team, ride, or group not found"
+            "description" : "Team, ride, or group not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         },
         "security" : [ {
@@ -2348,13 +2895,34 @@
             "description" : "Group deleted successfully"
           },
           "401" : {
-            "description" : "Unauthorized"
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "403" : {
-            "description" : "User is not authorized to modify this ride"
+            "description" : "User is not authorized to modify this ride",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "404" : {
-            "description" : "Team, ride, or group not found"
+            "description" : "Team, ride, or group not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         },
         "security" : [ {
@@ -2415,13 +2983,34 @@
             }
           },
           "400" : {
-            "description" : "Group is full or user already joined"
+            "description" : "Group is full or user already joined",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "401" : {
-            "description" : "Unauthorized"
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "404" : {
-            "description" : "Team, ride, or group not found"
+            "description" : "Team, ride, or group not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "403" : {
             "description" : "Not Allowed"
@@ -2468,10 +3057,24 @@
             "description" : "Successfully left group"
           },
           "401" : {
-            "description" : "Unauthorized"
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "404" : {
-            "description" : "Team, ride, group, or participation not found"
+            "description" : "Team, ride, group, or participation not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "403" : {
             "description" : "Not Allowed"
@@ -2527,7 +3130,14 @@
             }
           },
           "404" : {
-            "description" : "Team not found"
+            "description" : "Team not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         }
       },
@@ -2601,16 +3211,44 @@
             }
           },
           "400" : {
-            "description" : "Invalid request or GPX file"
+            "description" : "Invalid request or GPX file",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "401" : {
-            "description" : "Unauthorized"
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "403" : {
-            "description" : "User is not a team member"
+            "description" : "User is not a team member",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "404" : {
-            "description" : "Team not found"
+            "description" : "Team not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         },
         "security" : [ {
@@ -2663,16 +3301,44 @@
             }
           },
           "400" : {
-            "description" : "Invalid request"
+            "description" : "Invalid request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "401" : {
-            "description" : "Unauthorized"
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "403" : {
-            "description" : "User is not authorized to update this route"
+            "description" : "User is not authorized to update this route",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "404" : {
-            "description" : "Team or route not found"
+            "description" : "Team or route not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         },
         "security" : [ {
@@ -2713,7 +3379,14 @@
             }
           },
           "404" : {
-            "description" : "Team or route not found"
+            "description" : "Team or route not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         }
       },
@@ -2744,13 +3417,34 @@
             "description" : "Route deleted successfully"
           },
           "401" : {
-            "description" : "Unauthorized"
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "403" : {
-            "description" : "User is not authorized to delete this route"
+            "description" : "User is not authorized to delete this route",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "404" : {
-            "description" : "Team or route not found"
+            "description" : "Team or route not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         },
         "security" : [ {
@@ -2793,7 +3487,14 @@
             }
           },
           "404" : {
-            "description" : "Team or route not found"
+            "description" : "Team or route not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         }
       }
@@ -2833,7 +3534,14 @@
             }
           },
           "404" : {
-            "description" : "Team or route not found"
+            "description" : "Team or route not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
         }
       }
@@ -2866,10 +3574,24 @@
             }
           },
           "400" : {
-            "description" : "Invalid request"
+            "description" : "Invalid request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "401" : {
-            "description" : "Unauthorized"
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "403" : {
             "description" : "Not Allowed"
@@ -2896,7 +3618,14 @@
             }
           },
           "401" : {
-            "description" : "Unauthorized"
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "403" : {
             "description" : "Not Allowed"
@@ -2916,7 +3645,14 @@
             "description" : "User deleted successfully"
           },
           "401" : {
-            "description" : "Unauthorized"
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "403" : {
             "description" : "Not Allowed"
@@ -2965,7 +3701,14 @@
             }
           },
           "401" : {
-            "description" : "Unauthorized"
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "403" : {
             "description" : "Not Allowed"
@@ -3003,10 +3746,24 @@
             }
           },
           "401" : {
-            "description" : "Unauthorized"
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "404" : {
-            "description" : "User not found"
+            "description" : "User not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           },
           "403" : {
             "description" : "Not Allowed"

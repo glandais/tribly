@@ -1,11 +1,9 @@
 import { useQuery } from '@tanstack/react-query'
-import { apiClient } from '../api/client'
+import { usersApi, unwrapResponse } from '../lib/apiClient'
+import type { PublicUserDto } from '../api/api'
 
-export interface UserSearchResult {
-  id: string
-  displayName: string
-  avatarUrl: string | null
-}
+// Re-export type for convenience
+export type { PublicUserDto }
 
 export function useUserSearch(query: string, enabled: boolean = true) {
   return useQuery({
@@ -14,7 +12,7 @@ export function useUserSearch(query: string, enabled: boolean = true) {
       if (!query || query.trim().length < 2) {
         return []
       }
-      return apiClient.get<UserSearchResult[]>(`/users/search?q=${encodeURIComponent(query)}`)
+      return await unwrapResponse(usersApi.searchUsers(undefined, query))
     },
     enabled: enabled && query.trim().length >= 2,
     staleTime: 30000, // 30 seconds

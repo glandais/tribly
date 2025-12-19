@@ -4,9 +4,13 @@ import com.tribly.domain.common.BaseEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.UUID;
 
+@Setter
+@Getter
 @Entity
 @Table(name = "team_domains")
 public class TeamDomain extends BaseEntity {
@@ -40,46 +44,6 @@ public class TeamDomain extends BaseEntity {
 
     private static String generateVerificationToken() {
         return "tribly-verify-" + UUID.randomUUID().toString().replace("-", "").substring(0, 16);
-    }
-
-    public Team getTeam() {
-        return team;
-    }
-
-    public void setTeam(Team team) {
-        this.team = team;
-    }
-
-    public String getDomain() {
-        return domain;
-    }
-
-    public void setDomain(String domain) {
-        this.domain = domain;
-    }
-
-    public boolean isVerified() {
-        return verified;
-    }
-
-    public void setVerified(boolean verified) {
-        this.verified = verified;
-    }
-
-    public String getVerificationToken() {
-        return verificationToken;
-    }
-
-    public void setVerificationToken(String verificationToken) {
-        this.verificationToken = verificationToken;
-    }
-
-    public boolean isPrimary() {
-        return isPrimary;
-    }
-
-    public void setPrimary(boolean primary) {
-        isPrimary = primary;
     }
 
     public void verify() {

@@ -6,6 +6,7 @@ import com.tribly.infrastructure.exception.BusinessException;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 import java.util.Optional;
@@ -25,16 +26,12 @@ public class UserService {
                 .orElseThrow(() -> BusinessException.notFound("User", userId));
     }
 
-    public Optional<User> findActiveById(Long userId) {
-        return userRepository.findActiveById(userId);
-    }
-
     public List<User> searchByDisplayName(String query, int limit) {
         return userRepository.searchByDisplayName(query, limit);
     }
 
     @Transactional
-    public User updateUser(Long userId, String displayName, String locale, String timezone) {
+    public User updateUser(Long userId, @Nullable String displayName, @Nullable String locale, @Nullable String timezone) {
         User user = getActiveById(userId);
 
         if (displayName != null) {

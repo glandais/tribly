@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useTeam } from '../../hooks/useTeam'
 import { useCreateRide, CreateGroupRequest, Visibility } from '../../hooks/useRide'
 import { LoadingPage, LoadingSpinner } from '../../components/common/LoadingSpinner'
-import { ApiClientError } from '../../api/client'
+import { ApiClientError } from '../../lib/apiClient'
 
 export function CreateRidePage() {
   const { t } = useTranslation('rides')
@@ -25,7 +25,7 @@ export function CreateRidePage() {
   const [description, setDescription] = useState('')
   const [date, setDate] = useState(getNextSunday())
   const [startTime, setStartTime] = useState('08:00')
-  const [visibility, setVisibility] = useState<Visibility>('TEAM')
+  const [visibility, setVisibility] = useState<Visibility>(Visibility.Team)
   const [publishAt, setPublishAt] = useState('')
   const [groups, setGroups] = useState<CreateGroupRequest[]>([
     {

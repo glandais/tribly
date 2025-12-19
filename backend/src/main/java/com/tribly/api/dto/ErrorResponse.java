@@ -1,15 +1,30 @@
 package com.tribly.api.dto;
 
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.jspecify.annotations.Nullable;
+
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
+@Schema(description = "Error response")
 public record ErrorResponse(
+        @Schema(description = "Error code", required = true)
         String code,
+
+        @Schema(description = "Error message", required = true)
         String message,
+
+        @Schema(description = "Request path", required = true)
         String path,
+
+        @Schema(description = "Timestamp", required = true)
         Instant timestamp,
+
+        @Nullable @Schema(description = "Field validation errors", nullable = true)
         List<FieldError> errors,
+
+        @Nullable @Schema(description = "Additional details", nullable = true)
         Map<String, Object> details
 ) {
     public ErrorResponse(String code, String message, String path) {
@@ -45,10 +60,6 @@ public record ErrorResponse(
 
     public static ErrorResponse forbidden(String path, String message) {
         return new ErrorResponse("FORBIDDEN", message, path);
-    }
-
-    public static ErrorResponse conflict(String path, String message) {
-        return new ErrorResponse("CONFLICT", message, path);
     }
 
     public static ErrorResponse internal(String path, String message) {
