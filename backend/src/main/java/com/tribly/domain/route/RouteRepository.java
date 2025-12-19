@@ -14,7 +14,7 @@ public class RouteRepository implements BaseRepository<Route> {
         new TriblyQuery()
             .and("team.id = :teamId", Map.of("teamId", routeQuery.teamId()))
             .and("deleted = false", Map.of())
-            .order("date desc");
+            .order("updatedAt desc");
     if (routeQuery.visibility() != null) {
       triblyQuery =
           triblyQuery.and(

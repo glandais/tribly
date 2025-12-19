@@ -52,7 +52,7 @@ public class TeamRepository implements BaseRepository<Team> {
         // Show public teams NOT joined by user
         triblyQuery.and("visibility = :visibility", Map.of("visibility", Visibility.PUBLIC));
         triblyQuery.and(
-            "NOT EXISTS (SELECT 1 FROM UserTeam ut2 WHERE ut2.team.id = id AND ut2.user.id ="
+            "NOT EXISTS (SELECT 1 FROM UserTeam ut2 WHERE ut2.team.id = t.id AND ut2.user.id ="
                 + " :userId AND ut2.deleted = false)",
             Map.of());
       }
