@@ -9,7 +9,6 @@ import { RouteCard, RouteCardSkeleton } from '../../components/route/RouteCard'
 export function RouteListPage() {
   const { teamSlug } = useParams<{ teamSlug: string }>()
   const { t } = useTranslation('routes')
-  const { t: tCommon } = useTranslation('common')
 
   const { data: team, isLoading: isLoadingTeam } = useTeam(teamSlug)
   const { data: routesData, isLoading: isLoadingRoutes } = useRoutes(teamSlug)
