@@ -1369,7 +1369,7 @@
     "securitySchemes" : {
       "SecurityScheme" : {
         "type" : "openIdConnect",
-        "openIdConnectUrl" : "http://localhost:8180/realms/tribly/.well-known/openid-configuration",
+        "openIdConnectUrl" : "http://localhost:8180/realms/quarkus/.well-known/openid-configuration",
         "description" : "Authentication"
       }
     }
@@ -1417,29 +1417,12 @@
         }
       }
     },
-    "/api/download/teams/{slug}/routes/{routeId}/fit" : {
+    "/api/download/public/teams/{slug}/routes/{routeId}/fit" : {
       "get" : {
         "summary" : "Download FIT file",
         "description" : "Download the route as a FIT file for Garmin devices",
         "operationId" : "downloadFit",
         "tags" : [ "Route Downloads" ],
-        "parameters" : [ {
-          "description" : "Route ID (TSID)",
-          "name" : "routeId",
-          "in" : "path",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "description" : "Team URL slug",
-          "name" : "slug",
-          "in" : "path",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
         "responses" : {
           "200" : {
             "description" : "FIT file downloaded successfully",
@@ -1460,29 +1443,12 @@
         }
       }
     },
-    "/api/download/teams/{slug}/routes/{routeId}/gpx" : {
+    "/api/download/public/teams/{slug}/routes/{routeId}/gpx" : {
       "get" : {
         "summary" : "Download GPX file",
         "description" : "Download the route as a GPX file",
         "operationId" : "downloadGpx",
         "tags" : [ "Route Downloads" ],
-        "parameters" : [ {
-          "description" : "Route ID (TSID)",
-          "name" : "routeId",
-          "in" : "path",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "description" : "Team URL slug",
-          "name" : "slug",
-          "in" : "path",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
         "responses" : {
           "200" : {
             "description" : "GPX file downloaded successfully",
@@ -1503,29 +1469,90 @@
         }
       }
     },
-    "/api/download/teams/{slug}/routes/{routeId}/thumbnail" : {
+    "/api/download/public/teams/{slug}/routes/{routeId}/thumbnail" : {
       "get" : {
         "summary" : "Get route thumbnail",
         "description" : "Get a thumbnail image of the route",
         "operationId" : "getThumbnail",
         "tags" : [ "Route Downloads" ],
-        "parameters" : [ {
-          "description" : "Route ID (TSID)",
-          "name" : "routeId",
-          "in" : "path",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
+        "responses" : {
+          "200" : {
+            "description" : "Thumbnail retrieved successfully",
+            "content" : {
+              "image/png" : { }
+            }
+          },
+          "404" : {
+            "description" : "Team or route not found",
+            "content" : {
+              "image/png" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
-        }, {
-          "description" : "Team URL slug",
-          "name" : "slug",
-          "in" : "path",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
+        }
+      }
+    },
+    "/api/download/team/teams/{slug}/routes/{routeId}/fit" : {
+      "get" : {
+        "summary" : "Download FIT file",
+        "description" : "Download the route as a FIT file for Garmin devices",
+        "operationId" : "downloadFit",
+        "tags" : [ "Route Downloads" ],
+        "responses" : {
+          "200" : {
+            "description" : "FIT file downloaded successfully",
+            "content" : {
+              "application/octet-stream" : { }
+            }
+          },
+          "404" : {
+            "description" : "Team or route not found",
+            "content" : {
+              "application/octet-stream" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
           }
-        } ],
+        }
+      }
+    },
+    "/api/download/team/teams/{slug}/routes/{routeId}/gpx" : {
+      "get" : {
+        "summary" : "Download GPX file",
+        "description" : "Download the route as a GPX file",
+        "operationId" : "downloadGpx",
+        "tags" : [ "Route Downloads" ],
+        "responses" : {
+          "200" : {
+            "description" : "GPX file downloaded successfully",
+            "content" : {
+              "application/gpx+xml" : { }
+            }
+          },
+          "404" : {
+            "description" : "Team or route not found",
+            "content" : {
+              "application/gpx+xml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/download/team/teams/{slug}/routes/{routeId}/thumbnail" : {
+      "get" : {
+        "summary" : "Get route thumbnail",
+        "description" : "Get a thumbnail image of the route",
+        "operationId" : "getThumbnail",
+        "tags" : [ "Route Downloads" ],
         "responses" : {
           "200" : {
             "description" : "Thumbnail retrieved successfully",

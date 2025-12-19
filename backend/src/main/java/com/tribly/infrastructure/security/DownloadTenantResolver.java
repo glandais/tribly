@@ -14,7 +14,7 @@ public class DownloadTenantResolver implements TenantResolver {
         String path = context.request().path();
 
         // Route download endpoints to download tenant only if enabled (not in test mode)
-        if (path != null && path.startsWith("/api/download/")) {
+        if (path != null && path.startsWith("/api/download/team/")) {
             return "download";
         }
 

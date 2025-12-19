@@ -1,7 +1,6 @@
 package com.tribly.api;
 
 import com.tribly.domain.user.User;
-import com.tribly.service.security.TeamSecurityService;
 import com.tribly.service.user.UserService;
 import io.quarkus.security.identity.CurrentIdentityAssociation;
 import io.quarkus.security.identity.SecurityIdentity;
@@ -26,9 +25,6 @@ public abstract class AbstractAuthenticatedResource {
 
     @Inject
     protected UserService userService;
-
-    @Inject
-    TeamSecurityService securityService;
 
     @Inject
     protected CurrentIdentityAssociation currentIdentityAssociation;

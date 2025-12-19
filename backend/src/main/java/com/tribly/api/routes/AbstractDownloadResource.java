@@ -28,9 +28,8 @@ import java.io.File;
  * REST API for route file downloads and images.
  * Uses cookie-based authentication via download tenant (HTTP auth permission).
  */
-@Path("/api/download/teams/{slug}/routes/{routeId}")
 @Tag(name = "Route Downloads", description = "Route file downloads and images")
-public class DownloadResource extends AbstractAuthenticatedResource {
+public abstract class AbstractDownloadResource extends AbstractAuthenticatedResource {
 
     @Inject
     TeamService teamService;

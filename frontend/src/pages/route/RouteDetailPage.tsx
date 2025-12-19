@@ -327,7 +327,7 @@ export function RouteDetailPage() {
         <h2 className="text-xl font-bold text-gray-900 mb-4">{t('detail.download.title')}</h2>
         <div className="flex flex-wrap gap-3">
           <a
-            href={`/api/download/teams/${teamSlug}/routes/${routeId}/gpx`}
+            href={`/api/download/${route.visibility.toLowerCase()}/teams/${teamSlug}/routes/${routeId}/gpx`}
             className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-xs text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
           >
             <svg
@@ -346,7 +346,7 @@ export function RouteDetailPage() {
             {t('detail.download.gpx')}
           </a>
           <a
-            href={`/api/download/teams/${teamSlug}/routes/${routeId}/fit`}
+            href={`/api/download/${route.visibility.toLowerCase()}/teams/${teamSlug}/routes/${routeId}/fit`}
             className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-xs text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
           >
             <svg
