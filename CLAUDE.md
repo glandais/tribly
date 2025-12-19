@@ -33,6 +33,8 @@ pnpm build                # Type check + production build
 pnpm test                 # Run Vitest tests
 pnpm lint                 # ESLint check
 pnpm lint:fix             # ESLint auto-fix
+pnpm format               # Format code with Prettier
+pnpm format:check         # Check formatting without fixing
 pnpm generate-api         # Generate API client from OpenAPI spec
 ```
 
@@ -94,9 +96,11 @@ utils/         # Utility functions
 
 ### Contract-First Development
 
-1. OpenAPI spec lives in `contracts/openapi.yaml`
-2. Backend implements the spec manually with OpenAPI annotations
+1. Backend annotations generate OpenAPI spec to `contracts/openapi.yaml` when running Quarkus
+2. Convert to JSON: `contracts/openapi.json` (required by frontend generator)
 3. Frontend generates typed client: `pnpm generate-api`
+
+**Workflow**: Backend annotations → `openapi.yaml` (auto-generated) → convert to JSON → `pnpm generate-api`
 
 ## OpenAPI Annotations
 
@@ -452,6 +456,7 @@ frontend/src/
       auth.json           # Login, home page
       teams.json          # Team pages
       rides.json          # Ride pages
+      routes.json         # Route pages
       profile.json        # User profile
       errors.json         # Error messages
     en/                   # English
