@@ -1,15 +1,11 @@
 import { useTranslation } from 'react-i18next'
-import type { TeamDto, TeamWithRoleDto } from '../../hooks/useTeam'
+import type { TeamDetailDto } from '../../hooks/useTeam'
 import { Card, CardContent, CardTitle, CardDescription } from '../common/card'
 import { Badge, VisibilityBadge, Stat, CardSkeleton } from '../common/card'
 
 interface TeamCardProps {
-  team: TeamDto | TeamWithRoleDto
+  team: TeamDetailDto
   showRole?: boolean
-}
-
-function isTeamWithRole(team: TeamDto | TeamWithRoleDto): team is TeamWithRoleDto {
-  return 'role' in team
 }
 
 const roleBadgeVariants: Record<string, 'purple' | 'blue' | 'gray'> = {
@@ -60,7 +56,7 @@ export function TeamCard({ team, showRole = false }: TeamCardProps) {
             {team.visibility === 'TEAM' && (
               <VisibilityBadge visibility={team.visibility} showIcon={false} />
             )}
-            {showRole && isTeamWithRole(team) && (
+            {showRole && team.role && (
               <Badge variant={roleBadgeVariants[team.role]}>{t(`roles.${team.role}`)}</Badge>
             )}
           </div>

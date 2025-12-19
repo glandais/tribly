@@ -1,55 +1,29 @@
 package com.tribly.domain.route;
 
-import com.tribly.domain.common.Visibility;
-import io.quarkus.hibernate.orm.panache.PanacheRepository;
-import io.quarkus.panache.common.Page;
-import io.quarkus.panache.common.Sort;
+import com.tribly.domain.common.BaseRepository;
+import com.tribly.domain.common.TriblyPage;
+import com.tribly.domain.common.TriblyQuery;
 import jakarta.enterprise.context.ApplicationScoped;
-
-import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 
 @ApplicationScoped
-public class RouteRepository implements PanacheRepository<Route> {
+public class RouteRepository implements BaseRepository<Route> {
 
-    /**
-     * Find a route by ID within a specific team.
-     */
-    public Optional<Route> findByIdAndTeam(Long routeId, Long teamId) {
-        return find("id = ?1 and team.id = ?2 and deleted = false", routeId, teamId)
-                .firstResultOptional();
+  public TriblyPage<Route> find(RouteQuery routeQuery) {
+    TriblyQuery triblyQuery =
+        new TriblyQuery()
+            .and("team.id = :teamId", Map.of("teamId", routeQuery.teamId()))
+            .and("deleted = false", Map.of())
+            .order("date desc");
+    if (routeQuery.visibility() != null) {
+      triblyQuery =
+          triblyQuery.and(
+              "visibility = :visibility", Map.of("visibility", routeQuery.visibility()));
+    }
+    if (routeQuery.routeId() != null) {
+      triblyQuery = triblyQuery.and("id = :routeId", Map.of("routeId", routeQuery.routeId()));
     }
 
-    /**
-     * Find all routes for a team with pagination.
-     */
-    public List<Route> findByTeam(Long teamId, int page, int size) {
-        return find("team.id = ?1 and deleted = false", Sort.by("createdAt").descending(), teamId)
-                .page(Page.of(page, size))
-                .list();
-    }
-
-    /**
-     * Count total routes for a team.
-     */
-    public long countByTeam(Long teamId) {
-        return count("team.id = ?1 and deleted = false", teamId);
-    }
-
-    /**
-     * Find public routes for a team.
-     */
-    public List<Route> findPublicByTeam(Long teamId, int page, int size) {
-        return find("team.id = ?1 and visibility = ?2 and deleted = false",
-                Sort.by("createdAt").descending(), teamId, Visibility.PUBLIC)
-                .page(Page.of(page, size))
-                .list();
-    }
-
-    /**
-     * Count public routes for a team.
-     */
-    public long countPublicByTeam(Long teamId) {
-        return count("team.id = ?1 and visibility = ?2 and deleted = false", teamId, Visibility.PUBLIC);
-    }
+    return getPage(triblyQuery, routeQuery);
+  }
 }

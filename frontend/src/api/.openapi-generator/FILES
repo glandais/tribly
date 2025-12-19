@@ -34,17 +34,14 @@ docs/RidesApi.md
 docs/RouteClimbDto.md
 docs/RouteDetailDto.md
 docs/RouteDifficulty.md
-docs/RouteDownloadsApi.md
 docs/RouteDto.md
 docs/RouteListResponse.md
 docs/RoutesApi.md
 docs/SurfaceType.md
 docs/TeamDetailDto.md
-docs/TeamDto.md
 docs/TeamListResponse.md
 docs/TeamMembersApi.md
 docs/TeamRole.md
-docs/TeamWithRoleDto.md
 docs/TeamsApi.md
 docs/TrackPointDto.md
 docs/UpdateGroupRequest.md

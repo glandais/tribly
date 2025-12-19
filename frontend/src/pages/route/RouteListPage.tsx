@@ -21,7 +21,7 @@ export function RouteListPage() {
     return <Navigate to="/teams" replace />
   }
 
-  const canCreateRoute = team.userRole === 'ADMIN' || team.userRole === 'ORGANIZER'
+  const canCreateRoute = team.role === 'ADMIN' || team.role === 'ORGANIZER'
 
   return (
     <TeamLayout team={team} currentTab="routes">

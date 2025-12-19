@@ -2,7 +2,6 @@ import {
   TeamsApi,
   RidesApi,
   RoutesApi,
-  RouteDownloadsApi,
   TeamMembersApi,
   UsersApi,
   ConfigurationApi,
@@ -41,7 +40,6 @@ export const teamsApi = new TeamsApi(apiConfiguration, '', axiosInstance)
 export const teamMembersApi = new TeamMembersApi(apiConfiguration, '', axiosInstance)
 export const ridesApi = new RidesApi(apiConfiguration, '', axiosInstance)
 export const routesApi = new RoutesApi(apiConfiguration, '', axiosInstance)
-export const routeDownloadsApi = new RouteDownloadsApi(apiConfiguration, '', axiosInstance)
 export const usersApi = new UsersApi(apiConfiguration, '', axiosInstance)
 export const configurationApi = new ConfigurationApi(apiConfiguration, '', axiosInstance)
 

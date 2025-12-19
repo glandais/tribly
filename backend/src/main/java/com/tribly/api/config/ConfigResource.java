@@ -20,67 +20,63 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 @Tag(name = "Configuration", description = "Application configuration endpoints")
 public class ConfigResource {
 
-    @ConfigProperty(name = "tribly.keycloak.url")
-    String keycloakUrl = "";
+  @ConfigProperty(name = "tribly.keycloak.url")
+  String keycloakUrl = "";
 
-    @ConfigProperty(name = "tribly.keycloak.realm")
-    String keycloakRealm = "";
+  @ConfigProperty(name = "tribly.keycloak.realm")
+  String keycloakRealm = "";
 
-    @ConfigProperty(name = "tribly.keycloak.client-id")
-    String keycloakClientId = "";
+  @ConfigProperty(name = "tribly.keycloak.client-id")
+  String keycloakClientId = "";
 
-    @ConfigProperty(name = "tribly.map.tile-url")
-    String mapTileUrl = "";
+  @ConfigProperty(name = "tribly.map.tile-url")
+  String mapTileUrl = "";
 
-    @ConfigProperty(name = "tribly.map.attribution")
-    String mapAttribution = "";
+  @ConfigProperty(name = "tribly.map.attribution")
+  String mapAttribution = "";
 
-    @GET
-    @Operation(summary = "Get application configuration", description = "Get frontend configuration including Keycloak and map settings")
-    @APIResponses({
-            @APIResponse(
-                    responseCode = "200",
-                    description = "Configuration retrieved successfully",
-                    content = @Content(schema = @Schema(implementation = ConfigDto.class))
-            )
-    })
-    public Response getConfig() {
-        return Response.ok(new ConfigDto(
+  @GET
+  @Operation(
+      summary = "Get application configuration",
+      description = "Get frontend configuration including Keycloak and map settings")
+  @APIResponses({
+    @APIResponse(
+        responseCode = "200",
+        description = "Configuration retrieved successfully",
+        content = @Content(schema = @Schema(implementation = ConfigDto.class)))
+  })
+  public Response getConfig() {
+    return Response.ok(
+            new ConfigDto(
                 new KeycloakConfig(keycloakUrl, keycloakRealm, keycloakClientId),
-                new MapConfig(mapTileUrl, mapAttribution)
-        )).build();
-    }
+                new MapConfig(mapTileUrl, mapAttribution)))
+        .build();
+  }
 
-    @Schema(description = "Application configuration")
-    public record ConfigDto(
-            @Schema(description = "Keycloak authentication configuration", required = true)
-            KeycloakConfig keycloak,
+  @Schema(description = "Application configuration")
+  public record ConfigDto(
+      @Schema(description = "Keycloak authentication configuration", required = true)
+          KeycloakConfig keycloak,
+      @Schema(description = "Map configuration", required = true) MapConfig map) {}
 
-            @Schema(description = "Map configuration", required = true)
-            MapConfig map
-    ) {
-    }
+  @Schema(description = "Keycloak configuration")
+  public record KeycloakConfig(
+      @Schema(
+              description = "Keycloak server URL",
+              examples = "http://localhost:8180",
+              required = true)
+          String url,
+      @Schema(description = "Keycloak realm name", examples = "quarkus", required = true)
+          String realm,
+      @Schema(description = "Keycloak client ID", examples = "tribly-frontend", required = true)
+          String clientId) {}
 
-    @Schema(description = "Keycloak configuration")
-    public record KeycloakConfig(
-            @Schema(description = "Keycloak server URL", examples = "http://localhost:8180", required = true)
-            String url,
-
-            @Schema(description = "Keycloak realm name", examples = "quarkus", required = true)
-            String realm,
-
-            @Schema(description = "Keycloak client ID", examples = "tribly-frontend", required = true)
-            String clientId
-    ) {
-    }
-
-    @Schema(description = "Map configuration")
-    public record MapConfig(
-            @Schema(description = "Map tile URL template", examples = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", required = true)
-            String tileUrl,
-
-            @Schema(description = "Map attribution text", required = true)
-            String attribution
-    ) {
-    }
+  @Schema(description = "Map configuration")
+  public record MapConfig(
+      @Schema(
+              description = "Map tile URL template",
+              examples = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+              required = true)
+          String tileUrl,
+      @Schema(description = "Map attribution text", required = true) String attribution) {}
 }

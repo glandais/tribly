@@ -19,8 +19,8 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
   const { isAuthenticated } = useAuth()
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false)
 
-  const isMember = !!team.userRole
-  const isAdmin = team.userRole === 'ADMIN'
+  const isMember = !!team.role
+  const isAdmin = team.role === 'ADMIN'
   const canJoin = isAuthenticated && !isMember && team.visibility === 'PUBLIC'
   const canLeave = isMember && !isAdmin
 

@@ -168,6 +168,7 @@ components:
       type: object
       required:
       - name
+      - visibility
       properties:
         name:
           type: string
@@ -187,14 +188,10 @@ components:
           maxLength: 2000
         visibility:
           description: Whether the team is publicly visible
-          type:
-          - string
-          - "null"
+          type: string
           examples:
           - "true"
-          anyOf:
-          - $ref: "#/components/schemas/Visibility"
-          - type: "null"
+          $ref: "#/components/schemas/Visibility"
         maxMembers:
           type:
           - integer
@@ -659,8 +656,8 @@ components:
       - PUBLISHED
       - CANCELLED
     RouteClimbDto:
-      description: Climb segment information
       type: object
+      description: Climb segment information
       required:
       - id
       - startDistance
@@ -887,6 +884,7 @@ components:
       - slug
       - visibility
       - memberCount
+      - createdAt
       properties:
         id:
           type: string
@@ -920,7 +918,7 @@ components:
           $ref: "#/components/schemas/Visibility"
         memberCount:
           type: integer
-          format: int32
+          format: int64
           description: Number of team members
         maxMembers:
           type:
@@ -928,7 +926,7 @@ components:
           - "null"
           format: int32
           description: Maximum number of members (null = unlimited)
-        userRole:
+        role:
           description: Current user's role (null if not a member)
           type:
           - string
@@ -937,58 +935,8 @@ components:
           - $ref: "#/components/schemas/TeamRole"
           - type: "null"
         createdAt:
-          type:
-          - string
-          - "null"
+          type: string
           description: Team creation timestamp
-    TeamDto:
-      description: Team summary data
-      type: object
-      required:
-      - id
-      - name
-      - slug
-      - visibility
-      - memberCount
-      properties:
-        id:
-          type: string
-          description: Team ID (TSID)
-          examples:
-          - 0h4a8xzk8jv80
-        name:
-          type: string
-          description: Team name
-          examples:
-          - Awesome Cycling Team
-        slug:
-          type: string
-          description: Team URL slug
-          examples:
-          - awesome-cycling-team
-        description:
-          type:
-          - string
-          - "null"
-          description: Team description
-        logoUrl:
-          type:
-          - string
-          - "null"
-          description: Logo image URL
-        coverImageUrl:
-          type:
-          - string
-          - "null"
-          description: Cover image URL
-        visibility:
-          description: Whether the team is public
-          type: string
-          $ref: "#/components/schemas/Visibility"
-        memberCount:
-          type: integer
-          format: int32
-          description: Number of team members
     TeamListResponse:
       description: Paginated team list response
       type: object
@@ -1001,7 +949,7 @@ components:
         teams:
           type: array
           items:
-            $ref: "#/components/schemas/TeamDto"
+            $ref: "#/components/schemas/TeamDetailDto"
           description: List of teams
         total:
           type: integer
@@ -1021,61 +969,6 @@ components:
       - ADMIN
       - ORGANIZER
       - MEMBER
-    TeamWithRoleDto:
-      description: Team data with user's role
-      type: object
-      required:
-      - id
-      - name
-      - slug
-      - visibility
-      - memberCount
-      - role
-      properties:
-        id:
-          type: string
-          description: Team ID (TSID)
-          examples:
-          - 0h4a8xzk8jv80
-        name:
-          type: string
-          description: Team name
-          examples:
-          - Awesome Cycling Team
-        slug:
-          type: string
-          description: Team URL slug
-          examples:
-          - awesome-cycling-team
-        description:
-          type:
-          - string
-          - "null"
-          description: Team description
-        logoUrl:
-          type:
-          - string
-          - "null"
-          description: Logo image URL
-        coverImageUrl:
-          type:
-          - string
-          - "null"
-          description: Cover image URL
-        visibility:
-          description: Whether the team is public
-          type: string
-          $ref: "#/components/schemas/Visibility"
-        memberCount:
-          type: integer
-          format: int32
-          description: Number of team members
-        role:
-          description: User's role in the team
-          type: string
-          examples:
-          - MEMBER
-          $ref: "#/components/schemas/TeamRole"
     TrackPointDto:
       type: object
       description: GPS track point
@@ -1370,7 +1263,7 @@ components:
   securitySchemes:
     SecurityScheme:
       type: openIdConnect
-      openIdConnectUrl: http://localhost:8180/realms/quarkus/.well-known/openid-configuration
+      openIdConnectUrl: http://localhost:8180/realms/tribly/.well-known/openid-configuration
       description: Authentication
 tags:
 - name: Configuration
@@ -1402,114 +1295,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ConfigDto"
-  /api/download/public/teams/{slug}/routes/{routeId}/fit:
-    get:
-      summary: Download FIT file
-      description: Download the route as a FIT file for Garmin devices
-      operationId: downloadFit
-      tags:
-      - Route Downloads
-      responses:
-        "200":
-          description: FIT file downloaded successfully
-          content:
-            application/octet-stream: {}
-        "404":
-          description: Team or route not found
-          content:
-            application/octet-stream:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-  /api/download/public/teams/{slug}/routes/{routeId}/gpx:
-    get:
-      summary: Download GPX file
-      description: Download the route as a GPX file
-      operationId: downloadGpx
-      tags:
-      - Route Downloads
-      responses:
-        "200":
-          description: GPX file downloaded successfully
-          content:
-            application/gpx+xml: {}
-        "404":
-          description: Team or route not found
-          content:
-            application/gpx+xml:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-  /api/download/public/teams/{slug}/routes/{routeId}/thumbnail:
-    get:
-      summary: Get route thumbnail
-      description: Get a thumbnail image of the route
-      operationId: getThumbnail
-      tags:
-      - Route Downloads
-      responses:
-        "200":
-          description: Thumbnail retrieved successfully
-          content:
-            image/png: {}
-        "404":
-          description: Team or route not found
-          content:
-            image/png:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-  /api/download/team/teams/{slug}/routes/{routeId}/fit:
-    get:
-      summary: Download FIT file
-      description: Download the route as a FIT file for Garmin devices
-      operationId: downloadFit
-      tags:
-      - Route Downloads
-      responses:
-        "200":
-          description: FIT file downloaded successfully
-          content:
-            application/octet-stream: {}
-        "404":
-          description: Team or route not found
-          content:
-            application/octet-stream:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-  /api/download/team/teams/{slug}/routes/{routeId}/gpx:
-    get:
-      summary: Download GPX file
-      description: Download the route as a GPX file
-      operationId: downloadGpx
-      tags:
-      - Route Downloads
-      responses:
-        "200":
-          description: GPX file downloaded successfully
-          content:
-            application/gpx+xml: {}
-        "404":
-          description: Team or route not found
-          content:
-            application/gpx+xml:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-  /api/download/team/teams/{slug}/routes/{routeId}/thumbnail:
-    get:
-      summary: Get route thumbnail
-      description: Get a thumbnail image of the route
-      operationId: getThumbnail
-      tags:
-      - Route Downloads
-      responses:
-        "200":
-          description: Thumbnail retrieved successfully
-          content:
-            image/png: {}
-        "404":
-          description: Team or route not found
-          content:
-            image/png:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
   /api/teams:
     get:
       summary: List public teams
@@ -1518,6 +1303,11 @@ paths:
       tags:
       - Teams
       parameters:
+      - description: "Membership (false : public not member, true : my teams)"
+        name: member
+        in: query
+        schema:
+          type: boolean
       - description: Page number (0-indexed)
         name: page
         in: query
@@ -1562,40 +1352,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/TeamDto"
+                $ref: "#/components/schemas/TeamDetailDto"
         "400":
           description: Invalid request
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-        "401":
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "403":
-          description: Not Allowed
-      security:
-      - SecurityScheme:
-        - user
-  /api/teams/my:
-    get:
-      summary: Get my teams
-      description: Get all teams the current user is a member of
-      operationId: getMyTeams
-      tags:
-      - Teams
-      responses:
-        "200":
-          description: User teams retrieved successfully
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/TeamWithRoleDto"
         "401":
           description: Unauthorized
           content:
@@ -1633,7 +1396,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/TeamDto"
+                $ref: "#/components/schemas/TeamDetailDto"
         "400":
           description: Invalid request
           content:
@@ -1784,7 +1547,7 @@ paths:
         - user
     post:
       summary: Add team member
-      description: Add a member to the team. Requires ADMIN role.
+      description: Add a member to the team. Requires ADMIN role on team.
       operationId: addMember
       tags:
       - Team Members

@@ -77,7 +77,7 @@ export function EditRidePage() {
     return <Navigate to={`/teams/${teamSlug}/rides`} replace />
   }
 
-  const canEdit = team.userRole === 'ADMIN' || team.userRole === 'ORGANIZER'
+  const canEdit = team.role === 'ADMIN' || team.role === 'ORGANIZER'
 
   if (!canEdit) {
     return <Navigate to={`/teams/${teamSlug}/rides/${rideSlug}`} replace />

@@ -60,9 +60,9 @@ export function RideDetailPage() {
     )
   }
 
-  const isMember = !!team?.userRole
-  const isAdmin = team?.userRole === 'ADMIN'
-  const isOrganizer = team?.userRole === 'ORGANIZER'
+  const isMember = !!team?.role
+  const isAdmin = team?.role === 'ADMIN'
+  const isOrganizer = team?.role === 'ORGANIZER'
   const canEdit = isAdmin || isOrganizer
   const canJoinRide = isMember && ride.status === RideStatus.Published
 

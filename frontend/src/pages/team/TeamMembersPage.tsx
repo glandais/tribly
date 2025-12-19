@@ -39,7 +39,7 @@ export function TeamMembersPage() {
   }
 
   // Only admins can see member list
-  if (team.userRole !== 'ADMIN') {
+  if (team.role !== 'ADMIN') {
     return <Navigate to={`/teams/${teamSlug}/rides`} replace />
   }
 
@@ -81,7 +81,7 @@ export function TeamMembersPage() {
         ) : membersData?.members && membersData.members.length > 0 ? (
           <TeamMemberList
             members={membersData.members}
-            currentUserRole={team.userRole}
+            currentUserRole={team.role}
             currentUserId={user?.dbId ?? null}
             onUpdateRole={(memberId, role) => updateRoleMutation.mutate({ memberId, role })}
             onRemoveMember={(memberId) => removeMemberMutation.mutate(memberId)}

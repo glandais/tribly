@@ -20,63 +20,64 @@ import org.jboss.logging.Logger;
 @ApplicationScoped
 public class UserSecurityIdentityAugmentor implements SecurityIdentityAugmentor {
 
-    private static final Logger LOG = Logger.getLogger(UserSecurityIdentityAugmentor.class);
+  private static final Logger LOG = Logger.getLogger(UserSecurityIdentityAugmentor.class);
 
-    @Inject
-    UserSyncService userSyncService;
+  @Inject UserSyncService userSyncService;
 
-    @Override
-    public Uni<SecurityIdentity> augment(SecurityIdentity identity, AuthenticationRequestContext context) {
-        if (identity.isAnonymous()) {
-            return Uni.createFrom().item(identity);
-        }
-
-        return context.runBlocking(() -> augmentIdentity(identity));
+  @Override
+  public Uni<SecurityIdentity> augment(
+      SecurityIdentity identity, AuthenticationRequestContext context) {
+    if (identity.isAnonymous()) {
+      return Uni.createFrom().item(identity);
     }
 
-    @ActivateRequestContext
-    SecurityIdentity augmentIdentity(SecurityIdentity identity) {
-        try {
-            if (identity.getPrincipal() instanceof JsonWebToken jwt) {
-                String email = jwt.getClaim("email");
+    return context.runBlocking(() -> augmentIdentity(identity));
+  }
 
-                String preferredUsername = jwt.getClaim("preferred_username");
+  @ActivateRequestContext
+  SecurityIdentity augmentIdentity(SecurityIdentity identity) {
+    try {
+      if (identity.getPrincipal() instanceof JsonWebToken jwt) {
+        String email = jwt.getClaim("email");
 
-                // Get display name from various possible claims
-                String displayName = jwt.getClaim("name");
-                if (displayName == null || displayName.isBlank()) {
-                    String givenName = jwt.getClaim("given_name");
-                    String familyName = jwt.getClaim("family_name");
-                    if (givenName != null || familyName != null) {
-                        displayName = ((givenName != null ? givenName : "") + " " +
-                                (familyName != null ? familyName : "")).trim();
-                    }
-                }
-                if (displayName == null || displayName.isBlank()) {
-                    displayName = preferredUsername != null ? preferredUsername : email;
-                }
+        String preferredUsername = jwt.getClaim("preferred_username");
 
-                // Sync user to database
-                User user = userSyncService.syncUser(
-                        email,
-                        displayName
-                );
-
-                // Build augmented identity with user attributes
-                return QuarkusSecurityIdentity.builder(identity)
-                        .addAttribute("userId", user.getId())
-                        .addAttribute("email", user.getEmail())
-                        .addAttribute("displayName", user.getDisplayName())
-                        .addAttribute("user", user)
-                        .build();
-            } else {
-                LOG.warnv("augmentIdentity: Principal is not a JWT, cannot augment. PrincipalClass={0}",
-                        identity.getPrincipal().getClass().getName());
-            }
-        } catch (Exception e) {
-            LOG.error("Error augmenting security identity from Keycloak", e);
+        // Get display name from various possible claims
+        String displayName = jwt.getClaim("name");
+        if (displayName == null || displayName.isBlank()) {
+          String givenName = jwt.getClaim("given_name");
+          String familyName = jwt.getClaim("family_name");
+          if (givenName != null || familyName != null) {
+            displayName =
+                ((givenName != null ? givenName : "")
+                        + " "
+                        + (familyName != null ? familyName : ""))
+                    .trim();
+          }
+        }
+        if (displayName == null || displayName.isBlank()) {
+          displayName = preferredUsername != null ? preferredUsername : email;
         }
 
-        return identity;
+        // Sync user to database
+        User user = userSyncService.syncUser(email, displayName);
+
+        // Build augmented identity with user attributes
+        return QuarkusSecurityIdentity.builder(identity)
+            .addAttribute("userId", user.getId())
+            .addAttribute("email", user.getEmail())
+            .addAttribute("displayName", user.getDisplayName())
+            .addAttribute("user", user)
+            .build();
+      } else {
+        LOG.warnv(
+            "augmentIdentity: Principal is not a JWT, cannot augment. PrincipalClass={0}",
+            identity.getPrincipal().getClass().getName());
+      }
+    } catch (Exception e) {
+      LOG.error("Error augmenting security identity from Keycloak", e);
     }
+
+    return identity;
+  }
 }

@@ -20,7 +20,7 @@ export function RideListPage() {
     return <Navigate to="/teams" replace />
   }
 
-  const canCreate = team.userRole === 'ADMIN' || team.userRole === 'ORGANIZER'
+  const canCreate = team.role === 'ADMIN' || team.role === 'ORGANIZER'
 
   return (
     <TeamLayout team={team} currentTab="rides">

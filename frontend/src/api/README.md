@@ -63,9 +63,6 @@ Class | Method | HTTP request | Description
 *RidesApi* | [**listRides**](docs/RidesApi.md#listrides) | **GET** /api/teams/{slug}/rides | List rides
 *RidesApi* | [**updateGroup**](docs/RidesApi.md#updategroup) | **PATCH** /api/teams/{slug}/rides/{rideSlug}/groups/{groupId} | Update ride group
 *RidesApi* | [**updateRide**](docs/RidesApi.md#updateride) | **PATCH** /api/teams/{slug}/rides/{rideSlug} | Update ride
-*RouteDownloadsApi* | [**downloadFit**](docs/RouteDownloadsApi.md#downloadfit) | **GET** /api/download/teams/{slug}/routes/{routeId}/fit | Download FIT file
-*RouteDownloadsApi* | [**downloadGpx**](docs/RouteDownloadsApi.md#downloadgpx) | **GET** /api/download/teams/{slug}/routes/{routeId}/gpx | Download GPX file
-*RouteDownloadsApi* | [**getThumbnail**](docs/RouteDownloadsApi.md#getthumbnail) | **GET** /api/download/teams/{slug}/routes/{routeId}/thumbnail | Get route thumbnail
 *RoutesApi* | [**createRoute**](docs/RoutesApi.md#createroute) | **POST** /api/teams/{slug}/routes | Create route
 *RoutesApi* | [**deleteRoute**](docs/RoutesApi.md#deleteroute) | **DELETE** /api/teams/{slug}/routes/{routeId} | Delete route
 *RoutesApi* | [**getClimbs**](docs/RoutesApi.md#getclimbs) | **GET** /api/teams/{slug}/routes/{routeId}/climbs | Get route climbs
@@ -81,7 +78,6 @@ Class | Method | HTTP request | Description
 *TeamMembersApi* | [**updateMemberRole**](docs/TeamMembersApi.md#updatememberrole) | **PUT** /api/teams/{slug}/members/{memberId} | Update member role
 *TeamsApi* | [**createTeam**](docs/TeamsApi.md#createteam) | **POST** /api/teams | Create team
 *TeamsApi* | [**deleteTeam**](docs/TeamsApi.md#deleteteam) | **DELETE** /api/teams/{slug} | Delete team
-*TeamsApi* | [**getMyTeams**](docs/TeamsApi.md#getmyteams) | **GET** /api/teams/my | Get my teams
 *TeamsApi* | [**getTeam**](docs/TeamsApi.md#getteam) | **GET** /api/teams/{slug} | Get team by slug
 *TeamsApi* | [**listTeams**](docs/TeamsApi.md#listteams) | **GET** /api/teams | List public teams
 *TeamsApi* | [**updateTeam**](docs/TeamsApi.md#updateteam) | **PUT** /api/teams/{slug} | Update team
@@ -124,10 +120,8 @@ Class | Method | HTTP request | Description
  - [RouteListResponse](docs/RouteListResponse.md)
  - [SurfaceType](docs/SurfaceType.md)
  - [TeamDetailDto](docs/TeamDetailDto.md)
- - [TeamDto](docs/TeamDto.md)
  - [TeamListResponse](docs/TeamListResponse.md)
  - [TeamRole](docs/TeamRole.md)
- - [TeamWithRoleDto](docs/TeamWithRoleDto.md)
  - [TrackPointDto](docs/TrackPointDto.md)
  - [UpdateGroupRequest](docs/UpdateGroupRequest.md)
  - [UpdateMemberRoleRequest](docs/UpdateMemberRoleRequest.md)

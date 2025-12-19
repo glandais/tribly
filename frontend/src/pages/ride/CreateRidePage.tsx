@@ -45,7 +45,7 @@ export function CreateRidePage() {
     return <Navigate to="/teams" replace />
   }
 
-  const canCreate = team.userRole === 'ADMIN' || team.userRole === 'ORGANIZER'
+  const canCreate = team.role === 'ADMIN' || team.role === 'ORGANIZER'
 
   if (!canCreate) {
     return <Navigate to={`/teams/${teamSlug}/rides`} replace />

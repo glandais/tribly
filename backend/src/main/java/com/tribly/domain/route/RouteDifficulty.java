@@ -1,8 +1,8 @@
 package com.tribly.domain.route;
 
 public enum RouteDifficulty {
-    EASY,
-    MODERATE,
-    HARD,
-    EXPERT
+  EASY,
+  MODERATE,
+  HARD,
+  EXPERT
 }

@@ -144,7 +144,10 @@ export interface CreateTeamRequest {
    * Team description
    */
   description?: string | null
-  visibility?: Visibility | null
+  /**
+   * Whether the team is publicly visible
+   */
+  visibility: Visibility
   /**
    * Maximum number of members (null = unlimited)
    */
@@ -746,49 +749,11 @@ export interface TeamDetailDto {
    * Maximum number of members (null = unlimited)
    */
   maxMembers?: number | null
-  userRole?: TeamRole | null
+  role?: TeamRole | null
   /**
    * Team creation timestamp
    */
-  createdAt?: string | null
-}
-
-/**
- * Team summary data
- */
-export interface TeamDto {
-  /**
-   * Team ID (TSID)
-   */
-  id: string
-  /**
-   * Team name
-   */
-  name: string
-  /**
-   * Team URL slug
-   */
-  slug: string
-  /**
-   * Team description
-   */
-  description?: string | null
-  /**
-   * Logo image URL
-   */
-  logoUrl?: string | null
-  /**
-   * Cover image URL
-   */
-  coverImageUrl?: string | null
-  /**
-   * Whether the team is public
-   */
-  visibility: Visibility
-  /**
-   * Number of team members
-   */
-  memberCount: number
+  createdAt: string
 }
 
 /**
@@ -798,7 +763,7 @@ export interface TeamListResponse {
   /**
    * List of teams
    */
-  teams: Array<TeamDto>
+  teams: Array<TeamDetailDto>
   /**
    * Total number of teams
    */
@@ -820,48 +785,6 @@ export const TeamRole = {
 } as const
 
 export type TeamRole = (typeof TeamRole)[keyof typeof TeamRole]
-
-/**
- * Team data with user\'s role
- */
-export interface TeamWithRoleDto {
-  /**
-   * Team ID (TSID)
-   */
-  id: string
-  /**
-   * Team name
-   */
-  name: string
-  /**
-   * Team URL slug
-   */
-  slug: string
-  /**
-   * Team description
-   */
-  description?: string | null
-  /**
-   * Logo image URL
-   */
-  logoUrl?: string | null
-  /**
-   * Cover image URL
-   */
-  coverImageUrl?: string | null
-  /**
-   * Whether the team is public
-   */
-  visibility: Visibility
-  /**
-   * Number of team members
-   */
-  memberCount: number
-  /**
-   * User\'s role in the team
-   */
-  role: TeamRole
-}
 
 /**
  * GPS track point
@@ -2554,341 +2477,6 @@ export class RidesApi extends BaseAPI {
 }
 
 /**
- * RouteDownloadsApi - axios parameter creator
- */
-export const RouteDownloadsApiAxiosParamCreator = function (configuration?: Configuration) {
-  return {
-    /**
-     * Download the route as a FIT file for Garmin devices
-     * @summary Download FIT file
-     * @param {string} routeId Route ID (TSID)
-     * @param {string} slug Team URL slug
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    downloadFit: async (
-      routeId: string,
-      slug: string,
-      options: RawAxiosRequestConfig = {}
-    ): Promise<RequestArgs> => {
-      // verify required parameter 'routeId' is not null or undefined
-      assertParamExists('downloadFit', 'routeId', routeId)
-      // verify required parameter 'slug' is not null or undefined
-      assertParamExists('downloadFit', 'slug', slug)
-      const localVarPath = `/api/download/teams/{slug}/routes/{routeId}/fit`
-        .replace(`{${'routeId'}}`, encodeURIComponent(String(routeId)))
-        .replace(`{${'slug'}}`, encodeURIComponent(String(slug)))
-      // use dummy base URL string because the URL constructor only accepts absolute URLs.
-      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL)
-      let baseOptions
-      if (configuration) {
-        baseOptions = configuration.baseOptions
-      }
-
-      const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options }
-      const localVarHeaderParameter = {} as any
-      const localVarQueryParameter = {} as any
-
-      setSearchParams(localVarUrlObj, localVarQueryParameter)
-      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {}
-      localVarRequestOptions.headers = {
-        ...localVarHeaderParameter,
-        ...headersFromBaseOptions,
-        ...options.headers,
-      }
-
-      return {
-        url: toPathString(localVarUrlObj),
-        options: localVarRequestOptions,
-      }
-    },
-    /**
-     * Download the route as a GPX file
-     * @summary Download GPX file
-     * @param {string} routeId Route ID (TSID)
-     * @param {string} slug Team URL slug
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    downloadGpx: async (
-      routeId: string,
-      slug: string,
-      options: RawAxiosRequestConfig = {}
-    ): Promise<RequestArgs> => {
-      // verify required parameter 'routeId' is not null or undefined
-      assertParamExists('downloadGpx', 'routeId', routeId)
-      // verify required parameter 'slug' is not null or undefined
-      assertParamExists('downloadGpx', 'slug', slug)
-      const localVarPath = `/api/download/teams/{slug}/routes/{routeId}/gpx`
-        .replace(`{${'routeId'}}`, encodeURIComponent(String(routeId)))
-        .replace(`{${'slug'}}`, encodeURIComponent(String(slug)))
-      // use dummy base URL string because the URL constructor only accepts absolute URLs.
-      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL)
-      let baseOptions
-      if (configuration) {
-        baseOptions = configuration.baseOptions
-      }
-
-      const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options }
-      const localVarHeaderParameter = {} as any
-      const localVarQueryParameter = {} as any
-
-      setSearchParams(localVarUrlObj, localVarQueryParameter)
-      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {}
-      localVarRequestOptions.headers = {
-        ...localVarHeaderParameter,
-        ...headersFromBaseOptions,
-        ...options.headers,
-      }
-
-      return {
-        url: toPathString(localVarUrlObj),
-        options: localVarRequestOptions,
-      }
-    },
-    /**
-     * Get a thumbnail image of the route
-     * @summary Get route thumbnail
-     * @param {string} routeId Route ID (TSID)
-     * @param {string} slug Team URL slug
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    getThumbnail: async (
-      routeId: string,
-      slug: string,
-      options: RawAxiosRequestConfig = {}
-    ): Promise<RequestArgs> => {
-      // verify required parameter 'routeId' is not null or undefined
-      assertParamExists('getThumbnail', 'routeId', routeId)
-      // verify required parameter 'slug' is not null or undefined
-      assertParamExists('getThumbnail', 'slug', slug)
-      const localVarPath = `/api/download/teams/{slug}/routes/{routeId}/thumbnail`
-        .replace(`{${'routeId'}}`, encodeURIComponent(String(routeId)))
-        .replace(`{${'slug'}}`, encodeURIComponent(String(slug)))
-      // use dummy base URL string because the URL constructor only accepts absolute URLs.
-      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL)
-      let baseOptions
-      if (configuration) {
-        baseOptions = configuration.baseOptions
-      }
-
-      const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options }
-      const localVarHeaderParameter = {} as any
-      const localVarQueryParameter = {} as any
-
-      setSearchParams(localVarUrlObj, localVarQueryParameter)
-      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {}
-      localVarRequestOptions.headers = {
-        ...localVarHeaderParameter,
-        ...headersFromBaseOptions,
-        ...options.headers,
-      }
-
-      return {
-        url: toPathString(localVarUrlObj),
-        options: localVarRequestOptions,
-      }
-    },
-  }
-}
-
-/**
- * RouteDownloadsApi - functional programming interface
- */
-export const RouteDownloadsApiFp = function (configuration?: Configuration) {
-  const localVarAxiosParamCreator = RouteDownloadsApiAxiosParamCreator(configuration)
-  return {
-    /**
-     * Download the route as a FIT file for Garmin devices
-     * @summary Download FIT file
-     * @param {string} routeId Route ID (TSID)
-     * @param {string} slug Team URL slug
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    async downloadFit(
-      routeId: string,
-      slug: string,
-      options?: RawAxiosRequestConfig
-    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-      const localVarAxiosArgs = await localVarAxiosParamCreator.downloadFit(routeId, slug, options)
-      const localVarOperationServerIndex = configuration?.serverIndex ?? 0
-      const localVarOperationServerBasePath =
-        operationServerMap['RouteDownloadsApi.downloadFit']?.[localVarOperationServerIndex]?.url
-      return (axios, basePath) =>
-        createRequestFunction(
-          localVarAxiosArgs,
-          globalAxios,
-          BASE_PATH,
-          configuration
-        )(axios, localVarOperationServerBasePath || basePath)
-    },
-    /**
-     * Download the route as a GPX file
-     * @summary Download GPX file
-     * @param {string} routeId Route ID (TSID)
-     * @param {string} slug Team URL slug
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    async downloadGpx(
-      routeId: string,
-      slug: string,
-      options?: RawAxiosRequestConfig
-    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-      const localVarAxiosArgs = await localVarAxiosParamCreator.downloadGpx(routeId, slug, options)
-      const localVarOperationServerIndex = configuration?.serverIndex ?? 0
-      const localVarOperationServerBasePath =
-        operationServerMap['RouteDownloadsApi.downloadGpx']?.[localVarOperationServerIndex]?.url
-      return (axios, basePath) =>
-        createRequestFunction(
-          localVarAxiosArgs,
-          globalAxios,
-          BASE_PATH,
-          configuration
-        )(axios, localVarOperationServerBasePath || basePath)
-    },
-    /**
-     * Get a thumbnail image of the route
-     * @summary Get route thumbnail
-     * @param {string} routeId Route ID (TSID)
-     * @param {string} slug Team URL slug
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    async getThumbnail(
-      routeId: string,
-      slug: string,
-      options?: RawAxiosRequestConfig
-    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-      const localVarAxiosArgs = await localVarAxiosParamCreator.getThumbnail(routeId, slug, options)
-      const localVarOperationServerIndex = configuration?.serverIndex ?? 0
-      const localVarOperationServerBasePath =
-        operationServerMap['RouteDownloadsApi.getThumbnail']?.[localVarOperationServerIndex]?.url
-      return (axios, basePath) =>
-        createRequestFunction(
-          localVarAxiosArgs,
-          globalAxios,
-          BASE_PATH,
-          configuration
-        )(axios, localVarOperationServerBasePath || basePath)
-    },
-  }
-}
-
-/**
- * RouteDownloadsApi - factory interface
- */
-export const RouteDownloadsApiFactory = function (
-  configuration?: Configuration,
-  basePath?: string,
-  axios?: AxiosInstance
-) {
-  const localVarFp = RouteDownloadsApiFp(configuration)
-  return {
-    /**
-     * Download the route as a FIT file for Garmin devices
-     * @summary Download FIT file
-     * @param {string} routeId Route ID (TSID)
-     * @param {string} slug Team URL slug
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    downloadFit(
-      routeId: string,
-      slug: string,
-      options?: RawAxiosRequestConfig
-    ): AxiosPromise<void> {
-      return localVarFp
-        .downloadFit(routeId, slug, options)
-        .then((request) => request(axios, basePath))
-    },
-    /**
-     * Download the route as a GPX file
-     * @summary Download GPX file
-     * @param {string} routeId Route ID (TSID)
-     * @param {string} slug Team URL slug
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    downloadGpx(
-      routeId: string,
-      slug: string,
-      options?: RawAxiosRequestConfig
-    ): AxiosPromise<void> {
-      return localVarFp
-        .downloadGpx(routeId, slug, options)
-        .then((request) => request(axios, basePath))
-    },
-    /**
-     * Get a thumbnail image of the route
-     * @summary Get route thumbnail
-     * @param {string} routeId Route ID (TSID)
-     * @param {string} slug Team URL slug
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    getThumbnail(
-      routeId: string,
-      slug: string,
-      options?: RawAxiosRequestConfig
-    ): AxiosPromise<void> {
-      return localVarFp
-        .getThumbnail(routeId, slug, options)
-        .then((request) => request(axios, basePath))
-    },
-  }
-}
-
-/**
- * RouteDownloadsApi - object-oriented interface
- */
-export class RouteDownloadsApi extends BaseAPI {
-  /**
-   * Download the route as a FIT file for Garmin devices
-   * @summary Download FIT file
-   * @param {string} routeId Route ID (TSID)
-   * @param {string} slug Team URL slug
-   * @param {*} [options] Override http request option.
-   * @throws {RequiredError}
-   */
-  public downloadFit(routeId: string, slug: string, options?: RawAxiosRequestConfig) {
-    return RouteDownloadsApiFp(this.configuration)
-      .downloadFit(routeId, slug, options)
-      .then((request) => request(this.axios, this.basePath))
-  }
-
-  /**
-   * Download the route as a GPX file
-   * @summary Download GPX file
-   * @param {string} routeId Route ID (TSID)
-   * @param {string} slug Team URL slug
-   * @param {*} [options] Override http request option.
-   * @throws {RequiredError}
-   */
-  public downloadGpx(routeId: string, slug: string, options?: RawAxiosRequestConfig) {
-    return RouteDownloadsApiFp(this.configuration)
-      .downloadGpx(routeId, slug, options)
-      .then((request) => request(this.axios, this.basePath))
-  }
-
-  /**
-   * Get a thumbnail image of the route
-   * @summary Get route thumbnail
-   * @param {string} routeId Route ID (TSID)
-   * @param {string} slug Team URL slug
-   * @param {*} [options] Override http request option.
-   * @throws {RequiredError}
-   */
-  public getThumbnail(routeId: string, slug: string, options?: RawAxiosRequestConfig) {
-    return RouteDownloadsApiFp(this.configuration)
-      .getThumbnail(routeId, slug, options)
-      .then((request) => request(this.axios, this.basePath))
-  }
-}
-
-/**
  * RoutesApi - axios parameter creator
  */
 export const RoutesApiAxiosParamCreator = function (configuration?: Configuration) {
@@ -3758,7 +3346,7 @@ export class RoutesApi extends BaseAPI {
 export const TeamMembersApiAxiosParamCreator = function (configuration?: Configuration) {
   return {
     /**
-     * Add a member to the team. Requires ADMIN role.
+     * Add a member to the team. Requires ADMIN role on team.
      * @summary Add team member
      * @param {string} slug Team URL slug
      * @param {AddMemberRequest} addMemberRequest
@@ -4059,7 +3647,7 @@ export const TeamMembersApiFp = function (configuration?: Configuration) {
   const localVarAxiosParamCreator = TeamMembersApiAxiosParamCreator(configuration)
   return {
     /**
-     * Add a member to the team. Requires ADMIN role.
+     * Add a member to the team. Requires ADMIN role on team.
      * @summary Add team member
      * @param {string} slug Team URL slug
      * @param {AddMemberRequest} addMemberRequest
@@ -4240,7 +3828,7 @@ export const TeamMembersApiFactory = function (
   const localVarFp = TeamMembersApiFp(configuration)
   return {
     /**
-     * Add a member to the team. Requires ADMIN role.
+     * Add a member to the team. Requires ADMIN role on team.
      * @summary Add team member
      * @param {string} slug Team URL slug
      * @param {AddMemberRequest} addMemberRequest
@@ -4339,7 +3927,7 @@ export const TeamMembersApiFactory = function (
  */
 export class TeamMembersApi extends BaseAPI {
   /**
-   * Add a member to the team. Requires ADMIN role.
+   * Add a member to the team. Requires ADMIN role on team.
    * @summary Add team member
    * @param {string} slug Team URL slug
    * @param {AddMemberRequest} addMemberRequest
@@ -4525,40 +4113,6 @@ export const TeamsApiAxiosParamCreator = function (configuration?: Configuration
       }
     },
     /**
-     * Get all teams the current user is a member of
-     * @summary Get my teams
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    getMyTeams: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-      const localVarPath = `/api/teams/my`
-      // use dummy base URL string because the URL constructor only accepts absolute URLs.
-      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL)
-      let baseOptions
-      if (configuration) {
-        baseOptions = configuration.baseOptions
-      }
-
-      const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options }
-      const localVarHeaderParameter = {} as any
-      const localVarQueryParameter = {} as any
-
-      // authentication SecurityScheme required
-
-      setSearchParams(localVarUrlObj, localVarQueryParameter)
-      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {}
-      localVarRequestOptions.headers = {
-        ...localVarHeaderParameter,
-        ...headersFromBaseOptions,
-        ...options.headers,
-      }
-
-      return {
-        url: toPathString(localVarUrlObj),
-        options: localVarRequestOptions,
-      }
-    },
-    /**
      * Get detailed team information by URL slug
      * @summary Get team by slug
      * @param {string} slug Team URL slug
@@ -4599,6 +4153,7 @@ export const TeamsApiAxiosParamCreator = function (configuration?: Configuration
     /**
      * Get a paginated list of public teams with optional search
      * @summary List public teams
+     * @param {boolean} [member] Membership (false : public not member, true : my teams)
      * @param {number} [page] Page number (0-indexed)
      * @param {string} [search] Search query to filter teams by name
      * @param {number} [size] Page size
@@ -4606,6 +4161,7 @@ export const TeamsApiAxiosParamCreator = function (configuration?: Configuration
      * @throws {RequiredError}
      */
     listTeams: async (
+      member?: boolean,
       page?: number,
       search?: string,
       size?: number,
@@ -4622,6 +4178,10 @@ export const TeamsApiAxiosParamCreator = function (configuration?: Configuration
       const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options }
       const localVarHeaderParameter = {} as any
       const localVarQueryParameter = {} as any
+
+      if (member !== undefined) {
+        localVarQueryParameter['member'] = member
+      }
 
       if (page !== undefined) {
         localVarQueryParameter['page'] = page
@@ -4721,7 +4281,7 @@ export const TeamsApiFp = function (configuration?: Configuration) {
     async createTeam(
       createTeamRequest: CreateTeamRequest,
       options?: RawAxiosRequestConfig
-    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TeamDto>> {
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TeamDetailDto>> {
       const localVarAxiosArgs = await localVarAxiosParamCreator.createTeam(
         createTeamRequest,
         options
@@ -4761,27 +4321,6 @@ export const TeamsApiFp = function (configuration?: Configuration) {
         )(axios, localVarOperationServerBasePath || basePath)
     },
     /**
-     * Get all teams the current user is a member of
-     * @summary Get my teams
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    async getMyTeams(
-      options?: RawAxiosRequestConfig
-    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<TeamWithRoleDto>>> {
-      const localVarAxiosArgs = await localVarAxiosParamCreator.getMyTeams(options)
-      const localVarOperationServerIndex = configuration?.serverIndex ?? 0
-      const localVarOperationServerBasePath =
-        operationServerMap['TeamsApi.getMyTeams']?.[localVarOperationServerIndex]?.url
-      return (axios, basePath) =>
-        createRequestFunction(
-          localVarAxiosArgs,
-          globalAxios,
-          BASE_PATH,
-          configuration
-        )(axios, localVarOperationServerBasePath || basePath)
-    },
-    /**
      * Get detailed team information by URL slug
      * @summary Get team by slug
      * @param {string} slug Team URL slug
@@ -4807,6 +4346,7 @@ export const TeamsApiFp = function (configuration?: Configuration) {
     /**
      * Get a paginated list of public teams with optional search
      * @summary List public teams
+     * @param {boolean} [member] Membership (false : public not member, true : my teams)
      * @param {number} [page] Page number (0-indexed)
      * @param {string} [search] Search query to filter teams by name
      * @param {number} [size] Page size
@@ -4814,12 +4354,14 @@ export const TeamsApiFp = function (configuration?: Configuration) {
      * @throws {RequiredError}
      */
     async listTeams(
+      member?: boolean,
       page?: number,
       search?: string,
       size?: number,
       options?: RawAxiosRequestConfig
     ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TeamListResponse>> {
       const localVarAxiosArgs = await localVarAxiosParamCreator.listTeams(
+        member,
         page,
         search,
         size,
@@ -4848,7 +4390,7 @@ export const TeamsApiFp = function (configuration?: Configuration) {
       slug: string,
       updateTeamRequest: UpdateTeamRequest,
       options?: RawAxiosRequestConfig
-    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TeamDto>> {
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TeamDetailDto>> {
       const localVarAxiosArgs = await localVarAxiosParamCreator.updateTeam(
         slug,
         updateTeamRequest,
@@ -4888,7 +4430,7 @@ export const TeamsApiFactory = function (
     createTeam(
       createTeamRequest: CreateTeamRequest,
       options?: RawAxiosRequestConfig
-    ): AxiosPromise<TeamDto> {
+    ): AxiosPromise<TeamDetailDto> {
       return localVarFp
         .createTeam(createTeamRequest, options)
         .then((request) => request(axios, basePath))
@@ -4904,15 +4446,6 @@ export const TeamsApiFactory = function (
       return localVarFp.deleteTeam(slug, options).then((request) => request(axios, basePath))
     },
     /**
-     * Get all teams the current user is a member of
-     * @summary Get my teams
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    getMyTeams(options?: RawAxiosRequestConfig): AxiosPromise<Array<TeamWithRoleDto>> {
-      return localVarFp.getMyTeams(options).then((request) => request(axios, basePath))
-    },
-    /**
      * Get detailed team information by URL slug
      * @summary Get team by slug
      * @param {string} slug Team URL slug
@@ -4925,6 +4458,7 @@ export const TeamsApiFactory = function (
     /**
      * Get a paginated list of public teams with optional search
      * @summary List public teams
+     * @param {boolean} [member] Membership (false : public not member, true : my teams)
      * @param {number} [page] Page number (0-indexed)
      * @param {string} [search] Search query to filter teams by name
      * @param {number} [size] Page size
@@ -4932,13 +4466,14 @@ export const TeamsApiFactory = function (
      * @throws {RequiredError}
      */
     listTeams(
+      member?: boolean,
       page?: number,
       search?: string,
       size?: number,
       options?: RawAxiosRequestConfig
     ): AxiosPromise<TeamListResponse> {
       return localVarFp
-        .listTeams(page, search, size, options)
+        .listTeams(member, page, search, size, options)
         .then((request) => request(axios, basePath))
     },
     /**
@@ -4953,7 +4488,7 @@ export const TeamsApiFactory = function (
       slug: string,
       updateTeamRequest: UpdateTeamRequest,
       options?: RawAxiosRequestConfig
-    ): AxiosPromise<TeamDto> {
+    ): AxiosPromise<TeamDetailDto> {
       return localVarFp
         .updateTeam(slug, updateTeamRequest, options)
         .then((request) => request(axios, basePath))
@@ -4992,18 +4527,6 @@ export class TeamsApi extends BaseAPI {
   }
 
   /**
-   * Get all teams the current user is a member of
-   * @summary Get my teams
-   * @param {*} [options] Override http request option.
-   * @throws {RequiredError}
-   */
-  public getMyTeams(options?: RawAxiosRequestConfig) {
-    return TeamsApiFp(this.configuration)
-      .getMyTeams(options)
-      .then((request) => request(this.axios, this.basePath))
-  }
-
-  /**
    * Get detailed team information by URL slug
    * @summary Get team by slug
    * @param {string} slug Team URL slug
@@ -5019,15 +4542,22 @@ export class TeamsApi extends BaseAPI {
   /**
    * Get a paginated list of public teams with optional search
    * @summary List public teams
+   * @param {boolean} [member] Membership (false : public not member, true : my teams)
    * @param {number} [page] Page number (0-indexed)
    * @param {string} [search] Search query to filter teams by name
    * @param {number} [size] Page size
    * @param {*} [options] Override http request option.
    * @throws {RequiredError}
    */
-  public listTeams(page?: number, search?: string, size?: number, options?: RawAxiosRequestConfig) {
+  public listTeams(
+    member?: boolean,
+    page?: number,
+    search?: string,
+    size?: number,
+    options?: RawAxiosRequestConfig
+  ) {
     return TeamsApiFp(this.configuration)
-      .listTeams(page, search, size, options)
+      .listTeams(member, page, search, size, options)
       .then((request) => request(this.axios, this.basePath))
   }
 

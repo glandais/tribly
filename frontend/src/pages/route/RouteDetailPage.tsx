@@ -22,7 +22,7 @@ export function RouteDetailPage() {
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
-  const canEdit = team && (team.userRole === 'ADMIN' || team.userRole === 'ORGANIZER')
+  const canEdit = team && (team.role === 'ADMIN' || team.role === 'ORGANIZER')
 
   const handleDelete = async () => {
     if (routeId) {

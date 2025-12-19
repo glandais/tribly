@@ -1,56 +1,77 @@
 package com.tribly.domain.team;
 
+import com.tribly.domain.common.BaseRepository;
+import com.tribly.domain.common.TriblyPage;
+import com.tribly.domain.common.TriblyQuery;
 import com.tribly.domain.common.Visibility;
-import io.quarkus.hibernate.orm.panache.PanacheRepository;
-import io.quarkus.panache.common.Page;
-import io.quarkus.panache.common.Sort;
+import com.tribly.service.team.TeamAndRole;
+import io.quarkus.hibernate.orm.panache.PanacheQuery;
 import jakarta.enterprise.context.ApplicationScoped;
-
-import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.Nullable;
 
+@Slf4j
 @ApplicationScoped
-public class TeamRepository implements PanacheRepository<Team> {
+public class TeamRepository implements BaseRepository<Team> {
 
-    public Optional<Team> findBySlug(String slug) {
-        return find("slug = ?1 and deleted = false", slug).firstResultOptional();
-    }
+  public Optional<Team> findBySlug(String slug) {
+    return find("slug = ?1 and deleted = false", slug).firstResultOptional();
+  }
 
-    public Optional<Team> findActiveById(Long id) {
-        return find("id = ?1 and deleted = false", id).firstResultOptional();
-    }
+  public boolean existsBySlug(String slug) {
+    return count("slug = ?1 and deleted = false", slug) > 0;
+  }
 
-    public boolean existsBySlug(String slug) {
-        return count("slug = ?1 and deleted = false", slug) > 0;
+  public TriblyPage<TeamAndRole> find(TeamQuery teamQuery) {
+    TriblyQuery triblyQuery =
+        new TriblyQuery(
+                "select t, ut.role,(SELECT COUNT(ut3) FROM UserTeam ut3 WHERE ut3.team.id = t.id"
+                    + " AND ut3.deleted = false) from Team t left join UserTeam ut on ut.team.id ="
+                    + " t.id AND ut.user.id = :userId AND ut.deleted = false WHERE")
+            .and("t.deleted = false", Map.of())
+            .order("name asc");
+    triblyQuery.addParam("userId", teamQuery.userId());
+    if (teamQuery.slug() != null) {
+      triblyQuery.and("t.slug = :slug", Map.of("slug", teamQuery.slug()));
     }
+    if (teamQuery.search() != null) {
+      triblyQuery.and(
+          "(lower(t.name) like :search or lower(t.description) like :search)",
+          Map.of("search", teamQuery.search()));
+    }
+    if (teamQuery.userId() != null) {
+      if (teamQuery.member() == null) {
+        triblyQuery.and(
+            "(t.visibility = :visibility OR ut.deleted = false)",
+            Map.of("visibility", Visibility.PUBLIC));
+      } else if (teamQuery.member()) {
+        triblyQuery.and("ut.deleted = false", Map.of());
+      } else {
+        // Show public teams NOT joined by user
+        triblyQuery.and("visibility = :visibility", Map.of("visibility", Visibility.PUBLIC));
+        triblyQuery.and(
+            "NOT EXISTS (SELECT 1 FROM UserTeam ut2 WHERE ut2.team.id = id AND ut2.user.id ="
+                + " :userId AND ut2.deleted = false)",
+            Map.of());
+      }
+    } else {
+      triblyQuery.and("t.visibility = :visibility", Map.of("visibility", Visibility.PUBLIC));
+    }
+    String stringQuery = triblyQuery.getStringQuery();
+    Map<String, @Nullable Object> params = triblyQuery.getParams();
+    log.info("{} {}", stringQuery, params);
+    PanacheQuery<TeamAndRole> panacheQuery = find(stringQuery, params).project(TeamAndRole.class);
+    return getPage(panacheQuery, teamQuery.page(), teamQuery.size());
+  }
 
-    public List<Team> findPublicTeams(int page, int size) {
-        return find("visibility = ?1 and deleted = false", Sort.by("name"), Visibility.PUBLIC)
-                .page(Page.of(page, size))
-                .list();
+  public Optional<TeamAndRole> findOne(String slug, @Nullable Long userId) {
+    TriblyPage<TeamAndRole> page = find(new TeamQuery(0, 1, slug, userId, null, null));
+    if (page.items().isEmpty()) {
+      return Optional.empty();
+    } else {
+      return Optional.of(page.items().getFirst());
     }
-
-    public long countPublicTeams() {
-        return count("visibility = ?1 and deleted = false", Visibility.PUBLIC);
-    }
-
-    public List<Team> searchPublicTeams(String query, int page, int size) {
-        return find("visibility = ?2 and deleted = false and (lower(name) like ?1 or lower(description) like ?1)",
-                Sort.by("name"),
-                "%" + query.toLowerCase() + "%", Visibility.PUBLIC)
-                .page(Page.of(page, size))
-                .list();
-    }
-
-    public List<Team> findByUserId(Long userId) {
-        return getEntityManager()
-                .createQuery(
-                        "SELECT t FROM Team t " +
-                                "JOIN t.members m " +
-                                "WHERE m.user.id = :userId AND t.deleted = false AND m.deleted = false " +
-                                "ORDER BY t.name",
-                        Team.class)
-                .setParameter("userId", userId)
-                .getResultList();
-    }
+  }
 }

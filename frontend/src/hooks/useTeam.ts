@@ -3,18 +3,11 @@ import { useNavigate } from 'react-router-dom'
 import { teamsApi, teamMembersApi, unwrapResponse } from '../lib/apiClient'
 import { useAuthStore } from '../store/authStore'
 import { useNotificationStore } from '../store/notificationStore'
-import type {
-  TeamDto,
-  TeamWithRoleDto,
-  TeamDetailDto,
-  MemberDto,
-  CreateTeamRequest,
-  UpdateTeamRequest,
-} from '../api/api'
+import type { TeamDetailDto, MemberDto, CreateTeamRequest, UpdateTeamRequest } from '../api/api'
 import { TeamRole } from '../api/api'
 
 // Re-export types for convenience
-export type { TeamDto, TeamWithRoleDto, TeamDetailDto, MemberDto }
+export type { TeamDetailDto, MemberDto }
 export { TeamRole }
 
 interface UseTeamsOptions {
@@ -29,7 +22,7 @@ export function useTeams(options: UseTeamsOptions = {}) {
   return useQuery({
     queryKey: ['teams', { search, page, size }],
     queryFn: async () => {
-      return await unwrapResponse(teamsApi.listTeams(page, search, size))
+      return await unwrapResponse(teamsApi.listTeams(undefined, page, search, size))
     },
     staleTime: 1000 * 60 * 2,
   })
@@ -39,7 +32,7 @@ export function useMyTeams() {
   return useQuery({
     queryKey: ['myTeams'],
     queryFn: async () => {
-      return await unwrapResponse(teamsApi.getMyTeams())
+      return await unwrapResponse(teamsApi.listTeams(true, 0, undefined, 100))
     },
     staleTime: 1000 * 60 * 2,
   })
