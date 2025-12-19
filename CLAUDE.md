@@ -411,15 +411,15 @@ const { data: ride } = useRide(teamSlug, rideSlug);
 
 - **Dev mode** (`mvn quarkus:dev`): Uses docker-compose Keycloak at `localhost:8180`
   - Requires `docker compose up -d` before starting
-  - Realm: `quarkus` (imported from `dev-realm.json`)
+  - Realm: `quarkus` (imported from `quarkus-realm.json`)
   - Dev Services disabled: `%dev.quarkus.keycloak.devservices.enabled=false`
 
 - **Test mode** (`mvn test`): Uses Quarkus Keycloak Dev Services
   - Auto-starts isolated Keycloak container
-  - Same realm file: `keycloak/dev-realm.json`
+  - Same realm file: `keycloak/quarkus-realm.json`
   - Dev Services enabled: `%test.quarkus.keycloak.devservices.enabled=true`
 
-### Test Users (dev-realm.json)
+### Test Users (quarkus-realm.json)
 
 | Username | Password | Roles | Name |
 |----------|----------|-------|------|
