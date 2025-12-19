@@ -1,5 +1,6 @@
 package com.tribly.service.team;
 
+import com.tribly.domain.common.Visibility;
 import com.tribly.domain.team.*;
 import com.tribly.domain.user.User;
 import com.tribly.domain.user.UserRepository;
@@ -48,7 +49,7 @@ public class TeamService {
 
         Team team = new Team(request.name(), slug);
         team.setDescription(request.description());
-        team.setPublic(request.isPublic() != null && request.isPublic());
+        team.setVisibility(request.visibility());
         team.setMaxMembers(request.maxMembers());
 
         teamRepository.persist(team);
@@ -93,8 +94,8 @@ public class TeamService {
         if (request.description() != null) {
             team.setDescription(request.description());
         }
-        if (request.isPublic() != null) {
-            team.setPublic(request.isPublic());
+        if (request.visibility() != null) {
+            team.setVisibility(request.visibility());
         }
         if (request.logoUrl() != null) {
             team.setLogoUrl(request.logoUrl());
@@ -145,7 +146,7 @@ public class TeamService {
     public record CreateTeamRequest(
             String name,
             @Nullable String description,
-            @Nullable Boolean isPublic,
+            Visibility visibility,
             @Nullable Integer maxMembers
     ) {
     }
@@ -153,7 +154,7 @@ public class TeamService {
     public record UpdateTeamRequest(
             @Nullable String name,
             @Nullable String description,
-            @Nullable Boolean isPublic,
+            @Nullable Visibility visibility,
             @Nullable String logoUrl,
             @Nullable String coverImageUrl,
             @Nullable Integer maxMembers

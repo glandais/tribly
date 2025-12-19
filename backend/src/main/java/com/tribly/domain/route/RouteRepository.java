@@ -1,5 +1,6 @@
 package com.tribly.domain.route;
 
+import com.tribly.domain.common.Visibility;
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import io.quarkus.panache.common.Page;
 import io.quarkus.panache.common.Sort;
@@ -39,8 +40,8 @@ public class RouteRepository implements PanacheRepository<Route> {
      * Find public routes for a team.
      */
     public List<Route> findPublicByTeam(Long teamId, int page, int size) {
-        return find("team.id = ?1 and isPublic = true and deleted = false",
-                Sort.by("createdAt").descending(), teamId)
+        return find("team.id = ?1 and visibility = ?2 and deleted = false",
+                Sort.by("createdAt").descending(), teamId, Visibility.PUBLIC)
                 .page(Page.of(page, size))
                 .list();
     }
@@ -49,6 +50,6 @@ public class RouteRepository implements PanacheRepository<Route> {
      * Count public routes for a team.
      */
     public long countPublicByTeam(Long teamId) {
-        return count("team.id = ?1 and isPublic = true and deleted = false", teamId);
+        return count("team.id = ?1 and visibility = ?2 and deleted = false", teamId, Visibility.PUBLIC);
     }
 }

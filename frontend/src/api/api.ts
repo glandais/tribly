@@ -144,15 +144,13 @@ export interface CreateTeamRequest {
    * Team description
    */
   description?: string | null
-  /**
-   * Whether the team is publicly visible
-   */
-  isPublic?: boolean | null
+  visibility?: Visibility | null
   /**
    * Maximum number of members (null = unlimited)
    */
   maxMembers?: number | null
 }
+
 /**
  * Error response
  */
@@ -583,7 +581,7 @@ export interface RouteDetailDto {
   /**
    * Whether the route is public
    */
-  isPublic: boolean
+  visibility: Visibility
   /**
    * Thumbnail image URL
    */
@@ -666,7 +664,7 @@ export interface RouteDto {
   /**
    * Whether the route is public
    */
-  isPublic: boolean
+  visibility: Visibility
   /**
    * Thumbnail image URL
    */
@@ -739,7 +737,7 @@ export interface TeamDetailDto {
   /**
    * Whether the team is public
    */
-  isPublic: boolean
+  visibility: Visibility
   /**
    * Number of team members
    */
@@ -786,12 +784,13 @@ export interface TeamDto {
   /**
    * Whether the team is public
    */
-  isPublic: boolean
+  visibility: Visibility
   /**
    * Number of team members
    */
   memberCount: number
 }
+
 /**
  * Paginated team list response
  */
@@ -853,7 +852,7 @@ export interface TeamWithRoleDto {
   /**
    * Whether the team is public
    */
-  isPublic: boolean
+  visibility: Visibility
   /**
    * Number of team members
    */
@@ -961,10 +960,7 @@ export interface UpdateRouteRequest {
   description?: string | null
   difficulty?: RouteDifficulty | null
   surfaceType?: SurfaceType | null
-  /**
-   * Whether the route is publicly visible
-   */
-  isPublic?: boolean | null
+  visibility?: Visibility | null
 }
 
 /**
@@ -979,10 +975,7 @@ export interface UpdateTeamRequest {
    * Team description
    */
   description?: string | null
-  /**
-   * Whether the team is publicly visible
-   */
-  isPublic?: boolean | null
+  visibility?: Visibility | null
   /**
    * Logo image URL
    */
@@ -996,6 +989,7 @@ export interface UpdateTeamRequest {
    */
   maxMembers?: number | null
 }
+
 /**
  * User profile update request
  */
@@ -2907,7 +2901,7 @@ export const RoutesApiAxiosParamCreator = function (configuration?: Configuratio
      * @param {string} [description]
      * @param {RouteDifficulty} [difficulty]
      * @param {SurfaceType} [surfaceType]
-     * @param {boolean} [isPublic]
+     * @param {Visibility} [visibility]
      * @param {File} [gpxFile]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -2918,7 +2912,7 @@ export const RoutesApiAxiosParamCreator = function (configuration?: Configuratio
       description?: string,
       difficulty?: RouteDifficulty,
       surfaceType?: SurfaceType,
-      isPublic?: boolean,
+      visibility?: Visibility,
       gpxFile?: File,
       options: RawAxiosRequestConfig = {}
     ): Promise<RequestArgs> => {
@@ -2960,8 +2954,8 @@ export const RoutesApiAxiosParamCreator = function (configuration?: Configuratio
         localVarFormParams.append('surfaceType', surfaceType as any)
       }
 
-      if (isPublic !== undefined) {
-        localVarFormParams.append('isPublic', String(isPublic) as any)
+      if (visibility !== undefined) {
+        localVarFormParams.append('visibility', visibility as any)
       }
 
       if (gpxFile !== undefined) {
@@ -3289,7 +3283,7 @@ export const RoutesApiFp = function (configuration?: Configuration) {
      * @param {string} [description]
      * @param {RouteDifficulty} [difficulty]
      * @param {SurfaceType} [surfaceType]
-     * @param {boolean} [isPublic]
+     * @param {Visibility} [visibility]
      * @param {File} [gpxFile]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -3300,7 +3294,7 @@ export const RoutesApiFp = function (configuration?: Configuration) {
       description?: string,
       difficulty?: RouteDifficulty,
       surfaceType?: SurfaceType,
-      isPublic?: boolean,
+      visibility?: Visibility,
       gpxFile?: File,
       options?: RawAxiosRequestConfig
     ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<RouteDto>> {
@@ -3310,7 +3304,7 @@ export const RoutesApiFp = function (configuration?: Configuration) {
         description,
         difficulty,
         surfaceType,
-        isPublic,
+        visibility,
         gpxFile,
         options
       )
@@ -3510,7 +3504,7 @@ export const RoutesApiFactory = function (
      * @param {string} [description]
      * @param {RouteDifficulty} [difficulty]
      * @param {SurfaceType} [surfaceType]
-     * @param {boolean} [isPublic]
+     * @param {Visibility} [visibility]
      * @param {File} [gpxFile]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -3521,12 +3515,12 @@ export const RoutesApiFactory = function (
       description?: string,
       difficulty?: RouteDifficulty,
       surfaceType?: SurfaceType,
-      isPublic?: boolean,
+      visibility?: Visibility,
       gpxFile?: File,
       options?: RawAxiosRequestConfig
     ): AxiosPromise<RouteDto> {
       return localVarFp
-        .createRoute(slug, name, description, difficulty, surfaceType, isPublic, gpxFile, options)
+        .createRoute(slug, name, description, difficulty, surfaceType, visibility, gpxFile, options)
         .then((request) => request(axios, basePath))
     },
     /**
@@ -3646,7 +3640,7 @@ export class RoutesApi extends BaseAPI {
    * @param {string} [description]
    * @param {RouteDifficulty} [difficulty]
    * @param {SurfaceType} [surfaceType]
-   * @param {boolean} [isPublic]
+   * @param {Visibility} [visibility]
    * @param {File} [gpxFile]
    * @param {*} [options] Override http request option.
    * @throws {RequiredError}
@@ -3657,12 +3651,12 @@ export class RoutesApi extends BaseAPI {
     description?: string,
     difficulty?: RouteDifficulty,
     surfaceType?: SurfaceType,
-    isPublic?: boolean,
+    visibility?: Visibility,
     gpxFile?: File,
     options?: RawAxiosRequestConfig
   ) {
     return RoutesApiFp(this.configuration)
-      .createRoute(slug, name, description, difficulty, surfaceType, isPublic, gpxFile, options)
+      .createRoute(slug, name, description, difficulty, surfaceType, visibility, gpxFile, options)
       .then((request) => request(this.axios, this.basePath))
   }
 

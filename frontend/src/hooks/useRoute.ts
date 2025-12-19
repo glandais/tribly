@@ -12,7 +12,7 @@ import type {
   ClimbListResponse,
   UpdateRouteRequest,
 } from '../api/api'
-import { RouteDifficulty, SurfaceType } from '../api/api'
+import { RouteDifficulty, Visibility, SurfaceType } from '../api/api'
 
 // Re-export types for convenience
 export type {
@@ -87,7 +87,7 @@ export function useCreateRoute(teamSlug: string) {
       description?: string
       difficulty?: RouteDifficulty
       surfaceType?: SurfaceType
-      isPublic?: boolean
+      visibility?: Visibility
       gpxFile: File
     }) => {
       return await unwrapResponse(
@@ -97,7 +97,7 @@ export function useCreateRoute(teamSlug: string) {
           data.description,
           data.difficulty,
           data.surfaceType,
-          data.isPublic,
+          data.visibility,
           data.gpxFile
         )
       )

@@ -1,6 +1,7 @@
 package com.tribly.domain.team;
 
 import com.tribly.domain.common.BaseEntity;
+import com.tribly.domain.common.Visibility;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -41,8 +42,9 @@ public class Team extends BaseEntity {
     @Column(name = "cover_image_url", length = 500)
     private @Nullable String coverImageUrl;
 
-    @Column(name = "is_public", nullable = false)
-    private boolean isPublic = false;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "visibility", nullable = false, length = 20)
+    private Visibility visibility = Visibility.TEAM;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "settings", columnDefinition = "jsonb")

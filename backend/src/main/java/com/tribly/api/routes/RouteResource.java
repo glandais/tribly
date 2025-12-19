@@ -2,6 +2,7 @@ package com.tribly.api.routes;
 
 import com.tribly.api.AbstractAuthenticatedResource;
 import com.tribly.api.dto.ErrorResponse;
+import com.tribly.domain.common.Visibility;
 import com.tribly.domain.route.*;
 import com.tribly.domain.team.Team;
 import com.tribly.infrastructure.exception.BusinessException;
@@ -106,7 +107,7 @@ public class RouteResource extends AbstractAuthenticatedResource {
             @RestForm String description,
             @RestForm @PartType(MediaType.TEXT_PLAIN) RouteDifficulty difficulty,
             @RestForm @PartType(MediaType.TEXT_PLAIN) SurfaceType surfaceType,
-            @RestForm @PartType(MediaType.TEXT_PLAIN) Boolean isPublic,
+            @RestForm @PartType(MediaType.TEXT_PLAIN) Visibility visibility,
             @RestForm("gpxFile") @Nullable FileUpload gpxFile) throws Exception {
 
         Team team = getTeamBySlug(teamSlug);
@@ -118,7 +119,7 @@ public class RouteResource extends AbstractAuthenticatedResource {
         }
 
         RouteService.CreateRouteRequest request = new RouteService.CreateRouteRequest(
-                name, description, difficulty, surfaceType, isPublic
+                name, description, difficulty, surfaceType, visibility
         );
 
         Route route = routeService.createRoute(
@@ -201,7 +202,7 @@ public class RouteResource extends AbstractAuthenticatedResource {
                 request.description(),
                 request.difficulty(),
                 request.surfaceType(),
-                request.isPublic()
+                request.visibility()
         );
 
         Route route = routeService.updateRoute(team.getId(), routeIdLong, serviceRequest, userId);
@@ -313,7 +314,7 @@ public class RouteResource extends AbstractAuthenticatedResource {
             SurfaceType surfaceType,
 
             @Nullable @Schema(description = "Whether the route is publicly visible", nullable = true)
-            Boolean isPublic
+            Visibility visibility
     ) {
     }
 

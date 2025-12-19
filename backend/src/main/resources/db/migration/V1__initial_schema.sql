@@ -27,7 +27,7 @@ CREATE TABLE teams (
     description TEXT,
     logo_url VARCHAR(500),
     cover_image_url VARCHAR(500),
-    is_public BOOLEAN NOT NULL DEFAULT FALSE,
+    visibility VARCHAR(20) NOT NULL DEFAULT 'TEAM' CHECK (visibility IN ('TEAM', 'PUBLIC')),
     settings JSONB DEFAULT '{}',
     max_members INTEGER,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
@@ -78,7 +78,7 @@ CREATE TABLE places (
     phone VARCHAR(50),
     website VARCHAR(500),
     notes TEXT,
-    is_public BOOLEAN NOT NULL DEFAULT FALSE,
+    visibility VARCHAR(20) NOT NULL DEFAULT 'TEAM' CHECK (visibility IN ('TEAM', 'PUBLIC')),
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
     deleted BOOLEAN NOT NULL DEFAULT FALSE,
@@ -97,7 +97,7 @@ CREATE TABLE routes (
     elevation_loss INTEGER,
     difficulty VARCHAR(20) CHECK (difficulty IN ('EASY', 'MODERATE', 'HARD', 'EXPERT')),
     surface_type VARCHAR(20) CHECK (surface_type IN ('ROAD', 'GRAVEL', 'MTB', 'MIXED')),
-    is_public BOOLEAN NOT NULL DEFAULT FALSE,
+    visibility VARCHAR(20) NOT NULL DEFAULT 'TEAM' CHECK (visibility IN ('TEAM', 'PUBLIC')),
     thumbnail_url VARCHAR(500),
     start_lat DECIMAL(10, 8),
     start_lng DECIMAL(11, 8),
@@ -337,7 +337,7 @@ CREATE TABLE notifications (
 -- Indexes
 CREATE INDEX idx_users_email ON users(email) WHERE deleted = FALSE;
 CREATE INDEX idx_teams_slug ON teams(slug) WHERE deleted = FALSE;
-CREATE INDEX idx_teams_public ON teams(is_public) WHERE deleted = FALSE AND is_public = TRUE;
+CREATE INDEX idx_teams_public ON teams(visibility) WHERE deleted = FALSE AND visibility = 'PUBLIC';
 CREATE INDEX idx_user_teams_user ON user_teams(user_id) WHERE deleted = FALSE;
 CREATE INDEX idx_user_teams_team ON user_teams(team_id) WHERE deleted = FALSE;
 CREATE INDEX idx_team_domains_domain ON team_domains(domain) WHERE deleted = FALSE;

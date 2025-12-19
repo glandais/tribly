@@ -94,12 +94,6 @@ export function useBreadcrumb(): BreadcrumbItem[] {
       return items
     }
 
-    // Trips section (placeholder)
-    if (location.pathname.includes('/trips')) {
-      items.push({ label: tCommon('nav.trips'), path: `/teams/${teamSlug}/trips` })
-      return items
-    }
-
     // Routes section
     if (location.pathname.includes('/routes')) {
       items.push({ label: tCommon('nav.routes'), path: `/teams/${teamSlug}/routes` })

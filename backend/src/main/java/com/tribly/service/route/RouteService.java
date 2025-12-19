@@ -1,6 +1,7 @@
 package com.tribly.service.route;
 
 import com.tribly.api.AbstractAuthenticatedResource;
+import com.tribly.domain.common.Visibility;
 import com.tribly.domain.route.*;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.team.TeamRepository;
@@ -77,7 +78,7 @@ public class RouteService extends AbstractAuthenticatedResource {
         route.setDescription(request.description());
         route.setDifficulty(request.difficulty());
         route.setSurfaceType(request.surfaceType());
-        route.setPublic(request.isPublic());
+        route.setVisibility(request.visibility());
 
         // Persist to get ID for file storage
         routeRepository.persistAndFlush(route);
@@ -144,7 +145,7 @@ public class RouteService extends AbstractAuthenticatedResource {
                 .orElseThrow(() -> BusinessException.notFound("Route", routeId));
 
         // Access control: public routes accessible to all, private routes only to members
-        if (!route.isPublic() && !securityService.isMember(userId, teamId)) {
+        if (route.getVisibility() != Visibility.PUBLIC && !securityService.isMember(userId, teamId)) {
             throw BusinessException.forbidden("You are not a member of this team");
         }
 
@@ -161,7 +162,7 @@ public class RouteService extends AbstractAuthenticatedResource {
         boolean isMember = securityService.isMember(userId, teamId);
 
         // Private team - no access for non-members
-        if (!isMember && !team.isPublic()) {
+        if (!isMember && team.getVisibility() != Visibility.PUBLIC) {
             throw BusinessException.forbidden("You are not a member of this team");
         }
 
@@ -183,7 +184,7 @@ public class RouteService extends AbstractAuthenticatedResource {
         boolean isMember = securityService.isMember(userId, teamId);
 
         // Private team - no access for non-members
-        if (!isMember && !team.isPublic()) {
+        if (!isMember && team.getVisibility() != Visibility.PUBLIC) {
             throw BusinessException.forbidden("You are not a member of this team");
         }
 
@@ -217,8 +218,8 @@ public class RouteService extends AbstractAuthenticatedResource {
         if (request.surfaceType() != null) {
             route.setSurfaceType(request.surfaceType());
         }
-        if (request.isPublic() != null) {
-            route.setPublic(request.isPublic());
+        if (request.visibility() != null) {
+            route.setVisibility(request.visibility());
         }
 
         routeRepository.persist(route);
@@ -299,7 +300,7 @@ public class RouteService extends AbstractAuthenticatedResource {
             String description,
             RouteDifficulty difficulty,
             SurfaceType surfaceType,
-            Boolean isPublic
+            Visibility visibility
     ) {
     }
 
@@ -308,7 +309,7 @@ public class RouteService extends AbstractAuthenticatedResource {
             @Nullable String description,
             @Nullable RouteDifficulty difficulty,
             @Nullable SurfaceType surfaceType,
-            @Nullable Boolean isPublic
+            @Nullable Visibility visibility
     ) {
     }
 }

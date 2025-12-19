@@ -8,7 +8,7 @@ import type { TeamDetailDto } from '../../hooks/useTeam'
 
 interface TeamLayoutProps {
   team: TeamDetailDto
-  currentTab: 'rides' | 'trips' | 'routes' | 'members'
+  currentTab: 'rides' | 'routes' | 'members'
   children: React.ReactNode
 }
 
@@ -21,7 +21,7 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
 
   const isMember = !!team.userRole
   const isAdmin = team.userRole === 'ADMIN'
-  const canJoin = isAuthenticated && !isMember && team.isPublic
+  const canJoin = isAuthenticated && !isMember && team.visibility === 'PUBLIC'
   const canLeave = isMember && !isAdmin
 
   const joinMutation = useJoinTeam(team.slug)
@@ -41,7 +41,6 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
 
   const tabs = [
     { id: 'rides', path: `/teams/${team.slug}/rides`, label: t('detail.tabs.rides') },
-    { id: 'trips', path: `/teams/${team.slug}/trips`, label: t('detail.tabs.trips') },
     { id: 'routes', path: `/teams/${team.slug}/routes`, label: t('detail.tabs.routes') },
   ]
 
@@ -90,7 +89,7 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
           <div>
             <div className="flex items-center gap-3">
               <h1 className="text-3xl font-bold text-gray-900">{team.name}</h1>
-              {!team.isPublic && (
+              {team.visibility === 'TEAM' && (
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
                   <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
                     <path

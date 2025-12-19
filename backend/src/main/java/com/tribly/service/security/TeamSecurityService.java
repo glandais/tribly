@@ -1,5 +1,6 @@
 package com.tribly.service.security;
 
+import com.tribly.domain.common.Visibility;
 import com.tribly.domain.ride.Ride;
 import com.tribly.domain.team.*;
 import com.tribly.infrastructure.exception.BusinessException;
@@ -167,7 +168,7 @@ public class TeamSecurityService {
      * @throws BusinessException with FORBIDDEN if the team is private
      */
     public void requirePublicTeamForJoin(Team team) {
-        if (!team.isPublic()) {
+        if (team.getVisibility() != Visibility.PUBLIC) {
             throw BusinessException.forbidden("This team is private. You need an invitation to join.");
         }
     }

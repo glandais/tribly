@@ -5,7 +5,6 @@
     "profile": "Profil",
     "settings": "Paramètres",
     "members": "Membres",
-    "trips": "Voyages",
     "routes": "Itinéraires",
     "signIn": "Se connecter",
     "signOut": "Se déconnecter"
@@ -67,11 +66,5 @@
   "memberCount_other": "{{count}} membres",
   "unknown": "Inconnu",
   "placeholder": {
-    "tripsList": "Liste des voyages",
-    "createTrip": "Créer un voyage",
-    "tripDetail": "Détail du voyage",
-    "routesList": "Liste des itinéraires",
-    "createRoute": "Créer un itinéraire",
-    "routeDetail": "Détail de l'itinéraire"
   }
 }

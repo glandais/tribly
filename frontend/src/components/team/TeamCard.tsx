@@ -64,7 +64,7 @@ export function TeamCard({ team, showRole = false }: TeamCardProps) {
           </div>
 
           <div className="flex items-center gap-2">
-            {!team.isPublic && (
+            {team.visibility === 'TEAM' && (
               <span className="inline-flex items-center px-2 py-0.5 rounded-sm text-xs font-medium bg-yellow-100 text-yellow-800">
                 <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
                   <path

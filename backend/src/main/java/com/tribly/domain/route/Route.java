@@ -1,6 +1,7 @@
 package com.tribly.domain.route;
 
 import com.tribly.domain.common.BaseEntity;
+import com.tribly.domain.common.Visibility;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
 import jakarta.persistence.*;
@@ -52,8 +53,9 @@ public class Route extends BaseEntity {
     @Column(name = "surface_type", length = 20, nullable = false)
     private SurfaceType surfaceType;
 
-    @Column(name = "is_public", nullable = false)
-    private boolean isPublic = false;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "visibility", nullable = false, length = 20)
+    private Visibility visibility = Visibility.TEAM;
 
     @Column(name = "thumbnail_url", length = 500, nullable = false)
     private String thumbnailUrl;

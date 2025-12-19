@@ -5,6 +5,7 @@ import { useTeam, useUpdateTeam, useDeleteTeam } from '../../hooks/useTeam'
 import { LoadingPage, LoadingSpinner } from '../../components/common/LoadingSpinner'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import { ApiClientError } from '../../lib/apiClient'
+import { Visibility } from '../../api/api'
 
 export function TeamSettingsPage() {
   const { t } = useTranslation('teams')
@@ -17,7 +18,7 @@ export function TeamSettingsPage() {
 
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
-  const [isPublic, setIsPublic] = useState(true)
+  const [visibility, setVisibility] = useState<Visibility>(Visibility.Public)
   const [logoUrl, setLogoUrl] = useState('')
   const [coverImageUrl, setCoverImageUrl] = useState('')
   const [maxMembers, setMaxMembers] = useState<number | ''>('')
@@ -29,7 +30,7 @@ export function TeamSettingsPage() {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- Form initialization from server data
       setName(team.name)
       setDescription(team.description || '')
-      setIsPublic(team.isPublic)
+      setVisibility(team.visibility)
       setLogoUrl(team.logoUrl || '')
       setCoverImageUrl(team.coverImageUrl || '')
       setMaxMembers(team.maxMembers || '')
@@ -81,7 +82,7 @@ export function TeamSettingsPage() {
     updateMutation.mutate({
       name: name !== team.name ? name : undefined,
       description: description !== team.description ? description : undefined,
-      isPublic: isPublic !== team.isPublic ? isPublic : undefined,
+      visibility: visibility !== team.visibility ? visibility : undefined,
       logoUrl: logoUrl !== team.logoUrl ? logoUrl || undefined : undefined,
       coverImageUrl: coverImageUrl !== team.coverImageUrl ? coverImageUrl || undefined : undefined,
       maxMembers:
@@ -207,24 +208,20 @@ export function TeamSettingsPage() {
           />
         </div>
 
-        <div className="flex items-start">
-          <div className="flex items-center h-5">
-            <input
-              type="checkbox"
-              id="isPublic"
-              checked={isPublic}
-              onChange={(e) => setIsPublic(e.target.checked)}
-              className="h-4 w-4 text-indigo-600 border-gray-300 rounded-sm focus:ring-indigo-500"
-            />
-          </div>
-          <div className="ml-3">
-            <label htmlFor="isPublic" className="text-sm font-medium text-gray-700">
-              {t('settings.form.isPublic.label')}
-            </label>
-            <p className="text-sm text-gray-500">
-              {isPublic ? t('settings.form.isPublic.public') : t('settings.form.isPublic.private')}
-            </p>
-          </div>
+        <div>
+          <label htmlFor="visibility" className="block text-sm font-medium text-gray-700">
+            {t('settings.form.visibility.label')}
+          </label>
+          <select
+            id="visibility"
+            value={visibility}
+            onChange={(e) => setVisibility(e.target.value as Visibility)}
+            className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+          >
+            <option value={Visibility.Team}>{tCommon('visibility.team')}</option>
+            <option value={Visibility.Public}>{tCommon('visibility.public')}</option>
+          </select>
+          <p className="mt-1 text-sm text-gray-500">{t('settings.form.visibility.hint')}</p>
         </div>
 
         <div>

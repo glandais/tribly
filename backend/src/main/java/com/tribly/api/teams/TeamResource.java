@@ -2,6 +2,7 @@ package com.tribly.api.teams;
 
 import com.tribly.api.AbstractAuthenticatedResource;
 import com.tribly.api.dto.ErrorResponse;
+import com.tribly.domain.common.Visibility;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.team.TeamRole;
 import com.tribly.infrastructure.exception.BusinessException;
@@ -118,7 +119,7 @@ public class TeamResource extends AbstractAuthenticatedResource {
             role = teamService.getUserRoleBySlug(userId, slug).orElse(null);
         }
 
-        if (!team.isPublic() && role == null) {
+        if (team.getVisibility() != Visibility.PUBLIC && role == null) {
             throw BusinessException.forbidden("This team is private");
         }
 
@@ -146,7 +147,7 @@ public class TeamResource extends AbstractAuthenticatedResource {
                 new TeamService.CreateTeamRequest(
                         request.name(),
                         request.description(),
-                        request.isPublic(),
+                        request.visibility(),
                         request.maxMembers()
                 ),
                 userId
@@ -188,7 +189,7 @@ public class TeamResource extends AbstractAuthenticatedResource {
                 new TeamService.UpdateTeamRequest(
                         request.name(),
                         request.description(),
-                        request.isPublic(),
+                        request.visibility(),
                         request.logoUrl(),
                         request.coverImageUrl(),
                         request.maxMembers()
@@ -231,7 +232,7 @@ public class TeamResource extends AbstractAuthenticatedResource {
             @Size(max = 2000) String description,
 
             @Nullable @Schema(description = "Whether the team is publicly visible", examples = "true", nullable = true)
-            Boolean isPublic,
+            Visibility visibility,
 
             @Nullable @Schema(description = "Maximum number of members (null = unlimited)", examples = "50", nullable = true)
             Integer maxMembers
@@ -247,7 +248,7 @@ public class TeamResource extends AbstractAuthenticatedResource {
             @Size(max = 2000) String description,
 
             @Nullable @Schema(description = "Whether the team is publicly visible", nullable = true)
-            Boolean isPublic,
+            Visibility visibility,
 
             @Nullable @Schema(description = "Logo image URL", nullable = true)
             String logoUrl,
@@ -281,7 +282,7 @@ public class TeamResource extends AbstractAuthenticatedResource {
             String coverImageUrl,
 
             @Schema(description = "Whether the team is public", required = true)
-            boolean isPublic,
+            Visibility visibility,
 
             @Schema(description = "Number of team members", required = true)
             int memberCount
@@ -294,7 +295,7 @@ public class TeamResource extends AbstractAuthenticatedResource {
                     team.getDescription(),
                     team.getLogoUrl(),
                     team.getCoverImageUrl(),
-                    team.isPublic(),
+                    team.getVisibility(),
                     team.getMemberCount()
             );
         }
@@ -322,7 +323,7 @@ public class TeamResource extends AbstractAuthenticatedResource {
             String coverImageUrl,
 
             @Schema(description = "Whether the team is public", required = true)
-            boolean isPublic,
+            Visibility visibility,
 
             @Schema(description = "Number of team members", required = true)
             int memberCount,
@@ -338,7 +339,7 @@ public class TeamResource extends AbstractAuthenticatedResource {
                     team.getDescription(),
                     team.getLogoUrl(),
                     team.getCoverImageUrl(),
-                    team.isPublic(),
+                    team.getVisibility(),
                     team.getMemberCount(),
                     role
             );
@@ -366,7 +367,7 @@ public class TeamResource extends AbstractAuthenticatedResource {
             String coverImageUrl,
 
             @Schema(description = "Whether the team is public", required = true)
-            boolean isPublic,
+            Visibility visibility,
 
             @Schema(description = "Number of team members", required = true)
             int memberCount,
@@ -388,7 +389,7 @@ public class TeamResource extends AbstractAuthenticatedResource {
                     team.getDescription(),
                     team.getLogoUrl(),
                     team.getCoverImageUrl(),
-                    team.isPublic(),
+                    team.getVisibility(),
                     team.getMemberCount(),
                     team.getMaxMembers(),
                     role,

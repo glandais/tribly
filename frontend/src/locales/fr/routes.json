@@ -39,7 +39,8 @@
       "description": "Description",
       "difficulty": "Difficulté",
       "surfaceType": "Type de revêtement",
-      "isPublic": "Parcours public"
+      "visibility": "Visibilité",
+      "visibilityDisabledHint": "Les parcours d'une équipe privée ne peuvent pas être publics"
     },
     "submit": "Créer le parcours",
     "validation": {
@@ -57,7 +58,8 @@
       "description": "Description",
       "difficulty": "Difficulté",
       "surfaceType": "Type de revêtement",
-      "isPublic": "Parcours public"
+      "visibility": "Visibilité",
+      "visibilityDisabledHint": "Les parcours d'une équipe privée ne peuvent pas être publics"
     }
   },
   "detail": {

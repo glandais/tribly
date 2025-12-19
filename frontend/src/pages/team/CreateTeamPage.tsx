@@ -4,13 +4,14 @@ import { useTranslation } from 'react-i18next'
 import { useCreateTeam } from '../../hooks/useTeam'
 import { LoadingSpinner } from '../../components/common/LoadingSpinner'
 import { ApiClientError } from '../../lib/apiClient'
+import { Visibility } from '../../api/api'
 
 export function CreateTeamPage() {
   const { t } = useTranslation('teams')
   const { t: tCommon } = useTranslation('common')
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
-  const [isPublic, setIsPublic] = useState(true)
+  const [visibility, setVisibility] = useState<Visibility>(Visibility.Public)
   const [maxMembers, setMaxMembers] = useState<number | ''>('')
 
   const createMutation = useCreateTeam()
@@ -20,7 +21,7 @@ export function CreateTeamPage() {
     createMutation.mutate({
       name,
       description: description || undefined,
-      isPublic,
+      visibility,
       maxMembers: maxMembers ? Number(maxMembers) : undefined,
     })
   }
@@ -107,24 +108,20 @@ export function CreateTeamPage() {
           </p>
         </div>
 
-        <div className="flex items-start">
-          <div className="flex items-center h-5">
-            <input
-              type="checkbox"
-              id="isPublic"
-              checked={isPublic}
-              onChange={(e) => setIsPublic(e.target.checked)}
-              className="h-4 w-4 text-indigo-600 border-gray-300 rounded-sm focus:ring-indigo-500"
-            />
-          </div>
-          <div className="ml-3">
-            <label htmlFor="isPublic" className="text-sm font-medium text-gray-700">
-              {t('create.form.isPublic.label')}
-            </label>
-            <p className="text-sm text-gray-500">
-              {isPublic ? t('create.form.isPublic.public') : t('create.form.isPublic.private')}
-            </p>
-          </div>
+        <div>
+          <label htmlFor="visibility" className="block text-sm font-medium text-gray-700">
+            {t('create.form.visibility.label')}
+          </label>
+          <select
+            id="visibility"
+            value={visibility}
+            onChange={(e) => setVisibility(e.target.value as Visibility)}
+            className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+          >
+            <option value={Visibility.Team}>{tCommon('visibility.team')}</option>
+            <option value={Visibility.Public}>{tCommon('visibility.public')}</option>
+          </select>
+          <p className="mt-1 text-sm text-gray-500">{t('create.form.visibility.hint')}</p>
         </div>
 
         <div>

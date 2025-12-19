@@ -1,5 +1,6 @@
 package com.tribly.domain.team;
 
+import com.tribly.domain.common.Visibility;
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import io.quarkus.panache.common.Page;
 import io.quarkus.panache.common.Sort;
@@ -24,19 +25,19 @@ public class TeamRepository implements PanacheRepository<Team> {
     }
 
     public List<Team> findPublicTeams(int page, int size) {
-        return find("isPublic = true and deleted = false", Sort.by("name"))
+        return find("visibility = ?1 and deleted = false", Sort.by("name"), Visibility.PUBLIC)
                 .page(Page.of(page, size))
                 .list();
     }
 
     public long countPublicTeams() {
-        return count("isPublic = true and deleted = false");
+        return count("visibility = ?1 and deleted = false", Visibility.PUBLIC);
     }
 
     public List<Team> searchPublicTeams(String query, int page, int size) {
-        return find("isPublic = true and deleted = false and (lower(name) like ?1 or lower(description) like ?1)",
+        return find("visibility = ?2 and deleted = false and (lower(name) like ?1 or lower(description) like ?1)",
                 Sort.by("name"),
-                "%" + query.toLowerCase() + "%")
+                "%" + query.toLowerCase() + "%", Visibility.PUBLIC)
                 .page(Page.of(page, size))
                 .list();
     }

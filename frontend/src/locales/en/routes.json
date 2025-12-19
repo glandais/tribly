@@ -39,7 +39,8 @@
       "description": "Description",
       "difficulty": "Difficulty",
       "surfaceType": "Surface type",
-      "isPublic": "Public route"
+      "visibility": "Visibility",
+      "visibilityDisabledHint": "Routes in a team-only team cannot be public"
     },
     "submit": "Create route",
     "validation": {
@@ -57,7 +58,8 @@
       "description": "Description",
       "difficulty": "Difficulty",
       "surfaceType": "Surface type",
-      "isPublic": "Public route"
+      "visibility": "Visibility",
+      "visibilityDisabledHint": "Routes in a team-only team cannot be public"
     }
   },
   "detail": {

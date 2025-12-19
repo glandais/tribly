@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { RouteDifficulty, SurfaceType, useRoute, useUpdateRoute } from '../../hooks/useRoute'
+import { useTeam } from '../../hooks/useTeam'
+import { Visibility } from '../../api/api'
 
 export function EditRoutePage() {
   const { teamSlug, routeId } = useParams<{ teamSlug: string; routeId: string }>()
@@ -10,6 +12,7 @@ export function EditRoutePage() {
   const { t: tErrors } = useTranslation('errors')
   const navigate = useNavigate()
 
+  const { data: team } = useTeam(teamSlug)
   const { data: route, isLoading } = useRoute(teamSlug, routeId)
   const updateRoute = useUpdateRoute(teamSlug!, routeId!)
 
@@ -17,7 +20,7 @@ export function EditRoutePage() {
   const [description, setDescription] = useState('')
   const [difficulty, setDifficulty] = useState<RouteDifficulty>(RouteDifficulty.Moderate)
   const [surfaceType, setSurfaceType] = useState<SurfaceType>(SurfaceType.Road)
-  const [isPublic, setIsPublic] = useState(false)
+  const [visibility, setVisibility] = useState<Visibility>(Visibility.Team)
   const [error, setError] = useState<string | null>(null)
 
   // Load route data into form
@@ -28,9 +31,10 @@ export function EditRoutePage() {
       setDescription(route.description || '')
       setDifficulty(route.difficulty || 'MODERATE')
       setSurfaceType(route.surfaceType || 'ROAD')
-      setIsPublic(route.isPublic)
+      // For team-only teams, routes must always be team-only
+      setVisibility(team?.visibility === Visibility.Team ? Visibility.Team : route.visibility)
     }
-  }, [route])
+  }, [route, team])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -41,7 +45,7 @@ export function EditRoutePage() {
         description,
         difficulty,
         surfaceType,
-        isPublic,
+        visibility,
       })
       navigate(`/teams/${teamSlug}/routes/${routeId}`)
     } catch (err) {
@@ -77,6 +81,9 @@ export function EditRoutePage() {
       </div>
     )
   }
+
+  // For team-only teams, routes must always be team-only
+  const visibilityDisabled = team?.visibility === Visibility.Team
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -168,19 +175,25 @@ export function EditRoutePage() {
           </select>
         </div>
 
-        {/* Is Public */}
-        <div className="flex items-center">
-          <input
-            id="isPublic"
-            name="isPublic"
-            type="checkbox"
-            checked={isPublic}
-            onChange={(e) => setIsPublic(e.target.checked)}
-            className="h-4 w-4 rounded-sm border-gray-300 text-indigo-600 focus:ring-indigo-500"
-          />
-          <label htmlFor="isPublic" className="ml-2 block text-sm text-gray-900">
-            {t('edit.form.isPublic')}
+        {/* Visibility */}
+        <div>
+          <label htmlFor="visibility" className="block text-sm font-medium text-gray-700">
+            {t('edit.form.visibility')}
           </label>
+          <select
+            id="visibility"
+            name="visibility"
+            value={visibility}
+            onChange={(e) => setVisibility(e.target.value as Visibility)}
+            disabled={visibilityDisabled}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-xs focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <option value={Visibility.Team}>{tCommon('visibility.team')}</option>
+            <option value={Visibility.Public}>{tCommon('visibility.public')}</option>
+          </select>
+          {visibilityDisabled && (
+            <p className="mt-2 text-sm text-gray-500">{t('edit.form.visibilityDisabledHint')}</p>
+          )}
         </div>
 
         {/* Submit Buttons */}

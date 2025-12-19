@@ -256,7 +256,7 @@ export function RouteDetailPage() {
           <dt className="text-sm font-medium text-gray-500">{t('detail.info.visibility')}</dt>
           <dd>
             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-              {route.isPublic ? tCommon('visibility.public') : tCommon('visibility.private')}
+              {tCommon(`visibility.${route.visibility.toLowerCase()}`)}
             </span>
           </dd>
           <dt className="text-sm font-medium text-gray-500">{t('detail.info.createdAt')}</dt>

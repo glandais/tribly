@@ -43,15 +43,6 @@ function NotFoundPage() {
   )
 }
 
-function Placeholder({ textKey }: { textKey: string }) {
-  const { t } = useTranslation('common')
-  return (
-    <div className="flex items-center justify-center min-h-[40vh]">
-      <p className="text-lg text-gray-500">{t(textKey)}</p>
-    </div>
-  )
-}
-
 function App() {
   return (
     <ErrorBoundary>
@@ -141,20 +132,6 @@ function App() {
                   <EditRidePage />
                 </AuthenticatedRoute>
               }
-            />
-
-            {/* Trip routes - to be implemented */}
-            <Route
-              path="teams/:teamSlug/trips"
-              element={<Placeholder textKey="placeholder.tripsList" />}
-            />
-            <Route
-              path="teams/:teamSlug/trips/new"
-              element={<Placeholder textKey="placeholder.createTrip" />}
-            />
-            <Route
-              path="teams/:teamSlug/trips/:tripId"
-              element={<Placeholder textKey="placeholder.tripDetail" />}
             />
 
             {/* Route routes */}

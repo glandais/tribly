@@ -41,10 +41,9 @@
         "placeholder": "Décrivez votre équipe, votre style de cyclisme ou votre communauté...",
         "charCount": "{{count}}/{{max}} caractères"
       },
-      "isPublic": {
-        "label": "Équipe publique",
-        "public": "Tout le monde peut trouver et rejoindre cette équipe",
-        "private": "Seuls les membres invités peuvent rejoindre cette équipe"
+      "visibility": {
+        "label": "Visibilité de l'équipe",
+        "hint": "Contrôle qui peut trouver et rejoindre cette équipe"
       },
       "maxMembers": {
         "label": "Nombre maximum de membres (optionnel)",
@@ -69,7 +68,6 @@
     },
     "tabs": {
       "rides": "Sorties",
-      "trips": "Voyages",
       "routes": "Itinéraires",
       "members": "Membres"
     },
@@ -130,10 +128,9 @@
         "label": "URL de l'image de couverture",
         "placeholder": "https://exemple.com/couverture.jpg"
       },
-      "isPublic": {
-        "label": "Équipe publique",
-        "public": "Tout le monde peut trouver et rejoindre cette équipe",
-        "private": "Seuls les membres invités peuvent rejoindre cette équipe"
+      "visibility": {
+        "label": "Visibilité de l'équipe",
+        "hint": "Contrôle qui peut trouver et rejoindre cette équipe"
       },
       "maxMembers": {
         "label": "Nombre maximum de membres",
@@ -149,7 +146,7 @@
       "title": "Zone de danger",
       "description": "Une fois que vous supprimez une équipe, il n'y a pas de retour en arrière. Soyez certain.",
       "deleteTeam": "Supprimer l'équipe",
-      "deleteWarning": "Êtes-vous sûr de vouloir supprimer <strong>{{teamName}}</strong> ? Cette action est irréversible et supprimera toutes les données de l'équipe, y compris les sorties, les voyages et les itinéraires.",
+      "deleteWarning": "Êtes-vous sûr de vouloir supprimer <strong>{{teamName}}</strong> ? Cette action est irréversible et supprimera toutes les données de l'équipe, y compris les sorties et les itinéraires.",
       "confirmDelete": "Oui, supprimer l'équipe",
       "deleting": "Suppression..."
     }

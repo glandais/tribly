@@ -5,7 +5,6 @@
     "profile": "Profile",
     "settings": "Settings",
     "members": "Members",
-    "trips": "Trips",
     "routes": "Routes",
     "signIn": "Sign in",
     "signOut": "Sign out"
@@ -67,11 +66,5 @@
   "memberCount_other": "{{count}} members",
   "unknown": "Unknown",
   "placeholder": {
-    "tripsList": "Trips List",
-    "createTrip": "Create Trip",
-    "tripDetail": "Trip Detail",
-    "routesList": "Routes List",
-    "createRoute": "Create Route",
-    "routeDetail": "Route Detail"
   }
 }

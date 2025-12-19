@@ -64,7 +64,7 @@ class RideServiceTest {
         var response = given()
                 .auth().oauth2(getAccessToken(USERNAME_ADMIN))
                 .contentType("application/json")
-                .body("{\"name\": \"Ride Test Team " + System.currentTimeMillis() + "\", \"isPublic\": true}")
+                .body("{\"name\": \"Ride Test Team " + System.currentTimeMillis() + "\", \"visibility\": \"PUBLIC\"}")
                 .when()
                 .post("/api/teams")
                 .then()

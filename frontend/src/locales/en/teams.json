@@ -41,10 +41,9 @@
         "placeholder": "Describe your team, riding style, or community...",
         "charCount": "{{count}}/{{max}} characters"
       },
-      "isPublic": {
-        "label": "Public Team",
-        "public": "Anyone can find and join this team",
-        "private": "Only invited members can join this team"
+      "visibility": {
+        "label": "Team Visibility",
+        "hint": "Control who can find and join this team"
       },
       "maxMembers": {
         "label": "Maximum Members (optional)",
@@ -69,7 +68,6 @@
     },
     "tabs": {
       "rides": "Rides",
-      "trips": "Trips",
       "routes": "Routes",
       "members": "Members"
     },
@@ -130,10 +128,9 @@
         "label": "Cover Image URL",
         "placeholder": "https://example.com/cover.jpg"
       },
-      "isPublic": {
-        "label": "Public Team",
-        "public": "Anyone can find and join this team",
-        "private": "Only invited members can join this team"
+      "visibility": {
+        "label": "Team Visibility",
+        "hint": "Control who can find and join this team"
       },
       "maxMembers": {
         "label": "Maximum Members",
@@ -149,7 +146,7 @@
       "title": "Danger Zone",
       "description": "Once you delete a team, there is no going back. Please be certain.",
       "deleteTeam": "Delete Team",
-      "deleteWarning": "Are you sure you want to delete <strong>{{teamName}}</strong>? This action cannot be undone and will remove all team data including rides, trips, and routes.",
+      "deleteWarning": "Are you sure you want to delete <strong>{{teamName}}</strong>? This action cannot be undone and will remove all team data including rides and routes.",
       "confirmDelete": "Yes, Delete Team",
       "deleting": "Deleting..."
     }

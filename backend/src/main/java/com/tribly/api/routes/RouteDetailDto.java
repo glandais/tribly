@@ -1,5 +1,6 @@
 package com.tribly.api.routes;
 
+import com.tribly.domain.common.Visibility;
 import com.tribly.domain.route.Route;
 import com.tribly.domain.route.RouteDifficulty;
 import com.tribly.domain.route.SurfaceType;
@@ -39,7 +40,7 @@ public record RouteDetailDto(
         SurfaceType surfaceType,
 
         @Schema(description = "Whether the route is public", required = true)
-        boolean isPublic,
+        Visibility visibility,
 
         @Schema(description = "Thumbnail image URL", required = true)
         String thumbnailUrl,
@@ -75,7 +76,7 @@ public record RouteDetailDto(
                 route.getElevationLoss(),
                 route.getDifficulty(),
                 route.getSurfaceType(),
-                route.isPublic(),
+                route.getVisibility(),
                 route.getThumbnailUrl(),
                 route.getStartLat(),
                 route.getStartLng(),

@@ -185,13 +185,16 @@ components:
           examples:
           - A team for weekend warriors
           maxLength: 2000
-        isPublic:
-          type:
-          - boolean
-          - "null"
+        visibility:
           description: Whether the team is publicly visible
+          type:
+          - string
+          - "null"
           examples:
-          - true
+          - "true"
+          anyOf:
+          - $ref: "#/components/schemas/Visibility"
+          - type: "null"
         maxMembers:
           type:
           - integer
@@ -712,7 +715,7 @@ components:
       - elevationLoss
       - difficulty
       - surfaceType
-      - isPublic
+      - visibility
       - thumbnailUrl
       - startLat
       - startLng
@@ -751,9 +754,10 @@ components:
           description: Surface type
           type: string
           $ref: "#/components/schemas/SurfaceType"
-        isPublic:
-          type: boolean
+        visibility:
           description: Whether the route is public
+          type: string
+          $ref: "#/components/schemas/Visibility"
         thumbnailUrl:
           type: string
           description: Thumbnail image URL
@@ -796,7 +800,7 @@ components:
       - elevationLoss
       - difficulty
       - surfaceType
-      - isPublic
+      - visibility
       - thumbnailUrl
       - createdAt
       properties:
@@ -831,9 +835,10 @@ components:
           description: Surface type
           type: string
           $ref: "#/components/schemas/SurfaceType"
-        isPublic:
-          type: boolean
+        visibility:
           description: Whether the route is public
+          type: string
+          $ref: "#/components/schemas/Visibility"
         thumbnailUrl:
           type: string
           description: Thumbnail image URL
@@ -880,7 +885,7 @@ components:
       - id
       - name
       - slug
-      - isPublic
+      - visibility
       - memberCount
       properties:
         id:
@@ -909,9 +914,10 @@ components:
           - string
           - "null"
           description: Cover image URL
-        isPublic:
-          type: boolean
+        visibility:
           description: Whether the team is public
+          type: string
+          $ref: "#/components/schemas/Visibility"
         memberCount:
           type: integer
           format: int32
@@ -942,7 +948,7 @@ components:
       - id
       - name
       - slug
-      - isPublic
+      - visibility
       - memberCount
       properties:
         id:
@@ -975,9 +981,10 @@ components:
           - string
           - "null"
           description: Cover image URL
-        isPublic:
-          type: boolean
+        visibility:
           description: Whether the team is public
+          type: string
+          $ref: "#/components/schemas/Visibility"
         memberCount:
           type: integer
           format: int32
@@ -1021,7 +1028,7 @@ components:
       - id
       - name
       - slug
-      - isPublic
+      - visibility
       - memberCount
       - role
       properties:
@@ -1055,9 +1062,10 @@ components:
           - string
           - "null"
           description: Cover image URL
-        isPublic:
-          type: boolean
+        visibility:
           description: Whether the team is public
+          type: string
+          $ref: "#/components/schemas/Visibility"
         memberCount:
           type: integer
           format: int32
@@ -1233,11 +1241,14 @@ components:
           anyOf:
           - $ref: "#/components/schemas/SurfaceType"
           - type: "null"
-        isPublic:
-          type:
-          - boolean
-          - "null"
+        visibility:
           description: Whether the route is publicly visible
+          type:
+          - string
+          - "null"
+          anyOf:
+          - $ref: "#/components/schemas/Visibility"
+          - type: "null"
     UpdateTeamRequest:
       description: Team update request
       type: object
@@ -1255,11 +1266,14 @@ components:
           - "null"
           description: Team description
           maxLength: 2000
-        isPublic:
-          type:
-          - boolean
-          - "null"
+        visibility:
           description: Whether the team is publicly visible
+          type:
+          - string
+          - "null"
+          anyOf:
+          - $ref: "#/components/schemas/Visibility"
+          - type: "null"
         logoUrl:
           type:
           - string
@@ -2623,17 +2637,17 @@ paths:
                   $ref: "#/components/schemas/RouteDifficulty"
                 surfaceType:
                   $ref: "#/components/schemas/SurfaceType"
-                isPublic:
-                  type: boolean
+                visibility:
+                  $ref: "#/components/schemas/Visibility"
                 gpxFile:
                   type: string
                   format: binary
             encoding:
               difficulty:
                 contentType: text/plain
-              surfaceType:
+              visibility:
                 contentType: text/plain
-              isPublic:
+              surfaceType:
                 contentType: text/plain
         required: true
       responses:

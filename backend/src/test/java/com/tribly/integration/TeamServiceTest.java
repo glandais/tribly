@@ -1,5 +1,6 @@
 package com.tribly.integration;
 
+import com.tribly.domain.common.Visibility;
 import com.tribly.domain.ride.RideGroupRepository;
 import com.tribly.domain.ride.RideParticipationRepository;
 import com.tribly.domain.ride.RideRepository;
@@ -84,13 +85,13 @@ class TeamServiceTest {
 
         // Create public team with admin as owner
         publicTeam = teamService.createTeam(
-                new TeamService.CreateTeamRequest("Test Public Team", "A public team", true, null),
+                new TeamService.CreateTeamRequest("Test Public Team", "A public team", Visibility.PUBLIC, null),
                 adminUser.getId()
         );
 
         // Create private team with admin as owner
         privateTeam = teamService.createTeam(
-                new TeamService.CreateTeamRequest("Test Private Team", "A private team", false, null),
+                new TeamService.CreateTeamRequest("Test Private Team", "A private team", Visibility.TEAM, null),
                 adminUser.getId()
         );
     }
@@ -99,14 +100,14 @@ class TeamServiceTest {
     @Transactional
     void createTeam_shouldCreateTeamAndMakeUserAdmin() {
         Team team = teamService.createTeam(
-                new TeamService.CreateTeamRequest("Test Cyclists", "A great cycling team", true, null),
+                new TeamService.CreateTeamRequest("Test Cyclists", "A great cycling team", Visibility.PUBLIC, null),
                 adminUser.getId()
         );
 
         assertNotNull(team.getId());
         assertEquals("Test Cyclists", team.getName());
         assertTrue(team.getSlug().startsWith("test-cyclists"));
-        assertTrue(team.isPublic());
+        assertTrue(team.getVisibility() == Visibility.PUBLIC);
 
         TeamRole role = teamService.getUserRole(adminUser.getId(), team.getId()).orElse(null);
         assertEquals(TeamRole.ADMIN, role);
@@ -117,14 +118,14 @@ class TeamServiceTest {
         given()
                 .auth().oauth2(getAccessToken(USERNAME_ADMIN))
                 .contentType("application/json")
-                .body("{\"name\": \"API Test Team\", \"description\": \"Created via API\", \"isPublic\": true}")
+                .body("{\"name\": \"API Test Team\", \"description\": \"Created via API\", \"visibility\": \"PUBLIC\"}")
                 .when()
                 .post("/api/teams")
                 .then()
                 .statusCode(201)
                 .body("name", equalTo("API Test Team"))
                 .body("slug", startsWith("api-test-team"))
-                .body("isPublic", equalTo(true));
+                .body("visibility", equalTo("PUBLIC"));
     }
 
     @Test

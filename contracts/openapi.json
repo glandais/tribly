@@ -180,10 +180,15 @@
             "examples" : [ "A team for weekend warriors" ],
             "maxLength" : 2000
           },
-          "isPublic" : {
-            "type" : [ "boolean", "null" ],
+          "visibility" : {
             "description" : "Whether the team is publicly visible",
-            "examples" : [ true ]
+            "type" : [ "string", "null" ],
+            "examples" : [ "true" ],
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/Visibility"
+            }, {
+              "type" : "null"
+            } ]
           },
           "maxMembers" : {
             "type" : [ "integer", "null" ],
@@ -715,7 +720,7 @@
       "RouteDetailDto" : {
         "description" : "Detailed route information",
         "type" : "object",
-        "required" : [ "id", "name", "description", "distance", "elevationGain", "elevationLoss", "difficulty", "surfaceType", "isPublic", "thumbnailUrl", "startLat", "startLng", "endLat", "endLng", "createdById", "createdAt", "updatedAt" ],
+        "required" : [ "id", "name", "description", "distance", "elevationGain", "elevationLoss", "difficulty", "surfaceType", "visibility", "thumbnailUrl", "startLat", "startLng", "endLat", "endLng", "createdById", "createdAt", "updatedAt" ],
         "properties" : {
           "id" : {
             "type" : "string",
@@ -754,9 +759,10 @@
             "type" : "string",
             "$ref" : "#/components/schemas/SurfaceType"
           },
-          "isPublic" : {
-            "type" : "boolean",
-            "description" : "Whether the route is public"
+          "visibility" : {
+            "description" : "Whether the route is public",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Visibility"
           },
           "thumbnailUrl" : {
             "type" : "string",
@@ -799,7 +805,7 @@
       "RouteDto" : {
         "description" : "Route summary data",
         "type" : "object",
-        "required" : [ "id", "name", "distance", "elevationGain", "elevationLoss", "difficulty", "surfaceType", "isPublic", "thumbnailUrl", "createdAt" ],
+        "required" : [ "id", "name", "distance", "elevationGain", "elevationLoss", "difficulty", "surfaceType", "visibility", "thumbnailUrl", "createdAt" ],
         "properties" : {
           "id" : {
             "type" : "string",
@@ -838,9 +844,10 @@
             "type" : "string",
             "$ref" : "#/components/schemas/SurfaceType"
           },
-          "isPublic" : {
-            "type" : "boolean",
-            "description" : "Whether the route is public"
+          "visibility" : {
+            "description" : "Whether the route is public",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Visibility"
           },
           "thumbnailUrl" : {
             "type" : "string",
@@ -888,7 +895,7 @@
       "TeamDetailDto" : {
         "description" : "Detailed team information",
         "type" : "object",
-        "required" : [ "id", "name", "slug", "isPublic", "memberCount" ],
+        "required" : [ "id", "name", "slug", "visibility", "memberCount" ],
         "properties" : {
           "id" : {
             "type" : "string",
@@ -915,9 +922,10 @@
             "type" : [ "string", "null" ],
             "description" : "Cover image URL"
           },
-          "isPublic" : {
-            "type" : "boolean",
-            "description" : "Whether the team is public"
+          "visibility" : {
+            "description" : "Whether the team is public",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Visibility"
           },
           "memberCount" : {
             "type" : "integer",
@@ -947,7 +955,7 @@
       "TeamDto" : {
         "description" : "Team summary data",
         "type" : "object",
-        "required" : [ "id", "name", "slug", "isPublic", "memberCount" ],
+        "required" : [ "id", "name", "slug", "visibility", "memberCount" ],
         "properties" : {
           "id" : {
             "type" : "string",
@@ -976,9 +984,10 @@
             "type" : [ "string", "null" ],
             "description" : "Cover image URL"
           },
-          "isPublic" : {
-            "type" : "boolean",
-            "description" : "Whether the team is public"
+          "visibility" : {
+            "description" : "Whether the team is public",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Visibility"
           },
           "memberCount" : {
             "type" : "integer",
@@ -1023,7 +1032,7 @@
       "TeamWithRoleDto" : {
         "description" : "Team data with user's role",
         "type" : "object",
-        "required" : [ "id", "name", "slug", "isPublic", "memberCount", "role" ],
+        "required" : [ "id", "name", "slug", "visibility", "memberCount", "role" ],
         "properties" : {
           "id" : {
             "type" : "string",
@@ -1052,9 +1061,10 @@
             "type" : [ "string", "null" ],
             "description" : "Cover image URL"
           },
-          "isPublic" : {
-            "type" : "boolean",
-            "description" : "Whether the team is public"
+          "visibility" : {
+            "description" : "Whether the team is public",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Visibility"
           },
           "memberCount" : {
             "type" : "integer",
@@ -1238,9 +1248,14 @@
               "type" : "null"
             } ]
           },
-          "isPublic" : {
-            "type" : [ "boolean", "null" ],
-            "description" : "Whether the route is publicly visible"
+          "visibility" : {
+            "description" : "Whether the route is publicly visible",
+            "type" : [ "string", "null" ],
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/Visibility"
+            }, {
+              "type" : "null"
+            } ]
           }
         }
       },
@@ -1259,9 +1274,14 @@
             "description" : "Team description",
             "maxLength" : 2000
           },
-          "isPublic" : {
-            "type" : [ "boolean", "null" ],
-            "description" : "Whether the team is publicly visible"
+          "visibility" : {
+            "description" : "Whether the team is publicly visible",
+            "type" : [ "string", "null" ],
+            "anyOf" : [ {
+              "$ref" : "#/components/schemas/Visibility"
+            }, {
+              "type" : "null"
+            } ]
           },
           "logoUrl" : {
             "type" : [ "string", "null" ],
@@ -3175,8 +3195,8 @@
                   "surfaceType" : {
                     "$ref" : "#/components/schemas/SurfaceType"
                   },
-                  "isPublic" : {
-                    "type" : "boolean"
+                  "visibility" : {
+                    "$ref" : "#/components/schemas/Visibility"
                   },
                   "gpxFile" : {
                     "type" : "string",
@@ -3188,10 +3208,10 @@
                 "difficulty" : {
                   "contentType" : "text/plain"
                 },
-                "surfaceType" : {
+                "visibility" : {
                   "contentType" : "text/plain"
                 },
-                "isPublic" : {
+                "surfaceType" : {
                   "contentType" : "text/plain"
                 }
               }

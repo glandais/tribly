@@ -1,6 +1,7 @@
 package com.tribly.domain.place;
 
 import com.tribly.domain.common.BaseEntity;
+import com.tribly.domain.common.Visibility;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
 import jakarta.persistence.*;
@@ -61,7 +62,8 @@ public class Place extends BaseEntity {
     @Nullable
     private String notes;
 
-    @Column(name = "is_public", nullable = false)
-    private boolean isPublic = false;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "visibility", nullable = false, length = 20)
+    private Visibility visibility = Visibility.TEAM;
 
 }

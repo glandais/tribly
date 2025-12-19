@@ -297,7 +297,7 @@ export function EditRidePage() {
               <span className="ml-2 text-sm text-gray-700">{t('create.form.visibility.team')}</span>
             </label>
             <label
-              className={`flex items-center ${!team.isPublic ? 'opacity-50 cursor-not-allowed' : ''}`}
+              className={`flex items-center ${team.visibility === 'TEAM' ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               <input
                 type="radio"
@@ -305,7 +305,7 @@ export function EditRidePage() {
                 value="PUBLIC"
                 checked={visibility === Visibility.Public}
                 onChange={() => setVisibility(Visibility.Public)}
-                disabled={!team.isPublic}
+                disabled={team.visibility === 'TEAM'}
                 className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500 disabled:cursor-not-allowed"
               />
               <span className="ml-2 text-sm text-gray-700">
@@ -313,7 +313,7 @@ export function EditRidePage() {
               </span>
             </label>
           </div>
-          {!team.isPublic && (
+          {team.visibility === 'TEAM' && (
             <p className="mt-2 text-sm text-gray-500">
               {t('create.form.visibility.privateTeamHint')}
             </p>

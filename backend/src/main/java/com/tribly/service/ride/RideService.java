@@ -61,7 +61,7 @@ public class RideService {
 
         // Validate visibility: private teams can only have team-only rides
         Visibility visibility = request.visibility() != null ? request.visibility() : Visibility.TEAM;
-        if (!team.isPublic() && visibility == Visibility.PUBLIC) {
+        if (team.getVisibility() != Visibility.PUBLIC && visibility == Visibility.PUBLIC) {
             throw BusinessException.validation("Private teams can only have team-only rides");
         }
 
@@ -132,7 +132,7 @@ public class RideService {
         }
 
         // For non-members of public teams, filter to show only public rides
-        if (!isMember && team.isPublic()) {
+        if (!isMember && team.getVisibility() == Visibility.PUBLIC) {
             rides = rides.stream()
                     .filter(ride -> ride.getVisibility() == Visibility.PUBLIC)
                     .toList();
@@ -152,7 +152,7 @@ public class RideService {
         boolean canSeeDrafts = securityService.canSeeDrafts(userId, teamId);
 
         // Private team - no access for non-members
-        if (!isMember && !team.isPublic()) {
+        if (!isMember && team.getVisibility() != Visibility.PUBLIC) {
             throw BusinessException.forbidden("You are not a member of this team");
         }
 
@@ -162,7 +162,7 @@ public class RideService {
         // For non-members of public teams, we need to count only public rides
         // Note: This is an approximation since the repository method doesn't filter by visibility
         // For accurate counts, we would need to add a repository method that filters by visibility
-        if (!isMember && team.isPublic()) {
+        if (!isMember && team.getVisibility() == Visibility.PUBLIC) {
             // Count only public, non-draft rides for non-members
             return rideRepository.findByTeam(teamId, false, 0, Integer.MAX_VALUE).stream()
                     .filter(ride -> ride.getVisibility() == Visibility.PUBLIC)
@@ -184,7 +184,7 @@ public class RideService {
         if (request.visibility() != null) {
             Team team = teamRepository.findActiveById(teamId)
                     .orElseThrow(() -> BusinessException.notFound("Team", teamId));
-            if (!team.isPublic() && request.visibility() == Visibility.PUBLIC) {
+            if (team.getVisibility() != Visibility.PUBLIC && request.visibility() == Visibility.PUBLIC) {
                 throw BusinessException.validation("Private teams can only have team-only rides");
             }
             ride.setVisibility(request.visibility());
@@ -263,7 +263,7 @@ public class RideService {
 
         // For non-members, only allow viewing groups of public rides from public teams
         if (!isMember) {
-            if (!team.isPublic() || ride.getVisibility() != Visibility.PUBLIC || ride.getStatus() == RideStatus.DRAFT) {
+            if (team.getVisibility() != Visibility.PUBLIC || ride.getVisibility() != Visibility.PUBLIC || ride.getStatus() == RideStatus.DRAFT) {
                 throw BusinessException.forbidden("You don't have permission to view this ride's groups");
             }
         }
@@ -349,7 +349,7 @@ public class RideService {
 
         // For non-members, only allow viewing public rides from public teams
         if (!isMember) {
-            if (!team.isPublic() || ride.getVisibility() != Visibility.PUBLIC) {
+            if (team.getVisibility() != Visibility.PUBLIC || ride.getVisibility() != Visibility.PUBLIC) {
                 throw BusinessException.forbidden("You don't have permission to view this ride");
             }
         }
