@@ -58,11 +58,19 @@ docker compose logs -f keycloak       # View Keycloak logs
 ### Backend Structure (`backend/src/main/java/com/tribly/`)
 
 ```
-api/           # REST controllers and DTOs
-  dto/         # Request/response objects
+api/           # REST controllers (resources)
+  config/      # Config endpoints
   users/       # User endpoints
   teams/       # Team endpoints
   rides/       # Ride endpoints
+  routes/      # Route endpoints
+dto/           # Request/response objects (separate from api/)
+  config/      # Config DTOs
+  users/       # User DTOs
+  teams/       # Team DTOs
+  rides/       # Ride DTOs
+  routes/      # Route DTOs
+  error/       # Error response DTOs
 domain/        # Core business entities (JPA/Panache)
   user/        # User, UserRepository
   team/        # Team, UserTeam (membership), repositories
@@ -70,10 +78,21 @@ domain/        # Core business entities (JPA/Panache)
   route/       # Route entity with GPX data
   trip/        # Trip, TripStage entities
   place/       # Meeting places
-  common/      # Shared base entities
+  common/      # Shared base entities (BaseEntity, etc.)
 service/       # Business logic services
+  auth/        # Authentication services
+  config/      # Configuration services
+  user/        # User services
+  team/        # Team services
+  ride/        # Ride services
+  route/       # Route services
+  security/    # Security utilities
+enums/         # Shared enumerations (Visibility, RideStatus, etc.)
 infrastructure/# Cross-cutting: security, config, integrations
-config/        # Application configuration classes
+  cache/       # Caching infrastructure
+  exception/   # Exception handling
+  id/          # ID generation (TSID utilities)
+  security/    # Security filters and augmentors
 ```
 
 **Key patterns:**
