@@ -1,8 +1,6 @@
 package com.tribly.api.teams;
 
 import com.tribly.api.AbstractAuthenticatedResource;
-import com.tribly.domain.common.repository.TriblyPage;
-import com.tribly.domain.team.UserTeam;
 import com.tribly.dto.error.ErrorResponse;
 import com.tribly.dto.teams.request.AddMemberRequest;
 import com.tribly.dto.teams.request.UpdateMemberRoleRequest;
@@ -19,7 +17,6 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.net.URI;
-import java.util.List;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
@@ -60,10 +57,8 @@ public class TeamMemberResource extends AbstractAuthenticatedResource {
 
     Long userId = getCurrentUserId();
 
-    TriblyPage<UserTeam> members = membershipService.getTeamMembers(slug, userId, page, size);
-
-    List<MemberDto> dtos = members.items().stream().map(MemberDto::from).toList();
-    return Response.ok(new MemberListResponse(dtos, members.total(), page, size)).build();
+    MemberListResponse members = membershipService.getTeamMembers(slug, userId, page, size);
+    return Response.ok(members).build();
   }
 
   @POST
@@ -91,9 +86,9 @@ public class TeamMemberResource extends AbstractAuthenticatedResource {
       @Parameter(description = "Team URL slug") @PathParam("slug") String slug) {
     Long userId = getCurrentUserId();
 
-    UserTeam membership = membershipService.joinTeam(slug, userId);
+    MemberDto membership = membershipService.joinTeam(slug, userId);
     return Response.created(URI.create("/api/teams/" + slug + "/members/" + userId))
-        .entity(MemberDto.from(membership))
+        .entity(membership)
         .build();
   }
 
@@ -156,10 +151,10 @@ public class TeamMemberResource extends AbstractAuthenticatedResource {
 
     TeamRole role = request.role() != null ? request.role() : TeamRole.MEMBER;
     Long targetUserId = TsidUtils.toLong(request.userId());
-    UserTeam membership = membershipService.addMember(slug, targetUserId, role, actingUserId);
+    MemberDto membership = membershipService.addMember(slug, targetUserId, role, actingUserId);
 
     return Response.created(URI.create("/api/teams/" + slug + "/members/" + request.userId()))
-        .entity(MemberDto.from(membership))
+        .entity(membership)
         .build();
   }
 
@@ -198,10 +193,10 @@ public class TeamMemberResource extends AbstractAuthenticatedResource {
 
     Long actingUserId = getCurrentUserId();
 
-    UserTeam membership =
+    MemberDto membership =
         membershipService.updateMemberRole(
             slug, TsidUtils.toLong(memberId), request.role(), actingUserId);
-    return Response.ok(MemberDto.from(membership)).build();
+    return Response.ok(membership).build();
   }
 
   @DELETE

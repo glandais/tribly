@@ -3,16 +3,10 @@ package com.tribly.integration;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
-import com.tribly.domain.ride.repository.RideGroupRepository;
-import com.tribly.domain.ride.repository.RideParticipationRepository;
-import com.tribly.domain.ride.repository.RideRepository;
-import com.tribly.domain.team.repository.TeamRepository;
-import com.tribly.domain.team.repository.UserTeamRepository;
-import com.tribly.domain.user.repository.UserRepository;
+import com.tribly.util.TestDataCleaner;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.keycloak.client.KeycloakTestClient;
 import jakarta.inject.Inject;
-import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -22,17 +16,7 @@ class RideResourceTest {
   public static final String USERNAME_ADMIN = "user1";
   public static final String USERNAME_TEST = "user2";
 
-  @Inject RideRepository rideRepository;
-
-  @Inject RideGroupRepository rideGroupRepository;
-
-  @Inject RideParticipationRepository participationRepository;
-
-  @Inject TeamRepository teamRepository;
-
-  @Inject UserTeamRepository userTeamRepository;
-
-  @Inject UserRepository userRepository;
+  @Inject TestDataCleaner dataCleaner;
 
   private String teamSlug;
 
@@ -43,15 +27,8 @@ class RideResourceTest {
   }
 
   @BeforeEach
-  @Transactional
   void setUp() {
-    // Clean up in correct order
-    participationRepository.deleteAll();
-    rideGroupRepository.deleteAll();
-    rideRepository.deleteAll();
-    userTeamRepository.deleteAll();
-    teamRepository.deleteAll();
-    userRepository.deleteAll();
+    dataCleaner.cleanAll();
   }
 
   private void createTeamViaHttp() {
@@ -477,5 +454,107 @@ class RideResourceTest {
         .statusCode(201)
         .body("name", equalTo("Extra Fast Group"))
         .body("averageSpeed", equalTo(35));
+  }
+
+  @Test
+  void updateGroup_shouldUpdateGroupMetadata() {
+    createTeamViaHttp();
+
+    // Create ride with group
+    String rideSlug =
+        given()
+            .auth()
+            .oauth2(getAccessToken(USERNAME_ADMIN))
+            .contentType("application/json")
+            .body(
+                "{\"title\": \"Update Group Test\", \"date\": \"2025-01-31\", \"groups\":"
+                    + " [{\"name\": \"Original Name\", \"averageSpeed\": 25}]}")
+            .when()
+            .post("/api/teams/" + teamSlug + "/rides")
+            .then()
+            .statusCode(201)
+            .extract()
+            .path("slug");
+
+    // Get the group ID
+    String groupId =
+        given()
+            .auth()
+            .oauth2(getAccessToken(USERNAME_ADMIN))
+            .when()
+            .get("/api/teams/" + teamSlug + "/rides/" + rideSlug + "/groups")
+            .then()
+            .statusCode(200)
+            .extract()
+            .path("data[0].id");
+
+    // Update the group
+    given()
+        .auth()
+        .oauth2(getAccessToken(USERNAME_ADMIN))
+        .contentType("application/json")
+        .body(
+            "{\"name\": \"Updated Name\", \"description\": \"Updated description\","
+                + " \"averageSpeed\": 30}")
+        .when()
+        .patch("/api/teams/" + teamSlug + "/rides/" + rideSlug + "/groups/" + groupId)
+        .then()
+        .statusCode(200)
+        .body("name", equalTo("Updated Name"))
+        .body("description", equalTo("Updated description"))
+        .body("averageSpeed", equalTo(30));
+  }
+
+  @Test
+  void deleteGroup_shouldRemoveGroup() {
+    createTeamViaHttp();
+
+    // Create ride with multiple groups
+    String rideSlug =
+        given()
+            .auth()
+            .oauth2(getAccessToken(USERNAME_ADMIN))
+            .contentType("application/json")
+            .body(
+                "{\"title\": \"Delete Group Test\", \"date\": \"2025-02-01\", \"groups\":"
+                    + " [{\"name\": \"G1\"}, {\"name\": \"G2\"}]}")
+            .when()
+            .post("/api/teams/" + teamSlug + "/rides")
+            .then()
+            .statusCode(201)
+            .extract()
+            .path("slug");
+
+    // Get the first group ID
+    String groupId =
+        given()
+            .auth()
+            .oauth2(getAccessToken(USERNAME_ADMIN))
+            .when()
+            .get("/api/teams/" + teamSlug + "/rides/" + rideSlug + "/groups")
+            .then()
+            .statusCode(200)
+            .extract()
+            .path("data[0].id");
+
+    // Delete the group
+    given()
+        .auth()
+        .oauth2(getAccessToken(USERNAME_ADMIN))
+        .when()
+        .delete("/api/teams/" + teamSlug + "/rides/" + rideSlug + "/groups/" + groupId)
+        .then()
+        .statusCode(204);
+
+    // Verify only one group remains
+    given()
+        .auth()
+        .oauth2(getAccessToken(USERNAME_ADMIN))
+        .when()
+        .get("/api/teams/" + teamSlug + "/rides/" + rideSlug + "/groups")
+        .then()
+        .statusCode(200)
+        .body("data", hasSize(1))
+        .body("data[0].name", equalTo("G2"));
   }
 }

@@ -130,6 +130,14 @@ components:
           anyOf:
           - $ref: "#/components/schemas/LocalTime"
           - type: "null"
+        visibility:
+          description: Visibility level
+          type:
+          - string
+          - "null"
+          anyOf:
+          - $ref: "#/components/schemas/Visibility"
+          - type: "null"
         routeId:
           type:
           - string
@@ -140,14 +148,6 @@ components:
           - string
           - "null"
           description: Meeting point ID (TSID)
-        visibility:
-          description: Visibility level
-          type:
-          - string
-          - "null"
-          anyOf:
-          - $ref: "#/components/schemas/Visibility"
-          - type: "null"
         publishAt:
           description: Publication timestamp (for scheduled publishing)
           type:

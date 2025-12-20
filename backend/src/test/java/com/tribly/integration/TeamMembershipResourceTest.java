@@ -4,18 +4,13 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 
-import com.tribly.domain.ride.repository.RideGroupRepository;
-import com.tribly.domain.ride.repository.RideParticipationRepository;
-import com.tribly.domain.ride.repository.RideRepository;
-import com.tribly.domain.team.repository.TeamRepository;
-import com.tribly.domain.team.repository.UserTeamRepository;
 import com.tribly.domain.user.User;
-import com.tribly.domain.user.repository.UserRepository;
 import com.tribly.infrastructure.id.TsidUtils;
+import com.tribly.util.TestDataCleaner;
+import com.tribly.util.TestDataService;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.keycloak.client.KeycloakTestClient;
 import jakarta.inject.Inject;
-import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -26,17 +21,8 @@ class TeamMembershipResourceTest {
   public static final String USERNAME_TEST = "user2";
   public static final String USERNAME2_TEST = "user3";
 
-  @Inject RideRepository rideRepository;
-
-  @Inject RideGroupRepository rideGroupRepository;
-
-  @Inject RideParticipationRepository participationRepository;
-
-  @Inject TeamRepository teamRepository;
-
-  @Inject UserTeamRepository userTeamRepository;
-
-  @Inject UserRepository userRepository;
+  @Inject TestDataService dataService;
+  @Inject TestDataCleaner dataCleaner;
 
   private User adminUser;
   private User memberUser;
@@ -49,24 +35,12 @@ class TeamMembershipResourceTest {
   }
 
   @BeforeEach
-  @Transactional
   void setUp() {
-    // Clean up in correct order
-    participationRepository.deleteAll();
-    rideGroupRepository.deleteAll();
-    rideRepository.deleteAll();
-    userTeamRepository.deleteAll();
-    teamRepository.deleteAll();
-    userRepository.deleteAll();
+    dataCleaner.cleanAll();
 
-    adminUser = new User("user1@example.com", "Admin User");
-    userRepository.persistAndFlush(adminUser);
-
-    memberUser = new User("user2@example.com", "Member User");
-    userRepository.persistAndFlush(memberUser);
-
-    thirdUser = new User("user3@example.com", "Third User");
-    userRepository.persistAndFlush(thirdUser);
+    adminUser = dataService.createUser("user1@example.com", "Admin User");
+    memberUser = dataService.createUser("user2@example.com", "Member User");
+    thirdUser = dataService.createUser("user3@example.com", "Third User");
   }
 
   @Test

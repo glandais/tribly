@@ -3,18 +3,13 @@ package com.tribly.integration;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
-import com.tribly.domain.ride.repository.RideGroupRepository;
-import com.tribly.domain.ride.repository.RideParticipationRepository;
-import com.tribly.domain.ride.repository.RideRepository;
-import com.tribly.domain.team.repository.TeamRepository;
-import com.tribly.domain.team.repository.UserTeamRepository;
 import com.tribly.domain.user.User;
-import com.tribly.domain.user.repository.UserRepository;
 import com.tribly.infrastructure.id.TsidUtils;
+import com.tribly.util.TestDataCleaner;
+import com.tribly.util.TestDataService;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.keycloak.client.KeycloakTestClient;
 import jakarta.inject.Inject;
-import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -26,17 +21,8 @@ class UserResourceTest {
 
   private static final String TEST_EMAIL = "user1@example.com";
 
-  @Inject RideRepository rideRepository;
-
-  @Inject RideGroupRepository rideGroupRepository;
-
-  @Inject RideParticipationRepository participationRepository;
-
-  @Inject TeamRepository teamRepository;
-
-  @Inject UserTeamRepository userTeamRepository;
-
-  @Inject UserRepository userRepository;
+  @Inject TestDataService dataService;
+  @Inject TestDataCleaner dataCleaner;
 
   private User testUser;
 
@@ -47,20 +33,10 @@ class UserResourceTest {
   }
 
   @BeforeEach
-  @Transactional
   void setUp() {
-    // Clean up in correct order
-    participationRepository.deleteAll();
-    rideGroupRepository.deleteAll();
-    rideRepository.deleteAll();
-    userTeamRepository.deleteAll();
-    teamRepository.deleteAll();
-    userRepository.deleteAll();
+    dataCleaner.cleanAll();
 
-    testUser = new User(TEST_EMAIL, "Test User");
-    testUser.setLocale("en");
-    testUser.setTimezone("UTC");
-    userRepository.persistAndFlush(testUser);
+    testUser = dataService.createUserWithLocale(TEST_EMAIL, "Test User", "en", "UTC");
   }
 
   @Test
@@ -176,5 +152,24 @@ class UserResourceTest {
   @Test
   void deleteCurrentUser_withoutAuth_shouldReturn401() {
     given().when().delete("/api/users/me").then().statusCode(401);
+  }
+
+  @Test
+  void searchUsers_shouldReturnMatchingUsers() {
+    // Create additional test users
+    dataService.createUser("alice@example.com", "Alice Johnson");
+    dataService.createUser("bob@example.com", "Bob Smith");
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(USERNAME_TEST))
+        .queryParam("q", "alice")
+        .when()
+        .get("/api/users/search")
+        .then()
+        .statusCode(200)
+        .body("size()", equalTo(1))
+        .body("[0].displayName", equalTo("Alice Johnson"))
+        .body("[0]", not(hasKey("email"))); // Verify public DTO excludes email
   }
 }

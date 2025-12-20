@@ -1,4 +1,4 @@
-package com.tribly.service.route.request;
+package com.tribly.dto.routes.request;
 
 import com.tribly.enums.RouteDifficulty;
 import com.tribly.enums.SurfaceType;

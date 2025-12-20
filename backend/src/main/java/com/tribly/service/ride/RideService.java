@@ -12,14 +12,14 @@ import com.tribly.domain.team.Team;
 import com.tribly.domain.team.repository.TeamRepository;
 import com.tribly.domain.user.User;
 import com.tribly.domain.user.repository.UserRepository;
+import com.tribly.dto.rides.request.CreateGroupRequest;
+import com.tribly.dto.rides.request.CreateRideRequest;
+import com.tribly.dto.rides.request.UpdateGroupRequest;
+import com.tribly.dto.rides.request.UpdateRideRequest;
 import com.tribly.dto.rides.response.*;
 import com.tribly.enums.RideStatus;
 import com.tribly.enums.Visibility;
 import com.tribly.infrastructure.exception.BusinessException;
-import com.tribly.service.ride.request.CreateRideGroupRequest;
-import com.tribly.service.ride.request.CreateRideRequest;
-import com.tribly.service.ride.request.UpdateRideGroupRequest;
-import com.tribly.service.ride.request.UpdateRideRequest;
 import com.tribly.service.security.TeamSecurityService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -143,15 +143,15 @@ public class RideService {
   }
 
   private @Nullable Visibility getVisibility(boolean isMember, Team team) {
-    Visibility visibility = null;
-    // For non-members of public teams, filter to show only public rides
-    if (!isMember && team.getVisibility() == Visibility.PUBLIC) {
-      visibility = Visibility.PUBLIC;
-    } else if (!isMember) {
+    if (isMember) {
+      return null;
+    } else if (team.getVisibility() == Visibility.PUBLIC) {
+      // For non-members of public teams, filter to show only public rides
+      return Visibility.PUBLIC;
+    } else {
       // Private team - no access for non-members
-      throw BusinessException.notFound("");
+      throw BusinessException.notFound("Private team");
     }
-    return visibility;
   }
 
   @Transactional
@@ -190,9 +190,9 @@ public class RideService {
 
     rideRepository.persist(ride);
 
-    if (request.groups() != null && !request.groups().isEmpty()) {
+    if (request.groups() != null) {
       int sortOrder = 0;
-      for (CreateRideGroupRequest groupRequest : request.groups()) {
+      for (CreateGroupRequest groupRequest : request.groups()) {
         RideGroup group = new RideGroup(ride, groupRequest.name());
         group.setDescription(groupRequest.description());
         group.setAverageSpeed(groupRequest.averageSpeed());
@@ -261,7 +261,7 @@ public class RideService {
 
   @Transactional
   public RideGroupDto createGroup(
-      String teamSlug, String rideSlug, CreateRideGroupRequest request, Long userId) {
+      String teamSlug, String rideSlug, CreateGroupRequest request, Long userId) {
     Ride ride = getRide(teamSlug, rideSlug, userId);
 
     // Security check: must be admin or creator (if organizer) to add groups
@@ -364,7 +364,7 @@ public class RideService {
 
   @Transactional
   public RideGroupDto updateGroup(
-      String teamSlug, String rideSlug, Long groupId, UpdateRideGroupRequest request, Long userId) {
+      String teamSlug, String rideSlug, Long groupId, UpdateGroupRequest request, Long userId) {
     Ride ride = getRide(teamSlug, rideSlug, userId);
 
     // Security check: must be admin or creator (if organizer) to edit groups

@@ -2,7 +2,9 @@ package com.tribly.service.route;
 
 import com.tribly.api.AbstractAuthenticatedResource;
 import com.tribly.domain.common.repository.TriblyPage;
-import com.tribly.domain.route.*;
+import com.tribly.domain.route.GpxTrack;
+import com.tribly.domain.route.Route;
+import com.tribly.domain.route.RouteClimb;
 import com.tribly.domain.route.repository.GpxTrackRepository;
 import com.tribly.domain.route.repository.RouteClimbRepository;
 import com.tribly.domain.route.repository.RouteQuery;
@@ -11,11 +13,12 @@ import com.tribly.domain.team.Team;
 import com.tribly.domain.team.repository.TeamRepository;
 import com.tribly.domain.user.User;
 import com.tribly.domain.user.repository.UserRepository;
+import com.tribly.dto.routes.request.CreateRouteRequest;
+import com.tribly.dto.routes.request.UpdateRouteRequest;
+import com.tribly.dto.routes.response.*;
 import com.tribly.enums.Visibility;
 import com.tribly.infrastructure.exception.BusinessException;
 import com.tribly.infrastructure.id.TsidUtils;
-import com.tribly.service.route.request.CreateRouteRequest;
-import com.tribly.service.route.request.UpdateRouteRequest;
 import com.tribly.service.route.response.ProcessedGpx;
 import com.tribly.service.route.response.RouteMetadata;
 import com.tribly.service.security.TeamSecurityService;
@@ -59,7 +62,7 @@ public class RouteService extends AbstractAuthenticatedResource {
    * Processes GPX file, extracts metadata, generates files, and stores everything.
    */
   @Transactional
-  public Route createRoute(
+  public RouteDto createRoute(
       String teamSlug,
       CreateRouteRequest request,
       InputStream gpxFile,
@@ -141,7 +144,7 @@ public class RouteService extends AbstractAuthenticatedResource {
       LOG.infov("{0} climbs saved for route {1}", processed.climbs().size(), route.getId());
 
       routeRepository.persist(route);
-      return route;
+      return RouteDto.from(route);
 
     } catch (Exception e) {
       LOG.errorv("GPX processing failed for route {0}, cleaning up files", route.getId());
@@ -153,7 +156,15 @@ public class RouteService extends AbstractAuthenticatedResource {
   /**
    * Get a route by ID with access control.
    */
-  public Route getRoute(String teamSlug, Long routeId, @Nullable Long userId) {
+  public RouteDto getRoute(String teamSlug, Long routeId, @Nullable Long userId) {
+    return RouteDto.from(getRouteEntity(teamSlug, routeId, userId));
+  }
+
+  public RouteDetailDto getRouteDetail(String teamSlug, Long routeId, @Nullable Long userId) {
+    return RouteDetailDto.from(getRouteEntity(teamSlug, routeId, userId));
+  }
+
+  private Route getRouteEntity(String teamSlug, Long routeId, @Nullable Long userId) {
     Team team =
         teamRepository
             .findBySlug(teamSlug)
@@ -174,7 +185,7 @@ public class RouteService extends AbstractAuthenticatedResource {
   /**
    * List routes for a team with pagination and access control.
    */
-  public TriblyPage<Route> getRoutes(String slug, @Nullable Long userId, int page, int size) {
+  public RouteListResponse getRoutes(String slug, @Nullable Long userId, int page, int size) {
     Team team =
         teamRepository.findBySlug(slug).orElseThrow(() -> BusinessException.notFound("Team", slug));
 
@@ -182,7 +193,9 @@ public class RouteService extends AbstractAuthenticatedResource {
 
     RouteQuery routeQuery =
         new RouteQuery(team.getId(), page, size, null, routeQueryParams.visibility());
-    return routeRepository.find(routeQuery);
+    TriblyPage<Route> routes = routeRepository.find(routeQuery);
+    List<RouteDto> dtos = routes.items().stream().map(RouteDto::from).toList();
+    return new RouteListResponse(dtos, routes.total(), page, size);
   }
 
   private record RouteQueryParams(@Nullable Visibility visibility) {}
@@ -210,8 +223,9 @@ public class RouteService extends AbstractAuthenticatedResource {
    * Update route metadata (not GPX file).
    */
   @Transactional
-  public Route updateRoute(String teamSlug, Long routeId, UpdateRouteRequest request, Long userId) {
-    Route route = getRoute(teamSlug, routeId, userId);
+  public RouteDto updateRoute(
+      String teamSlug, Long routeId, UpdateRouteRequest request, Long userId) {
+    Route route = getRouteEntity(teamSlug, routeId, userId);
 
     // Security check: must be admin or organizer to edit routes
     securityService.requireOrganizer(userId, teamSlug);
@@ -234,7 +248,7 @@ public class RouteService extends AbstractAuthenticatedResource {
 
     routeRepository.persist(route);
     LOG.infov("Route {0} updated by user {1}", routeId, userId);
-    return route;
+    return RouteDto.from(route);
   }
 
   /**
@@ -242,7 +256,7 @@ public class RouteService extends AbstractAuthenticatedResource {
    */
   @Transactional
   public void deleteRoute(String teamSlug, Long routeId, Long userId) {
-    Route route = getRoute(teamSlug, routeId, userId);
+    Route route = getRouteEntity(teamSlug, routeId, userId);
 
     // Security check: must be admin or organizer to delete routes
     securityService.requireOrganizer(userId, teamSlug);
@@ -259,18 +273,21 @@ public class RouteService extends AbstractAuthenticatedResource {
   /**
    * Get climbs for a route.
    */
-  public List<RouteClimb> getClimbs(String teamSlug, Long routeId, @Nullable Long userId) {
-    Route route = getRoute(teamSlug, routeId, userId);
-    return routeClimbRepository.findByRoute(route.getId());
+  public ClimbListResponse getClimbs(String teamSlug, Long routeId, @Nullable Long userId) {
+    Route route = getRouteEntity(teamSlug, routeId, userId);
+    List<RouteClimb> climbs = routeClimbRepository.findByRoute(route.getId());
+    List<RouteClimbDto> dtos = climbs.stream().map(RouteClimbDto::from).toList();
+    return new ClimbListResponse(dtos);
   }
 
   /**
    * Get GPX track for a route.
    */
-  public GpxTrack getTrack(String teamSlug, Long routeId, @Nullable Long userId) {
-    Route route = getRoute(teamSlug, routeId, userId);
+  public GpxTrackDto getTrack(String teamSlug, Long routeId, @Nullable Long userId) {
+    Route route = getRouteEntity(teamSlug, routeId, userId);
     return gpxTrackRepository
         .findByRoute(route.getId())
+        .map(GpxTrackDto::from)
         .orElseThrow(() -> BusinessException.notFound("GPX track not found for route " + routeId));
   }
 
@@ -278,7 +295,7 @@ public class RouteService extends AbstractAuthenticatedResource {
    * Get filtered GPX file for download.
    */
   public File getFilteredGpxFile(String teamSlug, Long routeId, @Nullable Long userId) {
-    Route route = getRoute(teamSlug, routeId, userId);
+    Route route = getRouteEntity(teamSlug, routeId, userId);
     return gpxProcessingService.getFilteredGpxFile(route.getId());
   }
 
@@ -286,7 +303,7 @@ public class RouteService extends AbstractAuthenticatedResource {
    * Get FIT file for download.
    */
   public File getFitFile(String teamSlug, Long routeId, @Nullable Long userId) {
-    Route route = getRoute(teamSlug, routeId, userId);
+    Route route = getRouteEntity(teamSlug, routeId, userId);
     return gpxProcessingService.getFitFile(route.getId());
   }
 
@@ -294,7 +311,7 @@ public class RouteService extends AbstractAuthenticatedResource {
    * Get thumbnail image.
    */
   public File getThumbnailFile(String teamSlug, Long routeId, @Nullable Long userId) {
-    Route route = getRoute(teamSlug, routeId, userId);
+    Route route = getRouteEntity(teamSlug, routeId, userId);
     return gpxProcessingService.getThumbnailFile(route.getId());
   }
 

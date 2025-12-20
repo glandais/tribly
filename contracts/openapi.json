@@ -126,14 +126,6 @@
               "type" : "null"
             } ]
           },
-          "routeId" : {
-            "type" : [ "string", "null" ],
-            "description" : "Route ID (TSID)"
-          },
-          "meetingPointId" : {
-            "type" : [ "string", "null" ],
-            "description" : "Meeting point ID (TSID)"
-          },
           "visibility" : {
             "description" : "Visibility level",
             "type" : [ "string", "null" ],
@@ -142,6 +134,14 @@
             }, {
               "type" : "null"
             } ]
+          },
+          "routeId" : {
+            "type" : [ "string", "null" ],
+            "description" : "Route ID (TSID)"
+          },
+          "meetingPointId" : {
+            "type" : [ "string", "null" ],
+            "description" : "Meeting point ID (TSID)"
           },
           "publishAt" : {
             "description" : "Publication timestamp (for scheduled publishing)",

@@ -1,22 +1,26 @@
 package com.tribly.service.team;
 
 import com.tribly.domain.common.repository.TriblyPage;
-import com.tribly.domain.team.*;
+import com.tribly.domain.team.Team;
+import com.tribly.domain.team.UserTeam;
 import com.tribly.domain.team.repository.TeamQuery;
 import com.tribly.domain.team.repository.TeamRepository;
 import com.tribly.domain.team.repository.UserTeamRepository;
 import com.tribly.domain.user.User;
 import com.tribly.domain.user.repository.UserRepository;
+import com.tribly.dto.teams.request.CreateTeamRequest;
+import com.tribly.dto.teams.request.UpdateTeamRequest;
+import com.tribly.dto.teams.response.TeamDetailDto;
+import com.tribly.dto.teams.response.TeamListResponse;
 import com.tribly.enums.TeamRole;
 import com.tribly.infrastructure.exception.BusinessException;
 import com.tribly.service.security.TeamSecurityService;
-import com.tribly.service.team.request.CreateTeamRequest;
-import com.tribly.service.team.request.UpdateTeamRequest;
 import com.tribly.service.team.response.TeamAndRole;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import java.text.Normalizer;
+import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.regex.Pattern;
@@ -39,7 +43,7 @@ public class TeamService {
   @Inject TeamSecurityService securityService;
 
   @Transactional
-  public TeamAndRole createTeam(CreateTeamRequest request, Long creatorId) {
+  public TeamDetailDto createTeam(CreateTeamRequest request, Long creatorId) {
     User creator =
         userRepository
             .findActiveById(creatorId)
@@ -61,27 +65,31 @@ public class TeamService {
     userTeamRepository.persist(membership);
 
     LOG.infov("Team {0} created by user {1}", team.getSlug(), creatorId);
-    return new TeamAndRole(team, TeamRole.ADMIN, 1L);
+    return TeamDetailDto.from(new TeamAndRole(team, TeamRole.ADMIN, 1L));
   }
 
   @Transactional
-  public TriblyPage<TeamAndRole> listTeams(
+  public TeamListResponse listTeams(
       @Nullable Long userId,
       @Nullable Boolean member,
       @Nullable String search,
       int page,
       int size) {
-    return teamRepository.find(new TeamQuery(page, size, null, userId, member, search));
+    TriblyPage<TeamAndRole> teams =
+        teamRepository.find(new TeamQuery(page, size, null, userId, member, search));
+    List<TeamDetailDto> dtos = teams.items().stream().map(TeamDetailDto::from).toList();
+    return new TeamListResponse(dtos, teams.total(), page, size);
   }
 
-  public TeamAndRole getTeam(String slug, @Nullable Long userId) {
+  public TeamDetailDto getTeam(String slug, @Nullable Long userId) {
     return teamRepository
         .findOne(slug, userId)
+        .map(TeamDetailDto::from)
         .orElseThrow(() -> BusinessException.notFound("Team"));
   }
 
   @Transactional
-  public TeamAndRole updateTeam(String teamSlug, UpdateTeamRequest request, Long userId) {
+  public TeamDetailDto updateTeam(String teamSlug, UpdateTeamRequest request, Long userId) {
     Team team =
         teamRepository
             .findBySlug(teamSlug)

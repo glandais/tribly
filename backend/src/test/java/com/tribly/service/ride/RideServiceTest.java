@@ -6,6 +6,10 @@ import com.tribly.domain.ride.Ride;
 import com.tribly.domain.ride.RideGroup;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
+import com.tribly.dto.rides.request.CreateGroupRequest;
+import com.tribly.dto.rides.request.CreateRideRequest;
+import com.tribly.dto.rides.request.UpdateGroupRequest;
+import com.tribly.dto.rides.request.UpdateRideRequest;
 import com.tribly.dto.rides.response.*;
 import com.tribly.enums.ParticipationStatus;
 import com.tribly.enums.RideStatus;
@@ -13,10 +17,6 @@ import com.tribly.enums.TeamRole;
 import com.tribly.enums.Visibility;
 import com.tribly.infrastructure.exception.BusinessException;
 import com.tribly.infrastructure.id.TsidUtils;
-import com.tribly.service.ride.request.CreateRideGroupRequest;
-import com.tribly.service.ride.request.CreateRideRequest;
-import com.tribly.service.ride.request.UpdateRideGroupRequest;
-import com.tribly.service.ride.request.UpdateRideRequest;
 import com.tribly.util.TestDataCleaner;
 import com.tribly.util.TestDataService;
 import io.quarkus.test.junit.QuarkusTest;
@@ -161,6 +161,122 @@ class RideServiceTest {
     assertEquals(0, result.rides().size());
   }
 
+  @Test
+  void listRides_shouldHideDraftsFromNonMembers() {
+    dataService.createRideWithVisibilityAndStatus(
+        team,
+        admin,
+        "Draft Ride",
+        "draft-ride",
+        LocalDate.now(),
+        Visibility.PUBLIC,
+        RideStatus.DRAFT);
+    dataService.createRideWithVisibilityAndStatus(
+        team,
+        admin,
+        "Published Ride",
+        "published-ride",
+        LocalDate.now(),
+        Visibility.PUBLIC,
+        RideStatus.PUBLISHED);
+
+    RideListResponse result = rideService.listRides("test-team", null, null, null, null, 0, 10);
+
+    assertEquals(1, result.rides().size());
+    assertEquals("Published Ride", result.rides().getFirst().title());
+  }
+
+  @Test
+  void listRides_shouldReturnEmptyWhenNonMemberRequestsDrafts() {
+    dataService.createRideWithVisibilityAndStatus(
+        team,
+        admin,
+        "Draft Ride",
+        "draft-ride",
+        LocalDate.now(),
+        Visibility.PUBLIC,
+        RideStatus.DRAFT);
+
+    RideListResponse result =
+        rideService.listRides("test-team", null, null, null, RideStatus.DRAFT, 0, 10);
+
+    assertEquals(0, result.rides().size());
+  }
+
+  @Test
+  void listRides_shouldReturnDraftsWhenOrganizerRequestsThem() {
+    dataService.createRideWithVisibilityAndStatus(
+        team,
+        admin,
+        "Draft Ride",
+        "draft-ride",
+        LocalDate.now(),
+        Visibility.PUBLIC,
+        RideStatus.DRAFT);
+    dataService.createRideWithVisibilityAndStatus(
+        team,
+        admin,
+        "Published Ride",
+        "published-ride",
+        LocalDate.now(),
+        Visibility.PUBLIC,
+        RideStatus.PUBLISHED);
+
+    RideListResponse result =
+        rideService.listRides("test-team", organizer.getId(), null, null, RideStatus.DRAFT, 0, 10);
+
+    assertEquals(1, result.rides().size());
+    assertEquals("Draft Ride", result.rides().getFirst().title());
+    assertEquals(RideStatus.DRAFT, result.rides().getFirst().status());
+  }
+
+  @Test
+  void listRides_shouldReturnPublishedWhenNonMemberRequestsThem() {
+    dataService.createRideWithVisibilityAndStatus(
+        team,
+        admin,
+        "Draft Ride",
+        "draft-ride",
+        LocalDate.now(),
+        Visibility.PUBLIC,
+        RideStatus.DRAFT);
+    dataService.createRideWithVisibilityAndStatus(
+        team,
+        admin,
+        "Published Ride",
+        "published-ride",
+        LocalDate.now(),
+        Visibility.PUBLIC,
+        RideStatus.PUBLISHED);
+
+    RideListResponse result =
+        rideService.listRides("test-team", null, null, null, RideStatus.PUBLISHED, 0, 10);
+
+    assertEquals(1, result.rides().size());
+    assertEquals("Published Ride", result.rides().getFirst().title());
+    assertEquals(RideStatus.PUBLISHED, result.rides().getFirst().status());
+  }
+
+  @Test
+  void listRides_shouldThrowForNonMemberOfPrivateTeam() {
+    Team privateTeam =
+        dataService.createTeamWithVisibility("Private Team", "private-team", Visibility.TEAM);
+    User privateTeamAdmin = dataService.createUser("private-admin@example.com", "Private Admin");
+    dataService.addUserToTeam(privateTeamAdmin, privateTeam, TeamRole.ADMIN);
+    dataService.createRideWithVisibilityAndStatus(
+        privateTeam,
+        privateTeamAdmin,
+        "Private Ride",
+        "private-ride",
+        LocalDate.now(),
+        Visibility.TEAM,
+        RideStatus.PUBLISHED);
+
+    assertThrows(
+        BusinessException.class,
+        () -> rideService.listRides("private-team", null, null, null, null, 0, 10));
+  }
+
   // ==================== Get Ride ====================
 
   @Test
@@ -238,8 +354,8 @@ class RideServiceTest {
 
   @Test
   void createRide_shouldCreateWithGroups() {
-    CreateRideGroupRequest group1 = new CreateRideGroupRequest("Fast", "Fast group", 30, 10, null);
-    CreateRideGroupRequest group2 = new CreateRideGroupRequest("Slow", "Slow group", 20, 15, null);
+    CreateGroupRequest group1 = new CreateGroupRequest("Fast", "Fast group", 30, 10, null);
+    CreateGroupRequest group2 = new CreateGroupRequest("Slow", "Slow group", 20, 15, null);
     CreateRideRequest request =
         new CreateRideRequest(
             "Group Ride",
@@ -269,6 +385,57 @@ class RideServiceTest {
     assertThrows(
         BusinessException.class,
         () -> rideService.createRide("test-team", request, member.getId()));
+  }
+
+  @Test
+  void createRide_shouldThrowForPublicRideInTeamVisibilityTeam() {
+    Team privateTeam =
+        dataService.createTeamWithVisibility("Private Team", "private-team", Visibility.TEAM);
+    dataService.addUserToTeam(organizer, privateTeam, TeamRole.ORGANIZER);
+
+    CreateRideRequest request =
+        new CreateRideRequest(
+            "Public Ride",
+            null,
+            LocalDate.now().plusDays(1),
+            null,
+            Visibility.PUBLIC,
+            null,
+            null,
+            null,
+            null);
+
+    BusinessException exception =
+        assertThrows(
+            BusinessException.class,
+            () -> rideService.createRide("private-team", request, organizer.getId()));
+
+    assertTrue(exception.getMessage().contains("Private teams can only have team-only rides"));
+  }
+
+  @Test
+  void createRide_shouldSucceedForTeamRideInTeamVisibilityTeam() {
+    Team privateTeam =
+        dataService.createTeamWithVisibility("Private Team", "private-team", Visibility.TEAM);
+    dataService.addUserToTeam(organizer, privateTeam, TeamRole.ORGANIZER);
+
+    CreateRideRequest request =
+        new CreateRideRequest(
+            "Team Ride",
+            null,
+            LocalDate.now().plusDays(1),
+            null,
+            Visibility.TEAM,
+            null,
+            null,
+            null,
+            null);
+
+    RideDto result = rideService.createRide("private-team", request, organizer.getId());
+
+    assertNotNull(result);
+    assertEquals("Team Ride", result.title());
+    assertEquals(Visibility.TEAM, result.visibility());
   }
 
   // ==================== Update Ride ====================
@@ -310,6 +477,26 @@ class RideServiceTest {
   }
 
   @Test
+  void updateRide_shouldPreserveStatusWhenNull() {
+    dataService.createRideWithVisibilityAndStatus(
+        team,
+        admin,
+        "Published Ride",
+        "published-ride",
+        LocalDate.now(),
+        Visibility.PUBLIC,
+        RideStatus.PUBLISHED);
+    UpdateRideRequest request =
+        new UpdateRideRequest("Updated Title", null, null, null, null, null, null, null, null);
+
+    RideDto result =
+        rideService.updateRide("test-team", "published-ride", request, organizer.getId());
+
+    assertEquals("Updated Title", result.title());
+    assertEquals(RideStatus.PUBLISHED, result.status());
+  }
+
+  @Test
   void updateRide_shouldThrowForNonOrganizer() {
     dataService.createRide(team, admin, "Test", "test", LocalDate.now());
     UpdateRideRequest request =
@@ -318,6 +505,56 @@ class RideServiceTest {
     assertThrows(
         BusinessException.class,
         () -> rideService.updateRide("test-team", "test", request, member.getId()));
+  }
+
+  @Test
+  void updateRide_shouldThrowForPublicVisibilityInTeamVisibilityTeam() {
+    Team privateTeam =
+        dataService.createTeamWithVisibility("Private Team", "private-team", Visibility.TEAM);
+    dataService.addUserToTeam(organizer, privateTeam, TeamRole.ORGANIZER);
+    dataService.createRideWithVisibilityAndStatus(
+        privateTeam,
+        organizer,
+        "Team Ride",
+        "team-ride",
+        LocalDate.now(),
+        Visibility.TEAM,
+        RideStatus.DRAFT);
+
+    UpdateRideRequest request =
+        new UpdateRideRequest(null, null, null, null, null, Visibility.PUBLIC, null, null, null);
+
+    BusinessException exception =
+        assertThrows(
+            BusinessException.class,
+            () -> rideService.updateRide("private-team", "team-ride", request, organizer.getId()));
+
+    assertTrue(exception.getMessage().contains("Private teams can only have team-only rides"));
+  }
+
+  @Test
+  void updateRide_shouldSucceedForTeamVisibilityInTeamVisibilityTeam() {
+    Team privateTeam =
+        dataService.createTeamWithVisibility("Private Team", "private-team", Visibility.TEAM);
+    dataService.addUserToTeam(organizer, privateTeam, TeamRole.ORGANIZER);
+    dataService.createRideWithVisibilityAndStatus(
+        privateTeam,
+        organizer,
+        "Team Ride",
+        "team-ride",
+        LocalDate.now(),
+        Visibility.TEAM,
+        RideStatus.DRAFT);
+
+    UpdateRideRequest request =
+        new UpdateRideRequest(
+            "Updated Title", null, null, null, null, Visibility.TEAM, null, null, null);
+
+    RideDto result =
+        rideService.updateRide("private-team", "team-ride", request, organizer.getId());
+
+    assertEquals("Updated Title", result.title());
+    assertEquals(Visibility.TEAM, result.visibility());
   }
 
   // ==================== Delete Ride ====================
@@ -346,8 +583,7 @@ class RideServiceTest {
   @Test
   void createGroup_shouldCreateGroup() {
     dataService.createRide(team, admin, "Test", "test", LocalDate.now());
-    CreateRideGroupRequest request =
-        new CreateRideGroupRequest("Fast Group", "Description", 30, 10, null);
+    CreateGroupRequest request = new CreateGroupRequest("Fast Group", "Description", 30, 10, null);
 
     RideGroupDto result = rideService.createGroup("test-team", "test", request, organizer.getId());
 
@@ -360,7 +596,7 @@ class RideServiceTest {
   @Test
   void createGroup_shouldThrowForNonOrganizer() {
     dataService.createRide(team, admin, "Test", "test", LocalDate.now());
-    CreateRideGroupRequest request = new CreateRideGroupRequest("Group", null, null, null, null);
+    CreateGroupRequest request = new CreateGroupRequest("Group", null, null, null, null);
 
     assertThrows(
         BusinessException.class,
@@ -397,8 +633,8 @@ class RideServiceTest {
   void updateGroup_shouldUpdateFields() {
     Ride ride = dataService.createRide(team, admin, "Test", "test", LocalDate.now());
     RideGroup group = dataService.createRideGroup(ride, "Original");
-    UpdateRideGroupRequest request =
-        new UpdateRideGroupRequest("Updated Name", "Updated desc", 25, 20, null);
+    UpdateGroupRequest request =
+        new UpdateGroupRequest("Updated Name", "Updated desc", 25, 20, null);
 
     RideGroupDto result =
         rideService.updateGroup("test-team", "test", group.getId(), request, organizer.getId());
@@ -413,7 +649,7 @@ class RideServiceTest {
   void updateGroup_shouldUpdatePartialFields() {
     Ride ride = dataService.createRide(team, admin, "Test", "test", LocalDate.now());
     RideGroup group = dataService.createRideGroup(ride, "Original");
-    UpdateRideGroupRequest request = new UpdateRideGroupRequest("New Name", null, null, null, null);
+    UpdateGroupRequest request = new UpdateGroupRequest("New Name", null, null, null, null);
 
     RideGroupDto result =
         rideService.updateGroup("test-team", "test", group.getId(), request, organizer.getId());
@@ -422,10 +658,24 @@ class RideServiceTest {
   }
 
   @Test
+  void updateGroup_shouldPreserveNameWhenNull() {
+    Ride ride = dataService.createRide(team, admin, "Test", "test", LocalDate.now());
+    RideGroup group = dataService.createRideGroup(ride, "Original Name");
+    UpdateGroupRequest request =
+        new UpdateGroupRequest(null, "Updated description", null, null, null);
+
+    RideGroupDto result =
+        rideService.updateGroup("test-team", "test", group.getId(), request, organizer.getId());
+
+    assertEquals("Original Name", result.name());
+    assertEquals("Updated description", result.description());
+  }
+
+  @Test
   void updateGroup_shouldThrowForNonOrganizer() {
     Ride ride = dataService.createRide(team, admin, "Test", "test", LocalDate.now());
     RideGroup group = dataService.createRideGroup(ride, "Group");
-    UpdateRideGroupRequest request = new UpdateRideGroupRequest("New", null, null, null, null);
+    UpdateGroupRequest request = new UpdateGroupRequest("New", null, null, null, null);
 
     assertThrows(
         BusinessException.class,
@@ -483,6 +733,23 @@ class RideServiceTest {
         assertThrows(
             BusinessException.class,
             () -> rideService.joinGroup("test-team", "draft", group.getId(), member.getId(), null));
+  }
+
+  @Test
+  void joinGroup_shouldThrowForDraftRideEvenForOrganizer() {
+    Ride ride =
+        dataService.createRideWithVisibilityAndStatus(
+            team, admin, "Draft", "draft", LocalDate.now(), Visibility.PUBLIC, RideStatus.DRAFT);
+    RideGroup group = dataService.createRideGroup(ride, "Group");
+
+    BusinessException exception =
+        assertThrows(
+            BusinessException.class,
+            () ->
+                rideService.joinGroup(
+                    "test-team", "draft", group.getId(), organizer.getId(), null));
+
+    assertTrue(exception.getMessage().contains("published"));
   }
 
   @Test

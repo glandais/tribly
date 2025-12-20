@@ -4,23 +4,18 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.tribly.domain.ride.repository.RideGroupRepository;
-import com.tribly.domain.ride.repository.RideParticipationRepository;
-import com.tribly.domain.ride.repository.RideRepository;
-import com.tribly.domain.team.Team;
-import com.tribly.domain.team.repository.TeamRepository;
-import com.tribly.domain.team.repository.UserTeamRepository;
 import com.tribly.domain.user.User;
-import com.tribly.domain.user.repository.UserRepository;
+import com.tribly.dto.teams.request.CreateTeamRequest;
+import com.tribly.dto.teams.response.TeamDetailDto;
 import com.tribly.enums.TeamRole;
 import com.tribly.enums.Visibility;
 import com.tribly.infrastructure.id.TsidUtils;
 import com.tribly.service.team.TeamService;
-import com.tribly.service.team.request.CreateTeamRequest;
+import com.tribly.util.TestDataCleaner;
+import com.tribly.util.TestDataService;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.keycloak.client.KeycloakTestClient;
 import jakarta.inject.Inject;
-import jakarta.transaction.Transactional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -31,23 +26,13 @@ class TeamResourceTest {
   public static final String USERNAME_TEST = "user2";
 
   @Inject TeamService teamService;
-
-  @Inject RideRepository rideRepository;
-
-  @Inject RideGroupRepository rideGroupRepository;
-
-  @Inject RideParticipationRepository participationRepository;
-
-  @Inject TeamRepository teamRepository;
-
-  @Inject UserTeamRepository userTeamRepository;
-
-  @Inject UserRepository userRepository;
+  @Inject TestDataService dataService;
+  @Inject TestDataCleaner dataCleaner;
 
   private User adminUser;
   private User memberUser;
-  private Team publicTeam;
-  private Team privateTeam;
+  private TeamDetailDto publicTeam;
+  private TeamDetailDto privateTeam;
 
   final KeycloakTestClient keycloakClient = new KeycloakTestClient();
 
@@ -59,58 +44,41 @@ class TeamResourceTest {
   private static final String MEMBER_EMAIL = "user2@example.com";
 
   @BeforeEach
-  @Transactional
   void setUp() {
-    // Clean up in correct order
-    participationRepository.deleteAll();
-    rideGroupRepository.deleteAll();
-    rideRepository.deleteAll();
-    userTeamRepository.deleteAll();
-    teamRepository.deleteAll();
-    userRepository.deleteAll();
+    dataCleaner.cleanAll();
 
     // Create admin user
-    adminUser = new User(ADMIN_EMAIL, "Admin User");
-    userRepository.persistAndFlush(adminUser);
+    adminUser = dataService.createUser(ADMIN_EMAIL, "Admin User");
 
     // Create member user
-    memberUser = new User(MEMBER_EMAIL, "Member User");
-    userRepository.persistAndFlush(memberUser);
+    memberUser = dataService.createUser(MEMBER_EMAIL, "Member User");
 
     // Create public team with admin as owner
     publicTeam =
-        teamService
-            .createTeam(
-                new CreateTeamRequest("Test Public Team", "A public team", Visibility.PUBLIC, null),
-                adminUser.getId())
-            .team();
+        teamService.createTeam(
+            new CreateTeamRequest("Test Public Team", "A public team", Visibility.PUBLIC, null),
+            adminUser.getId());
 
     // Create private team with admin as owner
     privateTeam =
-        teamService
-            .createTeam(
-                new CreateTeamRequest("Test Private Team", "A private team", Visibility.TEAM, null),
-                adminUser.getId())
-            .team();
+        teamService.createTeam(
+            new CreateTeamRequest("Test Private Team", "A private team", Visibility.TEAM, null),
+            adminUser.getId());
   }
 
   @Test
-  @Transactional
   void createTeam_shouldCreateTeamAndMakeUserAdmin() {
-    Team team =
-        teamService
-            .createTeam(
-                new CreateTeamRequest(
-                    "Test Cyclists", "A great cycling team", Visibility.PUBLIC, null),
-                adminUser.getId())
-            .team();
+    TeamDetailDto team =
+        teamService.createTeam(
+            new CreateTeamRequest("Test Cyclists", "A great cycling team", Visibility.PUBLIC, null),
+            adminUser.getId());
 
-    assertNotNull(team.getId());
-    assertEquals("Test Cyclists", team.getName());
-    assertTrue(team.getSlug().startsWith("test-cyclists"));
-    assertSame(Visibility.PUBLIC, team.getVisibility());
+    assertNotNull(team.id());
+    assertEquals("Test Cyclists", team.name());
+    assertTrue(team.slug().startsWith("test-cyclists"));
+    assertSame(Visibility.PUBLIC, team.visibility());
 
-    TeamRole role = teamService.getUserRole(adminUser.getId(), team.getSlug()).orElse(null);
+    TeamRole role = teamService.getUserRole(adminUser.getId(), team.slug()).orElse(null);
     assertEquals(TeamRole.ADMIN, role);
   }
 
@@ -152,7 +120,7 @@ class TeamResourceTest {
         .oauth2(getAccessToken(USERNAME_TEST))
         .contentType("application/json")
         .when()
-        .post("/api/teams/" + publicTeam.getSlug() + "/members/join")
+        .post("/api/teams/" + publicTeam.slug() + "/members/join")
         .then()
         .statusCode(201)
         .body("role", equalTo("MEMBER"));
@@ -165,7 +133,7 @@ class TeamResourceTest {
         .oauth2(getAccessToken(USERNAME_TEST))
         .contentType("application/json")
         .when()
-        .post("/api/teams/" + privateTeam.getSlug() + "/members/join")
+        .post("/api/teams/" + privateTeam.slug() + "/members/join")
         .then()
         .statusCode(404);
   }
@@ -178,7 +146,7 @@ class TeamResourceTest {
         .contentType("application/json")
         .body("{\"name\": \"Updated Name\", \"description\": \"New description\"}")
         .when()
-        .put("/api/teams/" + publicTeam.getSlug())
+        .put("/api/teams/" + publicTeam.slug())
         .then()
         .statusCode(200)
         .body("name", equalTo("Updated Name"))
@@ -188,7 +156,7 @@ class TeamResourceTest {
   @Test
   void updateTeam_asNonAdmin_shouldBeDenied() {
     // Add member to team first via HTTP (pure HTTP pattern)
-    addMemberViaApi(publicTeam.getSlug(), memberUser.getId());
+    addMemberViaApi(publicTeam.slug(), memberUser.getId());
 
     given()
         .auth()
@@ -196,7 +164,7 @@ class TeamResourceTest {
         .contentType("application/json")
         .body("{\"name\": \"Hacked Name\"}")
         .when()
-        .put("/api/teams/" + publicTeam.getSlug())
+        .put("/api/teams/" + publicTeam.slug())
         .then()
         .statusCode(403);
   }
@@ -216,14 +184,14 @@ class TeamResourceTest {
   @Test
   void leaveTeam_shouldRemoveMembership() {
     // Add member to team first via HTTP (pure HTTP pattern)
-    addMemberViaApi(publicTeam.getSlug(), memberUser.getId());
+    addMemberViaApi(publicTeam.slug(), memberUser.getId());
 
     given()
         .auth()
         .oauth2(getAccessToken(USERNAME_TEST))
         .contentType("application/json")
         .when()
-        .post("/api/teams/" + publicTeam.getSlug() + "/members/leave")
+        .post("/api/teams/" + publicTeam.slug() + "/members/leave")
         .then()
         .statusCode(204);
   }
@@ -231,13 +199,13 @@ class TeamResourceTest {
   @Test
   void getTeamMembers_shouldReturnMemberList() {
     // Add member to team first via HTTP (pure HTTP pattern)
-    addMemberViaApi(publicTeam.getSlug(), memberUser.getId());
+    addMemberViaApi(publicTeam.slug(), memberUser.getId());
 
     given()
         .auth()
         .oauth2(getAccessToken(USERNAME_ADMIN))
         .when()
-        .get("/api/teams/" + publicTeam.getSlug() + "/members")
+        .get("/api/teams/" + publicTeam.slug() + "/members")
         .then()
         .statusCode(200)
         .body("members", hasSize(2))
@@ -250,24 +218,24 @@ class TeamResourceTest {
         .auth()
         .oauth2(getAccessToken(USERNAME_ADMIN))
         .when()
-        .delete("/api/teams/" + publicTeam.getSlug())
+        .delete("/api/teams/" + publicTeam.slug())
         .then()
         .statusCode(204);
 
     // Verify team is no longer accessible
-    given().when().get("/api/teams/" + publicTeam.getSlug()).then().statusCode(404);
+    given().when().get("/api/teams/" + publicTeam.slug()).then().statusCode(404);
   }
 
   @Test
   void deleteTeam_asNonAdmin_shouldBeDenied() {
     // Add member to team first via HTTP (pure HTTP pattern)
-    addMemberViaApi(publicTeam.getSlug(), memberUser.getId());
+    addMemberViaApi(publicTeam.slug(), memberUser.getId());
 
     given()
         .auth()
         .oauth2(getAccessToken(USERNAME_TEST))
         .when()
-        .delete("/api/teams/" + publicTeam.getSlug())
+        .delete("/api/teams/" + publicTeam.slug())
         .then()
         .statusCode(403);
   }
@@ -278,7 +246,7 @@ class TeamResourceTest {
         .auth()
         .oauth2(getAccessToken(USERNAME_TEST))
         .when()
-        .delete("/api/teams/" + privateTeam.getSlug())
+        .delete("/api/teams/" + privateTeam.slug())
         .then()
         .statusCode(403);
   }

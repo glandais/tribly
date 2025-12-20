@@ -2,13 +2,15 @@ package com.tribly.service.team;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.tribly.domain.common.repository.TriblyPage;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.team.UserTeam;
 import com.tribly.domain.user.User;
+import com.tribly.dto.teams.response.MemberDto;
+import com.tribly.dto.teams.response.MemberListResponse;
 import com.tribly.enums.TeamRole;
 import com.tribly.enums.Visibility;
 import com.tribly.infrastructure.exception.BusinessException;
+import com.tribly.infrastructure.id.TsidUtils;
 import com.tribly.util.TestDataCleaner;
 import com.tribly.util.TestDataService;
 import io.quarkus.test.junit.QuarkusTest;
@@ -45,10 +47,9 @@ class TeamMembershipServiceTest {
     dataService.addUserToTeam(user1, team, TeamRole.MEMBER);
     dataService.addUserToTeam(user2, team, TeamRole.ORGANIZER);
 
-    TriblyPage<UserTeam> result =
-        membershipService.getTeamMembers("test-team", admin.getId(), 0, 10);
+    MemberListResponse result = membershipService.getTeamMembers("test-team", admin.getId(), 0, 10);
 
-    assertEquals(3, result.items().size()); // admin + user1 + user2
+    assertEquals(3, result.members().size()); // admin + user1 + user2
   }
 
   @Test
@@ -67,10 +68,9 @@ class TeamMembershipServiceTest {
       dataService.addUserToTeam(user, team, TeamRole.MEMBER);
     }
 
-    TriblyPage<UserTeam> result =
-        membershipService.getTeamMembers("test-team", admin.getId(), 0, 3);
+    MemberListResponse result = membershipService.getTeamMembers("test-team", admin.getId(), 0, 3);
 
-    assertEquals(3, result.items().size());
+    assertEquals(3, result.members().size());
     assertEquals(6, result.total()); // admin + 5 users
   }
 
@@ -78,12 +78,11 @@ class TeamMembershipServiceTest {
 
   @Test
   void joinTeam_shouldJoinPublicTeam() {
-    UserTeam result = membershipService.joinTeam("test-team", user1.getId());
+    MemberDto result = membershipService.joinTeam("test-team", user1.getId());
 
     assertNotNull(result);
-    assertEquals(user1.getId(), result.getUser().getId());
-    assertEquals(team.getId(), result.getTeam().getId());
-    assertEquals(TeamRole.MEMBER, result.getRole());
+    assertEquals(user1.getId(), TsidUtils.toLong(result.userId()));
+    assertEquals(TeamRole.MEMBER, result.role());
   }
 
   @Test
@@ -102,11 +101,10 @@ class TeamMembershipServiceTest {
     UserTeam membership = dataService.addUserToTeam(user1, team, TeamRole.MEMBER);
     dataService.deleteUserTeam(membership);
 
-    UserTeam result = membershipService.joinTeam("test-team", user1.getId());
+    MemberDto result = membershipService.joinTeam("test-team", user1.getId());
 
-    assertEquals(membership.getId(), result.getId());
-    assertFalse(result.isDeleted());
-    assertEquals(TeamRole.MEMBER, result.getRole());
+    assertEquals(membership.getId(), TsidUtils.toLong(result.id()));
+    assertEquals(TeamRole.MEMBER, result.role());
   }
 
   @Test
@@ -125,12 +123,12 @@ class TeamMembershipServiceTest {
 
   @Test
   void addMember_shouldAddMemberAsAdmin() {
-    UserTeam result =
+    MemberDto result =
         membershipService.addMember("test-team", user1.getId(), TeamRole.ORGANIZER, admin.getId());
 
     assertNotNull(result);
-    assertEquals(user1.getId(), result.getUser().getId());
-    assertEquals(TeamRole.ORGANIZER, result.getRole());
+    assertEquals(user1.getId(), TsidUtils.toLong(result.userId()));
+    assertEquals(TeamRole.ORGANIZER, result.role());
   }
 
   @Test
@@ -163,12 +161,11 @@ class TeamMembershipServiceTest {
     UserTeam membership = dataService.addUserToTeam(user1, team, TeamRole.MEMBER);
     dataService.deleteUserTeam(membership);
 
-    UserTeam result =
+    MemberDto result =
         membershipService.addMember("test-team", user1.getId(), TeamRole.ORGANIZER, admin.getId());
 
-    assertEquals(membership.getId(), result.getId());
-    assertFalse(result.isDeleted());
-    assertEquals(TeamRole.ORGANIZER, result.getRole());
+    assertEquals(membership.getId(), TsidUtils.toLong(result.id()));
+    assertEquals(TeamRole.ORGANIZER, result.role());
   }
 
   // ==================== Update Member Role ====================
@@ -177,12 +174,12 @@ class TeamMembershipServiceTest {
   void updateMemberRole_shouldUpdateRole() {
     UserTeam membership = dataService.addUserToTeam(user1, team, TeamRole.MEMBER);
 
-    UserTeam result =
+    MemberDto result =
         membershipService.updateMemberRole(
             "test-team", user1.getId(), TeamRole.ORGANIZER, admin.getId());
 
-    assertEquals(membership.getId(), result.getId());
-    assertEquals(TeamRole.ORGANIZER, result.getRole());
+    assertEquals(membership.getId(), TsidUtils.toLong(result.id()));
+    assertEquals(TeamRole.ORGANIZER, result.role());
   }
 
   @Test
@@ -214,11 +211,11 @@ class TeamMembershipServiceTest {
     User admin2 = dataService.createUser("admin2@example.com", "Admin Two");
     dataService.addUserToTeam(admin2, team, TeamRole.ADMIN);
 
-    UserTeam result =
+    MemberDto result =
         membershipService.updateMemberRole(
             "test-team", admin.getId(), TeamRole.MEMBER, admin2.getId());
 
-    assertEquals(TeamRole.MEMBER, result.getRole());
+    assertEquals(TeamRole.MEMBER, result.role());
   }
 
   // ==================== Remove Member ====================

@@ -1,9 +1,8 @@
 package com.tribly.api.routes;
 
 import com.tribly.api.AbstractAuthenticatedResource;
-import com.tribly.domain.common.repository.TriblyPage;
-import com.tribly.domain.route.*;
 import com.tribly.dto.error.ErrorResponse;
+import com.tribly.dto.routes.request.CreateRouteRequest;
 import com.tribly.dto.routes.request.UpdateRouteRequest;
 import com.tribly.dto.routes.response.*;
 import com.tribly.enums.RouteDifficulty;
@@ -12,7 +11,6 @@ import com.tribly.enums.Visibility;
 import com.tribly.infrastructure.exception.BusinessException;
 import com.tribly.infrastructure.id.TsidUtils;
 import com.tribly.service.route.RouteService;
-import com.tribly.service.route.request.CreateRouteRequest;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
@@ -22,7 +20,6 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.io.FileInputStream;
 import java.net.URI;
-import java.util.List;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
@@ -71,10 +68,9 @@ public class RouteResource extends AbstractAuthenticatedResource {
 
     Long userId = getCurrentUserIdOrNull();
 
-    TriblyPage<Route> routes = routeService.getRoutes(teamSlug, userId, page, size);
+    RouteListResponse routes = routeService.getRoutes(teamSlug, userId, page, size);
 
-    List<RouteDto> dtos = routes.items().stream().map(RouteDto::from).toList();
-    return Response.ok(new RouteListResponse(dtos, routes.total(), page, size)).build();
+    return Response.ok(routes).build();
   }
 
   /**
@@ -127,7 +123,7 @@ public class RouteResource extends AbstractAuthenticatedResource {
     CreateRouteRequest request =
         new CreateRouteRequest(name, description, difficulty, surfaceType, visibility);
 
-    Route route =
+    RouteDto route =
         routeService.createRoute(
             teamSlug,
             request,
@@ -135,9 +131,8 @@ public class RouteResource extends AbstractAuthenticatedResource {
             gpxFile.fileName(),
             userId);
 
-    return Response.created(
-            URI.create("/api/teams/" + teamSlug + "/routes/" + TsidUtils.toString(route.getId())))
-        .entity(RouteDto.from(route))
+    return Response.created(URI.create("/api/teams/" + teamSlug + "/routes/" + route.id()))
+        .entity(route)
         .build();
   }
 
@@ -167,9 +162,9 @@ public class RouteResource extends AbstractAuthenticatedResource {
     Long userId = getCurrentUserIdOrNull();
     Long routeIdLong = TsidUtils.toLong(routeId);
 
-    Route route = routeService.getRoute(teamSlug, routeIdLong, userId);
+    RouteDetailDto route = routeService.getRouteDetail(teamSlug, routeIdLong, userId);
 
-    return Response.ok(RouteDetailDto.from(route)).build();
+    return Response.ok(route).build();
   }
 
   /**
@@ -213,16 +208,8 @@ public class RouteResource extends AbstractAuthenticatedResource {
     Long userId = getCurrentUserId();
     Long routeIdLong = TsidUtils.toLong(routeId);
 
-    com.tribly.service.route.request.UpdateRouteRequest serviceRequest =
-        new com.tribly.service.route.request.UpdateRouteRequest(
-            request.name(),
-            request.description(),
-            request.difficulty(),
-            request.surfaceType(),
-            request.visibility());
-
-    Route route = routeService.updateRoute(teamSlug, routeIdLong, serviceRequest, userId);
-    return Response.ok(RouteDto.from(route)).build();
+    RouteDto route = routeService.updateRoute(teamSlug, routeIdLong, request, userId);
+    return Response.ok(route).build();
   }
 
   /**
@@ -285,9 +272,8 @@ public class RouteResource extends AbstractAuthenticatedResource {
     Long userId = getCurrentUserIdOrNull();
     Long routeIdLong = TsidUtils.toLong(routeId);
 
-    List<RouteClimb> climbs = routeService.getClimbs(teamSlug, routeIdLong, userId);
-    List<RouteClimbDto> dtos = climbs.stream().map(RouteClimbDto::from).toList();
-    return Response.ok(new ClimbListResponse(dtos)).build();
+    ClimbListResponse climbs = routeService.getClimbs(teamSlug, routeIdLong, userId);
+    return Response.ok(climbs).build();
   }
 
   /**
@@ -316,8 +302,8 @@ public class RouteResource extends AbstractAuthenticatedResource {
     Long userId = getCurrentUserIdOrNull();
     Long routeIdLong = TsidUtils.toLong(routeId);
 
-    GpxTrack track = routeService.getTrack(teamSlug, routeIdLong, userId);
-    return Response.ok(GpxTrackDto.from(track)).build();
+    GpxTrackDto track = routeService.getTrack(teamSlug, routeIdLong, userId);
+    return Response.ok(track).build();
   }
 
   // Request/Response DTOs

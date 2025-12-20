@@ -1,7 +1,6 @@
 package com.tribly.api.users;
 
 import com.tribly.api.AbstractAuthenticatedResource;
-import com.tribly.domain.user.User;
 import com.tribly.dto.error.ErrorResponse;
 import com.tribly.dto.users.request.UpdateUserRequest;
 import com.tribly.dto.users.response.PublicUserDto;
@@ -49,8 +48,8 @@ public class UserResource extends AbstractAuthenticatedResource {
   })
   public Response getCurrentUser() {
     Long userId = getCurrentUserId();
-    User user = userService.getActiveById(userId);
-    return Response.ok(UserDto.from(user)).build();
+    UserDto user = userService.getUserDto(userId);
+    return Response.ok(user).build();
   }
 
   @PUT
@@ -72,9 +71,9 @@ public class UserResource extends AbstractAuthenticatedResource {
   })
   public Response updateCurrentUser(@Valid UpdateUserRequest request) {
     Long userId = getCurrentUserId();
-    User user =
+    UserDto user =
         userService.updateUser(userId, request.displayName(), request.locale(), request.timezone());
-    return Response.ok(UserDto.from(user)).build();
+    return Response.ok(user).build();
   }
 
   @GET
@@ -97,8 +96,8 @@ public class UserResource extends AbstractAuthenticatedResource {
   public Response getUserById(
       @Parameter(description = "User ID (TSID)") @PathParam("id") String id) {
     Long userId = TsidUtils.toLong(id);
-    User user = userService.getActiveById(userId);
-    return Response.ok(PublicUserDto.from(user)).build();
+    PublicUserDto user = userService.getPublicUserDto(userId);
+    return Response.ok(user).build();
   }
 
   @GET
@@ -122,9 +121,8 @@ public class UserResource extends AbstractAuthenticatedResource {
       return Response.ok(List.of()).build();
     }
 
-    List<User> users = userService.searchByDisplayName(query.trim(), Math.min(limit, 20));
-    List<PublicUserDto> dtos = users.stream().map(PublicUserDto::from).toList();
-    return Response.ok(dtos).build();
+    List<PublicUserDto> users = userService.searchByDisplayName(query.trim(), Math.min(limit, 20));
+    return Response.ok(users).build();
   }
 
   @DELETE

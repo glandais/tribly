@@ -6,6 +6,8 @@ import com.tribly.domain.team.repository.TeamRepository;
 import com.tribly.domain.team.repository.UserTeamRepository;
 import com.tribly.domain.user.User;
 import com.tribly.domain.user.repository.UserRepository;
+import com.tribly.dto.teams.response.MemberDto;
+import com.tribly.dto.teams.response.MemberListResponse;
 import com.tribly.enums.TeamRole;
 import com.tribly.infrastructure.exception.BusinessException;
 import com.tribly.service.security.TeamSecurityService;
@@ -14,6 +16,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import org.jboss.logging.Logger;
 
@@ -30,14 +33,16 @@ public class TeamMembershipService {
 
   @Inject TeamSecurityService securityService;
 
-  public TriblyPage<UserTeam> getTeamMembers(String slug, Long userId, int page, int size) {
+  public MemberListResponse getTeamMembers(String slug, Long userId, int page, int size) {
     // Security check: only team admins can view member list
     securityService.requireAdmin(userId, slug);
-    return userTeamRepository.findByTeam(slug, page, size);
+    TriblyPage<UserTeam> members = userTeamRepository.findByTeam(slug, page, size);
+    List<MemberDto> dtos = members.items().stream().map(MemberDto::from).toList();
+    return new MemberListResponse(dtos, members.total(), page, size);
   }
 
   @Transactional
-  public UserTeam joinTeam(String teamSlug, Long userId) {
+  public MemberDto joinTeam(String teamSlug, Long userId) {
     TeamAndRole teamAndRole =
         teamRepository
             .findOne(teamSlug, userId)
@@ -55,7 +60,7 @@ public class TeamMembershipService {
   }
 
   @Transactional
-  public UserTeam addMember(String teamSlug, Long targetUserId, TeamRole role, Long actingUserId) {
+  public MemberDto addMember(String teamSlug, Long targetUserId, TeamRole role, Long actingUserId) {
     TeamAndRole teamAndRole =
         teamRepository
             .findOne(teamSlug, actingUserId)
@@ -72,7 +77,7 @@ public class TeamMembershipService {
     return doAddMember(teamAndRole, role, targetUser);
   }
 
-  private UserTeam doAddMember(TeamAndRole teamAndRole, TeamRole role, User user) {
+  private MemberDto doAddMember(TeamAndRole teamAndRole, TeamRole role, User user) {
     securityService.requireTeamCapacity(teamAndRole);
 
     Long userId = user.getId();
@@ -93,7 +98,7 @@ public class TeamMembershipService {
       membership.setJoinedAt(Instant.now());
       userTeamRepository.persist(membership);
       LOG.infov("User {0} rejoined team {1}", userId, teamSlug);
-      return membership;
+      return MemberDto.from(membership);
     }
 
     // Create new membership
@@ -101,11 +106,11 @@ public class TeamMembershipService {
     userTeamRepository.persist(membership);
 
     LOG.infov("User {0} joined team {1}", userId, teamSlug);
-    return membership;
+    return MemberDto.from(membership);
   }
 
   @Transactional
-  public UserTeam updateMemberRole(
+  public MemberDto updateMemberRole(
       String teamSlug, Long targetUserId, TeamRole newRole, Long actingUserId) {
     // Security checks
     securityService.requireAdmin(actingUserId, teamSlug);
@@ -123,7 +128,7 @@ public class TeamMembershipService {
     LOG.infov(
         "User {0} role updated to {1} in team {2} by user {3}",
         targetUserId, newRole, teamSlug, actingUserId);
-    return targetMembership;
+    return MemberDto.from(targetMembership);
   }
 
   @Transactional

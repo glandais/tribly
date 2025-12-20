@@ -1,14 +1,12 @@
 package com.tribly.api.teams;
 
 import com.tribly.api.AbstractAuthenticatedResource;
-import com.tribly.domain.common.repository.TriblyPage;
 import com.tribly.dto.error.ErrorResponse;
 import com.tribly.dto.teams.request.CreateTeamRequest;
 import com.tribly.dto.teams.request.UpdateTeamRequest;
 import com.tribly.dto.teams.response.TeamDetailDto;
 import com.tribly.dto.teams.response.TeamListResponse;
 import com.tribly.service.team.TeamService;
-import com.tribly.service.team.response.TeamAndRole;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
@@ -18,7 +16,6 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.net.URI;
-import java.util.List;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
@@ -58,10 +55,8 @@ public class TeamResource extends AbstractAuthenticatedResource {
       @Parameter(description = "Page size") @QueryParam("size") @DefaultValue("20") int size) {
 
     Long userId = getCurrentUserIdOrNull();
-    TriblyPage<TeamAndRole> teams = teamService.listTeams(userId, member, search, page, size);
-
-    List<TeamDetailDto> dtos = teams.items().stream().map(TeamDetailDto::from).toList();
-    return Response.ok(new TeamListResponse(dtos, teams.total(), page, size)).build();
+    TeamListResponse teams = teamService.listTeams(userId, member, search, page, size);
+    return Response.ok(teams).build();
   }
 
   @GET
@@ -87,8 +82,8 @@ public class TeamResource extends AbstractAuthenticatedResource {
   public Response getTeam(
       @Parameter(description = "Team URL slug") @PathParam("slug") String slug) {
     Long userId = getCurrentUserIdOrNull();
-    TeamAndRole teamAndRole = teamService.getTeam(slug, userId);
-    return Response.ok(TeamDetailDto.from(teamAndRole)).build();
+    TeamDetailDto teamDetailDto = teamService.getTeam(slug, userId);
+    return Response.ok(teamDetailDto).build();
   }
 
   @POST
@@ -113,14 +108,10 @@ public class TeamResource extends AbstractAuthenticatedResource {
   public Response createTeam(@Valid CreateTeamRequest request) {
     Long userId = getCurrentUserId();
 
-    TeamAndRole teamAndRole =
-        teamService.createTeam(
-            new com.tribly.service.team.request.CreateTeamRequest(
-                request.name(), request.description(), request.visibility(), request.maxMembers()),
-            userId);
+    TeamDetailDto teamDetailDto = teamService.createTeam(request, userId);
 
-    return Response.created(URI.create("/api/teams/" + teamAndRole.team().getSlug()))
-        .entity(TeamDetailDto.from(teamAndRole))
+    return Response.created(URI.create("/api/teams/" + teamDetailDto.slug()))
+        .entity(teamDetailDto)
         .build();
   }
 
@@ -156,19 +147,9 @@ public class TeamResource extends AbstractAuthenticatedResource {
       @Valid UpdateTeamRequest request) {
     Long userId = getCurrentUserId();
 
-    TeamAndRole updated =
-        teamService.updateTeam(
-            slug,
-            new com.tribly.service.team.request.UpdateTeamRequest(
-                request.name(),
-                request.description(),
-                request.visibility(),
-                request.logoUrl(),
-                request.coverImageUrl(),
-                request.maxMembers()),
-            userId);
+    TeamDetailDto teamDetailDto = teamService.updateTeam(slug, request, userId);
 
-    return Response.ok(TeamDetailDto.from(updated)).build();
+    return Response.ok(teamDetailDto).build();
   }
 
   @DELETE

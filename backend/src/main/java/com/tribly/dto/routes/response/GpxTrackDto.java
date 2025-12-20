@@ -1,4 +1,4 @@
-package com.tribly.api.routes;
+package com.tribly.dto.routes.response;
 
 import com.tribly.domain.route.GpxTrack;
 import com.tribly.infrastructure.id.TsidUtils;

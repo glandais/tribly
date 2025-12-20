@@ -116,6 +116,7 @@ export interface CreateRideRequest {
   description?: string | null
   date: string
   startTime?: string
+  visibility?: Visibility | null
   /**
    * Route ID (TSID)
    */
@@ -124,7 +125,6 @@ export interface CreateRideRequest {
    * Meeting point ID (TSID)
    */
   meetingPointId?: string | null
-  visibility?: Visibility | null
   publishAt?: string
   /**
    * Ride groups to create
