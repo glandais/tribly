@@ -11,12 +11,11 @@ docs/ClimbCategory.md
 docs/ClimbListResponse.md
 docs/ConfigDto.md
 docs/ConfigurationApi.md
-docs/CreateGroupRequest.md
-docs/CreateRideRequest.md
 docs/CreateTeamRequest.md
 docs/ErrorResponse.md
 docs/FieldError.md
 docs/GpxTrackDto.md
+docs/GroupRequest.md
 docs/JoinGroupRequest.md
 docs/KeycloakConfig.md
 docs/MapConfig.md
@@ -24,12 +23,12 @@ docs/MemberDto.md
 docs/MemberListResponse.md
 docs/ParticipationStatus.md
 docs/PublicUserDto.md
-docs/RideDetailDto.md
 docs/RideDto.md
 docs/RideGroupDto.md
 docs/RideGroupListResponse.md
 docs/RideListResponse.md
 docs/RideParticipationDto.md
+docs/RideRequest.md
 docs/RideStatus.md
 docs/RidesApi.md
 docs/RouteClimbDto.md
@@ -45,9 +44,7 @@ docs/TeamMembersApi.md
 docs/TeamRole.md
 docs/TeamsApi.md
 docs/TrackPointDto.md
-docs/UpdateGroupRequest.md
 docs/UpdateMemberRoleRequest.md
-docs/UpdateRideRequest.md
 docs/UpdateRouteRequest.md
 docs/UpdateTeamRequest.md
 docs/UpdateUserRequest.md

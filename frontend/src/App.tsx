@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Layout } from './components/common/Layout'
@@ -19,6 +20,7 @@ import { RouteListPage } from './pages/route/RouteListPage'
 import { RouteDetailPage } from './pages/route/RouteDetailPage'
 import { CreateRoutePage } from './pages/route/CreateRoutePage'
 import { EditRoutePage } from './pages/route/EditRoutePage'
+import { useAuthStore } from './store/authStore'
 
 function HomePage() {
   const { t } = useTranslation('auth')
@@ -44,6 +46,27 @@ function NotFoundPage() {
 }
 
 function App() {
+  const isInitialized = useAuthStore((state) => state.isInitialized)
+  const initialize = useAuthStore((state) => state.initialize)
+  const { t } = useTranslation('common')
+
+  // Initialize auth on mount
+  useEffect(() => {
+    initialize()
+  }, [initialize])
+
+  // Wait for auth initialization before rendering routes
+  if (!isInitialized) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-indigo-600 border-r-transparent"></div>
+          <p className="mt-4 text-gray-600">{t('status.checkingAuth')}</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <ErrorBoundary>
       <BrowserRouter>

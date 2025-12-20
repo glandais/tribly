@@ -93,5 +93,21 @@
       "gpx": "Download GPX",
       "fit": "Download FIT"
     }
+  },
+  "picker": {
+    "title": "Select a route",
+    "search": "Search by name...",
+    "createNew": "Create new route",
+    "clearSelection": "Remove route",
+    "noResults": "No routes found",
+    "loading": "Loading routes..."
+  },
+  "createModal": {
+    "title": "Create new route",
+    "create": "Create"
+  },
+  "preview": {
+    "loading": "Loading...",
+    "notFound": "Route not found"
   }
 }

@@ -52,17 +52,14 @@ All URIs are relative to *http://localhost:8080*
 Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
 *ConfigurationApi* | [**getConfig**](docs/ConfigurationApi.md#getconfig) | **GET** /api/config | Get application configuration
-*RidesApi* | [**createGroup**](docs/RidesApi.md#creategroup) | **POST** /api/teams/{slug}/rides/{rideSlug}/groups | Create ride group
 *RidesApi* | [**createRide**](docs/RidesApi.md#createride) | **POST** /api/teams/{slug}/rides | Create ride
-*RidesApi* | [**deleteGroup**](docs/RidesApi.md#deletegroup) | **DELETE** /api/teams/{slug}/rides/{rideSlug}/groups/{groupId} | Delete ride group
 *RidesApi* | [**deleteRide**](docs/RidesApi.md#deleteride) | **DELETE** /api/teams/{slug}/rides/{rideSlug} | Delete ride
 *RidesApi* | [**getRide**](docs/RidesApi.md#getride) | **GET** /api/teams/{slug}/rides/{rideSlug} | Get ride details
 *RidesApi* | [**joinGroup**](docs/RidesApi.md#joingroup) | **POST** /api/teams/{slug}/rides/{rideSlug}/groups/{groupId}/join | Join ride group
 *RidesApi* | [**leaveGroup**](docs/RidesApi.md#leavegroup) | **POST** /api/teams/{slug}/rides/{rideSlug}/groups/{groupId}/leave | Leave ride group
 *RidesApi* | [**listGroups**](docs/RidesApi.md#listgroups) | **GET** /api/teams/{slug}/rides/{rideSlug}/groups | List ride groups
 *RidesApi* | [**listRides**](docs/RidesApi.md#listrides) | **GET** /api/teams/{slug}/rides | List rides
-*RidesApi* | [**updateGroup**](docs/RidesApi.md#updategroup) | **PATCH** /api/teams/{slug}/rides/{rideSlug}/groups/{groupId} | Update ride group
-*RidesApi* | [**updateRide**](docs/RidesApi.md#updateride) | **PATCH** /api/teams/{slug}/rides/{rideSlug} | Update ride
+*RidesApi* | [**updateRide**](docs/RidesApi.md#updateride) | **PUT** /api/teams/{slug}/rides/{rideSlug} | Update ride
 *RoutesApi* | [**createRoute**](docs/RoutesApi.md#createroute) | **POST** /api/teams/{slug}/routes | Create route
 *RoutesApi* | [**deleteRoute**](docs/RoutesApi.md#deleteroute) | **DELETE** /api/teams/{slug}/routes/{routeId} | Delete route
 *RoutesApi* | [**getClimbs**](docs/RoutesApi.md#getclimbs) | **GET** /api/teams/{slug}/routes/{routeId}/climbs | Get route climbs
@@ -94,12 +91,11 @@ Class | Method | HTTP request | Description
  - [ClimbCategory](docs/ClimbCategory.md)
  - [ClimbListResponse](docs/ClimbListResponse.md)
  - [ConfigDto](docs/ConfigDto.md)
- - [CreateGroupRequest](docs/CreateGroupRequest.md)
- - [CreateRideRequest](docs/CreateRideRequest.md)
  - [CreateTeamRequest](docs/CreateTeamRequest.md)
  - [ErrorResponse](docs/ErrorResponse.md)
  - [FieldError](docs/FieldError.md)
  - [GpxTrackDto](docs/GpxTrackDto.md)
+ - [GroupRequest](docs/GroupRequest.md)
  - [JoinGroupRequest](docs/JoinGroupRequest.md)
  - [KeycloakConfig](docs/KeycloakConfig.md)
  - [MapConfig](docs/MapConfig.md)
@@ -107,12 +103,12 @@ Class | Method | HTTP request | Description
  - [MemberListResponse](docs/MemberListResponse.md)
  - [ParticipationStatus](docs/ParticipationStatus.md)
  - [PublicUserDto](docs/PublicUserDto.md)
- - [RideDetailDto](docs/RideDetailDto.md)
  - [RideDto](docs/RideDto.md)
  - [RideGroupDto](docs/RideGroupDto.md)
  - [RideGroupListResponse](docs/RideGroupListResponse.md)
  - [RideListResponse](docs/RideListResponse.md)
  - [RideParticipationDto](docs/RideParticipationDto.md)
+ - [RideRequest](docs/RideRequest.md)
  - [RideStatus](docs/RideStatus.md)
  - [RouteClimbDto](docs/RouteClimbDto.md)
  - [RouteDetailDto](docs/RouteDetailDto.md)
@@ -124,9 +120,7 @@ Class | Method | HTTP request | Description
  - [TeamListResponse](docs/TeamListResponse.md)
  - [TeamRole](docs/TeamRole.md)
  - [TrackPointDto](docs/TrackPointDto.md)
- - [UpdateGroupRequest](docs/UpdateGroupRequest.md)
  - [UpdateMemberRoleRequest](docs/UpdateMemberRoleRequest.md)
- - [UpdateRideRequest](docs/UpdateRideRequest.md)
  - [UpdateRouteRequest](docs/UpdateRouteRequest.md)
  - [UpdateTeamRequest](docs/UpdateTeamRequest.md)
  - [UpdateUserRequest](docs/UpdateUserRequest.md)

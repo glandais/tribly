@@ -1,5 +1,6 @@
 package com.tribly.dto.teams.request;
 
+import com.tribly.dto.validation.ValidateSchema;
 import com.tribly.enums.Visibility;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -7,6 +8,7 @@ import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.jspecify.annotations.Nullable;
 
 @Schema(description = "Team creation request")
+@ValidateSchema
 public record CreateTeamRequest(
     @Schema(description = "Team name", examples = "Awesome Cycling Team", required = true)
         @NotBlank

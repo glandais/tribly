@@ -16,9 +16,9 @@ export function ProtectedRoute({
 }: ProtectedRouteProps) {
   const { t } = useTranslation('common')
   const location = useLocation()
-  const { isAuthenticated, isLoading, isInitialized } = useAuth()
+  const { isAuthenticated, isLoading } = useAuth()
 
-  if (!isInitialized || isLoading) {
+  if (isLoading) {
     return <LoadingPage message={t('status.checkingAuth')} />
   }
 

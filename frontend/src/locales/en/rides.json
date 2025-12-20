@@ -51,6 +51,16 @@
         "public": "Public",
         "privateTeamHint": "Public rides are not available for private teams"
       },
+      "route": {
+        "label": "Route",
+        "select": "Select a route",
+        "change": "Change",
+        "clear": "Remove",
+        "none": "No route selected",
+        "hint": "Optional: attach a GPX route to this ride",
+        "selectForRide": "Select route for ride",
+        "selectForGroup": "Select route for group"
+      },
       "groups": {
         "label": "Groups",
         "add": "+ Add Group",
@@ -69,7 +79,11 @@
         "restore": "Restore",
         "remove": "Remove",
         "empty": "No groups defined. Add at least one group.",
-        "hint": "Create different groups for varying skill levels or speeds"
+        "hint": "Create different groups for varying skill levels or speeds",
+        "route": {
+          "label": "Group route",
+          "none": "No specific route"
+        }
       },
       "publishAt": {
         "label": "Schedule Publication",

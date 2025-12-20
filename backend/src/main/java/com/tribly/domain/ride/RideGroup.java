@@ -52,11 +52,6 @@ public class RideGroup extends BaseEntity {
 
   public RideGroup() {}
 
-  public RideGroup(Ride ride, String name) {
-    this.ride = ride;
-    this.name = name;
-  }
-
   public void addParticipation(RideParticipation participation) {
     participations.add(participation);
     participation.setRideGroup(this);

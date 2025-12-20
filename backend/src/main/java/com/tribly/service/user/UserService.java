@@ -60,7 +60,7 @@ public class UserService {
   @Transactional
   public void deleteUser(Long userId) {
     User user = getUserEntity(userId);
-    user.softDelete();
+    user.setDeleted(true);
     userRepository.persist(user);
   }
 }

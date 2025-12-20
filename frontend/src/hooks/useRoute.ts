@@ -29,12 +29,12 @@ export type {
 // Re-export enums as values (not types)
 export { RouteDifficulty, SurfaceType }
 
-export function useRoutes(teamSlug: string | undefined, page = 0, size = 20) {
+export function useRoutes(teamSlug: string | undefined, page = 0, size = 20, search?: string) {
   return useQuery({
-    queryKey: ['routes', teamSlug, page, size],
+    queryKey: ['routes', teamSlug, page, size, search],
     queryFn: async () => {
       if (!teamSlug) throw new Error('Team slug is required')
-      return await unwrapResponse(routesApi.listRoutes(teamSlug, page, size))
+      return await unwrapResponse(routesApi.listRoutes(teamSlug, page, search, size))
     },
     enabled: !!teamSlug,
     staleTime: 1000 * 60 * 2,

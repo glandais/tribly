@@ -4,30 +4,24 @@ import { ridesApi, unwrapResponse } from '../lib/apiClient'
 import { useNotificationStore } from '../store/notificationStore'
 import type {
   RideDto,
-  RideDetailDto,
   RideGroupDto,
   RideParticipationDto,
   RideListResponse,
   RideGroupListResponse,
-  CreateRideRequest,
-  CreateGroupRequest,
-  UpdateRideRequest,
-  UpdateGroupRequest,
+  RideRequest,
+  GroupRequest,
 } from '../api/api'
 import { RideStatus, Visibility } from '../api/api'
 
 // Re-export types for convenience
 export type {
   RideDto,
-  RideDetailDto,
   RideGroupDto,
   RideParticipationDto,
   RideListResponse,
   RideGroupListResponse,
-  CreateRideRequest,
-  CreateGroupRequest,
-  UpdateRideRequest,
-  UpdateGroupRequest,
+  RideRequest,
+  GroupRequest,
 }
 
 // Re-export enums as values (not types)
@@ -84,7 +78,7 @@ export function useCreateRide(teamSlug: string | undefined) {
   const navigate = useNavigate()
 
   return useMutation({
-    mutationFn: async (data: CreateRideRequest) => {
+    mutationFn: async (data: RideRequest) => {
       if (!teamSlug) throw new Error('Team slug is required')
       return await unwrapResponse(ridesApi.createRide(teamSlug, data))
     },
@@ -110,7 +104,7 @@ export function useUpdateRide(teamSlug: string | undefined, rideSlug: string) {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (data: UpdateRideRequest) => {
+    mutationFn: async (data: RideRequest) => {
       if (!teamSlug) throw new Error('Team slug is required')
       return await unwrapResponse(ridesApi.updateRide(rideSlug, teamSlug, data))
     },
@@ -150,75 +144,6 @@ export function useDeleteRide(teamSlug: string | undefined) {
       })
 
       navigate(`/teams/${teamSlug}/rides`)
-    },
-  })
-}
-
-export function useCreateGroup(teamSlug: string | undefined, rideSlug: string) {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: async (data: CreateGroupRequest) => {
-      if (!teamSlug) throw new Error('Team slug is required')
-      return await unwrapResponse(ridesApi.createGroup(rideSlug, teamSlug, data))
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['ride', teamSlug, rideSlug] })
-      queryClient.invalidateQueries({ queryKey: ['rideGroups', teamSlug, rideSlug] })
-
-      // Show success notification
-      useNotificationStore.getState().addNotification({
-        message: '',
-        type: 'success',
-        duration: 4000,
-        translationKey: 'notifications.groupCreated',
-      })
-    },
-  })
-}
-
-export function useUpdateGroup(teamSlug: string | undefined, rideSlug: string) {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: async ({ groupId, data }: { groupId: string; data: UpdateGroupRequest }) => {
-      if (!teamSlug) throw new Error('Team slug is required')
-      return await unwrapResponse(ridesApi.updateGroup(groupId, rideSlug, teamSlug, data))
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['ride', teamSlug, rideSlug] })
-      queryClient.invalidateQueries({ queryKey: ['rideGroups', teamSlug, rideSlug] })
-
-      // Show success notification
-      useNotificationStore.getState().addNotification({
-        message: '',
-        type: 'success',
-        duration: 4000,
-        translationKey: 'notifications.groupUpdated',
-      })
-    },
-  })
-}
-
-export function useDeleteGroup(teamSlug: string | undefined, rideSlug: string) {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: async (groupId: string) => {
-      if (!teamSlug) throw new Error('Team slug is required')
-      await unwrapResponse(ridesApi.deleteGroup(groupId, rideSlug, teamSlug))
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['ride', teamSlug, rideSlug] })
-      queryClient.invalidateQueries({ queryKey: ['rideGroups', teamSlug, rideSlug] })
-
-      // Show success notification
-      useNotificationStore.getState().addNotification({
-        message: '',
-        type: 'success',
-        duration: 4000,
-        translationKey: 'notifications.groupDeleted',
-      })
     },
   })
 }

@@ -93,5 +93,21 @@
       "gpx": "Télécharger GPX",
       "fit": "Télécharger FIT"
     }
+  },
+  "picker": {
+    "title": "Sélectionner un parcours",
+    "search": "Rechercher par nom...",
+    "createNew": "Créer un nouveau parcours",
+    "clearSelection": "Retirer le parcours",
+    "noResults": "Aucun parcours trouvé",
+    "loading": "Chargement des parcours..."
+  },
+  "createModal": {
+    "title": "Créer un nouveau parcours",
+    "create": "Créer"
+  },
+  "preview": {
+    "loading": "Chargement...",
+    "notFound": "Parcours non trouvé"
   }
 }

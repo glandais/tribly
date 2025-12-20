@@ -56,7 +56,6 @@ export function useAuth() {
   })
 
   // Update store with backend user data (including database ID)
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- Only sync when backendUser ID changes, not when user state updates
   useEffect(() => {
     if (backendUser && user) {
       setUser({
@@ -71,7 +70,6 @@ export function useAuth() {
 
   // Auto-initialize user preferences from browser on first login
   // Detects if user still has default values and updates with browser info
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- Only run on backendUser ID change, async updates handle state
   useEffect(() => {
     if (
       backendUser &&

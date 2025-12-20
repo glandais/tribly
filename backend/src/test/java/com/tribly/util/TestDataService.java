@@ -57,7 +57,7 @@ public class TestDataService {
 
   @Transactional
   public void deleteUser(User user) {
-    user.softDelete();
+    user.setDeleted(true);
     userRepository.getEntityManager().merge(user);
   }
 
@@ -144,14 +144,18 @@ public class TestDataService {
 
   @Transactional
   public RideGroup createRideGroup(Ride ride, String name) {
-    RideGroup group = new RideGroup(ride, name);
+    RideGroup group = new RideGroup();
+    group.setRide(ride);
+    group.setName(name);
     rideGroupRepository.persistAndFlush(group);
     return group;
   }
 
   @Transactional
   public RideGroup createRideGroupWithOrder(Ride ride, String name, int sortOrder) {
-    RideGroup group = new RideGroup(ride, name);
+    RideGroup group = new RideGroup();
+    group.setRide(ride);
+    group.setName(name);
     group.setSortOrder(sortOrder);
     rideGroupRepository.persistAndFlush(group);
     return group;
@@ -159,7 +163,9 @@ public class TestDataService {
 
   @Transactional
   public RideGroup createRideGroupWithMaxParticipants(Ride ride, String name, int maxParticipants) {
-    RideGroup group = new RideGroup(ride, name);
+    RideGroup group = new RideGroup();
+    group.setRide(ride);
+    group.setName(name);
     group.setMaxParticipants(maxParticipants);
     rideGroupRepository.persistAndFlush(group);
     return group;

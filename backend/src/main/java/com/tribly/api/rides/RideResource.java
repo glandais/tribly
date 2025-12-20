@@ -96,7 +96,7 @@ public class RideResource extends AbstractAuthenticatedResource {
   })
   public Response createRide(
       @Parameter(description = "Team URL slug") @PathParam("slug") String slug,
-      @Valid CreateRideRequest request) {
+      @Valid RideRequest request) {
     Long userId = getCurrentUserId();
 
     RideDto ride = rideService.createRide(slug, request, userId);
@@ -116,7 +116,7 @@ public class RideResource extends AbstractAuthenticatedResource {
     @APIResponse(
         responseCode = "200",
         description = "Ride retrieved successfully",
-        content = @Content(schema = @Schema(implementation = RideDetailDto.class))),
+        content = @Content(schema = @Schema(implementation = RideDto.class))),
     @APIResponse(
         responseCode = "404",
         description = "Team or ride not found",
@@ -126,11 +126,11 @@ public class RideResource extends AbstractAuthenticatedResource {
       @Parameter(description = "Team URL slug") @PathParam("slug") String slug,
       @Parameter(description = "Ride URL slug") @PathParam("rideSlug") String rideSlug) {
     Long userId = getCurrentUserIdOrNull();
-    RideDetailDto ride = rideService.getRideDetail(slug, rideSlug, userId);
+    RideDto ride = rideService.getRideDetail(slug, rideSlug, userId);
     return Response.ok(ride).build();
   }
 
-  @PATCH
+  @PUT
   @Path("/{rideSlug}")
   @Transactional
   @RolesAllowed("user")
@@ -162,7 +162,7 @@ public class RideResource extends AbstractAuthenticatedResource {
   public Response updateRide(
       @Parameter(description = "Team URL slug") @PathParam("slug") String slug,
       @Parameter(description = "Ride URL slug") @PathParam("rideSlug") String rideSlug,
-      @Valid UpdateRideRequest request) {
+      @Valid RideRequest request) {
 
     Long userId = getCurrentUserId();
 
@@ -221,120 +221,6 @@ public class RideResource extends AbstractAuthenticatedResource {
 
     RideGroupListResponse rideGroupListResponse = rideService.listGroups(slug, rideSlug, userId);
     return Response.ok(rideGroupListResponse).build();
-  }
-
-  @POST
-  @Path("/{rideSlug}/groups")
-  @RolesAllowed("user")
-  @Operation(
-      summary = "Create ride group",
-      description = "Create a new group for a ride. Requires organizer permissions.")
-  @APIResponses({
-    @APIResponse(
-        responseCode = "201",
-        description = "Group created successfully",
-        content = @Content(schema = @Schema(implementation = RideGroupDto.class))),
-    @APIResponse(
-        responseCode = "400",
-        description = "Invalid request",
-        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
-    @APIResponse(
-        responseCode = "401",
-        description = "Unauthorized",
-        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
-    @APIResponse(
-        responseCode = "403",
-        description = "User is not authorized to modify this ride",
-        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
-    @APIResponse(
-        responseCode = "404",
-        description = "Team or ride not found",
-        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
-  })
-  public Response createGroup(
-      @Parameter(description = "Team URL slug") @PathParam("slug") String slug,
-      @Parameter(description = "Ride URL slug") @PathParam("rideSlug") String rideSlug,
-      @Valid CreateGroupRequest request) {
-
-    Long userId = getCurrentUserId();
-    RideGroupDto group = rideService.createGroup(slug, rideSlug, request, userId);
-
-    return Response.created(
-            URI.create("/api/teams/" + slug + "/rides/" + rideSlug + "/groups/" + group.id()))
-        .entity(group)
-        .build();
-  }
-
-  @PATCH
-  @Path("/{rideSlug}/groups/{groupId}")
-  @RolesAllowed("user")
-  @Operation(
-      summary = "Update ride group",
-      description = "Update a ride group. Requires organizer permissions.")
-  @APIResponses({
-    @APIResponse(
-        responseCode = "200",
-        description = "Group updated successfully",
-        content = @Content(schema = @Schema(implementation = RideGroupDto.class))),
-    @APIResponse(
-        responseCode = "400",
-        description = "Invalid request",
-        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
-    @APIResponse(
-        responseCode = "401",
-        description = "Unauthorized",
-        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
-    @APIResponse(
-        responseCode = "403",
-        description = "User is not authorized to modify this ride",
-        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
-    @APIResponse(
-        responseCode = "404",
-        description = "Team, ride, or group not found",
-        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
-  })
-  public Response updateGroup(
-      @Parameter(description = "Team URL slug") @PathParam("slug") String slug,
-      @Parameter(description = "Ride URL slug") @PathParam("rideSlug") String rideSlug,
-      @Parameter(description = "Group ID (TSID)") @PathParam("groupId") String groupId,
-      @Valid UpdateGroupRequest request) {
-
-    Long userId = getCurrentUserId();
-    RideGroupDto group =
-        rideService.updateGroup(slug, rideSlug, TsidUtils.toLong(groupId), request, userId);
-
-    return Response.ok(group).build();
-  }
-
-  @DELETE
-  @Path("/{rideSlug}/groups/{groupId}")
-  @RolesAllowed("user")
-  @Operation(
-      summary = "Delete ride group",
-      description = "Delete a ride group. Requires organizer permissions.")
-  @APIResponses({
-    @APIResponse(responseCode = "204", description = "Group deleted successfully"),
-    @APIResponse(
-        responseCode = "401",
-        description = "Unauthorized",
-        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
-    @APIResponse(
-        responseCode = "403",
-        description = "User is not authorized to modify this ride",
-        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
-    @APIResponse(
-        responseCode = "404",
-        description = "Team, ride, or group not found",
-        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
-  })
-  public Response deleteGroup(
-      @Parameter(description = "Team URL slug") @PathParam("slug") String slug,
-      @Parameter(description = "Ride URL slug") @PathParam("rideSlug") String rideSlug,
-      @Parameter(description = "Group ID (TSID)") @PathParam("groupId") String groupId) {
-
-    Long userId = getCurrentUserId();
-    rideService.deleteGroup(slug, rideSlug, TsidUtils.toLong(groupId), userId);
-    return Response.noContent().build();
   }
 
   @POST

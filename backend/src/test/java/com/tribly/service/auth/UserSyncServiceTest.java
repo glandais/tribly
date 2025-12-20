@@ -75,16 +75,6 @@ class UserSyncServiceTest {
   }
 
   @Test
-  void syncUser_shouldNotUpdateDisplayNameWhenNull() {
-    User existing = userSyncService.syncUser("user@example.com", "Original Name");
-
-    User result = userSyncService.syncUser("user@example.com", null);
-
-    assertEquals(existing.getId(), result.getId());
-    assertEquals("Original Name", result.getDisplayName());
-  }
-
-  @Test
   void syncUser_shouldHandleMultipleSyncsForSameUser() {
     User first = userSyncService.syncUser("user@example.com", "Name 1");
     User second = userSyncService.syncUser("user@example.com", "Name 2");

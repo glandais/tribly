@@ -75,21 +75,21 @@ export function RideDetailPage() {
   })
 
   const handlePublish = () => {
-    updateMutation.mutate({ status: RideStatus.Published })
+    updateMutation.mutate({ ...ride, status: RideStatus.Published })
   }
 
   const handleUnpublish = () => {
-    updateMutation.mutate({ status: RideStatus.Draft })
+    updateMutation.mutate({ ...ride, status: RideStatus.Draft })
     setShowUnpublishConfirm(false)
   }
 
   const handleCancel = () => {
-    updateMutation.mutate({ status: RideStatus.Cancelled })
+    updateMutation.mutate({ ...ride, status: RideStatus.Cancelled })
     setShowCancelConfirm(false)
   }
 
   const handleUncancel = () => {
-    updateMutation.mutate({ status: RideStatus.Draft })
+    updateMutation.mutate({ ...ride, status: RideStatus.Draft })
     setShowUncancelConfirm(false)
   }
 

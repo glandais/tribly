@@ -143,7 +143,7 @@ public class TeamMembershipService {
 
     securityService.requireNotLastAdmin(teamSlug, targetMembership);
 
-    targetMembership.softDelete();
+    targetMembership.setDeleted(true);
     userTeamRepository.persist(targetMembership);
 
     LOG.infov("User {0} removed from team {1} by user {2}", targetUserId, teamSlug, actingUserId);

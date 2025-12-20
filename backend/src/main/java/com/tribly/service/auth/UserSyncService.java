@@ -6,7 +6,6 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import java.util.Optional;
-import org.hibernate.StaleObjectStateException;
 import org.jboss.logging.Logger;
 
 /**
@@ -32,32 +31,6 @@ public class UserSyncService {
    */
   @Transactional
   public User syncUser(String email, String displayName) {
-    int maxRetries = 3;
-    int attempt = 0;
-
-    while (attempt < maxRetries) {
-      try {
-        return syncUserInternal(email, displayName);
-      } catch (StaleObjectStateException e) {
-        attempt++;
-        if (attempt >= maxRetries) {
-          LOG.errorv(
-              "Failed to sync user after {0} attempts due to optimistic locking conflict: {1}",
-              maxRetries, email);
-          throw e;
-        }
-        LOG.warnv(
-            "Optimistic locking conflict on user sync attempt {0}/{1} for {2}, retrying...",
-            attempt, maxRetries, email);
-        // Clear the persistence context to avoid stale entities
-        userRepository.getEntityManager().clear();
-      }
-    }
-
-    throw new IllegalStateException("Should not reach here");
-  }
-
-  private User syncUserInternal(String email, String displayName) {
     // Try by email
     Optional<User> existingByEmail = userRepository.findByEmail(email);
 
@@ -68,18 +41,26 @@ public class UserSyncService {
     } else {
       // Create new user
       user = new User(email, displayName);
+      save(user);
       LOG.infov("Creating new user from Keycloak: {0}", email);
+      return user;
     }
 
     // Update profile from Keycloak claims
-    if (displayName != null && !displayName.isBlank()) {
+    if (!displayName.isBlank() && !displayName.equals(user.getDisplayName())) {
       user.setDisplayName(displayName);
+
+      save(user);
+      return user;
     }
 
+    return user;
+  }
+
+  private void save(User user) {
     // Record login
     user.recordLogin();
 
     userRepository.persist(user);
-    return user;
   }
 }

@@ -10,6 +10,7 @@ public record RideGroupDto(
     @Schema(description = "Group ID (TSID)", required = true) String id,
     @Schema(description = "Group name", required = true) String name,
     @Nullable @Schema(description = "Group description", nullable = true) String description,
+    @Nullable @Schema(description = "Route id", nullable = true) String routeId,
     @Nullable @Schema(description = "Average speed in km/h", nullable = true) Integer averageSpeed,
     @Nullable @Schema(description = "Maximum participants", nullable = true)
         Integer maxParticipants,
@@ -21,6 +22,7 @@ public record RideGroupDto(
         TsidUtils.toString(group.getId()),
         group.getName(),
         group.getDescription(),
+        group.getRoute() != null ? TsidUtils.toString(group.getRoute().getId()) : null,
         group.getAverageSpeed(),
         group.getMaxParticipants(),
         group.getCurrentParticipants(),

@@ -30,8 +30,4 @@ public abstract class BaseEntity {
   private boolean deleted = false;
 
   @Version private Long version = 0L;
-
-  public void softDelete() {
-    this.deleted = true;
-  }
 }

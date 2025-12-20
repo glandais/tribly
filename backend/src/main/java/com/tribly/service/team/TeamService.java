@@ -130,7 +130,7 @@ public class TeamService {
 
     securityService.requireAdmin(userId, teamSlug);
 
-    team.softDelete();
+    team.setDeleted(true);
     teamRepository.persist(team);
     LOG.infov("Team {0} deleted by user {1}", team.getSlug(), userId);
   }

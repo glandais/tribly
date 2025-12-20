@@ -55,114 +55,6 @@ components:
           description: Map configuration
           type: object
           $ref: "#/components/schemas/MapConfig"
-    CreateGroupRequest:
-      description: Ride group creation request
-      type: object
-      required:
-      - name
-      properties:
-        name:
-          type: string
-          description: Group name
-          examples:
-          - Fast Group
-          pattern: \S
-          minLength: 1
-          maxLength: 100
-        description:
-          type:
-          - string
-          - "null"
-          description: Group description
-        averageSpeed:
-          type:
-          - integer
-          - "null"
-          format: int32
-          description: Average speed in km/h
-          examples:
-          - 25
-        maxParticipants:
-          type:
-          - integer
-          - "null"
-          format: int32
-          description: Maximum participants
-        routeId:
-          type:
-          - string
-          - "null"
-          description: Route ID (TSID) for this group
-    CreateRideRequest:
-      description: Ride creation request
-      type: object
-      required:
-      - title
-      - date
-      properties:
-        title:
-          type: string
-          description: Ride title
-          examples:
-          - Sunday Morning Ride
-          pattern: \S
-          minLength: 3
-          maxLength: 200
-        description:
-          type:
-          - string
-          - "null"
-          description: Ride description
-          maxLength: 5000
-        date:
-          description: Ride date
-          type: string
-          examples:
-          - 2025-06-15
-          $ref: "#/components/schemas/LocalDate"
-        startTime:
-          description: Start time
-          type:
-          - string
-          - "null"
-          examples:
-          - 09:00
-          anyOf:
-          - $ref: "#/components/schemas/LocalTime"
-          - type: "null"
-        visibility:
-          description: Visibility level
-          type:
-          - string
-          - "null"
-          anyOf:
-          - $ref: "#/components/schemas/Visibility"
-          - type: "null"
-        routeId:
-          type:
-          - string
-          - "null"
-          description: Route ID (TSID)
-        meetingPointId:
-          type:
-          - string
-          - "null"
-          description: Meeting point ID (TSID)
-        publishAt:
-          description: Publication timestamp (for scheduled publishing)
-          type:
-          - string
-          - "null"
-          anyOf:
-          - $ref: "#/components/schemas/Instant"
-          - type: "null"
-        groups:
-          type:
-          - array
-          - "null"
-          items:
-            $ref: "#/components/schemas/CreateGroupRequest"
-          description: Ride groups to create
     CreateTeamRequest:
       description: Team creation request
       type: object
@@ -266,6 +158,49 @@ components:
           - string
           - "null"
           description: Processing timestamp
+    GroupRequest:
+      description: Ride group creation request
+      type: object
+      properties:
+        id:
+          type:
+          - string
+          - "null"
+          description: id
+        name:
+          type: string
+          description: Group name
+          examples:
+          - Fast Group
+          pattern: \S
+          minLength: 1
+          maxLength: 100
+        description:
+          type:
+          - string
+          - "null"
+          description: Group description
+        averageSpeed:
+          type:
+          - integer
+          - "null"
+          format: int32
+          description: Average speed in km/h
+          examples:
+          - 25
+        maxParticipants:
+          type:
+          - integer
+          - "null"
+          format: int32
+          description: Maximum participants
+        routeId:
+          type:
+          - string
+          - "null"
+          description: Route ID (TSID) for this group
+      required:
+      - name
     Instant:
       type: string
       format: date-time
@@ -416,8 +351,8 @@ components:
           - string
           - "null"
           description: User avatar URL
-    RideDetailDto:
-      description: Detailed ride information
+    RideDto:
+      description: Ride summary data
       type: object
       required:
       - id
@@ -464,6 +399,11 @@ components:
           description: Visibility level
           type: string
           $ref: "#/components/schemas/Visibility"
+        routeId:
+          type:
+          - string
+          - "null"
+          description: Route id
         participantCount:
           type: integer
           format: int32
@@ -478,75 +418,13 @@ components:
             $ref: "#/components/schemas/RideGroupDto"
           description: Ride groups
         publishAt:
-          type:
-          - string
-          - "null"
           description: Publication timestamp
-        createdAt:
-          type:
-          - string
-          - "null"
-          description: Creation timestamp
-    RideDto:
-      description: Ride summary data
-      type: object
-      required:
-      - id
-      - slug
-      - title
-      - date
-      - status
-      - visibility
-      - participantCount
-      - groupCount
-      properties:
-        id:
-          type: string
-          description: Ride ID (TSID)
-        slug:
-          type: string
-          description: Ride URL slug
-        title:
-          type: string
-          description: Ride title
-        description:
-          type:
-          - string
-          - "null"
-          description: Ride description
-        date:
-          description: Ride date
-          type: string
-          $ref: "#/components/schemas/LocalDate"
-        startTime:
-          description: Start time
           type:
           - string
           - "null"
           anyOf:
-          - $ref: "#/components/schemas/LocalTime"
+          - $ref: "#/components/schemas/Instant"
           - type: "null"
-        status:
-          description: Ride status
-          type: string
-          $ref: "#/components/schemas/RideStatus"
-        visibility:
-          description: Visibility level
-          type: string
-          $ref: "#/components/schemas/Visibility"
-        participantCount:
-          type: integer
-          format: int32
-          description: Number of participants
-        groupCount:
-          type: integer
-          format: int32
-          description: Number of groups
-        publishAt:
-          type:
-          - string
-          - "null"
-          description: Publication timestamp
         createdAt:
           type:
           - string
@@ -572,6 +450,11 @@ components:
           - string
           - "null"
           description: Group description
+        routeId:
+          type:
+          - string
+          - "null"
+          description: Route id
         averageSpeed:
           type:
           - integer
@@ -657,6 +540,77 @@ components:
           - string
           - "null"
           description: Participant notes
+    RideRequest:
+      description: Ride request
+      type: object
+      required:
+      - title
+      - date
+      - status
+      - visibility
+      - groups
+      properties:
+        title:
+          type: string
+          description: Ride title
+          examples:
+          - Sunday Morning Ride
+          pattern: \S
+          minLength: 3
+          maxLength: 200
+        description:
+          type:
+          - string
+          - "null"
+          description: Ride description
+          maxLength: 5000
+        date:
+          description: Ride date
+          type: string
+          examples:
+          - 2025-06-15
+          $ref: "#/components/schemas/LocalDate"
+        startTime:
+          description: Start time
+          type:
+          - string
+          - "null"
+          examples:
+          - 09:00
+          anyOf:
+          - $ref: "#/components/schemas/LocalTime"
+          - type: "null"
+        status:
+          description: Ride status
+          type: string
+          $ref: "#/components/schemas/RideStatus"
+        visibility:
+          description: Visibility level
+          type: string
+          $ref: "#/components/schemas/Visibility"
+        routeId:
+          type:
+          - string
+          - "null"
+          description: Route ID (TSID)
+        meetingPointId:
+          type:
+          - string
+          - "null"
+          description: Meeting point ID (TSID)
+        publishAt:
+          description: Publication timestamp (for scheduled publishing)
+          type:
+          - string
+          - "null"
+          anyOf:
+          - $ref: "#/components/schemas/Instant"
+          - type: "null"
+        groups:
+          type: array
+          items:
+            $ref: "#/components/schemas/GroupRequest"
+          description: Ride groups to create
     RideStatus:
       type: string
       enum:
@@ -1002,39 +956,6 @@ components:
           type: number
           format: double
           description: Distance from start in meters
-    UpdateGroupRequest:
-      description: Ride group update request
-      type: object
-      properties:
-        name:
-          type:
-          - string
-          - "null"
-          description: Group name
-          minLength: 1
-          maxLength: 100
-        description:
-          type:
-          - string
-          - "null"
-          description: Group description
-        averageSpeed:
-          type:
-          - integer
-          - "null"
-          format: int32
-          description: Average speed in km/h
-        maxParticipants:
-          type:
-          - integer
-          - "null"
-          format: int32
-          description: Maximum participants
-        routeId:
-          type:
-          - string
-          - "null"
-          description: Route ID (TSID)
     UpdateMemberRoleRequest:
       description: Request to update a member's role
       type: object
@@ -1045,73 +966,6 @@ components:
           description: New role
           type: string
           $ref: "#/components/schemas/TeamRole"
-    UpdateRideRequest:
-      description: Ride update request
-      type: object
-      properties:
-        title:
-          type:
-          - string
-          - "null"
-          description: Ride title
-          minLength: 3
-          maxLength: 200
-        description:
-          type:
-          - string
-          - "null"
-          description: Ride description
-          maxLength: 5000
-        date:
-          description: Ride date
-          type:
-          - string
-          - "null"
-          anyOf:
-          - $ref: "#/components/schemas/LocalDate"
-          - type: "null"
-        startTime:
-          description: Start time
-          type:
-          - string
-          - "null"
-          anyOf:
-          - $ref: "#/components/schemas/LocalTime"
-          - type: "null"
-        status:
-          description: Ride status
-          type:
-          - string
-          - "null"
-          anyOf:
-          - $ref: "#/components/schemas/RideStatus"
-          - type: "null"
-        visibility:
-          description: Visibility level
-          type:
-          - string
-          - "null"
-          anyOf:
-          - $ref: "#/components/schemas/Visibility"
-          - type: "null"
-        routeId:
-          type:
-          - string
-          - "null"
-          description: Route ID (TSID)
-        meetingPointId:
-          type:
-          - string
-          - "null"
-          description: Meeting point ID (TSID)
-        publishAt:
-          description: Publication timestamp
-          type:
-          - string
-          - "null"
-          anyOf:
-          - $ref: "#/components/schemas/Instant"
-          - type: "null"
     UpdateRouteRequest:
       description: Route update request
       type: object
@@ -1271,7 +1125,7 @@ components:
   securitySchemes:
     SecurityScheme:
       type: openIdConnect
-      openIdConnectUrl: http://localhost:8180/realms/tribly/.well-known/openid-configuration
+      openIdConnectUrl: http://localhost:8180/realms/quarkus/.well-known/openid-configuration
       description: Authentication
 tags:
 - name: Configuration
@@ -1866,7 +1720,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/CreateRideRequest"
+              $ref: "#/components/schemas/RideRequest"
         required: true
       responses:
         "201":
@@ -1903,7 +1757,7 @@ paths:
       - SecurityScheme:
         - user
   /api/teams/{slug}/rides/{rideSlug}:
-    patch:
+    put:
       summary: Update ride
       description: Update ride information. Requires organizer permissions.
       operationId: updateRide
@@ -1926,7 +1780,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UpdateRideRequest"
+              $ref: "#/components/schemas/RideRequest"
         required: true
       responses:
         "200":
@@ -1987,7 +1841,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/RideDetailDto"
+                $ref: "#/components/schemas/RideDto"
         "404":
           description: Team or ride not found
           content:
@@ -2070,180 +1924,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-    post:
-      summary: Create ride group
-      description: Create a new group for a ride. Requires organizer permissions.
-      operationId: createGroup
-      tags:
-      - Rides
-      parameters:
-      - description: Ride URL slug
-        name: rideSlug
-        in: path
-        required: true
-        schema:
-          type: string
-      - description: Team URL slug
-        name: slug
-        in: path
-        required: true
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/CreateGroupRequest"
-        required: true
-      responses:
-        "201":
-          description: Group created successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/RideGroupDto"
-        "400":
-          description: Invalid request
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "401":
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "403":
-          description: User is not authorized to modify this ride
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "404":
-          description: Team or ride not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-      security:
-      - SecurityScheme:
-        - user
-  /api/teams/{slug}/rides/{rideSlug}/groups/{groupId}:
-    patch:
-      summary: Update ride group
-      description: Update a ride group. Requires organizer permissions.
-      operationId: updateGroup
-      tags:
-      - Rides
-      parameters:
-      - description: Group ID (TSID)
-        name: groupId
-        in: path
-        required: true
-        schema:
-          type: string
-      - description: Ride URL slug
-        name: rideSlug
-        in: path
-        required: true
-        schema:
-          type: string
-      - description: Team URL slug
-        name: slug
-        in: path
-        required: true
-        schema:
-          type: string
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/UpdateGroupRequest"
-        required: true
-      responses:
-        "200":
-          description: Group updated successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/RideGroupDto"
-        "400":
-          description: Invalid request
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "401":
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "403":
-          description: User is not authorized to modify this ride
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "404":
-          description: "Team, ride, or group not found"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-      security:
-      - SecurityScheme:
-        - user
-    delete:
-      summary: Delete ride group
-      description: Delete a ride group. Requires organizer permissions.
-      operationId: deleteGroup
-      tags:
-      - Rides
-      parameters:
-      - description: Group ID (TSID)
-        name: groupId
-        in: path
-        required: true
-        schema:
-          type: string
-      - description: Ride URL slug
-        name: rideSlug
-        in: path
-        required: true
-        schema:
-          type: string
-      - description: Team URL slug
-        name: slug
-        in: path
-        required: true
-        schema:
-          type: string
-      responses:
-        "204":
-          description: Group deleted successfully
-        "401":
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "403":
-          description: User is not authorized to modify this ride
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "404":
-          description: "Team, ride, or group not found"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-      security:
-      - SecurityScheme:
-        - user
   /api/teams/{slug}/rides/{rideSlug}/groups/{groupId}/join:
     post:
       summary: Join ride group
@@ -2373,6 +2053,11 @@ paths:
           type: integer
           format: int32
           default: 0
+      - description: Search by route name
+        name: search
+        in: query
+        schema:
+          type: string
       - description: Page size
         name: size
         in: query

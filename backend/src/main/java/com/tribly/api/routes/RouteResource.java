@@ -64,11 +64,13 @@ public class RouteResource extends AbstractAuthenticatedResource {
       @Parameter(description = "Team URL slug") @PathParam("slug") String teamSlug,
       @Parameter(description = "Page number (0-indexed)") @QueryParam("page") @DefaultValue("0")
           int page,
-      @Parameter(description = "Page size") @QueryParam("size") @DefaultValue("20") int size) {
+      @Parameter(description = "Page size") @QueryParam("size") @DefaultValue("20") int size,
+      @Parameter(description = "Search by route name") @QueryParam("search")
+          @Nullable String search) {
 
     Long userId = getCurrentUserIdOrNull();
 
-    RouteListResponse routes = routeService.getRoutes(teamSlug, userId, page, size);
+    RouteListResponse routes = routeService.getRoutes(teamSlug, userId, page, size, search);
 
     return Response.ok(routes).build();
   }

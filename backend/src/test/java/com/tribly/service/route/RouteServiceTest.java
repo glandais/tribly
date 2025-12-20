@@ -185,7 +185,7 @@ class RouteServiceTest {
     dataService.createRouteWithVisibility(team, admin, "Public 2", Visibility.PUBLIC);
     dataService.createRouteWithVisibility(team, admin, "Team Only", Visibility.TEAM);
 
-    RouteListResponse result = routeService.getRoutes("test-team", null, 0, 10);
+    RouteListResponse result = routeService.getRoutes("test-team", null, 0, 10, null);
 
     assertEquals(2, result.routes().size());
     assertTrue(result.routes().stream().allMatch(r -> r.visibility() == Visibility.PUBLIC));
@@ -196,7 +196,7 @@ class RouteServiceTest {
     dataService.createRouteWithVisibility(team, admin, "Public", Visibility.PUBLIC);
     dataService.createRouteWithVisibility(team, admin, "Team", Visibility.TEAM);
 
-    RouteListResponse result = routeService.getRoutes("test-team", member.getId(), 0, 10);
+    RouteListResponse result = routeService.getRoutes("test-team", member.getId(), 0, 10, null);
 
     assertEquals(2, result.routes().size());
   }
@@ -207,7 +207,7 @@ class RouteServiceTest {
       dataService.createRouteWithVisibility(team, admin, "Route " + i, Visibility.PUBLIC);
     }
 
-    RouteListResponse result = routeService.getRoutes("test-team", null, 0, 3);
+    RouteListResponse result = routeService.getRoutes("test-team", null, 0, 3, null);
 
     assertEquals(3, result.routes().size());
     assertEquals(5, result.total());
@@ -220,7 +220,7 @@ class RouteServiceTest {
     dataService.createRoute(privateTeam, admin, "Route");
 
     assertThrows(
-        BusinessException.class, () -> routeService.getRoutes("private-team", null, 0, 10));
+        BusinessException.class, () -> routeService.getRoutes("private-team", null, 0, 10, null));
   }
 
   // ==================== Update Route ====================

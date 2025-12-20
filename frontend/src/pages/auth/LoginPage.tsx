@@ -5,26 +5,14 @@ import { useAuth } from '../../hooks/useAuth'
 
 export function LoginPage() {
   const { t } = useTranslation('auth')
-  const { t: tCommon } = useTranslation('common')
   const navigate = useNavigate()
-  const { isAuthenticated, isInitialized, isLoading, login } = useAuth()
+  const { isAuthenticated, login } = useAuth()
 
   useEffect(() => {
     if (isAuthenticated) {
       navigate('/')
     }
   }, [isAuthenticated, navigate])
-
-  if (!isInitialized || isLoading) {
-    return (
-      <div className="min-h-[70vh] flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">{tCommon('status.loading')}</p>
-        </div>
-      </div>
-    )
-  }
 
   return (
     <div className="min-h-[70vh] flex items-center justify-center">

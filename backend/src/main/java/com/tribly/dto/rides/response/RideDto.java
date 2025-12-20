@@ -4,8 +4,10 @@ import com.tribly.domain.ride.Ride;
 import com.tribly.enums.RideStatus;
 import com.tribly.enums.Visibility;
 import com.tribly.infrastructure.id.TsidUtils;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.jspecify.annotations.Nullable;
 
@@ -20,11 +22,17 @@ public record RideDto(
     @Nullable @Schema(description = "Start time", nullable = true) LocalTime startTime,
     @Schema(description = "Ride status", required = true) RideStatus status,
     @Schema(description = "Visibility level", required = true) Visibility visibility,
+    @Nullable @Schema(description = "Route id", nullable = true) String routeId,
     @Schema(description = "Number of participants", required = true) int participantCount,
     @Schema(description = "Number of groups", required = true) int groupCount,
-    @Nullable @Schema(description = "Publication timestamp", nullable = true) String publishAt,
+    @Schema(description = "Ride groups", required = true) List<RideGroupDto> groups,
+    @Nullable @Schema(description = "Publication timestamp", nullable = true) Instant publishAt,
     @Nullable @Schema(description = "Creation timestamp", nullable = true) String createdAt) {
-  public static RideDto from(Ride ride) {
+  public static RideDto from(Ride ride, boolean groupDetails) {
+    List<RideGroupDto> groupDtos =
+        groupDetails
+            ? ride.getGroups().stream().filter(g -> !g.isDeleted()).map(RideGroupDto::from).toList()
+            : List.of();
     return new RideDto(
         TsidUtils.toString(ride.getId()),
         ride.getSlug(),
@@ -34,9 +42,11 @@ public record RideDto(
         ride.getStartTime(),
         ride.getStatus(),
         ride.getVisibility(),
+        ride.getRoute() != null ? TsidUtils.toString(ride.getRoute().getId()) : null,
         ride.getParticipantCount(),
         ride.getGroupCount(),
-        ride.getPublishAt() != null ? ride.getPublishAt().toString() : null,
+        groupDtos,
+        ride.getPublishAt(),
         ride.getCreatedAt().toString());
   }
 }

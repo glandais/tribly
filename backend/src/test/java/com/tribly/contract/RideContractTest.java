@@ -51,7 +51,7 @@ class RideContractTest {
         .contentType("application/json")
         .body("{\"title\": \"Updated Ride\"}")
         .when()
-        .patch("/api/teams/" + TEAM_ID + "/rides/" + RIDE_ID)
+        .put("/api/teams/" + TEAM_ID + "/rides/" + RIDE_ID)
         .then()
         .statusCode(401);
   }
@@ -72,19 +72,6 @@ class RideContractTest {
         .get("/api/teams/" + TEAM_ID + "/rides/" + RIDE_ID + "/groups")
         .then()
         .statusCode(404);
-  }
-
-  // ===== Create Ride Group =====
-
-  @Test
-  void createRideGroup_withoutAuth_shouldReturn401() {
-    given()
-        .contentType("application/json")
-        .body("{\"name\": \"Fast Group\", \"averageSpeed\": 30}")
-        .when()
-        .post("/api/teams/" + TEAM_ID + "/rides/" + RIDE_ID + "/groups")
-        .then()
-        .statusCode(401);
   }
 
   // ===== Join Ride Group =====

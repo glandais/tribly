@@ -24,6 +24,12 @@ public class RouteRepository implements BaseRepository<Route> {
     if (routeQuery.routeId() != null) {
       triblyQuery = triblyQuery.and("id = :routeId", Map.of("routeId", routeQuery.routeId()));
     }
+    if (routeQuery.search() != null && !routeQuery.search().isBlank()) {
+      triblyQuery =
+          triblyQuery.and(
+              "LOWER(name) LIKE :search",
+              Map.of("search", "%" + routeQuery.search().toLowerCase() + "%"));
+    }
 
     return getPage(triblyQuery, routeQuery);
   }

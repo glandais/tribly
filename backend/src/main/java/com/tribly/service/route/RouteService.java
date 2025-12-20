@@ -173,7 +173,7 @@ public class RouteService extends AbstractAuthenticatedResource {
     RouteQueryParams routeQueryParams = getRouteQueryParams(userId, team);
 
     RouteQuery routeQuery =
-        new RouteQuery(team.getId(), 0, 1, routeId, routeQueryParams.visibility());
+        new RouteQuery(team.getId(), 0, 1, routeId, routeQueryParams.visibility(), null);
     TriblyPage<Route> triblyPage = routeRepository.find(routeQuery);
     if (triblyPage.items().isEmpty()) {
       throw BusinessException.notFound("Route", routeId);
@@ -185,14 +185,15 @@ public class RouteService extends AbstractAuthenticatedResource {
   /**
    * List routes for a team with pagination and access control.
    */
-  public RouteListResponse getRoutes(String slug, @Nullable Long userId, int page, int size) {
+  public RouteListResponse getRoutes(
+      String slug, @Nullable Long userId, int page, int size, @Nullable String search) {
     Team team =
         teamRepository.findBySlug(slug).orElseThrow(() -> BusinessException.notFound("Team", slug));
 
     RouteQueryParams routeQueryParams = getRouteQueryParams(userId, team);
 
     RouteQuery routeQuery =
-        new RouteQuery(team.getId(), page, size, null, routeQueryParams.visibility());
+        new RouteQuery(team.getId(), page, size, null, routeQueryParams.visibility(), search);
     TriblyPage<Route> routes = routeRepository.find(routeQuery);
     List<RouteDto> dtos = routes.items().stream().map(RouteDto::from).toList();
     return new RouteListResponse(dtos, routes.total(), page, size);
@@ -261,7 +262,7 @@ public class RouteService extends AbstractAuthenticatedResource {
     // Security check: must be admin or organizer to delete routes
     securityService.requireOrganizer(userId, teamSlug);
 
-    route.softDelete();
+    route.setDeleted(true);
     routeRepository.persist(route);
 
     // Delete associated files

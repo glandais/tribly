@@ -2,16 +2,14 @@ import { useState, useEffect } from 'react'
 import { Link, useParams, Navigate, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useTeam } from '../../hooks/useTeam'
-import {
-  useRide,
-  useUpdateRide,
-  useCreateGroup,
-  useUpdateGroup,
-  useDeleteGroup,
-  Visibility,
-} from '../../hooks/useRide'
+import { useRide, useUpdateRide, Visibility } from '../../hooks/useRide'
 import { LoadingPage, LoadingSpinner } from '../../components/common/LoadingSpinner'
 import { ApiClientError } from '../../lib/apiClient'
+import { RoutePickerModal } from '../../components/route/RoutePickerModal'
+import { CreateRouteModal } from '../../components/route/CreateRouteModal'
+import { RoutePreview } from '../../components/route/RoutePreview'
+import { RoutePreviewCompact } from '../../components/route/RoutePreviewCompact'
+import type { RouteDto } from '../../api/api'
 
 interface EditableGroup {
   id?: string
@@ -19,6 +17,7 @@ interface EditableGroup {
   description?: string
   averageSpeed?: number
   maxParticipants?: number
+  routeId?: string
   isNew?: boolean
   isDeleted?: boolean
 }
@@ -37,13 +36,16 @@ export function EditRidePage() {
   const [startTime, setStartTime] = useState('')
   const [visibility, setVisibility] = useState<Visibility>(Visibility.Team)
   const [publishAt, setPublishAt] = useState('')
+  const [rideRouteId, setRideRouteId] = useState<string | null>(null)
   const [groups, setGroups] = useState<EditableGroup[]>([])
   const [initialized, setInitialized] = useState(false)
+  const [showRoutePickerModal, setShowRoutePickerModal] = useState(false)
+  const [showCreateRouteModal, setShowCreateRouteModal] = useState(false)
+  const [pickerTarget, setPickerTarget] = useState<
+    'ride' | { type: 'group'; index: number } | null
+  >(null)
 
   const updateMutation = useUpdateRide(teamSlug, rideSlug!)
-  const createGroupMutation = useCreateGroup(teamSlug, rideSlug!)
-  const updateGroupMutation = useUpdateGroup(teamSlug, rideSlug!)
-  const deleteGroupMutation = useDeleteGroup(teamSlug, rideSlug!)
 
   // Initialize form state from fetched ride data
   useEffect(() => {
@@ -56,6 +58,7 @@ export function EditRidePage() {
       setVisibility(ride.visibility)
       // Convert ISO string to datetime-local format (YYYY-MM-DDTHH:mm)
       setPublishAt(ride.publishAt ? new Date(ride.publishAt).toISOString().slice(0, 16) : '')
+      setRideRouteId(ride.routeId || null)
       setGroups(
         ride.groups?.map((g) => ({
           id: g.id,
@@ -63,6 +66,7 @@ export function EditRidePage() {
           description: g.description || undefined,
           averageSpeed: g.averageSpeed || undefined,
           maxParticipants: g.maxParticipants || undefined,
+          routeId: g.routeId || undefined,
         })) || []
       )
       setInitialized(true)
@@ -83,58 +87,24 @@ export function EditRidePage() {
     return <Navigate to={`/teams/${teamSlug}/rides/${rideSlug}`} replace />
   }
 
-  const isSaving =
-    updateMutation.isPending ||
-    createGroupMutation.isPending ||
-    updateGroupMutation.isPending ||
-    deleteGroupMutation.isPending
+  const isSaving = updateMutation.isPending
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    const filteredGroups = groups.filter((g) => g.name.trim())
 
     // Update ride details
     await updateMutation.mutateAsync({
       title,
+      status: ride.status,
       description: description || undefined,
       date,
       startTime: startTime || undefined,
       visibility,
       publishAt: publishAt ? new Date(publishAt).toISOString() : undefined,
+      routeId: rideRouteId || undefined,
+      groups: filteredGroups,
     })
-
-    // Process group changes
-    for (const group of groups) {
-      if (group.isDeleted && group.id) {
-        await deleteGroupMutation.mutateAsync(group.id)
-      } else if (group.isNew && !group.isDeleted) {
-        await createGroupMutation.mutateAsync({
-          name: group.name,
-          description: group.description,
-          averageSpeed: group.averageSpeed,
-          maxParticipants: group.maxParticipants,
-        })
-      } else if (group.id && !group.isDeleted) {
-        // Check if group was modified
-        const originalGroup = ride.groups?.find((g) => g.id === group.id)
-        if (
-          originalGroup &&
-          (originalGroup.name !== group.name ||
-            (originalGroup.description || undefined) !== group.description ||
-            (originalGroup.averageSpeed || undefined) !== group.averageSpeed ||
-            (originalGroup.maxParticipants || undefined) !== group.maxParticipants)
-        ) {
-          await updateGroupMutation.mutateAsync({
-            groupId: group.id,
-            data: {
-              name: group.name,
-              description: group.description,
-              averageSpeed: group.averageSpeed,
-              maxParticipants: group.maxParticipants,
-            },
-          })
-        }
-      }
-    }
 
     navigate(`/teams/${teamSlug}/rides/${rideSlug}`)
   }
@@ -320,6 +290,43 @@ export function EditRidePage() {
           )}
         </div>
 
+        {/* Route Selection */}
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <label className="block text-sm font-medium text-gray-700">
+              {t('create.form.route.label')}
+            </label>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setPickerTarget('ride')
+                  setShowRoutePickerModal(true)
+                }}
+                className="text-sm text-indigo-600 hover:text-indigo-700"
+              >
+                {rideRouteId ? t('create.form.route.change') : t('create.form.route.select')}
+              </button>
+              {rideRouteId && (
+                <button
+                  type="button"
+                  onClick={() => setRideRouteId(null)}
+                  className="text-sm text-red-600 hover:text-red-700"
+                >
+                  {t('create.form.route.clear')}
+                </button>
+              )}
+            </div>
+          </div>
+
+          {rideRouteId ? (
+            <RoutePreview routeId={rideRouteId} teamSlug={teamSlug!} />
+          ) : (
+            <p className="text-sm text-gray-500 italic">{t('create.form.route.none')}</p>
+          )}
+          <p className="mt-1 text-sm text-gray-500">{t('create.form.route.hint')}</p>
+        </div>
+
         {/* Scheduled Publication */}
         <div>
           <label htmlFor="publishAt" className="block text-sm font-medium text-gray-700">
@@ -432,6 +439,47 @@ export function EditRidePage() {
                     </div>
                   </div>
                 )}
+
+                {/* Route Selection for Group */}
+                {!group.isDeleted && (
+                  <div className="mt-3 pt-3 border-t border-gray-200">
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-xs font-medium text-gray-600">
+                        {t('create.form.groups.route.label')}
+                      </label>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPickerTarget({ type: 'group', index })
+                            setShowRoutePickerModal(true)
+                          }}
+                          className="text-xs text-indigo-600 hover:text-indigo-700"
+                        >
+                          {group.routeId
+                            ? t('create.form.route.change')
+                            : t('create.form.route.select')}
+                        </button>
+                        {group.routeId && (
+                          <button
+                            type="button"
+                            onClick={() => handleUpdateGroup(index, { routeId: undefined })}
+                            className="text-xs text-red-600 hover:text-red-700"
+                          >
+                            {t('create.form.route.clear')}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    {group.routeId ? (
+                      <RoutePreviewCompact routeId={group.routeId} teamSlug={teamSlug!} />
+                    ) : (
+                      <p className="text-xs text-gray-400 italic">
+                        {t('create.form.groups.route.none')}
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
             ))}
             {groups.length === 0 && (
@@ -470,6 +518,61 @@ export function EditRidePage() {
           </button>
         </div>
       </form>
+
+      {/* Route Picker Modal */}
+      <RoutePickerModal
+        isOpen={showRoutePickerModal}
+        onClose={() => {
+          setShowRoutePickerModal(false)
+          setPickerTarget(null)
+        }}
+        onSelect={(route: RouteDto | null) => {
+          if (pickerTarget === 'ride') {
+            setRideRouteId(route ? route.id : null)
+          } else if (pickerTarget && typeof pickerTarget === 'object') {
+            handleUpdateGroup(pickerTarget.index, { routeId: route ? route.id : undefined })
+          }
+          setShowRoutePickerModal(false)
+          setPickerTarget(null)
+        }}
+        teamSlug={teamSlug!}
+        selectedRouteId={
+          pickerTarget === 'ride'
+            ? rideRouteId
+            : pickerTarget && typeof pickerTarget === 'object'
+              ? groups[pickerTarget.index]?.routeId
+              : null
+        }
+        title={
+          pickerTarget === 'ride'
+            ? t('create.form.route.selectForRide')
+            : t('create.form.route.selectForGroup')
+        }
+        onCreateNew={() => {
+          setShowRoutePickerModal(false)
+          setShowCreateRouteModal(true)
+        }}
+      />
+
+      {/* Create Route Modal */}
+      <CreateRouteModal
+        isOpen={showCreateRouteModal}
+        onClose={() => {
+          setShowCreateRouteModal(false)
+          setPickerTarget(null)
+        }}
+        onRouteCreated={(route: RouteDto) => {
+          if (pickerTarget === 'ride') {
+            setRideRouteId(route.id)
+          } else if (pickerTarget && typeof pickerTarget === 'object') {
+            handleUpdateGroup(pickerTarget.index, { routeId: route.id })
+          }
+          setShowCreateRouteModal(false)
+          setPickerTarget(null)
+        }}
+        teamSlug={teamSlug!}
+        teamVisibility={team.visibility}
+      />
     </div>
   )
 }

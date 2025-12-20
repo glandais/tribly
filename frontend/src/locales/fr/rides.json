@@ -51,6 +51,16 @@
         "public": "Publique",
         "privateTeamHint": "Les sorties publiques ne sont pas disponibles pour les équipes privées"
       },
+      "route": {
+        "label": "Parcours",
+        "select": "Sélectionner un parcours",
+        "change": "Changer",
+        "clear": "Retirer",
+        "none": "Aucun parcours sélectionné",
+        "hint": "Optionnel : associez un parcours GPX à cette sortie",
+        "selectForRide": "Sélectionner un parcours pour la sortie",
+        "selectForGroup": "Sélectionner un parcours pour le groupe"
+      },
       "groups": {
         "label": "Groupes",
         "add": "+ Ajouter un groupe",
@@ -69,7 +79,11 @@
         "restore": "Restaurer",
         "remove": "Supprimer",
         "empty": "Aucun groupe défini. Ajoutez au moins un groupe.",
-        "hint": "Créez différents groupes pour différents niveaux ou vitesses"
+        "hint": "Créez différents groupes pour différents niveaux ou vitesses",
+        "route": {
+          "label": "Parcours du groupe",
+          "none": "Pas de parcours spécifique"
+        }
       },
       "publishAt": {
         "label": "Publication programmée",

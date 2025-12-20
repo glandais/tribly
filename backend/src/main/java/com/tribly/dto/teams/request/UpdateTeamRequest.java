@@ -1,11 +1,13 @@
 package com.tribly.dto.teams.request;
 
+import com.tribly.dto.validation.ValidateSchema;
 import com.tribly.enums.Visibility;
 import jakarta.validation.constraints.Size;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.jspecify.annotations.Nullable;
 
 @Schema(description = "Team update request")
+@ValidateSchema
 public record UpdateTeamRequest(
     @Nullable @Schema(description = "Team name", nullable = true) @Size(min = 2, max = 255)
         String name,

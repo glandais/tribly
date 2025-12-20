@@ -37,7 +37,7 @@ class RouteRepositoryTest {
     dataService.createRoute(team, user, "Route 1");
     dataService.createRoute(team, user, "Route 2");
 
-    RouteQuery query = new RouteQuery(team.getId(), 0, 10, null, null);
+    RouteQuery query = new RouteQuery(team.getId(), 0, 10, null, null, null);
     TriblyPage<Route> result = routeRepository.find(query);
 
     assertEquals(2, result.items().size());
@@ -49,7 +49,7 @@ class RouteRepositoryTest {
     Route route1 = dataService.createRoute(team, user, "Route 1");
     dataService.createRoute(team, user, "Route 2");
 
-    RouteQuery query = new RouteQuery(team.getId(), 0, 10, route1.getId(), null);
+    RouteQuery query = new RouteQuery(team.getId(), 0, 10, route1.getId(), null, null);
     TriblyPage<Route> result = routeRepository.find(query);
 
     assertEquals(1, result.items().size());
@@ -61,7 +61,7 @@ class RouteRepositoryTest {
     dataService.createRouteWithVisibility(team, user, "Public Route", Visibility.PUBLIC);
     dataService.createRouteWithVisibility(team, user, "Team Route", Visibility.TEAM);
 
-    RouteQuery query = new RouteQuery(team.getId(), 0, 10, null, Visibility.PUBLIC);
+    RouteQuery query = new RouteQuery(team.getId(), 0, 10, null, Visibility.PUBLIC, null);
     TriblyPage<Route> result = routeRepository.find(query);
 
     assertEquals(1, result.items().size());
@@ -74,7 +74,7 @@ class RouteRepositoryTest {
     Route deletedRoute = dataService.createRoute(team, user, "Deleted Route");
     dataService.deleteRoute(deletedRoute);
 
-    RouteQuery query = new RouteQuery(team.getId(), 0, 10, null, null);
+    RouteQuery query = new RouteQuery(team.getId(), 0, 10, null, null, null);
     TriblyPage<Route> result = routeRepository.find(query);
 
     assertEquals(1, result.items().size());
@@ -86,7 +86,7 @@ class RouteRepositoryTest {
     dataService.createRoute(team, user, "Route 1");
     Team otherTeam = dataService.createTeam("Other Team", "other-team");
 
-    RouteQuery query = new RouteQuery(otherTeam.getId(), 0, 10, null, null);
+    RouteQuery query = new RouteQuery(otherTeam.getId(), 0, 10, null, null, null);
     TriblyPage<Route> result = routeRepository.find(query);
 
     assertEquals(0, result.items().size());
@@ -98,7 +98,7 @@ class RouteRepositoryTest {
       dataService.createRoute(team, user, "Route " + i);
     }
 
-    RouteQuery query = new RouteQuery(team.getId(), 0, 2, null, null);
+    RouteQuery query = new RouteQuery(team.getId(), 0, 2, null, null, null);
     TriblyPage<Route> result = routeRepository.find(query);
 
     assertEquals(2, result.items().size());
@@ -112,7 +112,8 @@ class RouteRepositoryTest {
     dataService.createRouteWithVisibility(team, user, "Other Public Route", Visibility.PUBLIC);
     dataService.createRouteWithVisibility(team, user, "Team Route", Visibility.TEAM);
 
-    RouteQuery query = new RouteQuery(team.getId(), 0, 10, targetRoute.getId(), Visibility.PUBLIC);
+    RouteQuery query =
+        new RouteQuery(team.getId(), 0, 10, targetRoute.getId(), Visibility.PUBLIC, null);
     TriblyPage<Route> result = routeRepository.find(query);
 
     assertEquals(1, result.items().size());

@@ -2,9 +2,13 @@ import { useState } from 'react'
 import { Link, useParams, Navigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useTeam } from '../../hooks/useTeam'
-import { useCreateRide, CreateGroupRequest, Visibility } from '../../hooks/useRide'
+import { useCreateRide, GroupRequest, Visibility } from '../../hooks/useRide'
 import { LoadingPage, LoadingSpinner } from '../../components/common/LoadingSpinner'
 import { ApiClientError } from '../../lib/apiClient'
+import { RoutePickerModal } from '../../components/route/RoutePickerModal'
+import { CreateRouteModal } from '../../components/route/CreateRouteModal'
+import { RoutePreview } from '../../components/route/RoutePreview'
+import type { RouteDto } from '../../api/api'
 
 export function CreateRidePage() {
   const { t } = useTranslation('rides')
@@ -27,13 +31,16 @@ export function CreateRidePage() {
   const [startTime, setStartTime] = useState('08:00')
   const [visibility, setVisibility] = useState<Visibility>(Visibility.Team)
   const [publishAt, setPublishAt] = useState('')
-  const [groups, setGroups] = useState<CreateGroupRequest[]>([
+  const [rideRouteId, setRideRouteId] = useState<string | null>(null)
+  const [groups, setGroups] = useState<GroupRequest[]>([
     {
       name: t('create.form.groups.defaultName'),
       averageSpeed: undefined,
       maxParticipants: undefined,
     },
   ])
+  const [showRoutePickerModal, setShowRoutePickerModal] = useState(false)
+  const [showCreateRouteModal, setShowCreateRouteModal] = useState(false)
 
   const createMutation = useCreateRide(teamSlug)
 
@@ -59,9 +66,11 @@ export function CreateRidePage() {
       description: description || undefined,
       date,
       startTime: startTime || undefined,
+      status: 'DRAFT',
       visibility,
       publishAt: publishAt ? new Date(publishAt).toISOString() : undefined,
-      groups: filteredGroups.length > 0 ? filteredGroups : undefined,
+      routeId: rideRouteId || undefined,
+      groups: filteredGroups,
     })
   }
 
@@ -75,7 +84,7 @@ export function CreateRidePage() {
     }
   }
 
-  const handleUpdateGroup = (index: number, updates: Partial<CreateGroupRequest>) => {
+  const handleUpdateGroup = (index: number, updates: Partial<GroupRequest>) => {
     setGroups(groups.map((g, i) => (i === index ? { ...g, ...updates } : g)))
   }
 
@@ -236,6 +245,40 @@ export function CreateRidePage() {
           )}
         </div>
 
+        {/* Route Selection */}
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <label className="block text-sm font-medium text-gray-700">
+              {t('create.form.route.label')}
+            </label>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setShowRoutePickerModal(true)}
+                className="text-sm text-indigo-600 hover:text-indigo-700"
+              >
+                {rideRouteId ? t('create.form.route.change') : t('create.form.route.select')}
+              </button>
+              {rideRouteId && (
+                <button
+                  type="button"
+                  onClick={() => setRideRouteId(null)}
+                  className="text-sm text-red-600 hover:text-red-700"
+                >
+                  {t('create.form.route.clear')}
+                </button>
+              )}
+            </div>
+          </div>
+
+          {rideRouteId ? (
+            <RoutePreview routeId={rideRouteId} teamSlug={teamSlug!} />
+          ) : (
+            <p className="text-sm text-gray-500 italic">{t('create.form.route.none')}</p>
+          )}
+          <p className="mt-1 text-sm text-gray-500">{t('create.form.route.hint')}</p>
+        </div>
+
         {/* Scheduled Publication */}
         <div>
           <label htmlFor="publishAt" className="block text-sm font-medium text-gray-700">
@@ -352,6 +395,35 @@ export function CreateRidePage() {
           </button>
         </div>
       </form>
+
+      {/* Route Picker Modal */}
+      <RoutePickerModal
+        isOpen={showRoutePickerModal}
+        onClose={() => setShowRoutePickerModal(false)}
+        onSelect={(route: RouteDto | null) => {
+          setRideRouteId(route ? route.id : null)
+          setShowRoutePickerModal(false)
+        }}
+        teamSlug={teamSlug!}
+        selectedRouteId={rideRouteId}
+        title={t('create.form.route.selectForRide')}
+        onCreateNew={() => {
+          setShowRoutePickerModal(false)
+          setShowCreateRouteModal(true)
+        }}
+      />
+
+      {/* Create Route Modal */}
+      <CreateRouteModal
+        isOpen={showCreateRouteModal}
+        onClose={() => setShowCreateRouteModal(false)}
+        onRouteCreated={(route: RouteDto) => {
+          setRideRouteId(route.id)
+          setShowCreateRouteModal(false)
+        }}
+        teamSlug={teamSlug!}
+        teamVisibility={team.visibility}
+      />
     </div>
   )
 }

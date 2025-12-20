@@ -78,61 +78,6 @@ export interface ConfigDto {
   map: MapConfig
 }
 /**
- * Ride group creation request
- */
-export interface CreateGroupRequest {
-  /**
-   * Group name
-   */
-  name: string
-  /**
-   * Group description
-   */
-  description?: string | null
-  /**
-   * Average speed in km/h
-   */
-  averageSpeed?: number | null
-  /**
-   * Maximum participants
-   */
-  maxParticipants?: number | null
-  /**
-   * Route ID (TSID) for this group
-   */
-  routeId?: string | null
-}
-/**
- * Ride creation request
- */
-export interface CreateRideRequest {
-  /**
-   * Ride title
-   */
-  title: string
-  /**
-   * Ride description
-   */
-  description?: string | null
-  date: string
-  startTime?: string
-  visibility?: Visibility | null
-  /**
-   * Route ID (TSID)
-   */
-  routeId?: string | null
-  /**
-   * Meeting point ID (TSID)
-   */
-  meetingPointId?: string | null
-  publishAt?: string
-  /**
-   * Ride groups to create
-   */
-  groups?: Array<CreateGroupRequest> | null
-}
-
-/**
  * Team creation request
  */
 export interface CreateTeamRequest {
@@ -205,6 +150,35 @@ export interface GpxTrackDto {
    * Processing timestamp
    */
   processedAt?: string | null
+}
+/**
+ * Ride group creation request
+ */
+export interface GroupRequest {
+  /**
+   * id
+   */
+  id?: string | null
+  /**
+   * Group name
+   */
+  name: string
+  /**
+   * Group description
+   */
+  description?: string | null
+  /**
+   * Average speed in km/h
+   */
+  averageSpeed?: number | null
+  /**
+   * Maximum participants
+   */
+  maxParticipants?: number | null
+  /**
+   * Route ID (TSID) for this group
+   */
+  routeId?: string | null
 }
 /**
  * Request to join a ride group
@@ -324,58 +298,6 @@ export interface PublicUserDto {
   avatarUrl?: string | null
 }
 /**
- * Detailed ride information
- */
-export interface RideDetailDto {
-  /**
-   * Ride ID (TSID)
-   */
-  id: string
-  /**
-   * Ride URL slug
-   */
-  slug: string
-  /**
-   * Ride title
-   */
-  title: string
-  /**
-   * Ride description
-   */
-  description?: string | null
-  date: string
-  startTime?: string
-  /**
-   * Ride status
-   */
-  status: RideStatus
-  /**
-   * Visibility level
-   */
-  visibility: Visibility
-  /**
-   * Number of participants
-   */
-  participantCount: number
-  /**
-   * Number of groups
-   */
-  groupCount: number
-  /**
-   * Ride groups
-   */
-  groups: Array<RideGroupDto>
-  /**
-   * Publication timestamp
-   */
-  publishAt?: string | null
-  /**
-   * Creation timestamp
-   */
-  createdAt?: string | null
-}
-
-/**
  * Ride summary data
  */
 export interface RideDto {
@@ -406,6 +328,10 @@ export interface RideDto {
    */
   visibility: Visibility
   /**
+   * Route id
+   */
+  routeId?: string | null
+  /**
    * Number of participants
    */
   participantCount: number
@@ -414,9 +340,10 @@ export interface RideDto {
    */
   groupCount: number
   /**
-   * Publication timestamp
+   * Ride groups
    */
-  publishAt?: string | null
+  groups: Array<RideGroupDto>
+  publishAt?: string
   /**
    * Creation timestamp
    */
@@ -439,6 +366,10 @@ export interface RideGroupDto {
    * Group description
    */
   description?: string | null
+  /**
+   * Route id
+   */
+  routeId?: string | null
   /**
    * Average speed in km/h
    */
@@ -510,6 +441,43 @@ export interface RideParticipationDto {
    * Participant notes
    */
   notes?: string | null
+}
+
+/**
+ * Ride request
+ */
+export interface RideRequest {
+  /**
+   * Ride title
+   */
+  title: string
+  /**
+   * Ride description
+   */
+  description?: string | null
+  date: string
+  startTime?: string
+  /**
+   * Ride status
+   */
+  status: RideStatus
+  /**
+   * Visibility level
+   */
+  visibility: Visibility
+  /**
+   * Route ID (TSID)
+   */
+  routeId?: string | null
+  /**
+   * Meeting point ID (TSID)
+   */
+  meetingPointId?: string | null
+  publishAt?: string
+  /**
+   * Ride groups to create
+   */
+  groups: Array<GroupRequest>
 }
 
 export const RideStatus = {
@@ -818,31 +786,6 @@ export interface TrackPointDto {
   dist: number
 }
 /**
- * Ride group update request
- */
-export interface UpdateGroupRequest {
-  /**
-   * Group name
-   */
-  name?: string | null
-  /**
-   * Group description
-   */
-  description?: string | null
-  /**
-   * Average speed in km/h
-   */
-  averageSpeed?: number | null
-  /**
-   * Maximum participants
-   */
-  maxParticipants?: number | null
-  /**
-   * Route ID (TSID)
-   */
-  routeId?: string | null
-}
-/**
  * Request to update a member\'s role
  */
 export interface UpdateMemberRoleRequest {
@@ -850,33 +793,6 @@ export interface UpdateMemberRoleRequest {
    * New role
    */
   role: TeamRole
-}
-
-/**
- * Ride update request
- */
-export interface UpdateRideRequest {
-  /**
-   * Ride title
-   */
-  title?: string | null
-  /**
-   * Ride description
-   */
-  description?: string | null
-  date?: string
-  startTime?: string
-  status?: RideStatus | null
-  visibility?: Visibility | null
-  /**
-   * Route ID (TSID)
-   */
-  routeId?: string | null
-  /**
-   * Meeting point ID (TSID)
-   */
-  meetingPointId?: string | null
-  publishAt?: string
 }
 
 /**
@@ -1096,79 +1012,22 @@ export class ConfigurationApi extends BaseAPI {
 export const RidesApiAxiosParamCreator = function (configuration?: Configuration) {
   return {
     /**
-     * Create a new group for a ride. Requires organizer permissions.
-     * @summary Create ride group
-     * @param {string} rideSlug Ride URL slug
-     * @param {string} slug Team URL slug
-     * @param {CreateGroupRequest} createGroupRequest
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    createGroup: async (
-      rideSlug: string,
-      slug: string,
-      createGroupRequest: CreateGroupRequest,
-      options: RawAxiosRequestConfig = {}
-    ): Promise<RequestArgs> => {
-      // verify required parameter 'rideSlug' is not null or undefined
-      assertParamExists('createGroup', 'rideSlug', rideSlug)
-      // verify required parameter 'slug' is not null or undefined
-      assertParamExists('createGroup', 'slug', slug)
-      // verify required parameter 'createGroupRequest' is not null or undefined
-      assertParamExists('createGroup', 'createGroupRequest', createGroupRequest)
-      const localVarPath = `/api/teams/{slug}/rides/{rideSlug}/groups`
-        .replace(`{${'rideSlug'}}`, encodeURIComponent(String(rideSlug)))
-        .replace(`{${'slug'}}`, encodeURIComponent(String(slug)))
-      // use dummy base URL string because the URL constructor only accepts absolute URLs.
-      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL)
-      let baseOptions
-      if (configuration) {
-        baseOptions = configuration.baseOptions
-      }
-
-      const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options }
-      const localVarHeaderParameter = {} as any
-      const localVarQueryParameter = {} as any
-
-      // authentication SecurityScheme required
-
-      localVarHeaderParameter['Content-Type'] = 'application/json'
-
-      setSearchParams(localVarUrlObj, localVarQueryParameter)
-      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {}
-      localVarRequestOptions.headers = {
-        ...localVarHeaderParameter,
-        ...headersFromBaseOptions,
-        ...options.headers,
-      }
-      localVarRequestOptions.data = serializeDataIfNeeded(
-        createGroupRequest,
-        localVarRequestOptions,
-        configuration
-      )
-
-      return {
-        url: toPathString(localVarUrlObj),
-        options: localVarRequestOptions,
-      }
-    },
-    /**
      * Create a new ride with optional groups
      * @summary Create ride
      * @param {string} slug Team URL slug
-     * @param {CreateRideRequest} createRideRequest
+     * @param {RideRequest} rideRequest
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     createRide: async (
       slug: string,
-      createRideRequest: CreateRideRequest,
+      rideRequest: RideRequest,
       options: RawAxiosRequestConfig = {}
     ): Promise<RequestArgs> => {
       // verify required parameter 'slug' is not null or undefined
       assertParamExists('createRide', 'slug', slug)
-      // verify required parameter 'createRideRequest' is not null or undefined
-      assertParamExists('createRide', 'createRideRequest', createRideRequest)
+      // verify required parameter 'rideRequest' is not null or undefined
+      assertParamExists('createRide', 'rideRequest', rideRequest)
       const localVarPath = `/api/teams/{slug}/rides`.replace(
         `{${'slug'}}`,
         encodeURIComponent(String(slug))
@@ -1196,61 +1055,10 @@ export const RidesApiAxiosParamCreator = function (configuration?: Configuration
         ...options.headers,
       }
       localVarRequestOptions.data = serializeDataIfNeeded(
-        createRideRequest,
+        rideRequest,
         localVarRequestOptions,
         configuration
       )
-
-      return {
-        url: toPathString(localVarUrlObj),
-        options: localVarRequestOptions,
-      }
-    },
-    /**
-     * Delete a ride group. Requires organizer permissions.
-     * @summary Delete ride group
-     * @param {string} groupId Group ID (TSID)
-     * @param {string} rideSlug Ride URL slug
-     * @param {string} slug Team URL slug
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    deleteGroup: async (
-      groupId: string,
-      rideSlug: string,
-      slug: string,
-      options: RawAxiosRequestConfig = {}
-    ): Promise<RequestArgs> => {
-      // verify required parameter 'groupId' is not null or undefined
-      assertParamExists('deleteGroup', 'groupId', groupId)
-      // verify required parameter 'rideSlug' is not null or undefined
-      assertParamExists('deleteGroup', 'rideSlug', rideSlug)
-      // verify required parameter 'slug' is not null or undefined
-      assertParamExists('deleteGroup', 'slug', slug)
-      const localVarPath = `/api/teams/{slug}/rides/{rideSlug}/groups/{groupId}`
-        .replace(`{${'groupId'}}`, encodeURIComponent(String(groupId)))
-        .replace(`{${'rideSlug'}}`, encodeURIComponent(String(rideSlug)))
-        .replace(`{${'slug'}}`, encodeURIComponent(String(slug)))
-      // use dummy base URL string because the URL constructor only accepts absolute URLs.
-      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL)
-      let baseOptions
-      if (configuration) {
-        baseOptions = configuration.baseOptions
-      }
-
-      const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options }
-      const localVarHeaderParameter = {} as any
-      const localVarQueryParameter = {} as any
-
-      // authentication SecurityScheme required
-
-      setSearchParams(localVarUrlObj, localVarQueryParameter)
-      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {}
-      localVarRequestOptions.headers = {
-        ...localVarHeaderParameter,
-        ...headersFromBaseOptions,
-        ...options.headers,
-      }
 
       return {
         url: toPathString(localVarUrlObj),
@@ -1576,88 +1384,26 @@ export const RidesApiAxiosParamCreator = function (configuration?: Configuration
       }
     },
     /**
-     * Update a ride group. Requires organizer permissions.
-     * @summary Update ride group
-     * @param {string} groupId Group ID (TSID)
-     * @param {string} rideSlug Ride URL slug
-     * @param {string} slug Team URL slug
-     * @param {UpdateGroupRequest} updateGroupRequest
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    updateGroup: async (
-      groupId: string,
-      rideSlug: string,
-      slug: string,
-      updateGroupRequest: UpdateGroupRequest,
-      options: RawAxiosRequestConfig = {}
-    ): Promise<RequestArgs> => {
-      // verify required parameter 'groupId' is not null or undefined
-      assertParamExists('updateGroup', 'groupId', groupId)
-      // verify required parameter 'rideSlug' is not null or undefined
-      assertParamExists('updateGroup', 'rideSlug', rideSlug)
-      // verify required parameter 'slug' is not null or undefined
-      assertParamExists('updateGroup', 'slug', slug)
-      // verify required parameter 'updateGroupRequest' is not null or undefined
-      assertParamExists('updateGroup', 'updateGroupRequest', updateGroupRequest)
-      const localVarPath = `/api/teams/{slug}/rides/{rideSlug}/groups/{groupId}`
-        .replace(`{${'groupId'}}`, encodeURIComponent(String(groupId)))
-        .replace(`{${'rideSlug'}}`, encodeURIComponent(String(rideSlug)))
-        .replace(`{${'slug'}}`, encodeURIComponent(String(slug)))
-      // use dummy base URL string because the URL constructor only accepts absolute URLs.
-      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL)
-      let baseOptions
-      if (configuration) {
-        baseOptions = configuration.baseOptions
-      }
-
-      const localVarRequestOptions = { method: 'PATCH', ...baseOptions, ...options }
-      const localVarHeaderParameter = {} as any
-      const localVarQueryParameter = {} as any
-
-      // authentication SecurityScheme required
-
-      localVarHeaderParameter['Content-Type'] = 'application/json'
-
-      setSearchParams(localVarUrlObj, localVarQueryParameter)
-      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {}
-      localVarRequestOptions.headers = {
-        ...localVarHeaderParameter,
-        ...headersFromBaseOptions,
-        ...options.headers,
-      }
-      localVarRequestOptions.data = serializeDataIfNeeded(
-        updateGroupRequest,
-        localVarRequestOptions,
-        configuration
-      )
-
-      return {
-        url: toPathString(localVarUrlObj),
-        options: localVarRequestOptions,
-      }
-    },
-    /**
      * Update ride information. Requires organizer permissions.
      * @summary Update ride
      * @param {string} rideSlug Ride URL slug
      * @param {string} slug Team URL slug
-     * @param {UpdateRideRequest} updateRideRequest
+     * @param {RideRequest} rideRequest
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     updateRide: async (
       rideSlug: string,
       slug: string,
-      updateRideRequest: UpdateRideRequest,
+      rideRequest: RideRequest,
       options: RawAxiosRequestConfig = {}
     ): Promise<RequestArgs> => {
       // verify required parameter 'rideSlug' is not null or undefined
       assertParamExists('updateRide', 'rideSlug', rideSlug)
       // verify required parameter 'slug' is not null or undefined
       assertParamExists('updateRide', 'slug', slug)
-      // verify required parameter 'updateRideRequest' is not null or undefined
-      assertParamExists('updateRide', 'updateRideRequest', updateRideRequest)
+      // verify required parameter 'rideRequest' is not null or undefined
+      assertParamExists('updateRide', 'rideRequest', rideRequest)
       const localVarPath = `/api/teams/{slug}/rides/{rideSlug}`
         .replace(`{${'rideSlug'}}`, encodeURIComponent(String(rideSlug)))
         .replace(`{${'slug'}}`, encodeURIComponent(String(slug)))
@@ -1668,7 +1414,7 @@ export const RidesApiAxiosParamCreator = function (configuration?: Configuration
         baseOptions = configuration.baseOptions
       }
 
-      const localVarRequestOptions = { method: 'PATCH', ...baseOptions, ...options }
+      const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options }
       const localVarHeaderParameter = {} as any
       const localVarQueryParameter = {} as any
 
@@ -1684,7 +1430,7 @@ export const RidesApiAxiosParamCreator = function (configuration?: Configuration
         ...options.headers,
       }
       localVarRequestOptions.data = serializeDataIfNeeded(
-        updateRideRequest,
+        rideRequest,
         localVarRequestOptions,
         configuration
       )
@@ -1704,90 +1450,26 @@ export const RidesApiFp = function (configuration?: Configuration) {
   const localVarAxiosParamCreator = RidesApiAxiosParamCreator(configuration)
   return {
     /**
-     * Create a new group for a ride. Requires organizer permissions.
-     * @summary Create ride group
-     * @param {string} rideSlug Ride URL slug
-     * @param {string} slug Team URL slug
-     * @param {CreateGroupRequest} createGroupRequest
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    async createGroup(
-      rideSlug: string,
-      slug: string,
-      createGroupRequest: CreateGroupRequest,
-      options?: RawAxiosRequestConfig
-    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<RideGroupDto>> {
-      const localVarAxiosArgs = await localVarAxiosParamCreator.createGroup(
-        rideSlug,
-        slug,
-        createGroupRequest,
-        options
-      )
-      const localVarOperationServerIndex = configuration?.serverIndex ?? 0
-      const localVarOperationServerBasePath =
-        operationServerMap['RidesApi.createGroup']?.[localVarOperationServerIndex]?.url
-      return (axios, basePath) =>
-        createRequestFunction(
-          localVarAxiosArgs,
-          globalAxios,
-          BASE_PATH,
-          configuration
-        )(axios, localVarOperationServerBasePath || basePath)
-    },
-    /**
      * Create a new ride with optional groups
      * @summary Create ride
      * @param {string} slug Team URL slug
-     * @param {CreateRideRequest} createRideRequest
+     * @param {RideRequest} rideRequest
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     async createRide(
       slug: string,
-      createRideRequest: CreateRideRequest,
+      rideRequest: RideRequest,
       options?: RawAxiosRequestConfig
     ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<RideDto>> {
       const localVarAxiosArgs = await localVarAxiosParamCreator.createRide(
         slug,
-        createRideRequest,
+        rideRequest,
         options
       )
       const localVarOperationServerIndex = configuration?.serverIndex ?? 0
       const localVarOperationServerBasePath =
         operationServerMap['RidesApi.createRide']?.[localVarOperationServerIndex]?.url
-      return (axios, basePath) =>
-        createRequestFunction(
-          localVarAxiosArgs,
-          globalAxios,
-          BASE_PATH,
-          configuration
-        )(axios, localVarOperationServerBasePath || basePath)
-    },
-    /**
-     * Delete a ride group. Requires organizer permissions.
-     * @summary Delete ride group
-     * @param {string} groupId Group ID (TSID)
-     * @param {string} rideSlug Ride URL slug
-     * @param {string} slug Team URL slug
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    async deleteGroup(
-      groupId: string,
-      rideSlug: string,
-      slug: string,
-      options?: RawAxiosRequestConfig
-    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-      const localVarAxiosArgs = await localVarAxiosParamCreator.deleteGroup(
-        groupId,
-        rideSlug,
-        slug,
-        options
-      )
-      const localVarOperationServerIndex = configuration?.serverIndex ?? 0
-      const localVarOperationServerBasePath =
-        operationServerMap['RidesApi.deleteGroup']?.[localVarOperationServerIndex]?.url
       return (axios, basePath) =>
         createRequestFunction(
           localVarAxiosArgs,
@@ -1833,7 +1515,7 @@ export const RidesApiFp = function (configuration?: Configuration) {
       rideSlug: string,
       slug: string,
       options?: RawAxiosRequestConfig
-    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<RideDetailDto>> {
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<RideDto>> {
       const localVarAxiosArgs = await localVarAxiosParamCreator.getRide(rideSlug, slug, options)
       const localVarOperationServerIndex = configuration?.serverIndex ?? 0
       const localVarOperationServerBasePath =
@@ -1980,59 +1662,24 @@ export const RidesApiFp = function (configuration?: Configuration) {
         )(axios, localVarOperationServerBasePath || basePath)
     },
     /**
-     * Update a ride group. Requires organizer permissions.
-     * @summary Update ride group
-     * @param {string} groupId Group ID (TSID)
-     * @param {string} rideSlug Ride URL slug
-     * @param {string} slug Team URL slug
-     * @param {UpdateGroupRequest} updateGroupRequest
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    async updateGroup(
-      groupId: string,
-      rideSlug: string,
-      slug: string,
-      updateGroupRequest: UpdateGroupRequest,
-      options?: RawAxiosRequestConfig
-    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<RideGroupDto>> {
-      const localVarAxiosArgs = await localVarAxiosParamCreator.updateGroup(
-        groupId,
-        rideSlug,
-        slug,
-        updateGroupRequest,
-        options
-      )
-      const localVarOperationServerIndex = configuration?.serverIndex ?? 0
-      const localVarOperationServerBasePath =
-        operationServerMap['RidesApi.updateGroup']?.[localVarOperationServerIndex]?.url
-      return (axios, basePath) =>
-        createRequestFunction(
-          localVarAxiosArgs,
-          globalAxios,
-          BASE_PATH,
-          configuration
-        )(axios, localVarOperationServerBasePath || basePath)
-    },
-    /**
      * Update ride information. Requires organizer permissions.
      * @summary Update ride
      * @param {string} rideSlug Ride URL slug
      * @param {string} slug Team URL slug
-     * @param {UpdateRideRequest} updateRideRequest
+     * @param {RideRequest} rideRequest
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     async updateRide(
       rideSlug: string,
       slug: string,
-      updateRideRequest: UpdateRideRequest,
+      rideRequest: RideRequest,
       options?: RawAxiosRequestConfig
     ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<RideDto>> {
       const localVarAxiosArgs = await localVarAxiosParamCreator.updateRide(
         rideSlug,
         slug,
-        updateRideRequest,
+        rideRequest,
         options
       )
       const localVarOperationServerIndex = configuration?.serverIndex ?? 0
@@ -2060,58 +1707,20 @@ export const RidesApiFactory = function (
   const localVarFp = RidesApiFp(configuration)
   return {
     /**
-     * Create a new group for a ride. Requires organizer permissions.
-     * @summary Create ride group
-     * @param {string} rideSlug Ride URL slug
-     * @param {string} slug Team URL slug
-     * @param {CreateGroupRequest} createGroupRequest
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    createGroup(
-      rideSlug: string,
-      slug: string,
-      createGroupRequest: CreateGroupRequest,
-      options?: RawAxiosRequestConfig
-    ): AxiosPromise<RideGroupDto> {
-      return localVarFp
-        .createGroup(rideSlug, slug, createGroupRequest, options)
-        .then((request) => request(axios, basePath))
-    },
-    /**
      * Create a new ride with optional groups
      * @summary Create ride
      * @param {string} slug Team URL slug
-     * @param {CreateRideRequest} createRideRequest
+     * @param {RideRequest} rideRequest
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     createRide(
       slug: string,
-      createRideRequest: CreateRideRequest,
+      rideRequest: RideRequest,
       options?: RawAxiosRequestConfig
     ): AxiosPromise<RideDto> {
       return localVarFp
-        .createRide(slug, createRideRequest, options)
-        .then((request) => request(axios, basePath))
-    },
-    /**
-     * Delete a ride group. Requires organizer permissions.
-     * @summary Delete ride group
-     * @param {string} groupId Group ID (TSID)
-     * @param {string} rideSlug Ride URL slug
-     * @param {string} slug Team URL slug
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    deleteGroup(
-      groupId: string,
-      rideSlug: string,
-      slug: string,
-      options?: RawAxiosRequestConfig
-    ): AxiosPromise<void> {
-      return localVarFp
-        .deleteGroup(groupId, rideSlug, slug, options)
+        .createRide(slug, rideRequest, options)
         .then((request) => request(axios, basePath))
     },
     /**
@@ -2143,7 +1752,7 @@ export const RidesApiFactory = function (
       rideSlug: string,
       slug: string,
       options?: RawAxiosRequestConfig
-    ): AxiosPromise<RideDetailDto> {
+    ): AxiosPromise<RideDto> {
       return localVarFp.getRide(rideSlug, slug, options).then((request) => request(axios, basePath))
     },
     /**
@@ -2229,43 +1838,22 @@ export const RidesApiFactory = function (
         .then((request) => request(axios, basePath))
     },
     /**
-     * Update a ride group. Requires organizer permissions.
-     * @summary Update ride group
-     * @param {string} groupId Group ID (TSID)
-     * @param {string} rideSlug Ride URL slug
-     * @param {string} slug Team URL slug
-     * @param {UpdateGroupRequest} updateGroupRequest
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    updateGroup(
-      groupId: string,
-      rideSlug: string,
-      slug: string,
-      updateGroupRequest: UpdateGroupRequest,
-      options?: RawAxiosRequestConfig
-    ): AxiosPromise<RideGroupDto> {
-      return localVarFp
-        .updateGroup(groupId, rideSlug, slug, updateGroupRequest, options)
-        .then((request) => request(axios, basePath))
-    },
-    /**
      * Update ride information. Requires organizer permissions.
      * @summary Update ride
      * @param {string} rideSlug Ride URL slug
      * @param {string} slug Team URL slug
-     * @param {UpdateRideRequest} updateRideRequest
+     * @param {RideRequest} rideRequest
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     updateRide(
       rideSlug: string,
       slug: string,
-      updateRideRequest: UpdateRideRequest,
+      rideRequest: RideRequest,
       options?: RawAxiosRequestConfig
     ): AxiosPromise<RideDto> {
       return localVarFp
-        .updateRide(rideSlug, slug, updateRideRequest, options)
+        .updateRide(rideSlug, slug, rideRequest, options)
         .then((request) => request(axios, basePath))
     },
   }
@@ -2276,60 +1864,16 @@ export const RidesApiFactory = function (
  */
 export class RidesApi extends BaseAPI {
   /**
-   * Create a new group for a ride. Requires organizer permissions.
-   * @summary Create ride group
-   * @param {string} rideSlug Ride URL slug
-   * @param {string} slug Team URL slug
-   * @param {CreateGroupRequest} createGroupRequest
-   * @param {*} [options] Override http request option.
-   * @throws {RequiredError}
-   */
-  public createGroup(
-    rideSlug: string,
-    slug: string,
-    createGroupRequest: CreateGroupRequest,
-    options?: RawAxiosRequestConfig
-  ) {
-    return RidesApiFp(this.configuration)
-      .createGroup(rideSlug, slug, createGroupRequest, options)
-      .then((request) => request(this.axios, this.basePath))
-  }
-
-  /**
    * Create a new ride with optional groups
    * @summary Create ride
    * @param {string} slug Team URL slug
-   * @param {CreateRideRequest} createRideRequest
+   * @param {RideRequest} rideRequest
    * @param {*} [options] Override http request option.
    * @throws {RequiredError}
    */
-  public createRide(
-    slug: string,
-    createRideRequest: CreateRideRequest,
-    options?: RawAxiosRequestConfig
-  ) {
+  public createRide(slug: string, rideRequest: RideRequest, options?: RawAxiosRequestConfig) {
     return RidesApiFp(this.configuration)
-      .createRide(slug, createRideRequest, options)
-      .then((request) => request(this.axios, this.basePath))
-  }
-
-  /**
-   * Delete a ride group. Requires organizer permissions.
-   * @summary Delete ride group
-   * @param {string} groupId Group ID (TSID)
-   * @param {string} rideSlug Ride URL slug
-   * @param {string} slug Team URL slug
-   * @param {*} [options] Override http request option.
-   * @throws {RequiredError}
-   */
-  public deleteGroup(
-    groupId: string,
-    rideSlug: string,
-    slug: string,
-    options?: RawAxiosRequestConfig
-  ) {
-    return RidesApiFp(this.configuration)
-      .deleteGroup(groupId, rideSlug, slug, options)
+      .createRide(slug, rideRequest, options)
       .then((request) => request(this.axios, this.basePath))
   }
 
@@ -2444,44 +1988,22 @@ export class RidesApi extends BaseAPI {
   }
 
   /**
-   * Update a ride group. Requires organizer permissions.
-   * @summary Update ride group
-   * @param {string} groupId Group ID (TSID)
-   * @param {string} rideSlug Ride URL slug
-   * @param {string} slug Team URL slug
-   * @param {UpdateGroupRequest} updateGroupRequest
-   * @param {*} [options] Override http request option.
-   * @throws {RequiredError}
-   */
-  public updateGroup(
-    groupId: string,
-    rideSlug: string,
-    slug: string,
-    updateGroupRequest: UpdateGroupRequest,
-    options?: RawAxiosRequestConfig
-  ) {
-    return RidesApiFp(this.configuration)
-      .updateGroup(groupId, rideSlug, slug, updateGroupRequest, options)
-      .then((request) => request(this.axios, this.basePath))
-  }
-
-  /**
    * Update ride information. Requires organizer permissions.
    * @summary Update ride
    * @param {string} rideSlug Ride URL slug
    * @param {string} slug Team URL slug
-   * @param {UpdateRideRequest} updateRideRequest
+   * @param {RideRequest} rideRequest
    * @param {*} [options] Override http request option.
    * @throws {RequiredError}
    */
   public updateRide(
     rideSlug: string,
     slug: string,
-    updateRideRequest: UpdateRideRequest,
+    rideRequest: RideRequest,
     options?: RawAxiosRequestConfig
   ) {
     return RidesApiFp(this.configuration)
-      .updateRide(rideSlug, slug, updateRideRequest, options)
+      .updateRide(rideSlug, slug, rideRequest, options)
       .then((request) => request(this.axios, this.basePath))
   }
 }
@@ -2759,6 +2281,7 @@ export const RoutesApiAxiosParamCreator = function (configuration?: Configuratio
      * @summary List routes
      * @param {string} slug Team URL slug
      * @param {number} [page] Page number (0-indexed)
+     * @param {string} [search] Search by route name
      * @param {number} [size] Page size
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -2766,6 +2289,7 @@ export const RoutesApiAxiosParamCreator = function (configuration?: Configuratio
     listRoutes: async (
       slug: string,
       page?: number,
+      search?: string,
       size?: number,
       options: RawAxiosRequestConfig = {}
     ): Promise<RequestArgs> => {
@@ -2788,6 +2312,10 @@ export const RoutesApiAxiosParamCreator = function (configuration?: Configuratio
 
       if (page !== undefined) {
         localVarQueryParameter['page'] = page
+      }
+
+      if (search !== undefined) {
+        localVarQueryParameter['search'] = search
       }
 
       if (size !== undefined) {
@@ -3022,6 +2550,7 @@ export const RoutesApiFp = function (configuration?: Configuration) {
      * @summary List routes
      * @param {string} slug Team URL slug
      * @param {number} [page] Page number (0-indexed)
+     * @param {string} [search] Search by route name
      * @param {number} [size] Page size
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -3029,12 +2558,14 @@ export const RoutesApiFp = function (configuration?: Configuration) {
     async listRoutes(
       slug: string,
       page?: number,
+      search?: string,
       size?: number,
       options?: RawAxiosRequestConfig
     ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<RouteListResponse>> {
       const localVarAxiosArgs = await localVarAxiosParamCreator.listRoutes(
         slug,
         page,
+        search,
         size,
         options
       )
@@ -3190,6 +2721,7 @@ export const RoutesApiFactory = function (
      * @summary List routes
      * @param {string} slug Team URL slug
      * @param {number} [page] Page number (0-indexed)
+     * @param {string} [search] Search by route name
      * @param {number} [size] Page size
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -3197,11 +2729,12 @@ export const RoutesApiFactory = function (
     listRoutes(
       slug: string,
       page?: number,
+      search?: string,
       size?: number,
       options?: RawAxiosRequestConfig
     ): AxiosPromise<RouteListResponse> {
       return localVarFp
-        .listRoutes(slug, page, size, options)
+        .listRoutes(slug, page, search, size, options)
         .then((request) => request(axios, basePath))
     },
     /**
@@ -3319,13 +2852,20 @@ export class RoutesApi extends BaseAPI {
    * @summary List routes
    * @param {string} slug Team URL slug
    * @param {number} [page] Page number (0-indexed)
+   * @param {string} [search] Search by route name
    * @param {number} [size] Page size
    * @param {*} [options] Override http request option.
    * @throws {RequiredError}
    */
-  public listRoutes(slug: string, page?: number, size?: number, options?: RawAxiosRequestConfig) {
+  public listRoutes(
+    slug: string,
+    page?: number,
+    search?: string,
+    size?: number,
+    options?: RawAxiosRequestConfig
+  ) {
     return RoutesApiFp(this.configuration)
-      .listRoutes(slug, page, size, options)
+      .listRoutes(slug, page, search, size, options)
       .then((request) => request(this.axios, this.basePath))
   }
 
