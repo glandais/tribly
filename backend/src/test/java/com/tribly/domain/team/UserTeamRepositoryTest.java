@@ -2,8 +2,10 @@ package com.tribly.domain.team;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.tribly.domain.common.TriblyPage;
+import com.tribly.domain.common.repository.TriblyPage;
+import com.tribly.domain.team.repository.UserTeamRepository;
 import com.tribly.domain.user.User;
+import com.tribly.enums.TeamRole;
 import com.tribly.util.TestDataCleaner;
 import com.tribly.util.TestDataService;
 import io.quarkus.test.junit.QuarkusTest;

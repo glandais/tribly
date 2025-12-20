@@ -1,12 +1,14 @@
 package com.tribly.util;
 
-import com.tribly.domain.ride.RideGroupRepository;
-import com.tribly.domain.ride.RideParticipationRepository;
-import com.tribly.domain.ride.RideRepository;
-import com.tribly.domain.route.RouteRepository;
-import com.tribly.domain.team.TeamRepository;
-import com.tribly.domain.team.UserTeamRepository;
-import com.tribly.domain.user.UserRepository;
+import com.tribly.domain.ride.repository.RideGroupRepository;
+import com.tribly.domain.ride.repository.RideParticipationRepository;
+import com.tribly.domain.ride.repository.RideRepository;
+import com.tribly.domain.route.repository.GpxTrackRepository;
+import com.tribly.domain.route.repository.RouteClimbRepository;
+import com.tribly.domain.route.repository.RouteRepository;
+import com.tribly.domain.team.repository.TeamRepository;
+import com.tribly.domain.team.repository.UserTeamRepository;
+import com.tribly.domain.user.repository.UserRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -21,12 +23,16 @@ public class TestDataCleaner {
   @Inject TeamRepository teamRepository;
   @Inject UserRepository userRepository;
   @Inject RouteRepository routeRepository;
+  @Inject RouteClimbRepository routeClimbRepository;
+  @Inject GpxTrackRepository gpxTrackRepository;
 
   @Transactional
   public void cleanAll() {
     participationRepository.deleteAll();
     rideGroupRepository.deleteAll();
     rideRepository.deleteAll();
+    routeClimbRepository.deleteAll();
+    gpxTrackRepository.deleteAll();
     routeRepository.deleteAll();
     userTeamRepository.deleteAll();
     teamRepository.deleteAll();

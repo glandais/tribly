@@ -2,6 +2,7 @@ package com.tribly.domain.ride;
 
 import com.tribly.domain.common.BaseEntity;
 import com.tribly.domain.user.User;
+import com.tribly.enums.ParticipationStatus;
 import jakarta.persistence.*;
 import java.time.Instant;
 import lombok.Getter;

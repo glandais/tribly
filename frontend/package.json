@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "packageManager": "pnpm@10.13.1",
+  "packageManager": "pnpm@10.26.1",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
@@ -50,6 +50,7 @@
     "jsdom": "^27.3.0",
     "postcss": "^8.4.49",
     "prettier": "^3.4.2",
+    "rollup-plugin-visualizer": "^6.0.5",
     "tailwindcss": "^4.1.18",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.50.0",

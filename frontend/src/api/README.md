@@ -105,6 +105,7 @@ Class | Method | HTTP request | Description
  - [MapConfig](docs/MapConfig.md)
  - [MemberDto](docs/MemberDto.md)
  - [MemberListResponse](docs/MemberListResponse.md)
+ - [ParticipationStatus](docs/ParticipationStatus.md)
  - [PublicUserDto](docs/PublicUserDto.md)
  - [RideDetailDto](docs/RideDetailDto.md)
  - [RideDto](docs/RideDto.md)

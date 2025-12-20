@@ -2,6 +2,7 @@ package com.tribly.domain.ride;
 
 import com.tribly.domain.common.BaseEntity;
 import com.tribly.domain.route.Route;
+import com.tribly.enums.ParticipationStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

@@ -65,3 +65,5 @@ test-results/
 backend/data
 
 frontend/tsconfig.tsbuildinfo
+
+frontend/stats.html

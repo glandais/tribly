@@ -1,7 +1,7 @@
 package com.tribly.service.auth;
 
 import com.tribly.domain.user.User;
-import com.tribly.domain.user.UserRepository;
+import com.tribly.domain.user.repository.UserRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;

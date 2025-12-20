@@ -1,7 +1,7 @@
 package com.tribly.api.routes;
 
 import com.tribly.api.AbstractAuthenticatedResource;
-import com.tribly.api.dto.ErrorResponse;
+import com.tribly.dto.error.ErrorResponse;
 import com.tribly.infrastructure.id.TsidUtils;
 import com.tribly.service.route.RouteService;
 import jakarta.annotation.security.PermitAll;

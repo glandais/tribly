@@ -3,12 +3,12 @@ package com.tribly.integration;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
-import com.tribly.domain.ride.RideGroupRepository;
-import com.tribly.domain.ride.RideParticipationRepository;
-import com.tribly.domain.ride.RideRepository;
-import com.tribly.domain.team.TeamRepository;
-import com.tribly.domain.team.UserTeamRepository;
-import com.tribly.domain.user.UserRepository;
+import com.tribly.domain.ride.repository.RideGroupRepository;
+import com.tribly.domain.ride.repository.RideParticipationRepository;
+import com.tribly.domain.ride.repository.RideRepository;
+import com.tribly.domain.team.repository.TeamRepository;
+import com.tribly.domain.team.repository.UserTeamRepository;
+import com.tribly.domain.user.repository.UserRepository;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.keycloak.client.KeycloakTestClient;
 import jakarta.inject.Inject;

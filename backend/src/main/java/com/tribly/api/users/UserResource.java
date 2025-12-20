@@ -1,8 +1,11 @@
 package com.tribly.api.users;
 
 import com.tribly.api.AbstractAuthenticatedResource;
-import com.tribly.api.dto.ErrorResponse;
 import com.tribly.domain.user.User;
+import com.tribly.dto.error.ErrorResponse;
+import com.tribly.dto.users.request.UpdateUserRequest;
+import com.tribly.dto.users.response.PublicUserDto;
+import com.tribly.dto.users.response.UserDto;
 import com.tribly.infrastructure.id.TsidUtils;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.validation.Valid;

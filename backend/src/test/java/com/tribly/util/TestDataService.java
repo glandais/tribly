@@ -1,20 +1,29 @@
 package com.tribly.util;
 
-import com.tribly.domain.common.Visibility;
 import com.tribly.domain.ride.*;
+import com.tribly.domain.ride.repository.RideGroupRepository;
+import com.tribly.domain.ride.repository.RideParticipationRepository;
+import com.tribly.domain.ride.repository.RideRepository;
+import com.tribly.domain.route.GpxTrack;
 import com.tribly.domain.route.Route;
-import com.tribly.domain.route.RouteRepository;
+import com.tribly.domain.route.RouteClimb;
+import com.tribly.domain.route.repository.GpxTrackRepository;
+import com.tribly.domain.route.repository.RouteClimbRepository;
+import com.tribly.domain.route.repository.RouteRepository;
 import com.tribly.domain.team.Team;
-import com.tribly.domain.team.TeamRepository;
-import com.tribly.domain.team.TeamRole;
 import com.tribly.domain.team.UserTeam;
-import com.tribly.domain.team.UserTeamRepository;
+import com.tribly.domain.team.repository.TeamRepository;
+import com.tribly.domain.team.repository.UserTeamRepository;
 import com.tribly.domain.user.User;
-import com.tribly.domain.user.UserRepository;
+import com.tribly.domain.user.repository.UserRepository;
+import com.tribly.enums.*;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.util.List;
 
 @ApplicationScoped
 public class TestDataService {
@@ -26,6 +35,8 @@ public class TestDataService {
   @Inject RideGroupRepository rideGroupRepository;
   @Inject RideParticipationRepository participationRepository;
   @Inject RouteRepository routeRepository;
+  @Inject RouteClimbRepository routeClimbRepository;
+  @Inject GpxTrackRepository gpxTrackRepository;
 
   @Transactional
   public User createUser(String email, String displayName) {
@@ -75,6 +86,8 @@ public class TestDataService {
   @Transactional
   public Ride createRide(Team team, User createdBy, String title, String slug, LocalDate date) {
     Ride ride = new Ride(team, createdBy, title, slug, date);
+    ride.setStatus(RideStatus.PUBLISHED);
+    ride.setVisibility(Visibility.PUBLIC);
     rideRepository.persistAndFlush(ride);
     return ride;
   }
@@ -93,6 +106,22 @@ public class TestDataService {
       Team team, User createdBy, String title, String slug, LocalDate date, Visibility visibility) {
     Ride ride = new Ride(team, createdBy, title, slug, date);
     ride.setVisibility(visibility);
+    rideRepository.persistAndFlush(ride);
+    return ride;
+  }
+
+  @Transactional
+  public Ride createRideWithVisibilityAndStatus(
+      Team team,
+      User createdBy,
+      String title,
+      String slug,
+      LocalDate date,
+      Visibility visibility,
+      RideStatus status) {
+    Ride ride = new Ride(team, createdBy, title, slug, date);
+    ride.setVisibility(visibility);
+    ride.setStatus(status);
     rideRepository.persistAndFlush(ride);
     return ride;
   }
@@ -124,6 +153,14 @@ public class TestDataService {
   public RideGroup createRideGroupWithOrder(Ride ride, String name, int sortOrder) {
     RideGroup group = new RideGroup(ride, name);
     group.setSortOrder(sortOrder);
+    rideGroupRepository.persistAndFlush(group);
+    return group;
+  }
+
+  @Transactional
+  public RideGroup createRideGroupWithMaxParticipants(Ride ride, String name, int maxParticipants) {
+    RideGroup group = new RideGroup(ride, name);
+    group.setMaxParticipants(maxParticipants);
     rideGroupRepository.persistAndFlush(group);
     return group;
   }
@@ -199,5 +236,89 @@ public class TestDataService {
   @Transactional
   public void updateTeam(Team team) {
     teamRepository.getEntityManager().merge(team);
+  }
+
+  @Transactional
+  public RouteClimb createRouteClimb(
+      Route route,
+      Integer startDistance,
+      Integer endDistance,
+      Integer elevationGain,
+      BigDecimal averageGradient,
+      BigDecimal maxGradient) {
+    RouteClimb climb = new RouteClimb();
+    climb.setRoute(route);
+    climb.setStartDistance(startDistance);
+    climb.setEndDistance(endDistance);
+    climb.setElevationGain(elevationGain);
+    climb.setAverageGradient(averageGradient);
+    climb.setMaxGradient(maxGradient);
+    routeClimbRepository.persistAndFlush(climb);
+    return climb;
+  }
+
+  @Transactional
+  public RouteClimb createRouteClimbWithCategory(
+      Route route,
+      String name,
+      Integer startDistance,
+      Integer endDistance,
+      Integer elevationGain,
+      BigDecimal averageGradient,
+      BigDecimal maxGradient,
+      ClimbCategory category) {
+    RouteClimb climb = new RouteClimb();
+    climb.setRoute(route);
+    climb.setName(name);
+    climb.setStartDistance(startDistance);
+    climb.setEndDistance(endDistance);
+    climb.setElevationGain(elevationGain);
+    climb.setAverageGradient(averageGradient);
+    climb.setMaxGradient(maxGradient);
+    climb.setCategory(category);
+    routeClimbRepository.persistAndFlush(climb);
+    return climb;
+  }
+
+  @Transactional
+  public void deleteRouteClimb(RouteClimb climb) {
+    climb.setDeleted(true);
+    routeClimbRepository.getEntityManager().merge(climb);
+  }
+
+  @Transactional
+  public GpxTrack createGpxTrack(
+      Route route, String geometry, List<GpxTrack.TrackPoint> trackPoints) {
+    GpxTrack track = new GpxTrack();
+    track.setRoute(route);
+    track.setGeometry(geometry);
+    track.setTrackPoints(trackPoints);
+    track.setProcessedAt(Instant.now());
+    gpxTrackRepository.persistAndFlush(track);
+    return track;
+  }
+
+  @Transactional
+  public GpxTrack createGpxTrackWithName(
+      Route route,
+      String name,
+      String geometry,
+      List<GpxTrack.TrackPoint> trackPoints,
+      String originalFileName) {
+    GpxTrack track = new GpxTrack();
+    track.setRoute(route);
+    track.setName(name);
+    track.setGeometry(geometry);
+    track.setTrackPoints(trackPoints);
+    track.setOriginalFileName(originalFileName);
+    track.setProcessedAt(Instant.now());
+    gpxTrackRepository.persistAndFlush(track);
+    return track;
+  }
+
+  @Transactional
+  public void deleteGpxTrack(GpxTrack track) {
+    track.setDeleted(true);
+    gpxTrackRepository.getEntityManager().merge(track);
   }
 }

@@ -1,7 +1,7 @@
 package com.tribly.domain.team;
 
 import com.tribly.domain.common.BaseEntity;
-import com.tribly.domain.common.Visibility;
+import com.tribly.enums.Visibility;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;

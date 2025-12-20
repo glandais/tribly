@@ -296,6 +296,16 @@ export interface MemberListResponse {
    */
   size: number
 }
+
+export const ParticipationStatus = {
+  Registered: 'REGISTERED',
+  Confirmed: 'CONFIRMED',
+  Cancelled: 'CANCELLED',
+  Completed: 'COMPLETED',
+} as const
+
+export type ParticipationStatus = (typeof ParticipationStatus)[keyof typeof ParticipationStatus]
+
 /**
  * Public user information (limited fields)
  */
@@ -491,7 +501,7 @@ export interface RideParticipationDto {
   /**
    * Participation status
    */
-  status: string
+  status: ParticipationStatus
   /**
    * Registration timestamp
    */

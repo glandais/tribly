@@ -20,11 +20,11 @@ public abstract class BaseEntity {
 
   @CreationTimestamp
   @Column(name = "created_at", nullable = false, updatable = false)
-  private Instant createdAt;
+  private Instant createdAt = Instant.now();
 
   @UpdateTimestamp
   @Column(name = "updated_at", nullable = false)
-  private Instant updatedAt;
+  private Instant updatedAt = Instant.now();
 
   @Column(name = "deleted", nullable = false)
   private boolean deleted = false;

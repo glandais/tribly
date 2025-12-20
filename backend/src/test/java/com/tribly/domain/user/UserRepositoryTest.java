@@ -2,6 +2,7 @@ package com.tribly.domain.user;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.tribly.domain.user.repository.UserRepository;
 import com.tribly.util.TestDataCleaner;
 import com.tribly.util.TestDataService;
 import io.quarkus.test.junit.QuarkusTest;

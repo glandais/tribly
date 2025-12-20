@@ -1,10 +1,14 @@
 package com.tribly.api.teams;
 
 import com.tribly.api.AbstractAuthenticatedResource;
-import com.tribly.api.dto.ErrorResponse;
-import com.tribly.domain.common.TriblyPage;
-import com.tribly.domain.team.TeamRole;
+import com.tribly.domain.common.repository.TriblyPage;
 import com.tribly.domain.team.UserTeam;
+import com.tribly.dto.error.ErrorResponse;
+import com.tribly.dto.teams.request.AddMemberRequest;
+import com.tribly.dto.teams.request.UpdateMemberRoleRequest;
+import com.tribly.dto.teams.response.MemberDto;
+import com.tribly.dto.teams.response.MemberListResponse;
+import com.tribly.enums.TeamRole;
 import com.tribly.infrastructure.id.TsidUtils;
 import com.tribly.service.team.TeamMembershipService;
 import jakarta.annotation.security.RolesAllowed;

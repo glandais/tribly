@@ -1,15 +1,23 @@
 package com.tribly.service.route;
 
 import com.tribly.api.AbstractAuthenticatedResource;
-import com.tribly.domain.common.TriblyPage;
-import com.tribly.domain.common.Visibility;
+import com.tribly.domain.common.repository.TriblyPage;
 import com.tribly.domain.route.*;
+import com.tribly.domain.route.repository.GpxTrackRepository;
+import com.tribly.domain.route.repository.RouteClimbRepository;
+import com.tribly.domain.route.repository.RouteQuery;
+import com.tribly.domain.route.repository.RouteRepository;
 import com.tribly.domain.team.Team;
-import com.tribly.domain.team.TeamRepository;
+import com.tribly.domain.team.repository.TeamRepository;
 import com.tribly.domain.user.User;
-import com.tribly.domain.user.UserRepository;
+import com.tribly.domain.user.repository.UserRepository;
+import com.tribly.enums.Visibility;
 import com.tribly.infrastructure.exception.BusinessException;
 import com.tribly.infrastructure.id.TsidUtils;
+import com.tribly.service.route.request.CreateRouteRequest;
+import com.tribly.service.route.request.UpdateRouteRequest;
+import com.tribly.service.route.response.ProcessedGpx;
+import com.tribly.service.route.response.RouteMetadata;
 import com.tribly.service.security.TeamSecurityService;
 import io.github.glandais.gpx.climb.Climb;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -87,11 +95,11 @@ public class RouteService extends AbstractAuthenticatedResource {
 
     try {
       // Process GPX file
-      GpxProcessingService.ProcessedGpx processed =
+      ProcessedGpx processed =
           gpxProcessingService.processGpxUpload(route.getId(), gpxFile, fileName);
 
       // Update route with extracted metadata
-      GpxProcessingService.RouteMetadata metadata = processed.metadata();
+      RouteMetadata metadata = processed.metadata();
       route.setDistance(metadata.distance());
       route.setElevationGain(metadata.elevationGain());
       route.setElevationLoss(metadata.elevationLoss());
@@ -292,17 +300,4 @@ public class RouteService extends AbstractAuthenticatedResource {
 
   // Request DTOs
 
-  public record CreateRouteRequest(
-      String name,
-      String description,
-      RouteDifficulty difficulty,
-      SurfaceType surfaceType,
-      Visibility visibility) {}
-
-  public record UpdateRouteRequest(
-      @Nullable String name,
-      @Nullable String description,
-      @Nullable RouteDifficulty difficulty,
-      @Nullable SurfaceType surfaceType,
-      @Nullable Visibility visibility) {}
 }

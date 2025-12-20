@@ -1,6 +1,7 @@
 package com.tribly.domain.route;
 
 import com.tribly.domain.common.BaseEntity;
+import com.tribly.enums.ClimbCategory;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import lombok.Getter;

@@ -22,6 +22,7 @@ docs/KeycloakConfig.md
 docs/MapConfig.md
 docs/MemberDto.md
 docs/MemberListResponse.md
+docs/ParticipationStatus.md
 docs/PublicUserDto.md
 docs/RideDetailDto.md
 docs/RideDto.md

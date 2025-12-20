@@ -396,6 +396,10 @@
           }
         }
       },
+      "ParticipationStatus" : {
+        "type" : "string",
+        "enum" : [ "REGISTERED", "CONFIRMED", "CANCELLED", "COMPLETED" ]
+      },
       "PublicUserDto" : {
         "description" : "Public user information (limited fields)",
         "type" : "object",
@@ -649,8 +653,9 @@
             "description" : "User ID (TSID)"
           },
           "status" : {
+            "description" : "Participation status",
             "type" : "string",
-            "description" : "Participation status"
+            "$ref" : "#/components/schemas/ParticipationStatus"
           },
           "registeredAt" : {
             "type" : [ "string", "null" ],

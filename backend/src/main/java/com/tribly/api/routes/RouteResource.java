@@ -1,13 +1,18 @@
 package com.tribly.api.routes;
 
 import com.tribly.api.AbstractAuthenticatedResource;
-import com.tribly.api.dto.ErrorResponse;
-import com.tribly.domain.common.TriblyPage;
-import com.tribly.domain.common.Visibility;
+import com.tribly.domain.common.repository.TriblyPage;
 import com.tribly.domain.route.*;
+import com.tribly.dto.error.ErrorResponse;
+import com.tribly.dto.routes.request.UpdateRouteRequest;
+import com.tribly.dto.routes.response.*;
+import com.tribly.enums.RouteDifficulty;
+import com.tribly.enums.SurfaceType;
+import com.tribly.enums.Visibility;
 import com.tribly.infrastructure.exception.BusinessException;
 import com.tribly.infrastructure.id.TsidUtils;
 import com.tribly.service.route.RouteService;
+import com.tribly.service.route.request.CreateRouteRequest;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
@@ -119,8 +124,8 @@ public class RouteResource extends AbstractAuthenticatedResource {
       throw BusinessException.validation("GPX file is required");
     }
 
-    RouteService.CreateRouteRequest request =
-        new RouteService.CreateRouteRequest(name, description, difficulty, surfaceType, visibility);
+    CreateRouteRequest request =
+        new CreateRouteRequest(name, description, difficulty, surfaceType, visibility);
 
     Route route =
         routeService.createRoute(
@@ -208,8 +213,8 @@ public class RouteResource extends AbstractAuthenticatedResource {
     Long userId = getCurrentUserId();
     Long routeIdLong = TsidUtils.toLong(routeId);
 
-    RouteService.UpdateRouteRequest serviceRequest =
-        new RouteService.UpdateRouteRequest(
+    com.tribly.service.route.request.UpdateRouteRequest serviceRequest =
+        new com.tribly.service.route.request.UpdateRouteRequest(
             request.name(),
             request.description(),
             request.difficulty(),

@@ -1,21 +1,31 @@
 package com.tribly.service.ride;
 
-import com.tribly.domain.common.TriblyPage;
-import com.tribly.domain.common.Visibility;
-import com.tribly.domain.ride.*;
+import com.tribly.domain.common.repository.TriblyPage;
+import com.tribly.domain.ride.Ride;
+import com.tribly.domain.ride.RideGroup;
+import com.tribly.domain.ride.RideParticipation;
+import com.tribly.domain.ride.repository.RideGroupRepository;
+import com.tribly.domain.ride.repository.RideParticipationRepository;
+import com.tribly.domain.ride.repository.RideQuery;
+import com.tribly.domain.ride.repository.RideRepository;
 import com.tribly.domain.team.Team;
-import com.tribly.domain.team.TeamRepository;
+import com.tribly.domain.team.repository.TeamRepository;
 import com.tribly.domain.user.User;
-import com.tribly.domain.user.UserRepository;
+import com.tribly.domain.user.repository.UserRepository;
+import com.tribly.dto.rides.response.*;
+import com.tribly.enums.RideStatus;
+import com.tribly.enums.Visibility;
 import com.tribly.infrastructure.exception.BusinessException;
+import com.tribly.service.ride.request.CreateRideGroupRequest;
+import com.tribly.service.ride.request.CreateRideRequest;
+import com.tribly.service.ride.request.UpdateRideGroupRequest;
+import com.tribly.service.ride.request.UpdateRideRequest;
 import com.tribly.service.security.TeamSecurityService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import java.text.Normalizer;
-import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -43,7 +53,7 @@ public class RideService {
 
   @Inject TeamSecurityService securityService;
 
-  public TriblyPage<Ride> listRides(
+  public RideListResponse listRides(
       String slug,
       @Nullable Long userId,
       @Nullable LocalDate from,
@@ -66,10 +76,13 @@ public class RideService {
             to,
             rideQueryParams.visibility(),
             rideQueryParams.statuses());
-    return rideRepository.find(rideQuery);
+    TriblyPage<Ride> rideTriblyPage = rideRepository.find(rideQuery);
+
+    List<RideDto> dtos = rideTriblyPage.items().stream().map(RideDto::from).toList();
+    return new RideListResponse(dtos, rideTriblyPage.total(), page, size);
   }
 
-  public Ride getRideBySlug(String teamSlug, String rideSlug, @Nullable Long userId) {
+  protected Ride getRide(String teamSlug, String rideSlug, @Nullable Long userId) {
     Team team =
         teamRepository
             .findBySlug(teamSlug)
@@ -93,6 +106,10 @@ public class RideService {
     } else {
       return triblyPage.items().getFirst();
     }
+  }
+
+  public RideDetailDto getRideDetail(String teamSlug, String rideSlug, @Nullable Long userId) {
+    return RideDetailDto.from(getRide(teamSlug, rideSlug, userId));
   }
 
   private record RideQueryParams(List<RideStatus> statuses, @Nullable Visibility visibility) {}
@@ -138,7 +155,7 @@ public class RideService {
   }
 
   @Transactional
-  public Ride createRide(String teamSlug, CreateRideRequest request, Long creatorId) {
+  public RideDto createRide(String teamSlug, CreateRideRequest request, Long creatorId) {
     Team team =
         teamRepository
             .findBySlug(teamSlug)
@@ -187,12 +204,13 @@ public class RideService {
     }
 
     LOG.infov("Ride '{0}' created by user {1} for team {2}", ride.getTitle(), creatorId, teamSlug);
-    return ride;
+    return RideDto.from(ride);
   }
 
   @Transactional
-  public Ride updateRide(String teamSlug, String rideSlug, UpdateRideRequest request, Long userId) {
-    Ride ride = getRideBySlug(teamSlug, rideSlug, userId);
+  public RideDto updateRide(
+      String teamSlug, String rideSlug, UpdateRideRequest request, Long userId) {
+    Ride ride = getRide(teamSlug, rideSlug, userId);
 
     // Security check: must be admin or creator (if organizer) to edit
     securityService.requireOrganizer(userId, teamSlug);
@@ -226,12 +244,12 @@ public class RideService {
 
     rideRepository.persist(ride);
     LOG.infov("Ride {0} updated by user {1}", rideSlug, userId);
-    return ride;
+    return RideDto.from(ride);
   }
 
   @Transactional
   public void deleteRide(String teamSlug, String rideSlug, Long userId) {
-    Ride ride = getRideBySlug(teamSlug, rideSlug, userId);
+    Ride ride = getRide(teamSlug, rideSlug, userId);
 
     // Security check: must be admin or creator (if organizer) to delete
     securityService.requireOrganizer(userId, teamSlug);
@@ -242,9 +260,9 @@ public class RideService {
   }
 
   @Transactional
-  public RideGroup createGroup(
+  public RideGroupDto createGroup(
       String teamSlug, String rideSlug, CreateRideGroupRequest request, Long userId) {
-    Ride ride = getRideBySlug(teamSlug, rideSlug, userId);
+    Ride ride = getRide(teamSlug, rideSlug, userId);
 
     // Security check: must be admin or creator (if organizer) to add groups
     securityService.requireOrganizer(userId, teamSlug);
@@ -261,18 +279,20 @@ public class RideService {
     rideGroupRepository.persist(group);
 
     LOG.infov("Group '{0}' added to ride {1} by user {2}", group.getName(), rideSlug, userId);
-    return group;
+    return RideGroupDto.from(group);
   }
 
-  public List<RideGroup> listGroups(String teamSlug, String rideSlug, @Nullable Long userId) {
-    Ride ride = getRideBySlug(teamSlug, rideSlug, userId);
-    return rideGroupRepository.findByRide(ride.getId());
+  public RideGroupListResponse listGroups(String teamSlug, String rideSlug, @Nullable Long userId) {
+    Ride ride = getRide(teamSlug, rideSlug, userId);
+    List<RideGroup> groups = rideGroupRepository.findByRide(ride.getId());
+    List<RideGroupDto> dtos = groups.stream().map(RideGroupDto::from).toList();
+    return new RideGroupListResponse(dtos);
   }
 
   @Transactional
-  public RideParticipation joinGroup(
+  public RideParticipationDto joinGroup(
       String teamSlug, String rideSlug, Long groupId, Long userId, @Nullable String notes) {
-    Ride ride = getRideBySlug(teamSlug, rideSlug, userId);
+    Ride ride = getRide(teamSlug, rideSlug, userId);
 
     if (ride.getStatus() != RideStatus.PUBLISHED) {
       throw BusinessException.validation("Can only join published rides");
@@ -292,15 +312,24 @@ public class RideService {
     securityService.requireMembership(userId, teamSlug);
 
     Optional<RideParticipation> existingParticipation =
-        participationRepository.findByUserAndRide(userId, ride.getId());
+        participationRepository.findByUserAndRideIncludingDeleted(userId, ride.getId());
+
     if (existingParticipation.isPresent()) {
-      throw BusinessException.conflict(
-          "You are already registered for this ride", "ALREADY_REGISTERED");
+      RideParticipation rideParticipation = existingParticipation.get();
+      if (!rideParticipation.isDeleted()) {
+        throw BusinessException.conflict(
+            "You are already registered for this ride", "ALREADY_REGISTERED");
+      }
+      checkCapacity(group);
+      // Restore soft-deleted membership
+      rideParticipation.setDeleted(false);
+      rideParticipation.setNotes(notes);
+      participationRepository.persist(rideParticipation);
+      LOG.infov("User {0} rejoined group {1} in ride {2}", userId, groupId, ride.getId());
+      return RideParticipationDto.from(rideParticipation);
     }
 
-    if (!group.hasCapacity()) {
-      throw BusinessException.conflict("This group is full", "GROUP_FULL");
-    }
+    checkCapacity(group);
 
     RideParticipation participation = new RideParticipation(group, user);
     participation.setNotes(notes);
@@ -309,28 +338,34 @@ public class RideService {
     participationRepository.persist(participation);
 
     LOG.infov("User {0} joined group {1} in ride {2}", userId, groupId, ride.getId());
-    return participation;
+    return RideParticipationDto.from(participation);
+  }
+
+  private void checkCapacity(RideGroup group) {
+    if (!group.hasCapacity()) {
+      throw BusinessException.conflict("This group is full", "GROUP_FULL");
+    }
   }
 
   @Transactional
   public void leaveGroup(String teamSlug, String rideSlug, Long groupId, Long userId) {
-    getRideBySlug(teamSlug, rideSlug, userId);
+    getRideDetail(teamSlug, rideSlug, userId);
 
     RideParticipation participation =
         participationRepository
             .findByUserAndGroup(userId, groupId)
             .orElseThrow(() -> BusinessException.notFound("You are not registered for this group"));
 
-    participation.setStatus(ParticipationStatus.CANCELLED);
+    participation.softDelete();
     participationRepository.persist(participation);
 
     LOG.infov("User {0} left group {1} in ride {2}", userId, groupId, rideSlug);
   }
 
   @Transactional
-  public RideGroup updateGroup(
+  public RideGroupDto updateGroup(
       String teamSlug, String rideSlug, Long groupId, UpdateRideGroupRequest request, Long userId) {
-    Ride ride = getRideBySlug(teamSlug, rideSlug, userId);
+    Ride ride = getRide(teamSlug, rideSlug, userId);
 
     // Security check: must be admin or creator (if organizer) to edit groups
     securityService.requireOrganizer(userId, teamSlug);
@@ -355,12 +390,12 @@ public class RideService {
 
     rideGroupRepository.persist(group);
     LOG.infov("Group {0} updated in ride {1} by user {2}", groupId, rideSlug, userId);
-    return group;
+    return RideGroupDto.from(group);
   }
 
   @Transactional
   public void deleteGroup(String teamSlug, String rideSlug, Long groupId, Long userId) {
-    Ride ride = getRideBySlug(teamSlug, rideSlug, userId);
+    Ride ride = getRide(teamSlug, rideSlug, userId);
 
     // Security check: must be admin or creator (if organizer) to delete groups
     securityService.requireOrganizer(userId, teamSlug);
@@ -383,40 +418,4 @@ public class RideService {
     String slug = NONLATIN.matcher(normalized).replaceAll("");
     return slug.toLowerCase(Locale.ENGLISH).replaceAll("-+", "-").replaceAll("^-|-$", "");
   }
-
-  public record CreateRideRequest(
-      String title,
-      @Nullable String description,
-      LocalDate date,
-      @Nullable LocalTime startTime,
-      @Nullable Visibility visibility,
-      @Nullable Long routeId,
-      @Nullable Long meetingPointId,
-      @Nullable Instant publishAt,
-      @Nullable List<CreateRideGroupRequest> groups) {}
-
-  public record UpdateRideRequest(
-      @Nullable String title,
-      @Nullable String description,
-      @Nullable LocalDate date,
-      @Nullable LocalTime startTime,
-      @Nullable RideStatus status,
-      @Nullable Visibility visibility,
-      @Nullable Long routeId,
-      @Nullable Long meetingPointId,
-      @Nullable Instant publishAt) {}
-
-  public record CreateRideGroupRequest(
-      String name,
-      @Nullable String description,
-      @Nullable Integer averageSpeed,
-      @Nullable Integer maxParticipants,
-      @Nullable Long routeId) {}
-
-  public record UpdateRideGroupRequest(
-      @Nullable String name,
-      @Nullable String description,
-      @Nullable Integer averageSpeed,
-      @Nullable Integer maxParticipants,
-      @Nullable Long routeId) {}
 }

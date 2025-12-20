@@ -389,6 +389,13 @@ components:
           type: integer
           format: int32
           description: Page size
+    ParticipationStatus:
+      type: string
+      enum:
+      - REGISTERED
+      - CONFIRMED
+      - CANCELLED
+      - COMPLETED
     PublicUserDto:
       description: Public user information (limited fields)
       type: object
@@ -637,8 +644,9 @@ components:
           type: string
           description: User ID (TSID)
         status:
-          type: string
           description: Participation status
+          type: string
+          $ref: "#/components/schemas/ParticipationStatus"
         registeredAt:
           type:
           - string

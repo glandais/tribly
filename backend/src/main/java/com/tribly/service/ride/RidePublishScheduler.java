@@ -1,8 +1,8 @@
 package com.tribly.service.ride;
 
 import com.tribly.domain.ride.Ride;
-import com.tribly.domain.ride.RideRepository;
-import com.tribly.domain.ride.RideStatus;
+import com.tribly.domain.ride.repository.RideRepository;
+import com.tribly.enums.RideStatus;
 import io.quarkus.scheduler.Scheduled;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;

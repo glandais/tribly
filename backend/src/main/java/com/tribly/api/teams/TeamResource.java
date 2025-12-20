@@ -1,10 +1,14 @@
 package com.tribly.api.teams;
 
 import com.tribly.api.AbstractAuthenticatedResource;
-import com.tribly.api.dto.ErrorResponse;
-import com.tribly.domain.common.TriblyPage;
-import com.tribly.service.team.TeamAndRole;
+import com.tribly.domain.common.repository.TriblyPage;
+import com.tribly.dto.error.ErrorResponse;
+import com.tribly.dto.teams.request.CreateTeamRequest;
+import com.tribly.dto.teams.request.UpdateTeamRequest;
+import com.tribly.dto.teams.response.TeamDetailDto;
+import com.tribly.dto.teams.response.TeamListResponse;
 import com.tribly.service.team.TeamService;
+import com.tribly.service.team.response.TeamAndRole;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
@@ -111,7 +115,7 @@ public class TeamResource extends AbstractAuthenticatedResource {
 
     TeamAndRole teamAndRole =
         teamService.createTeam(
-            new com.tribly.service.team.CreateTeamRequest(
+            new com.tribly.service.team.request.CreateTeamRequest(
                 request.name(), request.description(), request.visibility(), request.maxMembers()),
             userId);
 
@@ -155,7 +159,7 @@ public class TeamResource extends AbstractAuthenticatedResource {
     TeamAndRole updated =
         teamService.updateTeam(
             slug,
-            new com.tribly.service.team.UpdateTeamRequest(
+            new com.tribly.service.team.request.UpdateTeamRequest(
                 request.name(),
                 request.description(),
                 request.visibility(),

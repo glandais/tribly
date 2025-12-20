@@ -1,14 +1,14 @@
 package com.tribly.api.rides;
 
 import com.tribly.api.AbstractAuthenticatedResource;
-import com.tribly.api.dto.ErrorResponse;
-import com.tribly.domain.common.TriblyPage;
-import com.tribly.domain.ride.Ride;
-import com.tribly.domain.ride.RideGroup;
-import com.tribly.domain.ride.RideParticipation;
-import com.tribly.domain.ride.RideStatus;
+import com.tribly.dto.error.ErrorResponse;
+import com.tribly.dto.rides.request.*;
+import com.tribly.dto.rides.response.*;
+import com.tribly.enums.RideStatus;
 import com.tribly.infrastructure.id.TsidUtils;
 import com.tribly.service.ride.RideService;
+import com.tribly.service.ride.request.CreateRideGroupRequest;
+import com.tribly.service.ride.request.UpdateRideGroupRequest;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
@@ -67,10 +67,9 @@ public class RideResource extends AbstractAuthenticatedResource {
     LocalDate from = fromStr != null ? LocalDate.parse(fromStr) : null;
     LocalDate to = toStr != null ? LocalDate.parse(toStr) : null;
 
-    TriblyPage<Ride> rides = rideService.listRides(slug, userId, from, to, status, page, size);
+    RideListResponse rides = rideService.listRides(slug, userId, from, to, status, page, size);
 
-    List<RideDto> dtos = rides.items().stream().map(RideDto::from).toList();
-    return Response.ok(new RideListResponse(dtos, rides.total(), page, size)).build();
+    return Response.ok(rides).build();
   }
 
   @POST
@@ -103,13 +102,13 @@ public class RideResource extends AbstractAuthenticatedResource {
       @Valid CreateRideRequest request) {
     Long userId = getCurrentUserId();
 
-    List<RideService.CreateRideGroupRequest> groupRequests = null;
+    List<CreateRideGroupRequest> groupRequests = null;
     if (request.groups() != null) {
       groupRequests =
           request.groups().stream()
               .map(
                   g ->
-                      new RideService.CreateRideGroupRequest(
+                      new CreateRideGroupRequest(
                           g.name(),
                           g.description(),
                           g.averageSpeed(),
@@ -118,10 +117,10 @@ public class RideResource extends AbstractAuthenticatedResource {
               .toList();
     }
 
-    Ride ride =
+    RideDto ride =
         rideService.createRide(
             slug,
-            new RideService.CreateRideRequest(
+            new com.tribly.service.ride.request.CreateRideRequest(
                 request.title(),
                 request.description(),
                 request.date(),
@@ -133,8 +132,8 @@ public class RideResource extends AbstractAuthenticatedResource {
                 groupRequests),
             userId);
 
-    return Response.created(URI.create("/api/teams/" + slug + "/rides/" + ride.getSlug()))
-        .entity(RideDto.from(ride))
+    return Response.created(URI.create("/api/teams/" + slug + "/rides/" + ride.slug()))
+        .entity(ride)
         .build();
   }
 
@@ -158,8 +157,8 @@ public class RideResource extends AbstractAuthenticatedResource {
       @Parameter(description = "Team URL slug") @PathParam("slug") String slug,
       @Parameter(description = "Ride URL slug") @PathParam("rideSlug") String rideSlug) {
     Long userId = getCurrentUserIdOrNull();
-    Ride ride = rideService.getRideBySlug(slug, rideSlug, userId);
-    return Response.ok(RideDetailDto.from(ride)).build();
+    RideDetailDto ride = rideService.getRideDetail(slug, rideSlug, userId);
+    return Response.ok(ride).build();
   }
 
   @PATCH
@@ -198,11 +197,11 @@ public class RideResource extends AbstractAuthenticatedResource {
 
     Long userId = getCurrentUserId();
 
-    Ride updatedRide =
+    RideDto updatedRide =
         rideService.updateRide(
             slug,
             rideSlug,
-            new RideService.UpdateRideRequest(
+            new com.tribly.service.ride.request.UpdateRideRequest(
                 request.title(),
                 request.description(),
                 request.date(),
@@ -214,7 +213,7 @@ public class RideResource extends AbstractAuthenticatedResource {
                 request.publishAt()),
             userId);
 
-    return Response.ok(RideDto.from(updatedRide)).build();
+    return Response.ok(updatedRide).build();
   }
 
   @DELETE
@@ -265,9 +264,8 @@ public class RideResource extends AbstractAuthenticatedResource {
       @Parameter(description = "Ride URL slug") @PathParam("rideSlug") String rideSlug) {
     Long userId = getCurrentUserIdOrNull();
 
-    List<RideGroup> groups = rideService.listGroups(slug, rideSlug, userId);
-    List<RideGroupDto> dtos = groups.stream().map(RideGroupDto::from).toList();
-    return Response.ok(new RideGroupListResponse(dtos)).build();
+    RideGroupListResponse rideGroupListResponse = rideService.listGroups(slug, rideSlug, userId);
+    return Response.ok(rideGroupListResponse).build();
   }
 
   @POST
@@ -304,11 +302,11 @@ public class RideResource extends AbstractAuthenticatedResource {
       @Valid CreateGroupRequest request) {
 
     Long userId = getCurrentUserId();
-    RideGroup group =
+    RideGroupDto group =
         rideService.createGroup(
             slug,
             rideSlug,
-            new RideService.CreateRideGroupRequest(
+            new CreateRideGroupRequest(
                 request.name(),
                 request.description(),
                 request.averageSpeed(),
@@ -317,14 +315,8 @@ public class RideResource extends AbstractAuthenticatedResource {
             userId);
 
     return Response.created(
-            URI.create(
-                "/api/teams/"
-                    + slug
-                    + "/rides/"
-                    + rideSlug
-                    + "/groups/"
-                    + TsidUtils.toString(group.getId())))
-        .entity(RideGroupDto.from(group))
+            URI.create("/api/teams/" + slug + "/rides/" + rideSlug + "/groups/" + group.id()))
+        .entity(group)
         .build();
   }
 
@@ -363,12 +355,12 @@ public class RideResource extends AbstractAuthenticatedResource {
       @Valid UpdateGroupRequest request) {
 
     Long userId = getCurrentUserId();
-    RideGroup group =
+    RideGroupDto group =
         rideService.updateGroup(
             slug,
             rideSlug,
             TsidUtils.toLong(groupId),
-            new RideService.UpdateRideGroupRequest(
+            new UpdateRideGroupRequest(
                 request.name(),
                 request.description(),
                 request.averageSpeed(),
@@ -376,7 +368,7 @@ public class RideResource extends AbstractAuthenticatedResource {
                 TsidUtils.toLongNullable(request.routeId())),
             userId);
 
-    return Response.ok(RideGroupDto.from(group)).build();
+    return Response.ok(group).build();
   }
 
   @DELETE
@@ -441,7 +433,7 @@ public class RideResource extends AbstractAuthenticatedResource {
     Long userId = getCurrentUserId();
     String notes = request != null ? request.notes() : null;
 
-    RideParticipation participation =
+    RideParticipationDto participation =
         rideService.joinGroup(slug, rideSlug, TsidUtils.toLong(groupId), userId, notes);
 
     return Response.created(
@@ -453,8 +445,8 @@ public class RideResource extends AbstractAuthenticatedResource {
                     + "/groups/"
                     + groupId
                     + "/participants/"
-                    + TsidUtils.toString(participation.getId())))
-        .entity(RideParticipationDto.from(participation))
+                    + participation.id()))
+        .entity(participation)
         .build();
   }
 

@@ -2,6 +2,7 @@ package com.tribly.domain.ride;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.tribly.domain.ride.repository.RideGroupRepository;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
 import com.tribly.util.TestDataCleaner;

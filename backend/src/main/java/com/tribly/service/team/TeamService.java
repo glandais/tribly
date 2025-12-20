@@ -1,11 +1,18 @@
 package com.tribly.service.team;
 
-import com.tribly.domain.common.TriblyPage;
+import com.tribly.domain.common.repository.TriblyPage;
 import com.tribly.domain.team.*;
+import com.tribly.domain.team.repository.TeamQuery;
+import com.tribly.domain.team.repository.TeamRepository;
+import com.tribly.domain.team.repository.UserTeamRepository;
 import com.tribly.domain.user.User;
-import com.tribly.domain.user.UserRepository;
+import com.tribly.domain.user.repository.UserRepository;
+import com.tribly.enums.TeamRole;
 import com.tribly.infrastructure.exception.BusinessException;
 import com.tribly.service.security.TeamSecurityService;
+import com.tribly.service.team.request.CreateTeamRequest;
+import com.tribly.service.team.request.UpdateTeamRequest;
+import com.tribly.service.team.response.TeamAndRole;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;

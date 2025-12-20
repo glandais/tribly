@@ -1,6 +1,6 @@
 package com.tribly.infrastructure.exception;
 
-import com.tribly.api.dto.ErrorResponse;
+import com.tribly.dto.error.ErrorResponse;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;

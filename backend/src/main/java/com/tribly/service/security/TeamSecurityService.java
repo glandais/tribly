@@ -1,12 +1,12 @@
 package com.tribly.service.security;
 
-import com.tribly.domain.common.Visibility;
 import com.tribly.domain.team.Team;
-import com.tribly.domain.team.TeamRole;
 import com.tribly.domain.team.UserTeam;
-import com.tribly.domain.team.UserTeamRepository;
+import com.tribly.domain.team.repository.UserTeamRepository;
+import com.tribly.enums.TeamRole;
+import com.tribly.enums.Visibility;
 import com.tribly.infrastructure.exception.BusinessException;
-import com.tribly.service.team.TeamAndRole;
+import com.tribly.service.team.response.TeamAndRole;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.jspecify.annotations.Nullable;

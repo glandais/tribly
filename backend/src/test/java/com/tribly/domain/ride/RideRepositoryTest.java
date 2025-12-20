@@ -2,10 +2,13 @@ package com.tribly.domain.ride;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.tribly.domain.common.TriblyPage;
-import com.tribly.domain.common.Visibility;
+import com.tribly.domain.common.repository.TriblyPage;
+import com.tribly.domain.ride.repository.RideQuery;
+import com.tribly.domain.ride.repository.RideRepository;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
+import com.tribly.enums.RideStatus;
+import com.tribly.enums.Visibility;
 import com.tribly.util.TestDataCleaner;
 import com.tribly.util.TestDataService;
 import io.quarkus.test.junit.QuarkusTest;
@@ -39,7 +42,7 @@ class RideRepositoryTest {
     dataService.createRide(team, user, "Ride 2", "ride-2", LocalDate.of(2025, 1, 20));
 
     RideQuery query =
-        new RideQuery(team.getId(), 0, 10, null, null, null, null, List.of(RideStatus.DRAFT));
+        new RideQuery(team.getId(), 0, 10, null, null, null, null, List.of(RideStatus.PUBLISHED));
     TriblyPage<Ride> result = rideRepository.find(query);
 
     assertEquals(2, result.items().size());
@@ -52,7 +55,8 @@ class RideRepositoryTest {
     dataService.createRide(team, user, "Ride 2", "ride-2", LocalDate.of(2025, 1, 20));
 
     RideQuery query =
-        new RideQuery(team.getId(), 0, 10, "ride-1", null, null, null, List.of(RideStatus.DRAFT));
+        new RideQuery(
+            team.getId(), 0, 10, "ride-1", null, null, null, List.of(RideStatus.PUBLISHED));
     TriblyPage<Ride> result = rideRepository.find(query);
 
     assertEquals(1, result.items().size());
@@ -74,7 +78,7 @@ class RideRepositoryTest {
             LocalDate.of(2025, 1, 15),
             LocalDate.of(2025, 1, 25),
             null,
-            List.of(RideStatus.DRAFT));
+            List.of(RideStatus.PUBLISHED));
     TriblyPage<Ride> result = rideRepository.find(query);
 
     assertEquals(1, result.items().size());
@@ -125,7 +129,7 @@ class RideRepositoryTest {
     dataService.deleteRide(deletedRide);
 
     RideQuery query =
-        new RideQuery(team.getId(), 0, 10, null, null, null, null, List.of(RideStatus.DRAFT));
+        new RideQuery(team.getId(), 0, 10, null, null, null, null, List.of(RideStatus.PUBLISHED));
     TriblyPage<Ride> result = rideRepository.find(query);
 
     assertEquals(1, result.items().size());

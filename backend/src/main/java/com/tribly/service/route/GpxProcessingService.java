@@ -1,8 +1,10 @@
 package com.tribly.service.route;
 
-import com.tribly.domain.route.ClimbCategory;
 import com.tribly.domain.route.GpxTrack;
+import com.tribly.enums.ClimbCategory;
 import com.tribly.infrastructure.exception.BusinessException;
+import com.tribly.service.route.response.ProcessedGpx;
+import com.tribly.service.route.response.RouteMetadata;
 import io.github.glandais.gpx.climb.Climb;
 import io.github.glandais.gpx.climb.ClimbDetector;
 import io.github.glandais.gpx.climb.Climbs;
@@ -306,25 +308,4 @@ public class GpxProcessingService {
     }
     return filePath.toFile();
   }
-
-  /**
-   * Result of GPX processing pipeline.
-   */
-  public record ProcessedGpx(
-      String wkt,
-      List<GpxTrack.TrackPoint> trackPoints,
-      List<Climb> climbs,
-      RouteMetadata metadata) {}
-
-  /**
-   * Extracted route metadata from GPX.
-   */
-  public record RouteMetadata(
-      int distance,
-      int elevationGain,
-      int elevationLoss,
-      double startLat,
-      double startLng,
-      double endLat,
-      double endLng) {}
 }

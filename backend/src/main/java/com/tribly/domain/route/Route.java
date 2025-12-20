@@ -1,9 +1,11 @@
 package com.tribly.domain.route;
 
 import com.tribly.domain.common.BaseEntity;
-import com.tribly.domain.common.Visibility;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
+import com.tribly.enums.RouteDifficulty;
+import com.tribly.enums.SurfaceType;
+import com.tribly.enums.Visibility;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
