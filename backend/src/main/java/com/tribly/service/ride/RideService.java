@@ -25,388 +25,378 @@ import com.tribly.service.security.TeamSecurityService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
-
 import java.text.Normalizer;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
 import org.jboss.logging.Logger;
 import org.jspecify.annotations.Nullable;
 
 @ApplicationScoped
 public class RideService {
 
-    private static final Logger LOG = Logger.getLogger(RideService.class);
-    private static final Pattern NONLATIN = Pattern.compile("[^\\w-]");
-    private static final Pattern WHITESPACE = Pattern.compile("[\\s]");
+  private static final Logger LOG = Logger.getLogger(RideService.class);
+  private static final Pattern NONLATIN = Pattern.compile("[^\\w-]");
+  private static final Pattern WHITESPACE = Pattern.compile("[\\s]");
 
-    @Inject
-    RideRepository rideRepository;
+  @Inject RideRepository rideRepository;
 
-    @Inject
-    RideGroupRepository rideGroupRepository;
+  @Inject RideGroupRepository rideGroupRepository;
 
-    @Inject
-    RideParticipationRepository participationRepository;
+  @Inject RideParticipationRepository participationRepository;
 
-    @Inject
-    TeamRepository teamRepository;
+  @Inject TeamRepository teamRepository;
 
-    @Inject
-    UserRepository userRepository;
+  @Inject UserRepository userRepository;
 
-    @Inject
-    TeamSecurityService securityService;
+  @Inject TeamSecurityService securityService;
 
-    @Inject
-    RouteRepository routeRepository;
+  @Inject RouteRepository routeRepository;
 
-    public RideListResponse listRides(
-            String slug,
-            @Nullable Long userId,
-            @Nullable LocalDate from,
-            @Nullable LocalDate to,
-            @Nullable RideStatus status,
-            int page,
-            int size) {
-        Team team =
-                teamRepository.findBySlug(slug).orElseThrow(() -> BusinessException.notFound("Team", slug));
+  public RideListResponse listRides(
+      String slug,
+      @Nullable Long userId,
+      @Nullable LocalDate from,
+      @Nullable LocalDate to,
+      @Nullable RideStatus status,
+      int page,
+      int size) {
+    Team team =
+        teamRepository.findBySlug(slug).orElseThrow(() -> BusinessException.notFound("Team", slug));
 
-        RideQueryParams rideQueryParams = getRideQueryParams(userId, status, team);
+    RideQueryParams rideQueryParams = getRideQueryParams(userId, status, team);
 
-        RideQuery rideQuery =
-                new RideQuery(
-                        team.getId(),
-                        page,
-                        size,
-                        null,
-                        from,
-                        to,
-                        rideQueryParams.visibility(),
-                        rideQueryParams.statuses());
-        TriblyPage<Ride> rideTriblyPage = rideRepository.find(rideQuery);
+    RideQuery rideQuery =
+        new RideQuery(
+            team.getId(),
+            page,
+            size,
+            null,
+            from,
+            to,
+            rideQueryParams.visibility(),
+            rideQueryParams.statuses());
+    TriblyPage<Ride> rideTriblyPage = rideRepository.find(rideQuery);
 
-        List<RideDto> dtos = rideTriblyPage.items().stream().map(r -> RideDto.from(r, false)).toList();
-        return new RideListResponse(dtos, rideTriblyPage.total(), page, size);
+    List<RideDto> dtos = rideTriblyPage.items().stream().map(r -> RideDto.from(r, false)).toList();
+    return new RideListResponse(dtos, rideTriblyPage.total(), page, size);
+  }
+
+  protected Ride getRide(String teamSlug, String rideSlug, @Nullable Long userId) {
+    Team team =
+        teamRepository
+            .findBySlug(teamSlug)
+            .orElseThrow(() -> BusinessException.notFound("Team", teamSlug));
+
+    RideQueryParams rideQueryParams = getRideQueryParams(userId, null, team);
+
+    RideQuery rideQuery =
+        new RideQuery(
+            team.getId(),
+            0,
+            1,
+            rideSlug,
+            null,
+            null,
+            rideQueryParams.visibility(),
+            rideQueryParams.statuses());
+    TriblyPage<Ride> triblyPage = rideRepository.find(rideQuery);
+    if (triblyPage.items().isEmpty()) {
+      throw BusinessException.notFound("Ride", rideSlug);
+    } else {
+      return triblyPage.items().getFirst();
+    }
+  }
+
+  public RideDto getRideDetail(String teamSlug, String rideSlug, @Nullable Long userId) {
+    return RideDto.from(getRide(teamSlug, rideSlug, userId), true);
+  }
+
+  private record RideQueryParams(List<RideStatus> statuses, @Nullable Visibility visibility) {}
+
+  private RideQueryParams getRideQueryParams(
+      @Nullable Long userId, @Nullable RideStatus status, Team team) {
+    boolean isMember = securityService.isMember(userId, team);
+    boolean canSeeDrafts = securityService.canSeeDrafts(userId, team);
+    List<RideStatus> statuses = getRideStatuses(status, canSeeDrafts);
+
+    Visibility visibility = getVisibility(isMember, team);
+    return new RideQueryParams(statuses, visibility);
+  }
+
+  private List<RideStatus> getRideStatuses(@Nullable RideStatus status, boolean canSeeDrafts) {
+    List<RideStatus> statuses;
+    if (status == null) {
+      if (canSeeDrafts) {
+        statuses = Arrays.asList(RideStatus.values());
+      } else {
+        statuses = List.of(RideStatus.PUBLISHED, RideStatus.CANCELLED);
+      }
+    } else {
+      if (status.equals(RideStatus.DRAFT) && !canSeeDrafts) {
+        statuses = List.of();
+      } else {
+        statuses = List.of(status);
+      }
+    }
+    return statuses;
+  }
+
+  private @Nullable Visibility getVisibility(boolean isMember, Team team) {
+    if (isMember) {
+      return null;
+    } else if (team.getVisibility() == Visibility.PUBLIC) {
+      // For non-members of public teams, filter to show only public rides
+      return Visibility.PUBLIC;
+    } else {
+      // Private team - no access for non-members
+      throw BusinessException.notFound("Private team");
+    }
+  }
+
+  @Transactional
+  public RideDto createRide(String teamSlug, RideRequest request, Long creatorId) {
+    Team team =
+        teamRepository
+            .findBySlug(teamSlug)
+            .orElseThrow(() -> BusinessException.notFound("Team", teamSlug));
+
+    User creator =
+        userRepository
+            .findActiveById(creatorId)
+            .orElseThrow(() -> BusinessException.notFound("User", creatorId));
+
+    // Security check: must be admin or organizer to create rides
+    securityService.requireOrganizer(creatorId, team.getSlug());
+
+    // Validate visibility: private teams can only have team-only rides
+    Visibility visibility = request.visibility();
+    if (team.getVisibility() != Visibility.PUBLIC && visibility == Visibility.PUBLIC) {
+      throw BusinessException.validation("Private teams can only have team-only rides");
     }
 
-    protected Ride getRide(String teamSlug, String rideSlug, @Nullable Long userId) {
-        Team team =
-                teamRepository
-                        .findBySlug(teamSlug)
-                        .orElseThrow(() -> BusinessException.notFound("Team", teamSlug));
+    // Generate slug from title, ensure unique within team
+    String slug = generateSlug(request.title());
+    if (rideRepository.existsByTeamAndSlug(team.getId(), slug)) {
+      slug = slug + "-" + System.currentTimeMillis() % 10000;
+    }
 
-        RideQueryParams rideQueryParams = getRideQueryParams(userId, null, team);
+    Route route = getRoute(request.getRouteIdLong(), team);
 
-        RideQuery rideQuery =
-                new RideQuery(
-                        team.getId(),
-                        0,
-                        1,
-                        rideSlug,
-                        null,
-                        null,
-                        rideQueryParams.visibility(),
-                        rideQueryParams.statuses());
-        TriblyPage<Ride> triblyPage = rideRepository.find(rideQuery);
-        if (triblyPage.items().isEmpty()) {
-            throw BusinessException.notFound("Ride", rideSlug);
+    Ride ride = new Ride(team, creator, request.title(), slug, request.date());
+    ride.setDescription(request.description());
+    ride.setStartTime(request.startTime());
+    ride.setVisibility(visibility);
+    ride.setRoute(route);
+    ride.setStatus(request.status());
+    ride.setPublishAt(request.publishAt());
+
+    rideRepository.persist(ride);
+
+    int sortOrder = 0;
+    for (GroupRequest groupRequest : request.groups()) {
+      createRideGroup(ride, groupRequest, sortOrder);
+      sortOrder++;
+    }
+
+    LOG.infov("Ride '{0}' created by user {1} for team {2}", ride.getTitle(), creatorId, teamSlug);
+    return RideDto.from(ride, true);
+  }
+
+  private void createRideGroup(Ride ride, GroupRequest groupRequest, int sortOrder) {
+    RideGroup group = new RideGroup();
+    setProperties(ride, group, groupRequest, sortOrder);
+    ride.addGroup(group);
+    rideGroupRepository.persist(group);
+  }
+
+  private void setProperties(Ride ride, RideGroup group, GroupRequest groupRequest, int sortOrder) {
+    group.setRide(ride);
+    group.setName(groupRequest.name());
+    Route groupRoute = getRoute(groupRequest.getRouteIdLong(), ride.getTeam());
+    group.setDescription(groupRequest.description());
+    group.setAverageSpeed(groupRequest.averageSpeed());
+    group.setMaxParticipants(groupRequest.maxParticipants());
+    group.setSortOrder(sortOrder);
+    group.setRoute(groupRoute);
+  }
+
+  private @Nullable Route getRoute(@Nullable Long routeId, Team team) {
+    Route route = null;
+    if (routeId != null) {
+      route =
+          routeRepository
+              .findByIdOptional(routeId)
+              .orElseThrow(() -> BusinessException.notFound("Route", routeId));
+      if (!route.getTeam().getId().equals(team.getId())) {
+        throw BusinessException.businessRule(
+            "Route team is not ride team", "ROUTE_TEAM_RIDE_TEAM_DIFFERENT");
+      }
+      if (team.getVisibility() == Visibility.PUBLIC && route.getVisibility() != Visibility.PUBLIC) {
+        throw BusinessException.businessRule(
+            "Can't use private route on public ride", "PUBLIC_RIDE_PRIVATE_ROUTE");
+      }
+    }
+    return route;
+  }
+
+  @Transactional
+  public RideDto updateRide(String teamSlug, String rideSlug, RideRequest request, Long userId) {
+    Ride ride = getRide(teamSlug, rideSlug, userId);
+
+    // Security check: must be admin or creator (if organizer) to edit
+    securityService.requireOrganizer(userId, teamSlug);
+
+    // Validate visibility: private teams can only have team-only rides
+    Team team = ride.getTeam();
+    if (team.getVisibility() != Visibility.PUBLIC && request.visibility() == Visibility.PUBLIC) {
+      throw BusinessException.validation("Private teams can only have team-only rides");
+    }
+    ride.setVisibility(request.visibility());
+
+    ride.setTitle(request.title());
+    ride.setDescription(request.description());
+    ride.setDate(request.date());
+    ride.setStartTime(request.startTime());
+    ride.setStatus(request.status());
+    Route route = getRoute(request.getRouteIdLong(), ride.getTeam());
+    ride.setRoute(route);
+    // publishAt can be explicitly set to null to remove scheduled publishing
+    ride.setPublishAt(request.publishAt());
+
+    rideRepository.persist(ride);
+
+    Map<Long, RideGroup> existingGroups =
+        ride.getGroups().stream().collect(Collectors.toMap(RideGroup::getId, Function.identity()));
+    ride.getGroups().clear();
+    int sortOrder = 0;
+    for (GroupRequest groupRequest : request.groups()) {
+      Long groupId = TsidUtils.toLongNullable(groupRequest.id());
+      if (groupId == null) {
+        createRideGroup(ride, groupRequest, sortOrder);
+      } else {
+        RideGroup existingRideGroup = existingGroups.remove(groupId);
+        if (existingRideGroup != null) {
+          setProperties(ride, existingRideGroup, groupRequest, sortOrder);
+          ride.addGroup(existingRideGroup);
+          rideGroupRepository.persist(existingRideGroup);
         } else {
-            return triblyPage.items().getFirst();
+          createRideGroup(ride, groupRequest, sortOrder);
         }
+      }
+      sortOrder++;
+    }
+    for (RideGroup rideGroup : existingGroups.values()) {
+      rideGroup.setRide(ride);
+      rideGroup.setDeleted(true);
+      rideGroup.setSortOrder(sortOrder);
+      ride.addGroup(rideGroup);
+      rideGroupRepository.persist(rideGroup);
+      sortOrder++;
     }
 
-    public RideDto getRideDetail(String teamSlug, String rideSlug, @Nullable Long userId) {
-        return RideDto.from(getRide(teamSlug, rideSlug, userId), true);
+    LOG.infov("Ride {0} updated by user {1}", rideSlug, userId);
+    return RideDto.from(ride, true);
+  }
+
+  @Transactional
+  public void deleteRide(String teamSlug, String rideSlug, Long userId) {
+    Ride ride = getRide(teamSlug, rideSlug, userId);
+
+    // Security check: must be admin or creator (if organizer) to delete
+    securityService.requireOrganizer(userId, teamSlug);
+
+    ride.setDeleted(true);
+    rideRepository.persist(ride);
+    LOG.infov("Ride {0} deleted by user {1}", rideSlug, userId);
+  }
+
+  public RideGroupListResponse listGroups(String teamSlug, String rideSlug, @Nullable Long userId) {
+    Ride ride = getRide(teamSlug, rideSlug, userId);
+    List<RideGroup> groups = rideGroupRepository.findByRide(ride.getId());
+    List<RideGroupDto> dtos = groups.stream().map(RideGroupDto::from).toList();
+    return new RideGroupListResponse(dtos);
+  }
+
+  @Transactional
+  public RideParticipationDto joinGroup(
+      String teamSlug, String rideSlug, Long groupId, Long userId, @Nullable String notes) {
+    Ride ride = getRide(teamSlug, rideSlug, userId);
+
+    if (ride.getStatus() != RideStatus.PUBLISHED) {
+      throw BusinessException.validation("Can only join published rides");
     }
 
-    private record RideQueryParams(List<RideStatus> statuses, @Nullable Visibility visibility) {
+    RideGroup group =
+        rideGroupRepository
+            .findByIdAndRide(groupId, ride.getId())
+            .orElseThrow(() -> BusinessException.notFound("Group", groupId));
+
+    User user =
+        userRepository
+            .findActiveById(userId)
+            .orElseThrow(() -> BusinessException.notFound("User", userId));
+
+    // Security check: must be a team member to join rides
+    securityService.requireMembership(userId, teamSlug);
+
+    Optional<RideParticipation> existingParticipation =
+        participationRepository.findByUserAndRideIncludingDeleted(userId, ride.getId());
+
+    if (existingParticipation.isPresent()) {
+      RideParticipation rideParticipation = existingParticipation.get();
+      if (!rideParticipation.isDeleted()) {
+        throw BusinessException.conflict(
+            "You are already registered for this ride", "ALREADY_REGISTERED");
+      }
+      checkCapacity(group);
+      // Restore soft-deleted membership
+      rideParticipation.setDeleted(false);
+      rideParticipation.setNotes(notes);
+      participationRepository.persist(rideParticipation);
+      LOG.infov("User {0} rejoined group {1} in ride {2}", userId, groupId, ride.getId());
+      return RideParticipationDto.from(rideParticipation);
     }
 
-    private RideQueryParams getRideQueryParams(
-            @Nullable Long userId, @Nullable RideStatus status, Team team) {
-        boolean isMember = securityService.isMember(userId, team);
-        boolean canSeeDrafts = securityService.canSeeDrafts(userId, team);
-        List<RideStatus> statuses = getRideStatuses(status, canSeeDrafts);
+    checkCapacity(group);
 
-        Visibility visibility = getVisibility(isMember, team);
-        return new RideQueryParams(statuses, visibility);
+    RideParticipation participation = new RideParticipation(group, user);
+    participation.setNotes(notes);
+
+    group.addParticipation(participation);
+    participationRepository.persist(participation);
+
+    LOG.infov("User {0} joined group {1} in ride {2}", userId, groupId, ride.getId());
+    return RideParticipationDto.from(participation);
+  }
+
+  private void checkCapacity(RideGroup group) {
+    if (!group.hasCapacity()) {
+      throw BusinessException.conflict("This group is full", "GROUP_FULL");
     }
+  }
 
-    private List<RideStatus> getRideStatuses(@Nullable RideStatus status, boolean canSeeDrafts) {
-        List<RideStatus> statuses;
-        if (status == null) {
-            if (canSeeDrafts) {
-                statuses = Arrays.asList(RideStatus.values());
-            } else {
-                statuses = List.of(RideStatus.PUBLISHED, RideStatus.CANCELLED);
-            }
-        } else {
-            if (status.equals(RideStatus.DRAFT) && !canSeeDrafts) {
-                statuses = List.of();
-            } else {
-                statuses = List.of(status);
-            }
-        }
-        return statuses;
-    }
+  @Transactional
+  public void leaveGroup(String teamSlug, String rideSlug, Long groupId, Long userId) {
+    getRideDetail(teamSlug, rideSlug, userId);
 
-    private @Nullable Visibility getVisibility(boolean isMember, Team team) {
-        if (isMember) {
-            return null;
-        } else if (team.getVisibility() == Visibility.PUBLIC) {
-            // For non-members of public teams, filter to show only public rides
-            return Visibility.PUBLIC;
-        } else {
-            // Private team - no access for non-members
-            throw BusinessException.notFound("Private team");
-        }
-    }
+    RideParticipation participation =
+        participationRepository
+            .findByUserAndGroup(userId, groupId)
+            .orElseThrow(() -> BusinessException.notFound("You are not registered for this group"));
 
-    @Transactional
-    public RideDto createRide(String teamSlug, RideRequest request, Long creatorId) {
-        Team team =
-                teamRepository
-                        .findBySlug(teamSlug)
-                        .orElseThrow(() -> BusinessException.notFound("Team", teamSlug));
+    participation.setDeleted(true);
+    participationRepository.persist(participation);
 
-        User creator =
-                userRepository
-                        .findActiveById(creatorId)
-                        .orElseThrow(() -> BusinessException.notFound("User", creatorId));
+    LOG.infov("User {0} left group {1} in ride {2}", userId, groupId, rideSlug);
+  }
 
-        // Security check: must be admin or organizer to create rides
-        securityService.requireOrganizer(creatorId, team.getSlug());
-
-        // Validate visibility: private teams can only have team-only rides
-        Visibility visibility = request.visibility();
-        if (team.getVisibility() != Visibility.PUBLIC && visibility == Visibility.PUBLIC) {
-            throw BusinessException.validation("Private teams can only have team-only rides");
-        }
-
-        // Generate slug from title, ensure unique within team
-        String slug = generateSlug(request.title());
-        if (rideRepository.existsByTeamAndSlug(team.getId(), slug)) {
-            slug = slug + "-" + System.currentTimeMillis() % 10000;
-        }
-
-        Route route = getRoute(request.getRouteIdLong(), team);
-
-        Ride ride = new Ride(team, creator, request.title(), slug, request.date());
-        ride.setDescription(request.description());
-        ride.setStartTime(request.startTime());
-        ride.setVisibility(visibility);
-        ride.setRoute(route);
-        ride.setStatus(RideStatus.DRAFT);
-        ride.setPublishAt(request.publishAt());
-
-        rideRepository.persist(ride);
-
-        int sortOrder = 0;
-        for (GroupRequest groupRequest : request.groups()) {
-            createRideGroup(ride, groupRequest, sortOrder);
-            sortOrder++;
-        }
-
-        LOG.infov("Ride '{0}' created by user {1} for team {2}", ride.getTitle(), creatorId, teamSlug);
-        return RideDto.from(ride, true);
-    }
-
-    private void createRideGroup(Ride ride, GroupRequest groupRequest, int sortOrder) {
-        RideGroup group = new RideGroup();
-        setProperties(ride, group, groupRequest, sortOrder);
-        ride.addGroup(group);
-        rideGroupRepository.persist(group);
-    }
-
-    private void setProperties(Ride ride, RideGroup group, GroupRequest groupRequest, int sortOrder) {
-        group.setRide(ride);
-        group.setName(groupRequest.name());
-        Route groupRoute = getRoute(groupRequest.getRouteIdLong(), ride.getTeam());
-        group.setDescription(groupRequest.description());
-        group.setAverageSpeed(groupRequest.averageSpeed());
-        group.setMaxParticipants(groupRequest.maxParticipants());
-        group.setSortOrder(sortOrder);
-        group.setRoute(groupRoute);
-    }
-
-    private @Nullable Route getRoute(@Nullable Long routeId, Team team) {
-        Route route = null;
-        if (routeId != null) {
-            route =
-                    routeRepository
-                            .findByIdOptional(routeId)
-                            .orElseThrow(() -> BusinessException.notFound("Route", routeId));
-            if (!route.getTeam().getId().equals(team.getId())) {
-                throw BusinessException.businessRule(
-                        "Route team is not ride team", "ROUTE_TEAM_RIDE_TEAM_DIFFERENT");
-            }
-            if (team.getVisibility() == Visibility.PUBLIC && route.getVisibility() != Visibility.PUBLIC) {
-                throw BusinessException.businessRule(
-                        "Can't use private route on public ride", "PUBLIC_RIDE_PRIVATE_ROUTE");
-            }
-        }
-        return route;
-    }
-
-    @Transactional
-    public RideDto updateRide(String teamSlug, String rideSlug, RideRequest request, Long userId) {
-        Ride ride = getRide(teamSlug, rideSlug, userId);
-
-        // Security check: must be admin or creator (if organizer) to edit
-        securityService.requireOrganizer(userId, teamSlug);
-
-        // Validate visibility: private teams can only have team-only rides
-        Team team = ride.getTeam();
-        if (team.getVisibility() != Visibility.PUBLIC && request.visibility() == Visibility.PUBLIC) {
-            throw BusinessException.validation("Private teams can only have team-only rides");
-        }
-        ride.setVisibility(request.visibility());
-
-        ride.setTitle(request.title());
-        ride.setDescription(request.description());
-        ride.setDate(request.date());
-        ride.setStartTime(request.startTime());
-        ride.setStatus(request.status());
-        Route route = getRoute(request.getRouteIdLong(), ride.getTeam());
-        ride.setRoute(route);
-        // publishAt can be explicitly set to null to remove scheduled publishing
-        ride.setPublishAt(request.publishAt());
-
-        rideRepository.persist(ride);
-
-        Map<Long, RideGroup> existingGroups =
-                ride.getGroups().stream().collect(Collectors.toMap(RideGroup::getId, Function.identity()));
-        ride.getGroups().clear();
-        int sortOrder = 0;
-        for (GroupRequest groupRequest : request.groups()) {
-            Long groupId = TsidUtils.toLongNullable(groupRequest.id());
-            if (groupId == null) {
-                createRideGroup(ride, groupRequest, sortOrder);
-            } else {
-                RideGroup existingRideGroup = existingGroups.remove(groupId);
-                if (existingRideGroup != null) {
-                    setProperties(ride, existingRideGroup, groupRequest, sortOrder);
-                    ride.addGroup(existingRideGroup);
-                    rideGroupRepository.persist(existingRideGroup);
-                } else {
-                    createRideGroup(ride, groupRequest, sortOrder);
-                }
-            }
-            sortOrder++;
-        }
-        for (RideGroup rideGroup : existingGroups.values()) {
-            rideGroup.setRide(ride);
-            rideGroup.setDeleted(true);
-            rideGroup.setSortOrder(sortOrder);
-            ride.addGroup(rideGroup);
-            rideGroupRepository.persist(rideGroup);
-            sortOrder++;
-        }
-
-        LOG.infov("Ride {0} updated by user {1}", rideSlug, userId);
-        return RideDto.from(ride, true);
-    }
-
-    @Transactional
-    public void deleteRide(String teamSlug, String rideSlug, Long userId) {
-        Ride ride = getRide(teamSlug, rideSlug, userId);
-
-        // Security check: must be admin or creator (if organizer) to delete
-        securityService.requireOrganizer(userId, teamSlug);
-
-        ride.setDeleted(true);
-        rideRepository.persist(ride);
-        LOG.infov("Ride {0} deleted by user {1}", rideSlug, userId);
-    }
-
-    public RideGroupListResponse listGroups(String teamSlug, String rideSlug, @Nullable Long userId) {
-        Ride ride = getRide(teamSlug, rideSlug, userId);
-        List<RideGroup> groups = rideGroupRepository.findByRide(ride.getId());
-        List<RideGroupDto> dtos = groups.stream().map(RideGroupDto::from).toList();
-        return new RideGroupListResponse(dtos);
-    }
-
-    @Transactional
-    public RideParticipationDto joinGroup(
-            String teamSlug, String rideSlug, Long groupId, Long userId, @Nullable String notes) {
-        Ride ride = getRide(teamSlug, rideSlug, userId);
-
-        if (ride.getStatus() != RideStatus.PUBLISHED) {
-            throw BusinessException.validation("Can only join published rides");
-        }
-
-        RideGroup group =
-                rideGroupRepository
-                        .findByIdAndRide(groupId, ride.getId())
-                        .orElseThrow(() -> BusinessException.notFound("Group", groupId));
-
-        User user =
-                userRepository
-                        .findActiveById(userId)
-                        .orElseThrow(() -> BusinessException.notFound("User", userId));
-
-        // Security check: must be a team member to join rides
-        securityService.requireMembership(userId, teamSlug);
-
-        Optional<RideParticipation> existingParticipation =
-                participationRepository.findByUserAndRideIncludingDeleted(userId, ride.getId());
-
-        if (existingParticipation.isPresent()) {
-            RideParticipation rideParticipation = existingParticipation.get();
-            if (!rideParticipation.isDeleted()) {
-                throw BusinessException.conflict(
-                        "You are already registered for this ride", "ALREADY_REGISTERED");
-            }
-            checkCapacity(group);
-            // Restore soft-deleted membership
-            rideParticipation.setDeleted(false);
-            rideParticipation.setNotes(notes);
-            participationRepository.persist(rideParticipation);
-            LOG.infov("User {0} rejoined group {1} in ride {2}", userId, groupId, ride.getId());
-            return RideParticipationDto.from(rideParticipation);
-        }
-
-        checkCapacity(group);
-
-        RideParticipation participation = new RideParticipation(group, user);
-        participation.setNotes(notes);
-
-        group.addParticipation(participation);
-        participationRepository.persist(participation);
-
-        LOG.infov("User {0} joined group {1} in ride {2}", userId, groupId, ride.getId());
-        return RideParticipationDto.from(participation);
-    }
-
-    private void checkCapacity(RideGroup group) {
-        if (!group.hasCapacity()) {
-            throw BusinessException.conflict("This group is full", "GROUP_FULL");
-        }
-    }
-
-    @Transactional
-    public void leaveGroup(String teamSlug, String rideSlug, Long groupId, Long userId) {
-        getRideDetail(teamSlug, rideSlug, userId);
-
-        RideParticipation participation =
-                participationRepository
-                        .findByUserAndGroup(userId, groupId)
-                        .orElseThrow(() -> BusinessException.notFound("You are not registered for this group"));
-
-        participation.setDeleted(true);
-        participationRepository.persist(participation);
-
-        LOG.infov("User {0} left group {1} in ride {2}", userId, groupId, rideSlug);
-    }
-
-    private String generateSlug(String input) {
-        String nowhitespace = WHITESPACE.matcher(input).replaceAll("-");
-        String normalized = Normalizer.normalize(nowhitespace, Normalizer.Form.NFD);
-        String slug = NONLATIN.matcher(normalized).replaceAll("");
-        return slug.toLowerCase(Locale.ENGLISH).replaceAll("-+", "-").replaceAll("^-|-$", "");
-    }
+  private String generateSlug(String input) {
+    String nowhitespace = WHITESPACE.matcher(input).replaceAll("-");
+    String normalized = Normalizer.normalize(nowhitespace, Normalizer.Form.NFD);
+    String slug = NONLATIN.matcher(normalized).replaceAll("");
+    return slug.toLowerCase(Locale.ENGLISH).replaceAll("-+", "-").replaceAll("^-|-$", "");
+  }
 }

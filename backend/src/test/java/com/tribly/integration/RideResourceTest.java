@@ -403,7 +403,7 @@ class RideResourceTest {
     String groupId =
         given()
             .auth()
-            .oauth2(getAccessToken(USERNAME_ADMIN))
+            .oauth2(getAccessToken(USERNAME_TEST))
             .when()
             .get("/api/teams/" + teamSlug + "/rides/" + rideSlug + "/groups")
             .then()
@@ -511,7 +511,7 @@ class RideResourceTest {
     String groupId =
         given()
             .auth()
-            .oauth2(getAccessToken(USERNAME_ADMIN))
+            .oauth2(getAccessToken(USERNAME_TEST))
             .when()
             .get("/api/teams/" + teamSlug + "/rides/" + rideSlug + "/groups")
             .then()
