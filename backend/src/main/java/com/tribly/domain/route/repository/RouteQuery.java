@@ -8,7 +8,7 @@ public record RouteQuery(
     long teamId,
     int page,
     int size,
-    @Nullable Long routeId,
+    @Nullable String slug,
     @Nullable Visibility visibility,
     @Nullable String search)
     implements PageInterface {}

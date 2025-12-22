@@ -16,7 +16,7 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.net.URI;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
@@ -61,8 +61,8 @@ public class RideResource extends AbstractAuthenticatedResource {
 
     Long userId = getCurrentUserIdOrNull();
 
-    LocalDate from = fromStr != null ? LocalDate.parse(fromStr) : null;
-    LocalDate to = toStr != null ? LocalDate.parse(toStr) : null;
+    LocalDateTime from = fromStr != null ? LocalDateTime.parse(fromStr) : null;
+    LocalDateTime to = toStr != null ? LocalDateTime.parse(toStr) : null;
 
     RideListResponse rides = rideService.listRides(slug, userId, from, to, status, page, size);
 
@@ -252,10 +252,9 @@ public class RideResource extends AbstractAuthenticatedResource {
       @Nullable JoinGroupRequest request) {
 
     Long userId = getCurrentUserId();
-    String notes = request != null ? request.notes() : null;
 
     RideParticipationDto participation =
-        rideService.joinGroup(slug, rideSlug, TsidUtils.toLong(groupId), userId, notes);
+        rideService.joinGroup(slug, rideSlug, TsidUtils.toLong(groupId), userId);
 
     return Response.created(
             URI.create(

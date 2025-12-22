@@ -2,14 +2,11 @@ package com.tribly.api.routes;
 
 import com.tribly.api.AbstractAuthenticatedResource;
 import com.tribly.dto.error.ErrorResponse;
-import com.tribly.dto.routes.request.CreateRouteRequest;
-import com.tribly.dto.routes.request.UpdateRouteRequest;
+import com.tribly.dto.routes.request.RouteRequest;
 import com.tribly.dto.routes.response.*;
-import com.tribly.enums.RouteDifficulty;
 import com.tribly.enums.SurfaceType;
 import com.tribly.enums.Visibility;
 import com.tribly.infrastructure.exception.BusinessException;
-import com.tribly.infrastructure.id.TsidUtils;
 import com.tribly.service.route.RouteService;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
@@ -108,8 +105,7 @@ public class RouteResource extends AbstractAuthenticatedResource {
   public Response createRoute(
       @Parameter(description = "Team URL slug") @PathParam("slug") String teamSlug,
       @RestForm @NotBlank String name,
-      @RestForm String description,
-      @RestForm @PartType(MediaType.TEXT_PLAIN) RouteDifficulty difficulty,
+      @RestForm @Nullable String description,
       @RestForm @PartType(MediaType.TEXT_PLAIN) SurfaceType surfaceType,
       @RestForm @PartType(MediaType.TEXT_PLAIN) Visibility visibility,
       @RestForm("gpxFile") @Nullable FileUpload gpxFile)
@@ -122,8 +118,7 @@ public class RouteResource extends AbstractAuthenticatedResource {
       throw BusinessException.validation("GPX file is required");
     }
 
-    CreateRouteRequest request =
-        new CreateRouteRequest(name, description, difficulty, surfaceType, visibility);
+    RouteRequest request = new RouteRequest(name, description, surfaceType, visibility);
 
     RouteDto route =
         routeService.createRoute(
@@ -133,7 +128,7 @@ public class RouteResource extends AbstractAuthenticatedResource {
             gpxFile.fileName(),
             userId);
 
-    return Response.created(URI.create("/api/teams/" + teamSlug + "/routes/" + route.id()))
+    return Response.created(URI.create("/api/teams/" + teamSlug + "/routes/" + route.slug()))
         .entity(route)
         .build();
   }
@@ -142,7 +137,7 @@ public class RouteResource extends AbstractAuthenticatedResource {
    * Get route details by ID.
    */
   @GET
-  @Path("/{routeId}")
+  @Path("/{routeSlug}")
   @PermitAll
   @Operation(
       summary = "Get route details",
@@ -159,12 +154,11 @@ public class RouteResource extends AbstractAuthenticatedResource {
   })
   public Response getRoute(
       @Parameter(description = "Team URL slug") @PathParam("slug") String teamSlug,
-      @Parameter(description = "Route ID (TSID)") @PathParam("routeId") String routeId) {
+      @Parameter(description = "Route slug") @PathParam("routeSlug") String routeSlug) {
 
     Long userId = getCurrentUserIdOrNull();
-    Long routeIdLong = TsidUtils.toLong(routeId);
 
-    RouteDetailDto route = routeService.getRouteDetail(teamSlug, routeIdLong, userId);
+    RouteDetailDto route = routeService.getRouteDetail(teamSlug, routeSlug, userId);
 
     return Response.ok(route).build();
   }
@@ -173,13 +167,12 @@ public class RouteResource extends AbstractAuthenticatedResource {
    * Update route metadata (not GPX file).
    */
   @PATCH
-  @Path("/{routeId}")
+  @Path("/{routeSlug}")
   @RolesAllowed("user")
   @Operation(
       summary = "Update route",
       description =
-          "Update route metadata (name, description, difficulty, etc.). Does not update the GPX"
-              + " file.")
+          "Update route metadata (name, description, etc.). Does not update the GPX" + " file.")
   @APIResponses({
     @APIResponse(
         responseCode = "200",
@@ -204,13 +197,12 @@ public class RouteResource extends AbstractAuthenticatedResource {
   })
   public Response updateRoute(
       @Parameter(description = "Team URL slug") @PathParam("slug") String teamSlug,
-      @Parameter(description = "Route ID (TSID)") @PathParam("routeId") String routeId,
-      UpdateRouteRequest request) {
+      @Parameter(description = "Route slug") @PathParam("routeSlug") String routeSlug,
+      RouteRequest request) {
 
     Long userId = getCurrentUserId();
-    Long routeIdLong = TsidUtils.toLong(routeId);
 
-    RouteDto route = routeService.updateRoute(teamSlug, routeIdLong, request, userId);
+    RouteDto route = routeService.updateRoute(teamSlug, routeSlug, request, userId);
     return Response.ok(route).build();
   }
 
@@ -218,7 +210,7 @@ public class RouteResource extends AbstractAuthenticatedResource {
    * Delete route.
    */
   @DELETE
-  @Path("/{routeId}")
+  @Path("/{routeSlug}")
   @RolesAllowed("user")
   @Operation(
       summary = "Delete route",
@@ -240,12 +232,11 @@ public class RouteResource extends AbstractAuthenticatedResource {
   })
   public Response deleteRoute(
       @Parameter(description = "Team URL slug") @PathParam("slug") String teamSlug,
-      @Parameter(description = "Route ID (TSID)") @PathParam("routeId") String routeId) {
+      @Parameter(description = "Route slug") @PathParam("routeSlug") String routeSlug) {
 
     Long userId = getCurrentUserId();
-    Long routeIdLong = TsidUtils.toLong(routeId);
 
-    routeService.deleteRoute(teamSlug, routeIdLong, userId);
+    routeService.deleteRoute(teamSlug, routeSlug, userId);
     return Response.noContent().build();
   }
 
@@ -253,7 +244,7 @@ public class RouteResource extends AbstractAuthenticatedResource {
    * Get climbs for a route.
    */
   @GET
-  @Path("/{routeId}/climbs")
+  @Path("/{routeSlug}/climbs")
   @PermitAll
   @Operation(
       summary = "Get route climbs",
@@ -270,11 +261,10 @@ public class RouteResource extends AbstractAuthenticatedResource {
   })
   public Response getClimbs(
       @Parameter(description = "Team URL slug") @PathParam("slug") String teamSlug,
-      @Parameter(description = "Route ID (TSID)") @PathParam("routeId") String routeId) {
+      @Parameter(description = "Route slug") @PathParam("routeSlug") String routeSlug) {
     Long userId = getCurrentUserIdOrNull();
-    Long routeIdLong = TsidUtils.toLong(routeId);
 
-    ClimbListResponse climbs = routeService.getClimbs(teamSlug, routeIdLong, userId);
+    ClimbListResponse climbs = routeService.getClimbs(teamSlug, routeSlug, userId);
     return Response.ok(climbs).build();
   }
 
@@ -282,7 +272,7 @@ public class RouteResource extends AbstractAuthenticatedResource {
    * Get GPX track points for a route.
    */
   @GET
-  @Path("/{routeId}/track")
+  @Path("/{routeSlug}/track")
   @PermitAll
   @Operation(
       summary = "Get route track",
@@ -300,11 +290,10 @@ public class RouteResource extends AbstractAuthenticatedResource {
   })
   public Response getTrack(
       @Parameter(description = "Team URL slug") @PathParam("slug") String teamSlug,
-      @Parameter(description = "Route ID (TSID)") @PathParam("routeId") String routeId) {
+      @Parameter(description = "Route slug") @PathParam("routeSlug") String routeSlug) {
     Long userId = getCurrentUserIdOrNull();
-    Long routeIdLong = TsidUtils.toLong(routeId);
 
-    GpxTrackDto track = routeService.getTrack(teamSlug, routeIdLong, userId);
+    GpxTrackDto track = routeService.getTrack(teamSlug, routeSlug, userId);
     return Response.ok(track).build();
   }
 

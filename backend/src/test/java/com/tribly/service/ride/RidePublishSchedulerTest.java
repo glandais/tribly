@@ -42,7 +42,7 @@ class RidePublishSchedulerTest {
             user,
             "Auto Publish",
             "auto-publish",
-            LocalDate.of(2025, 6, 15),
+            LocalDate.of(2025, 6, 15).atTime(0, 0),
             RideStatus.DRAFT,
             Instant.now().minusSeconds(3600));
 
@@ -61,7 +61,7 @@ class RidePublishSchedulerTest {
             user,
             "Future Publish",
             "future-publish",
-            LocalDate.of(2025, 6, 15),
+            LocalDate.of(2025, 6, 15).atTime(0, 0),
             RideStatus.DRAFT,
             Instant.now().plusSeconds(3600));
 
@@ -80,7 +80,7 @@ class RidePublishSchedulerTest {
             user,
             "Already Published",
             "already-published",
-            LocalDate.of(2025, 6, 15),
+            LocalDate.of(2025, 6, 15).atTime(0, 0),
             RideStatus.PUBLISHED,
             Instant.now().minusSeconds(3600));
 
@@ -98,7 +98,7 @@ class RidePublishSchedulerTest {
             user,
             "Cancelled",
             "cancelled",
-            LocalDate.of(2025, 6, 15),
+            LocalDate.of(2025, 6, 15).atTime(0, 0),
             RideStatus.CANCELLED,
             Instant.now().minusSeconds(3600));
 
@@ -116,7 +116,7 @@ class RidePublishSchedulerTest {
             user,
             "Ride 1",
             "ride-1",
-            LocalDate.of(2025, 6, 15),
+            LocalDate.of(2025, 6, 15).atTime(0, 0),
             RideStatus.DRAFT,
             Instant.now().minusSeconds(7200));
     Ride ride2 =
@@ -125,7 +125,7 @@ class RidePublishSchedulerTest {
             user,
             "Ride 2",
             "ride-2",
-            LocalDate.of(2025, 6, 16),
+            LocalDate.of(2025, 6, 16).atTime(0, 0),
             RideStatus.DRAFT,
             Instant.now().minusSeconds(3600));
     Ride ride3 =
@@ -134,7 +134,7 @@ class RidePublishSchedulerTest {
             user,
             "Ride 3",
             "ride-3",
-            LocalDate.of(2025, 6, 17),
+            LocalDate.of(2025, 6, 17).atTime(0, 0),
             RideStatus.DRAFT,
             Instant.now().minusSeconds(1800));
 
@@ -168,7 +168,7 @@ class RidePublishSchedulerTest {
             user,
             "No PublishAt",
             "no-publishat",
-            LocalDate.of(2025, 6, 15),
+            LocalDate.of(2025, 6, 15).atTime(0, 0),
             RideStatus.DRAFT);
 
     ridePublishScheduler.autoPublishRides();
@@ -186,7 +186,7 @@ class RidePublishSchedulerTest {
             user,
             "Exact Time",
             "exact-time",
-            LocalDate.of(2025, 6, 15),
+            LocalDate.of(2025, 6, 15).atTime(0, 0),
             RideStatus.DRAFT,
             publishTime);
 

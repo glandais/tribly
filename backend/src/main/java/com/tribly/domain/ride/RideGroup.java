@@ -2,7 +2,6 @@ package com.tribly.domain.ride;
 
 import com.tribly.domain.common.BaseEntity;
 import com.tribly.domain.route.Route;
-import com.tribly.enums.ParticipationStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -15,7 +14,11 @@ import org.jspecify.annotations.Nullable;
 @Setter
 @Getter
 @Entity
-@Table(name = "ride_groups")
+@Table(
+    name = "ride_groups",
+    indexes = {
+      @Index(columnList = "ride_id, deleted"),
+    })
 public class RideGroup extends BaseEntity {
 
   @ManyToOne(fetch = FetchType.LAZY)
@@ -58,10 +61,7 @@ public class RideGroup extends BaseEntity {
   }
 
   public int getCurrentParticipants() {
-    return (int)
-        participations.stream()
-            .filter(p -> !p.isDeleted() && p.getStatus() != ParticipationStatus.CANCELLED)
-            .count();
+    return (int) participations.stream().filter(p -> !p.isDeleted()).count();
   }
 
   public boolean hasCapacity() {

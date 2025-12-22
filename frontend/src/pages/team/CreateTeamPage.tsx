@@ -13,7 +13,6 @@ export function CreateTeamPage() {
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [visibility, setVisibility] = useState<Visibility>(Visibility.Public)
-  const [maxMembers, setMaxMembers] = useState<number | ''>('')
 
   const createMutation = useCreateTeam()
 
@@ -23,7 +22,6 @@ export function CreateTeamPage() {
       name,
       description: description || undefined,
       visibility,
-      maxMembers: maxMembers ? Number(maxMembers) : undefined,
     })
   }
 
@@ -116,22 +114,6 @@ export function CreateTeamPage() {
             <option value={Visibility.Public}>{tCommon('visibility.public')}</option>
           </select>
           <p className="mt-1 text-sm text-gray-500">{t('create.form.visibility.hint')}</p>
-        </div>
-
-        <div>
-          <label htmlFor="maxMembers" className="block text-sm font-medium text-gray-700">
-            {t('create.form.maxMembers.label')}
-          </label>
-          <input
-            type="number"
-            id="maxMembers"
-            value={maxMembers}
-            onChange={(e) => setMaxMembers(e.target.value ? Number(e.target.value) : '')}
-            min={1}
-            className="mt-1 block w-full sm:w-32 px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
-            placeholder={t('create.form.maxMembers.placeholder')}
-          />
-          <p className="mt-1 text-sm text-gray-500">{t('create.form.maxMembers.hint')}</p>
         </div>
 
         <div className="pt-4 flex items-center justify-end gap-3">

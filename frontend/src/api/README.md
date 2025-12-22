@@ -61,12 +61,12 @@ Class | Method | HTTP request | Description
 *RidesApi* | [**listRides**](docs/RidesApi.md#listrides) | **GET** /api/teams/{slug}/rides | List rides
 *RidesApi* | [**updateRide**](docs/RidesApi.md#updateride) | **PUT** /api/teams/{slug}/rides/{rideSlug} | Update ride
 *RoutesApi* | [**createRoute**](docs/RoutesApi.md#createroute) | **POST** /api/teams/{slug}/routes | Create route
-*RoutesApi* | [**deleteRoute**](docs/RoutesApi.md#deleteroute) | **DELETE** /api/teams/{slug}/routes/{routeId} | Delete route
-*RoutesApi* | [**getClimbs**](docs/RoutesApi.md#getclimbs) | **GET** /api/teams/{slug}/routes/{routeId}/climbs | Get route climbs
-*RoutesApi* | [**getRoute**](docs/RoutesApi.md#getroute) | **GET** /api/teams/{slug}/routes/{routeId} | Get route details
-*RoutesApi* | [**getTrack**](docs/RoutesApi.md#gettrack) | **GET** /api/teams/{slug}/routes/{routeId}/track | Get route track
+*RoutesApi* | [**deleteRoute**](docs/RoutesApi.md#deleteroute) | **DELETE** /api/teams/{slug}/routes/{routeSlug} | Delete route
+*RoutesApi* | [**getClimbs**](docs/RoutesApi.md#getclimbs) | **GET** /api/teams/{slug}/routes/{routeSlug}/climbs | Get route climbs
+*RoutesApi* | [**getRoute**](docs/RoutesApi.md#getroute) | **GET** /api/teams/{slug}/routes/{routeSlug} | Get route details
+*RoutesApi* | [**getTrack**](docs/RoutesApi.md#gettrack) | **GET** /api/teams/{slug}/routes/{routeSlug}/track | Get route track
 *RoutesApi* | [**listRoutes**](docs/RoutesApi.md#listroutes) | **GET** /api/teams/{slug}/routes | List routes
-*RoutesApi* | [**updateRoute**](docs/RoutesApi.md#updateroute) | **PATCH** /api/teams/{slug}/routes/{routeId} | Update route
+*RoutesApi* | [**updateRoute**](docs/RoutesApi.md#updateroute) | **PATCH** /api/teams/{slug}/routes/{routeSlug} | Update route
 *TeamMembersApi* | [**addMember**](docs/TeamMembersApi.md#addmember) | **POST** /api/teams/{slug}/members | Add team member
 *TeamMembersApi* | [**getMembers**](docs/TeamMembersApi.md#getmembers) | **GET** /api/teams/{slug}/members | Get team members
 *TeamMembersApi* | [**joinTeam**](docs/TeamMembersApi.md#jointeam) | **POST** /api/teams/{slug}/members/join | Join team
@@ -91,17 +91,14 @@ Class | Method | HTTP request | Description
  - [ClimbCategory](docs/ClimbCategory.md)
  - [ClimbListResponse](docs/ClimbListResponse.md)
  - [ConfigDto](docs/ConfigDto.md)
- - [CreateTeamRequest](docs/CreateTeamRequest.md)
  - [ErrorResponse](docs/ErrorResponse.md)
  - [FieldError](docs/FieldError.md)
  - [GpxTrackDto](docs/GpxTrackDto.md)
  - [GroupRequest](docs/GroupRequest.md)
- - [JoinGroupRequest](docs/JoinGroupRequest.md)
  - [KeycloakConfig](docs/KeycloakConfig.md)
  - [MapConfig](docs/MapConfig.md)
  - [MemberDto](docs/MemberDto.md)
  - [MemberListResponse](docs/MemberListResponse.md)
- - [ParticipationStatus](docs/ParticipationStatus.md)
  - [PublicUserDto](docs/PublicUserDto.md)
  - [RideDto](docs/RideDto.md)
  - [RideGroupDto](docs/RideGroupDto.md)
@@ -112,17 +109,16 @@ Class | Method | HTTP request | Description
  - [RideStatus](docs/RideStatus.md)
  - [RouteClimbDto](docs/RouteClimbDto.md)
  - [RouteDetailDto](docs/RouteDetailDto.md)
- - [RouteDifficulty](docs/RouteDifficulty.md)
  - [RouteDto](docs/RouteDto.md)
  - [RouteListResponse](docs/RouteListResponse.md)
+ - [RouteRequest](docs/RouteRequest.md)
  - [SurfaceType](docs/SurfaceType.md)
  - [TeamDetailDto](docs/TeamDetailDto.md)
  - [TeamListResponse](docs/TeamListResponse.md)
+ - [TeamRequest](docs/TeamRequest.md)
  - [TeamRole](docs/TeamRole.md)
  - [TrackPointDto](docs/TrackPointDto.md)
  - [UpdateMemberRoleRequest](docs/UpdateMemberRoleRequest.md)
- - [UpdateRouteRequest](docs/UpdateRouteRequest.md)
- - [UpdateTeamRequest](docs/UpdateTeamRequest.md)
  - [UpdateUserRequest](docs/UpdateUserRequest.md)
  - [UserDto](docs/UserDto.md)
  - [Visibility](docs/Visibility.md)

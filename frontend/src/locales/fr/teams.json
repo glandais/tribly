@@ -44,11 +44,6 @@
       "visibility": {
         "label": "Visibilité de l'équipe",
         "hint": "Contrôle qui peut trouver et rejoindre cette équipe"
-      },
-      "maxMembers": {
-        "label": "Nombre maximum de membres (optionnel)",
-        "placeholder": "Sans limite",
-        "hint": "Laissez vide pour un nombre illimité de membres"
       }
     },
     "button": "Créer l'équipe",
@@ -74,7 +69,6 @@
     "info": {
       "memberCount_one": "{{count}} membre",
       "memberCount_other": "{{count}} membres",
-      "maxMembers": "/ {{max}} max",
       "created": "Créé le {{date}}"
     },
     "actions": {
@@ -120,22 +114,9 @@
         "label": "Description",
         "charCount": "{{count}}/{{max}} caractères"
       },
-      "logoUrl": {
-        "label": "URL du logo",
-        "placeholder": "https://exemple.com/logo.png"
-      },
-      "coverImageUrl": {
-        "label": "URL de l'image de couverture",
-        "placeholder": "https://exemple.com/couverture.jpg"
-      },
       "visibility": {
         "label": "Visibilité de l'équipe",
         "hint": "Contrôle qui peut trouver et rejoindre cette équipe"
-      },
-      "maxMembers": {
-        "label": "Nombre maximum de membres",
-        "placeholder": "Sans limite",
-        "hint": "Membres actuels : {{count}}. Laissez vide pour illimité."
       }
     },
     "success": "Paramètres de l'équipe mis à jour avec succès !",

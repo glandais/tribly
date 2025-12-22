@@ -5,8 +5,7 @@ import com.tribly.enums.RideStatus;
 import com.tribly.enums.Visibility;
 import com.tribly.infrastructure.id.TsidUtils;
 import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalTime;
+import java.time.LocalDateTime;
 import java.util.List;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.jspecify.annotations.Nullable;
@@ -16,10 +15,9 @@ import org.jspecify.annotations.Nullable;
 public record RideDto(
     @Schema(description = "Ride ID (TSID)", required = true) String id,
     @Schema(description = "Ride URL slug", required = true) String slug,
-    @Schema(description = "Ride title", required = true) String title,
+    @Schema(description = "Ride name", required = true) String name,
     @Nullable @Schema(description = "Ride description", nullable = true) String description,
-    @Schema(description = "Ride date", required = true) LocalDate date,
-    @Nullable @Schema(description = "Start time", nullable = true) LocalTime startTime,
+    @Schema(description = "Ride date/time", required = true) LocalDateTime dateTime,
     @Schema(description = "Ride status", required = true) RideStatus status,
     @Schema(description = "Visibility level", required = true) Visibility visibility,
     @Nullable @Schema(description = "Route id", nullable = true) String routeId,
@@ -36,10 +34,9 @@ public record RideDto(
     return new RideDto(
         TsidUtils.toString(ride.getId()),
         ride.getSlug(),
-        ride.getTitle(),
+        ride.getName(),
         ride.getDescription(),
-        ride.getDate(),
-        ride.getStartTime(),
+        ride.getDateTime(),
         ride.getStatus(),
         ride.getVisibility(),
         ride.getRoute() != null ? TsidUtils.toString(ride.getRoute().getId()) : null,

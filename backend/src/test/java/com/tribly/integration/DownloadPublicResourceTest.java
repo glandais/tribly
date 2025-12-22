@@ -7,7 +7,6 @@ import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
 import com.tribly.enums.TeamRole;
 import com.tribly.enums.Visibility;
-import com.tribly.infrastructure.id.TsidUtils;
 import com.tribly.util.TestDataCleaner;
 import com.tribly.util.TestDataService;
 import io.quarkus.test.junit.QuarkusTest;
@@ -28,7 +27,7 @@ class DownloadPublicResourceTest {
 
   private Team testTeam;
   private User testUser;
-  private String routeId;
+  private String routeSlug;
 
   final KeycloakTestClient keycloakClient = new KeycloakTestClient();
 
@@ -49,7 +48,7 @@ class DownloadPublicResourceTest {
 
     // Create route with GPX file
     File gpxFile = new File("src/test/resources/example.gpx");
-    routeId =
+    routeSlug =
         given()
             .auth()
             .oauth2(getAccessToken(USERNAME_TEST))
@@ -62,14 +61,14 @@ class DownloadPublicResourceTest {
             .then()
             .statusCode(201)
             .extract()
-            .path("id");
+            .path("slug");
   }
 
   @Test
   void downloadGpx_shouldReturnGpxFile() {
     given()
         .when()
-        .get("/api/download/public/teams/test-team/routes/" + routeId + "/gpx")
+        .get("/api/download/public/teams/test-team/routes/" + routeSlug + "/gpx")
         .then()
         .statusCode(200)
         .contentType("application/gpx+xml")
@@ -82,7 +81,7 @@ class DownloadPublicResourceTest {
   void downloadFit_shouldReturnFitFile() {
     given()
         .when()
-        .get("/api/download/public/teams/test-team/routes/" + routeId + "/fit")
+        .get("/api/download/public/teams/test-team/routes/" + routeSlug + "/fit")
         .then()
         .statusCode(200)
         .contentType("application/octet-stream")
@@ -95,7 +94,7 @@ class DownloadPublicResourceTest {
   void getThumbnail_shouldReturnImage() {
     given()
         .when()
-        .get("/api/download/public/teams/test-team/routes/" + routeId + "/thumbnail")
+        .get("/api/download/public/teams/test-team/routes/" + routeSlug + "/thumbnail")
         .then()
         .statusCode(200)
         .contentType("image/png")
@@ -106,7 +105,7 @@ class DownloadPublicResourceTest {
   void downloadGpx_withNonexistentRoute_shouldReturn404() {
     given()
         .when()
-        .get("/api/download/public/teams/test-team/routes/" + TsidUtils.toString(999999L) + "/gpx")
+        .get("/api/download/public/teams/test-team/routes/missing/gpx")
         .then()
         .statusCode(404);
   }
@@ -115,7 +114,7 @@ class DownloadPublicResourceTest {
   void downloadFit_withNonexistentRoute_shouldReturn404() {
     given()
         .when()
-        .get("/api/download/public/teams/test-team/routes/" + TsidUtils.toString(999999L) + "/fit")
+        .get("/api/download/public/teams/test-team/routes/missing/fit")
         .then()
         .statusCode(404);
   }
@@ -124,10 +123,7 @@ class DownloadPublicResourceTest {
   void getThumbnail_withNonexistentRoute_shouldReturn404() {
     given()
         .when()
-        .get(
-            "/api/download/public/teams/test-team/routes/"
-                + TsidUtils.toString(999999L)
-                + "/thumbnail")
+        .get("/api/download/public/teams/test-team/routes/missing/thumbnail")
         .then()
         .statusCode(404);
   }
@@ -136,7 +132,7 @@ class DownloadPublicResourceTest {
   void getTrack_shouldReturnGpxTrack() {
     given()
         .when()
-        .get("/api/teams/test-team/routes/" + routeId + "/track")
+        .get("/api/teams/test-team/routes/" + routeSlug + "/track")
         .then()
         .statusCode(200)
         .contentType("application/json")

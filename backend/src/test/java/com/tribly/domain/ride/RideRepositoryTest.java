@@ -38,8 +38,8 @@ class RideRepositoryTest {
 
   @Test
   void find_shouldReturnRidesByTeam() {
-    dataService.createRide(team, user, "Ride 1", "ride-1", LocalDate.of(2025, 1, 15));
-    dataService.createRide(team, user, "Ride 2", "ride-2", LocalDate.of(2025, 1, 20));
+    dataService.createRide(team, user, "Ride 1", "ride-1", LocalDate.of(2025, 1, 15).atTime(0, 0));
+    dataService.createRide(team, user, "Ride 2", "ride-2", LocalDate.of(2025, 1, 20).atTime(0, 0));
 
     RideQuery query =
         new RideQuery(team.getId(), 0, 10, null, null, null, null, List.of(RideStatus.PUBLISHED));
@@ -51,8 +51,8 @@ class RideRepositoryTest {
 
   @Test
   void find_shouldFilterBySlug() {
-    dataService.createRide(team, user, "Ride 1", "ride-1", LocalDate.of(2025, 1, 15));
-    dataService.createRide(team, user, "Ride 2", "ride-2", LocalDate.of(2025, 1, 20));
+    dataService.createRide(team, user, "Ride 1", "ride-1", LocalDate.of(2025, 1, 15).atTime(0, 0));
+    dataService.createRide(team, user, "Ride 2", "ride-2", LocalDate.of(2025, 1, 20).atTime(0, 0));
 
     RideQuery query =
         new RideQuery(
@@ -65,9 +65,9 @@ class RideRepositoryTest {
 
   @Test
   void find_shouldFilterByDateRange() {
-    dataService.createRide(team, user, "Ride 1", "ride-1", LocalDate.of(2025, 1, 10));
-    dataService.createRide(team, user, "Ride 2", "ride-2", LocalDate.of(2025, 1, 20));
-    dataService.createRide(team, user, "Ride 3", "ride-3", LocalDate.of(2025, 1, 30));
+    dataService.createRide(team, user, "Ride 1", "ride-1", LocalDate.of(2025, 1, 10).atTime(0, 0));
+    dataService.createRide(team, user, "Ride 2", "ride-2", LocalDate.of(2025, 1, 20).atTime(0, 0));
+    dataService.createRide(team, user, "Ride 3", "ride-3", LocalDate.of(2025, 1, 30).atTime(0, 0));
 
     RideQuery query =
         new RideQuery(
@@ -75,9 +75,9 @@ class RideRepositoryTest {
             0,
             10,
             null,
-            LocalDate.of(2025, 1, 15),
-            LocalDate.of(2025, 1, 25),
             null,
+            LocalDate.of(2025, 1, 15).atTime(0, 0),
+            LocalDate.of(2025, 1, 25).atTime(0, 0),
             List.of(RideStatus.PUBLISHED));
     TriblyPage<Ride> result = rideRepository.find(query);
 
@@ -88,13 +88,23 @@ class RideRepositoryTest {
   @Test
   void find_shouldFilterByVisibility() {
     dataService.createRideWithVisibility(
-        team, user, "Public Ride", "public-ride", LocalDate.of(2025, 1, 15), Visibility.PUBLIC);
+        team,
+        user,
+        "Public Ride",
+        "public-ride",
+        LocalDate.of(2025, 1, 15).atTime(0, 0),
+        Visibility.PUBLIC);
     dataService.createRideWithVisibility(
-        team, user, "Team Ride", "team-ride", LocalDate.of(2025, 1, 20), Visibility.TEAM);
+        team,
+        user,
+        "Team Ride",
+        "team-ride",
+        LocalDate.of(2025, 1, 20).atTime(0, 0),
+        Visibility.TEAM);
 
     RideQuery query =
         new RideQuery(
-            team.getId(), 0, 10, null, null, null, Visibility.PUBLIC, List.of(RideStatus.DRAFT));
+            team.getId(), 0, 10, null, Visibility.PUBLIC, null, null, List.of(RideStatus.DRAFT));
     TriblyPage<Ride> result = rideRepository.find(query);
 
     assertEquals(1, result.items().size());
@@ -104,13 +114,18 @@ class RideRepositoryTest {
   @Test
   void find_shouldFilterByStatus() {
     dataService.createRideWithStatus(
-        team, user, "Draft Ride", "draft-ride", LocalDate.of(2025, 1, 15), RideStatus.DRAFT);
+        team,
+        user,
+        "Draft Ride",
+        "draft-ride",
+        LocalDate.of(2025, 1, 15).atTime(0, 0),
+        RideStatus.DRAFT);
     dataService.createRideWithStatus(
         team,
         user,
         "Published Ride",
         "published-ride",
-        LocalDate.of(2025, 1, 20),
+        LocalDate.of(2025, 1, 20).atTime(0, 0),
         RideStatus.PUBLISHED);
 
     RideQuery query =
@@ -123,9 +138,11 @@ class RideRepositoryTest {
 
   @Test
   void find_shouldIgnoreDeletedRides() {
-    dataService.createRide(team, user, "Visible Ride", "visible", LocalDate.of(2025, 1, 15));
+    dataService.createRide(
+        team, user, "Visible Ride", "visible", LocalDate.of(2025, 1, 15).atTime(0, 0));
     Ride deletedRide =
-        dataService.createRide(team, user, "Deleted Ride", "deleted", LocalDate.of(2025, 1, 20));
+        dataService.createRide(
+            team, user, "Deleted Ride", "deleted", LocalDate.of(2025, 1, 20).atTime(0, 0));
     dataService.deleteRide(deletedRide);
 
     RideQuery query =
@@ -138,7 +155,8 @@ class RideRepositoryTest {
 
   @Test
   void existsByTeamAndSlug_shouldReturnTrueWhenExists() {
-    dataService.createRide(team, user, "Test Ride", "test-ride", LocalDate.of(2025, 1, 15));
+    dataService.createRide(
+        team, user, "Test Ride", "test-ride", LocalDate.of(2025, 1, 15).atTime(0, 0));
 
     boolean exists = rideRepository.existsByTeamAndSlug(team.getId(), "test-ride");
 
@@ -153,24 +171,13 @@ class RideRepositoryTest {
   }
 
   @Test
-  void existsByTeamAndSlug_shouldIgnoreDeletedRides() {
-    Ride ride =
-        dataService.createRide(team, user, "Deleted Ride", "deleted", LocalDate.of(2025, 1, 15));
-    dataService.deleteRide(ride);
-
-    boolean exists = rideRepository.existsByTeamAndSlug(team.getId(), "deleted");
-
-    assertFalse(exists);
-  }
-
-  @Test
   void findRidesToAutoPublish_shouldReturnRidesWithPublishAtInPast() {
     dataService.createRideWithPublishAt(
         team,
         user,
         "Auto Publish 1",
         "auto-1",
-        LocalDate.of(2025, 1, 15),
+        LocalDate.of(2025, 1, 15).atTime(0, 0),
         RideStatus.DRAFT,
         Instant.now().minusSeconds(3600));
 
@@ -179,7 +186,7 @@ class RideRepositoryTest {
         user,
         "Auto Publish 2",
         "auto-2",
-        LocalDate.of(2025, 1, 20),
+        LocalDate.of(2025, 1, 20).atTime(0, 0),
         RideStatus.DRAFT,
         Instant.now().plusSeconds(3600));
 
@@ -192,7 +199,12 @@ class RideRepositoryTest {
   @Test
   void findRidesToAutoPublish_shouldIgnoreRidesWithoutPublishAt() {
     dataService.createRideWithStatus(
-        team, user, "No Publish At", "no-publish", LocalDate.of(2025, 1, 15), RideStatus.DRAFT);
+        team,
+        user,
+        "No Publish At",
+        "no-publish",
+        LocalDate.of(2025, 1, 15).atTime(0, 0),
+        RideStatus.DRAFT);
 
     List<Ride> result = rideRepository.findRidesToAutoPublish(RideStatus.DRAFT, Instant.now());
 

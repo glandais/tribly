@@ -23,13 +23,12 @@ export function CreateRidePage() {
     const daysUntilSunday = (7 - today.getDay()) % 7 || 7
     const nextSunday = new Date(today)
     nextSunday.setDate(today.getDate() + daysUntilSunday)
-    return nextSunday.toISOString().split('T')[0]
+    return nextSunday.toISOString().split('T')[0] + 'T08:00'
   }
 
-  const [title, setTitle] = useState('')
+  const [name, setName] = useState('')
   const [description, setDescription] = useState('')
-  const [date, setDate] = useState(getNextSunday())
-  const [startTime, setStartTime] = useState('08:00')
+  const [dateTime, setDateTime] = useState(getNextSunday())
   const [visibility, setVisibility] = useState<Visibility>(Visibility.Team)
   const [publishAt, setPublishAt] = useState('')
   const [rideRouteId, setRideRouteId] = useState<string | null>(null)
@@ -63,10 +62,9 @@ export function CreateRidePage() {
     e.preventDefault()
     const filteredGroups = groups.filter((g) => g.name.trim())
     createMutation.mutate({
-      title,
+      name,
       description: description || undefined,
-      date,
-      startTime: startTime || undefined,
+      dateTime,
       status: 'DRAFT',
       visibility,
       publishAt: publishAt ? new Date(publishAt).toISOString() : undefined,
@@ -132,8 +130,8 @@ export function CreateRidePage() {
           <input
             type="text"
             id="title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
             required
             minLength={3}
             maxLength={200}
@@ -170,10 +168,10 @@ export function CreateRidePage() {
               {t('create.form.date.label')} <span className="text-red-500">*</span>
             </label>
             <input
-              type="date"
+              type="datetime-local"
               id="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
+              value={dateTime}
+              onChange={(e) => setDateTime(e.target.value)}
               required
               min={new Date().toISOString().split('T')[0]}
               className={`mt-1 block w-full px-4 py-2 border rounded-lg focus:ring-indigo-500 focus:border-indigo-500 ${
@@ -183,18 +181,6 @@ export function CreateRidePage() {
             {getFieldError('date') && (
               <p className="mt-1 text-sm text-red-600">{getFieldError('date')}</p>
             )}
-          </div>
-          <div>
-            <label htmlFor="startTime" className="block text-sm font-medium text-gray-700">
-              {t('create.form.startTime.label')}
-            </label>
-            <input
-              type="time"
-              id="startTime"
-              value={startTime}
-              onChange={(e) => setStartTime(e.target.value)}
-              className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
-            />
           </div>
         </div>
 
@@ -375,7 +361,7 @@ export function CreateRidePage() {
           </Link>
           <button
             type="submit"
-            disabled={createMutation.isPending || !title.trim() || !date}
+            disabled={createMutation.isPending || !name.trim() || !dateTime}
             className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {createMutation.isPending ? (

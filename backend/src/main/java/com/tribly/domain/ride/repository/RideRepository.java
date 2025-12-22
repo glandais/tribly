@@ -19,15 +19,15 @@ public class RideRepository implements BaseRepository<Ride> {
             .and("team.id = :teamId", Map.of("teamId", rideQuery.teamId()))
             .and("deleted = false", Map.of())
             .and("status in :statuses", Map.of("statuses", rideQuery.statuses()))
-            .order("date desc");
+            .order("dateTime desc");
     if (rideQuery.slug() != null) {
       triblyQuery = triblyQuery.and("slug = :slug", Map.of("slug", rideQuery.slug()));
     }
     if (rideQuery.from() != null) {
-      triblyQuery = triblyQuery.and("date >= :from", Map.of("from", rideQuery.from()));
+      triblyQuery = triblyQuery.and("dateTime >= :from", Map.of("from", rideQuery.from()));
     }
     if (rideQuery.to() != null) {
-      triblyQuery = triblyQuery.and("date <= :to", Map.of("to", rideQuery.to()));
+      triblyQuery = triblyQuery.and("dateTime <= :to", Map.of("to", rideQuery.to()));
     }
     if (rideQuery.visibility() != null) {
       triblyQuery =
@@ -38,7 +38,7 @@ public class RideRepository implements BaseRepository<Ride> {
   }
 
   public boolean existsByTeamAndSlug(Long teamId, String slug) {
-    return count("team.id = ?1 and slug = ?2 and deleted = false", teamId, slug) > 0;
+    return count("team.id = ?1 and slug = ?2", teamId, slug) > 0;
   }
 
   /**

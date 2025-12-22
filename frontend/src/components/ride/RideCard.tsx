@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { CalendarIcon, ClockIcon, UsersIcon, RectangleStackIcon } from '@heroicons/react/24/outline'
+import { CalendarIcon, UsersIcon, RectangleStackIcon } from '@heroicons/react/24/outline'
 import { RideStatus } from '../../hooks/useRide'
 import type { RideDto } from '../../hooks/useRide'
 import { Card, CardContent, CardTitle, CardDescription } from '../common/card'
@@ -18,7 +18,7 @@ const statusVariants: Record<RideStatus, 'gray' | 'green' | 'red'> = {
 
 export function RideCard({ ride, teamSlug }: RideCardProps) {
   const { t, i18n } = useTranslation('rides')
-  const rideDate = new Date(ride.date)
+  const rideDate = new Date(ride.dateTime)
   const formattedDate = rideDate.toLocaleDateString(i18n.language, {
     weekday: 'short',
     month: 'short',
@@ -26,7 +26,6 @@ export function RideCard({ ride, teamSlug }: RideCardProps) {
   })
 
   const calendarIcon = <CalendarIcon />
-  const clockIcon = <ClockIcon />
   const participantsIcon = <UsersIcon />
   const groupsIcon = <RectangleStackIcon />
 
@@ -35,7 +34,7 @@ export function RideCard({ ride, teamSlug }: RideCardProps) {
       <CardContent>
         <div className="flex items-start justify-between mb-4">
           <div className="flex-1 min-w-0">
-            <CardTitle>{ride.title}</CardTitle>
+            <CardTitle>{ride.name}</CardTitle>
             {ride.description && <CardDescription>{ride.description}</CardDescription>}
           </div>
           <div className="ml-3 flex flex-col items-end gap-1">
@@ -46,7 +45,6 @@ export function RideCard({ ride, teamSlug }: RideCardProps) {
 
         <StatGroup>
           <Stat icon={calendarIcon}>{formattedDate}</Stat>
-          {ride.startTime && <Stat icon={clockIcon}>{ride.startTime.substring(0, 5)}</Stat>}
           <Stat icon={participantsIcon}>
             {t('card.participantCount', { count: ride.participantCount })}
           </Stat>

@@ -21,25 +21,25 @@ import com.tribly.enums.RideStatus;
 import com.tribly.enums.Visibility;
 import com.tribly.infrastructure.exception.BusinessException;
 import com.tribly.infrastructure.id.TsidUtils;
-import com.tribly.service.security.TeamSecurityService;
+import com.tribly.service.common.SlugService;
+import com.tribly.service.common.TeamEntityService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
-import java.text.Normalizer;
-import java.time.LocalDate;
-import java.util.*;
+import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.jboss.logging.Logger;
 import org.jspecify.annotations.Nullable;
 
 @ApplicationScoped
-public class RideService {
+public class RideService extends TeamEntityService {
 
   private static final Logger LOG = Logger.getLogger(RideService.class);
-  private static final Pattern NONLATIN = Pattern.compile("[^\\w-]");
-  private static final Pattern WHITESPACE = Pattern.compile("[\\s]");
 
   @Inject RideRepository rideRepository;
 
@@ -51,15 +51,15 @@ public class RideService {
 
   @Inject UserRepository userRepository;
 
-  @Inject TeamSecurityService securityService;
-
   @Inject RouteRepository routeRepository;
+
+  @Inject SlugService slugService;
 
   public RideListResponse listRides(
       String slug,
       @Nullable Long userId,
-      @Nullable LocalDate from,
-      @Nullable LocalDate to,
+      @Nullable LocalDateTime from,
+      @Nullable LocalDateTime to,
       @Nullable RideStatus status,
       int page,
       int size) {
@@ -74,9 +74,9 @@ public class RideService {
             page,
             size,
             null,
+            rideQueryParams.visibility(),
             from,
             to,
-            rideQueryParams.visibility(),
             rideQueryParams.statuses());
     TriblyPage<Ride> rideTriblyPage = rideRepository.find(rideQuery);
 
@@ -98,9 +98,9 @@ public class RideService {
             0,
             1,
             rideSlug,
-            null,
-            null,
             rideQueryParams.visibility(),
+            null,
+            null,
             rideQueryParams.statuses());
     TriblyPage<Ride> triblyPage = rideRepository.find(rideQuery);
     if (triblyPage.items().isEmpty()) {
@@ -118,11 +118,10 @@ public class RideService {
 
   private RideQueryParams getRideQueryParams(
       @Nullable Long userId, @Nullable RideStatus status, Team team) {
-    boolean isMember = securityService.isMember(userId, team);
     boolean canSeeDrafts = securityService.canSeeDrafts(userId, team);
     List<RideStatus> statuses = getRideStatuses(status, canSeeDrafts);
 
-    Visibility visibility = getVisibility(isMember, team);
+    Visibility visibility = getVisibility(userId, team);
     return new RideQueryParams(statuses, visibility);
   }
 
@@ -142,18 +141,6 @@ public class RideService {
       }
     }
     return statuses;
-  }
-
-  private @Nullable Visibility getVisibility(boolean isMember, Team team) {
-    if (isMember) {
-      return null;
-    } else if (team.getVisibility() == Visibility.PUBLIC) {
-      // For non-members of public teams, filter to show only public rides
-      return Visibility.PUBLIC;
-    } else {
-      // Private team - no access for non-members
-      throw BusinessException.notFound("Private team");
-    }
   }
 
   @Transactional
@@ -177,17 +164,15 @@ public class RideService {
       throw BusinessException.validation("Private teams can only have team-only rides");
     }
 
-    // Generate slug from title, ensure unique within team
-    String slug = generateSlug(request.title());
-    if (rideRepository.existsByTeamAndSlug(team.getId(), slug)) {
-      slug = slug + "-" + System.currentTimeMillis() % 10000;
-    }
+    // Generate slug from name, ensure unique within team
+    String slug =
+        slugService.generateSlug(
+            request.name(), s -> rideRepository.existsByTeamAndSlug(team.getId(), s));
 
     Route route = getRoute(request.getRouteIdLong(), team);
 
-    Ride ride = new Ride(team, creator, request.title(), slug, request.date());
+    Ride ride = new Ride(team, creator, request.name(), slug, request.dateTime());
     ride.setDescription(request.description());
-    ride.setStartTime(request.startTime());
     ride.setVisibility(visibility);
     ride.setRoute(route);
     ride.setStatus(request.status());
@@ -201,7 +186,7 @@ public class RideService {
       sortOrder++;
     }
 
-    LOG.infov("Ride '{0}' created by user {1} for team {2}", ride.getTitle(), creatorId, teamSlug);
+    LOG.infov("Ride '{0}' created by user {1} for team {2}", ride.getName(), creatorId, teamSlug);
     return RideDto.from(ride, true);
   }
 
@@ -256,10 +241,9 @@ public class RideService {
     }
     ride.setVisibility(request.visibility());
 
-    ride.setTitle(request.title());
+    ride.setName(request.name());
     ride.setDescription(request.description());
-    ride.setDate(request.date());
-    ride.setStartTime(request.startTime());
+    ride.setDateTime(request.dateTime());
     ride.setStatus(request.status());
     Route route = getRoute(request.getRouteIdLong(), ride.getTeam());
     ride.setRoute(route);
@@ -322,7 +306,7 @@ public class RideService {
 
   @Transactional
   public RideParticipationDto joinGroup(
-      String teamSlug, String rideSlug, Long groupId, Long userId, @Nullable String notes) {
+      String teamSlug, String rideSlug, Long groupId, Long userId) {
     Ride ride = getRide(teamSlug, rideSlug, userId);
 
     if (ride.getStatus() != RideStatus.PUBLISHED) {
@@ -355,7 +339,6 @@ public class RideService {
       // Restore soft-deleted membership and update group if changed
       rideParticipation.setRideGroup(group);
       rideParticipation.setDeleted(false);
-      rideParticipation.setNotes(notes);
       participationRepository.persist(rideParticipation);
       LOG.infov("User {0} joined group {1} in ride {2}", userId, groupId, ride.getId());
       return RideParticipationDto.from(rideParticipation);
@@ -364,7 +347,6 @@ public class RideService {
     checkCapacity(group);
 
     RideParticipation participation = new RideParticipation(group, user);
-    participation.setNotes(notes);
 
     group.addParticipation(participation);
     participationRepository.persist(participation);
@@ -392,12 +374,5 @@ public class RideService {
     participationRepository.persist(participation);
 
     LOG.infov("User {0} left group {1} in ride {2}", userId, groupId, rideSlug);
-  }
-
-  private String generateSlug(String input) {
-    String nowhitespace = WHITESPACE.matcher(input).replaceAll("-");
-    String normalized = Normalizer.normalize(nowhitespace, Normalizer.Form.NFD);
-    String slug = NONLATIN.matcher(normalized).replaceAll("");
-    return slug.toLowerCase(Locale.ENGLISH).replaceAll("-+", "-").replaceAll("^-|-$", "");
   }
 }

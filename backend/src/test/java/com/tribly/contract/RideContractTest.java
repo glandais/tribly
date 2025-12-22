@@ -29,7 +29,7 @@ class RideContractTest {
   void createRide_withoutAuth_shouldReturn401() {
     given()
         .contentType("application/json")
-        .body("{\"title\": \"Test Ride\", \"date\": \"2025-01-15\"}")
+        .body("{\"name\": \"Test Ride\", \"date\": \"2025-01-15\"}")
         .when()
         .post("/api/teams/" + TEAM_ID + "/rides")
         .then()
@@ -49,7 +49,7 @@ class RideContractTest {
   void updateRide_withoutAuth_shouldReturn401() {
     given()
         .contentType("application/json")
-        .body("{\"title\": \"Updated Ride\"}")
+        .body("{\"name\": \"Updated Ride\"}")
         .when()
         .put("/api/teams/" + TEAM_ID + "/rides/" + RIDE_ID)
         .then()

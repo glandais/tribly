@@ -17,12 +17,13 @@ import com.tribly.domain.team.repository.UserTeamRepository;
 import com.tribly.domain.user.User;
 import com.tribly.domain.user.repository.UserRepository;
 import com.tribly.enums.*;
+import com.tribly.service.common.SlugService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @ApplicationScoped
@@ -84,8 +85,9 @@ public class TestDataService {
   }
 
   @Transactional
-  public Ride createRide(Team team, User createdBy, String title, String slug, LocalDate date) {
-    Ride ride = new Ride(team, createdBy, title, slug, date);
+  public Ride createRide(
+      Team team, User createdBy, String title, String slug, LocalDateTime dateTime) {
+    Ride ride = new Ride(team, createdBy, title, slug, dateTime);
     ride.setStatus(RideStatus.PUBLISHED);
     ride.setVisibility(Visibility.PUBLIC);
     rideRepository.persistAndFlush(ride);
@@ -94,8 +96,13 @@ public class TestDataService {
 
   @Transactional
   public Ride createRideWithStatus(
-      Team team, User createdBy, String title, String slug, LocalDate date, RideStatus status) {
-    Ride ride = new Ride(team, createdBy, title, slug, date);
+      Team team,
+      User createdBy,
+      String title,
+      String slug,
+      LocalDateTime dateTime,
+      RideStatus status) {
+    Ride ride = new Ride(team, createdBy, title, slug, dateTime);
     ride.setStatus(status);
     rideRepository.persistAndFlush(ride);
     return ride;
@@ -103,8 +110,13 @@ public class TestDataService {
 
   @Transactional
   public Ride createRideWithVisibility(
-      Team team, User createdBy, String title, String slug, LocalDate date, Visibility visibility) {
-    Ride ride = new Ride(team, createdBy, title, slug, date);
+      Team team,
+      User createdBy,
+      String title,
+      String slug,
+      LocalDateTime dateTime,
+      Visibility visibility) {
+    Ride ride = new Ride(team, createdBy, title, slug, dateTime);
     ride.setVisibility(visibility);
     rideRepository.persistAndFlush(ride);
     return ride;
@@ -116,7 +128,7 @@ public class TestDataService {
       User createdBy,
       String title,
       String slug,
-      LocalDate date,
+      LocalDateTime date,
       Visibility visibility,
       RideStatus status) {
     Ride ride = new Ride(team, createdBy, title, slug, date);
@@ -132,10 +144,10 @@ public class TestDataService {
       User createdBy,
       String title,
       String slug,
-      LocalDate date,
+      LocalDateTime dateTime,
       RideStatus status,
       java.time.Instant publishAt) {
-    Ride ride = new Ride(team, createdBy, title, slug, date);
+    Ride ride = new Ride(team, createdBy, title, slug, dateTime);
     ride.setStatus(status);
     ride.setPublishAt(publishAt);
     rideRepository.persistAndFlush(ride);
@@ -179,15 +191,6 @@ public class TestDataService {
   }
 
   @Transactional
-  public RideParticipation createParticipationWithStatus(
-      RideGroup group, User user, ParticipationStatus status) {
-    RideParticipation participation = new RideParticipation(group, user);
-    participation.setStatus(status);
-    participationRepository.persistAndFlush(participation);
-    return participation;
-  }
-
-  @Transactional
   public void deleteRide(Ride ride) {
     ride.setDeleted(true);
     rideRepository.getEntityManager().merge(ride);
@@ -207,7 +210,7 @@ public class TestDataService {
 
   @Transactional
   public Route createRoute(Team team, User createdBy, String name) {
-    Route route = new Route(team, createdBy, name);
+    Route route = new Route(team, createdBy, name, SlugService.slugify(name));
     routeRepository.persistAndFlush(route);
     return route;
   }
@@ -215,7 +218,7 @@ public class TestDataService {
   @Transactional
   public Route createRouteWithVisibility(
       Team team, User createdBy, String name, Visibility visibility) {
-    Route route = new Route(team, createdBy, name);
+    Route route = new Route(team, createdBy, name, SlugService.slugify(name));
     route.setVisibility(visibility);
     routeRepository.persistAndFlush(route);
     return route;

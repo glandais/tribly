@@ -6,7 +6,6 @@ import {
   MapIcon,
   ArrowsPointingOutIcon,
   ArrowUpIcon,
-  BoltIcon,
 } from '@heroicons/react/24/outline'
 import { useRoutes } from '../../hooks/useRoute'
 import type { RouteDto } from '../../api/api'
@@ -137,13 +136,11 @@ export function RoutePickerModal({
                         : 'border-gray-200 hover:border-indigo-300 hover:bg-gray-50'
                     }`}
                   >
-                    {route.thumbnailUrl && (
-                      <img
-                        src={`/api/download/${route.visibility.toLowerCase()}/teams/${teamSlug}/routes/${route.id}/thumbnail`}
-                        alt={route.name}
-                        className="w-full h-32 object-cover rounded mb-3"
-                      />
-                    )}
+                    <img
+                      src={`/api/download/${route.visibility.toLowerCase()}/teams/${teamSlug}/routes/${route.slug}/thumbnail`}
+                      alt={route.name}
+                      className="w-full h-32 object-cover rounded mb-3"
+                    />
                     <h3 className="font-medium text-gray-900 truncate">{route.name}</h3>
                     {route.description && (
                       <p className="mt-1 text-sm text-gray-500 line-clamp-2">{route.description}</p>
@@ -157,12 +154,6 @@ export function RoutePickerModal({
                         <ArrowUpIcon className="w-3.5 h-3.5" />
                         {route.elevationGain}m
                       </span>
-                      {route.difficulty && (
-                        <span className="flex items-center gap-1">
-                          <BoltIcon className="w-3.5 h-3.5" />
-                          {t(`difficulty.${route.difficulty}`)}
-                        </span>
-                      )}
                     </div>
                   </button>
                 ))}

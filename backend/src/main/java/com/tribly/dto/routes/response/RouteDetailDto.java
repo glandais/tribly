@@ -1,7 +1,6 @@
 package com.tribly.dto.routes.response;
 
 import com.tribly.domain.route.Route;
-import com.tribly.enums.RouteDifficulty;
 import com.tribly.enums.SurfaceType;
 import com.tribly.enums.Visibility;
 import com.tribly.infrastructure.id.TsidUtils;
@@ -20,10 +19,8 @@ public record RouteDetailDto(
     @Schema(description = "Distance in meters", required = true) Integer distance,
     @Schema(description = "Total elevation gain in meters", required = true) Integer elevationGain,
     @Schema(description = "Total elevation loss in meters", required = true) Integer elevationLoss,
-    @Schema(description = "Route difficulty", required = true) RouteDifficulty difficulty,
     @Schema(description = "Surface type", required = true) SurfaceType surfaceType,
     @Schema(description = "Whether the route is public", required = true) Visibility visibility,
-    @Schema(description = "Thumbnail image URL", required = true) String thumbnailUrl,
     @Schema(description = "Start point latitude", required = true) BigDecimal startLat,
     @Schema(description = "Start point longitude", required = true) BigDecimal startLng,
     @Schema(description = "End point latitude", required = true) BigDecimal endLat,
@@ -39,10 +36,8 @@ public record RouteDetailDto(
         route.getDistance(),
         route.getElevationGain(),
         route.getElevationLoss(),
-        route.getDifficulty(),
         route.getSurfaceType(),
         route.getVisibility(),
-        route.getThumbnailUrl(),
         route.getStartLat(),
         route.getStartLng(),
         route.getEndLat(),

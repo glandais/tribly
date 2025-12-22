@@ -57,35 +57,6 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Header */}
-      <div className="relative mb-8">
-        {team.coverImageUrl ? (
-          <img
-            src={team.coverImageUrl}
-            alt=""
-            className="w-full h-48 sm:h-64 object-cover rounded-lg"
-          />
-        ) : (
-          <div className="w-full h-48 sm:h-64 bg-linear-to-r from-indigo-500 to-purple-600 rounded-lg" />
-        )}
-
-        <div className="absolute -bottom-12 left-6 flex items-end gap-4">
-          {team.logoUrl ? (
-            <img
-              src={team.logoUrl}
-              alt={team.name}
-              className="w-24 h-24 rounded-xl border-4 border-white bg-white shadow-lg"
-            />
-          ) : (
-            <div className="w-24 h-24 rounded-xl border-4 border-white bg-indigo-600 shadow-lg flex items-center justify-center">
-              <span className="text-3xl font-bold text-white">
-                {team.name.charAt(0).toUpperCase()}
-              </span>
-            </div>
-          )}
-        </div>
-      </div>
-
       <div className="pt-14 sm:pt-8 sm:pl-32">
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div>
@@ -103,7 +74,6 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
               <span className="flex items-center">
                 <UsersIcon className="w-4 h-4 mr-1" />
                 {t('detail.info.memberCount', { count: team.memberCount })}
-                {team.maxMembers && t('detail.info.maxMembers', { max: team.maxMembers })}
               </span>
               {team.createdAt && (
                 <span>

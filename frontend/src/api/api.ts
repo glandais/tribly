@@ -78,28 +78,6 @@ export interface ConfigDto {
   map: MapConfig
 }
 /**
- * Team creation request
- */
-export interface CreateTeamRequest {
-  /**
-   * Team name
-   */
-  name: string
-  /**
-   * Team description
-   */
-  description?: string | null
-  /**
-   * Whether the team is publicly visible
-   */
-  visibility: Visibility
-  /**
-   * Maximum number of members (null = unlimited)
-   */
-  maxMembers?: number | null
-}
-
-/**
  * Error response
  */
 export interface ErrorResponse {
@@ -179,15 +157,6 @@ export interface GroupRequest {
    * Route ID (TSID) for this group
    */
   routeId?: string | null
-}
-/**
- * Request to join a ride group
- */
-export interface JoinGroupRequest {
-  /**
-   * Optional notes for the organizer
-   */
-  notes?: string | null
 }
 /**
  * Keycloak configuration
@@ -270,16 +239,6 @@ export interface MemberListResponse {
    */
   size: number
 }
-
-export const ParticipationStatus = {
-  Registered: 'REGISTERED',
-  Confirmed: 'CONFIRMED',
-  Cancelled: 'CANCELLED',
-  Completed: 'COMPLETED',
-} as const
-
-export type ParticipationStatus = (typeof ParticipationStatus)[keyof typeof ParticipationStatus]
-
 /**
  * Public user information (limited fields)
  */
@@ -310,15 +269,14 @@ export interface RideDto {
    */
   slug: string
   /**
-   * Ride title
+   * Ride name
    */
-  title: string
+  name: string
   /**
    * Ride description
    */
   description?: string | null
-  date: string
-  startTime?: string
+  dateTime: string
   /**
    * Ride status
    */
@@ -434,33 +392,23 @@ export interface RideParticipationDto {
    */
   userId: string
   /**
-   * Participation status
-   */
-  status: ParticipationStatus
-  /**
    * Registration timestamp
    */
   registeredAt?: string | null
-  /**
-   * Participant notes
-   */
-  notes?: string | null
 }
-
 /**
  * Ride request
  */
 export interface RideRequest {
   /**
-   * Ride title
+   * Ride name
    */
-  title: string
+  name: string
   /**
    * Ride description
    */
   description?: string | null
-  date: string
-  startTime?: string
+  dateTime: string
   /**
    * Ride status
    */
@@ -556,10 +504,6 @@ export interface RouteDetailDto {
    */
   elevationLoss: number
   /**
-   * Route difficulty
-   */
-  difficulty: RouteDifficulty
-  /**
    * Surface type
    */
   surfaceType: SurfaceType
@@ -567,10 +511,6 @@ export interface RouteDetailDto {
    * Whether the route is public
    */
   visibility: Visibility
-  /**
-   * Thumbnail image URL
-   */
-  thumbnailUrl: string
   /**
    * Start point latitude
    */
@@ -601,15 +541,6 @@ export interface RouteDetailDto {
   updatedAt: string
 }
 
-export const RouteDifficulty = {
-  Easy: 'EASY',
-  Moderate: 'MODERATE',
-  Hard: 'HARD',
-  Expert: 'EXPERT',
-} as const
-
-export type RouteDifficulty = (typeof RouteDifficulty)[keyof typeof RouteDifficulty]
-
 /**
  * Route summary data
  */
@@ -618,6 +549,10 @@ export interface RouteDto {
    * Route ID (TSID)
    */
   id: string
+  /**
+   * Route slug
+   */
+  slug: string
   /**
    * Route name
    */
@@ -639,10 +574,6 @@ export interface RouteDto {
    */
   elevationLoss: number
   /**
-   * Route difficulty
-   */
-  difficulty: RouteDifficulty
-  /**
    * Surface type
    */
   surfaceType: SurfaceType
@@ -650,10 +581,6 @@ export interface RouteDto {
    * Whether the route is public
    */
   visibility: Visibility
-  /**
-   * Thumbnail image URL
-   */
-  thumbnailUrl: string
   /**
    * Creation timestamp
    */
@@ -680,6 +607,27 @@ export interface RouteListResponse {
    * Page size
    */
   size: number
+}
+/**
+ * Route update request
+ */
+export interface RouteRequest {
+  /**
+   * Route name
+   */
+  name: string
+  /**
+   * Route description
+   */
+  description?: string | null
+  /**
+   * Surface type
+   */
+  surfaceType: SurfaceType
+  /**
+   * Whether the route is publicly visible
+   */
+  visibility: Visibility
 }
 
 export const SurfaceType = {
@@ -712,14 +660,6 @@ export interface TeamDetailDto {
    */
   description?: string | null
   /**
-   * Logo image URL
-   */
-  logoUrl?: string | null
-  /**
-   * Cover image URL
-   */
-  coverImageUrl?: string | null
-  /**
    * Whether the team is public
    */
   visibility: Visibility
@@ -727,10 +667,6 @@ export interface TeamDetailDto {
    * Number of team members
    */
   memberCount: number
-  /**
-   * Maximum number of members (null = unlimited)
-   */
-  maxMembers?: number | null
   role?: TeamRole | null
   /**
    * Team creation timestamp
@@ -758,6 +694,23 @@ export interface TeamListResponse {
    * Page size
    */
   size: number
+}
+/**
+ * Team creation request
+ */
+export interface TeamRequest {
+  /**
+   * Team name
+   */
+  name: string
+  /**
+   * Team description
+   */
+  description?: string | null
+  /**
+   * Whether the team is publicly visible
+   */
+  visibility: Visibility
 }
 
 export const TeamRole = {
@@ -797,50 +750,6 @@ export interface UpdateMemberRoleRequest {
    * New role
    */
   role: TeamRole
-}
-
-/**
- * Route update request
- */
-export interface UpdateRouteRequest {
-  /**
-   * Route name
-   */
-  name?: string | null
-  /**
-   * Route description
-   */
-  description?: string | null
-  difficulty?: RouteDifficulty | null
-  surfaceType?: SurfaceType | null
-  visibility?: Visibility | null
-}
-
-/**
- * Team update request
- */
-export interface UpdateTeamRequest {
-  /**
-   * Team name
-   */
-  name?: string | null
-  /**
-   * Team description
-   */
-  description?: string | null
-  visibility?: Visibility | null
-  /**
-   * Logo image URL
-   */
-  logoUrl?: string | null
-  /**
-   * Cover image URL
-   */
-  coverImageUrl?: string | null
-  /**
-   * Maximum number of members (null = unlimited)
-   */
-  maxMembers?: number | null
 }
 
 /**
@@ -1165,7 +1074,7 @@ export const RidesApiAxiosParamCreator = function (configuration?: Configuration
      * @param {string} groupId Group ID (TSID)
      * @param {string} rideSlug Ride URL slug
      * @param {string} slug Team URL slug
-     * @param {JoinGroupRequest} joinGroupRequest
+     * @param {object} body
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
@@ -1173,7 +1082,7 @@ export const RidesApiAxiosParamCreator = function (configuration?: Configuration
       groupId: string,
       rideSlug: string,
       slug: string,
-      joinGroupRequest: JoinGroupRequest,
+      body: object,
       options: RawAxiosRequestConfig = {}
     ): Promise<RequestArgs> => {
       // verify required parameter 'groupId' is not null or undefined
@@ -1182,8 +1091,8 @@ export const RidesApiAxiosParamCreator = function (configuration?: Configuration
       assertParamExists('joinGroup', 'rideSlug', rideSlug)
       // verify required parameter 'slug' is not null or undefined
       assertParamExists('joinGroup', 'slug', slug)
-      // verify required parameter 'joinGroupRequest' is not null or undefined
-      assertParamExists('joinGroup', 'joinGroupRequest', joinGroupRequest)
+      // verify required parameter 'body' is not null or undefined
+      assertParamExists('joinGroup', 'body', body)
       const localVarPath = `/api/teams/{slug}/rides/{rideSlug}/groups/{groupId}/join`
         .replace(`{${'groupId'}}`, encodeURIComponent(String(groupId)))
         .replace(`{${'rideSlug'}}`, encodeURIComponent(String(rideSlug)))
@@ -1211,7 +1120,7 @@ export const RidesApiAxiosParamCreator = function (configuration?: Configuration
         ...options.headers,
       }
       localVarRequestOptions.data = serializeDataIfNeeded(
-        joinGroupRequest,
+        body,
         localVarRequestOptions,
         configuration
       )
@@ -1538,7 +1447,7 @@ export const RidesApiFp = function (configuration?: Configuration) {
      * @param {string} groupId Group ID (TSID)
      * @param {string} rideSlug Ride URL slug
      * @param {string} slug Team URL slug
-     * @param {JoinGroupRequest} joinGroupRequest
+     * @param {object} body
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
@@ -1546,14 +1455,14 @@ export const RidesApiFp = function (configuration?: Configuration) {
       groupId: string,
       rideSlug: string,
       slug: string,
-      joinGroupRequest: JoinGroupRequest,
+      body: object,
       options?: RawAxiosRequestConfig
     ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<RideParticipationDto>> {
       const localVarAxiosArgs = await localVarAxiosParamCreator.joinGroup(
         groupId,
         rideSlug,
         slug,
-        joinGroupRequest,
+        body,
         options
       )
       const localVarOperationServerIndex = configuration?.serverIndex ?? 0
@@ -1765,7 +1674,7 @@ export const RidesApiFactory = function (
      * @param {string} groupId Group ID (TSID)
      * @param {string} rideSlug Ride URL slug
      * @param {string} slug Team URL slug
-     * @param {JoinGroupRequest} joinGroupRequest
+     * @param {object} body
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
@@ -1773,11 +1682,11 @@ export const RidesApiFactory = function (
       groupId: string,
       rideSlug: string,
       slug: string,
-      joinGroupRequest: JoinGroupRequest,
+      body: object,
       options?: RawAxiosRequestConfig
     ): AxiosPromise<RideParticipationDto> {
       return localVarFp
-        .joinGroup(groupId, rideSlug, slug, joinGroupRequest, options)
+        .joinGroup(groupId, rideSlug, slug, body, options)
         .then((request) => request(axios, basePath))
     },
     /**
@@ -1915,7 +1824,7 @@ export class RidesApi extends BaseAPI {
    * @param {string} groupId Group ID (TSID)
    * @param {string} rideSlug Ride URL slug
    * @param {string} slug Team URL slug
-   * @param {JoinGroupRequest} joinGroupRequest
+   * @param {object} body
    * @param {*} [options] Override http request option.
    * @throws {RequiredError}
    */
@@ -1923,11 +1832,11 @@ export class RidesApi extends BaseAPI {
     groupId: string,
     rideSlug: string,
     slug: string,
-    joinGroupRequest: JoinGroupRequest,
+    body: object,
     options?: RawAxiosRequestConfig
   ) {
     return RidesApiFp(this.configuration)
-      .joinGroup(groupId, rideSlug, slug, joinGroupRequest, options)
+      .joinGroup(groupId, rideSlug, slug, body, options)
       .then((request) => request(this.axios, this.basePath))
   }
 
@@ -2023,7 +1932,6 @@ export const RoutesApiAxiosParamCreator = function (configuration?: Configuratio
      * @param {string} slug Team URL slug
      * @param {string} name
      * @param {string} [description]
-     * @param {RouteDifficulty} [difficulty]
      * @param {SurfaceType} [surfaceType]
      * @param {Visibility} [visibility]
      * @param {File} [gpxFile]
@@ -2034,7 +1942,6 @@ export const RoutesApiAxiosParamCreator = function (configuration?: Configuratio
       slug: string,
       name: string,
       description?: string,
-      difficulty?: RouteDifficulty,
       surfaceType?: SurfaceType,
       visibility?: Visibility,
       gpxFile?: File,
@@ -2070,10 +1977,6 @@ export const RoutesApiAxiosParamCreator = function (configuration?: Configuratio
         localVarFormParams.append('description', description as any)
       }
 
-      if (difficulty !== undefined) {
-        localVarFormParams.append('difficulty', difficulty as any)
-      }
-
       if (surfaceType !== undefined) {
         localVarFormParams.append('surfaceType', surfaceType as any)
       }
@@ -2105,22 +2008,22 @@ export const RoutesApiAxiosParamCreator = function (configuration?: Configuratio
     /**
      * Soft delete a route. Requires route creator or team admin permissions.
      * @summary Delete route
-     * @param {string} routeId Route ID (TSID)
+     * @param {string} routeSlug Route slug
      * @param {string} slug Team URL slug
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     deleteRoute: async (
-      routeId: string,
+      routeSlug: string,
       slug: string,
       options: RawAxiosRequestConfig = {}
     ): Promise<RequestArgs> => {
-      // verify required parameter 'routeId' is not null or undefined
-      assertParamExists('deleteRoute', 'routeId', routeId)
+      // verify required parameter 'routeSlug' is not null or undefined
+      assertParamExists('deleteRoute', 'routeSlug', routeSlug)
       // verify required parameter 'slug' is not null or undefined
       assertParamExists('deleteRoute', 'slug', slug)
-      const localVarPath = `/api/teams/{slug}/routes/{routeId}`
-        .replace(`{${'routeId'}}`, encodeURIComponent(String(routeId)))
+      const localVarPath = `/api/teams/{slug}/routes/{routeSlug}`
+        .replace(`{${'routeSlug'}}`, encodeURIComponent(String(routeSlug)))
         .replace(`{${'slug'}}`, encodeURIComponent(String(slug)))
       // use dummy base URL string because the URL constructor only accepts absolute URLs.
       const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL)
@@ -2151,22 +2054,22 @@ export const RoutesApiAxiosParamCreator = function (configuration?: Configuratio
     /**
      * Get all categorized climbs (hills) on a route
      * @summary Get route climbs
-     * @param {string} routeId Route ID (TSID)
+     * @param {string} routeSlug Route slug
      * @param {string} slug Team URL slug
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     getClimbs: async (
-      routeId: string,
+      routeSlug: string,
       slug: string,
       options: RawAxiosRequestConfig = {}
     ): Promise<RequestArgs> => {
-      // verify required parameter 'routeId' is not null or undefined
-      assertParamExists('getClimbs', 'routeId', routeId)
+      // verify required parameter 'routeSlug' is not null or undefined
+      assertParamExists('getClimbs', 'routeSlug', routeSlug)
       // verify required parameter 'slug' is not null or undefined
       assertParamExists('getClimbs', 'slug', slug)
-      const localVarPath = `/api/teams/{slug}/routes/{routeId}/climbs`
-        .replace(`{${'routeId'}}`, encodeURIComponent(String(routeId)))
+      const localVarPath = `/api/teams/{slug}/routes/{routeSlug}/climbs`
+        .replace(`{${'routeSlug'}}`, encodeURIComponent(String(routeSlug)))
         .replace(`{${'slug'}}`, encodeURIComponent(String(slug)))
       // use dummy base URL string because the URL constructor only accepts absolute URLs.
       const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL)
@@ -2195,22 +2098,22 @@ export const RoutesApiAxiosParamCreator = function (configuration?: Configuratio
     /**
      * Get detailed route information including GPS coordinates and statistics
      * @summary Get route details
-     * @param {string} routeId Route ID (TSID)
+     * @param {string} routeSlug Route slug
      * @param {string} slug Team URL slug
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     getRoute: async (
-      routeId: string,
+      routeSlug: string,
       slug: string,
       options: RawAxiosRequestConfig = {}
     ): Promise<RequestArgs> => {
-      // verify required parameter 'routeId' is not null or undefined
-      assertParamExists('getRoute', 'routeId', routeId)
+      // verify required parameter 'routeSlug' is not null or undefined
+      assertParamExists('getRoute', 'routeSlug', routeSlug)
       // verify required parameter 'slug' is not null or undefined
       assertParamExists('getRoute', 'slug', slug)
-      const localVarPath = `/api/teams/{slug}/routes/{routeId}`
-        .replace(`{${'routeId'}}`, encodeURIComponent(String(routeId)))
+      const localVarPath = `/api/teams/{slug}/routes/{routeSlug}`
+        .replace(`{${'routeSlug'}}`, encodeURIComponent(String(routeSlug)))
         .replace(`{${'slug'}}`, encodeURIComponent(String(slug)))
       // use dummy base URL string because the URL constructor only accepts absolute URLs.
       const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL)
@@ -2239,22 +2142,22 @@ export const RoutesApiAxiosParamCreator = function (configuration?: Configuratio
     /**
      * Get GPS track points (latitude, longitude, elevation) for displaying the route on a map
      * @summary Get route track
-     * @param {string} routeId Route ID (TSID)
+     * @param {string} routeSlug Route slug
      * @param {string} slug Team URL slug
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     getTrack: async (
-      routeId: string,
+      routeSlug: string,
       slug: string,
       options: RawAxiosRequestConfig = {}
     ): Promise<RequestArgs> => {
-      // verify required parameter 'routeId' is not null or undefined
-      assertParamExists('getTrack', 'routeId', routeId)
+      // verify required parameter 'routeSlug' is not null or undefined
+      assertParamExists('getTrack', 'routeSlug', routeSlug)
       // verify required parameter 'slug' is not null or undefined
       assertParamExists('getTrack', 'slug', slug)
-      const localVarPath = `/api/teams/{slug}/routes/{routeId}/track`
-        .replace(`{${'routeId'}}`, encodeURIComponent(String(routeId)))
+      const localVarPath = `/api/teams/{slug}/routes/{routeSlug}/track`
+        .replace(`{${'routeSlug'}}`, encodeURIComponent(String(routeSlug)))
         .replace(`{${'slug'}}`, encodeURIComponent(String(slug)))
       // use dummy base URL string because the URL constructor only accepts absolute URLs.
       const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL)
@@ -2340,28 +2243,28 @@ export const RoutesApiAxiosParamCreator = function (configuration?: Configuratio
       }
     },
     /**
-     * Update route metadata (name, description, difficulty, etc.). Does not update the GPX file.
+     * Update route metadata (name, description, etc.). Does not update the GPX file.
      * @summary Update route
-     * @param {string} routeId Route ID (TSID)
+     * @param {string} routeSlug Route slug
      * @param {string} slug Team URL slug
-     * @param {UpdateRouteRequest} updateRouteRequest
+     * @param {RouteRequest} routeRequest
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     updateRoute: async (
-      routeId: string,
+      routeSlug: string,
       slug: string,
-      updateRouteRequest: UpdateRouteRequest,
+      routeRequest: RouteRequest,
       options: RawAxiosRequestConfig = {}
     ): Promise<RequestArgs> => {
-      // verify required parameter 'routeId' is not null or undefined
-      assertParamExists('updateRoute', 'routeId', routeId)
+      // verify required parameter 'routeSlug' is not null or undefined
+      assertParamExists('updateRoute', 'routeSlug', routeSlug)
       // verify required parameter 'slug' is not null or undefined
       assertParamExists('updateRoute', 'slug', slug)
-      // verify required parameter 'updateRouteRequest' is not null or undefined
-      assertParamExists('updateRoute', 'updateRouteRequest', updateRouteRequest)
-      const localVarPath = `/api/teams/{slug}/routes/{routeId}`
-        .replace(`{${'routeId'}}`, encodeURIComponent(String(routeId)))
+      // verify required parameter 'routeRequest' is not null or undefined
+      assertParamExists('updateRoute', 'routeRequest', routeRequest)
+      const localVarPath = `/api/teams/{slug}/routes/{routeSlug}`
+        .replace(`{${'routeSlug'}}`, encodeURIComponent(String(routeSlug)))
         .replace(`{${'slug'}}`, encodeURIComponent(String(slug)))
       // use dummy base URL string because the URL constructor only accepts absolute URLs.
       const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL)
@@ -2386,7 +2289,7 @@ export const RoutesApiAxiosParamCreator = function (configuration?: Configuratio
         ...options.headers,
       }
       localVarRequestOptions.data = serializeDataIfNeeded(
-        updateRouteRequest,
+        routeRequest,
         localVarRequestOptions,
         configuration
       )
@@ -2411,7 +2314,6 @@ export const RoutesApiFp = function (configuration?: Configuration) {
      * @param {string} slug Team URL slug
      * @param {string} name
      * @param {string} [description]
-     * @param {RouteDifficulty} [difficulty]
      * @param {SurfaceType} [surfaceType]
      * @param {Visibility} [visibility]
      * @param {File} [gpxFile]
@@ -2422,7 +2324,6 @@ export const RoutesApiFp = function (configuration?: Configuration) {
       slug: string,
       name: string,
       description?: string,
-      difficulty?: RouteDifficulty,
       surfaceType?: SurfaceType,
       visibility?: Visibility,
       gpxFile?: File,
@@ -2432,7 +2333,6 @@ export const RoutesApiFp = function (configuration?: Configuration) {
         slug,
         name,
         description,
-        difficulty,
         surfaceType,
         visibility,
         gpxFile,
@@ -2452,17 +2352,21 @@ export const RoutesApiFp = function (configuration?: Configuration) {
     /**
      * Soft delete a route. Requires route creator or team admin permissions.
      * @summary Delete route
-     * @param {string} routeId Route ID (TSID)
+     * @param {string} routeSlug Route slug
      * @param {string} slug Team URL slug
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     async deleteRoute(
-      routeId: string,
+      routeSlug: string,
       slug: string,
       options?: RawAxiosRequestConfig
     ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-      const localVarAxiosArgs = await localVarAxiosParamCreator.deleteRoute(routeId, slug, options)
+      const localVarAxiosArgs = await localVarAxiosParamCreator.deleteRoute(
+        routeSlug,
+        slug,
+        options
+      )
       const localVarOperationServerIndex = configuration?.serverIndex ?? 0
       const localVarOperationServerBasePath =
         operationServerMap['RoutesApi.deleteRoute']?.[localVarOperationServerIndex]?.url
@@ -2477,17 +2381,17 @@ export const RoutesApiFp = function (configuration?: Configuration) {
     /**
      * Get all categorized climbs (hills) on a route
      * @summary Get route climbs
-     * @param {string} routeId Route ID (TSID)
+     * @param {string} routeSlug Route slug
      * @param {string} slug Team URL slug
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     async getClimbs(
-      routeId: string,
+      routeSlug: string,
       slug: string,
       options?: RawAxiosRequestConfig
     ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ClimbListResponse>> {
-      const localVarAxiosArgs = await localVarAxiosParamCreator.getClimbs(routeId, slug, options)
+      const localVarAxiosArgs = await localVarAxiosParamCreator.getClimbs(routeSlug, slug, options)
       const localVarOperationServerIndex = configuration?.serverIndex ?? 0
       const localVarOperationServerBasePath =
         operationServerMap['RoutesApi.getClimbs']?.[localVarOperationServerIndex]?.url
@@ -2502,17 +2406,17 @@ export const RoutesApiFp = function (configuration?: Configuration) {
     /**
      * Get detailed route information including GPS coordinates and statistics
      * @summary Get route details
-     * @param {string} routeId Route ID (TSID)
+     * @param {string} routeSlug Route slug
      * @param {string} slug Team URL slug
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     async getRoute(
-      routeId: string,
+      routeSlug: string,
       slug: string,
       options?: RawAxiosRequestConfig
     ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<RouteDetailDto>> {
-      const localVarAxiosArgs = await localVarAxiosParamCreator.getRoute(routeId, slug, options)
+      const localVarAxiosArgs = await localVarAxiosParamCreator.getRoute(routeSlug, slug, options)
       const localVarOperationServerIndex = configuration?.serverIndex ?? 0
       const localVarOperationServerBasePath =
         operationServerMap['RoutesApi.getRoute']?.[localVarOperationServerIndex]?.url
@@ -2527,17 +2431,17 @@ export const RoutesApiFp = function (configuration?: Configuration) {
     /**
      * Get GPS track points (latitude, longitude, elevation) for displaying the route on a map
      * @summary Get route track
-     * @param {string} routeId Route ID (TSID)
+     * @param {string} routeSlug Route slug
      * @param {string} slug Team URL slug
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     async getTrack(
-      routeId: string,
+      routeSlug: string,
       slug: string,
       options?: RawAxiosRequestConfig
     ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<GpxTrackDto>> {
-      const localVarAxiosArgs = await localVarAxiosParamCreator.getTrack(routeId, slug, options)
+      const localVarAxiosArgs = await localVarAxiosParamCreator.getTrack(routeSlug, slug, options)
       const localVarOperationServerIndex = configuration?.serverIndex ?? 0
       const localVarOperationServerBasePath =
         operationServerMap['RoutesApi.getTrack']?.[localVarOperationServerIndex]?.url
@@ -2585,24 +2489,24 @@ export const RoutesApiFp = function (configuration?: Configuration) {
         )(axios, localVarOperationServerBasePath || basePath)
     },
     /**
-     * Update route metadata (name, description, difficulty, etc.). Does not update the GPX file.
+     * Update route metadata (name, description, etc.). Does not update the GPX file.
      * @summary Update route
-     * @param {string} routeId Route ID (TSID)
+     * @param {string} routeSlug Route slug
      * @param {string} slug Team URL slug
-     * @param {UpdateRouteRequest} updateRouteRequest
+     * @param {RouteRequest} routeRequest
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     async updateRoute(
-      routeId: string,
+      routeSlug: string,
       slug: string,
-      updateRouteRequest: UpdateRouteRequest,
+      routeRequest: RouteRequest,
       options?: RawAxiosRequestConfig
     ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<RouteDto>> {
       const localVarAxiosArgs = await localVarAxiosParamCreator.updateRoute(
-        routeId,
+        routeSlug,
         slug,
-        updateRouteRequest,
+        routeRequest,
         options
       )
       const localVarOperationServerIndex = configuration?.serverIndex ?? 0
@@ -2635,7 +2539,6 @@ export const RoutesApiFactory = function (
      * @param {string} slug Team URL slug
      * @param {string} name
      * @param {string} [description]
-     * @param {RouteDifficulty} [difficulty]
      * @param {SurfaceType} [surfaceType]
      * @param {Visibility} [visibility]
      * @param {File} [gpxFile]
@@ -2646,79 +2549,82 @@ export const RoutesApiFactory = function (
       slug: string,
       name: string,
       description?: string,
-      difficulty?: RouteDifficulty,
       surfaceType?: SurfaceType,
       visibility?: Visibility,
       gpxFile?: File,
       options?: RawAxiosRequestConfig
     ): AxiosPromise<RouteDto> {
       return localVarFp
-        .createRoute(slug, name, description, difficulty, surfaceType, visibility, gpxFile, options)
+        .createRoute(slug, name, description, surfaceType, visibility, gpxFile, options)
         .then((request) => request(axios, basePath))
     },
     /**
      * Soft delete a route. Requires route creator or team admin permissions.
      * @summary Delete route
-     * @param {string} routeId Route ID (TSID)
+     * @param {string} routeSlug Route slug
      * @param {string} slug Team URL slug
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     deleteRoute(
-      routeId: string,
+      routeSlug: string,
       slug: string,
       options?: RawAxiosRequestConfig
     ): AxiosPromise<void> {
       return localVarFp
-        .deleteRoute(routeId, slug, options)
+        .deleteRoute(routeSlug, slug, options)
         .then((request) => request(axios, basePath))
     },
     /**
      * Get all categorized climbs (hills) on a route
      * @summary Get route climbs
-     * @param {string} routeId Route ID (TSID)
+     * @param {string} routeSlug Route slug
      * @param {string} slug Team URL slug
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     getClimbs(
-      routeId: string,
+      routeSlug: string,
       slug: string,
       options?: RawAxiosRequestConfig
     ): AxiosPromise<ClimbListResponse> {
       return localVarFp
-        .getClimbs(routeId, slug, options)
+        .getClimbs(routeSlug, slug, options)
         .then((request) => request(axios, basePath))
     },
     /**
      * Get detailed route information including GPS coordinates and statistics
      * @summary Get route details
-     * @param {string} routeId Route ID (TSID)
+     * @param {string} routeSlug Route slug
      * @param {string} slug Team URL slug
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     getRoute(
-      routeId: string,
+      routeSlug: string,
       slug: string,
       options?: RawAxiosRequestConfig
     ): AxiosPromise<RouteDetailDto> {
-      return localVarFp.getRoute(routeId, slug, options).then((request) => request(axios, basePath))
+      return localVarFp
+        .getRoute(routeSlug, slug, options)
+        .then((request) => request(axios, basePath))
     },
     /**
      * Get GPS track points (latitude, longitude, elevation) for displaying the route on a map
      * @summary Get route track
-     * @param {string} routeId Route ID (TSID)
+     * @param {string} routeSlug Route slug
      * @param {string} slug Team URL slug
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     getTrack(
-      routeId: string,
+      routeSlug: string,
       slug: string,
       options?: RawAxiosRequestConfig
     ): AxiosPromise<GpxTrackDto> {
-      return localVarFp.getTrack(routeId, slug, options).then((request) => request(axios, basePath))
+      return localVarFp
+        .getTrack(routeSlug, slug, options)
+        .then((request) => request(axios, basePath))
     },
     /**
      * Get paginated list of routes for a team
@@ -2742,22 +2648,22 @@ export const RoutesApiFactory = function (
         .then((request) => request(axios, basePath))
     },
     /**
-     * Update route metadata (name, description, difficulty, etc.). Does not update the GPX file.
+     * Update route metadata (name, description, etc.). Does not update the GPX file.
      * @summary Update route
-     * @param {string} routeId Route ID (TSID)
+     * @param {string} routeSlug Route slug
      * @param {string} slug Team URL slug
-     * @param {UpdateRouteRequest} updateRouteRequest
+     * @param {RouteRequest} routeRequest
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     updateRoute(
-      routeId: string,
+      routeSlug: string,
       slug: string,
-      updateRouteRequest: UpdateRouteRequest,
+      routeRequest: RouteRequest,
       options?: RawAxiosRequestConfig
     ): AxiosPromise<RouteDto> {
       return localVarFp
-        .updateRoute(routeId, slug, updateRouteRequest, options)
+        .updateRoute(routeSlug, slug, routeRequest, options)
         .then((request) => request(axios, basePath))
     },
   }
@@ -2773,7 +2679,6 @@ export class RoutesApi extends BaseAPI {
    * @param {string} slug Team URL slug
    * @param {string} name
    * @param {string} [description]
-   * @param {RouteDifficulty} [difficulty]
    * @param {SurfaceType} [surfaceType]
    * @param {Visibility} [visibility]
    * @param {File} [gpxFile]
@@ -2784,70 +2689,69 @@ export class RoutesApi extends BaseAPI {
     slug: string,
     name: string,
     description?: string,
-    difficulty?: RouteDifficulty,
     surfaceType?: SurfaceType,
     visibility?: Visibility,
     gpxFile?: File,
     options?: RawAxiosRequestConfig
   ) {
     return RoutesApiFp(this.configuration)
-      .createRoute(slug, name, description, difficulty, surfaceType, visibility, gpxFile, options)
+      .createRoute(slug, name, description, surfaceType, visibility, gpxFile, options)
       .then((request) => request(this.axios, this.basePath))
   }
 
   /**
    * Soft delete a route. Requires route creator or team admin permissions.
    * @summary Delete route
-   * @param {string} routeId Route ID (TSID)
+   * @param {string} routeSlug Route slug
    * @param {string} slug Team URL slug
    * @param {*} [options] Override http request option.
    * @throws {RequiredError}
    */
-  public deleteRoute(routeId: string, slug: string, options?: RawAxiosRequestConfig) {
+  public deleteRoute(routeSlug: string, slug: string, options?: RawAxiosRequestConfig) {
     return RoutesApiFp(this.configuration)
-      .deleteRoute(routeId, slug, options)
+      .deleteRoute(routeSlug, slug, options)
       .then((request) => request(this.axios, this.basePath))
   }
 
   /**
    * Get all categorized climbs (hills) on a route
    * @summary Get route climbs
-   * @param {string} routeId Route ID (TSID)
+   * @param {string} routeSlug Route slug
    * @param {string} slug Team URL slug
    * @param {*} [options] Override http request option.
    * @throws {RequiredError}
    */
-  public getClimbs(routeId: string, slug: string, options?: RawAxiosRequestConfig) {
+  public getClimbs(routeSlug: string, slug: string, options?: RawAxiosRequestConfig) {
     return RoutesApiFp(this.configuration)
-      .getClimbs(routeId, slug, options)
+      .getClimbs(routeSlug, slug, options)
       .then((request) => request(this.axios, this.basePath))
   }
 
   /**
    * Get detailed route information including GPS coordinates and statistics
    * @summary Get route details
-   * @param {string} routeId Route ID (TSID)
+   * @param {string} routeSlug Route slug
    * @param {string} slug Team URL slug
    * @param {*} [options] Override http request option.
    * @throws {RequiredError}
    */
-  public getRoute(routeId: string, slug: string, options?: RawAxiosRequestConfig) {
+  public getRoute(routeSlug: string, slug: string, options?: RawAxiosRequestConfig) {
     return RoutesApiFp(this.configuration)
-      .getRoute(routeId, slug, options)
+      .getRoute(routeSlug, slug, options)
       .then((request) => request(this.axios, this.basePath))
   }
 
   /**
    * Get GPS track points (latitude, longitude, elevation) for displaying the route on a map
    * @summary Get route track
-   * @param {string} routeId Route ID (TSID)
+   * @param {string} routeSlug Route slug
    * @param {string} slug Team URL slug
    * @param {*} [options] Override http request option.
    * @throws {RequiredError}
    */
-  public getTrack(routeId: string, slug: string, options?: RawAxiosRequestConfig) {
+  public getTrack(routeSlug: string, slug: string, options?: RawAxiosRequestConfig) {
     return RoutesApiFp(this.configuration)
-      .getTrack(routeId, slug, options)
+      .getTrack(routeSlug, slug, options)
       .then((request) => request(this.axios, this.basePath))
   }
 
@@ -2874,22 +2778,22 @@ export class RoutesApi extends BaseAPI {
   }
 
   /**
-   * Update route metadata (name, description, difficulty, etc.). Does not update the GPX file.
+   * Update route metadata (name, description, etc.). Does not update the GPX file.
    * @summary Update route
-   * @param {string} routeId Route ID (TSID)
+   * @param {string} routeSlug Route slug
    * @param {string} slug Team URL slug
-   * @param {UpdateRouteRequest} updateRouteRequest
+   * @param {RouteRequest} routeRequest
    * @param {*} [options] Override http request option.
    * @throws {RequiredError}
    */
   public updateRoute(
-    routeId: string,
+    routeSlug: string,
     slug: string,
-    updateRouteRequest: UpdateRouteRequest,
+    routeRequest: RouteRequest,
     options?: RawAxiosRequestConfig
   ) {
     return RoutesApiFp(this.configuration)
-      .updateRoute(routeId, slug, updateRouteRequest, options)
+      .updateRoute(routeSlug, slug, routeRequest, options)
       .then((request) => request(this.axios, this.basePath))
   }
 }
@@ -3582,16 +3486,16 @@ export const TeamsApiAxiosParamCreator = function (configuration?: Configuration
     /**
      * Create a new team. The current user will be set as the team owner.
      * @summary Create team
-     * @param {CreateTeamRequest} createTeamRequest
+     * @param {TeamRequest} teamRequest
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     createTeam: async (
-      createTeamRequest: CreateTeamRequest,
+      teamRequest: TeamRequest,
       options: RawAxiosRequestConfig = {}
     ): Promise<RequestArgs> => {
-      // verify required parameter 'createTeamRequest' is not null or undefined
-      assertParamExists('createTeam', 'createTeamRequest', createTeamRequest)
+      // verify required parameter 'teamRequest' is not null or undefined
+      assertParamExists('createTeam', 'teamRequest', teamRequest)
       const localVarPath = `/api/teams`
       // use dummy base URL string because the URL constructor only accepts absolute URLs.
       const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL)
@@ -3616,7 +3520,7 @@ export const TeamsApiAxiosParamCreator = function (configuration?: Configuration
         ...options.headers,
       }
       localVarRequestOptions.data = serializeDataIfNeeded(
-        createTeamRequest,
+        teamRequest,
         localVarRequestOptions,
         configuration
       )
@@ -3766,19 +3670,19 @@ export const TeamsApiAxiosParamCreator = function (configuration?: Configuration
      * Update team information. Requires ADMIN role.
      * @summary Update team
      * @param {string} slug Team URL slug
-     * @param {UpdateTeamRequest} updateTeamRequest
+     * @param {TeamRequest} teamRequest
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     updateTeam: async (
       slug: string,
-      updateTeamRequest: UpdateTeamRequest,
+      teamRequest: TeamRequest,
       options: RawAxiosRequestConfig = {}
     ): Promise<RequestArgs> => {
       // verify required parameter 'slug' is not null or undefined
       assertParamExists('updateTeam', 'slug', slug)
-      // verify required parameter 'updateTeamRequest' is not null or undefined
-      assertParamExists('updateTeam', 'updateTeamRequest', updateTeamRequest)
+      // verify required parameter 'teamRequest' is not null or undefined
+      assertParamExists('updateTeam', 'teamRequest', teamRequest)
       const localVarPath = `/api/teams/{slug}`.replace(
         `{${'slug'}}`,
         encodeURIComponent(String(slug))
@@ -3806,7 +3710,7 @@ export const TeamsApiAxiosParamCreator = function (configuration?: Configuration
         ...options.headers,
       }
       localVarRequestOptions.data = serializeDataIfNeeded(
-        updateTeamRequest,
+        teamRequest,
         localVarRequestOptions,
         configuration
       )
@@ -3828,18 +3732,15 @@ export const TeamsApiFp = function (configuration?: Configuration) {
     /**
      * Create a new team. The current user will be set as the team owner.
      * @summary Create team
-     * @param {CreateTeamRequest} createTeamRequest
+     * @param {TeamRequest} teamRequest
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     async createTeam(
-      createTeamRequest: CreateTeamRequest,
+      teamRequest: TeamRequest,
       options?: RawAxiosRequestConfig
     ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TeamDetailDto>> {
-      const localVarAxiosArgs = await localVarAxiosParamCreator.createTeam(
-        createTeamRequest,
-        options
-      )
+      const localVarAxiosArgs = await localVarAxiosParamCreator.createTeam(teamRequest, options)
       const localVarOperationServerIndex = configuration?.serverIndex ?? 0
       const localVarOperationServerBasePath =
         operationServerMap['TeamsApi.createTeam']?.[localVarOperationServerIndex]?.url
@@ -3936,18 +3837,18 @@ export const TeamsApiFp = function (configuration?: Configuration) {
      * Update team information. Requires ADMIN role.
      * @summary Update team
      * @param {string} slug Team URL slug
-     * @param {UpdateTeamRequest} updateTeamRequest
+     * @param {TeamRequest} teamRequest
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     async updateTeam(
       slug: string,
-      updateTeamRequest: UpdateTeamRequest,
+      teamRequest: TeamRequest,
       options?: RawAxiosRequestConfig
     ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TeamDetailDto>> {
       const localVarAxiosArgs = await localVarAxiosParamCreator.updateTeam(
         slug,
-        updateTeamRequest,
+        teamRequest,
         options
       )
       const localVarOperationServerIndex = configuration?.serverIndex ?? 0
@@ -3977,17 +3878,15 @@ export const TeamsApiFactory = function (
     /**
      * Create a new team. The current user will be set as the team owner.
      * @summary Create team
-     * @param {CreateTeamRequest} createTeamRequest
+     * @param {TeamRequest} teamRequest
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     createTeam(
-      createTeamRequest: CreateTeamRequest,
+      teamRequest: TeamRequest,
       options?: RawAxiosRequestConfig
     ): AxiosPromise<TeamDetailDto> {
-      return localVarFp
-        .createTeam(createTeamRequest, options)
-        .then((request) => request(axios, basePath))
+      return localVarFp.createTeam(teamRequest, options).then((request) => request(axios, basePath))
     },
     /**
      * Soft delete a team. Requires OWNER role.
@@ -4034,17 +3933,17 @@ export const TeamsApiFactory = function (
      * Update team information. Requires ADMIN role.
      * @summary Update team
      * @param {string} slug Team URL slug
-     * @param {UpdateTeamRequest} updateTeamRequest
+     * @param {TeamRequest} teamRequest
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     updateTeam(
       slug: string,
-      updateTeamRequest: UpdateTeamRequest,
+      teamRequest: TeamRequest,
       options?: RawAxiosRequestConfig
     ): AxiosPromise<TeamDetailDto> {
       return localVarFp
-        .updateTeam(slug, updateTeamRequest, options)
+        .updateTeam(slug, teamRequest, options)
         .then((request) => request(axios, basePath))
     },
   }
@@ -4057,13 +3956,13 @@ export class TeamsApi extends BaseAPI {
   /**
    * Create a new team. The current user will be set as the team owner.
    * @summary Create team
-   * @param {CreateTeamRequest} createTeamRequest
+   * @param {TeamRequest} teamRequest
    * @param {*} [options] Override http request option.
    * @throws {RequiredError}
    */
-  public createTeam(createTeamRequest: CreateTeamRequest, options?: RawAxiosRequestConfig) {
+  public createTeam(teamRequest: TeamRequest, options?: RawAxiosRequestConfig) {
     return TeamsApiFp(this.configuration)
-      .createTeam(createTeamRequest, options)
+      .createTeam(teamRequest, options)
       .then((request) => request(this.axios, this.basePath))
   }
 
@@ -4119,17 +4018,13 @@ export class TeamsApi extends BaseAPI {
    * Update team information. Requires ADMIN role.
    * @summary Update team
    * @param {string} slug Team URL slug
-   * @param {UpdateTeamRequest} updateTeamRequest
+   * @param {TeamRequest} teamRequest
    * @param {*} [options] Override http request option.
    * @throws {RequiredError}
    */
-  public updateTeam(
-    slug: string,
-    updateTeamRequest: UpdateTeamRequest,
-    options?: RawAxiosRequestConfig
-  ) {
+  public updateTeam(slug: string, teamRequest: TeamRequest, options?: RawAxiosRequestConfig) {
     return TeamsApiFp(this.configuration)
-      .updateTeam(slug, updateTeamRequest, options)
+      .updateTeam(slug, teamRequest, options)
       .then((request) => request(this.axios, this.basePath))
   }
 }

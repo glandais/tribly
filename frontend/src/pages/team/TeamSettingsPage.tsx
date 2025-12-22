@@ -20,9 +20,6 @@ export function TeamSettingsPage() {
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [visibility, setVisibility] = useState<Visibility>(Visibility.Public)
-  const [logoUrl, setLogoUrl] = useState('')
-  const [coverImageUrl, setCoverImageUrl] = useState('')
-  const [maxMembers, setMaxMembers] = useState<number | ''>('')
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   // Initialize form state from fetched team data
@@ -32,9 +29,6 @@ export function TeamSettingsPage() {
       setName(team.name)
       setDescription(team.description || '')
       setVisibility(team.visibility)
-      setLogoUrl(team.logoUrl || '')
-      setCoverImageUrl(team.coverImageUrl || '')
-      setMaxMembers(team.maxMembers || '')
     }
   }, [team])
 
@@ -81,13 +75,9 @@ export function TeamSettingsPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     updateMutation.mutate({
-      name: name !== team.name ? name : undefined,
-      description: description !== team.description ? description : undefined,
-      visibility: visibility !== team.visibility ? visibility : undefined,
-      logoUrl: logoUrl !== team.logoUrl ? logoUrl || undefined : undefined,
-      coverImageUrl: coverImageUrl !== team.coverImageUrl ? coverImageUrl || undefined : undefined,
-      maxMembers:
-        maxMembers !== team.maxMembers ? (maxMembers ? Number(maxMembers) : undefined) : undefined,
+      name,
+      description,
+      visibility,
     })
   }
 
@@ -175,34 +165,6 @@ export function TeamSettingsPage() {
         </div>
 
         <div>
-          <label htmlFor="logoUrl" className="block text-sm font-medium text-gray-700">
-            {t('settings.form.logoUrl.label')}
-          </label>
-          <input
-            type="url"
-            id="logoUrl"
-            value={logoUrl}
-            onChange={(e) => setLogoUrl(e.target.value)}
-            className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
-            placeholder={t('settings.form.logoUrl.placeholder')}
-          />
-        </div>
-
-        <div>
-          <label htmlFor="coverImageUrl" className="block text-sm font-medium text-gray-700">
-            {t('settings.form.coverImageUrl.label')}
-          </label>
-          <input
-            type="url"
-            id="coverImageUrl"
-            value={coverImageUrl}
-            onChange={(e) => setCoverImageUrl(e.target.value)}
-            className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
-            placeholder={t('settings.form.coverImageUrl.placeholder')}
-          />
-        </div>
-
-        <div>
           <label htmlFor="visibility" className="block text-sm font-medium text-gray-700">
             {t('settings.form.visibility.label')}
           </label>
@@ -216,24 +178,6 @@ export function TeamSettingsPage() {
             <option value={Visibility.Public}>{tCommon('visibility.public')}</option>
           </select>
           <p className="mt-1 text-sm text-gray-500">{t('settings.form.visibility.hint')}</p>
-        </div>
-
-        <div>
-          <label htmlFor="maxMembers" className="block text-sm font-medium text-gray-700">
-            {t('settings.form.maxMembers.label')}
-          </label>
-          <input
-            type="number"
-            id="maxMembers"
-            value={maxMembers}
-            onChange={(e) => setMaxMembers(e.target.value ? Number(e.target.value) : '')}
-            min={team.memberCount}
-            className="mt-1 block w-full sm:w-32 px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
-            placeholder={t('settings.form.maxMembers.placeholder')}
-          />
-          <p className="mt-1 text-sm text-gray-500">
-            {t('settings.form.maxMembers.hint', { count: team.memberCount })}
-          </p>
         </div>
 
         <div className="pt-4 flex items-center justify-end gap-3">

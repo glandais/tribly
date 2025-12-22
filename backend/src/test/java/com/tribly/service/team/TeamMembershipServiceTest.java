@@ -107,18 +107,6 @@ class TeamMembershipServiceTest {
     assertEquals(TeamRole.MEMBER, result.role());
   }
 
-  @Test
-  void joinTeam_shouldThrowWhenTeamFull() {
-    team.setMaxMembers(1);
-    dataService.updateTeam(team);
-
-    BusinessException exception =
-        assertThrows(
-            BusinessException.class, () -> membershipService.joinTeam("test-team", user1.getId()));
-
-    assertTrue(exception.getMessage().contains("maximum member capacity"));
-  }
-
   // ==================== Add Member ====================
 
   @Test

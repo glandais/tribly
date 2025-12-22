@@ -44,11 +44,6 @@
       "visibility": {
         "label": "Team Visibility",
         "hint": "Control who can find and join this team"
-      },
-      "maxMembers": {
-        "label": "Maximum Members (optional)",
-        "placeholder": "No limit",
-        "hint": "Leave empty for unlimited members"
       }
     },
     "button": "Create Team",
@@ -74,7 +69,6 @@
     "info": {
       "memberCount_one": "{{count}} member",
       "memberCount_other": "{{count}} members",
-      "maxMembers": "/ {{max}} max",
       "created": "Created {{date}}"
     },
     "actions": {
@@ -120,22 +114,9 @@
         "label": "Description",
         "charCount": "{{count}}/{{max}} characters"
       },
-      "logoUrl": {
-        "label": "Logo URL",
-        "placeholder": "https://example.com/logo.png"
-      },
-      "coverImageUrl": {
-        "label": "Cover Image URL",
-        "placeholder": "https://example.com/cover.jpg"
-      },
       "visibility": {
         "label": "Team Visibility",
         "hint": "Control who can find and join this team"
-      },
-      "maxMembers": {
-        "label": "Maximum Members",
-        "placeholder": "No limit",
-        "hint": "Current members: {{count}}. Leave empty for unlimited."
       }
     },
     "success": "Team settings updated successfully!",

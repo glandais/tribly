@@ -79,8 +79,7 @@ class RideResourceTest {
             new RideRequest(
                 "Sunday Morning Ride",
                 null,
-                LocalDate.parse("2025-01-20"),
-                null,
+                LocalDate.parse("2025-01-20").atTime(0, 0),
                 RideStatus.DRAFT,
                 Visibility.PUBLIC,
                 null,
@@ -91,8 +90,8 @@ class RideResourceTest {
         .post("/api/teams/" + teamSlug + "/rides")
         .then()
         .statusCode(201)
-        .body("title", equalTo("Sunday Morning Ride"))
-        .body("date", equalTo("2025-01-20"))
+        .body("name", equalTo("Sunday Morning Ride"))
+        .body("dateTime", equalTo("2025-01-20T00:00:00"))
         .body("status", equalTo("DRAFT"))
         .body("groupCount", equalTo(1));
   }
@@ -110,8 +109,7 @@ class RideResourceTest {
             new RideRequest(
                 "Sunday Morning Ride",
                 null,
-                LocalDate.parse("2025-01-20"),
-                null,
+                LocalDate.parse("2025-01-20").atTime(0, 0),
                 RideStatus.DRAFT,
                 Visibility.PUBLIC,
                 null,
@@ -132,8 +130,7 @@ class RideResourceTest {
         new RideRequest(
             "Multi-Group Ride",
             null,
-            LocalDate.parse("2025-01-20"),
-            null,
+            LocalDate.parse("2025-01-20").atTime(0, 0),
             RideStatus.DRAFT,
             Visibility.PUBLIC,
             null,
@@ -153,7 +150,7 @@ class RideResourceTest {
         .post("/api/teams/" + teamSlug + "/rides")
         .then()
         .statusCode(201)
-        .body("title", equalTo("Multi-Group Ride"))
+        .body("name", equalTo("Multi-Group Ride"))
         .body("groupCount", equalTo(3));
   }
 
@@ -170,8 +167,7 @@ class RideResourceTest {
                 new RideRequest(
                     "Get Test Ride",
                     null,
-                    LocalDate.parse("2025-01-22"),
-                    null,
+                    LocalDate.parse("2025-01-22").atTime(0, 0),
                     RideStatus.DRAFT,
                     Visibility.PUBLIC,
                     null,
@@ -193,7 +189,7 @@ class RideResourceTest {
         .then()
         .statusCode(200)
         .body("slug", equalTo(rideSlug))
-        .body("title", equalTo("Get Test Ride"))
+        .body("name", equalTo("Get Test Ride"))
         .body("groups", hasSize(1));
   }
 
@@ -210,8 +206,7 @@ class RideResourceTest {
             new RideRequest(
                 "Ride 1",
                 null,
-                LocalDate.parse("2025-01-20"),
-                null,
+                LocalDate.parse("2025-01-20").atTime(0, 0),
                 RideStatus.DRAFT,
                 Visibility.PUBLIC,
                 null,
@@ -231,8 +226,7 @@ class RideResourceTest {
             new RideRequest(
                 "Ride 2",
                 null,
-                LocalDate.parse("2025-01-27"),
-                null,
+                LocalDate.parse("2025-01-27").atTime(0, 0),
                 RideStatus.DRAFT,
                 Visibility.PUBLIC,
                 null,
@@ -268,8 +262,7 @@ class RideResourceTest {
                 new RideRequest(
                     "Sunday Morning Ride",
                     null,
-                    LocalDate.parse("2025-01-20"),
-                    null,
+                    LocalDate.parse("2025-01-20").atTime(0, 0),
                     RideStatus.DRAFT,
                     Visibility.PUBLIC,
                     null,
@@ -305,8 +298,7 @@ class RideResourceTest {
             new RideRequest(
                 "Updated Title",
                 null,
-                LocalDate.parse("2025-01-20"),
-                null,
+                LocalDate.parse("2025-01-20").atTime(0, 0),
                 RideStatus.PUBLISHED,
                 Visibility.PUBLIC,
                 null,
@@ -319,7 +311,7 @@ class RideResourceTest {
         .put("/api/teams/" + teamSlug + "/rides/" + rideSlug)
         .then()
         .statusCode(200)
-        .body("title", equalTo("Updated Title"))
+        .body("name", equalTo("Updated Title"))
         .body("status", equalTo("PUBLISHED"));
   }
 
@@ -336,8 +328,7 @@ class RideResourceTest {
                 new RideRequest(
                     "To be deleted",
                     null,
-                    LocalDate.parse("2025-01-20"),
-                    null,
+                    LocalDate.parse("2025-01-20").atTime(0, 0),
                     RideStatus.PUBLISHED,
                     Visibility.PUBLIC,
                     null,
@@ -384,8 +375,7 @@ class RideResourceTest {
                 new RideRequest(
                     "Ride",
                     null,
-                    LocalDate.parse("2025-01-20"),
-                    null,
+                    LocalDate.parse("2025-01-20").atTime(0, 0),
                     RideStatus.PUBLISHED,
                     Visibility.PUBLIC,
                     null,
@@ -420,8 +410,7 @@ class RideResourceTest {
         .when()
         .post("/api/teams/" + teamSlug + "/rides/" + rideSlug + "/groups/" + groupId + "/join")
         .then()
-        .statusCode(201)
-        .body("status", equalTo("REGISTERED"));
+        .statusCode(201);
   }
 
   @Test
@@ -439,8 +428,7 @@ class RideResourceTest {
                 new RideRequest(
                     "Ride",
                     null,
-                    LocalDate.parse("2025-01-20"),
-                    null,
+                    LocalDate.parse("2025-01-20").atTime(0, 0),
                     RideStatus.DRAFT,
                     Visibility.PUBLIC,
                     null,
@@ -492,8 +480,7 @@ class RideResourceTest {
                 new RideRequest(
                     "Ride",
                     null,
-                    LocalDate.parse("2025-01-20"),
-                    null,
+                    LocalDate.parse("2025-01-20").atTime(0, 0),
                     RideStatus.PUBLISHED,
                     Visibility.PUBLIC,
                     null,

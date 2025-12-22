@@ -31,7 +31,9 @@ class RideGroupRepositoryTest {
     dataCleaner.cleanAll();
     team = dataService.createTeam("Test Team", "test-team");
     user = dataService.createUser("test@example.com", "Test User");
-    ride = dataService.createRide(team, user, "Test Ride", "test-ride", LocalDate.of(2025, 1, 15));
+    ride =
+        dataService.createRide(
+            team, user, "Test Ride", "test-ride", LocalDate.of(2025, 1, 15).atTime(0, 0));
   }
 
   @Test
@@ -48,7 +50,8 @@ class RideGroupRepositoryTest {
   void findByIdAndRide_shouldReturnEmptyForWrongRide() {
     RideGroup group = dataService.createRideGroup(ride, "Fast Group");
     Ride otherRide =
-        dataService.createRide(team, user, "Other Ride", "other-ride", LocalDate.of(2025, 1, 20));
+        dataService.createRide(
+            team, user, "Other Ride", "other-ride", LocalDate.of(2025, 1, 20).atTime(0, 0));
 
     Optional<RideGroup> result =
         rideGroupRepository.findByIdAndRide(group.getId(), otherRide.getId());
@@ -106,7 +109,8 @@ class RideGroupRepositoryTest {
   @Test
   void findByRide_shouldReturnEmptyForRideWithoutGroups() {
     Ride emptyRide =
-        dataService.createRide(team, user, "Empty Ride", "empty-ride", LocalDate.of(2025, 1, 20));
+        dataService.createRide(
+            team, user, "Empty Ride", "empty-ride", LocalDate.of(2025, 1, 20).atTime(0, 0));
 
     List<RideGroup> result = rideGroupRepository.findByRide(emptyRide.getId());
 

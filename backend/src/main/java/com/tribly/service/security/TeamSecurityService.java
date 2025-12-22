@@ -6,7 +6,6 @@ import com.tribly.domain.team.repository.UserTeamRepository;
 import com.tribly.enums.TeamRole;
 import com.tribly.enums.Visibility;
 import com.tribly.infrastructure.exception.BusinessException;
-import com.tribly.service.team.response.TeamAndRole;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.jspecify.annotations.Nullable;
@@ -128,19 +127,6 @@ public class TeamSecurityService {
   }
 
   // ==================== Business Rule Checks ====================
-
-  /**
-   * Checks that a team has capacity for more members.
-   *
-   * @param team the team to check
-   * @throws BusinessException with BUSINESS_RULE if the team is full
-   */
-  public void requireTeamCapacity(TeamAndRole team) {
-    if (!team.hasCapacity()) {
-      throw BusinessException.businessRule(
-          "This team has reached its maximum member capacity", "TEAM_FULL");
-    }
-  }
 
   /**
    * Checks that removing a user won't leave the team without an admin.

@@ -49,7 +49,7 @@ class RouteRepositoryTest {
     Route route1 = dataService.createRoute(team, user, "Route 1");
     dataService.createRoute(team, user, "Route 2");
 
-    RouteQuery query = new RouteQuery(team.getId(), 0, 10, route1.getId(), null, null);
+    RouteQuery query = new RouteQuery(team.getId(), 0, 10, route1.getSlug(), null, null);
     TriblyPage<Route> result = routeRepository.find(query);
 
     assertEquals(1, result.items().size());
@@ -113,7 +113,7 @@ class RouteRepositoryTest {
     dataService.createRouteWithVisibility(team, user, "Team Route", Visibility.TEAM);
 
     RouteQuery query =
-        new RouteQuery(team.getId(), 0, 10, targetRoute.getId(), Visibility.PUBLIC, null);
+        new RouteQuery(team.getId(), 0, 10, targetRoute.getSlug(), Visibility.PUBLIC, null);
     TriblyPage<Route> result = routeRepository.find(query);
 
     assertEquals(1, result.items().size());

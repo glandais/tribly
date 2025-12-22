@@ -8,8 +8,7 @@ import com.tribly.domain.team.repository.TeamRepository;
 import com.tribly.domain.team.repository.UserTeamRepository;
 import com.tribly.domain.user.User;
 import com.tribly.domain.user.repository.UserRepository;
-import com.tribly.dto.teams.request.CreateTeamRequest;
-import com.tribly.dto.teams.request.UpdateTeamRequest;
+import com.tribly.dto.teams.request.TeamRequest;
 import com.tribly.dto.teams.response.TeamDetailDto;
 import com.tribly.dto.teams.response.TeamListResponse;
 import com.tribly.enums.TeamRole;
@@ -43,7 +42,7 @@ public class TeamService {
   @Inject TeamSecurityService securityService;
 
   @Transactional
-  public TeamDetailDto createTeam(CreateTeamRequest request, Long creatorId) {
+  public TeamDetailDto createTeam(TeamRequest request, Long creatorId) {
     User creator =
         userRepository
             .findActiveById(creatorId)
@@ -57,7 +56,6 @@ public class TeamService {
     Team team = new Team(request.name(), slug);
     team.setDescription(request.description());
     team.setVisibility(request.visibility());
-    team.setMaxMembers(request.maxMembers());
 
     teamRepository.persist(team);
 
@@ -89,7 +87,7 @@ public class TeamService {
   }
 
   @Transactional
-  public TeamDetailDto updateTeam(String teamSlug, UpdateTeamRequest request, Long userId) {
+  public TeamDetailDto updateTeam(String teamSlug, TeamRequest request, Long userId) {
     Team team =
         teamRepository
             .findBySlug(teamSlug)
@@ -97,24 +95,9 @@ public class TeamService {
 
     securityService.requireAdmin(userId, teamSlug);
 
-    if (request.name() != null) {
-      team.setName(request.name());
-    }
-    if (request.description() != null) {
-      team.setDescription(request.description());
-    }
-    if (request.visibility() != null) {
-      team.setVisibility(request.visibility());
-    }
-    if (request.logoUrl() != null) {
-      team.setLogoUrl(request.logoUrl());
-    }
-    if (request.coverImageUrl() != null) {
-      team.setCoverImageUrl(request.coverImageUrl());
-    }
-    if (request.maxMembers() != null) {
-      team.setMaxMembers(request.maxMembers());
-    }
+    team.setName(request.name());
+    team.setDescription(request.description());
+    team.setVisibility(request.visibility());
 
     teamRepository.persist(team);
     LOG.infov("Team {0} updated by user {1}", team.getSlug(), userId);

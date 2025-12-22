@@ -71,7 +71,7 @@ export function RideDetailPage() {
       : false
   const canJoinRide = isMember && ride.status === RideStatus.Published && !hasJoinedAnyGroup
 
-  const rideDate = new Date(ride.date)
+  const rideDate = new Date(ride.dateTime)
   const formattedDate = rideDate.toLocaleDateString(i18n.language, {
     weekday: 'long',
     year: 'numeric',
@@ -127,7 +127,7 @@ export function RideDetailPage() {
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold text-gray-900">{ride.title}</h1>
+              <h1 className="text-2xl font-bold text-gray-900">{ride.name}</h1>
               <span
                 className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColors[ride.status]}`}
               >
@@ -151,10 +151,10 @@ export function RideDetailPage() {
                 <CalendarIcon className="w-4 h-4 mr-1" />
                 {formattedDate}
               </span>
-              {ride.startTime && (
+              {ride.dateTime && (
                 <span className="flex items-center">
                   <ClockIcon className="w-4 h-4 mr-1" />
-                  {ride.startTime.substring(0, 5)}
+                  {ride.dateTime.substring(0, 5)}
                 </span>
               )}
               <span className="flex items-center">

@@ -2,8 +2,7 @@ package com.tribly.api.teams;
 
 import com.tribly.api.AbstractAuthenticatedResource;
 import com.tribly.dto.error.ErrorResponse;
-import com.tribly.dto.teams.request.CreateTeamRequest;
-import com.tribly.dto.teams.request.UpdateTeamRequest;
+import com.tribly.dto.teams.request.TeamRequest;
 import com.tribly.dto.teams.response.TeamDetailDto;
 import com.tribly.dto.teams.response.TeamListResponse;
 import com.tribly.service.team.TeamService;
@@ -105,7 +104,7 @@ public class TeamResource extends AbstractAuthenticatedResource {
         description = "Unauthorized",
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
-  public Response createTeam(@Valid CreateTeamRequest request) {
+  public Response createTeam(@Valid TeamRequest request) {
     Long userId = getCurrentUserId();
 
     TeamDetailDto teamDetailDto = teamService.createTeam(request, userId);
@@ -144,7 +143,7 @@ public class TeamResource extends AbstractAuthenticatedResource {
   })
   public Response updateTeam(
       @Parameter(description = "Team URL slug") @PathParam("slug") String slug,
-      @Valid UpdateTeamRequest request) {
+      @Valid TeamRequest request) {
     Long userId = getCurrentUserId();
 
     TeamDetailDto teamDetailDto = teamService.updateTeam(slug, request, userId);

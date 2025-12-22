@@ -83,7 +83,7 @@ export function useBreadcrumb(): BreadcrumbItem[] {
 
       // Ride detail or edit
       if (rideSlug && ride) {
-        items.push({ label: ride.title, path: `/teams/${teamSlug}/rides/${rideSlug}` })
+        items.push({ label: ride.name, path: `/teams/${teamSlug}/rides/${rideSlug}` })
 
         // Edit ride
         if (location.pathname === `/teams/${teamSlug}/rides/${rideSlug}/edit`) {

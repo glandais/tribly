@@ -206,16 +206,6 @@ export function RouteDetailPage() {
       <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
         <h2 className="text-xl font-bold text-gray-900 mb-4">{t('detail.info.title')}</h2>
         <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {route.difficulty && (
-            <>
-              <dt className="text-sm font-medium text-gray-500">{t('detail.info.difficulty')}</dt>
-              <dd>
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                  {t(`difficulty.${route.difficulty}`)}
-                </span>
-              </dd>
-            </>
-          )}
           {route.surfaceType && (
             <>
               <dt className="text-sm font-medium text-gray-500">{t('detail.info.surfaceType')}</dt>

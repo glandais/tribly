@@ -16,19 +16,13 @@ export function RouteCard({ route, teamSlug }: RouteCardProps) {
   const elevationIcon = <ArrowUpIcon />
 
   return (
-    <Card to={`/teams/${teamSlug}/routes/${route.id}`}>
+    <Card to={`/teams/${teamSlug}/routes/${route.slug}`}>
       {/* Thumbnail */}
-      {route.thumbnailUrl ? (
-        <img
-          src={`/api/download/${route.visibility.toLowerCase()}/teams/${teamSlug}/routes/${route.id}/thumbnail`}
-          alt={route.name}
-          className="w-full h-48 object-cover"
-        />
-      ) : (
-        <div className="w-full h-48 bg-gray-100 flex items-center justify-center">
-          <MapIcon className="h-12 w-12 text-gray-400" />
-        </div>
-      )}
+      <img
+        src={`/api/download/${route.visibility.toLowerCase()}/teams/${teamSlug}/routes/${route.slug}/thumbnail`}
+        alt={route.name}
+        className="w-full h-48 object-cover"
+      />
 
       <CardContent>
         <CardTitle>{route.name}</CardTitle>
@@ -40,7 +34,6 @@ export function RouteCard({ route, teamSlug }: RouteCardProps) {
         </StatGroup>
 
         <div className="flex flex-wrap gap-2">
-          {route.difficulty && <Badge variant="blue">{t(`difficulty.${route.difficulty}`)}</Badge>}
           {route.surfaceType && (
             <Badge variant="green">{t(`surfaceType.${route.surfaceType}`)}</Badge>
           )}

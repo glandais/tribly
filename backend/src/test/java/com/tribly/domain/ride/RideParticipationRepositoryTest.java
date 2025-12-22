@@ -33,7 +33,9 @@ class RideParticipationRepositoryTest {
     team = dataService.createTeam("Test Team", "test-team");
     user1 = dataService.createUser("user1@example.com", "User One");
     user2 = dataService.createUser("user2@example.com", "User Two");
-    ride = dataService.createRide(team, user1, "Test Ride", "test-ride", LocalDate.of(2025, 1, 15));
+    ride =
+        dataService.createRide(
+            team, user1, "Test Ride", "test-ride", LocalDate.of(2025, 1, 15).atTime(0, 0));
     group = dataService.createRideGroup(ride, "Fast Group");
   }
 
@@ -124,7 +126,8 @@ class RideParticipationRepositoryTest {
   void findByUserAndRide_shouldReturnEmptyForDifferentRide() {
     dataService.createParticipation(group, user1);
     Ride otherRide =
-        dataService.createRide(team, user1, "Other Ride", "other-ride", LocalDate.of(2025, 1, 20));
+        dataService.createRide(
+            team, user1, "Other Ride", "other-ride", LocalDate.of(2025, 1, 20).atTime(0, 0));
 
     Optional<RideParticipation> result =
         participationRepository.findByUserAndRide(user1.getId(), otherRide.getId());

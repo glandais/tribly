@@ -31,10 +31,9 @@ export function EditRidePage() {
   const { data: team, isLoading: isLoadingTeam } = useTeam(teamSlug)
   const { data: ride, isLoading: isLoadingRide } = useRide(teamSlug, rideSlug)
 
-  const [title, setTitle] = useState('')
+  const [name, setName] = useState('')
   const [description, setDescription] = useState('')
-  const [date, setDate] = useState('')
-  const [startTime, setStartTime] = useState('')
+  const [dateTime, setDateTime] = useState('')
   const [visibility, setVisibility] = useState<Visibility>(Visibility.Team)
   const [status, setStatus] = useState<RideStatus>(RideStatus.Draft)
   const [publishAt, setPublishAt] = useState('')
@@ -53,10 +52,9 @@ export function EditRidePage() {
   useEffect(() => {
     if (ride && !initialized) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- Form initialization from server data
-      setTitle(ride.title)
+      setName(ride.name)
       setDescription(ride.description || '')
-      setDate(ride.date)
-      setStartTime(ride.startTime?.substring(0, 5) || '')
+      setDateTime(ride.dateTime)
       setVisibility(ride.visibility)
       setStatus(ride.status)
       // Convert ISO string to datetime-local format (YYYY-MM-DDTHH:mm)
@@ -98,11 +96,10 @@ export function EditRidePage() {
 
     // Update ride details
     await updateMutation.mutateAsync({
-      title,
+      name,
       status,
       description: description || undefined,
-      date,
-      startTime: startTime || undefined,
+      dateTime,
       visibility,
       publishAt: publishAt ? new Date(publishAt).toISOString() : undefined,
       routeId: rideRouteId || undefined,
@@ -180,8 +177,8 @@ export function EditRidePage() {
           <input
             type="text"
             id="title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
             required
             minLength={3}
             maxLength={200}
@@ -218,10 +215,10 @@ export function EditRidePage() {
               {t('create.form.date.label')} <span className="text-red-500">*</span>
             </label>
             <input
-              type="date"
+              type="datetime-local"
               id="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
+              value={dateTime}
+              onChange={(e) => setDateTime(e.target.value)}
               required
               className={`mt-1 block w-full px-4 py-2 border rounded-lg focus:ring-indigo-500 focus:border-indigo-500 ${
                 getFieldError('date') ? 'border-red-300' : 'border-gray-300'
@@ -230,18 +227,6 @@ export function EditRidePage() {
             {getFieldError('date') && (
               <p className="mt-1 text-sm text-red-600">{getFieldError('date')}</p>
             )}
-          </div>
-          <div>
-            <label htmlFor="startTime" className="block text-sm font-medium text-gray-700">
-              {t('create.form.startTime.label')}
-            </label>
-            <input
-              type="time"
-              id="startTime"
-              value={startTime}
-              onChange={(e) => setStartTime(e.target.value)}
-              className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
-            />
           </div>
         </div>
 
@@ -539,8 +524,8 @@ export function EditRidePage() {
             type="submit"
             disabled={
               isSaving ||
-              !title.trim() ||
-              !date ||
+              !name.trim() ||
+              !dateTime ||
               activeGroups.filter((g) => g.name.trim()).length === 0
             }
             className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"

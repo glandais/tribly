@@ -5,7 +5,7 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.tribly.domain.user.User;
-import com.tribly.dto.teams.request.CreateTeamRequest;
+import com.tribly.dto.teams.request.TeamRequest;
 import com.tribly.dto.teams.response.TeamDetailDto;
 import com.tribly.enums.TeamRole;
 import com.tribly.enums.Visibility;
@@ -56,13 +56,13 @@ class TeamResourceTest {
     // Create public team with admin as owner
     publicTeam =
         teamService.createTeam(
-            new CreateTeamRequest("Test Public Team", "A public team", Visibility.PUBLIC, null),
+            new TeamRequest("Test Public Team", "A public team", Visibility.PUBLIC),
             adminUser.getId());
 
     // Create private team with admin as owner
     privateTeam =
         teamService.createTeam(
-            new CreateTeamRequest("Test Private Team", "A private team", Visibility.TEAM, null),
+            new TeamRequest("Test Private Team", "A private team", Visibility.TEAM),
             adminUser.getId());
   }
 
@@ -70,7 +70,7 @@ class TeamResourceTest {
   void createTeam_shouldCreateTeamAndMakeUserAdmin() {
     TeamDetailDto team =
         teamService.createTeam(
-            new CreateTeamRequest("Test Cyclists", "A great cycling team", Visibility.PUBLIC, null),
+            new TeamRequest("Test Cyclists", "A great cycling team", Visibility.PUBLIC),
             adminUser.getId());
 
     assertNotNull(team.id());
@@ -140,11 +140,13 @@ class TeamResourceTest {
 
   @Test
   void updateTeam_asAdmin_shouldSucceed() {
+    TeamRequest teamRequest = new TeamRequest("Updated Name", "New description", Visibility.PUBLIC);
+
     given()
         .auth()
         .oauth2(getAccessToken(USERNAME_ADMIN))
         .contentType("application/json")
-        .body("{\"name\": \"Updated Name\", \"description\": \"New description\"}")
+        .body(teamRequest)
         .when()
         .put("/api/teams/" + publicTeam.slug())
         .then()
@@ -158,11 +160,13 @@ class TeamResourceTest {
     // Add member to team first via HTTP (pure HTTP pattern)
     addMemberViaApi(publicTeam.slug(), memberUser.getId());
 
+    TeamRequest teamRequest = new TeamRequest("Hacked Name", null, Visibility.PUBLIC);
+
     given()
         .auth()
         .oauth2(getAccessToken(USERNAME_TEST))
         .contentType("application/json")
-        .body("{\"name\": \"Hacked Name\"}")
+        .body(teamRequest)
         .when()
         .put("/api/teams/" + publicTeam.slug())
         .then()

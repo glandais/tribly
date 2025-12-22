@@ -4,348 +4,217 @@
 -- Enable PostGIS
 CREATE EXTENSION IF NOT EXISTS postgis;
 
--- Users
-CREATE TABLE users (
-    id BIGINT PRIMARY KEY,
-    email VARCHAR(255) NOT NULL UNIQUE,
-    display_name VARCHAR(255) NOT NULL,
-    avatar_url VARCHAR(500),
-    locale VARCHAR(10) DEFAULT 'en',
-    timezone VARCHAR(50) DEFAULT 'UTC',
-    last_login_at TIMESTAMP WITH TIME ZONE,
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    deleted BOOLEAN NOT NULL DEFAULT FALSE,
-    version BIGINT DEFAULT 0
+
+create table gpx_tracks (
+                            deleted boolean not null,
+                            created_at timestamp(6) with time zone not null,
+                            id bigint not null,
+                            processed_at timestamp(6) with time zone not null,
+                            route_id bigint not null,
+                            updated_at timestamp(6) with time zone not null,
+                            version bigint,
+                            geometry geometry(LineString,4326) not null,
+                            name varchar(255),
+                            original_file_name varchar(255),
+                            track_points jsonb not null,
+                            primary key (id)
 );
 
--- Teams
-CREATE TABLE teams (
-    id BIGINT PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    slug VARCHAR(100) NOT NULL UNIQUE,
-    description TEXT,
-    logo_url VARCHAR(500),
-    cover_image_url VARCHAR(500),
-    visibility VARCHAR(20) NOT NULL DEFAULT 'TEAM' CHECK (visibility IN ('TEAM', 'PUBLIC')),
-    settings JSONB DEFAULT '{}',
-    max_members INTEGER,
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    deleted BOOLEAN NOT NULL DEFAULT FALSE,
-    version BIGINT DEFAULT 0
+create table ride_groups (
+                             average_speed integer,
+                             deleted boolean not null,
+                             max_participants integer,
+                             sort_order integer not null,
+                             created_at timestamp(6) with time zone not null,
+                             id bigint not null,
+                             ride_id bigint not null,
+                             route_id bigint,
+                             updated_at timestamp(6) with time zone not null,
+                             version bigint,
+                             name varchar(100) not null,
+                             description TEXT,
+                             primary key (id)
 );
 
--- User-Team association
-CREATE TABLE user_teams (
-    id BIGINT PRIMARY KEY,
-    user_id BIGINT NOT NULL REFERENCES users(id),
-    team_id BIGINT NOT NULL REFERENCES teams(id),
-    role VARCHAR(20) NOT NULL CHECK (role IN ('ADMIN', 'ORGANIZER', 'MEMBER')),
-    joined_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    invited_by BIGINT REFERENCES users(id),
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    deleted BOOLEAN NOT NULL DEFAULT FALSE,
-    version BIGINT DEFAULT 0,
-    UNIQUE(user_id, team_id)
+create table ride_participations (
+                                     deleted boolean not null,
+                                     created_at timestamp(6) with time zone not null,
+                                     id bigint not null,
+                                     registered_at timestamp(6) with time zone not null,
+                                     ride_group_id bigint not null,
+                                     updated_at timestamp(6) with time zone not null,
+                                     user_id bigint not null,
+                                     version bigint,
+                                     primary key (id),
+                                     unique (ride_group_id, user_id)
 );
 
--- Team domains for multi-tenancy
-CREATE TABLE team_domains (
-    id BIGINT PRIMARY KEY,
-    team_id BIGINT NOT NULL REFERENCES teams(id),
-    domain VARCHAR(255) NOT NULL UNIQUE,
-    verified BOOLEAN NOT NULL DEFAULT FALSE,
-    verification_token VARCHAR(100),
-    is_primary BOOLEAN NOT NULL DEFAULT FALSE,
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    deleted BOOLEAN NOT NULL DEFAULT FALSE,
-    version BIGINT DEFAULT 0
+create table route_climbs (
+                              average_gradient numeric(5,2) not null,
+                              deleted boolean not null,
+                              elevation_gain integer not null,
+                              end_distance integer not null,
+                              max_gradient numeric(5,2) not null,
+                              start_distance integer not null,
+                              created_at timestamp(6) with time zone not null,
+                              id bigint not null,
+                              route_id bigint not null,
+                              updated_at timestamp(6) with time zone not null,
+                              version bigint,
+                              category varchar(10) check ((category in ('HC','CAT1','CAT2','CAT3','CAT4'))),
+                              name varchar(255),
+                              primary key (id)
 );
 
--- Places
-CREATE TABLE places (
-    id BIGINT PRIMARY KEY,
-    team_id BIGINT NOT NULL REFERENCES teams(id),
-    created_by_id BIGINT NOT NULL REFERENCES users(id),
-    name VARCHAR(255) NOT NULL,
-    type VARCHAR(20) NOT NULL CHECK (type IN ('MEETUP', 'CAFE', 'RESTAURANT', 'HOTEL', 'CAMPSITE', 'WATER', 'OTHER')),
-    address TEXT,
-    lat DECIMAL(10, 8) NOT NULL,
-    lng DECIMAL(11, 8) NOT NULL,
-    phone VARCHAR(50),
-    website VARCHAR(500),
-    notes TEXT,
-    visibility VARCHAR(20) NOT NULL DEFAULT 'TEAM' CHECK (visibility IN ('TEAM', 'PUBLIC')),
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    deleted BOOLEAN NOT NULL DEFAULT FALSE,
-    version BIGINT DEFAULT 0
+create table team_entities (
+                               deleted boolean not null,
+                               distance integer,
+                               elevation_gain integer,
+                               elevation_loss integer,
+                               end_lat numeric(10,8),
+                               end_lng numeric(11,8),
+                               entity_type integer not null check ((entity_type in (2,1))),
+                               start_lat numeric(10,8),
+                               start_lng numeric(11,8),
+                               created_at timestamp(6) with time zone not null,
+                               created_by_id bigint not null,
+                               date_time timestamp(6) not null,
+                               id bigint not null,
+                               publish_at timestamp(6) with time zone,
+                               route_id bigint,
+                               team_id bigint not null,
+                               updated_at timestamp(6) with time zone not null,
+                               version bigint,
+                               status varchar(20) check ((status in ('DRAFT','PUBLISHED','CANCELLED'))),
+                               surface_type varchar(20) check ((surface_type in ('ROAD','GRAVEL','MTB','MIXED'))),
+                               visibility varchar(20) not null check ((visibility in ('TEAM','PUBLIC'))),
+                               slug varchar(100) not null,
+                               description TEXT,
+                               name varchar(255) not null,
+                               primary key (id),
+                               constraint uk_team_entity_slug unique (team_id, entity_type, slug)
 );
 
--- Routes
-CREATE TABLE routes (
-    id BIGINT PRIMARY KEY,
-    team_id BIGINT NOT NULL REFERENCES teams(id),
-    created_by_id BIGINT NOT NULL REFERENCES users(id),
-    name VARCHAR(255) NOT NULL,
-    description TEXT,
-    distance INTEGER,
-    elevation_gain INTEGER,
-    elevation_loss INTEGER,
-    difficulty VARCHAR(20) CHECK (difficulty IN ('EASY', 'MODERATE', 'HARD', 'EXPERT')),
-    surface_type VARCHAR(20) CHECK (surface_type IN ('ROAD', 'GRAVEL', 'MTB', 'MIXED')),
-    visibility VARCHAR(20) NOT NULL DEFAULT 'TEAM' CHECK (visibility IN ('TEAM', 'PUBLIC')),
-    thumbnail_url VARCHAR(500),
-    start_lat DECIMAL(10, 8),
-    start_lng DECIMAL(11, 8),
-    end_lat DECIMAL(10, 8),
-    end_lng DECIMAL(11, 8),
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    deleted BOOLEAN NOT NULL DEFAULT FALSE,
-    version BIGINT DEFAULT 0
+create table teams (
+                       deleted boolean not null,
+                       created_at timestamp(6) with time zone not null,
+                       id bigint not null,
+                       updated_at timestamp(6) with time zone not null,
+                       version bigint,
+                       visibility varchar(20) not null check ((visibility in ('TEAM','PUBLIC'))),
+                       slug varchar(100) not null unique,
+                       description TEXT,
+                       name varchar(255) not null,
+                       primary key (id)
 );
 
--- GPX tracks
-CREATE TABLE gpx_tracks (
-    id BIGINT PRIMARY KEY,
-    route_id BIGINT NOT NULL REFERENCES routes(id),
-    name VARCHAR(255),
-    geometry GEOMETRY(LineString, 4326) NOT NULL,
-    original_file_name VARCHAR(255),
-    track_points JSONB NOT NULL,
-    processed_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    deleted BOOLEAN NOT NULL DEFAULT FALSE,
-    version BIGINT DEFAULT 0
+create table user_teams (
+                            deleted boolean not null,
+                            created_at timestamp(6) with time zone not null,
+                            id bigint not null,
+                            joined_at timestamp(6) with time zone not null,
+                            team_id bigint not null,
+                            updated_at timestamp(6) with time zone not null,
+                            user_id bigint not null,
+                            version bigint,
+                            role varchar(20) not null check ((role in ('ADMIN','ORGANIZER','MEMBER'))),
+                            primary key (id),
+                            unique (user_id, team_id)
 );
 
--- Route climbs
-CREATE TABLE route_climbs (
-    id BIGINT PRIMARY KEY,
-    route_id BIGINT NOT NULL REFERENCES routes(id),
-    name VARCHAR(255),
-    start_distance INTEGER NOT NULL,
-    end_distance INTEGER NOT NULL,
-    elevation_gain INTEGER NOT NULL,
-    average_gradient DECIMAL(5, 2) NOT NULL,
-    max_gradient DECIMAL(5, 2) NOT NULL,
-    category VARCHAR(10) CHECK (category IN ('HC', 'CAT1', 'CAT2', 'CAT3', 'CAT4')),
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    deleted BOOLEAN NOT NULL DEFAULT FALSE,
-    version BIGINT DEFAULT 0
+create table users (
+                       deleted boolean not null,
+                       created_at timestamp(6) with time zone not null,
+                       id bigint not null,
+                       last_login_at timestamp(6) with time zone,
+                       updated_at timestamp(6) with time zone not null,
+                       version bigint,
+                       locale varchar(10),
+                       timezone varchar(50),
+                       avatar_url varchar(500),
+                       display_name varchar(255) not null,
+                       email varchar(255) not null unique,
+                       primary key (id)
 );
 
--- Route POIs
-CREATE TABLE route_points_of_interest (
-    id BIGINT PRIMARY KEY,
-    route_id BIGINT NOT NULL REFERENCES routes(id),
-    place_id BIGINT REFERENCES places(id),
-    name VARCHAR(255) NOT NULL,
-    type VARCHAR(20) NOT NULL CHECK (type IN ('CAFE', 'WATER', 'VIEWPOINT', 'DANGER', 'INFO')),
-    distance INTEGER NOT NULL,
-    lat DECIMAL(10, 8) NOT NULL,
-    lng DECIMAL(11, 8) NOT NULL,
-    notes TEXT,
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    deleted BOOLEAN NOT NULL DEFAULT FALSE,
-    version BIGINT DEFAULT 0
-);
+create index IDXe5fskel3tfc9ce4a4xu3vn4f5
+    on ride_groups (ride_id, deleted);
 
--- Trips (created before rides due to FK dependency)
-CREATE TABLE trips (
-    id BIGINT PRIMARY KEY,
-    team_id BIGINT NOT NULL REFERENCES teams(id),
-    created_by_id BIGINT NOT NULL REFERENCES users(id),
-    title VARCHAR(255) NOT NULL,
-    description TEXT,
-    start_date DATE NOT NULL,
-    end_date DATE NOT NULL,
-    status VARCHAR(20) NOT NULL DEFAULT 'PLANNING' CHECK (status IN ('PLANNING', 'PUBLISHED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED')),
-    visibility VARCHAR(20) NOT NULL DEFAULT 'TEAM' CHECK (visibility IN ('TEAM', 'PUBLIC')),
-    cover_image_url VARCHAR(500),
-    max_participants INTEGER,
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    deleted BOOLEAN NOT NULL DEFAULT FALSE,
-    version BIGINT DEFAULT 0
-);
+create index IDXab1hjyv07yec90acqoniimhsl
+    on team_entities (team_id, deleted);
 
--- Rides
-CREATE TABLE rides (
-    id BIGINT PRIMARY KEY,
-    team_id BIGINT NOT NULL REFERENCES teams(id),
-    created_by_id BIGINT NOT NULL REFERENCES users(id),
-    title VARCHAR(255) NOT NULL,
-    slug VARCHAR(100) NOT NULL,
-    description TEXT,
-    date DATE NOT NULL,
-    start_time TIME,
-    route_id BIGINT REFERENCES routes(id),
-    meeting_point_id BIGINT REFERENCES places(id),
-    status VARCHAR(20) NOT NULL DEFAULT 'DRAFT' CHECK (status IN ('DRAFT', 'PUBLISHED', 'CANCELLED')),
-    publish_at TIMESTAMP,
-    visibility VARCHAR(20) NOT NULL DEFAULT 'TEAM' CHECK (visibility IN ('TEAM', 'PUBLIC')),
-    recurrence_rule VARCHAR(255),
-    parent_ride_id BIGINT REFERENCES rides(id),
-    trip_id BIGINT REFERENCES trips(id),
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    deleted BOOLEAN NOT NULL DEFAULT FALSE,
-    version BIGINT DEFAULT 0,
-    CONSTRAINT uk_rides_team_slug UNIQUE (team_id, slug)
-);
+create index IDXodn4216raq36ttg36f0n5qeso
+    on team_entities (entity_type, deleted, date_time);
 
--- Ride groups
-CREATE TABLE ride_groups (
-    id BIGINT PRIMARY KEY,
-    ride_id BIGINT NOT NULL REFERENCES rides(id),
-    name VARCHAR(100) NOT NULL,
-    description TEXT,
-    route_id BIGINT REFERENCES routes(id),
-    average_speed INTEGER,
-    max_participants INTEGER,
-    sort_order INTEGER NOT NULL DEFAULT 0,
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    deleted BOOLEAN NOT NULL DEFAULT FALSE,
-    version BIGINT DEFAULT 0
-);
+create index IDXk5d576vibi9v36bqwm9k6pi5i
+    on team_entities (entity_type, deleted, team_id);
 
--- Ride participations
-CREATE TABLE ride_participations (
-    id BIGINT PRIMARY KEY,
-    ride_group_id BIGINT NOT NULL REFERENCES ride_groups(id),
-    user_id BIGINT NOT NULL REFERENCES users(id),
-    status VARCHAR(20) NOT NULL CHECK (status IN ('REGISTERED', 'CONFIRMED', 'CANCELLED', 'COMPLETED')),
-    registered_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    notes TEXT,
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    deleted BOOLEAN NOT NULL DEFAULT FALSE,
-    version BIGINT DEFAULT 0,
-    UNIQUE(ride_group_id, user_id)
-);
+create index IDXojj7g1qddcwjo12oap9qoshtv
+    on team_entities (publish_at, status, deleted);
 
--- Trip days
-CREATE TABLE trip_days (
-    id BIGINT PRIMARY KEY,
-    trip_id BIGINT NOT NULL REFERENCES trips(id),
-    date DATE NOT NULL,
-    title VARCHAR(255),
-    description TEXT,
-    accommodation_id BIGINT REFERENCES places(id),
-    sort_order INTEGER NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    deleted BOOLEAN NOT NULL DEFAULT FALSE,
-    version BIGINT DEFAULT 0
-);
+create index IDXtgtejwmqna5rvtlr0ho3kgl6m
+    on team_entities (entity_type, deleted, team_id, date_time);
 
--- Trip day rides
-CREATE TABLE trip_day_rides (
-    id BIGINT PRIMARY KEY,
-    trip_day_id BIGINT NOT NULL REFERENCES trip_days(id),
-    ride_id BIGINT NOT NULL REFERENCES rides(id),
-    sort_order INTEGER NOT NULL DEFAULT 0,
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    deleted BOOLEAN NOT NULL DEFAULT FALSE,
-    version BIGINT DEFAULT 0
-);
+create index IDXngsx2ujy92deb6wsf1bg6wd4a
+    on team_entities (entity_type, deleted, team_id, slug);
 
--- Trip participations
-CREATE TABLE trip_participations (
-    id BIGINT PRIMARY KEY,
-    trip_id BIGINT NOT NULL REFERENCES trips(id),
-    user_id BIGINT NOT NULL REFERENCES users(id),
-    status VARCHAR(20) NOT NULL CHECK (status IN ('INTERESTED', 'REGISTERED', 'CONFIRMED', 'CANCELLED')),
-    registered_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    deleted BOOLEAN NOT NULL DEFAULT FALSE,
-    version BIGINT DEFAULT 0,
-    UNIQUE(trip_id, user_id)
-);
+create index IDXo3hbo8wlcgmi4dqwrqm9jtm8f
+    on teams (slug, deleted);
 
--- Message threads
-CREATE TABLE message_threads (
-    id BIGINT PRIMARY KEY,
-    team_id BIGINT NOT NULL REFERENCES teams(id),
-    type VARCHAR(20) NOT NULL CHECK (type IN ('TEAM', 'RIDE', 'TRIP', 'DIRECT')),
-    ride_id BIGINT REFERENCES rides(id),
-    trip_id BIGINT REFERENCES trips(id),
-    title VARCHAR(255),
-    last_message_at TIMESTAMP WITH TIME ZONE,
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    deleted BOOLEAN NOT NULL DEFAULT FALSE,
-    version BIGINT DEFAULT 0
-);
+create index IDXixk5gstpccrw4cv53uxkw5feu
+    on teams (name, deleted);
 
--- Messages
-CREATE TABLE messages (
-    id BIGINT PRIMARY KEY,
-    thread_id BIGINT NOT NULL REFERENCES message_threads(id),
-    author_id BIGINT NOT NULL REFERENCES users(id),
-    content TEXT NOT NULL,
-    parent_id BIGINT REFERENCES messages(id),
-    edited_at TIMESTAMP WITH TIME ZONE,
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    deleted BOOLEAN NOT NULL DEFAULT FALSE,
-    version BIGINT DEFAULT 0
-);
+alter table if exists gpx_tracks
+    add constraint FK8caclj6tlkl3wydyngervcys
+    foreign key (route_id)
+    references team_entities;
 
--- Message thread participants
-CREATE TABLE message_thread_participants (
-    id BIGINT PRIMARY KEY,
-    thread_id BIGINT NOT NULL REFERENCES message_threads(id),
-    user_id BIGINT NOT NULL REFERENCES users(id),
-    last_read_at TIMESTAMP WITH TIME ZONE,
-    muted_until TIMESTAMP WITH TIME ZONE,
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    deleted BOOLEAN NOT NULL DEFAULT FALSE,
-    version BIGINT DEFAULT 0,
-    UNIQUE(thread_id, user_id)
-);
+alter table if exists ride_groups
+    add constraint FKrue29m0taoth51b6fw4ct2n37
+    foreign key (ride_id)
+    references team_entities;
 
--- Notifications
-CREATE TABLE notifications (
-    id BIGINT PRIMARY KEY,
-    user_id BIGINT NOT NULL REFERENCES users(id),
-    type VARCHAR(50) NOT NULL,
-    title VARCHAR(255) NOT NULL,
-    body TEXT,
-    data JSONB DEFAULT '{}',
-    read_at TIMESTAMP WITH TIME ZONE,
-    sent_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    channel VARCHAR(20) NOT NULL CHECK (channel IN ('IN_APP', 'EMAIL', 'PUSH')),
-    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    deleted BOOLEAN NOT NULL DEFAULT FALSE,
-    version BIGINT DEFAULT 0
-);
+alter table if exists ride_groups
+    add constraint FKhx6lu9t9061cog8ckjb6xi4dx
+    foreign key (route_id)
+    references team_entities;
 
--- Indexes
-CREATE INDEX idx_users_email ON users(email) WHERE deleted = FALSE;
-CREATE INDEX idx_teams_slug ON teams(slug) WHERE deleted = FALSE;
-CREATE INDEX idx_teams_public ON teams(visibility) WHERE deleted = FALSE AND visibility = 'PUBLIC';
-CREATE INDEX idx_user_teams_user ON user_teams(user_id) WHERE deleted = FALSE;
-CREATE INDEX idx_user_teams_team ON user_teams(team_id) WHERE deleted = FALSE;
-CREATE INDEX idx_team_domains_domain ON team_domains(domain) WHERE deleted = FALSE;
-CREATE INDEX idx_routes_team ON routes(team_id) WHERE deleted = FALSE;
-CREATE INDEX idx_rides_team_date ON rides(team_id, date) WHERE deleted = FALSE;
-CREATE INDEX idx_rides_status ON rides(team_id, status) WHERE deleted = FALSE;
-CREATE INDEX idx_rides_publish_at ON rides(status, publish_at) WHERE deleted = FALSE AND publish_at IS NOT NULL;
-CREATE INDEX idx_trips_team ON trips(team_id) WHERE deleted = FALSE;
-CREATE INDEX idx_notifications_user ON notifications(user_id, read_at) WHERE deleted = FALSE;
-CREATE INDEX idx_gpx_tracks_geometry ON gpx_tracks USING GIST(geometry);
-CREATE INDEX idx_places_location ON places USING GIST(ST_SetSRID(ST_MakePoint(lng, lat), 4326));
+alter table if exists ride_participations
+    add constraint FK2lx9qhfwm4uogwj8f2spepcwd
+    foreign key (ride_group_id)
+    references ride_groups;
+
+alter table if exists ride_participations
+    add constraint FKfs60sriol494mpo27wwxhrmrn
+    foreign key (user_id)
+    references users;
+
+alter table if exists route_climbs
+    add constraint FKec6cy9j9x23tkh1wdur18y197
+    foreign key (route_id)
+    references team_entities;
+
+alter table if exists team_entities
+    add constraint FKdrfmubd9rkuh74qb5huontpaq
+    foreign key (created_by_id)
+    references users;
+
+alter table if exists team_entities
+    add constraint FKdajojv9f175wc1mpjtm73vnxs
+    foreign key (team_id)
+    references teams;
+
+alter table if exists team_entities
+    add constraint FKsm0040p8exgxema0d3j4osclb
+    foreign key (route_id)
+    references team_entities;
+
+alter table if exists user_teams
+    add constraint FK2ndqpo9mm1g72f7hvb9daimrd
+    foreign key (team_id)
+    references teams;
+
+alter table if exists user_teams
+    add constraint FK5aymw95okwem1l7tmd2owesdh
+    foreign key (user_id)
+    references users;

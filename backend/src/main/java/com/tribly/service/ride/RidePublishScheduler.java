@@ -39,7 +39,7 @@ public class RidePublishScheduler {
       rideRepository.persist(ride);
       LOG.infov(
           "Auto-published ride {0} '{1}' for team {2}",
-          ride.getId(), ride.getTitle(), ride.getTeam().getId());
+          ride.getId(), ride.getName(), ride.getTeam().getId());
     }
 
     if (!rides.isEmpty()) {

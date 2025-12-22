@@ -78,8 +78,6 @@ public class TeamMembershipService {
   }
 
   private MemberDto doAddMember(TeamAndRole teamAndRole, TeamRole role, User user) {
-    securityService.requireTeamCapacity(teamAndRole);
-
     Long userId = user.getId();
     String teamSlug = teamAndRole.team().getSlug();
 

@@ -1,10 +1,4 @@
 {
-  "difficulty": {
-    "EASY": "Facile",
-    "MODERATE": "Modéré",
-    "HARD": "Difficile",
-    "EXPERT": "Expert"
-  },
   "surfaceType": {
     "ROAD": "Route",
     "GRAVEL": "Gravel",
@@ -37,7 +31,6 @@
       "gpxFileHint": "Format .gpx uniquement, taille maximale 10 Mo",
       "name": "Nom du parcours",
       "description": "Description",
-      "difficulty": "Difficulté",
       "surfaceType": "Type de revêtement",
       "visibility": "Visibilité",
       "visibilityDisabledHint": "Les parcours d'une équipe privée ne peuvent pas être publics"
@@ -56,7 +49,6 @@
     "form": {
       "name": "Nom du parcours",
       "description": "Description",
-      "difficulty": "Difficulté",
       "surfaceType": "Type de revêtement",
       "visibility": "Visibilité",
       "visibilityDisabledHint": "Les parcours d'une équipe privée ne peuvent pas être publics"
@@ -75,7 +67,6 @@
     },
     "info": {
       "title": "Informations du parcours",
-      "difficulty": "Difficulté",
       "surfaceType": "Type de revêtement",
       "visibility": "Visibilité",
       "createdAt": "Créé le"

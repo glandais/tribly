@@ -7,7 +7,6 @@ import jakarta.persistence.*;
 import java.time.Instant;
 import lombok.Getter;
 import lombok.Setter;
-import org.jspecify.annotations.Nullable;
 
 @Setter
 @Getter
@@ -32,10 +31,6 @@ public class UserTeam extends BaseEntity {
   @Column(name = "joined_at", nullable = false)
   private Instant joinedAt;
 
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "invited_by")
-  private @Nullable User invitedBy;
-
   public UserTeam() {
     this.joinedAt = Instant.now();
   }
@@ -45,11 +40,6 @@ public class UserTeam extends BaseEntity {
     this.team = team;
     this.role = role;
     this.joinedAt = Instant.now();
-  }
-
-  public UserTeam(User user, Team team, TeamRole role, User invitedBy) {
-    this(user, team, role);
-    this.invitedBy = invitedBy;
   }
 
   public boolean isAdmin() {

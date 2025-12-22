@@ -9,7 +9,7 @@ import org.jspecify.annotations.Nullable;
 
 @Schema(description = "Team creation request")
 @ValidateSchema
-public record CreateTeamRequest(
+public record TeamRequest(
     @Schema(description = "Team name", examples = "Awesome Cycling Team", required = true)
         @NotBlank
         @Size(min = 2, max = 255)
@@ -25,10 +25,4 @@ public record CreateTeamRequest(
             description = "Whether the team is publicly visible",
             examples = "true",
             required = true)
-        Visibility visibility,
-    @Nullable
-        @Schema(
-            description = "Maximum number of members (null = unlimited)",
-            examples = "50",
-            nullable = true)
-        Integer maxMembers) {}
+        Visibility visibility) {}

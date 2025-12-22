@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { teamsApi, teamMembersApi, unwrapResponse } from '../lib/apiClient'
 import { useAuthStore } from '../store/authStore'
 import { useNotificationStore } from '../store/notificationStore'
-import type { TeamDetailDto, MemberDto, CreateTeamRequest, UpdateTeamRequest } from '../api/api'
+import type { TeamDetailDto, MemberDto, TeamRequest } from '../api/api'
 import { TeamRole } from '../api/api'
 
 // Re-export types for convenience
@@ -71,7 +71,7 @@ export function useCreateTeam() {
   const navigate = useNavigate()
 
   return useMutation({
-    mutationFn: async (data: CreateTeamRequest) => {
+    mutationFn: async (data: TeamRequest) => {
       return await unwrapResponse(teamsApi.createTeam(data))
     },
     onSuccess: (team) => {
@@ -97,7 +97,7 @@ export function useUpdateTeam(slug: string) {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (data: UpdateTeamRequest) => {
+    mutationFn: async (data: TeamRequest) => {
       return await unwrapResponse(teamsApi.updateTeam(slug, data))
     },
     onSuccess: (team) => {

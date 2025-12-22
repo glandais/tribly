@@ -10,9 +10,9 @@ import type {
   GpxTrackDto,
   RouteListResponse,
   ClimbListResponse,
-  UpdateRouteRequest,
+  RouteRequest,
 } from '../api/api'
-import { RouteDifficulty, Visibility, SurfaceType } from '../api/api'
+import { Visibility, SurfaceType } from '../api/api'
 
 // Re-export types for convenience
 export type {
@@ -23,11 +23,11 @@ export type {
   GpxTrackDto,
   RouteListResponse,
   ClimbListResponse,
-  UpdateRouteRequest,
+  RouteRequest,
 }
 
 // Re-export enums as values (not types)
-export { RouteDifficulty, SurfaceType }
+export { SurfaceType }
 
 export function useRoutes(teamSlug: string | undefined, page = 0, size = 20, search?: string) {
   return useQuery({
@@ -85,7 +85,6 @@ export function useCreateRoute(teamSlug: string) {
     mutationFn: async (data: {
       name: string
       description?: string
-      difficulty?: RouteDifficulty
       surfaceType?: SurfaceType
       visibility?: Visibility
       gpxFile: File
@@ -95,7 +94,6 @@ export function useCreateRoute(teamSlug: string) {
           teamSlug,
           data.name,
           data.description,
-          data.difficulty,
           data.surfaceType,
           data.visibility,
           data.gpxFile
@@ -114,7 +112,7 @@ export function useCreateRoute(teamSlug: string) {
       })
 
       if (route) {
-        navigate(`/teams/${teamSlug}/routes/${route.id}`)
+        navigate(`/teams/${teamSlug}/routes/${route.slug}`)
       }
     },
   })
@@ -124,7 +122,7 @@ export function useUpdateRoute(teamSlug: string, routeId: string) {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (data: UpdateRouteRequest) => {
+    mutationFn: async (data: RouteRequest) => {
       return await unwrapResponse(routesApi.updateRoute(routeId, teamSlug, data))
     },
     onSuccess: () => {

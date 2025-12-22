@@ -8,7 +8,6 @@ import com.tribly.domain.user.User;
 import com.tribly.enums.TeamRole;
 import com.tribly.enums.Visibility;
 import com.tribly.infrastructure.exception.BusinessException;
-import com.tribly.service.team.response.TeamAndRole;
 import com.tribly.util.TestDataCleaner;
 import com.tribly.util.TestDataService;
 import io.quarkus.test.junit.QuarkusTest;
@@ -198,37 +197,6 @@ class TeamSecurityServiceTest {
   }
 
   // ==================== Business Rule Checks ====================
-
-  @Test
-  void requireTeamCapacity_shouldSucceedWhenHasCapacity() {
-    team.setMaxMembers(10);
-    dataService.updateTeam(team);
-    TeamAndRole teamAndRole = new TeamAndRole(team, TeamRole.ADMIN, 5L);
-
-    assertDoesNotThrow(() -> teamSecurityService.requireTeamCapacity(teamAndRole));
-  }
-
-  @Test
-  void requireTeamCapacity_shouldSucceedWhenMaxMembersIsNull() {
-    team.setMaxMembers(null);
-    dataService.updateTeam(team);
-    TeamAndRole teamAndRole = new TeamAndRole(team, TeamRole.ADMIN, 1000L);
-
-    assertDoesNotThrow(() -> teamSecurityService.requireTeamCapacity(teamAndRole));
-  }
-
-  @Test
-  void requireTeamCapacity_shouldThrowWhenTeamIsFull() {
-    team.setMaxMembers(5);
-    dataService.updateTeam(team);
-    TeamAndRole teamAndRole = new TeamAndRole(team, TeamRole.ADMIN, 5L);
-
-    BusinessException exception =
-        assertThrows(
-            BusinessException.class, () -> teamSecurityService.requireTeamCapacity(teamAndRole));
-
-    assertEquals("This team has reached its maximum member capacity", exception.getMessage());
-  }
 
   @Test
   void requireNotLastAdmin_shouldSucceedWhenMultipleAdmins() {

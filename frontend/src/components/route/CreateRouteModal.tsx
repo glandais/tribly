@@ -29,7 +29,6 @@ export function CreateRouteModal({
 
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
-  const [difficulty, setDifficulty] = useState<'EASY' | 'MODERATE' | 'HARD' | 'EXPERT'>('MODERATE')
   const [surfaceType, setSurfaceType] = useState<'ROAD' | 'GRAVEL' | 'MTB' | 'MIXED'>('ROAD')
   const [visibility, setVisibility] = useState<Visibility>(Visibility.Team)
   const [gpxFile, setGpxFile] = useState<File | null>(null)
@@ -70,7 +69,6 @@ export function CreateRouteModal({
       const route = await createRoute.mutateAsync({
         name,
         description: description || undefined,
-        difficulty,
         surfaceType,
         visibility,
         gpxFile,
@@ -79,7 +77,6 @@ export function CreateRouteModal({
       // Reset form
       setName('')
       setDescription('')
-      setDifficulty('MODERATE')
       setSurfaceType('ROAD')
       setVisibility(Visibility.Team)
       setGpxFile(null)
@@ -96,7 +93,6 @@ export function CreateRouteModal({
     // Reset form on close
     setName('')
     setDescription('')
-    setDifficulty('MODERATE')
     setSurfaceType('ROAD')
     setVisibility(Visibility.Team)
     setGpxFile(null)
@@ -183,25 +179,6 @@ export function CreateRouteModal({
                 onChange={(e) => setDescription(e.target.value)}
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-xs focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
               />
-            </div>
-
-            {/* Difficulty */}
-            <div>
-              <label htmlFor="difficulty" className="block text-sm font-medium text-gray-700">
-                {t('create.form.difficulty')}
-              </label>
-              <select
-                id="difficulty"
-                name="difficulty"
-                value={difficulty}
-                onChange={(e) => setDifficulty(e.target.value as typeof difficulty)}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-xs focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-              >
-                <option value="EASY">{t('difficulty.EASY')}</option>
-                <option value="MODERATE">{t('difficulty.MODERATE')}</option>
-                <option value="HARD">{t('difficulty.HARD')}</option>
-                <option value="EXPERT">{t('difficulty.EXPERT')}</option>
-              </select>
             </div>
 
             {/* Surface Type */}

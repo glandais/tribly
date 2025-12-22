@@ -58,39 +58,6 @@
           }
         }
       },
-      "CreateTeamRequest" : {
-        "description" : "Team creation request",
-        "type" : "object",
-        "required" : [ "name", "visibility" ],
-        "properties" : {
-          "name" : {
-            "type" : "string",
-            "description" : "Team name",
-            "examples" : [ "Awesome Cycling Team" ],
-            "pattern" : "\\S",
-            "minLength" : 2,
-            "maxLength" : 255
-          },
-          "description" : {
-            "type" : [ "string", "null" ],
-            "description" : "Team description",
-            "examples" : [ "A team for weekend warriors" ],
-            "maxLength" : 2000
-          },
-          "visibility" : {
-            "description" : "Whether the team is publicly visible",
-            "type" : "string",
-            "examples" : [ "true" ],
-            "$ref" : "#/components/schemas/Visibility"
-          },
-          "maxMembers" : {
-            "type" : [ "integer", "null" ],
-            "format" : "int32",
-            "description" : "Maximum number of members (null = unlimited)",
-            "examples" : [ 50 ]
-          }
-        }
-      },
       "ErrorResponse" : {
         "description" : "Error response",
         "type" : "object",
@@ -210,13 +177,7 @@
       },
       "JoinGroupRequest" : {
         "description" : "Request to join a ride group",
-        "type" : "object",
-        "properties" : {
-          "notes" : {
-            "type" : [ "string", "null" ],
-            "description" : "Optional notes for the organizer"
-          }
-        }
+        "type" : "object"
       },
       "KeycloakConfig" : {
         "type" : "object",
@@ -240,19 +201,10 @@
           }
         }
       },
-      "LocalDate" : {
+      "LocalDateTime" : {
         "type" : "string",
-        "format" : "date",
-        "examples" : [ "2022-03-10" ]
-      },
-      "LocalTime" : {
-        "type" : "string",
-        "format" : "local-time",
-        "examples" : [ "13:45:30.123456789" ],
-        "externalDocs" : {
-          "description" : "As defined by 'partial-time' in RFC3339",
-          "url" : "https://www.rfc-editor.org/rfc/rfc3339.html#section-5.6"
-        }
+        "format" : "date-time",
+        "examples" : [ "2022-03-10T12:15:50" ]
       },
       "MapConfig" : {
         "type" : "object",
@@ -331,10 +283,6 @@
           }
         }
       },
-      "ParticipationStatus" : {
-        "type" : "string",
-        "enum" : [ "REGISTERED", "CONFIRMED", "CANCELLED", "COMPLETED" ]
-      },
       "PublicUserDto" : {
         "type" : "object",
         "description" : "Public user information (limited fields)",
@@ -358,7 +306,7 @@
       "RideDto" : {
         "description" : "Ride summary data",
         "type" : "object",
-        "required" : [ "id", "slug", "title", "date", "status", "visibility", "participantCount", "groupCount", "groups" ],
+        "required" : [ "id", "slug", "name", "dateTime", "status", "visibility", "participantCount", "groupCount", "groups" ],
         "properties" : {
           "id" : {
             "type" : "string",
@@ -368,27 +316,18 @@
             "type" : "string",
             "description" : "Ride URL slug"
           },
-          "title" : {
+          "name" : {
             "type" : "string",
-            "description" : "Ride title"
+            "description" : "Ride name"
           },
           "description" : {
             "type" : [ "string", "null" ],
             "description" : "Ride description"
           },
-          "date" : {
-            "description" : "Ride date",
+          "dateTime" : {
+            "description" : "Ride date/time",
             "type" : "string",
-            "$ref" : "#/components/schemas/LocalDate"
-          },
-          "startTime" : {
-            "description" : "Start time",
-            "type" : [ "string", "null" ],
-            "anyOf" : [ {
-              "$ref" : "#/components/schemas/LocalTime"
-            }, {
-              "type" : "null"
-            } ]
+            "$ref" : "#/components/schemas/LocalDateTime"
           },
           "status" : {
             "description" : "Ride status",
@@ -532,7 +471,7 @@
       "RideParticipationDto" : {
         "description" : "Ride participation information",
         "type" : "object",
-        "required" : [ "id", "userId", "status" ],
+        "required" : [ "id", "userId" ],
         "properties" : {
           "id" : {
             "type" : "string",
@@ -542,29 +481,20 @@
             "type" : "string",
             "description" : "User ID (TSID)"
           },
-          "status" : {
-            "description" : "Participation status",
-            "type" : "string",
-            "$ref" : "#/components/schemas/ParticipationStatus"
-          },
           "registeredAt" : {
             "type" : [ "string", "null" ],
             "description" : "Registration timestamp"
-          },
-          "notes" : {
-            "type" : [ "string", "null" ],
-            "description" : "Participant notes"
           }
         }
       },
       "RideRequest" : {
         "description" : "Ride request",
         "type" : "object",
-        "required" : [ "title", "date", "status", "visibility", "groups" ],
+        "required" : [ "name", "dateTime", "status", "visibility", "groups" ],
         "properties" : {
-          "title" : {
+          "name" : {
             "type" : "string",
-            "description" : "Ride title",
+            "description" : "Ride name",
             "examples" : [ "Sunday Morning Ride" ],
             "pattern" : "\\S",
             "minLength" : 3,
@@ -575,21 +505,11 @@
             "description" : "Ride description",
             "maxLength" : 5000
           },
-          "date" : {
-            "description" : "Ride date",
+          "dateTime" : {
+            "description" : "Ride date/time",
             "type" : "string",
             "examples" : [ "2025-06-15" ],
-            "$ref" : "#/components/schemas/LocalDate"
-          },
-          "startTime" : {
-            "description" : "Start time",
-            "type" : [ "string", "null" ],
-            "examples" : [ "09:00" ],
-            "anyOf" : [ {
-              "$ref" : "#/components/schemas/LocalTime"
-            }, {
-              "type" : "null"
-            } ]
+            "$ref" : "#/components/schemas/LocalDateTime"
           },
           "status" : {
             "description" : "Ride status",
@@ -681,7 +601,7 @@
       "RouteDetailDto" : {
         "description" : "Detailed route information",
         "type" : "object",
-        "required" : [ "id", "name", "description", "distance", "elevationGain", "elevationLoss", "difficulty", "surfaceType", "visibility", "thumbnailUrl", "startLat", "startLng", "endLat", "endLng", "createdById", "createdAt", "updatedAt" ],
+        "required" : [ "id", "name", "description", "distance", "elevationGain", "elevationLoss", "surfaceType", "visibility", "startLat", "startLng", "endLat", "endLng", "createdById", "createdAt", "updatedAt" ],
         "properties" : {
           "id" : {
             "type" : "string",
@@ -710,11 +630,6 @@
             "format" : "int32",
             "description" : "Total elevation loss in meters"
           },
-          "difficulty" : {
-            "description" : "Route difficulty",
-            "type" : "string",
-            "$ref" : "#/components/schemas/RouteDifficulty"
-          },
           "surfaceType" : {
             "description" : "Surface type",
             "type" : "string",
@@ -724,10 +639,6 @@
             "description" : "Whether the route is public",
             "type" : "string",
             "$ref" : "#/components/schemas/Visibility"
-          },
-          "thumbnailUrl" : {
-            "type" : "string",
-            "description" : "Thumbnail image URL"
           },
           "startLat" : {
             "type" : "number",
@@ -759,18 +670,18 @@
           }
         }
       },
-      "RouteDifficulty" : {
-        "type" : "string",
-        "enum" : [ "EASY", "MODERATE", "HARD", "EXPERT" ]
-      },
       "RouteDto" : {
         "description" : "Route summary data",
         "type" : "object",
-        "required" : [ "id", "name", "distance", "elevationGain", "elevationLoss", "difficulty", "surfaceType", "visibility", "thumbnailUrl", "createdAt" ],
+        "required" : [ "id", "slug", "name", "distance", "elevationGain", "elevationLoss", "surfaceType", "visibility", "createdAt" ],
         "properties" : {
           "id" : {
             "type" : "string",
             "description" : "Route ID (TSID)"
+          },
+          "slug" : {
+            "type" : "string",
+            "description" : "Route slug"
           },
           "name" : {
             "type" : "string",
@@ -795,11 +706,6 @@
             "format" : "int32",
             "description" : "Total elevation loss in meters"
           },
-          "difficulty" : {
-            "description" : "Route difficulty",
-            "type" : "string",
-            "$ref" : "#/components/schemas/RouteDifficulty"
-          },
           "surfaceType" : {
             "description" : "Surface type",
             "type" : "string",
@@ -809,10 +715,6 @@
             "description" : "Whether the route is public",
             "type" : "string",
             "$ref" : "#/components/schemas/Visibility"
-          },
-          "thumbnailUrl" : {
-            "type" : "string",
-            "description" : "Thumbnail image URL"
           },
           "createdAt" : {
             "type" : "string",
@@ -849,6 +751,31 @@
           }
         }
       },
+      "RouteRequest" : {
+        "description" : "Route update request",
+        "type" : "object",
+        "required" : [ "name", "surfaceType", "visibility" ],
+        "properties" : {
+          "name" : {
+            "type" : "string",
+            "description" : "Route name"
+          },
+          "description" : {
+            "type" : [ "string", "null" ],
+            "description" : "Route description"
+          },
+          "surfaceType" : {
+            "description" : "Surface type",
+            "type" : "string",
+            "$ref" : "#/components/schemas/SurfaceType"
+          },
+          "visibility" : {
+            "description" : "Whether the route is publicly visible",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Visibility"
+          }
+        }
+      },
       "SurfaceType" : {
         "type" : "string",
         "enum" : [ "ROAD", "GRAVEL", "MTB", "MIXED" ]
@@ -875,14 +802,6 @@
             "type" : [ "string", "null" ],
             "description" : "Team description"
           },
-          "logoUrl" : {
-            "type" : [ "string", "null" ],
-            "description" : "Logo image URL"
-          },
-          "coverImageUrl" : {
-            "type" : [ "string", "null" ],
-            "description" : "Cover image URL"
-          },
           "visibility" : {
             "description" : "Whether the team is public",
             "type" : "string",
@@ -892,11 +811,6 @@
             "type" : "integer",
             "format" : "int64",
             "description" : "Number of team members"
-          },
-          "maxMembers" : {
-            "type" : [ "integer", "null" ],
-            "format" : "int32",
-            "description" : "Maximum number of members (null = unlimited)"
           },
           "role" : {
             "description" : "Current user's role (null if not a member)",
@@ -942,6 +856,33 @@
           }
         }
       },
+      "TeamRequest" : {
+        "description" : "Team creation request",
+        "type" : "object",
+        "required" : [ "name", "visibility" ],
+        "properties" : {
+          "name" : {
+            "type" : "string",
+            "description" : "Team name",
+            "examples" : [ "Awesome Cycling Team" ],
+            "pattern" : "\\S",
+            "minLength" : 2,
+            "maxLength" : 255
+          },
+          "description" : {
+            "type" : [ "string", "null" ],
+            "description" : "Team description",
+            "examples" : [ "A team for weekend warriors" ],
+            "maxLength" : 2000
+          },
+          "visibility" : {
+            "description" : "Whether the team is publicly visible",
+            "type" : "string",
+            "examples" : [ "true" ],
+            "$ref" : "#/components/schemas/Visibility"
+          }
+        }
+      },
       "TeamRole" : {
         "type" : "string",
         "enum" : [ "ADMIN", "ORGANIZER", "MEMBER" ]
@@ -982,86 +923,6 @@
             "description" : "New role",
             "type" : "string",
             "$ref" : "#/components/schemas/TeamRole"
-          }
-        }
-      },
-      "UpdateRouteRequest" : {
-        "description" : "Route update request",
-        "type" : "object",
-        "properties" : {
-          "name" : {
-            "type" : [ "string", "null" ],
-            "description" : "Route name"
-          },
-          "description" : {
-            "type" : [ "string", "null" ],
-            "description" : "Route description"
-          },
-          "difficulty" : {
-            "description" : "Route difficulty",
-            "type" : [ "string", "null" ],
-            "anyOf" : [ {
-              "$ref" : "#/components/schemas/RouteDifficulty"
-            }, {
-              "type" : "null"
-            } ]
-          },
-          "surfaceType" : {
-            "description" : "Surface type",
-            "type" : [ "string", "null" ],
-            "anyOf" : [ {
-              "$ref" : "#/components/schemas/SurfaceType"
-            }, {
-              "type" : "null"
-            } ]
-          },
-          "visibility" : {
-            "description" : "Whether the route is publicly visible",
-            "type" : [ "string", "null" ],
-            "anyOf" : [ {
-              "$ref" : "#/components/schemas/Visibility"
-            }, {
-              "type" : "null"
-            } ]
-          }
-        }
-      },
-      "UpdateTeamRequest" : {
-        "description" : "Team update request",
-        "type" : "object",
-        "properties" : {
-          "name" : {
-            "type" : [ "string", "null" ],
-            "description" : "Team name",
-            "minLength" : 2,
-            "maxLength" : 255
-          },
-          "description" : {
-            "type" : [ "string", "null" ],
-            "description" : "Team description",
-            "maxLength" : 2000
-          },
-          "visibility" : {
-            "description" : "Whether the team is publicly visible",
-            "type" : [ "string", "null" ],
-            "anyOf" : [ {
-              "$ref" : "#/components/schemas/Visibility"
-            }, {
-              "type" : "null"
-            } ]
-          },
-          "logoUrl" : {
-            "type" : [ "string", "null" ],
-            "description" : "Logo image URL"
-          },
-          "coverImageUrl" : {
-            "type" : [ "string", "null" ],
-            "description" : "Cover image URL"
-          },
-          "maxMembers" : {
-            "type" : [ "integer", "null" ],
-            "format" : "int32",
-            "description" : "Maximum number of members (null = unlimited)"
           }
         }
       },
@@ -1136,7 +997,7 @@
     "securitySchemes" : {
       "SecurityScheme" : {
         "type" : "openIdConnect",
-        "openIdConnectUrl" : "http://localhost:8180/realms/tribly/.well-known/openid-configuration",
+        "openIdConnectUrl" : "http://localhost:8180/realms/quarkus/.well-known/openid-configuration",
         "description" : "Authentication"
       }
     }
@@ -1245,7 +1106,7 @@
           "content" : {
             "application/json" : {
               "schema" : {
-                "$ref" : "#/components/schemas/CreateTeamRequest"
+                "$ref" : "#/components/schemas/TeamRequest"
               }
             }
           },
@@ -1310,7 +1171,7 @@
           "content" : {
             "application/json" : {
               "schema" : {
-                "$ref" : "#/components/schemas/UpdateTeamRequest"
+                "$ref" : "#/components/schemas/TeamRequest"
               }
             }
           },
@@ -2547,9 +2408,6 @@
                   "description" : {
                     "type" : "string"
                   },
-                  "difficulty" : {
-                    "$ref" : "#/components/schemas/RouteDifficulty"
-                  },
                   "surfaceType" : {
                     "$ref" : "#/components/schemas/SurfaceType"
                   },
@@ -2563,9 +2421,6 @@
                 }
               },
               "encoding" : {
-                "difficulty" : {
-                  "contentType" : "text/plain"
-                },
                 "visibility" : {
                   "contentType" : "text/plain"
                 },
@@ -2634,15 +2489,15 @@
         } ]
       }
     },
-    "/api/teams/{slug}/routes/{routeId}" : {
+    "/api/teams/{slug}/routes/{routeSlug}" : {
       "patch" : {
         "summary" : "Update route",
-        "description" : "Update route metadata (name, description, difficulty, etc.). Does not update the GPX file.",
+        "description" : "Update route metadata (name, description, etc.). Does not update the GPX file.",
         "operationId" : "updateRoute",
         "tags" : [ "Routes" ],
         "parameters" : [ {
-          "description" : "Route ID (TSID)",
-          "name" : "routeId",
+          "description" : "Route slug",
+          "name" : "routeSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -2661,7 +2516,7 @@
           "content" : {
             "application/json" : {
               "schema" : {
-                "$ref" : "#/components/schemas/UpdateRouteRequest"
+                "$ref" : "#/components/schemas/RouteRequest"
               }
             }
           },
@@ -2729,8 +2584,8 @@
         "operationId" : "getRoute",
         "tags" : [ "Routes" ],
         "parameters" : [ {
-          "description" : "Route ID (TSID)",
-          "name" : "routeId",
+          "description" : "Route slug",
+          "name" : "routeSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -2774,8 +2629,8 @@
         "operationId" : "deleteRoute",
         "tags" : [ "Routes" ],
         "parameters" : [ {
-          "description" : "Route ID (TSID)",
-          "name" : "routeId",
+          "description" : "Route slug",
+          "name" : "routeSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -2830,15 +2685,15 @@
         } ]
       }
     },
-    "/api/teams/{slug}/routes/{routeId}/climbs" : {
+    "/api/teams/{slug}/routes/{routeSlug}/climbs" : {
       "get" : {
         "summary" : "Get route climbs",
         "description" : "Get all categorized climbs (hills) on a route",
         "operationId" : "getClimbs",
         "tags" : [ "Routes" ],
         "parameters" : [ {
-          "description" : "Route ID (TSID)",
-          "name" : "routeId",
+          "description" : "Route slug",
+          "name" : "routeSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -2877,15 +2732,15 @@
         }
       }
     },
-    "/api/teams/{slug}/routes/{routeId}/track" : {
+    "/api/teams/{slug}/routes/{routeSlug}/track" : {
       "get" : {
         "summary" : "Get route track",
         "description" : "Get GPS track points (latitude, longitude, elevation) for displaying the route on a map",
         "operationId" : "getTrack",
         "tags" : [ "Routes" ],
         "parameters" : [ {
-          "description" : "Route ID (TSID)",
-          "name" : "routeId",
+          "description" : "Route slug",
+          "name" : "routeSlug",
           "in" : "path",
           "required" : true,
           "schema" : {

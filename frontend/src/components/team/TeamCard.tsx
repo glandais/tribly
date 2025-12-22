@@ -22,22 +22,7 @@ export function TeamCard({ team, showRole = false }: TeamCardProps) {
 
   return (
     <Card to={`/teams/${team.slug}`}>
-      <div className="relative">
-        {team.coverImageUrl ? (
-          <img src={team.coverImageUrl} alt="" className="w-full h-32 object-cover rounded-t-lg" />
-        ) : (
-          <div className="w-full h-32 bg-linear-to-r from-indigo-500 to-purple-600 rounded-t-lg" />
-        )}
-        {team.logoUrl && (
-          <img
-            src={team.logoUrl}
-            alt={team.name}
-            className="absolute -bottom-6 left-4 w-12 h-12 rounded-full border-2 border-white bg-white"
-          />
-        )}
-      </div>
-
-      <CardContent className={team.logoUrl ? 'pt-8' : ''}>
+      <CardContent>
         <CardTitle>{team.name}</CardTitle>
         {team.description && <CardDescription>{team.description}</CardDescription>}
 

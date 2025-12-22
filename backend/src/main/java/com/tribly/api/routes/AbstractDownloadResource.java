@@ -2,7 +2,6 @@ package com.tribly.api.routes;
 
 import com.tribly.api.AbstractAuthenticatedResource;
 import com.tribly.dto.error.ErrorResponse;
-import com.tribly.infrastructure.id.TsidUtils;
 import com.tribly.service.route.RouteService;
 import jakarta.annotation.security.PermitAll;
 import jakarta.inject.Inject;
@@ -49,12 +48,11 @@ public abstract class AbstractDownloadResource extends AbstractAuthenticatedReso
   })
   public Response downloadGpx(
       @Parameter(description = "Team URL slug") @PathParam("slug") String teamSlug,
-      @Parameter(description = "Route ID (TSID)") @PathParam("routeId") String routeId) {
+      @Parameter(description = "Route slug") @PathParam("routeSlug") String routeSlug) {
 
     Long userId = getCurrentUserIdOrNull();
-    Long routeIdLong = TsidUtils.toLong(routeId);
 
-    File gpxFile = routeService.getFilteredGpxFile(teamSlug, routeIdLong, userId);
+    File gpxFile = routeService.getFilteredGpxFile(teamSlug, routeSlug, userId);
     return Response.ok(gpxFile)
         // FIXME route slug
         .header("Content-Disposition", "attachment; filename=\"route.gpx\"")
@@ -81,12 +79,11 @@ public abstract class AbstractDownloadResource extends AbstractAuthenticatedReso
   })
   public Response downloadFit(
       @Parameter(description = "Team URL slug") @PathParam("slug") String teamSlug,
-      @Parameter(description = "Route ID (TSID)") @PathParam("routeId") String routeId) {
+      @Parameter(description = "Route slug") @PathParam("routeSlug") String routeSlug) {
 
     Long userId = getCurrentUserIdOrNull();
-    Long routeIdLong = TsidUtils.toLong(routeId);
 
-    File fitFile = routeService.getFitFile(teamSlug, routeIdLong, userId);
+    File fitFile = routeService.getFitFile(teamSlug, routeSlug, userId);
     return Response.ok(fitFile)
         // FIXME route slug
         .header("Content-Disposition", "attachment; filename=\"route.fit\"")
@@ -113,12 +110,11 @@ public abstract class AbstractDownloadResource extends AbstractAuthenticatedReso
   })
   public Response getThumbnail(
       @Parameter(description = "Team URL slug") @PathParam("slug") String teamSlug,
-      @Parameter(description = "Route ID (TSID)") @PathParam("routeId") String routeId) {
+      @Parameter(description = "Route slug") @PathParam("routeSlug") String routeSlug) {
 
     Long userId = getCurrentUserIdOrNull();
-    Long routeIdLong = TsidUtils.toLong(routeId);
 
-    File thumbnail = routeService.getThumbnailFile(teamSlug, routeIdLong, userId);
+    File thumbnail = routeService.getThumbnailFile(teamSlug, routeSlug, userId);
     return Response.ok(thumbnail).build();
   }
 }

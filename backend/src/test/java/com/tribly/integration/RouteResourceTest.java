@@ -6,6 +6,8 @@ import static org.hamcrest.Matchers.*;
 import com.tribly.domain.route.Route;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
+import com.tribly.dto.routes.request.RouteRequest;
+import com.tribly.enums.SurfaceType;
 import com.tribly.enums.TeamRole;
 import com.tribly.enums.Visibility;
 import com.tribly.infrastructure.id.TsidUtils;
@@ -70,7 +72,6 @@ class RouteResourceTest {
         .oauth2(getAccessToken(USERNAME_TEST))
         .multiPart(new MultiPartSpecBuilder("Test Route").controlName("name").build())
         .multiPart(new MultiPartSpecBuilder("A test route").controlName("description").build())
-        .multiPart(new MultiPartSpecBuilder("MODERATE").controlName("difficulty").build())
         .multiPart(new MultiPartSpecBuilder("GRAVEL").controlName("surfaceType").build())
         .multiPart(new MultiPartSpecBuilder("PUBLIC").controlName("visibility").build())
         .multiPart("gpxFile", gpxFile, "application/gpx+xml")
@@ -92,7 +93,7 @@ class RouteResourceTest {
 
     given()
         .when()
-        .get("/api/teams/test-team/routes/" + TsidUtils.toString(testRoute.getId()))
+        .get("/api/teams/test-team/routes/" + testRoute.getSlug())
         .then()
         .statusCode(200)
         .body("id", equalTo(TsidUtils.toString(testRoute.getId())))
@@ -106,13 +107,16 @@ class RouteResourceTest {
         dataService.createRouteWithVisibility(
             testTeam, testUser, "Original Name", Visibility.PUBLIC);
 
+    RouteRequest request =
+        new RouteRequest("Updated Name", "Updated description", SurfaceType.MTB, Visibility.PUBLIC);
+
     given()
         .auth()
         .oauth2(getAccessToken(USERNAME_TEST))
         .contentType("application/json")
-        .body("{\"name\": \"Updated Name\", \"description\": \"Updated description\"}")
+        .body(request)
         .when()
-        .patch("/api/teams/test-team/routes/" + TsidUtils.toString(testRoute.getId()))
+        .patch("/api/teams/test-team/routes/" + testRoute.getSlug())
         .then()
         .statusCode(200)
         .body("name", equalTo("Updated Name"))
@@ -125,18 +129,16 @@ class RouteResourceTest {
     testRoute =
         dataService.createRouteWithVisibility(testTeam, testUser, "To Delete", Visibility.PUBLIC);
 
-    String routeId = TsidUtils.toString(testRoute.getId());
-
     given()
         .auth()
         .oauth2(getAccessToken(USERNAME_TEST))
         .when()
-        .delete("/api/teams/test-team/routes/" + routeId)
+        .delete("/api/teams/test-team/routes/" + testRoute.getSlug())
         .then()
         .statusCode(204);
 
     // Verify route is no longer accessible
-    given().when().get("/api/teams/test-team/routes/" + routeId).then().statusCode(404);
+    given().when().get("/api/teams/test-team/routes/" + testRoute.getSlug()).then().statusCode(404);
   }
 
   @Test
@@ -148,7 +150,7 @@ class RouteResourceTest {
 
     given()
         .when()
-        .get("/api/teams/test-team/routes/" + TsidUtils.toString(testRoute.getId()) + "/climbs")
+        .get("/api/teams/test-team/routes/" + testRoute.getSlug() + "/climbs")
         .then()
         .statusCode(200)
         .body("climbs", notNullValue());

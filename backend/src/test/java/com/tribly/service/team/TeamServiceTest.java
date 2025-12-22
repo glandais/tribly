@@ -4,8 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
-import com.tribly.dto.teams.request.CreateTeamRequest;
-import com.tribly.dto.teams.request.UpdateTeamRequest;
+import com.tribly.dto.teams.request.TeamRequest;
 import com.tribly.dto.teams.response.TeamDetailDto;
 import com.tribly.dto.teams.response.TeamListResponse;
 import com.tribly.enums.TeamRole;
@@ -40,8 +39,7 @@ class TeamServiceTest {
 
   @Test
   void createTeam_shouldCreateTeamWithSlug() {
-    CreateTeamRequest request =
-        new CreateTeamRequest("Test Team", "A test team", Visibility.PUBLIC, null);
+    TeamRequest request = new TeamRequest("Test Team", "A test team", Visibility.PUBLIC);
 
     TeamDetailDto result = teamService.createTeam(request, user1.getId());
 
@@ -56,7 +54,7 @@ class TeamServiceTest {
 
   @Test
   void createTeam_shouldCreateAdminMembership() {
-    CreateTeamRequest request = new CreateTeamRequest("My Team", null, Visibility.PUBLIC, null);
+    TeamRequest request = new TeamRequest("My Team", null, Visibility.PUBLIC);
 
     TeamDetailDto result = teamService.createTeam(request, user1.getId());
 
@@ -67,8 +65,8 @@ class TeamServiceTest {
 
   @Test
   void createTeam_shouldHandleSlugCollisionWithTimestamp() {
-    CreateTeamRequest request1 = new CreateTeamRequest("Test Team", null, Visibility.PUBLIC, null);
-    CreateTeamRequest request2 = new CreateTeamRequest("Test Team", null, Visibility.PUBLIC, null);
+    TeamRequest request1 = new TeamRequest("Test Team", null, Visibility.PUBLIC);
+    TeamRequest request2 = new TeamRequest("Test Team", null, Visibility.PUBLIC);
 
     TeamDetailDto team1 = teamService.createTeam(request1, user1.getId());
     TeamDetailDto team2 = teamService.createTeam(request2, user2.getId());
@@ -79,17 +77,8 @@ class TeamServiceTest {
   }
 
   @Test
-  void createTeam_shouldSetMaxMembers() {
-    CreateTeamRequest request = new CreateTeamRequest("Limited Team", null, Visibility.PUBLIC, 10);
-
-    TeamDetailDto result = teamService.createTeam(request, user1.getId());
-
-    assertEquals(10, result.maxMembers());
-  }
-
-  @Test
   void createTeam_shouldThrowWhenUserNotFound() {
-    CreateTeamRequest request = new CreateTeamRequest("Test Team", null, Visibility.PUBLIC, null);
+    TeamRequest request = new TeamRequest("Test Team", null, Visibility.PUBLIC);
 
     BusinessException exception =
         assertThrows(BusinessException.class, () -> teamService.createTeam(request, 999999L));
@@ -172,30 +161,20 @@ class TeamServiceTest {
   void updateTeam_shouldUpdateAllFields() {
     Team team = dataService.createTeamWithVisibility("Original", "original", Visibility.PUBLIC);
     dataService.addUserToTeam(user1, team, TeamRole.ADMIN);
-    UpdateTeamRequest request =
-        new UpdateTeamRequest(
-            "Updated Name",
-            "Updated description",
-            Visibility.TEAM,
-            "https://example.com/logo.png",
-            "https://example.com/cover.png",
-            50);
+    TeamRequest request = new TeamRequest("Updated Name", "Updated description", Visibility.TEAM);
 
     TeamDetailDto result = teamService.updateTeam("original", request, user1.getId());
 
     assertEquals("Updated Name", result.name());
     assertEquals("Updated description", result.description());
     assertEquals(Visibility.TEAM, result.visibility());
-    assertEquals("https://example.com/logo.png", result.logoUrl());
-    assertEquals("https://example.com/cover.png", result.coverImageUrl());
-    assertEquals(50, result.maxMembers());
   }
 
   @Test
   void updateTeam_shouldUpdatePartialFields() {
     Team team = dataService.createTeamWithVisibility("Original", "original", Visibility.PUBLIC);
     dataService.addUserToTeam(user1, team, TeamRole.ADMIN);
-    UpdateTeamRequest request = new UpdateTeamRequest("New Name", null, null, null, null, null);
+    TeamRequest request = new TeamRequest("New Name", "original", Visibility.PUBLIC);
 
     TeamDetailDto result = teamService.updateTeam("original", request, user1.getId());
 
@@ -208,12 +187,11 @@ class TeamServiceTest {
     Team team =
         dataService.createTeamWithVisibility("Original Name", "original", Visibility.PUBLIC);
     dataService.addUserToTeam(user1, team, TeamRole.ADMIN);
-    UpdateTeamRequest request =
-        new UpdateTeamRequest(null, "Updated description", null, null, null, null);
+    TeamRequest request = new TeamRequest("New name", "Updated description", Visibility.PUBLIC);
 
     TeamDetailDto result = teamService.updateTeam("original", request, user1.getId());
 
-    assertEquals("Original Name", result.name());
+    assertEquals("New name", result.name());
     assertEquals("Updated description", result.description());
   }
 
@@ -221,7 +199,7 @@ class TeamServiceTest {
   void updateTeam_shouldThrowForNonAdmin() {
     Team team = dataService.createTeamWithVisibility("Test Team", "test-team", Visibility.PUBLIC);
     dataService.addUserToTeam(user1, team, TeamRole.MEMBER);
-    UpdateTeamRequest request = new UpdateTeamRequest("New Name", null, null, null, null, null);
+    TeamRequest request = new TeamRequest("New Name", null, null);
 
     assertThrows(
         BusinessException.class, () -> teamService.updateTeam("test-team", request, user1.getId()));

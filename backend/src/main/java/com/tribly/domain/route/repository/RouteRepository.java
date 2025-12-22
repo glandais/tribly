@@ -21,8 +21,8 @@ public class RouteRepository implements BaseRepository<Route> {
           triblyQuery.and(
               "visibility = :visibility", Map.of("visibility", routeQuery.visibility()));
     }
-    if (routeQuery.routeId() != null) {
-      triblyQuery = triblyQuery.and("id = :routeId", Map.of("routeId", routeQuery.routeId()));
+    if (routeQuery.slug() != null) {
+      triblyQuery = triblyQuery.and("slug = :slug", Map.of("slug", routeQuery.slug()));
     }
     if (routeQuery.search() != null && !routeQuery.search().isBlank()) {
       triblyQuery =
@@ -32,5 +32,9 @@ public class RouteRepository implements BaseRepository<Route> {
     }
 
     return getPage(triblyQuery, routeQuery);
+  }
+
+  public boolean existsByTeamAndSlug(Long teamId, String slug) {
+    return count("team.id = ?1 and slug = ?2", teamId, slug) > 0;
   }
 }

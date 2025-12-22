@@ -55,43 +55,6 @@ components:
           description: Map configuration
           type: object
           $ref: "#/components/schemas/MapConfig"
-    CreateTeamRequest:
-      description: Team creation request
-      type: object
-      required:
-      - name
-      - visibility
-      properties:
-        name:
-          type: string
-          description: Team name
-          examples:
-          - Awesome Cycling Team
-          pattern: \S
-          minLength: 2
-          maxLength: 255
-        description:
-          type:
-          - string
-          - "null"
-          description: Team description
-          examples:
-          - A team for weekend warriors
-          maxLength: 2000
-        visibility:
-          description: Whether the team is publicly visible
-          type: string
-          examples:
-          - "true"
-          $ref: "#/components/schemas/Visibility"
-        maxMembers:
-          type:
-          - integer
-          - "null"
-          format: int32
-          description: Maximum number of members (null = unlimited)
-          examples:
-          - 50
     ErrorResponse:
       description: Error response
       type: object
@@ -209,12 +172,6 @@ components:
     JoinGroupRequest:
       description: Request to join a ride group
       type: object
-      properties:
-        notes:
-          type:
-          - string
-          - "null"
-          description: Optional notes for the organizer
     KeycloakConfig:
       type: object
       description: Keycloak configuration
@@ -238,19 +195,11 @@ components:
           description: Keycloak client ID
           examples:
           - tribly-frontend
-    LocalDate:
+    LocalDateTime:
       type: string
-      format: date
+      format: date-time
       examples:
-      - 2022-03-10
-    LocalTime:
-      type: string
-      format: local-time
-      examples:
-      - 13:45:30.123456789
-      externalDocs:
-        description: As defined by 'partial-time' in RFC3339
-        url: https://www.rfc-editor.org/rfc/rfc3339.html#section-5.6
+      - 2022-03-10T12:15:50
     MapConfig:
       type: object
       description: Map configuration
@@ -324,13 +273,6 @@ components:
           type: integer
           format: int32
           description: Page size
-    ParticipationStatus:
-      type: string
-      enum:
-      - REGISTERED
-      - CONFIRMED
-      - CANCELLED
-      - COMPLETED
     PublicUserDto:
       type: object
       description: Public user information (limited fields)
@@ -357,8 +299,8 @@ components:
       required:
       - id
       - slug
-      - title
-      - date
+      - name
+      - dateTime
       - status
       - visibility
       - participantCount
@@ -371,26 +313,18 @@ components:
         slug:
           type: string
           description: Ride URL slug
-        title:
+        name:
           type: string
-          description: Ride title
+          description: Ride name
         description:
           type:
           - string
           - "null"
           description: Ride description
-        date:
-          description: Ride date
+        dateTime:
+          description: Ride date/time
           type: string
-          $ref: "#/components/schemas/LocalDate"
-        startTime:
-          description: Start time
-          type:
-          - string
-          - "null"
-          anyOf:
-          - $ref: "#/components/schemas/LocalTime"
-          - type: "null"
+          $ref: "#/components/schemas/LocalDateTime"
         status:
           description: Ride status
           type: string
@@ -524,7 +458,6 @@ components:
       required:
       - id
       - userId
-      - status
       properties:
         id:
           type: string
@@ -532,33 +465,24 @@ components:
         userId:
           type: string
           description: User ID (TSID)
-        status:
-          description: Participation status
-          type: string
-          $ref: "#/components/schemas/ParticipationStatus"
         registeredAt:
           type:
           - string
           - "null"
           description: Registration timestamp
-        notes:
-          type:
-          - string
-          - "null"
-          description: Participant notes
     RideRequest:
       description: Ride request
       type: object
       required:
-      - title
-      - date
+      - name
+      - dateTime
       - status
       - visibility
       - groups
       properties:
-        title:
+        name:
           type: string
-          description: Ride title
+          description: Ride name
           examples:
           - Sunday Morning Ride
           pattern: \S
@@ -570,22 +494,12 @@ components:
           - "null"
           description: Ride description
           maxLength: 5000
-        date:
-          description: Ride date
+        dateTime:
+          description: Ride date/time
           type: string
           examples:
           - 2025-06-15
-          $ref: "#/components/schemas/LocalDate"
-        startTime:
-          description: Start time
-          type:
-          - string
-          - "null"
-          examples:
-          - 09:00
-          anyOf:
-          - $ref: "#/components/schemas/LocalTime"
-          - type: "null"
+          $ref: "#/components/schemas/LocalDateTime"
         status:
           description: Ride status
           type: string
@@ -678,10 +592,8 @@ components:
       - distance
       - elevationGain
       - elevationLoss
-      - difficulty
       - surfaceType
       - visibility
-      - thumbnailUrl
       - startLat
       - startLng
       - endLat
@@ -711,10 +623,6 @@ components:
           type: integer
           format: int32
           description: Total elevation loss in meters
-        difficulty:
-          description: Route difficulty
-          type: string
-          $ref: "#/components/schemas/RouteDifficulty"
         surfaceType:
           description: Surface type
           type: string
@@ -723,9 +631,6 @@ components:
           description: Whether the route is public
           type: string
           $ref: "#/components/schemas/Visibility"
-        thumbnailUrl:
-          type: string
-          description: Thumbnail image URL
         startLat:
           type: number
           description: Start point latitude
@@ -747,31 +652,26 @@ components:
         updatedAt:
           type: string
           description: Last update timestamp
-    RouteDifficulty:
-      type: string
-      enum:
-      - EASY
-      - MODERATE
-      - HARD
-      - EXPERT
     RouteDto:
       description: Route summary data
       type: object
       required:
       - id
+      - slug
       - name
       - distance
       - elevationGain
       - elevationLoss
-      - difficulty
       - surfaceType
       - visibility
-      - thumbnailUrl
       - createdAt
       properties:
         id:
           type: string
           description: Route ID (TSID)
+        slug:
+          type: string
+          description: Route slug
         name:
           type: string
           description: Route name
@@ -792,10 +692,6 @@ components:
           type: integer
           format: int32
           description: Total elevation loss in meters
-        difficulty:
-          description: Route difficulty
-          type: string
-          $ref: "#/components/schemas/RouteDifficulty"
         surfaceType:
           description: Surface type
           type: string
@@ -804,9 +700,6 @@ components:
           description: Whether the route is public
           type: string
           $ref: "#/components/schemas/Visibility"
-        thumbnailUrl:
-          type: string
-          description: Thumbnail image URL
         createdAt:
           type: string
           description: Creation timestamp
@@ -836,6 +729,30 @@ components:
           type: integer
           format: int32
           description: Page size
+    RouteRequest:
+      description: Route update request
+      type: object
+      required:
+      - name
+      - surfaceType
+      - visibility
+      properties:
+        name:
+          type: string
+          description: Route name
+        description:
+          type:
+          - string
+          - "null"
+          description: Route description
+        surfaceType:
+          description: Surface type
+          type: string
+          $ref: "#/components/schemas/SurfaceType"
+        visibility:
+          description: Whether the route is publicly visible
+          type: string
+          $ref: "#/components/schemas/Visibility"
     SurfaceType:
       type: string
       enum:
@@ -870,16 +787,6 @@ components:
           - string
           - "null"
           description: Team description
-        logoUrl:
-          type:
-          - string
-          - "null"
-          description: Logo image URL
-        coverImageUrl:
-          type:
-          - string
-          - "null"
-          description: Cover image URL
         visibility:
           description: Whether the team is public
           type: string
@@ -888,12 +795,6 @@ components:
           type: integer
           format: int64
           description: Number of team members
-        maxMembers:
-          type:
-          - integer
-          - "null"
-          format: int32
-          description: Maximum number of members (null = unlimited)
         role:
           description: Current user's role (null if not a member)
           type:
@@ -931,6 +832,35 @@ components:
           type: integer
           format: int32
           description: Page size
+    TeamRequest:
+      description: Team creation request
+      type: object
+      required:
+      - name
+      - visibility
+      properties:
+        name:
+          type: string
+          description: Team name
+          examples:
+          - Awesome Cycling Team
+          pattern: \S
+          minLength: 2
+          maxLength: 255
+        description:
+          type:
+          - string
+          - "null"
+          description: Team description
+          examples:
+          - A team for weekend warriors
+          maxLength: 2000
+        visibility:
+          description: Whether the team is publicly visible
+          type: string
+          examples:
+          - "true"
+          $ref: "#/components/schemas/Visibility"
     TeamRole:
       type: string
       enum:
@@ -972,85 +902,6 @@ components:
           description: New role
           type: string
           $ref: "#/components/schemas/TeamRole"
-    UpdateRouteRequest:
-      description: Route update request
-      type: object
-      properties:
-        name:
-          type:
-          - string
-          - "null"
-          description: Route name
-        description:
-          type:
-          - string
-          - "null"
-          description: Route description
-        difficulty:
-          description: Route difficulty
-          type:
-          - string
-          - "null"
-          anyOf:
-          - $ref: "#/components/schemas/RouteDifficulty"
-          - type: "null"
-        surfaceType:
-          description: Surface type
-          type:
-          - string
-          - "null"
-          anyOf:
-          - $ref: "#/components/schemas/SurfaceType"
-          - type: "null"
-        visibility:
-          description: Whether the route is publicly visible
-          type:
-          - string
-          - "null"
-          anyOf:
-          - $ref: "#/components/schemas/Visibility"
-          - type: "null"
-    UpdateTeamRequest:
-      description: Team update request
-      type: object
-      properties:
-        name:
-          type:
-          - string
-          - "null"
-          description: Team name
-          minLength: 2
-          maxLength: 255
-        description:
-          type:
-          - string
-          - "null"
-          description: Team description
-          maxLength: 2000
-        visibility:
-          description: Whether the team is publicly visible
-          type:
-          - string
-          - "null"
-          anyOf:
-          - $ref: "#/components/schemas/Visibility"
-          - type: "null"
-        logoUrl:
-          type:
-          - string
-          - "null"
-          description: Logo image URL
-        coverImageUrl:
-          type:
-          - string
-          - "null"
-          description: Cover image URL
-        maxMembers:
-          type:
-          - integer
-          - "null"
-          format: int32
-          description: Maximum number of members (null = unlimited)
     UpdateUserRequest:
       description: User profile update request
       type: object
@@ -1131,7 +982,7 @@ components:
   securitySchemes:
     SecurityScheme:
       type: openIdConnect
-      openIdConnectUrl: http://localhost:8180/realms/tribly/.well-known/openid-configuration
+      openIdConnectUrl: http://localhost:8180/realms/quarkus/.well-known/openid-configuration
       description: Authentication
 tags:
 - name: Configuration
@@ -1212,7 +1063,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/CreateTeamRequest"
+              $ref: "#/components/schemas/TeamRequest"
         required: true
       responses:
         "201":
@@ -1256,7 +1107,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UpdateTeamRequest"
+              $ref: "#/components/schemas/TeamRequest"
         required: true
       responses:
         "200":
@@ -2110,8 +1961,6 @@ paths:
                   pattern: \S
                 description:
                   type: string
-                difficulty:
-                  $ref: "#/components/schemas/RouteDifficulty"
                 surfaceType:
                   $ref: "#/components/schemas/SurfaceType"
                 visibility:
@@ -2120,8 +1969,6 @@ paths:
                   type: string
                   format: binary
             encoding:
-              difficulty:
-                contentType: text/plain
               visibility:
                 contentType: text/plain
               surfaceType:
@@ -2161,17 +2008,17 @@ paths:
       security:
       - SecurityScheme:
         - user
-  /api/teams/{slug}/routes/{routeId}:
+  /api/teams/{slug}/routes/{routeSlug}:
     patch:
       summary: Update route
-      description: "Update route metadata (name, description, difficulty, etc.). Does\
-        \ not update the GPX file."
+      description: "Update route metadata (name, description, etc.). Does not update\
+        \ the GPX file."
       operationId: updateRoute
       tags:
       - Routes
       parameters:
-      - description: Route ID (TSID)
-        name: routeId
+      - description: Route slug
+        name: routeSlug
         in: path
         required: true
         schema:
@@ -2186,7 +2033,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UpdateRouteRequest"
+              $ref: "#/components/schemas/RouteRequest"
         required: true
       responses:
         "200":
@@ -2229,8 +2076,8 @@ paths:
       tags:
       - Routes
       parameters:
-      - description: Route ID (TSID)
-        name: routeId
+      - description: Route slug
+        name: routeSlug
         in: path
         required: true
         schema:
@@ -2261,8 +2108,8 @@ paths:
       tags:
       - Routes
       parameters:
-      - description: Route ID (TSID)
-        name: routeId
+      - description: Route slug
+        name: routeSlug
         in: path
         required: true
         schema:
@@ -2297,7 +2144,7 @@ paths:
       security:
       - SecurityScheme:
         - user
-  /api/teams/{slug}/routes/{routeId}/climbs:
+  /api/teams/{slug}/routes/{routeSlug}/climbs:
     get:
       summary: Get route climbs
       description: Get all categorized climbs (hills) on a route
@@ -2305,8 +2152,8 @@ paths:
       tags:
       - Routes
       parameters:
-      - description: Route ID (TSID)
-        name: routeId
+      - description: Route slug
+        name: routeSlug
         in: path
         required: true
         schema:
@@ -2330,7 +2177,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-  /api/teams/{slug}/routes/{routeId}/track:
+  /api/teams/{slug}/routes/{routeSlug}/track:
     get:
       summary: Get route track
       description: "Get GPS track points (latitude, longitude, elevation) for displaying\
@@ -2339,8 +2186,8 @@ paths:
       tags:
       - Routes
       parameters:
-      - description: Route ID (TSID)
-        name: routeId
+      - description: Route slug
+        name: routeSlug
         in: path
         required: true
         schema:
