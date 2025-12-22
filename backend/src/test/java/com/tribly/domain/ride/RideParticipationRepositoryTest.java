@@ -10,6 +10,7 @@ import com.tribly.util.TestDataService;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -35,7 +36,11 @@ class RideParticipationRepositoryTest {
     user2 = dataService.createUser("user2@example.com", "User Two");
     ride =
         dataService.createRide(
-            team, user1, "Test Ride", "test-ride", LocalDate.of(2025, 1, 15).atTime(0, 0));
+            team,
+            user1,
+            "Test Ride",
+            "test-ride",
+            LocalDate.of(2025, 1, 15).atTime(0, 0).toInstant(ZoneOffset.UTC));
     group = dataService.createRideGroup(ride, "Fast Group");
   }
 
@@ -127,7 +132,11 @@ class RideParticipationRepositoryTest {
     dataService.createParticipation(group, user1);
     Ride otherRide =
         dataService.createRide(
-            team, user1, "Other Ride", "other-ride", LocalDate.of(2025, 1, 20).atTime(0, 0));
+            team,
+            user1,
+            "Other Ride",
+            "other-ride",
+            LocalDate.of(2025, 1, 20).atTime(0, 0).toInstant(ZoneOffset.UTC));
 
     Optional<RideParticipation> result =
         participationRepository.findByUserAndRide(user1.getId(), otherRide.getId());

@@ -4,7 +4,7 @@ import com.tribly.domain.common.TeamPublicationEntity;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
 import jakarta.persistence.*;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -18,7 +18,7 @@ public class Post extends TeamPublicationEntity {
     super();
   }
 
-  public Post(Team team, User createdBy, String name, String slug, LocalDateTime dateTime) {
+  public Post(Team team, User createdBy, String name, String slug, Instant dateTime) {
     super(team, createdBy, name, slug, dateTime);
   }
 }

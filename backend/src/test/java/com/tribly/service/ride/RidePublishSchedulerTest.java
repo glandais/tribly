@@ -13,6 +13,7 @@ import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneOffset;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -42,7 +43,7 @@ class RidePublishSchedulerTest {
             user,
             "Auto Publish",
             "auto-publish",
-            LocalDate.of(2025, 6, 15).atTime(0, 0),
+            LocalDate.of(2025, 6, 15).atTime(0, 0).toInstant(ZoneOffset.UTC),
             Status.DRAFT,
             Instant.now().minusSeconds(3600));
 
@@ -61,7 +62,7 @@ class RidePublishSchedulerTest {
             user,
             "Future Publish",
             "future-publish",
-            LocalDate.of(2025, 6, 15).atTime(0, 0),
+            LocalDate.of(2025, 6, 15).atTime(0, 0).toInstant(ZoneOffset.UTC),
             Status.DRAFT,
             Instant.now().plusSeconds(3600));
 
@@ -80,7 +81,7 @@ class RidePublishSchedulerTest {
             user,
             "Already Published",
             "already-published",
-            LocalDate.of(2025, 6, 15).atTime(0, 0),
+            LocalDate.of(2025, 6, 15).atTime(0, 0).toInstant(ZoneOffset.UTC),
             Status.PUBLISHED,
             Instant.now().minusSeconds(3600));
 
@@ -98,7 +99,7 @@ class RidePublishSchedulerTest {
             user,
             "Cancelled",
             "cancelled",
-            LocalDate.of(2025, 6, 15).atTime(0, 0),
+            LocalDate.of(2025, 6, 15).atTime(0, 0).toInstant(ZoneOffset.UTC),
             Status.CANCELLED,
             Instant.now().minusSeconds(3600));
 
@@ -116,7 +117,7 @@ class RidePublishSchedulerTest {
             user,
             "Ride 1",
             "ride-1",
-            LocalDate.of(2025, 6, 15).atTime(0, 0),
+            LocalDate.of(2025, 6, 15).atTime(0, 0).toInstant(ZoneOffset.UTC),
             Status.DRAFT,
             Instant.now().minusSeconds(7200));
     Ride ride2 =
@@ -125,7 +126,7 @@ class RidePublishSchedulerTest {
             user,
             "Ride 2",
             "ride-2",
-            LocalDate.of(2025, 6, 16).atTime(0, 0),
+            LocalDate.of(2025, 6, 16).atTime(0, 0).toInstant(ZoneOffset.UTC),
             Status.DRAFT,
             Instant.now().minusSeconds(3600));
     Ride ride3 =
@@ -134,7 +135,7 @@ class RidePublishSchedulerTest {
             user,
             "Ride 3",
             "ride-3",
-            LocalDate.of(2025, 6, 17).atTime(0, 0),
+            LocalDate.of(2025, 6, 17).atTime(0, 0).toInstant(ZoneOffset.UTC),
             Status.DRAFT,
             Instant.now().minusSeconds(1800));
 
@@ -168,7 +169,7 @@ class RidePublishSchedulerTest {
             user,
             "No PublishAt",
             "no-publishat",
-            LocalDate.of(2025, 6, 15).atTime(0, 0),
+            LocalDate.of(2025, 6, 15).atTime(0, 0).toInstant(ZoneOffset.UTC),
             Status.DRAFT);
 
     ridePublishScheduler.autoPublishRides();
@@ -186,7 +187,7 @@ class RidePublishSchedulerTest {
             user,
             "Exact Time",
             "exact-time",
-            LocalDate.of(2025, 6, 15).atTime(0, 0),
+            LocalDate.of(2025, 6, 15).atTime(0, 0).toInstant(ZoneOffset.UTC),
             Status.DRAFT,
             publishTime);
 

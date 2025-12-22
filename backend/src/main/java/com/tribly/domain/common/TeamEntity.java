@@ -7,7 +7,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import lombok.Getter;
 import lombok.Setter;
 import org.jspecify.annotations.Nullable;
@@ -44,7 +44,7 @@ public abstract class TeamEntity extends BaseEntity {
   protected User createdBy;
 
   @Column(name = "date_time", nullable = false)
-  protected LocalDateTime dateTime;
+  protected Instant dateTime;
 
   @NotBlank
   @Size(max = 255)

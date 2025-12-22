@@ -18,7 +18,7 @@ import com.tribly.util.TestDataCleaner;
 import com.tribly.util.TestDataService;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -56,17 +56,11 @@ class RideServiceTest {
         admin,
         "Public Ride",
         "public-ride",
-        LocalDateTime.now(),
+        Instant.now(),
         Visibility.PUBLIC,
         Status.PUBLISHED);
     dataService.createRideWithVisibilityAndStatus(
-        team,
-        admin,
-        "Team Ride",
-        "team-ride",
-        LocalDateTime.now(),
-        Visibility.TEAM,
-        Status.PUBLISHED);
+        team, admin, "Team Ride", "team-ride", Instant.now(), Visibility.TEAM, Status.PUBLISHED);
 
     RideListResponse result = rideService.listRides("test-team", null, null, null, null, 0, 10);
 
@@ -81,17 +75,11 @@ class RideServiceTest {
         admin,
         "Public Ride",
         "public-ride",
-        LocalDateTime.now(),
+        Instant.now(),
         Visibility.PUBLIC,
         Status.PUBLISHED);
     dataService.createRideWithVisibilityAndStatus(
-        team,
-        admin,
-        "Team Ride",
-        "team-ride",
-        LocalDateTime.now(),
-        Visibility.TEAM,
-        Status.PUBLISHED);
+        team, admin, "Team Ride", "team-ride", Instant.now(), Visibility.TEAM, Status.PUBLISHED);
 
     RideListResponse result =
         rideService.listRides("test-team", member.getId(), null, null, null, 0, 10);
@@ -102,15 +90,9 @@ class RideServiceTest {
   @Test
   void listRides_shouldFilterByStatus() {
     dataService.createRideWithVisibilityAndStatus(
-        team,
-        admin,
-        "Published",
-        "published",
-        LocalDateTime.now(),
-        Visibility.PUBLIC,
-        Status.PUBLISHED);
+        team, admin, "Published", "published", Instant.now(), Visibility.PUBLIC, Status.PUBLISHED);
     dataService.createRideWithVisibilityAndStatus(
-        team, admin, "Draft", "draft", LocalDateTime.now(), Visibility.PUBLIC, Status.DRAFT);
+        team, admin, "Draft", "draft", Instant.now(), Visibility.PUBLIC, Status.DRAFT);
 
     RideListResponse result =
         rideService.listRides("test-team", null, null, null, Status.PUBLISHED, 0, 10);
@@ -121,9 +103,9 @@ class RideServiceTest {
 
   @Test
   void listRides_shouldFilterByDateRange() {
-    LocalDateTime today = LocalDateTime.now();
-    LocalDateTime tomorrow = today.plusDays(1);
-    LocalDateTime nextWeek = today.plusDays(7);
+    Instant today = Instant.now();
+    Instant tomorrow = today.plusSeconds(24 * 3600);
+    Instant nextWeek = today.plusSeconds(24 * 3600 * 7);
     dataService.createRide(team, admin, "Today Ride", "today", today);
     dataService.createRide(team, admin, "Tomorrow Ride", "tomorrow", tomorrow);
     dataService.createRide(team, admin, "Next Week", "next-week", nextWeek);
@@ -136,8 +118,7 @@ class RideServiceTest {
 
   @Test
   void listRides_shouldShowDraftsToOrganizers() {
-    dataService.createRideWithStatus(
-        team, admin, "Draft", "draft", LocalDateTime.now(), Status.DRAFT);
+    dataService.createRideWithStatus(team, admin, "Draft", "draft", Instant.now(), Status.DRAFT);
 
     RideListResponse result =
         rideService.listRides("test-team", organizer.getId(), null, null, null, 0, 10);
@@ -148,8 +129,7 @@ class RideServiceTest {
 
   @Test
   void listRides_shouldHideDraftsFromMembers() {
-    dataService.createRideWithStatus(
-        team, admin, "Draft", "draft", LocalDateTime.now(), Status.DRAFT);
+    dataService.createRideWithStatus(team, admin, "Draft", "draft", Instant.now(), Status.DRAFT);
 
     RideListResponse result =
         rideService.listRides("test-team", member.getId(), null, null, null, 0, 10);
@@ -160,19 +140,13 @@ class RideServiceTest {
   @Test
   void listRides_shouldHideDraftsFromNonMembers() {
     dataService.createRideWithVisibilityAndStatus(
-        team,
-        admin,
-        "Draft Ride",
-        "draft-ride",
-        LocalDateTime.now(),
-        Visibility.PUBLIC,
-        Status.DRAFT);
+        team, admin, "Draft Ride", "draft-ride", Instant.now(), Visibility.PUBLIC, Status.DRAFT);
     dataService.createRideWithVisibilityAndStatus(
         team,
         admin,
         "Published Ride",
         "published-ride",
-        LocalDateTime.now(),
+        Instant.now(),
         Visibility.PUBLIC,
         Status.PUBLISHED);
 
@@ -185,13 +159,7 @@ class RideServiceTest {
   @Test
   void listRides_shouldReturnEmptyWhenNonMemberRequestsDrafts() {
     dataService.createRideWithVisibilityAndStatus(
-        team,
-        admin,
-        "Draft Ride",
-        "draft-ride",
-        LocalDateTime.now(),
-        Visibility.PUBLIC,
-        Status.DRAFT);
+        team, admin, "Draft Ride", "draft-ride", Instant.now(), Visibility.PUBLIC, Status.DRAFT);
 
     RideListResponse result =
         rideService.listRides("test-team", null, null, null, Status.DRAFT, 0, 10);
@@ -202,19 +170,13 @@ class RideServiceTest {
   @Test
   void listRides_shouldReturnDraftsWhenOrganizerRequestsThem() {
     dataService.createRideWithVisibilityAndStatus(
-        team,
-        admin,
-        "Draft Ride",
-        "draft-ride",
-        LocalDateTime.now(),
-        Visibility.PUBLIC,
-        Status.DRAFT);
+        team, admin, "Draft Ride", "draft-ride", Instant.now(), Visibility.PUBLIC, Status.DRAFT);
     dataService.createRideWithVisibilityAndStatus(
         team,
         admin,
         "Published Ride",
         "published-ride",
-        LocalDateTime.now(),
+        Instant.now(),
         Visibility.PUBLIC,
         Status.PUBLISHED);
 
@@ -229,19 +191,13 @@ class RideServiceTest {
   @Test
   void listRides_shouldReturnPublishedWhenNonMemberRequestsThem() {
     dataService.createRideWithVisibilityAndStatus(
-        team,
-        admin,
-        "Draft Ride",
-        "draft-ride",
-        LocalDateTime.now(),
-        Visibility.PUBLIC,
-        Status.DRAFT);
+        team, admin, "Draft Ride", "draft-ride", Instant.now(), Visibility.PUBLIC, Status.DRAFT);
     dataService.createRideWithVisibilityAndStatus(
         team,
         admin,
         "Published Ride",
         "published-ride",
-        LocalDateTime.now(),
+        Instant.now(),
         Visibility.PUBLIC,
         Status.PUBLISHED);
 
@@ -264,7 +220,7 @@ class RideServiceTest {
         privateTeamAdmin,
         "Private Ride",
         "private-ride",
-        LocalDateTime.now(),
+        Instant.now(),
         Visibility.TEAM,
         Status.PUBLISHED);
 
@@ -277,7 +233,7 @@ class RideServiceTest {
 
   @Test
   void getRideBySlug_shouldReturnRide() {
-    dataService.createRide(team, admin, "Test Ride", "test-ride", LocalDateTime.now());
+    dataService.createRide(team, admin, "Test Ride", "test-ride", Instant.now());
 
     RideDto result = rideService.getRideDetail("test-team", "test-ride", null);
 
@@ -293,8 +249,7 @@ class RideServiceTest {
 
   @Test
   void getRideBySlug_shouldShowDraftToOrganizer() {
-    dataService.createRideWithStatus(
-        team, admin, "Draft", "draft", LocalDateTime.now(), Status.DRAFT);
+    dataService.createRideWithStatus(team, admin, "Draft", "draft", Instant.now(), Status.DRAFT);
 
     RideDto result = rideService.getRideDetail("test-team", "draft", organizer.getId());
 
@@ -303,8 +258,7 @@ class RideServiceTest {
 
   @Test
   void getRideBySlug_shouldHideDraftFromMember() {
-    dataService.createRideWithStatus(
-        team, admin, "Draft", "draft", LocalDateTime.now(), Status.DRAFT);
+    dataService.createRideWithStatus(team, admin, "Draft", "draft", Instant.now(), Status.DRAFT);
 
     assertThrows(
         BusinessException.class,
@@ -319,7 +273,7 @@ class RideServiceTest {
         new RideRequest(
             "Sunday Ride",
             "A nice ride",
-            LocalDateTime.now().plusDays(7),
+            Instant.now().plusSeconds(24 * 3600 * 7),
             Status.DRAFT,
             Visibility.TEAM,
             null,
@@ -336,12 +290,12 @@ class RideServiceTest {
 
   @Test
   void createRide_shouldHandleSlugCollision() {
-    dataService.createRide(team, admin, "Test Ride", "test-ride", LocalDateTime.now());
+    dataService.createRide(team, admin, "Test Ride", "test-ride", Instant.now());
     RideRequest request =
         new RideRequest(
             "Test Ride",
             null,
-            LocalDateTime.now().plusDays(1),
+            Instant.now().plusSeconds(24 * 3600),
             Status.DRAFT,
             Visibility.PUBLIC,
             null,
@@ -362,7 +316,7 @@ class RideServiceTest {
         new RideRequest(
             "Group Ride",
             null,
-            LocalDateTime.now().plusDays(1),
+            Instant.now().plusSeconds(24 * 3600),
             Status.DRAFT,
             Visibility.PUBLIC,
             null,
@@ -383,7 +337,7 @@ class RideServiceTest {
         new RideRequest(
             "Test",
             null,
-            LocalDateTime.now().plusDays(1),
+            Instant.now().plusSeconds(24 * 3600),
             Status.DRAFT,
             Visibility.PUBLIC,
             null,
@@ -405,7 +359,7 @@ class RideServiceTest {
         new RideRequest(
             "Public Ride",
             null,
-            LocalDateTime.now().plusDays(1),
+            Instant.now().plusSeconds(24 * 3600),
             Status.DRAFT,
             Visibility.PUBLIC,
             null,
@@ -430,7 +384,7 @@ class RideServiceTest {
         new RideRequest(
             "Team Ride",
             null,
-            LocalDateTime.now().plusDays(1),
+            Instant.now().plusSeconds(24 * 3600),
             Status.DRAFT,
             Visibility.TEAM,
             null,
@@ -448,12 +402,12 @@ class RideServiceTest {
 
   @Test
   void updateRide_shouldUpdateFields() {
-    dataService.createRide(team, admin, "Original", "original", LocalDateTime.now());
+    dataService.createRide(team, admin, "Original", "original", Instant.now());
     RideRequest request =
         new RideRequest(
             "Updated Title",
             "Updated description",
-            LocalDateTime.now().plusDays(1),
+            Instant.now().plusSeconds(24 * 3600),
             Status.CANCELLED,
             Visibility.TEAM,
             null,
@@ -470,12 +424,12 @@ class RideServiceTest {
 
   @Test
   void updateRide_shouldUpdatePartialFields() {
-    dataService.createRide(team, admin, "Original", "original", LocalDateTime.now());
+    dataService.createRide(team, admin, "Original", "original", Instant.now());
     RideRequest request =
         new RideRequest(
             "New Title",
             null,
-            LocalDateTime.now().plusDays(1),
+            Instant.now().plusSeconds(24 * 3600),
             Status.PUBLISHED,
             Visibility.PUBLIC,
             null,
@@ -495,14 +449,14 @@ class RideServiceTest {
         admin,
         "Published Ride",
         "published-ride",
-        LocalDateTime.now(),
+        Instant.now(),
         Visibility.PUBLIC,
         Status.PUBLISHED);
     RideRequest request =
         new RideRequest(
             "Updated Title",
             null,
-            LocalDateTime.now().plusDays(1),
+            Instant.now().plusSeconds(24 * 3600),
             Status.PUBLISHED,
             Visibility.PUBLIC,
             null,
@@ -518,12 +472,12 @@ class RideServiceTest {
 
   @Test
   void updateRide_shouldThrowForNonOrganizer() {
-    dataService.createRide(team, admin, "Test", "test", LocalDateTime.now());
+    dataService.createRide(team, admin, "Test", "test", Instant.now());
     RideRequest request =
         new RideRequest(
             "New",
             null,
-            LocalDateTime.now().plusDays(1),
+            Instant.now().plusSeconds(24 * 3600),
             Status.DRAFT,
             Visibility.PUBLIC,
             null,
@@ -545,7 +499,7 @@ class RideServiceTest {
         organizer,
         "Team Ride",
         "team-ride",
-        LocalDateTime.now(),
+        Instant.now(),
         Visibility.TEAM,
         Status.DRAFT);
 
@@ -553,7 +507,7 @@ class RideServiceTest {
         new RideRequest(
             "Title",
             null,
-            LocalDateTime.now().plusDays(1),
+            Instant.now().plusSeconds(24 * 3600),
             Status.DRAFT,
             Visibility.PUBLIC,
             null,
@@ -578,7 +532,7 @@ class RideServiceTest {
         organizer,
         "Team Ride",
         "team-ride",
-        LocalDateTime.now(),
+        Instant.now(),
         Visibility.TEAM,
         Status.DRAFT);
 
@@ -586,7 +540,7 @@ class RideServiceTest {
         new RideRequest(
             "Updated Title",
             null,
-            LocalDateTime.now().plusDays(1),
+            Instant.now().plusSeconds(24 * 3600),
             Status.DRAFT,
             Visibility.TEAM,
             null,
@@ -604,7 +558,7 @@ class RideServiceTest {
 
   @Test
   void deleteRide_shouldSoftDelete() {
-    dataService.createRide(team, admin, "Test", "test", LocalDateTime.now());
+    dataService.createRide(team, admin, "Test", "test", Instant.now());
 
     rideService.deleteRide("test-team", "test", organizer.getId());
 
@@ -615,7 +569,7 @@ class RideServiceTest {
 
   @Test
   void deleteRide_shouldThrowForNonOrganizer() {
-    dataService.createRide(team, admin, "Test", "test", LocalDateTime.now());
+    dataService.createRide(team, admin, "Test", "test", Instant.now());
 
     assertThrows(
         BusinessException.class, () -> rideService.deleteRide("test-team", "test", member.getId()));
@@ -625,7 +579,7 @@ class RideServiceTest {
 
   @Test
   void listGroups_shouldReturnGroupsOrderedBySortOrder() {
-    Ride ride = dataService.createRide(team, admin, "Test", "test", LocalDateTime.now());
+    Ride ride = dataService.createRide(team, admin, "Test", "test", Instant.now());
     dataService.createRideGroupWithOrder(ride, "Group 1", 2);
     dataService.createRideGroupWithOrder(ride, "Group 2", 1);
 
@@ -638,7 +592,7 @@ class RideServiceTest {
 
   @Test
   void listGroups_shouldReturnEmptyForNoGroups() {
-    dataService.createRide(team, admin, "Test", "test", LocalDateTime.now());
+    dataService.createRide(team, admin, "Test", "test", Instant.now());
 
     RideGroupListResponse result = rideService.listGroups("test-team", "test", null);
 
@@ -651,7 +605,7 @@ class RideServiceTest {
   void joinGroup_shouldCreateParticipation() {
     Ride ride =
         dataService.createRideWithStatus(
-            team, admin, "Test", "test", LocalDateTime.now(), Status.PUBLISHED);
+            team, admin, "Test", "test", Instant.now(), Status.PUBLISHED);
     RideGroup group = dataService.createRideGroup(ride, "Group");
 
     RideParticipationDto result =
@@ -665,7 +619,7 @@ class RideServiceTest {
   void joinGroup_shouldThrowForDraftRide() {
     Ride ride =
         dataService.createRideWithVisibilityAndStatus(
-            team, admin, "Draft", "draft", LocalDateTime.now(), Visibility.PUBLIC, Status.DRAFT);
+            team, admin, "Draft", "draft", Instant.now(), Visibility.PUBLIC, Status.DRAFT);
     RideGroup group = dataService.createRideGroup(ride, "Group");
 
     BusinessException exception =
@@ -678,7 +632,7 @@ class RideServiceTest {
   void joinGroup_shouldThrowForDraftRideEvenForOrganizer() {
     Ride ride =
         dataService.createRideWithVisibilityAndStatus(
-            team, admin, "Draft", "draft", LocalDateTime.now(), Visibility.PUBLIC, Status.DRAFT);
+            team, admin, "Draft", "draft", Instant.now(), Visibility.PUBLIC, Status.DRAFT);
     RideGroup group = dataService.createRideGroup(ride, "Group");
 
     BusinessException exception =
@@ -691,7 +645,7 @@ class RideServiceTest {
 
   @Test
   void joinGroup_shouldThrowWhenAlreadyInGroup() {
-    Ride ride = dataService.createRide(team, admin, "Test", "test", LocalDateTime.now());
+    Ride ride = dataService.createRide(team, admin, "Test", "test", Instant.now());
     RideGroup group = dataService.createRideGroup(ride, "Group");
     dataService.createParticipation(group, member);
 
@@ -705,7 +659,7 @@ class RideServiceTest {
 
   @Test
   void joinGroup_shouldThrowWhenGroupFull() {
-    Ride ride = dataService.createRide(team, admin, "Test", "test", LocalDateTime.now());
+    Ride ride = dataService.createRide(team, admin, "Test", "test", Instant.now());
     RideGroup group = dataService.createRideGroupWithMaxParticipants(ride, "Group", 1);
     dataService.createParticipation(group, organizer);
 
@@ -722,7 +676,7 @@ class RideServiceTest {
 
   @Test
   void leaveGroup_shouldRemoveParticipation() {
-    Ride ride = dataService.createRide(team, admin, "Test", "test", LocalDateTime.now());
+    Ride ride = dataService.createRide(team, admin, "Test", "test", Instant.now());
     RideGroup group = dataService.createRideGroup(ride, "Group");
     dataService.createParticipation(group, member);
 
@@ -736,7 +690,7 @@ class RideServiceTest {
 
   @Test
   void leaveGroup_shouldThrowWhenNotInGroup() {
-    Ride ride = dataService.createRide(team, admin, "Test", "test", LocalDateTime.now());
+    Ride ride = dataService.createRide(team, admin, "Test", "test", Instant.now());
     RideGroup group = dataService.createRideGroup(ride, "Group");
 
     BusinessException exception =

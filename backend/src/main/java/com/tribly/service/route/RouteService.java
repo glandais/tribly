@@ -29,7 +29,6 @@ import java.io.File;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.List;
 import org.jboss.logging.Logger;
 import org.jspecify.annotations.Nullable;
@@ -92,7 +91,7 @@ public class RouteService extends TeamEntityService {
     route.setDescription(request.description());
     route.setSurfaceType(request.surfaceType());
     route.setVisibility(request.visibility());
-    route.setDateTime(LocalDateTime.now());
+    route.setDateTime(Instant.now());
 
     // Persist to get ID for file storage
     routeRepository.persistAndFlush(route);
@@ -219,7 +218,7 @@ public class RouteService extends TeamEntityService {
     route.setDescription(request.description());
     route.setSurfaceType(request.surfaceType());
     route.setVisibility(request.visibility());
-    route.setDateTime(LocalDateTime.now());
+    route.setDateTime(Instant.now());
 
     routeRepository.persist(route);
     LOG.infov("Route {0} updated by user {1}", slug, userId);

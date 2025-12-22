@@ -13,6 +13,7 @@ import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.keycloak.client.KeycloakTestClient;
 import jakarta.inject.Inject;
 import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -80,7 +81,7 @@ class RideResourceTest {
             new RideRequest(
                 "Sunday Morning Ride",
                 null,
-                LocalDate.parse("2025-01-20").atTime(0, 0),
+                LocalDate.parse("2025-01-20").atTime(0, 0).toInstant(ZoneOffset.UTC),
                 Status.DRAFT,
                 Visibility.PUBLIC,
                 null,
@@ -109,7 +110,7 @@ class RideResourceTest {
             new RideRequest(
                 "Sunday Morning Ride",
                 null,
-                LocalDate.parse("2025-01-20").atTime(0, 0),
+                LocalDate.parse("2025-01-20").atTime(0, 0).toInstant(ZoneOffset.UTC),
                 Status.DRAFT,
                 Visibility.PUBLIC,
                 null,
@@ -129,7 +130,7 @@ class RideResourceTest {
         new RideRequest(
             "Multi-Group Ride",
             null,
-            LocalDate.parse("2025-01-20").atTime(0, 0),
+            LocalDate.parse("2025-01-20").atTime(0, 0).toInstant(ZoneOffset.UTC),
             Status.DRAFT,
             Visibility.PUBLIC,
             null,
@@ -165,7 +166,7 @@ class RideResourceTest {
                 new RideRequest(
                     "Get Test Ride",
                     null,
-                    LocalDate.parse("2025-01-22").atTime(0, 0),
+                    LocalDate.parse("2025-01-22").atTime(0, 0).toInstant(ZoneOffset.UTC),
                     Status.DRAFT,
                     Visibility.PUBLIC,
                     null,
@@ -203,7 +204,7 @@ class RideResourceTest {
             new RideRequest(
                 "Ride 1",
                 null,
-                LocalDate.parse("2025-01-20").atTime(0, 0),
+                LocalDate.parse("2025-01-20").atTime(0, 0).toInstant(ZoneOffset.UTC),
                 Status.DRAFT,
                 Visibility.PUBLIC,
                 null,
@@ -222,7 +223,7 @@ class RideResourceTest {
             new RideRequest(
                 "Ride 2",
                 null,
-                LocalDate.parse("2025-01-27").atTime(0, 0),
+                LocalDate.parse("2025-01-27").atTime(0, 0).toInstant(ZoneOffset.UTC),
                 Status.DRAFT,
                 Visibility.PUBLIC,
                 null,
@@ -257,7 +258,7 @@ class RideResourceTest {
                 new RideRequest(
                     "Sunday Morning Ride",
                     null,
-                    LocalDate.parse("2025-01-20").atTime(0, 0),
+                    LocalDate.parse("2025-01-20").atTime(0, 0).toInstant(ZoneOffset.UTC),
                     Status.DRAFT,
                     Visibility.PUBLIC,
                     null,
@@ -282,7 +283,7 @@ class RideResourceTest {
             new RideRequest(
                 "Updated Title",
                 null,
-                LocalDate.parse("2025-01-20").atTime(0, 0),
+                LocalDate.parse("2025-01-20").atTime(0, 0).toInstant(ZoneOffset.UTC),
                 Status.PUBLISHED,
                 Visibility.PUBLIC,
                 null,
@@ -311,7 +312,7 @@ class RideResourceTest {
                 new RideRequest(
                     "To be deleted",
                     null,
-                    LocalDate.parse("2025-01-20").atTime(0, 0),
+                    LocalDate.parse("2025-01-20").atTime(0, 0).toInstant(ZoneOffset.UTC),
                     Status.PUBLISHED,
                     Visibility.PUBLIC,
                     null,
@@ -357,7 +358,7 @@ class RideResourceTest {
                 new RideRequest(
                     "Ride",
                     null,
-                    LocalDate.parse("2025-01-20").atTime(0, 0),
+                    LocalDate.parse("2025-01-20").atTime(0, 0).toInstant(ZoneOffset.UTC),
                     Status.PUBLISHED,
                     Visibility.PUBLIC,
                     null,
@@ -398,7 +399,7 @@ class RideResourceTest {
                 new RideRequest(
                     "Ride",
                     null,
-                    LocalDate.parse("2025-01-20").atTime(0, 0),
+                    LocalDate.parse("2025-01-20").atTime(0, 0).toInstant(ZoneOffset.UTC),
                     Status.DRAFT,
                     Visibility.PUBLIC,
                     null,
@@ -439,7 +440,7 @@ class RideResourceTest {
                 new RideRequest(
                     "Ride",
                     null,
-                    LocalDate.parse("2025-01-20").atTime(0, 0),
+                    LocalDate.parse("2025-01-20").atTime(0, 0).toInstant(ZoneOffset.UTC),
                     Status.PUBLISHED,
                     Visibility.PUBLIC,
                     null,

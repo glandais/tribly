@@ -20,7 +20,7 @@ import com.tribly.service.common.TeamEntityService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import org.jboss.logging.Logger;
@@ -44,8 +44,8 @@ public class PostService extends TeamEntityService {
   public PostListResponse listPosts(
       String slug,
       @Nullable Long userId,
-      @Nullable LocalDateTime from,
-      @Nullable LocalDateTime to,
+      @Nullable Instant from,
+      @Nullable Instant to,
       @Nullable Status status,
       int page,
       int size) {

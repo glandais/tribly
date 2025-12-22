@@ -2,24 +2,30 @@ import { useLocation, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useTeam } from './useTeam'
 import { useRide } from './useRide'
+import { usePost } from './usePost'
 import { useRoute } from './useRoute'
 import type { BreadcrumbItem } from '../components/common/Breadcrumb'
 
 export function useBreadcrumb(): BreadcrumbItem[] {
   const location = useLocation()
-  const { teamSlug, rideSlug, routeId } = useParams<{
+  const { teamSlug, rideSlug, postSlug, routeId } = useParams<{
     teamSlug?: string
     rideSlug?: string
+    postSlug?: string
     routeId?: string
   }>()
   const { t: tCommon } = useTranslation('common')
   const { t: tRides } = useTranslation('rides')
+  const { t: tPosts } = useTranslation('posts')
 
   // Fetch team data if we're on a team-related route
   const { data: team } = useTeam(teamSlug)
 
   // Fetch ride data if we're on a ride-related route
   const { data: ride } = useRide(teamSlug, rideSlug)
+
+  // Fetch post data if we're on a post-related route
+  const { data: post } = usePost(teamSlug, postSlug)
 
   // Fetch route data if we're on a route-related route
   const { data: route } = useRoute(teamSlug, routeId)
@@ -87,6 +93,29 @@ export function useBreadcrumb(): BreadcrumbItem[] {
 
         // Edit ride
         if (location.pathname === `/teams/${teamSlug}/rides/${rideSlug}/edit`) {
+          items.push({ label: tCommon('buttons.edit') })
+        }
+      }
+
+      return items
+    }
+
+    // Posts section
+    if (location.pathname.includes('/posts')) {
+      items.push({ label: tPosts('breadcrumb.posts'), path: `/teams/${teamSlug}/posts` })
+
+      // New post
+      if (location.pathname === `/teams/${teamSlug}/posts/new`) {
+        items.push({ label: tCommon('actions.new') })
+        return items
+      }
+
+      // Post detail or edit
+      if (postSlug && post) {
+        items.push({ label: post.name, path: `/teams/${teamSlug}/posts/${postSlug}` })
+
+        // Edit post
+        if (location.pathname === `/teams/${teamSlug}/posts/${postSlug}/edit`) {
           items.push({ label: tCommon('buttons.edit') })
         }
       }

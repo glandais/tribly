@@ -23,7 +23,6 @@ import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @ApplicationScoped
@@ -85,8 +84,7 @@ public class TestDataService {
   }
 
   @Transactional
-  public Ride createRide(
-      Team team, User createdBy, String title, String slug, LocalDateTime dateTime) {
+  public Ride createRide(Team team, User createdBy, String title, String slug, Instant dateTime) {
     Ride ride = new Ride(team, createdBy, title, slug, dateTime);
     ride.setStatus(Status.PUBLISHED);
     ride.setVisibility(Visibility.PUBLIC);
@@ -96,7 +94,7 @@ public class TestDataService {
 
   @Transactional
   public Ride createRideWithStatus(
-      Team team, User createdBy, String title, String slug, LocalDateTime dateTime, Status status) {
+      Team team, User createdBy, String title, String slug, Instant dateTime, Status status) {
     Ride ride = new Ride(team, createdBy, title, slug, dateTime);
     ride.setStatus(status);
     rideRepository.persistAndFlush(ride);
@@ -109,7 +107,7 @@ public class TestDataService {
       User createdBy,
       String title,
       String slug,
-      LocalDateTime dateTime,
+      Instant dateTime,
       Visibility visibility) {
     Ride ride = new Ride(team, createdBy, title, slug, dateTime);
     ride.setVisibility(visibility);
@@ -123,7 +121,7 @@ public class TestDataService {
       User createdBy,
       String title,
       String slug,
-      LocalDateTime date,
+      Instant date,
       Visibility visibility,
       Status status) {
     Ride ride = new Ride(team, createdBy, title, slug, date);
@@ -139,7 +137,7 @@ public class TestDataService {
       User createdBy,
       String title,
       String slug,
-      LocalDateTime dateTime,
+      Instant dateTime,
       Status status,
       java.time.Instant publishAt) {
     Ride ride = new Ride(team, createdBy, title, slug, dateTime);

@@ -30,7 +30,7 @@ public class Ride extends TeamPublicationEntity {
     super();
   }
 
-  public Ride(Team team, User createdBy, String name, String slug, LocalDateTime dateTime) {
+  public Ride(Team team, User createdBy, String name, String slug, Instant dateTime) {
     super(team, createdBy, name, slug, dateTime);
   }
 

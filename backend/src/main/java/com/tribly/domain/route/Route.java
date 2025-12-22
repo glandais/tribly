@@ -6,7 +6,7 @@ import com.tribly.domain.user.User;
 import com.tribly.enums.SurfaceType;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -48,6 +48,6 @@ public class Route extends TeamEntity {
     this.createdBy = createdBy;
     this.name = name;
     this.slug = slug;
-    this.dateTime = LocalDateTime.now();
+    this.dateTime = Instant.now();
   }
 }

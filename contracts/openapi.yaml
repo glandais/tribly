@@ -173,11 +173,6 @@ components:
           description: Keycloak client ID
           examples:
           - tribly-frontend
-    LocalDateTime:
-      type: string
-      format: date-time
-      examples:
-      - 2022-03-10T12:15:50
     MapConfig:
       type: object
       description: Map configuration
@@ -268,7 +263,7 @@ components:
         dateTime:
           description: Post date/time
           type: string
-          $ref: "#/components/schemas/LocalDateTime"
+          $ref: "#/components/schemas/Instant"
         status:
           description: Post status
           type: string
@@ -335,7 +330,7 @@ components:
           type: string
           examples:
           - 2025-06-15
-          $ref: "#/components/schemas/LocalDateTime"
+          $ref: "#/components/schemas/Instant"
         status:
           description: Post status
           type: string
@@ -395,7 +390,7 @@ components:
         dateTime:
           description: Ride date/time
           type: string
-          $ref: "#/components/schemas/LocalDateTime"
+          $ref: "#/components/schemas/Instant"
         status:
           description: Ride status
           type: string
@@ -552,7 +547,7 @@ components:
           type: string
           examples:
           - 2025-06-15
-          $ref: "#/components/schemas/LocalDateTime"
+          $ref: "#/components/schemas/Instant"
         status:
           description: Ride status
           type: string

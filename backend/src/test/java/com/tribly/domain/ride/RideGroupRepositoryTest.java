@@ -10,6 +10,7 @@ import com.tribly.util.TestDataService;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,7 +34,11 @@ class RideGroupRepositoryTest {
     user = dataService.createUser("test@example.com", "Test User");
     ride =
         dataService.createRide(
-            team, user, "Test Ride", "test-ride", LocalDate.of(2025, 1, 15).atTime(0, 0));
+            team,
+            user,
+            "Test Ride",
+            "test-ride",
+            LocalDate.of(2025, 1, 15).atTime(0, 0).toInstant(ZoneOffset.UTC));
   }
 
   @Test
@@ -51,7 +56,11 @@ class RideGroupRepositoryTest {
     RideGroup group = dataService.createRideGroup(ride, "Fast Group");
     Ride otherRide =
         dataService.createRide(
-            team, user, "Other Ride", "other-ride", LocalDate.of(2025, 1, 20).atTime(0, 0));
+            team,
+            user,
+            "Other Ride",
+            "other-ride",
+            LocalDate.of(2025, 1, 20).atTime(0, 0).toInstant(ZoneOffset.UTC));
 
     Optional<RideGroup> result =
         rideGroupRepository.findByIdAndRide(group.getId(), otherRide.getId());
@@ -110,7 +119,11 @@ class RideGroupRepositoryTest {
   void findByRide_shouldReturnEmptyForRideWithoutGroups() {
     Ride emptyRide =
         dataService.createRide(
-            team, user, "Empty Ride", "empty-ride", LocalDate.of(2025, 1, 20).atTime(0, 0));
+            team,
+            user,
+            "Empty Ride",
+            "empty-ride",
+            LocalDate.of(2025, 1, 20).atTime(0, 0).toInstant(ZoneOffset.UTC));
 
     List<RideGroup> result = rideGroupRepository.findByRide(emptyRide.getId());
 

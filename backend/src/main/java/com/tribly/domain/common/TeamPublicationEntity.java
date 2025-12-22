@@ -8,7 +8,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import lombok.Getter;
 import lombok.Setter;
 import org.jspecify.annotations.Nullable;
@@ -29,7 +28,7 @@ public abstract class TeamPublicationEntity extends TeamEntity {
   public TeamPublicationEntity() {}
 
   public TeamPublicationEntity(
-      Team team, User createdBy, String name, String slug, LocalDateTime dateTime) {
+      Team team, User createdBy, String name, String slug, Instant dateTime) {
     this.team = team;
     this.createdBy = createdBy;
     this.name = name;

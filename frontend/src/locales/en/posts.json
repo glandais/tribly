@@ -1,0 +1,71 @@
+{
+  "status": {
+    "DRAFT": "Draft",
+    "PUBLISHED": "Published",
+    "CANCELLED": "Cancelled",
+    "COMPLETED": "Completed"
+  },
+  "visibility": {
+    "PUBLIC": "Public",
+    "TEAM": "Team",
+    "PRIVATE": "Private"
+  },
+  "list": {
+    "title": "Posts",
+    "createPost": "Create Post",
+    "emptyAdmin": "No posts yet. Create the first one!",
+    "emptyMember": "No posts yet."
+  },
+  "create": {
+    "title": "New Post",
+    "nameLabel": "Title",
+    "namePlaceholder": "Enter the post title",
+    "descriptionLabel": "Description",
+    "descriptionPlaceholder": "Describe your post...",
+    "dateTimeLabel": "Date and Time",
+    "dateTimeHint": "Date and time of the post",
+    "visibilityLabel": "Visibility",
+    "statusLabel": "Status",
+    "publishAtLabel": "Scheduled Publication",
+    "publishAtHint": "Leave blank to publish immediately",
+    "submit": "Create Post",
+    "cancel": "Cancel",
+    "error": "An error occurred while creating the post"
+  },
+  "edit": {
+    "title": "Edit Post",
+    "submit": "Save Changes",
+    "error": "An error occurred while updating the post"
+  },
+  "detail": {
+    "notFound": {
+      "title": "Post not found",
+      "message": "This post does not exist or has been deleted"
+    },
+    "scheduledPublish": "Scheduled for publication on {{date}}",
+    "actions": {
+      "edit": "Edit",
+      "delete": "Delete",
+      "publish": "Publish",
+      "unpublish": "Unpublish",
+      "cancel": "Cancel",
+      "uncancel": "Reactivate"
+    },
+    "confirmations": {
+      "delete": "Are you sure you want to delete this post? This action cannot be undone.",
+      "publish": "Do you want to publish this post? It will be visible according to visibility settings.",
+      "unpublish": "Do you want to unpublish this post? It will become a draft again.",
+      "cancel": "Do you want to cancel this post? It will no longer be visible.",
+      "uncancel": "Do you want to reactivate this post? It will be published again."
+    }
+  },
+  "card": {
+    "publishedOn": "Published on {{date}}"
+  },
+  "breadcrumb": {
+    "posts": "Posts",
+    "newPost": "New Post",
+    "editPost": "Edit"
+  },
+  "loading": "Loading..."
+}

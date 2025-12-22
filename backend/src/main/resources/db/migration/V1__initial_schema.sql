@@ -78,7 +78,7 @@ create table team_entities (
                                start_lng numeric(11,8),
                                created_at timestamp(6) with time zone not null,
                                created_by_id bigint not null,
-                               date_time timestamp(6) not null,
+                               date_time timestamp(6) with time zone not null,
                                id bigint not null,
                                publish_at timestamp(6) with time zone,
                                route_id bigint,

@@ -16,7 +16,7 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.net.URI;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
@@ -61,8 +61,8 @@ public class RideResource extends AbstractAuthenticatedResource {
 
     Long userId = getCurrentUserIdOrNull();
 
-    LocalDateTime from = fromStr != null ? LocalDateTime.parse(fromStr) : null;
-    LocalDateTime to = toStr != null ? LocalDateTime.parse(toStr) : null;
+    Instant from = fromStr != null ? Instant.parse(fromStr) : null;
+    Instant to = toStr != null ? Instant.parse(toStr) : null;
 
     RideListResponse rides = rideService.listRides(slug, userId, from, to, status, page, size);
 

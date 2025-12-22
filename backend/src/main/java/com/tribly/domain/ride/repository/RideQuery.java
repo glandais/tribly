@@ -3,7 +3,7 @@ package com.tribly.domain.ride.repository;
 import com.tribly.domain.common.repository.PageInterface;
 import com.tribly.enums.Status;
 import com.tribly.enums.Visibility;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import org.jspecify.annotations.Nullable;
 
@@ -13,7 +13,7 @@ public record RideQuery(
     int size,
     @Nullable String slug,
     @Nullable Visibility visibility,
-    @Nullable LocalDateTime from,
-    @Nullable LocalDateTime to,
+    @Nullable Instant from,
+    @Nullable Instant to,
     List<Status> statuses)
     implements PageInterface {}

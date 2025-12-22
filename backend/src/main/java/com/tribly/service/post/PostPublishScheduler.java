@@ -35,6 +35,7 @@ public class PostPublishScheduler {
 
     for (Post post : posts) {
       post.setStatus(Status.PUBLISHED);
+      post.setDateTime(post.getPublishAt());
       post.setPublishAt(null); // Clear after publishing
       postRepository.persist(post);
       LOG.infov(

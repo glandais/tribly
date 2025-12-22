@@ -26,7 +26,7 @@ import com.tribly.service.common.TeamEntityService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -58,8 +58,8 @@ public class RideService extends TeamEntityService {
   public RideListResponse listRides(
       String slug,
       @Nullable Long userId,
-      @Nullable LocalDateTime from,
-      @Nullable LocalDateTime to,
+      @Nullable Instant from,
+      @Nullable Instant to,
       @Nullable Status status,
       int page,
       int size) {

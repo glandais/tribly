@@ -15,6 +15,7 @@ import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,8 +39,18 @@ class RideRepositoryTest {
 
   @Test
   void find_shouldReturnRidesByTeam() {
-    dataService.createRide(team, user, "Ride 1", "ride-1", LocalDate.of(2025, 1, 15).atTime(0, 0));
-    dataService.createRide(team, user, "Ride 2", "ride-2", LocalDate.of(2025, 1, 20).atTime(0, 0));
+    dataService.createRide(
+        team,
+        user,
+        "Ride 1",
+        "ride-1",
+        LocalDate.of(2025, 1, 15).atTime(0, 0).toInstant(ZoneOffset.UTC));
+    dataService.createRide(
+        team,
+        user,
+        "Ride 2",
+        "ride-2",
+        LocalDate.of(2025, 1, 20).atTime(0, 0).toInstant(ZoneOffset.UTC));
 
     TeamPublicationQuery query =
         new TeamPublicationQuery(
@@ -52,8 +63,18 @@ class RideRepositoryTest {
 
   @Test
   void find_shouldFilterBySlug() {
-    dataService.createRide(team, user, "Ride 1", "ride-1", LocalDate.of(2025, 1, 15).atTime(0, 0));
-    dataService.createRide(team, user, "Ride 2", "ride-2", LocalDate.of(2025, 1, 20).atTime(0, 0));
+    dataService.createRide(
+        team,
+        user,
+        "Ride 1",
+        "ride-1",
+        LocalDate.of(2025, 1, 15).atTime(0, 0).toInstant(ZoneOffset.UTC));
+    dataService.createRide(
+        team,
+        user,
+        "Ride 2",
+        "ride-2",
+        LocalDate.of(2025, 1, 20).atTime(0, 0).toInstant(ZoneOffset.UTC));
 
     TeamPublicationQuery query =
         new TeamPublicationQuery(
@@ -66,9 +87,24 @@ class RideRepositoryTest {
 
   @Test
   void find_shouldFilterByDateRange() {
-    dataService.createRide(team, user, "Ride 1", "ride-1", LocalDate.of(2025, 1, 10).atTime(0, 0));
-    dataService.createRide(team, user, "Ride 2", "ride-2", LocalDate.of(2025, 1, 20).atTime(0, 0));
-    dataService.createRide(team, user, "Ride 3", "ride-3", LocalDate.of(2025, 1, 30).atTime(0, 0));
+    dataService.createRide(
+        team,
+        user,
+        "Ride 1",
+        "ride-1",
+        LocalDate.of(2025, 1, 10).atTime(0, 0).toInstant(ZoneOffset.UTC));
+    dataService.createRide(
+        team,
+        user,
+        "Ride 2",
+        "ride-2",
+        LocalDate.of(2025, 1, 20).atTime(0, 0).toInstant(ZoneOffset.UTC));
+    dataService.createRide(
+        team,
+        user,
+        "Ride 3",
+        "ride-3",
+        LocalDate.of(2025, 1, 30).atTime(0, 0).toInstant(ZoneOffset.UTC));
 
     TeamPublicationQuery query =
         new TeamPublicationQuery(
@@ -77,8 +113,8 @@ class RideRepositoryTest {
             10,
             null,
             null,
-            LocalDate.of(2025, 1, 15).atTime(0, 0),
-            LocalDate.of(2025, 1, 25).atTime(0, 0),
+            LocalDate.of(2025, 1, 15).atTime(0, 0).toInstant(ZoneOffset.UTC),
+            LocalDate.of(2025, 1, 25).atTime(0, 0).toInstant(ZoneOffset.UTC),
             List.of(Status.PUBLISHED));
     TriblyPage<Ride> result = rideRepository.find(query);
 
@@ -93,14 +129,14 @@ class RideRepositoryTest {
         user,
         "Public Ride",
         "public-ride",
-        LocalDate.of(2025, 1, 15).atTime(0, 0),
+        LocalDate.of(2025, 1, 15).atTime(0, 0).toInstant(ZoneOffset.UTC),
         Visibility.PUBLIC);
     dataService.createRideWithVisibility(
         team,
         user,
         "Team Ride",
         "team-ride",
-        LocalDate.of(2025, 1, 20).atTime(0, 0),
+        LocalDate.of(2025, 1, 20).atTime(0, 0).toInstant(ZoneOffset.UTC),
         Visibility.TEAM);
 
     TeamPublicationQuery query =
@@ -119,14 +155,14 @@ class RideRepositoryTest {
         user,
         "Draft Ride",
         "draft-ride",
-        LocalDate.of(2025, 1, 15).atTime(0, 0),
+        LocalDate.of(2025, 1, 15).atTime(0, 0).toInstant(ZoneOffset.UTC),
         Status.DRAFT);
     dataService.createRideWithStatus(
         team,
         user,
         "Published Ride",
         "published-ride",
-        LocalDate.of(2025, 1, 20).atTime(0, 0),
+        LocalDate.of(2025, 1, 20).atTime(0, 0).toInstant(ZoneOffset.UTC),
         Status.PUBLISHED);
 
     TeamPublicationQuery query =
@@ -141,10 +177,18 @@ class RideRepositoryTest {
   @Test
   void find_shouldIgnoreDeletedRides() {
     dataService.createRide(
-        team, user, "Visible Ride", "visible", LocalDate.of(2025, 1, 15).atTime(0, 0));
+        team,
+        user,
+        "Visible Ride",
+        "visible",
+        LocalDate.of(2025, 1, 15).atTime(0, 0).toInstant(ZoneOffset.UTC));
     Ride deletedRide =
         dataService.createRide(
-            team, user, "Deleted Ride", "deleted", LocalDate.of(2025, 1, 20).atTime(0, 0));
+            team,
+            user,
+            "Deleted Ride",
+            "deleted",
+            LocalDate.of(2025, 1, 20).atTime(0, 0).toInstant(ZoneOffset.UTC));
     dataService.deleteRide(deletedRide);
 
     TeamPublicationQuery query =
@@ -159,7 +203,11 @@ class RideRepositoryTest {
   @Test
   void existsByTeamAndSlug_shouldReturnTrueWhenExists() {
     dataService.createRide(
-        team, user, "Test Ride", "test-ride", LocalDate.of(2025, 1, 15).atTime(0, 0));
+        team,
+        user,
+        "Test Ride",
+        "test-ride",
+        LocalDate.of(2025, 1, 15).atTime(0, 0).toInstant(ZoneOffset.UTC));
 
     boolean exists = rideRepository.existsByTeamAndSlug(team.getId(), "test-ride");
 
@@ -180,7 +228,7 @@ class RideRepositoryTest {
         user,
         "Auto Publish 1",
         "auto-1",
-        LocalDate.of(2025, 1, 15).atTime(0, 0),
+        LocalDate.of(2025, 1, 15).atTime(0, 0).toInstant(ZoneOffset.UTC),
         Status.DRAFT,
         Instant.now().minusSeconds(3600));
 
@@ -189,7 +237,7 @@ class RideRepositoryTest {
         user,
         "Auto Publish 2",
         "auto-2",
-        LocalDate.of(2025, 1, 20).atTime(0, 0),
+        LocalDate.of(2025, 1, 20).atTime(0, 0).toInstant(ZoneOffset.UTC),
         Status.DRAFT,
         Instant.now().plusSeconds(3600));
 
@@ -206,7 +254,7 @@ class RideRepositoryTest {
         user,
         "No Publish At",
         "no-publish",
-        LocalDate.of(2025, 1, 15).atTime(0, 0),
+        LocalDate.of(2025, 1, 15).atTime(0, 0).toInstant(ZoneOffset.UTC),
         Status.DRAFT);
 
     List<Ride> result = rideRepository.findPublicationsToAutoPublish(Status.DRAFT, Instant.now());

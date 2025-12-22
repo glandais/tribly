@@ -6,7 +6,6 @@ import com.tribly.enums.Visibility;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.jspecify.annotations.Nullable;
 
@@ -17,7 +16,7 @@ public record PostRequest(
         String name,
     @Nullable @Schema(description = "Post description") @Size(max = 5000) String description,
     @Schema(description = "Post date/time", examples = "2025-06-15", required = true)
-        LocalDateTime dateTime,
+        Instant dateTime,
     @Schema(description = "Post status", required = true) Status status,
     @Schema(description = "Visibility level", required = true) Visibility visibility,
     @Nullable @Schema(description = "Publication timestamp (for scheduled publishing)")

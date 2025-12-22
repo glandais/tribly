@@ -5,7 +5,6 @@ import com.tribly.enums.Status;
 import com.tribly.enums.Visibility;
 import com.tribly.infrastructure.id.TsidUtils;
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.List;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.jspecify.annotations.Nullable;
@@ -17,7 +16,7 @@ public record RideDto(
     @Schema(description = "Ride URL slug", required = true) String slug,
     @Schema(description = "Ride name", required = true) String name,
     @Nullable @Schema(description = "Ride description") String description,
-    @Schema(description = "Ride date/time", required = true) LocalDateTime dateTime,
+    @Schema(description = "Ride date/time", required = true) Instant dateTime,
     @Schema(description = "Ride status", required = true) Status status,
     @Schema(description = "Visibility level", required = true) Visibility visibility,
     @Nullable @Schema(description = "Route id") String routeId,
