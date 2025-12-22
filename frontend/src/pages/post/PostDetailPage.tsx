@@ -7,6 +7,7 @@ import { usePost, useUpdatePost, useDeletePost } from '../../hooks/usePost'
 import { Status } from '../../hooks/usePost'
 import { LoadingPage, LoadingSpinner } from '../../components/common/LoadingSpinner'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
+import { useFormattedDate } from '../../utils/dateFormat'
 
 const statusColors: Record<Status, string> = {
   [Status.Draft]: 'bg-gray-100 text-gray-800',
@@ -15,7 +16,8 @@ const statusColors: Record<Status, string> = {
 }
 
 export function PostDetailPage() {
-  const { t, i18n } = useTranslation('posts')
+  const { t } = useTranslation('posts')
+  const { formatDate, formatDateTime, formatTime } = useFormattedDate()
   const { teamSlug, postSlug } = useParams<{ teamSlug: string; postSlug: string }>()
   const [showUnpublishConfirm, setShowUnpublishConfirm] = useState(false)
   const [showCancelConfirm, setShowCancelConfirm] = useState(false)
@@ -53,13 +55,7 @@ export function PostDetailPage() {
   const isOrganizer = team?.role === 'ORGANIZER'
   const canEdit = isAdmin || isOrganizer
 
-  const postDate = new Date(post.dateTime)
-  const formattedDate = postDate.toLocaleDateString(i18n.language, {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  })
+  const formattedDate = formatDate(post.dateTime)
 
   const handlePublish = () => {
     updateMutation.mutate({ ...post, status: Status.Published })
@@ -108,10 +104,7 @@ export function PostDetailPage() {
               <div className="mt-2 text-sm text-amber-600 flex items-center">
                 <ClockIcon className="w-4 h-4 mr-1" />
                 {t('detail.scheduledPublish', {
-                  date: new Date(post.publishAt).toLocaleString(i18n.language, {
-                    dateStyle: 'medium',
-                    timeStyle: 'short',
-                  }),
+                  date: formatDateTime(post.publishAt),
                 })}
               </div>
             )}
@@ -122,7 +115,7 @@ export function PostDetailPage() {
               </span>
               <span className="flex items-center">
                 <ClockIcon className="w-4 h-4 mr-1" />
-                {postDate.toLocaleTimeString(i18n.language, { hour: '2-digit', minute: '2-digit' })}
+                {formatTime(post.dateTime)}
               </span>
             </div>
           </div>

@@ -15,6 +15,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { LoadingPage, LoadingSpinner } from '../../components/common/LoadingSpinner'
 import { RideGroupCard } from '../../components/ride/RideGroupCard'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
+import { useFormattedDate } from '../../utils/dateFormat'
 
 const statusColors: Record<Status, string> = {
   [Status.Draft]: 'bg-gray-100 text-gray-800',
@@ -23,7 +24,8 @@ const statusColors: Record<Status, string> = {
 }
 
 export function RideDetailPage() {
-  const { t, i18n } = useTranslation('rides')
+  const { t } = useTranslation('rides')
+  const { formatDate, formatDateTime, formatTime } = useFormattedDate()
   const { teamSlug, rideSlug } = useParams<{ teamSlug: string; rideSlug: string }>()
   const { isAuthenticated, user } = useAuth()
   const [joiningGroupId, setJoiningGroupId] = useState<string | null>(null)
@@ -71,13 +73,7 @@ export function RideDetailPage() {
       : false
   const canJoinRide = isMember && ride.status === Status.Published && !hasJoinedAnyGroup
 
-  const rideDate = new Date(ride.dateTime)
-  const formattedDate = rideDate.toLocaleDateString(i18n.language, {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  })
+  const formattedDate = formatDate(ride.dateTime)
 
   const handlePublish = () => {
     updateMutation.mutate({ ...ride, status: Status.Published })
@@ -139,10 +135,7 @@ export function RideDetailPage() {
               <div className="mt-2 text-sm text-amber-600 flex items-center">
                 <ClockIcon className="w-4 h-4 mr-1" />
                 {t('detail.scheduledPublish', {
-                  date: new Date(ride.publishAt).toLocaleString(i18n.language, {
-                    dateStyle: 'medium',
-                    timeStyle: 'short',
-                  }),
+                  date: formatDateTime(ride.publishAt),
                 })}
               </div>
             )}
@@ -153,7 +146,7 @@ export function RideDetailPage() {
               </span>
               <span className="flex items-center">
                 <ClockIcon className="w-4 h-4 mr-1" />
-                {rideDate.toLocaleTimeString(i18n.language, { hour: '2-digit', minute: '2-digit' })}
+                {formatTime(ride.dateTime)}
               </span>
               <span className="flex items-center">
                 <UsersIcon className="w-4 h-4 mr-1" />

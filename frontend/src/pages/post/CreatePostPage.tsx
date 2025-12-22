@@ -6,6 +6,7 @@ import { useTeam } from '../../hooks/useTeam'
 import { useCreatePost, Visibility, Status } from '../../hooks/usePost'
 import { LoadingPage, LoadingSpinner } from '../../components/common/LoadingSpinner'
 import { ApiClientError } from '../../lib/apiClient'
+import { toDateTimeLocalValue, fromDateTimeLocalValue } from '../../utils/dateFormat'
 
 export function CreatePostPage() {
   const { t } = useTranslation('posts')
@@ -15,7 +16,7 @@ export function CreatePostPage() {
 
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
-  const [dateTime, setDateTime] = useState(new Date().toISOString().slice(0, 16))
+  const [dateTime, setDateTime] = useState(toDateTimeLocalValue(new Date()))
   const [visibility, setVisibility] = useState<Visibility>(Visibility.Team)
   const [status, setStatus] = useState<Status>(Status.Draft)
   const [publishAt, setPublishAt] = useState('')
@@ -41,10 +42,10 @@ export function CreatePostPage() {
     createMutation.mutate({
       name,
       description: description || undefined,
-      dateTime: new Date(dateTime).toISOString(),
+      dateTime: fromDateTimeLocalValue(dateTime).toISOString(),
       status,
       visibility,
-      publishAt: publishAt ? new Date(publishAt).toISOString() : undefined,
+      publishAt: publishAt ? fromDateTimeLocalValue(publishAt).toISOString() : undefined,
     })
   }
 
@@ -215,7 +216,7 @@ export function CreatePostPage() {
             id="publishAt"
             value={publishAt}
             onChange={(e) => setPublishAt(e.target.value)}
-            min={new Date().toISOString().slice(0, 16)}
+            min={toDateTimeLocalValue(new Date())}
             className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
           />
           <p className="mt-1 text-sm text-gray-500">{t('create.publishAtHint')}</p>

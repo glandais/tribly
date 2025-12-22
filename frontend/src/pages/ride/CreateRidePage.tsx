@@ -10,6 +10,7 @@ import { RoutePickerModal } from '../../components/route/RoutePickerModal'
 import { CreateRouteModal } from '../../components/route/CreateRouteModal'
 import { RoutePreview } from '../../components/route/RoutePreview'
 import type { RouteDto } from '../../api/api'
+import { toDateTimeLocalValue, fromDateTimeLocalValue } from '../../utils/dateFormat'
 
 export function CreateRidePage() {
   const { t } = useTranslation('rides')
@@ -17,13 +18,14 @@ export function CreateRidePage() {
   const { teamSlug } = useParams<{ teamSlug: string }>()
   const { data: team, isLoading: isLoadingTeam } = useTeam(teamSlug)
 
-  // Calculate next Sunday
+  // Calculate next Sunday at 8am
   const getNextSunday = () => {
     const today = new Date()
     const daysUntilSunday = (7 - today.getDay()) % 7 || 7
     const nextSunday = new Date(today)
     nextSunday.setDate(today.getDate() + daysUntilSunday)
-    return nextSunday.toISOString().split('T')[0] + 'T08:00'
+    nextSunday.setHours(8, 0, 0, 0)
+    return toDateTimeLocalValue(nextSunday)
   }
 
   const [name, setName] = useState('')
@@ -64,10 +66,10 @@ export function CreateRidePage() {
     createMutation.mutate({
       name,
       description: description || undefined,
-      dateTime,
+      dateTime: fromDateTimeLocalValue(dateTime).toISOString(),
       status: 'DRAFT',
       visibility,
-      publishAt: publishAt ? new Date(publishAt).toISOString() : undefined,
+      publishAt: publishAt ? fromDateTimeLocalValue(publishAt).toISOString() : undefined,
       routeId: rideRouteId || undefined,
       groups: filteredGroups,
     })
@@ -173,7 +175,7 @@ export function CreateRidePage() {
               value={dateTime}
               onChange={(e) => setDateTime(e.target.value)}
               required
-              min={new Date().toISOString().split('T')[0]}
+              min={toDateTimeLocalValue(new Date())}
               className={`mt-1 block w-full px-4 py-2 border rounded-lg focus:ring-indigo-500 focus:border-indigo-500 ${
                 getFieldError('date') ? 'border-red-300' : 'border-gray-300'
               }`}
@@ -269,7 +271,7 @@ export function CreateRidePage() {
             id="publishAt"
             value={publishAt}
             onChange={(e) => setPublishAt(e.target.value)}
-            min={new Date().toISOString().slice(0, 16)}
+            min={toDateTimeLocalValue(new Date())}
             className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
           />
           <p className="mt-1 text-sm text-gray-500">{t('create.form.publishAt.hint')}</p>

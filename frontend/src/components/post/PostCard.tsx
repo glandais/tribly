@@ -4,6 +4,7 @@ import { Status } from '../../hooks/usePost'
 import type { PostDto } from '../../hooks/usePost'
 import { Card, CardContent, CardTitle, CardDescription } from '../common/card'
 import { Badge, VisibilityBadge, Stat, StatGroup, CardSkeleton } from '../common/card'
+import { useFormattedDate } from '../../utils/dateFormat'
 
 interface PostCardProps {
   post: PostDto
@@ -17,12 +18,9 @@ const statusVariants: Record<Status, 'gray' | 'green' | 'red' | 'blue'> = {
 }
 
 export function PostCard({ post, teamSlug }: PostCardProps) {
-  const { t, i18n } = useTranslation('posts')
-  const postDate = new Date(post.dateTime)
-  const formattedDate = postDate.toLocaleString(i18n.language, {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  })
+  const { t } = useTranslation('posts')
+  const { formatDateTime } = useFormattedDate()
+  const formattedDate = formatDateTime(post.dateTime)
 
   const calendarIcon = <CalendarIcon />
 

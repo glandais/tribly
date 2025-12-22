@@ -5,6 +5,7 @@ import { LoadingSpinner } from '../common/LoadingSpinner'
 import { ConfirmDialog } from '../common/ConfirmDialog'
 import type { MemberDto } from '../../hooks/useTeam'
 import { TeamRole } from '@/api'
+import { useFormattedDate } from '../../utils/dateFormat'
 
 interface TeamMemberListProps {
   members: MemberDto[]
@@ -31,8 +32,9 @@ export function TeamMemberList({
   isUpdating = false,
   isRemoving = false,
 }: TeamMemberListProps) {
-  const { t, i18n } = useTranslation('teams')
+  const { t } = useTranslation('teams')
   const { t: tCommon } = useTranslation('common')
+  const { formatDate } = useFormattedDate()
   const [editingMemberId, setEditingMemberId] = useState<string | null>(null)
   const [selectedRole, setSelectedRole] = useState<TeamRole>(TeamRole.Member)
   const [showRemoveConfirm, setShowRemoveConfirm] = useState(false)
@@ -60,15 +62,6 @@ export function TeamMemberList({
       setShowRemoveConfirm(false)
       setMemberToRemove(null)
     }
-  }
-
-  const formatDate = (dateStr: string | null | undefined) => {
-    if (!dateStr) return tCommon('unknown')
-    return new Date(dateStr).toLocaleDateString(i18n.language, {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    })
   }
 
   return (
@@ -100,7 +93,9 @@ export function TeamMemberList({
                       )}
                     </p>
                     <p className="text-xs text-gray-400">
-                      {t('detail.members.joined', { date: formatDate(member.joinedAt) })}
+                      {t('detail.members.joined', {
+                        date: formatDate(member.joinedAt) || tCommon('unknown')
+                      })}
                     </p>
                   </div>
                 </div>

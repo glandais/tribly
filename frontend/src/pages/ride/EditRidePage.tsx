@@ -11,6 +11,7 @@ import { CreateRouteModal } from '../../components/route/CreateRouteModal'
 import { RoutePreview } from '../../components/route/RoutePreview'
 import { RoutePreviewCompact } from '../../components/route/RoutePreviewCompact'
 import type { RouteDto } from '../../api/api'
+import { toDateTimeLocalValue, fromDateTimeLocalValue } from '../../utils/dateFormat'
 
 interface EditableGroup {
   id?: string
@@ -54,11 +55,10 @@ export function EditRidePage() {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- Form initialization from server data
       setName(ride.name)
       setDescription(ride.description || '')
-      setDateTime(ride.dateTime)
+      setDateTime(toDateTimeLocalValue(ride.dateTime))
       setVisibility(ride.visibility)
       setStatus(ride.status)
-      // Convert ISO string to datetime-local format (YYYY-MM-DDTHH:mm)
-      setPublishAt(ride.publishAt ? new Date(ride.publishAt).toISOString().slice(0, 16) : '')
+      setPublishAt(ride.publishAt ? toDateTimeLocalValue(ride.publishAt) : '')
       setRideRouteId(ride.routeId || null)
       setGroups(
         ride.groups?.map((g) => ({
@@ -99,9 +99,9 @@ export function EditRidePage() {
       name,
       status,
       description: description || undefined,
-      dateTime,
+      dateTime: fromDateTimeLocalValue(dateTime).toISOString(),
       visibility,
-      publishAt: publishAt ? new Date(publishAt).toISOString() : undefined,
+      publishAt: publishAt ? fromDateTimeLocalValue(publishAt).toISOString() : undefined,
       routeId: rideRouteId || undefined,
       groups: filteredGroups,
     })

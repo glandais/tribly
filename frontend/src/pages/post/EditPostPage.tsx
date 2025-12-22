@@ -6,6 +6,7 @@ import { useTeam } from '../../hooks/useTeam'
 import { usePost, useUpdatePost, Visibility, Status } from '../../hooks/usePost'
 import { LoadingPage, LoadingSpinner } from '../../components/common/LoadingSpinner'
 import { ApiClientError } from '../../lib/apiClient'
+import { toDateTimeLocalValue, fromDateTimeLocalValue } from '../../utils/dateFormat'
 
 export function EditPostPage() {
   const { t } = useTranslation('posts')
@@ -31,11 +32,10 @@ export function EditPostPage() {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- Form initialization from server data
       setName(post.name)
       setDescription(post.description || '')
-      setDateTime(new Date(post.dateTime).toISOString().slice(0, 16))
+      setDateTime(toDateTimeLocalValue(post.dateTime))
       setVisibility(post.visibility)
       setStatus(post.status)
-      // Convert ISO string to datetime-local format (YYYY-MM-DDTHH:mm)
-      setPublishAt(post.publishAt ? new Date(post.publishAt).toISOString().slice(0, 16) : '')
+      setPublishAt(post.publishAt ? toDateTimeLocalValue(post.publishAt) : '')
       setInitialized(true)
     }
   }, [post, initialized])
@@ -63,10 +63,10 @@ export function EditPostPage() {
     await updateMutation.mutateAsync({
       name,
       description: description || undefined,
-      dateTime: new Date(dateTime).toISOString(),
+      dateTime: fromDateTimeLocalValue(dateTime).toISOString(),
       status,
       visibility,
-      publishAt: publishAt ? new Date(publishAt).toISOString() : undefined,
+      publishAt: publishAt ? fromDateTimeLocalValue(publishAt).toISOString() : undefined,
     })
 
     navigate(`/teams/${teamSlug}/posts/${postSlug}`)
@@ -239,7 +239,7 @@ export function EditPostPage() {
             id="publishAt"
             value={publishAt}
             onChange={(e) => setPublishAt(e.target.value)}
-            min={new Date().toISOString().slice(0, 16)}
+            min={toDateTimeLocalValue(new Date())}
             className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
           />
           <p className="mt-1 text-sm text-gray-500">{t('create.publishAtHint')}</p>

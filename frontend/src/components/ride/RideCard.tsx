@@ -4,6 +4,7 @@ import { Status } from '../../hooks/useRide'
 import type { RideDto } from '../../hooks/useRide'
 import { Card, CardContent, CardTitle, CardDescription } from '../common/card'
 import { Badge, VisibilityBadge, Stat, StatGroup, CardSkeleton } from '../common/card'
+import { useFormattedDate } from '../../utils/dateFormat'
 
 interface RideCardProps {
   ride: RideDto
@@ -17,12 +18,9 @@ const statusVariants: Record<Status, 'gray' | 'green' | 'red'> = {
 }
 
 export function RideCard({ ride, teamSlug }: RideCardProps) {
-  const { t, i18n } = useTranslation('rides')
-  const rideDate = new Date(ride.dateTime)
-  const formattedDate = rideDate.toLocaleString(i18n.language, {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  })
+  const { t } = useTranslation('rides')
+  const { formatDateTime } = useFormattedDate()
+  const formattedDate = formatDateTime(ride.dateTime)
 
   const calendarIcon = <CalendarIcon />
   const participantsIcon = <UsersIcon />
