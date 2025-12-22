@@ -1038,18 +1038,6 @@
             "examples" : [ "John Doe" ],
             "minLength" : 1,
             "maxLength" : 255
-          },
-          "locale" : {
-            "type" : "string",
-            "description" : "User locale (e.g. 'en', 'fr')",
-            "examples" : [ "en" ],
-            "maxLength" : 10
-          },
-          "timezone" : {
-            "type" : "string",
-            "description" : "User timezone (e.g. 'Europe/Paris')",
-            "examples" : [ "Europe/Paris" ],
-            "maxLength" : 50
           }
         }
       },
@@ -1075,16 +1063,6 @@
             "type" : "string",
             "description" : "User avatar URL"
           },
-          "locale" : {
-            "type" : "string",
-            "description" : "User locale (e.g. 'en', 'fr')",
-            "examples" : [ "en" ]
-          },
-          "timezone" : {
-            "type" : "string",
-            "description" : "User timezone (e.g. 'Europe/Paris')",
-            "examples" : [ "Europe/Paris" ]
-          },
           "createdAt" : {
             "description" : "Account creation timestamp",
             "type" : "string",
@@ -1100,7 +1078,7 @@
     "securitySchemes" : {
       "SecurityScheme" : {
         "type" : "openIdConnect",
-        "openIdConnectUrl" : "http://localhost:8180/realms/quarkus/.well-known/openid-configuration",
+        "openIdConnectUrl" : "http://localhost:8180/realms/tribly/.well-known/openid-configuration",
         "description" : "Authentication"
       }
     }

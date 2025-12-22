@@ -1,36 +1,11 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../../hooks/useAuth'
 import { LoadingSpinner } from '../../components/common/LoadingSpinner'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 
-// Available timezones with their IANA identifiers
-const TIMEZONES = [
-  'UTC',
-  'Europe/London',
-  'Europe/Paris',
-  'Europe/Berlin',
-  'America/New_York',
-  'America/Los_Angeles',
-]
-
-// Format timezone name using browser's Intl API
-function formatTimezoneName(timezone: string, locale: string): string {
-  try {
-    const formatter = new Intl.DateTimeFormat(locale, {
-      timeZone: timezone,
-      timeZoneName: 'long',
-    })
-    const parts = formatter.formatToParts(new Date())
-    const tzPart = parts.find((p) => p.type === 'timeZoneName')
-    return tzPart?.value || timezone
-  } catch {
-    return timezone
-  }
-}
-
 export function UserProfilePage() {
-  const { t, i18n } = useTranslation('profile')
+  const { t } = useTranslation('profile')
   const { t: tCommon } = useTranslation('common')
   const {
     user,
@@ -44,16 +19,7 @@ export function UserProfilePage() {
 
   const [isEditing, setIsEditing] = useState(false)
   const [displayName, setDisplayName] = useState(user?.displayName || '')
-  const [locale, setLocale] = useState(user?.locale || 'en')
-  const [timezone, setTimezone] = useState(user?.timezone || 'UTC')
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
-
-  // Sync i18n language when user locale changes
-  useEffect(() => {
-    if (user?.locale && user.locale !== i18n.language) {
-      i18n.changeLanguage(user.locale)
-    }
-  }, [user?.locale, i18n])
 
   if (isLoading || !user) {
     return (
@@ -65,14 +31,10 @@ export function UserProfilePage() {
 
   const handleSave = () => {
     updateProfile(
-      { displayName, locale, timezone },
+      { displayName },
       {
         onSuccess: () => {
           setIsEditing(false)
-          // Change i18n language immediately
-          if (locale !== i18n.language) {
-            i18n.changeLanguage(locale)
-          }
         },
       }
     )
@@ -122,39 +84,6 @@ export function UserProfilePage() {
                 />
               </div>
 
-              <div>
-                <label htmlFor="locale" className="block text-sm font-medium text-gray-700">
-                  {t('form.language.label')}
-                </label>
-                <select
-                  id="locale"
-                  value={locale}
-                  onChange={(e) => setLocale(e.target.value)}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-xs focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                >
-                  <option value="en">{t('form.language.options.en')}</option>
-                  <option value="fr">{t('form.language.options.fr')}</option>
-                </select>
-              </div>
-
-              <div>
-                <label htmlFor="timezone" className="block text-sm font-medium text-gray-700">
-                  {t('form.timezone.label')}
-                </label>
-                <select
-                  id="timezone"
-                  value={timezone}
-                  onChange={(e) => setTimezone(e.target.value)}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-xs focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                >
-                  {TIMEZONES.map((tz) => (
-                    <option key={tz} value={tz}>
-                      {formatTimezoneName(tz, i18n.language)}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
               <div className="flex gap-3 pt-4">
                 <button
                   onClick={handleSave}
@@ -184,18 +113,6 @@ export function UserProfilePage() {
               <div>
                 <dt className="text-sm font-medium text-gray-500">{t('form.email.label')}</dt>
                 <dd className="mt-1 text-sm text-gray-900">{user.email}</dd>
-              </div>
-              <div>
-                <dt className="text-sm font-medium text-gray-500">{t('form.language.label')}</dt>
-                <dd className="mt-1 text-sm text-gray-900">
-                  {t(`form.language.options.${user.locale}`)}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-sm font-medium text-gray-500">{t('form.timezone.label')}</dt>
-                <dd className="mt-1 text-sm text-gray-900">
-                  {formatTimezoneName(user.timezone || 'UTC', i18n.language)}
-                </dd>
               </div>
 
               <div className="pt-4">

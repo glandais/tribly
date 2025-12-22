@@ -823,14 +823,6 @@ export interface UpdateUserRequest {
    * User display name
    */
   displayName?: string
-  /**
-   * User locale (e.g. \'en\', \'fr\')
-   */
-  locale?: string
-  /**
-   * User timezone (e.g. \'Europe/Paris\')
-   */
-  timezone?: string
 }
 /**
  * User profile data
@@ -852,14 +844,6 @@ export interface UserDto {
    * User avatar URL
    */
   avatarUrl?: string
-  /**
-   * User locale (e.g. \'en\', \'fr\')
-   */
-  locale?: string
-  /**
-   * User timezone (e.g. \'Europe/Paris\')
-   */
-  timezone?: string
   createdAt?: string
 }
 

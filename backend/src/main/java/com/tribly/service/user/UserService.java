@@ -36,21 +36,11 @@ public class UserService {
   }
 
   @Transactional
-  public UserDto updateUser(
-      Long userId,
-      @Nullable String displayName,
-      @Nullable String locale,
-      @Nullable String timezone) {
+  public UserDto updateUser(Long userId, @Nullable String displayName) {
     User user = getUserEntity(userId);
 
     if (displayName != null) {
       user.setDisplayName(displayName);
-    }
-    if (locale != null) {
-      user.setLocale(locale);
-    }
-    if (timezone != null) {
-      user.setTimezone(timezone);
     }
 
     userRepository.persist(user);

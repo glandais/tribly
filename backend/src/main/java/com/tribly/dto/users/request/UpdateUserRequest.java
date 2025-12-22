@@ -11,12 +11,4 @@ public record UpdateUserRequest(
     @Nullable
         @Schema(description = "User display name", examples = "John Doe")
         @Size(min = 1, max = 255)
-        String displayName,
-    @Nullable
-        @Schema(description = "User locale (e.g. 'en', 'fr')", examples = "en")
-        @Size(max = 10)
-        String locale,
-    @Nullable
-        @Schema(description = "User timezone (e.g. 'Europe/Paris')", examples = "Europe/Paris")
-        @Size(max = 50)
-        String timezone) {}
+        String displayName) {}

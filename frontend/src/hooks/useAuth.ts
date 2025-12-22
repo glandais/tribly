@@ -3,23 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuthStore } from '../store/authStore'
 import { useNotificationStore } from '../store/notificationStore'
 import { usersApi, unwrapResponse } from '../lib/apiClient'
-import type { UserDto, UpdateUserRequest } from '../api/api'
-
-// Get browser's preferred language (e.g., "en", "fr", "en-US" -> "en")
-function getBrowserLocale(): string {
-  const lang = navigator.language || (navigator as { userLanguage?: string }).userLanguage || 'en'
-  // Return just the language code (e.g., "en" from "en-US")
-  return lang.split('-')[0].toLowerCase()
-}
-
-// Get browser's timezone (e.g., "Europe/Paris", "America/New_York")
-function getBrowserTimezone(): string {
-  try {
-    return Intl.DateTimeFormat().resolvedOptions().timeZone
-  } catch {
-    return 'UTC'
-  }
-}
+import type { UpdateUserRequest } from '../api/api'
 
 export function useAuth() {
   const queryClient = useQueryClient()
@@ -62,8 +46,6 @@ export function useAuth() {
         ...user,
         dbId: backendUser.id,
         avatarUrl: backendUser.avatarUrl,
-        locale: backendUser.locale || undefined,
-        timezone: backendUser.timezone || undefined,
       })
     }
   }, [backendUser?.id])
@@ -71,38 +53,8 @@ export function useAuth() {
   // Auto-initialize user preferences from browser on first login
   // Detects if user still has default values and updates with browser info
   useEffect(() => {
-    if (
-      backendUser &&
-      !preferencesInitialized.current &&
-      backendUser.locale === 'en' &&
-      backendUser.timezone === 'UTC'
-    ) {
+    if (backendUser && !preferencesInitialized.current) {
       preferencesInitialized.current = true
-      const browserLocale = getBrowserLocale()
-      const browserTimezone = getBrowserTimezone()
-
-      // Only update if browser values differ from defaults
-      if (browserLocale !== 'en' || browserTimezone !== 'UTC') {
-        unwrapResponse(
-          usersApi.updateCurrentUser({
-            locale: browserLocale,
-            timezone: browserTimezone,
-          })
-        )
-          .then((updatedUser: UserDto) => {
-            queryClient.setQueryData(['currentUser'], updatedUser)
-            if (user) {
-              setUser({
-                ...user,
-                locale: updatedUser.locale ?? undefined,
-                timezone: updatedUser.timezone ?? undefined,
-              })
-            }
-          })
-          .catch(() => {
-            // Silently fail - this is a nice-to-have feature
-          })
-      }
     }
   }, [backendUser?.id])
 
@@ -116,8 +68,6 @@ export function useAuth() {
         setUser({
           ...user,
           displayName: updatedUser.displayName,
-          locale: updatedUser.locale ?? undefined,
-          timezone: updatedUser.timezone ?? undefined,
         })
       }
 

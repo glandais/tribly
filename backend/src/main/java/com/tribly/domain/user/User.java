@@ -31,12 +31,6 @@ public class User extends BaseEntity {
   @Column(name = "avatar_url", length = 500)
   private @Nullable String avatarUrl;
 
-  @Column(name = "locale", length = 10)
-  private @Nullable String locale = "en";
-
-  @Column(name = "timezone", length = 50)
-  private @Nullable String timezone = "UTC";
-
   @Column(name = "last_login_at")
   private @Nullable Instant lastLoginAt;
 

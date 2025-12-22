@@ -46,11 +46,8 @@ public class TestDataService {
   }
 
   @Transactional
-  public User createUserWithLocale(
-      String email, String displayName, String locale, String timezone) {
+  public User createUserWithLocale(String email, String displayName) {
     User user = new User(email, displayName);
-    user.setLocale(locale);
-    user.setTimezone(timezone);
     userRepository.persistAndFlush(user);
     return user;
   }

@@ -36,7 +36,7 @@ class UserResourceTest {
   void setUp() {
     dataCleaner.cleanAll();
 
-    testUser = dataService.createUserWithLocale(TEST_EMAIL, "Test User", "en", "UTC");
+    testUser = dataService.createUserWithLocale(TEST_EMAIL, "Test User");
   }
 
   @Test
@@ -48,9 +48,7 @@ class UserResourceTest {
         .get("/api/users/me")
         .then()
         .statusCode(200)
-        .body("email", equalTo(TEST_EMAIL))
-        .body("locale", equalTo("en"))
-        .body("timezone", equalTo("UTC"));
+        .body("email", equalTo(TEST_EMAIL));
   }
 
   @Test
@@ -70,21 +68,6 @@ class UserResourceTest {
         .then()
         .statusCode(200)
         .body("displayName", equalTo("Updated Name"));
-  }
-
-  @Test
-  void updateCurrentUser_shouldUpdateLocaleAndTimezone() {
-    given()
-        .auth()
-        .oauth2(getAccessToken(USERNAME_TEST))
-        .contentType("application/json")
-        .body("{\"locale\": \"fr\", \"timezone\": \"Europe/Paris\"}")
-        .when()
-        .put("/api/users/me")
-        .then()
-        .statusCode(200)
-        .body("locale", equalTo("fr"))
-        .body("timezone", equalTo("Europe/Paris"));
   }
 
   @Test

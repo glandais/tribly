@@ -71,8 +71,7 @@ public class UserResource extends AbstractAuthenticatedResource {
   })
   public Response updateCurrentUser(@Valid UpdateUserRequest request) {
     Long userId = getCurrentUserId();
-    UserDto user =
-        userService.updateUser(userId, request.displayName(), request.locale(), request.timezone());
+    UserDto user = userService.updateUser(userId, request.displayName());
     return Response.ok(user).build();
   }
 

@@ -129,8 +129,6 @@ create table users (
                        last_login_at timestamp(6) with time zone,
                        updated_at timestamp(6) with time zone not null,
                        version bigint,
-                       locale varchar(10),
-                       timezone varchar(50),
                        avatar_url varchar(500),
                        display_name varchar(255) not null,
                        email varchar(255) not null unique,

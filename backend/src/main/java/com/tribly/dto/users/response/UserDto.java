@@ -12,10 +12,6 @@ public record UserDto(
     @Schema(description = "User email address", required = true) String email,
     @Schema(description = "User display name", required = true) String displayName,
     @Nullable @Schema(description = "User avatar URL") String avatarUrl,
-    @Nullable @Schema(description = "User locale (e.g. 'en', 'fr')", examples = "en") String locale,
-    @Nullable
-        @Schema(description = "User timezone (e.g. 'Europe/Paris')", examples = "Europe/Paris")
-        String timezone,
     @Nullable @Schema(description = "Account creation timestamp") Instant createdAt) {
   public static UserDto from(User user) {
     return new UserDto(
@@ -23,8 +19,6 @@ public record UserDto(
         user.getEmail(),
         user.getDisplayName(),
         user.getAvatarUrl(),
-        user.getLocale(),
-        user.getTimezone(),
         user.getCreatedAt());
   }
 }

@@ -6,16 +6,6 @@
     },
     "email": {
       "label": "Email"
-    },
-    "language": {
-      "label": "Language",
-      "options": {
-        "en": "English",
-        "fr": "Français"
-      }
-    },
-    "timezone": {
-      "label": "Timezone"
     }
   },
   "actions": {
