@@ -61,6 +61,7 @@ public class RideGroup extends BaseEntity {
   }
 
   public int getCurrentParticipants() {
+    // FIXME
     return (int) participations.stream().filter(p -> !p.isDeleted()).count();
   }
 

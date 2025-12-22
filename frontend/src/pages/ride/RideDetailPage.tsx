@@ -151,12 +151,10 @@ export function RideDetailPage() {
                 <CalendarIcon className="w-4 h-4 mr-1" />
                 {formattedDate}
               </span>
-              {ride.dateTime && (
-                <span className="flex items-center">
-                  <ClockIcon className="w-4 h-4 mr-1" />
-                  {ride.dateTime.substring(0, 5)}
-                </span>
-              )}
+              <span className="flex items-center">
+                <ClockIcon className="w-4 h-4 mr-1" />
+                {rideDate.toLocaleTimeString(i18n.language, { hour: '2-digit', minute: '2-digit' })}
+              </span>
               <span className="flex items-center">
                 <UsersIcon className="w-4 h-4 mr-1" />
                 {t('card.participantCount', { count: ride.participantCount })}

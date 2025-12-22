@@ -48,7 +48,6 @@ public class Route extends TeamEntity {
     this.createdBy = createdBy;
     this.name = name;
     this.slug = slug;
-    // FIXME
     this.dateTime = LocalDateTime.now();
   }
 }

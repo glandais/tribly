@@ -51,6 +51,7 @@ public class Ride extends TeamEntity {
   }
 
   public int getParticipantCount() {
+    // FIXME
     return groups.stream()
         .filter(g -> !g.isDeleted())
         .mapToInt(RideGroup::getCurrentParticipants)

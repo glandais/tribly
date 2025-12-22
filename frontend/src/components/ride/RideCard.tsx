@@ -19,10 +19,9 @@ const statusVariants: Record<RideStatus, 'gray' | 'green' | 'red'> = {
 export function RideCard({ ride, teamSlug }: RideCardProps) {
   const { t, i18n } = useTranslation('rides')
   const rideDate = new Date(ride.dateTime)
-  const formattedDate = rideDate.toLocaleDateString(i18n.language, {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric',
+  const formattedDate = rideDate.toLocaleString(i18n.language, {
+    dateStyle: 'medium',
+    timeStyle: 'short',
   })
 
   const calendarIcon = <CalendarIcon />

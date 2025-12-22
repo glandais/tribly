@@ -3,6 +3,7 @@ package com.tribly.api.routes;
 import com.tribly.api.AbstractAuthenticatedResource;
 import com.tribly.dto.error.ErrorResponse;
 import com.tribly.service.route.RouteService;
+import com.tribly.service.route.response.FileResult;
 import jakarta.annotation.security.PermitAll;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
@@ -10,7 +11,6 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Response;
-import java.io.File;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
@@ -52,10 +52,9 @@ public abstract class AbstractDownloadResource extends AbstractAuthenticatedReso
 
     Long userId = getCurrentUserIdOrNull();
 
-    File gpxFile = routeService.getFilteredGpxFile(teamSlug, routeSlug, userId);
-    return Response.ok(gpxFile)
-        // FIXME route slug
-        .header("Content-Disposition", "attachment; filename=\"route.gpx\"")
+    FileResult gpxFile = routeService.getFilteredGpxFile(teamSlug, routeSlug, userId);
+    return Response.ok(gpxFile.file())
+        .header("Content-Disposition", "attachment; filename=\"" + gpxFile.fileName() + "\"")
         .build();
   }
 
@@ -83,10 +82,9 @@ public abstract class AbstractDownloadResource extends AbstractAuthenticatedReso
 
     Long userId = getCurrentUserIdOrNull();
 
-    File fitFile = routeService.getFitFile(teamSlug, routeSlug, userId);
-    return Response.ok(fitFile)
-        // FIXME route slug
-        .header("Content-Disposition", "attachment; filename=\"route.fit\"")
+    FileResult fitFile = routeService.getFitFile(teamSlug, routeSlug, userId);
+    return Response.ok(fitFile.file())
+        .header("Content-Disposition", "attachment; filename=\"" + fitFile.fileName() + "\"")
         .build();
   }
 
@@ -114,7 +112,7 @@ public abstract class AbstractDownloadResource extends AbstractAuthenticatedReso
 
     Long userId = getCurrentUserIdOrNull();
 
-    File thumbnail = routeService.getThumbnailFile(teamSlug, routeSlug, userId);
-    return Response.ok(thumbnail).build();
+    FileResult thumbnail = routeService.getThumbnailFile(teamSlug, routeSlug, userId);
+    return Response.ok(thumbnail.file()).build();
   }
 }

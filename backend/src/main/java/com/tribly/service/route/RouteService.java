@@ -18,6 +18,7 @@ import com.tribly.enums.Visibility;
 import com.tribly.infrastructure.exception.BusinessException;
 import com.tribly.service.common.SlugService;
 import com.tribly.service.common.TeamEntityService;
+import com.tribly.service.route.response.FileResult;
 import com.tribly.service.route.response.ProcessedGpx;
 import com.tribly.service.route.response.RouteMetadata;
 import io.github.glandais.gpx.climb.Climb;
@@ -91,7 +92,6 @@ public class RouteService extends TeamEntityService {
     route.setDescription(request.description());
     route.setSurfaceType(request.surfaceType());
     route.setVisibility(request.visibility());
-    // FIXME
     route.setDateTime(LocalDateTime.now());
 
     // Persist to get ID for file storage
@@ -216,6 +216,7 @@ public class RouteService extends TeamEntityService {
     route.setDescription(request.description());
     route.setSurfaceType(request.surfaceType());
     route.setVisibility(request.visibility());
+    route.setDateTime(LocalDateTime.now());
 
     routeRepository.persist(route);
     LOG.infov("Route {0} updated by user {1}", slug, userId);
@@ -265,24 +266,27 @@ public class RouteService extends TeamEntityService {
   /**
    * Get filtered GPX file for download.
    */
-  public File getFilteredGpxFile(String teamSlug, String slug, @Nullable Long userId) {
+  public FileResult getFilteredGpxFile(String teamSlug, String slug, @Nullable Long userId) {
     Route route = getRouteEntity(teamSlug, slug, userId);
-    return gpxProcessingService.getFilteredGpxFile(route.getId());
+    File gpxFile = gpxProcessingService.getFilteredGpxFile(route.getId());
+    return new FileResult(gpxFile, route.getSlug() + ".gpx");
   }
 
   /**
    * Get FIT file for download.
    */
-  public File getFitFile(String teamSlug, String slug, @Nullable Long userId) {
+  public FileResult getFitFile(String teamSlug, String slug, @Nullable Long userId) {
     Route route = getRouteEntity(teamSlug, slug, userId);
-    return gpxProcessingService.getFitFile(route.getId());
+    File fitFile = gpxProcessingService.getFitFile(route.getId());
+    return new FileResult(fitFile, route.getSlug() + ".fit");
   }
 
   /**
    * Get thumbnail image.
    */
-  public File getThumbnailFile(String teamSlug, String slug, @Nullable Long userId) {
+  public FileResult getThumbnailFile(String teamSlug, String slug, @Nullable Long userId) {
     Route route = getRouteEntity(teamSlug, slug, userId);
-    return gpxProcessingService.getThumbnailFile(route.getId());
+    File thumbnailFile = gpxProcessingService.getThumbnailFile(route.getId());
+    return new FileResult(thumbnailFile, route.getSlug() + ".png");
   }
 }
