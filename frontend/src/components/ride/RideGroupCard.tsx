@@ -12,6 +12,7 @@ interface RideGroupCardProps {
   onJoin?: () => void
   onLeave?: () => void
   isLoading?: boolean
+  onHover?: (groupId: string | null) => void
 }
 
 export function RideGroupCard({
@@ -21,6 +22,7 @@ export function RideGroupCard({
   onJoin,
   onLeave,
   isLoading,
+  onHover,
 }: RideGroupCardProps) {
   const { t } = useTranslation('rides')
   const [showParticipants, setShowParticipants] = useState(false)
@@ -29,6 +31,8 @@ export function RideGroupCard({
   return (
     <div
       className={`bg-white rounded-lg border p-4 ${isJoined ? 'border-indigo-500 ring-1 ring-indigo-500' : 'border-gray-200'}`}
+      onMouseEnter={() => onHover?.(group.id)}
+      onMouseLeave={() => onHover?.(null)}
     >
       <div className="flex items-start justify-between">
         <div className="flex-1">

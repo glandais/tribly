@@ -14,6 +14,7 @@ import { Status } from '../../hooks/useRide'
 import { useAuth } from '../../hooks/useAuth'
 import { LoadingPage, LoadingSpinner } from '../../components/common/LoadingSpinner'
 import { RideGroupCard } from '../../components/ride/RideGroupCard'
+import { RideMapView } from '../../components/ride/RideMapView'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import { useFormattedDate } from '../../utils/dateFormat'
 
@@ -29,6 +30,7 @@ export function RideDetailPage() {
   const { teamSlug, rideSlug } = useParams<{ teamSlug: string; rideSlug: string }>()
   const { isAuthenticated, user } = useAuth()
   const [joiningGroupId, setJoiningGroupId] = useState<string | null>(null)
+  const [highlightedGroupId, setHighlightedGroupId] = useState<string | null>(null)
   const [showUnpublishConfirm, setShowUnpublishConfirm] = useState(false)
   const [showCancelConfirm, setShowCancelConfirm] = useState(false)
   const [showUncancelConfirm, setShowUncancelConfirm] = useState(false)
@@ -209,32 +211,48 @@ export function RideDetailPage() {
         </div>
       </div>
 
-      {/* Groups */}
-      <div className="mb-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('detail.groups.title')}</h2>
-        {ride.groups && ride.groups.length > 0 ? (
-          <div className="space-y-3">
-            {ride.groups.map((group) => {
-              const isJoined = user ? group.participants.some((p) => p.id === user.dbId) : false
-              return (
-                <RideGroupCard
-                  key={group.id}
-                  group={group}
-                  isJoined={isJoined}
-                  canJoin={canJoinRide}
-                  onJoin={() => handleJoinGroup(group.id)}
-                  onLeave={() => handleLeaveGroup(group.id)}
-                  isLoading={
-                    joiningGroupId === group.id &&
-                    (joinMutation.isPending || leaveMutation.isPending)
-                  }
-                />
-              )
-            })}
-          </div>
-        ) : (
-          <p className="text-gray-500">{t('detail.groups.empty')}</p>
-        )}
+      {/* Map and Groups */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-6">
+        {/* Groups list on left (takes 1 column on xl screens) */}
+        <div className="xl:col-span-1 order-2 xl:order-1">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('detail.groups.title')}</h2>
+          {ride.groups && ride.groups.length > 0 ? (
+            <div className="space-y-3">
+              {ride.groups.map((group) => {
+                const isJoined = user ? group.participants.some((p) => p.id === user.dbId) : false
+                return (
+                  <RideGroupCard
+                    key={group.id}
+                    group={group}
+                    isJoined={isJoined}
+                    canJoin={canJoinRide}
+                    onJoin={() => handleJoinGroup(group.id)}
+                    onLeave={() => handleLeaveGroup(group.id)}
+                    onHover={setHighlightedGroupId}
+                    isLoading={
+                      joiningGroupId === group.id &&
+                      (joinMutation.isPending || leaveMutation.isPending)
+                    }
+                  />
+                )
+              })}
+            </div>
+          ) : (
+            <p className="text-gray-500">{t('detail.groups.empty')}</p>
+          )}
+        </div>
+
+        {/* Map on right (takes 2 columns on xl screens) */}
+        <div className="xl:col-span-2 order-1 xl:order-2">
+          {ride.groups && ride.groups.length > 0 && (
+            <RideMapView
+              groups={ride.groups}
+              teamSlug={teamSlug!}
+              highlightedGroupId={highlightedGroupId}
+              onGroupHover={setHighlightedGroupId}
+            />
+          )}
+        </div>
       </div>
 
       {/* Info for non-members */}
