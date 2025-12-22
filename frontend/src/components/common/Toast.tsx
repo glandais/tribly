@@ -1,11 +1,18 @@
 import { useTranslation } from 'react-i18next'
+import {
+  CheckCircleIcon,
+  XCircleIcon,
+  ExclamationTriangleIcon,
+  InformationCircleIcon,
+} from '@heroicons/react/24/solid'
+import { XMarkIcon } from '@heroicons/react/24/outline'
 import { useNotificationStore, type Notification } from '../../store/notificationStore'
 
 const ICON_MAP = {
-  success: '✓',
-  error: '✕',
-  warning: '⚠',
-  info: 'ℹ',
+  success: CheckCircleIcon,
+  error: XCircleIcon,
+  warning: ExclamationTriangleIcon,
+  info: InformationCircleIcon,
 }
 
 const STYLE_MAP = {
@@ -27,19 +34,21 @@ function ToastItem({ notification }: ToastItemProps) {
     ? t(notification.translationKey, notification.translationParams)
     : notification.message
 
+  const Icon = ICON_MAP[notification.type]
+
   return (
     <div
       className={`flex items-center gap-3 px-4 py-3 rounded-lg border shadow-lg ${STYLE_MAP[notification.type]}`}
       role="alert"
     >
-      <span className="text-lg font-bold">{ICON_MAP[notification.type]}</span>
+      <Icon className="w-5 h-5 flex-shrink-0" aria-hidden="true" />
       <p className="flex-1 text-sm font-medium">{message}</p>
       <button
         onClick={() => removeNotification(notification.id)}
         className="text-current opacity-70 hover:opacity-100"
         aria-label="Dismiss"
       >
-        ✕
+        <XMarkIcon className="w-5 h-5" />
       </button>
     </div>
   )

@@ -1,5 +1,6 @@
 import { Link, useParams, Navigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { PlusIcon, MapIcon } from '@heroicons/react/24/outline'
 import { useRoutes } from '../../hooks/useRoute'
 import { useTeam } from '../../hooks/useTeam'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
@@ -35,14 +36,7 @@ export function RouteListPage() {
               to={`/teams/${teamSlug}/routes/new`}
               className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
             >
-              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 4v16m8-8H4"
-                />
-              </svg>
+              <PlusIcon className="w-4 h-4 mr-2" />
               {t('list.createRoute')}
             </Link>
           )}
@@ -61,19 +55,7 @@ export function RouteListPage() {
           </div>
         ) : (
           <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
-            <svg
-              className="mx-auto h-12 w-12 text-gray-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={1.5}
-                d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
-              />
-            </svg>
+            <MapIcon className="mx-auto h-12 w-12 text-gray-400" />
             <h3 className="mt-4 text-lg font-medium text-gray-900">{t('list.empty.title')}</h3>
             <p className="mt-2 text-gray-500">{t('list.empty.description')}</p>
             {canCreateRoute && (

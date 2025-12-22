@@ -1,5 +1,13 @@
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
+import {
+  XMarkIcon,
+  MagnifyingGlassIcon,
+  MapIcon,
+  ArrowsPointingOutIcon,
+  ArrowUpIcon,
+  BoltIcon,
+} from '@heroicons/react/24/outline'
 import { useRoutes } from '../../hooks/useRoute'
 import type { RouteDto } from '../../api/api'
 import { LoadingSpinner } from '../common/LoadingSpinner'
@@ -63,14 +71,7 @@ export function RoutePickerModal({
         <div className="flex items-center justify-between p-6 border-b border-gray-200">
           <h2 className="text-xl font-semibold text-gray-900">{title || t('picker.title')}</h2>
           <button onClick={handleClose} className="text-gray-400 hover:text-gray-600" type="button">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
+            <XMarkIcon className="w-6 h-6" />
           </button>
         </div>
 
@@ -85,19 +86,7 @@ export function RoutePickerModal({
                 placeholder={t('picker.search')}
                 className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
               />
-              <svg
-                className="absolute left-3 top-2.5 h-5 w-5 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
+              <MagnifyingGlassIcon className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
             </div>
             {onCreateNew && (
               <button
@@ -122,19 +111,7 @@ export function RoutePickerModal({
             <div className="text-center py-12 text-red-600">{t('common:error.loading')}</div>
           ) : routes.length === 0 ? (
             <div className="text-center py-12">
-              <svg
-                className="mx-auto h-12 w-12 text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
-                />
-              </svg>
+              <MapIcon className="mx-auto h-12 w-12 text-gray-400" />
               <p className="mt-2 text-gray-500">{t('picker.noResults')}</p>
               {selectedRouteId && (
                 <button
@@ -172,9 +149,20 @@ export function RoutePickerModal({
                       <p className="mt-1 text-sm text-gray-500 line-clamp-2">{route.description}</p>
                     )}
                     <div className="flex gap-3 mt-2 text-xs text-gray-500">
-                      <span>📏 {(route.distance / 1000).toFixed(1)} km</span>
-                      <span>⛰️ {route.elevationGain}m</span>
-                      {route.difficulty && <span>💪 {t(`difficulty.${route.difficulty}`)}</span>}
+                      <span className="flex items-center gap-1">
+                        <ArrowsPointingOutIcon className="w-3.5 h-3.5" />
+                        {(route.distance / 1000).toFixed(1)} km
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <ArrowUpIcon className="w-3.5 h-3.5" />
+                        {route.elevationGain}m
+                      </span>
+                      {route.difficulty && (
+                        <span className="flex items-center gap-1">
+                          <BoltIcon className="w-3.5 h-3.5" />
+                          {t(`difficulty.${route.difficulty}`)}
+                        </span>
+                      )}
                     </div>
                   </button>
                 ))}

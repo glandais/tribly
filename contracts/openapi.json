@@ -336,8 +336,8 @@
         "enum" : [ "REGISTERED", "CONFIRMED", "CANCELLED", "COMPLETED" ]
       },
       "PublicUserDto" : {
-        "description" : "Public user information (limited fields)",
         "type" : "object",
+        "description" : "Public user information (limited fields)",
         "required" : [ "id", "displayName" ],
         "properties" : {
           "id" : {
@@ -439,7 +439,7 @@
       "RideGroupDto" : {
         "type" : "object",
         "description" : "Ride group information",
-        "required" : [ "id", "name", "currentParticipants", "sortOrder" ],
+        "required" : [ "id", "name", "countParticipants", "participants", "sortOrder" ],
         "properties" : {
           "id" : {
             "type" : "string",
@@ -467,10 +467,17 @@
             "format" : "int32",
             "description" : "Maximum participants"
           },
-          "currentParticipants" : {
+          "countParticipants" : {
             "type" : "integer",
             "format" : "int32",
             "description" : "Current number of participants"
+          },
+          "participants" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/PublicUserDto"
+            },
+            "description" : "Participants, empty if not access"
           },
           "sortOrder" : {
             "type" : "integer",

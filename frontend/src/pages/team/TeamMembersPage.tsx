@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useParams, Navigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { PlusIcon } from '@heroicons/react/24/outline'
 import {
   useTeam,
   useTeamMembers,
@@ -64,14 +65,7 @@ export function TeamMembersPage() {
             onClick={() => setShowAddMember(true)}
             className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
-            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 4v16m8-8H4"
-              />
-            </svg>
+            <PlusIcon className="w-4 h-4 mr-2" />
             {t('detail.members.addMember')}
           </button>
         </div>

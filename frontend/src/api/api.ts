@@ -381,7 +381,11 @@ export interface RideGroupDto {
   /**
    * Current number of participants
    */
-  currentParticipants: number
+  countParticipants: number
+  /**
+   * Participants, empty if not access
+   */
+  participants: Array<PublicUserDto>
   /**
    * Sort order
    */

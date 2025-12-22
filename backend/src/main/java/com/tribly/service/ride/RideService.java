@@ -352,11 +352,12 @@ public class RideService {
             "You are already registered for this ride", "ALREADY_REGISTERED");
       }
       checkCapacity(group);
-      // Restore soft-deleted membership
+      // Restore soft-deleted membership and update group if changed
+      rideParticipation.setRideGroup(group);
       rideParticipation.setDeleted(false);
       rideParticipation.setNotes(notes);
       participationRepository.persist(rideParticipation);
-      LOG.infov("User {0} rejoined group {1} in ride {2}", userId, groupId, ride.getId());
+      LOG.infov("User {0} joined group {1} in ride {2}", userId, groupId, ride.getId());
       return RideParticipationDto.from(rideParticipation);
     }
 

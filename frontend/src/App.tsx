@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { ArrowPathIcon } from '@heroicons/react/24/outline'
 import { Layout } from './components/common/Layout'
 import { ErrorBoundary } from './components/common/ErrorBoundary'
 import { LoginPage } from './pages/auth/LoginPage'
@@ -60,7 +61,7 @@ function App() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-indigo-600 border-r-transparent"></div>
+          <ArrowPathIcon className="inline-block h-8 w-8 animate-spin text-indigo-600" />
           <p className="mt-4 text-gray-600">{t('status.checkingAuth')}</p>
         </div>
       </div>

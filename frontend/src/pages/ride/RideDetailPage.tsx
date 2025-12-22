@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { ClockIcon, CalendarIcon, UsersIcon, PencilIcon } from '@heroicons/react/24/outline'
 import { useTeam } from '../../hooks/useTeam'
 import {
   useRide,
@@ -24,7 +25,7 @@ const statusColors: Record<RideStatus, string> = {
 export function RideDetailPage() {
   const { t, i18n } = useTranslation('rides')
   const { teamSlug, rideSlug } = useParams<{ teamSlug: string; rideSlug: string }>()
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, user } = useAuth()
   const [joiningGroupId, setJoiningGroupId] = useState<string | null>(null)
   const [showUnpublishConfirm, setShowUnpublishConfirm] = useState(false)
   const [showCancelConfirm, setShowCancelConfirm] = useState(false)
@@ -64,7 +65,11 @@ export function RideDetailPage() {
   const isAdmin = team?.role === 'ADMIN'
   const isOrganizer = team?.role === 'ORGANIZER'
   const canEdit = isAdmin || isOrganizer
-  const canJoinRide = isMember && ride.status === RideStatus.Published
+  const hasJoinedAnyGroup =
+    user && ride.groups
+      ? ride.groups.some((group) => group.participants.some((p) => p.id === user.dbId))
+      : false
+  const canJoinRide = isMember && ride.status === RideStatus.Published && !hasJoinedAnyGroup
 
   const rideDate = new Date(ride.date)
   const formattedDate = rideDate.toLocaleDateString(i18n.language, {
@@ -132,14 +137,7 @@ export function RideDetailPage() {
             {ride.description && <p className="mt-2 text-gray-600">{ride.description}</p>}
             {ride.status === RideStatus.Draft && ride.publishAt && (
               <div className="mt-2 text-sm text-amber-600 flex items-center">
-                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
+                <ClockIcon className="w-4 h-4 mr-1" />
                 {t('detail.scheduledPublish', {
                   date: new Date(ride.publishAt).toLocaleString(i18n.language, {
                     dateStyle: 'medium',
@@ -150,43 +148,17 @@ export function RideDetailPage() {
             )}
             <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-gray-500">
               <span className="flex items-center">
-                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                  />
-                </svg>
+                <CalendarIcon className="w-4 h-4 mr-1" />
                 {formattedDate}
               </span>
               {ride.startTime && (
                 <span className="flex items-center">
-                  <svg
-                    className="w-4 h-4 mr-1"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
+                  <ClockIcon className="w-4 h-4 mr-1" />
                   {ride.startTime.substring(0, 5)}
                 </span>
               )}
               <span className="flex items-center">
-                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                  />
-                </svg>
+                <UsersIcon className="w-4 h-4 mr-1" />
                 {t('card.participantCount', { count: ride.participantCount })}
               </span>
             </div>
@@ -198,14 +170,7 @@ export function RideDetailPage() {
                 to={`/teams/${teamSlug}/rides/${rideSlug}/edit`}
                 className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
               >
-                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                  />
-                </svg>
+                <PencilIcon className="w-4 h-4 mr-1" />
                 {t('detail.actions.edit')}
               </Link>
               {ride.status === RideStatus.Draft && (
@@ -258,18 +223,23 @@ export function RideDetailPage() {
         <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('detail.groups.title')}</h2>
         {ride.groups && ride.groups.length > 0 ? (
           <div className="space-y-3">
-            {ride.groups.map((group) => (
-              <RideGroupCard
-                key={group.id}
-                group={group}
-                canJoin={canJoinRide}
-                onJoin={() => handleJoinGroup(group.id)}
-                onLeave={() => handleLeaveGroup(group.id)}
-                isLoading={
-                  joiningGroupId === group.id && (joinMutation.isPending || leaveMutation.isPending)
-                }
-              />
-            ))}
+            {ride.groups.map((group) => {
+              const isJoined = user ? group.participants.some((p) => p.id === user.dbId) : false
+              return (
+                <RideGroupCard
+                  key={group.id}
+                  group={group}
+                  isJoined={isJoined}
+                  canJoin={canJoinRide}
+                  onJoin={() => handleJoinGroup(group.id)}
+                  onLeave={() => handleLeaveGroup(group.id)}
+                  isLoading={
+                    joiningGroupId === group.id &&
+                    (joinMutation.isPending || leaveMutation.isPending)
+                  }
+                />
+              )
+            })}
           </div>
         ) : (
           <p className="text-gray-500">{t('detail.groups.empty')}</p>

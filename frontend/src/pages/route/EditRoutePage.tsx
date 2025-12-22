@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { ChevronLeftIcon } from '@heroicons/react/24/outline'
 import { RouteDifficulty, SurfaceType, useRoute, useUpdateRoute } from '../../hooks/useRoute'
 import { useTeam } from '../../hooks/useTeam'
 import { Visibility } from '../../api/api'
@@ -90,9 +91,10 @@ export function EditRoutePage() {
       <div className="mb-8">
         <Link
           to={`/teams/${teamSlug}/routes/${routeId}`}
-          className="text-indigo-600 hover:text-indigo-900 text-sm font-medium"
+          className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700"
         >
-          ← {t('edit.backToDetail')}
+          <ChevronLeftIcon className="w-4 h-4 mr-1" />
+          {t('edit.backToDetail')}
         </Link>
         <h1 className="mt-4 text-3xl font-bold text-gray-900">{t('edit.title')}</h1>
         <p className="mt-2 text-gray-600">{t('edit.subtitle')}</p>

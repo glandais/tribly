@@ -1,5 +1,9 @@
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { BoltIcon, UsersIcon } from '@heroicons/react/24/outline'
 import type { RideGroupDto } from '../../hooks/useRide'
+import { UserAvatarGroup } from '../common/UserAvatar'
+import { ParticipantListModal } from './ParticipantListModal'
 
 interface RideGroupCardProps {
   group: RideGroupDto
@@ -19,7 +23,8 @@ export function RideGroupCard({
   isLoading,
 }: RideGroupCardProps) {
   const { t } = useTranslation('rides')
-  const isFull = group.maxParticipants && group.currentParticipants >= group.maxParticipants
+  const [showParticipants, setShowParticipants] = useState(false)
+  const isFull = group.maxParticipants && group.countParticipants >= group.maxParticipants
 
   return (
     <div
@@ -39,33 +44,33 @@ export function RideGroupCard({
           <div className="mt-2 flex items-center gap-4 text-sm text-gray-500">
             {group.averageSpeed && (
               <span className="flex items-center">
-                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M13 10V3L4 14h7v7l9-11h-7z"
-                  />
-                </svg>
+                <BoltIcon className="w-4 h-4 mr-1" />
                 {t('detail.groups.speed', { speed: group.averageSpeed })}
               </span>
             )}
-            <span className="flex items-center">
-              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                />
-              </svg>
-              {group.maxParticipants
-                ? t('detail.groups.participants', {
-                    current: group.currentParticipants,
-                    max: group.maxParticipants,
-                  })
-                : t('detail.groups.participantsNoMax', { current: group.currentParticipants })}
-            </span>
+            <button
+              onClick={() => setShowParticipants(true)}
+              className="flex items-center gap-2 rounded-lg p-1 -ml-1 transition-all hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+              title={t('detail.groups.viewParticipants')}
+            >
+              {group.participants.length > 0 && (
+                <UserAvatarGroup users={group.participants} max={5} size="sm" />
+              )}
+              <span className="flex items-center text-sm text-gray-500">
+                <UsersIcon className="w-4 h-4 mr-1" />
+                {group.maxParticipants
+                  ? t('detail.groups.participants', {
+                      current: group.countParticipants,
+                      max: group.maxParticipants,
+                    })
+                  : t('detail.groups.participantsNoMax', { current: group.countParticipants })}
+              </span>
+              {group.participants.length > 5 && (
+                <span className="text-xs font-medium text-indigo-600 group-hover:text-indigo-700">
+                  {t('detail.groups.viewAll')}
+                </span>
+              )}
+            </button>
           </div>
         </div>
 
@@ -95,6 +100,13 @@ export function RideGroupCard({
           </div>
         )}
       </div>
+
+      <ParticipantListModal
+        isOpen={showParticipants}
+        onClose={() => setShowParticipants(false)}
+        participants={group.participants}
+        groupName={group.name}
+      />
     </div>
   )
 }

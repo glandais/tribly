@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
 import { Link, useParams, Navigate, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { ChevronLeftIcon } from '@heroicons/react/24/outline'
 import { useTeam } from '../../hooks/useTeam'
-import { useRide, useUpdateRide, Visibility } from '../../hooks/useRide'
+import { useRide, useUpdateRide, Visibility, RideStatus } from '../../hooks/useRide'
 import { LoadingPage, LoadingSpinner } from '../../components/common/LoadingSpinner'
 import { ApiClientError } from '../../lib/apiClient'
 import { RoutePickerModal } from '../../components/route/RoutePickerModal'
@@ -35,6 +36,7 @@ export function EditRidePage() {
   const [date, setDate] = useState('')
   const [startTime, setStartTime] = useState('')
   const [visibility, setVisibility] = useState<Visibility>(Visibility.Team)
+  const [status, setStatus] = useState<RideStatus>(RideStatus.Draft)
   const [publishAt, setPublishAt] = useState('')
   const [rideRouteId, setRideRouteId] = useState<string | null>(null)
   const [groups, setGroups] = useState<EditableGroup[]>([])
@@ -56,6 +58,7 @@ export function EditRidePage() {
       setDate(ride.date)
       setStartTime(ride.startTime?.substring(0, 5) || '')
       setVisibility(ride.visibility)
+      setStatus(ride.status)
       // Convert ISO string to datetime-local format (YYYY-MM-DDTHH:mm)
       setPublishAt(ride.publishAt ? new Date(ride.publishAt).toISOString().slice(0, 16) : '')
       setRideRouteId(ride.routeId || null)
@@ -96,7 +99,7 @@ export function EditRidePage() {
     // Update ride details
     await updateMutation.mutateAsync({
       title,
-      status: ride.status,
+      status,
       description: description || undefined,
       date,
       startTime: startTime || undefined,
@@ -148,14 +151,7 @@ export function EditRidePage() {
           to={`/teams/${teamSlug}/rides/${rideSlug}`}
           className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700"
         >
-          <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M15 19l-7-7 7-7"
-            />
-          </svg>
+          <ChevronLeftIcon className="w-4 h-4 mr-1" />
           {t('edit.backToRide')}
         </Link>
         <h1 className="mt-4 text-3xl font-bold text-gray-900">{t('edit.title')}</h1>
@@ -288,6 +284,48 @@ export function EditRidePage() {
               {t('create.form.visibility.privateTeamHint')}
             </p>
           )}
+        </div>
+
+        {/* Status */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            {t('create.form.status.label')}
+          </label>
+          <div className="space-y-2">
+            <label className="flex items-center">
+              <input
+                type="radio"
+                name="status"
+                value="DRAFT"
+                checked={status === RideStatus.Draft}
+                onChange={() => setStatus(RideStatus.Draft)}
+                className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
+              />
+              <span className="ml-2 text-sm text-gray-700">{t('status.DRAFT')}</span>
+            </label>
+            <label className="flex items-center">
+              <input
+                type="radio"
+                name="status"
+                value="PUBLISHED"
+                checked={status === RideStatus.Published}
+                onChange={() => setStatus(RideStatus.Published)}
+                className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
+              />
+              <span className="ml-2 text-sm text-gray-700">{t('status.PUBLISHED')}</span>
+            </label>
+            <label className="flex items-center">
+              <input
+                type="radio"
+                name="status"
+                value="CANCELLED"
+                checked={status === RideStatus.Cancelled}
+                onChange={() => setStatus(RideStatus.Cancelled)}
+                className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
+              />
+              <span className="ml-2 text-sm text-gray-700">{t('status.CANCELLED')}</span>
+            </label>
+          </div>
         </div>
 
         {/* Route Selection */}

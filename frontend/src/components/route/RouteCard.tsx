@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next'
+import { MapIcon, ArrowUpIcon } from '@heroicons/react/24/outline'
 import type { RouteDto } from '../../api/api'
 import { Card, CardContent, CardTitle, CardDescription } from '../common/card'
 import { Badge, VisibilityBadge, Stat, StatGroup, CardSkeleton } from '../common/card'
@@ -11,27 +12,8 @@ interface RouteCardProps {
 export function RouteCard({ route, teamSlug }: RouteCardProps) {
   const { t } = useTranslation('routes')
 
-  const distanceIcon = (
-    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
-      />
-    </svg>
-  )
-
-  const elevationIcon = (
-    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M5 10l7-7m0 0l7 7m-7-7v18"
-      />
-    </svg>
-  )
+  const distanceIcon = <MapIcon />
+  const elevationIcon = <ArrowUpIcon />
 
   return (
     <Card to={`/teams/${teamSlug}/routes/${route.id}`}>
@@ -44,19 +26,7 @@ export function RouteCard({ route, teamSlug }: RouteCardProps) {
         />
       ) : (
         <div className="w-full h-48 bg-gray-100 flex items-center justify-center">
-          <svg
-            className="h-12 w-12 text-gray-400"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
-            />
-          </svg>
+          <MapIcon className="h-12 w-12 text-gray-400" />
         </div>
       )}
 

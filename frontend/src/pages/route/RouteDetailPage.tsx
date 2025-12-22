@@ -1,6 +1,13 @@
 import { useState } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import {
+  MapIcon,
+  ArrowUpIcon,
+  ArrowDownIcon,
+  ArrowDownTrayIcon,
+  ChevronLeftIcon,
+} from '@heroicons/react/24/outline'
 import { MapContainer, TileLayer, Polyline } from 'react-leaflet'
 import { useRoute, useRouteClimbs, useGpxTrack, useDeleteRoute } from '../../hooks/useRoute'
 import { useTeam } from '../../hooks/useTeam'
@@ -71,9 +78,10 @@ export function RouteDetailPage() {
           <p className="text-gray-500">{tErrors('api.notFound')}</p>
           <Link
             to={`/teams/${teamSlug}/routes`}
-            className="mt-4 inline-block text-indigo-600 hover:text-indigo-900"
+            className="mt-4 inline-flex items-center text-sm text-gray-500 hover:text-gray-700"
           >
-            ← {t('detail.backToList')}
+            <ChevronLeftIcon className="w-4 h-4 mr-1" />
+            {t('detail.backToList')}
           </Link>
         </div>
       </div>
@@ -101,9 +109,10 @@ export function RouteDetailPage() {
       <div className="mb-6">
         <Link
           to={`/teams/${teamSlug}/routes`}
-          className="text-indigo-600 hover:text-indigo-900 text-sm font-medium"
+          className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700"
         >
-          ← {t('detail.backToList')}
+          <ChevronLeftIcon className="w-4 h-4 mr-1" />
+          {t('detail.backToList')}
         </Link>
         <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -162,19 +171,7 @@ export function RouteDetailPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="bg-white rounded-lg shadow-sm p-6">
           <div className="flex items-center">
-            <svg
-              className="h-8 w-8 text-indigo-600 mr-3"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
-              />
-            </svg>
+            <MapIcon className="h-8 w-8 text-indigo-600 mr-3" />
             <div>
               <p className="text-sm text-gray-500">{t('detail.stats.distance')}</p>
               <p className="text-2xl font-bold text-gray-900">
@@ -186,19 +183,7 @@ export function RouteDetailPage() {
 
         <div className="bg-white rounded-lg shadow-sm p-6">
           <div className="flex items-center">
-            <svg
-              className="h-8 w-8 text-green-600 mr-3"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M5 10l7-7m0 0l7 7m-7-7v18"
-              />
-            </svg>
+            <ArrowUpIcon className="h-8 w-8 text-green-600 mr-3" />
             <div>
               <p className="text-sm text-gray-500">{t('detail.stats.elevationGain')}</p>
               <p className="text-2xl font-bold text-gray-900">{route.elevationGain}m</p>
@@ -208,19 +193,7 @@ export function RouteDetailPage() {
 
         <div className="bg-white rounded-lg shadow-sm p-6">
           <div className="flex items-center">
-            <svg
-              className="h-8 w-8 text-red-600 mr-3"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 14l-7 7m0 0l-7-7m7 7V3"
-              />
-            </svg>
+            <ArrowDownIcon className="h-8 w-8 text-red-600 mr-3" />
             <div>
               <p className="text-sm text-gray-500">{t('detail.stats.elevationLoss')}</p>
               <p className="text-2xl font-bold text-gray-900">{route.elevationLoss}m</p>
@@ -330,38 +303,14 @@ export function RouteDetailPage() {
             href={`/api/download/${route.visibility.toLowerCase()}/teams/${teamSlug}/routes/${routeId}/gpx`}
             className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-xs text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
           >
-            <svg
-              className="w-5 h-5 mr-2 -ml-1"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-              />
-            </svg>
+            <ArrowDownTrayIcon className="w-5 h-5 mr-2 -ml-1" />
             {t('detail.download.gpx')}
           </a>
           <a
             href={`/api/download/${route.visibility.toLowerCase()}/teams/${teamSlug}/routes/${routeId}/fit`}
             className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-xs text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
           >
-            <svg
-              className="w-5 h-5 mr-2 -ml-1"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-              />
-            </svg>
+            <ArrowDownTrayIcon className="w-5 h-5 mr-2 -ml-1" />
             {t('detail.download.fit')}
           </a>
         </div>

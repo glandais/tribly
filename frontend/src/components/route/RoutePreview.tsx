@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next'
+import { ArrowsPointingOutIcon, ArrowUpIcon, BoltIcon } from '@heroicons/react/24/outline'
 import { useRoute } from '../../hooks/useRoute'
 import { LoadingSpinner } from '../common/LoadingSpinner'
 
@@ -33,9 +34,20 @@ export function RoutePreview({ routeId, teamSlug }: RoutePreviewProps) {
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium text-gray-900 truncate">{route.name}</p>
         <div className="flex gap-3 mt-1 text-xs text-gray-500">
-          <span>📏 {(route.distance / 1000).toFixed(1)} km</span>
-          <span>⛰️ {route.elevationGain}m</span>
-          {route.difficulty && <span>💪 {t(`difficulty.${route.difficulty}`)}</span>}
+          <span className="flex items-center gap-1">
+            <ArrowsPointingOutIcon className="w-3.5 h-3.5" />
+            {(route.distance / 1000).toFixed(1)} km
+          </span>
+          <span className="flex items-center gap-1">
+            <ArrowUpIcon className="w-3.5 h-3.5" />
+            {route.elevationGain}m
+          </span>
+          {route.difficulty && (
+            <span className="flex items-center gap-1">
+              <BoltIcon className="w-3.5 h-3.5" />
+              {t(`difficulty.${route.difficulty}`)}
+            </span>
+          )}
         </div>
       </div>
     </div>

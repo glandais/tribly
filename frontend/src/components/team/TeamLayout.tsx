@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { UsersIcon, PencilIcon } from '@heroicons/react/24/outline'
+import { LockClosedIcon } from '@heroicons/react/20/solid'
 import { useLeaveTeam, useJoinTeam } from '../../hooks/useTeam'
 import { useAuth } from '../../hooks/useAuth'
 import { ConfirmDialog } from '../common/ConfirmDialog'
@@ -91,13 +93,7 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
               <h1 className="text-3xl font-bold text-gray-900">{team.name}</h1>
               {team.visibility === 'TEAM' && (
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                  <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                    <path
-                      fillRule="evenodd"
-                      d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
+                  <LockClosedIcon className="w-3 h-3 mr-1" />
                   {tCommon('visibility.private')}
                 </span>
               )}
@@ -105,14 +101,7 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
             {team.description && <p className="mt-2 text-gray-600 max-w-2xl">{team.description}</p>}
             <div className="mt-3 flex items-center gap-4 text-sm text-gray-500">
               <span className="flex items-center">
-                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-                  />
-                </svg>
+                <UsersIcon className="w-4 h-4 mr-1" />
                 {t('detail.info.memberCount', { count: team.memberCount })}
                 {team.maxMembers && t('detail.info.maxMembers', { max: team.maxMembers })}
               </span>
@@ -155,14 +144,7 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
                 to={`/teams/${team.slug}/settings`}
                 className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-xs text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
               >
-                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                  />
-                </svg>
+                <PencilIcon className="w-4 h-4 mr-2" />
                 {t('detail.actions.edit')}
               </Link>
             )}

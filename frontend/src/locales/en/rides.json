@@ -51,6 +51,9 @@
         "public": "Public",
         "privateTeamHint": "Public rides are not available for private teams"
       },
+      "status": {
+        "label": "Status"
+      },
       "route": {
         "label": "Route",
         "select": "Select a route",
@@ -132,7 +135,9 @@
       "join": "Join",
       "leave": "Leave",
       "full": "Full",
-      "joined": "Joined"
+      "joined": "Joined",
+      "viewParticipants": "View all participants",
+      "viewAll": "View all"
     },
     "nonMember": {
       "message": "Join this team to participate in rides.",

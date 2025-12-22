@@ -332,8 +332,8 @@ components:
       - CANCELLED
       - COMPLETED
     PublicUserDto:
-      description: Public user information (limited fields)
       type: object
+      description: Public user information (limited fields)
       required:
       - id
       - displayName
@@ -436,7 +436,8 @@ components:
       required:
       - id
       - name
-      - currentParticipants
+      - countParticipants
+      - participants
       - sortOrder
       properties:
         id:
@@ -467,10 +468,15 @@ components:
           - "null"
           format: int32
           description: Maximum participants
-        currentParticipants:
+        countParticipants:
           type: integer
           format: int32
           description: Current number of participants
+        participants:
+          type: array
+          items:
+            $ref: "#/components/schemas/PublicUserDto"
+          description: "Participants, empty if not access"
         sortOrder:
           type: integer
           format: int32
