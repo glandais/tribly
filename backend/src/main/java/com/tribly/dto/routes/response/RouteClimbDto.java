@@ -13,7 +13,7 @@ import org.jspecify.annotations.Nullable;
 @Schema(description = "Climb segment information")
 public record RouteClimbDto(
     @Schema(description = "Climb ID (TSID)", required = true) String id,
-    @Nullable @Schema(description = "Climb name (if named)", nullable = true) String name,
+    @Nullable @Schema(description = "Climb name (if named)") String name,
     @Schema(description = "Start distance from route start in meters", required = true)
         Integer startDistance,
     @Schema(description = "End distance from route start in meters", required = true)
@@ -22,8 +22,7 @@ public record RouteClimbDto(
     @Schema(description = "Average gradient percentage", required = true)
         BigDecimal averageGradient,
     @Schema(description = "Maximum gradient percentage", required = true) BigDecimal maxGradient,
-    @Nullable @Schema(description = "Climb category (HC, 1, 2, 3, 4)", nullable = true)
-        ClimbCategory category) {
+    @Nullable @Schema(description = "Climb category (HC, 1, 2, 3, 4)") ClimbCategory category) {
   public static RouteClimbDto from(RouteClimb climb) {
     return new RouteClimbDto(
         TsidUtils.toString(climb.getId()),

@@ -14,12 +14,8 @@
           },
           "role" : {
             "description" : "Role to assign (defaults to MEMBER)",
-            "type" : [ "string", "null" ],
-            "anyOf" : [ {
-              "$ref" : "#/components/schemas/TeamRole"
-            }, {
-              "type" : "null"
-            } ]
+            "type" : "string",
+            "$ref" : "#/components/schemas/TeamRole"
           }
         }
       },
@@ -81,14 +77,14 @@
             "$ref" : "#/components/schemas/Instant"
           },
           "errors" : {
-            "type" : [ "array", "null" ],
+            "type" : "array",
             "items" : {
               "$ref" : "#/components/schemas/FieldError"
             },
             "description" : "Field validation errors"
           },
           "details" : {
-            "type" : [ "object", "null" ],
+            "type" : "object",
             "additionalProperties" : { },
             "description" : "Additional details"
           }
@@ -127,8 +123,9 @@
             "description" : "List of track points"
           },
           "processedAt" : {
-            "type" : [ "string", "null" ],
-            "description" : "Processing timestamp"
+            "description" : "Processing timestamp",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Instant"
           }
         }
       },
@@ -137,7 +134,7 @@
         "type" : "object",
         "properties" : {
           "id" : {
-            "type" : [ "string", "null" ],
+            "type" : "string",
             "description" : "id"
           },
           "name" : {
@@ -149,22 +146,22 @@
             "maxLength" : 100
           },
           "description" : {
-            "type" : [ "string", "null" ],
+            "type" : "string",
             "description" : "Group description"
           },
           "averageSpeed" : {
-            "type" : [ "integer", "null" ],
+            "type" : "integer",
             "format" : "int32",
             "description" : "Average speed in km/h",
             "examples" : [ 25 ]
           },
           "maxParticipants" : {
-            "type" : [ "integer", "null" ],
+            "type" : "integer",
             "format" : "int32",
             "description" : "Maximum participants"
           },
           "routeId" : {
-            "type" : [ "string", "null" ],
+            "type" : "string",
             "description" : "Route ID (TSID) for this group"
           }
         },
@@ -174,10 +171,6 @@
         "type" : "string",
         "format" : "date-time",
         "examples" : [ "2022-03-10T16:15:50Z" ]
-      },
-      "JoinGroupRequest" : {
-        "description" : "Request to join a ride group",
-        "type" : "object"
       },
       "KeycloakConfig" : {
         "type" : "object",
@@ -225,23 +218,16 @@
       "MemberDto" : {
         "description" : "Team member information",
         "type" : "object",
-        "required" : [ "id", "userId", "displayName", "role" ],
+        "required" : [ "id", "user", "role" ],
         "properties" : {
           "id" : {
             "type" : "string",
             "description" : "Membership ID (TSID)"
           },
-          "userId" : {
-            "type" : "string",
-            "description" : "User ID (TSID)"
-          },
-          "displayName" : {
-            "type" : "string",
-            "description" : "User display name"
-          },
-          "avatarUrl" : {
-            "type" : [ "string", "null" ],
-            "description" : "User avatar URL"
+          "user" : {
+            "description" : "User",
+            "type" : "object",
+            "$ref" : "#/components/schemas/PublicUserDto"
           },
           "role" : {
             "description" : "Member role",
@@ -249,8 +235,9 @@
             "$ref" : "#/components/schemas/TeamRole"
           },
           "joinedAt" : {
-            "type" : [ "string", "null" ],
-            "description" : "When the user joined the team"
+            "description" : "When the user joined the team",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Instant"
           }
         }
       },
@@ -298,7 +285,7 @@
             "description" : "User display name"
           },
           "avatarUrl" : {
-            "type" : [ "string", "null" ],
+            "type" : "string",
             "description" : "User avatar URL"
           }
         }
@@ -321,7 +308,7 @@
             "description" : "Ride name"
           },
           "description" : {
-            "type" : [ "string", "null" ],
+            "type" : "string",
             "description" : "Ride description"
           },
           "dateTime" : {
@@ -340,7 +327,7 @@
             "$ref" : "#/components/schemas/Visibility"
           },
           "routeId" : {
-            "type" : [ "string", "null" ],
+            "type" : "string",
             "description" : "Route id"
           },
           "participantCount" : {
@@ -362,16 +349,13 @@
           },
           "publishAt" : {
             "description" : "Publication timestamp",
-            "type" : [ "string", "null" ],
-            "anyOf" : [ {
-              "$ref" : "#/components/schemas/Instant"
-            }, {
-              "type" : "null"
-            } ]
+            "type" : "string",
+            "$ref" : "#/components/schemas/Instant"
           },
           "createdAt" : {
-            "type" : [ "string", "null" ],
-            "description" : "Creation timestamp"
+            "description" : "Creation timestamp",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Instant"
           }
         }
       },
@@ -389,20 +373,20 @@
             "description" : "Group name"
           },
           "description" : {
-            "type" : [ "string", "null" ],
+            "type" : "string",
             "description" : "Group description"
           },
           "routeId" : {
-            "type" : [ "string", "null" ],
+            "type" : "string",
             "description" : "Route id"
           },
           "averageSpeed" : {
-            "type" : [ "integer", "null" ],
+            "type" : "integer",
             "format" : "int32",
             "description" : "Average speed in km/h"
           },
           "maxParticipants" : {
-            "type" : [ "integer", "null" ],
+            "type" : "integer",
             "format" : "int32",
             "description" : "Maximum participants"
           },
@@ -482,8 +466,9 @@
             "description" : "User ID (TSID)"
           },
           "registeredAt" : {
-            "type" : [ "string", "null" ],
-            "description" : "Registration timestamp"
+            "description" : "Registration timestamp",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Instant"
           }
         }
       },
@@ -501,7 +486,7 @@
             "maxLength" : 200
           },
           "description" : {
-            "type" : [ "string", "null" ],
+            "type" : "string",
             "description" : "Ride description",
             "maxLength" : 5000
           },
@@ -522,21 +507,17 @@
             "$ref" : "#/components/schemas/Visibility"
           },
           "routeId" : {
-            "type" : [ "string", "null" ],
+            "type" : "string",
             "description" : "Route ID (TSID)"
           },
           "meetingPointId" : {
-            "type" : [ "string", "null" ],
+            "type" : "string",
             "description" : "Meeting point ID (TSID)"
           },
           "publishAt" : {
             "description" : "Publication timestamp (for scheduled publishing)",
-            "type" : [ "string", "null" ],
-            "anyOf" : [ {
-              "$ref" : "#/components/schemas/Instant"
-            }, {
-              "type" : "null"
-            } ]
+            "type" : "string",
+            "$ref" : "#/components/schemas/Instant"
           },
           "groups" : {
             "type" : "array",
@@ -561,7 +542,7 @@
             "description" : "Climb ID (TSID)"
           },
           "name" : {
-            "type" : [ "string", "null" ],
+            "type" : "string",
             "description" : "Climb name (if named)"
           },
           "startDistance" : {
@@ -589,23 +570,23 @@
           },
           "category" : {
             "description" : "Climb category (HC, 1, 2, 3, 4)",
-            "type" : [ "string", "null" ],
-            "anyOf" : [ {
-              "$ref" : "#/components/schemas/ClimbCategory"
-            }, {
-              "type" : "null"
-            } ]
+            "type" : "string",
+            "$ref" : "#/components/schemas/ClimbCategory"
           }
         }
       },
       "RouteDetailDto" : {
         "description" : "Detailed route information",
         "type" : "object",
-        "required" : [ "id", "name", "description", "distance", "elevationGain", "elevationLoss", "surfaceType", "visibility", "startLat", "startLng", "endLat", "endLng", "createdById", "createdAt", "updatedAt" ],
+        "required" : [ "id", "slug", "name", "description", "distance", "elevationGain", "elevationLoss", "surfaceType", "visibility", "startLat", "startLng", "endLat", "endLng", "createdBy", "createdAt", "updatedAt", "climbs", "track" ],
         "properties" : {
           "id" : {
             "type" : "string",
             "description" : "Route ID (TSID)"
+          },
+          "slug" : {
+            "type" : "string",
+            "description" : "Route slug"
           },
           "name" : {
             "type" : "string",
@@ -656,17 +637,32 @@
             "type" : "number",
             "description" : "End point longitude"
           },
-          "createdById" : {
-            "type" : "string",
-            "description" : "Creator user ID (TSID)"
+          "createdBy" : {
+            "description" : "Creator user",
+            "type" : "object",
+            "$ref" : "#/components/schemas/PublicUserDto"
           },
           "createdAt" : {
+            "description" : "Creation timestamp",
             "type" : "string",
-            "description" : "Creation timestamp"
+            "$ref" : "#/components/schemas/Instant"
           },
           "updatedAt" : {
+            "description" : "Last update timestamp",
             "type" : "string",
-            "description" : "Last update timestamp"
+            "$ref" : "#/components/schemas/Instant"
+          },
+          "climbs" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/RouteClimbDto"
+            },
+            "description" : "List of climbs on the route"
+          },
+          "track" : {
+            "description" : "Geometry details",
+            "type" : "object",
+            "$ref" : "#/components/schemas/GpxTrackDto"
           }
         }
       },
@@ -688,7 +684,7 @@
             "description" : "Route name"
           },
           "description" : {
-            "type" : [ "string", "null" ],
+            "type" : "string",
             "description" : "Route description"
           },
           "distance" : {
@@ -717,8 +713,9 @@
             "$ref" : "#/components/schemas/Visibility"
           },
           "createdAt" : {
+            "description" : "Creation timestamp",
             "type" : "string",
-            "description" : "Creation timestamp"
+            "$ref" : "#/components/schemas/Instant"
           }
         }
       },
@@ -761,7 +758,7 @@
             "description" : "Route name"
           },
           "description" : {
-            "type" : [ "string", "null" ],
+            "type" : "string",
             "description" : "Route description"
           },
           "surfaceType" : {
@@ -799,7 +796,7 @@
             "description" : "Team URL slug"
           },
           "description" : {
-            "type" : [ "string", "null" ],
+            "type" : "string",
             "description" : "Team description"
           },
           "visibility" : {
@@ -814,16 +811,13 @@
           },
           "role" : {
             "description" : "Current user's role (null if not a member)",
-            "type" : [ "string", "null" ],
-            "anyOf" : [ {
-              "$ref" : "#/components/schemas/TeamRole"
-            }, {
-              "type" : "null"
-            } ]
+            "type" : "string",
+            "$ref" : "#/components/schemas/TeamRole"
           },
           "createdAt" : {
+            "description" : "Team creation timestamp",
             "type" : "string",
-            "description" : "Team creation timestamp"
+            "$ref" : "#/components/schemas/Instant"
           }
         }
       },
@@ -870,7 +864,7 @@
             "maxLength" : 255
           },
           "description" : {
-            "type" : [ "string", "null" ],
+            "type" : "string",
             "description" : "Team description",
             "examples" : [ "A team for weekend warriors" ],
             "maxLength" : 2000
@@ -931,20 +925,20 @@
         "type" : "object",
         "properties" : {
           "displayName" : {
-            "type" : [ "string", "null" ],
+            "type" : "string",
             "description" : "User display name",
             "examples" : [ "John Doe" ],
             "minLength" : 1,
             "maxLength" : 255
           },
           "locale" : {
-            "type" : [ "string", "null" ],
+            "type" : "string",
             "description" : "User locale (e.g. 'en', 'fr')",
             "examples" : [ "en" ],
             "maxLength" : 10
           },
           "timezone" : {
-            "type" : [ "string", "null" ],
+            "type" : "string",
             "description" : "User timezone (e.g. 'Europe/Paris')",
             "examples" : [ "Europe/Paris" ],
             "maxLength" : 50
@@ -970,22 +964,23 @@
             "description" : "User display name"
           },
           "avatarUrl" : {
-            "type" : [ "string", "null" ],
+            "type" : "string",
             "description" : "User avatar URL"
           },
           "locale" : {
-            "type" : [ "string", "null" ],
+            "type" : "string",
             "description" : "User locale (e.g. 'en', 'fr')",
             "examples" : [ "en" ]
           },
           "timezone" : {
-            "type" : [ "string", "null" ],
+            "type" : "string",
             "description" : "User timezone (e.g. 'Europe/Paris')",
             "examples" : [ "Europe/Paris" ]
           },
           "createdAt" : {
-            "type" : [ "string", "null" ],
-            "description" : "Account creation timestamp"
+            "description" : "Account creation timestamp",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Instant"
           }
         }
       },
@@ -997,7 +992,7 @@
     "securitySchemes" : {
       "SecurityScheme" : {
         "type" : "openIdConnect",
-        "openIdConnectUrl" : "http://localhost:8180/realms/quarkus/.well-known/openid-configuration",
+        "openIdConnectUrl" : "http://localhost:8180/realms/tribly/.well-known/openid-configuration",
         "description" : "Authentication"
       }
     }
@@ -2115,53 +2110,6 @@
         } ]
       }
     },
-    "/api/teams/{slug}/rides/{rideSlug}/groups" : {
-      "get" : {
-        "summary" : "List ride groups",
-        "description" : "Get all groups for a ride",
-        "operationId" : "listGroups",
-        "tags" : [ "Rides" ],
-        "parameters" : [ {
-          "description" : "Ride URL slug",
-          "name" : "rideSlug",
-          "in" : "path",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "description" : "Team URL slug",
-          "name" : "slug",
-          "in" : "path",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "Groups retrieved successfully",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/RideGroupListResponse"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Team or ride not found",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/teams/{slug}/rides/{rideSlug}/groups/{groupId}/join" : {
       "post" : {
         "summary" : "Join ride group",
@@ -2193,16 +2141,6 @@
             "type" : "string"
           }
         } ],
-        "requestBody" : {
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/JoinGroupRequest"
-              }
-            }
-          },
-          "required" : true
-        },
         "responses" : {
           "201" : {
             "description" : "Successfully joined group",
@@ -2683,100 +2621,6 @@
         "security" : [ {
           "SecurityScheme" : [ "user" ]
         } ]
-      }
-    },
-    "/api/teams/{slug}/routes/{routeSlug}/climbs" : {
-      "get" : {
-        "summary" : "Get route climbs",
-        "description" : "Get all categorized climbs (hills) on a route",
-        "operationId" : "getClimbs",
-        "tags" : [ "Routes" ],
-        "parameters" : [ {
-          "description" : "Route slug",
-          "name" : "routeSlug",
-          "in" : "path",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "description" : "Team URL slug",
-          "name" : "slug",
-          "in" : "path",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "Climbs retrieved successfully",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ClimbListResponse"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Team or route not found",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/teams/{slug}/routes/{routeSlug}/track" : {
-      "get" : {
-        "summary" : "Get route track",
-        "description" : "Get GPS track points (latitude, longitude, elevation) for displaying the route on a map",
-        "operationId" : "getTrack",
-        "tags" : [ "Routes" ],
-        "parameters" : [ {
-          "description" : "Route slug",
-          "name" : "routeSlug",
-          "in" : "path",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "description" : "Team URL slug",
-          "name" : "slug",
-          "in" : "path",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "Track retrieved successfully",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/GpxTrackDto"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Team or route not found",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          }
-        }
       }
     },
     "/api/users/me" : {

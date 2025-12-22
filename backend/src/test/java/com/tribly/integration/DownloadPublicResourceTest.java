@@ -127,15 +127,4 @@ class DownloadPublicResourceTest {
         .then()
         .statusCode(404);
   }
-
-  @Test
-  void getTrack_shouldReturnGpxTrack() {
-    given()
-        .when()
-        .get("/api/teams/test-team/routes/" + routeSlug + "/track")
-        .then()
-        .statusCode(200)
-        .contentType("application/json")
-        .body("trackPoints", notNullValue());
-  }
 }

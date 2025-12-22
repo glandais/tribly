@@ -42,7 +42,10 @@ export interface AddMemberRequest {
    * User ID (TSID) to add
    */
   userId: string
-  role?: TeamRole | null
+  /**
+   * Role to assign (defaults to MEMBER)
+   */
+  role?: TeamRole
 }
 
 export const ClimbCategory = {
@@ -97,7 +100,7 @@ export interface ErrorResponse {
   /**
    * Field validation errors
    */
-  errors?: Array<FieldError> | null
+  errors?: Array<FieldError>
   /**
    * Additional details
    */
@@ -124,10 +127,7 @@ export interface GpxTrackDto {
    * List of track points
    */
   trackPoints: Array<TrackPointDto>
-  /**
-   * Processing timestamp
-   */
-  processedAt?: string | null
+  processedAt?: string
 }
 /**
  * Ride group creation request
@@ -136,7 +136,7 @@ export interface GroupRequest {
   /**
    * id
    */
-  id?: string | null
+  id?: string
   /**
    * Group name
    */
@@ -144,19 +144,19 @@ export interface GroupRequest {
   /**
    * Group description
    */
-  description?: string | null
+  description?: string
   /**
    * Average speed in km/h
    */
-  averageSpeed?: number | null
+  averageSpeed?: number
   /**
    * Maximum participants
    */
-  maxParticipants?: number | null
+  maxParticipants?: number
   /**
    * Route ID (TSID) for this group
    */
-  routeId?: string | null
+  routeId?: string
 }
 /**
  * Keycloak configuration
@@ -197,25 +197,14 @@ export interface MemberDto {
    */
   id: string
   /**
-   * User ID (TSID)
+   * User
    */
-  userId: string
-  /**
-   * User display name
-   */
-  displayName: string
-  /**
-   * User avatar URL
-   */
-  avatarUrl?: string | null
+  user: PublicUserDto
   /**
    * Member role
    */
   role: TeamRole
-  /**
-   * When the user joined the team
-   */
-  joinedAt?: string | null
+  joinedAt?: string
 }
 
 /**
@@ -254,7 +243,7 @@ export interface PublicUserDto {
   /**
    * User avatar URL
    */
-  avatarUrl?: string | null
+  avatarUrl?: string
 }
 /**
  * Ride summary data
@@ -275,7 +264,7 @@ export interface RideDto {
   /**
    * Ride description
    */
-  description?: string | null
+  description?: string
   dateTime: string
   /**
    * Ride status
@@ -288,7 +277,7 @@ export interface RideDto {
   /**
    * Route id
    */
-  routeId?: string | null
+  routeId?: string
   /**
    * Number of participants
    */
@@ -302,10 +291,7 @@ export interface RideDto {
    */
   groups: Array<RideGroupDto>
   publishAt?: string
-  /**
-   * Creation timestamp
-   */
-  createdAt?: string | null
+  createdAt?: string
 }
 
 /**
@@ -323,19 +309,19 @@ export interface RideGroupDto {
   /**
    * Group description
    */
-  description?: string | null
+  description?: string
   /**
    * Route id
    */
-  routeId?: string | null
+  routeId?: string
   /**
    * Average speed in km/h
    */
-  averageSpeed?: number | null
+  averageSpeed?: number
   /**
    * Maximum participants
    */
-  maxParticipants?: number | null
+  maxParticipants?: number
   /**
    * Current number of participants
    */
@@ -391,10 +377,7 @@ export interface RideParticipationDto {
    * User ID (TSID)
    */
   userId: string
-  /**
-   * Registration timestamp
-   */
-  registeredAt?: string | null
+  registeredAt?: string
 }
 /**
  * Ride request
@@ -407,7 +390,7 @@ export interface RideRequest {
   /**
    * Ride description
    */
-  description?: string | null
+  description?: string
   dateTime: string
   /**
    * Ride status
@@ -420,11 +403,11 @@ export interface RideRequest {
   /**
    * Route ID (TSID)
    */
-  routeId?: string | null
+  routeId?: string
   /**
    * Meeting point ID (TSID)
    */
-  meetingPointId?: string | null
+  meetingPointId?: string
   publishAt?: string
   /**
    * Ride groups to create
@@ -451,7 +434,7 @@ export interface RouteClimbDto {
   /**
    * Climb name (if named)
    */
-  name?: string | null
+  name?: string
   /**
    * Start distance from route start in meters
    */
@@ -472,7 +455,10 @@ export interface RouteClimbDto {
    * Maximum gradient percentage
    */
   maxGradient: number
-  category?: ClimbCategory | null
+  /**
+   * Climb category (HC, 1, 2, 3, 4)
+   */
+  category?: ClimbCategory
 }
 
 /**
@@ -483,6 +469,10 @@ export interface RouteDetailDto {
    * Route ID (TSID)
    */
   id: string
+  /**
+   * Route slug
+   */
+  slug: string
   /**
    * Route name
    */
@@ -528,17 +518,19 @@ export interface RouteDetailDto {
    */
   endLng: number
   /**
-   * Creator user ID (TSID)
+   * Creator user
    */
-  createdById: string
-  /**
-   * Creation timestamp
-   */
+  createdBy: PublicUserDto
   createdAt: string
-  /**
-   * Last update timestamp
-   */
   updatedAt: string
+  /**
+   * List of climbs on the route
+   */
+  climbs: Array<RouteClimbDto>
+  /**
+   * Geometry details
+   */
+  track: GpxTrackDto
 }
 
 /**
@@ -560,7 +552,7 @@ export interface RouteDto {
   /**
    * Route description
    */
-  description?: string | null
+  description?: string
   /**
    * Distance in meters
    */
@@ -581,9 +573,6 @@ export interface RouteDto {
    * Whether the route is public
    */
   visibility: Visibility
-  /**
-   * Creation timestamp
-   */
   createdAt: string
 }
 
@@ -619,7 +608,7 @@ export interface RouteRequest {
   /**
    * Route description
    */
-  description?: string | null
+  description?: string
   /**
    * Surface type
    */
@@ -658,7 +647,7 @@ export interface TeamDetailDto {
   /**
    * Team description
    */
-  description?: string | null
+  description?: string
   /**
    * Whether the team is public
    */
@@ -667,10 +656,10 @@ export interface TeamDetailDto {
    * Number of team members
    */
   memberCount: number
-  role?: TeamRole | null
   /**
-   * Team creation timestamp
+   * Current user\'s role (null if not a member)
    */
+  role?: TeamRole
   createdAt: string
 }
 
@@ -706,7 +695,7 @@ export interface TeamRequest {
   /**
    * Team description
    */
-  description?: string | null
+  description?: string
   /**
    * Whether the team is publicly visible
    */
@@ -759,15 +748,15 @@ export interface UpdateUserRequest {
   /**
    * User display name
    */
-  displayName?: string | null
+  displayName?: string
   /**
    * User locale (e.g. \'en\', \'fr\')
    */
-  locale?: string | null
+  locale?: string
   /**
    * User timezone (e.g. \'Europe/Paris\')
    */
-  timezone?: string | null
+  timezone?: string
 }
 /**
  * User profile data
@@ -788,19 +777,16 @@ export interface UserDto {
   /**
    * User avatar URL
    */
-  avatarUrl?: string | null
+  avatarUrl?: string
   /**
    * User locale (e.g. \'en\', \'fr\')
    */
-  locale?: string | null
+  locale?: string
   /**
    * User timezone (e.g. \'Europe/Paris\')
    */
-  timezone?: string | null
-  /**
-   * Account creation timestamp
-   */
-  createdAt?: string | null
+  timezone?: string
+  createdAt?: string
 }
 
 export const Visibility = {
@@ -1074,7 +1060,6 @@ export const RidesApiAxiosParamCreator = function (configuration?: Configuration
      * @param {string} groupId Group ID (TSID)
      * @param {string} rideSlug Ride URL slug
      * @param {string} slug Team URL slug
-     * @param {object} body
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
@@ -1082,7 +1067,6 @@ export const RidesApiAxiosParamCreator = function (configuration?: Configuration
       groupId: string,
       rideSlug: string,
       slug: string,
-      body: object,
       options: RawAxiosRequestConfig = {}
     ): Promise<RequestArgs> => {
       // verify required parameter 'groupId' is not null or undefined
@@ -1091,8 +1075,6 @@ export const RidesApiAxiosParamCreator = function (configuration?: Configuration
       assertParamExists('joinGroup', 'rideSlug', rideSlug)
       // verify required parameter 'slug' is not null or undefined
       assertParamExists('joinGroup', 'slug', slug)
-      // verify required parameter 'body' is not null or undefined
-      assertParamExists('joinGroup', 'body', body)
       const localVarPath = `/api/teams/{slug}/rides/{rideSlug}/groups/{groupId}/join`
         .replace(`{${'groupId'}}`, encodeURIComponent(String(groupId)))
         .replace(`{${'rideSlug'}}`, encodeURIComponent(String(rideSlug)))
@@ -1110,8 +1092,6 @@ export const RidesApiAxiosParamCreator = function (configuration?: Configuration
 
       // authentication SecurityScheme required
 
-      localVarHeaderParameter['Content-Type'] = 'application/json'
-
       setSearchParams(localVarUrlObj, localVarQueryParameter)
       let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {}
       localVarRequestOptions.headers = {
@@ -1119,11 +1099,6 @@ export const RidesApiAxiosParamCreator = function (configuration?: Configuration
         ...headersFromBaseOptions,
         ...options.headers,
       }
-      localVarRequestOptions.data = serializeDataIfNeeded(
-        body,
-        localVarRequestOptions,
-        configuration
-      )
 
       return {
         url: toPathString(localVarUrlObj),
@@ -1167,50 +1142,6 @@ export const RidesApiAxiosParamCreator = function (configuration?: Configuration
       const localVarQueryParameter = {} as any
 
       // authentication SecurityScheme required
-
-      setSearchParams(localVarUrlObj, localVarQueryParameter)
-      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {}
-      localVarRequestOptions.headers = {
-        ...localVarHeaderParameter,
-        ...headersFromBaseOptions,
-        ...options.headers,
-      }
-
-      return {
-        url: toPathString(localVarUrlObj),
-        options: localVarRequestOptions,
-      }
-    },
-    /**
-     * Get all groups for a ride
-     * @summary List ride groups
-     * @param {string} rideSlug Ride URL slug
-     * @param {string} slug Team URL slug
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    listGroups: async (
-      rideSlug: string,
-      slug: string,
-      options: RawAxiosRequestConfig = {}
-    ): Promise<RequestArgs> => {
-      // verify required parameter 'rideSlug' is not null or undefined
-      assertParamExists('listGroups', 'rideSlug', rideSlug)
-      // verify required parameter 'slug' is not null or undefined
-      assertParamExists('listGroups', 'slug', slug)
-      const localVarPath = `/api/teams/{slug}/rides/{rideSlug}/groups`
-        .replace(`{${'rideSlug'}}`, encodeURIComponent(String(rideSlug)))
-        .replace(`{${'slug'}}`, encodeURIComponent(String(slug)))
-      // use dummy base URL string because the URL constructor only accepts absolute URLs.
-      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL)
-      let baseOptions
-      if (configuration) {
-        baseOptions = configuration.baseOptions
-      }
-
-      const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options }
-      const localVarHeaderParameter = {} as any
-      const localVarQueryParameter = {} as any
 
       setSearchParams(localVarUrlObj, localVarQueryParameter)
       let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {}
@@ -1447,7 +1378,6 @@ export const RidesApiFp = function (configuration?: Configuration) {
      * @param {string} groupId Group ID (TSID)
      * @param {string} rideSlug Ride URL slug
      * @param {string} slug Team URL slug
-     * @param {object} body
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
@@ -1455,14 +1385,12 @@ export const RidesApiFp = function (configuration?: Configuration) {
       groupId: string,
       rideSlug: string,
       slug: string,
-      body: object,
       options?: RawAxiosRequestConfig
     ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<RideParticipationDto>> {
       const localVarAxiosArgs = await localVarAxiosParamCreator.joinGroup(
         groupId,
         rideSlug,
         slug,
-        body,
         options
       )
       const localVarOperationServerIndex = configuration?.serverIndex ?? 0
@@ -1500,31 +1428,6 @@ export const RidesApiFp = function (configuration?: Configuration) {
       const localVarOperationServerIndex = configuration?.serverIndex ?? 0
       const localVarOperationServerBasePath =
         operationServerMap['RidesApi.leaveGroup']?.[localVarOperationServerIndex]?.url
-      return (axios, basePath) =>
-        createRequestFunction(
-          localVarAxiosArgs,
-          globalAxios,
-          BASE_PATH,
-          configuration
-        )(axios, localVarOperationServerBasePath || basePath)
-    },
-    /**
-     * Get all groups for a ride
-     * @summary List ride groups
-     * @param {string} rideSlug Ride URL slug
-     * @param {string} slug Team URL slug
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    async listGroups(
-      rideSlug: string,
-      slug: string,
-      options?: RawAxiosRequestConfig
-    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<RideGroupListResponse>> {
-      const localVarAxiosArgs = await localVarAxiosParamCreator.listGroups(rideSlug, slug, options)
-      const localVarOperationServerIndex = configuration?.serverIndex ?? 0
-      const localVarOperationServerBasePath =
-        operationServerMap['RidesApi.listGroups']?.[localVarOperationServerIndex]?.url
       return (axios, basePath) =>
         createRequestFunction(
           localVarAxiosArgs,
@@ -1674,7 +1577,6 @@ export const RidesApiFactory = function (
      * @param {string} groupId Group ID (TSID)
      * @param {string} rideSlug Ride URL slug
      * @param {string} slug Team URL slug
-     * @param {object} body
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
@@ -1682,11 +1584,10 @@ export const RidesApiFactory = function (
       groupId: string,
       rideSlug: string,
       slug: string,
-      body: object,
       options?: RawAxiosRequestConfig
     ): AxiosPromise<RideParticipationDto> {
       return localVarFp
-        .joinGroup(groupId, rideSlug, slug, body, options)
+        .joinGroup(groupId, rideSlug, slug, options)
         .then((request) => request(axios, basePath))
     },
     /**
@@ -1706,23 +1607,6 @@ export const RidesApiFactory = function (
     ): AxiosPromise<void> {
       return localVarFp
         .leaveGroup(groupId, rideSlug, slug, options)
-        .then((request) => request(axios, basePath))
-    },
-    /**
-     * Get all groups for a ride
-     * @summary List ride groups
-     * @param {string} rideSlug Ride URL slug
-     * @param {string} slug Team URL slug
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    listGroups(
-      rideSlug: string,
-      slug: string,
-      options?: RawAxiosRequestConfig
-    ): AxiosPromise<RideGroupListResponse> {
-      return localVarFp
-        .listGroups(rideSlug, slug, options)
         .then((request) => request(axios, basePath))
     },
     /**
@@ -1824,7 +1708,6 @@ export class RidesApi extends BaseAPI {
    * @param {string} groupId Group ID (TSID)
    * @param {string} rideSlug Ride URL slug
    * @param {string} slug Team URL slug
-   * @param {object} body
    * @param {*} [options] Override http request option.
    * @throws {RequiredError}
    */
@@ -1832,11 +1715,10 @@ export class RidesApi extends BaseAPI {
     groupId: string,
     rideSlug: string,
     slug: string,
-    body: object,
     options?: RawAxiosRequestConfig
   ) {
     return RidesApiFp(this.configuration)
-      .joinGroup(groupId, rideSlug, slug, body, options)
+      .joinGroup(groupId, rideSlug, slug, options)
       .then((request) => request(this.axios, this.basePath))
   }
 
@@ -1857,20 +1739,6 @@ export class RidesApi extends BaseAPI {
   ) {
     return RidesApiFp(this.configuration)
       .leaveGroup(groupId, rideSlug, slug, options)
-      .then((request) => request(this.axios, this.basePath))
-  }
-
-  /**
-   * Get all groups for a ride
-   * @summary List ride groups
-   * @param {string} rideSlug Ride URL slug
-   * @param {string} slug Team URL slug
-   * @param {*} [options] Override http request option.
-   * @throws {RequiredError}
-   */
-  public listGroups(rideSlug: string, slug: string, options?: RawAxiosRequestConfig) {
-    return RidesApiFp(this.configuration)
-      .listGroups(rideSlug, slug, options)
       .then((request) => request(this.axios, this.basePath))
   }
 
@@ -2052,50 +1920,6 @@ export const RoutesApiAxiosParamCreator = function (configuration?: Configuratio
       }
     },
     /**
-     * Get all categorized climbs (hills) on a route
-     * @summary Get route climbs
-     * @param {string} routeSlug Route slug
-     * @param {string} slug Team URL slug
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    getClimbs: async (
-      routeSlug: string,
-      slug: string,
-      options: RawAxiosRequestConfig = {}
-    ): Promise<RequestArgs> => {
-      // verify required parameter 'routeSlug' is not null or undefined
-      assertParamExists('getClimbs', 'routeSlug', routeSlug)
-      // verify required parameter 'slug' is not null or undefined
-      assertParamExists('getClimbs', 'slug', slug)
-      const localVarPath = `/api/teams/{slug}/routes/{routeSlug}/climbs`
-        .replace(`{${'routeSlug'}}`, encodeURIComponent(String(routeSlug)))
-        .replace(`{${'slug'}}`, encodeURIComponent(String(slug)))
-      // use dummy base URL string because the URL constructor only accepts absolute URLs.
-      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL)
-      let baseOptions
-      if (configuration) {
-        baseOptions = configuration.baseOptions
-      }
-
-      const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options }
-      const localVarHeaderParameter = {} as any
-      const localVarQueryParameter = {} as any
-
-      setSearchParams(localVarUrlObj, localVarQueryParameter)
-      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {}
-      localVarRequestOptions.headers = {
-        ...localVarHeaderParameter,
-        ...headersFromBaseOptions,
-        ...options.headers,
-      }
-
-      return {
-        url: toPathString(localVarUrlObj),
-        options: localVarRequestOptions,
-      }
-    },
-    /**
      * Get detailed route information including GPS coordinates and statistics
      * @summary Get route details
      * @param {string} routeSlug Route slug
@@ -2113,50 +1937,6 @@ export const RoutesApiAxiosParamCreator = function (configuration?: Configuratio
       // verify required parameter 'slug' is not null or undefined
       assertParamExists('getRoute', 'slug', slug)
       const localVarPath = `/api/teams/{slug}/routes/{routeSlug}`
-        .replace(`{${'routeSlug'}}`, encodeURIComponent(String(routeSlug)))
-        .replace(`{${'slug'}}`, encodeURIComponent(String(slug)))
-      // use dummy base URL string because the URL constructor only accepts absolute URLs.
-      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL)
-      let baseOptions
-      if (configuration) {
-        baseOptions = configuration.baseOptions
-      }
-
-      const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options }
-      const localVarHeaderParameter = {} as any
-      const localVarQueryParameter = {} as any
-
-      setSearchParams(localVarUrlObj, localVarQueryParameter)
-      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {}
-      localVarRequestOptions.headers = {
-        ...localVarHeaderParameter,
-        ...headersFromBaseOptions,
-        ...options.headers,
-      }
-
-      return {
-        url: toPathString(localVarUrlObj),
-        options: localVarRequestOptions,
-      }
-    },
-    /**
-     * Get GPS track points (latitude, longitude, elevation) for displaying the route on a map
-     * @summary Get route track
-     * @param {string} routeSlug Route slug
-     * @param {string} slug Team URL slug
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    getTrack: async (
-      routeSlug: string,
-      slug: string,
-      options: RawAxiosRequestConfig = {}
-    ): Promise<RequestArgs> => {
-      // verify required parameter 'routeSlug' is not null or undefined
-      assertParamExists('getTrack', 'routeSlug', routeSlug)
-      // verify required parameter 'slug' is not null or undefined
-      assertParamExists('getTrack', 'slug', slug)
-      const localVarPath = `/api/teams/{slug}/routes/{routeSlug}/track`
         .replace(`{${'routeSlug'}}`, encodeURIComponent(String(routeSlug)))
         .replace(`{${'slug'}}`, encodeURIComponent(String(slug)))
       // use dummy base URL string because the URL constructor only accepts absolute URLs.
@@ -2379,31 +2159,6 @@ export const RoutesApiFp = function (configuration?: Configuration) {
         )(axios, localVarOperationServerBasePath || basePath)
     },
     /**
-     * Get all categorized climbs (hills) on a route
-     * @summary Get route climbs
-     * @param {string} routeSlug Route slug
-     * @param {string} slug Team URL slug
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    async getClimbs(
-      routeSlug: string,
-      slug: string,
-      options?: RawAxiosRequestConfig
-    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ClimbListResponse>> {
-      const localVarAxiosArgs = await localVarAxiosParamCreator.getClimbs(routeSlug, slug, options)
-      const localVarOperationServerIndex = configuration?.serverIndex ?? 0
-      const localVarOperationServerBasePath =
-        operationServerMap['RoutesApi.getClimbs']?.[localVarOperationServerIndex]?.url
-      return (axios, basePath) =>
-        createRequestFunction(
-          localVarAxiosArgs,
-          globalAxios,
-          BASE_PATH,
-          configuration
-        )(axios, localVarOperationServerBasePath || basePath)
-    },
-    /**
      * Get detailed route information including GPS coordinates and statistics
      * @summary Get route details
      * @param {string} routeSlug Route slug
@@ -2420,31 +2175,6 @@ export const RoutesApiFp = function (configuration?: Configuration) {
       const localVarOperationServerIndex = configuration?.serverIndex ?? 0
       const localVarOperationServerBasePath =
         operationServerMap['RoutesApi.getRoute']?.[localVarOperationServerIndex]?.url
-      return (axios, basePath) =>
-        createRequestFunction(
-          localVarAxiosArgs,
-          globalAxios,
-          BASE_PATH,
-          configuration
-        )(axios, localVarOperationServerBasePath || basePath)
-    },
-    /**
-     * Get GPS track points (latitude, longitude, elevation) for displaying the route on a map
-     * @summary Get route track
-     * @param {string} routeSlug Route slug
-     * @param {string} slug Team URL slug
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    async getTrack(
-      routeSlug: string,
-      slug: string,
-      options?: RawAxiosRequestConfig
-    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<GpxTrackDto>> {
-      const localVarAxiosArgs = await localVarAxiosParamCreator.getTrack(routeSlug, slug, options)
-      const localVarOperationServerIndex = configuration?.serverIndex ?? 0
-      const localVarOperationServerBasePath =
-        operationServerMap['RoutesApi.getTrack']?.[localVarOperationServerIndex]?.url
       return (axios, basePath) =>
         createRequestFunction(
           localVarAxiosArgs,
@@ -2576,23 +2306,6 @@ export const RoutesApiFactory = function (
         .then((request) => request(axios, basePath))
     },
     /**
-     * Get all categorized climbs (hills) on a route
-     * @summary Get route climbs
-     * @param {string} routeSlug Route slug
-     * @param {string} slug Team URL slug
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    getClimbs(
-      routeSlug: string,
-      slug: string,
-      options?: RawAxiosRequestConfig
-    ): AxiosPromise<ClimbListResponse> {
-      return localVarFp
-        .getClimbs(routeSlug, slug, options)
-        .then((request) => request(axios, basePath))
-    },
-    /**
      * Get detailed route information including GPS coordinates and statistics
      * @summary Get route details
      * @param {string} routeSlug Route slug
@@ -2607,23 +2320,6 @@ export const RoutesApiFactory = function (
     ): AxiosPromise<RouteDetailDto> {
       return localVarFp
         .getRoute(routeSlug, slug, options)
-        .then((request) => request(axios, basePath))
-    },
-    /**
-     * Get GPS track points (latitude, longitude, elevation) for displaying the route on a map
-     * @summary Get route track
-     * @param {string} routeSlug Route slug
-     * @param {string} slug Team URL slug
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    getTrack(
-      routeSlug: string,
-      slug: string,
-      options?: RawAxiosRequestConfig
-    ): AxiosPromise<GpxTrackDto> {
-      return localVarFp
-        .getTrack(routeSlug, slug, options)
         .then((request) => request(axios, basePath))
     },
     /**
@@ -2714,20 +2410,6 @@ export class RoutesApi extends BaseAPI {
   }
 
   /**
-   * Get all categorized climbs (hills) on a route
-   * @summary Get route climbs
-   * @param {string} routeSlug Route slug
-   * @param {string} slug Team URL slug
-   * @param {*} [options] Override http request option.
-   * @throws {RequiredError}
-   */
-  public getClimbs(routeSlug: string, slug: string, options?: RawAxiosRequestConfig) {
-    return RoutesApiFp(this.configuration)
-      .getClimbs(routeSlug, slug, options)
-      .then((request) => request(this.axios, this.basePath))
-  }
-
-  /**
    * Get detailed route information including GPS coordinates and statistics
    * @summary Get route details
    * @param {string} routeSlug Route slug
@@ -2738,20 +2420,6 @@ export class RoutesApi extends BaseAPI {
   public getRoute(routeSlug: string, slug: string, options?: RawAxiosRequestConfig) {
     return RoutesApiFp(this.configuration)
       .getRoute(routeSlug, slug, options)
-      .then((request) => request(this.axios, this.basePath))
-  }
-
-  /**
-   * Get GPS track points (latitude, longitude, elevation) for displaying the route on a map
-   * @summary Get route track
-   * @param {string} routeSlug Route slug
-   * @param {string} slug Team URL slug
-   * @param {*} [options] Override http request option.
-   * @throws {RequiredError}
-   */
-  public getTrack(routeSlug: string, slug: string, options?: RawAxiosRequestConfig) {
-    return RoutesApiFp(this.configuration)
-      .getTrack(routeSlug, slug, options)
       .then((request) => request(this.axios, this.basePath))
   }
 

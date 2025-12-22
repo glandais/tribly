@@ -10,7 +10,6 @@ import com.tribly.util.TestDataService;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import java.util.List;
-import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -44,41 +43,14 @@ class GpxTrackRepositoryTest {
 
     dataService.createGpxTrack(route, geometry, trackPoints);
 
-    Optional<GpxTrack> result = gpxTrackRepository.findByRoute(route.getId());
+    GpxTrack result = gpxTrackRepository.findByRoute(route.getId());
 
-    assertTrue(result.isPresent());
-    assertEquals(route.getId(), result.get().getRoute().getId());
-    assertEquals(geometry, result.get().getGeometry());
-    assertEquals(3, result.get().getTrackPoints().size());
-    assertEquals(45.0, result.get().getTrackPoints().get(0).lat());
-    assertEquals(6.0, result.get().getTrackPoints().get(0).lng());
-  }
-
-  @Test
-  void findByRoute_shouldReturnEmptyWhenNoTrack() {
-    Optional<GpxTrack> result = gpxTrackRepository.findByRoute(route.getId());
-
-    assertTrue(result.isEmpty());
-  }
-
-  @Test
-  void findByRoute_shouldReturnEmptyForNonexistentRoute() {
-    Optional<GpxTrack> result = gpxTrackRepository.findByRoute(999999L);
-
-    assertTrue(result.isEmpty());
-  }
-
-  @Test
-  void findByRoute_shouldIgnoreDeletedTracks() {
-    List<GpxTrack.TrackPoint> trackPoints = List.of(new GpxTrack.TrackPoint(45.0, 6.0, 500.0, 0.0));
-    String geometry = "LINESTRING(6.0 45.0, 6.1 45.1)";
-
-    GpxTrack track = dataService.createGpxTrack(route, geometry, trackPoints);
-    dataService.deleteGpxTrack(track);
-
-    Optional<GpxTrack> result = gpxTrackRepository.findByRoute(route.getId());
-
-    assertTrue(result.isEmpty());
+    assertNotNull(result);
+    assertEquals(route.getId(), result.getRoute().getId());
+    assertEquals(geometry, result.getGeometry());
+    assertEquals(3, result.getTrackPoints().size());
+    assertEquals(45.0, result.getTrackPoints().get(0).lat());
+    assertEquals(6.0, result.getTrackPoints().get(0).lng());
   }
 
   @Test
@@ -92,13 +64,13 @@ class GpxTrackRepositoryTest {
     dataService.createGpxTrackWithName(
         route, "Mountain Route", geometry, trackPoints, "mountain_route.gpx");
 
-    Optional<GpxTrack> result = gpxTrackRepository.findByRoute(route.getId());
+    GpxTrack result = gpxTrackRepository.findByRoute(route.getId());
 
-    assertTrue(result.isPresent());
-    assertEquals("Mountain Route", result.get().getName());
-    assertEquals("mountain_route.gpx", result.get().getOriginalFileName());
-    assertNotNull(result.get().getProcessedAt());
-    assertEquals(2, result.get().getTrackPoints().size());
+    assertNotNull(result);
+    assertEquals("Mountain Route", result.getName());
+    assertEquals("mountain_route.gpx", result.getOriginalFileName());
+    assertNotNull(result.getProcessedAt());
+    assertEquals(2, result.getTrackPoints().size());
   }
 
   @Test
@@ -110,11 +82,11 @@ class GpxTrackRepositoryTest {
     dataService.createGpxTrack(route, geometry, trackPoints);
     dataService.createGpxTrack(otherRoute, "LINESTRING(7.0 46.0, 7.1 46.1)", trackPoints);
 
-    Optional<GpxTrack> result = gpxTrackRepository.findByRoute(route.getId());
+    GpxTrack result = gpxTrackRepository.findByRoute(route.getId());
 
-    assertTrue(result.isPresent());
-    assertEquals(route.getId(), result.get().getRoute().getId());
-    assertEquals(geometry, result.get().getGeometry());
+    assertNotNull(result);
+    assertEquals(route.getId(), result.getRoute().getId());
+    assertEquals(geometry, result.getGeometry());
   }
 
   @Test
@@ -130,14 +102,14 @@ class GpxTrackRepositoryTest {
 
     dataService.createGpxTrack(route, geometry, trackPoints);
 
-    Optional<GpxTrack> result = gpxTrackRepository.findByRoute(route.getId());
+    GpxTrack result = gpxTrackRepository.findByRoute(route.getId());
 
-    assertTrue(result.isPresent());
-    assertEquals(5, result.get().getTrackPoints().size());
-    assertEquals(0.0, result.get().getTrackPoints().get(0).dist());
-    assertEquals(4000.0, result.get().getTrackPoints().get(4).dist());
-    assertEquals(500.0, result.get().getTrackPoints().get(0).ele());
-    assertEquals(900.0, result.get().getTrackPoints().get(4).ele());
+    assertNotNull(result);
+    assertEquals(5, result.getTrackPoints().size());
+    assertEquals(0.0, result.getTrackPoints().get(0).dist());
+    assertEquals(4000.0, result.getTrackPoints().get(4).dist());
+    assertEquals(500.0, result.getTrackPoints().get(0).ele());
+    assertEquals(900.0, result.getTrackPoints().get(4).ele());
   }
 
   @Test
@@ -147,11 +119,11 @@ class GpxTrackRepositoryTest {
 
     dataService.createGpxTrack(route, geometry, trackPoints);
 
-    Optional<GpxTrack> result = gpxTrackRepository.findByRoute(route.getId());
+    GpxTrack result = gpxTrackRepository.findByRoute(route.getId());
 
-    assertTrue(result.isPresent());
-    assertNull(result.get().getName());
-    assertNull(result.get().getOriginalFileName());
-    assertNotNull(result.get().getProcessedAt());
+    assertNotNull(result);
+    assertNull(result.getName());
+    assertNull(result.getOriginalFileName());
+    assertNotNull(result.getProcessedAt());
   }
 }

@@ -81,7 +81,7 @@ class TeamMembershipServiceTest {
     MemberDto result = membershipService.joinTeam("test-team", user1.getId());
 
     assertNotNull(result);
-    assertEquals(user1.getId(), TsidUtils.toLong(result.userId()));
+    assertEquals(user1.getId(), TsidUtils.toLong(result.user().id()));
     assertEquals(TeamRole.MEMBER, result.role());
   }
 
@@ -115,7 +115,7 @@ class TeamMembershipServiceTest {
         membershipService.addMember("test-team", user1.getId(), TeamRole.ORGANIZER, admin.getId());
 
     assertNotNull(result);
-    assertEquals(user1.getId(), TsidUtils.toLong(result.userId()));
+    assertEquals(user1.getId(), TsidUtils.toLong(result.user().id()));
     assertEquals(TeamRole.ORGANIZER, result.role());
   }
 

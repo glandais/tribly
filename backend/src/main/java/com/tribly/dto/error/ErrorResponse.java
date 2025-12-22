@@ -12,10 +12,8 @@ public record ErrorResponse(
     @Schema(description = "Error message", required = true) String message,
     @Schema(description = "Request path", required = true) String path,
     @Schema(description = "Timestamp", required = true) Instant timestamp,
-    @Nullable @Schema(description = "Field validation errors", nullable = true)
-        List<FieldError> errors,
-    @Nullable @Schema(description = "Additional details", nullable = true)
-        Map<String, Object> details) {
+    @Nullable @Schema(description = "Field validation errors") List<FieldError> errors,
+    @Nullable @Schema(description = "Additional details") Map<String, Object> details) {
   public ErrorResponse(String code, String message, String path) {
     this(code, message, path, Instant.now(), null, null);
   }

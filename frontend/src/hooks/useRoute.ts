@@ -53,30 +53,6 @@ export function useRoute(teamSlug: string | undefined, routeId: string | undefin
   })
 }
 
-export function useRouteClimbs(teamSlug: string | undefined, routeId: string | undefined) {
-  return useQuery({
-    queryKey: ['routeClimbs', teamSlug, routeId],
-    queryFn: async () => {
-      if (!teamSlug || !routeId) throw new Error('Team slug and route ID are required')
-      return await unwrapResponse(routesApi.getClimbs(routeId, teamSlug))
-    },
-    enabled: !!teamSlug && !!routeId,
-    staleTime: 1000 * 60 * 2,
-  })
-}
-
-export function useGpxTrack(teamSlug: string | undefined, routeId: string | undefined) {
-  return useQuery({
-    queryKey: ['gpxTrack', teamSlug, routeId],
-    queryFn: async () => {
-      if (!teamSlug || !routeId) throw new Error('Team slug and route ID are required')
-      return await unwrapResponse(routesApi.getTrack(routeId, teamSlug))
-    },
-    enabled: !!teamSlug && !!routeId,
-    staleTime: 1000 * 60 * 5, // Track data is less likely to change
-  })
-}
-
 export function useCreateRoute(teamSlug: string) {
   const queryClient = useQueryClient()
   const navigate = useNavigate()

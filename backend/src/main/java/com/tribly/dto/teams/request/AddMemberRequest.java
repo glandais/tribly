@@ -10,5 +10,4 @@ import org.jspecify.annotations.Nullable;
 public record AddMemberRequest(
     @Schema(description = "User ID (TSID) to add", examples = "0h4a8xzk8jv80", required = true)
         String userId,
-    @Nullable @Schema(description = "Role to assign (defaults to MEMBER)", nullable = true)
-        TeamRole role) {}
+    @Nullable @Schema(description = "Role to assign (defaults to MEMBER)") TeamRole role) {}

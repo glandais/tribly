@@ -9,7 +9,7 @@ import org.jspecify.annotations.Nullable;
 public record PublicUserDto(
     @Schema(description = "User ID (TSID)", examples = "0h4a8xzk8jv80", required = true) String id,
     @Schema(description = "User display name", required = true) String displayName,
-    @Nullable @Schema(description = "User avatar URL", nullable = true) String avatarUrl) {
+    @Nullable @Schema(description = "User avatar URL") String avatarUrl) {
   public static PublicUserDto from(User user) {
     return new PublicUserDto(
         TsidUtils.toString(user.getId()), user.getDisplayName(), user.getAvatarUrl());

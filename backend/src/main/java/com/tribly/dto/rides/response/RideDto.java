@@ -16,16 +16,16 @@ public record RideDto(
     @Schema(description = "Ride ID (TSID)", required = true) String id,
     @Schema(description = "Ride URL slug", required = true) String slug,
     @Schema(description = "Ride name", required = true) String name,
-    @Nullable @Schema(description = "Ride description", nullable = true) String description,
+    @Nullable @Schema(description = "Ride description") String description,
     @Schema(description = "Ride date/time", required = true) LocalDateTime dateTime,
     @Schema(description = "Ride status", required = true) RideStatus status,
     @Schema(description = "Visibility level", required = true) Visibility visibility,
-    @Nullable @Schema(description = "Route id", nullable = true) String routeId,
+    @Nullable @Schema(description = "Route id") String routeId,
     @Schema(description = "Number of participants", required = true) int participantCount,
     @Schema(description = "Number of groups", required = true) int groupCount,
     @Schema(description = "Ride groups", required = true) List<RideGroupDto> groups,
-    @Nullable @Schema(description = "Publication timestamp", nullable = true) Instant publishAt,
-    @Nullable @Schema(description = "Creation timestamp", nullable = true) String createdAt) {
+    @Nullable @Schema(description = "Publication timestamp") Instant publishAt,
+    @Nullable @Schema(description = "Creation timestamp") Instant createdAt) {
   public static RideDto from(Ride ride, boolean groupDetails) {
     List<RideGroupDto> groupDtos =
         groupDetails
@@ -44,6 +44,6 @@ public record RideDto(
         ride.getGroupCount(),
         groupDtos,
         ride.getPublishAt(),
-        ride.getCreatedAt().toString());
+        ride.getCreatedAt());
   }
 }

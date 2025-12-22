@@ -75,7 +75,7 @@ export function TeamMemberList({
     <div className="bg-white shadow-xs rounded-lg border border-gray-200">
       <ul className="divide-y divide-gray-200">
         {members.map((member) => {
-          const isCurrentUser = member.userId === currentUserId
+          const isCurrentUser = member.user.id === currentUserId
           const canEdit = canManageMembers && !isCurrentUser && member.role !== 'ADMIN'
           const canRemove = canManageMembers && !isCurrentUser
 
@@ -85,14 +85,14 @@ export function TeamMemberList({
                 <div className="flex items-center min-w-0">
                   <UserAvatar
                     user={{
-                      displayName: member.displayName,
-                      avatarUrl: member.avatarUrl,
+                      displayName: member.user.displayName,
+                      avatarUrl: member.user.avatarUrl,
                     }}
                     size="md"
                   />
                   <div className="ml-3 min-w-0">
                     <p className="text-sm font-medium text-gray-900 truncate">
-                      {member.displayName}
+                      {member.user.displayName}
                       {isCurrentUser && (
                         <span className="ml-2 text-xs text-gray-500">
                           {t('detail.members.you')}
@@ -123,7 +123,7 @@ export function TeamMemberList({
                         <option value="MEMBER">{tCommon('roles.MEMBER')}</option>
                       </select>
                       <button
-                        onClick={() => handleRoleChange(member.userId)}
+                        onClick={() => handleRoleChange(member.user.id)}
                         disabled={isUpdating}
                         className="text-sm text-indigo-600 hover:text-indigo-900 disabled:opacity-50"
                       >
@@ -159,7 +159,7 @@ export function TeamMemberList({
 
                       {canRemove && (
                         <button
-                          onClick={() => handleRemove(member.userId)}
+                          onClick={() => handleRemove(member.user.id)}
                           disabled={isRemoving}
                           className="text-sm text-red-600 hover:text-red-900 disabled:opacity-50"
                         >

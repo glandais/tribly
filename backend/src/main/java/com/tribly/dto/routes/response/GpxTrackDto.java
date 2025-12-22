@@ -2,6 +2,7 @@ package com.tribly.dto.routes.response;
 
 import com.tribly.domain.route.GpxTrack;
 import com.tribly.infrastructure.id.TsidUtils;
+import java.time.Instant;
 import java.util.List;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.jspecify.annotations.Nullable;
@@ -14,7 +15,7 @@ public record GpxTrackDto(
     @Schema(description = "Track ID (TSID)", required = true) String id,
     @Nullable @Schema(description = "Track name") String name,
     @Schema(description = "List of track points", required = true) List<TrackPointDto> trackPoints,
-    @Nullable @Schema(description = "Processing timestamp", nullable = true) String processedAt) {
+    @Nullable @Schema(description = "Processing timestamp") Instant processedAt) {
   public static GpxTrackDto from(GpxTrack track) {
     List<TrackPointDto> points =
         track.getTrackPoints().stream()
@@ -22,10 +23,7 @@ public record GpxTrackDto(
             .toList();
 
     return new GpxTrackDto(
-        TsidUtils.toString(track.getId()),
-        track.getName(),
-        points,
-        track.getProcessedAt().toString());
+        TsidUtils.toString(track.getId()), track.getName(), points, track.getProcessedAt());
   }
 
   @Schema(description = "GPS track point")

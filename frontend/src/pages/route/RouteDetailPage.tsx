@@ -9,7 +9,7 @@ import {
   ChevronLeftIcon,
 } from '@heroicons/react/24/outline'
 import { MapContainer, TileLayer, Polyline } from 'react-leaflet'
-import { useRoute, useRouteClimbs, useGpxTrack, useDeleteRoute } from '../../hooks/useRoute'
+import { useRoute, useDeleteRoute } from '../../hooks/useRoute'
 import { useTeam } from '../../hooks/useTeam'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import 'leaflet/dist/leaflet.css'
@@ -23,8 +23,6 @@ export function RouteDetailPage() {
 
   const { data: team } = useTeam(teamSlug)
   const { data: route, isLoading: routeLoading } = useRoute(teamSlug, routeId)
-  const { data: climbsData, isLoading: climbsLoading } = useRouteClimbs(teamSlug, routeId)
-  const { data: gpxTrack, isLoading: trackLoading } = useGpxTrack(teamSlug, routeId)
   const deleteRoute = useDeleteRoute(teamSlug!)
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
@@ -55,7 +53,7 @@ export function RouteDetailPage() {
     }
   }
 
-  if (routeLoading || climbsLoading || trackLoading) {
+  if (routeLoading) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="animate-pulse">
@@ -71,7 +69,7 @@ export function RouteDetailPage() {
     )
   }
 
-  if (!route || !gpxTrack) {
+  if (!route) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-center">
@@ -88,7 +86,7 @@ export function RouteDetailPage() {
     )
   }
 
-  const trackPoints = gpxTrack.trackPoints.map((p) => [p.lat, p.lng] as [number, number])
+  const trackPoints = route.track.trackPoints.map((p) => [p.lat, p.lng] as [number, number])
   const bounds =
     trackPoints.length > 0
       ? (trackPoints.reduce(
@@ -230,13 +228,13 @@ export function RouteDetailPage() {
       </div>
 
       {/* Climbs Section */}
-      {climbsData && climbsData.climbs.length > 0 && (
+      {route.climbs && route.climbs.length > 0 && (
         <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
           <h2 className="text-xl font-bold text-gray-900 mb-4">
-            {t('detail.climbs.title')} ({climbsData.climbs.length})
+            {t('detail.climbs.title')} ({route.climbs.length})
           </h2>
           <div className="space-y-4">
-            {climbsData.climbs.map((climb, index) => (
+            {route.climbs.map((climb, index) => (
               <div
                 key={climb.id}
                 className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"

@@ -140,19 +140,4 @@ class RouteResourceTest {
     // Verify route is no longer accessible
     given().when().get("/api/teams/test-team/routes/" + testRoute.getSlug()).then().statusCode(404);
   }
-
-  @Test
-  void getClimbs_shouldReturnClimbList() {
-    // Create route for testing
-    testRoute =
-        dataService.createRouteWithVisibility(
-            testTeam, testUser, "Route with Climbs", Visibility.PUBLIC);
-
-    given()
-        .when()
-        .get("/api/teams/test-team/routes/" + testRoute.getSlug() + "/climbs")
-        .then()
-        .statusCode(200)
-        .body("climbs", notNullValue());
-  }
 }

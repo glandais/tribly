@@ -6,8 +6,6 @@ import com.tribly.domain.route.Route;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
 import com.tribly.dto.routes.request.RouteRequest;
-import com.tribly.dto.routes.response.ClimbListResponse;
-import com.tribly.dto.routes.response.GpxTrackDto;
 import com.tribly.dto.routes.response.RouteDto;
 import com.tribly.dto.routes.response.RouteListResponse;
 import com.tribly.enums.SurfaceType;
@@ -79,29 +77,6 @@ class RouteServiceTest {
     assertEquals(Visibility.PUBLIC, createdRoute.visibility());
     assertTrue(createdRoute.distance() > 0);
     assertTrue(createdRoute.elevationGain() >= 0);
-  }
-
-  @Test
-  void createRoute_shouldSaveGpxTrackAndClimbs() throws Exception {
-    InputStream gpxStream = getClass().getClassLoader().getResourceAsStream("example.gpx");
-    RouteRequest request = new RouteRequest("Route with Track", null, null, Visibility.PUBLIC);
-
-    createdRoute =
-        routeService.createRoute("test-team", request, gpxStream, "example.gpx", organizer.getId());
-
-    // Verify GPX track was saved
-    GpxTrackDto track =
-        routeService.getTrack("test-team", getCreatedRouteSlug(), organizer.getId());
-    assertNotNull(track);
-    assertEquals("Route with Track", track.name());
-    assertNotNull(track.trackPoints());
-    assertFalse(track.trackPoints().isEmpty());
-
-    // Verify climbs were saved
-    ClimbListResponse climbs =
-        routeService.getClimbs("test-team", getCreatedRouteSlug(), organizer.getId());
-    assertNotNull(climbs);
-    // example.gpx may or may not have climbs, just verify method works
   }
 
   @Test
@@ -294,49 +269,6 @@ class RouteServiceTest {
     assertThrows(
         BusinessException.class,
         () -> routeService.deleteRoute("test-team", route.getSlug(), member.getId()));
-  }
-
-  // ==================== Get Climbs ====================
-
-  @Test
-  void getClimbs_shouldReturnClimbsForRoute() throws Exception {
-    InputStream gpxStream = getClass().getClassLoader().getResourceAsStream("example.gpx");
-    RouteRequest request = new RouteRequest("Route", null, null, Visibility.PUBLIC);
-
-    createdRoute =
-        routeService.createRoute("test-team", request, gpxStream, "example.gpx", admin.getId());
-
-    ClimbListResponse climbs =
-        routeService.getClimbs("test-team", getCreatedRouteSlug(), member.getId());
-
-    assertNotNull(climbs);
-    // example.gpx may or may not have climbs, just verify method works
-  }
-
-  // ==================== Get Track ====================
-
-  @Test
-  void getTrack_shouldReturnGpxTrack() throws Exception {
-    InputStream gpxStream = getClass().getClassLoader().getResourceAsStream("example.gpx");
-    RouteRequest request = new RouteRequest("Route", null, null, Visibility.PUBLIC);
-
-    createdRoute =
-        routeService.createRoute("test-team", request, gpxStream, "example.gpx", admin.getId());
-
-    GpxTrackDto track = routeService.getTrack("test-team", getCreatedRouteSlug(), member.getId());
-
-    assertNotNull(track);
-    assertNotNull(track.trackPoints());
-    assertFalse(track.trackPoints().isEmpty());
-  }
-
-  @Test
-  void getTrack_shouldThrowForNonexistentTrack() {
-    Route route = dataService.createRoute(team, admin, "No Track");
-
-    assertThrows(
-        BusinessException.class,
-        () -> routeService.getTrack("test-team", route.getSlug(), member.getId()));
   }
 
   // ==================== File Downloads ====================

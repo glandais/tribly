@@ -57,14 +57,11 @@ Class | Method | HTTP request | Description
 *RidesApi* | [**getRide**](docs/RidesApi.md#getride) | **GET** /api/teams/{slug}/rides/{rideSlug} | Get ride details
 *RidesApi* | [**joinGroup**](docs/RidesApi.md#joingroup) | **POST** /api/teams/{slug}/rides/{rideSlug}/groups/{groupId}/join | Join ride group
 *RidesApi* | [**leaveGroup**](docs/RidesApi.md#leavegroup) | **POST** /api/teams/{slug}/rides/{rideSlug}/groups/{groupId}/leave | Leave ride group
-*RidesApi* | [**listGroups**](docs/RidesApi.md#listgroups) | **GET** /api/teams/{slug}/rides/{rideSlug}/groups | List ride groups
 *RidesApi* | [**listRides**](docs/RidesApi.md#listrides) | **GET** /api/teams/{slug}/rides | List rides
 *RidesApi* | [**updateRide**](docs/RidesApi.md#updateride) | **PUT** /api/teams/{slug}/rides/{rideSlug} | Update ride
 *RoutesApi* | [**createRoute**](docs/RoutesApi.md#createroute) | **POST** /api/teams/{slug}/routes | Create route
 *RoutesApi* | [**deleteRoute**](docs/RoutesApi.md#deleteroute) | **DELETE** /api/teams/{slug}/routes/{routeSlug} | Delete route
-*RoutesApi* | [**getClimbs**](docs/RoutesApi.md#getclimbs) | **GET** /api/teams/{slug}/routes/{routeSlug}/climbs | Get route climbs
 *RoutesApi* | [**getRoute**](docs/RoutesApi.md#getroute) | **GET** /api/teams/{slug}/routes/{routeSlug} | Get route details
-*RoutesApi* | [**getTrack**](docs/RoutesApi.md#gettrack) | **GET** /api/teams/{slug}/routes/{routeSlug}/track | Get route track
 *RoutesApi* | [**listRoutes**](docs/RoutesApi.md#listroutes) | **GET** /api/teams/{slug}/routes | List routes
 *RoutesApi* | [**updateRoute**](docs/RoutesApi.md#updateroute) | **PATCH** /api/teams/{slug}/routes/{routeSlug} | Update route
 *TeamMembersApi* | [**addMember**](docs/TeamMembersApi.md#addmember) | **POST** /api/teams/{slug}/members | Add team member

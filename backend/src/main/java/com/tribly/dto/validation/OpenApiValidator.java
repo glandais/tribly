@@ -41,10 +41,7 @@ public class OpenApiValidator implements ConstraintValidator<ValidateSchema, Obj
   private boolean isRequired(Field field) {
     if (field.isAnnotationPresent(Schema.class)) {
       Schema schema = field.getAnnotation(Schema.class);
-      if (schema.required()) {
-        return true;
-      }
-      return !schema.nullable();
+      return schema.required();
     }
     return false;
   }

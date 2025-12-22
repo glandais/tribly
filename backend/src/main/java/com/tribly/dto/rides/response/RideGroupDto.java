@@ -12,11 +12,10 @@ import org.jspecify.annotations.Nullable;
 public record RideGroupDto(
     @Schema(description = "Group ID (TSID)", required = true) String id,
     @Schema(description = "Group name", required = true) String name,
-    @Nullable @Schema(description = "Group description", nullable = true) String description,
-    @Nullable @Schema(description = "Route id", nullable = true) String routeId,
-    @Nullable @Schema(description = "Average speed in km/h", nullable = true) Integer averageSpeed,
-    @Nullable @Schema(description = "Maximum participants", nullable = true)
-        Integer maxParticipants,
+    @Nullable @Schema(description = "Group description") String description,
+    @Nullable @Schema(description = "Route id") String routeId,
+    @Nullable @Schema(description = "Average speed in km/h") Integer averageSpeed,
+    @Nullable @Schema(description = "Maximum participants") Integer maxParticipants,
     @Schema(description = "Current number of participants", required = true) int countParticipants,
     @Schema(description = "Participants, empty if not access", required = true)
         List<PublicUserDto> participants,

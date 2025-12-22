@@ -7,7 +7,7 @@ import { UserAvatar } from '../common/UserAvatar'
 interface Participant {
   id: string
   displayName: string
-  avatarUrl?: string | null
+  avatarUrl?: string
   isOrganizer?: boolean
 }
 

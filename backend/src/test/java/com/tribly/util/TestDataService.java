@@ -221,6 +221,9 @@ public class TestDataService {
     Route route = new Route(team, createdBy, name, SlugService.slugify(name));
     route.setVisibility(visibility);
     routeRepository.persistAndFlush(route);
+    List<GpxTrack.TrackPoint> trackPoints = List.of(new GpxTrack.TrackPoint(45.0, 6.0, 500.0, 0.0));
+    String geometry = "LINESTRING(6 45,6.1 45.1)";
+    createGpxTrack(route, geometry, trackPoints);
     return route;
   }
 

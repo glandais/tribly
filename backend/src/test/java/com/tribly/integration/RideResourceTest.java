@@ -5,6 +5,7 @@ import static org.hamcrest.Matchers.*;
 
 import com.tribly.dto.rides.request.GroupRequest;
 import com.tribly.dto.rides.request.RideRequest;
+import com.tribly.dto.rides.response.RideDto;
 import com.tribly.enums.RideStatus;
 import com.tribly.enums.Visibility;
 import com.tribly.util.TestDataCleaner;
@@ -253,7 +254,7 @@ class RideResourceTest {
   void updateRide_asAdmin_shouldSucceed() {
     createTeamViaHttp();
 
-    String rideSlug =
+    RideDto ride =
         given()
             .auth()
             .oauth2(getAccessToken(USERNAME_ADMIN))
@@ -276,19 +277,9 @@ class RideResourceTest {
             .then()
             .statusCode(201)
             .extract()
-            .path("slug");
-
-    // Get the group ID
-    String groupId =
-        given()
-            .auth()
-            .oauth2(getAccessToken(USERNAME_ADMIN))
-            .when()
-            .get("/api/teams/" + teamSlug + "/rides/" + rideSlug + "/groups")
-            .then()
-            .statusCode(200)
-            .extract()
-            .path("data[0].id");
+            .as(RideDto.class);
+    String rideSlug = ride.slug();
+    String groupId = ride.groups().getFirst().id();
 
     given()
         .auth()
@@ -366,7 +357,7 @@ class RideResourceTest {
     memberJoinsTeam();
 
     // Create and publish ride
-    String rideSlug =
+    RideDto ride =
         given()
             .auth()
             .oauth2(getAccessToken(USERNAME_ADMIN))
@@ -387,26 +378,15 @@ class RideResourceTest {
             .then()
             .statusCode(201)
             .extract()
-            .path("slug");
-
-    // Get the group ID
-    String groupId =
-        given()
-            .auth()
-            .oauth2(getAccessToken(USERNAME_TEST))
-            .when()
-            .get("/api/teams/" + teamSlug + "/rides/" + rideSlug + "/groups")
-            .then()
-            .statusCode(200)
-            .extract()
-            .path("data[0].id");
+            .as(RideDto.class);
+    String rideSlug = ride.slug();
+    String groupId = ride.groups().getFirst().id();
 
     // Member joins the ride
     given()
         .auth()
         .oauth2(getAccessToken(USERNAME_TEST))
         .contentType("application/json")
-        .body("{\"notes\": \"Looking forward to it!\"}")
         .when()
         .post("/api/teams/" + teamSlug + "/rides/" + rideSlug + "/groups/" + groupId + "/join")
         .then()
@@ -419,7 +399,7 @@ class RideResourceTest {
     memberJoinsTeam();
 
     // Create ride (stays in DRAFT)
-    String rideSlug =
+    RideDto ride =
         given()
             .auth()
             .oauth2(getAccessToken(USERNAME_ADMIN))
@@ -440,19 +420,9 @@ class RideResourceTest {
             .then()
             .statusCode(201)
             .extract()
-            .path("slug");
-
-    // Get the group ID
-    String groupId =
-        given()
-            .auth()
-            .oauth2(getAccessToken(USERNAME_ADMIN))
-            .when()
-            .get("/api/teams/" + teamSlug + "/rides/" + rideSlug + "/groups")
-            .then()
-            .statusCode(200)
-            .extract()
-            .path("data[0].id");
+            .as(RideDto.class);
+    String rideSlug = ride.slug();
+    String groupId = ride.groups().getFirst().id();
 
     // Member tries to join (should fail - ride not published)
     given()
@@ -471,7 +441,7 @@ class RideResourceTest {
     memberJoinsTeam();
 
     // Create and publish ride
-    String rideSlug =
+    RideDto ride =
         given()
             .auth()
             .oauth2(getAccessToken(USERNAME_ADMIN))
@@ -492,19 +462,9 @@ class RideResourceTest {
             .then()
             .statusCode(201)
             .extract()
-            .path("slug");
-
-    // Get the group ID
-    String groupId =
-        given()
-            .auth()
-            .oauth2(getAccessToken(USERNAME_TEST))
-            .when()
-            .get("/api/teams/" + teamSlug + "/rides/" + rideSlug + "/groups")
-            .then()
-            .statusCode(200)
-            .extract()
-            .path("data[0].id");
+            .as(RideDto.class);
+    String rideSlug = ride.slug();
+    String groupId = ride.groups().getFirst().id();
 
     // Member joins
     given()

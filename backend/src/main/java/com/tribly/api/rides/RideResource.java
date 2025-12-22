@@ -200,29 +200,6 @@ public class RideResource extends AbstractAuthenticatedResource {
     return Response.noContent().build();
   }
 
-  @GET
-  @Path("/{rideSlug}/groups")
-  @PermitAll
-  @Operation(summary = "List ride groups", description = "Get all groups for a ride")
-  @APIResponses({
-    @APIResponse(
-        responseCode = "200",
-        description = "Groups retrieved successfully",
-        content = @Content(schema = @Schema(implementation = RideGroupListResponse.class))),
-    @APIResponse(
-        responseCode = "404",
-        description = "Team or ride not found",
-        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
-  })
-  public Response listGroups(
-      @Parameter(description = "Team URL slug") @PathParam("slug") String slug,
-      @Parameter(description = "Ride URL slug") @PathParam("rideSlug") String rideSlug) {
-    Long userId = getCurrentUserIdOrNull();
-
-    RideGroupListResponse rideGroupListResponse = rideService.listGroups(slug, rideSlug, userId);
-    return Response.ok(rideGroupListResponse).build();
-  }
-
   @POST
   @Path("/{rideSlug}/groups/{groupId}/join")
   @RolesAllowed("user")
@@ -248,8 +225,7 @@ public class RideResource extends AbstractAuthenticatedResource {
   public Response joinGroup(
       @Parameter(description = "Team URL slug") @PathParam("slug") String slug,
       @Parameter(description = "Ride URL slug") @PathParam("rideSlug") String rideSlug,
-      @Parameter(description = "Group ID (TSID)") @PathParam("groupId") String groupId,
-      @Nullable JoinGroupRequest request) {
+      @Parameter(description = "Group ID (TSID)") @PathParam("groupId") String groupId) {
 
     Long userId = getCurrentUserId();
 

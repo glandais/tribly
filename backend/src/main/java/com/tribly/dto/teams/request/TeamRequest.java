@@ -15,10 +15,7 @@ public record TeamRequest(
         @Size(min = 2, max = 255)
         String name,
     @Nullable
-        @Schema(
-            description = "Team description",
-            examples = "A team for weekend warriors",
-            nullable = true)
+        @Schema(description = "Team description", examples = "A team for weekend warriors")
         @Size(max = 2000)
         String description,
     @Schema(

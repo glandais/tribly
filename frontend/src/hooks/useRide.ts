@@ -61,18 +61,6 @@ export function useRide(teamSlug: string | undefined, rideSlug: string | undefin
   })
 }
 
-export function useRideGroups(teamSlug: string | undefined, rideSlug: string | undefined) {
-  return useQuery({
-    queryKey: ['rideGroups', teamSlug, rideSlug],
-    queryFn: async () => {
-      if (!teamSlug || !rideSlug) throw new Error('Team slug and ride slug are required')
-      return await unwrapResponse(ridesApi.listGroups(rideSlug, teamSlug))
-    },
-    enabled: !!teamSlug && !!rideSlug,
-    staleTime: 1000 * 60 * 2,
-  })
-}
-
 export function useCreateRide(teamSlug: string | undefined) {
   const queryClient = useQueryClient()
   const navigate = useNavigate()
@@ -152,11 +140,9 @@ export function useJoinRide(teamSlug: string | undefined, rideSlug: string) {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async ({ groupId, notes }: { groupId: string; notes?: string }) => {
+    mutationFn: async ({ groupId }: { groupId: string }) => {
       if (!teamSlug) throw new Error('Team slug is required')
-      return await unwrapResponse(
-        ridesApi.joinGroup(groupId, rideSlug, teamSlug, { notes: notes || null })
-      )
+      return await unwrapResponse(ridesApi.joinGroup(groupId, rideSlug, teamSlug))
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['ride', teamSlug, rideSlug] })

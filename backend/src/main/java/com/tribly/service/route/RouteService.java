@@ -157,7 +157,10 @@ public class RouteService extends TeamEntityService {
   }
 
   public RouteDetailDto getRouteDetail(String teamSlug, String slug, @Nullable Long userId) {
-    return RouteDetailDto.from(getRouteEntity(teamSlug, slug, userId));
+    Route route = getRouteEntity(teamSlug, slug, userId);
+    List<RouteClimb> climbs = routeClimbRepository.findByRoute(route.getId());
+    GpxTrack gpxTrack = gpxTrackRepository.findByRoute(route.getId());
+    return RouteDetailDto.from(route, climbs, gpxTrack);
   }
 
   private Route getRouteEntity(String teamSlug, String slug, @Nullable Long userId) {
@@ -240,27 +243,6 @@ public class RouteService extends TeamEntityService {
     gpxProcessingService.deleteRouteFiles(route.getId());
 
     LOG.infov("Route {0} deleted by user {1}", slug, userId);
-  }
-
-  /**
-   * Get climbs for a route.
-   */
-  public ClimbListResponse getClimbs(String teamSlug, String slug, @Nullable Long userId) {
-    Route route = getRouteEntity(teamSlug, slug, userId);
-    List<RouteClimb> climbs = routeClimbRepository.findByRoute(route.getId());
-    List<RouteClimbDto> dtos = climbs.stream().map(RouteClimbDto::from).toList();
-    return new ClimbListResponse(dtos);
-  }
-
-  /**
-   * Get GPX track for a route.
-   */
-  public GpxTrackDto getTrack(String teamSlug, String slug, @Nullable Long userId) {
-    Route route = getRouteEntity(teamSlug, slug, userId);
-    return gpxTrackRepository
-        .findByRoute(route.getId())
-        .map(GpxTrackDto::from)
-        .orElseThrow(() -> BusinessException.notFound("GPX track not found for route " + slug));
   }
 
   /**

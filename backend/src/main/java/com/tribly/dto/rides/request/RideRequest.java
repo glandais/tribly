@@ -21,17 +21,14 @@ public record RideRequest(
         @NotBlank
         @Size(min = 3, max = 200)
         String name,
-    @Nullable @Schema(description = "Ride description", nullable = true) @Size(max = 5000)
-        String description,
+    @Nullable @Schema(description = "Ride description") @Size(max = 5000) String description,
     @Schema(description = "Ride date/time", examples = "2025-06-15", required = true)
         LocalDateTime dateTime,
     @Schema(description = "Ride status", required = true) RideStatus status,
     @Schema(description = "Visibility level", required = true) Visibility visibility,
-    @Nullable @Schema(description = "Route ID (TSID)", nullable = true) String routeId,
-    @Nullable @Schema(description = "Meeting point ID (TSID)", nullable = true)
-        String meetingPointId,
-    @Nullable
-        @Schema(description = "Publication timestamp (for scheduled publishing)", nullable = true)
+    @Nullable @Schema(description = "Route ID (TSID)") String routeId,
+    @Nullable @Schema(description = "Meeting point ID (TSID)") String meetingPointId,
+    @Nullable @Schema(description = "Publication timestamp (for scheduled publishing)")
         Instant publishAt,
     @Schema(description = "Ride groups to create", required = true)
         List<@Valid GroupRequest> groups) {
