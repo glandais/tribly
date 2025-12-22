@@ -73,7 +73,7 @@ create table team_entities (
                                elevation_loss integer,
                                end_lat numeric(10,8),
                                end_lng numeric(11,8),
-                               entity_type integer not null check ((entity_type in (2,1))),
+                               entity_type integer not null check ((entity_type in (1,3,2))),
                                start_lat numeric(10,8),
                                start_lng numeric(11,8),
                                created_at timestamp(6) with time zone not null,

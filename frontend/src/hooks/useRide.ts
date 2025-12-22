@@ -11,7 +11,7 @@ import type {
   RideRequest,
   GroupRequest,
 } from '../api/api'
-import { RideStatus, Visibility } from '../api/api'
+import { Status, Visibility } from '../api/api'
 
 // Re-export types for convenience
 export type {
@@ -25,12 +25,12 @@ export type {
 }
 
 // Re-export enums as values (not types)
-export { RideStatus, Visibility }
+export { Status, Visibility }
 
 interface UseRidesOptions {
   from?: string
   to?: string
-  status?: RideStatus
+  status?: Status
   page?: number
   size?: number
 }

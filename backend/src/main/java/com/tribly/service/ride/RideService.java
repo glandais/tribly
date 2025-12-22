@@ -1,12 +1,12 @@
 package com.tribly.service.ride;
 
+import com.tribly.domain.common.repository.TeamPublicationQuery;
 import com.tribly.domain.common.repository.TriblyPage;
 import com.tribly.domain.ride.Ride;
 import com.tribly.domain.ride.RideGroup;
 import com.tribly.domain.ride.RideParticipation;
 import com.tribly.domain.ride.repository.RideGroupRepository;
 import com.tribly.domain.ride.repository.RideParticipationRepository;
-import com.tribly.domain.ride.repository.RideQuery;
 import com.tribly.domain.ride.repository.RideRepository;
 import com.tribly.domain.route.Route;
 import com.tribly.domain.route.repository.RouteRepository;
@@ -17,7 +17,7 @@ import com.tribly.domain.user.repository.UserRepository;
 import com.tribly.dto.rides.request.GroupRequest;
 import com.tribly.dto.rides.request.RideRequest;
 import com.tribly.dto.rides.response.*;
-import com.tribly.enums.RideStatus;
+import com.tribly.enums.Status;
 import com.tribly.enums.Visibility;
 import com.tribly.infrastructure.exception.BusinessException;
 import com.tribly.infrastructure.id.TsidUtils;
@@ -60,7 +60,7 @@ public class RideService extends TeamEntityService {
       @Nullable Long userId,
       @Nullable LocalDateTime from,
       @Nullable LocalDateTime to,
-      @Nullable RideStatus status,
+      @Nullable Status status,
       int page,
       int size) {
     Team team =
@@ -68,8 +68,8 @@ public class RideService extends TeamEntityService {
 
     RideQueryParams rideQueryParams = getRideQueryParams(userId, status, team);
 
-    RideQuery rideQuery =
-        new RideQuery(
+    TeamPublicationQuery rideQuery =
+        new TeamPublicationQuery(
             team.getId(),
             page,
             size,
@@ -92,8 +92,8 @@ public class RideService extends TeamEntityService {
 
     RideQueryParams rideQueryParams = getRideQueryParams(userId, null, team);
 
-    RideQuery rideQuery =
-        new RideQuery(
+    TeamPublicationQuery rideQuery =
+        new TeamPublicationQuery(
             team.getId(),
             0,
             1,
@@ -114,27 +114,27 @@ public class RideService extends TeamEntityService {
     return RideDto.from(getRide(teamSlug, rideSlug, userId), true);
   }
 
-  private record RideQueryParams(List<RideStatus> statuses, @Nullable Visibility visibility) {}
+  private record RideQueryParams(List<Status> statuses, @Nullable Visibility visibility) {}
 
   private RideQueryParams getRideQueryParams(
-      @Nullable Long userId, @Nullable RideStatus status, Team team) {
+      @Nullable Long userId, @Nullable Status status, Team team) {
     boolean canSeeDrafts = securityService.canSeeDrafts(userId, team);
-    List<RideStatus> statuses = getRideStatuses(status, canSeeDrafts);
+    List<Status> statuses = getRideStatuses(status, canSeeDrafts);
 
     Visibility visibility = getVisibility(userId, team);
     return new RideQueryParams(statuses, visibility);
   }
 
-  private List<RideStatus> getRideStatuses(@Nullable RideStatus status, boolean canSeeDrafts) {
-    List<RideStatus> statuses;
+  private List<Status> getRideStatuses(@Nullable Status status, boolean canSeeDrafts) {
+    List<Status> statuses;
     if (status == null) {
       if (canSeeDrafts) {
-        statuses = Arrays.asList(RideStatus.values());
+        statuses = Arrays.asList(Status.values());
       } else {
-        statuses = List.of(RideStatus.PUBLISHED, RideStatus.CANCELLED);
+        statuses = List.of(Status.PUBLISHED, Status.CANCELLED);
       }
     } else {
-      if (status.equals(RideStatus.DRAFT) && !canSeeDrafts) {
+      if (status.equals(Status.DRAFT) && !canSeeDrafts) {
         statuses = List.of();
       } else {
         statuses = List.of(status);
@@ -309,7 +309,7 @@ public class RideService extends TeamEntityService {
       String teamSlug, String rideSlug, Long groupId, Long userId) {
     Ride ride = getRide(teamSlug, rideSlug, userId);
 
-    if (ride.getStatus() != RideStatus.PUBLISHED) {
+    if (ride.getStatus() != Status.PUBLISHED) {
       throw BusinessException.validation("Can only join published rides");
     }
 

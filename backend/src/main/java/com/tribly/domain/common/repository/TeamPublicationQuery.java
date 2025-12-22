@@ -1,13 +1,12 @@
-package com.tribly.domain.ride.repository;
+package com.tribly.domain.common.repository;
 
-import com.tribly.domain.common.repository.PageInterface;
 import com.tribly.enums.Status;
 import com.tribly.enums.Visibility;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.jspecify.annotations.Nullable;
 
-public record RideQuery(
+public record TeamPublicationQuery(
     long teamId,
     int page,
     int size,

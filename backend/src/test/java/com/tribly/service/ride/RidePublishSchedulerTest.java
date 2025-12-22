@@ -6,7 +6,7 @@ import com.tribly.domain.ride.Ride;
 import com.tribly.domain.ride.repository.RideRepository;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
-import com.tribly.enums.RideStatus;
+import com.tribly.enums.Status;
 import com.tribly.util.TestDataCleaner;
 import com.tribly.util.TestDataService;
 import io.quarkus.test.junit.QuarkusTest;
@@ -43,13 +43,13 @@ class RidePublishSchedulerTest {
             "Auto Publish",
             "auto-publish",
             LocalDate.of(2025, 6, 15).atTime(0, 0),
-            RideStatus.DRAFT,
+            Status.DRAFT,
             Instant.now().minusSeconds(3600));
 
     ridePublishScheduler.autoPublishRides();
 
     Ride updated = rideRepository.findById(ride.getId());
-    assertEquals(RideStatus.PUBLISHED, updated.getStatus());
+    assertEquals(Status.PUBLISHED, updated.getStatus());
     assertNull(updated.getPublishAt());
   }
 
@@ -62,13 +62,13 @@ class RidePublishSchedulerTest {
             "Future Publish",
             "future-publish",
             LocalDate.of(2025, 6, 15).atTime(0, 0),
-            RideStatus.DRAFT,
+            Status.DRAFT,
             Instant.now().plusSeconds(3600));
 
     ridePublishScheduler.autoPublishRides();
 
     Ride updated = rideRepository.findById(ride.getId());
-    assertEquals(RideStatus.DRAFT, updated.getStatus());
+    assertEquals(Status.DRAFT, updated.getStatus());
     assertNotNull(updated.getPublishAt());
   }
 
@@ -81,13 +81,13 @@ class RidePublishSchedulerTest {
             "Already Published",
             "already-published",
             LocalDate.of(2025, 6, 15).atTime(0, 0),
-            RideStatus.PUBLISHED,
+            Status.PUBLISHED,
             Instant.now().minusSeconds(3600));
 
     ridePublishScheduler.autoPublishRides();
 
     Ride updated = rideRepository.findById(ride.getId());
-    assertEquals(RideStatus.PUBLISHED, updated.getStatus());
+    assertEquals(Status.PUBLISHED, updated.getStatus());
   }
 
   @Test
@@ -99,13 +99,13 @@ class RidePublishSchedulerTest {
             "Cancelled",
             "cancelled",
             LocalDate.of(2025, 6, 15).atTime(0, 0),
-            RideStatus.CANCELLED,
+            Status.CANCELLED,
             Instant.now().minusSeconds(3600));
 
     ridePublishScheduler.autoPublishRides();
 
     Ride updated = rideRepository.findById(ride.getId());
-    assertEquals(RideStatus.CANCELLED, updated.getStatus());
+    assertEquals(Status.CANCELLED, updated.getStatus());
   }
 
   @Test
@@ -117,7 +117,7 @@ class RidePublishSchedulerTest {
             "Ride 1",
             "ride-1",
             LocalDate.of(2025, 6, 15).atTime(0, 0),
-            RideStatus.DRAFT,
+            Status.DRAFT,
             Instant.now().minusSeconds(7200));
     Ride ride2 =
         dataService.createRideWithPublishAt(
@@ -126,7 +126,7 @@ class RidePublishSchedulerTest {
             "Ride 2",
             "ride-2",
             LocalDate.of(2025, 6, 16).atTime(0, 0),
-            RideStatus.DRAFT,
+            Status.DRAFT,
             Instant.now().minusSeconds(3600));
     Ride ride3 =
         dataService.createRideWithPublishAt(
@@ -135,7 +135,7 @@ class RidePublishSchedulerTest {
             "Ride 3",
             "ride-3",
             LocalDate.of(2025, 6, 17).atTime(0, 0),
-            RideStatus.DRAFT,
+            Status.DRAFT,
             Instant.now().minusSeconds(1800));
 
     ridePublishScheduler.autoPublishRides();
@@ -144,9 +144,9 @@ class RidePublishSchedulerTest {
     Ride updated2 = rideRepository.findById(ride2.getId());
     Ride updated3 = rideRepository.findById(ride3.getId());
 
-    assertEquals(RideStatus.PUBLISHED, updated1.getStatus());
-    assertEquals(RideStatus.PUBLISHED, updated2.getStatus());
-    assertEquals(RideStatus.PUBLISHED, updated3.getStatus());
+    assertEquals(Status.PUBLISHED, updated1.getStatus());
+    assertEquals(Status.PUBLISHED, updated2.getStatus());
+    assertEquals(Status.PUBLISHED, updated3.getStatus());
     assertNull(updated1.getPublishAt());
     assertNull(updated2.getPublishAt());
     assertNull(updated3.getPublishAt());
@@ -169,12 +169,12 @@ class RidePublishSchedulerTest {
             "No PublishAt",
             "no-publishat",
             LocalDate.of(2025, 6, 15).atTime(0, 0),
-            RideStatus.DRAFT);
+            Status.DRAFT);
 
     ridePublishScheduler.autoPublishRides();
 
     Ride updated = rideRepository.findById(ride.getId());
-    assertEquals(RideStatus.DRAFT, updated.getStatus());
+    assertEquals(Status.DRAFT, updated.getStatus());
   }
 
   @Test
@@ -187,7 +187,7 @@ class RidePublishSchedulerTest {
             "Exact Time",
             "exact-time",
             LocalDate.of(2025, 6, 15).atTime(0, 0),
-            RideStatus.DRAFT,
+            Status.DRAFT,
             publishTime);
 
     // Wait a moment to ensure we're past publishTime
@@ -200,7 +200,7 @@ class RidePublishSchedulerTest {
     ridePublishScheduler.autoPublishRides();
 
     Ride updated = rideRepository.findById(ride.getId());
-    assertEquals(RideStatus.PUBLISHED, updated.getStatus());
+    assertEquals(Status.PUBLISHED, updated.getStatus());
     assertNull(updated.getPublishAt());
   }
 }

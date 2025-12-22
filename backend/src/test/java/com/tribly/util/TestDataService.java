@@ -88,7 +88,7 @@ public class TestDataService {
   public Ride createRide(
       Team team, User createdBy, String title, String slug, LocalDateTime dateTime) {
     Ride ride = new Ride(team, createdBy, title, slug, dateTime);
-    ride.setStatus(RideStatus.PUBLISHED);
+    ride.setStatus(Status.PUBLISHED);
     ride.setVisibility(Visibility.PUBLIC);
     rideRepository.persistAndFlush(ride);
     return ride;
@@ -96,12 +96,7 @@ public class TestDataService {
 
   @Transactional
   public Ride createRideWithStatus(
-      Team team,
-      User createdBy,
-      String title,
-      String slug,
-      LocalDateTime dateTime,
-      RideStatus status) {
+      Team team, User createdBy, String title, String slug, LocalDateTime dateTime, Status status) {
     Ride ride = new Ride(team, createdBy, title, slug, dateTime);
     ride.setStatus(status);
     rideRepository.persistAndFlush(ride);
@@ -130,7 +125,7 @@ public class TestDataService {
       String slug,
       LocalDateTime date,
       Visibility visibility,
-      RideStatus status) {
+      Status status) {
     Ride ride = new Ride(team, createdBy, title, slug, date);
     ride.setVisibility(visibility);
     ride.setStatus(status);
@@ -145,7 +140,7 @@ public class TestDataService {
       String title,
       String slug,
       LocalDateTime dateTime,
-      RideStatus status,
+      Status status,
       java.time.Instant publishAt) {
     Ride ride = new Ride(team, createdBy, title, slug, dateTime);
     ride.setStatus(status);

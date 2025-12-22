@@ -242,6 +242,112 @@ components:
           type: integer
           format: int32
           description: Page size
+    PostDto:
+      description: Post summary data
+      type: object
+      required:
+      - id
+      - slug
+      - name
+      - dateTime
+      - status
+      - visibility
+      properties:
+        id:
+          type: string
+          description: Post ID (TSID)
+        slug:
+          type: string
+          description: Post URL slug
+        name:
+          type: string
+          description: Post name
+        description:
+          type: string
+          description: Post description
+        dateTime:
+          description: Post date/time
+          type: string
+          $ref: "#/components/schemas/LocalDateTime"
+        status:
+          description: Post status
+          type: string
+          $ref: "#/components/schemas/Status"
+        visibility:
+          description: Visibility level
+          type: string
+          $ref: "#/components/schemas/Visibility"
+        publishAt:
+          description: Publication timestamp
+          type: string
+          $ref: "#/components/schemas/Instant"
+        createdAt:
+          description: Creation timestamp
+          type: string
+          $ref: "#/components/schemas/Instant"
+    PostListResponse:
+      description: Paginated post list response
+      type: object
+      required:
+      - posts
+      - total
+      - page
+      - size
+      properties:
+        posts:
+          type: array
+          items:
+            $ref: "#/components/schemas/PostDto"
+          description: List of posts
+        total:
+          type: integer
+          format: int64
+          description: Total number of posts
+        page:
+          type: integer
+          format: int32
+          description: Current page number
+        size:
+          type: integer
+          format: int32
+          description: Page size
+    PostRequest:
+      description: Post request
+      type: object
+      required:
+      - name
+      - dateTime
+      - status
+      - visibility
+      properties:
+        name:
+          type: string
+          description: Post name
+          pattern: \S
+          minLength: 3
+          maxLength: 200
+        description:
+          type: string
+          description: Post description
+          maxLength: 5000
+        dateTime:
+          description: Post date/time
+          type: string
+          examples:
+          - 2025-06-15
+          $ref: "#/components/schemas/LocalDateTime"
+        status:
+          description: Post status
+          type: string
+          $ref: "#/components/schemas/Status"
+        visibility:
+          description: Visibility level
+          type: string
+          $ref: "#/components/schemas/Visibility"
+        publishAt:
+          description: Publication timestamp (for scheduled publishing)
+          type: string
+          $ref: "#/components/schemas/Instant"
     PublicUserDto:
       type: object
       description: Public user information (limited fields)
@@ -293,7 +399,7 @@ components:
         status:
           description: Ride status
           type: string
-          $ref: "#/components/schemas/RideStatus"
+          $ref: "#/components/schemas/Status"
         visibility:
           description: Visibility level
           type: string
@@ -450,7 +556,7 @@ components:
         status:
           description: Ride status
           type: string
-          $ref: "#/components/schemas/RideStatus"
+          $ref: "#/components/schemas/Status"
         visibility:
           description: Visibility level
           type: string
@@ -458,9 +564,6 @@ components:
         routeId:
           type: string
           description: Route ID (TSID)
-        meetingPointId:
-          type: string
-          description: Meeting point ID (TSID)
         publishAt:
           description: Publication timestamp (for scheduled publishing)
           type: string
@@ -470,12 +573,6 @@ components:
           items:
             $ref: "#/components/schemas/GroupRequest"
           description: Ride groups to create
-    RideStatus:
-      type: string
-      enum:
-      - DRAFT
-      - PUBLISHED
-      - CANCELLED
     RouteClimbDto:
       type: object
       description: Climb segment information
@@ -701,6 +798,12 @@ components:
           description: Whether the route is publicly visible
           type: string
           $ref: "#/components/schemas/Visibility"
+    Status:
+      type: string
+      enum:
+      - DRAFT
+      - PUBLISHED
+      - CANCELLED
     SurfaceType:
       type: string
       enum:
@@ -910,11 +1013,13 @@ components:
   securitySchemes:
     SecurityScheme:
       type: openIdConnect
-      openIdConnectUrl: http://localhost:8180/realms/tribly/.well-known/openid-configuration
+      openIdConnectUrl: http://localhost:8180/realms/quarkus/.well-known/openid-configuration
       description: Authentication
 tags:
 - name: Configuration
   description: Application configuration endpoints
+- name: Posts
+  description: Post management and participation operations
 - name: Rides
   description: Ride management and participation operations
 - name: Route Downloads
@@ -1432,6 +1537,250 @@ paths:
       security:
       - SecurityScheme:
         - user
+  /api/teams/{slug}/posts:
+    get:
+      summary: List posts
+      description: Get paginated list of posts for a team with optional filtering
+      operationId: listPosts
+      tags:
+      - Posts
+      parameters:
+      - description: Team URL slug
+        name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Start date filter (ISO format)
+        name: from
+        in: query
+        schema:
+          type: string
+      - description: Page number
+        name: page
+        in: query
+        schema:
+          type: integer
+          format: int32
+          default: 0
+      - description: Page size
+        name: size
+        in: query
+        schema:
+          type: integer
+          format: int32
+          default: 20
+      - description: Status filter
+        name: status
+        in: query
+        schema:
+          $ref: "#/components/schemas/Status"
+      - description: End date filter (ISO format)
+        name: to
+        in: query
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Posts retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PostListResponse"
+        "404":
+          description: Team not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      summary: Create post
+      description: Create a new post with optional groups
+      operationId: createPost
+      tags:
+      - Posts
+      parameters:
+      - description: Team URL slug
+        name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PostRequest"
+        required: true
+      responses:
+        "201":
+          description: Post created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PostDto"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: User is not a team member
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Team not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - SecurityScheme:
+        - user
+  /api/teams/{slug}/posts/{postSlug}:
+    put:
+      summary: Update post
+      description: Update post information. Requires organizer permissions.
+      operationId: updatePost
+      tags:
+      - Posts
+      parameters:
+      - description: Post URL slug
+        name: postSlug
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Team URL slug
+        name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PostRequest"
+        required: true
+      responses:
+        "200":
+          description: Post updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PostDto"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: User is not authorized to update this post
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Team or post not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - SecurityScheme:
+        - user
+    get:
+      summary: Get post details
+      description: Get detailed post information including groups
+      operationId: getPost
+      tags:
+      - Posts
+      parameters:
+      - description: Post URL slug
+        name: postSlug
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Team URL slug
+        name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Post retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PostDto"
+        "404":
+          description: Team or post not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      summary: Delete post
+      description: Soft delete a post. Requires organizer permissions.
+      operationId: deletePost
+      tags:
+      - Posts
+      parameters:
+      - description: Post URL slug
+        name: postSlug
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Team URL slug
+        name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "204":
+          description: Post deleted successfully
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: User is not authorized to delete this post
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Team or post not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - SecurityScheme:
+        - user
   /api/teams/{slug}/rides:
     get:
       summary: List rides
@@ -1469,7 +1818,7 @@ paths:
         name: status
         in: query
         schema:
-          $ref: "#/components/schemas/RideStatus"
+          $ref: "#/components/schemas/Status"
       - description: End date filter (ISO format)
         name: to
         in: query

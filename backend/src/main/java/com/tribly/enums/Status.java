@@ -1,6 +1,6 @@
 package com.tribly.enums;
 
-public enum RideStatus {
+public enum Status {
   DRAFT,
   PUBLISHED,
   CANCELLED

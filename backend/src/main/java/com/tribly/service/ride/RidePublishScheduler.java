@@ -2,7 +2,7 @@ package com.tribly.service.ride;
 
 import com.tribly.domain.ride.Ride;
 import com.tribly.domain.ride.repository.RideRepository;
-import com.tribly.enums.RideStatus;
+import com.tribly.enums.Status;
 import io.quarkus.scheduler.Scheduled;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -31,10 +31,10 @@ public class RidePublishScheduler {
   @Scheduled(every = "1m")
   @Transactional
   void autoPublishRides() {
-    List<Ride> rides = rideRepository.findRidesToAutoPublish(RideStatus.DRAFT, Instant.now());
+    List<Ride> rides = rideRepository.findPublicationsToAutoPublish(Status.DRAFT, Instant.now());
 
     for (Ride ride : rides) {
-      ride.setStatus(RideStatus.PUBLISHED);
+      ride.setStatus(Status.PUBLISHED);
       ride.setPublishAt(null); // Clear after publishing
       rideRepository.persist(ride);
       LOG.infov(

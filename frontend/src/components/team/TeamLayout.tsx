@@ -2,10 +2,10 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { UsersIcon, PencilIcon } from '@heroicons/react/24/outline'
-import { LockClosedIcon } from '@heroicons/react/20/solid'
 import { useLeaveTeam, useJoinTeam } from '../../hooks/useTeam'
 import { useAuth } from '../../hooks/useAuth'
 import { ConfirmDialog } from '../common/ConfirmDialog'
+import { VisibilityBadge } from '../common/card/VisibilityBadge'
 import type { TeamDetailDto } from '../../hooks/useTeam'
 
 interface TeamLayoutProps {
@@ -16,7 +16,6 @@ interface TeamLayoutProps {
 
 export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
   const { t, i18n } = useTranslation('teams')
-  const { t: tCommon } = useTranslation('common')
   const navigate = useNavigate()
   const { isAuthenticated } = useAuth()
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false)
@@ -62,12 +61,7 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
           <div>
             <div className="flex items-center gap-3">
               <h1 className="text-3xl font-bold text-gray-900">{team.name}</h1>
-              {team.visibility === 'TEAM' && (
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                  <LockClosedIcon className="w-3 h-3 mr-1" />
-                  {tCommon('visibility.private')}
-                </span>
-              )}
+              {team.visibility === 'TEAM' && <VisibilityBadge visibility={team.visibility} />}
             </div>
             {team.description && <p className="mt-2 text-gray-600 max-w-2xl">{team.description}</p>}
             <div className="mt-3 flex items-center gap-4 text-sm text-gray-500">

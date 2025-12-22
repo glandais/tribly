@@ -3,7 +3,7 @@ import { Link, useParams, Navigate, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { ChevronLeftIcon } from '@heroicons/react/24/outline'
 import { useTeam } from '../../hooks/useTeam'
-import { useRide, useUpdateRide, Visibility, RideStatus } from '../../hooks/useRide'
+import { useRide, useUpdateRide, Visibility, Status } from '../../hooks/useRide'
 import { LoadingPage, LoadingSpinner } from '../../components/common/LoadingSpinner'
 import { ApiClientError } from '../../lib/apiClient'
 import { RoutePickerModal } from '../../components/route/RoutePickerModal'
@@ -35,7 +35,7 @@ export function EditRidePage() {
   const [description, setDescription] = useState('')
   const [dateTime, setDateTime] = useState('')
   const [visibility, setVisibility] = useState<Visibility>(Visibility.Team)
-  const [status, setStatus] = useState<RideStatus>(RideStatus.Draft)
+  const [status, setStatus] = useState<Status>(Status.Draft)
   const [publishAt, setPublishAt] = useState('')
   const [rideRouteId, setRideRouteId] = useState<string | null>(null)
   const [groups, setGroups] = useState<EditableGroup[]>([])
@@ -282,8 +282,8 @@ export function EditRidePage() {
                 type="radio"
                 name="status"
                 value="DRAFT"
-                checked={status === RideStatus.Draft}
-                onChange={() => setStatus(RideStatus.Draft)}
+                checked={status === Status.Draft}
+                onChange={() => setStatus(Status.Draft)}
                 className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
               />
               <span className="ml-2 text-sm text-gray-700">{t('status.DRAFT')}</span>
@@ -293,8 +293,8 @@ export function EditRidePage() {
                 type="radio"
                 name="status"
                 value="PUBLISHED"
-                checked={status === RideStatus.Published}
-                onChange={() => setStatus(RideStatus.Published)}
+                checked={status === Status.Published}
+                onChange={() => setStatus(Status.Published)}
                 className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
               />
               <span className="ml-2 text-sm text-gray-700">{t('status.PUBLISHED')}</span>
@@ -304,8 +304,8 @@ export function EditRidePage() {
                 type="radio"
                 name="status"
                 value="CANCELLED"
-                checked={status === RideStatus.Cancelled}
-                onChange={() => setStatus(RideStatus.Cancelled)}
+                checked={status === Status.Cancelled}
+                onChange={() => setStatus(Status.Cancelled)}
                 className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
               />
               <span className="ml-2 text-sm text-gray-700">{t('status.CANCELLED')}</span>

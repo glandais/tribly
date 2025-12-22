@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { CalendarIcon, UsersIcon, RectangleStackIcon } from '@heroicons/react/24/outline'
-import { RideStatus } from '../../hooks/useRide'
+import { Status } from '../../hooks/useRide'
 import type { RideDto } from '../../hooks/useRide'
 import { Card, CardContent, CardTitle, CardDescription } from '../common/card'
 import { Badge, VisibilityBadge, Stat, StatGroup, CardSkeleton } from '../common/card'
@@ -10,10 +10,10 @@ interface RideCardProps {
   teamSlug: string
 }
 
-const statusVariants: Record<RideStatus, 'gray' | 'green' | 'red'> = {
-  [RideStatus.Draft]: 'gray',
-  [RideStatus.Published]: 'green',
-  [RideStatus.Cancelled]: 'red',
+const statusVariants: Record<Status, 'gray' | 'green' | 'red'> = {
+  [Status.Draft]: 'gray',
+  [Status.Published]: 'green',
+  [Status.Cancelled]: 'red',
 }
 
 export function RideCard({ ride, teamSlug }: RideCardProps) {

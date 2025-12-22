@@ -1,7 +1,7 @@
 package com.tribly.dto.rides.response;
 
 import com.tribly.domain.ride.Ride;
-import com.tribly.enums.RideStatus;
+import com.tribly.enums.Status;
 import com.tribly.enums.Visibility;
 import com.tribly.infrastructure.id.TsidUtils;
 import java.time.Instant;
@@ -18,7 +18,7 @@ public record RideDto(
     @Schema(description = "Ride name", required = true) String name,
     @Nullable @Schema(description = "Ride description") String description,
     @Schema(description = "Ride date/time", required = true) LocalDateTime dateTime,
-    @Schema(description = "Ride status", required = true) RideStatus status,
+    @Schema(description = "Ride status", required = true) Status status,
     @Schema(description = "Visibility level", required = true) Visibility visibility,
     @Nullable @Schema(description = "Route id") String routeId,
     @Schema(description = "Number of participants", required = true) int participantCount,

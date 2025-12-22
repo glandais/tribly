@@ -2,12 +2,12 @@ package com.tribly.domain.ride;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.tribly.domain.common.repository.TeamPublicationQuery;
 import com.tribly.domain.common.repository.TriblyPage;
-import com.tribly.domain.ride.repository.RideQuery;
 import com.tribly.domain.ride.repository.RideRepository;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
-import com.tribly.enums.RideStatus;
+import com.tribly.enums.Status;
 import com.tribly.enums.Visibility;
 import com.tribly.util.TestDataCleaner;
 import com.tribly.util.TestDataService;
@@ -41,8 +41,9 @@ class RideRepositoryTest {
     dataService.createRide(team, user, "Ride 1", "ride-1", LocalDate.of(2025, 1, 15).atTime(0, 0));
     dataService.createRide(team, user, "Ride 2", "ride-2", LocalDate.of(2025, 1, 20).atTime(0, 0));
 
-    RideQuery query =
-        new RideQuery(team.getId(), 0, 10, null, null, null, null, List.of(RideStatus.PUBLISHED));
+    TeamPublicationQuery query =
+        new TeamPublicationQuery(
+            team.getId(), 0, 10, null, null, null, null, List.of(Status.PUBLISHED));
     TriblyPage<Ride> result = rideRepository.find(query);
 
     assertEquals(2, result.items().size());
@@ -54,9 +55,9 @@ class RideRepositoryTest {
     dataService.createRide(team, user, "Ride 1", "ride-1", LocalDate.of(2025, 1, 15).atTime(0, 0));
     dataService.createRide(team, user, "Ride 2", "ride-2", LocalDate.of(2025, 1, 20).atTime(0, 0));
 
-    RideQuery query =
-        new RideQuery(
-            team.getId(), 0, 10, "ride-1", null, null, null, List.of(RideStatus.PUBLISHED));
+    TeamPublicationQuery query =
+        new TeamPublicationQuery(
+            team.getId(), 0, 10, "ride-1", null, null, null, List.of(Status.PUBLISHED));
     TriblyPage<Ride> result = rideRepository.find(query);
 
     assertEquals(1, result.items().size());
@@ -69,8 +70,8 @@ class RideRepositoryTest {
     dataService.createRide(team, user, "Ride 2", "ride-2", LocalDate.of(2025, 1, 20).atTime(0, 0));
     dataService.createRide(team, user, "Ride 3", "ride-3", LocalDate.of(2025, 1, 30).atTime(0, 0));
 
-    RideQuery query =
-        new RideQuery(
+    TeamPublicationQuery query =
+        new TeamPublicationQuery(
             team.getId(),
             0,
             10,
@@ -78,7 +79,7 @@ class RideRepositoryTest {
             null,
             LocalDate.of(2025, 1, 15).atTime(0, 0),
             LocalDate.of(2025, 1, 25).atTime(0, 0),
-            List.of(RideStatus.PUBLISHED));
+            List.of(Status.PUBLISHED));
     TriblyPage<Ride> result = rideRepository.find(query);
 
     assertEquals(1, result.items().size());
@@ -102,9 +103,9 @@ class RideRepositoryTest {
         LocalDate.of(2025, 1, 20).atTime(0, 0),
         Visibility.TEAM);
 
-    RideQuery query =
-        new RideQuery(
-            team.getId(), 0, 10, null, Visibility.PUBLIC, null, null, List.of(RideStatus.DRAFT));
+    TeamPublicationQuery query =
+        new TeamPublicationQuery(
+            team.getId(), 0, 10, null, Visibility.PUBLIC, null, null, List.of(Status.DRAFT));
     TriblyPage<Ride> result = rideRepository.find(query);
 
     assertEquals(1, result.items().size());
@@ -119,17 +120,18 @@ class RideRepositoryTest {
         "Draft Ride",
         "draft-ride",
         LocalDate.of(2025, 1, 15).atTime(0, 0),
-        RideStatus.DRAFT);
+        Status.DRAFT);
     dataService.createRideWithStatus(
         team,
         user,
         "Published Ride",
         "published-ride",
         LocalDate.of(2025, 1, 20).atTime(0, 0),
-        RideStatus.PUBLISHED);
+        Status.PUBLISHED);
 
-    RideQuery query =
-        new RideQuery(team.getId(), 0, 10, null, null, null, null, List.of(RideStatus.PUBLISHED));
+    TeamPublicationQuery query =
+        new TeamPublicationQuery(
+            team.getId(), 0, 10, null, null, null, null, List.of(Status.PUBLISHED));
     TriblyPage<Ride> result = rideRepository.find(query);
 
     assertEquals(1, result.items().size());
@@ -145,8 +147,9 @@ class RideRepositoryTest {
             team, user, "Deleted Ride", "deleted", LocalDate.of(2025, 1, 20).atTime(0, 0));
     dataService.deleteRide(deletedRide);
 
-    RideQuery query =
-        new RideQuery(team.getId(), 0, 10, null, null, null, null, List.of(RideStatus.PUBLISHED));
+    TeamPublicationQuery query =
+        new TeamPublicationQuery(
+            team.getId(), 0, 10, null, null, null, null, List.of(Status.PUBLISHED));
     TriblyPage<Ride> result = rideRepository.find(query);
 
     assertEquals(1, result.items().size());
@@ -178,7 +181,7 @@ class RideRepositoryTest {
         "Auto Publish 1",
         "auto-1",
         LocalDate.of(2025, 1, 15).atTime(0, 0),
-        RideStatus.DRAFT,
+        Status.DRAFT,
         Instant.now().minusSeconds(3600));
 
     dataService.createRideWithPublishAt(
@@ -187,10 +190,10 @@ class RideRepositoryTest {
         "Auto Publish 2",
         "auto-2",
         LocalDate.of(2025, 1, 20).atTime(0, 0),
-        RideStatus.DRAFT,
+        Status.DRAFT,
         Instant.now().plusSeconds(3600));
 
-    List<Ride> result = rideRepository.findRidesToAutoPublish(RideStatus.DRAFT, Instant.now());
+    List<Ride> result = rideRepository.findPublicationsToAutoPublish(Status.DRAFT, Instant.now());
 
     assertEquals(1, result.size());
     assertEquals("auto-1", result.getFirst().getSlug());
@@ -204,9 +207,9 @@ class RideRepositoryTest {
         "No Publish At",
         "no-publish",
         LocalDate.of(2025, 1, 15).atTime(0, 0),
-        RideStatus.DRAFT);
+        Status.DRAFT);
 
-    List<Ride> result = rideRepository.findRidesToAutoPublish(RideStatus.DRAFT, Instant.now());
+    List<Ride> result = rideRepository.findPublicationsToAutoPublish(Status.DRAFT, Instant.now());
 
     assertEquals(0, result.size());
   }

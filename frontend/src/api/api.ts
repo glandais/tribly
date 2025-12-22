@@ -229,6 +229,84 @@ export interface MemberListResponse {
   size: number
 }
 /**
+ * Post summary data
+ */
+export interface PostDto {
+  /**
+   * Post ID (TSID)
+   */
+  id: string
+  /**
+   * Post URL slug
+   */
+  slug: string
+  /**
+   * Post name
+   */
+  name: string
+  /**
+   * Post description
+   */
+  description?: string
+  dateTime: string
+  /**
+   * Post status
+   */
+  status: Status
+  /**
+   * Visibility level
+   */
+  visibility: Visibility
+  publishAt?: string
+  createdAt?: string
+}
+
+/**
+ * Paginated post list response
+ */
+export interface PostListResponse {
+  /**
+   * List of posts
+   */
+  posts: Array<PostDto>
+  /**
+   * Total number of posts
+   */
+  total: number
+  /**
+   * Current page number
+   */
+  page: number
+  /**
+   * Page size
+   */
+  size: number
+}
+/**
+ * Post request
+ */
+export interface PostRequest {
+  /**
+   * Post name
+   */
+  name: string
+  /**
+   * Post description
+   */
+  description?: string
+  dateTime: string
+  /**
+   * Post status
+   */
+  status: Status
+  /**
+   * Visibility level
+   */
+  visibility: Visibility
+  publishAt?: string
+}
+
+/**
  * Public user information (limited fields)
  */
 export interface PublicUserDto {
@@ -269,7 +347,7 @@ export interface RideDto {
   /**
    * Ride status
    */
-  status: RideStatus
+  status: Status
   /**
    * Visibility level
    */
@@ -395,7 +473,7 @@ export interface RideRequest {
   /**
    * Ride status
    */
-  status: RideStatus
+  status: Status
   /**
    * Visibility level
    */
@@ -404,24 +482,12 @@ export interface RideRequest {
    * Route ID (TSID)
    */
   routeId?: string
-  /**
-   * Meeting point ID (TSID)
-   */
-  meetingPointId?: string
   publishAt?: string
   /**
    * Ride groups to create
    */
   groups: Array<GroupRequest>
 }
-
-export const RideStatus = {
-  Draft: 'DRAFT',
-  Published: 'PUBLISHED',
-  Cancelled: 'CANCELLED',
-} as const
-
-export type RideStatus = (typeof RideStatus)[keyof typeof RideStatus]
 
 /**
  * Climb segment information
@@ -618,6 +684,14 @@ export interface RouteRequest {
    */
   visibility: Visibility
 }
+
+export const Status = {
+  Draft: 'DRAFT',
+  Published: 'PUBLISHED',
+  Cancelled: 'CANCELLED',
+} as const
+
+export type Status = (typeof Status)[keyof typeof Status]
 
 export const SurfaceType = {
   Road: 'ROAD',
@@ -906,6 +980,646 @@ export class ConfigurationApi extends BaseAPI {
 }
 
 /**
+ * PostsApi - axios parameter creator
+ */
+export const PostsApiAxiosParamCreator = function (configuration?: Configuration) {
+  return {
+    /**
+     * Create a new post with optional groups
+     * @summary Create post
+     * @param {string} slug Team URL slug
+     * @param {PostRequest} postRequest
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    createPost: async (
+      slug: string,
+      postRequest: PostRequest,
+      options: RawAxiosRequestConfig = {}
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'slug' is not null or undefined
+      assertParamExists('createPost', 'slug', slug)
+      // verify required parameter 'postRequest' is not null or undefined
+      assertParamExists('createPost', 'postRequest', postRequest)
+      const localVarPath = `/api/teams/{slug}/posts`.replace(
+        `{${'slug'}}`,
+        encodeURIComponent(String(slug))
+      )
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL)
+      let baseOptions
+      if (configuration) {
+        baseOptions = configuration.baseOptions
+      }
+
+      const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options }
+      const localVarHeaderParameter = {} as any
+      const localVarQueryParameter = {} as any
+
+      // authentication SecurityScheme required
+
+      localVarHeaderParameter['Content-Type'] = 'application/json'
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter)
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {}
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      }
+      localVarRequestOptions.data = serializeDataIfNeeded(
+        postRequest,
+        localVarRequestOptions,
+        configuration
+      )
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      }
+    },
+    /**
+     * Soft delete a post. Requires organizer permissions.
+     * @summary Delete post
+     * @param {string} postSlug Post URL slug
+     * @param {string} slug Team URL slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    deletePost: async (
+      postSlug: string,
+      slug: string,
+      options: RawAxiosRequestConfig = {}
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'postSlug' is not null or undefined
+      assertParamExists('deletePost', 'postSlug', postSlug)
+      // verify required parameter 'slug' is not null or undefined
+      assertParamExists('deletePost', 'slug', slug)
+      const localVarPath = `/api/teams/{slug}/posts/{postSlug}`
+        .replace(`{${'postSlug'}}`, encodeURIComponent(String(postSlug)))
+        .replace(`{${'slug'}}`, encodeURIComponent(String(slug)))
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL)
+      let baseOptions
+      if (configuration) {
+        baseOptions = configuration.baseOptions
+      }
+
+      const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options }
+      const localVarHeaderParameter = {} as any
+      const localVarQueryParameter = {} as any
+
+      // authentication SecurityScheme required
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter)
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {}
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      }
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      }
+    },
+    /**
+     * Get detailed post information including groups
+     * @summary Get post details
+     * @param {string} postSlug Post URL slug
+     * @param {string} slug Team URL slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getPost: async (
+      postSlug: string,
+      slug: string,
+      options: RawAxiosRequestConfig = {}
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'postSlug' is not null or undefined
+      assertParamExists('getPost', 'postSlug', postSlug)
+      // verify required parameter 'slug' is not null or undefined
+      assertParamExists('getPost', 'slug', slug)
+      const localVarPath = `/api/teams/{slug}/posts/{postSlug}`
+        .replace(`{${'postSlug'}}`, encodeURIComponent(String(postSlug)))
+        .replace(`{${'slug'}}`, encodeURIComponent(String(slug)))
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL)
+      let baseOptions
+      if (configuration) {
+        baseOptions = configuration.baseOptions
+      }
+
+      const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options }
+      const localVarHeaderParameter = {} as any
+      const localVarQueryParameter = {} as any
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter)
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {}
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      }
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      }
+    },
+    /**
+     * Get paginated list of posts for a team with optional filtering
+     * @summary List posts
+     * @param {string} slug Team URL slug
+     * @param {string} [from] Start date filter (ISO format)
+     * @param {number} [page] Page number
+     * @param {number} [size] Page size
+     * @param {Status} [status] Status filter
+     * @param {string} [to] End date filter (ISO format)
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listPosts: async (
+      slug: string,
+      from?: string,
+      page?: number,
+      size?: number,
+      status?: Status,
+      to?: string,
+      options: RawAxiosRequestConfig = {}
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'slug' is not null or undefined
+      assertParamExists('listPosts', 'slug', slug)
+      const localVarPath = `/api/teams/{slug}/posts`.replace(
+        `{${'slug'}}`,
+        encodeURIComponent(String(slug))
+      )
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL)
+      let baseOptions
+      if (configuration) {
+        baseOptions = configuration.baseOptions
+      }
+
+      const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options }
+      const localVarHeaderParameter = {} as any
+      const localVarQueryParameter = {} as any
+
+      if (from !== undefined) {
+        localVarQueryParameter['from'] = from
+      }
+
+      if (page !== undefined) {
+        localVarQueryParameter['page'] = page
+      }
+
+      if (size !== undefined) {
+        localVarQueryParameter['size'] = size
+      }
+
+      if (status !== undefined) {
+        localVarQueryParameter['status'] = status
+      }
+
+      if (to !== undefined) {
+        localVarQueryParameter['to'] = to
+      }
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter)
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {}
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      }
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      }
+    },
+    /**
+     * Update post information. Requires organizer permissions.
+     * @summary Update post
+     * @param {string} postSlug Post URL slug
+     * @param {string} slug Team URL slug
+     * @param {PostRequest} postRequest
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    updatePost: async (
+      postSlug: string,
+      slug: string,
+      postRequest: PostRequest,
+      options: RawAxiosRequestConfig = {}
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'postSlug' is not null or undefined
+      assertParamExists('updatePost', 'postSlug', postSlug)
+      // verify required parameter 'slug' is not null or undefined
+      assertParamExists('updatePost', 'slug', slug)
+      // verify required parameter 'postRequest' is not null or undefined
+      assertParamExists('updatePost', 'postRequest', postRequest)
+      const localVarPath = `/api/teams/{slug}/posts/{postSlug}`
+        .replace(`{${'postSlug'}}`, encodeURIComponent(String(postSlug)))
+        .replace(`{${'slug'}}`, encodeURIComponent(String(slug)))
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL)
+      let baseOptions
+      if (configuration) {
+        baseOptions = configuration.baseOptions
+      }
+
+      const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options }
+      const localVarHeaderParameter = {} as any
+      const localVarQueryParameter = {} as any
+
+      // authentication SecurityScheme required
+
+      localVarHeaderParameter['Content-Type'] = 'application/json'
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter)
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {}
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      }
+      localVarRequestOptions.data = serializeDataIfNeeded(
+        postRequest,
+        localVarRequestOptions,
+        configuration
+      )
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      }
+    },
+  }
+}
+
+/**
+ * PostsApi - functional programming interface
+ */
+export const PostsApiFp = function (configuration?: Configuration) {
+  const localVarAxiosParamCreator = PostsApiAxiosParamCreator(configuration)
+  return {
+    /**
+     * Create a new post with optional groups
+     * @summary Create post
+     * @param {string} slug Team URL slug
+     * @param {PostRequest} postRequest
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async createPost(
+      slug: string,
+      postRequest: PostRequest,
+      options?: RawAxiosRequestConfig
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<PostDto>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.createPost(
+        slug,
+        postRequest,
+        options
+      )
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0
+      const localVarOperationServerBasePath =
+        operationServerMap['PostsApi.createPost']?.[localVarOperationServerIndex]?.url
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration
+        )(axios, localVarOperationServerBasePath || basePath)
+    },
+    /**
+     * Soft delete a post. Requires organizer permissions.
+     * @summary Delete post
+     * @param {string} postSlug Post URL slug
+     * @param {string} slug Team URL slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async deletePost(
+      postSlug: string,
+      slug: string,
+      options?: RawAxiosRequestConfig
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.deletePost(postSlug, slug, options)
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0
+      const localVarOperationServerBasePath =
+        operationServerMap['PostsApi.deletePost']?.[localVarOperationServerIndex]?.url
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration
+        )(axios, localVarOperationServerBasePath || basePath)
+    },
+    /**
+     * Get detailed post information including groups
+     * @summary Get post details
+     * @param {string} postSlug Post URL slug
+     * @param {string} slug Team URL slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async getPost(
+      postSlug: string,
+      slug: string,
+      options?: RawAxiosRequestConfig
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<PostDto>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.getPost(postSlug, slug, options)
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0
+      const localVarOperationServerBasePath =
+        operationServerMap['PostsApi.getPost']?.[localVarOperationServerIndex]?.url
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration
+        )(axios, localVarOperationServerBasePath || basePath)
+    },
+    /**
+     * Get paginated list of posts for a team with optional filtering
+     * @summary List posts
+     * @param {string} slug Team URL slug
+     * @param {string} [from] Start date filter (ISO format)
+     * @param {number} [page] Page number
+     * @param {number} [size] Page size
+     * @param {Status} [status] Status filter
+     * @param {string} [to] End date filter (ISO format)
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async listPosts(
+      slug: string,
+      from?: string,
+      page?: number,
+      size?: number,
+      status?: Status,
+      to?: string,
+      options?: RawAxiosRequestConfig
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<PostListResponse>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.listPosts(
+        slug,
+        from,
+        page,
+        size,
+        status,
+        to,
+        options
+      )
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0
+      const localVarOperationServerBasePath =
+        operationServerMap['PostsApi.listPosts']?.[localVarOperationServerIndex]?.url
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration
+        )(axios, localVarOperationServerBasePath || basePath)
+    },
+    /**
+     * Update post information. Requires organizer permissions.
+     * @summary Update post
+     * @param {string} postSlug Post URL slug
+     * @param {string} slug Team URL slug
+     * @param {PostRequest} postRequest
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async updatePost(
+      postSlug: string,
+      slug: string,
+      postRequest: PostRequest,
+      options?: RawAxiosRequestConfig
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<PostDto>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.updatePost(
+        postSlug,
+        slug,
+        postRequest,
+        options
+      )
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0
+      const localVarOperationServerBasePath =
+        operationServerMap['PostsApi.updatePost']?.[localVarOperationServerIndex]?.url
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration
+        )(axios, localVarOperationServerBasePath || basePath)
+    },
+  }
+}
+
+/**
+ * PostsApi - factory interface
+ */
+export const PostsApiFactory = function (
+  configuration?: Configuration,
+  basePath?: string,
+  axios?: AxiosInstance
+) {
+  const localVarFp = PostsApiFp(configuration)
+  return {
+    /**
+     * Create a new post with optional groups
+     * @summary Create post
+     * @param {string} slug Team URL slug
+     * @param {PostRequest} postRequest
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    createPost(
+      slug: string,
+      postRequest: PostRequest,
+      options?: RawAxiosRequestConfig
+    ): AxiosPromise<PostDto> {
+      return localVarFp
+        .createPost(slug, postRequest, options)
+        .then((request) => request(axios, basePath))
+    },
+    /**
+     * Soft delete a post. Requires organizer permissions.
+     * @summary Delete post
+     * @param {string} postSlug Post URL slug
+     * @param {string} slug Team URL slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    deletePost(
+      postSlug: string,
+      slug: string,
+      options?: RawAxiosRequestConfig
+    ): AxiosPromise<void> {
+      return localVarFp
+        .deletePost(postSlug, slug, options)
+        .then((request) => request(axios, basePath))
+    },
+    /**
+     * Get detailed post information including groups
+     * @summary Get post details
+     * @param {string} postSlug Post URL slug
+     * @param {string} slug Team URL slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getPost(
+      postSlug: string,
+      slug: string,
+      options?: RawAxiosRequestConfig
+    ): AxiosPromise<PostDto> {
+      return localVarFp.getPost(postSlug, slug, options).then((request) => request(axios, basePath))
+    },
+    /**
+     * Get paginated list of posts for a team with optional filtering
+     * @summary List posts
+     * @param {string} slug Team URL slug
+     * @param {string} [from] Start date filter (ISO format)
+     * @param {number} [page] Page number
+     * @param {number} [size] Page size
+     * @param {Status} [status] Status filter
+     * @param {string} [to] End date filter (ISO format)
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listPosts(
+      slug: string,
+      from?: string,
+      page?: number,
+      size?: number,
+      status?: Status,
+      to?: string,
+      options?: RawAxiosRequestConfig
+    ): AxiosPromise<PostListResponse> {
+      return localVarFp
+        .listPosts(slug, from, page, size, status, to, options)
+        .then((request) => request(axios, basePath))
+    },
+    /**
+     * Update post information. Requires organizer permissions.
+     * @summary Update post
+     * @param {string} postSlug Post URL slug
+     * @param {string} slug Team URL slug
+     * @param {PostRequest} postRequest
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    updatePost(
+      postSlug: string,
+      slug: string,
+      postRequest: PostRequest,
+      options?: RawAxiosRequestConfig
+    ): AxiosPromise<PostDto> {
+      return localVarFp
+        .updatePost(postSlug, slug, postRequest, options)
+        .then((request) => request(axios, basePath))
+    },
+  }
+}
+
+/**
+ * PostsApi - object-oriented interface
+ */
+export class PostsApi extends BaseAPI {
+  /**
+   * Create a new post with optional groups
+   * @summary Create post
+   * @param {string} slug Team URL slug
+   * @param {PostRequest} postRequest
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   */
+  public createPost(slug: string, postRequest: PostRequest, options?: RawAxiosRequestConfig) {
+    return PostsApiFp(this.configuration)
+      .createPost(slug, postRequest, options)
+      .then((request) => request(this.axios, this.basePath))
+  }
+
+  /**
+   * Soft delete a post. Requires organizer permissions.
+   * @summary Delete post
+   * @param {string} postSlug Post URL slug
+   * @param {string} slug Team URL slug
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   */
+  public deletePost(postSlug: string, slug: string, options?: RawAxiosRequestConfig) {
+    return PostsApiFp(this.configuration)
+      .deletePost(postSlug, slug, options)
+      .then((request) => request(this.axios, this.basePath))
+  }
+
+  /**
+   * Get detailed post information including groups
+   * @summary Get post details
+   * @param {string} postSlug Post URL slug
+   * @param {string} slug Team URL slug
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   */
+  public getPost(postSlug: string, slug: string, options?: RawAxiosRequestConfig) {
+    return PostsApiFp(this.configuration)
+      .getPost(postSlug, slug, options)
+      .then((request) => request(this.axios, this.basePath))
+  }
+
+  /**
+   * Get paginated list of posts for a team with optional filtering
+   * @summary List posts
+   * @param {string} slug Team URL slug
+   * @param {string} [from] Start date filter (ISO format)
+   * @param {number} [page] Page number
+   * @param {number} [size] Page size
+   * @param {Status} [status] Status filter
+   * @param {string} [to] End date filter (ISO format)
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   */
+  public listPosts(
+    slug: string,
+    from?: string,
+    page?: number,
+    size?: number,
+    status?: Status,
+    to?: string,
+    options?: RawAxiosRequestConfig
+  ) {
+    return PostsApiFp(this.configuration)
+      .listPosts(slug, from, page, size, status, to, options)
+      .then((request) => request(this.axios, this.basePath))
+  }
+
+  /**
+   * Update post information. Requires organizer permissions.
+   * @summary Update post
+   * @param {string} postSlug Post URL slug
+   * @param {string} slug Team URL slug
+   * @param {PostRequest} postRequest
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   */
+  public updatePost(
+    postSlug: string,
+    slug: string,
+    postRequest: PostRequest,
+    options?: RawAxiosRequestConfig
+  ) {
+    return PostsApiFp(this.configuration)
+      .updatePost(postSlug, slug, postRequest, options)
+      .then((request) => request(this.axios, this.basePath))
+  }
+}
+
+/**
  * RidesApi - axios parameter creator
  */
 export const RidesApiAxiosParamCreator = function (configuration?: Configuration) {
@@ -1163,7 +1877,7 @@ export const RidesApiAxiosParamCreator = function (configuration?: Configuration
      * @param {string} [from] Start date filter (ISO format)
      * @param {number} [page] Page number
      * @param {number} [size] Page size
-     * @param {RideStatus} [status] Status filter
+     * @param {Status} [status] Status filter
      * @param {string} [to] End date filter (ISO format)
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -1173,7 +1887,7 @@ export const RidesApiAxiosParamCreator = function (configuration?: Configuration
       from?: string,
       page?: number,
       size?: number,
-      status?: RideStatus,
+      status?: Status,
       to?: string,
       options: RawAxiosRequestConfig = {}
     ): Promise<RequestArgs> => {
@@ -1443,7 +2157,7 @@ export const RidesApiFp = function (configuration?: Configuration) {
      * @param {string} [from] Start date filter (ISO format)
      * @param {number} [page] Page number
      * @param {number} [size] Page size
-     * @param {RideStatus} [status] Status filter
+     * @param {Status} [status] Status filter
      * @param {string} [to] End date filter (ISO format)
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -1453,7 +2167,7 @@ export const RidesApiFp = function (configuration?: Configuration) {
       from?: string,
       page?: number,
       size?: number,
-      status?: RideStatus,
+      status?: Status,
       to?: string,
       options?: RawAxiosRequestConfig
     ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<RideListResponse>> {
@@ -1616,7 +2330,7 @@ export const RidesApiFactory = function (
      * @param {string} [from] Start date filter (ISO format)
      * @param {number} [page] Page number
      * @param {number} [size] Page size
-     * @param {RideStatus} [status] Status filter
+     * @param {Status} [status] Status filter
      * @param {string} [to] End date filter (ISO format)
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -1626,7 +2340,7 @@ export const RidesApiFactory = function (
       from?: string,
       page?: number,
       size?: number,
-      status?: RideStatus,
+      status?: Status,
       to?: string,
       options?: RawAxiosRequestConfig
     ): AxiosPromise<RideListResponse> {
@@ -1749,7 +2463,7 @@ export class RidesApi extends BaseAPI {
    * @param {string} [from] Start date filter (ISO format)
    * @param {number} [page] Page number
    * @param {number} [size] Page size
-   * @param {RideStatus} [status] Status filter
+   * @param {Status} [status] Status filter
    * @param {string} [to] End date filter (ISO format)
    * @param {*} [options] Override http request option.
    * @throws {RequiredError}
@@ -1759,7 +2473,7 @@ export class RidesApi extends BaseAPI {
     from?: string,
     page?: number,
     size?: number,
-    status?: RideStatus,
+    status?: Status,
     to?: string,
     options?: RawAxiosRequestConfig
   ) {

@@ -9,7 +9,7 @@ import com.tribly.domain.user.User;
 import com.tribly.dto.rides.request.GroupRequest;
 import com.tribly.dto.rides.request.RideRequest;
 import com.tribly.dto.rides.response.*;
-import com.tribly.enums.RideStatus;
+import com.tribly.enums.Status;
 import com.tribly.enums.TeamRole;
 import com.tribly.enums.Visibility;
 import com.tribly.infrastructure.exception.BusinessException;
@@ -58,7 +58,7 @@ class RideServiceTest {
         "public-ride",
         LocalDateTime.now(),
         Visibility.PUBLIC,
-        RideStatus.PUBLISHED);
+        Status.PUBLISHED);
     dataService.createRideWithVisibilityAndStatus(
         team,
         admin,
@@ -66,7 +66,7 @@ class RideServiceTest {
         "team-ride",
         LocalDateTime.now(),
         Visibility.TEAM,
-        RideStatus.PUBLISHED);
+        Status.PUBLISHED);
 
     RideListResponse result = rideService.listRides("test-team", null, null, null, null, 0, 10);
 
@@ -83,7 +83,7 @@ class RideServiceTest {
         "public-ride",
         LocalDateTime.now(),
         Visibility.PUBLIC,
-        RideStatus.PUBLISHED);
+        Status.PUBLISHED);
     dataService.createRideWithVisibilityAndStatus(
         team,
         admin,
@@ -91,7 +91,7 @@ class RideServiceTest {
         "team-ride",
         LocalDateTime.now(),
         Visibility.TEAM,
-        RideStatus.PUBLISHED);
+        Status.PUBLISHED);
 
     RideListResponse result =
         rideService.listRides("test-team", member.getId(), null, null, null, 0, 10);
@@ -108,15 +108,15 @@ class RideServiceTest {
         "published",
         LocalDateTime.now(),
         Visibility.PUBLIC,
-        RideStatus.PUBLISHED);
+        Status.PUBLISHED);
     dataService.createRideWithVisibilityAndStatus(
-        team, admin, "Draft", "draft", LocalDateTime.now(), Visibility.PUBLIC, RideStatus.DRAFT);
+        team, admin, "Draft", "draft", LocalDateTime.now(), Visibility.PUBLIC, Status.DRAFT);
 
     RideListResponse result =
-        rideService.listRides("test-team", null, null, null, RideStatus.PUBLISHED, 0, 10);
+        rideService.listRides("test-team", null, null, null, Status.PUBLISHED, 0, 10);
 
     assertEquals(1, result.rides().size());
-    assertEquals(RideStatus.PUBLISHED, result.rides().getFirst().status());
+    assertEquals(Status.PUBLISHED, result.rides().getFirst().status());
   }
 
   @Test
@@ -137,19 +137,19 @@ class RideServiceTest {
   @Test
   void listRides_shouldShowDraftsToOrganizers() {
     dataService.createRideWithStatus(
-        team, admin, "Draft", "draft", LocalDateTime.now(), RideStatus.DRAFT);
+        team, admin, "Draft", "draft", LocalDateTime.now(), Status.DRAFT);
 
     RideListResponse result =
         rideService.listRides("test-team", organizer.getId(), null, null, null, 0, 10);
 
     assertEquals(1, result.rides().size());
-    assertEquals(RideStatus.DRAFT, result.rides().getFirst().status());
+    assertEquals(Status.DRAFT, result.rides().getFirst().status());
   }
 
   @Test
   void listRides_shouldHideDraftsFromMembers() {
     dataService.createRideWithStatus(
-        team, admin, "Draft", "draft", LocalDateTime.now(), RideStatus.DRAFT);
+        team, admin, "Draft", "draft", LocalDateTime.now(), Status.DRAFT);
 
     RideListResponse result =
         rideService.listRides("test-team", member.getId(), null, null, null, 0, 10);
@@ -166,7 +166,7 @@ class RideServiceTest {
         "draft-ride",
         LocalDateTime.now(),
         Visibility.PUBLIC,
-        RideStatus.DRAFT);
+        Status.DRAFT);
     dataService.createRideWithVisibilityAndStatus(
         team,
         admin,
@@ -174,7 +174,7 @@ class RideServiceTest {
         "published-ride",
         LocalDateTime.now(),
         Visibility.PUBLIC,
-        RideStatus.PUBLISHED);
+        Status.PUBLISHED);
 
     RideListResponse result = rideService.listRides("test-team", null, null, null, null, 0, 10);
 
@@ -191,10 +191,10 @@ class RideServiceTest {
         "draft-ride",
         LocalDateTime.now(),
         Visibility.PUBLIC,
-        RideStatus.DRAFT);
+        Status.DRAFT);
 
     RideListResponse result =
-        rideService.listRides("test-team", null, null, null, RideStatus.DRAFT, 0, 10);
+        rideService.listRides("test-team", null, null, null, Status.DRAFT, 0, 10);
 
     assertEquals(0, result.rides().size());
   }
@@ -208,7 +208,7 @@ class RideServiceTest {
         "draft-ride",
         LocalDateTime.now(),
         Visibility.PUBLIC,
-        RideStatus.DRAFT);
+        Status.DRAFT);
     dataService.createRideWithVisibilityAndStatus(
         team,
         admin,
@@ -216,14 +216,14 @@ class RideServiceTest {
         "published-ride",
         LocalDateTime.now(),
         Visibility.PUBLIC,
-        RideStatus.PUBLISHED);
+        Status.PUBLISHED);
 
     RideListResponse result =
-        rideService.listRides("test-team", organizer.getId(), null, null, RideStatus.DRAFT, 0, 10);
+        rideService.listRides("test-team", organizer.getId(), null, null, Status.DRAFT, 0, 10);
 
     assertEquals(1, result.rides().size());
     assertEquals("Draft Ride", result.rides().getFirst().name());
-    assertEquals(RideStatus.DRAFT, result.rides().getFirst().status());
+    assertEquals(Status.DRAFT, result.rides().getFirst().status());
   }
 
   @Test
@@ -235,7 +235,7 @@ class RideServiceTest {
         "draft-ride",
         LocalDateTime.now(),
         Visibility.PUBLIC,
-        RideStatus.DRAFT);
+        Status.DRAFT);
     dataService.createRideWithVisibilityAndStatus(
         team,
         admin,
@@ -243,14 +243,14 @@ class RideServiceTest {
         "published-ride",
         LocalDateTime.now(),
         Visibility.PUBLIC,
-        RideStatus.PUBLISHED);
+        Status.PUBLISHED);
 
     RideListResponse result =
-        rideService.listRides("test-team", null, null, null, RideStatus.PUBLISHED, 0, 10);
+        rideService.listRides("test-team", null, null, null, Status.PUBLISHED, 0, 10);
 
     assertEquals(1, result.rides().size());
     assertEquals("Published Ride", result.rides().getFirst().name());
-    assertEquals(RideStatus.PUBLISHED, result.rides().getFirst().status());
+    assertEquals(Status.PUBLISHED, result.rides().getFirst().status());
   }
 
   @Test
@@ -266,7 +266,7 @@ class RideServiceTest {
         "private-ride",
         LocalDateTime.now(),
         Visibility.TEAM,
-        RideStatus.PUBLISHED);
+        Status.PUBLISHED);
 
     assertThrows(
         BusinessException.class,
@@ -294,17 +294,17 @@ class RideServiceTest {
   @Test
   void getRideBySlug_shouldShowDraftToOrganizer() {
     dataService.createRideWithStatus(
-        team, admin, "Draft", "draft", LocalDateTime.now(), RideStatus.DRAFT);
+        team, admin, "Draft", "draft", LocalDateTime.now(), Status.DRAFT);
 
     RideDto result = rideService.getRideDetail("test-team", "draft", organizer.getId());
 
-    assertEquals(RideStatus.DRAFT, result.status());
+    assertEquals(Status.DRAFT, result.status());
   }
 
   @Test
   void getRideBySlug_shouldHideDraftFromMember() {
     dataService.createRideWithStatus(
-        team, admin, "Draft", "draft", LocalDateTime.now(), RideStatus.DRAFT);
+        team, admin, "Draft", "draft", LocalDateTime.now(), Status.DRAFT);
 
     assertThrows(
         BusinessException.class,
@@ -320,9 +320,8 @@ class RideServiceTest {
             "Sunday Ride",
             "A nice ride",
             LocalDateTime.now().plusDays(7),
-            RideStatus.DRAFT,
+            Status.DRAFT,
             Visibility.TEAM,
-            null,
             null,
             null,
             List.of());
@@ -332,7 +331,7 @@ class RideServiceTest {
     assertNotNull(result);
     assertEquals("Sunday Ride", result.name());
     assertEquals("sunday-ride", result.slug());
-    assertEquals(RideStatus.DRAFT, result.status());
+    assertEquals(Status.DRAFT, result.status());
   }
 
   @Test
@@ -343,9 +342,8 @@ class RideServiceTest {
             "Test Ride",
             null,
             LocalDateTime.now().plusDays(1),
-            RideStatus.DRAFT,
+            Status.DRAFT,
             Visibility.PUBLIC,
-            null,
             null,
             null,
             List.of());
@@ -365,9 +363,8 @@ class RideServiceTest {
             "Group Ride",
             null,
             LocalDateTime.now().plusDays(1),
-            RideStatus.DRAFT,
+            Status.DRAFT,
             Visibility.PUBLIC,
-            null,
             null,
             null,
             List.of(group1, group2));
@@ -387,9 +384,8 @@ class RideServiceTest {
             "Test",
             null,
             LocalDateTime.now().plusDays(1),
-            RideStatus.DRAFT,
+            Status.DRAFT,
             Visibility.PUBLIC,
-            null,
             null,
             null,
             List.of());
@@ -410,9 +406,8 @@ class RideServiceTest {
             "Public Ride",
             null,
             LocalDateTime.now().plusDays(1),
-            RideStatus.DRAFT,
+            Status.DRAFT,
             Visibility.PUBLIC,
-            null,
             null,
             null,
             List.of());
@@ -436,9 +431,8 @@ class RideServiceTest {
             "Team Ride",
             null,
             LocalDateTime.now().plusDays(1),
-            RideStatus.DRAFT,
+            Status.DRAFT,
             Visibility.TEAM,
-            null,
             null,
             null,
             List.of());
@@ -460,9 +454,8 @@ class RideServiceTest {
             "Updated Title",
             "Updated description",
             LocalDateTime.now().plusDays(1),
-            RideStatus.CANCELLED,
+            Status.CANCELLED,
             Visibility.TEAM,
-            null,
             null,
             null,
             List.of());
@@ -471,7 +464,7 @@ class RideServiceTest {
 
     assertEquals("Updated Title", result.name());
     assertEquals("Updated description", result.description());
-    assertEquals(RideStatus.CANCELLED, result.status());
+    assertEquals(Status.CANCELLED, result.status());
     assertEquals(Visibility.TEAM, result.visibility());
   }
 
@@ -483,9 +476,8 @@ class RideServiceTest {
             "New Title",
             null,
             LocalDateTime.now().plusDays(1),
-            RideStatus.PUBLISHED,
+            Status.PUBLISHED,
             Visibility.PUBLIC,
-            null,
             null,
             null,
             List.of());
@@ -493,7 +485,7 @@ class RideServiceTest {
     RideDto result = rideService.updateRide("test-team", "original", request, organizer.getId());
 
     assertEquals("New Title", result.name());
-    assertEquals(RideStatus.PUBLISHED, result.status());
+    assertEquals(Status.PUBLISHED, result.status());
   }
 
   @Test
@@ -505,15 +497,14 @@ class RideServiceTest {
         "published-ride",
         LocalDateTime.now(),
         Visibility.PUBLIC,
-        RideStatus.PUBLISHED);
+        Status.PUBLISHED);
     RideRequest request =
         new RideRequest(
             "Updated Title",
             null,
             LocalDateTime.now().plusDays(1),
-            RideStatus.PUBLISHED,
+            Status.PUBLISHED,
             Visibility.PUBLIC,
-            null,
             null,
             null,
             List.of());
@@ -522,7 +513,7 @@ class RideServiceTest {
         rideService.updateRide("test-team", "published-ride", request, organizer.getId());
 
     assertEquals("Updated Title", result.name());
-    assertEquals(RideStatus.PUBLISHED, result.status());
+    assertEquals(Status.PUBLISHED, result.status());
   }
 
   @Test
@@ -533,9 +524,8 @@ class RideServiceTest {
             "New",
             null,
             LocalDateTime.now().plusDays(1),
-            RideStatus.DRAFT,
+            Status.DRAFT,
             Visibility.PUBLIC,
-            null,
             null,
             null,
             List.of());
@@ -557,16 +547,15 @@ class RideServiceTest {
         "team-ride",
         LocalDateTime.now(),
         Visibility.TEAM,
-        RideStatus.DRAFT);
+        Status.DRAFT);
 
     RideRequest request =
         new RideRequest(
             "Title",
             null,
             LocalDateTime.now().plusDays(1),
-            RideStatus.DRAFT,
+            Status.DRAFT,
             Visibility.PUBLIC,
-            null,
             null,
             null,
             List.of());
@@ -591,16 +580,15 @@ class RideServiceTest {
         "team-ride",
         LocalDateTime.now(),
         Visibility.TEAM,
-        RideStatus.DRAFT);
+        Status.DRAFT);
 
     RideRequest request =
         new RideRequest(
             "Updated Title",
             null,
             LocalDateTime.now().plusDays(1),
-            RideStatus.DRAFT,
+            Status.DRAFT,
             Visibility.TEAM,
-            null,
             null,
             null,
             List.of());
@@ -663,7 +651,7 @@ class RideServiceTest {
   void joinGroup_shouldCreateParticipation() {
     Ride ride =
         dataService.createRideWithStatus(
-            team, admin, "Test", "test", LocalDateTime.now(), RideStatus.PUBLISHED);
+            team, admin, "Test", "test", LocalDateTime.now(), Status.PUBLISHED);
     RideGroup group = dataService.createRideGroup(ride, "Group");
 
     RideParticipationDto result =
@@ -677,13 +665,7 @@ class RideServiceTest {
   void joinGroup_shouldThrowForDraftRide() {
     Ride ride =
         dataService.createRideWithVisibilityAndStatus(
-            team,
-            admin,
-            "Draft",
-            "draft",
-            LocalDateTime.now(),
-            Visibility.PUBLIC,
-            RideStatus.DRAFT);
+            team, admin, "Draft", "draft", LocalDateTime.now(), Visibility.PUBLIC, Status.DRAFT);
     RideGroup group = dataService.createRideGroup(ride, "Group");
 
     BusinessException exception =
@@ -696,13 +678,7 @@ class RideServiceTest {
   void joinGroup_shouldThrowForDraftRideEvenForOrganizer() {
     Ride ride =
         dataService.createRideWithVisibilityAndStatus(
-            team,
-            admin,
-            "Draft",
-            "draft",
-            LocalDateTime.now(),
-            Visibility.PUBLIC,
-            RideStatus.DRAFT);
+            team, admin, "Draft", "draft", LocalDateTime.now(), Visibility.PUBLIC, Status.DRAFT);
     RideGroup group = dataService.createRideGroup(ride, "Group");
 
     BusinessException exception =

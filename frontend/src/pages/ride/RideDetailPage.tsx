@@ -10,16 +10,16 @@ import {
   useJoinRide,
   useLeaveRide,
 } from '../../hooks/useRide'
-import { RideStatus } from '../../hooks/useRide'
+import { Status } from '../../hooks/useRide'
 import { useAuth } from '../../hooks/useAuth'
 import { LoadingPage, LoadingSpinner } from '../../components/common/LoadingSpinner'
 import { RideGroupCard } from '../../components/ride/RideGroupCard'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 
-const statusColors: Record<RideStatus, string> = {
-  [RideStatus.Draft]: 'bg-gray-100 text-gray-800',
-  [RideStatus.Published]: 'bg-green-100 text-green-800',
-  [RideStatus.Cancelled]: 'bg-red-100 text-red-800',
+const statusColors: Record<Status, string> = {
+  [Status.Draft]: 'bg-gray-100 text-gray-800',
+  [Status.Published]: 'bg-green-100 text-green-800',
+  [Status.Cancelled]: 'bg-red-100 text-red-800',
 }
 
 export function RideDetailPage() {
@@ -69,7 +69,7 @@ export function RideDetailPage() {
     user && ride.groups
       ? ride.groups.some((group) => group.participants.some((p) => p.id === user.dbId))
       : false
-  const canJoinRide = isMember && ride.status === RideStatus.Published && !hasJoinedAnyGroup
+  const canJoinRide = isMember && ride.status === Status.Published && !hasJoinedAnyGroup
 
   const rideDate = new Date(ride.dateTime)
   const formattedDate = rideDate.toLocaleDateString(i18n.language, {
@@ -80,21 +80,21 @@ export function RideDetailPage() {
   })
 
   const handlePublish = () => {
-    updateMutation.mutate({ ...ride, status: RideStatus.Published })
+    updateMutation.mutate({ ...ride, status: Status.Published })
   }
 
   const handleUnpublish = () => {
-    updateMutation.mutate({ ...ride, status: RideStatus.Draft })
+    updateMutation.mutate({ ...ride, status: Status.Draft })
     setShowUnpublishConfirm(false)
   }
 
   const handleCancel = () => {
-    updateMutation.mutate({ ...ride, status: RideStatus.Cancelled })
+    updateMutation.mutate({ ...ride, status: Status.Cancelled })
     setShowCancelConfirm(false)
   }
 
   const handleUncancel = () => {
-    updateMutation.mutate({ ...ride, status: RideStatus.Draft })
+    updateMutation.mutate({ ...ride, status: Status.Draft })
     setShowUncancelConfirm(false)
   }
 
@@ -135,7 +135,7 @@ export function RideDetailPage() {
               </span>
             </div>
             {ride.description && <p className="mt-2 text-gray-600">{ride.description}</p>}
-            {ride.status === RideStatus.Draft && ride.publishAt && (
+            {ride.status === Status.Draft && ride.publishAt && (
               <div className="mt-2 text-sm text-amber-600 flex items-center">
                 <ClockIcon className="w-4 h-4 mr-1" />
                 {t('detail.scheduledPublish', {
@@ -171,7 +171,7 @@ export function RideDetailPage() {
                 <PencilIcon className="w-4 h-4 mr-1" />
                 {t('detail.actions.edit')}
               </Link>
-              {ride.status === RideStatus.Draft && (
+              {ride.status === Status.Draft && (
                 <button
                   onClick={handlePublish}
                   disabled={updateMutation.isPending}
@@ -181,7 +181,7 @@ export function RideDetailPage() {
                   {t('detail.actions.publish')}
                 </button>
               )}
-              {ride.status === RideStatus.Published && (
+              {ride.status === Status.Published && (
                 <>
                   <button
                     onClick={() => setShowUnpublishConfirm(true)}
@@ -197,7 +197,7 @@ export function RideDetailPage() {
                   </button>
                 </>
               )}
-              {ride.status === RideStatus.Cancelled && (
+              {ride.status === Status.Cancelled && (
                 <button
                   onClick={() => setShowUncancelConfirm(true)}
                   className="inline-flex items-center px-3 py-2 border border-green-300 rounded-md text-sm font-medium text-green-700 bg-white hover:bg-green-50"

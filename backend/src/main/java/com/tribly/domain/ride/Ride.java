@@ -1,10 +1,9 @@
 package com.tribly.domain.ride;
 
-import com.tribly.domain.common.TeamEntity;
+import com.tribly.domain.common.TeamPublicationEntity;
 import com.tribly.domain.route.Route;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
-import com.tribly.enums.RideStatus;
 import jakarta.persistence.*;
 import java.time.*;
 import java.util.ArrayList;
@@ -17,32 +16,22 @@ import org.jspecify.annotations.Nullable;
 @Getter
 @Entity
 @DiscriminatorValue("1")
-public class Ride extends TeamEntity {
+public class Ride extends TeamPublicationEntity {
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "route_id")
   @Nullable
   private Route route;
 
-  @Enumerated(EnumType.STRING)
-  @Column(name = "status", length = 20)
-  private RideStatus status = RideStatus.DRAFT;
-
-  @Nullable
-  @Column(name = "publish_at")
-  private Instant publishAt;
-
   @OneToMany(mappedBy = "ride", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<RideGroup> groups = new ArrayList<>();
 
-  public Ride() {}
+  public Ride() {
+    super();
+  }
 
   public Ride(Team team, User createdBy, String name, String slug, LocalDateTime dateTime) {
-    this.team = team;
-    this.createdBy = createdBy;
-    this.name = name;
-    this.slug = slug;
-    this.dateTime = dateTime;
+    super(team, createdBy, name, slug, dateTime);
   }
 
   public void addGroup(RideGroup group) {

@@ -1,6 +1,6 @@
 package com.tribly.domain.route.repository;
 
-import com.tribly.domain.common.repository.BaseRepository;
+import com.tribly.domain.common.repository.TeamEntityRepository;
 import com.tribly.domain.common.repository.TriblyPage;
 import com.tribly.domain.common.repository.TriblyQuery;
 import com.tribly.domain.route.Route;
@@ -8,7 +8,12 @@ import jakarta.enterprise.context.ApplicationScoped;
 import java.util.Map;
 
 @ApplicationScoped
-public class RouteRepository implements BaseRepository<Route> {
+public class RouteRepository extends TeamEntityRepository<Route> {
+
+  @Override
+  public Class<Route> getEntityClass() {
+    return Route.class;
+  }
 
   public TriblyPage<Route> find(RouteQuery routeQuery) {
     TriblyQuery triblyQuery =
@@ -32,9 +37,5 @@ public class RouteRepository implements BaseRepository<Route> {
     }
 
     return getPage(triblyQuery, routeQuery);
-  }
-
-  public boolean existsByTeamAndSlug(Long teamId, String slug) {
-    return count("team.id = ?1 and slug = ?2", teamId, slug) > 0;
   }
 }

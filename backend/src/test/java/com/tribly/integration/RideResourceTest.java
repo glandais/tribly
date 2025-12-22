@@ -6,7 +6,7 @@ import static org.hamcrest.Matchers.*;
 import com.tribly.dto.rides.request.GroupRequest;
 import com.tribly.dto.rides.request.RideRequest;
 import com.tribly.dto.rides.response.RideDto;
-import com.tribly.enums.RideStatus;
+import com.tribly.enums.Status;
 import com.tribly.enums.Visibility;
 import com.tribly.util.TestDataCleaner;
 import io.quarkus.test.junit.QuarkusTest;
@@ -81,9 +81,8 @@ class RideResourceTest {
                 "Sunday Morning Ride",
                 null,
                 LocalDate.parse("2025-01-20").atTime(0, 0),
-                RideStatus.DRAFT,
+                Status.DRAFT,
                 Visibility.PUBLIC,
-                null,
                 null,
                 null,
                 List.of(new GroupRequest(null, "G1", null, null, null, null))))
@@ -111,9 +110,8 @@ class RideResourceTest {
                 "Sunday Morning Ride",
                 null,
                 LocalDate.parse("2025-01-20").atTime(0, 0),
-                RideStatus.DRAFT,
+                Status.DRAFT,
                 Visibility.PUBLIC,
-                null,
                 null,
                 null,
                 List.of(new GroupRequest(null, "G1", null, null, null, null))))
@@ -132,9 +130,8 @@ class RideResourceTest {
             "Multi-Group Ride",
             null,
             LocalDate.parse("2025-01-20").atTime(0, 0),
-            RideStatus.DRAFT,
+            Status.DRAFT,
             Visibility.PUBLIC,
-            null,
             null,
             null,
             List.of(
@@ -169,9 +166,8 @@ class RideResourceTest {
                     "Get Test Ride",
                     null,
                     LocalDate.parse("2025-01-22").atTime(0, 0),
-                    RideStatus.DRAFT,
+                    Status.DRAFT,
                     Visibility.PUBLIC,
-                    null,
                     null,
                     null,
                     List.of(new GroupRequest(null, "G1", null, null, null, null))))
@@ -208,9 +204,8 @@ class RideResourceTest {
                 "Ride 1",
                 null,
                 LocalDate.parse("2025-01-20").atTime(0, 0),
-                RideStatus.DRAFT,
+                Status.DRAFT,
                 Visibility.PUBLIC,
-                null,
                 null,
                 null,
                 List.of(new GroupRequest(null, "G1", null, null, null, null))))
@@ -228,9 +223,8 @@ class RideResourceTest {
                 "Ride 2",
                 null,
                 LocalDate.parse("2025-01-27").atTime(0, 0),
-                RideStatus.DRAFT,
+                Status.DRAFT,
                 Visibility.PUBLIC,
-                null,
                 null,
                 null,
                 List.of(new GroupRequest(null, "G1", null, null, null, null))))
@@ -264,9 +258,8 @@ class RideResourceTest {
                     "Sunday Morning Ride",
                     null,
                     LocalDate.parse("2025-01-20").atTime(0, 0),
-                    RideStatus.DRAFT,
+                    Status.DRAFT,
                     Visibility.PUBLIC,
-                    null,
                     null,
                     null,
                     List.of(
@@ -290,9 +283,8 @@ class RideResourceTest {
                 "Updated Title",
                 null,
                 LocalDate.parse("2025-01-20").atTime(0, 0),
-                RideStatus.PUBLISHED,
+                Status.PUBLISHED,
                 Visibility.PUBLIC,
-                null,
                 null,
                 null,
                 List.of(
@@ -320,9 +312,8 @@ class RideResourceTest {
                     "To be deleted",
                     null,
                     LocalDate.parse("2025-01-20").atTime(0, 0),
-                    RideStatus.PUBLISHED,
+                    Status.PUBLISHED,
                     Visibility.PUBLIC,
-                    null,
                     null,
                     null,
                     List.of(new GroupRequest(null, "G1", null, null, null, null))))
@@ -367,9 +358,8 @@ class RideResourceTest {
                     "Ride",
                     null,
                     LocalDate.parse("2025-01-20").atTime(0, 0),
-                    RideStatus.PUBLISHED,
+                    Status.PUBLISHED,
                     Visibility.PUBLIC,
-                    null,
                     null,
                     null,
                     List.of(new GroupRequest(null, "G1", null, null, null, null))))
@@ -409,9 +399,8 @@ class RideResourceTest {
                     "Ride",
                     null,
                     LocalDate.parse("2025-01-20").atTime(0, 0),
-                    RideStatus.DRAFT,
+                    Status.DRAFT,
                     Visibility.PUBLIC,
-                    null,
                     null,
                     null,
                     List.of(new GroupRequest(null, "G1", null, null, null, null))))
@@ -451,9 +440,8 @@ class RideResourceTest {
                     "Ride",
                     null,
                     LocalDate.parse("2025-01-20").atTime(0, 0),
-                    RideStatus.PUBLISHED,
+                    Status.PUBLISHED,
                     Visibility.PUBLIC,
-                    null,
                     null,
                     null,
                     List.of(new GroupRequest(null, "G1", null, null, null, null))))

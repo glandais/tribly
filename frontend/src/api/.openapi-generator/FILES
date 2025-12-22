@@ -19,6 +19,10 @@ docs/KeycloakConfig.md
 docs/MapConfig.md
 docs/MemberDto.md
 docs/MemberListResponse.md
+docs/PostDto.md
+docs/PostListResponse.md
+docs/PostRequest.md
+docs/PostsApi.md
 docs/PublicUserDto.md
 docs/RideDto.md
 docs/RideGroupDto.md
@@ -26,7 +30,6 @@ docs/RideGroupListResponse.md
 docs/RideListResponse.md
 docs/RideParticipationDto.md
 docs/RideRequest.md
-docs/RideStatus.md
 docs/RidesApi.md
 docs/RouteClimbDto.md
 docs/RouteDetailDto.md
@@ -34,6 +37,7 @@ docs/RouteDto.md
 docs/RouteListResponse.md
 docs/RouteRequest.md
 docs/RoutesApi.md
+docs/Status.md
 docs/SurfaceType.md
 docs/TeamDetailDto.md
 docs/TeamListResponse.md

@@ -52,6 +52,11 @@ All URIs are relative to *http://localhost:8080*
 Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
 *ConfigurationApi* | [**getConfig**](docs/ConfigurationApi.md#getconfig) | **GET** /api/config | Get application configuration
+*PostsApi* | [**createPost**](docs/PostsApi.md#createpost) | **POST** /api/teams/{slug}/posts | Create post
+*PostsApi* | [**deletePost**](docs/PostsApi.md#deletepost) | **DELETE** /api/teams/{slug}/posts/{postSlug} | Delete post
+*PostsApi* | [**getPost**](docs/PostsApi.md#getpost) | **GET** /api/teams/{slug}/posts/{postSlug} | Get post details
+*PostsApi* | [**listPosts**](docs/PostsApi.md#listposts) | **GET** /api/teams/{slug}/posts | List posts
+*PostsApi* | [**updatePost**](docs/PostsApi.md#updatepost) | **PUT** /api/teams/{slug}/posts/{postSlug} | Update post
 *RidesApi* | [**createRide**](docs/RidesApi.md#createride) | **POST** /api/teams/{slug}/rides | Create ride
 *RidesApi* | [**deleteRide**](docs/RidesApi.md#deleteride) | **DELETE** /api/teams/{slug}/rides/{rideSlug} | Delete ride
 *RidesApi* | [**getRide**](docs/RidesApi.md#getride) | **GET** /api/teams/{slug}/rides/{rideSlug} | Get ride details
@@ -96,6 +101,9 @@ Class | Method | HTTP request | Description
  - [MapConfig](docs/MapConfig.md)
  - [MemberDto](docs/MemberDto.md)
  - [MemberListResponse](docs/MemberListResponse.md)
+ - [PostDto](docs/PostDto.md)
+ - [PostListResponse](docs/PostListResponse.md)
+ - [PostRequest](docs/PostRequest.md)
  - [PublicUserDto](docs/PublicUserDto.md)
  - [RideDto](docs/RideDto.md)
  - [RideGroupDto](docs/RideGroupDto.md)
@@ -103,12 +111,12 @@ Class | Method | HTTP request | Description
  - [RideListResponse](docs/RideListResponse.md)
  - [RideParticipationDto](docs/RideParticipationDto.md)
  - [RideRequest](docs/RideRequest.md)
- - [RideStatus](docs/RideStatus.md)
  - [RouteClimbDto](docs/RouteClimbDto.md)
  - [RouteDetailDto](docs/RouteDetailDto.md)
  - [RouteDto](docs/RouteDto.md)
  - [RouteListResponse](docs/RouteListResponse.md)
  - [RouteRequest](docs/RouteRequest.md)
+ - [Status](docs/Status.md)
  - [SurfaceType](docs/SurfaceType.md)
  - [TeamDetailDto](docs/TeamDetailDto.md)
  - [TeamListResponse](docs/TeamListResponse.md)
