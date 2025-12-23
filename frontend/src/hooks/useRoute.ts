@@ -55,7 +55,6 @@ export function useRoute(teamSlug: string | undefined, routeSlug: string | undef
 
 export function useCreateRoute(teamSlug: string) {
   const queryClient = useQueryClient()
-  const navigate = useNavigate()
 
   return useMutation({
     mutationFn: async (data: {
@@ -76,7 +75,7 @@ export function useCreateRoute(teamSlug: string) {
         )
       )
     },
-    onSuccess: (route) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['routes', teamSlug] })
 
       // Show success notification
@@ -86,10 +85,6 @@ export function useCreateRoute(teamSlug: string) {
         duration: 4000,
         translationKey: 'notifications.routeCreated',
       })
-
-      if (route) {
-        navigate(`/teams/${teamSlug}/routes/${route.slug}`)
-      }
     },
   })
 }

@@ -134,7 +134,7 @@ function App() {
               }
             />
             <Route
-              path="teams/:teamSlug/settings"
+              path="teams/:teamSlug/edit"
               element={
                 <AuthenticatedRoute>
                   <TeamSettingsPage />

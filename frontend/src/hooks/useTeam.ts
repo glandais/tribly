@@ -95,6 +95,7 @@ export function useCreateTeam() {
 
 export function useUpdateTeam(slug: string) {
   const queryClient = useQueryClient()
+  const navigate = useNavigate()
 
   return useMutation({
     mutationFn: async (data: TeamRequest) => {
@@ -115,6 +116,7 @@ export function useUpdateTeam(slug: string) {
 
       if (team) {
         queryClient.setQueryData(['team', team.slug], team)
+        navigate(`/teams/${team.slug}`)
       }
     },
   })

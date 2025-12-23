@@ -8,11 +8,11 @@ import type { BreadcrumbItem } from '../components/common/Breadcrumb'
 
 export function useBreadcrumb(): BreadcrumbItem[] {
   const location = useLocation()
-  const { teamSlug, rideSlug, postSlug, routeId } = useParams<{
+  const { teamSlug, rideSlug, postSlug, routeSlug } = useParams<{
     teamSlug?: string
     rideSlug?: string
     postSlug?: string
-    routeId?: string
+    routeSlug?: string
   }>()
   const { t: tCommon } = useTranslation('common')
   const { t: tRides } = useTranslation('rides')
@@ -28,7 +28,7 @@ export function useBreadcrumb(): BreadcrumbItem[] {
   const { data: post } = usePost(teamSlug, postSlug)
 
   // Fetch route data if we're on a route-related route
-  const { data: route } = useRoute(teamSlug, routeId)
+  const { data: route } = useRoute(teamSlug, routeSlug)
 
   const items: BreadcrumbItem[] = []
 
@@ -66,7 +66,7 @@ export function useBreadcrumb(): BreadcrumbItem[] {
     }
 
     // Team settings
-    if (location.pathname === `/teams/${teamSlug}/settings`) {
+    if (location.pathname === `/teams/${teamSlug}/edit`) {
       items.push({ label: tCommon('nav.settings') })
       return items
     }
@@ -134,11 +134,11 @@ export function useBreadcrumb(): BreadcrumbItem[] {
       }
 
       // Route detail or edit
-      if (routeId && route) {
-        items.push({ label: route.name, path: `/teams/${teamSlug}/routes/${routeId}` })
+      if (routeSlug && route) {
+        items.push({ label: route.name, path: `/teams/${teamSlug}/routes/${routeSlug}` })
 
         // Edit route
-        if (location.pathname === `/teams/${teamSlug}/routes/${routeId}/edit`) {
+        if (location.pathname === `/teams/${teamSlug}/routes/${routeSlug}/edit`) {
           items.push({ label: tCommon('buttons.edit') })
         }
       }

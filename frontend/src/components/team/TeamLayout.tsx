@@ -109,7 +109,7 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
 
             {isAdmin && (
               <Link
-                to={`/teams/${team.slug}/settings`}
+                to={`/teams/${team.slug}/edit`}
                 className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-xs text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
               >
                 <PencilIcon className="w-4 h-4 mr-2" />
