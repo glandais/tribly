@@ -92,7 +92,7 @@ class RideResourceTest {
         .then()
         .statusCode(201)
         .body("name", equalTo("Sunday Morning Ride"))
-        .body("dateTime", equalTo("2025-01-20T00:00:00"))
+        .body("dateTime", equalTo("2025-01-20T00:00:00Z"))
         .body("status", equalTo("DRAFT"))
         .body("groupCount", equalTo(1));
   }

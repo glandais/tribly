@@ -9,6 +9,7 @@ import {
 } from '@heroicons/react/24/outline'
 import { useRoutes } from '../../hooks/useRoute'
 import type { RouteDto } from '../../api/api'
+import { MarkdownDisplay } from '../../components/common/MarkdownDisplay'
 import { LoadingSpinner } from '../common/LoadingSpinner'
 
 interface RoutePickerModalProps {
@@ -143,7 +144,12 @@ export function RoutePickerModal({
                     />
                     <h3 className="font-medium text-gray-900 truncate">{route.name}</h3>
                     {route.description && (
-                      <p className="mt-1 text-sm text-gray-500 line-clamp-2">{route.description}</p>
+                      <MarkdownDisplay
+                        content={route.description}
+                        preview={true}
+                        maxLength={120}
+                        className="mt-1 text-sm text-gray-500"
+                      />
                     )}
                     <div className="flex gap-3 mt-2 text-xs text-gray-500">
                       <span className="flex items-center gap-1">

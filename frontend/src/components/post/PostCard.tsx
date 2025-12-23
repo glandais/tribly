@@ -30,7 +30,7 @@ export function PostCard({ post, teamSlug }: PostCardProps) {
         <div className="flex items-start justify-between mb-4">
           <div className="flex-1 min-w-0">
             <CardTitle>{post.name}</CardTitle>
-            {post.description && <CardDescription>{post.description}</CardDescription>}
+            {post.description && <CardDescription markdown={true} content={post.description} />}
           </div>
           <div className="ml-3 flex flex-col items-end gap-1">
             <Badge variant={statusVariants[post.status]}>{t(`status.${post.status}`)}</Badge>

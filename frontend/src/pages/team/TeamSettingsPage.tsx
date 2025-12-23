@@ -7,6 +7,7 @@ import { LoadingPage, LoadingSpinner } from '../../components/common/LoadingSpin
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import { ApiClientError } from '../../lib/apiClient'
 import { Visibility } from '../../api/api'
+import { MarkdownEditor } from '../../components/common/MarkdownEditor'
 
 export function TeamSettingsPage() {
   const { t } = useTranslation('teams')
@@ -148,16 +149,17 @@ export function TeamSettingsPage() {
         </div>
 
         <div>
-          <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
             {t('settings.form.description.label')}
           </label>
-          <textarea
-            id="description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            rows={4}
-            maxLength={2000}
-            className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+          <MarkdownEditor
+            initialValue={description}
+            onChange={setDescription}
+            placeholder={t('settings.form.description.label')}
+            minHeight="150px"
+            maxHeight="300px"
+            disabled={updateMutation.isPending}
+            ariaLabel={t('settings.form.description.label')}
           />
           <p className="mt-1 text-sm text-gray-500">
             {t('settings.form.description.charCount', { count: description.length, max: 2000 })}

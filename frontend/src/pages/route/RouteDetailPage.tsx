@@ -12,6 +12,7 @@ import { useRoute, useDeleteRoute } from '../../hooks/useRoute'
 import { useTeam } from '../../hooks/useTeam'
 import { RouteMapView } from '../../components/route/RouteMapView'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
+import { MarkdownDisplay } from '../../components/common/MarkdownDisplay'
 import 'leaflet/dist/leaflet.css'
 
 export function RouteDetailPage() {
@@ -100,7 +101,9 @@ export function RouteDetailPage() {
         <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">{route.name}</h1>
-            {route.description && <p className="mt-2 text-gray-600">{route.description}</p>}
+            {route.description && (
+              <MarkdownDisplay content={route.description} className="mt-2 text-gray-600" />
+            )}
           </div>
           {canEdit && (
             <div className="mt-4 sm:mt-0 flex gap-3">

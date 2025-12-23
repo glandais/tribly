@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { ReactNode } from 'react'
+import { MarkdownDisplay } from '../MarkdownDisplay'
 
 interface CardProps {
   to: string
@@ -53,10 +54,30 @@ export function CardTitle({ children, truncate = false, className = '' }: CardTi
 }
 
 interface CardDescriptionProps {
-  children: ReactNode
+  content?: string
+  markdown?: boolean
+  maxLength?: number
   className?: string
 }
 
-export function CardDescription({ children, className = '' }: CardDescriptionProps) {
-  return <p className={`text-sm text-gray-600 line-clamp-2 ${className}`}>{children}</p>
+export function CardDescription({
+  content,
+  markdown = false,
+  maxLength = 150,
+  className = '',
+}: CardDescriptionProps) {
+  // Markdown preview mode
+  if (markdown && content) {
+    return (
+      <MarkdownDisplay
+        content={content}
+        preview={true}
+        maxLength={maxLength}
+        className={`text-sm text-gray-600 ${className}`}
+      />
+    )
+  }
+
+  // Regular text mode (backwards compatible)
+  return <p className={`text-sm text-gray-600 line-clamp-2 ${className}`}>{content}</p>
 }

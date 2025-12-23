@@ -7,6 +7,7 @@ import { usePost, useUpdatePost, useDeletePost } from '../../hooks/usePost'
 import { Status } from '../../hooks/usePost'
 import { LoadingPage, LoadingSpinner } from '../../components/common/LoadingSpinner'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
+import { MarkdownDisplay } from '../../components/common/MarkdownDisplay'
 import { useFormattedDate } from '../../utils/dateFormat'
 
 const statusColors: Record<Status, string> = {
@@ -96,8 +97,8 @@ export function PostDetailPage() {
               </span>
             </div>
             {post.description && (
-              <div className="mt-4 prose prose-sm max-w-none">
-                <p className="text-gray-600 whitespace-pre-wrap">{post.description}</p>
+              <div className="mt-4">
+                <MarkdownDisplay content={post.description} className="text-gray-600" />
               </div>
             )}
             {post.status === Status.Draft && post.publishAt && (

@@ -32,7 +32,7 @@ export function RideCard({ ride, teamSlug }: RideCardProps) {
         <div className="flex items-start justify-between mb-4">
           <div className="flex-1 min-w-0">
             <CardTitle>{ride.name}</CardTitle>
-            {ride.description && <CardDescription>{ride.description}</CardDescription>}
+            {ride.description && <CardDescription markdown={true} content={ride.description} />}
           </div>
           <div className="ml-3 flex flex-col items-end gap-1">
             <Badge variant={statusVariants[ride.status]}>{t(`status.${ride.status}`)}</Badge>

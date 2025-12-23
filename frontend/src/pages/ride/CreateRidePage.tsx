@@ -11,6 +11,7 @@ import { CreateRouteModal } from '../../components/route/CreateRouteModal'
 import { RoutePreview } from '../../components/route/RoutePreview'
 import type { RouteDto } from '../../api/api'
 import { toDateTimeLocalValue, fromDateTimeLocalValue } from '../../utils/dateFormat'
+import { MarkdownEditor } from '../../components/common/MarkdownEditor'
 
 export function CreateRidePage() {
   const { t } = useTranslation('rides')
@@ -149,17 +150,17 @@ export function CreateRidePage() {
 
         {/* Description */}
         <div>
-          <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
             {t('create.form.description.label')}
           </label>
-          <textarea
-            id="description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            rows={3}
-            maxLength={5000}
-            className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+          <MarkdownEditor
+            initialValue={description}
+            onChange={setDescription}
             placeholder={t('create.form.description.placeholder')}
+            minHeight="150px"
+            maxHeight="300px"
+            disabled={createMutation.isPending}
+            ariaLabel={t('create.form.description.label')}
           />
         </div>
 

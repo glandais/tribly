@@ -130,16 +130,16 @@ export function RideMapView({
       const routes: RouteData[] = []
 
       // Filter groups that have routes
-      const groupsWithRoutes = groups.filter((group) => group.routeId)
+      const groupsWithRoutes = groups.filter((group) => group.routeSlug)
 
       for (let i = 0; i < groupsWithRoutes.length; i++) {
         const group = groupsWithRoutes[i]
-        if (!group.routeId) continue
+        if (!group.routeSlug) continue
 
         try {
           // Fetch route details from API using the generated API client
           const routeDetail = await unwrapResponse(
-            routesApi.getRoute(group.routeId, teamSlug)
+            routesApi.getRoute(group.routeSlug, teamSlug)
           )
           if (routeDetail.track && routeDetail.track.trackPoints) {
             routes.push({

@@ -24,7 +24,7 @@ export function TeamCard({ team, showRole = false }: TeamCardProps) {
     <Card to={`/teams/${team.slug}`}>
       <CardContent>
         <CardTitle>{team.name}</CardTitle>
-        {team.description && <CardDescription>{team.description}</CardDescription>}
+        {team.description && <CardDescription markdown={true} content={team.description} />}
 
         <div className="mt-4 flex items-center justify-between">
           <Stat icon={membersIcon}>{t('memberCount', { count: team.memberCount })}</Stat>

@@ -17,6 +17,7 @@ import { RideGroupCard } from '../../components/ride/RideGroupCard'
 import { RideMapView } from '../../components/ride/RideMapView'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import { useFormattedDate } from '../../utils/dateFormat'
+import { MarkdownDisplay } from '../../components/common/MarkdownDisplay'
 
 const statusColors: Record<Status, string> = {
   [Status.Draft]: 'bg-gray-100 text-gray-800',
@@ -132,7 +133,11 @@ export function RideDetailPage() {
                 {t(`status.${ride.status}`)}
               </span>
             </div>
-            {ride.description && <p className="mt-2 text-gray-600">{ride.description}</p>}
+            {ride.description && (
+              <div className="mt-2">
+                <MarkdownDisplay content={ride.description} className="text-gray-600" />
+              </div>
+            )}
             {ride.status === Status.Draft && ride.publishAt && (
               <div className="mt-2 text-sm text-amber-600 flex items-center">
                 <ClockIcon className="w-4 h-4 mr-1" />

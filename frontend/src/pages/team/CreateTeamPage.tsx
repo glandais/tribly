@@ -6,6 +6,7 @@ import { useCreateTeam } from '../../hooks/useTeam'
 import { LoadingSpinner } from '../../components/common/LoadingSpinner'
 import { ApiClientError } from '../../lib/apiClient'
 import { Visibility } from '../../api/api'
+import { MarkdownEditor } from '../../components/common/MarkdownEditor'
 
 export function CreateTeamPage() {
   const { t } = useTranslation('teams')
@@ -83,17 +84,17 @@ export function CreateTeamPage() {
         </div>
 
         <div>
-          <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
             {t('create.form.description.label')}
           </label>
-          <textarea
-            id="description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            rows={4}
-            maxLength={2000}
-            className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+          <MarkdownEditor
+            initialValue={description}
+            onChange={setDescription}
             placeholder={t('create.form.description.placeholder')}
+            minHeight="150px"
+            maxHeight="300px"
+            disabled={createMutation.isPending}
+            ariaLabel={t('create.form.description.label')}
           />
           <p className="mt-1 text-sm text-gray-500">
             {t('create.form.description.charCount', { count: description.length, max: 2000 })}

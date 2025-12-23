@@ -7,6 +7,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { ConfirmDialog } from '../common/ConfirmDialog'
 import { VisibilityBadge } from '../common/card/VisibilityBadge'
 import type { TeamDetailDto } from '../../hooks/useTeam'
+import { MarkdownDisplay } from '../../components/common/MarkdownDisplay'
 
 interface TeamLayoutProps {
   team: TeamDetailDto
@@ -64,7 +65,9 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
               <h1 className="text-3xl font-bold text-gray-900">{team.name}</h1>
               {team.visibility === 'TEAM' && <VisibilityBadge visibility={team.visibility} />}
             </div>
-            {team.description && <p className="mt-2 text-gray-600 max-w-2xl">{team.description}</p>}
+            {team.description && (
+              <MarkdownDisplay content={team.description} className="mt-2 text-gray-600 max-w-2xl" />
+            )}
             <div className="mt-3 flex items-center gap-4 text-sm text-gray-500">
               <span className="flex items-center">
                 <UsersIcon className="w-4 h-4 mr-1" />

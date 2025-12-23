@@ -5,6 +5,7 @@ import { ChevronLeftIcon } from '@heroicons/react/24/outline'
 import { SurfaceType, useRoute, useUpdateRoute } from '../../hooks/useRoute'
 import { useTeam } from '../../hooks/useTeam'
 import { Visibility } from '../../api/api'
+import { MarkdownEditor } from '../../components/common/MarkdownEditor'
 
 export function EditRoutePage() {
   const { teamSlug, routeSlug } = useParams<{ teamSlug: string; routeSlug: string }>()
@@ -123,16 +124,17 @@ export function EditRoutePage() {
 
         {/* Description */}
         <div>
-          <label htmlFor="description" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
             {t('edit.form.description')}
           </label>
-          <textarea
-            id="description"
-            name="description"
-            rows={4}
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-xs focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+          <MarkdownEditor
+            initialValue={description}
+            onChange={setDescription}
+            placeholder={t('edit.form.description')}
+            minHeight="150px"
+            maxHeight="300px"
+            disabled={updateRoute.isPending}
+            ariaLabel={t('edit.form.description')}
           />
         </div>
 

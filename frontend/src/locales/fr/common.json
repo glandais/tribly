@@ -65,6 +65,26 @@
   "memberCount_one": "{{count}} membre",
   "memberCount_other": "{{count}} membres",
   "unknown": "Inconnu",
-  "placeholder": {
+  "placeholder": {},
+  "editor": {
+    "placeholder": "Commencez à écrire... Utilisez le markdown pour le formatage",
+    "ariaLabel": "Éditeur de texte enrichi",
+    "bold": "Gras",
+    "italic": "Italique",
+    "code": "Code",
+    "heading1": "Titre 1",
+    "heading2": "Titre 2",
+    "heading3": "Titre 3",
+    "bulletList": "Liste à puces",
+    "numberedList": "Liste numérotée",
+    "link": "Lien",
+    "linkPrompt": "Entrez l'URL du lien",
+    "markdownSupported": "Markdown supporté",
+    "shortcuts": {
+      "bold": "gras",
+      "italic": "italique",
+      "heading": "titre",
+      "hint": "Raccourcis markdown"
+    }
   }
 }

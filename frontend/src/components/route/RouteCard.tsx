@@ -26,7 +26,7 @@ export function RouteCard({ route, teamSlug }: RouteCardProps) {
 
       <CardContent>
         <CardTitle>{route.name}</CardTitle>
-        {route.description && <CardDescription>{route.description}</CardDescription>}
+        {route.description && <CardDescription markdown={true} content={route.description} />}
 
         <StatGroup className="mb-3">
           <Stat icon={distanceIcon}>{(route.distance / 1000).toFixed(1)} km</Stat>
