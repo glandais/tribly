@@ -8,9 +8,9 @@ import {
   ArrowDownTrayIcon,
   ChevronLeftIcon,
 } from '@heroicons/react/24/outline'
-import { MapContainer, TileLayer, Polyline } from 'react-leaflet'
 import { useRoute, useDeleteRoute } from '../../hooks/useRoute'
 import { useTeam } from '../../hooks/useTeam'
+import { RouteMapView } from '../../components/route/RouteMapView'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import 'leaflet/dist/leaflet.css'
 
@@ -86,21 +86,6 @@ export function RouteDetailPage() {
     )
   }
 
-  const trackPoints = route.track.trackPoints.map((p) => [p.lat, p.lng] as [number, number])
-  const bounds =
-    trackPoints.length > 0
-      ? (trackPoints.reduce(
-          (acc, [lat, lng]) => [
-            [Math.min(acc[0][0], lat), Math.min(acc[0][1], lng)],
-            [Math.max(acc[1][0], lat), Math.max(acc[1][1], lng)],
-          ],
-          [
-            [trackPoints[0][0], trackPoints[0][1]],
-            [trackPoints[0][0], trackPoints[0][1]],
-          ]
-        ) as [[number, number], [number, number]])
-      : undefined
-
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
@@ -147,22 +132,9 @@ export function RouteDetailPage() {
         isLoading={deleteRoute.isPending}
       />
 
-      {/* Map */}
-      <div className="mb-8 rounded-lg overflow-hidden shadow-lg">
-        <MapContainer
-          bounds={bounds}
-          style={{ height: '500px', width: '100%' }}
-          scrollWheelZoom={false}
-        >
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
-          <Polyline
-            positions={trackPoints}
-            pathOptions={{ color: '#4f46e5', weight: 4, opacity: 0.8 }}
-          />
-        </MapContainer>
+      {/* Interactive Map with Elevation Chart */}
+      <div className="mb-8">
+        <RouteMapView route={route} />
       </div>
 
       {/* Stats Grid */}
