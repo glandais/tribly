@@ -192,9 +192,9 @@ function App() {
                 </AuthenticatedRoute>
               }
             />
-            <Route path="teams/:teamSlug/routes/:routeId" element={<RouteDetailPage />} />
+            <Route path="teams/:teamSlug/routes/:routeSlug" element={<RouteDetailPage />} />
             <Route
-              path="teams/:teamSlug/routes/:routeId/edit"
+              path="teams/:teamSlug/routes/:routeSlug/edit"
               element={
                 <AuthenticatedRoute>
                   <EditRoutePage />

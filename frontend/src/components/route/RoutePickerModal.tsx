@@ -16,7 +16,7 @@ interface RoutePickerModalProps {
   onClose: () => void
   onSelect: (route: RouteDto | null) => void
   teamSlug: string
-  selectedRouteId?: string | null
+  selectedRouteSlug?: string | null
   title?: string
   onCreateNew?: () => void
 }
@@ -26,7 +26,7 @@ export function RoutePickerModal({
   onClose,
   onSelect,
   teamSlug,
-  selectedRouteId,
+  selectedRouteSlug,
   title,
   onCreateNew,
 }: RoutePickerModalProps) {
@@ -112,7 +112,7 @@ export function RoutePickerModal({
             <div className="text-center py-12">
               <MapIcon className="mx-auto h-12 w-12 text-gray-400" />
               <p className="mt-2 text-gray-500">{t('picker.noResults')}</p>
-              {selectedRouteId && (
+              {selectedRouteSlug && (
                 <button
                   type="button"
                   onClick={() => onSelect(null)}
@@ -131,7 +131,7 @@ export function RoutePickerModal({
                     type="button"
                     onClick={() => onSelect(route)}
                     className={`text-left p-4 border rounded-lg transition-all ${
-                      route.id === selectedRouteId
+                      route.slug === selectedRouteSlug
                         ? 'border-indigo-500 bg-indigo-50 ring-2 ring-indigo-500'
                         : 'border-gray-200 hover:border-indigo-300 hover:bg-gray-50'
                     }`}
@@ -189,7 +189,7 @@ export function RoutePickerModal({
 
         {/* Footer */}
         <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200">
-          {selectedRouteId && (
+          {selectedRouteSlug && (
             <button
               type="button"
               onClick={() => onSelect(null)}

@@ -41,14 +41,14 @@ export function useRoutes(teamSlug: string | undefined, page = 0, size = 20, sea
   })
 }
 
-export function useRoute(teamSlug: string | undefined, routeId: string | undefined) {
+export function useRoute(teamSlug: string | undefined, routeSlug: string | undefined) {
   return useQuery({
-    queryKey: ['route', teamSlug, routeId],
+    queryKey: ['route', teamSlug, routeSlug],
     queryFn: async () => {
-      if (!teamSlug || !routeId) throw new Error('Team slug and route ID are required')
-      return await unwrapResponse(routesApi.getRoute(routeId, teamSlug))
+      if (!teamSlug || !routeSlug) throw new Error('Team slug and route slug are required')
+      return await unwrapResponse(routesApi.getRoute(routeSlug, teamSlug))
     },
-    enabled: !!teamSlug && !!routeId,
+    enabled: !!teamSlug && !!routeSlug,
     staleTime: 1000 * 60 * 2,
   })
 }
@@ -94,15 +94,15 @@ export function useCreateRoute(teamSlug: string) {
   })
 }
 
-export function useUpdateRoute(teamSlug: string, routeId: string) {
+export function useUpdateRoute(teamSlug: string, routeSlug: string) {
   const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: async (data: RouteRequest) => {
-      return await unwrapResponse(routesApi.updateRoute(routeId, teamSlug, data))
+      return await unwrapResponse(routesApi.updateRoute(routeSlug, teamSlug, data))
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['route', teamSlug, routeId] })
+      queryClient.invalidateQueries({ queryKey: ['route', teamSlug, routeSlug] })
       queryClient.invalidateQueries({ queryKey: ['routes', teamSlug] })
 
       // Show success notification
@@ -121,8 +121,8 @@ export function useDeleteRoute(teamSlug: string) {
   const navigate = useNavigate()
 
   return useMutation({
-    mutationFn: async (routeId: string) => {
-      await unwrapResponse(routesApi.deleteRoute(routeId, teamSlug))
+    mutationFn: async (routeSlug: string) => {
+      await unwrapResponse(routesApi.deleteRoute(routeSlug, teamSlug))
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['routes', teamSlug] })

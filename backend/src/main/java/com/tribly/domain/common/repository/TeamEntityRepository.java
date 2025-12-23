@@ -1,6 +1,7 @@
 package com.tribly.domain.common.repository;
 
 import com.tribly.domain.common.TeamEntity;
+import java.util.Optional;
 
 public abstract class TeamEntityRepository<T extends TeamEntity> implements BaseRepository<T> {
 
@@ -9,5 +10,14 @@ public abstract class TeamEntityRepository<T extends TeamEntity> implements Base
   public boolean existsByTeamAndSlug(Long teamId, String slug) {
     return count("team.id = ?1 and slug = ?2 and TYPE(this) = ?3", teamId, slug, getEntityClass())
         > 0;
+  }
+
+  public Optional<T> findByTeamAndSlug(Long teamId, String slug) {
+    return find(
+            "team.id = ?1 and slug = ?2 and deleted = false and TYPE(this) = ?3",
+            teamId,
+            slug,
+            getEntityClass())
+        .firstResultOptional();
   }
 }

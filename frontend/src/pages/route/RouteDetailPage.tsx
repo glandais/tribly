@@ -15,14 +15,14 @@ import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import 'leaflet/dist/leaflet.css'
 
 export function RouteDetailPage() {
-  const { teamSlug, routeId } = useParams<{ teamSlug: string; routeId: string }>()
+  const { teamSlug, routeSlug } = useParams<{ teamSlug: string; routeSlug: string }>()
   const { t } = useTranslation('routes')
   const { t: tCommon } = useTranslation('common')
   const { t: tErrors } = useTranslation('errors')
   const navigate = useNavigate()
 
   const { data: team } = useTeam(teamSlug)
-  const { data: route, isLoading: routeLoading } = useRoute(teamSlug, routeId)
+  const { data: route, isLoading: routeLoading } = useRoute(teamSlug, routeSlug)
   const deleteRoute = useDeleteRoute(teamSlug!)
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
@@ -30,8 +30,8 @@ export function RouteDetailPage() {
   const canEdit = team && (team.role === 'ADMIN' || team.role === 'ORGANIZER')
 
   const handleDelete = async () => {
-    if (routeId) {
-      await deleteRoute.mutateAsync(routeId)
+    if (routeSlug) {
+      await deleteRoute.mutateAsync(routeSlug)
       navigate(`/teams/${teamSlug}/routes`)
     }
   }
@@ -105,7 +105,7 @@ export function RouteDetailPage() {
           {canEdit && (
             <div className="mt-4 sm:mt-0 flex gap-3">
               <Link
-                to={`/teams/${teamSlug}/routes/${routeId}/edit`}
+                to={`/teams/${teamSlug}/routes/${routeSlug}/edit`}
                 className="px-4 py-2 border border-gray-300 rounded-md shadow-xs text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
               >
                 {tCommon('buttons.edit')}
@@ -260,14 +260,14 @@ export function RouteDetailPage() {
         <h2 className="text-xl font-bold text-gray-900 mb-4">{t('detail.download.title')}</h2>
         <div className="flex flex-wrap gap-3">
           <a
-            href={`/api/download/${route.visibility.toLowerCase()}/teams/${teamSlug}/routes/${routeId}/gpx`}
+            href={`/api/download/${route.visibility.toLowerCase()}/teams/${teamSlug}/routes/${routeSlug}/gpx`}
             className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-xs text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
           >
             <ArrowDownTrayIcon className="w-5 h-5 mr-2 -ml-1" />
             {t('detail.download.gpx')}
           </a>
           <a
-            href={`/api/download/${route.visibility.toLowerCase()}/teams/${teamSlug}/routes/${routeId}/fit`}
+            href={`/api/download/${route.visibility.toLowerCase()}/teams/${teamSlug}/routes/${routeSlug}/fit`}
             className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-xs text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
           >
             <ArrowDownTrayIcon className="w-5 h-5 mr-2 -ml-1" />

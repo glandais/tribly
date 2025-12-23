@@ -3,13 +3,13 @@ import { useRoute } from '../../hooks/useRoute'
 import { LoadingSpinner } from '../common/LoadingSpinner'
 
 interface RoutePreviewCompactProps {
-  routeId: string
+  routeSlug: string
   teamSlug: string
 }
 
-export function RoutePreviewCompact({ routeId, teamSlug }: RoutePreviewCompactProps) {
+export function RoutePreviewCompact({ routeSlug, teamSlug }: RoutePreviewCompactProps) {
   const { t } = useTranslation('routes')
-  const { data: route, isLoading } = useRoute(teamSlug, routeId)
+  const { data: route, isLoading } = useRoute(teamSlug, routeSlug)
 
   if (isLoading)
     return (

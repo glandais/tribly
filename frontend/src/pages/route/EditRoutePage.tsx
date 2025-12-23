@@ -7,15 +7,15 @@ import { useTeam } from '../../hooks/useTeam'
 import { Visibility } from '../../api/api'
 
 export function EditRoutePage() {
-  const { teamSlug, routeId } = useParams<{ teamSlug: string; routeId: string }>()
+  const { teamSlug, routeSlug } = useParams<{ teamSlug: string; routeSlug: string }>()
   const { t } = useTranslation('routes')
   const { t: tCommon } = useTranslation('common')
   const { t: tErrors } = useTranslation('errors')
   const navigate = useNavigate()
 
   const { data: team } = useTeam(teamSlug)
-  const { data: route, isLoading } = useRoute(teamSlug, routeId)
-  const updateRoute = useUpdateRoute(teamSlug!, routeId!)
+  const { data: route, isLoading } = useRoute(teamSlug, routeSlug)
+  const updateRoute = useUpdateRoute(teamSlug!, routeSlug!)
 
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
@@ -45,7 +45,7 @@ export function EditRoutePage() {
         surfaceType,
         visibility,
       })
-      navigate(`/teams/${teamSlug}/routes/${routeId}`)
+      navigate(`/teams/${teamSlug}/routes/${routeSlug}`)
     } catch (err) {
       setError(err instanceof Error ? err.message : tErrors('api.unknown'))
     }
@@ -87,7 +87,7 @@ export function EditRoutePage() {
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
         <Link
-          to={`/teams/${teamSlug}/routes/${routeId}`}
+          to={`/teams/${teamSlug}/routes/${routeSlug}`}
           className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700"
         >
           <ChevronLeftIcon className="w-4 h-4 mr-1" />
@@ -179,7 +179,7 @@ export function EditRoutePage() {
         {/* Submit Buttons */}
         <div className="flex justify-end gap-3">
           <Link
-            to={`/teams/${teamSlug}/routes/${routeId}`}
+            to={`/teams/${teamSlug}/routes/${routeSlug}`}
             className="px-4 py-2 border border-gray-300 rounded-md shadow-xs text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
             {tCommon('buttons.cancel')}

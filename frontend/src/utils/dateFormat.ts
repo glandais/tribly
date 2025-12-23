@@ -58,7 +58,7 @@ export function formatDateTime(
 
   const locale = getLocale(language)
   // For French, use 24-hour format; for English, use 12-hour format
-  const pattern = language === 'fr' ? 'PPP \'à\' HH:mm' : 'PPP \'at\' p'
+  const pattern = language === 'fr' ? "PPP 'à' HH:mm" : "PPP 'at' p"
   return format(dateObj, pattern, { locale })
 }
 

@@ -94,7 +94,7 @@ export function TeamMemberList({
                     </p>
                     <p className="text-xs text-gray-400">
                       {t('detail.members.joined', {
-                        date: formatDate(member.joinedAt) || tCommon('unknown')
+                        date: formatDate(member.joinedAt) || tCommon('unknown'),
                       })}
                     </p>
                   </div>

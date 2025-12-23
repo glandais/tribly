@@ -169,7 +169,7 @@ public class RideService extends TeamEntityService {
         slugService.generateSlug(
             request.name(), s -> rideRepository.existsByTeamAndSlug(team.getId(), s));
 
-    Route route = getRoute(request.getRouteIdLong(), team);
+    Route route = getRoute(request.routeSlug(), team);
 
     Ride ride = new Ride(team, creator, request.name(), slug, request.dateTime());
     ride.setDescription(request.description());
@@ -200,7 +200,7 @@ public class RideService extends TeamEntityService {
   private void setProperties(Ride ride, RideGroup group, GroupRequest groupRequest, int sortOrder) {
     group.setRide(ride);
     group.setName(groupRequest.name());
-    Route groupRoute = getRoute(groupRequest.getRouteIdLong(), ride.getTeam());
+    Route groupRoute = getRoute(groupRequest.routeSlug(), ride.getTeam());
     group.setDescription(groupRequest.description());
     group.setAverageSpeed(groupRequest.averageSpeed());
     group.setMaxParticipants(groupRequest.maxParticipants());
@@ -208,13 +208,13 @@ public class RideService extends TeamEntityService {
     group.setRoute(groupRoute);
   }
 
-  private @Nullable Route getRoute(@Nullable Long routeId, Team team) {
+  private @Nullable Route getRoute(@Nullable String routeSlug, Team team) {
     Route route = null;
-    if (routeId != null) {
+    if (routeSlug != null) {
       route =
           routeRepository
-              .findByIdOptional(routeId)
-              .orElseThrow(() -> BusinessException.notFound("Route", routeId));
+              .findByTeamAndSlug(team.getId(), routeSlug)
+              .orElseThrow(() -> BusinessException.notFound("Route not found"));
       if (!route.getTeam().getId().equals(team.getId())) {
         throw BusinessException.businessRule(
             "Route team is not ride team", "ROUTE_TEAM_RIDE_TEAM_DIFFERENT");
@@ -245,7 +245,7 @@ public class RideService extends TeamEntityService {
     ride.setDescription(request.description());
     ride.setDateTime(request.dateTime());
     ride.setStatus(request.status());
-    Route route = getRoute(request.getRouteIdLong(), ride.getTeam());
+    Route route = getRoute(request.routeSlug(), ride.getTeam());
     ride.setRoute(route);
     // publishAt can be explicitly set to null to remove scheduled publishing
     ride.setPublishAt(request.publishAt());

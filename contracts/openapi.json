@@ -160,9 +160,9 @@
             "format" : "int32",
             "description" : "Maximum participants"
           },
-          "routeId" : {
+          "routeSlug" : {
             "type" : "string",
-            "description" : "Route ID (TSID) for this group"
+            "description" : "Route slug for this group"
           }
         },
         "required" : [ "name" ]
@@ -438,9 +438,9 @@
             "type" : "string",
             "$ref" : "#/components/schemas/Visibility"
           },
-          "routeId" : {
+          "routeSlug" : {
             "type" : "string",
-            "description" : "Route id"
+            "description" : "Route slug"
           },
           "participantCount" : {
             "type" : "integer",
@@ -488,9 +488,9 @@
             "type" : "string",
             "description" : "Group description"
           },
-          "routeId" : {
+          "routeSlug" : {
             "type" : "string",
-            "description" : "Route id"
+            "description" : "Route slug"
           },
           "averageSpeed" : {
             "type" : "integer",
@@ -618,9 +618,9 @@
             "type" : "string",
             "$ref" : "#/components/schemas/Visibility"
           },
-          "routeId" : {
+          "routeSlug" : {
             "type" : "string",
-            "description" : "Route ID (TSID)"
+            "description" : "Route slug"
           },
           "publishAt" : {
             "description" : "Publication timestamp (for scheduled publishing)",
@@ -1078,7 +1078,7 @@
     "securitySchemes" : {
       "SecurityScheme" : {
         "type" : "openIdConnect",
-        "openIdConnectUrl" : "http://localhost:8180/realms/quarkus/.well-known/openid-configuration",
+        "openIdConnectUrl" : "http://localhost:8180/realms/tribly/.well-known/openid-configuration",
         "description" : "Authentication"
       }
     }

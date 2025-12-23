@@ -154,9 +154,9 @@ export interface GroupRequest {
    */
   maxParticipants?: number
   /**
-   * Route ID (TSID) for this group
+   * Route slug for this group
    */
-  routeId?: string
+  routeSlug?: string
 }
 /**
  * Keycloak configuration
@@ -353,9 +353,9 @@ export interface RideDto {
    */
   visibility: Visibility
   /**
-   * Route id
+   * Route slug
    */
-  routeId?: string
+  routeSlug?: string
   /**
    * Number of participants
    */
@@ -389,9 +389,9 @@ export interface RideGroupDto {
    */
   description?: string
   /**
-   * Route id
+   * Route slug
    */
-  routeId?: string
+  routeSlug?: string
   /**
    * Average speed in km/h
    */
@@ -479,9 +479,9 @@ export interface RideRequest {
    */
   visibility: Visibility
   /**
-   * Route ID (TSID)
+   * Route slug
    */
-  routeId?: string
+  routeSlug?: string
   publishAt?: string
   /**
    * Ride groups to create

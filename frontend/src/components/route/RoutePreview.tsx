@@ -4,13 +4,13 @@ import { useRoute } from '../../hooks/useRoute'
 import { LoadingSpinner } from '../common/LoadingSpinner'
 
 interface RoutePreviewProps {
-  routeId: string
+  routeSlug: string
   teamSlug: string
 }
 
-export function RoutePreview({ routeId, teamSlug }: RoutePreviewProps) {
+export function RoutePreview({ routeSlug, teamSlug }: RoutePreviewProps) {
   const { t } = useTranslation('routes')
-  const { data: route, isLoading } = useRoute(teamSlug, routeId)
+  const { data: route, isLoading } = useRoute(teamSlug, routeSlug)
 
   if (isLoading)
     return (

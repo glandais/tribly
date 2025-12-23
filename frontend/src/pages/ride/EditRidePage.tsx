@@ -19,7 +19,7 @@ interface EditableGroup {
   description?: string
   averageSpeed?: number
   maxParticipants?: number
-  routeId?: string
+  routeSlug?: string
   isNew?: boolean
   isDeleted?: boolean
 }
@@ -38,7 +38,7 @@ export function EditRidePage() {
   const [visibility, setVisibility] = useState<Visibility>(Visibility.Team)
   const [status, setStatus] = useState<Status>(Status.Draft)
   const [publishAt, setPublishAt] = useState('')
-  const [rideRouteId, setRideRouteId] = useState<string | null>(null)
+  const [rideRouteSlug, setRideRouteSlug] = useState<string | null>(null)
   const [groups, setGroups] = useState<EditableGroup[]>([])
   const [initialized, setInitialized] = useState(false)
   const [showRoutePickerModal, setShowRoutePickerModal] = useState(false)
@@ -59,7 +59,7 @@ export function EditRidePage() {
       setVisibility(ride.visibility)
       setStatus(ride.status)
       setPublishAt(ride.publishAt ? toDateTimeLocalValue(ride.publishAt) : '')
-      setRideRouteId(ride.routeId || null)
+      setRideRouteSlug(ride.routeSlug || null)
       setGroups(
         ride.groups?.map((g) => ({
           id: g.id,
@@ -67,7 +67,7 @@ export function EditRidePage() {
           description: g.description || undefined,
           averageSpeed: g.averageSpeed || undefined,
           maxParticipants: g.maxParticipants || undefined,
-          routeId: g.routeId || undefined,
+          routeSlug: g.routeSlug || undefined,
         })) || []
       )
       setInitialized(true)
@@ -102,7 +102,7 @@ export function EditRidePage() {
       dateTime: fromDateTimeLocalValue(dateTime).toISOString(),
       visibility,
       publishAt: publishAt ? fromDateTimeLocalValue(publishAt).toISOString() : undefined,
-      routeId: rideRouteId || undefined,
+      routeSlug: rideRouteSlug || undefined,
       groups: filteredGroups,
     })
 
@@ -328,12 +328,12 @@ export function EditRidePage() {
                 }}
                 className="text-sm text-indigo-600 hover:text-indigo-700"
               >
-                {rideRouteId ? t('create.form.route.change') : t('create.form.route.select')}
+                {rideRouteSlug ? t('create.form.route.change') : t('create.form.route.select')}
               </button>
-              {rideRouteId && (
+              {rideRouteSlug && (
                 <button
                   type="button"
-                  onClick={() => setRideRouteId(null)}
+                  onClick={() => setRideRouteSlug(null)}
                   className="text-sm text-red-600 hover:text-red-700"
                 >
                   {t('create.form.route.clear')}
@@ -342,8 +342,8 @@ export function EditRidePage() {
             </div>
           </div>
 
-          {rideRouteId ? (
-            <RoutePreview routeId={rideRouteId} teamSlug={teamSlug!} />
+          {rideRouteSlug ? (
+            <RoutePreview routeSlug={rideRouteSlug} teamSlug={teamSlug!} />
           ) : (
             <p className="text-sm text-gray-500 italic">{t('create.form.route.none')}</p>
           )}
@@ -479,14 +479,14 @@ export function EditRidePage() {
                           }}
                           className="text-xs text-indigo-600 hover:text-indigo-700"
                         >
-                          {group.routeId
+                          {group.routeSlug
                             ? t('create.form.route.change')
                             : t('create.form.route.select')}
                         </button>
-                        {group.routeId && (
+                        {group.routeSlug && (
                           <button
                             type="button"
-                            onClick={() => handleUpdateGroup(index, { routeId: undefined })}
+                            onClick={() => handleUpdateGroup(index, { routeSlug: undefined })}
                             className="text-xs text-red-600 hover:text-red-700"
                           >
                             {t('create.form.route.clear')}
@@ -494,8 +494,8 @@ export function EditRidePage() {
                         )}
                       </div>
                     </div>
-                    {group.routeId ? (
-                      <RoutePreviewCompact routeId={group.routeId} teamSlug={teamSlug!} />
+                    {group.routeSlug ? (
+                      <RoutePreviewCompact routeSlug={group.routeSlug} teamSlug={teamSlug!} />
                     ) : (
                       <p className="text-xs text-gray-400 italic">
                         {t('create.form.groups.route.none')}
@@ -551,19 +551,19 @@ export function EditRidePage() {
         }}
         onSelect={(route: RouteDto | null) => {
           if (pickerTarget === 'ride') {
-            setRideRouteId(route ? route.id : null)
+            setRideRouteSlug(route ? route.slug : null)
           } else if (pickerTarget && typeof pickerTarget === 'object') {
-            handleUpdateGroup(pickerTarget.index, { routeId: route ? route.id : undefined })
+            handleUpdateGroup(pickerTarget.index, { routeSlug: route ? route.slug : undefined })
           }
           setShowRoutePickerModal(false)
           setPickerTarget(null)
         }}
         teamSlug={teamSlug!}
-        selectedRouteId={
+        selectedRouteSlug={
           pickerTarget === 'ride'
-            ? rideRouteId
+            ? rideRouteSlug
             : pickerTarget && typeof pickerTarget === 'object'
-              ? groups[pickerTarget.index]?.routeId
+              ? groups[pickerTarget.index]?.routeSlug
               : null
         }
         title={
@@ -586,9 +586,9 @@ export function EditRidePage() {
         }}
         onRouteCreated={(route: RouteDto) => {
           if (pickerTarget === 'ride') {
-            setRideRouteId(route.id)
+            setRideRouteSlug(route.slug)
           } else if (pickerTarget && typeof pickerTarget === 'object') {
-            handleUpdateGroup(pickerTarget.index, { routeId: route.id })
+            handleUpdateGroup(pickerTarget.index, { routeSlug: route.slug })
           }
           setShowCreateRouteModal(false)
           setPickerTarget(null)

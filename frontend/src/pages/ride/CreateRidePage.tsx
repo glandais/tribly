@@ -33,7 +33,7 @@ export function CreateRidePage() {
   const [dateTime, setDateTime] = useState(getNextSunday())
   const [visibility, setVisibility] = useState<Visibility>(Visibility.Team)
   const [publishAt, setPublishAt] = useState('')
-  const [rideRouteId, setRideRouteId] = useState<string | null>(null)
+  const [rideRouteSlug, setRideRouteSlug] = useState<string | null>(null)
   const [groups, setGroups] = useState<GroupRequest[]>([
     {
       name: t('create.form.groups.defaultName'),
@@ -70,7 +70,7 @@ export function CreateRidePage() {
       status: 'DRAFT',
       visibility,
       publishAt: publishAt ? fromDateTimeLocalValue(publishAt).toISOString() : undefined,
-      routeId: rideRouteId || undefined,
+      routeSlug: rideRouteSlug || undefined,
       groups: filteredGroups,
     })
   }
@@ -239,12 +239,12 @@ export function CreateRidePage() {
                 onClick={() => setShowRoutePickerModal(true)}
                 className="text-sm text-indigo-600 hover:text-indigo-700"
               >
-                {rideRouteId ? t('create.form.route.change') : t('create.form.route.select')}
+                {rideRouteSlug ? t('create.form.route.change') : t('create.form.route.select')}
               </button>
-              {rideRouteId && (
+              {rideRouteSlug && (
                 <button
                   type="button"
-                  onClick={() => setRideRouteId(null)}
+                  onClick={() => setRideRouteSlug(null)}
                   className="text-sm text-red-600 hover:text-red-700"
                 >
                   {t('create.form.route.clear')}
@@ -253,8 +253,8 @@ export function CreateRidePage() {
             </div>
           </div>
 
-          {rideRouteId ? (
-            <RoutePreview routeId={rideRouteId} teamSlug={teamSlug!} />
+          {rideRouteSlug ? (
+            <RoutePreview routeSlug={rideRouteSlug} teamSlug={teamSlug!} />
           ) : (
             <p className="text-sm text-gray-500 italic">{t('create.form.route.none')}</p>
           )}
@@ -383,11 +383,11 @@ export function CreateRidePage() {
         isOpen={showRoutePickerModal}
         onClose={() => setShowRoutePickerModal(false)}
         onSelect={(route: RouteDto | null) => {
-          setRideRouteId(route ? route.id : null)
+          setRideRouteSlug(route ? route.slug : null)
           setShowRoutePickerModal(false)
         }}
         teamSlug={teamSlug!}
-        selectedRouteId={rideRouteId}
+        selectedRouteSlug={rideRouteSlug}
         title={t('create.form.route.selectForRide')}
         onCreateNew={() => {
           setShowRoutePickerModal(false)
@@ -400,7 +400,7 @@ export function CreateRidePage() {
         isOpen={showCreateRouteModal}
         onClose={() => setShowCreateRouteModal(false)}
         onRouteCreated={(route: RouteDto) => {
-          setRideRouteId(route.id)
+          setRideRouteSlug(route.slug)
           setShowCreateRouteModal(false)
         }}
         teamSlug={teamSlug!}
