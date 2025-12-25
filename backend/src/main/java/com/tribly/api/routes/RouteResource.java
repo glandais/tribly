@@ -4,14 +4,11 @@ import com.tribly.api.AbstractAuthenticatedResource;
 import com.tribly.dto.error.ErrorResponse;
 import com.tribly.dto.routes.request.RouteRequest;
 import com.tribly.dto.routes.response.*;
-import com.tribly.enums.SurfaceType;
-import com.tribly.enums.Visibility;
 import com.tribly.infrastructure.exception.BusinessException;
 import com.tribly.service.route.RouteService;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -104,10 +101,7 @@ public class RouteResource extends AbstractAuthenticatedResource {
   })
   public Response createRoute(
       @Parameter(description = "Team URL slug") @PathParam("slug") String teamSlug,
-      @RestForm @NotBlank String name,
-      @RestForm @Nullable String description,
-      @RestForm @PartType(MediaType.TEXT_PLAIN) SurfaceType surfaceType,
-      @RestForm @PartType(MediaType.TEXT_PLAIN) Visibility visibility,
+      @RestForm @PartType(MediaType.APPLICATION_JSON) RouteRequest routeRequest,
       @RestForm("gpxFile") @Nullable FileUpload gpxFile)
       throws Exception {
 
@@ -118,12 +112,10 @@ public class RouteResource extends AbstractAuthenticatedResource {
       throw BusinessException.validation("GPX file is required");
     }
 
-    RouteRequest request = new RouteRequest(name, description, surfaceType, visibility);
-
     RouteDto route =
         routeService.createRoute(
             teamSlug,
-            request,
+            routeRequest,
             new FileInputStream(gpxFile.filePath().toFile()),
             gpxFile.fileName(),
             userId);
@@ -164,15 +156,17 @@ public class RouteResource extends AbstractAuthenticatedResource {
   }
 
   /**
-   * Update route metadata (not GPX file).
+   * Update route metadata and optionally GPX file.
    */
-  @PATCH
+  @PUT
+  @Consumes(MediaType.MULTIPART_FORM_DATA)
   @Path("/{routeSlug}")
   @RolesAllowed("user")
   @Operation(
       summary = "Update route",
       description =
-          "Update route metadata (name, description, etc.). Does not update the GPX" + " file.")
+          "Update route metadata (name, description, etc.) and optionally replace the GPX file. "
+              + "If a new GPX file is provided, the old track data and climbs will be replaced.")
   @APIResponses({
     @APIResponse(
         responseCode = "200",
@@ -180,7 +174,7 @@ public class RouteResource extends AbstractAuthenticatedResource {
         content = @Content(schema = @Schema(implementation = RouteDto.class))),
     @APIResponse(
         responseCode = "400",
-        description = "Invalid request",
+        description = "Invalid request or GPX file",
         content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
     @APIResponse(
         responseCode = "401",
@@ -198,11 +192,24 @@ public class RouteResource extends AbstractAuthenticatedResource {
   public Response updateRoute(
       @Parameter(description = "Team URL slug") @PathParam("slug") String teamSlug,
       @Parameter(description = "Route slug") @PathParam("routeSlug") String routeSlug,
-      RouteRequest request) {
+      @RestForm @PartType(MediaType.APPLICATION_JSON) RouteRequest request,
+      @RestForm("gpxFile") @Nullable FileUpload gpxFile)
+      throws Exception {
 
     Long userId = getCurrentUserId();
 
-    RouteDto route = routeService.updateRoute(teamSlug, routeSlug, request, userId);
+    FileInputStream fileInputStream;
+    String fileName;
+    if (gpxFile != null) {
+      fileInputStream = new FileInputStream(gpxFile.filePath().toFile());
+      fileName = gpxFile.fileName();
+    } else {
+      fileInputStream = null;
+      fileName = null;
+    }
+
+    RouteDto route =
+        routeService.updateRoute(teamSlug, routeSlug, request, fileInputStream, fileName, userId);
     return Response.ok(route).build();
   }
 

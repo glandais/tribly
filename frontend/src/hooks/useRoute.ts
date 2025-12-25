@@ -12,7 +12,7 @@ import type {
   ClimbListResponse,
   RouteRequest,
 } from '../api/api'
-import { Visibility, SurfaceType } from '../api/api'
+import { SurfaceType } from '../api/api'
 
 // Re-export types for convenience
 export type {
@@ -57,23 +57,8 @@ export function useCreateRoute(teamSlug: string) {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (data: {
-      name: string
-      description?: string
-      surfaceType?: SurfaceType
-      visibility?: Visibility
-      gpxFile: File
-    }) => {
-      return await unwrapResponse(
-        routesApi.createRoute(
-          teamSlug,
-          data.name,
-          data.description,
-          data.surfaceType,
-          data.visibility,
-          data.gpxFile
-        )
-      )
+    mutationFn: async (data: { route: RouteRequest; gpxFile: File }) => {
+      return await unwrapResponse(routesApi.createRoute(teamSlug, data.route, data.gpxFile))
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['routes', teamSlug] })
@@ -93,8 +78,10 @@ export function useUpdateRoute(teamSlug: string, routeSlug: string) {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (data: RouteRequest) => {
-      return await unwrapResponse(routesApi.updateRoute(routeSlug, teamSlug, data))
+    mutationFn: async (data: { route: RouteRequest; gpxFile?: File }) => {
+      return await unwrapResponse(
+        routesApi.updateRoute(routeSlug, teamSlug, data.route, data.gpxFile)
+      )
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['route', teamSlug, routeSlug] })

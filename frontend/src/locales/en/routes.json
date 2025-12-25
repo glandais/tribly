@@ -47,6 +47,8 @@
     "subtitle": "Edit route information",
     "backToDetail": "Back to route",
     "form": {
+      "gpxFile": "GPX File (to replace existing)",
+      "gpxFileHint": ".gpx format only, maximum size 10 MB",
       "name": "Route name",
       "description": "Description",
       "surfaceType": "Surface type",

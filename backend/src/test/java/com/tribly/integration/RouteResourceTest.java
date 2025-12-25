@@ -107,20 +107,48 @@ class RouteResourceTest {
         dataService.createRouteWithVisibility(
             testTeam, testUser, "Original Name", Visibility.PUBLIC);
 
-    RouteRequest request =
-        new RouteRequest("Updated Name", "Updated description", SurfaceType.MTB, Visibility.PUBLIC);
-
     given()
         .auth()
         .oauth2(getAccessToken(USERNAME_TEST))
-        .contentType("application/json")
-        .body(request)
+        .multiPart(new MultiPartSpecBuilder("Updated Name").controlName("name").build())
+        .multiPart(
+            new MultiPartSpecBuilder("Updated description").controlName("description").build())
+        .multiPart(new MultiPartSpecBuilder("MTB").controlName("surfaceType").build())
+        .multiPart(new MultiPartSpecBuilder("PUBLIC").controlName("visibility").build())
         .when()
-        .patch("/api/teams/test-team/routes/" + testRoute.getSlug())
+        .put("/api/teams/test-team/routes/" + testRoute.getSlug())
         .then()
         .statusCode(200)
         .body("name", equalTo("Updated Name"))
         .body("description", equalTo("Updated description"));
+  }
+
+  @Test
+  void updateRoute_shouldUpdateGpxFile() {
+    // Create route for testing
+    testRoute =
+        dataService.createRouteWithVisibility(
+            testTeam, testUser, "Original Route", Visibility.PUBLIC);
+
+    File gpxFile = new File("src/test/resources/example.gpx");
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(USERNAME_TEST))
+        .multiPart(new MultiPartSpecBuilder("Updated Route").controlName("name").build())
+        .multiPart(
+            new MultiPartSpecBuilder("Updated with new GPX").controlName("description").build())
+        .multiPart(new MultiPartSpecBuilder("GRAVEL").controlName("surfaceType").build())
+        .multiPart(new MultiPartSpecBuilder("PUBLIC").controlName("visibility").build())
+        .multiPart("gpxFile", gpxFile, "application/gpx+xml")
+        .when()
+        .put("/api/teams/test-team/routes/" + testRoute.getSlug())
+        .then()
+        .statusCode(200)
+        .body("name", equalTo("Updated Route"))
+        .body("description", equalTo("Updated with new GPX"))
+        .body("distance", greaterThan(0))
+        .body("elevationGain", greaterThanOrEqualTo(0));
   }
 
   @Test

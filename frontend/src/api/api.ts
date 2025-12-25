@@ -2496,27 +2496,19 @@ export const RoutesApiAxiosParamCreator = function (configuration?: Configuratio
      * Create a new route by uploading a GPX file
      * @summary Create route
      * @param {string} slug Team URL slug
-     * @param {string} name
-     * @param {string} [description]
-     * @param {SurfaceType} [surfaceType]
-     * @param {Visibility} [visibility]
+     * @param {RouteRequest} [routeRequest]
      * @param {File} [gpxFile]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     createRoute: async (
       slug: string,
-      name: string,
-      description?: string,
-      surfaceType?: SurfaceType,
-      visibility?: Visibility,
+      routeRequest?: RouteRequest,
       gpxFile?: File,
       options: RawAxiosRequestConfig = {}
     ): Promise<RequestArgs> => {
       // verify required parameter 'slug' is not null or undefined
       assertParamExists('createRoute', 'slug', slug)
-      // verify required parameter 'name' is not null or undefined
-      assertParamExists('createRoute', 'name', name)
       const localVarPath = `/api/teams/{slug}/routes`.replace(
         `{${'slug'}}`,
         encodeURIComponent(String(slug))
@@ -2535,20 +2527,11 @@ export const RoutesApiAxiosParamCreator = function (configuration?: Configuratio
 
       // authentication SecurityScheme required
 
-      if (name !== undefined) {
-        localVarFormParams.append('name', name as any)
-      }
-
-      if (description !== undefined) {
-        localVarFormParams.append('description', description as any)
-      }
-
-      if (surfaceType !== undefined) {
-        localVarFormParams.append('surfaceType', surfaceType as any)
-      }
-
-      if (visibility !== undefined) {
-        localVarFormParams.append('visibility', visibility as any)
+      if (routeRequest !== undefined) {
+        localVarFormParams.append(
+          'routeRequest',
+          new Blob([JSON.stringify(routeRequest)], { type: 'application/json' })
+        )
       }
 
       if (gpxFile !== undefined) {
@@ -2725,22 +2708,22 @@ export const RoutesApiAxiosParamCreator = function (configuration?: Configuratio
      * @summary Update route
      * @param {string} routeSlug Route slug
      * @param {string} slug Team URL slug
-     * @param {RouteRequest} routeRequest
+     * @param {RouteRequest} [request]
+     * @param {File} [gpxFile]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     updateRoute: async (
       routeSlug: string,
       slug: string,
-      routeRequest: RouteRequest,
+      request?: RouteRequest,
+      gpxFile?: File,
       options: RawAxiosRequestConfig = {}
     ): Promise<RequestArgs> => {
       // verify required parameter 'routeSlug' is not null or undefined
       assertParamExists('updateRoute', 'routeSlug', routeSlug)
       // verify required parameter 'slug' is not null or undefined
       assertParamExists('updateRoute', 'slug', slug)
-      // verify required parameter 'routeRequest' is not null or undefined
-      assertParamExists('updateRoute', 'routeRequest', routeRequest)
       const localVarPath = `/api/teams/{slug}/routes/{routeSlug}`
         .replace(`{${'routeSlug'}}`, encodeURIComponent(String(routeSlug)))
         .replace(`{${'slug'}}`, encodeURIComponent(String(slug)))
@@ -2751,13 +2734,25 @@ export const RoutesApiAxiosParamCreator = function (configuration?: Configuratio
         baseOptions = configuration.baseOptions
       }
 
-      const localVarRequestOptions = { method: 'PATCH', ...baseOptions, ...options }
+      const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options }
       const localVarHeaderParameter = {} as any
       const localVarQueryParameter = {} as any
+      const localVarFormParams = new ((configuration && configuration.formDataCtor) || FormData)()
 
       // authentication SecurityScheme required
 
-      localVarHeaderParameter['Content-Type'] = 'application/json'
+      if (request !== undefined) {
+        localVarFormParams.append(
+          'request',
+          new Blob([JSON.stringify(request)], { type: 'application/json' })
+        )
+      }
+
+      if (gpxFile !== undefined) {
+        localVarFormParams.append('gpxFile', gpxFile as any)
+      }
+
+      localVarHeaderParameter['Content-Type'] = 'multipart/form-data'
 
       setSearchParams(localVarUrlObj, localVarQueryParameter)
       let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {}
@@ -2766,11 +2761,7 @@ export const RoutesApiAxiosParamCreator = function (configuration?: Configuratio
         ...headersFromBaseOptions,
         ...options.headers,
       }
-      localVarRequestOptions.data = serializeDataIfNeeded(
-        routeRequest,
-        localVarRequestOptions,
-        configuration
-      )
+      localVarRequestOptions.data = localVarFormParams
 
       return {
         url: toPathString(localVarUrlObj),
@@ -2790,29 +2781,20 @@ export const RoutesApiFp = function (configuration?: Configuration) {
      * Create a new route by uploading a GPX file
      * @summary Create route
      * @param {string} slug Team URL slug
-     * @param {string} name
-     * @param {string} [description]
-     * @param {SurfaceType} [surfaceType]
-     * @param {Visibility} [visibility]
+     * @param {RouteRequest} [routeRequest]
      * @param {File} [gpxFile]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     async createRoute(
       slug: string,
-      name: string,
-      description?: string,
-      surfaceType?: SurfaceType,
-      visibility?: Visibility,
+      routeRequest?: RouteRequest,
       gpxFile?: File,
       options?: RawAxiosRequestConfig
     ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<RouteDto>> {
       const localVarAxiosArgs = await localVarAxiosParamCreator.createRoute(
         slug,
-        name,
-        description,
-        surfaceType,
-        visibility,
+        routeRequest,
         gpxFile,
         options
       )
@@ -2921,20 +2903,23 @@ export const RoutesApiFp = function (configuration?: Configuration) {
      * @summary Update route
      * @param {string} routeSlug Route slug
      * @param {string} slug Team URL slug
-     * @param {RouteRequest} routeRequest
+     * @param {RouteRequest} [request]
+     * @param {File} [gpxFile]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     async updateRoute(
       routeSlug: string,
       slug: string,
-      routeRequest: RouteRequest,
+      request?: RouteRequest,
+      gpxFile?: File,
       options?: RawAxiosRequestConfig
     ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<RouteDto>> {
       const localVarAxiosArgs = await localVarAxiosParamCreator.updateRoute(
         routeSlug,
         slug,
-        routeRequest,
+        request,
+        gpxFile,
         options
       )
       const localVarOperationServerIndex = configuration?.serverIndex ?? 0
@@ -2965,25 +2950,19 @@ export const RoutesApiFactory = function (
      * Create a new route by uploading a GPX file
      * @summary Create route
      * @param {string} slug Team URL slug
-     * @param {string} name
-     * @param {string} [description]
-     * @param {SurfaceType} [surfaceType]
-     * @param {Visibility} [visibility]
+     * @param {RouteRequest} [routeRequest]
      * @param {File} [gpxFile]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     createRoute(
       slug: string,
-      name: string,
-      description?: string,
-      surfaceType?: SurfaceType,
-      visibility?: Visibility,
+      routeRequest?: RouteRequest,
       gpxFile?: File,
       options?: RawAxiosRequestConfig
     ): AxiosPromise<RouteDto> {
       return localVarFp
-        .createRoute(slug, name, description, surfaceType, visibility, gpxFile, options)
+        .createRoute(slug, routeRequest, gpxFile, options)
         .then((request) => request(axios, basePath))
     },
     /**
@@ -3046,18 +3025,20 @@ export const RoutesApiFactory = function (
      * @summary Update route
      * @param {string} routeSlug Route slug
      * @param {string} slug Team URL slug
-     * @param {RouteRequest} routeRequest
+     * @param {RouteRequest} [request]
+     * @param {File} [gpxFile]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     updateRoute(
       routeSlug: string,
       slug: string,
-      routeRequest: RouteRequest,
+      request?: RouteRequest,
+      gpxFile?: File,
       options?: RawAxiosRequestConfig
     ): AxiosPromise<RouteDto> {
       return localVarFp
-        .updateRoute(routeSlug, slug, routeRequest, options)
+        .updateRoute(routeSlug, slug, request, gpxFile, options)
         .then((request) => request(axios, basePath))
     },
   }
@@ -3071,25 +3052,19 @@ export class RoutesApi extends BaseAPI {
    * Create a new route by uploading a GPX file
    * @summary Create route
    * @param {string} slug Team URL slug
-   * @param {string} name
-   * @param {string} [description]
-   * @param {SurfaceType} [surfaceType]
-   * @param {Visibility} [visibility]
+   * @param {RouteRequest} [routeRequest]
    * @param {File} [gpxFile]
    * @param {*} [options] Override http request option.
    * @throws {RequiredError}
    */
   public createRoute(
     slug: string,
-    name: string,
-    description?: string,
-    surfaceType?: SurfaceType,
-    visibility?: Visibility,
+    routeRequest?: RouteRequest,
     gpxFile?: File,
     options?: RawAxiosRequestConfig
   ) {
     return RoutesApiFp(this.configuration)
-      .createRoute(slug, name, description, surfaceType, visibility, gpxFile, options)
+      .createRoute(slug, routeRequest, gpxFile, options)
       .then((request) => request(this.axios, this.basePath))
   }
 
@@ -3148,18 +3123,20 @@ export class RoutesApi extends BaseAPI {
    * @summary Update route
    * @param {string} routeSlug Route slug
    * @param {string} slug Team URL slug
-   * @param {RouteRequest} routeRequest
+   * @param {RouteRequest} [request]
+   * @param {File} [gpxFile]
    * @param {*} [options] Override http request option.
    * @throws {RequiredError}
    */
   public updateRoute(
     routeSlug: string,
     slug: string,
-    routeRequest: RouteRequest,
+    request?: RouteRequest,
+    gpxFile?: File,
     options?: RawAxiosRequestConfig
   ) {
     return RoutesApiFp(this.configuration)
-      .updateRoute(routeSlug, slug, routeRequest, options)
+      .updateRoute(routeSlug, slug, request, gpxFile, options)
       .then((request) => request(this.axios, this.basePath))
   }
 }

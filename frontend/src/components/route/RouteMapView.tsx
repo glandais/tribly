@@ -48,10 +48,7 @@ function getColorFromGradient(gradient: number): string {
 }
 
 // Determine if a point is in a climb and get its gradient
-function getPointClimbGradient(
-  point: TrackPointDto,
-  climbs: RouteClimbDto[]
-): number {
+function getPointClimbGradient(point: TrackPointDto, climbs: RouteClimbDto[]): number {
   for (const climb of climbs) {
     if (point.dist >= climb.startDistance && point.dist <= climb.endDistance) {
       return climb.averageGradient
@@ -112,9 +109,7 @@ function MapBoundsSetter({ trackPoints }: { trackPoints: TrackPointDto[] }) {
 
   useEffect(() => {
     if (trackPoints.length > 0) {
-      const bounds = new LatLngBounds(
-        trackPoints.map((p) => [p.lat, p.lng] as [number, number])
-      )
+      const bounds = new LatLngBounds(trackPoints.map((p) => [p.lat, p.lng] as [number, number]))
       if (bounds.isValid()) {
         map.fitBounds(bounds)
       }
@@ -371,10 +366,10 @@ export function RouteMapView({ route }: RouteMapViewProps) {
         chart.draw()
 
         // Show tooltip
-        chart.tooltip.setActiveElements(
-          [{ datasetIndex: 0, index: hoveredPointIndex }],
-          { x: point.x, y: point.y }
-        )
+        chart.tooltip.setActiveElements([{ datasetIndex: 0, index: hoveredPointIndex }], {
+          x: point.x,
+          y: point.y,
+        })
         chart.update()
       }
     } else if (chartRef.current) {
@@ -436,22 +431,21 @@ export function RouteMapView({ route }: RouteMapViewProps) {
 
           {/* Hovered point marker */}
           {hoveredPoint && (
-            <Marker
-              position={[hoveredPoint.lat, hoveredPoint.lng]}
-              icon={createHoverIcon()}
-            />
+            <Marker position={[hoveredPoint.lat, hoveredPoint.lng]} icon={createHoverIcon()} />
           )}
 
           <MapBoundsSetter trackPoints={trackPoints} />
-          <MapInteractionHandler
-            trackPoints={trackPoints}
-            onPointHover={setHoveredPointIndex}
-          />
+          <MapInteractionHandler trackPoints={trackPoints} onPointHover={setHoveredPointIndex} />
         </MapContainer>
 
         {/* Elevation chart overlay */}
         <div className="absolute bottom-0 left-0 right-0 h-[200px] bg-white/95 shadow-lg z-[1000] pointer-events-auto">
-          <Line ref={chartRef} data={chartData} options={chartOptions} plugins={[crosshairPlugin]} />
+          <Line
+            ref={chartRef}
+            data={chartData}
+            options={chartOptions}
+            plugins={[crosshairPlugin]}
+          />
         </div>
       </div>
     </div>

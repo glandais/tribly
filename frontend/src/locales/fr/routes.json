@@ -47,6 +47,8 @@
     "subtitle": "Modifier les informations du parcours",
     "backToDetail": "Retour au parcours",
     "form": {
+      "gpxFile": "Fichier GPX (pour remplacer l'existant)",
+      "gpxFileHint": "Format .gpx uniquement, taille maximale 10 Mo",
       "name": "Nom du parcours",
       "description": "Description",
       "surfaceType": "Type de revêtement",

@@ -39,7 +39,7 @@ export function RouteForm({
   const handleFileChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0]
-      if( !name && file?.name) {
+      if (!name && file?.name) {
         const defaultName = file.name.replace(/\.gpx$/i, '')
         setName(defaultName)
       }
@@ -73,10 +73,12 @@ export function RouteForm({
 
     try {
       const route = await createRoute.mutateAsync({
-        name,
-        description: description || undefined,
-        surfaceType,
-        visibility,
+        route: {
+          name,
+          description: description || undefined,
+          surfaceType,
+          visibility,
+        },
         gpxFile,
       })
 

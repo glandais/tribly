@@ -2164,26 +2164,15 @@ paths:
           multipart/form-data:
             schema:
               type: object
-              required:
-              - name
               properties:
-                name:
-                  type: string
-                  pattern: \S
-                description:
-                  type: string
-                surfaceType:
-                  $ref: "#/components/schemas/SurfaceType"
-                visibility:
-                  $ref: "#/components/schemas/Visibility"
+                routeRequest:
+                  $ref: "#/components/schemas/RouteRequest"
                 gpxFile:
                   type: string
                   format: binary
             encoding:
-              visibility:
-                contentType: text/plain
-              surfaceType:
-                contentType: text/plain
+              routeRequest:
+                contentType: application/json
         required: true
       responses:
         "201":
@@ -2220,10 +2209,11 @@ paths:
       - SecurityScheme:
         - user
   /api/teams/{slug}/routes/{routeSlug}:
-    patch:
+    put:
       summary: Update route
-      description: "Update route metadata (name, description, etc.). Does not update\
-        \ the GPX file."
+      description: "Update route metadata (name, description, etc.) and optionally\
+        \ replace the GPX file. If a new GPX file is provided, the old track data\
+        \ and climbs will be replaced."
       operationId: updateRoute
       tags:
       - Routes
@@ -2242,9 +2232,18 @@ paths:
           type: string
       requestBody:
         content:
-          application/json:
+          multipart/form-data:
             schema:
-              $ref: "#/components/schemas/RouteRequest"
+              type: object
+              properties:
+                request:
+                  $ref: "#/components/schemas/RouteRequest"
+                gpxFile:
+                  type: string
+                  format: binary
+            encoding:
+              request:
+                contentType: application/json
         required: true
       responses:
         "200":
@@ -2254,7 +2253,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/RouteDto"
         "400":
-          description: Invalid request
+          description: Invalid request or GPX file
           content:
             application/json:
               schema:

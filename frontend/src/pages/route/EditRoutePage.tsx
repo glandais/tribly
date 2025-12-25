@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { ChevronLeftIcon } from '@heroicons/react/24/outline'
@@ -22,6 +22,7 @@ export function EditRoutePage() {
   const [description, setDescription] = useState('')
   const [surfaceType, setSurfaceType] = useState<SurfaceType>(SurfaceType.Road)
   const [visibility, setVisibility] = useState<Visibility>(Visibility.Team)
+  const [gpxFile, setGpxFile] = useState<File | undefined>(undefined)
   const [error, setError] = useState<string | null>(null)
 
   // Load route data into form
@@ -36,15 +37,45 @@ export function EditRoutePage() {
     }
   }, [route, team])
 
+  const handleFileChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0]
+      if (!name && file?.name) {
+        const defaultName = file.name.replace(/\.gpx$/i, '')
+        setName(defaultName)
+      }
+      if (file) {
+        // Validate file type
+        if (!file.name.endsWith('.gpx')) {
+          setError(t('create.validation.invalidFileType'))
+          setGpxFile(undefined)
+          return
+        }
+        // Validate file size (10MB max)
+        if (file.size > 10 * 1024 * 1024) {
+          setError(t('create.validation.fileTooLarge'))
+          setGpxFile(undefined)
+          return
+        }
+        setError(null)
+        setGpxFile(file)
+      }
+    },
+    [t, name]
+  )
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
     try {
       await updateRoute.mutateAsync({
-        name,
-        description,
-        surfaceType,
-        visibility,
+        route: {
+          name,
+          description,
+          surfaceType,
+          visibility,
+        },
+        gpxFile,
       })
       navigate(`/teams/${teamSlug}/routes/${routeSlug}`)
     } catch (err) {
@@ -105,6 +136,30 @@ export function EditRoutePage() {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
+        {/* GPX File Upload */}
+        <div>
+          <label htmlFor="gpxFile" className="block text-sm font-medium text-gray-700">
+            {t('edit.form.gpxFile')}
+          </label>
+          <div className="mt-1">
+            <input
+              id="gpxFile"
+              name="gpxFile"
+              type="file"
+              accept=".gpx"
+              onChange={handleFileChange}
+              className="block w-full text-sm text-gray-500
+              file:mr-4 file:py-2 file:px-4
+              file:rounded-md file:border-0
+              file:text-sm file:font-semibold
+              file:bg-indigo-50 file:text-indigo-700
+              hover:file:bg-indigo-100"
+              required
+            />
+          </div>
+          <p className="mt-2 text-sm text-gray-500">{t('create.form.gpxFileHint')}</p>
+        </div>
+
         {/* Name */}
         <div>
           <label htmlFor="name" className="block text-sm font-medium text-gray-700">

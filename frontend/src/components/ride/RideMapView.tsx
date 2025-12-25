@@ -1,12 +1,5 @@
 import { useEffect, useState, useCallback } from 'react'
-import {
-  MapContainer,
-  TileLayer,
-  Polyline,
-  Marker,
-  useMap,
-  useMapEvents,
-} from 'react-leaflet'
+import { MapContainer, TileLayer, Polyline, Marker, useMap, useMapEvents } from 'react-leaflet'
 import { LatLngBounds, DivIcon } from 'leaflet'
 import { Line } from 'react-chartjs-2'
 import {
@@ -138,9 +131,7 @@ export function RideMapView({
 
         try {
           // Fetch route details from API using the generated API client
-          const routeDetail = await unwrapResponse(
-            routesApi.getRoute(group.routeSlug, teamSlug)
-          )
+          const routeDetail = await unwrapResponse(routesApi.getRoute(group.routeSlug, teamSlug))
           if (routeDetail.track && routeDetail.track.trackPoints) {
             routes.push({
               groupId: group.id,
@@ -298,9 +289,7 @@ export function RideMapView({
           {/* Render all routes */}
           {routesData.map((route) => {
             const isHighlighted = highlightedRoute?.groupId === route.groupId
-            const positions = route.trackPoints.map(
-              (p) => [p.lat, p.lng] as [number, number]
-            )
+            const positions = route.trackPoints.map((p) => [p.lat, p.lng] as [number, number])
 
             return (
               <Polyline
@@ -320,10 +309,7 @@ export function RideMapView({
           {/* Start marker (first route's first point) */}
           {routesData.length > 0 && (
             <Marker
-              position={[
-                routesData[0].trackPoints[0].lat,
-                routesData[0].trackPoints[0].lng,
-              ]}
+              position={[routesData[0].trackPoints[0].lat, routesData[0].trackPoints[0].lng]}
               icon={createStartIcon()}
             />
           )}

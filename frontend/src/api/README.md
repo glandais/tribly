@@ -68,7 +68,7 @@ Class | Method | HTTP request | Description
 *RoutesApi* | [**deleteRoute**](docs/RoutesApi.md#deleteroute) | **DELETE** /api/teams/{slug}/routes/{routeSlug} | Delete route
 *RoutesApi* | [**getRoute**](docs/RoutesApi.md#getroute) | **GET** /api/teams/{slug}/routes/{routeSlug} | Get route details
 *RoutesApi* | [**listRoutes**](docs/RoutesApi.md#listroutes) | **GET** /api/teams/{slug}/routes | List routes
-*RoutesApi* | [**updateRoute**](docs/RoutesApi.md#updateroute) | **PATCH** /api/teams/{slug}/routes/{routeSlug} | Update route
+*RoutesApi* | [**updateRoute**](docs/RoutesApi.md#updateroute) | **PUT** /api/teams/{slug}/routes/{routeSlug} | Update route
 *TeamMembersApi* | [**addMember**](docs/TeamMembersApi.md#addmember) | **POST** /api/teams/{slug}/members | Add team member
 *TeamMembersApi* | [**getMembers**](docs/TeamMembersApi.md#getmembers) | **GET** /api/teams/{slug}/members | Get team members
 *TeamMembersApi* | [**joinTeam**](docs/TeamMembersApi.md#jointeam) | **POST** /api/teams/{slug}/members/join | Join team

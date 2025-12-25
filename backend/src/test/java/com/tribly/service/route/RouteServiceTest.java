@@ -191,14 +191,15 @@ class RouteServiceTest {
   // ==================== Update Route ====================
 
   @Test
-  void updateRoute_shouldUpdateAllFields() {
+  void updateRoute_shouldUpdateAllFields() throws Exception {
     Route route = dataService.createRoute(team, admin, "Original");
     RouteRequest request =
         new RouteRequest(
             "Updated Name", "Updated description", SurfaceType.GRAVEL, Visibility.TEAM);
 
     RouteDto result =
-        routeService.updateRoute("test-team", route.getSlug(), request, organizer.getId());
+        routeService.updateRoute(
+            "test-team", route.getSlug(), request, null, null, organizer.getId());
 
     assertEquals("Updated Name", result.name());
     assertEquals("Updated description", result.description());
@@ -207,24 +208,26 @@ class RouteServiceTest {
   }
 
   @Test
-  void updateRoute_shouldUpdatePartialFields() {
+  void updateRoute_shouldUpdatePartialFields() throws Exception {
     Route route = dataService.createRoute(team, admin, "Original");
     RouteRequest request = new RouteRequest("New Name", null, SurfaceType.ROAD, Visibility.TEAM);
 
     RouteDto result =
-        routeService.updateRoute("test-team", route.getSlug(), request, organizer.getId());
+        routeService.updateRoute(
+            "test-team", route.getSlug(), request, null, null, organizer.getId());
 
     assertEquals("New Name", result.name());
   }
 
   @Test
-  void updateRoute_shouldPreserveFieldsWhenNull() {
+  void updateRoute_shouldPreserveFieldsWhenNull() throws Exception {
     Route route = dataService.createRouteWithVisibility(team, admin, "Original", Visibility.PUBLIC);
     RouteRequest request =
         new RouteRequest("New name 2", "New description", SurfaceType.MTB, Visibility.PUBLIC);
 
     RouteDto result =
-        routeService.updateRoute("test-team", route.getSlug(), request, organizer.getId());
+        routeService.updateRoute(
+            "test-team", route.getSlug(), request, null, null, organizer.getId());
 
     assertEquals("New name 2", result.name());
     assertEquals("New description", result.description());
@@ -232,13 +235,51 @@ class RouteServiceTest {
   }
 
   @Test
-  void updateRoute_shouldThrowForNonOrganizer() {
+  void updateRoute_shouldThrowForNonOrganizer() throws Exception {
     Route route = dataService.createRoute(team, admin, "Test");
     RouteRequest request = new RouteRequest("New", null, null, null);
 
     assertThrows(
         BusinessException.class,
-        () -> routeService.updateRoute("test-team", route.getSlug(), request, member.getId()));
+        () ->
+            routeService.updateRoute(
+                "test-team", route.getSlug(), request, null, null, member.getId()));
+  }
+
+  @Test
+  void updateRoute_shouldUpdateGpxFileWhenProvided() throws Exception {
+    // Create initial route with GPX
+    InputStream initialGpx = getClass().getClassLoader().getResourceAsStream("example.gpx");
+    RouteRequest createRequest =
+        new RouteRequest("Original Route", "Original", SurfaceType.ROAD, Visibility.PUBLIC);
+
+    createdRoute =
+        routeService.createRoute(
+            "test-team", createRequest, initialGpx, "example.gpx", organizer.getId());
+
+    int originalDistance = createdRoute.distance();
+
+    // Update route with new GPX file (using same file for simplicity)
+    InputStream newGpx = getClass().getClassLoader().getResourceAsStream("example.gpx");
+    RouteRequest updateRequest =
+        new RouteRequest("Updated Route", "Updated", SurfaceType.GRAVEL, Visibility.TEAM);
+
+    RouteDto updated =
+        routeService.updateRoute(
+            "test-team",
+            createdRoute.slug(),
+            updateRequest,
+            newGpx,
+            "new-example.gpx",
+            organizer.getId());
+
+    assertEquals("Updated Route", updated.name());
+    assertEquals("Updated", updated.description());
+    assertEquals(SurfaceType.GRAVEL, updated.surfaceType());
+    assertEquals(Visibility.TEAM, updated.visibility());
+    assertEquals(
+        originalDistance,
+        updated.distance()); // Same file, so distance should match
   }
 
   // ==================== Delete Route ====================

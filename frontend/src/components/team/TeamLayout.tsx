@@ -66,7 +66,10 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
               {team.visibility === 'TEAM' && <VisibilityBadge visibility={team.visibility} />}
             </div>
             {team.description && (
-              <MarkdownDisplay content={team.description} className="mt-2 text-gray-600 max-w-2xl" />
+              <MarkdownDisplay
+                content={team.description}
+                className="mt-2 text-gray-600 max-w-2xl"
+              />
             )}
             <div className="mt-3 flex items-center gap-4 text-sm text-gray-500">
               <span className="flex items-center">

@@ -22,7 +22,8 @@ export function MarkdownDisplay({
   // Preview mode: strip markdown and truncate
   if (preview) {
     const plainText = removeMd(content)
-    const truncated = plainText.length > maxLength ? plainText.slice(0, maxLength) + '...' : plainText
+    const truncated =
+      plainText.length > maxLength ? plainText.slice(0, maxLength) + '...' : plainText
     return <p className={className}>{truncated}</p>
   }
 
@@ -41,16 +42,10 @@ export function MarkdownDisplay({
         components={{
           // Headings
           h1: ({ ...props }) => (
-            <h1
-              className="text-3xl font-bold mb-4 mt-6 text-gray-900 tracking-tight"
-              {...props}
-            />
+            <h1 className="text-3xl font-bold mb-4 mt-6 text-gray-900 tracking-tight" {...props} />
           ),
           h2: ({ ...props }) => (
-            <h2
-              className="text-2xl font-bold mb-3 mt-5 text-gray-900 tracking-tight"
-              {...props}
-            />
+            <h2 className="text-2xl font-bold mb-3 mt-5 text-gray-900 tracking-tight" {...props} />
           ),
           h3: ({ ...props }) => (
             <h3 className="text-xl font-bold mb-2 mt-4 text-gray-900 tracking-tight" {...props} />
@@ -120,9 +115,7 @@ export function MarkdownDisplay({
               {...props}
             />
           ),
-          td: ({ ...props }) => (
-            <td className="px-3 py-2 text-sm text-gray-900" {...props} />
-          ),
+          td: ({ ...props }) => <td className="px-3 py-2 text-sm text-gray-900" {...props} />,
           // Horizontal rule
           hr: ({ ...props }) => <hr className="my-4 border-gray-300" {...props} />,
           // Strong/bold
