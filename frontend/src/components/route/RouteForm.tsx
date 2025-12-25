@@ -39,6 +39,10 @@ export function RouteForm({
   const handleFileChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0]
+      if( !name && file?.name) {
+        const defaultName = file.name.replace(/\.gpx$/i, '')
+        setName(defaultName)
+      }
       if (file) {
         // Validate file type
         if (!file.name.endsWith('.gpx')) {
@@ -56,7 +60,7 @@ export function RouteForm({
         setGpxFile(file)
       }
     },
-    [t]
+    [t, name]
   )
 
   const handleSubmit = async (e: React.FormEvent) => {
