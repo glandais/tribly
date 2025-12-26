@@ -115,8 +115,8 @@ public class RouteService extends TeamEntityService {
    * Process GPX file and update route with metadata, track, and climbs.
    * Shared logic between create and update operations.
    */
-  private void processAndUpdateGpx(Route route, String trackName, InputStream gpxFile, String fileName)
-      throws Exception {
+  private void processAndUpdateGpx(
+      Route route, String trackName, InputStream gpxFile, String fileName) throws Exception {
     // Process GPX file
     ProcessedGpx processed =
         gpxProcessingService.processGpxUpload(route.getId(), gpxFile, fileName);

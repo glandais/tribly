@@ -9,6 +9,8 @@ import com.tribly.service.route.RouteService;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -101,7 +103,8 @@ public class RouteResource extends AbstractAuthenticatedResource {
   })
   public Response createRoute(
       @Parameter(description = "Team URL slug") @PathParam("slug") String teamSlug,
-      @RestForm @PartType(MediaType.APPLICATION_JSON) RouteRequest routeRequest,
+      @RestForm("route") @PartType(MediaType.APPLICATION_JSON) @Valid @NotNull
+          RouteRequest routeRequest,
       @RestForm("gpxFile") @Nullable FileUpload gpxFile)
       throws Exception {
 
@@ -192,7 +195,7 @@ public class RouteResource extends AbstractAuthenticatedResource {
   public Response updateRoute(
       @Parameter(description = "Team URL slug") @PathParam("slug") String teamSlug,
       @Parameter(description = "Route slug") @PathParam("routeSlug") String routeSlug,
-      @RestForm @PartType(MediaType.APPLICATION_JSON) RouteRequest request,
+      @RestForm("route") @PartType(MediaType.APPLICATION_JSON) @Valid @NotNull RouteRequest request,
       @RestForm("gpxFile") @Nullable FileUpload gpxFile)
       throws Exception {
 

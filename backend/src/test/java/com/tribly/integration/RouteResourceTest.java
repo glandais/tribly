@@ -15,8 +15,8 @@ import com.tribly.util.TestDataCleaner;
 import com.tribly.util.TestDataService;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.keycloak.client.KeycloakTestClient;
-import io.restassured.builder.MultiPartSpecBuilder;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.core.MediaType;
 import java.io.File;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -67,13 +67,13 @@ class RouteResourceTest {
   void createRoute_shouldCreateWithGpxFile() {
     File gpxFile = new File("src/test/resources/example.gpx");
 
+    RouteRequest route =
+        new RouteRequest("Test Route", "A test route", SurfaceType.GRAVEL, Visibility.PUBLIC);
+
     given()
         .auth()
         .oauth2(getAccessToken(USERNAME_TEST))
-        .multiPart(new MultiPartSpecBuilder("Test Route").controlName("name").build())
-        .multiPart(new MultiPartSpecBuilder("A test route").controlName("description").build())
-        .multiPart(new MultiPartSpecBuilder("GRAVEL").controlName("surfaceType").build())
-        .multiPart(new MultiPartSpecBuilder("PUBLIC").controlName("visibility").build())
+        .multiPart("route", route, MediaType.APPLICATION_JSON)
         .multiPart("gpxFile", gpxFile, "application/gpx+xml")
         .when()
         .post("/api/teams/test-team/routes")
@@ -107,14 +107,13 @@ class RouteResourceTest {
         dataService.createRouteWithVisibility(
             testTeam, testUser, "Original Name", Visibility.PUBLIC);
 
+    RouteRequest route =
+        new RouteRequest("Updated Name", "Updated description", SurfaceType.MTB, Visibility.PUBLIC);
+
     given()
         .auth()
         .oauth2(getAccessToken(USERNAME_TEST))
-        .multiPart(new MultiPartSpecBuilder("Updated Name").controlName("name").build())
-        .multiPart(
-            new MultiPartSpecBuilder("Updated description").controlName("description").build())
-        .multiPart(new MultiPartSpecBuilder("MTB").controlName("surfaceType").build())
-        .multiPart(new MultiPartSpecBuilder("PUBLIC").controlName("visibility").build())
+        .multiPart("route", route, MediaType.APPLICATION_JSON)
         .when()
         .put("/api/teams/test-team/routes/" + testRoute.getSlug())
         .then()
@@ -130,16 +129,16 @@ class RouteResourceTest {
         dataService.createRouteWithVisibility(
             testTeam, testUser, "Original Route", Visibility.PUBLIC);
 
+    RouteRequest route =
+        new RouteRequest(
+            "Updated Route", "Updated with new GPX", SurfaceType.GRAVEL, Visibility.PUBLIC);
+
     File gpxFile = new File("src/test/resources/example.gpx");
 
     given()
         .auth()
         .oauth2(getAccessToken(USERNAME_TEST))
-        .multiPart(new MultiPartSpecBuilder("Updated Route").controlName("name").build())
-        .multiPart(
-            new MultiPartSpecBuilder("Updated with new GPX").controlName("description").build())
-        .multiPart(new MultiPartSpecBuilder("GRAVEL").controlName("surfaceType").build())
-        .multiPart(new MultiPartSpecBuilder("PUBLIC").controlName("visibility").build())
+        .multiPart("route", route, MediaType.APPLICATION_JSON)
         .multiPart("gpxFile", gpxFile, "application/gpx+xml")
         .when()
         .put("/api/teams/test-team/routes/" + testRoute.getSlug())

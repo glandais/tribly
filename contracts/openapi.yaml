@@ -2165,13 +2165,13 @@ paths:
             schema:
               type: object
               properties:
-                routeRequest:
+                route:
                   $ref: "#/components/schemas/RouteRequest"
                 gpxFile:
                   type: string
                   format: binary
             encoding:
-              routeRequest:
+              route:
                 contentType: application/json
         required: true
       responses:
@@ -2236,13 +2236,13 @@ paths:
             schema:
               type: object
               properties:
-                request:
+                route:
                   $ref: "#/components/schemas/RouteRequest"
                 gpxFile:
                   type: string
                   format: binary
             encoding:
-              request:
+              route:
                 contentType: application/json
         required: true
       responses:

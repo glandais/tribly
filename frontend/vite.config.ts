@@ -8,9 +8,6 @@ export default defineConfig({
     react(),
     visualizer({
       open: false,
-      gzipSize: true,
-      brotliSize: true,
-      filename: 'stats.html',
     }),
   ],
   resolve: {

@@ -5,6 +5,8 @@ import static org.hamcrest.Matchers.*;
 
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
+import com.tribly.dto.routes.request.RouteRequest;
+import com.tribly.enums.SurfaceType;
 import com.tribly.enums.TeamRole;
 import com.tribly.enums.Visibility;
 import com.tribly.util.TestDataCleaner;
@@ -12,6 +14,7 @@ import com.tribly.util.TestDataService;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.keycloak.client.KeycloakTestClient;
 import jakarta.inject.Inject;
+import jakarta.ws.rs.core.MediaType;
 import java.io.File;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -48,13 +51,18 @@ class DownloadPublicResourceTest {
 
     // Create route with GPX file
     File gpxFile = new File("src/test/resources/example.gpx");
+
+    RouteRequest route =
+        new RouteRequest(
+            "Download Test Route",
+            "Route for download testing",
+            SurfaceType.ROAD,
+            Visibility.PUBLIC);
     routeSlug =
         given()
             .auth()
             .oauth2(getAccessToken(USERNAME_TEST))
-            .multiPart("name", "Download Test Route")
-            .multiPart("description", "Route for download testing")
-            .multiPart("visibility", "PUBLIC")
+            .multiPart("route", route, MediaType.APPLICATION_JSON)
             .multiPart("gpxFile", gpxFile, "application/gpx+xml")
             .when()
             .post("/api/teams/test-team/routes")

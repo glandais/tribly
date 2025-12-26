@@ -2781,7 +2781,7 @@
               "schema" : {
                 "type" : "object",
                 "properties" : {
-                  "routeRequest" : {
+                  "route" : {
                     "$ref" : "#/components/schemas/RouteRequest"
                   },
                   "gpxFile" : {
@@ -2791,7 +2791,7 @@
                 }
               },
               "encoding" : {
-                "routeRequest" : {
+                "route" : {
                   "contentType" : "application/json"
                 }
               }
@@ -2885,7 +2885,7 @@
               "schema" : {
                 "type" : "object",
                 "properties" : {
-                  "request" : {
+                  "route" : {
                     "$ref" : "#/components/schemas/RouteRequest"
                   },
                   "gpxFile" : {
@@ -2895,7 +2895,7 @@
                 }
               },
               "encoding" : {
-                "request" : {
+                "route" : {
                   "contentType" : "application/json"
                 }
               }

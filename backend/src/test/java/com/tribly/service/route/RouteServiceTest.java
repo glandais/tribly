@@ -277,9 +277,7 @@ class RouteServiceTest {
     assertEquals("Updated", updated.description());
     assertEquals(SurfaceType.GRAVEL, updated.surfaceType());
     assertEquals(Visibility.TEAM, updated.visibility());
-    assertEquals(
-        originalDistance,
-        updated.distance()); // Same file, so distance should match
+    assertEquals(originalDistance, updated.distance()); // Same file, so distance should match
   }
 
   // ==================== Delete Route ====================

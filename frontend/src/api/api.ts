@@ -2496,14 +2496,14 @@ export const RoutesApiAxiosParamCreator = function (configuration?: Configuratio
      * Create a new route by uploading a GPX file
      * @summary Create route
      * @param {string} slug Team URL slug
-     * @param {RouteRequest} [routeRequest]
+     * @param {RouteRequest} [route]
      * @param {File} [gpxFile]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     createRoute: async (
       slug: string,
-      routeRequest?: RouteRequest,
+      route?: RouteRequest,
       gpxFile?: File,
       options: RawAxiosRequestConfig = {}
     ): Promise<RequestArgs> => {
@@ -2527,10 +2527,10 @@ export const RoutesApiAxiosParamCreator = function (configuration?: Configuratio
 
       // authentication SecurityScheme required
 
-      if (routeRequest !== undefined) {
+      if (route !== undefined) {
         localVarFormParams.append(
-          'routeRequest',
-          new Blob([JSON.stringify(routeRequest)], { type: 'application/json' })
+          'route',
+          new Blob([JSON.stringify(route)], { type: 'application/json' })
         )
       }
 
@@ -2704,11 +2704,11 @@ export const RoutesApiAxiosParamCreator = function (configuration?: Configuratio
       }
     },
     /**
-     * Update route metadata (name, description, etc.). Does not update the GPX file.
+     * Update route metadata (name, description, etc.) and optionally replace the GPX file. If a new GPX file is provided, the old track data and climbs will be replaced.
      * @summary Update route
      * @param {string} routeSlug Route slug
      * @param {string} slug Team URL slug
-     * @param {RouteRequest} [request]
+     * @param {RouteRequest} [route]
      * @param {File} [gpxFile]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -2716,7 +2716,7 @@ export const RoutesApiAxiosParamCreator = function (configuration?: Configuratio
     updateRoute: async (
       routeSlug: string,
       slug: string,
-      request?: RouteRequest,
+      route?: RouteRequest,
       gpxFile?: File,
       options: RawAxiosRequestConfig = {}
     ): Promise<RequestArgs> => {
@@ -2741,10 +2741,10 @@ export const RoutesApiAxiosParamCreator = function (configuration?: Configuratio
 
       // authentication SecurityScheme required
 
-      if (request !== undefined) {
+      if (route !== undefined) {
         localVarFormParams.append(
-          'request',
-          new Blob([JSON.stringify(request)], { type: 'application/json' })
+          'route',
+          new Blob([JSON.stringify(route)], { type: 'application/json' })
         )
       }
 
@@ -2781,20 +2781,20 @@ export const RoutesApiFp = function (configuration?: Configuration) {
      * Create a new route by uploading a GPX file
      * @summary Create route
      * @param {string} slug Team URL slug
-     * @param {RouteRequest} [routeRequest]
+     * @param {RouteRequest} [route]
      * @param {File} [gpxFile]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     async createRoute(
       slug: string,
-      routeRequest?: RouteRequest,
+      route?: RouteRequest,
       gpxFile?: File,
       options?: RawAxiosRequestConfig
     ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<RouteDto>> {
       const localVarAxiosArgs = await localVarAxiosParamCreator.createRoute(
         slug,
-        routeRequest,
+        route,
         gpxFile,
         options
       )
@@ -2899,11 +2899,11 @@ export const RoutesApiFp = function (configuration?: Configuration) {
         )(axios, localVarOperationServerBasePath || basePath)
     },
     /**
-     * Update route metadata (name, description, etc.). Does not update the GPX file.
+     * Update route metadata (name, description, etc.) and optionally replace the GPX file. If a new GPX file is provided, the old track data and climbs will be replaced.
      * @summary Update route
      * @param {string} routeSlug Route slug
      * @param {string} slug Team URL slug
-     * @param {RouteRequest} [request]
+     * @param {RouteRequest} [route]
      * @param {File} [gpxFile]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -2911,14 +2911,14 @@ export const RoutesApiFp = function (configuration?: Configuration) {
     async updateRoute(
       routeSlug: string,
       slug: string,
-      request?: RouteRequest,
+      route?: RouteRequest,
       gpxFile?: File,
       options?: RawAxiosRequestConfig
     ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<RouteDto>> {
       const localVarAxiosArgs = await localVarAxiosParamCreator.updateRoute(
         routeSlug,
         slug,
-        request,
+        route,
         gpxFile,
         options
       )
@@ -2950,19 +2950,19 @@ export const RoutesApiFactory = function (
      * Create a new route by uploading a GPX file
      * @summary Create route
      * @param {string} slug Team URL slug
-     * @param {RouteRequest} [routeRequest]
+     * @param {RouteRequest} [route]
      * @param {File} [gpxFile]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     createRoute(
       slug: string,
-      routeRequest?: RouteRequest,
+      route?: RouteRequest,
       gpxFile?: File,
       options?: RawAxiosRequestConfig
     ): AxiosPromise<RouteDto> {
       return localVarFp
-        .createRoute(slug, routeRequest, gpxFile, options)
+        .createRoute(slug, route, gpxFile, options)
         .then((request) => request(axios, basePath))
     },
     /**
@@ -3021,11 +3021,11 @@ export const RoutesApiFactory = function (
         .then((request) => request(axios, basePath))
     },
     /**
-     * Update route metadata (name, description, etc.). Does not update the GPX file.
+     * Update route metadata (name, description, etc.) and optionally replace the GPX file. If a new GPX file is provided, the old track data and climbs will be replaced.
      * @summary Update route
      * @param {string} routeSlug Route slug
      * @param {string} slug Team URL slug
-     * @param {RouteRequest} [request]
+     * @param {RouteRequest} [route]
      * @param {File} [gpxFile]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -3033,12 +3033,12 @@ export const RoutesApiFactory = function (
     updateRoute(
       routeSlug: string,
       slug: string,
-      request?: RouteRequest,
+      route?: RouteRequest,
       gpxFile?: File,
       options?: RawAxiosRequestConfig
     ): AxiosPromise<RouteDto> {
       return localVarFp
-        .updateRoute(routeSlug, slug, request, gpxFile, options)
+        .updateRoute(routeSlug, slug, route, gpxFile, options)
         .then((request) => request(axios, basePath))
     },
   }
@@ -3052,19 +3052,19 @@ export class RoutesApi extends BaseAPI {
    * Create a new route by uploading a GPX file
    * @summary Create route
    * @param {string} slug Team URL slug
-   * @param {RouteRequest} [routeRequest]
+   * @param {RouteRequest} [route]
    * @param {File} [gpxFile]
    * @param {*} [options] Override http request option.
    * @throws {RequiredError}
    */
   public createRoute(
     slug: string,
-    routeRequest?: RouteRequest,
+    route?: RouteRequest,
     gpxFile?: File,
     options?: RawAxiosRequestConfig
   ) {
     return RoutesApiFp(this.configuration)
-      .createRoute(slug, routeRequest, gpxFile, options)
+      .createRoute(slug, route, gpxFile, options)
       .then((request) => request(this.axios, this.basePath))
   }
 
@@ -3119,11 +3119,11 @@ export class RoutesApi extends BaseAPI {
   }
 
   /**
-   * Update route metadata (name, description, etc.). Does not update the GPX file.
+   * Update route metadata (name, description, etc.) and optionally replace the GPX file. If a new GPX file is provided, the old track data and climbs will be replaced.
    * @summary Update route
    * @param {string} routeSlug Route slug
    * @param {string} slug Team URL slug
-   * @param {RouteRequest} [request]
+   * @param {RouteRequest} [route]
    * @param {File} [gpxFile]
    * @param {*} [options] Override http request option.
    * @throws {RequiredError}
@@ -3131,12 +3131,12 @@ export class RoutesApi extends BaseAPI {
   public updateRoute(
     routeSlug: string,
     slug: string,
-    request?: RouteRequest,
+    route?: RouteRequest,
     gpxFile?: File,
     options?: RawAxiosRequestConfig
   ) {
     return RoutesApiFp(this.configuration)
-      .updateRoute(routeSlug, slug, request, gpxFile, options)
+      .updateRoute(routeSlug, slug, route, gpxFile, options)
       .then((request) => request(this.axios, this.basePath))
   }
 }
