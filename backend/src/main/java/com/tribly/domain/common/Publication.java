@@ -15,7 +15,7 @@ import org.jspecify.annotations.Nullable;
 @Getter
 @Setter
 @Entity
-public abstract class TeamPublicationEntity extends TeamEntity {
+public abstract class Publication extends TeamEntity {
 
   @Enumerated(EnumType.STRING)
   @Column(name = "status", length = 20)
@@ -25,10 +25,9 @@ public abstract class TeamPublicationEntity extends TeamEntity {
   @Column(name = "publish_at")
   protected Instant publishAt;
 
-  public TeamPublicationEntity() {}
+  public Publication() {}
 
-  public TeamPublicationEntity(
-      Team team, User createdBy, String name, String slug, Instant dateTime) {
+  public Publication(Team team, User createdBy, String name, String slug, Instant dateTime) {
     this.team = team;
     this.createdBy = createdBy;
     this.name = name;

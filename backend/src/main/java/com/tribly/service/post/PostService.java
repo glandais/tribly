@@ -1,6 +1,6 @@
 package com.tribly.service.post;
 
-import com.tribly.domain.common.repository.TeamPublicationQuery;
+import com.tribly.domain.common.repository.PublicationQuery;
 import com.tribly.domain.common.repository.TriblyPage;
 import com.tribly.domain.post.Post;
 import com.tribly.domain.post.repository.PostRepository;
@@ -54,8 +54,8 @@ public class PostService extends TeamEntityService {
 
     PostQueryParams postQueryParams = getPostQueryParams(userId, status, team);
 
-    TeamPublicationQuery postQuery =
-        new TeamPublicationQuery(
+    PublicationQuery postQuery =
+        new PublicationQuery(
             team.getId(),
             page,
             size,
@@ -78,8 +78,8 @@ public class PostService extends TeamEntityService {
 
     PostQueryParams postQueryParams = getPostQueryParams(userId, null, team);
 
-    TeamPublicationQuery postQuery =
-        new TeamPublicationQuery(
+    PublicationQuery postQuery =
+        new PublicationQuery(
             team.getId(),
             0,
             1,

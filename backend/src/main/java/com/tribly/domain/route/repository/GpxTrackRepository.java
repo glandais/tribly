@@ -1,11 +1,11 @@
 package com.tribly.domain.route.repository;
 
+import com.tribly.domain.common.repository.BaseRepository;
 import com.tribly.domain.route.GpxTrack;
-import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
-public class GpxTrackRepository implements PanacheRepository<GpxTrack> {
+public class GpxTrackRepository implements BaseRepository<GpxTrack> {
 
   /**
    * Find the GPX track associated with a route.

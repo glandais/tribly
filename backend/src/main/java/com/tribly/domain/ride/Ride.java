@@ -1,6 +1,6 @@
 package com.tribly.domain.ride;
 
-import com.tribly.domain.common.TeamPublicationEntity;
+import com.tribly.domain.common.Publication;
 import com.tribly.domain.route.Route;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
@@ -16,7 +16,7 @@ import org.jspecify.annotations.Nullable;
 @Getter
 @Entity
 @DiscriminatorValue("1")
-public class Ride extends TeamPublicationEntity {
+public class Ride extends Publication {
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "route_id")

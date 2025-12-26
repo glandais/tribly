@@ -228,10 +228,7 @@ export interface MemberListResponse {
    */
   size: number
 }
-/**
- * Post summary data
- */
-export interface PostDto {
+export interface PostDto extends PublicationDto {
   /**
    * Post ID (TSID)
    */
@@ -324,9 +321,33 @@ export interface PublicUserDto {
   avatarUrl?: string
 }
 /**
- * Ride summary data
+ * @type PublicationDto
+ * Publication data
  */
-export interface RideDto {
+export type PublicationDto = ({ type: 'post' } & PostDto) | ({ type: 'ride' } & RideDto)
+
+/**
+ * Paginated publication list response
+ */
+export interface PublicationListResponse {
+  /**
+   * List of publications
+   */
+  publications: Array<PublicationDto>
+  /**
+   * Total number of publications
+   */
+  total: number
+  /**
+   * Current page number
+   */
+  page: number
+  /**
+   * Page size
+   */
+  size: number
+}
+export interface RideDto extends PublicationDto {
   /**
    * Ride ID (TSID)
    */
@@ -1599,6 +1620,206 @@ export class PostsApi extends BaseAPI {
   ) {
     return PostsApiFp(this.configuration)
       .updatePost(postSlug, slug, postRequest, options)
+      .then((request) => request(this.axios, this.basePath))
+  }
+}
+
+/**
+ * PublicationsApi - axios parameter creator
+ */
+export const PublicationsApiAxiosParamCreator = function (configuration?: Configuration) {
+  return {
+    /**
+     * Get paginated list of publications for a team with optional filtering
+     * @summary List publications
+     * @param {string} slug Team URL slug
+     * @param {string} [from] Start date filter (ISO format)
+     * @param {number} [page] Page number
+     * @param {number} [size] Page size
+     * @param {Status} [status] Status filter
+     * @param {string} [to] End date filter (ISO format)
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listPublications: async (
+      slug: string,
+      from?: string,
+      page?: number,
+      size?: number,
+      status?: Status,
+      to?: string,
+      options: RawAxiosRequestConfig = {}
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'slug' is not null or undefined
+      assertParamExists('listPublications', 'slug', slug)
+      const localVarPath = `/api/teams/{slug}/publications`.replace(
+        `{${'slug'}}`,
+        encodeURIComponent(String(slug))
+      )
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL)
+      let baseOptions
+      if (configuration) {
+        baseOptions = configuration.baseOptions
+      }
+
+      const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options }
+      const localVarHeaderParameter = {} as any
+      const localVarQueryParameter = {} as any
+
+      if (from !== undefined) {
+        localVarQueryParameter['from'] = from
+      }
+
+      if (page !== undefined) {
+        localVarQueryParameter['page'] = page
+      }
+
+      if (size !== undefined) {
+        localVarQueryParameter['size'] = size
+      }
+
+      if (status !== undefined) {
+        localVarQueryParameter['status'] = status
+      }
+
+      if (to !== undefined) {
+        localVarQueryParameter['to'] = to
+      }
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter)
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {}
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      }
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      }
+    },
+  }
+}
+
+/**
+ * PublicationsApi - functional programming interface
+ */
+export const PublicationsApiFp = function (configuration?: Configuration) {
+  const localVarAxiosParamCreator = PublicationsApiAxiosParamCreator(configuration)
+  return {
+    /**
+     * Get paginated list of publications for a team with optional filtering
+     * @summary List publications
+     * @param {string} slug Team URL slug
+     * @param {string} [from] Start date filter (ISO format)
+     * @param {number} [page] Page number
+     * @param {number} [size] Page size
+     * @param {Status} [status] Status filter
+     * @param {string} [to] End date filter (ISO format)
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async listPublications(
+      slug: string,
+      from?: string,
+      page?: number,
+      size?: number,
+      status?: Status,
+      to?: string,
+      options?: RawAxiosRequestConfig
+    ): Promise<
+      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<PublicationListResponse>
+    > {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.listPublications(
+        slug,
+        from,
+        page,
+        size,
+        status,
+        to,
+        options
+      )
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0
+      const localVarOperationServerBasePath =
+        operationServerMap['PublicationsApi.listPublications']?.[localVarOperationServerIndex]?.url
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration
+        )(axios, localVarOperationServerBasePath || basePath)
+    },
+  }
+}
+
+/**
+ * PublicationsApi - factory interface
+ */
+export const PublicationsApiFactory = function (
+  configuration?: Configuration,
+  basePath?: string,
+  axios?: AxiosInstance
+) {
+  const localVarFp = PublicationsApiFp(configuration)
+  return {
+    /**
+     * Get paginated list of publications for a team with optional filtering
+     * @summary List publications
+     * @param {string} slug Team URL slug
+     * @param {string} [from] Start date filter (ISO format)
+     * @param {number} [page] Page number
+     * @param {number} [size] Page size
+     * @param {Status} [status] Status filter
+     * @param {string} [to] End date filter (ISO format)
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listPublications(
+      slug: string,
+      from?: string,
+      page?: number,
+      size?: number,
+      status?: Status,
+      to?: string,
+      options?: RawAxiosRequestConfig
+    ): AxiosPromise<PublicationListResponse> {
+      return localVarFp
+        .listPublications(slug, from, page, size, status, to, options)
+        .then((request) => request(axios, basePath))
+    },
+  }
+}
+
+/**
+ * PublicationsApi - object-oriented interface
+ */
+export class PublicationsApi extends BaseAPI {
+  /**
+   * Get paginated list of publications for a team with optional filtering
+   * @summary List publications
+   * @param {string} slug Team URL slug
+   * @param {string} [from] Start date filter (ISO format)
+   * @param {number} [page] Page number
+   * @param {number} [size] Page size
+   * @param {Status} [status] Status filter
+   * @param {string} [to] End date filter (ISO format)
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   */
+  public listPublications(
+    slug: string,
+    from?: string,
+    page?: number,
+    size?: number,
+    status?: Status,
+    to?: string,
+    options?: RawAxiosRequestConfig
+  ) {
+    return PublicationsApiFp(this.configuration)
+      .listPublications(slug, from, page, size, status, to, options)
       .then((request) => request(this.axios, this.basePath))
   }
 }

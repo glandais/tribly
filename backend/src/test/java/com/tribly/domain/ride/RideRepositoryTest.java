@@ -2,7 +2,7 @@ package com.tribly.domain.ride;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.tribly.domain.common.repository.TeamPublicationQuery;
+import com.tribly.domain.common.repository.PublicationQuery;
 import com.tribly.domain.common.repository.TriblyPage;
 import com.tribly.domain.ride.repository.RideRepository;
 import com.tribly.domain.team.Team;
@@ -52,8 +52,8 @@ class RideRepositoryTest {
         "ride-2",
         LocalDate.of(2025, 1, 20).atTime(0, 0).toInstant(ZoneOffset.UTC));
 
-    TeamPublicationQuery query =
-        new TeamPublicationQuery(
+    PublicationQuery query =
+        new PublicationQuery(
             team.getId(), 0, 10, null, null, null, null, List.of(Status.PUBLISHED));
     TriblyPage<Ride> result = rideRepository.find(query);
 
@@ -76,8 +76,8 @@ class RideRepositoryTest {
         "ride-2",
         LocalDate.of(2025, 1, 20).atTime(0, 0).toInstant(ZoneOffset.UTC));
 
-    TeamPublicationQuery query =
-        new TeamPublicationQuery(
+    PublicationQuery query =
+        new PublicationQuery(
             team.getId(), 0, 10, "ride-1", null, null, null, List.of(Status.PUBLISHED));
     TriblyPage<Ride> result = rideRepository.find(query);
 
@@ -106,8 +106,8 @@ class RideRepositoryTest {
         "ride-3",
         LocalDate.of(2025, 1, 30).atTime(0, 0).toInstant(ZoneOffset.UTC));
 
-    TeamPublicationQuery query =
-        new TeamPublicationQuery(
+    PublicationQuery query =
+        new PublicationQuery(
             team.getId(),
             0,
             10,
@@ -139,8 +139,8 @@ class RideRepositoryTest {
         LocalDate.of(2025, 1, 20).atTime(0, 0).toInstant(ZoneOffset.UTC),
         Visibility.TEAM);
 
-    TeamPublicationQuery query =
-        new TeamPublicationQuery(
+    PublicationQuery query =
+        new PublicationQuery(
             team.getId(), 0, 10, null, Visibility.PUBLIC, null, null, List.of(Status.DRAFT));
     TriblyPage<Ride> result = rideRepository.find(query);
 
@@ -165,8 +165,8 @@ class RideRepositoryTest {
         LocalDate.of(2025, 1, 20).atTime(0, 0).toInstant(ZoneOffset.UTC),
         Status.PUBLISHED);
 
-    TeamPublicationQuery query =
-        new TeamPublicationQuery(
+    PublicationQuery query =
+        new PublicationQuery(
             team.getId(), 0, 10, null, null, null, null, List.of(Status.PUBLISHED));
     TriblyPage<Ride> result = rideRepository.find(query);
 
@@ -191,8 +191,8 @@ class RideRepositoryTest {
             LocalDate.of(2025, 1, 20).atTime(0, 0).toInstant(ZoneOffset.UTC));
     dataService.deleteRide(deletedRide);
 
-    TeamPublicationQuery query =
-        new TeamPublicationQuery(
+    PublicationQuery query =
+        new PublicationQuery(
             team.getId(), 0, 10, null, null, null, null, List.of(Status.PUBLISHED));
     TriblyPage<Ride> result = rideRepository.find(query);
 

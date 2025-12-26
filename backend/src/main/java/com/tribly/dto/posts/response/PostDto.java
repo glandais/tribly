@@ -1,6 +1,7 @@
 package com.tribly.dto.posts.response;
 
 import com.tribly.domain.post.Post;
+import com.tribly.dto.publications.response.PublicationDto;
 import com.tribly.enums.Status;
 import com.tribly.enums.Visibility;
 import com.tribly.infrastructure.id.TsidUtils;
@@ -9,7 +10,7 @@ import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.jspecify.annotations.Nullable;
 
 // Response DTOs
-@Schema(description = "Post summary data")
+@Schema(description = "Post summary data", allOf = PublicationDto.class)
 public record PostDto(
     @Schema(description = "Post ID (TSID)", required = true) String id,
     @Schema(description = "Post URL slug", required = true) String slug,
@@ -19,7 +20,8 @@ public record PostDto(
     @Schema(description = "Post status", required = true) Status status,
     @Schema(description = "Visibility level", required = true) Visibility visibility,
     @Nullable @Schema(description = "Publication timestamp") Instant publishAt,
-    @Nullable @Schema(description = "Creation timestamp") Instant createdAt) {
+    @Nullable @Schema(description = "Creation timestamp") Instant createdAt)
+    implements PublicationDto {
   public static PostDto from(Post post) {
     return new PostDto(
         TsidUtils.toString(post.getId()),

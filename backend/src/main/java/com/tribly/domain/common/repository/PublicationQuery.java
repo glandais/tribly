@@ -6,7 +6,7 @@ import java.time.Instant;
 import java.util.List;
 import org.jspecify.annotations.Nullable;
 
-public record TeamPublicationQuery(
+public record PublicationQuery(
     long teamId,
     int page,
     int size,

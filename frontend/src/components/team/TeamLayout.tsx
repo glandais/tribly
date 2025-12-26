@@ -11,7 +11,7 @@ import { MarkdownDisplay } from '../../components/common/MarkdownDisplay'
 
 interface TeamLayoutProps {
   team: TeamDetailDto
-  currentTab: 'rides' | 'posts' | 'routes' | 'members'
+  currentTab: 'publications' | 'rides' | 'posts' | 'routes' | 'members'
   children: React.ReactNode
 }
 
@@ -42,6 +42,11 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
   }
 
   const tabs = [
+    {
+      id: 'publications',
+      path: `/teams/${team.slug}/publications`,
+      label: t('detail.tabs.publications'),
+    },
     { id: 'rides', path: `/teams/${team.slug}/rides`, label: t('detail.tabs.rides') },
     { id: 'posts', path: `/teams/${team.slug}/posts`, label: t('detail.tabs.posts') },
     { id: 'routes', path: `/teams/${team.slug}/routes`, label: t('detail.tabs.routes') },

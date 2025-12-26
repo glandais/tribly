@@ -43,6 +43,10 @@
     "minLength": "Minimum {{min}} caractères",
     "maxLength": "Maximum {{max}} caractères"
   },
+  "publicationType": {
+    "ride": "Sortie",
+    "post": "Publication"
+  },
   "units": {
     "member": "membre",
     "member_plural": "membres",

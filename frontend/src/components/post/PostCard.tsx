@@ -9,6 +9,7 @@ import { useFormattedDate } from '../../utils/dateFormat'
 interface PostCardProps {
   post: PostDto
   teamSlug: string
+  showTypeBadge?: boolean
 }
 
 const statusVariants: Record<Status, 'gray' | 'green' | 'red' | 'blue'> = {
@@ -17,8 +18,9 @@ const statusVariants: Record<Status, 'gray' | 'green' | 'red' | 'blue'> = {
   [Status.Cancelled]: 'red',
 }
 
-export function PostCard({ post, teamSlug }: PostCardProps) {
+export function PostCard({ post, teamSlug, showTypeBadge = false }: PostCardProps) {
   const { t } = useTranslation('posts')
+  const { t: tCommon } = useTranslation('common')
   const { formatDateTime } = useFormattedDate()
   const formattedDate = formatDateTime(post.dateTime)
 
@@ -33,6 +35,7 @@ export function PostCard({ post, teamSlug }: PostCardProps) {
             {post.description && <CardDescription markdown={true} content={post.description} />}
           </div>
           <div className="ml-3 flex flex-col items-end gap-1">
+            {showTypeBadge && <Badge variant="purple">{tCommon('publicationType.post')}</Badge>}
             <Badge variant={statusVariants[post.status]}>{t(`status.${post.status}`)}</Badge>
             <VisibilityBadge visibility={post.visibility} />
           </div>

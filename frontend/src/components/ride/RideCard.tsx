@@ -9,6 +9,7 @@ import { useFormattedDate } from '../../utils/dateFormat'
 interface RideCardProps {
   ride: RideDto
   teamSlug: string
+  showTypeBadge?: boolean
 }
 
 const statusVariants: Record<Status, 'gray' | 'green' | 'red'> = {
@@ -17,8 +18,9 @@ const statusVariants: Record<Status, 'gray' | 'green' | 'red'> = {
   [Status.Cancelled]: 'red',
 }
 
-export function RideCard({ ride, teamSlug }: RideCardProps) {
+export function RideCard({ ride, teamSlug, showTypeBadge = false }: RideCardProps) {
   const { t } = useTranslation('rides')
+  const { t: tCommon } = useTranslation('common')
   const { formatDateTime } = useFormattedDate()
   const formattedDate = formatDateTime(ride.dateTime)
 
@@ -35,6 +37,7 @@ export function RideCard({ ride, teamSlug }: RideCardProps) {
             {ride.description && <CardDescription markdown={true} content={ride.description} />}
           </div>
           <div className="ml-3 flex flex-col items-end gap-1">
+            {showTypeBadge && <Badge variant="indigo">{tCommon('publicationType.ride')}</Badge>}
             <Badge variant={statusVariants[ride.status]}>{t(`status.${ride.status}`)}</Badge>
             <VisibilityBadge visibility={ride.visibility} />
           </div>

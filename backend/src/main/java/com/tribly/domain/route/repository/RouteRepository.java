@@ -1,6 +1,7 @@
 package com.tribly.domain.route.repository;
 
-import com.tribly.domain.common.repository.TeamEntityRepository;
+import com.tribly.domain.common.repository.BaseRepository;
+import com.tribly.domain.common.repository.EntityWithSlugRepository;
 import com.tribly.domain.common.repository.TriblyPage;
 import com.tribly.domain.common.repository.TriblyQuery;
 import com.tribly.domain.route.Route;
@@ -8,7 +9,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import java.util.Map;
 
 @ApplicationScoped
-public class RouteRepository extends TeamEntityRepository<Route> {
+public class RouteRepository implements BaseRepository<Route>, EntityWithSlugRepository<Route> {
 
   @Override
   public Class<Route> getEntityClass() {

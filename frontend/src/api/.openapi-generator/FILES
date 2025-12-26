@@ -24,6 +24,9 @@ docs/PostListResponse.md
 docs/PostRequest.md
 docs/PostsApi.md
 docs/PublicUserDto.md
+docs/PublicationDto.md
+docs/PublicationListResponse.md
+docs/PublicationsApi.md
 docs/RideDto.md
 docs/RideGroupDto.md
 docs/RideGroupListResponse.md

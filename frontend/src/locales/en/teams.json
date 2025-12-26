@@ -62,6 +62,7 @@
       "message": "There was an error loading this team. Please try again."
     },
     "tabs": {
+      "publications": "Feed",
       "rides": "Rides",
       "posts": "Posts",
       "routes": "Routes",
@@ -136,5 +137,12 @@
   "card": {
     "memberCount": "{{count}} member",
     "memberCount_plural": "{{count}} members"
+  },
+  "publications": {
+    "list": {
+      "title": "Feed",
+      "empty": "No publications yet",
+      "emptyDescription": "Posts and rides will appear here once published"
+    }
   }
 }

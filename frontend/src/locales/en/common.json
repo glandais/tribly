@@ -43,6 +43,10 @@
     "minLength": "Minimum {{min}} characters",
     "maxLength": "Maximum {{max}} characters"
   },
+  "publicationType": {
+    "ride": "Ride",
+    "post": "Post"
+  },
   "units": {
     "member": "member",
     "member_plural": "members",

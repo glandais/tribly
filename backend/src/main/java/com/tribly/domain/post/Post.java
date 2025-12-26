@@ -1,6 +1,6 @@
 package com.tribly.domain.post;
 
-import com.tribly.domain.common.TeamPublicationEntity;
+import com.tribly.domain.common.Publication;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
 import jakarta.persistence.*;
@@ -12,7 +12,7 @@ import lombok.Setter;
 @Getter
 @Entity
 @DiscriminatorValue("3")
-public class Post extends TeamPublicationEntity {
+public class Post extends Publication {
 
   public Post() {
     super();

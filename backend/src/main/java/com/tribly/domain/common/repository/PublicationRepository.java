@@ -1,15 +1,16 @@
 package com.tribly.domain.common.repository;
 
-import com.tribly.domain.common.TeamPublicationEntity;
+import com.tribly.domain.common.Publication;
 import com.tribly.enums.Status;
+import jakarta.enterprise.context.ApplicationScoped;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 
-public abstract class TeamPublicationRepository<T extends TeamPublicationEntity>
-    extends TeamEntityRepository<T> {
+@ApplicationScoped
+public interface PublicationRepository<T extends Publication> extends BaseRepository<T> {
 
-  public TriblyPage<T> find(TeamPublicationQuery rideQuery) {
+  default TriblyPage<T> find(PublicationQuery rideQuery) {
     TriblyQuery triblyQuery =
         new TriblyQuery()
             .and("team.id = :teamId", Map.of("teamId", rideQuery.teamId()))
@@ -36,7 +37,7 @@ public abstract class TeamPublicationRepository<T extends TeamPublicationEntity>
   /**
    * Find rides that should be auto-published (DRAFT status with publishAt in the past).
    */
-  public List<T> findPublicationsToAutoPublish(Status status, Instant now) {
+  default List<T> findPublicationsToAutoPublish(Status status, Instant now) {
     return find(
             "status = ?1 and publishAt is not null and publishAt <= ?2 and deleted = false",
             status,

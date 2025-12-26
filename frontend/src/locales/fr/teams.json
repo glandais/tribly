@@ -62,6 +62,7 @@
       "message": "Une erreur est survenue lors du chargement de cette équipe. Veuillez réessayer."
     },
     "tabs": {
+      "publications": "Activités",
       "rides": "Sorties",
       "posts": "Publications",
       "routes": "Itinéraires",
@@ -136,5 +137,12 @@
   "card": {
     "memberCount": "{{count}} membre",
     "memberCount_plural": "{{count}} membres"
+  },
+  "publications": {
+    "list": {
+      "title": "Activités",
+      "empty": "Aucune activité pour le moment",
+      "emptyDescription": "Les publications et sorties apparaîtront ici une fois publiées"
+    }
   }
 }

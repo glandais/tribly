@@ -1,6 +1,7 @@
 package com.tribly.dto.rides.response;
 
 import com.tribly.domain.ride.Ride;
+import com.tribly.dto.publications.response.PublicationDto;
 import com.tribly.enums.Status;
 import com.tribly.enums.Visibility;
 import com.tribly.infrastructure.id.TsidUtils;
@@ -10,7 +11,7 @@ import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.jspecify.annotations.Nullable;
 
 // Response DTOs
-@Schema(description = "Ride summary data")
+@Schema(description = "Ride summary data", allOf = PublicationDto.class)
 public record RideDto(
     @Schema(description = "Ride ID (TSID)", required = true) String id,
     @Schema(description = "Ride URL slug", required = true) String slug,
@@ -24,7 +25,8 @@ public record RideDto(
     @Schema(description = "Number of groups", required = true) int groupCount,
     @Schema(description = "Ride groups", required = true) List<RideGroupDto> groups,
     @Nullable @Schema(description = "Publication timestamp") Instant publishAt,
-    @Nullable @Schema(description = "Creation timestamp") Instant createdAt) {
+    @Nullable @Schema(description = "Creation timestamp") Instant createdAt)
+    implements PublicationDto {
   public static RideDto from(Ride ride, boolean groupDetails) {
     List<RideGroupDto> groupDtos =
         groupDetails

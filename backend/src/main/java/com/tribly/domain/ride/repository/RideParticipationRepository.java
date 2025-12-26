@@ -1,12 +1,12 @@
 package com.tribly.domain.ride.repository;
 
+import com.tribly.domain.common.repository.BaseRepository;
 import com.tribly.domain.ride.RideParticipation;
-import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.util.Optional;
 
 @ApplicationScoped
-public class RideParticipationRepository implements PanacheRepository<RideParticipation> {
+public class RideParticipationRepository implements BaseRepository<RideParticipation> {
 
   public Optional<RideParticipation> findByUserAndGroup(Long userId, Long groupId) {
     return find("user.id = ?1 and rideGroup.id = ?2 and deleted = false", userId, groupId)

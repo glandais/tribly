@@ -1,6 +1,6 @@
 package com.tribly.service.ride;
 
-import com.tribly.domain.common.repository.TeamPublicationQuery;
+import com.tribly.domain.common.repository.PublicationQuery;
 import com.tribly.domain.common.repository.TriblyPage;
 import com.tribly.domain.ride.Ride;
 import com.tribly.domain.ride.RideGroup;
@@ -68,8 +68,8 @@ public class RideService extends TeamEntityService {
 
     RideQueryParams rideQueryParams = getRideQueryParams(userId, status, team);
 
-    TeamPublicationQuery rideQuery =
-        new TeamPublicationQuery(
+    PublicationQuery rideQuery =
+        new PublicationQuery(
             team.getId(),
             page,
             size,
@@ -92,8 +92,8 @@ public class RideService extends TeamEntityService {
 
     RideQueryParams rideQueryParams = getRideQueryParams(userId, null, team);
 
-    TeamPublicationQuery rideQuery =
-        new TeamPublicationQuery(
+    PublicationQuery rideQuery =
+        new PublicationQuery(
             team.getId(),
             0,
             1,

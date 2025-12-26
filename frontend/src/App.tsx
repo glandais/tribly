@@ -21,6 +21,7 @@ import { PostListPage } from './pages/post/PostListPage'
 import { PostDetailPage } from './pages/post/PostDetailPage'
 import { CreatePostPage } from './pages/post/CreatePostPage'
 import { EditPostPage } from './pages/post/EditPostPage'
+import { PublicationListPage } from './pages/publication/PublicationListPage'
 import { RouteListPage } from './pages/route/RouteListPage'
 import { RouteDetailPage } from './pages/route/RouteDetailPage'
 import { CreateRoutePage } from './pages/route/CreateRoutePage'
@@ -141,6 +142,9 @@ function App() {
                 </AuthenticatedRoute>
               }
             />
+
+            {/* Publications route */}
+            <Route path="teams/:teamSlug/publications" element={<PublicationListPage />} />
 
             {/* Ride routes */}
             <Route path="teams/:teamSlug/rides" element={<RideListPage />} />
