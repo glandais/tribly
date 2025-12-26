@@ -1630,6 +1630,64 @@ export class PostsApi extends BaseAPI {
 export const PublicationsApiAxiosParamCreator = function (configuration?: Configuration) {
   return {
     /**
+     * Get publications from all accessible teams (user\'s teams + public teams)
+     * @summary List all publications
+     * @param {string} [from] Start date filter (ISO format)
+     * @param {number} [page] Page number
+     * @param {number} [size] Page size
+     * @param {string} [to] End date filter (ISO format)
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listAllPublications: async (
+      from?: string,
+      page?: number,
+      size?: number,
+      to?: string,
+      options: RawAxiosRequestConfig = {}
+    ): Promise<RequestArgs> => {
+      const localVarPath = `/api/publications`
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL)
+      let baseOptions
+      if (configuration) {
+        baseOptions = configuration.baseOptions
+      }
+
+      const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options }
+      const localVarHeaderParameter = {} as any
+      const localVarQueryParameter = {} as any
+
+      if (from !== undefined) {
+        localVarQueryParameter['from'] = from
+      }
+
+      if (page !== undefined) {
+        localVarQueryParameter['page'] = page
+      }
+
+      if (size !== undefined) {
+        localVarQueryParameter['size'] = size
+      }
+
+      if (to !== undefined) {
+        localVarQueryParameter['to'] = to
+      }
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter)
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {}
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      }
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      }
+    },
+    /**
      * Get paginated list of publications for a team with optional filtering
      * @summary List publications
      * @param {string} slug Team URL slug
@@ -1710,6 +1768,44 @@ export const PublicationsApiFp = function (configuration?: Configuration) {
   const localVarAxiosParamCreator = PublicationsApiAxiosParamCreator(configuration)
   return {
     /**
+     * Get publications from all accessible teams (user\'s teams + public teams)
+     * @summary List all publications
+     * @param {string} [from] Start date filter (ISO format)
+     * @param {number} [page] Page number
+     * @param {number} [size] Page size
+     * @param {string} [to] End date filter (ISO format)
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async listAllPublications(
+      from?: string,
+      page?: number,
+      size?: number,
+      to?: string,
+      options?: RawAxiosRequestConfig
+    ): Promise<
+      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<PublicationListResponse>
+    > {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.listAllPublications(
+        from,
+        page,
+        size,
+        to,
+        options
+      )
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0
+      const localVarOperationServerBasePath =
+        operationServerMap['PublicationsApi.listAllPublications']?.[localVarOperationServerIndex]
+          ?.url
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration
+        )(axios, localVarOperationServerBasePath || basePath)
+    },
+    /**
      * Get paginated list of publications for a team with optional filtering
      * @summary List publications
      * @param {string} slug Team URL slug
@@ -1766,6 +1862,27 @@ export const PublicationsApiFactory = function (
   const localVarFp = PublicationsApiFp(configuration)
   return {
     /**
+     * Get publications from all accessible teams (user\'s teams + public teams)
+     * @summary List all publications
+     * @param {string} [from] Start date filter (ISO format)
+     * @param {number} [page] Page number
+     * @param {number} [size] Page size
+     * @param {string} [to] End date filter (ISO format)
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listAllPublications(
+      from?: string,
+      page?: number,
+      size?: number,
+      to?: string,
+      options?: RawAxiosRequestConfig
+    ): AxiosPromise<PublicationListResponse> {
+      return localVarFp
+        .listAllPublications(from, page, size, to, options)
+        .then((request) => request(axios, basePath))
+    },
+    /**
      * Get paginated list of publications for a team with optional filtering
      * @summary List publications
      * @param {string} slug Team URL slug
@@ -1797,6 +1914,28 @@ export const PublicationsApiFactory = function (
  * PublicationsApi - object-oriented interface
  */
 export class PublicationsApi extends BaseAPI {
+  /**
+   * Get publications from all accessible teams (user\'s teams + public teams)
+   * @summary List all publications
+   * @param {string} [from] Start date filter (ISO format)
+   * @param {number} [page] Page number
+   * @param {number} [size] Page size
+   * @param {string} [to] End date filter (ISO format)
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   */
+  public listAllPublications(
+    from?: string,
+    page?: number,
+    size?: number,
+    to?: string,
+    options?: RawAxiosRequestConfig
+  ) {
+    return PublicationsApiFp(this.configuration)
+      .listAllPublications(from, page, size, to, options)
+      .then((request) => request(this.axios, this.basePath))
+  }
+
   /**
    * Get paginated list of publications for a team with optional filtering
    * @summary List publications

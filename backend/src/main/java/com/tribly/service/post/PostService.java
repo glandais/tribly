@@ -1,10 +1,10 @@
 package com.tribly.service.post;
 
-import com.tribly.domain.common.repository.PublicationQuery;
+import com.tribly.domain.common.repository.TeamEntityQueryBasic;
+import com.tribly.domain.common.repository.TeamEntityRepository;
 import com.tribly.domain.common.repository.TriblyPage;
 import com.tribly.domain.post.Post;
 import com.tribly.domain.post.repository.PostRepository;
-import com.tribly.domain.route.repository.RouteRepository;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.team.repository.TeamRepository;
 import com.tribly.domain.user.User;
@@ -15,19 +15,20 @@ import com.tribly.dto.posts.response.PostListResponse;
 import com.tribly.enums.Status;
 import com.tribly.enums.Visibility;
 import com.tribly.infrastructure.exception.BusinessException;
+import com.tribly.service.common.BasicQuery;
 import com.tribly.service.common.SlugService;
 import com.tribly.service.common.TeamEntityService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import org.jboss.logging.Logger;
 import org.jspecify.annotations.Nullable;
 
 @ApplicationScoped
-public class PostService extends TeamEntityService {
+public class PostService extends TeamEntityService<Post, BasicQuery, TeamEntityQueryBasic> {
 
   private static final Logger LOG = Logger.getLogger(PostService.class);
 
@@ -37,96 +38,45 @@ public class PostService extends TeamEntityService {
 
   @Inject UserRepository userRepository;
 
-  @Inject RouteRepository routeRepository;
-
   @Inject SlugService slugService;
 
+  @Override
+  protected TeamEntityRepository<Post, TeamEntityQueryBasic> getRepository() {
+    return postRepository;
+  }
+
+  @Override
+  protected TeamEntityQueryBasic getQuery(
+      BasicQuery query, Set<Long> memberTeamIds, Set<Long> organizerTeamIds) {
+    return query.getTeamEntityQueryBasic(memberTeamIds, organizerTeamIds);
+  }
+
   public PostListResponse listPosts(
-      String slug,
+      String teamSlug,
       @Nullable Long userId,
       @Nullable Instant from,
       @Nullable Instant to,
       @Nullable Status status,
       int page,
       int size) {
-    Team team =
-        teamRepository.findBySlug(slug).orElseThrow(() -> BusinessException.notFound("Team", slug));
-
-    PostQueryParams postQueryParams = getPostQueryParams(userId, status, team);
-
-    PublicationQuery postQuery =
-        new PublicationQuery(
-            team.getId(),
-            page,
-            size,
-            null,
-            postQueryParams.visibility(),
-            from,
-            to,
-            postQueryParams.statuses());
-    TriblyPage<Post> postTriblyPage = postRepository.find(postQuery);
-
-    List<PostDto> dtos = postTriblyPage.items().stream().map(PostDto::from).toList();
-    return new PostListResponse(dtos, postTriblyPage.total(), page, size);
+    TriblyPage<Post> posts =
+        list(new BasicQuery(null, Set.of(teamSlug), userId, status, null, from, to, page, size));
+    List<PostDto> dtos = posts.items().stream().map(PostDto::from).toList();
+    return new PostListResponse(dtos, posts.total(), page, size);
   }
 
   protected Post getPost(String teamSlug, String postSlug, @Nullable Long userId) {
-    Team team =
-        teamRepository
-            .findBySlug(teamSlug)
-            .orElseThrow(() -> BusinessException.notFound("Team", teamSlug));
-
-    PostQueryParams postQueryParams = getPostQueryParams(userId, null, team);
-
-    PublicationQuery postQuery =
-        new PublicationQuery(
-            team.getId(),
-            0,
-            1,
-            postSlug,
-            postQueryParams.visibility(),
-            null,
-            null,
-            postQueryParams.statuses());
-    TriblyPage<Post> triblyPage = postRepository.find(postQuery);
-    if (triblyPage.items().isEmpty()) {
+    TriblyPage<Post> posts =
+        list(new BasicQuery(postSlug, Set.of(teamSlug), userId, null, null, null, null, 0, 1));
+    if (posts.items().isEmpty()) {
       throw BusinessException.notFound("Post", postSlug);
     } else {
-      return triblyPage.items().getFirst();
+      return posts.items().getFirst();
     }
   }
 
   public PostDto getPostDetail(String teamSlug, String postSlug, @Nullable Long userId) {
     return PostDto.from(getPost(teamSlug, postSlug, userId));
-  }
-
-  private record PostQueryParams(List<Status> statuses, @Nullable Visibility visibility) {}
-
-  private PostQueryParams getPostQueryParams(
-      @Nullable Long userId, @Nullable Status status, Team team) {
-    boolean canSeeDrafts = securityService.canSeeDrafts(userId, team);
-    List<Status> statuses = getPostStatuses(status, canSeeDrafts);
-
-    Visibility visibility = getVisibility(userId, team);
-    return new PostQueryParams(statuses, visibility);
-  }
-
-  private List<Status> getPostStatuses(@Nullable Status status, boolean canSeeDrafts) {
-    List<Status> statuses;
-    if (status == null) {
-      if (canSeeDrafts) {
-        statuses = Arrays.asList(Status.values());
-      } else {
-        statuses = List.of(Status.PUBLISHED, Status.CANCELLED);
-      }
-    } else {
-      if (status.equals(Status.DRAFT) && !canSeeDrafts) {
-        statuses = List.of();
-      } else {
-        statuses = List.of(status);
-      }
-    }
-    return statuses;
   }
 
   @Transactional

@@ -1,12 +1,12 @@
 package com.tribly.service.route;
 
+import com.tribly.domain.common.repository.TeamEntityQueryBasic;
 import com.tribly.domain.common.repository.TriblyPage;
 import com.tribly.domain.route.GpxTrack;
 import com.tribly.domain.route.Route;
 import com.tribly.domain.route.RouteClimb;
 import com.tribly.domain.route.repository.GpxTrackRepository;
 import com.tribly.domain.route.repository.RouteClimbRepository;
-import com.tribly.domain.route.repository.RouteQuery;
 import com.tribly.domain.route.repository.RouteRepository;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.team.repository.TeamRepository;
@@ -14,8 +14,8 @@ import com.tribly.domain.user.User;
 import com.tribly.domain.user.repository.UserRepository;
 import com.tribly.dto.routes.request.RouteRequest;
 import com.tribly.dto.routes.response.*;
-import com.tribly.enums.Visibility;
 import com.tribly.infrastructure.exception.BusinessException;
+import com.tribly.service.common.BasicQuery;
 import com.tribly.service.common.SlugService;
 import com.tribly.service.common.TeamEntityService;
 import com.tribly.service.route.response.FileResult;
@@ -30,6 +30,7 @@ import java.io.InputStream;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
+import java.util.Set;
 import org.jboss.logging.Logger;
 import org.jspecify.annotations.Nullable;
 
@@ -38,7 +39,7 @@ import org.jspecify.annotations.Nullable;
  * Handles CRUD operations, GPX processing orchestration, and security checks.
  */
 @ApplicationScoped
-public class RouteService extends TeamEntityService {
+public class RouteService extends TeamEntityService<Route, BasicQuery, TeamEntityQueryBasic> {
 
   private static final Logger LOG = Logger.getLogger(RouteService.class);
 
@@ -55,6 +56,16 @@ public class RouteService extends TeamEntityService {
   @Inject GpxProcessingService gpxProcessingService;
 
   @Inject SlugService slugService;
+
+  public RouteRepository getRepository() {
+    return routeRepository;
+  }
+
+  @Override
+  protected TeamEntityQueryBasic getQuery(
+      BasicQuery query, Set<Long> memberTeamIds, Set<Long> organizerTeamIds) {
+    return query.getTeamEntityQueryBasic(memberTeamIds, organizerTeamIds);
+  }
 
   /**
    * Create a new route with GPX upload.
@@ -172,21 +183,13 @@ public class RouteService extends TeamEntityService {
     return RouteDetailDto.from(route, climbs, gpxTrack);
   }
 
-  private Route getRouteEntity(String teamSlug, String slug, @Nullable Long userId) {
-    Team team =
-        teamRepository
-            .findBySlug(teamSlug)
-            .orElseThrow(() -> BusinessException.notFound("Team", teamSlug));
-
-    RouteQueryParams routeQueryParams = getRouteQueryParams(userId, team);
-
-    RouteQuery routeQuery =
-        new RouteQuery(team.getId(), 0, 1, slug, routeQueryParams.visibility(), null);
-    TriblyPage<Route> triblyPage = routeRepository.find(routeQuery);
-    if (triblyPage.items().isEmpty()) {
-      throw BusinessException.notFound("Route", slug);
+  private Route getRouteEntity(String teamSlug, String routeSlug, @Nullable Long userId) {
+    TriblyPage<Route> routes =
+        list(new BasicQuery(routeSlug, Set.of(teamSlug), userId, null, null, null, null, 0, 1));
+    if (routes.items().isEmpty()) {
+      throw BusinessException.notFound("Route", routeSlug);
     } else {
-      return triblyPage.items().getFirst();
+      return routes.items().getFirst();
     }
   }
 
@@ -194,24 +197,11 @@ public class RouteService extends TeamEntityService {
    * List routes for a team with pagination and access control.
    */
   public RouteListResponse getRoutes(
-      String slug, @Nullable Long userId, int page, int size, @Nullable String search) {
-    Team team =
-        teamRepository.findBySlug(slug).orElseThrow(() -> BusinessException.notFound("Team", slug));
-
-    RouteQueryParams routeQueryParams = getRouteQueryParams(userId, team);
-
-    RouteQuery routeQuery =
-        new RouteQuery(team.getId(), page, size, null, routeQueryParams.visibility(), search);
-    TriblyPage<Route> routes = routeRepository.find(routeQuery);
+      String teamSlug, @Nullable Long userId, int page, int size, @Nullable String search) {
+    TriblyPage<Route> routes =
+        list(new BasicQuery(null, Set.of(teamSlug), userId, null, search, null, null, page, size));
     List<RouteDto> dtos = routes.items().stream().map(RouteDto::from).toList();
     return new RouteListResponse(dtos, routes.total(), page, size);
-  }
-
-  private record RouteQueryParams(@Nullable Visibility visibility) {}
-
-  private RouteQueryParams getRouteQueryParams(@Nullable Long userId, Team team) {
-    Visibility visibility = getVisibility(userId, team);
-    return new RouteQueryParams(visibility);
   }
 
   /**

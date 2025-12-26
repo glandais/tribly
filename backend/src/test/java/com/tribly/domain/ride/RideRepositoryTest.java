@@ -2,7 +2,7 @@ package com.tribly.domain.ride;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.tribly.domain.common.repository.PublicationQuery;
+import com.tribly.domain.common.repository.TeamEntityQueryBasic;
 import com.tribly.domain.common.repository.TriblyPage;
 import com.tribly.domain.ride.repository.RideRepository;
 import com.tribly.domain.team.Team;
@@ -17,6 +17,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -52,9 +53,8 @@ class RideRepositoryTest {
         "ride-2",
         LocalDate.of(2025, 1, 20).atTime(0, 0).toInstant(ZoneOffset.UTC));
 
-    PublicationQuery query =
-        new PublicationQuery(
-            team.getId(), 0, 10, null, null, null, null, List.of(Status.PUBLISHED));
+    TeamEntityQueryBasic query =
+        new TeamEntityQueryBasic(null, Set.of(), Set.of(), null, null, null, null, 0, 10);
     TriblyPage<Ride> result = rideRepository.find(query);
 
     assertEquals(2, result.items().size());
@@ -76,9 +76,8 @@ class RideRepositoryTest {
         "ride-2",
         LocalDate.of(2025, 1, 20).atTime(0, 0).toInstant(ZoneOffset.UTC));
 
-    PublicationQuery query =
-        new PublicationQuery(
-            team.getId(), 0, 10, "ride-1", null, null, null, List.of(Status.PUBLISHED));
+    TeamEntityQueryBasic query =
+        new TeamEntityQueryBasic("ride-1", Set.of(), Set.of(), null, null, null, null, 0, 10);
     TriblyPage<Ride> result = rideRepository.find(query);
 
     assertEquals(1, result.items().size());
@@ -106,16 +105,17 @@ class RideRepositoryTest {
         "ride-3",
         LocalDate.of(2025, 1, 30).atTime(0, 0).toInstant(ZoneOffset.UTC));
 
-    PublicationQuery query =
-        new PublicationQuery(
-            team.getId(),
-            0,
-            10,
+    TeamEntityQueryBasic query =
+        new TeamEntityQueryBasic(
+            null,
+            Set.of(),
+            Set.of(),
             null,
             null,
             LocalDate.of(2025, 1, 15).atTime(0, 0).toInstant(ZoneOffset.UTC),
             LocalDate.of(2025, 1, 25).atTime(0, 0).toInstant(ZoneOffset.UTC),
-            List.of(Status.PUBLISHED));
+            0,
+            10);
     TriblyPage<Ride> result = rideRepository.find(query);
 
     assertEquals(1, result.items().size());
@@ -139,9 +139,8 @@ class RideRepositoryTest {
         LocalDate.of(2025, 1, 20).atTime(0, 0).toInstant(ZoneOffset.UTC),
         Visibility.TEAM);
 
-    PublicationQuery query =
-        new PublicationQuery(
-            team.getId(), 0, 10, null, Visibility.PUBLIC, null, null, List.of(Status.DRAFT));
+    TeamEntityQueryBasic query =
+        new TeamEntityQueryBasic(null, Set.of(), Set.of(), null, null, null, null, 0, 10);
     TriblyPage<Ride> result = rideRepository.find(query);
 
     assertEquals(1, result.items().size());
@@ -165,9 +164,9 @@ class RideRepositoryTest {
         LocalDate.of(2025, 1, 20).atTime(0, 0).toInstant(ZoneOffset.UTC),
         Status.PUBLISHED);
 
-    PublicationQuery query =
-        new PublicationQuery(
-            team.getId(), 0, 10, null, null, null, null, List.of(Status.PUBLISHED));
+    TeamEntityQueryBasic query =
+        new TeamEntityQueryBasic(
+            null, Set.of(), Set.of(), Status.PUBLISHED, null, null, null, 0, 10);
     TriblyPage<Ride> result = rideRepository.find(query);
 
     assertEquals(1, result.items().size());
@@ -191,9 +190,9 @@ class RideRepositoryTest {
             LocalDate.of(2025, 1, 20).atTime(0, 0).toInstant(ZoneOffset.UTC));
     dataService.deleteRide(deletedRide);
 
-    PublicationQuery query =
-        new PublicationQuery(
-            team.getId(), 0, 10, null, null, null, null, List.of(Status.PUBLISHED));
+    TeamEntityQueryBasic query =
+        new TeamEntityQueryBasic(
+            null, Set.of(), Set.of(), Status.PUBLISHED, null, null, null, 0, 10);
     TriblyPage<Ride> result = rideRepository.find(query);
 
     assertEquals(1, result.items().size());

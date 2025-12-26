@@ -1129,7 +1129,7 @@
     "securitySchemes" : {
       "SecurityScheme" : {
         "type" : "openIdConnect",
-        "openIdConnectUrl" : "http://localhost:8180/realms/tribly/.well-known/openid-configuration",
+        "openIdConnectUrl" : "http://localhost:8180/realms/quarkus/.well-known/openid-configuration",
         "description" : "Authentication"
       }
     }
@@ -1176,6 +1176,59 @@
               "application/json" : {
                 "schema" : {
                   "$ref" : "#/components/schemas/ConfigDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/publications" : {
+      "get" : {
+        "summary" : "List all publications",
+        "description" : "Get publications from all accessible teams (user's teams + public teams)",
+        "operationId" : "listAllPublications",
+        "tags" : [ "Publications" ],
+        "parameters" : [ {
+          "description" : "Start date filter (ISO format)",
+          "name" : "from",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Page number",
+          "name" : "page",
+          "in" : "query",
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 0
+          }
+        }, {
+          "description" : "Page size",
+          "name" : "size",
+          "in" : "query",
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 20
+          }
+        }, {
+          "description" : "End date filter (ISO format)",
+          "name" : "to",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Publications retrieved successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PublicationListResponse"
                 }
               }
             }

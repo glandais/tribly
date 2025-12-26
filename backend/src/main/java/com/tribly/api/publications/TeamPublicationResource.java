@@ -1,7 +1,9 @@
 package com.tribly.api.publications;
 
 import com.tribly.api.AbstractAuthenticatedResource;
+import com.tribly.dto.error.ErrorResponse;
 import com.tribly.dto.publications.response.PublicationListResponse;
+import com.tribly.enums.Status;
 import com.tribly.service.common.PublicationService;
 import jakarta.annotation.security.PermitAll;
 import jakarta.inject.Inject;
@@ -9,6 +11,7 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.time.Instant;
+import java.util.Set;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
@@ -18,30 +21,36 @@ import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import org.jspecify.annotations.Nullable;
 
-@Path("/api/publications")
+@Path("/api/teams/{slug}/publications")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Tag(name = "Publications", description = "Publication listing")
-public class PublicationResource extends AbstractAuthenticatedResource {
+public class TeamPublicationResource extends AbstractAuthenticatedResource {
 
   @Inject PublicationService publicationService;
 
   @GET
   @PermitAll
   @Operation(
-      summary = "List all publications",
-      description = "Get publications from all accessible teams (user's teams + public teams)")
+      summary = "List publications",
+      description = "Get paginated list of publications for a team with optional filtering")
   @APIResponses({
     @APIResponse(
         responseCode = "200",
         description = "Publications retrieved successfully",
-        content = @Content(schema = @Schema(implementation = PublicationListResponse.class)))
+        content = @Content(schema = @Schema(implementation = PublicationListResponse.class))),
+    @APIResponse(
+        responseCode = "404",
+        description = "Team not found",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
-  public Response listAllPublications(
+  public Response listPublications(
+      @Parameter(description = "Team URL slug") @PathParam("slug") String slug,
       @Parameter(description = "Start date filter (ISO format)") @QueryParam("from")
           @Nullable String fromStr,
       @Parameter(description = "End date filter (ISO format)") @QueryParam("to")
           @Nullable String toStr,
+      @Parameter(description = "Status filter") @QueryParam("status") @Nullable Status status,
       @Parameter(description = "Page number") @QueryParam("page") @DefaultValue("0") int page,
       @Parameter(description = "Page size") @QueryParam("size") @DefaultValue("20") int size) {
 
@@ -50,9 +59,9 @@ public class PublicationResource extends AbstractAuthenticatedResource {
     Instant from = fromStr != null ? Instant.parse(fromStr) : null;
     Instant to = toStr != null ? Instant.parse(toStr) : null;
 
-    PublicationListResponse response =
-        publicationService.list(null, userId, from, to, null, page, size);
+    PublicationListResponse publications =
+        publicationService.list(Set.of(slug), userId, from, to, status, page, size);
 
-    return Response.ok(response).build();
+    return Response.ok(publications).build();
   }
 }

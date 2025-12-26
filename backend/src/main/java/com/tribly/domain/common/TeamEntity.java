@@ -2,6 +2,7 @@ package com.tribly.domain.common;
 
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
+import com.tribly.enums.Status;
 import com.tribly.enums.Visibility;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -45,6 +46,10 @@ public abstract class TeamEntity extends BaseEntity {
 
   @Column(name = "date_time", nullable = false)
   protected Instant dateTime;
+
+  @Enumerated(EnumType.STRING)
+  @Column(name = "status", length = 20)
+  protected Status status = Status.PUBLISHED;
 
   @NotBlank
   @Size(max = 255)

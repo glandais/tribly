@@ -57,6 +57,7 @@ Class | Method | HTTP request | Description
 *PostsApi* | [**getPost**](docs/PostsApi.md#getpost) | **GET** /api/teams/{slug}/posts/{postSlug} | Get post details
 *PostsApi* | [**listPosts**](docs/PostsApi.md#listposts) | **GET** /api/teams/{slug}/posts | List posts
 *PostsApi* | [**updatePost**](docs/PostsApi.md#updatepost) | **PUT** /api/teams/{slug}/posts/{postSlug} | Update post
+*PublicationsApi* | [**listAllPublications**](docs/PublicationsApi.md#listallpublications) | **GET** /api/publications | List all publications
 *PublicationsApi* | [**listPublications**](docs/PublicationsApi.md#listpublications) | **GET** /api/teams/{slug}/publications | List publications
 *RidesApi* | [**createRide**](docs/RidesApi.md#createride) | **POST** /api/teams/{slug}/rides | Create ride
 *RidesApi* | [**deleteRide**](docs/RidesApi.md#deleteride) | **DELETE** /api/teams/{slug}/rides/{rideSlug} | Delete ride

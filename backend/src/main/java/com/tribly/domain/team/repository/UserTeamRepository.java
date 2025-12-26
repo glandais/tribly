@@ -6,6 +6,7 @@ import com.tribly.domain.common.repository.TriblyQuery;
 import com.tribly.domain.team.UserTeam;
 import com.tribly.enums.TeamRole;
 import jakarta.enterprise.context.ApplicationScoped;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -40,5 +41,9 @@ public class UserTeamRepository implements BaseRepository<UserTeam> {
         .setParameter("teamSlug", teamSlug)
         .getResultStream()
         .findFirst();
+  }
+
+  public List<UserTeam> findByUserId(Long userId) {
+    return find("user.id = ?1 and deleted = false", userId).list();
   }
 }

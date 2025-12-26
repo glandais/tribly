@@ -2,11 +2,8 @@ package com.tribly.domain.common;
 
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
-import com.tribly.enums.Status;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import java.time.Instant;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,10 +13,6 @@ import org.jspecify.annotations.Nullable;
 @Setter
 @Entity
 public abstract class Publication extends TeamEntity {
-
-  @Enumerated(EnumType.STRING)
-  @Column(name = "status", length = 20)
-  protected Status status = Status.DRAFT;
 
   @Nullable
   @Column(name = "publish_at")

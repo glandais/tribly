@@ -1,6 +1,6 @@
 package com.tribly.service.ride;
 
-import com.tribly.domain.common.repository.PublicationQuery;
+import com.tribly.domain.common.repository.TeamEntityQueryBasic;
 import com.tribly.domain.common.repository.TriblyPage;
 import com.tribly.domain.ride.Ride;
 import com.tribly.domain.ride.RideGroup;
@@ -21,23 +21,21 @@ import com.tribly.enums.Status;
 import com.tribly.enums.Visibility;
 import com.tribly.infrastructure.exception.BusinessException;
 import com.tribly.infrastructure.id.TsidUtils;
+import com.tribly.service.common.BasicQuery;
 import com.tribly.service.common.SlugService;
 import com.tribly.service.common.TeamEntityService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import java.time.Instant;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.jboss.logging.Logger;
 import org.jspecify.annotations.Nullable;
 
 @ApplicationScoped
-public class RideService extends TeamEntityService {
+public class RideService extends TeamEntityService<Ride, BasicQuery, TeamEntityQueryBasic> {
 
   private static final Logger LOG = Logger.getLogger(RideService.class);
 
@@ -55,92 +53,42 @@ public class RideService extends TeamEntityService {
 
   @Inject SlugService slugService;
 
+  public RideRepository getRepository() {
+    return rideRepository;
+  }
+
+  @Override
+  protected TeamEntityQueryBasic getQuery(
+      BasicQuery query, Set<Long> memberTeamIds, Set<Long> organizerTeamIds) {
+    return query.getTeamEntityQueryBasic(memberTeamIds, organizerTeamIds);
+  }
+
   public RideListResponse listRides(
-      String slug,
+      String teamSlug,
       @Nullable Long userId,
       @Nullable Instant from,
       @Nullable Instant to,
       @Nullable Status status,
       int page,
       int size) {
-    Team team =
-        teamRepository.findBySlug(slug).orElseThrow(() -> BusinessException.notFound("Team", slug));
-
-    RideQueryParams rideQueryParams = getRideQueryParams(userId, status, team);
-
-    PublicationQuery rideQuery =
-        new PublicationQuery(
-            team.getId(),
-            page,
-            size,
-            null,
-            rideQueryParams.visibility(),
-            from,
-            to,
-            rideQueryParams.statuses());
-    TriblyPage<Ride> rideTriblyPage = rideRepository.find(rideQuery);
-
-    List<RideDto> dtos = rideTriblyPage.items().stream().map(r -> RideDto.from(r, false)).toList();
-    return new RideListResponse(dtos, rideTriblyPage.total(), page, size);
+    TriblyPage<Ride> rides =
+        list(new BasicQuery(null, Set.of(teamSlug), userId, status, null, from, to, page, size));
+    List<RideDto> dtos = rides.items().stream().map(r -> RideDto.from(r, false)).toList();
+    return new RideListResponse(dtos, rides.total(), page, size);
   }
 
   protected Ride getRide(String teamSlug, String rideSlug, @Nullable Long userId) {
-    Team team =
-        teamRepository
-            .findBySlug(teamSlug)
-            .orElseThrow(() -> BusinessException.notFound("Team", teamSlug));
-
-    RideQueryParams rideQueryParams = getRideQueryParams(userId, null, team);
-
-    PublicationQuery rideQuery =
-        new PublicationQuery(
-            team.getId(),
-            0,
-            1,
-            rideSlug,
-            rideQueryParams.visibility(),
-            null,
-            null,
-            rideQueryParams.statuses());
-    TriblyPage<Ride> triblyPage = rideRepository.find(rideQuery);
-    if (triblyPage.items().isEmpty()) {
+    TriblyPage<Ride> rides =
+        list(new BasicQuery(rideSlug, Set.of(teamSlug), userId, null, null, null, null, 0, 1));
+    if (rides.items().isEmpty()) {
       throw BusinessException.notFound("Ride", rideSlug);
     } else {
-      return triblyPage.items().getFirst();
+      return rides.items().getFirst();
     }
   }
 
   public RideDto getRideDetail(String teamSlug, String rideSlug, @Nullable Long userId) {
     return RideDto.from(getRide(teamSlug, rideSlug, userId), true);
-  }
-
-  private record RideQueryParams(List<Status> statuses, @Nullable Visibility visibility) {}
-
-  private RideQueryParams getRideQueryParams(
-      @Nullable Long userId, @Nullable Status status, Team team) {
-    boolean canSeeDrafts = securityService.canSeeDrafts(userId, team);
-    List<Status> statuses = getRideStatuses(status, canSeeDrafts);
-
-    Visibility visibility = getVisibility(userId, team);
-    return new RideQueryParams(statuses, visibility);
-  }
-
-  private List<Status> getRideStatuses(@Nullable Status status, boolean canSeeDrafts) {
-    List<Status> statuses;
-    if (status == null) {
-      if (canSeeDrafts) {
-        statuses = Arrays.asList(Status.values());
-      } else {
-        statuses = List.of(Status.PUBLISHED, Status.CANCELLED);
-      }
-    } else {
-      if (status.equals(Status.DRAFT) && !canSeeDrafts) {
-        statuses = List.of();
-      } else {
-        statuses = List.of(status);
-      }
-    }
-    return statuses;
   }
 
   @Transactional
