@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link, useParams, Navigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { PlusIcon, MapIcon } from '@heroicons/react/24/outline'
@@ -6,13 +7,32 @@ import { useTeam } from '../../hooks/useTeam'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { TeamLayout } from '../../components/team/TeamLayout'
 import { RouteCard, RouteCardSkeleton } from '../../components/route/RouteCard'
+import { Pagination } from '../../components/common/Pagination'
+import { usePagination } from '../../hooks/usePagination'
+import { SearchInput } from '../../components/common/SearchInput'
 
 export function RouteListPage() {
   const { teamSlug } = useParams<{ teamSlug: string }>()
   const { t } = useTranslation('routes')
+  const [page, setPage] = useState(0)
+  const [search, setSearch] = useState('')
+  const pageSize = 20
 
   const { data: team, isLoading: isLoadingTeam } = useTeam(teamSlug)
-  const { data: routesData, isLoading: isLoadingRoutes } = useRoutes(teamSlug)
+  const { data: routesData, isLoading: isLoadingRoutes } = useRoutes(
+    teamSlug,
+    page,
+    pageSize,
+    search || undefined
+  )
+
+  const resetPage = () => setPage(0)
+
+  // Use usePagination only for totalPages calculation
+  const { totalPages } = usePagination({
+    pageSize,
+    totalItems: routesData?.total ?? 0,
+  })
 
   if (isLoadingTeam) {
     return <LoadingPage message={t('list.title')} />
@@ -42,23 +62,47 @@ export function RouteListPage() {
           )}
         </div>
 
+        {/* Search Input */}
+        <SearchInput
+          id="routes-search"
+          value={search}
+          onChange={(value) => {
+            setSearch(value)
+            resetPage()
+          }}
+          placeholder={t('list.search.placeholder')}
+          label={t('list.search.label')}
+          className="mb-6"
+        />
+
         {/* Routes List */}
         {isLoadingRoutes ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             <RouteCardSkeleton count={6} />
           </div>
         ) : routesData && routesData.routes.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {routesData.routes.map((route) => (
-              <RouteCard key={route.id} route={route} teamSlug={teamSlug!} />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {routesData.routes.map((route) => (
+                <RouteCard key={route.id} route={route} teamSlug={teamSlug!} />
+              ))}
+            </div>
+
+            <Pagination
+              currentPage={page}
+              totalPages={totalPages}
+              onPageChange={setPage}
+              className="mt-8"
+            />
+          </>
         ) : (
           <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
             <MapIcon className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-4 text-lg font-medium text-gray-900">{t('list.empty.title')}</h3>
-            <p className="mt-2 text-gray-500">{t('list.empty.description')}</p>
-            {canCreateRoute && (
+            <h3 className="mt-4 text-lg font-medium text-gray-900">
+              {search ? t('list.noResults') : t('list.empty.title')}
+            </h3>
+            {!search && <p className="mt-2 text-gray-500">{t('list.empty.description')}</p>}
+            {canCreateRoute && !search && (
               <Link
                 to={`/teams/${teamSlug}/routes/new`}
                 className="mt-4 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"

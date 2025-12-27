@@ -16,6 +16,11 @@
     "title": "Routes",
     "subtitle": "GPX routes and itineraries for the team",
     "createRoute": "Create route",
+    "search": {
+      "label": "Search routes",
+      "placeholder": "Search by name or description..."
+    },
+    "noResults": "No routes found matching your search.",
     "empty": {
       "title": "No routes",
       "description": "No routes are available at the moment.",

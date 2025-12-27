@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { PlusIcon, MagnifyingGlassIcon, UserGroupIcon } from '@heroicons/react/24/outline'
+import { PlusIcon, UserGroupIcon } from '@heroicons/react/24/outline'
 import { useTeams } from '../../hooks/useTeam'
 import { useAuth } from '../../hooks/useAuth'
 import { usePagination } from '../../hooks/usePagination'
 import { TeamCard, TeamCardSkeleton } from '../../components/team/TeamCard'
 import { Pagination } from '../../components/common/Pagination'
+import { SearchInput } from '../../components/common/SearchInput'
 
 export function TeamListPage() {
   const { t } = useTranslation('teams')
@@ -55,29 +56,17 @@ export function TeamListPage() {
         )}
       </div>
 
-      <div className="mb-6">
-        <label htmlFor="team-search" className="sr-only">
-          {t('list.search.label')}
-        </label>
-        <div className="relative">
-          <input
-            id="team-search"
-            type="search"
-            placeholder={t('list.search.placeholder')}
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value)
-              resetPage()
-            }}
-            className="w-full sm:max-w-md px-4 py-2 pl-10 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:border-indigo-500"
-            aria-label={t('list.search.label')}
-          />
-          <MagnifyingGlassIcon
-            className="absolute left-3 top-2.5 h-5 w-5 text-gray-400 pointer-events-none"
-            aria-hidden="true"
-          />
-        </div>
-      </div>
+      <SearchInput
+        id="team-search"
+        value={search}
+        onChange={(value) => {
+          setSearch(value)
+          resetPage()
+        }}
+        placeholder={t('list.search.placeholder')}
+        label={t('list.search.label')}
+        className="mb-6"
+      />
 
       {error && (
         <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">

@@ -1,18 +1,13 @@
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import {
-  XMarkIcon,
-  MagnifyingGlassIcon,
-  MapIcon,
-  ArrowsPointingOutIcon,
-  ArrowUpIcon,
-} from '@heroicons/react/24/outline'
+import { XMarkIcon, MapIcon, ArrowsPointingOutIcon, ArrowUpIcon } from '@heroicons/react/24/outline'
 import { useRoutes } from '../../hooks/useRoute'
 import type { RouteDto } from '../../api/api'
 import { MarkdownDisplay } from '../../components/common/MarkdownDisplay'
 import { LoadingSpinner } from '../common/LoadingSpinner'
 import { Pagination } from '../common/Pagination'
 import { usePagination } from '../../hooks/usePagination'
+import { SearchInput } from '../common/SearchInput'
 
 interface RoutePickerModalProps {
   isOpen: boolean
@@ -86,16 +81,13 @@ export function RoutePickerModal({
         {/* Search bar */}
         <div className="p-6 border-b border-gray-200">
           <div className="flex gap-3">
-            <div className="flex-1 relative">
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder={t('picker.search')}
-                className="w-full px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
-              />
-              <MagnifyingGlassIcon className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-            </div>
+            <SearchInput
+              value={search}
+              onChange={setSearch}
+              placeholder={t('picker.search')}
+              fullWidth
+              className="flex-1"
+            />
             {onCreateNew && (
               <button
                 type="button"

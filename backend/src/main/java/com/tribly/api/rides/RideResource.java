@@ -50,6 +50,8 @@ public class RideResource extends AbstractAuthenticatedResource {
   })
   public Response listRides(
       @Parameter(description = "Team URL slug") @PathParam("slug") String slug,
+      @Parameter(description = "Search by name/description") @QueryParam("search")
+          @Nullable String search,
       @Parameter(description = "Start date filter (ISO format)") @QueryParam("from")
           @Nullable String fromStr,
       @Parameter(description = "End date filter (ISO format)") @QueryParam("to")
@@ -62,7 +64,7 @@ public class RideResource extends AbstractAuthenticatedResource {
     Instant from = fromStr != null ? Instant.parse(fromStr) : null;
     Instant to = toStr != null ? Instant.parse(toStr) : null;
 
-    RideListResponse rides = rideService.listRides(slug, userId, from, to, page, size);
+    RideListResponse rides = rideService.listRides(slug, userId, search, from, to, page, size);
 
     return Response.ok(rides).build();
   }

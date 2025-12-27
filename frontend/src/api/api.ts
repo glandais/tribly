@@ -1185,6 +1185,7 @@ export const PostsApiAxiosParamCreator = function (configuration?: Configuration
      * @param {string} slug Team URL slug
      * @param {string} [from] Start date filter (ISO format)
      * @param {number} [page] Page number
+     * @param {string} [search] Search by name/description
      * @param {number} [size] Page size
      * @param {string} [to] End date filter (ISO format)
      * @param {*} [options] Override http request option.
@@ -1194,6 +1195,7 @@ export const PostsApiAxiosParamCreator = function (configuration?: Configuration
       slug: string,
       from?: string,
       page?: number,
+      search?: string,
       size?: number,
       to?: string,
       options: RawAxiosRequestConfig = {}
@@ -1221,6 +1223,10 @@ export const PostsApiAxiosParamCreator = function (configuration?: Configuration
 
       if (page !== undefined) {
         localVarQueryParameter['page'] = page
+      }
+
+      if (search !== undefined) {
+        localVarQueryParameter['search'] = search
       }
 
       if (size !== undefined) {
@@ -1395,6 +1401,7 @@ export const PostsApiFp = function (configuration?: Configuration) {
      * @param {string} slug Team URL slug
      * @param {string} [from] Start date filter (ISO format)
      * @param {number} [page] Page number
+     * @param {string} [search] Search by name/description
      * @param {number} [size] Page size
      * @param {string} [to] End date filter (ISO format)
      * @param {*} [options] Override http request option.
@@ -1404,6 +1411,7 @@ export const PostsApiFp = function (configuration?: Configuration) {
       slug: string,
       from?: string,
       page?: number,
+      search?: string,
       size?: number,
       to?: string,
       options?: RawAxiosRequestConfig
@@ -1412,6 +1420,7 @@ export const PostsApiFp = function (configuration?: Configuration) {
         slug,
         from,
         page,
+        search,
         size,
         to,
         options
@@ -1527,6 +1536,7 @@ export const PostsApiFactory = function (
      * @param {string} slug Team URL slug
      * @param {string} [from] Start date filter (ISO format)
      * @param {number} [page] Page number
+     * @param {string} [search] Search by name/description
      * @param {number} [size] Page size
      * @param {string} [to] End date filter (ISO format)
      * @param {*} [options] Override http request option.
@@ -1536,12 +1546,13 @@ export const PostsApiFactory = function (
       slug: string,
       from?: string,
       page?: number,
+      search?: string,
       size?: number,
       to?: string,
       options?: RawAxiosRequestConfig
     ): AxiosPromise<PostListResponse> {
       return localVarFp
-        .listPosts(slug, from, page, size, to, options)
+        .listPosts(slug, from, page, search, size, to, options)
         .then((request) => request(axios, basePath))
     },
     /**
@@ -1618,6 +1629,7 @@ export class PostsApi extends BaseAPI {
    * @param {string} slug Team URL slug
    * @param {string} [from] Start date filter (ISO format)
    * @param {number} [page] Page number
+   * @param {string} [search] Search by name/description
    * @param {number} [size] Page size
    * @param {string} [to] End date filter (ISO format)
    * @param {*} [options] Override http request option.
@@ -1627,12 +1639,13 @@ export class PostsApi extends BaseAPI {
     slug: string,
     from?: string,
     page?: number,
+    search?: string,
     size?: number,
     to?: string,
     options?: RawAxiosRequestConfig
   ) {
     return PostsApiFp(this.configuration)
-      .listPosts(slug, from, page, size, to, options)
+      .listPosts(slug, from, page, search, size, to, options)
       .then((request) => request(this.axios, this.basePath))
   }
 
@@ -1667,6 +1680,7 @@ export const PublicationsApiAxiosParamCreator = function (configuration?: Config
      * @summary List all publications
      * @param {string} [from] Start date filter (ISO format)
      * @param {number} [page] Page number
+     * @param {string} [search] Search by name/description
      * @param {number} [size] Page size
      * @param {string} [to] End date filter (ISO format)
      * @param {*} [options] Override http request option.
@@ -1675,6 +1689,7 @@ export const PublicationsApiAxiosParamCreator = function (configuration?: Config
     listAllPublications: async (
       from?: string,
       page?: number,
+      search?: string,
       size?: number,
       to?: string,
       options: RawAxiosRequestConfig = {}
@@ -1697,6 +1712,10 @@ export const PublicationsApiAxiosParamCreator = function (configuration?: Config
 
       if (page !== undefined) {
         localVarQueryParameter['page'] = page
+      }
+
+      if (search !== undefined) {
+        localVarQueryParameter['search'] = search
       }
 
       if (size !== undefined) {
@@ -1726,6 +1745,7 @@ export const PublicationsApiAxiosParamCreator = function (configuration?: Config
      * @param {string} slug Team URL slug
      * @param {string} [from] Start date filter (ISO format)
      * @param {number} [page] Page number
+     * @param {string} [search] Search by name/description
      * @param {number} [size] Page size
      * @param {string} [to] End date filter (ISO format)
      * @param {*} [options] Override http request option.
@@ -1735,6 +1755,7 @@ export const PublicationsApiAxiosParamCreator = function (configuration?: Config
       slug: string,
       from?: string,
       page?: number,
+      search?: string,
       size?: number,
       to?: string,
       options: RawAxiosRequestConfig = {}
@@ -1762,6 +1783,10 @@ export const PublicationsApiAxiosParamCreator = function (configuration?: Config
 
       if (page !== undefined) {
         localVarQueryParameter['page'] = page
+      }
+
+      if (search !== undefined) {
+        localVarQueryParameter['search'] = search
       }
 
       if (size !== undefined) {
@@ -1799,6 +1824,7 @@ export const PublicationsApiFp = function (configuration?: Configuration) {
      * @summary List all publications
      * @param {string} [from] Start date filter (ISO format)
      * @param {number} [page] Page number
+     * @param {string} [search] Search by name/description
      * @param {number} [size] Page size
      * @param {string} [to] End date filter (ISO format)
      * @param {*} [options] Override http request option.
@@ -1807,6 +1833,7 @@ export const PublicationsApiFp = function (configuration?: Configuration) {
     async listAllPublications(
       from?: string,
       page?: number,
+      search?: string,
       size?: number,
       to?: string,
       options?: RawAxiosRequestConfig
@@ -1816,6 +1843,7 @@ export const PublicationsApiFp = function (configuration?: Configuration) {
       const localVarAxiosArgs = await localVarAxiosParamCreator.listAllPublications(
         from,
         page,
+        search,
         size,
         to,
         options
@@ -1838,6 +1866,7 @@ export const PublicationsApiFp = function (configuration?: Configuration) {
      * @param {string} slug Team URL slug
      * @param {string} [from] Start date filter (ISO format)
      * @param {number} [page] Page number
+     * @param {string} [search] Search by name/description
      * @param {number} [size] Page size
      * @param {string} [to] End date filter (ISO format)
      * @param {*} [options] Override http request option.
@@ -1847,6 +1876,7 @@ export const PublicationsApiFp = function (configuration?: Configuration) {
       slug: string,
       from?: string,
       page?: number,
+      search?: string,
       size?: number,
       to?: string,
       options?: RawAxiosRequestConfig
@@ -1857,6 +1887,7 @@ export const PublicationsApiFp = function (configuration?: Configuration) {
         slug,
         from,
         page,
+        search,
         size,
         to,
         options
@@ -1890,6 +1921,7 @@ export const PublicationsApiFactory = function (
      * @summary List all publications
      * @param {string} [from] Start date filter (ISO format)
      * @param {number} [page] Page number
+     * @param {string} [search] Search by name/description
      * @param {number} [size] Page size
      * @param {string} [to] End date filter (ISO format)
      * @param {*} [options] Override http request option.
@@ -1898,12 +1930,13 @@ export const PublicationsApiFactory = function (
     listAllPublications(
       from?: string,
       page?: number,
+      search?: string,
       size?: number,
       to?: string,
       options?: RawAxiosRequestConfig
     ): AxiosPromise<PublicationListResponse> {
       return localVarFp
-        .listAllPublications(from, page, size, to, options)
+        .listAllPublications(from, page, search, size, to, options)
         .then((request) => request(axios, basePath))
     },
     /**
@@ -1912,6 +1945,7 @@ export const PublicationsApiFactory = function (
      * @param {string} slug Team URL slug
      * @param {string} [from] Start date filter (ISO format)
      * @param {number} [page] Page number
+     * @param {string} [search] Search by name/description
      * @param {number} [size] Page size
      * @param {string} [to] End date filter (ISO format)
      * @param {*} [options] Override http request option.
@@ -1921,12 +1955,13 @@ export const PublicationsApiFactory = function (
       slug: string,
       from?: string,
       page?: number,
+      search?: string,
       size?: number,
       to?: string,
       options?: RawAxiosRequestConfig
     ): AxiosPromise<PublicationListResponse> {
       return localVarFp
-        .listPublications(slug, from, page, size, to, options)
+        .listPublications(slug, from, page, search, size, to, options)
         .then((request) => request(axios, basePath))
     },
   }
@@ -1941,6 +1976,7 @@ export class PublicationsApi extends BaseAPI {
    * @summary List all publications
    * @param {string} [from] Start date filter (ISO format)
    * @param {number} [page] Page number
+   * @param {string} [search] Search by name/description
    * @param {number} [size] Page size
    * @param {string} [to] End date filter (ISO format)
    * @param {*} [options] Override http request option.
@@ -1949,12 +1985,13 @@ export class PublicationsApi extends BaseAPI {
   public listAllPublications(
     from?: string,
     page?: number,
+    search?: string,
     size?: number,
     to?: string,
     options?: RawAxiosRequestConfig
   ) {
     return PublicationsApiFp(this.configuration)
-      .listAllPublications(from, page, size, to, options)
+      .listAllPublications(from, page, search, size, to, options)
       .then((request) => request(this.axios, this.basePath))
   }
 
@@ -1964,6 +2001,7 @@ export class PublicationsApi extends BaseAPI {
    * @param {string} slug Team URL slug
    * @param {string} [from] Start date filter (ISO format)
    * @param {number} [page] Page number
+   * @param {string} [search] Search by name/description
    * @param {number} [size] Page size
    * @param {string} [to] End date filter (ISO format)
    * @param {*} [options] Override http request option.
@@ -1973,12 +2011,13 @@ export class PublicationsApi extends BaseAPI {
     slug: string,
     from?: string,
     page?: number,
+    search?: string,
     size?: number,
     to?: string,
     options?: RawAxiosRequestConfig
   ) {
     return PublicationsApiFp(this.configuration)
-      .listPublications(slug, from, page, size, to, options)
+      .listPublications(slug, from, page, search, size, to, options)
       .then((request) => request(this.axios, this.basePath))
   }
 }
@@ -2240,6 +2279,7 @@ export const RidesApiAxiosParamCreator = function (configuration?: Configuration
      * @param {string} slug Team URL slug
      * @param {string} [from] Start date filter (ISO format)
      * @param {number} [page] Page number
+     * @param {string} [search] Search by name/description
      * @param {number} [size] Page size
      * @param {string} [to] End date filter (ISO format)
      * @param {*} [options] Override http request option.
@@ -2249,6 +2289,7 @@ export const RidesApiAxiosParamCreator = function (configuration?: Configuration
       slug: string,
       from?: string,
       page?: number,
+      search?: string,
       size?: number,
       to?: string,
       options: RawAxiosRequestConfig = {}
@@ -2276,6 +2317,10 @@ export const RidesApiAxiosParamCreator = function (configuration?: Configuration
 
       if (page !== undefined) {
         localVarQueryParameter['page'] = page
+      }
+
+      if (search !== undefined) {
+        localVarQueryParameter['search'] = search
       }
 
       if (size !== undefined) {
@@ -2514,6 +2559,7 @@ export const RidesApiFp = function (configuration?: Configuration) {
      * @param {string} slug Team URL slug
      * @param {string} [from] Start date filter (ISO format)
      * @param {number} [page] Page number
+     * @param {string} [search] Search by name/description
      * @param {number} [size] Page size
      * @param {string} [to] End date filter (ISO format)
      * @param {*} [options] Override http request option.
@@ -2523,6 +2569,7 @@ export const RidesApiFp = function (configuration?: Configuration) {
       slug: string,
       from?: string,
       page?: number,
+      search?: string,
       size?: number,
       to?: string,
       options?: RawAxiosRequestConfig
@@ -2531,6 +2578,7 @@ export const RidesApiFp = function (configuration?: Configuration) {
         slug,
         from,
         page,
+        search,
         size,
         to,
         options
@@ -2684,6 +2732,7 @@ export const RidesApiFactory = function (
      * @param {string} slug Team URL slug
      * @param {string} [from] Start date filter (ISO format)
      * @param {number} [page] Page number
+     * @param {string} [search] Search by name/description
      * @param {number} [size] Page size
      * @param {string} [to] End date filter (ISO format)
      * @param {*} [options] Override http request option.
@@ -2693,12 +2742,13 @@ export const RidesApiFactory = function (
       slug: string,
       from?: string,
       page?: number,
+      search?: string,
       size?: number,
       to?: string,
       options?: RawAxiosRequestConfig
     ): AxiosPromise<RideListResponse> {
       return localVarFp
-        .listRides(slug, from, page, size, to, options)
+        .listRides(slug, from, page, search, size, to, options)
         .then((request) => request(axios, basePath))
     },
     /**
@@ -2815,6 +2865,7 @@ export class RidesApi extends BaseAPI {
    * @param {string} slug Team URL slug
    * @param {string} [from] Start date filter (ISO format)
    * @param {number} [page] Page number
+   * @param {string} [search] Search by name/description
    * @param {number} [size] Page size
    * @param {string} [to] End date filter (ISO format)
    * @param {*} [options] Override http request option.
@@ -2824,12 +2875,13 @@ export class RidesApi extends BaseAPI {
     slug: string,
     from?: string,
     page?: number,
+    search?: string,
     size?: number,
     to?: string,
     options?: RawAxiosRequestConfig
   ) {
     return RidesApiFp(this.configuration)
-      .listRides(slug, from, page, size, to, options)
+      .listRides(slug, from, page, search, size, to, options)
       .then((request) => request(this.axios, this.basePath))
   }
 
@@ -3016,7 +3068,7 @@ export const RoutesApiAxiosParamCreator = function (configuration?: Configuratio
      * @summary List routes
      * @param {string} slug Team URL slug
      * @param {number} [page] Page number (0-indexed)
-     * @param {string} [search] Search by route name
+     * @param {string} [search] Search by name/description
      * @param {number} [size] Page size
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -3235,7 +3287,7 @@ export const RoutesApiFp = function (configuration?: Configuration) {
      * @summary List routes
      * @param {string} slug Team URL slug
      * @param {number} [page] Page number (0-indexed)
-     * @param {string} [search] Search by route name
+     * @param {string} [search] Search by name/description
      * @param {number} [size] Page size
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -3371,7 +3423,7 @@ export const RoutesApiFactory = function (
      * @summary List routes
      * @param {string} slug Team URL slug
      * @param {number} [page] Page number (0-indexed)
-     * @param {string} [search] Search by route name
+     * @param {string} [search] Search by name/description
      * @param {number} [size] Page size
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -3468,7 +3520,7 @@ export class RoutesApi extends BaseAPI {
    * @summary List routes
    * @param {string} slug Team URL slug
    * @param {number} [page] Page number (0-indexed)
-   * @param {string} [search] Search by route name
+   * @param {string} [search] Search by name/description
    * @param {number} [size] Page size
    * @param {*} [options] Override http request option.
    * @throws {RequiredError}

@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import { useParams, Navigate } from 'react-router-dom'
+import { Link, useParams, Navigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { NewspaperIcon } from '@heroicons/react/24/outline'
+import { PlusIcon, NewspaperIcon } from '@heroicons/react/24/outline'
 import { useTeam } from '../../hooks/useTeam'
 import { usePublications } from '../../hooks/usePublications'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
@@ -11,18 +11,26 @@ import { TeamLayout } from '../../components/team/TeamLayout'
 import type { RideDto, PostDto } from '../../api/api'
 import { Pagination } from '../../components/common/Pagination'
 import { usePagination } from '../../hooks/usePagination'
+import { SearchInput } from '../../components/common/SearchInput'
 
 export function PublicationListPage() {
   const { t } = useTranslation('teams')
+  const { t: tRides } = useTranslation('rides')
+  const { t: tPosts } = useTranslation('posts')
+  const { t: tRoutes } = useTranslation('routes')
   const { teamSlug } = useParams<{ teamSlug: string }>()
   const [page, setPage] = useState(0)
+  const [search, setSearch] = useState('')
   const pageSize = 20
 
   const { data: team, isLoading: isLoadingTeam } = useTeam(teamSlug)
   const { data: publicationsData, isLoading: isLoadingPublications } = usePublications(teamSlug, {
+    search: search || undefined,
     page,
     size: pageSize,
   })
+
+  const resetPage = () => setPage(0)
 
   // Use usePagination only for totalPages calculation
   const { totalPages } = usePagination({
@@ -38,12 +46,54 @@ export function PublicationListPage() {
     return <Navigate to="/teams" replace />
   }
 
+  const canCreate = team.role === 'ADMIN' || team.role === 'ORGANIZER'
+
   return (
     <TeamLayout team={team} currentTab="publications">
       <div className="py-6">
-        <div className="mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">{t('publications.list.title')}</h2>
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">{t('publications.list.title')}</h2>
+          </div>
+          {canCreate && (
+            <div className="flex items-center gap-2">
+              <Link
+                to={`/teams/${teamSlug}/rides/new`}
+                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
+              >
+                <PlusIcon className="w-4 h-4 mr-2" />
+                {tRides('list.createRide')}
+              </Link>
+              <Link
+                to={`/teams/${teamSlug}/posts/new`}
+                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
+              >
+                <PlusIcon className="w-4 h-4 mr-2" />
+                {tPosts('list.createPost')}
+              </Link>
+              <Link
+                to={`/teams/${teamSlug}/routes/new`}
+                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
+              >
+                <PlusIcon className="w-4 h-4 mr-2" />
+                {tRoutes('list.createRoute')}
+              </Link>
+            </div>
+          )}
         </div>
+
+        {/* Search Input */}
+        <SearchInput
+          id="publications-search"
+          value={search}
+          onChange={(value) => {
+            setSearch(value)
+            resetPage()
+          }}
+          placeholder={t('publications.list.search.placeholder')}
+          label={t('publications.list.search.label')}
+          className="mb-6"
+        />
 
         {/* Publications List */}
         {isLoadingPublications ? (
@@ -90,9 +140,11 @@ export function PublicationListPage() {
           <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
             <NewspaperIcon className="mx-auto h-12 w-12 text-gray-400" />
             <h3 className="mt-4 text-lg font-medium text-gray-900">
-              {t('publications.list.empty')}
+              {search ? t('publications.list.noResults') : t('publications.list.empty')}
             </h3>
-            <p className="mt-2 text-gray-500">{t('publications.list.emptyDescription')}</p>
+            {!search && (
+              <p className="mt-2 text-gray-500">{t('publications.list.emptyDescription')}</p>
+            )}
           </div>
         )}
       </div>

@@ -40,13 +40,14 @@ public class PostService extends TeamEntityService {
   public PostListResponse listPosts(
       String teamSlug,
       @Nullable Long userId,
+      @Nullable String search,
       @Nullable Instant from,
       @Nullable Instant to,
       int page,
       int size) {
     TriblyPage<Post> posts =
         postRepository.find(
-            new TeamEntityQueryBasic(userId, Set.of(teamSlug), null, null, from, to, page, size));
+            new TeamEntityQueryBasic(userId, Set.of(teamSlug), null, search, from, to, page, size));
     List<PostDto> dtos = posts.items().stream().map(PostDto::from).toList();
     return new PostListResponse(dtos, posts.total(), page, size);
   }

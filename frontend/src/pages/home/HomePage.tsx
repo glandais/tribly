@@ -7,10 +7,12 @@ import { PostCard, PostCardSkeleton } from '../../components/post/PostCard'
 import type { RideDto, PostDto } from '../../api/api'
 import { Pagination } from '../../components/common/Pagination'
 import { usePagination } from '../../hooks/usePagination'
+import { SearchInput } from '../../components/common/SearchInput'
 
 export function HomePage() {
   const { t } = useTranslation('auth')
   const [page, setPage] = useState(0)
+  const [search, setSearch] = useState('')
   const pageSize = 20
 
   const {
@@ -18,9 +20,12 @@ export function HomePage() {
     isLoading,
     isError,
   } = useAllPublications({
+    search: search || undefined,
     page,
     size: pageSize,
   })
+
+  const resetPage = () => setPage(0)
 
   // Use usePagination only for totalPages calculation
   const { totalPages } = usePagination({
@@ -41,6 +46,19 @@ export function HomePage() {
         <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('home.feed.title')}</h2>
         <p className="text-gray-600">{t('home.feed.subtitle')}</p>
       </div>
+
+      {/* Search Input */}
+      <SearchInput
+        id="publications-search"
+        value={search}
+        onChange={(value) => {
+          setSearch(value)
+          resetPage()
+        }}
+        placeholder={t('home.feed.search.placeholder')}
+        label={t('home.feed.search.label')}
+        className="mb-6"
+      />
 
       {/* Loading State */}
       {isLoading ? (
@@ -95,7 +113,9 @@ export function HomePage() {
         /* Empty State */
         <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
           <NewspaperIcon className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-4 text-lg font-medium text-gray-900">{t('home.feed.empty')}</h3>
+          <h3 className="mt-4 text-lg font-medium text-gray-900">
+            {search ? t('home.feed.noResults') : t('home.feed.empty')}
+          </h3>
         </div>
       )}
     </div>

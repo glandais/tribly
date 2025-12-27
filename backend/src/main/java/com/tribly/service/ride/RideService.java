@@ -55,13 +55,14 @@ public class RideService extends TeamEntityService {
   public RideListResponse listRides(
       String teamSlug,
       @Nullable Long userId,
+      @Nullable String search,
       @Nullable Instant from,
       @Nullable Instant to,
       int page,
       int size) {
     TriblyPage<Ride> rides =
         rideRepository.find(
-            new TeamEntityQueryBasic(userId, Set.of(teamSlug), null, null, from, to, page, size));
+            new TeamEntityQueryBasic(userId, Set.of(teamSlug), null, search, from, to, page, size));
     List<RideDto> dtos = rides.items().stream().map(r -> RideDto.from(r, false)).toList();
     return new RideListResponse(dtos, rides.total(), page, size);
   }

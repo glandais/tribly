@@ -14,7 +14,12 @@
     "title": "Publications",
     "createPost": "Créer une publication",
     "emptyAdmin": "Aucune publication pour le moment. Créez la première !",
-    "emptyMember": "Aucune publication pour le moment."
+    "emptyMember": "Aucune publication pour le moment.",
+    "noResults": "Aucune publication ne correspond à votre recherche.",
+    "search": {
+      "label": "Rechercher des publications",
+      "placeholder": "Rechercher par titre ou description..."
+    }
   },
   "create": {
     "title": "Nouvelle publication",

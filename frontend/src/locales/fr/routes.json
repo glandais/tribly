@@ -16,6 +16,11 @@
     "title": "Parcours",
     "subtitle": "Parcours et itinéraires GPX pour l'équipe",
     "createRoute": "Créer un parcours",
+    "search": {
+      "label": "Rechercher des parcours",
+      "placeholder": "Rechercher par nom ou description..."
+    },
+    "noResults": "Aucun parcours ne correspond à votre recherche.",
     "empty": {
       "title": "Aucun parcours",
       "description": "Aucun parcours n'est disponible pour le moment.",

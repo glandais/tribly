@@ -6,6 +6,7 @@ import type { PublicationListResponse } from '../api/api'
 export type { PublicationListResponse }
 
 interface UseAllPublicationsOptions {
+  search?: string
   from?: string
   to?: string
   page?: number
@@ -13,12 +14,12 @@ interface UseAllPublicationsOptions {
 }
 
 export function useAllPublications(options: UseAllPublicationsOptions = {}) {
-  const { from, to, page = 0, size = 20 } = options
+  const { search, from, to, page = 0, size = 20 } = options
 
   return useQuery({
-    queryKey: ['publications', 'all', { from, to, page, size }],
+    queryKey: ['publications', 'all', { search, from, to, page, size }],
     queryFn: async () => {
-      return await unwrapResponse(publicationsApi.listAllPublications(from, page, size, to))
+      return await unwrapResponse(publicationsApi.listAllPublications(from, page, search, size, to))
     },
     placeholderData: keepPreviousData,
   })

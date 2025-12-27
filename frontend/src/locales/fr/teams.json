@@ -143,7 +143,12 @@
     "list": {
       "title": "Activités",
       "empty": "Aucune activité pour le moment",
-      "emptyDescription": "Les publications et sorties apparaîtront ici une fois publiées"
+      "emptyDescription": "Les publications et sorties apparaîtront ici une fois publiées",
+      "noResults": "Aucune publication ne correspond à votre recherche.",
+      "search": {
+        "label": "Rechercher des publications",
+        "placeholder": "Rechercher par titre ou description..."
+      }
     }
   }
 }

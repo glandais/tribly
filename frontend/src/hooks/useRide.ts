@@ -28,6 +28,7 @@ export type {
 export { Status, Visibility }
 
 interface UseRidesOptions {
+  search?: string
   from?: string
   to?: string
   page?: number
@@ -35,13 +36,13 @@ interface UseRidesOptions {
 }
 
 export function useRides(teamSlug: string | undefined, options: UseRidesOptions = {}) {
-  const { from, to, page = 0, size = 20 } = options
+  const { search, from, to, page = 0, size = 20 } = options
 
   return useQuery({
-    queryKey: ['rides', teamSlug, { from, to, page, size }],
+    queryKey: ['rides', teamSlug, { search, from, to, page, size }],
     queryFn: async () => {
       if (!teamSlug) throw new Error('Team slug is required')
-      return await unwrapResponse(ridesApi.listRides(teamSlug, from, page, size, to))
+      return await unwrapResponse(ridesApi.listRides(teamSlug, from, page, search, size, to))
     },
     enabled: !!teamSlug,
     placeholderData: keepPreviousData,

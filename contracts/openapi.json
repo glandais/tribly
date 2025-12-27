@@ -1260,6 +1260,13 @@
             "default" : 0
           }
         }, {
+          "description" : "Search by name/description",
+          "name" : "search",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
           "description" : "Page size",
           "name" : "size",
           "in" : "query",
@@ -2037,6 +2044,13 @@
             "default" : 0
           }
         }, {
+          "description" : "Search by name/description",
+          "name" : "search",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
           "description" : "Page size",
           "name" : "size",
           "in" : "query",
@@ -2384,6 +2398,13 @@
             "default" : 0
           }
         }, {
+          "description" : "Search by name/description",
+          "name" : "search",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
           "description" : "Page size",
           "name" : "size",
           "in" : "query",
@@ -2453,6 +2474,13 @@
             "type" : "integer",
             "format" : "int32",
             "default" : 0
+          }
+        }, {
+          "description" : "Search by name/description",
+          "name" : "search",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
           }
         }, {
           "description" : "Page size",
@@ -2940,7 +2968,7 @@
             "default" : 0
           }
         }, {
-          "description" : "Search by route name",
+          "description" : "Search by name/description",
           "name" : "search",
           "in" : "query",
           "schema" : {

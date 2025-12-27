@@ -9,18 +9,23 @@ import { RideCard, RideCardSkeleton } from '../../components/ride/RideCard'
 import { TeamLayout } from '../../components/team/TeamLayout'
 import { Pagination } from '../../components/common/Pagination'
 import { usePagination } from '../../hooks/usePagination'
+import { SearchInput } from '../../components/common/SearchInput'
 
 export function RideListPage() {
   const { t } = useTranslation('rides')
   const { teamSlug } = useParams<{ teamSlug: string }>()
   const [page, setPage] = useState(0)
+  const [search, setSearch] = useState('')
   const pageSize = 20
 
   const { data: team, isLoading: isLoadingTeam } = useTeam(teamSlug)
   const { data: ridesData, isLoading: isLoadingRides } = useRides(teamSlug, {
+    search: search || undefined,
     page,
     size: pageSize,
   })
+
+  const resetPage = () => setPage(0)
 
   // Use usePagination only for totalPages calculation
   const { totalPages } = usePagination({
@@ -56,6 +61,19 @@ export function RideListPage() {
           )}
         </div>
 
+        {/* Search Input */}
+        <SearchInput
+          id="rides-search"
+          value={search}
+          onChange={(value) => {
+            setSearch(value)
+            resetPage()
+          }}
+          placeholder={t('list.search.placeholder')}
+          label={t('list.search.label')}
+          className="mb-6"
+        />
+
         {/* Rides List */}
         {isLoadingRides ? (
           <div className="space-y-4">
@@ -81,11 +99,15 @@ export function RideListPage() {
         ) : (
           <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
             <CalendarIcon className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-4 text-lg font-medium text-gray-900">{t('list.empty.title')}</h3>
-            <p className="mt-2 text-gray-500">
-              {canCreate ? t('list.empty.admin') : t('list.empty.member')}
-            </p>
-            {canCreate && (
+            <h3 className="mt-4 text-lg font-medium text-gray-900">
+              {search ? t('list.noResults') : t('list.empty.title')}
+            </h3>
+            {!search && (
+              <p className="mt-2 text-gray-500">
+                {canCreate ? t('list.empty.admin') : t('list.empty.member')}
+              </p>
+            )}
+            {canCreate && !search && (
               <Link
                 to={`/teams/${teamSlug}/rides/new`}
                 className="mt-4 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"

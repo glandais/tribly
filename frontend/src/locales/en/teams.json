@@ -143,7 +143,12 @@
     "list": {
       "title": "Feed",
       "empty": "No publications yet",
-      "emptyDescription": "Posts and rides will appear here once published"
+      "emptyDescription": "Posts and rides will appear here once published",
+      "noResults": "No publications found matching your search.",
+      "search": {
+        "label": "Search publications",
+        "placeholder": "Search by title or description..."
+      }
     }
   }
 }

@@ -58,11 +58,11 @@ public class RouteResource extends AbstractAuthenticatedResource {
   })
   public Response listRoutes(
       @Parameter(description = "Team URL slug") @PathParam("slug") String teamSlug,
+      @Parameter(description = "Search by name/description") @QueryParam("search")
+          @Nullable String search,
       @Parameter(description = "Page number (0-indexed)") @QueryParam("page") @DefaultValue("0")
           int page,
-      @Parameter(description = "Page size") @QueryParam("size") @DefaultValue("20") int size,
-      @Parameter(description = "Search by route name") @QueryParam("search")
-          @Nullable String search) {
+      @Parameter(description = "Page size") @QueryParam("size") @DefaultValue("20") int size) {
 
     Long userId = getCurrentUserIdOrNull();
 

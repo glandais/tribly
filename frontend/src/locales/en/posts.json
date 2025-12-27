@@ -14,7 +14,12 @@
     "title": "Posts",
     "createPost": "Create Post",
     "emptyAdmin": "No posts yet. Create the first one!",
-    "emptyMember": "No posts yet."
+    "emptyMember": "No posts yet.",
+    "noResults": "No posts found matching your search.",
+    "search": {
+      "label": "Search posts",
+      "placeholder": "Search by title or description..."
+    }
   },
   "create": {
     "title": "New Post",

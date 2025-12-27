@@ -6,6 +6,7 @@ import type { PublicationListResponse } from '../api/api'
 export type { PublicationListResponse }
 
 interface UsePublicationsOptions {
+  search?: string
   from?: string
   to?: string
   page?: number
@@ -16,13 +17,15 @@ export function usePublications(
   teamSlug: string | undefined,
   options: UsePublicationsOptions = {}
 ) {
-  const { from, to, page = 0, size = 20 } = options
+  const { search, from, to, page = 0, size = 20 } = options
 
   return useQuery({
-    queryKey: ['publications', teamSlug, { from, to, page, size }],
+    queryKey: ['publications', teamSlug, { search, from, to, page, size }],
     queryFn: async () => {
       if (!teamSlug) throw new Error('Team slug is required')
-      return await unwrapResponse(publicationsApi.listPublications(teamSlug, from, page, size, to))
+      return await unwrapResponse(
+        publicationsApi.listPublications(teamSlug, from, page, search, size, to)
+      )
     },
     enabled: !!teamSlug,
     placeholderData: keepPreviousData,

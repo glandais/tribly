@@ -1136,6 +1136,11 @@ paths:
           type: integer
           format: int32
           default: 0
+      - description: Search by name/description
+        name: search
+        in: query
+        schema:
+          type: string
       - description: Page size
         name: size
         in: query
@@ -1671,6 +1676,11 @@ paths:
           type: integer
           format: int32
           default: 0
+      - description: Search by name/description
+        name: search
+        in: query
+        schema:
+          type: string
       - description: Page size
         name: size
         in: query
@@ -1910,6 +1920,11 @@ paths:
           type: integer
           format: int32
           default: 0
+      - description: Search by name/description
+        name: search
+        in: query
+        schema:
+          type: string
       - description: Page size
         name: size
         in: query
@@ -1961,6 +1976,11 @@ paths:
           type: integer
           format: int32
           default: 0
+      - description: Search by name/description
+        name: search
+        in: query
+        schema:
+          type: string
       - description: Page size
         name: size
         in: query
@@ -2297,7 +2317,7 @@ paths:
           type: integer
           format: int32
           default: 0
-      - description: Search by route name
+      - description: Search by name/description
         name: search
         in: query
         schema:

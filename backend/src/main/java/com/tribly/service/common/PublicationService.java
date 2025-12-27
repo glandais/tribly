@@ -21,13 +21,14 @@ public class PublicationService extends TeamEntityService {
   public PublicationListResponse list(
       @Nullable Set<String> teamSlugs,
       @Nullable Long userId,
+      @Nullable String search,
       @Nullable Instant from,
       @Nullable Instant to,
       int page,
       int size) {
     TriblyPage<Publication> publications =
         allPublicationRepository.find(
-            new TeamEntityQueryBasic(userId, teamSlugs, null, null, from, to, page, size));
+            new TeamEntityQueryBasic(userId, teamSlugs, null, search, from, to, page, size));
     List<PublicationDto> dtos = publications.items().stream().map(PublicationDto::from).toList();
     return new PublicationListResponse(dtos, publications.total(), page, size);
   }

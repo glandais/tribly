@@ -38,6 +38,8 @@ public class PublicationResource extends AbstractAuthenticatedResource {
         content = @Content(schema = @Schema(implementation = PublicationListResponse.class)))
   })
   public Response listAllPublications(
+      @Parameter(description = "Search by name/description") @QueryParam("search")
+          @Nullable String search,
       @Parameter(description = "Start date filter (ISO format)") @QueryParam("from")
           @Nullable String fromStr,
       @Parameter(description = "End date filter (ISO format)") @QueryParam("to")
@@ -50,7 +52,8 @@ public class PublicationResource extends AbstractAuthenticatedResource {
     Instant from = fromStr != null ? Instant.parse(fromStr) : null;
     Instant to = toStr != null ? Instant.parse(toStr) : null;
 
-    PublicationListResponse response = publicationService.list(null, userId, from, to, page, size);
+    PublicationListResponse response =
+        publicationService.list(null, userId, search, from, to, page, size);
 
     return Response.ok(response).build();
   }

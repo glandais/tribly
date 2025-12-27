@@ -45,6 +45,8 @@ public class TeamPublicationResource extends AbstractAuthenticatedResource {
   })
   public Response listPublications(
       @Parameter(description = "Team URL slug") @PathParam("slug") String slug,
+      @Parameter(description = "Search by name/description") @QueryParam("search")
+          @Nullable String search,
       @Parameter(description = "Start date filter (ISO format)") @QueryParam("from")
           @Nullable String fromStr,
       @Parameter(description = "End date filter (ISO format)") @QueryParam("to")
@@ -58,7 +60,7 @@ public class TeamPublicationResource extends AbstractAuthenticatedResource {
     Instant to = toStr != null ? Instant.parse(toStr) : null;
 
     PublicationListResponse publications =
-        publicationService.list(Set.of(slug), userId, from, to, page, size);
+        publicationService.list(Set.of(slug), userId, search, from, to, page, size);
 
     return Response.ok(publications).build();
   }

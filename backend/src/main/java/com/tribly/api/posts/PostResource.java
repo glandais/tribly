@@ -50,6 +50,8 @@ public class PostResource extends AbstractAuthenticatedResource {
   })
   public Response listPosts(
       @Parameter(description = "Team URL slug") @PathParam("slug") String slug,
+      @Parameter(description = "Search by name/description") @QueryParam("search")
+          @Nullable String search,
       @Parameter(description = "Start date filter (ISO format)") @QueryParam("from")
           @Nullable String fromStr,
       @Parameter(description = "End date filter (ISO format)") @QueryParam("to")
@@ -62,7 +64,7 @@ public class PostResource extends AbstractAuthenticatedResource {
     Instant from = fromStr != null ? Instant.parse(fromStr) : null;
     Instant to = toStr != null ? Instant.parse(toStr) : null;
 
-    PostListResponse posts = postService.listPosts(slug, userId, from, to, page, size);
+    PostListResponse posts = postService.listPosts(slug, userId, search, from, to, page, size);
 
     return Response.ok(posts).build();
   }
