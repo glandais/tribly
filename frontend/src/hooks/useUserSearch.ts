@@ -15,6 +15,5 @@ export function useUserSearch(query: string, enabled: boolean = true) {
       return await unwrapResponse(usersApi.searchUsers(undefined, query))
     },
     enabled: enabled && query.trim().length >= 2,
-    staleTime: 30000, // 30 seconds
   })
 }

@@ -24,7 +24,6 @@ export function useTeams(options: UseTeamsOptions = {}) {
     queryFn: async () => {
       return await unwrapResponse(teamsApi.listTeams(undefined, page, search, size))
     },
-    staleTime: 1000 * 60 * 2,
   })
 }
 
@@ -34,7 +33,6 @@ export function useMyTeams() {
     queryFn: async () => {
       return await unwrapResponse(teamsApi.listTeams(true, 0, undefined, 100))
     },
-    staleTime: 1000 * 60 * 2,
   })
 }
 
@@ -62,7 +60,6 @@ export function useTeamMembers(slug: string | undefined, page = 0, size = 50) {
       return await unwrapResponse(teamMembersApi.getMembers(slug, page, size))
     },
     enabled: !!slug,
-    staleTime: 1000 * 60 * 2,
   })
 }
 

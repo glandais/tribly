@@ -20,6 +20,5 @@ export function useAllPublications(options: UseAllPublicationsOptions = {}) {
     queryFn: async () => {
       return await unwrapResponse(publicationsApi.listAllPublications(from, page, size, to))
     },
-    staleTime: 1000 * 60 * 2,
   })
 }

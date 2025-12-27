@@ -44,7 +44,6 @@ export function useRides(teamSlug: string | undefined, options: UseRidesOptions 
       return await unwrapResponse(ridesApi.listRides(teamSlug, from, page, size, to))
     },
     enabled: !!teamSlug,
-    staleTime: 1000 * 60 * 2,
   })
 }
 
@@ -56,7 +55,6 @@ export function useRide(teamSlug: string | undefined, rideSlug: string | undefin
       return await unwrapResponse(ridesApi.getRide(rideSlug, teamSlug))
     },
     enabled: !!teamSlug && !!rideSlug,
-    staleTime: 1000 * 60 * 2,
   })
 }
 

@@ -37,7 +37,6 @@ export function useRoutes(teamSlug: string | undefined, page = 0, size = 20, sea
       return await unwrapResponse(routesApi.listRoutes(teamSlug, page, search, size))
     },
     enabled: !!teamSlug,
-    staleTime: 1000 * 60 * 2,
   })
 }
 
@@ -49,7 +48,6 @@ export function useRoute(teamSlug: string | undefined, routeSlug: string | undef
       return await unwrapResponse(routesApi.getRoute(routeSlug, teamSlug))
     },
     enabled: !!teamSlug && !!routeSlug,
-    staleTime: 1000 * 60 * 2,
   })
 }
 

@@ -44,6 +44,28 @@ export default defineConfig({
             return 'axios-vendor';
           }
 
+          if (id.includes('node_modules/react-chartjs') ||
+              id.includes('node_modules/chart.js')) {
+            return 'chart-vendor';
+          }
+
+          if (id.includes('node_modules/@lexical') ||
+              id.includes('node_modules/lexical') ||
+              id.includes('node_modules/react-markdown') ||
+              id.includes('node_modules/prismjs') ||
+              id.includes('node_modules/micromark') ||
+              id.includes('node_modules/mdast')) {
+            return 'markdown-vendor';
+          }
+
+          if (id.includes('node_modules/date-fns')) {
+            return 'date-vendor';
+          }
+
+          if (id.includes('node_modules/@heroicons')) {
+            return 'heroicons-vendor';
+          }
+
           // i18n
           if (id.includes('node_modules/i18next') ||
               id.includes('node_modules/react-i18next/')) {

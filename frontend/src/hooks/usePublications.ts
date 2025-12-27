@@ -25,6 +25,5 @@ export function usePublications(
       return await unwrapResponse(publicationsApi.listPublications(teamSlug, from, page, size, to))
     },
     enabled: !!teamSlug,
-    staleTime: 1000 * 60 * 2,
   })
 }
