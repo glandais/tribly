@@ -1,4 +1,4 @@
-package com.tribly.integration;
+package com.tribly.api.routes;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
@@ -88,8 +88,7 @@ class RouteResourceTest {
   @Test
   void getRoute_shouldReturnRouteDetails() {
     // Create route for testing
-    testRoute =
-        dataService.createRouteWithVisibility(testTeam, testUser, "Test Route", Visibility.PUBLIC);
+    testRoute = dataService.createRoute(testTeam, testUser, "Test Route", Visibility.PUBLIC);
 
     given()
         .when()
@@ -103,9 +102,7 @@ class RouteResourceTest {
   @Test
   void updateRoute_shouldUpdateMetadata() {
     // Create route for testing
-    testRoute =
-        dataService.createRouteWithVisibility(
-            testTeam, testUser, "Original Name", Visibility.PUBLIC);
+    testRoute = dataService.createRoute(testTeam, testUser, "Original Name", Visibility.PUBLIC);
 
     RouteRequest route =
         new RouteRequest("Updated Name", "Updated description", SurfaceType.MTB, Visibility.PUBLIC);
@@ -125,9 +122,7 @@ class RouteResourceTest {
   @Test
   void updateRoute_shouldUpdateGpxFile() {
     // Create route for testing
-    testRoute =
-        dataService.createRouteWithVisibility(
-            testTeam, testUser, "Original Route", Visibility.PUBLIC);
+    testRoute = dataService.createRoute(testTeam, testUser, "Original Route", Visibility.PUBLIC);
 
     RouteRequest route =
         new RouteRequest(
@@ -153,8 +148,7 @@ class RouteResourceTest {
   @Test
   void deleteRoute_shouldSoftDelete() {
     // Create route for testing
-    testRoute =
-        dataService.createRouteWithVisibility(testTeam, testUser, "To Delete", Visibility.PUBLIC);
+    testRoute = dataService.createRoute(testTeam, testUser, "To Delete", Visibility.PUBLIC);
 
     given()
         .auth()

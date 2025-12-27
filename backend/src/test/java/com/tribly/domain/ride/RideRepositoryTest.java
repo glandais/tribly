@@ -122,14 +122,14 @@ class RideRepositoryTest {
 
   @Test
   void find_shouldFilterByVisibility() {
-    dataService.createRideWithVisibility(
+    dataService.createRide(
         team,
         user,
         "Public Ride",
         "public-ride",
         LocalDate.of(2025, 1, 15).atTime(0, 0).toInstant(ZoneOffset.UTC),
         Visibility.PUBLIC);
-    dataService.createRideWithVisibility(
+    dataService.createRide(
         team,
         user,
         "Team Ride",
@@ -147,7 +147,7 @@ class RideRepositoryTest {
 
   @Test
   void find_shouldFilterByStatus() {
-    dataService.createRideWithVisibilityAndStatus(
+    dataService.createRide(
         team,
         user,
         "Draft Ride",
@@ -155,7 +155,7 @@ class RideRepositoryTest {
         LocalDate.of(2025, 1, 15).atTime(0, 0).toInstant(ZoneOffset.UTC),
         Visibility.PUBLIC,
         Status.DRAFT);
-    dataService.createRideWithVisibilityAndStatus(
+    dataService.createRide(
         team,
         user,
         "Published Ride",
@@ -220,21 +220,23 @@ class RideRepositoryTest {
 
   @Test
   void findRidesToAutoPublish_shouldReturnRidesWithPublishAtInPast() {
-    dataService.createRideWithPublishAt(
+    dataService.createRide(
         team,
         user,
         "Auto Publish 1",
         "auto-1",
         LocalDate.of(2025, 1, 15).atTime(0, 0).toInstant(ZoneOffset.UTC),
+        Visibility.PUBLIC,
         Status.DRAFT,
         Instant.now().minusSeconds(3600));
 
-    dataService.createRideWithPublishAt(
+    dataService.createRide(
         team,
         user,
         "Auto Publish 2",
         "auto-2",
         LocalDate.of(2025, 1, 20).atTime(0, 0).toInstant(ZoneOffset.UTC),
+        Visibility.PUBLIC,
         Status.DRAFT,
         Instant.now().plusSeconds(3600));
 
@@ -246,7 +248,7 @@ class RideRepositoryTest {
 
   @Test
   void findRidesToAutoPublish_shouldIgnoreRidesWithoutPublishAt() {
-    dataService.createRideWithStatus(
+    dataService.createRide(
         team,
         user,
         "No Publish At",

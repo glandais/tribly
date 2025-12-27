@@ -1,4 +1,4 @@
-package com.tribly.integration;
+package com.tribly.api.teams;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;

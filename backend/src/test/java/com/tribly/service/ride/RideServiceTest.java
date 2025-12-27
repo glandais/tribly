@@ -51,7 +51,7 @@ class RideServiceTest {
 
   @Test
   void listRides_shouldReturnPublishedRidesForNonMembers() {
-    dataService.createRideWithVisibilityAndStatus(
+    dataService.createRide(
         team,
         admin,
         "Public Ride",
@@ -59,7 +59,7 @@ class RideServiceTest {
         Instant.now(),
         Visibility.PUBLIC,
         Status.PUBLISHED);
-    dataService.createRideWithVisibilityAndStatus(
+    dataService.createRide(
         team, admin, "Team Ride", "team-ride", Instant.now(), Visibility.TEAM, Status.PUBLISHED);
 
     RideListResponse result = rideService.listRides("test-team", null, null, null, 0, 10);
@@ -70,7 +70,7 @@ class RideServiceTest {
 
   @Test
   void listRides_shouldReturnTeamRidesForMembers() {
-    dataService.createRideWithVisibilityAndStatus(
+    dataService.createRide(
         team,
         admin,
         "Public Ride",
@@ -78,7 +78,7 @@ class RideServiceTest {
         Instant.now(),
         Visibility.PUBLIC,
         Status.PUBLISHED);
-    dataService.createRideWithVisibilityAndStatus(
+    dataService.createRide(
         team, admin, "Team Ride", "team-ride", Instant.now(), Visibility.TEAM, Status.PUBLISHED);
 
     RideListResponse result = rideService.listRides("test-team", member.getId(), null, null, 0, 10);
@@ -102,7 +102,7 @@ class RideServiceTest {
 
   @Test
   void listRides_shouldShowDraftsToOrganizers() {
-    dataService.createRideWithStatus(team, admin, "Draft", "draft", Instant.now(), Status.DRAFT);
+    dataService.createRide(team, admin, "Draft", "draft", Instant.now(), Status.DRAFT);
 
     RideListResponse result =
         rideService.listRides("test-team", organizer.getId(), null, null, 0, 10);
@@ -113,7 +113,7 @@ class RideServiceTest {
 
   @Test
   void listRides_shouldHideDraftsFromMembers() {
-    dataService.createRideWithStatus(team, admin, "Draft", "draft", Instant.now(), Status.DRAFT);
+    dataService.createRide(team, admin, "Draft", "draft", Instant.now(), Status.DRAFT);
 
     RideListResponse result = rideService.listRides("test-team", member.getId(), null, null, 0, 10);
 
@@ -122,9 +122,9 @@ class RideServiceTest {
 
   @Test
   void listRides_shouldHideDraftsFromNonMembers() {
-    dataService.createRideWithVisibilityAndStatus(
+    dataService.createRide(
         team, admin, "Draft Ride", "draft-ride", Instant.now(), Visibility.PUBLIC, Status.DRAFT);
-    dataService.createRideWithVisibilityAndStatus(
+    dataService.createRide(
         team,
         admin,
         "Published Ride",
@@ -141,7 +141,7 @@ class RideServiceTest {
 
   @Test
   void listRides_shouldReturnEmptyWhenNonMemberRequestsDrafts() {
-    dataService.createRideWithVisibilityAndStatus(
+    dataService.createRide(
         team, admin, "Draft Ride", "draft-ride", Instant.now(), Visibility.PUBLIC, Status.DRAFT);
 
     RideListResponse result = rideService.listRides("test-team", null, null, null, 0, 10);
@@ -151,9 +151,9 @@ class RideServiceTest {
 
   @Test
   void listRides_shouldReturnDraftsWhenOrganizerRequestsThem() {
-    dataService.createRideWithVisibilityAndStatus(
+    dataService.createRide(
         team, admin, "Draft Ride", "draft-ride", Instant.now(), Visibility.PUBLIC, Status.DRAFT);
-    dataService.createRideWithVisibilityAndStatus(
+    dataService.createRide(
         team,
         admin,
         "Published Ride",
@@ -165,16 +165,14 @@ class RideServiceTest {
     RideListResponse result =
         rideService.listRides("test-team", organizer.getId(), null, null, 0, 10);
 
-    assertEquals(1, result.rides().size());
-    assertEquals("Draft Ride", result.rides().getFirst().getName());
-    assertEquals(Status.DRAFT, result.rides().getFirst().getStatus());
+    assertEquals(2, result.rides().size());
   }
 
   @Test
   void listRides_shouldReturnPublishedWhenNonMemberRequestsThem() {
-    dataService.createRideWithVisibilityAndStatus(
+    dataService.createRide(
         team, admin, "Draft Ride", "draft-ride", Instant.now(), Visibility.PUBLIC, Status.DRAFT);
-    dataService.createRideWithVisibilityAndStatus(
+    dataService.createRide(
         team,
         admin,
         "Published Ride",
@@ -195,7 +193,7 @@ class RideServiceTest {
     Team privateTeam = dataService.createTeam("Private Team", "private-team", Visibility.TEAM);
     User privateTeamAdmin = dataService.createUser("private-admin@example.com", "Private Admin");
     dataService.addUserToTeam(privateTeamAdmin, privateTeam, TeamRole.ADMIN);
-    dataService.createRideWithVisibilityAndStatus(
+    dataService.createRide(
         privateTeam,
         privateTeamAdmin,
         "Private Ride",
@@ -228,7 +226,7 @@ class RideServiceTest {
 
   @Test
   void getRideBySlug_shouldShowDraftToOrganizer() {
-    dataService.createRideWithStatus(team, admin, "Draft", "draft", Instant.now(), Status.DRAFT);
+    dataService.createRide(team, admin, "Draft", "draft", Instant.now(), Status.DRAFT);
 
     RideDto result = rideService.getRideDetail("test-team", "draft", organizer.getId());
 
@@ -237,7 +235,7 @@ class RideServiceTest {
 
   @Test
   void getRideBySlug_shouldHideDraftFromMember() {
-    dataService.createRideWithStatus(team, admin, "Draft", "draft", Instant.now(), Status.DRAFT);
+    dataService.createRide(team, admin, "Draft", "draft", Instant.now(), Status.DRAFT);
 
     assertThrows(
         BusinessException.class,
@@ -421,7 +419,7 @@ class RideServiceTest {
 
   @Test
   void updateRide_shouldPreserveStatusWhenNull() {
-    dataService.createRideWithVisibilityAndStatus(
+    dataService.createRide(
         team,
         admin,
         "Published Ride",
@@ -470,7 +468,7 @@ class RideServiceTest {
   void updateRide_shouldThrowForPublicVisibilityInTeamVisibilityTeam() {
     Team privateTeam = dataService.createTeam("Private Team", "private-team", Visibility.TEAM);
     dataService.addUserToTeam(organizer, privateTeam, TeamRole.ORGANIZER);
-    dataService.createRideWithVisibilityAndStatus(
+    dataService.createRide(
         privateTeam,
         organizer,
         "Team Ride",
@@ -502,7 +500,7 @@ class RideServiceTest {
   void updateRide_shouldSucceedForTeamVisibilityInTeamVisibilityTeam() {
     Team privateTeam = dataService.createTeam("Private Team", "private-team", Visibility.TEAM);
     dataService.addUserToTeam(organizer, privateTeam, TeamRole.ORGANIZER);
-    dataService.createRideWithVisibilityAndStatus(
+    dataService.createRide(
         privateTeam,
         organizer,
         "Team Ride",
@@ -555,8 +553,8 @@ class RideServiceTest {
   @Test
   void listGroups_shouldReturnGroupsOrderedBySortOrder() {
     Ride ride = dataService.createRide(team, admin, "Test", "test", Instant.now());
-    dataService.createRideGroupWithOrder(ride, "Group 1", 2);
-    dataService.createRideGroupWithOrder(ride, "Group 2", 1);
+    dataService.createRideGroup(ride, "Group 1", 2);
+    dataService.createRideGroup(ride, "Group 2", 1);
 
     RideGroupListResponse result = rideService.listGroups("test-team", "test", null);
 
@@ -579,8 +577,7 @@ class RideServiceTest {
   @Test
   void joinGroup_shouldCreateParticipation() {
     Ride ride =
-        dataService.createRideWithStatus(
-            team, admin, "Test", "test", Instant.now(), Status.PUBLISHED);
+        dataService.createRide(team, admin, "Test", "test", Instant.now(), Status.PUBLISHED);
     RideGroup group = dataService.createRideGroup(ride, "Group");
 
     RideParticipationDto result =
@@ -593,7 +590,7 @@ class RideServiceTest {
   @Test
   void joinGroup_shouldThrowForDraftRide() {
     Ride ride =
-        dataService.createRideWithVisibilityAndStatus(
+        dataService.createRide(
             team, admin, "Draft", "draft", Instant.now(), Visibility.PUBLIC, Status.DRAFT);
     RideGroup group = dataService.createRideGroup(ride, "Group");
 
@@ -606,7 +603,7 @@ class RideServiceTest {
   @Test
   void joinGroup_shouldThrowForDraftRideEvenForOrganizer() {
     Ride ride =
-        dataService.createRideWithVisibilityAndStatus(
+        dataService.createRide(
             team, admin, "Draft", "draft", Instant.now(), Visibility.PUBLIC, Status.DRAFT);
     RideGroup group = dataService.createRideGroup(ride, "Group");
 

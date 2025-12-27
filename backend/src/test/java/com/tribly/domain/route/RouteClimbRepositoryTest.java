@@ -76,7 +76,7 @@ class RouteClimbRepositoryTest {
 
   @Test
   void findByRoute_shouldHandleClimbsWithAndWithoutCategory() {
-    dataService.createRouteClimbWithCategory(
+    dataService.createRouteClimb(
         route,
         "Col du Tourmalet",
         1000,
@@ -87,7 +87,7 @@ class RouteClimbRepositoryTest {
         ClimbCategory.HC);
     dataService.createRouteClimb(
         route, 8000, 9000, 50, new BigDecimal("2.5"), new BigDecimal("5.0"));
-    dataService.createRouteClimbWithCategory(
+    dataService.createRouteClimb(
         route,
         "Small Hill",
         12000,
@@ -131,7 +131,7 @@ class RouteClimbRepositoryTest {
 
   @Test
   void findByRoute_shouldHandleAllClimbCategories() {
-    dataService.createRouteClimbWithCategory(
+    dataService.createRouteClimb(
         route,
         "HC Climb",
         1000,
@@ -140,7 +140,7 @@ class RouteClimbRepositoryTest {
         new BigDecimal("7.5"),
         new BigDecimal("12.0"),
         ClimbCategory.HC);
-    dataService.createRouteClimbWithCategory(
+    dataService.createRouteClimb(
         route,
         "Cat 1",
         6000,
@@ -149,7 +149,7 @@ class RouteClimbRepositoryTest {
         new BigDecimal("6.0"),
         new BigDecimal("9.0"),
         ClimbCategory.CAT1);
-    dataService.createRouteClimbWithCategory(
+    dataService.createRouteClimb(
         route,
         "Cat 2",
         9000,
@@ -158,7 +158,7 @@ class RouteClimbRepositoryTest {
         new BigDecimal("5.0"),
         new BigDecimal("8.0"),
         ClimbCategory.CAT2);
-    dataService.createRouteClimbWithCategory(
+    dataService.createRouteClimb(
         route,
         "Cat 3",
         11000,
@@ -167,7 +167,7 @@ class RouteClimbRepositoryTest {
         new BigDecimal("4.0"),
         new BigDecimal("7.0"),
         ClimbCategory.CAT3);
-    dataService.createRouteClimbWithCategory(
+    dataService.createRouteClimb(
         route,
         "Cat 4",
         13000,

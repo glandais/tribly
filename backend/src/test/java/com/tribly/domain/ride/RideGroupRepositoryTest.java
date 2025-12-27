@@ -92,9 +92,9 @@ class RideGroupRepositoryTest {
 
   @Test
   void findByRide_shouldOrderBySortOrder() {
-    dataService.createRideGroupWithOrder(ride, "Third", 3);
-    dataService.createRideGroupWithOrder(ride, "First", 1);
-    dataService.createRideGroupWithOrder(ride, "Second", 2);
+    dataService.createRideGroup(ride, "Third", 3);
+    dataService.createRideGroup(ride, "First", 1);
+    dataService.createRideGroup(ride, "Second", 2);
 
     List<RideGroup> result = rideGroupRepository.findByRide(ride.getId());
 

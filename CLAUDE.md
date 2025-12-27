@@ -532,6 +532,58 @@ Language syncs with user profile locale preference in `UserProfilePage.tsx`:
 - `useEffect` syncs i18n when `user.locale` changes
 - `handleSave` calls `i18n.changeLanguage(locale)` on profile update
 
+## React Query Patterns
+
+The frontend uses React Query (TanStack Query) for server state management. Follow these patterns when creating new hooks:
+
+### Hook Structure
+
+```typescript
+// Pattern: useEntity(slug/id, options?)
+export function usePublications(
+  teamSlug: string | undefined,
+  options: UsePublicationsOptions = {}
+) {
+  const { from, to, status, page = 0, size = 20 } = options
+
+  return useQuery({
+    queryKey: ['publications', teamSlug, { from, to, status, page, size }],
+    queryFn: async () => {
+      if (!teamSlug) throw new Error('Team slug is required')
+      return await unwrapResponse(
+        publicationsApi.listPublications(teamSlug, from, page, size, status, to)
+      )
+    },
+    enabled: !!teamSlug,
+    staleTime: 1000 * 60 * 2, // 2 minutes
+  })
+}
+```
+
+### Key Conventions
+
+1. **Query Keys**: Use array format with entity type, identifier, and options object
+   - `['publications', teamSlug, { from, to, status, page, size }]`
+   - `['ride', teamSlug, rideSlug]`
+   - Enables precise cache invalidation
+
+2. **Options Pattern**: Accept optional parameters with defaults
+   - Default pagination: `page = 0, size = 20`
+   - Spread options for flexibility
+
+3. **Stale Time**: Set appropriate cache duration
+   - Lists: 2 minutes (`1000 * 60 * 2`)
+   - Details: 5 minutes (`1000 * 60 * 5`)
+   - Static data: Infinity
+
+4. **Enabled Flag**: Use when hook depends on optional parameters
+   - `enabled: !!teamSlug` - only fetch when teamSlug exists
+   - Prevents unnecessary API calls
+
+5. **Error Handling**: Let errors bubble up to React Query's error boundaries
+   - Throw errors in `queryFn` for proper error states
+   - Use `unwrapResponse()` to handle API wrapper format
+
 ## UI Components
 
 ### ConfirmDialog ⚠️ IMPORTANT
@@ -694,6 +746,47 @@ function Component() {
 - Translation-ready with consistent button text
 - Mobile-responsive with proper backdrop
 - Prevents code duplication
+
+### Publication Cards (RideCard & PostCard)
+
+Both `RideCard` and `PostCard` components support cross-team display with the `showTypeBadge` prop:
+
+```tsx
+// When displaying publications from multiple teams
+<RideCard
+  ride={publication as RideDto}
+  teamSlug={publication.team.slug}
+  showTypeBadge={true}  // Shows "Sortie" badge
+/>
+
+<PostCard
+  post={publication as PostDto}
+  teamSlug={publication.team.slug}
+  showTypeBadge={true}  // Shows "Publication" badge
+/>
+```
+
+**Type Badges**:
+- Ride: Indigo badge with "Sortie" (French) / "Ride" (English)
+- Post: Purple badge with "Publication" (French) / "Post" (English)
+
+**Skeleton Loading**:
+- Use `RideCardSkeleton` and `PostCardSkeleton` for loading states
+- Alternate between types for visual variety: `i % 2 === 0 ? <RideCardSkeleton /> : <PostCardSkeleton />`
+
+**Team Name Display** (for cross-team contexts):
+```tsx
+<div className="space-y-1">
+  {/* Team name label above card */}
+  <div className="text-xs text-gray-500 flex items-center gap-1">
+    <UsersIcon className="h-4 w-4" />
+    {publication.team.name}
+  </div>
+
+  {/* Publication card */}
+  <RideCard ride={publication} teamSlug={publication.team.slug} showTypeBadge />
+</div>
+```
 
 ## Development URLs
 

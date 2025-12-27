@@ -24,6 +24,7 @@ import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
+import org.jspecify.annotations.Nullable;
 
 @ApplicationScoped
 public class TestDataService {
@@ -40,13 +41,6 @@ public class TestDataService {
 
   @Transactional
   public User createUser(String email, String displayName) {
-    User user = new User(email, displayName);
-    userRepository.persistAndFlush(user);
-    return user;
-  }
-
-  @Transactional
-  public User createUserWithLocale(String email, String displayName) {
     User user = new User(email, displayName);
     userRepository.persistAndFlush(user);
     return user;
@@ -75,38 +69,29 @@ public class TestDataService {
 
   @Transactional
   public Ride createRide(Team team, User createdBy, String title, String slug, Instant dateTime) {
-    Ride ride = new Ride(team, createdBy, title, slug, dateTime);
-    ride.setStatus(Status.PUBLISHED);
-    ride.setVisibility(Visibility.PUBLIC);
-    rideRepository.persistAndFlush(ride);
-    return ride;
+    return createRide(
+        team, createdBy, title, slug, dateTime, Visibility.PUBLIC, Status.PUBLISHED, null);
   }
 
   @Transactional
-  public Ride createRideWithStatus(
+  public Ride createRide(
       Team team, User createdBy, String title, String slug, Instant dateTime, Status status) {
-    Ride ride = new Ride(team, createdBy, title, slug, dateTime);
-    ride.setStatus(status);
-    rideRepository.persistAndFlush(ride);
-    return ride;
+    return createRide(team, createdBy, title, slug, dateTime, Visibility.PUBLIC, status, null);
   }
 
   @Transactional
-  public Ride createRideWithVisibility(
+  public Ride createRide(
       Team team,
       User createdBy,
       String title,
       String slug,
       Instant dateTime,
       Visibility visibility) {
-    Ride ride = new Ride(team, createdBy, title, slug, dateTime);
-    ride.setVisibility(visibility);
-    rideRepository.persistAndFlush(ride);
-    return ride;
+    return createRide(team, createdBy, title, slug, dateTime, visibility, Status.PUBLISHED, null);
   }
 
   @Transactional
-  public Ride createRideWithVisibilityAndStatus(
+  public Ride createRide(
       Team team,
       User createdBy,
       String title,
@@ -114,23 +99,21 @@ public class TestDataService {
       Instant date,
       Visibility visibility,
       Status status) {
-    Ride ride = new Ride(team, createdBy, title, slug, date);
-    ride.setVisibility(visibility);
-    ride.setStatus(status);
-    rideRepository.persistAndFlush(ride);
-    return ride;
+    return createRide(team, createdBy, title, slug, date, visibility, status, null);
   }
 
   @Transactional
-  public Ride createRideWithPublishAt(
+  public Ride createRide(
       Team team,
       User createdBy,
       String title,
       String slug,
-      Instant dateTime,
+      Instant date,
+      Visibility visibility,
       Status status,
-      java.time.Instant publishAt) {
-    Ride ride = new Ride(team, createdBy, title, slug, dateTime);
+      Instant publishAt) {
+    Ride ride = new Ride(team, createdBy, title, slug, date);
+    ride.setVisibility(visibility);
     ride.setStatus(status);
     ride.setPublishAt(publishAt);
     rideRepository.persistAndFlush(ride);
@@ -147,7 +130,7 @@ public class TestDataService {
   }
 
   @Transactional
-  public RideGroup createRideGroupWithOrder(Ride ride, String name, int sortOrder) {
+  public RideGroup createRideGroup(Ride ride, String name, int sortOrder) {
     RideGroup group = new RideGroup();
     group.setRide(ride);
     group.setName(name);
@@ -193,14 +176,11 @@ public class TestDataService {
 
   @Transactional
   public Route createRoute(Team team, User createdBy, String name) {
-    Route route = new Route(team, createdBy, name, SlugService.slugify(name));
-    routeRepository.persistAndFlush(route);
-    return route;
+    return createRoute(team, createdBy, name, Visibility.PUBLIC);
   }
 
   @Transactional
-  public Route createRouteWithVisibility(
-      Team team, User createdBy, String name, Visibility visibility) {
+  public Route createRoute(Team team, User createdBy, String name, Visibility visibility) {
     Route route = new Route(team, createdBy, name, SlugService.slugify(name));
     route.setVisibility(visibility);
     routeRepository.persistAndFlush(route);
@@ -241,27 +221,20 @@ public class TestDataService {
       Integer elevationGain,
       BigDecimal averageGradient,
       BigDecimal maxGradient) {
-    RouteClimb climb = new RouteClimb();
-    climb.setRoute(route);
-    climb.setStartDistance(startDistance);
-    climb.setEndDistance(endDistance);
-    climb.setElevationGain(elevationGain);
-    climb.setAverageGradient(averageGradient);
-    climb.setMaxGradient(maxGradient);
-    routeClimbRepository.persistAndFlush(climb);
-    return climb;
+    return createRouteClimb(
+        route, null, startDistance, endDistance, elevationGain, averageGradient, maxGradient, null);
   }
 
   @Transactional
-  public RouteClimb createRouteClimbWithCategory(
+  public RouteClimb createRouteClimb(
       Route route,
-      String name,
+      @Nullable String name,
       Integer startDistance,
       Integer endDistance,
       Integer elevationGain,
       BigDecimal averageGradient,
       BigDecimal maxGradient,
-      ClimbCategory category) {
+      @Nullable ClimbCategory category) {
     RouteClimb climb = new RouteClimb();
     climb.setRoute(route);
     climb.setName(name);
@@ -284,17 +257,11 @@ public class TestDataService {
   @Transactional
   public GpxTrack createGpxTrack(
       Route route, String geometry, List<GpxTrack.TrackPoint> trackPoints) {
-    GpxTrack track = new GpxTrack();
-    track.setRoute(route);
-    track.setGeometry(geometry);
-    track.setTrackPoints(trackPoints);
-    track.setProcessedAt(Instant.now());
-    gpxTrackRepository.persistAndFlush(track);
-    return track;
+    return createGpxTrack(route, null, geometry, trackPoints, null);
   }
 
   @Transactional
-  public GpxTrack createGpxTrackWithName(
+  public GpxTrack createGpxTrack(
       Route route,
       String name,
       String geometry,

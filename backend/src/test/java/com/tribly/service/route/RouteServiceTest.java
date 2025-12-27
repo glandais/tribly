@@ -107,8 +107,7 @@ class RouteServiceTest {
 
   @Test
   void getRoute_shouldReturnRouteForMember() {
-    Route route =
-        dataService.createRouteWithVisibility(team, admin, "Public Route", Visibility.PUBLIC);
+    Route route = dataService.createRoute(team, admin, "Public Route", Visibility.PUBLIC);
 
     RouteDto result = routeService.getRoute("test-team", route.getSlug(), member.getId());
 
@@ -118,8 +117,7 @@ class RouteServiceTest {
 
   @Test
   void getRoute_shouldReturnRouteForNonMemberIfPublic() {
-    Route route =
-        dataService.createRouteWithVisibility(team, admin, "Public Route", Visibility.PUBLIC);
+    Route route = dataService.createRoute(team, admin, "Public Route", Visibility.PUBLIC);
 
     RouteDto result = routeService.getRoute("test-team", route.getSlug(), null);
 
@@ -129,7 +127,7 @@ class RouteServiceTest {
 
   @Test
   void getRoute_shouldHideTeamRouteFromNonMembers() {
-    Route route = dataService.createRouteWithVisibility(team, admin, "Team Route", Visibility.TEAM);
+    Route route = dataService.createRoute(team, admin, "Team Route", Visibility.TEAM);
 
     assertThrows(
         BusinessException.class, () -> routeService.getRoute("test-team", route.getSlug(), null));
@@ -146,9 +144,9 @@ class RouteServiceTest {
 
   @Test
   void getRoutes_shouldReturnPublicRoutesForNonMembers() {
-    dataService.createRouteWithVisibility(team, admin, "Public 1", Visibility.PUBLIC);
-    dataService.createRouteWithVisibility(team, admin, "Public 2", Visibility.PUBLIC);
-    dataService.createRouteWithVisibility(team, admin, "Team Only", Visibility.TEAM);
+    dataService.createRoute(team, admin, "Public 1", Visibility.PUBLIC);
+    dataService.createRoute(team, admin, "Public 2", Visibility.PUBLIC);
+    dataService.createRoute(team, admin, "Team Only", Visibility.TEAM);
 
     RouteListResponse result = routeService.getRoutes("test-team", null, 0, 10, null);
 
@@ -158,8 +156,8 @@ class RouteServiceTest {
 
   @Test
   void getRoutes_shouldReturnAllRoutesForMembers() {
-    dataService.createRouteWithVisibility(team, admin, "Public", Visibility.PUBLIC);
-    dataService.createRouteWithVisibility(team, admin, "Team", Visibility.TEAM);
+    dataService.createRoute(team, admin, "Public", Visibility.PUBLIC);
+    dataService.createRoute(team, admin, "Team", Visibility.TEAM);
 
     RouteListResponse result = routeService.getRoutes("test-team", member.getId(), 0, 10, null);
 
@@ -169,7 +167,7 @@ class RouteServiceTest {
   @Test
   void getRoutes_shouldSupportPagination() {
     for (int i = 1; i <= 5; i++) {
-      dataService.createRouteWithVisibility(team, admin, "Route " + i, Visibility.PUBLIC);
+      dataService.createRoute(team, admin, "Route " + i, Visibility.PUBLIC);
     }
 
     RouteListResponse result = routeService.getRoutes("test-team", null, 0, 3, null);
@@ -222,7 +220,7 @@ class RouteServiceTest {
 
   @Test
   void updateRoute_shouldPreserveFieldsWhenNull() throws Exception {
-    Route route = dataService.createRouteWithVisibility(team, admin, "Original", Visibility.PUBLIC);
+    Route route = dataService.createRoute(team, admin, "Original", Visibility.PUBLIC);
     RouteRequest request =
         new RouteRequest("New name 2", "New description", SurfaceType.MTB, Visibility.PUBLIC);
 

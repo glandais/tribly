@@ -35,8 +35,8 @@ class RouteRepositoryTest {
 
   @Test
   void find_shouldReturnRoutesByTeam() {
-    dataService.createRouteWithVisibility(team, user, "Route 1", Visibility.PUBLIC);
-    dataService.createRouteWithVisibility(team, user, "Route 2", Visibility.PUBLIC);
+    dataService.createRoute(team, user, "Route 1", Visibility.PUBLIC);
+    dataService.createRoute(team, user, "Route 2", Visibility.PUBLIC);
 
     TeamEntityQueryBasic query =
         new TeamEntityQueryBasic(null, null, null, null, null, null, 0, 10);
@@ -48,8 +48,8 @@ class RouteRepositoryTest {
 
   @Test
   void find_shouldFilterByRouteId() {
-    Route route1 = dataService.createRouteWithVisibility(team, user, "Route 1", Visibility.PUBLIC);
-    dataService.createRouteWithVisibility(team, user, "Route 2", Visibility.PUBLIC);
+    Route route1 = dataService.createRoute(team, user, "Route 1", Visibility.PUBLIC);
+    dataService.createRoute(team, user, "Route 2", Visibility.PUBLIC);
 
     TeamEntityQueryBasic query =
         new TeamEntityQueryBasic(null, null, route1.getSlug(), null, null, null, 0, 10);
@@ -61,8 +61,8 @@ class RouteRepositoryTest {
 
   @Test
   void find_shouldFilterByVisibility() {
-    dataService.createRouteWithVisibility(team, user, "Public Route", Visibility.PUBLIC);
-    dataService.createRouteWithVisibility(team, user, "Team Route", Visibility.TEAM);
+    dataService.createRoute(team, user, "Public Route", Visibility.PUBLIC);
+    dataService.createRoute(team, user, "Team Route", Visibility.TEAM);
 
     TeamEntityQueryBasic query =
         new TeamEntityQueryBasic(null, null, null, null, null, null, 0, 10);
@@ -74,9 +74,8 @@ class RouteRepositoryTest {
 
   @Test
   void find_shouldIgnoreDeletedRoutes() {
-    dataService.createRouteWithVisibility(team, user, "Visible Route", Visibility.PUBLIC);
-    Route deletedRoute =
-        dataService.createRouteWithVisibility(team, user, "Deleted Route", Visibility.PUBLIC);
+    dataService.createRoute(team, user, "Visible Route", Visibility.PUBLIC);
+    Route deletedRoute = dataService.createRoute(team, user, "Deleted Route", Visibility.PUBLIC);
     dataService.deleteRoute(deletedRoute);
 
     TeamEntityQueryBasic query =
@@ -89,7 +88,7 @@ class RouteRepositoryTest {
 
   @Test
   void find_shouldReturnEmptyForDifferentTeam() {
-    dataService.createRouteWithVisibility(team, user, "Route 1", Visibility.PUBLIC);
+    dataService.createRoute(team, user, "Route 1", Visibility.PUBLIC);
     Team otherTeam = dataService.createTeam("Other Team", "other-team", Visibility.PUBLIC);
 
     TeamEntityQueryBasic query =
@@ -102,7 +101,7 @@ class RouteRepositoryTest {
   @Test
   void find_shouldSupportPagination() {
     for (int i = 1; i <= 5; i++) {
-      dataService.createRouteWithVisibility(team, user, "Route " + i, Visibility.PUBLIC);
+      dataService.createRoute(team, user, "Route " + i, Visibility.PUBLIC);
     }
 
     TeamEntityQueryBasic query = new TeamEntityQueryBasic(null, null, null, null, null, null, 0, 2);

@@ -1,4 +1,4 @@
 @NullMarked
-package com.tribly.domain.trip;
+package com.tribly.dto.validation;
 
 import org.jspecify.annotations.NullMarked;

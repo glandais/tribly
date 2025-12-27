@@ -5,10 +5,11 @@ import jakarta.validation.ConstraintValidatorContext;
 import java.lang.reflect.Field;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 public class OpenApiValidator implements ConstraintValidator<ValidateSchema, Object> {
   @Override
-  public boolean isValid(Object obj, ConstraintValidatorContext ctx) {
+  public boolean isValid(@Nullable Object obj, ConstraintValidatorContext ctx) {
     if (obj == null) return true;
 
     Class<?> clazz = obj.getClass();

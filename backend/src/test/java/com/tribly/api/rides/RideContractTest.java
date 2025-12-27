@@ -1,4 +1,4 @@
-package com.tribly.contract;
+package com.tribly.api.rides;
 
 import static io.restassured.RestAssured.given;
 

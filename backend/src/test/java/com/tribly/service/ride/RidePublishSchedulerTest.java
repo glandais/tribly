@@ -39,12 +39,13 @@ class RidePublishSchedulerTest {
   @Test
   void autoPublishRides_shouldPublishRidesWithPastPublishAt() {
     Ride ride =
-        dataService.createRideWithPublishAt(
+        dataService.createRide(
             team,
             user,
             "Auto Publish",
             "auto-publish",
             LocalDate.of(2025, 6, 15).atTime(0, 0).toInstant(ZoneOffset.UTC),
+            Visibility.PUBLIC,
             Status.DRAFT,
             Instant.now().minusSeconds(3600));
 
@@ -58,12 +59,13 @@ class RidePublishSchedulerTest {
   @Test
   void autoPublishRides_shouldNotPublishRidesWithFuturePublishAt() {
     Ride ride =
-        dataService.createRideWithPublishAt(
+        dataService.createRide(
             team,
             user,
             "Future Publish",
             "future-publish",
             LocalDate.of(2025, 6, 15).atTime(0, 0).toInstant(ZoneOffset.UTC),
+            Visibility.PUBLIC,
             Status.DRAFT,
             Instant.now().plusSeconds(3600));
 
@@ -77,12 +79,13 @@ class RidePublishSchedulerTest {
   @Test
   void autoPublishRides_shouldNotPublishAlreadyPublishedRides() {
     Ride ride =
-        dataService.createRideWithPublishAt(
+        dataService.createRide(
             team,
             user,
             "Already Published",
             "already-published",
             LocalDate.of(2025, 6, 15).atTime(0, 0).toInstant(ZoneOffset.UTC),
+            Visibility.PUBLIC,
             Status.PUBLISHED,
             Instant.now().minusSeconds(3600));
 
@@ -95,12 +98,13 @@ class RidePublishSchedulerTest {
   @Test
   void autoPublishRides_shouldNotPublishCancelledRides() {
     Ride ride =
-        dataService.createRideWithPublishAt(
+        dataService.createRide(
             team,
             user,
             "Cancelled",
             "cancelled",
             LocalDate.of(2025, 6, 15).atTime(0, 0).toInstant(ZoneOffset.UTC),
+            Visibility.PUBLIC,
             Status.CANCELLED,
             Instant.now().minusSeconds(3600));
 
@@ -113,30 +117,33 @@ class RidePublishSchedulerTest {
   @Test
   void autoPublishRides_shouldHandleMultipleRides() {
     Ride ride1 =
-        dataService.createRideWithPublishAt(
+        dataService.createRide(
             team,
             user,
             "Ride 1",
             "ride-1",
             LocalDate.of(2025, 6, 15).atTime(0, 0).toInstant(ZoneOffset.UTC),
+            Visibility.PUBLIC,
             Status.DRAFT,
             Instant.now().minusSeconds(7200));
     Ride ride2 =
-        dataService.createRideWithPublishAt(
+        dataService.createRide(
             team,
             user,
             "Ride 2",
             "ride-2",
             LocalDate.of(2025, 6, 16).atTime(0, 0).toInstant(ZoneOffset.UTC),
+            Visibility.PUBLIC,
             Status.DRAFT,
             Instant.now().minusSeconds(3600));
     Ride ride3 =
-        dataService.createRideWithPublishAt(
+        dataService.createRide(
             team,
             user,
             "Ride 3",
             "ride-3",
             LocalDate.of(2025, 6, 17).atTime(0, 0).toInstant(ZoneOffset.UTC),
+            Visibility.PUBLIC,
             Status.DRAFT,
             Instant.now().minusSeconds(1800));
 
@@ -165,7 +172,7 @@ class RidePublishSchedulerTest {
   @Test
   void autoPublishRides_shouldNotPublishRidesWithoutPublishAt() {
     Ride ride =
-        dataService.createRideWithStatus(
+        dataService.createRide(
             team,
             user,
             "No PublishAt",
@@ -183,12 +190,13 @@ class RidePublishSchedulerTest {
   void autoPublishRides_shouldPublishAtExactPublishTime() {
     Instant publishTime = Instant.now();
     Ride ride =
-        dataService.createRideWithPublishAt(
+        dataService.createRide(
             team,
             user,
             "Exact Time",
             "exact-time",
             LocalDate.of(2025, 6, 15).atTime(0, 0).toInstant(ZoneOffset.UTC),
+            Visibility.PUBLIC,
             Status.DRAFT,
             publishTime);
 

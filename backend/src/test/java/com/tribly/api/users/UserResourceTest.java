@@ -1,4 +1,4 @@
-package com.tribly.integration;
+package com.tribly.api.users;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
@@ -36,7 +36,7 @@ class UserResourceTest {
   void setUp() {
     dataCleaner.cleanAll();
 
-    testUser = dataService.createUserWithLocale(TEST_EMAIL, "Test User");
+    testUser = dataService.createUser(TEST_EMAIL, "Test User");
   }
 
   @Test

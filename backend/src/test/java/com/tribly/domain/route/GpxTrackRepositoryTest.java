@@ -62,7 +62,7 @@ class GpxTrackRepositoryTest {
             new GpxTrack.TrackPoint(45.1, 6.1, 600.0, 1500.0));
     String geometry = "LINESTRING(6.0 45.0, 6.1 45.1)";
 
-    dataService.createGpxTrackWithName(
+    dataService.createGpxTrack(
         route, "Mountain Route", geometry, trackPoints, "mountain_route.gpx");
 
     GpxTrack result = gpxTrackRepository.findByRoute(route.getId());
