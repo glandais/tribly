@@ -26,6 +26,7 @@ docs/PostsApi.md
 docs/PublicUserDto.md
 docs/PublicationDto.md
 docs/PublicationListResponse.md
+docs/PublicationType.md
 docs/PublicationsApi.md
 docs/RideDto.md
 docs/RideGroupDto.md
@@ -45,6 +46,7 @@ docs/SurfaceType.md
 docs/TeamDetailDto.md
 docs/TeamListResponse.md
 docs/TeamMembersApi.md
+docs/TeamPublicationDto.md
 docs/TeamRequest.md
 docs/TeamRole.md
 docs/TeamsApi.md

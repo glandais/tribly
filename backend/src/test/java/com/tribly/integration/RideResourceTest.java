@@ -272,8 +272,8 @@ class RideResourceTest {
             .statusCode(201)
             .extract()
             .as(RideDto.class);
-    String rideSlug = ride.slug();
-    String groupId = ride.groups().getFirst().id();
+    String rideSlug = ride.getSlug();
+    String groupId = ride.getGroups().getFirst().id();
 
     given()
         .auth()
@@ -370,8 +370,8 @@ class RideResourceTest {
             .statusCode(201)
             .extract()
             .as(RideDto.class);
-    String rideSlug = ride.slug();
-    String groupId = ride.groups().getFirst().id();
+    String rideSlug = ride.getSlug();
+    String groupId = ride.getGroups().getFirst().id();
 
     // Member joins the ride
     given()
@@ -411,8 +411,8 @@ class RideResourceTest {
             .statusCode(201)
             .extract()
             .as(RideDto.class);
-    String rideSlug = ride.slug();
-    String groupId = ride.groups().getFirst().id();
+    String rideSlug = ride.getSlug();
+    String groupId = ride.getGroups().getFirst().id();
 
     // Member tries to join (should fail - ride not published)
     given()
@@ -452,8 +452,8 @@ class RideResourceTest {
             .statusCode(201)
             .extract()
             .as(RideDto.class);
-    String rideSlug = ride.slug();
-    String groupId = ride.groups().getFirst().id();
+    String rideSlug = ride.getSlug();
+    String groupId = ride.getGroups().getFirst().id();
 
     // Member joins
     given()

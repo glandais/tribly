@@ -65,7 +65,7 @@ class RideServiceTest {
     RideListResponse result = rideService.listRides("test-team", null, null, null, null, 0, 10);
 
     assertEquals(1, result.rides().size());
-    assertEquals("Public Ride", result.rides().getFirst().name());
+    assertEquals("Public Ride", result.rides().getFirst().getName());
   }
 
   @Test
@@ -98,7 +98,7 @@ class RideServiceTest {
         rideService.listRides("test-team", null, null, null, Status.PUBLISHED, 0, 10);
 
     assertEquals(1, result.rides().size());
-    assertEquals(Status.PUBLISHED, result.rides().getFirst().status());
+    assertEquals(Status.PUBLISHED, result.rides().getFirst().getStatus());
   }
 
   @Test
@@ -124,7 +124,7 @@ class RideServiceTest {
         rideService.listRides("test-team", organizer.getId(), null, null, null, 0, 10);
 
     assertEquals(1, result.rides().size());
-    assertEquals(Status.DRAFT, result.rides().getFirst().status());
+    assertEquals(Status.DRAFT, result.rides().getFirst().getStatus());
   }
 
   @Test
@@ -153,7 +153,7 @@ class RideServiceTest {
     RideListResponse result = rideService.listRides("test-team", null, null, null, null, 0, 10);
 
     assertEquals(1, result.rides().size());
-    assertEquals("Published Ride", result.rides().getFirst().name());
+    assertEquals("Published Ride", result.rides().getFirst().getName());
   }
 
   @Test
@@ -184,8 +184,8 @@ class RideServiceTest {
         rideService.listRides("test-team", organizer.getId(), null, null, Status.DRAFT, 0, 10);
 
     assertEquals(1, result.rides().size());
-    assertEquals("Draft Ride", result.rides().getFirst().name());
-    assertEquals(Status.DRAFT, result.rides().getFirst().status());
+    assertEquals("Draft Ride", result.rides().getFirst().getName());
+    assertEquals(Status.DRAFT, result.rides().getFirst().getStatus());
   }
 
   @Test
@@ -205,8 +205,8 @@ class RideServiceTest {
         rideService.listRides("test-team", null, null, null, Status.PUBLISHED, 0, 10);
 
     assertEquals(1, result.rides().size());
-    assertEquals("Published Ride", result.rides().getFirst().name());
-    assertEquals(Status.PUBLISHED, result.rides().getFirst().status());
+    assertEquals("Published Ride", result.rides().getFirst().getName());
+    assertEquals(Status.PUBLISHED, result.rides().getFirst().getStatus());
   }
 
   @Test
@@ -235,8 +235,8 @@ class RideServiceTest {
 
     RideDto result = rideService.getRideDetail("test-team", "test-ride", null);
 
-    assertEquals("Test Ride", result.name());
-    assertEquals("test-ride", result.slug());
+    assertEquals("Test Ride", result.getName());
+    assertEquals("test-ride", result.getSlug());
   }
 
   @Test
@@ -251,7 +251,7 @@ class RideServiceTest {
 
     RideDto result = rideService.getRideDetail("test-team", "draft", organizer.getId());
 
-    assertEquals(Status.DRAFT, result.status());
+    assertEquals(Status.DRAFT, result.getStatus());
   }
 
   @Test
@@ -281,9 +281,9 @@ class RideServiceTest {
     RideDto result = rideService.createRide("test-team", request, organizer.getId());
 
     assertNotNull(result);
-    assertEquals("Sunday Ride", result.name());
-    assertEquals("sunday-ride", result.slug());
-    assertEquals(Status.DRAFT, result.status());
+    assertEquals("Sunday Ride", result.getName());
+    assertEquals("sunday-ride", result.getSlug());
+    assertEquals(Status.DRAFT, result.getStatus());
   }
 
   @Test
@@ -302,8 +302,8 @@ class RideServiceTest {
 
     RideDto result = rideService.createRide("test-team", request, organizer.getId());
 
-    assertNotEquals("test-ride", result.slug());
-    assertTrue(result.slug().startsWith("test-ride-"));
+    assertNotEquals("test-ride", result.getSlug());
+    assertTrue(result.getSlug().startsWith("test-ride-"));
   }
 
   @Test
@@ -323,9 +323,9 @@ class RideServiceTest {
 
     RideDto result = rideService.createRide("test-team", request, organizer.getId());
 
-    assertEquals("Group Ride", result.name());
+    assertEquals("Group Ride", result.getName());
     RideGroupListResponse groups =
-        rideService.listGroups("test-team", result.slug(), organizer.getId());
+        rideService.listGroups("test-team", result.getSlug(), organizer.getId());
     assertEquals(2, groups.data().size());
   }
 
@@ -390,8 +390,8 @@ class RideServiceTest {
     RideDto result = rideService.createRide("private-team", request, organizer.getId());
 
     assertNotNull(result);
-    assertEquals("Team Ride", result.name());
-    assertEquals(Visibility.TEAM, result.visibility());
+    assertEquals("Team Ride", result.getName());
+    assertEquals(Visibility.TEAM, result.getVisibility());
   }
 
   // ==================== Update Ride ====================
@@ -412,10 +412,10 @@ class RideServiceTest {
 
     RideDto result = rideService.updateRide("test-team", "original", request, organizer.getId());
 
-    assertEquals("Updated Title", result.name());
-    assertEquals("Updated description", result.description());
-    assertEquals(Status.CANCELLED, result.status());
-    assertEquals(Visibility.TEAM, result.visibility());
+    assertEquals("Updated Title", result.getName());
+    assertEquals("Updated description", result.getDescription());
+    assertEquals(Status.CANCELLED, result.getStatus());
+    assertEquals(Visibility.TEAM, result.getVisibility());
   }
 
   @Test
@@ -434,8 +434,8 @@ class RideServiceTest {
 
     RideDto result = rideService.updateRide("test-team", "original", request, organizer.getId());
 
-    assertEquals("New Title", result.name());
-    assertEquals(Status.PUBLISHED, result.status());
+    assertEquals("New Title", result.getName());
+    assertEquals(Status.PUBLISHED, result.getStatus());
   }
 
   @Test
@@ -462,8 +462,8 @@ class RideServiceTest {
     RideDto result =
         rideService.updateRide("test-team", "published-ride", request, organizer.getId());
 
-    assertEquals("Updated Title", result.name());
-    assertEquals(Status.PUBLISHED, result.status());
+    assertEquals("Updated Title", result.getName());
+    assertEquals(Status.PUBLISHED, result.getStatus());
   }
 
   @Test
@@ -544,8 +544,8 @@ class RideServiceTest {
     RideDto result =
         rideService.updateRide("private-team", "team-ride", request, organizer.getId());
 
-    assertEquals("Updated Title", result.name());
-    assertEquals(Visibility.TEAM, result.visibility());
+    assertEquals("Updated Title", result.getName());
+    assertEquals(Visibility.TEAM, result.getVisibility());
   }
 
   // ==================== Delete Ride ====================

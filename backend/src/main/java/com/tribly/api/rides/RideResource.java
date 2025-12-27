@@ -101,7 +101,7 @@ public class RideResource extends AbstractAuthenticatedResource {
 
     RideDto ride = rideService.createRide(slug, request, userId);
 
-    return Response.created(URI.create("/api/teams/" + slug + "/rides/" + ride.slug()))
+    return Response.created(URI.create("/api/teams/" + slug + "/rides/" + ride.getSlug()))
         .entity(ride)
         .build();
   }

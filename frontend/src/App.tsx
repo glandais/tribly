@@ -26,17 +26,8 @@ import { RouteListPage } from './pages/route/RouteListPage'
 import { RouteDetailPage } from './pages/route/RouteDetailPage'
 import { CreateRoutePage } from './pages/route/CreateRoutePage'
 import { EditRoutePage } from './pages/route/EditRoutePage'
+import { HomePage } from './pages/home/HomePage'
 import { useAuthStore } from './store/authStore'
-
-function HomePage() {
-  const { t } = useTranslation('auth')
-  return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh]">
-      <h1 className="text-4xl font-bold text-gray-900 mb-4">{t('home.title')}</h1>
-      <p className="text-lg text-gray-600">{t('home.subtitle')}</p>
-    </div>
-  )
-}
 
 function NotFoundPage() {
   const { t } = useTranslation('errors')

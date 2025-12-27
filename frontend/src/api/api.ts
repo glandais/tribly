@@ -230,24 +230,32 @@ export interface MemberListResponse {
 }
 export interface PostDto extends PublicationDto {
   /**
-   * Post ID (TSID)
+   * Type
+   */
+  type: PublicationType
+  /**
+   * Team
+   */
+  team: any
+  /**
+   * Publication ID (TSID)
    */
   id: string
   /**
-   * Post URL slug
+   * Publication URL slug
    */
   slug: string
   /**
-   * Post name
+   * Publication name
    */
   name: string
   /**
-   * Post description
+   * Publication description
    */
   description?: string
   dateTime: string
   /**
-   * Post status
+   * Publication status
    */
   status: Status
   /**
@@ -324,7 +332,7 @@ export interface PublicUserDto {
  * @type PublicationDto
  * Publication data
  */
-export type PublicationDto = ({ type: 'post' } & PostDto) | ({ type: 'ride' } & RideDto)
+export type PublicationDto = ({ type: 'POST' } & PostDto) | ({ type: 'RIDE' } & RideDto)
 
 /**
  * Paginated publication list response
@@ -347,32 +355,50 @@ export interface PublicationListResponse {
    */
   size: number
 }
+
+export const PublicationType = {
+  Ride: 'RIDE',
+  Post: 'POST',
+} as const
+
+export type PublicationType = (typeof PublicationType)[keyof typeof PublicationType]
+
 export interface RideDto extends PublicationDto {
   /**
-   * Ride ID (TSID)
+   * Type
+   */
+  type: PublicationType
+  /**
+   * Team
+   */
+  team: any
+  /**
+   * Publication ID (TSID)
    */
   id: string
   /**
-   * Ride URL slug
+   * Publication URL slug
    */
   slug: string
   /**
-   * Ride name
+   * Publication name
    */
   name: string
   /**
-   * Ride description
+   * Publication description
    */
   description?: string
   dateTime: string
   /**
-   * Ride status
+   * Publication status
    */
   status: Status
   /**
    * Visibility level
    */
   visibility: Visibility
+  publishAt?: string
+  createdAt?: string
   /**
    * Route slug
    */
@@ -389,8 +415,6 @@ export interface RideDto extends PublicationDto {
    * Ride groups
    */
   groups: Array<RideGroupDto>
-  publishAt?: string
-  createdAt?: string
 }
 
 /**
@@ -779,6 +803,28 @@ export interface TeamListResponse {
    */
   size: number
 }
+/**
+ * Team information
+ */
+export interface TeamPublicationDto {
+  /**
+   * Team ID (TSID)
+   */
+  id: string
+  /**
+   * Team name
+   */
+  name: string
+  /**
+   * Team URL slug
+   */
+  slug: string
+  /**
+   * Whether the team is public
+   */
+  visibility: Visibility
+}
+
 /**
  * Team creation request
  */

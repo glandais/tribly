@@ -271,31 +271,41 @@
         } ],
         "description" : "Post summary data",
         "type" : "object",
-        "required" : [ "id", "slug", "name", "dateTime", "status", "visibility" ],
+        "required" : [ "type", "team", "id", "slug", "name", "dateTime", "status", "visibility" ],
         "properties" : {
+          "type" : {
+            "description" : "Type",
+            "type" : "string",
+            "$ref" : "#/components/schemas/PublicationType"
+          },
+          "team" : {
+            "description" : "Team",
+            "type" : "object",
+            "$ref" : "#/components/schemas/TeamPublicationDto"
+          },
           "id" : {
             "type" : "string",
-            "description" : "Post ID (TSID)"
+            "description" : "Publication ID (TSID)"
           },
           "slug" : {
             "type" : "string",
-            "description" : "Post URL slug"
+            "description" : "Publication URL slug"
           },
           "name" : {
             "type" : "string",
-            "description" : "Post name"
+            "description" : "Publication name"
           },
           "description" : {
             "type" : "string",
-            "description" : "Post description"
+            "description" : "Publication description"
           },
           "dateTime" : {
-            "description" : "Post date/time",
+            "description" : "Publication date/time",
             "type" : "string",
             "$ref" : "#/components/schemas/Instant"
           },
           "status" : {
-            "description" : "Post status",
+            "description" : "Publication status",
             "type" : "string",
             "$ref" : "#/components/schemas/Status"
           },
@@ -415,11 +425,16 @@
         "discriminator" : {
           "propertyName" : "type",
           "mapping" : {
-            "ride" : "#/components/schemas/RideDto",
-            "post" : "#/components/schemas/PostDto"
+            "RIDE" : "#/components/schemas/RideDto",
+            "POST" : "#/components/schemas/PostDto"
           }
         },
-        "type" : "object"
+        "type" : "object",
+        "properties" : {
+          "type" : {
+            "$ref" : "#/components/schemas/PublicationType"
+          }
+        }
       },
       "PublicationListResponse" : {
         "description" : "Paginated publication list response",
@@ -450,37 +465,51 @@
           }
         }
       },
+      "PublicationType" : {
+        "type" : "string",
+        "enum" : [ "RIDE", "POST" ]
+      },
       "RideDto" : {
         "allOf" : [ {
           "$ref" : "#/components/schemas/PublicationDto"
         } ],
         "description" : "Ride summary data",
         "type" : "object",
-        "required" : [ "id", "slug", "name", "dateTime", "status", "visibility", "participantCount", "groupCount", "groups" ],
+        "required" : [ "type", "team", "id", "slug", "name", "dateTime", "status", "visibility", "participantCount", "groupCount", "groups" ],
         "properties" : {
+          "type" : {
+            "description" : "Type",
+            "type" : "string",
+            "$ref" : "#/components/schemas/PublicationType"
+          },
+          "team" : {
+            "description" : "Team",
+            "type" : "object",
+            "$ref" : "#/components/schemas/TeamPublicationDto"
+          },
           "id" : {
             "type" : "string",
-            "description" : "Ride ID (TSID)"
+            "description" : "Publication ID (TSID)"
           },
           "slug" : {
             "type" : "string",
-            "description" : "Ride URL slug"
+            "description" : "Publication URL slug"
           },
           "name" : {
             "type" : "string",
-            "description" : "Ride name"
+            "description" : "Publication name"
           },
           "description" : {
             "type" : "string",
-            "description" : "Ride description"
+            "description" : "Publication description"
           },
           "dateTime" : {
-            "description" : "Ride date/time",
+            "description" : "Publication date/time",
             "type" : "string",
             "$ref" : "#/components/schemas/Instant"
           },
           "status" : {
-            "description" : "Ride status",
+            "description" : "Publication status",
             "type" : "string",
             "$ref" : "#/components/schemas/Status"
           },
@@ -488,6 +517,16 @@
             "description" : "Visibility level",
             "type" : "string",
             "$ref" : "#/components/schemas/Visibility"
+          },
+          "publishAt" : {
+            "description" : "Publication timestamp",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Instant"
+          },
+          "createdAt" : {
+            "description" : "Creation timestamp",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Instant"
           },
           "routeSlug" : {
             "type" : "string",
@@ -509,16 +548,6 @@
               "$ref" : "#/components/schemas/RideGroupDto"
             },
             "description" : "Ride groups"
-          },
-          "publishAt" : {
-            "description" : "Publication timestamp",
-            "type" : "string",
-            "$ref" : "#/components/schemas/Instant"
-          },
-          "createdAt" : {
-            "description" : "Creation timestamp",
-            "type" : "string",
-            "$ref" : "#/components/schemas/Instant"
           }
         }
       },
@@ -1009,6 +1038,31 @@
           }
         }
       },
+      "TeamPublicationDto" : {
+        "type" : "object",
+        "description" : "Team information",
+        "required" : [ "id", "name", "slug", "visibility" ],
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "description" : "Team ID (TSID)",
+            "examples" : [ "0h4a8xzk8jv80" ]
+          },
+          "name" : {
+            "type" : "string",
+            "description" : "Team name"
+          },
+          "slug" : {
+            "type" : "string",
+            "description" : "Team URL slug"
+          },
+          "visibility" : {
+            "description" : "Whether the team is public",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Visibility"
+          }
+        }
+      },
       "TeamRequest" : {
         "description" : "Team creation request",
         "type" : "object",
@@ -1129,7 +1183,7 @@
     "securitySchemes" : {
       "SecurityScheme" : {
         "type" : "openIdConnect",
-        "openIdConnectUrl" : "http://localhost:8180/realms/quarkus/.well-known/openid-configuration",
+        "openIdConnectUrl" : "http://localhost:8180/realms/tribly/.well-known/openid-configuration",
         "description" : "Authentication"
       }
     }

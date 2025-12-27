@@ -42,7 +42,7 @@ export function PublicationListPage() {
           <div className="space-y-4">
             {publicationsData.publications.map((publication) => {
               // Discriminated union type narrowing based on 'type' field
-              if (publication.type === 'ride') {
+              if (publication.type === 'RIDE') {
                 return (
                   <RideCard
                     key={publication.id}

@@ -101,7 +101,7 @@ public class PostResource extends AbstractAuthenticatedResource {
 
     PostDto post = postService.createPost(slug, request, userId);
 
-    return Response.created(URI.create("/api/teams/" + slug + "/posts/" + post.slug()))
+    return Response.created(URI.create("/api/teams/" + slug + "/posts/" + post.getSlug()))
         .entity(post)
         .build();
   }
