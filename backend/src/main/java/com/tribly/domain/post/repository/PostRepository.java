@@ -9,4 +9,9 @@ import jakarta.enterprise.context.ApplicationScoped;
 @ApplicationScoped
 public class PostRepository
     implements TeamEntityRepository<Post, TeamEntityQueryBasic>,
-        EntityWithPublishAtRepository<Post> {}
+        EntityWithPublishAtRepository<Post> {
+  @Override
+  public String getTypeName() {
+    return "Post";
+  }
+}

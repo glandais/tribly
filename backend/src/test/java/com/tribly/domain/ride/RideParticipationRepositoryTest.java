@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import com.tribly.domain.ride.repository.RideParticipationRepository;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
+import com.tribly.enums.Visibility;
 import com.tribly.util.TestDataCleaner;
 import com.tribly.util.TestDataService;
 import io.quarkus.test.junit.QuarkusTest;
@@ -31,7 +32,7 @@ class RideParticipationRepositoryTest {
   @BeforeEach
   void setUp() {
     dataCleaner.cleanAll();
-    team = dataService.createTeam("Test Team", "test-team");
+    team = dataService.createTeam("Test Team", "test-team", Visibility.PUBLIC);
     user1 = dataService.createUser("user1@example.com", "User One");
     user2 = dataService.createUser("user2@example.com", "User Two");
     ride =

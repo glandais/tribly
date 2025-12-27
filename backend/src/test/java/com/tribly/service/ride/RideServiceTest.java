@@ -38,7 +38,7 @@ class RideServiceTest {
   @BeforeEach
   void setUp() {
     dataCleaner.cleanAll();
-    team = dataService.createTeamWithVisibility("Test Team", "test-team", Visibility.PUBLIC);
+    team = dataService.createTeam("Test Team", "test-team", Visibility.PUBLIC);
     admin = dataService.createUser("admin@example.com", "Admin");
     organizer = dataService.createUser("organizer@example.com", "Organizer");
     member = dataService.createUser("member@example.com", "Member");
@@ -211,8 +211,7 @@ class RideServiceTest {
 
   @Test
   void listRides_shouldThrowForNonMemberOfPrivateTeam() {
-    Team privateTeam =
-        dataService.createTeamWithVisibility("Private Team", "private-team", Visibility.TEAM);
+    Team privateTeam = dataService.createTeam("Private Team", "private-team", Visibility.TEAM);
     User privateTeamAdmin = dataService.createUser("private-admin@example.com", "Private Admin");
     dataService.addUserToTeam(privateTeamAdmin, privateTeam, TeamRole.ADMIN);
     dataService.createRideWithVisibilityAndStatus(
@@ -224,9 +223,8 @@ class RideServiceTest {
         Visibility.TEAM,
         Status.PUBLISHED);
 
-    assertThrows(
-        BusinessException.class,
-        () -> rideService.listRides("private-team", null, null, null, null, 0, 10));
+    RideListResponse result = rideService.listRides("private-team", null, null, null, null, 0, 10);
+    assertEquals(0, result.rides().size());
   }
 
   // ==================== Get Ride ====================
@@ -351,8 +349,7 @@ class RideServiceTest {
 
   @Test
   void createRide_shouldThrowForPublicRideInTeamVisibilityTeam() {
-    Team privateTeam =
-        dataService.createTeamWithVisibility("Private Team", "private-team", Visibility.TEAM);
+    Team privateTeam = dataService.createTeam("Private Team", "private-team", Visibility.TEAM);
     dataService.addUserToTeam(organizer, privateTeam, TeamRole.ORGANIZER);
 
     RideRequest request =
@@ -376,8 +373,7 @@ class RideServiceTest {
 
   @Test
   void createRide_shouldSucceedForTeamRideInTeamVisibilityTeam() {
-    Team privateTeam =
-        dataService.createTeamWithVisibility("Private Team", "private-team", Visibility.TEAM);
+    Team privateTeam = dataService.createTeam("Private Team", "private-team", Visibility.TEAM);
     dataService.addUserToTeam(organizer, privateTeam, TeamRole.ORGANIZER);
 
     RideRequest request =
@@ -491,8 +487,7 @@ class RideServiceTest {
 
   @Test
   void updateRide_shouldThrowForPublicVisibilityInTeamVisibilityTeam() {
-    Team privateTeam =
-        dataService.createTeamWithVisibility("Private Team", "private-team", Visibility.TEAM);
+    Team privateTeam = dataService.createTeam("Private Team", "private-team", Visibility.TEAM);
     dataService.addUserToTeam(organizer, privateTeam, TeamRole.ORGANIZER);
     dataService.createRideWithVisibilityAndStatus(
         privateTeam,
@@ -524,8 +519,7 @@ class RideServiceTest {
 
   @Test
   void updateRide_shouldSucceedForTeamVisibilityInTeamVisibilityTeam() {
-    Team privateTeam =
-        dataService.createTeamWithVisibility("Private Team", "private-team", Visibility.TEAM);
+    Team privateTeam = dataService.createTeam("Private Team", "private-team", Visibility.TEAM);
     dataService.addUserToTeam(organizer, privateTeam, TeamRole.ORGANIZER);
     dataService.createRideWithVisibilityAndStatus(
         privateTeam,

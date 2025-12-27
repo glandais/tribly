@@ -1,8 +1,8 @@
 package com.tribly.domain.team.repository;
 
+import com.tribly.domain.common.query.TriblyQuery;
 import com.tribly.domain.common.repository.BaseRepository;
 import com.tribly.domain.common.repository.TriblyPage;
-import com.tribly.domain.common.repository.TriblyQuery;
 import com.tribly.domain.team.Team;
 import com.tribly.enums.Visibility;
 import com.tribly.service.team.response.TeamAndRole;

@@ -1,8 +1,8 @@
 package com.tribly.domain.team.repository;
 
+import com.tribly.domain.common.query.TriblyQuery;
 import com.tribly.domain.common.repository.BaseRepository;
 import com.tribly.domain.common.repository.TriblyPage;
-import com.tribly.domain.common.repository.TriblyQuery;
 import com.tribly.domain.team.UserTeam;
 import com.tribly.enums.TeamRole;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -22,6 +22,8 @@ public class UserTeamRepository implements BaseRepository<UserTeam> {
         new TriblyQuery()
             .and("team.slug = :slug", Map.of("slug", slug))
             .and("deleted = false", Map.of());
+    System.out.println(triblyQuery.getStringQuery());
+    System.out.println(triblyQuery.getParams());
     return getPage(triblyQuery, page, size);
   }
 

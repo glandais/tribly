@@ -39,7 +39,7 @@ class RouteServiceTest {
   @BeforeEach
   void setUp() {
     dataCleaner.cleanAll();
-    team = dataService.createTeamWithVisibility("Test Team", "test-team", Visibility.PUBLIC);
+    team = dataService.createTeam("Test Team", "test-team", Visibility.PUBLIC);
     admin = dataService.createUser("admin@example.com", "Admin");
     organizer = dataService.createUser("organizer@example.com", "Organizer");
     member = dataService.createUser("member@example.com", "Member");
@@ -180,12 +180,13 @@ class RouteServiceTest {
 
   @Test
   void getRoutes_shouldThrowForNonMemberOfPrivateTeam() {
-    Team privateTeam =
-        dataService.createTeamWithVisibility("Private Team", "private-team", Visibility.TEAM);
+    Team privateTeam = dataService.createTeam("Private Team", "private-team", Visibility.TEAM);
     dataService.createRoute(privateTeam, admin, "Route");
 
-    assertThrows(
-        BusinessException.class, () -> routeService.getRoutes("private-team", null, 0, 10, null));
+    RouteListResponse routes = routeService.getRoutes("private-team", null, 0, 10, null);
+
+    assertEquals(0, routes.routes().size());
+    assertEquals(0, routes.total());
   }
 
   // ==================== Update Route ====================

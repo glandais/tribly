@@ -36,7 +36,7 @@ class TeamRepositoryTest {
 
   @Test
   void findBySlug_shouldReturnTeamWhenExists() {
-    dataService.createTeam("Test Team", "test-team");
+    dataService.createTeam("Test Team", "test-team", Visibility.PUBLIC);
 
     Optional<Team> result = teamRepository.findBySlug("test-team");
 
@@ -54,7 +54,7 @@ class TeamRepositoryTest {
 
   @Test
   void findBySlug_shouldIgnoreDeletedTeams() {
-    Team team = dataService.createTeam("Deleted Team", "deleted-team");
+    Team team = dataService.createTeam("Deleted Team", "deleted-team", Visibility.PUBLIC);
     dataService.deleteTeam(team);
 
     Optional<Team> result = teamRepository.findBySlug("deleted-team");
@@ -64,7 +64,7 @@ class TeamRepositoryTest {
 
   @Test
   void existsBySlug_shouldReturnTrueWhenExists() {
-    dataService.createTeam("Test Team", "test-team");
+    dataService.createTeam("Test Team", "test-team", Visibility.PUBLIC);
 
     boolean exists = teamRepository.existsBySlug("test-team");
 
@@ -80,7 +80,7 @@ class TeamRepositoryTest {
 
   @Test
   void existsBySlug_shouldIgnoreDeletedTeams() {
-    Team team = dataService.createTeam("Deleted Team", "deleted-team");
+    Team team = dataService.createTeam("Deleted Team", "deleted-team", Visibility.PUBLIC);
     dataService.deleteTeam(team);
 
     boolean exists = teamRepository.existsBySlug("deleted-team");
@@ -90,8 +90,8 @@ class TeamRepositoryTest {
 
   @Test
   void find_shouldReturnPublicTeamsForAnonymous() {
-    dataService.createTeamWithVisibility("Public Team", "public-team", Visibility.PUBLIC);
-    dataService.createTeamWithVisibility("Private Team", "private-team", Visibility.TEAM);
+    dataService.createTeam("Public Team", "public-team", Visibility.PUBLIC);
+    dataService.createTeam("Private Team", "private-team", Visibility.TEAM);
 
     TeamQuery query = new TeamQuery(0, 10, null, null, null, null);
     TriblyPage<TeamAndRole> result = teamRepository.find(query);
@@ -102,8 +102,8 @@ class TeamRepositoryTest {
 
   @Test
   void find_shouldFilterBySlug() {
-    dataService.createTeamWithVisibility("Team 1", "team-1", Visibility.PUBLIC);
-    dataService.createTeamWithVisibility("Team 2", "team-2", Visibility.PUBLIC);
+    dataService.createTeam("Team 1", "team-1", Visibility.PUBLIC);
+    dataService.createTeam("Team 2", "team-2", Visibility.PUBLIC);
 
     TeamQuery query = new TeamQuery(0, 10, "team-1", null, null, null);
     TriblyPage<TeamAndRole> result = teamRepository.find(query);
@@ -114,12 +114,11 @@ class TeamRepositoryTest {
 
   @Test
   void find_shouldFilterBySearch() {
-    Team team1 =
-        dataService.createTeamWithVisibility("Cycling Club", "cycling-club", Visibility.PUBLIC);
+    Team team1 = dataService.createTeam("Cycling Club", "cycling-club", Visibility.PUBLIC);
     team1.setDescription("A great cycling team");
     dataService.updateTeam(team1);
 
-    dataService.createTeamWithVisibility("Running Club", "running-club", Visibility.PUBLIC);
+    dataService.createTeam("Running Club", "running-club", Visibility.PUBLIC);
 
     TeamQuery query = new TeamQuery(0, 10, null, null, null, "%cycling%");
     TriblyPage<TeamAndRole> result = teamRepository.find(query);
@@ -130,9 +129,8 @@ class TeamRepositoryTest {
 
   @Test
   void find_shouldShowUserTeamsWhenMemberFilterTrue() {
-    Team team1 = dataService.createTeamWithVisibility("My Team", "my-team", Visibility.TEAM);
-    Team team2 =
-        dataService.createTeamWithVisibility("Other Team", "other-team", Visibility.PUBLIC);
+    Team team1 = dataService.createTeam("My Team", "my-team", Visibility.TEAM);
+    Team team2 = dataService.createTeam("Other Team", "other-team", Visibility.PUBLIC);
 
     dataService.addUserToTeam(user1, team1, TeamRole.MEMBER);
 
@@ -146,10 +144,8 @@ class TeamRepositoryTest {
 
   @Test
   void find_shouldShowPublicNonMemberTeamsWhenMemberFilterFalse() {
-    Team publicTeam =
-        dataService.createTeamWithVisibility("Public Team", "public-team", Visibility.PUBLIC);
-    Team memberTeam =
-        dataService.createTeamWithVisibility("Member Team", "member-team", Visibility.PUBLIC);
+    Team publicTeam = dataService.createTeam("Public Team", "public-team", Visibility.PUBLIC);
+    Team memberTeam = dataService.createTeam("Member Team", "member-team", Visibility.PUBLIC);
 
     dataService.addUserToTeam(user1, memberTeam, TeamRole.MEMBER);
 
@@ -162,10 +158,8 @@ class TeamRepositoryTest {
 
   @Test
   void find_shouldShowPublicAndMemberTeamsWhenMemberFilterNull() {
-    Team publicTeam =
-        dataService.createTeamWithVisibility("Public Team", "public-team", Visibility.PUBLIC);
-    Team privateTeam =
-        dataService.createTeamWithVisibility("Private Team", "private-team", Visibility.TEAM);
+    Team publicTeam = dataService.createTeam("Public Team", "public-team", Visibility.PUBLIC);
+    Team privateTeam = dataService.createTeam("Private Team", "private-team", Visibility.TEAM);
 
     dataService.addUserToTeam(user1, privateTeam, TeamRole.MEMBER);
 
@@ -177,9 +171,8 @@ class TeamRepositoryTest {
 
   @Test
   void find_shouldIgnoreDeletedTeams() {
-    dataService.createTeamWithVisibility("Visible Team", "visible", Visibility.PUBLIC);
-    Team deletedTeam =
-        dataService.createTeamWithVisibility("Deleted Team", "deleted", Visibility.PUBLIC);
+    dataService.createTeam("Visible Team", "visible", Visibility.PUBLIC);
+    Team deletedTeam = dataService.createTeam("Deleted Team", "deleted", Visibility.PUBLIC);
     dataService.deleteTeam(deletedTeam);
 
     TeamQuery query = new TeamQuery(0, 10, null, null, null, null);
@@ -191,7 +184,7 @@ class TeamRepositoryTest {
 
   @Test
   void findOne_shouldReturnTeamAndRoleWhenExists() {
-    Team team = dataService.createTeamWithVisibility("Test Team", "test-team", Visibility.PUBLIC);
+    Team team = dataService.createTeam("Test Team", "test-team", Visibility.PUBLIC);
     dataService.addUserToTeam(user1, team, TeamRole.ADMIN);
 
     Optional<TeamAndRole> result = teamRepository.findOne("test-team", user1.getId());
@@ -210,7 +203,7 @@ class TeamRepositoryTest {
 
   @Test
   void findOne_shouldReturnTeamWithNullRoleWhenNotMember() {
-    dataService.createTeamWithVisibility("Public Team", "public-team", Visibility.PUBLIC);
+    dataService.createTeam("Public Team", "public-team", Visibility.PUBLIC);
 
     Optional<TeamAndRole> result = teamRepository.findOne("public-team", user1.getId());
 

@@ -48,7 +48,7 @@ class RouteResourceTest {
     testUser = dataService.createUser(TEST_EMAIL, "Test User");
 
     // Create test team with organizer
-    testTeam = dataService.createTeamWithVisibility("Test Team", "test-team", Visibility.PUBLIC);
+    testTeam = dataService.createTeam("Test Team", "test-team", Visibility.PUBLIC);
     dataService.addUserToTeam(testUser, testTeam, TeamRole.ORGANIZER);
   }
 

@@ -1,5 +1,6 @@
 package com.tribly.domain.common.repository;
 
+import com.tribly.domain.common.query.TriblyQuery;
 import io.quarkus.hibernate.orm.panache.PanacheQuery;
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
 

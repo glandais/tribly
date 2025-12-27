@@ -17,7 +17,6 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.List;
-import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -34,7 +33,7 @@ class RideRepositoryTest {
   @BeforeEach
   void setUp() {
     dataCleaner.cleanAll();
-    team = dataService.createTeam("Test Team", "test-team");
+    team = dataService.createTeam("Test Team", "test-team", Visibility.PUBLIC);
     user = dataService.createUser("test@example.com", "Test User");
   }
 
@@ -54,7 +53,7 @@ class RideRepositoryTest {
         LocalDate.of(2025, 1, 20).atTime(0, 0).toInstant(ZoneOffset.UTC));
 
     TeamEntityQueryBasic query =
-        new TeamEntityQueryBasic(null, Set.of(), Set.of(), null, null, null, null, 0, 10);
+        new TeamEntityQueryBasic(null, null, null, null, null, null, null, 0, 10);
     TriblyPage<Ride> result = rideRepository.find(query);
 
     assertEquals(2, result.items().size());
@@ -77,7 +76,7 @@ class RideRepositoryTest {
         LocalDate.of(2025, 1, 20).atTime(0, 0).toInstant(ZoneOffset.UTC));
 
     TeamEntityQueryBasic query =
-        new TeamEntityQueryBasic("ride-1", Set.of(), Set.of(), null, null, null, null, 0, 10);
+        new TeamEntityQueryBasic(null, null, "ride-1", null, null, null, null, 0, 10);
     TriblyPage<Ride> result = rideRepository.find(query);
 
     assertEquals(1, result.items().size());
@@ -108,8 +107,8 @@ class RideRepositoryTest {
     TeamEntityQueryBasic query =
         new TeamEntityQueryBasic(
             null,
-            Set.of(),
-            Set.of(),
+            null,
+            null,
             null,
             null,
             LocalDate.of(2025, 1, 15).atTime(0, 0).toInstant(ZoneOffset.UTC),
@@ -140,7 +139,7 @@ class RideRepositoryTest {
         Visibility.TEAM);
 
     TeamEntityQueryBasic query =
-        new TeamEntityQueryBasic(null, Set.of(), Set.of(), null, null, null, null, 0, 10);
+        new TeamEntityQueryBasic(null, null, null, null, null, null, null, 0, 10);
     TriblyPage<Ride> result = rideRepository.find(query);
 
     assertEquals(1, result.items().size());
@@ -149,24 +148,25 @@ class RideRepositoryTest {
 
   @Test
   void find_shouldFilterByStatus() {
-    dataService.createRideWithStatus(
+    dataService.createRideWithVisibilityAndStatus(
         team,
         user,
         "Draft Ride",
         "draft-ride",
         LocalDate.of(2025, 1, 15).atTime(0, 0).toInstant(ZoneOffset.UTC),
+        Visibility.PUBLIC,
         Status.DRAFT);
-    dataService.createRideWithStatus(
+    dataService.createRideWithVisibilityAndStatus(
         team,
         user,
         "Published Ride",
         "published-ride",
         LocalDate.of(2025, 1, 20).atTime(0, 0).toInstant(ZoneOffset.UTC),
+        Visibility.PUBLIC,
         Status.PUBLISHED);
 
     TeamEntityQueryBasic query =
-        new TeamEntityQueryBasic(
-            null, Set.of(), Set.of(), Status.PUBLISHED, null, null, null, 0, 10);
+        new TeamEntityQueryBasic(null, null, null, Status.PUBLISHED, null, null, null, 0, 10);
     TriblyPage<Ride> result = rideRepository.find(query);
 
     assertEquals(1, result.items().size());
@@ -191,8 +191,7 @@ class RideRepositoryTest {
     dataService.deleteRide(deletedRide);
 
     TeamEntityQueryBasic query =
-        new TeamEntityQueryBasic(
-            null, Set.of(), Set.of(), Status.PUBLISHED, null, null, null, 0, 10);
+        new TeamEntityQueryBasic(null, null, null, Status.PUBLISHED, null, null, null, 0, 10);
     TriblyPage<Ride> result = rideRepository.find(query);
 
     assertEquals(1, result.items().size());

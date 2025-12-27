@@ -5,4 +5,9 @@ import com.tribly.domain.route.Route;
 import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
-public class RouteRepository implements TeamEntityRepository<Route, TeamEntityQueryBasic> {}
+public class RouteRepository implements TeamEntityRepository<Route, TeamEntityQueryBasic> {
+  @Override
+  public String getTypeName() {
+    return "Route";
+  }
+}

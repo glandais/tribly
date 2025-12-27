@@ -1,17 +1,20 @@
 package com.tribly.domain.common.repository;
 
+import com.tribly.enums.Status;
 import java.time.Instant;
 import java.util.Set;
 import org.jspecify.annotations.Nullable;
 
 public interface TeamEntityQueryInterface extends PageInterface {
-  @Nullable String search();
+  @Nullable Long userId();
+
+  @Nullable Set<String> teamSlugs();
 
   @Nullable String slug();
 
-  Set<Long> memberTeamIds();
+  @Nullable Status status();
 
-  Set<Long> organizerTeamIds();
+  @Nullable String search();
 
   @Nullable Instant from();
 

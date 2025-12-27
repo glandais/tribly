@@ -15,21 +15,9 @@ import java.util.Set;
 import org.jspecify.annotations.Nullable;
 
 @ApplicationScoped
-public class PublicationService
-    extends TeamEntityService<Publication, BasicQuery, TeamEntityQueryBasic> {
+public class PublicationService extends TeamEntityService {
 
   @Inject AllPublicationRepository allPublicationRepository;
-
-  @Override
-  protected AllPublicationRepository getRepository() {
-    return allPublicationRepository;
-  }
-
-  @Override
-  protected TeamEntityQueryBasic getQuery(
-      BasicQuery query, Set<Long> memberTeamIds, Set<Long> organizerTeamIds) {
-    return query.getTeamEntityQueryBasic(memberTeamIds, organizerTeamIds);
-  }
 
   public PublicationListResponse list(
       @Nullable Set<String> teamSlugs,
@@ -40,7 +28,8 @@ public class PublicationService
       int page,
       int size) {
     TriblyPage<Publication> publications =
-        list(new BasicQuery(null, teamSlugs, userId, status, null, from, to, page, size));
+        allPublicationRepository.find(
+            new TeamEntityQueryBasic(userId, teamSlugs, null, status, null, from, to, page, size));
     List<PublicationDto> dtos = publications.items().stream().map(PublicationDto::from).toList();
     return new PublicationListResponse(dtos, publications.total(), page, size);
   }

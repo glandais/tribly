@@ -33,7 +33,7 @@ class TeamMembershipServiceTest {
   @BeforeEach
   void setUp() {
     dataCleaner.cleanAll();
-    team = dataService.createTeamWithVisibility("Test Team", "test-team", Visibility.PUBLIC);
+    team = dataService.createTeam("Test Team", "test-team", Visibility.PUBLIC);
     admin = dataService.createUser("admin@example.com", "Admin");
     user1 = dataService.createUser("user1@example.com", "User One");
     user2 = dataService.createUser("user2@example.com", "User Two");

@@ -6,6 +6,7 @@ import com.tribly.domain.common.repository.TriblyPage;
 import com.tribly.domain.team.repository.UserTeamRepository;
 import com.tribly.domain.user.User;
 import com.tribly.enums.TeamRole;
+import com.tribly.enums.Visibility;
 import com.tribly.util.TestDataCleaner;
 import com.tribly.util.TestDataService;
 import io.quarkus.test.junit.QuarkusTest;
@@ -29,7 +30,7 @@ class UserTeamRepositoryTest {
   @BeforeEach
   void setUp() {
     dataCleaner.cleanAll();
-    team = dataService.createTeam("Test Team", "test-team");
+    team = dataService.createTeam("Test Team", "test-team", Visibility.PUBLIC);
     user1 = dataService.createUser("user1@example.com", "User One");
     user2 = dataService.createUser("user2@example.com", "User Two");
     user3 = dataService.createUser("user3@example.com", "User Three");

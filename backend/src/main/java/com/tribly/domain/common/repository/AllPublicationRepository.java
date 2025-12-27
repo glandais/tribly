@@ -5,4 +5,9 @@ import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class AllPublicationRepository
-    implements TeamEntityRepository<Publication, TeamEntityQueryBasic> {}
+    implements TeamEntityRepository<Publication, TeamEntityQueryBasic> {
+  @Override
+  public String getTypeName() {
+    return "Publication";
+  }
+}

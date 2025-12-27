@@ -9,4 +9,9 @@ import jakarta.enterprise.context.ApplicationScoped;
 @ApplicationScoped
 public class RideRepository
     implements TeamEntityRepository<Ride, TeamEntityQueryBasic>,
-        EntityWithPublishAtRepository<Ride> {}
+        EntityWithPublishAtRepository<Ride> {
+  @Override
+  public String getTypeName() {
+    return "Ride";
+  }
+}

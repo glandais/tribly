@@ -21,7 +21,6 @@ import com.tribly.enums.Status;
 import com.tribly.enums.Visibility;
 import com.tribly.infrastructure.exception.BusinessException;
 import com.tribly.infrastructure.id.TsidUtils;
-import com.tribly.service.common.BasicQuery;
 import com.tribly.service.common.SlugService;
 import com.tribly.service.common.TeamEntityService;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -35,7 +34,7 @@ import org.jboss.logging.Logger;
 import org.jspecify.annotations.Nullable;
 
 @ApplicationScoped
-public class RideService extends TeamEntityService<Ride, BasicQuery, TeamEntityQueryBasic> {
+public class RideService extends TeamEntityService {
 
   private static final Logger LOG = Logger.getLogger(RideService.class);
 
@@ -53,16 +52,6 @@ public class RideService extends TeamEntityService<Ride, BasicQuery, TeamEntityQ
 
   @Inject SlugService slugService;
 
-  public RideRepository getRepository() {
-    return rideRepository;
-  }
-
-  @Override
-  protected TeamEntityQueryBasic getQuery(
-      BasicQuery query, Set<Long> memberTeamIds, Set<Long> organizerTeamIds) {
-    return query.getTeamEntityQueryBasic(memberTeamIds, organizerTeamIds);
-  }
-
   public RideListResponse listRides(
       String teamSlug,
       @Nullable Long userId,
@@ -72,14 +61,18 @@ public class RideService extends TeamEntityService<Ride, BasicQuery, TeamEntityQ
       int page,
       int size) {
     TriblyPage<Ride> rides =
-        list(new BasicQuery(null, Set.of(teamSlug), userId, status, null, from, to, page, size));
+        rideRepository.find(
+            new TeamEntityQueryBasic(
+                userId, Set.of(teamSlug), null, status, null, from, to, page, size));
     List<RideDto> dtos = rides.items().stream().map(r -> RideDto.from(r, false)).toList();
     return new RideListResponse(dtos, rides.total(), page, size);
   }
 
   protected Ride getRide(String teamSlug, String rideSlug, @Nullable Long userId) {
     TriblyPage<Ride> rides =
-        list(new BasicQuery(rideSlug, Set.of(teamSlug), userId, null, null, null, null, 0, 1));
+        rideRepository.find(
+            new TeamEntityQueryBasic(
+                userId, Set.of(teamSlug), rideSlug, null, null, null, null, 0, 1));
     if (rides.items().isEmpty()) {
       throw BusinessException.notFound("Ride", rideSlug);
     } else {

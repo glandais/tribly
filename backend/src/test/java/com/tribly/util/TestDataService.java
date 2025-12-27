@@ -59,14 +59,7 @@ public class TestDataService {
   }
 
   @Transactional
-  public Team createTeam(String name, String slug) {
-    Team team = new Team(name, slug);
-    teamRepository.persistAndFlush(team);
-    return team;
-  }
-
-  @Transactional
-  public Team createTeamWithVisibility(String name, String slug, Visibility visibility) {
+  public Team createTeam(String name, String slug, Visibility visibility) {
     Team team = new Team(name, slug);
     team.setVisibility(visibility);
     teamRepository.persistAndFlush(team);

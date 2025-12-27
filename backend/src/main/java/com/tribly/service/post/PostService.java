@@ -1,7 +1,6 @@
 package com.tribly.service.post;
 
 import com.tribly.domain.common.repository.TeamEntityQueryBasic;
-import com.tribly.domain.common.repository.TeamEntityRepository;
 import com.tribly.domain.common.repository.TriblyPage;
 import com.tribly.domain.post.Post;
 import com.tribly.domain.post.repository.PostRepository;
@@ -15,7 +14,6 @@ import com.tribly.dto.posts.response.PostListResponse;
 import com.tribly.enums.Status;
 import com.tribly.enums.Visibility;
 import com.tribly.infrastructure.exception.BusinessException;
-import com.tribly.service.common.BasicQuery;
 import com.tribly.service.common.SlugService;
 import com.tribly.service.common.TeamEntityService;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -28,7 +26,7 @@ import org.jboss.logging.Logger;
 import org.jspecify.annotations.Nullable;
 
 @ApplicationScoped
-public class PostService extends TeamEntityService<Post, BasicQuery, TeamEntityQueryBasic> {
+public class PostService extends TeamEntityService {
 
   private static final Logger LOG = Logger.getLogger(PostService.class);
 
@@ -40,17 +38,6 @@ public class PostService extends TeamEntityService<Post, BasicQuery, TeamEntityQ
 
   @Inject SlugService slugService;
 
-  @Override
-  protected TeamEntityRepository<Post, TeamEntityQueryBasic> getRepository() {
-    return postRepository;
-  }
-
-  @Override
-  protected TeamEntityQueryBasic getQuery(
-      BasicQuery query, Set<Long> memberTeamIds, Set<Long> organizerTeamIds) {
-    return query.getTeamEntityQueryBasic(memberTeamIds, organizerTeamIds);
-  }
-
   public PostListResponse listPosts(
       String teamSlug,
       @Nullable Long userId,
@@ -60,14 +47,18 @@ public class PostService extends TeamEntityService<Post, BasicQuery, TeamEntityQ
       int page,
       int size) {
     TriblyPage<Post> posts =
-        list(new BasicQuery(null, Set.of(teamSlug), userId, status, null, from, to, page, size));
+        postRepository.find(
+            new TeamEntityQueryBasic(
+                userId, Set.of(teamSlug), null, status, null, from, to, page, size));
     List<PostDto> dtos = posts.items().stream().map(PostDto::from).toList();
     return new PostListResponse(dtos, posts.total(), page, size);
   }
 
   protected Post getPost(String teamSlug, String postSlug, @Nullable Long userId) {
     TriblyPage<Post> posts =
-        list(new BasicQuery(postSlug, Set.of(teamSlug), userId, null, null, null, null, 0, 1));
+        postRepository.find(
+            new TeamEntityQueryBasic(
+                userId, Set.of(teamSlug), postSlug, null, null, null, null, 0, 1));
     if (posts.items().isEmpty()) {
       throw BusinessException.notFound("Post", postSlug);
     } else {

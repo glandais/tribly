@@ -90,9 +90,9 @@ class TeamServiceTest {
 
   @Test
   void listTeams_shouldReturnAllPublicTeamsForAnonymous() {
-    dataService.createTeamWithVisibility("Public Team 1", "public-1", Visibility.PUBLIC);
-    dataService.createTeamWithVisibility("Public Team 2", "public-2", Visibility.PUBLIC);
-    dataService.createTeamWithVisibility("Private Team", "private", Visibility.TEAM);
+    dataService.createTeam("Public Team 1", "public-1", Visibility.PUBLIC);
+    dataService.createTeam("Public Team 2", "public-2", Visibility.PUBLIC);
+    dataService.createTeam("Private Team", "private", Visibility.TEAM);
 
     TeamListResponse result = teamService.listTeams(null, null, null, 0, 10);
 
@@ -101,8 +101,8 @@ class TeamServiceTest {
 
   @Test
   void listTeams_shouldFilterByMemberTrue() {
-    Team team1 = dataService.createTeamWithVisibility("Team 1", "team-1", Visibility.PUBLIC);
-    dataService.createTeamWithVisibility("Team 2", "team-2", Visibility.PUBLIC);
+    Team team1 = dataService.createTeam("Team 1", "team-1", Visibility.PUBLIC);
+    dataService.createTeam("Team 2", "team-2", Visibility.PUBLIC);
     dataService.addUserToTeam(user1, team1, TeamRole.MEMBER);
 
     TeamListResponse result = teamService.listTeams(user1.getId(), true, null, 0, 10);
@@ -113,8 +113,8 @@ class TeamServiceTest {
 
   @Test
   void listTeams_shouldFilterByMemberFalse() {
-    Team team1 = dataService.createTeamWithVisibility("Team 1", "team-1", Visibility.PUBLIC);
-    dataService.createTeamWithVisibility("Team 2", "team-2", Visibility.PUBLIC);
+    Team team1 = dataService.createTeam("Team 1", "team-1", Visibility.PUBLIC);
+    dataService.createTeam("Team 2", "team-2", Visibility.PUBLIC);
     dataService.addUserToTeam(user1, team1, TeamRole.MEMBER);
 
     TeamListResponse result = teamService.listTeams(user1.getId(), false, null, 0, 10);
@@ -126,7 +126,7 @@ class TeamServiceTest {
   @Test
   void listTeams_shouldSupportPagination() {
     for (int i = 1; i <= 5; i++) {
-      dataService.createTeamWithVisibility("Team " + i, "team-" + i, Visibility.PUBLIC);
+      dataService.createTeam("Team " + i, "team-" + i, Visibility.PUBLIC);
     }
 
     TeamListResponse result = teamService.listTeams(null, null, null, 0, 2);
@@ -139,7 +139,7 @@ class TeamServiceTest {
 
   @Test
   void getTeam_shouldReturnTeam() {
-    dataService.createTeamWithVisibility("Test Team", "test-team", Visibility.PUBLIC);
+    dataService.createTeam("Test Team", "test-team", Visibility.PUBLIC);
 
     TeamDetailDto result = teamService.getTeam("test-team", null);
 
@@ -159,7 +159,7 @@ class TeamServiceTest {
 
   @Test
   void updateTeam_shouldUpdateAllFields() {
-    Team team = dataService.createTeamWithVisibility("Original", "original", Visibility.PUBLIC);
+    Team team = dataService.createTeam("Original", "original", Visibility.PUBLIC);
     dataService.addUserToTeam(user1, team, TeamRole.ADMIN);
     TeamRequest request = new TeamRequest("Updated Name", "Updated description", Visibility.TEAM);
 
@@ -172,7 +172,7 @@ class TeamServiceTest {
 
   @Test
   void updateTeam_shouldUpdatePartialFields() {
-    Team team = dataService.createTeamWithVisibility("Original", "original", Visibility.PUBLIC);
+    Team team = dataService.createTeam("Original", "original", Visibility.PUBLIC);
     dataService.addUserToTeam(user1, team, TeamRole.ADMIN);
     TeamRequest request = new TeamRequest("New Name", "original", Visibility.PUBLIC);
 
@@ -184,8 +184,7 @@ class TeamServiceTest {
 
   @Test
   void updateTeam_shouldPreserveNameWhenNull() {
-    Team team =
-        dataService.createTeamWithVisibility("Original Name", "original", Visibility.PUBLIC);
+    Team team = dataService.createTeam("Original Name", "original", Visibility.PUBLIC);
     dataService.addUserToTeam(user1, team, TeamRole.ADMIN);
     TeamRequest request = new TeamRequest("New name", "Updated description", Visibility.PUBLIC);
 
@@ -197,7 +196,7 @@ class TeamServiceTest {
 
   @Test
   void updateTeam_shouldThrowForNonAdmin() {
-    Team team = dataService.createTeamWithVisibility("Test Team", "test-team", Visibility.PUBLIC);
+    Team team = dataService.createTeam("Test Team", "test-team", Visibility.PUBLIC);
     dataService.addUserToTeam(user1, team, TeamRole.MEMBER);
     TeamRequest request = new TeamRequest("New Name", null, null);
 
@@ -209,7 +208,7 @@ class TeamServiceTest {
 
   @Test
   void deleteTeam_shouldSoftDeleteTeam() {
-    Team team = dataService.createTeamWithVisibility("Test Team", "test-team", Visibility.PUBLIC);
+    Team team = dataService.createTeam("Test Team", "test-team", Visibility.PUBLIC);
     dataService.addUserToTeam(user1, team, TeamRole.ADMIN);
 
     teamService.deleteTeam("test-team", user1.getId());
@@ -219,7 +218,7 @@ class TeamServiceTest {
 
   @Test
   void deleteTeam_shouldThrowForNonAdmin() {
-    Team team = dataService.createTeamWithVisibility("Test Team", "test-team", Visibility.PUBLIC);
+    Team team = dataService.createTeam("Test Team", "test-team", Visibility.PUBLIC);
     dataService.addUserToTeam(user1, team, TeamRole.MEMBER);
 
     assertThrows(BusinessException.class, () -> teamService.deleteTeam("test-team", user1.getId()));
@@ -229,7 +228,7 @@ class TeamServiceTest {
 
   @Test
   void getUserRole_shouldReturnRoleForMember() {
-    Team team = dataService.createTeam("Test Team", "test-team");
+    Team team = dataService.createTeam("Test Team", "test-team", Visibility.PUBLIC);
     dataService.addUserToTeam(user1, team, TeamRole.ORGANIZER);
 
     Optional<TeamRole> result = teamService.getUserRole(user1.getId(), "test-team");
@@ -240,7 +239,7 @@ class TeamServiceTest {
 
   @Test
   void getUserRole_shouldReturnEmptyForNonMember() {
-    dataService.createTeam("Test Team", "test-team");
+    dataService.createTeam("Test Team", "test-team", Visibility.PUBLIC);
 
     Optional<TeamRole> result = teamService.getUserRole(user1.getId(), "test-team");
 

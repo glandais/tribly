@@ -29,17 +29,17 @@ class RouteRepositoryTest {
   @BeforeEach
   void setUp() {
     dataCleaner.cleanAll();
-    team = dataService.createTeam("Test Team", "test-team");
+    team = dataService.createTeam("Test Team", "test-team", Visibility.PUBLIC);
     user = dataService.createUser("test@example.com", "Test User");
   }
 
   @Test
   void find_shouldReturnRoutesByTeam() {
-    dataService.createRoute(team, user, "Route 1");
-    dataService.createRoute(team, user, "Route 2");
+    dataService.createRouteWithVisibility(team, user, "Route 1", Visibility.PUBLIC);
+    dataService.createRouteWithVisibility(team, user, "Route 2", Visibility.PUBLIC);
 
     TeamEntityQueryBasic query =
-        new TeamEntityQueryBasic(null, Set.of(), Set.of(), null, null, null, null, 0, 10);
+        new TeamEntityQueryBasic(null, null, null, null, null, null, null, 0, 10);
     TriblyPage<Route> result = routeRepository.find(query);
 
     assertEquals(2, result.items().size());
@@ -48,12 +48,11 @@ class RouteRepositoryTest {
 
   @Test
   void find_shouldFilterByRouteId() {
-    Route route1 = dataService.createRoute(team, user, "Route 1");
-    dataService.createRoute(team, user, "Route 2");
+    Route route1 = dataService.createRouteWithVisibility(team, user, "Route 1", Visibility.PUBLIC);
+    dataService.createRouteWithVisibility(team, user, "Route 2", Visibility.PUBLIC);
 
     TeamEntityQueryBasic query =
-        new TeamEntityQueryBasic(
-            route1.getSlug(), Set.of(), Set.of(), null, null, null, null, 0, 10);
+        new TeamEntityQueryBasic(null, null, route1.getSlug(), null, null, null, null, 0, 10);
     TriblyPage<Route> result = routeRepository.find(query);
 
     assertEquals(1, result.items().size());
@@ -66,7 +65,7 @@ class RouteRepositoryTest {
     dataService.createRouteWithVisibility(team, user, "Team Route", Visibility.TEAM);
 
     TeamEntityQueryBasic query =
-        new TeamEntityQueryBasic(null, Set.of(), Set.of(), null, null, null, null, 0, 10);
+        new TeamEntityQueryBasic(null, null, null, null, null, null, null, 0, 10);
     TriblyPage<Route> result = routeRepository.find(query);
 
     assertEquals(1, result.items().size());
@@ -75,12 +74,13 @@ class RouteRepositoryTest {
 
   @Test
   void find_shouldIgnoreDeletedRoutes() {
-    dataService.createRoute(team, user, "Visible Route");
-    Route deletedRoute = dataService.createRoute(team, user, "Deleted Route");
+    dataService.createRouteWithVisibility(team, user, "Visible Route", Visibility.PUBLIC);
+    Route deletedRoute =
+        dataService.createRouteWithVisibility(team, user, "Deleted Route", Visibility.PUBLIC);
     dataService.deleteRoute(deletedRoute);
 
     TeamEntityQueryBasic query =
-        new TeamEntityQueryBasic(null, Set.of(), Set.of(), null, null, null, null, 0, 10);
+        new TeamEntityQueryBasic(null, null, null, null, null, null, null, 0, 10);
     TriblyPage<Route> result = routeRepository.find(query);
 
     assertEquals(1, result.items().size());
@@ -89,12 +89,12 @@ class RouteRepositoryTest {
 
   @Test
   void find_shouldReturnEmptyForDifferentTeam() {
-    dataService.createRoute(team, user, "Route 1");
-    Team otherTeam = dataService.createTeam("Other Team", "other-team");
+    dataService.createRouteWithVisibility(team, user, "Route 1", Visibility.PUBLIC);
+    Team otherTeam = dataService.createTeam("Other Team", "other-team", Visibility.PUBLIC);
 
     TeamEntityQueryBasic query =
         new TeamEntityQueryBasic(
-            null, Set.of(team.getId()), Set.of(), null, null, null, null, 0, 10);
+            null, Set.of(otherTeam.getSlug()), null, null, null, null, null, 0, 10);
     TriblyPage<Route> result = routeRepository.find(query);
 
     assertEquals(0, result.items().size());
@@ -103,11 +103,11 @@ class RouteRepositoryTest {
   @Test
   void find_shouldSupportPagination() {
     for (int i = 1; i <= 5; i++) {
-      dataService.createRoute(team, user, "Route " + i);
+      dataService.createRouteWithVisibility(team, user, "Route " + i, Visibility.PUBLIC);
     }
 
     TeamEntityQueryBasic query =
-        new TeamEntityQueryBasic(null, Set.of(), Set.of(), null, null, null, null, 0, 2);
+        new TeamEntityQueryBasic(null, null, null, null, null, null, null, 0, 2);
     TriblyPage<Route> result = routeRepository.find(query);
 
     assertEquals(2, result.items().size());

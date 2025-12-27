@@ -6,6 +6,7 @@ import com.tribly.domain.route.repository.RouteClimbRepository;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
 import com.tribly.enums.ClimbCategory;
+import com.tribly.enums.Visibility;
 import com.tribly.util.TestDataCleaner;
 import com.tribly.util.TestDataService;
 import io.quarkus.test.junit.QuarkusTest;
@@ -29,7 +30,7 @@ class RouteClimbRepositoryTest {
   @BeforeEach
   void setUp() {
     dataCleaner.cleanAll();
-    team = dataService.createTeam("Test Team", "test-team");
+    team = dataService.createTeam("Test Team", "test-team", Visibility.PUBLIC);
     user = dataService.createUser("test@example.com", "Test User");
     route = dataService.createRoute(team, user, "Test Route");
   }
