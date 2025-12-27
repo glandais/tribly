@@ -1,5 +1,6 @@
 package com.tribly.domain.common.repository;
 
+import com.tribly.domain.common.SearchClause;
 import com.tribly.domain.common.TeamEntity;
 import com.tribly.domain.common.query.*;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -75,12 +76,8 @@ public interface TeamEntityRepository<T extends TeamEntity, Q extends TeamEntity
     if (slug != null) {
       triblyQuery = triblyQuery.and("te.slug = :slug", Map.of("slug", slug));
     }
-    String search = query.search();
-    if (search != null && !search.isBlank()) {
-      triblyQuery =
-          triblyQuery.and(
-              "LOWER(te.name) LIKE :search", Map.of("search", "%" + search.toLowerCase() + "%"));
-    }
+    triblyQuery =
+        SearchClause.addSearch(triblyQuery, Set.of("te.name", "te.description"), query.search());
 
     // Add date range filters
     Instant from = query.from();

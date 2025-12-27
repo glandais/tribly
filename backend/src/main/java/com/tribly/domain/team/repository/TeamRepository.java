@@ -1,5 +1,6 @@
 package com.tribly.domain.team.repository;
 
+import com.tribly.domain.common.SearchClause;
 import com.tribly.domain.common.query.TriblyQuery;
 import com.tribly.domain.common.repository.BaseRepository;
 import com.tribly.domain.common.repository.TriblyPage;
@@ -10,6 +11,7 @@ import io.quarkus.hibernate.orm.panache.PanacheQuery;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.Nullable;
 
@@ -37,11 +39,8 @@ public class TeamRepository implements BaseRepository<Team> {
     if (teamQuery.slug() != null) {
       triblyQuery.and("t.slug = :slug", Map.of("slug", teamQuery.slug()));
     }
-    if (teamQuery.search() != null) {
-      triblyQuery.and(
-          "(lower(t.name) like :search or lower(t.description) like :search)",
-          Map.of("search", teamQuery.search()));
-    }
+    triblyQuery =
+        SearchClause.addSearch(triblyQuery, Set.of("t.name", "t.description"), teamQuery.search());
     if (teamQuery.userId() != null) {
       if (teamQuery.member() == null) {
         triblyQuery.and(
