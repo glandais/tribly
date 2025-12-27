@@ -5,7 +5,6 @@ import com.tribly.dto.error.ErrorResponse;
 import com.tribly.dto.posts.request.PostRequest;
 import com.tribly.dto.posts.response.PostDto;
 import com.tribly.dto.posts.response.PostListResponse;
-import com.tribly.enums.Status;
 import com.tribly.service.post.PostService;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
@@ -55,7 +54,6 @@ public class PostResource extends AbstractAuthenticatedResource {
           @Nullable String fromStr,
       @Parameter(description = "End date filter (ISO format)") @QueryParam("to")
           @Nullable String toStr,
-      @Parameter(description = "Status filter") @QueryParam("status") @Nullable Status status,
       @Parameter(description = "Page number") @QueryParam("page") @DefaultValue("0") int page,
       @Parameter(description = "Page size") @QueryParam("size") @DefaultValue("20") int size) {
 
@@ -64,7 +62,7 @@ public class PostResource extends AbstractAuthenticatedResource {
     Instant from = fromStr != null ? Instant.parse(fromStr) : null;
     Instant to = toStr != null ? Instant.parse(toStr) : null;
 
-    PostListResponse posts = postService.listPosts(slug, userId, from, to, status, page, size);
+    PostListResponse posts = postService.listPosts(slug, userId, from, to, page, size);
 
     return Response.ok(posts).build();
   }

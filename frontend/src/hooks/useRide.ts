@@ -30,19 +30,18 @@ export { Status, Visibility }
 interface UseRidesOptions {
   from?: string
   to?: string
-  status?: Status
   page?: number
   size?: number
 }
 
 export function useRides(teamSlug: string | undefined, options: UseRidesOptions = {}) {
-  const { from, to, status, page = 0, size = 20 } = options
+  const { from, to, page = 0, size = 20 } = options
 
   return useQuery({
-    queryKey: ['rides', teamSlug, { from, to, status, page, size }],
+    queryKey: ['rides', teamSlug, { from, to, page, size }],
     queryFn: async () => {
       if (!teamSlug) throw new Error('Team slug is required')
-      return await unwrapResponse(ridesApi.listRides(teamSlug, from, page, size, status, to))
+      return await unwrapResponse(ridesApi.listRides(teamSlug, from, page, size, to))
     },
     enabled: !!teamSlug,
     staleTime: 1000 * 60 * 2,

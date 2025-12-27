@@ -53,7 +53,7 @@ class RideRepositoryTest {
         LocalDate.of(2025, 1, 20).atTime(0, 0).toInstant(ZoneOffset.UTC));
 
     TeamEntityQueryBasic query =
-        new TeamEntityQueryBasic(null, null, null, null, null, null, null, 0, 10);
+        new TeamEntityQueryBasic(null, null, null, null, null, null, 0, 10);
     TriblyPage<Ride> result = rideRepository.find(query);
 
     assertEquals(2, result.items().size());
@@ -76,7 +76,7 @@ class RideRepositoryTest {
         LocalDate.of(2025, 1, 20).atTime(0, 0).toInstant(ZoneOffset.UTC));
 
     TeamEntityQueryBasic query =
-        new TeamEntityQueryBasic(null, null, "ride-1", null, null, null, null, 0, 10);
+        new TeamEntityQueryBasic(null, null, "ride-1", null, null, null, 0, 10);
     TriblyPage<Ride> result = rideRepository.find(query);
 
     assertEquals(1, result.items().size());
@@ -110,7 +110,6 @@ class RideRepositoryTest {
             null,
             null,
             null,
-            null,
             LocalDate.of(2025, 1, 15).atTime(0, 0).toInstant(ZoneOffset.UTC),
             LocalDate.of(2025, 1, 25).atTime(0, 0).toInstant(ZoneOffset.UTC),
             0,
@@ -139,7 +138,7 @@ class RideRepositoryTest {
         Visibility.TEAM);
 
     TeamEntityQueryBasic query =
-        new TeamEntityQueryBasic(null, null, null, null, null, null, null, 0, 10);
+        new TeamEntityQueryBasic(null, null, null, null, null, null, 0, 10);
     TriblyPage<Ride> result = rideRepository.find(query);
 
     assertEquals(1, result.items().size());
@@ -166,7 +165,7 @@ class RideRepositoryTest {
         Status.PUBLISHED);
 
     TeamEntityQueryBasic query =
-        new TeamEntityQueryBasic(null, null, null, Status.PUBLISHED, null, null, null, 0, 10);
+        new TeamEntityQueryBasic(null, null, null, null, null, null, 0, 10);
     TriblyPage<Ride> result = rideRepository.find(query);
 
     assertEquals(1, result.items().size());
@@ -191,7 +190,7 @@ class RideRepositoryTest {
     dataService.deleteRide(deletedRide);
 
     TeamEntityQueryBasic query =
-        new TeamEntityQueryBasic(null, null, null, Status.PUBLISHED, null, null, null, 0, 10);
+        new TeamEntityQueryBasic(null, null, null, null, null, null, 0, 10);
     TriblyPage<Ride> result = rideRepository.find(query);
 
     assertEquals(1, result.items().size());

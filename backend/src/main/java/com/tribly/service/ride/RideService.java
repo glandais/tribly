@@ -57,13 +57,11 @@ public class RideService extends TeamEntityService {
       @Nullable Long userId,
       @Nullable Instant from,
       @Nullable Instant to,
-      @Nullable Status status,
       int page,
       int size) {
     TriblyPage<Ride> rides =
         rideRepository.find(
-            new TeamEntityQueryBasic(
-                userId, Set.of(teamSlug), null, status, null, from, to, page, size));
+            new TeamEntityQueryBasic(userId, Set.of(teamSlug), null, null, from, to, page, size));
     List<RideDto> dtos = rides.items().stream().map(r -> RideDto.from(r, false)).toList();
     return new RideListResponse(dtos, rides.total(), page, size);
   }
@@ -71,8 +69,7 @@ public class RideService extends TeamEntityService {
   protected Ride getRide(String teamSlug, String rideSlug, @Nullable Long userId) {
     TriblyPage<Ride> rides =
         rideRepository.find(
-            new TeamEntityQueryBasic(
-                userId, Set.of(teamSlug), rideSlug, null, null, null, null, 0, 1));
+            new TeamEntityQueryBasic(userId, Set.of(teamSlug), rideSlug, null, null, null, 0, 1));
     if (rides.items().isEmpty()) {
       throw BusinessException.notFound("Ride", rideSlug);
     } else {

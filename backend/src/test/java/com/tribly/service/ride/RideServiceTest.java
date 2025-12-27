@@ -62,7 +62,7 @@ class RideServiceTest {
     dataService.createRideWithVisibilityAndStatus(
         team, admin, "Team Ride", "team-ride", Instant.now(), Visibility.TEAM, Status.PUBLISHED);
 
-    RideListResponse result = rideService.listRides("test-team", null, null, null, null, 0, 10);
+    RideListResponse result = rideService.listRides("test-team", null, null, null, 0, 10);
 
     assertEquals(1, result.rides().size());
     assertEquals("Public Ride", result.rides().getFirst().getName());
@@ -81,24 +81,9 @@ class RideServiceTest {
     dataService.createRideWithVisibilityAndStatus(
         team, admin, "Team Ride", "team-ride", Instant.now(), Visibility.TEAM, Status.PUBLISHED);
 
-    RideListResponse result =
-        rideService.listRides("test-team", member.getId(), null, null, null, 0, 10);
+    RideListResponse result = rideService.listRides("test-team", member.getId(), null, null, 0, 10);
 
     assertEquals(2, result.rides().size());
-  }
-
-  @Test
-  void listRides_shouldFilterByStatus() {
-    dataService.createRideWithVisibilityAndStatus(
-        team, admin, "Published", "published", Instant.now(), Visibility.PUBLIC, Status.PUBLISHED);
-    dataService.createRideWithVisibilityAndStatus(
-        team, admin, "Draft", "draft", Instant.now(), Visibility.PUBLIC, Status.DRAFT);
-
-    RideListResponse result =
-        rideService.listRides("test-team", null, null, null, Status.PUBLISHED, 0, 10);
-
-    assertEquals(1, result.rides().size());
-    assertEquals(Status.PUBLISHED, result.rides().getFirst().getStatus());
   }
 
   @Test
@@ -110,8 +95,7 @@ class RideServiceTest {
     dataService.createRide(team, admin, "Tomorrow Ride", "tomorrow", tomorrow);
     dataService.createRide(team, admin, "Next Week", "next-week", nextWeek);
 
-    RideListResponse result =
-        rideService.listRides("test-team", null, today, tomorrow, null, 0, 10);
+    RideListResponse result = rideService.listRides("test-team", null, today, tomorrow, 0, 10);
 
     assertEquals(2, result.rides().size());
   }
@@ -121,7 +105,7 @@ class RideServiceTest {
     dataService.createRideWithStatus(team, admin, "Draft", "draft", Instant.now(), Status.DRAFT);
 
     RideListResponse result =
-        rideService.listRides("test-team", organizer.getId(), null, null, null, 0, 10);
+        rideService.listRides("test-team", organizer.getId(), null, null, 0, 10);
 
     assertEquals(1, result.rides().size());
     assertEquals(Status.DRAFT, result.rides().getFirst().getStatus());
@@ -131,8 +115,7 @@ class RideServiceTest {
   void listRides_shouldHideDraftsFromMembers() {
     dataService.createRideWithStatus(team, admin, "Draft", "draft", Instant.now(), Status.DRAFT);
 
-    RideListResponse result =
-        rideService.listRides("test-team", member.getId(), null, null, null, 0, 10);
+    RideListResponse result = rideService.listRides("test-team", member.getId(), null, null, 0, 10);
 
     assertEquals(0, result.rides().size());
   }
@@ -150,7 +133,7 @@ class RideServiceTest {
         Visibility.PUBLIC,
         Status.PUBLISHED);
 
-    RideListResponse result = rideService.listRides("test-team", null, null, null, null, 0, 10);
+    RideListResponse result = rideService.listRides("test-team", null, null, null, 0, 10);
 
     assertEquals(1, result.rides().size());
     assertEquals("Published Ride", result.rides().getFirst().getName());
@@ -161,8 +144,7 @@ class RideServiceTest {
     dataService.createRideWithVisibilityAndStatus(
         team, admin, "Draft Ride", "draft-ride", Instant.now(), Visibility.PUBLIC, Status.DRAFT);
 
-    RideListResponse result =
-        rideService.listRides("test-team", null, null, null, Status.DRAFT, 0, 10);
+    RideListResponse result = rideService.listRides("test-team", null, null, null, 0, 10);
 
     assertEquals(0, result.rides().size());
   }
@@ -181,7 +163,7 @@ class RideServiceTest {
         Status.PUBLISHED);
 
     RideListResponse result =
-        rideService.listRides("test-team", organizer.getId(), null, null, Status.DRAFT, 0, 10);
+        rideService.listRides("test-team", organizer.getId(), null, null, 0, 10);
 
     assertEquals(1, result.rides().size());
     assertEquals("Draft Ride", result.rides().getFirst().getName());
@@ -201,8 +183,7 @@ class RideServiceTest {
         Visibility.PUBLIC,
         Status.PUBLISHED);
 
-    RideListResponse result =
-        rideService.listRides("test-team", null, null, null, Status.PUBLISHED, 0, 10);
+    RideListResponse result = rideService.listRides("test-team", null, null, null, 0, 10);
 
     assertEquals(1, result.rides().size());
     assertEquals("Published Ride", result.rides().getFirst().getName());
@@ -223,7 +204,7 @@ class RideServiceTest {
         Visibility.TEAM,
         Status.PUBLISHED);
 
-    RideListResponse result = rideService.listRides("private-team", null, null, null, null, 0, 10);
+    RideListResponse result = rideService.listRides("private-team", null, null, null, 0, 10);
     assertEquals(0, result.rides().size());
   }
 

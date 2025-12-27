@@ -3,7 +3,6 @@ package com.tribly.api.publications;
 import com.tribly.api.AbstractAuthenticatedResource;
 import com.tribly.dto.error.ErrorResponse;
 import com.tribly.dto.publications.response.PublicationListResponse;
-import com.tribly.enums.Status;
 import com.tribly.service.common.PublicationService;
 import jakarta.annotation.security.PermitAll;
 import jakarta.inject.Inject;
@@ -50,7 +49,6 @@ public class TeamPublicationResource extends AbstractAuthenticatedResource {
           @Nullable String fromStr,
       @Parameter(description = "End date filter (ISO format)") @QueryParam("to")
           @Nullable String toStr,
-      @Parameter(description = "Status filter") @QueryParam("status") @Nullable Status status,
       @Parameter(description = "Page number") @QueryParam("page") @DefaultValue("0") int page,
       @Parameter(description = "Page size") @QueryParam("size") @DefaultValue("20") int size) {
 
@@ -60,7 +58,7 @@ public class TeamPublicationResource extends AbstractAuthenticatedResource {
     Instant to = toStr != null ? Instant.parse(toStr) : null;
 
     PublicationListResponse publications =
-        publicationService.list(Set.of(slug), userId, from, to, status, page, size);
+        publicationService.list(Set.of(slug), userId, from, to, page, size);
 
     return Response.ok(publications).build();
   }

@@ -50,8 +50,7 @@ public class PublicationResource extends AbstractAuthenticatedResource {
     Instant from = fromStr != null ? Instant.parse(fromStr) : null;
     Instant to = toStr != null ? Instant.parse(toStr) : null;
 
-    PublicationListResponse response =
-        publicationService.list(null, userId, from, to, null, page, size);
+    PublicationListResponse response = publicationService.list(null, userId, from, to, page, size);
 
     return Response.ok(response).build();
   }

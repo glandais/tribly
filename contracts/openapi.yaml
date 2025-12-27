@@ -1079,7 +1079,7 @@ components:
   securitySchemes:
     SecurityScheme:
       type: openIdConnect
-      openIdConnectUrl: http://localhost:8180/realms/tribly/.well-known/openid-configuration
+      openIdConnectUrl: http://localhost:8180/realms/quarkus/.well-known/openid-configuration
       description: Authentication
 tags:
 - name: Configuration
@@ -1678,11 +1678,6 @@ paths:
           type: integer
           format: int32
           default: 20
-      - description: Status filter
-        name: status
-        in: query
-        schema:
-          $ref: "#/components/schemas/Status"
       - description: End date filter (ISO format)
         name: to
         in: query
@@ -1922,11 +1917,6 @@ paths:
           type: integer
           format: int32
           default: 20
-      - description: Status filter
-        name: status
-        in: query
-        schema:
-          $ref: "#/components/schemas/Status"
       - description: End date filter (ISO format)
         name: to
         in: query
@@ -1978,11 +1968,6 @@ paths:
           type: integer
           format: int32
           default: 20
-      - description: Status filter
-        name: status
-        in: query
-        schema:
-          $ref: "#/components/schemas/Status"
       - description: End date filter (ISO format)
         name: to
         in: query

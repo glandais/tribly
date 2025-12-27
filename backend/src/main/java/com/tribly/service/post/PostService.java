@@ -11,7 +11,6 @@ import com.tribly.domain.user.repository.UserRepository;
 import com.tribly.dto.posts.request.PostRequest;
 import com.tribly.dto.posts.response.PostDto;
 import com.tribly.dto.posts.response.PostListResponse;
-import com.tribly.enums.Status;
 import com.tribly.enums.Visibility;
 import com.tribly.infrastructure.exception.BusinessException;
 import com.tribly.service.common.SlugService;
@@ -43,13 +42,11 @@ public class PostService extends TeamEntityService {
       @Nullable Long userId,
       @Nullable Instant from,
       @Nullable Instant to,
-      @Nullable Status status,
       int page,
       int size) {
     TriblyPage<Post> posts =
         postRepository.find(
-            new TeamEntityQueryBasic(
-                userId, Set.of(teamSlug), null, status, null, from, to, page, size));
+            new TeamEntityQueryBasic(userId, Set.of(teamSlug), null, null, from, to, page, size));
     List<PostDto> dtos = posts.items().stream().map(PostDto::from).toList();
     return new PostListResponse(dtos, posts.total(), page, size);
   }
@@ -57,8 +54,7 @@ public class PostService extends TeamEntityService {
   protected Post getPost(String teamSlug, String postSlug, @Nullable Long userId) {
     TriblyPage<Post> posts =
         postRepository.find(
-            new TeamEntityQueryBasic(
-                userId, Set.of(teamSlug), postSlug, null, null, null, null, 0, 1));
+            new TeamEntityQueryBasic(userId, Set.of(teamSlug), postSlug, null, null, null, 0, 1));
     if (posts.items().isEmpty()) {
       throw BusinessException.notFound("Post", postSlug);
     } else {

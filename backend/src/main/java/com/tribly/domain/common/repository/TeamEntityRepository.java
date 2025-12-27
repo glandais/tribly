@@ -2,7 +2,6 @@ package com.tribly.domain.common.repository;
 
 import com.tribly.domain.common.TeamEntity;
 import com.tribly.domain.common.query.*;
-import com.tribly.enums.Status;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.time.Instant;
 import java.util.Map;
@@ -75,10 +74,6 @@ public interface TeamEntityRepository<T extends TeamEntity, Q extends TeamEntity
     String slug = query.slug();
     if (slug != null) {
       triblyQuery = triblyQuery.and("te.slug = :slug", Map.of("slug", slug));
-    }
-    Status status = query.status();
-    if (status != null) {
-      triblyQuery = triblyQuery.and("te.status = :status", Map.of("status", status));
     }
     String search = query.search();
     if (search != null && !search.isBlank()) {

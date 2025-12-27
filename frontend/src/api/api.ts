@@ -1186,7 +1186,6 @@ export const PostsApiAxiosParamCreator = function (configuration?: Configuration
      * @param {string} [from] Start date filter (ISO format)
      * @param {number} [page] Page number
      * @param {number} [size] Page size
-     * @param {Status} [status] Status filter
      * @param {string} [to] End date filter (ISO format)
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -1196,7 +1195,6 @@ export const PostsApiAxiosParamCreator = function (configuration?: Configuration
       from?: string,
       page?: number,
       size?: number,
-      status?: Status,
       to?: string,
       options: RawAxiosRequestConfig = {}
     ): Promise<RequestArgs> => {
@@ -1227,10 +1225,6 @@ export const PostsApiAxiosParamCreator = function (configuration?: Configuration
 
       if (size !== undefined) {
         localVarQueryParameter['size'] = size
-      }
-
-      if (status !== undefined) {
-        localVarQueryParameter['status'] = status
       }
 
       if (to !== undefined) {
@@ -1402,7 +1396,6 @@ export const PostsApiFp = function (configuration?: Configuration) {
      * @param {string} [from] Start date filter (ISO format)
      * @param {number} [page] Page number
      * @param {number} [size] Page size
-     * @param {Status} [status] Status filter
      * @param {string} [to] End date filter (ISO format)
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -1412,7 +1405,6 @@ export const PostsApiFp = function (configuration?: Configuration) {
       from?: string,
       page?: number,
       size?: number,
-      status?: Status,
       to?: string,
       options?: RawAxiosRequestConfig
     ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<PostListResponse>> {
@@ -1421,7 +1413,6 @@ export const PostsApiFp = function (configuration?: Configuration) {
         from,
         page,
         size,
-        status,
         to,
         options
       )
@@ -1537,7 +1528,6 @@ export const PostsApiFactory = function (
      * @param {string} [from] Start date filter (ISO format)
      * @param {number} [page] Page number
      * @param {number} [size] Page size
-     * @param {Status} [status] Status filter
      * @param {string} [to] End date filter (ISO format)
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -1547,12 +1537,11 @@ export const PostsApiFactory = function (
       from?: string,
       page?: number,
       size?: number,
-      status?: Status,
       to?: string,
       options?: RawAxiosRequestConfig
     ): AxiosPromise<PostListResponse> {
       return localVarFp
-        .listPosts(slug, from, page, size, status, to, options)
+        .listPosts(slug, from, page, size, to, options)
         .then((request) => request(axios, basePath))
     },
     /**
@@ -1630,7 +1619,6 @@ export class PostsApi extends BaseAPI {
    * @param {string} [from] Start date filter (ISO format)
    * @param {number} [page] Page number
    * @param {number} [size] Page size
-   * @param {Status} [status] Status filter
    * @param {string} [to] End date filter (ISO format)
    * @param {*} [options] Override http request option.
    * @throws {RequiredError}
@@ -1640,12 +1628,11 @@ export class PostsApi extends BaseAPI {
     from?: string,
     page?: number,
     size?: number,
-    status?: Status,
     to?: string,
     options?: RawAxiosRequestConfig
   ) {
     return PostsApiFp(this.configuration)
-      .listPosts(slug, from, page, size, status, to, options)
+      .listPosts(slug, from, page, size, to, options)
       .then((request) => request(this.axios, this.basePath))
   }
 
@@ -1740,7 +1727,6 @@ export const PublicationsApiAxiosParamCreator = function (configuration?: Config
      * @param {string} [from] Start date filter (ISO format)
      * @param {number} [page] Page number
      * @param {number} [size] Page size
-     * @param {Status} [status] Status filter
      * @param {string} [to] End date filter (ISO format)
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -1750,7 +1736,6 @@ export const PublicationsApiAxiosParamCreator = function (configuration?: Config
       from?: string,
       page?: number,
       size?: number,
-      status?: Status,
       to?: string,
       options: RawAxiosRequestConfig = {}
     ): Promise<RequestArgs> => {
@@ -1781,10 +1766,6 @@ export const PublicationsApiAxiosParamCreator = function (configuration?: Config
 
       if (size !== undefined) {
         localVarQueryParameter['size'] = size
-      }
-
-      if (status !== undefined) {
-        localVarQueryParameter['status'] = status
       }
 
       if (to !== undefined) {
@@ -1858,7 +1839,6 @@ export const PublicationsApiFp = function (configuration?: Configuration) {
      * @param {string} [from] Start date filter (ISO format)
      * @param {number} [page] Page number
      * @param {number} [size] Page size
-     * @param {Status} [status] Status filter
      * @param {string} [to] End date filter (ISO format)
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -1868,7 +1848,6 @@ export const PublicationsApiFp = function (configuration?: Configuration) {
       from?: string,
       page?: number,
       size?: number,
-      status?: Status,
       to?: string,
       options?: RawAxiosRequestConfig
     ): Promise<
@@ -1879,7 +1858,6 @@ export const PublicationsApiFp = function (configuration?: Configuration) {
         from,
         page,
         size,
-        status,
         to,
         options
       )
@@ -1935,7 +1913,6 @@ export const PublicationsApiFactory = function (
      * @param {string} [from] Start date filter (ISO format)
      * @param {number} [page] Page number
      * @param {number} [size] Page size
-     * @param {Status} [status] Status filter
      * @param {string} [to] End date filter (ISO format)
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -1945,12 +1922,11 @@ export const PublicationsApiFactory = function (
       from?: string,
       page?: number,
       size?: number,
-      status?: Status,
       to?: string,
       options?: RawAxiosRequestConfig
     ): AxiosPromise<PublicationListResponse> {
       return localVarFp
-        .listPublications(slug, from, page, size, status, to, options)
+        .listPublications(slug, from, page, size, to, options)
         .then((request) => request(axios, basePath))
     },
   }
@@ -1989,7 +1965,6 @@ export class PublicationsApi extends BaseAPI {
    * @param {string} [from] Start date filter (ISO format)
    * @param {number} [page] Page number
    * @param {number} [size] Page size
-   * @param {Status} [status] Status filter
    * @param {string} [to] End date filter (ISO format)
    * @param {*} [options] Override http request option.
    * @throws {RequiredError}
@@ -1999,12 +1974,11 @@ export class PublicationsApi extends BaseAPI {
     from?: string,
     page?: number,
     size?: number,
-    status?: Status,
     to?: string,
     options?: RawAxiosRequestConfig
   ) {
     return PublicationsApiFp(this.configuration)
-      .listPublications(slug, from, page, size, status, to, options)
+      .listPublications(slug, from, page, size, to, options)
       .then((request) => request(this.axios, this.basePath))
   }
 }
@@ -2267,7 +2241,6 @@ export const RidesApiAxiosParamCreator = function (configuration?: Configuration
      * @param {string} [from] Start date filter (ISO format)
      * @param {number} [page] Page number
      * @param {number} [size] Page size
-     * @param {Status} [status] Status filter
      * @param {string} [to] End date filter (ISO format)
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -2277,7 +2250,6 @@ export const RidesApiAxiosParamCreator = function (configuration?: Configuration
       from?: string,
       page?: number,
       size?: number,
-      status?: Status,
       to?: string,
       options: RawAxiosRequestConfig = {}
     ): Promise<RequestArgs> => {
@@ -2308,10 +2280,6 @@ export const RidesApiAxiosParamCreator = function (configuration?: Configuration
 
       if (size !== undefined) {
         localVarQueryParameter['size'] = size
-      }
-
-      if (status !== undefined) {
-        localVarQueryParameter['status'] = status
       }
 
       if (to !== undefined) {
@@ -2547,7 +2515,6 @@ export const RidesApiFp = function (configuration?: Configuration) {
      * @param {string} [from] Start date filter (ISO format)
      * @param {number} [page] Page number
      * @param {number} [size] Page size
-     * @param {Status} [status] Status filter
      * @param {string} [to] End date filter (ISO format)
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -2557,7 +2524,6 @@ export const RidesApiFp = function (configuration?: Configuration) {
       from?: string,
       page?: number,
       size?: number,
-      status?: Status,
       to?: string,
       options?: RawAxiosRequestConfig
     ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<RideListResponse>> {
@@ -2566,7 +2532,6 @@ export const RidesApiFp = function (configuration?: Configuration) {
         from,
         page,
         size,
-        status,
         to,
         options
       )
@@ -2720,7 +2685,6 @@ export const RidesApiFactory = function (
      * @param {string} [from] Start date filter (ISO format)
      * @param {number} [page] Page number
      * @param {number} [size] Page size
-     * @param {Status} [status] Status filter
      * @param {string} [to] End date filter (ISO format)
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -2730,12 +2694,11 @@ export const RidesApiFactory = function (
       from?: string,
       page?: number,
       size?: number,
-      status?: Status,
       to?: string,
       options?: RawAxiosRequestConfig
     ): AxiosPromise<RideListResponse> {
       return localVarFp
-        .listRides(slug, from, page, size, status, to, options)
+        .listRides(slug, from, page, size, to, options)
         .then((request) => request(axios, basePath))
     },
     /**
@@ -2853,7 +2816,6 @@ export class RidesApi extends BaseAPI {
    * @param {string} [from] Start date filter (ISO format)
    * @param {number} [page] Page number
    * @param {number} [size] Page size
-   * @param {Status} [status] Status filter
    * @param {string} [to] End date filter (ISO format)
    * @param {*} [options] Override http request option.
    * @throws {RequiredError}
@@ -2863,12 +2825,11 @@ export class RidesApi extends BaseAPI {
     from?: string,
     page?: number,
     size?: number,
-    status?: Status,
     to?: string,
     options?: RawAxiosRequestConfig
   ) {
     return RidesApiFp(this.configuration)
-      .listRides(slug, from, page, size, status, to, options)
+      .listRides(slug, from, page, size, to, options)
       .then((request) => request(this.axios, this.basePath))
   }
 

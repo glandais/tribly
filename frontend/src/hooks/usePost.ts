@@ -14,19 +14,18 @@ export { Status, Visibility }
 interface UsePostsOptions {
   from?: string
   to?: string
-  status?: Status
   page?: number
   size?: number
 }
 
 export function usePosts(teamSlug: string | undefined, options: UsePostsOptions = {}) {
-  const { from, to, status, page = 0, size = 20 } = options
+  const { from, to, page = 0, size = 20 } = options
 
   return useQuery({
-    queryKey: ['posts', teamSlug, { from, to, status, page, size }],
+    queryKey: ['posts', teamSlug, { from, to, page, size }],
     queryFn: async () => {
       if (!teamSlug) throw new Error('Team slug is required')
-      return await unwrapResponse(postsApi.listPosts(teamSlug, from, page, size, status, to))
+      return await unwrapResponse(postsApi.listPosts(teamSlug, from, page, size, to))
     },
     enabled: !!teamSlug,
     staleTime: 1000 * 60 * 2,
