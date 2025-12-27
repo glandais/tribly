@@ -240,7 +240,7 @@ class RideRepositoryTest {
         Status.DRAFT,
         Instant.now().plusSeconds(3600));
 
-    List<Ride> result = rideRepository.findPublicationsToAutoPublish(Status.DRAFT, Instant.now());
+    List<Ride> result = rideRepository.findPublicationsToAutoPublish();
 
     assertEquals(1, result.size());
     assertEquals("auto-1", result.getFirst().getSlug());
@@ -256,7 +256,7 @@ class RideRepositoryTest {
         LocalDate.of(2025, 1, 15).atTime(0, 0).toInstant(ZoneOffset.UTC),
         Status.DRAFT);
 
-    List<Ride> result = rideRepository.findPublicationsToAutoPublish(Status.DRAFT, Instant.now());
+    List<Ride> result = rideRepository.findPublicationsToAutoPublish();
 
     assertEquals(0, result.size());
   }

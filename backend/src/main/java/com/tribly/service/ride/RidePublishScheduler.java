@@ -31,7 +31,7 @@ public class RidePublishScheduler {
   @Scheduled(every = "1m")
   @Transactional
   void autoPublishRides() {
-    List<Ride> rides = rideRepository.findPublicationsToAutoPublish(Status.DRAFT, Instant.now());
+    List<Ride> rides = rideRepository.findPublicationsToAutoPublish();
 
     for (Ride ride : rides) {
       ride.setStatus(Status.PUBLISHED);

@@ -8,6 +8,7 @@
       "my": "My Teams"
     },
     "search": {
+      "label": "Search teams",
       "placeholder": "Search teams..."
     },
     "empty": {

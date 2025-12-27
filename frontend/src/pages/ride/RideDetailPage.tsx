@@ -191,7 +191,7 @@ export function RideDetailPage() {
                   </button>
                   <button
                     onClick={() => setShowCancelConfirm(true)}
-                    className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                    className="inline-flex items-center px-3 py-2 border border-yellow-300 rounded-md text-sm font-medium text-yellow-700 bg-white hover:bg-yellow-50"
                   >
                     {t('detail.actions.cancel')}
                   </button>

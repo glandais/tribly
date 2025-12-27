@@ -31,7 +31,7 @@ public class PostPublishScheduler {
   @Scheduled(every = "1m")
   @Transactional
   void autoPublishPosts() {
-    List<Post> posts = postRepository.findPublicationsToAutoPublish(Status.DRAFT, Instant.now());
+    List<Post> posts = postRepository.findPublicationsToAutoPublish();
 
     for (Post post : posts) {
       post.setStatus(Status.PUBLISHED);

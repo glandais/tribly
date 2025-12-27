@@ -11,11 +11,11 @@ public interface EntityWithPublishAtRepository<T extends Publication> extends Pa
   /**
    * Find rides that should be auto-published (DRAFT status with publishAt in the past).
    */
-  default List<T> findPublicationsToAutoPublish(Status status, Instant now) {
+  default List<T> findPublicationsToAutoPublish() {
     return find(
             "status = ?1 and publishAt is not null and publishAt <= ?2 and deleted = false",
-            status,
-            now)
+            Status.DRAFT,
+            Instant.now())
         .list();
   }
 }

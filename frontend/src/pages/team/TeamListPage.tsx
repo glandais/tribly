@@ -26,32 +26,40 @@ export function TeamListPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">{t('list.title')}</h1>
-          <p className="mt-1 text-gray-600">{t('list.subtitle')}</p>
+          <p className="mt-1 text-gray-700">{t('list.subtitle')}</p>
         </div>
         {isAuthenticated && (
           <Link
             to="/teams/new"
-            className="mt-4 sm:mt-0 inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            className="mt-4 sm:mt-0 inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-500"
           >
-            <PlusIcon className="w-5 h-5 mr-2 -ml-1" />
+            <PlusIcon className="w-5 h-5 mr-2 -ml-1" aria-hidden="true" />
             {t('list.createTeam')}
           </Link>
         )}
       </div>
 
       <div className="mb-6">
+        <label htmlFor="team-search" className="sr-only">
+          {t('list.search.label')}
+        </label>
         <div className="relative">
           <input
-            type="text"
+            id="team-search"
+            type="search"
             placeholder={t('list.search.placeholder')}
             value={search}
             onChange={(e) => {
               setSearch(e.target.value)
               setPage(0)
             }}
-            className="w-full sm:max-w-md px-4 py-2 pl-10 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
+            className="w-full sm:max-w-md px-4 py-2 pl-10 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:border-indigo-500"
+            aria-label={t('list.search.label')}
           />
-          <MagnifyingGlassIcon className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+          <MagnifyingGlassIcon
+            className="absolute left-3 top-2.5 h-5 w-5 text-gray-400 pointer-events-none"
+            aria-hidden="true"
+          />
         </div>
       </div>
 
@@ -99,16 +107,16 @@ export function TeamListPage() {
         </>
       ) : (
         <div className="text-center py-12">
-          <UserGroupIcon className="mx-auto h-12 w-12 text-gray-400" />
+          <UserGroupIcon className="mx-auto h-12 w-12 text-gray-400" aria-hidden="true" />
           <h3 className="mt-2 text-sm font-medium text-gray-900">{t('list.empty.title')}</h3>
-          <p className="mt-1 text-sm text-gray-500">{t('list.empty.publicTeams')}</p>
+          <p className="mt-1 text-sm text-gray-700">{t('list.empty.publicTeams')}</p>
           {isAuthenticated && (
             <div className="mt-6">
               <Link
                 to="/teams/new"
-                className="inline-flex items-center px-4 py-2 border border-transparent shadow-xs text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
+                className="inline-flex items-center px-4 py-2 border border-transparent shadow-xs text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-500"
               >
-                <PlusIcon className="w-5 h-5 mr-2 -ml-1" />
+                <PlusIcon className="w-5 h-5 mr-2 -ml-1" aria-hidden="true" />
                 {t('list.empty.createAction')}
               </Link>
             </div>

@@ -8,6 +8,7 @@
       "my": "Mes équipes"
     },
     "search": {
+      "label": "Rechercher des équipes",
       "placeholder": "Rechercher des équipes..."
     },
     "empty": {

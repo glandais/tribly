@@ -3,11 +3,16 @@
     "teams": "Teams",
     "myTeams": "My Teams",
     "profile": "Profile",
+    "profilePicture": "Profile picture of",
+    "avatar": "Avatar of",
     "settings": "Settings",
     "members": "Members",
     "routes": "Routes",
     "signIn": "Sign in",
-    "signOut": "Sign out"
+    "signOut": "Sign out",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "skipToContent": "Skip to main content"
   },
   "actions": {
     "new": "New"

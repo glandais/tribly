@@ -3,11 +3,16 @@
     "teams": "Équipes",
     "myTeams": "Mes équipes",
     "profile": "Profil",
+    "profilePicture": "Photo de profil de",
+    "avatar": "Avatar de",
     "settings": "Paramètres",
     "members": "Membres",
     "routes": "Itinéraires",
     "signIn": "Se connecter",
-    "signOut": "Se déconnecter"
+    "signOut": "Se déconnecter",
+    "openMenu": "Ouvrir le menu",
+    "closeMenu": "Fermer le menu",
+    "skipToContent": "Aller au contenu principal"
   },
   "actions": {
     "new": "Nouveau"
