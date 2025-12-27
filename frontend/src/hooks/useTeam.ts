@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { teamsApi, teamMembersApi, unwrapResponse } from '../lib/apiClient'
 import { useAuthStore } from '../store/authStore'
@@ -24,6 +24,7 @@ export function useTeams(options: UseTeamsOptions = {}) {
     queryFn: async () => {
       return await unwrapResponse(teamsApi.listTeams(undefined, page, search, size))
     },
+    placeholderData: keepPreviousData,
   })
 }
 
@@ -60,6 +61,7 @@ export function useTeamMembers(slug: string | undefined, page = 0, size = 50) {
       return await unwrapResponse(teamMembersApi.getMembers(slug, page, size))
     },
     enabled: !!slug,
+    placeholderData: keepPreviousData,
   })
 }
 

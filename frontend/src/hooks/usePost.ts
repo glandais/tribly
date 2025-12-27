@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { postsApi, unwrapResponse } from '../lib/apiClient'
 import { useNotificationStore } from '../store/notificationStore'
@@ -27,7 +27,8 @@ export function usePosts(teamSlug: string | undefined, options: UsePostsOptions 
       if (!teamSlug) throw new Error('Team slug is required')
       return await unwrapResponse(postsApi.listPosts(teamSlug, from, page, size, to))
     },
-    enabled: !!teamSlug
+    enabled: !!teamSlug,
+    placeholderData: keepPreviousData,
   })
 }
 
@@ -38,7 +39,7 @@ export function usePost(teamSlug: string | undefined, postSlug: string | undefin
       if (!teamSlug || !postSlug) throw new Error('Team slug and post slug are required')
       return await unwrapResponse(postsApi.getPost(postSlug, teamSlug))
     },
-    enabled: !!teamSlug && !!postSlug
+    enabled: !!teamSlug && !!postSlug,
   })
 }
 

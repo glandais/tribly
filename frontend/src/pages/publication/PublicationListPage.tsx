@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useParams, Navigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { NewspaperIcon } from '@heroicons/react/24/outline'
@@ -8,12 +9,26 @@ import { RideCard, RideCardSkeleton } from '../../components/ride/RideCard'
 import { PostCard, PostCardSkeleton } from '../../components/post/PostCard'
 import { TeamLayout } from '../../components/team/TeamLayout'
 import type { RideDto, PostDto } from '../../api/api'
+import { Pagination } from '../../components/common/Pagination'
+import { usePagination } from '../../hooks/usePagination'
 
 export function PublicationListPage() {
   const { t } = useTranslation('teams')
   const { teamSlug } = useParams<{ teamSlug: string }>()
+  const [page, setPage] = useState(0)
+  const pageSize = 20
+
   const { data: team, isLoading: isLoadingTeam } = useTeam(teamSlug)
-  const { data: publicationsData, isLoading: isLoadingPublications } = usePublications(teamSlug)
+  const { data: publicationsData, isLoading: isLoadingPublications } = usePublications(teamSlug, {
+    page,
+    size: pageSize,
+  })
+
+  // Use usePagination only for totalPages calculation
+  const { totalPages } = usePagination({
+    pageSize,
+    totalItems: publicationsData?.total ?? 0,
+  })
 
   if (isLoadingTeam) {
     return <LoadingPage message={t('publications.list.title')} />
@@ -39,29 +54,38 @@ export function PublicationListPage() {
             )}
           </div>
         ) : publicationsData?.publications && publicationsData.publications.length > 0 ? (
-          <div className="space-y-4">
-            {publicationsData.publications.map((publication) => {
-              // Discriminated union type narrowing based on 'type' field
-              if (publication.type === 'RIDE') {
+          <>
+            <div className="space-y-4">
+              {publicationsData.publications.map((publication) => {
+                // Discriminated union type narrowing based on 'type' field
+                if (publication.type === 'RIDE') {
+                  return (
+                    <RideCard
+                      key={publication.id}
+                      ride={publication as RideDto}
+                      teamSlug={teamSlug!}
+                      showTypeBadge={true}
+                    />
+                  )
+                }
                 return (
-                  <RideCard
+                  <PostCard
                     key={publication.id}
-                    ride={publication as RideDto}
+                    post={publication as PostDto}
                     teamSlug={teamSlug!}
                     showTypeBadge={true}
                   />
                 )
-              }
-              return (
-                <PostCard
-                  key={publication.id}
-                  post={publication as PostDto}
-                  teamSlug={teamSlug!}
-                  showTypeBadge={true}
-                />
-              )
-            })}
-          </div>
+              })}
+            </div>
+
+            <Pagination
+              currentPage={page}
+              totalPages={totalPages}
+              onPageChange={setPage}
+              className="mt-8"
+            />
+          </>
         ) : (
           <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
             <NewspaperIcon className="mx-auto h-12 w-12 text-gray-400" />

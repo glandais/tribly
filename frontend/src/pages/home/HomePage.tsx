@@ -1,13 +1,32 @@
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { NewspaperIcon, UsersIcon } from '@heroicons/react/24/outline'
 import { useAllPublications } from '../../hooks/useAllPublications'
 import { RideCard, RideCardSkeleton } from '../../components/ride/RideCard'
 import { PostCard, PostCardSkeleton } from '../../components/post/PostCard'
 import type { RideDto, PostDto } from '../../api/api'
+import { Pagination } from '../../components/common/Pagination'
+import { usePagination } from '../../hooks/usePagination'
 
 export function HomePage() {
   const { t } = useTranslation('auth')
-  const { data: publicationsData, isLoading, isError } = useAllPublications()
+  const [page, setPage] = useState(0)
+  const pageSize = 20
+
+  const {
+    data: publicationsData,
+    isLoading,
+    isError,
+  } = useAllPublications({
+    page,
+    size: pageSize,
+  })
+
+  // Use usePagination only for totalPages calculation
+  const { totalPages } = usePagination({
+    pageSize,
+    totalItems: publicationsData?.total ?? 0,
+  })
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -64,6 +83,13 @@ export function HomePage() {
               )}
             </div>
           ))}
+
+          <Pagination
+            currentPage={page}
+            totalPages={totalPages}
+            onPageChange={setPage}
+            className="mt-8"
+          />
         </div>
       ) : (
         /* Empty State */

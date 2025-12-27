@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, keepPreviousData } from '@tanstack/react-query'
 import { publicationsApi, unwrapResponse } from '../lib/apiClient'
 import type { PublicationListResponse } from '../api/api'
 
@@ -25,5 +25,6 @@ export function usePublications(
       return await unwrapResponse(publicationsApi.listPublications(teamSlug, from, page, size, to))
     },
     enabled: !!teamSlug,
+    placeholderData: keepPreviousData,
   })
 }

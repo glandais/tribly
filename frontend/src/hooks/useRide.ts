@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { ridesApi, unwrapResponse } from '../lib/apiClient'
 import { useNotificationStore } from '../store/notificationStore'
@@ -44,6 +44,7 @@ export function useRides(teamSlug: string | undefined, options: UseRidesOptions 
       return await unwrapResponse(ridesApi.listRides(teamSlug, from, page, size, to))
     },
     enabled: !!teamSlug,
+    placeholderData: keepPreviousData,
   })
 }
 

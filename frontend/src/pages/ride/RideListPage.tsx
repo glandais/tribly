@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link, useParams, Navigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { PlusIcon, CalendarIcon } from '@heroicons/react/24/outline'
@@ -6,12 +7,26 @@ import { useRides } from '../../hooks/useRide'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { RideCard, RideCardSkeleton } from '../../components/ride/RideCard'
 import { TeamLayout } from '../../components/team/TeamLayout'
+import { Pagination } from '../../components/common/Pagination'
+import { usePagination } from '../../hooks/usePagination'
 
 export function RideListPage() {
   const { t } = useTranslation('rides')
   const { teamSlug } = useParams<{ teamSlug: string }>()
+  const [page, setPage] = useState(0)
+  const pageSize = 20
+
   const { data: team, isLoading: isLoadingTeam } = useTeam(teamSlug)
-  const { data: ridesData, isLoading: isLoadingRides } = useRides(teamSlug)
+  const { data: ridesData, isLoading: isLoadingRides } = useRides(teamSlug, {
+    page,
+    size: pageSize,
+  })
+
+  // Use usePagination only for totalPages calculation
+  const { totalPages } = usePagination({
+    pageSize,
+    totalItems: ridesData?.total ?? 0,
+  })
 
   if (isLoadingTeam) {
     return <LoadingPage message={t('list.notFound.title')} />
@@ -49,11 +64,20 @@ export function RideListPage() {
             ))}
           </div>
         ) : ridesData?.rides && ridesData.rides.length > 0 ? (
-          <div className="space-y-4">
-            {ridesData.rides.map((ride) => (
-              <RideCard key={ride.id} ride={ride} teamSlug={teamSlug!} />
-            ))}
-          </div>
+          <>
+            <div className="space-y-4">
+              {ridesData.rides.map((ride) => (
+                <RideCard key={ride.id} ride={ride} teamSlug={teamSlug!} />
+              ))}
+            </div>
+
+            <Pagination
+              currentPage={page}
+              totalPages={totalPages}
+              onPageChange={setPage}
+              className="mt-8"
+            />
+          </>
         ) : (
           <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
             <CalendarIcon className="mx-auto h-12 w-12 text-gray-400" />

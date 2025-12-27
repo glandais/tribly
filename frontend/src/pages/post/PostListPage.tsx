@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link, useParams, Navigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { PlusIcon, DocumentTextIcon } from '@heroicons/react/24/outline'
@@ -6,12 +7,26 @@ import { usePosts } from '../../hooks/usePost'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { PostCard, PostCardSkeleton } from '../../components/post/PostCard'
 import { TeamLayout } from '../../components/team/TeamLayout'
+import { Pagination } from '../../components/common/Pagination'
+import { usePagination } from '../../hooks/usePagination'
 
 export function PostListPage() {
   const { t } = useTranslation('posts')
   const { teamSlug } = useParams<{ teamSlug: string }>()
+  const [page, setPage] = useState(0)
+  const pageSize = 20
+
   const { data: team, isLoading: isLoadingTeam } = useTeam(teamSlug)
-  const { data: postsData, isLoading: isLoadingPosts } = usePosts(teamSlug)
+  const { data: postsData, isLoading: isLoadingPosts } = usePosts(teamSlug, {
+    page,
+    size: pageSize,
+  })
+
+  // Use usePagination only for totalPages calculation
+  const { totalPages } = usePagination({
+    pageSize,
+    totalItems: postsData?.total ?? 0,
+  })
 
   if (isLoadingTeam) {
     return <LoadingPage message={t('loading')} />
@@ -49,11 +64,20 @@ export function PostListPage() {
             ))}
           </div>
         ) : postsData?.posts && postsData.posts.length > 0 ? (
-          <div className="space-y-4">
-            {postsData.posts.map((post) => (
-              <PostCard key={post.id} post={post} teamSlug={teamSlug!} />
-            ))}
-          </div>
+          <>
+            <div className="space-y-4">
+              {postsData.posts.map((post) => (
+                <PostCard key={post.id} post={post} teamSlug={teamSlug!} />
+              ))}
+            </div>
+
+            <Pagination
+              currentPage={page}
+              totalPages={totalPages}
+              onPageChange={setPage}
+              className="mt-8"
+            />
+          </>
         ) : (
           <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
             <DocumentTextIcon className="mx-auto h-12 w-12 text-gray-400" />

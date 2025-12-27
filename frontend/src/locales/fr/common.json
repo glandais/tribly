@@ -41,7 +41,10 @@
     "checkingAuth": "Vérification de l'authentification..."
   },
   "pagination": {
-    "page": "Page {{current}} sur {{total}}"
+    "page": "Page {{current}} sur {{total}}",
+    "label": "Pagination",
+    "previousPage": "Page précédente",
+    "nextPage": "Page suivante"
   },
   "validation": {
     "required": "Ce champ est requis",

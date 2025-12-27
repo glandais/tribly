@@ -16,6 +16,8 @@ import { TeamLayout } from '../../components/team/TeamLayout'
 import { UserAutocomplete } from '../../components/common/UserAutocomplete'
 import type { PublicUserDto } from '../../hooks/useUserSearch'
 import { TeamRole } from '@/api'
+import { Pagination } from '../../components/common/Pagination'
+import { usePagination } from '../../hooks/usePagination'
 
 export function TeamMembersPage() {
   const { t } = useTranslation('teams')
@@ -24,9 +26,21 @@ export function TeamMembersPage() {
   const { user } = useAuth()
   const [showAddMember, setShowAddMember] = useState(false)
   const [selectedRole, setSelectedRole] = useState<TeamRole>(TeamRole.Member)
+  const [page, setPage] = useState(0)
+  const pageSize = 50
 
   const { data: team, isLoading: isLoadingTeam } = useTeam(teamSlug)
-  const { data: membersData, isLoading: isLoadingMembers } = useTeamMembers(teamSlug)
+  const { data: membersData, isLoading: isLoadingMembers } = useTeamMembers(
+    teamSlug,
+    page,
+    pageSize
+  )
+
+  // Use usePagination only for totalPages calculation
+  const { totalPages } = usePagination({
+    pageSize,
+    totalItems: membersData?.total ?? 0,
+  })
   const updateRoleMutation = useUpdateMemberRole(teamSlug || '')
   const removeMemberMutation = useRemoveMember(teamSlug || '')
   const addMemberMutation = useAddMember(teamSlug || '')
@@ -73,15 +87,24 @@ export function TeamMembersPage() {
         {isLoadingMembers ? (
           <TeamMemberListSkeleton count={5} />
         ) : membersData?.members && membersData.members.length > 0 ? (
-          <TeamMemberList
-            members={membersData.members}
-            currentUserRole={team.role}
-            currentUserId={user?.dbId ?? null}
-            onUpdateRole={(memberId, role) => updateRoleMutation.mutate({ memberId, role })}
-            onRemoveMember={(memberId) => removeMemberMutation.mutate(memberId)}
-            isUpdating={updateRoleMutation.isPending}
-            isRemoving={removeMemberMutation.isPending}
-          />
+          <>
+            <TeamMemberList
+              members={membersData.members}
+              currentUserRole={team.role}
+              currentUserId={user?.dbId ?? null}
+              onUpdateRole={(memberId, role) => updateRoleMutation.mutate({ memberId, role })}
+              onRemoveMember={(memberId) => removeMemberMutation.mutate(memberId)}
+              isUpdating={updateRoleMutation.isPending}
+              isRemoving={removeMemberMutation.isPending}
+            />
+
+            <Pagination
+              currentPage={page}
+              totalPages={totalPages}
+              onPageChange={setPage}
+              className="mt-8"
+            />
+          </>
         ) : (
           <p className="text-gray-500">{t('detail.members.empty')}</p>
         )}

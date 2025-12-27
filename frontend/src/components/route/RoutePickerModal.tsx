@@ -11,6 +11,8 @@ import { useRoutes } from '../../hooks/useRoute'
 import type { RouteDto } from '../../api/api'
 import { MarkdownDisplay } from '../../components/common/MarkdownDisplay'
 import { LoadingSpinner } from '../common/LoadingSpinner'
+import { Pagination } from '../common/Pagination'
+import { usePagination } from '../../hooks/usePagination'
 
 interface RoutePickerModalProps {
   isOpen: boolean
@@ -46,11 +48,19 @@ export function RoutePickerModal({
     return () => clearTimeout(timer)
   }, [search])
 
+  const pageSize = 20
+
   const {
     data: routesResponse,
     isLoading,
     error,
-  } = useRoutes(teamSlug, page, 20, debouncedSearch || undefined)
+  } = useRoutes(teamSlug, page, pageSize, debouncedSearch || undefined)
+
+  // Use usePagination only for totalPages calculation
+  const { totalPages } = usePagination({
+    pageSize,
+    totalItems: routesResponse?.total ?? 0,
+  })
 
   const handleClose = () => {
     setSearch('')
@@ -61,8 +71,6 @@ export function RoutePickerModal({
   if (!isOpen) return null
 
   const routes = routesResponse?.routes || []
-  const total = routesResponse?.total || 0
-  const totalPages = Math.ceil(total / 20)
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
@@ -165,30 +173,13 @@ export function RoutePickerModal({
                 ))}
               </div>
 
-              {/* Pagination */}
-              {totalPages > 1 && (
-                <div className="flex items-center justify-center gap-2 mt-6">
-                  <button
-                    type="button"
-                    onClick={() => setPage(Math.max(0, page - 1))}
-                    disabled={page === 0}
-                    className="px-3 py-1 text-sm border border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-                  >
-                    {t('common:pagination.previous')}
-                  </button>
-                  <span className="text-sm text-gray-600">
-                    {t('common:pagination.page', { current: page + 1, total: totalPages })}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setPage(Math.min(totalPages - 1, page + 1))}
-                    disabled={page >= totalPages - 1}
-                    className="px-3 py-1 text-sm border border-gray-300 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
-                  >
-                    {t('common:pagination.next')}
-                  </button>
-                </div>
-              )}
+              <Pagination
+                currentPage={page}
+                totalPages={totalPages}
+                onPageChange={setPage}
+                variant="compact"
+                className="mt-6"
+              />
             </>
           )}
         </div>

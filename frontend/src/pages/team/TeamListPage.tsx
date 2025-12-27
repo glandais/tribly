@@ -4,22 +4,38 @@ import { useTranslation } from 'react-i18next'
 import { PlusIcon, MagnifyingGlassIcon, UserGroupIcon } from '@heroicons/react/24/outline'
 import { useTeams } from '../../hooks/useTeam'
 import { useAuth } from '../../hooks/useAuth'
+import { usePagination } from '../../hooks/usePagination'
 import { TeamCard, TeamCardSkeleton } from '../../components/team/TeamCard'
+import { Pagination } from '../../components/common/Pagination'
 
 export function TeamListPage() {
   const { t } = useTranslation('teams')
-  const { t: tCommon } = useTranslation('common')
   const { t: tErrors } = useTranslation('errors')
   const [search, setSearch] = useState('')
-  const [page, setPage] = useState(0)
   const { isAuthenticated } = useAuth()
 
-  const { data: teamsData, isLoading, error } = useTeams({ search, page, size: 12 })
+  const [page, setPage] = useState(0)
+  const pageSize = 12
+
+  const {
+    data: teamsData,
+    isLoading,
+    error,
+  } = useTeams({
+    search,
+    page,
+    size: pageSize,
+  })
+
+  // Use usePagination only for totalPages calculation
+  const { totalPages } = usePagination({
+    pageSize,
+    totalItems: teamsData?.total ?? 0,
+  })
 
   const teams = teamsData?.teams
-  const total = teamsData?.total ?? 0
-  const pageSize = 12
-  const totalPages = Math.ceil(total / pageSize)
+
+  const resetPage = () => setPage(0)
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -51,7 +67,7 @@ export function TeamListPage() {
             value={search}
             onChange={(e) => {
               setSearch(e.target.value)
-              setPage(0)
+              resetPage()
             }}
             className="w-full sm:max-w-md px-4 py-2 pl-10 border border-gray-300 rounded-lg text-gray-900 placeholder-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:border-indigo-500"
             aria-label={t('list.search.label')}
@@ -83,27 +99,12 @@ export function TeamListPage() {
             ))}
           </div>
 
-          {totalPages > 1 && (
-            <div className="mt-8 flex items-center justify-center gap-2">
-              <button
-                onClick={() => setPage((p) => Math.max(0, p - 1))}
-                disabled={page === 0}
-                className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {tCommon('buttons.previous')}
-              </button>
-              <span className="text-sm text-gray-700">
-                {tCommon('pagination.page', { current: page + 1, total: totalPages })}
-              </span>
-              <button
-                onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
-                disabled={page >= totalPages - 1}
-                className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {tCommon('buttons.next')}
-              </button>
-            </div>
-          )}
+          <Pagination
+            currentPage={page}
+            totalPages={totalPages}
+            onPageChange={setPage}
+            className="mt-8"
+          />
         </>
       ) : (
         <div className="text-center py-12">

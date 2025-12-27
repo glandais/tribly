@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { routesApi, unwrapResponse } from '../lib/apiClient'
 import { useNotificationStore } from '../store/notificationStore'
@@ -37,6 +37,7 @@ export function useRoutes(teamSlug: string | undefined, page = 0, size = 20, sea
       return await unwrapResponse(routesApi.listRoutes(teamSlug, page, search, size))
     },
     enabled: !!teamSlug,
+    placeholderData: keepPreviousData,
   })
 }
 
