@@ -2,12 +2,14 @@ package com.tribly.domain.ride;
 
 import com.tribly.domain.common.BaseEntity;
 import com.tribly.domain.route.Route;
+import com.tribly.domain.user.User;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.jspecify.annotations.Nullable;
 
@@ -19,6 +21,7 @@ import org.jspecify.annotations.Nullable;
     indexes = {
       @Index(columnList = "ride_id, deleted"),
     })
+@NoArgsConstructor
 public class RideGroup extends BaseEntity {
 
   @ManyToOne(fetch = FetchType.LAZY)
@@ -49,7 +52,11 @@ public class RideGroup extends BaseEntity {
   @OneToMany(mappedBy = "rideGroup", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<RideParticipation> participations = new ArrayList<>();
 
-  public RideGroup() {}
+  public RideGroup(User creator, Ride ride, String name) {
+    super(creator);
+    this.ride = ride;
+    this.name = name;
+  }
 
   public void addParticipation(RideParticipation participation) {
     participations.add(participation);

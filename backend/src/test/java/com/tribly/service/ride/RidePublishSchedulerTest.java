@@ -32,8 +32,8 @@ class RidePublishSchedulerTest {
   @BeforeEach
   void setUp() {
     dataCleaner.cleanAll();
-    team = dataService.createTeam("Test Team", "test-team", Visibility.PUBLIC);
     user = dataService.createUser("test@example.com", "Test User");
+    team = dataService.createTeam(user, "Test Team", "test-team", Visibility.PUBLIC);
   }
 
   @Test

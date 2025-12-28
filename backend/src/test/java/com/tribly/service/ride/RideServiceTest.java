@@ -39,8 +39,8 @@ class RideServiceTest {
   @BeforeEach
   void setUp() {
     dataCleaner.cleanAll();
-    team = dataService.createTeam("Test Team", "test-team", Visibility.PUBLIC);
     admin = dataService.createUser("admin@example.com", "Admin");
+    team = dataService.createTeam(admin, "Test Team", "test-team", Visibility.PUBLIC);
     organizer = dataService.createUser("organizer@example.com", "Organizer");
     member = dataService.createUser("member@example.com", "Member");
     dataService.addUserToTeam(admin, team, TeamRole.ADMIN);
@@ -194,8 +194,9 @@ class RideServiceTest {
 
   @Test
   void listRides_shouldThrowForNonMemberOfPrivateTeam() {
-    Team privateTeam = dataService.createTeam("Private Team", "private-team", Visibility.TEAM);
     User privateTeamAdmin = dataService.createUser("private-admin@example.com", "Private Admin");
+    Team privateTeam =
+        dataService.createTeam(privateTeamAdmin, "Private Team", "private-team", Visibility.TEAM);
     dataService.addUserToTeam(privateTeamAdmin, privateTeam, TeamRole.ADMIN);
     dataService.createRide(
         privateTeam,
@@ -332,7 +333,8 @@ class RideServiceTest {
 
   @Test
   void createRide_shouldThrowForPublicRideInTeamVisibilityTeam() {
-    Team privateTeam = dataService.createTeam("Private Team", "private-team", Visibility.TEAM);
+    Team privateTeam =
+        dataService.createTeam(organizer, "Private Team", "private-team", Visibility.TEAM);
     dataService.addUserToTeam(organizer, privateTeam, TeamRole.ORGANIZER);
 
     RideRequest request =
@@ -356,7 +358,8 @@ class RideServiceTest {
 
   @Test
   void createRide_shouldSucceedForTeamRideInTeamVisibilityTeam() {
-    Team privateTeam = dataService.createTeam("Private Team", "private-team", Visibility.TEAM);
+    Team privateTeam =
+        dataService.createTeam(organizer, "Private Team", "private-team", Visibility.TEAM);
     dataService.addUserToTeam(organizer, privateTeam, TeamRole.ORGANIZER);
 
     RideRequest request =
@@ -470,7 +473,8 @@ class RideServiceTest {
 
   @Test
   void updateRide_shouldThrowForPublicVisibilityInTeamVisibilityTeam() {
-    Team privateTeam = dataService.createTeam("Private Team", "private-team", Visibility.TEAM);
+    Team privateTeam =
+        dataService.createTeam(organizer, "Private Team", "private-team", Visibility.TEAM);
     dataService.addUserToTeam(organizer, privateTeam, TeamRole.ORGANIZER);
     dataService.createRide(
         privateTeam,
@@ -502,7 +506,8 @@ class RideServiceTest {
 
   @Test
   void updateRide_shouldSucceedForTeamVisibilityInTeamVisibilityTeam() {
-    Team privateTeam = dataService.createTeam("Private Team", "private-team", Visibility.TEAM);
+    Team privateTeam =
+        dataService.createTeam(organizer, "Private Team", "private-team", Visibility.TEAM);
     dataService.addUserToTeam(organizer, privateTeam, TeamRole.ORGANIZER);
     dataService.createRide(
         privateTeam,
@@ -557,8 +562,8 @@ class RideServiceTest {
   @Test
   void listGroups_shouldReturnGroupsOrderedBySortOrder() {
     Ride ride = dataService.createRide(team, admin, "Test", "test", Instant.now());
-    dataService.createRideGroup(ride, "Group 1", 2);
-    dataService.createRideGroup(ride, "Group 2", 1);
+    dataService.createRideGroup(admin, ride, "Group 1", 2);
+    dataService.createRideGroup(admin, ride, "Group 2", 1);
 
     RideGroupListResponse result = rideService.listGroups("test-team", "test", null);
 
@@ -582,7 +587,7 @@ class RideServiceTest {
   void joinGroup_shouldCreateParticipation() {
     Ride ride =
         dataService.createRide(team, admin, "Test", "test", Instant.now(), Status.PUBLISHED);
-    RideGroup group = dataService.createRideGroup(ride, "Group");
+    RideGroup group = dataService.createRideGroup(admin, ride, "Group");
 
     RideParticipationDto result =
         rideService.joinGroup("test-team", "test", group.getId(), member.getId());
@@ -596,7 +601,7 @@ class RideServiceTest {
     Ride ride =
         dataService.createRide(
             team, admin, "Draft", "draft", Instant.now(), Visibility.PUBLIC, Status.DRAFT);
-    RideGroup group = dataService.createRideGroup(ride, "Group");
+    RideGroup group = dataService.createRideGroup(admin, ride, "Group");
 
     assertThrows(
         BusinessException.class,
@@ -608,7 +613,7 @@ class RideServiceTest {
     Ride ride =
         dataService.createRide(
             team, admin, "Draft", "draft", Instant.now(), Visibility.PUBLIC, Status.DRAFT);
-    RideGroup group = dataService.createRideGroup(ride, "Group");
+    RideGroup group = dataService.createRideGroup(admin, ride, "Group");
 
     BusinessException exception =
         assertThrows(
@@ -621,7 +626,7 @@ class RideServiceTest {
   @Test
   void joinGroup_shouldThrowWhenAlreadyInGroup() {
     Ride ride = dataService.createRide(team, admin, "Test", "test", Instant.now());
-    RideGroup group = dataService.createRideGroup(ride, "Group");
+    RideGroup group = dataService.createRideGroup(admin, ride, "Group");
     dataService.createParticipation(group, member);
 
     BusinessException exception =
@@ -635,7 +640,7 @@ class RideServiceTest {
   @Test
   void joinGroup_shouldThrowWhenGroupFull() {
     Ride ride = dataService.createRide(team, admin, "Test", "test", Instant.now());
-    RideGroup group = dataService.createRideGroupWithMaxParticipants(ride, "Group", 1);
+    RideGroup group = dataService.createRideGroupWithMaxParticipants(admin, ride, "Group", 1);
     dataService.createParticipation(group, organizer);
 
     BusinessException exception =
@@ -652,7 +657,7 @@ class RideServiceTest {
   @Test
   void leaveGroup_shouldRemoveParticipation() {
     Ride ride = dataService.createRide(team, admin, "Test", "test", Instant.now());
-    RideGroup group = dataService.createRideGroup(ride, "Group");
+    RideGroup group = dataService.createRideGroup(admin, ride, "Group");
     dataService.createParticipation(group, member);
 
     rideService.leaveGroup("test-team", "test", group.getId(), member.getId());
@@ -666,7 +671,7 @@ class RideServiceTest {
   @Test
   void leaveGroup_shouldThrowWhenNotInGroup() {
     Ride ride = dataService.createRide(team, admin, "Test", "test", Instant.now());
-    RideGroup group = dataService.createRideGroup(ride, "Group");
+    RideGroup group = dataService.createRideGroup(admin, ride, "Group");
 
     BusinessException exception =
         assertThrows(

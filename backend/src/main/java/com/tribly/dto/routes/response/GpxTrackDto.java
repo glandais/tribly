@@ -13,7 +13,6 @@ import org.jspecify.annotations.Nullable;
 @Schema(description = "GPX track with track points")
 public record GpxTrackDto(
     @Schema(description = "Track ID (TSID)", required = true) String id,
-    @Nullable @Schema(description = "Track name") String name,
     @Schema(description = "List of track points", required = true) List<TrackPointDto> trackPoints,
     @Nullable @Schema(description = "Processing timestamp") Instant processedAt) {
   public static GpxTrackDto from(GpxTrack track) {
@@ -22,8 +21,7 @@ public record GpxTrackDto(
             .map(p -> new TrackPointDto(p.lat(), p.lng(), p.ele(), p.dist()))
             .toList();
 
-    return new GpxTrackDto(
-        TsidUtils.toString(track.getId()), track.getName(), points, track.getProcessedAt());
+    return new GpxTrackDto(TsidUtils.toString(track.getId()), points, track.getProcessedAt());
   }
 
   @Schema(description = "GPS track point")

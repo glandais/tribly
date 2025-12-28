@@ -124,9 +124,8 @@ public class RideService extends TeamEntityService {
 
     Route route = getRoute(request.routeSlug(), team);
 
-    Ride ride = new Ride(team, creator, request.name(), slug, request.dateTime());
+    Ride ride = new Ride(creator, team, request.dateTime(), request.name(), slug, visibility);
     ride.setMarkdown(request.media().markdown());
-    ride.setVisibility(visibility);
     ride.setRoute(route);
     ride.setStatus(request.status());
     ride.setPublishAt(request.publishAt());
@@ -135,7 +134,7 @@ public class RideService extends TeamEntityService {
 
     int sortOrder = 0;
     for (GroupRequest groupRequest : request.groups()) {
-      createRideGroup(ride, groupRequest, sortOrder);
+      createRideGroup(creator, ride, groupRequest, sortOrder);
       sortOrder++;
     }
 
@@ -143,8 +142,8 @@ public class RideService extends TeamEntityService {
     return RideDto.from(ride, true);
   }
 
-  private void createRideGroup(Ride ride, GroupRequest groupRequest, int sortOrder) {
-    RideGroup group = new RideGroup();
+  private void createRideGroup(User user, Ride ride, GroupRequest groupRequest, int sortOrder) {
+    RideGroup group = new RideGroup(user, ride, groupRequest.name());
     setProperties(ride, group, groupRequest, sortOrder);
     ride.addGroup(group);
     rideGroupRepository.persist(group);
@@ -186,6 +185,11 @@ public class RideService extends TeamEntityService {
     // Security check: must be admin or creator (if organizer) to edit
     securityService.requireOrganizer(userId, teamSlug);
 
+    User user =
+        userRepository
+            .findActiveById(userId)
+            .orElseThrow(() -> BusinessException.notFound("User", userId));
+
     // Validate visibility: private teams can only have team-only rides
     Team team = ride.getTeam();
     if (team.getVisibility() != Visibility.PUBLIC && request.visibility() == Visibility.PUBLIC) {
@@ -211,7 +215,7 @@ public class RideService extends TeamEntityService {
     for (GroupRequest groupRequest : request.groups()) {
       Long groupId = TsidUtils.toLongNullable(groupRequest.id());
       if (groupId == null) {
-        createRideGroup(ride, groupRequest, sortOrder);
+        createRideGroup(user, ride, groupRequest, sortOrder);
       } else {
         RideGroup existingRideGroup = existingGroups.remove(groupId);
         if (existingRideGroup != null) {
@@ -219,7 +223,7 @@ public class RideService extends TeamEntityService {
           ride.addGroup(existingRideGroup);
           rideGroupRepository.persist(existingRideGroup);
         } else {
-          createRideGroup(ride, groupRequest, sortOrder);
+          createRideGroup(user, ride, groupRequest, sortOrder);
         }
       }
       sortOrder++;

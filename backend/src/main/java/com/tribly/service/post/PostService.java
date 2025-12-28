@@ -107,9 +107,8 @@ public class PostService extends TeamEntityService {
         slugService.generateSlug(
             request.name(), s -> postRepository.existsByTeamAndSlug(team.getId(), s));
 
-    Post post = new Post(team, creator, request.name(), slug, request.dateTime());
+    Post post = new Post(creator, team, request.dateTime(), request.name(), slug, visibility);
     post.setMarkdown(request.media().markdown());
-    post.setVisibility(visibility);
     post.setStatus(request.status());
     post.setPublishAt(request.publishAt());
 

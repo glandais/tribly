@@ -23,14 +23,12 @@ class GpxTrackRepositoryTest {
 
   private Team team;
   private User user;
-  private Route route;
 
   @BeforeEach
   void setUp() {
     dataCleaner.cleanAll();
-    team = dataService.createTeam("Test Team", "test-team", Visibility.PUBLIC);
     user = dataService.createUser("test@example.com", "Test User");
-    route = dataService.createRoute(team, user, "Test Route");
+    team = dataService.createTeam(user, "Test Team", "test-team", Visibility.PUBLIC);
   }
 
   @Test
@@ -42,7 +40,8 @@ class GpxTrackRepositoryTest {
             new GpxTrack.TrackPoint(45.2, 6.2, 700.0, 2000.0));
     String geometry = "LINESTRING(6 45,6.1 45.1,6.2 45.2)";
 
-    dataService.createGpxTrack(route, geometry, trackPoints);
+    Route route =
+        dataService.createRoute(team, user, "test", Visibility.PUBLIC, geometry, trackPoints);
 
     GpxTrack result = gpxTrackRepository.findByRoute(route.getId());
 
@@ -62,26 +61,25 @@ class GpxTrackRepositoryTest {
             new GpxTrack.TrackPoint(45.1, 6.1, 600.0, 1500.0));
     String geometry = "LINESTRING(6.0 45.0, 6.1 45.1)";
 
-    dataService.createGpxTrack(
-        route, "Mountain Route", geometry, trackPoints, "mountain_route.gpx");
+    Route route =
+        dataService.createRoute(
+            team, user, "Mountain Route", Visibility.PUBLIC, geometry, trackPoints);
 
     GpxTrack result = gpxTrackRepository.findByRoute(route.getId());
 
     assertNotNull(result);
-    assertEquals("Mountain Route", result.getName());
-    assertEquals("mountain_route.gpx", result.getOriginalFileName());
     assertNotNull(result.getProcessedAt());
     assertEquals(2, result.getTrackPoints().size());
   }
 
   @Test
   void findByRoute_shouldReturnOnlyTrackForSpecificRoute() {
-    Route otherRoute = dataService.createRoute(team, user, "Other Route");
     List<GpxTrack.TrackPoint> trackPoints = List.of(new GpxTrack.TrackPoint(45.0, 6.0, 500.0, 0.0));
     String geometry = "LINESTRING(6 45,6.1 45.1)";
 
-    dataService.createGpxTrack(route, geometry, trackPoints);
-    dataService.createGpxTrack(otherRoute, "LINESTRING(7.0 46.0, 7.1 46.1)", trackPoints);
+    Route route =
+        dataService.createRoute(team, user, "route1", Visibility.PUBLIC, geometry, trackPoints);
+    dataService.createRoute(team, user, "route2", Visibility.PUBLIC, geometry, trackPoints);
 
     GpxTrack result = gpxTrackRepository.findByRoute(route.getId());
 
@@ -101,7 +99,8 @@ class GpxTrackRepositoryTest {
             new GpxTrack.TrackPoint(45.4, 6.4, 900.0, 4000.0));
     String geometry = "LINESTRING(6.0 45.0, 6.1 45.1, 6.2 45.2, 6.3 45.3, 6.4 45.4)";
 
-    dataService.createGpxTrack(route, geometry, trackPoints);
+    Route route =
+        dataService.createRoute(team, user, "route1", Visibility.PUBLIC, geometry, trackPoints);
 
     GpxTrack result = gpxTrackRepository.findByRoute(route.getId());
 
@@ -111,20 +110,5 @@ class GpxTrackRepositoryTest {
     assertEquals(4000.0, result.getTrackPoints().get(4).dist());
     assertEquals(500.0, result.getTrackPoints().get(0).ele());
     assertEquals(900.0, result.getTrackPoints().get(4).ele());
-  }
-
-  @Test
-  void findByRoute_shouldHandleTrackWithoutOptionalFields() {
-    List<GpxTrack.TrackPoint> trackPoints = List.of(new GpxTrack.TrackPoint(45.0, 6.0, 500.0, 0.0));
-    String geometry = "LINESTRING(6.0 45.0, 6.1 45.1)";
-
-    dataService.createGpxTrack(route, geometry, trackPoints);
-
-    GpxTrack result = gpxTrackRepository.findByRoute(route.getId());
-
-    assertNotNull(result);
-    assertNull(result.getName());
-    assertNull(result.getOriginalFileName());
-    assertNotNull(result.getProcessedAt());
   }
 }

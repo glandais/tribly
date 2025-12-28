@@ -202,17 +202,14 @@ public class RouteResource extends AbstractAuthenticatedResource {
     Long userId = getCurrentUserId();
 
     FileInputStream fileInputStream;
-    String fileName;
     if (gpxFile != null) {
       fileInputStream = new FileInputStream(gpxFile.filePath().toFile());
-      fileName = gpxFile.fileName();
     } else {
       fileInputStream = null;
-      fileName = null;
     }
 
     RouteDto route =
-        routeService.updateRoute(teamSlug, routeSlug, request, fileInputStream, fileName, userId);
+        routeService.updateRoute(teamSlug, routeSlug, request, fileInputStream, userId);
     return Response.ok(route).build();
   }
 

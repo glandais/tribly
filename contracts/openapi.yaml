@@ -128,9 +128,6 @@ components:
         id:
           type: string
           description: Track ID (TSID)
-        name:
-          type: string
-          description: Track name
         trackPoints:
           type: array
           items:
@@ -1126,7 +1123,7 @@ components:
   securitySchemes:
     SecurityScheme:
       type: openIdConnect
-      openIdConnectUrl: http://localhost:8180/realms/quarkus/.well-known/openid-configuration
+      openIdConnectUrl: http://localhost:8180/realms/tribly/.well-known/openid-configuration
       description: Authentication
 tags:
 - name: Configuration

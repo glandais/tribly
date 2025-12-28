@@ -30,19 +30,19 @@ class RouteClimbRepositoryTest {
   @BeforeEach
   void setUp() {
     dataCleaner.cleanAll();
-    team = dataService.createTeam("Test Team", "test-team", Visibility.PUBLIC);
     user = dataService.createUser("test@example.com", "Test User");
+    team = dataService.createTeam(user, "Test Team", "test-team", Visibility.PUBLIC);
     route = dataService.createRoute(team, user, "Test Route");
   }
 
   @Test
   void findByRoute_shouldReturnClimbsOrderedByStartDistance() {
     dataService.createRouteClimb(
-        route, 5000, 6000, 100, new BigDecimal("5.0"), new BigDecimal("8.5"));
+        user, route, 5000, 6000, 100, new BigDecimal("5.0"), new BigDecimal("8.5"));
     dataService.createRouteClimb(
-        route, 1000, 2000, 80, new BigDecimal("4.0"), new BigDecimal("7.0"));
+        user, route, 1000, 2000, 80, new BigDecimal("4.0"), new BigDecimal("7.0"));
     dataService.createRouteClimb(
-        route, 10000, 11500, 150, new BigDecimal("6.0"), new BigDecimal("10.0"));
+        user, route, 10000, 11500, 150, new BigDecimal("6.0"), new BigDecimal("10.0"));
 
     List<RouteClimb> result = routeClimbRepository.findByRoute(route.getId());
 
@@ -55,10 +55,10 @@ class RouteClimbRepositoryTest {
   @Test
   void findByRoute_shouldIgnoreDeletedClimbs() {
     dataService.createRouteClimb(
-        route, 1000, 2000, 80, new BigDecimal("4.0"), new BigDecimal("7.0"));
+        user, route, 1000, 2000, 80, new BigDecimal("4.0"), new BigDecimal("7.0"));
     RouteClimb deletedClimb =
         dataService.createRouteClimb(
-            route, 5000, 6000, 100, new BigDecimal("5.0"), new BigDecimal("8.5"));
+            user, route, 5000, 6000, 100, new BigDecimal("5.0"), new BigDecimal("8.5"));
     dataService.deleteRouteClimb(deletedClimb);
 
     List<RouteClimb> result = routeClimbRepository.findByRoute(route.getId());
@@ -77,6 +77,7 @@ class RouteClimbRepositoryTest {
   @Test
   void findByRoute_shouldHandleClimbsWithAndWithoutCategory() {
     dataService.createRouteClimb(
+        user,
         route,
         "Col du Tourmalet",
         1000,
@@ -86,8 +87,9 @@ class RouteClimbRepositoryTest {
         new BigDecimal("10.2"),
         ClimbCategory.HC);
     dataService.createRouteClimb(
-        route, 8000, 9000, 50, new BigDecimal("2.5"), new BigDecimal("5.0"));
+        user, route, 8000, 9000, 50, new BigDecimal("2.5"), new BigDecimal("5.0"));
     dataService.createRouteClimb(
+        user,
         route,
         "Small Hill",
         12000,
@@ -119,9 +121,9 @@ class RouteClimbRepositoryTest {
   void findByRoute_shouldOnlyReturnClimbsForSpecificRoute() {
     Route otherRoute = dataService.createRoute(team, user, "Other Route");
     dataService.createRouteClimb(
-        route, 1000, 2000, 80, new BigDecimal("4.0"), new BigDecimal("7.0"));
+        user, route, 1000, 2000, 80, new BigDecimal("4.0"), new BigDecimal("7.0"));
     dataService.createRouteClimb(
-        otherRoute, 3000, 4000, 100, new BigDecimal("5.0"), new BigDecimal("8.0"));
+        user, otherRoute, 3000, 4000, 100, new BigDecimal("5.0"), new BigDecimal("8.0"));
 
     List<RouteClimb> result = routeClimbRepository.findByRoute(route.getId());
 
@@ -132,6 +134,7 @@ class RouteClimbRepositoryTest {
   @Test
   void findByRoute_shouldHandleAllClimbCategories() {
     dataService.createRouteClimb(
+        user,
         route,
         "HC Climb",
         1000,
@@ -141,6 +144,7 @@ class RouteClimbRepositoryTest {
         new BigDecimal("12.0"),
         ClimbCategory.HC);
     dataService.createRouteClimb(
+        user,
         route,
         "Cat 1",
         6000,
@@ -150,6 +154,7 @@ class RouteClimbRepositoryTest {
         new BigDecimal("9.0"),
         ClimbCategory.CAT1);
     dataService.createRouteClimb(
+        user,
         route,
         "Cat 2",
         9000,
@@ -159,6 +164,7 @@ class RouteClimbRepositoryTest {
         new BigDecimal("8.0"),
         ClimbCategory.CAT2);
     dataService.createRouteClimb(
+        user,
         route,
         "Cat 3",
         11000,
@@ -168,6 +174,7 @@ class RouteClimbRepositoryTest {
         new BigDecimal("7.0"),
         ClimbCategory.CAT3);
     dataService.createRouteClimb(
+        user,
         route,
         "Cat 4",
         13000,

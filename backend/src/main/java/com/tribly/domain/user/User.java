@@ -9,6 +9,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import java.time.Instant;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.jspecify.annotations.Nullable;
 
@@ -16,6 +17,7 @@ import org.jspecify.annotations.Nullable;
 @Getter
 @Entity
 @Table(name = "users")
+@NoArgsConstructor
 public class User extends BaseEntity {
 
   @NotBlank
@@ -34,11 +36,11 @@ public class User extends BaseEntity {
   @Column(name = "last_login_at")
   private @Nullable Instant lastLoginAt;
 
-  public User() {}
-
   public User(String email, String displayName) {
+    super(null);
     this.email = email;
     this.displayName = displayName;
+    setCreatedBy(this);
   }
 
   public void recordLogin() {

@@ -148,10 +148,6 @@ export interface GpxTrackDto {
    */
   id: string
   /**
-   * Track name
-   */
-  name?: string
-  /**
    * List of track points
    */
   trackPoints: Array<TrackPointDto>
@@ -218,7 +214,7 @@ export interface MediaDto {
    */
   markdown?: string
   /**
-   * Markdown
+   * Assets
    */
   assets: Array<AssetDto>
 }

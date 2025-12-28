@@ -47,7 +47,7 @@ class DownloadPublicResourceTest {
     testUser = dataService.createUser(TEST_EMAIL, "Test User");
 
     // Create test team with organizer
-    testTeam = dataService.createTeam("Test Team", "test-team", Visibility.PUBLIC);
+    testTeam = dataService.createTeam(testUser, "Test Team", "test-team", Visibility.PUBLIC);
     dataService.addUserToTeam(testUser, testTeam, TeamRole.ORGANIZER);
 
     // Create route with GPX file

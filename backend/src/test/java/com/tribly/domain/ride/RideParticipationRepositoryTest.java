@@ -32,8 +32,8 @@ class RideParticipationRepositoryTest {
   @BeforeEach
   void setUp() {
     dataCleaner.cleanAll();
-    team = dataService.createTeam("Test Team", "test-team", Visibility.PUBLIC);
     user1 = dataService.createUser("user1@example.com", "User One");
+    team = dataService.createTeam(user1, "Test Team", "test-team", Visibility.PUBLIC);
     user2 = dataService.createUser("user2@example.com", "User Two");
     ride =
         dataService.createRide(
@@ -42,7 +42,7 @@ class RideParticipationRepositoryTest {
             "Test Ride",
             "test-ride",
             LocalDate.of(2025, 1, 15).atTime(0, 0).toInstant(ZoneOffset.UTC));
-    group = dataService.createRideGroup(ride, "Fast Group");
+    group = dataService.createRideGroup(user1, ride, "Fast Group");
   }
 
   @Test
@@ -107,7 +107,7 @@ class RideParticipationRepositoryTest {
 
   @Test
   void findByUserAndRide_shouldFindParticipationInAnyGroup() {
-    RideGroup group2 = dataService.createRideGroup(ride, "Slow Group");
+    RideGroup group2 = dataService.createRideGroup(user1, ride, "Slow Group");
     dataService.createParticipation(group2, user1);
 
     Optional<RideParticipation> result =

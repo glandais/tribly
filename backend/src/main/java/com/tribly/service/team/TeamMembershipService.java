@@ -56,7 +56,7 @@ public class TeamMembershipService {
     // Security checks
     securityService.requirePublicTeamForJoin(teamAndRole.team());
 
-    return doAddMember(teamAndRole, TeamRole.MEMBER, user);
+    return doAddMember(user, teamAndRole, TeamRole.MEMBER, user);
   }
 
   @Transactional
@@ -69,15 +69,19 @@ public class TeamMembershipService {
     // Security checks
     securityService.requireAdmin(actingUserId, teamAndRole.team().getSlug());
 
+    User actingUser =
+        userRepository
+            .findActiveById(actingUserId)
+            .orElseThrow(() -> BusinessException.notFound("User", actingUserId));
     User targetUser =
         userRepository
             .findActiveById(targetUserId)
             .orElseThrow(() -> BusinessException.notFound("User", targetUserId));
 
-    return doAddMember(teamAndRole, role, targetUser);
+    return doAddMember(actingUser, teamAndRole, role, targetUser);
   }
 
-  private MemberDto doAddMember(TeamAndRole teamAndRole, TeamRole role, User user) {
+  private MemberDto doAddMember(User creator, TeamAndRole teamAndRole, TeamRole role, User user) {
     Long userId = user.getId();
     String teamSlug = teamAndRole.team().getSlug();
 
@@ -100,7 +104,7 @@ public class TeamMembershipService {
     }
 
     // Create new membership
-    UserTeam membership = new UserTeam(user, teamAndRole.team(), role);
+    UserTeam membership = new UserTeam(creator, user, teamAndRole.team(), role);
     userTeamRepository.persist(membership);
 
     LOG.infov("User {0} joined team {1}", userId, teamSlug);

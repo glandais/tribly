@@ -49,7 +49,7 @@ class RouteResourceTest {
     testUser = dataService.createUser(TEST_EMAIL, "Test User");
 
     // Create test team with organizer
-    testTeam = dataService.createTeam("Test Team", "test-team", Visibility.PUBLIC);
+    testTeam = dataService.createTeam(testUser, "Test Team", "test-team", Visibility.PUBLIC);
     dataService.addUserToTeam(testUser, testTeam, TeamRole.ORGANIZER);
   }
 
@@ -85,7 +85,7 @@ class RouteResourceTest {
         .then()
         .statusCode(201)
         .body("name", equalTo("Test Route"))
-        .body("description", equalTo("A test route"))
+        .body("media.markdown", equalTo("A test route"))
         .body("distance", greaterThan(0))
         .body("elevationGain", greaterThanOrEqualTo(0));
   }
@@ -125,7 +125,7 @@ class RouteResourceTest {
         .then()
         .statusCode(200)
         .body("name", equalTo("Updated Name"))
-        .body("description", equalTo("Updated description"));
+        .body("media.markdown", equalTo("Updated description"));
   }
 
   @Test
@@ -152,7 +152,7 @@ class RouteResourceTest {
         .then()
         .statusCode(200)
         .body("name", equalTo("Updated Route"))
-        .body("description", equalTo("Updated with new GPX"))
+        .body("media.markdown", equalTo("Updated with new GPX"))
         .body("distance", greaterThan(0))
         .body("elevationGain", greaterThanOrEqualTo(0));
   }

@@ -5,6 +5,7 @@ import com.tribly.domain.user.User;
 import jakarta.persistence.*;
 import java.time.Instant;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Setter
@@ -13,6 +14,7 @@ import lombok.Setter;
 @Table(
     name = "ride_participations",
     uniqueConstraints = {@UniqueConstraint(columnNames = {"ride_group_id", "user_id"})})
+@NoArgsConstructor
 public class RideParticipation extends BaseEntity {
 
   @ManyToOne(fetch = FetchType.LAZY)
@@ -26,11 +28,8 @@ public class RideParticipation extends BaseEntity {
   @Column(name = "registered_at", nullable = false)
   private Instant registeredAt;
 
-  public RideParticipation() {
-    this.registeredAt = Instant.now();
-  }
-
   public RideParticipation(RideGroup rideGroup, User user) {
+    super(user);
     this.rideGroup = rideGroup;
     this.user = user;
     this.registeredAt = Instant.now();

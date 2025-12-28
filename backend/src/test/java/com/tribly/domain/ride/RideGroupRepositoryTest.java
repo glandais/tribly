@@ -31,8 +31,8 @@ class RideGroupRepositoryTest {
   @BeforeEach
   void setUp() {
     dataCleaner.cleanAll();
-    team = dataService.createTeam("Test Team", "test-team", Visibility.PUBLIC);
     user = dataService.createUser("test@example.com", "Test User");
+    team = dataService.createTeam(user, "Test Team", "test-team", Visibility.PUBLIC);
     ride =
         dataService.createRide(
             team,
@@ -44,7 +44,7 @@ class RideGroupRepositoryTest {
 
   @Test
   void findByIdAndRide_shouldReturnGroupWhenExists() {
-    RideGroup group = dataService.createRideGroup(ride, "Fast Group");
+    RideGroup group = dataService.createRideGroup(user, ride, "Fast Group");
 
     Optional<RideGroup> result = rideGroupRepository.findByIdAndRide(group.getId(), ride.getId());
 
@@ -54,7 +54,7 @@ class RideGroupRepositoryTest {
 
   @Test
   void findByIdAndRide_shouldReturnEmptyForWrongRide() {
-    RideGroup group = dataService.createRideGroup(ride, "Fast Group");
+    RideGroup group = dataService.createRideGroup(user, ride, "Fast Group");
     Ride otherRide =
         dataService.createRide(
             team,
@@ -71,7 +71,7 @@ class RideGroupRepositoryTest {
 
   @Test
   void findByIdAndRide_shouldIgnoreDeletedGroups() {
-    RideGroup group = dataService.createRideGroup(ride, "Deleted Group");
+    RideGroup group = dataService.createRideGroup(user, ride, "Deleted Group");
     dataService.deleteRideGroup(group);
 
     Optional<RideGroup> result = rideGroupRepository.findByIdAndRide(group.getId(), ride.getId());
@@ -81,9 +81,9 @@ class RideGroupRepositoryTest {
 
   @Test
   void findByRide_shouldReturnAllGroupsForRide() {
-    dataService.createRideGroup(ride, "Group 1");
-    dataService.createRideGroup(ride, "Group 2");
-    dataService.createRideGroup(ride, "Group 3");
+    dataService.createRideGroup(user, ride, "Group 1");
+    dataService.createRideGroup(user, ride, "Group 2");
+    dataService.createRideGroup(user, ride, "Group 3");
 
     List<RideGroup> result = rideGroupRepository.findByRide(ride.getId());
 
@@ -92,9 +92,9 @@ class RideGroupRepositoryTest {
 
   @Test
   void findByRide_shouldOrderBySortOrder() {
-    dataService.createRideGroup(ride, "Third", 3);
-    dataService.createRideGroup(ride, "First", 1);
-    dataService.createRideGroup(ride, "Second", 2);
+    dataService.createRideGroup(user, ride, "Third", 3);
+    dataService.createRideGroup(user, ride, "First", 1);
+    dataService.createRideGroup(user, ride, "Second", 2);
 
     List<RideGroup> result = rideGroupRepository.findByRide(ride.getId());
 
@@ -106,8 +106,8 @@ class RideGroupRepositoryTest {
 
   @Test
   void findByRide_shouldIgnoreDeletedGroups() {
-    dataService.createRideGroup(ride, "Visible Group");
-    RideGroup deletedGroup = dataService.createRideGroup(ride, "Deleted Group");
+    dataService.createRideGroup(user, ride, "Visible Group");
+    RideGroup deletedGroup = dataService.createRideGroup(user, ride, "Deleted Group");
     dataService.deleteRideGroup(deletedGroup);
 
     List<RideGroup> result = rideGroupRepository.findByRide(ride.getId());

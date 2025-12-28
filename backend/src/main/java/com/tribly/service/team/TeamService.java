@@ -11,7 +11,6 @@ import com.tribly.domain.user.repository.UserRepository;
 import com.tribly.dto.teams.request.TeamRequest;
 import com.tribly.dto.teams.response.TeamDetailDto;
 import com.tribly.dto.teams.response.TeamListResponse;
-import com.tribly.enums.Status;
 import com.tribly.enums.TeamRole;
 import com.tribly.infrastructure.exception.BusinessException;
 import com.tribly.service.security.TeamSecurityService;
@@ -20,7 +19,6 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import java.text.Normalizer;
-import java.time.Instant;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -55,20 +53,13 @@ public class TeamService {
       slug = slug + "-" + System.currentTimeMillis() % 10000;
     }
 
-    Team team = new Team(request.name(), slug);
-    team.getTeamDescription().setTeam(team);
-    team.getTeamDescription().setCreatedBy(creator);
-    team.getTeamDescription().setDateTime(Instant.now());
-    team.getTeamDescription().setStatus(Status.PUBLISHED);
-    team.getTeamDescription().setName("team-description");
-    team.getTeamDescription().setSlug("team-description");
+    Team team = new Team(creator, request.name(), slug, request.visibility());
     team.getTeamDescription().setMarkdown(request.media().markdown());
-    team.getTeamDescription().setVisibility(request.visibility());
     team.setVisibility(request.visibility());
 
     teamRepository.persist(team);
 
-    UserTeam membership = new UserTeam(creator, team, TeamRole.ADMIN);
+    UserTeam membership = new UserTeam(creator, creator, team, TeamRole.ADMIN);
     userTeamRepository.persist(membership);
 
     LOG.infov("Team {0} created by user {1}", team.getSlug(), creatorId);

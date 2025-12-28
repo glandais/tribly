@@ -13,6 +13,7 @@ import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.jspecify.annotations.Nullable;
 
@@ -37,15 +38,12 @@ import org.jspecify.annotations.Nullable;
     })
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "entity_type", discriminatorType = DiscriminatorType.INTEGER)
+@NoArgsConstructor
 public abstract class TeamEntity extends BaseEntity {
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "team_id", nullable = false)
   protected Team team;
-
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "created_by_id", nullable = false)
-  protected User createdBy;
 
   @Column(name = "date_time", nullable = false)
   protected Instant dateTime;
@@ -77,8 +75,23 @@ public abstract class TeamEntity extends BaseEntity {
 
   @Enumerated(EnumType.STRING)
   @Column(name = "visibility", nullable = false, length = 20)
-  protected Visibility visibility = Visibility.TEAM;
+  protected Visibility visibility;
 
   @OneToMany(mappedBy = "teamEntity", cascade = CascadeType.ALL, orphanRemoval = true)
   private Set<Asset> assets = new HashSet<>();
+
+  public TeamEntity(
+      User createdBy,
+      Team team,
+      Instant dateTime,
+      String name,
+      String slug,
+      Visibility visibility) {
+    super(createdBy);
+    this.team = team;
+    this.dateTime = dateTime;
+    this.name = name;
+    this.slug = slug;
+    this.visibility = visibility;
+  }
 }

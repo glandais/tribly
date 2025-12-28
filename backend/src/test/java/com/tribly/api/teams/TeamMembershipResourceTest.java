@@ -5,6 +5,9 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 
 import com.tribly.domain.user.User;
+import com.tribly.dto.common.MediaDto;
+import com.tribly.dto.teams.request.TeamRequest;
+import com.tribly.enums.Visibility;
 import com.tribly.infrastructure.id.TsidUtils;
 import com.tribly.util.TestDataCleaner;
 import com.tribly.util.TestDataService;
@@ -46,12 +49,14 @@ class TeamMembershipResourceTest {
   @Test
   void joinTeam_alreadyMember_shouldReturn409() {
     // Create team
+    TeamRequest teamRequest =
+        new TeamRequest("Team", MediaDto.builder().build(), Visibility.PUBLIC);
     String slug =
         given()
             .auth()
             .oauth2(getAccessToken(USERNAME_ADMIN))
             .contentType("application/json")
-            .body("{\"name\": \"Membership Test Team\", \"visibility\": \"PUBLIC\"}")
+            .body(teamRequest)
             .when()
             .post("/api/teams")
             .then()
@@ -84,12 +89,14 @@ class TeamMembershipResourceTest {
   @Test
   void updateMemberRole_asAdmin_shouldSucceed() {
     // Create team
+    TeamRequest teamRequest =
+        new TeamRequest("Team", MediaDto.builder().build(), Visibility.PUBLIC);
     String slug =
         given()
             .auth()
             .oauth2(getAccessToken(USERNAME_ADMIN))
             .contentType("application/json")
-            .body("{\"name\": \"Role Update Team\", \"visibility\": \"PUBLIC\"}")
+            .body(teamRequest)
             .when()
             .post("/api/teams")
             .then()
@@ -123,12 +130,15 @@ class TeamMembershipResourceTest {
   @Test
   void updateMemberRole_asMember_shouldBeDenied() {
     // Create team
+
+    TeamRequest teamRequest =
+        new TeamRequest("Role Denied Team", MediaDto.builder().build(), Visibility.PUBLIC);
     String slug =
         given()
             .auth()
             .oauth2(getAccessToken(USERNAME_ADMIN))
             .contentType("application/json")
-            .body("{\"name\": \"Role Denied Team\", \"visibility\": \"PUBLIC\"}")
+            .body(teamRequest)
             .when()
             .post("/api/teams")
             .then()
@@ -170,12 +180,14 @@ class TeamMembershipResourceTest {
   @Test
   void removeMember_asAdmin_shouldSucceed() {
     // Create team
+    TeamRequest teamRequest =
+        new TeamRequest("Team", MediaDto.builder().build(), Visibility.PUBLIC);
     String slug =
         given()
             .auth()
             .oauth2(getAccessToken(USERNAME_ADMIN))
             .contentType("application/json")
-            .body("{\"name\": \"Remove Member Team\", \"visibility\": \"PUBLIC\"}")
+            .body(teamRequest)
             .when()
             .post("/api/teams")
             .then()
@@ -216,12 +228,14 @@ class TeamMembershipResourceTest {
   @Test
   void removeMember_asMember_shouldBeDenied() {
     // Create team
+    TeamRequest teamRequest =
+        new TeamRequest("Team", MediaDto.builder().build(), Visibility.PUBLIC);
     String slug =
         given()
             .auth()
             .oauth2(getAccessToken(USERNAME_ADMIN))
             .contentType("application/json")
-            .body("{\"name\": \"Remove Denied Team\", \"visibility\": \"PUBLIC\"}")
+            .body(teamRequest)
             .when()
             .post("/api/teams")
             .then()
@@ -261,12 +275,14 @@ class TeamMembershipResourceTest {
   @Test
   void removeLastAdmin_shouldBeDenied() {
     // Create team (admin is the only admin)
+    TeamRequest teamRequest =
+        new TeamRequest("Team", MediaDto.builder().build(), Visibility.PUBLIC);
     String slug =
         given()
             .auth()
             .oauth2(getAccessToken(USERNAME_ADMIN))
             .contentType("application/json")
-            .body("{\"name\": \"Last Admin Team\", \"visibility\": \"PUBLIC\"}")
+            .body(teamRequest)
             .when()
             .post("/api/teams")
             .then()
@@ -289,12 +305,14 @@ class TeamMembershipResourceTest {
   @Test
   void demoteLastAdmin_shouldBeDenied() {
     // Create team
+    TeamRequest teamRequest =
+        new TeamRequest("Team", MediaDto.builder().build(), Visibility.PUBLIC);
     String slug =
         given()
             .auth()
             .oauth2(getAccessToken(USERNAME_ADMIN))
             .contentType("application/json")
-            .body("{\"name\": \"Demote Admin Team\", \"visibility\": \"PUBLIC\"}")
+            .body(teamRequest)
             .when()
             .post("/api/teams")
             .then()
@@ -318,12 +336,14 @@ class TeamMembershipResourceTest {
   @Test
   void getTeamMembers_withPagination_shouldWork() {
     // Create team
+    TeamRequest teamRequest =
+        new TeamRequest("Team", MediaDto.builder().build(), Visibility.PUBLIC);
     String slug =
         given()
             .auth()
             .oauth2(getAccessToken(USERNAME_ADMIN))
             .contentType("application/json")
-            .body("{\"name\": \"Pagination Team\", \"visibility\": \"PUBLIC\"}")
+            .body(teamRequest)
             .when()
             .post("/api/teams")
             .then()
@@ -382,12 +402,13 @@ class TeamMembershipResourceTest {
   @Test
   void addMember_byAdmin_shouldSucceed() {
     // Create private team
+    TeamRequest teamRequest = new TeamRequest("Team", MediaDto.builder().build(), Visibility.TEAM);
     String slug =
         given()
             .auth()
             .oauth2(getAccessToken(USERNAME_ADMIN))
             .contentType("application/json")
-            .body("{\"name\": \"Add Member Team\", \"visibility\": \"TEAM\"}")
+            .body(teamRequest)
             .when()
             .post("/api/teams")
             .then()

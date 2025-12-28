@@ -1,14 +1,15 @@
 package com.tribly.domain.route;
 
 import com.tribly.domain.common.BaseEntity;
+import com.tribly.domain.user.User;
 import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.*;
 import java.time.Instant;
 import java.util.List;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.Type;
-import org.jspecify.annotations.Nullable;
 
 /**
  * Represents a GPX track associated with a route.
@@ -18,14 +19,12 @@ import org.jspecify.annotations.Nullable;
 @Getter
 @Entity
 @Table(name = "gpx_tracks")
+@NoArgsConstructor
 public class GpxTrack extends BaseEntity {
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "route_id", nullable = false)
   private Route route;
-
-  @Column(name = "name")
-  private @Nullable String name;
 
   /**
    * PostGIS LineString geometry in WKT format.
@@ -46,17 +45,21 @@ public class GpxTrack extends BaseEntity {
   @Column(name = "track_points", columnDefinition = "jsonb", nullable = false)
   private List<TrackPoint> trackPoints;
 
-  @Column(name = "original_file_name")
-  private @Nullable String originalFileName;
-
   @Column(name = "processed_at", nullable = false)
   private Instant processedAt;
 
-  // Constructors
-
-  public GpxTrack() {}
-
-  // Getters and Setters
+  public GpxTrack(
+      User createdBy,
+      Route route,
+      String geometry,
+      List<TrackPoint> trackPoints,
+      Instant processedAt) {
+    super(createdBy);
+    this.route = route;
+    this.geometry = geometry;
+    this.trackPoints = trackPoints;
+    this.processedAt = processedAt;
+  }
 
   /**
    * Simplified track point for frontend rendering.

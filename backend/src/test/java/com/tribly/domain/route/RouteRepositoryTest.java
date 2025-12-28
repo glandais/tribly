@@ -29,8 +29,8 @@ class RouteRepositoryTest {
   @BeforeEach
   void setUp() {
     dataCleaner.cleanAll();
-    team = dataService.createTeam("Test Team", "test-team", Visibility.PUBLIC);
     user = dataService.createUser("test@example.com", "Test User");
+    team = dataService.createTeam(user, "Test Team", "test-team", Visibility.PUBLIC);
   }
 
   @Test
@@ -85,7 +85,7 @@ class RouteRepositoryTest {
   @Test
   void find_shouldReturnEmptyForDifferentTeam() {
     dataService.createRoute(team, user, "Route 1", Visibility.PUBLIC);
-    Team otherTeam = dataService.createTeam("Other Team", "other-team", Visibility.PUBLIC);
+    Team otherTeam = dataService.createTeam(user, "Other Team", "other-team", Visibility.PUBLIC);
 
     TeamEntityQueryBasic query =
         TeamEntityQueryBasic.builder().teamSlugs(Set.of(otherTeam.getSlug())).build();

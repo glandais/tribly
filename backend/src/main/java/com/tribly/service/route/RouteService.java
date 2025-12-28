@@ -78,21 +78,14 @@ public class RouteService extends TeamEntityService {
             .findActiveById(creatorId)
             .orElseThrow(() -> BusinessException.notFound("User", creatorId));
 
-    // Create route entity
-    Route route = new Route();
-
     String slug =
         slugService.generateSlug(
             request.name(), s -> routeRepository.existsByTeamAndSlug(team.getId(), s));
 
-    route.setTeam(team);
-    route.setCreatedBy(creator);
-    route.setName(request.name());
-    route.setSlug(slug);
+    // Create route entity
+    Route route = new Route(creator, team, request.name(), slug, request.visibility());
     route.setMarkdown(request.media().markdown());
     route.setSurfaceType(request.surfaceType());
-    route.setVisibility(request.visibility());
-    route.setDateTime(Instant.now());
 
     // Persist to get ID for file storage
     routeRepository.persistAndFlush(route);
@@ -100,7 +93,7 @@ public class RouteService extends TeamEntityService {
 
     try {
       // Process GPX file and update route
-      processAndUpdateGpx(route, request.name(), gpxFile, fileName);
+      processAndUpdateGpx(creator, route, gpxFile);
       routeRepository.persist(route);
       return RouteDto.from(route);
 
@@ -115,10 +108,9 @@ public class RouteService extends TeamEntityService {
    * Process GPX file and update route with metadata, track, and climbs.
    * Shared logic between create and update operations.
    */
-  private void processAndUpdateGpx(
-      Route route, String trackName, InputStream gpxFile, String fileName) {
+  private void processAndUpdateGpx(User creator, Route route, InputStream gpxFile) {
     // Process GPX file
-    ProcessedGpx processed = gpxProcessingService.processGpxUpload(route, gpxFile, fileName);
+    ProcessedGpx processed = gpxProcessingService.processGpxUpload(creator, route, gpxFile);
 
     // Update route with extracted metadata
     RouteMetadata metadata = processed.metadata();
@@ -131,26 +123,22 @@ public class RouteService extends TeamEntityService {
     route.setEndLng(BigDecimal.valueOf(metadata.endLng()));
 
     // Save GPX track
-    GpxTrack track = new GpxTrack();
-    track.setRoute(route);
-    track.setName(trackName);
-    track.setGeometry(processed.wkt());
-    track.setTrackPoints(processed.trackPoints());
-    track.setOriginalFileName(fileName);
-    track.setProcessedAt(Instant.now());
+    GpxTrack track =
+        new GpxTrack(creator, route, processed.wkt(), processed.trackPoints(), Instant.now());
     gpxTrackRepository.persist(track);
     LOG.infov("GPX track saved for route {0}", route.getId());
 
     // Save climbs
     for (Climb climb : processed.climbs()) {
-      RouteClimb climbEntity = new RouteClimb();
-      climbEntity.setRoute(route);
-      climbEntity.setName(null); // TODO: could extract name from climb detection
-      climbEntity.setStartDistance((int) Math.round(climb.startDist()));
-      climbEntity.setEndDistance((int) Math.round(climb.endDist()));
-      climbEntity.setElevationGain((int) Math.round(climb.positiveElevation()));
-      climbEntity.setAverageGradient(BigDecimal.valueOf(climb.grade()));
-      climbEntity.setMaxGradient(BigDecimal.valueOf(climb.climbingGrade()));
+      RouteClimb climbEntity =
+          new RouteClimb(
+              creator,
+              route,
+              (int) Math.round(climb.startDist()),
+              (int) Math.round(climb.endDist()),
+              (int) Math.round(climb.positiveElevation()),
+              BigDecimal.valueOf(climb.grade()),
+              BigDecimal.valueOf(climb.climbingGrade()));
       climbEntity.setCategory(gpxProcessingService.categorizeClimb(climb));
       routeClimbRepository.persist(climbEntity);
     }
@@ -214,13 +202,16 @@ public class RouteService extends TeamEntityService {
       String slug,
       RouteRequest request,
       @Nullable InputStream gpxFile,
-      @Nullable String fileName,
-      Long userId)
-      throws Exception {
+      Long userId) {
     Route route = getRouteEntity(teamSlug, slug, userId);
 
     // Security check: must be admin or organizer to edit routes
     securityService.requireOrganizer(userId, teamSlug);
+
+    User user =
+        userRepository
+            .findActiveById(userId)
+            .orElseThrow(() -> BusinessException.notFound("User", userId));
 
     // Update basic metadata
     route.setName(request.name());
@@ -250,7 +241,7 @@ public class RouteService extends TeamEntityService {
         gpxProcessingService.deleteRouteFiles(route);
 
         // Process new GPX file
-        processAndUpdateGpx(route, request.name(), gpxFile, fileName);
+        processAndUpdateGpx(user, route, gpxFile);
         LOG.infov("Route {0} GPX file updated by user {1}", slug, userId);
 
       } catch (Exception e) {

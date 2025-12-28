@@ -3,9 +3,11 @@ package com.tribly.domain.asset;
 import com.tribly.domain.common.BaseEntity;
 import com.tribly.domain.common.TeamEntity;
 import com.tribly.domain.team.Team;
+import com.tribly.domain.user.User;
 import com.tribly.enums.AssetType;
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.jspecify.annotations.Nullable;
 
@@ -17,6 +19,7 @@ import org.jspecify.annotations.Nullable;
 @Getter
 @Entity
 @Table(name = "assets")
+@NoArgsConstructor
 public class Asset extends BaseEntity {
 
   @ManyToOne(fetch = FetchType.LAZY)
@@ -35,7 +38,8 @@ public class Asset extends BaseEntity {
   @Column(name = "file_name", nullable = false)
   protected String fileName;
 
-  public Asset(Team team, AssetType type, String fileName) {
+  public Asset(User createdBy, Team team, AssetType type, String fileName) {
+    super(createdBy);
     this.team = team;
     this.type = type;
     this.fileName = fileName;

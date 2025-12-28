@@ -6,6 +6,7 @@ import com.tribly.enums.TeamRole;
 import jakarta.persistence.*;
 import java.time.Instant;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Setter
@@ -14,6 +15,7 @@ import lombok.Setter;
 @Table(
     name = "user_teams",
     uniqueConstraints = {@UniqueConstraint(columnNames = {"user_id", "team_id"})})
+@NoArgsConstructor
 public class UserTeam extends BaseEntity {
 
   @ManyToOne(fetch = FetchType.EAGER)
@@ -31,11 +33,8 @@ public class UserTeam extends BaseEntity {
   @Column(name = "joined_at", nullable = false)
   private Instant joinedAt;
 
-  public UserTeam() {
-    this.joinedAt = Instant.now();
-  }
-
-  public UserTeam(User user, Team team, TeamRole role) {
+  public UserTeam(User creator, User user, Team team, TeamRole role) {
+    super(creator);
     this.user = user;
     this.team = team;
     this.role = role;

@@ -22,8 +22,6 @@ public class UserTeamRepository implements BaseRepository<UserTeam> {
         new TriblyQuery()
             .and("team.slug = :slug", Map.of("slug", slug))
             .and("deleted = false", Map.of());
-    System.out.println(triblyQuery.getStringQuery());
-    System.out.println(triblyQuery.getParams());
     return getPage(triblyQuery, page, size);
   }
 

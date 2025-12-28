@@ -4,11 +4,13 @@ import com.tribly.domain.common.Publication;
 import com.tribly.domain.route.Route;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
+import com.tribly.enums.Visibility;
 import jakarta.persistence.*;
 import java.time.*;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.jspecify.annotations.Nullable;
 
@@ -16,6 +18,7 @@ import org.jspecify.annotations.Nullable;
 @Getter
 @Entity
 @DiscriminatorValue("1")
+@NoArgsConstructor
 public class Ride extends Publication {
 
   @ManyToOne(fetch = FetchType.EAGER)
@@ -26,12 +29,14 @@ public class Ride extends Publication {
   @OneToMany(mappedBy = "ride", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<RideGroup> groups = new ArrayList<>();
 
-  public Ride() {
-    super();
-  }
-
-  public Ride(Team team, User createdBy, String name, String slug, Instant dateTime) {
-    super(team, createdBy, name, slug, dateTime);
+  public Ride(
+      User createdBy,
+      Team team,
+      Instant dateTime,
+      String name,
+      String slug,
+      Visibility visibility) {
+    super(createdBy, team, dateTime, name, slug, visibility);
   }
 
   public void addGroup(RideGroup group) {

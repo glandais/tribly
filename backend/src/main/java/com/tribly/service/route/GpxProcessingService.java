@@ -3,6 +3,7 @@ package com.tribly.service.route;
 import com.tribly.domain.asset.Asset;
 import com.tribly.domain.route.GpxTrack;
 import com.tribly.domain.route.Route;
+import com.tribly.domain.user.User;
 import com.tribly.enums.AssetType;
 import com.tribly.enums.ClimbCategory;
 import com.tribly.infrastructure.exception.BusinessException;
@@ -25,11 +26,14 @@ import io.github.glandais.gpx.map.TileMapProducer;
 import io.github.glandais.gpx.srtm.GPXElevationFixer;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import org.jboss.logging.Logger;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Service for processing GPX files for route management.
@@ -70,14 +74,14 @@ public class GpxProcessingService {
    *
    * @param route        Route
    * @param gpxInputStream Input stream of uploaded GPX file
-   * @param fileName       Original filename
    * @return ProcessedGpx containing all extracted data
    */
-  public ProcessedGpx processGpxUpload(Route route, InputStream gpxInputStream, String fileName) {
+  @Transactional
+  public ProcessedGpx processGpxUpload(User user, Route route, InputStream gpxInputStream) {
     Long routeId = route.getId();
     try {
       // Step 1: Parse GPX
-      LOG.infov("Processing GPX file {0} for route {1}", fileName, routeId);
+      LOG.infov("Processing GPX file for route {1}", routeId);
       GPX gpx = gpxFileReader.parseGPX(gpxInputStream);
 
       if (gpx.paths().isEmpty()) {
@@ -111,31 +115,27 @@ public class GpxProcessingService {
 
       // Save original GPX (parsed, before filtering)
       AssetFile gpxAssetFile =
-          assetService.addAsset(route, AssetType.TRACK_ORIGINAL_GPX, "original.gpx");
-      route.getAssets().add(gpxAssetFile.asset());
+          createAsset(user, route, AssetType.TRACK_ORIGINAL_GPX, "original.gpx");
       File originalFile = gpxAssetFile.file();
       gpxFileWriter.writeGPX(gpx, originalFile, false);
       LOG.infov("Saved original GPX to {0}", originalFile);
 
       // Save filtered GPX
       AssetFile filteredAssetFile =
-          assetService.addAsset(route, AssetType.TRACK_FILTERED_GPX, "filtered.gpx");
-      route.getAssets().add(filteredAssetFile.asset());
+          createAsset(user, route, AssetType.TRACK_FILTERED_GPX, "filtered.gpx");
       File filteredFile = filteredAssetFile.file();
       gpxFileWriter.writeGPX(gpx, filteredFile, true);
       LOG.infov("Saved filtered GPX to {0}", filteredFile);
 
       // Save FIT file
-      AssetFile fitAssetFile = assetService.addAsset(route, AssetType.TRACK_FIT, "route.fit");
-      route.getAssets().add(fitAssetFile.asset());
+      AssetFile fitAssetFile = createAsset(user, route, AssetType.TRACK_FIT, "route.fit");
       File fitFile = fitAssetFile.file();
       fitFileWriter.writeGPX(gpx, fitFile);
       LOG.infov("Saved FIT file to {0}", fitFile);
 
       // Generate thumbnail map
       AssetFile thumbnailAssetFile =
-          assetService.addAsset(route, AssetType.TRACK_THUMBNAIL, "thumbnail.png");
-      route.getAssets().add(thumbnailAssetFile.asset());
+          createAsset(user, route, AssetType.TRACK_THUMBNAIL, "thumbnail.png");
       File thumbnailFile = thumbnailAssetFile.file();
       try {
         // Use OpenStreetMap tiles, 512x512 max size, 0.1 margin
@@ -162,6 +162,17 @@ public class GpxProcessingService {
       LOG.errorv("GPX processing failed for route {0}", routeId);
       throw BusinessException.conflict("GPX processing failed: " + e.getMessage());
     }
+  }
+
+  private AssetFile createAsset(User user, Route route, AssetType assetType, String fileName)
+      throws IOException {
+    Asset existingAsset = getAsset(route, assetType);
+    if (existingAsset != null) {
+      route.getAssets().remove(existingAsset);
+    }
+    AssetFile assetFile = assetService.addAsset(user, route, assetType, fileName);
+    route.getAssets().add(assetFile.asset());
+    return assetFile;
   }
 
   /**
@@ -275,11 +286,21 @@ public class GpxProcessingService {
   }
 
   private File getFile(Route route, AssetType assetType) {
+    Asset matching = getAsset(route, assetType);
+    if (matching != null) {
+      return assetService.getAsset(matching.getId()).file();
+    } else {
+      throw BusinessException.notFound("Asset not found for route " + route.getId());
+    }
+  }
+
+  private @Nullable Asset getAsset(Route route, AssetType assetType) {
+    Asset matching = null;
     for (Asset asset : route.getAssets()) {
       if (asset.getType() == assetType) {
-        return assetService.getAsset(asset.getId()).file();
+        matching = asset;
       }
     }
-    throw BusinessException.notFound("Asset not found for route " + route.getId());
+    return matching;
   }
 }

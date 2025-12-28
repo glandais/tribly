@@ -53,16 +53,15 @@ public class TestDataService {
   }
 
   @Transactional
-  public Team createTeam(String name, String slug, Visibility visibility) {
-    Team team = new Team(name, slug);
-    team.setVisibility(visibility);
+  public Team createTeam(User user, String name, String slug, Visibility visibility) {
+    Team team = new Team(user, name, slug, visibility);
     teamRepository.persistAndFlush(team);
     return team;
   }
 
   @Transactional
   public UserTeam addUserToTeam(User user, Team team, TeamRole role) {
-    UserTeam userTeam = new UserTeam(user, team, role);
+    UserTeam userTeam = new UserTeam(user, user, team, role);
     userTeamRepository.persistAndFlush(userTeam);
     return userTeam;
   }
@@ -112,8 +111,7 @@ public class TestDataService {
       Visibility visibility,
       Status status,
       Instant publishAt) {
-    Ride ride = new Ride(team, createdBy, title, slug, date);
-    ride.setVisibility(visibility);
+    Ride ride = new Ride(createdBy, team, date, title, slug, visibility);
     ride.setStatus(status);
     ride.setPublishAt(publishAt);
     rideRepository.persistAndFlush(ride);
@@ -121,27 +119,24 @@ public class TestDataService {
   }
 
   @Transactional
-  public RideGroup createRideGroup(Ride ride, String name) {
-    RideGroup group = new RideGroup();
-    group.setRide(ride);
-    group.setName(name);
+  public RideGroup createRideGroup(User createdBy, Ride ride, String name) {
+    RideGroup group = new RideGroup(createdBy, ride, name);
     rideGroupRepository.persistAndFlush(group);
     return group;
   }
 
   @Transactional
-  public RideGroup createRideGroup(Ride ride, String name, int sortOrder) {
-    RideGroup group = new RideGroup();
-    group.setRide(ride);
-    group.setName(name);
+  public RideGroup createRideGroup(User createdBy, Ride ride, String name, int sortOrder) {
+    RideGroup group = new RideGroup(createdBy, ride, name);
     group.setSortOrder(sortOrder);
     rideGroupRepository.persistAndFlush(group);
     return group;
   }
 
   @Transactional
-  public RideGroup createRideGroupWithMaxParticipants(Ride ride, String name, int maxParticipants) {
-    RideGroup group = new RideGroup();
+  public RideGroup createRideGroupWithMaxParticipants(
+      User createdBy, Ride ride, String name, int maxParticipants) {
+    RideGroup group = new RideGroup(createdBy, ride, name);
     group.setRide(ride);
     group.setName(name);
     group.setMaxParticipants(maxParticipants);
@@ -181,12 +176,24 @@ public class TestDataService {
 
   @Transactional
   public Route createRoute(Team team, User createdBy, String name, Visibility visibility) {
-    Route route = new Route(team, createdBy, name, SlugService.slugify(name));
-    route.setVisibility(visibility);
-    routeRepository.persistAndFlush(route);
     List<GpxTrack.TrackPoint> trackPoints = List.of(new GpxTrack.TrackPoint(45.0, 6.0, 500.0, 0.0));
     String geometry = "LINESTRING(6 45,6.1 45.1)";
-    createGpxTrack(route, geometry, trackPoints);
+    return createRoute(team, createdBy, name, visibility, geometry, trackPoints);
+  }
+
+  @Transactional
+  public Route createRoute(
+      Team team,
+      User createdBy,
+      String name,
+      Visibility visibility,
+      String geometry,
+      List<GpxTrack.TrackPoint> trackPoints) {
+    Route route = new Route(createdBy, team, name, SlugService.slugify(name), visibility);
+    routeRepository.persistAndFlush(route);
+
+    GpxTrack track = new GpxTrack(createdBy, route, geometry, trackPoints, Instant.now());
+    gpxTrackRepository.persistAndFlush(track);
     return route;
   }
 
@@ -215,6 +222,7 @@ public class TestDataService {
 
   @Transactional
   public RouteClimb createRouteClimb(
+      User createdBy,
       Route route,
       Integer startDistance,
       Integer endDistance,
@@ -222,11 +230,20 @@ public class TestDataService {
       BigDecimal averageGradient,
       BigDecimal maxGradient) {
     return createRouteClimb(
-        route, null, startDistance, endDistance, elevationGain, averageGradient, maxGradient, null);
+        createdBy,
+        route,
+        null,
+        startDistance,
+        endDistance,
+        elevationGain,
+        averageGradient,
+        maxGradient,
+        null);
   }
 
   @Transactional
   public RouteClimb createRouteClimb(
+      User createdBy,
       Route route,
       @Nullable String name,
       Integer startDistance,
@@ -235,14 +252,16 @@ public class TestDataService {
       BigDecimal averageGradient,
       BigDecimal maxGradient,
       @Nullable ClimbCategory category) {
-    RouteClimb climb = new RouteClimb();
-    climb.setRoute(route);
+    RouteClimb climb =
+        new RouteClimb(
+            createdBy,
+            route,
+            startDistance,
+            endDistance,
+            elevationGain,
+            averageGradient,
+            maxGradient);
     climb.setName(name);
-    climb.setStartDistance(startDistance);
-    climb.setEndDistance(endDistance);
-    climb.setElevationGain(elevationGain);
-    climb.setAverageGradient(averageGradient);
-    climb.setMaxGradient(maxGradient);
     climb.setCategory(category);
     routeClimbRepository.persistAndFlush(climb);
     return climb;
@@ -252,35 +271,5 @@ public class TestDataService {
   public void deleteRouteClimb(RouteClimb climb) {
     climb.setDeleted(true);
     routeClimbRepository.getEntityManager().merge(climb);
-  }
-
-  @Transactional
-  public GpxTrack createGpxTrack(
-      Route route, String geometry, List<GpxTrack.TrackPoint> trackPoints) {
-    return createGpxTrack(route, null, geometry, trackPoints, null);
-  }
-
-  @Transactional
-  public GpxTrack createGpxTrack(
-      Route route,
-      String name,
-      String geometry,
-      List<GpxTrack.TrackPoint> trackPoints,
-      String originalFileName) {
-    GpxTrack track = new GpxTrack();
-    track.setRoute(route);
-    track.setName(name);
-    track.setGeometry(geometry);
-    track.setTrackPoints(trackPoints);
-    track.setOriginalFileName(originalFileName);
-    track.setProcessedAt(Instant.now());
-    gpxTrackRepository.persistAndFlush(track);
-    return track;
-  }
-
-  @Transactional
-  public void deleteGpxTrack(GpxTrack track) {
-    track.setDeleted(true);
-    gpxTrackRepository.getEntityManager().merge(track);
   }
 }

@@ -7,6 +7,7 @@ import com.tribly.dto.common.MediaDto;
 import com.tribly.dto.rides.request.GroupRequest;
 import com.tribly.dto.rides.request.RideRequest;
 import com.tribly.dto.rides.response.RideDto;
+import com.tribly.dto.teams.request.TeamRequest;
 import com.tribly.enums.Status;
 import com.tribly.enums.Visibility;
 import com.tribly.util.TestDataCleaner;
@@ -41,15 +42,17 @@ class RideResourceTest {
   }
 
   private void createTeamViaHttp() {
+    TeamRequest teamRequest =
+        new TeamRequest(
+            "Ride Test Team " + System.currentTimeMillis(),
+            new MediaDto(null, List.of()),
+            Visibility.PUBLIC);
     var response =
         given()
             .auth()
             .oauth2(getAccessToken(USERNAME_ADMIN))
             .contentType("application/json")
-            .body(
-                "{\"name\": \"Ride Test Team "
-                    + System.currentTimeMillis()
-                    + "\", \"visibility\": \"PUBLIC\"}")
+            .body(teamRequest)
             .when()
             .post("/api/teams")
             .then()

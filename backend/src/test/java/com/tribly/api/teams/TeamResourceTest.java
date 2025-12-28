@@ -94,13 +94,13 @@ class TeamResourceTest {
 
   @Test
   void createTeamViaApi_shouldCreateTeamSuccessfully() {
+    TeamRequest teamRequest =
+        new TeamRequest("API Test Team", MediaDto.builder().build(), Visibility.PUBLIC);
     given()
         .auth()
         .oauth2(getAccessToken(USERNAME_ADMIN))
         .contentType("application/json")
-        .body(
-            "{\"name\": \"API Test Team\", \"description\": \"Created via API\", \"visibility\":"
-                + " \"PUBLIC\"}")
+        .body(teamRequest)
         .when()
         .post("/api/teams")
         .then()
@@ -166,7 +166,7 @@ class TeamResourceTest {
         .then()
         .statusCode(200)
         .body("name", equalTo("Updated Name"))
-        .body("description", equalTo("New description"));
+        .body("media.markdown", equalTo("New description"));
   }
 
   @Test

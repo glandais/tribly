@@ -1,10 +1,12 @@
 package com.tribly.domain.route;
 
 import com.tribly.domain.common.BaseEntity;
+import com.tribly.domain.user.User;
 import com.tribly.enums.ClimbCategory;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.jspecify.annotations.Nullable;
 
@@ -16,6 +18,7 @@ import org.jspecify.annotations.Nullable;
 @Getter
 @Entity
 @Table(name = "route_climbs")
+@NoArgsConstructor
 public class RouteClimb extends BaseEntity {
 
   @ManyToOne(fetch = FetchType.LAZY)
@@ -64,10 +67,20 @@ public class RouteClimb extends BaseEntity {
   @Nullable
   private ClimbCategory category;
 
-  // Constructors
-
-  public RouteClimb() {}
-
-  // Getters and Setters
-
+  public RouteClimb(
+      User createdBy,
+      Route route,
+      Integer startDistance,
+      Integer endDistance,
+      Integer elevationGain,
+      BigDecimal averageGradient,
+      BigDecimal maxGradient) {
+    super(createdBy);
+    this.route = route;
+    this.startDistance = startDistance;
+    this.endDistance = endDistance;
+    this.elevationGain = elevationGain;
+    this.averageGradient = averageGradient;
+    this.maxGradient = maxGradient;
+  }
 }

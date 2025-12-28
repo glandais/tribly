@@ -4,16 +4,19 @@ import com.tribly.domain.common.TeamEntity;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
 import com.tribly.enums.SurfaceType;
+import com.tribly.enums.Visibility;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.Instant;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Setter
 @Getter
 @Entity
 @DiscriminatorValue("2")
+@NoArgsConstructor
 public class Route extends TeamEntity {
 
   @Column(name = "distance")
@@ -41,13 +44,7 @@ public class Route extends TeamEntity {
   @Column(name = "end_lng", precision = 11, scale = 8)
   private BigDecimal endLng;
 
-  public Route() {}
-
-  public Route(Team team, User createdBy, String name, String slug) {
-    this.team = team;
-    this.createdBy = createdBy;
-    this.name = name;
-    this.slug = slug;
-    this.dateTime = Instant.now();
+  public Route(User createdBy, Team team, String name, String slug, Visibility visibility) {
+    super(createdBy, team, Instant.now(), name, slug, visibility);
   }
 }
