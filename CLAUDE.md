@@ -58,59 +58,185 @@ docker compose logs -f keycloak       # View Keycloak logs
 ### Backend Structure (`backend/src/main/java/com/tribly/`)
 
 ```
-api/           # REST controllers (resources)
-  config/      # Config endpoints
-  users/       # User endpoints
-  teams/       # Team endpoints
-  rides/       # Ride endpoints
-  routes/      # Route endpoints
-dto/           # Request/response objects (separate from api/)
-  config/      # Config DTOs
-  users/       # User DTOs
-  teams/       # Team DTOs
-  rides/       # Ride DTOs
-  routes/      # Route DTOs
-  error/       # Error response DTOs
-domain/        # Core business entities (JPA/Panache)
-  user/        # User, UserRepository
-  team/        # Team, UserTeam (membership), repositories
-  ride/        # Ride, RideGroup entities
-  route/       # Route entity with GPX data
-  trip/        # Trip, TripStage entities
-  place/       # Meeting places
-  common/      # Shared base entities (BaseEntity, etc.)
-service/       # Business logic services
-  auth/        # Authentication services
-  config/      # Configuration services
-  user/        # User services
-  team/        # Team services
-  ride/        # Ride services
-  route/       # Route services
-  security/    # Security utilities
-enums/         # Shared enumerations (Visibility, RideStatus, etc.)
-infrastructure/# Cross-cutting: security, config, integrations
-  cache/       # Caching infrastructure
-  exception/   # Exception handling
-  id/          # ID generation (TSID utilities)
-  security/    # Security filters and augmentors
+api/                    # REST controllers (resources)
+  assets/               # Asset upload/download endpoints
+    AssetResource.java            # Upload assets to team
+    DownloadPublicAssetResource.java
+    DownloadTeamAssetResource.java
+  config/               # Config endpoints
+  posts/                # Post endpoints
+  publications/         # Cross-entity publication feed
+    PublicationResource.java      # Global publication feed
+    TeamPublicationResource.java  # Team publication feed
+  rides/                # Ride endpoints
+  routes/               # Route endpoints
+  teams/                # Team + member endpoints
+  users/                # User profile endpoints
+
+dto/                    # Request/response objects
+  common/
+    response/           # Shared DTOs (AssetDto, AssetsDto, MediaDto)
+  config/               # Config DTOs
+  error/                # Error response DTOs
+  posts/
+    request/            # PostRequest
+    response/           # PostDto, PostListResponse
+  publications/
+    response/           # PublicationDto, PublicationListResponse
+  rides/
+    request/            # RideRequest, GroupRequest
+    response/           # RideDto, RideListResponse, RideGroupDto
+  routes/
+    request/            # RouteRequest
+    response/           # RouteDto, RouteDetailDto, RouteListResponse
+  teams/
+    request/            # TeamRequest, AddMemberRequest
+    response/           # TeamDetailDto, TeamListResponse, MemberDto
+  users/
+    request/            # UpdateUserRequest
+    response/           # UserDto, PublicUserDto
+  validation/           # OpenApiValidator
+
+domain/                 # Core business entities (JPA/Panache)
+  asset/
+    Asset.java          # File asset entity
+    repository/         # AssetRepository
+  common/
+    BaseEntity.java     # Base with TSID, timestamps, soft delete
+    Publication.java    # Interface for publishable entities
+    TeamEntity.java     # Base for team-owned entities with slug
+    SearchClause.java   # Query building helper
+    query/              # TriblyQuery, Clause builders (And/Or/Simple)
+    repository/         # BaseRepository, TeamEntityRepository, etc.
+  post/                 # Post entity + repository
+  ride/                 # Ride, RideGroup, RideParticipation + repositories
+  route/                # Route, RouteClimb, GpxTrack + repositories
+  team/                 # Team, UserTeam (membership) + repositories
+  user/                 # User entity + repository
+
+service/                # Business logic services
+  asset/
+    AssetService.java   # File storage, URL generation
+    response/           # FileResult, AssetWithFile
+  auth/                 # KeycloakConfig
+  common/
+    PublicationService.java    # Cross-entity publication queries
+    SlugService.java           # Slug generation
+    TeamEntityService.java     # Shared team entity operations
+  config/               # ConfigService
+  post/                 # PostService, PostPublishScheduler
+  ride/                 # RideService, RidePublishScheduler
+  route/
+    GpxProcessingService.java  # GPX parsing, elevation, climbs
+    RouteService.java          # Route CRUD
+    response/                  # ProcessedGpx, RouteMetadata
+  security/             # TeamSecurityService
+  team/
+    TeamService.java           # Team CRUD
+    TeamMembershipService.java # Join/leave, role management
+    response/                  # TeamAndRole
+  user/                 # UserService, UserSyncService
+
+enums/                  # Shared enumerations
+  AssetType.java        # LOGO, IMAGE, VIDEO, ATTACHMENT, GPX, etc.
+  ClimbCategory.java    # HC, 1, 2, 3, 4
+  Status.java           # DRAFT, PUBLISHED
+  SurfaceType.java      # ROAD, GRAVEL, MTB, MIXED
+  TeamRole.java         # ADMIN, MEMBER
+  Visibility.java       # PUBLIC, TEAM
+
+infrastructure/         # Cross-cutting concerns
+  cache/                # CacheFolderProviderImpl
+  exception/            # BusinessException, GlobalExceptionMapper
+  id/                   # TsidUtils
+  security/             # UserSecurityIdentityAugmentor
 ```
 
 **Key patterns:**
 - Panache Active Record pattern for repositories (`extends PanacheRepository<Entity>`)
-- DTOs separate from domain entities
+- DTOs organized by domain with separate `request/` and `response/` subdirectories
+- `TeamEntity` base class for team-owned entities with slug, visibility, status
+- `Publication` interface for entities that appear in feeds (rides, posts)
 - Services contain business logic, controllers are thin
+- Query builders in `domain/common/query/` for flexible filtering
 - Flyway migrations in `src/main/resources/db/migration/`
 
 ### Frontend Structure (`frontend/src/`)
 
 ```
-api/           # API client (generated from OpenAPI)
-components/    # Reusable React components
-pages/         # Route-level page components
-hooks/         # Custom React hooks
-store/         # Zustand state stores
-config/        # App configuration
-utils/         # Utility functions
+api/                    # API client (generated from OpenAPI via pnpm generate-api)
+  api.ts                # Generated types and API classes
+
+components/             # Reusable React components by domain
+  auth/                 # Auth-related components (ProtectedRoute)
+  common/               # Shared UI components
+    card/               # Card components for entity displays
+    Breadcrumb.tsx      # Navigation breadcrumbs
+    ConfirmDialog.tsx   # Modal confirmation dialogs
+    ErrorBoundary.tsx   # React error boundary
+    Layout.tsx          # Main app layout with navigation
+    LoadingSpinner.tsx  # Loading indicators
+    MarkdownDisplay.tsx # Render markdown (preview or full)
+    MarkdownEditor.tsx  # Lexical-based markdown editor
+    MediaDisplay.tsx    # Display MediaDto with attachments
+    MediaEditor.tsx     # Edit MediaDto with file uploads
+    Pagination.tsx      # Pagination controls
+    SearchInput.tsx     # Reusable search input
+    Toast.tsx           # Notification toasts
+    UserAutocomplete.tsx# User search/select
+    UserAvatar.tsx      # User avatar display
+  post/                 # Post components (PostCard, PostEditor)
+  ride/                 # Ride components (RideCard, RideEditor)
+  route/                # Route components (RouteCard, RouteEditor, RoutePreview)
+  team/                 # Team components (TeamForm, TeamLayout)
+
+config/                 # App configuration
+  configService.ts      # Fetch config from /api/config
+
+hooks/                  # Custom React hooks (React Query wrappers)
+  useAllPublications.ts # Global publication feed
+  useAuth.ts            # Auth state and operations
+  useBreadcrumb.ts      # Dynamic breadcrumb management
+  useNotification.ts    # Toast notifications
+  usePagination.ts      # Pagination state
+  usePost.ts            # Post CRUD operations
+  usePublications.ts    # Team publication feed
+  useRide.ts            # Ride CRUD and participation
+  useRoute.ts           # Route CRUD operations
+  useTeam.ts            # Team CRUD and membership
+  useUserSearch.ts      # User search for autocomplete
+
+i18n/                   # Internationalization setup
+  index.ts              # i18next configuration
+
+lib/                    # Utilities and API client setup
+  apiClient.ts          # API client instances with auth interceptor
+  apiUtils.ts           # Helper functions (defaultMedia, etc.)
+
+locales/                # Translation files
+  en/                   # English translations
+  fr/                   # French translations (default)
+
+pages/                  # Route-level page components
+  auth/                 # Login, callback pages
+  home/                 # Home page with publication feed
+  post/                 # Post list, detail, create, edit pages
+  publication/          # Publication feed pages
+  ride/                 # Ride list, detail, create, edit pages
+  route/                # Route list, detail, create, edit pages
+  team/                 # Team list, detail, settings, members pages
+
+store/                  # Zustand state stores
+  authStore.ts          # Auth state (user, token, Keycloak)
+  notificationStore.ts  # Toast notification state
+
+styles/                 # Global CSS
+  index.css             # Tailwind imports and custom styles
+
+test/                   # Test utilities and setup
+
+utils/                  # Utility functions
+  dateFormat.ts         # Date formatting helpers
 ```
 
 ### Contract-First Development
@@ -786,6 +912,122 @@ Both `RideCard` and `PostCard` components support cross-team display with the `s
   {/* Publication card */}
   <RideCard ride={publication} teamSlug={publication.team.slug} showTypeBadge />
 </div>
+```
+
+## Assets and File Attachments
+
+The project uses a unified media system with `MediaDto` that contains both markdown content and file assets (attachments, images, videos, GPX files, etc.).
+
+### Data Structure
+
+```typescript
+// Core types from OpenAPI-generated API
+interface AssetDto {
+  id: string           // TSID
+  fileName: string     // Original filename
+  url: string          // Download URL
+}
+
+interface AssetsDto {
+  attachments?: AssetDto[]  // File attachments
+  images?: AssetDto[]       // Image files
+  videos?: AssetDto[]       // Video files
+  logo?: AssetDto           // Team/entity logo
+  originalGpx?: AssetDto    // Original uploaded GPX
+  gpx?: AssetDto            // Processed GPX
+  fit?: AssetDto            // FIT file
+  thumbnail?: AssetDto      // Preview thumbnail
+}
+
+interface MediaDto {
+  markdown?: string    // Markdown content
+  assets: AssetsDto    // Associated assets
+}
+```
+
+### Component Architecture
+
+**MediaEditor** (`frontend/src/components/common/MediaEditor.tsx`):
+- Wraps `MarkdownEditor` for markdown editing
+- Accepts `teamSlug?: string` prop for file uploads
+- **When `teamSlug` is undefined**: Attachments section is hidden (e.g., during team creation)
+- **When `teamSlug` is provided**: Shows attachment list + upload button
+
+**MediaDisplay** (`frontend/src/components/common/MediaDisplay.tsx`):
+- Wraps `MarkdownDisplay` for rendering markdown
+- Displays attachments section with download links when `media.assets.attachments` has items
+
+### Usage Pattern
+
+```tsx
+// Editor - always pass teamSlug when available
+<MediaEditor
+  initialValue={media}
+  onChange={setMedia}
+  placeholder={t('form.description')}
+  minHeight="150px"
+  maxHeight="300px"
+  disabled={isPending}
+  ariaLabel={t('form.description')}
+  teamSlug={teamSlug}  // Required for uploads - omit during team creation
+/>
+
+// Display - just pass the media object
+<MediaDisplay media={ride.media} />
+```
+
+### File Upload Flow
+
+1. User clicks "Add attachment" button
+2. File input triggers `handleFileSelect`
+3. Calls `assetsApi.uploadAsset(teamSlug, file)` - returns `AssetDto`
+4. Adds new asset to `assets.attachments` array
+5. Calls `onChange` with updated `MediaDto`
+
+```typescript
+import { assetsApi, unwrapResponse } from '../../lib/apiClient'
+
+const asset = await unwrapResponse(assetsApi.uploadAsset(teamSlug, file))
+// asset: { id: "0h4a8xzk8jv80", fileName: "document.pdf", url: "https://..." }
+```
+
+### i18n Keys
+
+Translations in `common.json` under `attachments`:
+
+```json
+{
+  "attachments": {
+    "title": "Attachments",
+    "add": "Add attachment",
+    "remove": "Remove",
+    "uploading": "Uploading...",
+    "uploadError": "Error uploading file"
+  }
+}
+```
+
+### Consumer Components
+
+Components that use `MediaEditor` must pass `teamSlug`:
+- `PostEditor.tsx` - has `teamSlug` prop
+- `RideEditor.tsx` - has `teamSlug` prop
+- `RouteEditor.tsx` - has `teamSlug` prop
+- `TeamForm.tsx` - has optional `teamSlug` prop (undefined during creation)
+
+### Backend Endpoint
+
+```java
+// AssetResource.java
+@POST
+@Path("/api/teams/{teamSlug}/assets")
+@Consumes(MediaType.MULTIPART_FORM_DATA)
+public Response uploadAsset(
+    @PathParam("teamSlug") String teamSlug,
+    @RestForm("file") FileUpload file
+) {
+    // Returns AssetDto with id, fileName, url
+}
 ```
 
 ## Development URLs
