@@ -28,7 +28,15 @@ public class PublicationService extends TeamEntityService {
       int size) {
     TriblyPage<Publication> publications =
         allPublicationRepository.find(
-            new TeamEntityQueryBasic(userId, teamSlugs, null, search, from, to, page, size));
+            TeamEntityQueryBasic.builder()
+                .userId(userId)
+                .teamSlugs(teamSlugs)
+                .search(search)
+                .from(from)
+                .to(to)
+                .page(page)
+                .size(size)
+                .build());
     List<PublicationDto> dtos = publications.items().stream().map(PublicationDto::from).toList();
     return new PublicationListResponse(dtos, publications.total(), page, size);
   }

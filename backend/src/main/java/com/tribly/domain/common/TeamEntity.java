@@ -51,6 +51,10 @@ public abstract class TeamEntity extends BaseEntity {
   @Column(name = "status", length = 20)
   protected Status status = Status.PUBLISHED;
 
+  @Nullable
+  @Column(name = "publish_at")
+  protected Instant publishAt;
+
   @NotBlank
   @Size(max = 255)
   @Column(name = "name", nullable = false)

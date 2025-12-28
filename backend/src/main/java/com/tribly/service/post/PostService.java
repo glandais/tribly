@@ -47,7 +47,15 @@ public class PostService extends TeamEntityService {
       int size) {
     TriblyPage<Post> posts =
         postRepository.find(
-            new TeamEntityQueryBasic(userId, Set.of(teamSlug), null, search, from, to, page, size));
+            TeamEntityQueryBasic.builder()
+                .userId(userId)
+                .teamSlugs(Set.of(teamSlug))
+                .search(search)
+                .from(from)
+                .to(to)
+                .page(page)
+                .size(size)
+                .build());
     List<PostDto> dtos = posts.items().stream().map(PostDto::from).toList();
     return new PostListResponse(dtos, posts.total(), page, size);
   }
@@ -55,7 +63,13 @@ public class PostService extends TeamEntityService {
   protected Post getPost(String teamSlug, String postSlug, @Nullable Long userId) {
     TriblyPage<Post> posts =
         postRepository.find(
-            new TeamEntityQueryBasic(userId, Set.of(teamSlug), postSlug, null, null, null, 0, 1));
+            TeamEntityQueryBasic.builder()
+                .userId(userId)
+                .teamSlugs(Set.of(teamSlug))
+                .slug(postSlug)
+                .page(0)
+                .size(1)
+                .build());
     if (posts.items().isEmpty()) {
       throw BusinessException.notFound("Post", postSlug);
     } else {

@@ -175,7 +175,12 @@ public class RouteService extends TeamEntityService {
   private Route getRouteEntity(String teamSlug, String routeSlug, @Nullable Long userId) {
     TriblyPage<Route> routes =
         routeRepository.find(
-            new TeamEntityQueryBasic(userId, Set.of(teamSlug), routeSlug, null, null, null, 0, 1));
+            TeamEntityQueryBasic.builder()
+                .userId(userId)
+                .teamSlugs(Set.of(teamSlug))
+                .slug(routeSlug)
+                .size(1)
+                .build());
     if (routes.items().isEmpty()) {
       throw BusinessException.notFound("Route", routeSlug);
     } else {
@@ -190,8 +195,13 @@ public class RouteService extends TeamEntityService {
       String teamSlug, @Nullable Long userId, int page, int size, @Nullable String search) {
     TriblyPage<Route> routes =
         routeRepository.find(
-            new TeamEntityQueryBasic(
-                userId, Set.of(teamSlug), null, search, null, null, page, size));
+            TeamEntityQueryBasic.builder()
+                .userId(userId)
+                .teamSlugs(Set.of(teamSlug))
+                .search(search)
+                .page(page)
+                .size(size)
+                .build());
     List<RouteDto> dtos = routes.items().stream().map(RouteDto::from).toList();
     return new RouteListResponse(dtos, routes.total(), page, size);
   }

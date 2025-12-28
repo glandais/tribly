@@ -1,8 +1,10 @@
 package com.tribly.domain.team.repository;
 
 import com.tribly.domain.common.repository.PageInterface;
+import lombok.Builder;
 import org.jspecify.annotations.Nullable;
 
+@Builder
 public record TeamQuery(
     int page,
     int size,

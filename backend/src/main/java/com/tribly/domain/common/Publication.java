@@ -14,10 +14,6 @@ import org.jspecify.annotations.Nullable;
 @Entity
 public abstract class Publication extends TeamEntity {
 
-  @Nullable
-  @Column(name = "publish_at")
-  protected Instant publishAt;
-
   public Publication() {}
 
   public Publication(Team team, User createdBy, String name, String slug, Instant dateTime) {

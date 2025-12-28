@@ -93,7 +93,7 @@ class TeamRepositoryTest {
     dataService.createTeam("Public Team", "public-team", Visibility.PUBLIC);
     dataService.createTeam("Private Team", "private-team", Visibility.TEAM);
 
-    TeamQuery query = new TeamQuery(0, 10, null, null, null, null);
+    TeamQuery query = TeamQuery.builder().page(0).size(10).build();
     TriblyPage<TeamAndRole> result = teamRepository.find(query);
 
     assertEquals(1, result.items().size());

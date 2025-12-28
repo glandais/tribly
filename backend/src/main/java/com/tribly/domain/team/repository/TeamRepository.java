@@ -67,7 +67,8 @@ public class TeamRepository implements BaseRepository<Team> {
   }
 
   public Optional<TeamAndRole> findOne(String slug, @Nullable Long userId) {
-    TriblyPage<TeamAndRole> page = find(new TeamQuery(0, 1, slug, userId, null, null));
+    TriblyPage<TeamAndRole> page =
+        find(TeamQuery.builder().userId(userId).slug(slug).page(0).size(1).build());
     if (page.items().isEmpty()) {
       return Optional.empty();
     } else {

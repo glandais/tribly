@@ -76,6 +76,10 @@ public interface TeamEntityRepository<T extends TeamEntity, Q extends TeamEntity
     if (slug != null) {
       triblyQuery = triblyQuery.and("te.slug = :slug", Map.of("slug", slug));
     }
+    Long id = query.id();
+    if (id != null) {
+      triblyQuery = triblyQuery.and("te.id = :id", Map.of("id", id));
+    }
     triblyQuery =
         SearchClause.addSearch(triblyQuery, Set.of("te.name", "te.description"), query.search());
 

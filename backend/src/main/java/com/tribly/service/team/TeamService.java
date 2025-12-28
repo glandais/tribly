@@ -74,7 +74,14 @@ public class TeamService {
       int page,
       int size) {
     TriblyPage<TeamAndRole> teams =
-        teamRepository.find(new TeamQuery(page, size, null, userId, member, search));
+        teamRepository.find(
+            TeamQuery.builder()
+                .userId(userId)
+                .member(member)
+                .search(search)
+                .page(page)
+                .size(size)
+                .build());
     List<TeamDetailDto> dtos = teams.items().stream().map(TeamDetailDto::from).toList();
     return new TeamListResponse(dtos, teams.total(), page, size);
   }

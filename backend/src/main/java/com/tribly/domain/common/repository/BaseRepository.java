@@ -12,6 +12,9 @@ public interface BaseRepository<T> extends PanacheRepository<T> {
   }
 
   default <X> TriblyPage<X> getPage(PanacheQuery<X> panacheQuery, int page, int size) {
+    if (size == 0) {
+      size = 20;
+    }
     return new TriblyPage<>(panacheQuery.page(page, size).list(), panacheQuery.count());
   }
 
