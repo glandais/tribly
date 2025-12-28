@@ -7,6 +7,7 @@ import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { RideEditor } from '../../components/ride/RideEditor'
 import type { RideFormData } from '../../components/ride/RideEditor'
 import { toDateTimeLocalValue } from '../../utils/dateFormat'
+import { defaultMedia } from '@/lib/apiUtils'
 
 export function CreateRidePage() {
   const { t } = useTranslation('rides')
@@ -43,7 +44,7 @@ export function CreateRidePage() {
   // Prepare initial values for create mode
   const initialValues = {
     name: '',
-    media: { markdown: '', assets: [] },
+    media: defaultMedia(),
     dateTime: getNextSunday(),
     visibility: team.visibility === Visibility.Team ? Visibility.Team : Visibility.Public,
     status: Status.Draft,

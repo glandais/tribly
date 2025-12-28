@@ -117,11 +117,7 @@ public class RouteResource extends AbstractAuthenticatedResource {
 
     RouteDto route =
         routeService.createRoute(
-            teamSlug,
-            routeRequest,
-            new FileInputStream(gpxFile.filePath().toFile()),
-            gpxFile.fileName(),
-            userId);
+            teamSlug, routeRequest, new FileInputStream(gpxFile.filePath().toFile()), userId);
 
     return Response.created(URI.create("/api/teams/" + teamSlug + "/routes/" + route.slug()))
         .entity(route)

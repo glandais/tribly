@@ -68,7 +68,10 @@ public class TeamSecurityService {
    * @return the membership
    * @throws BusinessException with FORBIDDEN if not a member
    */
-  public UserTeam requireMembership(Long userId, String teamSlug) {
+  public UserTeam requireMembership(@Nullable Long userId, String teamSlug) {
+    if (userId == null) {
+      throw BusinessException.forbidden("You are not a member of this team");
+    }
     return userTeamRepository
         .findByUserAndTeam(userId, teamSlug)
         .orElseThrow(() -> BusinessException.forbidden("You are not a member of this team"));
@@ -105,7 +108,7 @@ public class TeamSecurityService {
    * @param teamSlug the team slug
    * @throws BusinessException with FORBIDDEN
    */
-  public void requireOrganizer(Long userId, String teamSlug) {
+  public void requireOrganizer(@Nullable Long userId, String teamSlug) {
     UserTeam membership = requireMembership(userId, teamSlug);
     if (!membership.isOrganizer()) {
       throw BusinessException.forbidden("Not organizer");

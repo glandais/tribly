@@ -6,7 +6,7 @@ import com.tribly.domain.ride.Ride;
 import com.tribly.domain.ride.RideGroup;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
-import com.tribly.dto.common.MediaDto;
+import com.tribly.dto.common.response.MediaDto;
 import com.tribly.dto.rides.request.GroupRequest;
 import com.tribly.dto.rides.request.RideRequest;
 import com.tribly.dto.rides.response.*;
@@ -308,9 +308,8 @@ class RideServiceTest {
     RideDto result = rideService.createRide("test-team", request, organizer.getId());
 
     assertEquals("Group Ride", result.getName());
-    RideGroupListResponse groups =
-        rideService.listGroups("test-team", result.getSlug(), organizer.getId());
-    assertEquals(2, groups.data().size());
+    List<RideGroupDto> groups = result.getGroups();
+    assertEquals(2, groups.size());
   }
 
   @Test
@@ -565,20 +564,22 @@ class RideServiceTest {
     dataService.createRideGroup(admin, ride, "Group 1", 2);
     dataService.createRideGroup(admin, ride, "Group 2", 1);
 
-    RideGroupListResponse result = rideService.listGroups("test-team", "test", null);
+    RideDto rideDto = rideService.getRideDetail(team.getSlug(), ride.getSlug(), admin.getId());
+    List<RideGroupDto> groups = rideDto.getGroups();
 
-    assertEquals(2, result.data().size());
-    assertEquals("Group 2", result.data().get(0).name());
-    assertEquals("Group 1", result.data().get(1).name());
+    assertEquals(2, groups.size());
+    assertEquals("Group 2", groups.get(0).name());
+    assertEquals("Group 1", groups.get(1).name());
   }
 
   @Test
   void listGroups_shouldReturnEmptyForNoGroups() {
-    dataService.createRide(team, admin, "Test", "test", Instant.now());
+    Ride ride = dataService.createRide(team, admin, "Test", "test", Instant.now());
 
-    RideGroupListResponse result = rideService.listGroups("test-team", "test", null);
+    RideDto rideDto = rideService.getRideDetail(team.getSlug(), ride.getSlug(), admin.getId());
 
-    assertEquals(0, result.data().size());
+    assertEquals(0, rideDto.getGroups().size());
+    assertEquals(0, rideDto.getGroupCount());
   }
 
   // ==================== Join Group ====================

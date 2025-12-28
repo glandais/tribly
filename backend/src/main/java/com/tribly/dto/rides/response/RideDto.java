@@ -1,14 +1,17 @@
 package com.tribly.dto.rides.response;
 
 import com.tribly.domain.ride.Ride;
-import com.tribly.dto.common.MediaDto;
+import com.tribly.domain.ride.RideGroup;
+import com.tribly.dto.common.response.MediaDto;
 import com.tribly.dto.publications.response.PublicationDto;
 import com.tribly.dto.publications.response.PublicationType;
 import com.tribly.dto.publications.response.TeamPublicationDto;
 import com.tribly.enums.Status;
 import com.tribly.enums.Visibility;
 import com.tribly.infrastructure.id.TsidUtils;
+import com.tribly.service.asset.AssetService;
 import java.time.Instant;
+import java.util.Comparator;
 import java.util.List;
 import lombok.Getter;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
@@ -99,17 +102,21 @@ public class RideDto implements PublicationDto {
     this.groups = groups;
   }
 
-  public static RideDto from(Ride ride, boolean groupDetails) {
+  public static RideDto from(Ride ride, boolean groupDetails, AssetService assetService) {
     List<RideGroupDto> groupDtos =
         groupDetails
-            ? ride.getGroups().stream().filter(g -> !g.isDeleted()).map(RideGroupDto::from).toList()
+            ? ride.getGroups().stream()
+                .filter(g -> !g.isDeleted())
+                .sorted(Comparator.comparing(RideGroup::getSortOrder))
+                .map(RideGroupDto::from)
+                .toList()
             : List.of();
     return new RideDto(
         TeamPublicationDto.from(ride.getTeam()),
         TsidUtils.toString(ride.getId()),
         ride.getSlug(),
         ride.getName(),
-        MediaDto.from(ride),
+        MediaDto.from(ride, assetService),
         ride.getDateTime(),
         ride.getStatus(),
         ride.getVisibility(),

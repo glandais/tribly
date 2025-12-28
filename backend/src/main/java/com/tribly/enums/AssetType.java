@@ -1,12 +1,19 @@
 package com.tribly.enums;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
+@Getter
+@RequiredArgsConstructor
 public enum AssetType {
-  LOGO,
-  IMAGE,
-  VIDEO,
-  ATTACHMENT,
-  TRACK_ORIGINAL_GPX,
-  TRACK_FILTERED_GPX,
-  TRACK_FIT,
-  TRACK_THUMBNAIL
+  LOGO(false),
+  IMAGE(false),
+  VIDEO(false),
+  ATTACHMENT(false),
+  ROUTE_ORIGINAL_GPX(true),
+  ROUTE_FILTERED_GPX(true),
+  ROUTE_FIT(true),
+  ROUTE_THUMBNAIL(true);
+
+  final boolean system;
 }

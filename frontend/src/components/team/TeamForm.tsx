@@ -6,6 +6,7 @@ import { LoadingSpinner } from '../common/LoadingSpinner'
 import { ApiClientError } from '../../lib/apiClient'
 import { Visibility, TeamDetailDto, MediaDto } from '../../api/api'
 import { MarkdownEditor } from '../common/MarkdownEditor'
+import { defaultMedia } from '@/lib/apiUtils'
 
 interface TeamFormProps {
   // Data
@@ -28,7 +29,7 @@ interface TeamFormProps {
 export function TeamForm({
   teamSlug,
   initialName = '',
-  initialMedia = { markdown: '', assets: [] },
+  initialMedia = defaultMedia(),
   initialVisibility = Visibility.Public,
   onSuccess,
   submitButtonText,

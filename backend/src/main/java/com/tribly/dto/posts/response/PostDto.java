@@ -1,13 +1,14 @@
 package com.tribly.dto.posts.response;
 
 import com.tribly.domain.post.Post;
-import com.tribly.dto.common.MediaDto;
+import com.tribly.dto.common.response.MediaDto;
 import com.tribly.dto.publications.response.PublicationDto;
 import com.tribly.dto.publications.response.PublicationType;
 import com.tribly.dto.publications.response.TeamPublicationDto;
 import com.tribly.enums.Status;
 import com.tribly.enums.Visibility;
 import com.tribly.infrastructure.id.TsidUtils;
+import com.tribly.service.asset.AssetService;
 import java.time.Instant;
 import lombok.Getter;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
@@ -77,13 +78,13 @@ public class PostDto implements PublicationDto {
     this.createdAt = createdAt;
   }
 
-  public static PostDto from(Post post) {
+  public static PostDto from(Post post, AssetService assetService) {
     return new PostDto(
         TeamPublicationDto.from(post.getTeam()),
         TsidUtils.toString(post.getId()),
         post.getSlug(),
         post.getName(),
-        MediaDto.from(post),
+        MediaDto.from(post, assetService),
         post.getDateTime(),
         post.getStatus(),
         post.getVisibility(),

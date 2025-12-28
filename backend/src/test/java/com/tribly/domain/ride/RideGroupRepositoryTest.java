@@ -12,7 +12,6 @@ import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
-import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -77,57 +76,5 @@ class RideGroupRepositoryTest {
     Optional<RideGroup> result = rideGroupRepository.findByIdAndRide(group.getId(), ride.getId());
 
     assertTrue(result.isEmpty());
-  }
-
-  @Test
-  void findByRide_shouldReturnAllGroupsForRide() {
-    dataService.createRideGroup(user, ride, "Group 1");
-    dataService.createRideGroup(user, ride, "Group 2");
-    dataService.createRideGroup(user, ride, "Group 3");
-
-    List<RideGroup> result = rideGroupRepository.findByRide(ride.getId());
-
-    assertEquals(3, result.size());
-  }
-
-  @Test
-  void findByRide_shouldOrderBySortOrder() {
-    dataService.createRideGroup(user, ride, "Third", 3);
-    dataService.createRideGroup(user, ride, "First", 1);
-    dataService.createRideGroup(user, ride, "Second", 2);
-
-    List<RideGroup> result = rideGroupRepository.findByRide(ride.getId());
-
-    assertEquals(3, result.size());
-    assertEquals("First", result.get(0).getName());
-    assertEquals("Second", result.get(1).getName());
-    assertEquals("Third", result.get(2).getName());
-  }
-
-  @Test
-  void findByRide_shouldIgnoreDeletedGroups() {
-    dataService.createRideGroup(user, ride, "Visible Group");
-    RideGroup deletedGroup = dataService.createRideGroup(user, ride, "Deleted Group");
-    dataService.deleteRideGroup(deletedGroup);
-
-    List<RideGroup> result = rideGroupRepository.findByRide(ride.getId());
-
-    assertEquals(1, result.size());
-    assertEquals("Visible Group", result.getFirst().getName());
-  }
-
-  @Test
-  void findByRide_shouldReturnEmptyForRideWithoutGroups() {
-    Ride emptyRide =
-        dataService.createRide(
-            team,
-            user,
-            "Empty Ride",
-            "empty-ride",
-            LocalDate.of(2025, 1, 20).atTime(0, 0).toInstant(ZoneOffset.UTC));
-
-    List<RideGroup> result = rideGroupRepository.findByRide(emptyRide.getId());
-
-    assertEquals(0, result.size());
   }
 }

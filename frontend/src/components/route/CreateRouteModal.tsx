@@ -5,6 +5,7 @@ import { RouteEditor } from './RouteEditor'
 import type { RouteFormData } from './RouteEditor'
 import { useCreateRoute, SurfaceType } from '../../hooks/useRoute'
 import { Visibility } from '../../api/api'
+import { defaultMedia } from '@/lib/apiUtils'
 
 interface CreateRouteModalProps {
   isOpen: boolean
@@ -20,7 +21,7 @@ export function CreateRouteModal({ isOpen, onClose, onRouteCreated, team }: Crea
   // Prepare initial values for create mode
   const initialValues = {
     name: '',
-    media: { markdown: '', assets: [] },
+    media: defaultMedia(),
     surfaceType: SurfaceType.Road,
     visibility: team.visibility === Visibility.Team ? Visibility.Team : Visibility.Public,
   }

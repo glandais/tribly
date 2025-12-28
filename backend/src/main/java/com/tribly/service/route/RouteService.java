@@ -1,5 +1,8 @@
 package com.tribly.service.route;
 
+import com.tribly.domain.asset.Asset;
+import com.tribly.domain.asset.repository.AssetRepository;
+import com.tribly.domain.common.TeamEntity;
 import com.tribly.domain.common.repository.TeamEntityQueryBasic;
 import com.tribly.domain.common.repository.TriblyPage;
 import com.tribly.domain.route.GpxTrack;
@@ -9,22 +12,20 @@ import com.tribly.domain.route.repository.GpxTrackRepository;
 import com.tribly.domain.route.repository.RouteClimbRepository;
 import com.tribly.domain.route.repository.RouteRepository;
 import com.tribly.domain.team.Team;
-import com.tribly.domain.team.repository.TeamRepository;
 import com.tribly.domain.user.User;
-import com.tribly.domain.user.repository.UserRepository;
+import com.tribly.dto.common.response.MediaDto;
 import com.tribly.dto.routes.request.RouteRequest;
-import com.tribly.dto.routes.response.*;
+import com.tribly.dto.routes.response.RouteDetailDto;
+import com.tribly.dto.routes.response.RouteDto;
+import com.tribly.dto.routes.response.RouteListResponse;
 import com.tribly.infrastructure.exception.BusinessException;
-import com.tribly.service.common.SlugService;
 import com.tribly.service.common.TeamEntityService;
-import com.tribly.service.route.response.FileResult;
 import com.tribly.service.route.response.ProcessedGpx;
 import com.tribly.service.route.response.RouteMetadata;
 import io.github.glandais.gpx.climb.Climb;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
-import java.io.File;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -48,13 +49,9 @@ public class RouteService extends TeamEntityService {
 
   @Inject RouteClimbRepository routeClimbRepository;
 
-  @Inject TeamRepository teamRepository;
-
-  @Inject UserRepository userRepository;
-
   @Inject GpxProcessingService gpxProcessingService;
 
-  @Inject SlugService slugService;
+  @Inject AssetRepository assetRepository;
 
   /**
    * Create a new route with GPX upload.
@@ -62,8 +59,7 @@ public class RouteService extends TeamEntityService {
    */
   @Transactional
   public RouteDto createRoute(
-      String teamSlug, RouteRequest request, InputStream gpxFile, String fileName, Long creatorId)
-      throws Exception {
+      String teamSlug, RouteRequest request, InputStream gpxFile, Long creatorId) throws Exception {
 
     Team team =
         teamRepository
@@ -84,7 +80,6 @@ public class RouteService extends TeamEntityService {
 
     // Create route entity
     Route route = new Route(creator, team, request.name(), slug, request.visibility());
-    route.setMarkdown(request.media().markdown());
     route.setSurfaceType(request.surfaceType());
 
     // Persist to get ID for file storage
@@ -94,8 +89,9 @@ public class RouteService extends TeamEntityService {
     try {
       // Process GPX file and update route
       processAndUpdateGpx(creator, route, gpxFile);
+      updateMedia(route, request.media());
       routeRepository.persist(route);
-      return RouteDto.from(route);
+      return RouteDto.from(route, assetService);
 
     } catch (Exception e) {
       LOG.errorv("GPX processing failed for route {0}, cleaning up files", route.getId());
@@ -149,14 +145,14 @@ public class RouteService extends TeamEntityService {
    * Get a route by ID with access control.
    */
   public RouteDto getRoute(String teamSlug, String slug, @Nullable Long userId) {
-    return RouteDto.from(getRouteEntity(teamSlug, slug, userId));
+    return RouteDto.from(getRouteEntity(teamSlug, slug, userId), assetService);
   }
 
   public RouteDetailDto getRouteDetail(String teamSlug, String slug, @Nullable Long userId) {
     Route route = getRouteEntity(teamSlug, slug, userId);
     List<RouteClimb> climbs = routeClimbRepository.findByRoute(route.getId());
     GpxTrack gpxTrack = gpxTrackRepository.findByRoute(route.getId());
-    return RouteDetailDto.from(route, climbs, gpxTrack);
+    return RouteDetailDto.from(route, climbs, gpxTrack, assetService);
   }
 
   private Route getRouteEntity(String teamSlug, String routeSlug, @Nullable Long userId) {
@@ -189,7 +185,8 @@ public class RouteService extends TeamEntityService {
                 .page(page)
                 .size(size)
                 .build());
-    List<RouteDto> dtos = routes.items().stream().map(RouteDto::from).toList();
+    List<RouteDto> dtos =
+        routes.items().stream().map(route -> RouteDto.from(route, assetService)).toList();
     return new RouteListResponse(dtos, routes.total(), page, size);
   }
 
@@ -215,7 +212,6 @@ public class RouteService extends TeamEntityService {
 
     // Update basic metadata
     route.setName(request.name());
-    route.setMarkdown(request.media().markdown());
     route.setSurfaceType(request.surfaceType());
     route.setVisibility(request.visibility());
     route.setDateTime(Instant.now());
@@ -251,9 +247,10 @@ public class RouteService extends TeamEntityService {
       }
     }
 
+    updateMedia(route, request.media());
     routeRepository.persist(route);
     LOG.infov("Route {0} updated by user {1}", slug, userId);
-    return RouteDto.from(route);
+    return RouteDto.from(route, assetService);
   }
 
   /**
@@ -275,30 +272,17 @@ public class RouteService extends TeamEntityService {
     LOG.infov("Route {0} deleted by user {1}", slug, userId);
   }
 
-  /**
-   * Get filtered GPX file for download.
-   */
-  public FileResult getFilteredGpxFile(String teamSlug, String slug, @Nullable Long userId) {
-    Route route = getRouteEntity(teamSlug, slug, userId);
-    File gpxFile = gpxProcessingService.getFilteredGpxFile(route);
-    return new FileResult(gpxFile, route.getSlug() + ".gpx");
-  }
-
-  /**
-   * Get FIT file for download.
-   */
-  public FileResult getFitFile(String teamSlug, String slug, @Nullable Long userId) {
-    Route route = getRouteEntity(teamSlug, slug, userId);
-    File fitFile = gpxProcessingService.getFitFile(route);
-    return new FileResult(fitFile, route.getSlug() + ".fit");
-  }
-
-  /**
-   * Get thumbnail image.
-   */
-  public FileResult getThumbnailFile(String teamSlug, String slug, @Nullable Long userId) {
-    Route route = getRouteEntity(teamSlug, slug, userId);
-    File thumbnailFile = gpxProcessingService.getThumbnailFile(route);
-    return new FileResult(thumbnailFile, route.getSlug() + ".png");
+  @Override
+  protected void updateMedia(TeamEntity teamEntity, MediaDto mediaDto) {
+    super.updateMedia(teamEntity, mediaDto);
+    Route route = (Route) teamEntity;
+    for (Asset asset : teamEntity.getAssets()) {
+      switch (asset.getType()) {
+        case ROUTE_ORIGINAL_GPX, ROUTE_FILTERED_GPX -> asset.setFileName(route.getSlug() + ".gpx");
+        case ROUTE_FIT -> asset.setFileName(route.getSlug() + ".png");
+        case ROUTE_THUMBNAIL -> asset.setFileName(route.getSlug() + ".fit");
+      }
+      assetRepository.persist(asset);
+    }
   }
 }

@@ -3,11 +3,12 @@ package com.tribly.dto.routes.response;
 import com.tribly.domain.route.GpxTrack;
 import com.tribly.domain.route.Route;
 import com.tribly.domain.route.RouteClimb;
-import com.tribly.dto.common.MediaDto;
+import com.tribly.dto.common.response.MediaDto;
 import com.tribly.dto.users.response.PublicUserDto;
 import com.tribly.enums.SurfaceType;
 import com.tribly.enums.Visibility;
 import com.tribly.infrastructure.id.TsidUtils;
+import com.tribly.service.asset.AssetService;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
@@ -37,14 +38,15 @@ public record RouteDetailDto(
     @Schema(description = "List of climbs on the route", required = true)
         List<RouteClimbDto> climbs,
     @Schema(description = "Geometry details", required = true) GpxTrackDto track) {
-  public static RouteDetailDto from(Route route, List<RouteClimb> climbs, GpxTrack track) {
+  public static RouteDetailDto from(
+      Route route, List<RouteClimb> climbs, GpxTrack track, AssetService assetService) {
     List<RouteClimbDto> routeClimbDtos = climbs.stream().map(RouteClimbDto::from).toList();
 
     return new RouteDetailDto(
         TsidUtils.toString(route.getId()),
         route.getSlug(),
         route.getName(),
-        MediaDto.from(route),
+        MediaDto.from(route, assetService),
         route.getDistance(),
         route.getElevationGain(),
         route.getElevationLoss(),

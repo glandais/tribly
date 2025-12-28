@@ -1,10 +1,11 @@
 package com.tribly.dto.teams.response;
 
 import com.tribly.domain.team.Team;
-import com.tribly.dto.common.MediaDto;
+import com.tribly.dto.common.response.MediaDto;
 import com.tribly.enums.TeamRole;
 import com.tribly.enums.Visibility;
 import com.tribly.infrastructure.id.TsidUtils;
+import com.tribly.service.asset.AssetService;
 import com.tribly.service.team.response.TeamAndRole;
 import java.time.Instant;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
@@ -20,13 +21,13 @@ public record TeamDetailDto(
     @Schema(description = "Number of team members", required = true) long memberCount,
     @Nullable @Schema(description = "Current user's role (null if not a member)") TeamRole role,
     @Schema(description = "Team creation timestamp", required = true) Instant createdAt) {
-  public static TeamDetailDto from(TeamAndRole teamAndRole) {
+  public static TeamDetailDto from(TeamAndRole teamAndRole, AssetService assetService) {
     Team team = teamAndRole.team();
     return new TeamDetailDto(
         TsidUtils.toString(team.getId()),
         team.getName(),
         team.getSlug(),
-        MediaDto.from(team.getTeamDescription()),
+        MediaDto.from(team.getTeamDescription(), assetService),
         team.getVisibility(),
         teamAndRole.memberCount(),
         teamAndRole.teamRole(),

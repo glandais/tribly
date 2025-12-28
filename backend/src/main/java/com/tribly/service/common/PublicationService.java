@@ -37,7 +37,10 @@ public class PublicationService extends TeamEntityService {
                 .page(page)
                 .size(size)
                 .build());
-    List<PublicationDto> dtos = publications.items().stream().map(PublicationDto::from).toList();
+    List<PublicationDto> dtos =
+        publications.items().stream()
+            .map(publication -> PublicationDto.from(publication, assetService))
+            .toList();
     return new PublicationListResponse(dtos, publications.total(), page, size);
   }
 }

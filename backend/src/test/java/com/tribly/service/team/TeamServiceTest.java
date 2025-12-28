@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
-import com.tribly.dto.common.MediaDto;
+import com.tribly.dto.common.response.MediaDto;
 import com.tribly.dto.teams.request.TeamRequest;
 import com.tribly.dto.teams.response.TeamDetailDto;
 import com.tribly.dto.teams.response.TeamListResponse;

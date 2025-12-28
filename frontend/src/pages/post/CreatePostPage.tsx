@@ -7,6 +7,7 @@ import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { toDateTimeLocalValue } from '../../utils/dateFormat'
 import { PostEditor } from '../../components/post/PostEditor'
 import type { PostFormData } from '../../components/post/PostEditor'
+import { defaultMedia } from '@/lib/apiUtils'
 
 export function CreatePostPage() {
   const { t } = useTranslation('posts')
@@ -33,7 +34,7 @@ export function CreatePostPage() {
   // Prepare initial values for create mode
   const initialValues = {
     name: '',
-    media: { markdown: '', assets: [] },
+    media: defaultMedia(),
     dateTime: toDateTimeLocalValue(new Date()),
     visibility: team.visibility === Visibility.Team ? Visibility.Team : Visibility.Public,
     status: Status.Draft,

@@ -41,6 +41,7 @@ import {
   ArrowUturnRightIcon,
 } from '@heroicons/react/24/outline'
 import { MediaDto } from '@/api'
+import { defaultMedia } from '@/lib/apiUtils'
 
 // Toolbar Component
 function ToolbarPlugin() {
@@ -268,7 +269,7 @@ export interface MarkdownEditorProps {
 }
 
 export function MarkdownEditor({
-  initialValue = { markdown: '', assets: [] },
+  initialValue = defaultMedia(),
   onChange,
   placeholder,
   className = '',
@@ -318,7 +319,7 @@ export function MarkdownEditor({
         editorState.read(() => {
           // Convert Lexical nodes to markdown string
           const markdown = $convertToMarkdownString(TRANSFORMERS)
-          onChange({ markdown, assets: [] })
+          onChange({ markdown, assets: defaultMedia().assets })
         })
       }
     },

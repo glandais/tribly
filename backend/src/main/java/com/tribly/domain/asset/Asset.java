@@ -38,6 +38,9 @@ public class Asset extends BaseEntity {
   @Column(name = "file_name", nullable = false)
   protected String fileName;
 
+  @Column(name = "sort_order", nullable = false)
+  private int sortOrder = 0;
+
   public Asset(User createdBy, Team team, AssetType type, String fileName) {
     super(createdBy);
     this.team = team;

@@ -7,6 +7,7 @@ import { RouteEditor } from '../../components/route/RouteEditor'
 import type { RouteFormData } from '../../components/route/RouteEditor'
 import { useCreateRoute, SurfaceType } from '../../hooks/useRoute'
 import { Visibility } from '../../api/api'
+import { defaultMedia } from '@/lib/apiUtils'
 
 export function CreateRoutePage() {
   const { teamSlug } = useParams<{ teamSlug: string }>()
@@ -53,7 +54,7 @@ export function CreateRoutePage() {
   // Prepare initial values for create mode
   const initialValues = {
     name: '',
-    media: { markdown: '', assets: [] },
+    media: defaultMedia(),
     surfaceType: SurfaceType.Road,
     visibility: team.visibility === Visibility.Team ? Visibility.Team : Visibility.Public,
   }

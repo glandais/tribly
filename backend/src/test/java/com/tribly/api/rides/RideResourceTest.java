@@ -3,7 +3,8 @@ package com.tribly.api.rides;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
-import com.tribly.dto.common.MediaDto;
+import com.tribly.dto.common.response.AssetsDto;
+import com.tribly.dto.common.response.MediaDto;
 import com.tribly.dto.rides.request.GroupRequest;
 import com.tribly.dto.rides.request.RideRequest;
 import com.tribly.dto.rides.response.RideDto;
@@ -45,7 +46,7 @@ class RideResourceTest {
     TeamRequest teamRequest =
         new TeamRequest(
             "Ride Test Team " + System.currentTimeMillis(),
-            new MediaDto(null, List.of()),
+            new MediaDto(null, AssetsDto.builder().build()),
             Visibility.PUBLIC);
     var response =
         given()

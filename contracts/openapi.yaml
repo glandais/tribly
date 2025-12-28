@@ -21,30 +21,60 @@ components:
       type: object
       required:
       - id
-      - type
       - fileName
+      - url
       properties:
         id:
           type: string
           description: ID (TSID)
-        type:
-          description: Type
-          type: string
-          $ref: "#/components/schemas/AssetType"
         fileName:
           type: string
           description: Filename
-    AssetType:
-      type: string
-      enum:
-      - LOGO
-      - IMAGE
-      - VIDEO
-      - ATTACHMENT
-      - TRACK_ORIGINAL_GPX
-      - TRACK_FILTERED_GPX
-      - TRACK_FIT
-      - TRACK_THUMBNAIL
+        url:
+          type: string
+          description: url
+    AssetsDto:
+      type: object
+      properties:
+        logo:
+          description: Logo
+          type: object
+          $ref: "#/components/schemas/AssetDto"
+        images:
+          type: array
+          items:
+            $ref: "#/components/schemas/AssetDto"
+          description: Images
+        videos:
+          type: array
+          items:
+            $ref: "#/components/schemas/AssetDto"
+          description: Videos
+        attachments:
+          type: array
+          items:
+            $ref: "#/components/schemas/AssetDto"
+          description: Attachments
+        originalGpx:
+          description: Original GPX
+          type: object
+          $ref: "#/components/schemas/AssetDto"
+        gpx:
+          description: GPX
+          type: object
+          $ref: "#/components/schemas/AssetDto"
+        fit:
+          description: FIT
+          type: object
+          $ref: "#/components/schemas/AssetDto"
+        thumbnail:
+          description: Thumbnail
+          type: object
+          $ref: "#/components/schemas/AssetDto"
+      required:
+      - images
+      - videos
+      - attachments
     ClimbCategory:
       type: string
       enum:
@@ -217,10 +247,9 @@ components:
           type: string
           description: Markdown
         assets:
-          type: array
-          items:
-            $ref: "#/components/schemas/AssetDto"
           description: Assets
+          type: object
+          $ref: "#/components/schemas/AssetsDto"
       required:
       - assets
     MemberDto:
@@ -1123,7 +1152,7 @@ components:
   securitySchemes:
     SecurityScheme:
       type: openIdConnect
-      openIdConnectUrl: http://localhost:8180/realms/tribly/.well-known/openid-configuration
+      openIdConnectUrl: http://localhost:8180/realms/quarkus/.well-known/openid-configuration
       description: Authentication
 tags:
 - name: Configuration
@@ -1134,8 +1163,6 @@ tags:
   description: Publication listing
 - name: Rides
   description: Ride management and participation operations
-- name: Route Downloads
-  description: Route file downloads and images
 - name: Routes
   description: GPX route management operations
 - name: Team Members

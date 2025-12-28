@@ -1,10 +1,11 @@
 package com.tribly.dto.routes.response;
 
 import com.tribly.domain.route.Route;
-import com.tribly.dto.common.MediaDto;
+import com.tribly.dto.common.response.MediaDto;
 import com.tribly.enums.SurfaceType;
 import com.tribly.enums.Visibility;
 import com.tribly.infrastructure.id.TsidUtils;
+import com.tribly.service.asset.AssetService;
 import java.time.Instant;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 
@@ -23,12 +24,12 @@ public record RouteDto(
     @Schema(description = "Surface type", required = true) SurfaceType surfaceType,
     @Schema(description = "Whether the route is public", required = true) Visibility visibility,
     @Schema(description = "Creation timestamp", required = true) Instant createdAt) {
-  public static RouteDto from(Route route) {
+  public static RouteDto from(Route route, AssetService assetService) {
     return new RouteDto(
         TsidUtils.toString(route.getId()),
         route.getSlug(),
         route.getName(),
-        MediaDto.from(route),
+        MediaDto.from(route, assetService),
         route.getDistance(),
         route.getElevationGain(),
         route.getElevationLoss(),

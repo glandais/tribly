@@ -11,9 +11,7 @@ import com.tribly.domain.ride.repository.RideRepository;
 import com.tribly.domain.route.Route;
 import com.tribly.domain.route.repository.RouteRepository;
 import com.tribly.domain.team.Team;
-import com.tribly.domain.team.repository.TeamRepository;
 import com.tribly.domain.user.User;
-import com.tribly.domain.user.repository.UserRepository;
 import com.tribly.dto.rides.request.GroupRequest;
 import com.tribly.dto.rides.request.RideRequest;
 import com.tribly.dto.rides.response.*;
@@ -21,7 +19,6 @@ import com.tribly.enums.Status;
 import com.tribly.enums.Visibility;
 import com.tribly.infrastructure.exception.BusinessException;
 import com.tribly.infrastructure.id.TsidUtils;
-import com.tribly.service.common.SlugService;
 import com.tribly.service.common.TeamEntityService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -44,13 +41,7 @@ public class RideService extends TeamEntityService {
 
   @Inject RideParticipationRepository participationRepository;
 
-  @Inject TeamRepository teamRepository;
-
-  @Inject UserRepository userRepository;
-
   @Inject RouteRepository routeRepository;
-
-  @Inject SlugService slugService;
 
   public RideListResponse listRides(
       String teamSlug,
@@ -71,7 +62,8 @@ public class RideService extends TeamEntityService {
                 .page(page)
                 .size(size)
                 .build());
-    List<RideDto> dtos = rides.items().stream().map(r -> RideDto.from(r, false)).toList();
+    List<RideDto> dtos =
+        rides.items().stream().map(r -> RideDto.from(r, false, assetService)).toList();
     return new RideListResponse(dtos, rides.total(), page, size);
   }
 
@@ -93,7 +85,7 @@ public class RideService extends TeamEntityService {
   }
 
   public RideDto getRideDetail(String teamSlug, String rideSlug, @Nullable Long userId) {
-    return RideDto.from(getRide(teamSlug, rideSlug, userId), true);
+    return RideDto.from(getRide(teamSlug, rideSlug, userId), true, assetService);
   }
 
   @Transactional
@@ -125,11 +117,13 @@ public class RideService extends TeamEntityService {
     Route route = getRoute(request.routeSlug(), team);
 
     Ride ride = new Ride(creator, team, request.dateTime(), request.name(), slug, visibility);
-    ride.setMarkdown(request.media().markdown());
     ride.setRoute(route);
     ride.setStatus(request.status());
     ride.setPublishAt(request.publishAt());
 
+    rideRepository.persistAndFlush(ride);
+
+    updateMedia(ride, request.media());
     rideRepository.persist(ride);
 
     int sortOrder = 0;
@@ -139,7 +133,7 @@ public class RideService extends TeamEntityService {
     }
 
     LOG.infov("Ride '{0}' created by user {1} for team {2}", ride.getName(), creatorId, teamSlug);
-    return RideDto.from(ride, true);
+    return RideDto.from(ride, true, assetService);
   }
 
   private void createRideGroup(User user, Ride ride, GroupRequest groupRequest, int sortOrder) {
@@ -198,7 +192,6 @@ public class RideService extends TeamEntityService {
     ride.setVisibility(request.visibility());
 
     ride.setName(request.name());
-    ride.setMarkdown(request.media().markdown());
     ride.setDateTime(request.dateTime());
     ride.setStatus(request.status());
     Route route = getRoute(request.routeSlug(), ride.getTeam());
@@ -206,6 +199,7 @@ public class RideService extends TeamEntityService {
     // publishAt can be explicitly set to null to remove scheduled publishing
     ride.setPublishAt(request.publishAt());
 
+    updateMedia(ride, request.media());
     rideRepository.persist(ride);
 
     Map<Long, RideGroup> existingGroups =
@@ -238,7 +232,7 @@ public class RideService extends TeamEntityService {
     }
 
     LOG.infov("Ride {0} updated by user {1}", rideSlug, userId);
-    return RideDto.from(ride, true);
+    return RideDto.from(ride, true, assetService);
   }
 
   @Transactional
@@ -251,13 +245,6 @@ public class RideService extends TeamEntityService {
     ride.setDeleted(true);
     rideRepository.persist(ride);
     LOG.infov("Ride {0} deleted by user {1}", rideSlug, userId);
-  }
-
-  public RideGroupListResponse listGroups(String teamSlug, String rideSlug, @Nullable Long userId) {
-    Ride ride = getRide(teamSlug, rideSlug, userId);
-    List<RideGroup> groups = rideGroupRepository.findByRide(ride.getId());
-    List<RideGroupDto> dtos = groups.stream().map(RideGroupDto::from).toList();
-    return new RideGroupListResponse(dtos);
   }
 
   @Transactional

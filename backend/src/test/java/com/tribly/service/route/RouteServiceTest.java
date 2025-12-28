@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import com.tribly.domain.route.Route;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
-import com.tribly.dto.common.MediaDto;
+import com.tribly.dto.common.response.MediaDto;
 import com.tribly.dto.routes.request.RouteRequest;
 import com.tribly.dto.routes.response.RouteDto;
 import com.tribly.dto.routes.response.RouteListResponse;
@@ -72,8 +72,7 @@ class RouteServiceTest {
             SurfaceType.GRAVEL,
             Visibility.PUBLIC);
 
-    createdRoute =
-        routeService.createRoute("test-team", request, gpxStream, "example.gpx", organizer.getId());
+    createdRoute = routeService.createRoute("test-team", request, gpxStream, organizer.getId());
 
     assertNotNull(createdRoute);
     assertEquals("Test Route", createdRoute.name());
@@ -98,9 +97,7 @@ class RouteServiceTest {
 
     assertThrows(
         BusinessException.class,
-        () ->
-            routeService.createRoute(
-                "test-team", request, gpxStream, "example.gpx", member.getId()));
+        () -> routeService.createRoute("test-team", request, gpxStream, member.getId()));
   }
 
   @Test
@@ -111,9 +108,7 @@ class RouteServiceTest {
 
     assertThrows(
         BusinessException.class,
-        () ->
-            routeService.createRoute(
-                "nonexistent", request, gpxStream, "example.gpx", admin.getId()));
+        () -> routeService.createRoute("nonexistent", request, gpxStream, admin.getId()));
   }
 
   // ==================== Get Route ====================
@@ -275,8 +270,7 @@ class RouteServiceTest {
             Visibility.PUBLIC);
 
     createdRoute =
-        routeService.createRoute(
-            "test-team", createRequest, initialGpx, "example.gpx", organizer.getId());
+        routeService.createRoute("test-team", createRequest, initialGpx, organizer.getId());
 
     int originalDistance = createdRoute.distance();
 
@@ -308,8 +302,7 @@ class RouteServiceTest {
     RouteRequest request =
         new RouteRequest("To Delete", MediaDto.builder().build(), null, Visibility.PUBLIC);
 
-    createdRoute =
-        routeService.createRoute("test-team", request, gpxStream, "example.gpx", admin.getId());
+    createdRoute = routeService.createRoute("test-team", request, gpxStream, admin.getId());
     String routeSlug = getCreatedRouteSlug();
 
     routeService.deleteRoute("test-team", routeSlug, admin.getId());
@@ -329,45 +322,5 @@ class RouteServiceTest {
     assertThrows(
         BusinessException.class,
         () -> routeService.deleteRoute("test-team", route.getSlug(), member.getId()));
-  }
-
-  // ==================== File Downloads ====================
-
-  @Test
-  void getFilteredGpxFile_shouldReturnFileIfExists() throws Exception {
-    InputStream gpxStream = getExampleGpxStream();
-    RouteRequest request =
-        new RouteRequest("Route", MediaDto.builder().build(), null, Visibility.PUBLIC);
-
-    createdRoute =
-        routeService.createRoute("test-team", request, gpxStream, "example.gpx", admin.getId());
-
-    assertDoesNotThrow(
-        () -> routeService.getFilteredGpxFile("test-team", getCreatedRouteSlug(), null));
-  }
-
-  @Test
-  void getFitFile_shouldReturnFileIfExists() throws Exception {
-    InputStream gpxStream = getExampleGpxStream();
-    RouteRequest request =
-        new RouteRequest("Route", MediaDto.builder().build(), null, Visibility.PUBLIC);
-
-    createdRoute =
-        routeService.createRoute("test-team", request, gpxStream, "example.gpx", admin.getId());
-
-    assertDoesNotThrow(() -> routeService.getFitFile("test-team", getCreatedRouteSlug(), null));
-  }
-
-  @Test
-  void getThumbnailFile_shouldReturnFileIfExists() throws Exception {
-    InputStream gpxStream = getExampleGpxStream();
-    RouteRequest request =
-        new RouteRequest("Route", MediaDto.builder().build(), null, Visibility.PUBLIC);
-
-    createdRoute =
-        routeService.createRoute("test-team", request, gpxStream, "example.gpx", admin.getId());
-
-    assertDoesNotThrow(
-        () -> routeService.getThumbnailFile("test-team", getCreatedRouteSlug(), null));
   }
 }

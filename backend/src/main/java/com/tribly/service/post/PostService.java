@@ -5,15 +5,12 @@ import com.tribly.domain.common.repository.TriblyPage;
 import com.tribly.domain.post.Post;
 import com.tribly.domain.post.repository.PostRepository;
 import com.tribly.domain.team.Team;
-import com.tribly.domain.team.repository.TeamRepository;
 import com.tribly.domain.user.User;
-import com.tribly.domain.user.repository.UserRepository;
 import com.tribly.dto.posts.request.PostRequest;
 import com.tribly.dto.posts.response.PostDto;
 import com.tribly.dto.posts.response.PostListResponse;
 import com.tribly.enums.Visibility;
 import com.tribly.infrastructure.exception.BusinessException;
-import com.tribly.service.common.SlugService;
 import com.tribly.service.common.TeamEntityService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -30,12 +27,6 @@ public class PostService extends TeamEntityService {
   private static final Logger LOG = Logger.getLogger(PostService.class);
 
   @Inject PostRepository postRepository;
-
-  @Inject TeamRepository teamRepository;
-
-  @Inject UserRepository userRepository;
-
-  @Inject SlugService slugService;
 
   public PostListResponse listPosts(
       String teamSlug,
@@ -56,7 +47,8 @@ public class PostService extends TeamEntityService {
                 .page(page)
                 .size(size)
                 .build());
-    List<PostDto> dtos = posts.items().stream().map(PostDto::from).toList();
+    List<PostDto> dtos =
+        posts.items().stream().map(post -> PostDto.from(post, assetService)).toList();
     return new PostListResponse(dtos, posts.total(), page, size);
   }
 
@@ -78,7 +70,7 @@ public class PostService extends TeamEntityService {
   }
 
   public PostDto getPostDetail(String teamSlug, String postSlug, @Nullable Long userId) {
-    return PostDto.from(getPost(teamSlug, postSlug, userId));
+    return PostDto.from(getPost(teamSlug, postSlug, userId), assetService);
   }
 
   @Transactional
@@ -108,14 +100,17 @@ public class PostService extends TeamEntityService {
             request.name(), s -> postRepository.existsByTeamAndSlug(team.getId(), s));
 
     Post post = new Post(creator, team, request.dateTime(), request.name(), slug, visibility);
-    post.setMarkdown(request.media().markdown());
     post.setStatus(request.status());
     post.setPublishAt(request.publishAt());
+
+    postRepository.persistAndFlush(post);
+
+    updateMedia(post, request.media());
 
     postRepository.persist(post);
 
     LOG.infov("Post '{0}' created by user {1} for team {2}", post.getName(), creatorId, teamSlug);
-    return PostDto.from(post);
+    return PostDto.from(post, assetService);
   }
 
   @Transactional
@@ -133,16 +128,17 @@ public class PostService extends TeamEntityService {
     post.setVisibility(request.visibility());
 
     post.setName(request.name());
-    post.setMarkdown(request.media().markdown());
     post.setDateTime(request.dateTime());
     post.setStatus(request.status());
     // publishAt can be explicitly set to null to remove scheduled publishing
     post.setPublishAt(request.publishAt());
 
+    updateMedia(post, request.media());
+
     postRepository.persist(post);
 
     LOG.infov("Post {0} updated by user {1}", postSlug, userId);
-    return PostDto.from(post);
+    return PostDto.from(post, assetService);
   }
 
   @Transactional

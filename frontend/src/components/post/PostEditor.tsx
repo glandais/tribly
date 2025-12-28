@@ -6,6 +6,7 @@ import { fromDateTimeLocalValue, toDateTimeLocalValue } from '../../utils/dateFo
 import { LoadingSpinner } from '../common/LoadingSpinner'
 import { MarkdownEditor } from '../common/MarkdownEditor'
 import { Visibility, Status } from '../../hooks/usePost'
+import { defaultMedia } from '@/lib/apiUtils'
 
 export interface PostFormData {
   name: string
@@ -59,7 +60,7 @@ export function PostEditor({
   const { t: tCommon } = useTranslation('common')
 
   const [name, setName] = useState('')
-  const [media, setMedia] = useState<MediaDto>({ markdown: '', assets: [] })
+  const [media, setMedia] = useState<MediaDto>(defaultMedia())
   const [dateTime, setDateTime] = useState('')
   const [visibility, setVisibility] = useState<Visibility>(Visibility.Team)
   const [status, setStatus] = useState<Status>(Status.Draft)

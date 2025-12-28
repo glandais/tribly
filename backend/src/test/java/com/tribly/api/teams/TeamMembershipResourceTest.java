@@ -5,7 +5,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 
 import com.tribly.domain.user.User;
-import com.tribly.dto.common.MediaDto;
+import com.tribly.dto.common.response.MediaDto;
 import com.tribly.dto.teams.request.TeamRequest;
 import com.tribly.enums.Visibility;
 import com.tribly.infrastructure.id.TsidUtils;

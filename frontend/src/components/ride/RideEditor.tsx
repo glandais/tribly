@@ -10,6 +10,7 @@ import { MarkdownEditor } from '../common/MarkdownEditor'
 import { fromDateTimeLocalValue } from '../../utils/dateFormat'
 import type { MediaDto, RouteDto, TeamDetailDto } from '../../api/api'
 import { Visibility, Status } from '../../hooks/useRide'
+import { defaultMedia } from '@/lib/apiUtils'
 
 export interface EditableGroup {
   id?: string
@@ -78,7 +79,7 @@ export function RideEditor({
 
   // Form state
   const [name, setName] = useState('')
-  const [media, setMedia] = useState<MediaDto>({ markdown: '', assets: [] })
+  const [media, setMedia] = useState<MediaDto>(defaultMedia())
   const [dateTime, setDateTime] = useState('')
   const [visibility, setVisibility] = useState<Visibility>(Visibility.Team)
   const [status, setStatus] = useState<Status>(Status.Draft)

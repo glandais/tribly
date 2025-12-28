@@ -54,27 +54,48 @@ export interface AssetDto {
    */
   id: string
   /**
-   * Type
-   */
-  type: AssetType
-  /**
    * Filename
    */
   fileName: string
+  /**
+   * url
+   */
+  url: string
 }
-
-export const AssetType = {
-  Logo: 'LOGO',
-  Image: 'IMAGE',
-  Video: 'VIDEO',
-  Attachment: 'ATTACHMENT',
-  TrackOriginalGpx: 'TRACK_ORIGINAL_GPX',
-  TrackFilteredGpx: 'TRACK_FILTERED_GPX',
-  TrackFit: 'TRACK_FIT',
-  TrackThumbnail: 'TRACK_THUMBNAIL',
-} as const
-
-export type AssetType = (typeof AssetType)[keyof typeof AssetType]
+export interface AssetsDto {
+  /**
+   * Logo
+   */
+  logo?: AssetDto
+  /**
+   * Images
+   */
+  images: Array<AssetDto>
+  /**
+   * Videos
+   */
+  videos: Array<AssetDto>
+  /**
+   * Attachments
+   */
+  attachments: Array<AssetDto>
+  /**
+   * Original GPX
+   */
+  originalGpx?: AssetDto
+  /**
+   * GPX
+   */
+  gpx?: AssetDto
+  /**
+   * FIT
+   */
+  fit?: AssetDto
+  /**
+   * Thumbnail
+   */
+  thumbnail?: AssetDto
+}
 
 export const ClimbCategory = {
   Hc: 'HC',
@@ -216,7 +237,7 @@ export interface MediaDto {
   /**
    * Assets
    */
-  assets: Array<AssetDto>
+  assets: AssetsDto
 }
 /**
  * Team member information

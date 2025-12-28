@@ -11,13 +11,15 @@ CREATE EXTENSION IF NOT EXISTS pg_trgm;
 
 create table assets (
                         deleted boolean not null,
+                        sort_order integer not null,
                         created_at timestamp(6) with time zone not null,
+                        created_by_id bigint not null,
                         id bigint not null,
                         team_entity_id bigint,
                         team_id bigint not null,
                         updated_at timestamp(6) with time zone not null,
                         version bigint,
-                        type varchar(20) not null check ((type in ('LOGO','IMAGE','VIDEO','ATTACHMENT','TRACK_ORIGINAL_GPX','TRACK_FILTERED_GPX','TRACK_FIT','TRACK_THUMBNAIL'))),
+                        type varchar(20) not null check ((type in ('LOGO','IMAGE','VIDEO','ATTACHMENT','ROUTE_ORIGINAL_GPX','ROUTE_FILTERED_GPX','ROUTE_FIT','ROUTE_THUMBNAIL'))),
                         file_name varchar(255) not null,
                         primary key (id)
 );
@@ -25,14 +27,13 @@ create table assets (
 create table gpx_tracks (
                             deleted boolean not null,
                             created_at timestamp(6) with time zone not null,
+                            created_by_id bigint not null,
                             id bigint not null,
                             processed_at timestamp(6) with time zone not null,
                             route_id bigint not null,
                             updated_at timestamp(6) with time zone not null,
                             version bigint,
                             geometry geometry(LineString,4326) not null,
-                            name varchar(255),
-                            original_file_name varchar(255),
                             track_points jsonb not null,
                             primary key (id)
 );
@@ -43,6 +44,7 @@ create table ride_groups (
                              max_participants integer,
                              sort_order integer not null,
                              created_at timestamp(6) with time zone not null,
+                             created_by_id bigint not null,
                              id bigint not null,
                              ride_id bigint not null,
                              route_id bigint,
@@ -55,6 +57,7 @@ create table ride_groups (
 create table ride_participations (
                                      deleted boolean not null,
                                      created_at timestamp(6) with time zone not null,
+                                     created_by_id bigint not null,
                                      id bigint not null,
                                      registered_at timestamp(6) with time zone not null,
                                      ride_group_id bigint not null,
@@ -73,6 +76,7 @@ create table route_climbs (
                               max_gradient numeric(5,2) not null,
                               start_distance integer not null,
                               created_at timestamp(6) with time zone not null,
+                              created_by_id bigint not null,
                               id bigint not null,
                               route_id bigint not null,
                               updated_at timestamp(6) with time zone not null,
@@ -114,6 +118,7 @@ create table team_entities (
 create table teams (
                        deleted boolean not null,
                        created_at timestamp(6) with time zone not null,
+                       created_by_id bigint not null,
                        description_id bigint,
                        id bigint not null,
                        updated_at timestamp(6) with time zone not null,
@@ -127,6 +132,7 @@ create table teams (
 create table user_teams (
                             deleted boolean not null,
                             created_at timestamp(6) with time zone not null,
+                            created_by_id bigint not null,
                             id bigint not null,
                             joined_at timestamp(6) with time zone not null,
                             team_id bigint not null,
@@ -141,6 +147,7 @@ create table user_teams (
 create table users (
                        deleted boolean not null,
                        created_at timestamp(6) with time zone not null,
+                       created_by_id bigint not null,
                        id bigint not null,
                        last_login_at timestamp(6) with time zone,
                        updated_at timestamp(6) with time zone not null,
@@ -176,6 +183,11 @@ create index IDXo3hbo8wlcgmi4dqwrqm9jtm8f
     on teams (slug, deleted);
 
 alter table if exists assets
+    add constraint FKcifafsjy81jtl602qr99flp5u
+    foreign key (created_by_id)
+    references users;
+
+alter table if exists assets
     add constraint FKjr39lgci2ppfv4xnn1lohpb1t
     foreign key (team_id)
     references teams;
@@ -186,9 +198,19 @@ alter table if exists assets
     references team_entities;
 
 alter table if exists gpx_tracks
+    add constraint FKlwsi0pakto3tlsgriae6exsqa
+    foreign key (created_by_id)
+    references users;
+
+alter table if exists gpx_tracks
     add constraint FK8caclj6tlkl3wydyngervcys
     foreign key (route_id)
     references team_entities;
+
+alter table if exists ride_groups
+    add constraint FK8qjxje3lbfu8xlx62gosyert8
+    foreign key (created_by_id)
+    references users;
 
 alter table if exists ride_groups
     add constraint FKrue29m0taoth51b6fw4ct2n37
@@ -201,6 +223,11 @@ alter table if exists ride_groups
     references team_entities;
 
 alter table if exists ride_participations
+    add constraint FKo7ivuecfw1yfyoa5ygbhpgqa7
+    foreign key (created_by_id)
+    references users;
+
+alter table if exists ride_participations
     add constraint FK2lx9qhfwm4uogwj8f2spepcwd
     foreign key (ride_group_id)
     references ride_groups;
@@ -208,6 +235,11 @@ alter table if exists ride_participations
 alter table if exists ride_participations
     add constraint FKfs60sriol494mpo27wwxhrmrn
     foreign key (user_id)
+    references users;
+
+alter table if exists route_climbs
+    add constraint FKcd638rg8p0klb8kwdkbwlwycj
+    foreign key (created_by_id)
     references users;
 
 alter table if exists route_climbs
@@ -231,9 +263,19 @@ alter table if exists team_entities
     references team_entities;
 
 alter table if exists teams
+    add constraint FKcq9jk9qh4ox827y0d161rabce
+    foreign key (created_by_id)
+    references users;
+
+alter table if exists teams
     add constraint FKlorb7wivvrwpknrj7pcc6pqny
     foreign key (description_id)
     references team_entities;
+
+alter table if exists user_teams
+    add constraint FKr2g0ggpshfw7qtfqj311b9xu0
+    foreign key (created_by_id)
+    references users;
 
 alter table if exists user_teams
     add constraint FK2ndqpo9mm1g72f7hvb9daimrd
@@ -243,6 +285,11 @@ alter table if exists user_teams
 alter table if exists user_teams
     add constraint FK5aymw95okwem1l7tmd2owesdh
     foreign key (user_id)
+    references users;
+
+alter table if exists users
+    add constraint FK8nakkftyppd62ke6tv7oo5a92
+    foreign key (created_by_id)
     references users;
 
 -- Teams table indexes for search performance

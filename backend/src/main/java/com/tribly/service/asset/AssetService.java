@@ -3,17 +3,29 @@ package com.tribly.service.asset;
 import com.tribly.domain.asset.Asset;
 import com.tribly.domain.asset.repository.AssetRepository;
 import com.tribly.domain.common.TeamEntity;
+import com.tribly.domain.common.repository.AllTeamEntityRepository;
+import com.tribly.domain.common.repository.TeamEntityQueryBasic;
+import com.tribly.domain.common.repository.TriblyPage;
 import com.tribly.domain.team.Team;
+import com.tribly.domain.team.repository.TeamRepository;
 import com.tribly.domain.user.User;
+import com.tribly.domain.user.repository.UserRepository;
+import com.tribly.dto.common.response.AssetDto;
+import com.tribly.dto.common.response.AssetsDto;
 import com.tribly.enums.AssetType;
+import com.tribly.enums.Visibility;
 import com.tribly.infrastructure.exception.BusinessException;
 import com.tribly.infrastructure.id.TsidUtils;
-import com.tribly.service.asset.response.AssetFile;
+import com.tribly.service.asset.response.AssetWithFile;
+import com.tribly.service.security.TeamSecurityService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.*;
+import java.util.stream.Collectors;
 import org.apache.commons.io.IOUtils;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jspecify.annotations.Nullable;
@@ -23,33 +35,44 @@ public class AssetService {
 
   @Inject AssetRepository assetRepository;
 
+  @Inject UserRepository userRepository;
+
+  @Inject TeamRepository teamRepository;
+
+  @Inject AllTeamEntityRepository allTeamEntityRepository;
+
+  @Inject TeamSecurityService securityService;
+
   @ConfigProperty(name = "gpx.storage.path")
   String storagePath = "/tmp";
 
-  public AssetFile addAsset(User creator, Team team, AssetType type, String fileName)
-      throws IOException {
-    return addAssetStream(creator, team, type, null, null, fileName);
+  public AssetDto createAsset(
+      String teamSlug, Long userId, InputStream inputStream, String fileName) throws IOException {
+    Team team =
+        teamRepository
+            .findBySlug(teamSlug)
+            .orElseThrow(() -> BusinessException.notFound("Team", teamSlug));
+
+    // Security check: reuse ride permissions (admins & organizers can create routes)
+    securityService.requireOrganizer(userId, team.getSlug());
+
+    User creator =
+        userRepository
+            .findActiveById(userId)
+            .orElseThrow(() -> BusinessException.notFound("User", userId));
+
+    AssetWithFile assetFile =
+        addAssetStream(creator, team, AssetType.IMAGE, null, inputStream, fileName);
+    return map(assetFile.asset());
   }
 
-  public AssetFile addAsset(User creator, TeamEntity teamEntity, AssetType type, String fileName)
-      throws IOException {
+  public AssetWithFile addAsset(
+      User creator, TeamEntity teamEntity, AssetType type, String fileName) throws IOException {
     return addAssetStream(creator, teamEntity.getTeam(), type, teamEntity, null, fileName);
   }
 
-  public AssetFile addAssetFile(
-      User creator,
-      Team team,
-      AssetType type,
-      @Nullable TeamEntity teamEntity,
-      File file,
-      String fileName)
-      throws IOException {
-    try (FileInputStream fis = new FileInputStream(file)) {
-      return addAssetStream(creator, team, type, teamEntity, fis, fileName);
-    }
-  }
-
-  public AssetFile addAssetStream(
+  @Transactional
+  public AssetWithFile addAssetStream(
       User creator,
       Team team,
       AssetType type,
@@ -61,7 +84,6 @@ public class AssetService {
     asset.setTeamEntity(teamEntity);
     assetRepository.persistAndFlush(asset);
 
-    Long id = asset.getId();
     File file = getAssetFile(asset);
 
     Files.createDirectories(file.getParentFile().toPath());
@@ -72,7 +94,7 @@ public class AssetService {
       }
     }
 
-    return new AssetFile(asset, file);
+    return new AssetWithFile(asset, file);
   }
 
   public File getAssetFile(Asset asset) {
@@ -83,17 +105,39 @@ public class AssetService {
     return new File(assetDirectory.toFile(), idString);
   }
 
-  public AssetFile getAsset(Long id) {
+  public File getAssetFile(String assetId, @Nullable Long userId) {
+    Asset assetFile = getAsset(TsidUtils.toLong(assetId), userId);
+    return getAssetFile(assetFile);
+  }
+
+  public Asset getAsset(Long id) {
+    return assetRepository
+        .findByIdOptional(id)
+        .orElseThrow(() -> BusinessException.notFound("Asset", id));
+  }
+
+  public Asset getAsset(Long id, @Nullable Long userId) {
     Asset asset =
         assetRepository
             .findByIdOptional(id)
             .orElseThrow(() -> BusinessException.notFound("Asset", id));
-    return new AssetFile(asset, getAssetFile(asset));
-  }
-
-  public AssetFile getAsset(Long id, @Nullable Long userId) {
-    // FIXME check access to asset
-    return getAsset(id);
+    if (asset.getTeamEntity() == null) {
+      if (asset.getTeam().getVisibility() == Visibility.TEAM) {
+        securityService.requireOrganizer(userId, asset.getTeam().getSlug());
+      }
+    } else {
+      TriblyPage<TeamEntity> page =
+          allTeamEntityRepository.find(
+              TeamEntityQueryBasic.builder()
+                  .userId(userId)
+                  .id(asset.getTeamEntity().getId())
+                  .size(1)
+                  .build());
+      if (page.total() == 0) {
+        throw BusinessException.forbidden("");
+      }
+    }
+    return asset;
   }
 
   public void deleteAsset(Long id) {
@@ -107,5 +151,106 @@ public class AssetService {
       file.delete();
     }
     // FIXME delete if parent directory is empty
+  }
+
+  public AssetDto map(Asset asset) {
+    Visibility visibility;
+    if (asset.getTeamEntity() == null) {
+      visibility = asset.getTeam().getVisibility();
+    } else {
+      visibility = asset.getTeamEntity().getVisibility();
+    }
+    String url =
+        "/api/download/"
+            + visibility.name().toLowerCase()
+            + "/assets/"
+            + TsidUtils.toString(asset.getId())
+            + "/"
+            + asset.getFileName();
+    return new AssetDto(TsidUtils.toString(asset.getId()), asset.getFileName(), url);
+  }
+
+  public AssetsDto getAssetsDto(TeamEntity teamEntity) {
+    Map<AssetType, List<Asset>> assets =
+        teamEntity.getAssets().stream().collect(Collectors.groupingBy(Asset::getType));
+    return new AssetsDto(
+        getAssetDto(assets, AssetType.LOGO),
+        getAssetDtoList(assets, AssetType.IMAGE),
+        getAssetDtoList(assets, AssetType.VIDEO),
+        getAssetDtoList(assets, AssetType.ATTACHMENT),
+        getAssetDto(assets, AssetType.ROUTE_ORIGINAL_GPX),
+        getAssetDto(assets, AssetType.ROUTE_FILTERED_GPX),
+        getAssetDto(assets, AssetType.ROUTE_FIT),
+        getAssetDto(assets, AssetType.ROUTE_THUMBNAIL));
+  }
+
+  private @Nullable AssetDto getAssetDto(Map<AssetType, List<Asset>> assets, AssetType assetType) {
+    return Optional.ofNullable(assets.get(assetType))
+        .filter(l -> !l.isEmpty())
+        .map(List::getFirst)
+        .map(this::map)
+        .orElse(null);
+  }
+
+  private List<AssetDto> getAssetDtoList(Map<AssetType, List<Asset>> assets, AssetType assetType) {
+    List<Asset> assetsForType = assets.get(assetType);
+    if (assetsForType == null) {
+      return List.of();
+    }
+    return assetsForType.stream()
+        .sorted(Comparator.comparing(Asset::getSortOrder))
+        .map(this::map)
+        .toList();
+  }
+
+  public void updateAssets(TeamEntity teamEntity, AssetsDto assets) {
+    Set<Asset> unmodifiable =
+        teamEntity.getAssets().stream()
+            .filter(s -> s.getType().isSystem())
+            .collect(Collectors.toSet());
+    teamEntity.getAssets().clear();
+    int order = 0;
+    for (Asset asset : unmodifiable) {
+      asset.setSortOrder(order++);
+      teamEntity.getAssets().add(asset);
+    }
+
+    if (assets == null) {
+      return;
+    }
+    order = addAssetToEntity(order, teamEntity, AssetType.LOGO, assets.logo());
+    order = addAssetsToEntity(order, teamEntity, AssetType.IMAGE, assets.images());
+    order = addAssetsToEntity(order, teamEntity, AssetType.VIDEO, assets.videos());
+    addAssetsToEntity(order, teamEntity, AssetType.ATTACHMENT, assets.attachments());
+  }
+
+  private int addAssetsToEntity(
+      int order, TeamEntity teamEntity, AssetType assetType, List<AssetDto> assetDtos) {
+    if (assetDtos == null) {
+      return order;
+    }
+    for (AssetDto assetDto : assetDtos) {
+      addAssetToEntity(order, teamEntity, assetType, assetDto);
+      order++;
+    }
+    return order;
+  }
+
+  private int addAssetToEntity(
+      int order, TeamEntity teamEntity, AssetType assetType, @Nullable AssetDto assetDto) {
+    if (assetDto == null) {
+      return order;
+    }
+    Long assetId = TsidUtils.toLong(assetDto.id());
+    Asset asset = getAsset(assetId);
+    if (asset.getTeam().getId().equals(teamEntity.getTeam().getId())
+        && (asset.getTeamEntity() == null
+            || asset.getTeamEntity().getId().equals(teamEntity.getId()))) {
+      asset.setTeamEntity(teamEntity);
+      asset.setType(assetType);
+      assetRepository.persist(asset);
+      teamEntity.getAssets().add(asset);
+    }
+    return order + 1;
   }
 }

@@ -93,7 +93,7 @@ Class | Method | HTTP request | Description
 
  - [AddMemberRequest](docs/AddMemberRequest.md)
  - [AssetDto](docs/AssetDto.md)
- - [AssetType](docs/AssetType.md)
+ - [AssetsDto](docs/AssetsDto.md)
  - [ClimbCategory](docs/ClimbCategory.md)
  - [ClimbListResponse](docs/ClimbListResponse.md)
  - [ConfigDto](docs/ConfigDto.md)

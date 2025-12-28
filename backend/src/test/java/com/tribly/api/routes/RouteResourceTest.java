@@ -6,7 +6,7 @@ import static org.hamcrest.Matchers.*;
 import com.tribly.domain.route.Route;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
-import com.tribly.dto.common.MediaDto;
+import com.tribly.dto.common.response.MediaDto;
 import com.tribly.dto.routes.request.RouteRequest;
 import com.tribly.enums.SurfaceType;
 import com.tribly.enums.TeamRole;

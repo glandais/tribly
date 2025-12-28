@@ -8,7 +8,7 @@ import com.tribly.enums.AssetType;
 import com.tribly.enums.ClimbCategory;
 import com.tribly.infrastructure.exception.BusinessException;
 import com.tribly.service.asset.AssetService;
-import com.tribly.service.asset.response.AssetFile;
+import com.tribly.service.asset.response.AssetWithFile;
 import com.tribly.service.route.response.ProcessedGpx;
 import com.tribly.service.route.response.RouteMetadata;
 import io.github.glandais.gpx.climb.Climb;
@@ -114,28 +114,28 @@ public class GpxProcessingService {
       LOG.infov("Detected {0} climbs", climbs.size());
 
       // Save original GPX (parsed, before filtering)
-      AssetFile gpxAssetFile =
-          createAsset(user, route, AssetType.TRACK_ORIGINAL_GPX, "original.gpx");
+      AssetWithFile gpxAssetFile =
+          createAsset(user, route, AssetType.ROUTE_ORIGINAL_GPX, "original.gpx");
       File originalFile = gpxAssetFile.file();
       gpxFileWriter.writeGPX(gpx, originalFile, false);
       LOG.infov("Saved original GPX to {0}", originalFile);
 
       // Save filtered GPX
-      AssetFile filteredAssetFile =
-          createAsset(user, route, AssetType.TRACK_FILTERED_GPX, "filtered.gpx");
+      AssetWithFile filteredAssetFile =
+          createAsset(user, route, AssetType.ROUTE_FILTERED_GPX, "filtered.gpx");
       File filteredFile = filteredAssetFile.file();
       gpxFileWriter.writeGPX(gpx, filteredFile, true);
       LOG.infov("Saved filtered GPX to {0}", filteredFile);
 
       // Save FIT file
-      AssetFile fitAssetFile = createAsset(user, route, AssetType.TRACK_FIT, "route.fit");
+      AssetWithFile fitAssetFile = createAsset(user, route, AssetType.ROUTE_FIT, "route.fit");
       File fitFile = fitAssetFile.file();
       fitFileWriter.writeGPX(gpx, fitFile);
       LOG.infov("Saved FIT file to {0}", fitFile);
 
       // Generate thumbnail map
-      AssetFile thumbnailAssetFile =
-          createAsset(user, route, AssetType.TRACK_THUMBNAIL, "thumbnail.png");
+      AssetWithFile thumbnailAssetFile =
+          createAsset(user, route, AssetType.ROUTE_THUMBNAIL, "thumbnail.png");
       File thumbnailFile = thumbnailAssetFile.file();
       try {
         // Use OpenStreetMap tiles, 512x512 max size, 0.1 margin
@@ -164,13 +164,13 @@ public class GpxProcessingService {
     }
   }
 
-  private AssetFile createAsset(User user, Route route, AssetType assetType, String fileName)
+  private AssetWithFile createAsset(User user, Route route, AssetType assetType, String fileName)
       throws IOException {
     Asset existingAsset = getAsset(route, assetType);
     if (existingAsset != null) {
       route.getAssets().remove(existingAsset);
     }
-    AssetFile assetFile = assetService.addAsset(user, route, assetType, fileName);
+    AssetWithFile assetFile = assetService.addAsset(user, route, assetType, fileName);
     route.getAssets().add(assetFile.asset());
     return assetFile;
   }
@@ -268,27 +268,27 @@ public class GpxProcessingService {
    * Get file path for filtered GPX download.
    */
   public File getFilteredGpxFile(Route route) {
-    return getFile(route, AssetType.TRACK_FILTERED_GPX);
+    return getFile(route, AssetType.ROUTE_FILTERED_GPX);
   }
 
   /**
    * Get file path for FIT download.
    */
   public File getFitFile(Route route) {
-    return getFile(route, AssetType.TRACK_FIT);
+    return getFile(route, AssetType.ROUTE_FIT);
   }
 
   /**
    * Get file path for thumbnail image.
    */
   public File getThumbnailFile(Route route) {
-    return getFile(route, AssetType.TRACK_THUMBNAIL);
+    return getFile(route, AssetType.ROUTE_THUMBNAIL);
   }
 
   private File getFile(Route route, AssetType assetType) {
     Asset matching = getAsset(route, assetType);
     if (matching != null) {
-      return assetService.getAsset(matching.getId()).file();
+      return assetService.getAssetFile(matching);
     } else {
       throw BusinessException.notFound("Asset not found for route " + route.getId());
     }

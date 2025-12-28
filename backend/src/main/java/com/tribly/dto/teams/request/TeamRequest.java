@@ -1,6 +1,6 @@
 package com.tribly.dto.teams.request;
 
-import com.tribly.dto.common.MediaDto;
+import com.tribly.dto.common.response.MediaDto;
 import com.tribly.dto.validation.ValidateSchema;
 import com.tribly.enums.Visibility;
 import jakarta.validation.constraints.NotBlank;
