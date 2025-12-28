@@ -4,14 +4,14 @@ import { useTranslation } from 'react-i18next'
 import { useCreateTeam, useUpdateTeam } from '../../hooks/useTeam'
 import { LoadingSpinner } from '../common/LoadingSpinner'
 import { ApiClientError } from '../../lib/apiClient'
-import { Visibility, TeamDetailDto } from '../../api/api'
+import { Visibility, TeamDetailDto, MediaDto } from '../../api/api'
 import { MarkdownEditor } from '../common/MarkdownEditor'
 
 interface TeamFormProps {
   // Data
   teamSlug?: string
   initialName?: string
-  initialDescription?: string
+  initialMedia?: MediaDto
   initialVisibility?: Visibility
 
   // Behavior
@@ -28,7 +28,7 @@ interface TeamFormProps {
 export function TeamForm({
   teamSlug,
   initialName = '',
-  initialDescription = '',
+  initialMedia = { markdown: '' },
   initialVisibility = Visibility.Public,
   onSuccess,
   submitButtonText,
@@ -41,7 +41,7 @@ export function TeamForm({
   const { t: tCommon } = useTranslation('common')
 
   const [name, setName] = useState(initialName)
-  const [description, setDescription] = useState(initialDescription)
+  const [media, setMedia] = useState({ markdown: '' } as MediaDto)
   const [visibility, setVisibility] = useState<Visibility>(initialVisibility)
 
   // Conditional mutation based on context
@@ -55,13 +55,11 @@ export function TeamForm({
       // eslint-disable-next-line react-hooks/set-state-in-effect -- Form initialization from server data
       setName(initialName)
     }
-    if (initialDescription !== undefined) {
-      setDescription(initialDescription)
-    }
+    setMedia(initialMedia)
     if (initialVisibility) {
       setVisibility(initialVisibility)
     }
-  }, [initialName, initialDescription, initialVisibility])
+  }, [initialName, initialMedia, initialVisibility])
 
   // Call onSuccess when mutation succeeds
   useEffect(() => {
@@ -74,7 +72,7 @@ export function TeamForm({
     e.preventDefault()
     mutation.mutate({
       name,
-      description: description || undefined, // Normalize empty string to undefined
+      media,
       visibility,
     })
   }
@@ -127,8 +125,8 @@ export function TeamForm({
           {t(`${namespace}.form.description.label`)}
         </label>
         <MarkdownEditor
-          initialValue={description}
-          onChange={setDescription}
+          initialValue={media}
+          onChange={setMedia}
           placeholder={
             namespace === 'create'
               ? t('create.form.description.placeholder')
@@ -140,7 +138,10 @@ export function TeamForm({
           ariaLabel={t(`${namespace}.form.description.label`)}
         />
         <p className="mt-1 text-sm text-gray-500">
-          {t(`${namespace}.form.description.charCount`, { count: description.length, max: 2000 })}
+          {t(`${namespace}.form.description.charCount`, {
+            count: media.markdown?.length || 0,
+            max: 2000,
+          })}
         </p>
       </div>
 

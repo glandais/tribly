@@ -40,6 +40,7 @@ import {
   ArrowUturnLeftIcon,
   ArrowUturnRightIcon,
 } from '@heroicons/react/24/outline'
+import { MediaDto } from '@/api'
 
 // Toolbar Component
 function ToolbarPlugin() {
@@ -235,7 +236,7 @@ function EditorErrorBoundary({ children }: { children: React.ReactNode }) {
 }
 
 // Plugin to handle initial markdown value
-function InitialValuePlugin({ value }: { value: string }) {
+function InitialValuePlugin({ value }: { value: { markdown?: string } }) {
   const [editor] = useLexicalComposerContext()
   const hasInitializedRef = useRef(false)
 
@@ -246,7 +247,7 @@ function InitialValuePlugin({ value }: { value: string }) {
       editor.update(() => {
         // Convert markdown string to Lexical nodes
         // This automatically clears the root and sets the new content
-        $convertFromMarkdownString(value, TRANSFORMERS)
+        $convertFromMarkdownString(value.markdown || '', TRANSFORMERS)
       })
       hasInitializedRef.current = true
     }
@@ -256,8 +257,8 @@ function InitialValuePlugin({ value }: { value: string }) {
 }
 
 export interface MarkdownEditorProps {
-  initialValue?: string
-  onChange?: (value: string) => void
+  initialValue: MediaDto
+  onChange?: (value: MediaDto) => void
   placeholder?: string
   className?: string
   minHeight?: string
@@ -267,7 +268,7 @@ export interface MarkdownEditorProps {
 }
 
 export function MarkdownEditor({
-  initialValue = '',
+  initialValue = { markdown: '' },
   onChange,
   placeholder,
   className = '',
@@ -317,7 +318,7 @@ export function MarkdownEditor({
         editorState.read(() => {
           // Convert Lexical nodes to markdown string
           const markdown = $convertToMarkdownString(TRANSFORMERS)
-          onChange(markdown)
+          onChange({ markdown })
         })
       }
     },

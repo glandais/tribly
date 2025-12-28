@@ -70,6 +70,7 @@
     "MEMBER": "Membre"
   },
   "visibility": {
+    "label": "Visibilité",
     "private": "Privé",
     "public": "Public",
     "team": "Équipe uniquement"

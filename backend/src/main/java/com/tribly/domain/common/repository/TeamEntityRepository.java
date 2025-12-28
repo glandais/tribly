@@ -81,7 +81,7 @@ public interface TeamEntityRepository<T extends TeamEntity, Q extends TeamEntity
       triblyQuery = triblyQuery.and("te.id = :id", Map.of("id", id));
     }
     triblyQuery =
-        SearchClause.addSearch(triblyQuery, Set.of("te.name", "te.description"), query.search());
+        SearchClause.addSearch(triblyQuery, Set.of("te.name", "te.markdown"), query.search());
 
     // Add date range filters
     Instant from = query.from();

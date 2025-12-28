@@ -17,6 +17,7 @@ docs/GpxTrackDto.md
 docs/GroupRequest.md
 docs/KeycloakConfig.md
 docs/MapConfig.md
+docs/MediaDto.md
 docs/MemberDto.md
 docs/MemberListResponse.md
 docs/PostDto.md

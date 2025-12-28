@@ -1,27 +1,28 @@
+import { MediaDto } from '@/api'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import removeMd from 'remove-markdown'
 
 export interface MarkdownDisplayProps {
-  content: string
+  media: MediaDto
   className?: string
   preview?: boolean
   maxLength?: number
 }
 
 export function MarkdownDisplay({
-  content,
+  media,
   className = '',
   preview = false,
   maxLength = 150,
 }: MarkdownDisplayProps) {
-  if (!content) {
+  if (!media || !media.markdown) {
     return null
   }
 
   // Preview mode: strip markdown and truncate
   if (preview) {
-    const plainText = removeMd(content)
+    const plainText = removeMd(media.markdown)
     const truncated =
       plainText.length > maxLength ? plainText.slice(0, maxLength) + '...' : plainText
     return <p className={className}>{truncated}</p>
@@ -124,7 +125,7 @@ export function MarkdownDisplay({
           em: ({ ...props }) => <em className="italic" {...props} />,
         }}
       >
-        {content}
+        {media.markdown}
       </ReactMarkdown>
     </div>
   )

@@ -2,12 +2,10 @@ package com.tribly.domain.common;
 
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import java.time.Instant;
 import lombok.Getter;
 import lombok.Setter;
-import org.jspecify.annotations.Nullable;
 
 @Getter
 @Setter

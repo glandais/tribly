@@ -58,7 +58,7 @@ public class RouteResource extends AbstractAuthenticatedResource {
   })
   public Response listRoutes(
       @Parameter(description = "Team URL slug") @PathParam("slug") String teamSlug,
-      @Parameter(description = "Search by name/description") @QueryParam("search")
+      @Parameter(description = "Search by name/markdown") @QueryParam("search")
           @Nullable String search,
       @Parameter(description = "Page number (0-indexed)") @QueryParam("page") @DefaultValue("0")
           int page,
@@ -168,7 +168,7 @@ public class RouteResource extends AbstractAuthenticatedResource {
   @Operation(
       summary = "Update route",
       description =
-          "Update route metadata (name, description, etc.) and optionally replace the GPX file. "
+          "Update route metadata (name, markdown, etc.) and optionally replace the GPX file. "
               + "If a new GPX file is provided, the old track data and climbs will be replaced.")
   @APIResponses({
     @APIResponse(

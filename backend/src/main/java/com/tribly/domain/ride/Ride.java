@@ -18,7 +18,7 @@ import org.jspecify.annotations.Nullable;
 @DiscriminatorValue("1")
 public class Ride extends Publication {
 
-  @ManyToOne(fetch = FetchType.LAZY)
+  @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "route_id")
   @Nullable
   private Route route;

@@ -45,7 +45,7 @@ public class TeamPublicationResource extends AbstractAuthenticatedResource {
   })
   public Response listPublications(
       @Parameter(description = "Team URL slug") @PathParam("slug") String slug,
-      @Parameter(description = "Search by name/description") @QueryParam("search")
+      @Parameter(description = "Search by name/markdown") @QueryParam("search")
           @Nullable String search,
       @Parameter(description = "Start date filter (ISO format)") @QueryParam("from")
           @Nullable String fromStr,

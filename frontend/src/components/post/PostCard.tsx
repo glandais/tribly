@@ -32,7 +32,7 @@ export function PostCard({ post, teamSlug, showTypeBadge = false }: PostCardProp
         <div className="flex items-start justify-between mb-4">
           <div className="flex-1 min-w-0">
             <CardTitle>{post.name}</CardTitle>
-            {post.description && <CardDescription markdown={true} content={post.description} />}
+            <CardDescription markdown={true} media={post.media} />
           </div>
           <div className="ml-3 flex flex-col items-end gap-1">
             {showTypeBadge && <Badge variant="purple">{tCommon('publicationType.post')}</Badge>}

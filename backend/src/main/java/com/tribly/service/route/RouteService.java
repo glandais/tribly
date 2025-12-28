@@ -89,7 +89,7 @@ public class RouteService extends TeamEntityService {
     route.setCreatedBy(creator);
     route.setName(request.name());
     route.setSlug(slug);
-    route.setDescription(request.description());
+    route.setMarkdown(request.media().markdown());
     route.setSurfaceType(request.surfaceType());
     route.setVisibility(request.visibility());
     route.setDateTime(Instant.now());
@@ -116,7 +116,7 @@ public class RouteService extends TeamEntityService {
    * Shared logic between create and update operations.
    */
   private void processAndUpdateGpx(
-      Route route, String trackName, InputStream gpxFile, String fileName) throws Exception {
+      Route route, String trackName, InputStream gpxFile, String fileName) {
     // Process GPX file
     ProcessedGpx processed =
         gpxProcessingService.processGpxUpload(route.getId(), gpxFile, fileName);
@@ -225,7 +225,7 @@ public class RouteService extends TeamEntityService {
 
     // Update basic metadata
     route.setName(request.name());
-    route.setDescription(request.description());
+    route.setMarkdown(request.media().markdown());
     route.setSurfaceType(request.surfaceType());
     route.setVisibility(request.visibility());
     route.setDateTime(Instant.now());

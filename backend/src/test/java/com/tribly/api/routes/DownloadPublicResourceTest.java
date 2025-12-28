@@ -5,6 +5,7 @@ import static org.hamcrest.Matchers.*;
 
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
+import com.tribly.dto.common.MediaDto;
 import com.tribly.dto.routes.request.RouteRequest;
 import com.tribly.enums.SurfaceType;
 import com.tribly.enums.TeamRole;
@@ -55,7 +56,7 @@ class DownloadPublicResourceTest {
     RouteRequest route =
         new RouteRequest(
             "Download Test Route",
-            "Route for download testing",
+            MediaDto.builder().markdown("Route for download testing").build(),
             SurfaceType.ROAD,
             Visibility.PUBLIC);
     routeSlug =

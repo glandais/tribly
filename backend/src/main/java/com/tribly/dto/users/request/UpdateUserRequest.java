@@ -10,5 +10,5 @@ import org.jspecify.annotations.Nullable;
 public record UpdateUserRequest(
     @Nullable
         @Schema(description = "User display name", examples = "John Doe")
-        @Size(min = 1, max = 255)
+        @Size(min = 1, max = 200)
         String displayName) {}

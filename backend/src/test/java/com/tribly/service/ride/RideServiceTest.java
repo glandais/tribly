@@ -6,6 +6,7 @@ import com.tribly.domain.ride.Ride;
 import com.tribly.domain.ride.RideGroup;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
+import com.tribly.dto.common.MediaDto;
 import com.tribly.dto.rides.request.GroupRequest;
 import com.tribly.dto.rides.request.RideRequest;
 import com.tribly.dto.rides.response.*;
@@ -252,7 +253,7 @@ class RideServiceTest {
     RideRequest request =
         new RideRequest(
             "Sunday Ride",
-            "A nice ride",
+            MediaDto.builder().markdown("A nice ride").build(),
             Instant.now().plusSeconds(24 * 3600 * 7),
             Status.DRAFT,
             Visibility.TEAM,
@@ -274,7 +275,7 @@ class RideServiceTest {
     RideRequest request =
         new RideRequest(
             "Test Ride",
-            null,
+            MediaDto.builder().build(),
             Instant.now().plusSeconds(24 * 3600),
             Status.DRAFT,
             Visibility.PUBLIC,
@@ -290,12 +291,12 @@ class RideServiceTest {
 
   @Test
   void createRide_shouldCreateWithGroups() {
-    GroupRequest group1 = new GroupRequest(null, "Fast", "Fast group", 30, 10, null);
-    GroupRequest group2 = new GroupRequest(null, "Slow", "Slow group", 20, 15, null);
+    GroupRequest group1 = new GroupRequest(null, "Fast", 30, 10, null);
+    GroupRequest group2 = new GroupRequest(null, "Slow", 20, 15, null);
     RideRequest request =
         new RideRequest(
             "Group Ride",
-            null,
+            MediaDto.builder().build(),
             Instant.now().plusSeconds(24 * 3600),
             Status.DRAFT,
             Visibility.PUBLIC,
@@ -316,7 +317,7 @@ class RideServiceTest {
     RideRequest request =
         new RideRequest(
             "Test",
-            null,
+            MediaDto.builder().build(),
             Instant.now().plusSeconds(24 * 3600),
             Status.DRAFT,
             Visibility.PUBLIC,
@@ -337,7 +338,7 @@ class RideServiceTest {
     RideRequest request =
         new RideRequest(
             "Public Ride",
-            null,
+            MediaDto.builder().build(),
             Instant.now().plusSeconds(24 * 3600),
             Status.DRAFT,
             Visibility.PUBLIC,
@@ -361,7 +362,7 @@ class RideServiceTest {
     RideRequest request =
         new RideRequest(
             "Team Ride",
-            null,
+            MediaDto.builder().build(),
             Instant.now().plusSeconds(24 * 3600),
             Status.DRAFT,
             Visibility.TEAM,
@@ -384,7 +385,7 @@ class RideServiceTest {
     RideRequest request =
         new RideRequest(
             "Updated Title",
-            "Updated description",
+            MediaDto.builder().markdown("Updated description").build(),
             Instant.now().plusSeconds(24 * 3600),
             Status.CANCELLED,
             Visibility.TEAM,
@@ -395,7 +396,7 @@ class RideServiceTest {
     RideDto result = rideService.updateRide("test-team", "original", request, organizer.getId());
 
     assertEquals("Updated Title", result.getName());
-    assertEquals("Updated description", result.getDescription());
+    assertEquals("Updated description", result.getMedia().markdown());
     assertEquals(Status.CANCELLED, result.getStatus());
     assertEquals(Visibility.TEAM, result.getVisibility());
   }
@@ -406,7 +407,7 @@ class RideServiceTest {
     RideRequest request =
         new RideRequest(
             "New Title",
-            null,
+            MediaDto.builder().build(),
             Instant.now().plusSeconds(24 * 3600),
             Status.PUBLISHED,
             Visibility.PUBLIC,
@@ -433,7 +434,7 @@ class RideServiceTest {
     RideRequest request =
         new RideRequest(
             "Updated Title",
-            null,
+            MediaDto.builder().build(),
             Instant.now().plusSeconds(24 * 3600),
             Status.PUBLISHED,
             Visibility.PUBLIC,
@@ -454,7 +455,7 @@ class RideServiceTest {
     RideRequest request =
         new RideRequest(
             "New",
-            null,
+            MediaDto.builder().build(),
             Instant.now().plusSeconds(24 * 3600),
             Status.DRAFT,
             Visibility.PUBLIC,
@@ -483,7 +484,7 @@ class RideServiceTest {
     RideRequest request =
         new RideRequest(
             "Title",
-            null,
+            MediaDto.builder().build(),
             Instant.now().plusSeconds(24 * 3600),
             Status.DRAFT,
             Visibility.PUBLIC,
@@ -515,7 +516,7 @@ class RideServiceTest {
     RideRequest request =
         new RideRequest(
             "Updated Title",
-            null,
+            MediaDto.builder().build(),
             Instant.now().plusSeconds(24 * 3600),
             Status.DRAFT,
             Visibility.TEAM,
@@ -597,10 +598,9 @@ class RideServiceTest {
             team, admin, "Draft", "draft", Instant.now(), Visibility.PUBLIC, Status.DRAFT);
     RideGroup group = dataService.createRideGroup(ride, "Group");
 
-    BusinessException exception =
-        assertThrows(
-            BusinessException.class,
-            () -> rideService.joinGroup("test-team", "draft", group.getId(), member.getId()));
+    assertThrows(
+        BusinessException.class,
+        () -> rideService.joinGroup("test-team", "draft", group.getId(), member.getId()));
   }
 
   @Test

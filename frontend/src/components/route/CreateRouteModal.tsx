@@ -1,27 +1,43 @@
 import { useTranslation } from 'react-i18next'
 import { XMarkIcon } from '@heroicons/react/24/outline'
+import type { RouteDto, TeamDetailDto } from '../../api/api'
+import { RouteEditor } from './RouteEditor'
+import type { RouteFormData } from './RouteEditor'
+import { useCreateRoute, SurfaceType } from '../../hooks/useRoute'
 import { Visibility } from '../../api/api'
-import type { RouteDto } from '../../api/api'
-import { RouteForm } from './RouteForm'
 
 interface CreateRouteModalProps {
   isOpen: boolean
   onClose: () => void
   onRouteCreated: (route: RouteDto) => void
-  teamSlug: string
-  teamVisibility?: Visibility
+  team: TeamDetailDto
 }
 
-export function CreateRouteModal({
-  isOpen,
-  onClose,
-  onRouteCreated,
-  teamSlug,
-  teamVisibility,
-}: CreateRouteModalProps) {
+export function CreateRouteModal({ isOpen, onClose, onRouteCreated, team }: CreateRouteModalProps) {
   const { t } = useTranslation('routes')
+  const createRoute = useCreateRoute(team.slug)
 
-  const handleSuccess = (route: RouteDto) => {
+  // Prepare initial values for create mode
+  const initialValues = {
+    name: '',
+    media: { markdown: '' },
+    surfaceType: SurfaceType.Road,
+    visibility: team.visibility === Visibility.Team ? Visibility.Team : Visibility.Public,
+  }
+
+  const handleSubmit = async (data: RouteFormData, gpxFile?: File) => {
+    if (!gpxFile) return // TypeScript guard
+
+    const route = await createRoute.mutateAsync({
+      route: {
+        name: data.name,
+        media: data.media,
+        surfaceType: data.surfaceType,
+        visibility: data.visibility,
+      },
+      gpxFile,
+    })
+
     onRouteCreated(route)
     onClose()
   }
@@ -41,11 +57,15 @@ export function CreateRouteModal({
 
         {/* Form */}
         <div className="flex-1 overflow-y-auto p-6">
-          <RouteForm
-            teamSlug={teamSlug}
-            teamVisibility={teamVisibility}
-            onSuccess={handleSuccess}
+          <RouteEditor
+            team={team}
+            teamSlug={team.slug}
+            initialValues={initialValues}
+            requireGpxFile={true}
+            onSubmit={handleSubmit}
             onCancel={onClose}
+            isPending={createRoute.isPending}
+            error={createRoute.error}
             submitButtonText={t('createModal.create')}
             showCancelButton={false}
           />

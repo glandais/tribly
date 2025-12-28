@@ -1,6 +1,7 @@
 package com.tribly.dto.rides.response;
 
 import com.tribly.domain.ride.Ride;
+import com.tribly.dto.common.MediaDto;
 import com.tribly.dto.publications.response.PublicationDto;
 import com.tribly.dto.publications.response.PublicationType;
 import com.tribly.dto.publications.response.TeamPublicationDto;
@@ -16,7 +17,7 @@ import org.jspecify.annotations.Nullable;
 // Response DTOs
 @Schema(description = "Ride summary data", allOf = PublicationDto.class)
 @Getter
-public class RideDto extends PublicationDto {
+public class RideDto implements PublicationDto {
 
   @Schema(description = "Type", required = true)
   final PublicationType type = PublicationType.RIDE;
@@ -33,9 +34,8 @@ public class RideDto extends PublicationDto {
   @Schema(description = "Publication name", required = true)
   final String name;
 
-  @Nullable
-  @Schema(description = "Publication description")
-  final String description;
+  @Schema(description = "Publication media", required = true)
+  final MediaDto media;
 
   @Schema(description = "Publication date/time", required = true)
   final Instant dateTime;
@@ -72,7 +72,7 @@ public class RideDto extends PublicationDto {
       String id,
       String slug,
       String name,
-      @Nullable String description,
+      MediaDto media,
       Instant dateTime,
       Status status,
       Visibility visibility,
@@ -82,11 +82,12 @@ public class RideDto extends PublicationDto {
       int participantCount,
       int groupCount,
       List<RideGroupDto> groups) {
+    super();
     this.team = team;
     this.id = id;
     this.slug = slug;
     this.name = name;
-    this.description = description;
+    this.media = media;
     this.dateTime = dateTime;
     this.status = status;
     this.visibility = visibility;
@@ -108,7 +109,7 @@ public class RideDto extends PublicationDto {
         TsidUtils.toString(ride.getId()),
         ride.getSlug(),
         ride.getName(),
-        ride.getDescription(),
+        MediaDto.from(ride),
         ride.getDateTime(),
         ride.getStatus(),
         ride.getVisibility(),

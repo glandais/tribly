@@ -12,7 +12,6 @@ import org.jspecify.annotations.Nullable;
 public record RideGroupDto(
     @Schema(description = "Group ID (TSID)", required = true) String id,
     @Schema(description = "Group name", required = true) String name,
-    @Nullable @Schema(description = "Group description") String description,
     @Nullable @Schema(description = "Route slug") String routeSlug,
     @Nullable @Schema(description = "Average speed in km/h") Integer averageSpeed,
     @Nullable @Schema(description = "Maximum participants") Integer maxParticipants,
@@ -30,7 +29,6 @@ public record RideGroupDto(
     return new RideGroupDto(
         TsidUtils.toString(group.getId()),
         group.getName(),
-        group.getDescription(),
         group.getRoute() != null ? group.getRoute().getSlug() : null,
         group.getAverageSpeed(),
         group.getMaxParticipants(),

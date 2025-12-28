@@ -6,6 +6,7 @@ import static org.hamcrest.Matchers.*;
 import com.tribly.domain.route.Route;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
+import com.tribly.dto.common.MediaDto;
 import com.tribly.dto.routes.request.RouteRequest;
 import com.tribly.enums.SurfaceType;
 import com.tribly.enums.TeamRole;
@@ -68,7 +69,11 @@ class RouteResourceTest {
     File gpxFile = new File("src/test/resources/example.gpx");
 
     RouteRequest route =
-        new RouteRequest("Test Route", "A test route", SurfaceType.GRAVEL, Visibility.PUBLIC);
+        new RouteRequest(
+            "Test Route",
+            MediaDto.builder().markdown("A test route").build(),
+            SurfaceType.GRAVEL,
+            Visibility.PUBLIC);
 
     given()
         .auth()
@@ -105,7 +110,11 @@ class RouteResourceTest {
     testRoute = dataService.createRoute(testTeam, testUser, "Original Name", Visibility.PUBLIC);
 
     RouteRequest route =
-        new RouteRequest("Updated Name", "Updated description", SurfaceType.MTB, Visibility.PUBLIC);
+        new RouteRequest(
+            "Updated Name",
+            MediaDto.builder().markdown("Updated description").build(),
+            SurfaceType.MTB,
+            Visibility.PUBLIC);
 
     given()
         .auth()
@@ -126,7 +135,10 @@ class RouteResourceTest {
 
     RouteRequest route =
         new RouteRequest(
-            "Updated Route", "Updated with new GPX", SurfaceType.GRAVEL, Visibility.PUBLIC);
+            "Updated Route",
+            MediaDto.builder().markdown("Updated with new GPX").build(),
+            SurfaceType.GRAVEL,
+            Visibility.PUBLIC);
 
     File gpxFile = new File("src/test/resources/example.gpx");
 

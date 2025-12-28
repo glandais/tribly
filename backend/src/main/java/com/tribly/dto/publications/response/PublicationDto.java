@@ -7,7 +7,6 @@ import com.tribly.domain.post.Post;
 import com.tribly.domain.ride.Ride;
 import com.tribly.dto.posts.response.PostDto;
 import com.tribly.dto.rides.response.RideDto;
-import lombok.Getter;
 import org.eclipse.microprofile.openapi.annotations.media.DiscriminatorMapping;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 
@@ -29,12 +28,11 @@ import org.eclipse.microprofile.openapi.annotations.media.Schema;
       @DiscriminatorMapping(value = "POST", schema = PostDto.class)
     },
     oneOf = {RideDto.class, PostDto.class})
-@Getter
-public abstract class PublicationDto {
+public interface PublicationDto {
 
-  public abstract PublicationType getType();
+  PublicationType getType();
 
-  public static PublicationDto from(Publication publication) {
+  static PublicationDto from(Publication publication) {
     return switch (publication) {
       case Post post -> PostDto.from(post);
       case Ride ride -> RideDto.from(ride, false);

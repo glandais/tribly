@@ -40,7 +40,8 @@ public class TeamRepository implements BaseRepository<Team> {
       triblyQuery.and("t.slug = :slug", Map.of("slug", teamQuery.slug()));
     }
     triblyQuery =
-        SearchClause.addSearch(triblyQuery, Set.of("t.name", "t.description"), teamQuery.search());
+        SearchClause.addSearch(
+            triblyQuery, Set.of("t.name", "t.teamDescription.markdown"), teamQuery.search());
     if (teamQuery.userId() != null) {
       if (teamQuery.member() == null) {
         triblyQuery.and(

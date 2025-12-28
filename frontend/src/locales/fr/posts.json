@@ -32,7 +32,7 @@
     "visibilityLabel": "Visibilité",
     "statusLabel": "Statut",
     "publishAtLabel": "Publication programmée",
-    "publishAtHint": "Laisser vide pour publier immédiatement",
+    "publishAtHint": "Définissez une date/heure pour une publication automatique",
     "submit": "Créer la publication",
     "cancel": "Annuler",
     "error": "Une erreur est survenue lors de la création de la publication"

@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next'
 import { BoltIcon, UsersIcon } from '@heroicons/react/24/outline'
 import type { RideGroupDto } from '../../hooks/useRide'
 import { UserAvatarGroup } from '../common/UserAvatar'
-import { MarkdownDisplay } from '../../components/common/MarkdownDisplay'
 import { ParticipantListModal } from './ParticipantListModal'
 
 interface RideGroupCardProps {
@@ -45,14 +44,6 @@ export function RideGroupCard({
               </span>
             )}
           </div>
-          {group.description && (
-            <MarkdownDisplay
-              content={group.description}
-              preview={true}
-              maxLength={150}
-              className="mt-1 text-sm text-gray-600"
-            />
-          )}
           <div className="mt-2 flex items-center gap-4 text-sm text-gray-500">
             {group.averageSpeed && (
               <span className="flex items-center">

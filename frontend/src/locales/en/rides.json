@@ -45,10 +45,7 @@
         "placeholder": "Describe the ride, route highlights, coffee stops..."
       },
       "date": {
-        "label": "Date"
-      },
-      "startTime": {
-        "label": "Start Time"
+        "label": "Start"
       },
       "visibility": {
         "label": "Visibility",
@@ -95,7 +92,7 @@
       },
       "publishAt": {
         "label": "Schedule Publication",
-        "hint": "Leave empty to publish manually, or set a date/time for automatic publication"
+        "hint": "Set a date/time for automatic publication"
       }
     },
     "button": "Create Ride",

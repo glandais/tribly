@@ -83,7 +83,7 @@ export function TeamSettingsPage() {
       <TeamForm
         teamSlug={teamSlug}
         initialName={team.name}
-        initialDescription={team.description || ''}
+        initialMedia={team.media}
         initialVisibility={team.visibility}
         onSuccess={handleSuccess}
         submitButtonText={t('settings.saveChanges')}

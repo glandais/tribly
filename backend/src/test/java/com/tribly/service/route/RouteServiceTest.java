@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import com.tribly.domain.route.Route;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
+import com.tribly.dto.common.MediaDto;
 import com.tribly.dto.routes.request.RouteRequest;
 import com.tribly.dto.routes.response.RouteDto;
 import com.tribly.dto.routes.response.RouteListResponse;
@@ -65,14 +66,18 @@ class RouteServiceTest {
   void createRoute_shouldCreateWithGpxProcessing() throws Exception {
     InputStream gpxStream = getClass().getClassLoader().getResourceAsStream("example.gpx");
     RouteRequest request =
-        new RouteRequest("Test Route", "A test route", SurfaceType.GRAVEL, Visibility.PUBLIC);
+        new RouteRequest(
+            "Test Route",
+            MediaDto.builder().markdown("A test route").build(),
+            SurfaceType.GRAVEL,
+            Visibility.PUBLIC);
 
     createdRoute =
         routeService.createRoute("test-team", request, gpxStream, "example.gpx", organizer.getId());
 
     assertNotNull(createdRoute);
     assertEquals("Test Route", createdRoute.name());
-    assertEquals("A test route", createdRoute.description());
+    assertEquals("A test route", createdRoute.media().markdown());
     assertEquals(SurfaceType.GRAVEL, createdRoute.surfaceType());
     assertEquals(Visibility.PUBLIC, createdRoute.visibility());
     assertTrue(createdRoute.distance() > 0);
@@ -82,7 +87,8 @@ class RouteServiceTest {
   @Test
   void createRoute_shouldThrowForNonOrganizer() {
     InputStream gpxStream = getClass().getClassLoader().getResourceAsStream("example.gpx");
-    RouteRequest request = new RouteRequest("Test", null, null, Visibility.PUBLIC);
+    RouteRequest request =
+        new RouteRequest("Test", MediaDto.builder().build(), SurfaceType.GRAVEL, Visibility.PUBLIC);
 
     assertThrows(
         BusinessException.class,
@@ -94,7 +100,8 @@ class RouteServiceTest {
   @Test
   void createRoute_shouldThrowForNonexistentTeam() {
     InputStream gpxStream = getClass().getClassLoader().getResourceAsStream("example.gpx");
-    RouteRequest request = new RouteRequest("Test", null, null, Visibility.PUBLIC);
+    RouteRequest request =
+        new RouteRequest("Test", MediaDto.builder().build(), SurfaceType.GRAVEL, Visibility.PUBLIC);
 
     assertThrows(
         BusinessException.class,
@@ -194,14 +201,17 @@ class RouteServiceTest {
     Route route = dataService.createRoute(team, admin, "Original");
     RouteRequest request =
         new RouteRequest(
-            "Updated Name", "Updated description", SurfaceType.GRAVEL, Visibility.TEAM);
+            "Updated Name",
+            MediaDto.builder().markdown("Updated description").build(),
+            SurfaceType.GRAVEL,
+            Visibility.TEAM);
 
     RouteDto result =
         routeService.updateRoute(
             "test-team", route.getSlug(), request, null, null, organizer.getId());
 
     assertEquals("Updated Name", result.name());
-    assertEquals("Updated description", result.description());
+    assertEquals("Updated description", result.media().markdown());
     assertEquals(SurfaceType.GRAVEL, result.surfaceType());
     assertEquals(Visibility.TEAM, result.visibility());
   }
@@ -209,7 +219,8 @@ class RouteServiceTest {
   @Test
   void updateRoute_shouldUpdatePartialFields() throws Exception {
     Route route = dataService.createRoute(team, admin, "Original");
-    RouteRequest request = new RouteRequest("New Name", null, SurfaceType.ROAD, Visibility.TEAM);
+    RouteRequest request =
+        new RouteRequest("New Name", MediaDto.builder().build(), SurfaceType.ROAD, Visibility.TEAM);
 
     RouteDto result =
         routeService.updateRoute(
@@ -222,21 +233,25 @@ class RouteServiceTest {
   void updateRoute_shouldPreserveFieldsWhenNull() throws Exception {
     Route route = dataService.createRoute(team, admin, "Original", Visibility.PUBLIC);
     RouteRequest request =
-        new RouteRequest("New name 2", "New description", SurfaceType.MTB, Visibility.PUBLIC);
+        new RouteRequest(
+            "New name 2",
+            MediaDto.builder().markdown("New description").build(),
+            SurfaceType.MTB,
+            Visibility.PUBLIC);
 
     RouteDto result =
         routeService.updateRoute(
             "test-team", route.getSlug(), request, null, null, organizer.getId());
 
     assertEquals("New name 2", result.name());
-    assertEquals("New description", result.description());
+    assertEquals("New description", result.media().markdown());
     assertEquals(Visibility.PUBLIC, result.visibility());
   }
 
   @Test
-  void updateRoute_shouldThrowForNonOrganizer() throws Exception {
+  void updateRoute_shouldThrowForNonOrganizer() {
     Route route = dataService.createRoute(team, admin, "Test");
-    RouteRequest request = new RouteRequest("New", null, null, null);
+    RouteRequest request = new RouteRequest("New", MediaDto.builder().build(), null, null);
 
     assertThrows(
         BusinessException.class,
@@ -250,7 +265,11 @@ class RouteServiceTest {
     // Create initial route with GPX
     InputStream initialGpx = getClass().getClassLoader().getResourceAsStream("example.gpx");
     RouteRequest createRequest =
-        new RouteRequest("Original Route", "Original", SurfaceType.ROAD, Visibility.PUBLIC);
+        new RouteRequest(
+            "Original Route",
+            MediaDto.builder().markdown("Original").build(),
+            SurfaceType.ROAD,
+            Visibility.PUBLIC);
 
     createdRoute =
         routeService.createRoute(
@@ -261,7 +280,11 @@ class RouteServiceTest {
     // Update route with new GPX file (using same file for simplicity)
     InputStream newGpx = getClass().getClassLoader().getResourceAsStream("example.gpx");
     RouteRequest updateRequest =
-        new RouteRequest("Updated Route", "Updated", SurfaceType.GRAVEL, Visibility.TEAM);
+        new RouteRequest(
+            "Updated Route",
+            MediaDto.builder().markdown("Updated").build(),
+            SurfaceType.GRAVEL,
+            Visibility.TEAM);
 
     RouteDto updated =
         routeService.updateRoute(
@@ -273,7 +296,7 @@ class RouteServiceTest {
             organizer.getId());
 
     assertEquals("Updated Route", updated.name());
-    assertEquals("Updated", updated.description());
+    assertEquals("Updated", updated.media().markdown());
     assertEquals(SurfaceType.GRAVEL, updated.surfaceType());
     assertEquals(Visibility.TEAM, updated.visibility());
     assertEquals(originalDistance, updated.distance()); // Same file, so distance should match
@@ -284,7 +307,8 @@ class RouteServiceTest {
   @Test
   void deleteRoute_shouldSoftDeleteRoute() throws Exception {
     InputStream gpxStream = getClass().getClassLoader().getResourceAsStream("example.gpx");
-    RouteRequest request = new RouteRequest("To Delete", null, null, Visibility.PUBLIC);
+    RouteRequest request =
+        new RouteRequest("To Delete", MediaDto.builder().build(), null, Visibility.PUBLIC);
 
     createdRoute =
         routeService.createRoute("test-team", request, gpxStream, "example.gpx", admin.getId());
@@ -314,7 +338,8 @@ class RouteServiceTest {
   @Test
   void getFilteredGpxFile_shouldReturnFileIfExists() throws Exception {
     InputStream gpxStream = getClass().getClassLoader().getResourceAsStream("example.gpx");
-    RouteRequest request = new RouteRequest("Route", null, null, Visibility.PUBLIC);
+    RouteRequest request =
+        new RouteRequest("Route", MediaDto.builder().build(), null, Visibility.PUBLIC);
 
     createdRoute =
         routeService.createRoute("test-team", request, gpxStream, "example.gpx", admin.getId());
@@ -326,7 +351,8 @@ class RouteServiceTest {
   @Test
   void getFitFile_shouldReturnFileIfExists() throws Exception {
     InputStream gpxStream = getClass().getClassLoader().getResourceAsStream("example.gpx");
-    RouteRequest request = new RouteRequest("Route", null, null, Visibility.PUBLIC);
+    RouteRequest request =
+        new RouteRequest("Route", MediaDto.builder().build(), null, Visibility.PUBLIC);
 
     createdRoute =
         routeService.createRoute("test-team", request, gpxStream, "example.gpx", admin.getId());
@@ -337,7 +363,8 @@ class RouteServiceTest {
   @Test
   void getThumbnailFile_shouldReturnFileIfExists() throws Exception {
     InputStream gpxStream = getClass().getClassLoader().getResourceAsStream("example.gpx");
-    RouteRequest request = new RouteRequest("Route", null, null, Visibility.PUBLIC);
+    RouteRequest request =
+        new RouteRequest("Route", MediaDto.builder().build(), null, Visibility.PUBLIC);
 
     createdRoute =
         routeService.createRoute("test-team", request, gpxStream, "example.gpx", admin.getId());

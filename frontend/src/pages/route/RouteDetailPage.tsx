@@ -101,9 +101,7 @@ export function RouteDetailPage() {
         <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">{route.name}</h1>
-            {route.description && (
-              <MarkdownDisplay content={route.description} className="mt-2 text-gray-600" />
-            )}
+            <MarkdownDisplay media={route.media} className="mt-2 text-gray-600" />
           </div>
           {canEdit && (
             <div className="mt-4 sm:mt-0 flex gap-3">

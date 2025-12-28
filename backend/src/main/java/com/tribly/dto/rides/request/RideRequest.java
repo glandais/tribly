@@ -1,5 +1,6 @@
 package com.tribly.dto.rides.request;
 
+import com.tribly.dto.common.MediaDto;
 import com.tribly.dto.validation.ValidateSchema;
 import com.tribly.enums.Status;
 import com.tribly.enums.Visibility;
@@ -18,7 +19,7 @@ public record RideRequest(
         @NotBlank
         @Size(min = 3, max = 200)
         String name,
-    @Nullable @Schema(description = "Ride description") @Size(max = 5000) String description,
+    @Schema(description = "Ride media", required = true) MediaDto media,
     @Schema(description = "Ride date/time", examples = "2025-06-15", required = true)
         Instant dateTime,
     @Schema(description = "Ride status", required = true) Status status,

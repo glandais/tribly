@@ -133,11 +133,9 @@ export function RideDetailPage() {
                 {t(`status.${ride.status}`)}
               </span>
             </div>
-            {ride.description && (
-              <div className="mt-2">
-                <MarkdownDisplay content={ride.description} className="text-gray-600" />
-              </div>
-            )}
+            <div className="mt-2">
+              <MarkdownDisplay media={ride.media} className="text-gray-600" />
+            </div>
             {ride.status === Status.Draft && ride.publishAt && (
               <div className="mt-2 text-sm text-amber-600 flex items-center">
                 <ClockIcon className="w-4 h-4 mr-1" />

@@ -101,6 +101,7 @@ Class | Method | HTTP request | Description
  - [GroupRequest](docs/GroupRequest.md)
  - [KeycloakConfig](docs/KeycloakConfig.md)
  - [MapConfig](docs/MapConfig.md)
+ - [MediaDto](docs/MediaDto.md)
  - [MemberDto](docs/MemberDto.md)
  - [MemberListResponse](docs/MemberListResponse.md)
  - [PostDto](docs/PostDto.md)

@@ -3,6 +3,7 @@ package com.tribly.dto.routes.response;
 import com.tribly.domain.route.GpxTrack;
 import com.tribly.domain.route.Route;
 import com.tribly.domain.route.RouteClimb;
+import com.tribly.dto.common.MediaDto;
 import com.tribly.dto.users.response.PublicUserDto;
 import com.tribly.enums.SurfaceType;
 import com.tribly.enums.Visibility;
@@ -11,7 +12,6 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
-import org.jspecify.annotations.Nullable;
 
 /**
  * Route DTO for detail view with full information.
@@ -21,7 +21,7 @@ public record RouteDetailDto(
     @Schema(description = "Route ID (TSID)", required = true) String id,
     @Schema(description = "Route slug", required = true) String slug,
     @Schema(description = "Route name", required = true) String name,
-    @Nullable @Schema(description = "Route description", required = true) String description,
+    @Schema(description = "Media", required = true) MediaDto media,
     @Schema(description = "Distance in meters", required = true) Integer distance,
     @Schema(description = "Total elevation gain in meters", required = true) Integer elevationGain,
     @Schema(description = "Total elevation loss in meters", required = true) Integer elevationLoss,
@@ -44,7 +44,7 @@ public record RouteDetailDto(
         TsidUtils.toString(route.getId()),
         route.getSlug(),
         route.getName(),
-        route.getDescription(),
+        MediaDto.from(route),
         route.getDistance(),
         route.getElevationGain(),
         route.getElevationLoss(),

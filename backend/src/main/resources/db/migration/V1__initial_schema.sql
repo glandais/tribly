@@ -4,6 +4,10 @@
 -- Enable PostGIS
 CREATE EXTENSION IF NOT EXISTS postgis;
 
+-- Enable pg_trgm extension for trigram-based text search
+-- This extension provides operators and indexes for fast partial text matching
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+
 
 create table gpx_tracks (
                             deleted boolean not null,
@@ -31,8 +35,7 @@ create table ride_groups (
                              route_id bigint,
                              updated_at timestamp(6) with time zone not null,
                              version bigint,
-                             name varchar(100) not null,
-                             description TEXT,
+                             name varchar(255) not null,
                              primary key (id)
 );
 
@@ -73,7 +76,7 @@ create table team_entities (
                                elevation_loss integer,
                                end_lat numeric(10,8),
                                end_lng numeric(11,8),
-                               entity_type integer not null check ((entity_type in (1,3,2))),
+                               entity_type integer not null check ((entity_type in (3,1,4,2))),
                                start_lat numeric(10,8),
                                start_lng numeric(11,8),
                                created_at timestamp(6) with time zone not null,
@@ -88,9 +91,9 @@ create table team_entities (
                                status varchar(20) check ((status in ('DRAFT','PUBLISHED','CANCELLED'))),
                                surface_type varchar(20) check ((surface_type in ('ROAD','GRAVEL','MTB','MIXED'))),
                                visibility varchar(20) not null check ((visibility in ('TEAM','PUBLIC'))),
-                               slug varchar(100) not null,
-                               description TEXT,
+                               markdown TEXT,
                                name varchar(255) not null,
+                               slug varchar(255) not null,
                                primary key (id),
                                constraint uk_team_entity_slug unique (team_id, entity_type, slug)
 );
@@ -98,13 +101,13 @@ create table team_entities (
 create table teams (
                        deleted boolean not null,
                        created_at timestamp(6) with time zone not null,
+                       description_id bigint,
                        id bigint not null,
                        updated_at timestamp(6) with time zone not null,
                        version bigint,
                        visibility varchar(20) not null check ((visibility in ('TEAM','PUBLIC'))),
-                       slug varchar(100) not null unique,
-                       description TEXT,
                        name varchar(255) not null,
+                       slug varchar(255) not null unique,
                        primary key (id)
 );
 
@@ -159,9 +162,6 @@ create index IDXngsx2ujy92deb6wsf1bg6wd4a
 create index IDXo3hbo8wlcgmi4dqwrqm9jtm8f
     on teams (slug, deleted);
 
-create index IDXixk5gstpccrw4cv53uxkw5feu
-    on teams (name, deleted);
-
 alter table if exists gpx_tracks
     add constraint FK8caclj6tlkl3wydyngervcys
     foreign key (route_id)
@@ -207,6 +207,11 @@ alter table if exists team_entities
     foreign key (route_id)
     references team_entities;
 
+alter table if exists teams
+    add constraint FKlorb7wivvrwpknrj7pcc6pqny
+    foreign key (description_id)
+    references team_entities;
+
 alter table if exists user_teams
     add constraint FK2ndqpo9mm1g72f7hvb9daimrd
     foreign key (team_id)
@@ -216,3 +221,17 @@ alter table if exists user_teams
     add constraint FK5aymw95okwem1l7tmd2owesdh
     foreign key (user_id)
     references users;
+
+-- Teams table indexes for search performance
+-- GIN index on name for fast partial matching
+CREATE INDEX idx_teams_name_gin_trgm ON teams USING GIN (name gin_trgm_ops);
+
+-- Team entities table indexes for search performance
+-- GIN index on name for fast partial matching (rides, posts, routes)
+CREATE INDEX idx_team_entities_name_gin_trgm ON team_entities USING GIN (name gin_trgm_ops);
+
+-- GIN index on description for fast partial matching
+CREATE INDEX idx_team_entities_markdown_gin_trgm ON team_entities USING GIN (markdown gin_trgm_ops);
+
+-- Note: These indexes dramatically improve LIKE '%search%' query performance
+-- from O(n) table scan to O(log n) index lookup

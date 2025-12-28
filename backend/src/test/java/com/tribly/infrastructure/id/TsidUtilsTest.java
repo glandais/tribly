@@ -17,7 +17,7 @@ class TsidUtilsTest {
 
     assertNotNull(result);
     assertEquals(result.toLowerCase(), result); // Verify lowercase
-    assertTrue(result.length() > 0);
+    assertFalse(result.isEmpty());
   }
 
   @Test

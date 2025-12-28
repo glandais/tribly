@@ -143,11 +143,7 @@
             "examples" : [ "Fast Group" ],
             "pattern" : "\\S",
             "minLength" : 1,
-            "maxLength" : 100
-          },
-          "description" : {
-            "type" : "string",
-            "description" : "Group description"
+            "maxLength" : 200
           },
           "averageSpeed" : {
             "type" : "integer",
@@ -207,6 +203,15 @@
           "attribution" : {
             "type" : "string",
             "description" : "Map attribution text"
+          }
+        }
+      },
+      "MediaDto" : {
+        "type" : "object",
+        "properties" : {
+          "markdown" : {
+            "type" : "string",
+            "description" : "Markdown"
           }
         }
       },
@@ -271,7 +276,7 @@
         } ],
         "description" : "Post summary data",
         "type" : "object",
-        "required" : [ "type", "team", "id", "slug", "name", "dateTime", "status", "visibility" ],
+        "required" : [ "type", "team", "id", "slug", "name", "media", "dateTime", "status", "visibility" ],
         "properties" : {
           "type" : {
             "description" : "Type",
@@ -295,9 +300,10 @@
             "type" : "string",
             "description" : "Publication name"
           },
-          "description" : {
-            "type" : "string",
-            "description" : "Publication description"
+          "media" : {
+            "description" : "Publication media",
+            "type" : "object",
+            "$ref" : "#/components/schemas/MediaDto"
           },
           "dateTime" : {
             "description" : "Publication date/time",
@@ -358,7 +364,7 @@
       "PostRequest" : {
         "description" : "Post request",
         "type" : "object",
-        "required" : [ "name", "dateTime", "status", "visibility" ],
+        "required" : [ "name", "media", "dateTime", "status", "visibility" ],
         "properties" : {
           "name" : {
             "type" : "string",
@@ -367,10 +373,10 @@
             "minLength" : 3,
             "maxLength" : 200
           },
-          "description" : {
-            "type" : "string",
+          "media" : {
             "description" : "Post description",
-            "maxLength" : 5000
+            "type" : "object",
+            "$ref" : "#/components/schemas/MediaDto"
           },
           "dateTime" : {
             "description" : "Post date/time",
@@ -475,7 +481,7 @@
         } ],
         "description" : "Ride summary data",
         "type" : "object",
-        "required" : [ "type", "team", "id", "slug", "name", "dateTime", "status", "visibility", "participantCount", "groupCount", "groups" ],
+        "required" : [ "type", "team", "id", "slug", "name", "media", "dateTime", "status", "visibility", "participantCount", "groupCount", "groups" ],
         "properties" : {
           "type" : {
             "description" : "Type",
@@ -499,9 +505,10 @@
             "type" : "string",
             "description" : "Publication name"
           },
-          "description" : {
-            "type" : "string",
-            "description" : "Publication description"
+          "media" : {
+            "description" : "Publication media",
+            "type" : "object",
+            "$ref" : "#/components/schemas/MediaDto"
           },
           "dateTime" : {
             "description" : "Publication date/time",
@@ -563,10 +570,6 @@
           "name" : {
             "type" : "string",
             "description" : "Group name"
-          },
-          "description" : {
-            "type" : "string",
-            "description" : "Group description"
           },
           "routeSlug" : {
             "type" : "string",
@@ -667,7 +670,7 @@
       "RideRequest" : {
         "description" : "Ride request",
         "type" : "object",
-        "required" : [ "name", "dateTime", "status", "visibility", "groups" ],
+        "required" : [ "name", "media", "dateTime", "status", "visibility", "groups" ],
         "properties" : {
           "name" : {
             "type" : "string",
@@ -677,10 +680,10 @@
             "minLength" : 3,
             "maxLength" : 200
           },
-          "description" : {
-            "type" : "string",
-            "description" : "Ride description",
-            "maxLength" : 5000
+          "media" : {
+            "description" : "Ride media",
+            "type" : "object",
+            "$ref" : "#/components/schemas/MediaDto"
           },
           "dateTime" : {
             "description" : "Ride date/time",
@@ -762,7 +765,7 @@
       "RouteDetailDto" : {
         "description" : "Detailed route information",
         "type" : "object",
-        "required" : [ "id", "slug", "name", "description", "distance", "elevationGain", "elevationLoss", "surfaceType", "visibility", "startLat", "startLng", "endLat", "endLng", "createdBy", "createdAt", "updatedAt", "climbs", "track" ],
+        "required" : [ "id", "slug", "name", "media", "distance", "elevationGain", "elevationLoss", "surfaceType", "visibility", "startLat", "startLng", "endLat", "endLng", "createdBy", "createdAt", "updatedAt", "climbs", "track" ],
         "properties" : {
           "id" : {
             "type" : "string",
@@ -776,9 +779,10 @@
             "type" : "string",
             "description" : "Route name"
           },
-          "description" : {
-            "type" : "string",
-            "description" : "Route description"
+          "media" : {
+            "description" : "Media",
+            "type" : "object",
+            "$ref" : "#/components/schemas/MediaDto"
           },
           "distance" : {
             "type" : "integer",
@@ -853,7 +857,7 @@
       "RouteDto" : {
         "description" : "Route summary data",
         "type" : "object",
-        "required" : [ "id", "slug", "name", "distance", "elevationGain", "elevationLoss", "surfaceType", "visibility", "createdAt" ],
+        "required" : [ "id", "slug", "name", "media", "distance", "elevationGain", "elevationLoss", "surfaceType", "visibility", "createdAt" ],
         "properties" : {
           "id" : {
             "type" : "string",
@@ -867,9 +871,10 @@
             "type" : "string",
             "description" : "Route name"
           },
-          "description" : {
-            "type" : "string",
-            "description" : "Route description"
+          "media" : {
+            "description" : "Route description",
+            "type" : "object",
+            "$ref" : "#/components/schemas/MediaDto"
           },
           "distance" : {
             "type" : "integer",
@@ -935,15 +940,16 @@
       "RouteRequest" : {
         "description" : "Route update request",
         "type" : "object",
-        "required" : [ "name", "surfaceType", "visibility" ],
+        "required" : [ "name", "media", "surfaceType", "visibility" ],
         "properties" : {
           "name" : {
             "type" : "string",
             "description" : "Route name"
           },
-          "description" : {
-            "type" : "string",
-            "description" : "Route description"
+          "media" : {
+            "description" : "Media",
+            "type" : "object",
+            "$ref" : "#/components/schemas/MediaDto"
           },
           "surfaceType" : {
             "description" : "Surface type",
@@ -968,7 +974,7 @@
       "TeamDetailDto" : {
         "description" : "Detailed team information",
         "type" : "object",
-        "required" : [ "id", "name", "slug", "visibility", "memberCount", "createdAt" ],
+        "required" : [ "id", "name", "slug", "media", "visibility", "memberCount", "createdAt" ],
         "properties" : {
           "id" : {
             "type" : "string",
@@ -983,9 +989,10 @@
             "type" : "string",
             "description" : "Team URL slug"
           },
-          "description" : {
-            "type" : "string",
-            "description" : "Team description"
+          "media" : {
+            "description" : "Team description",
+            "type" : "object",
+            "$ref" : "#/components/schemas/MediaDto"
           },
           "visibility" : {
             "description" : "Whether the team is public",
@@ -1066,7 +1073,7 @@
       "TeamRequest" : {
         "description" : "Team creation request",
         "type" : "object",
-        "required" : [ "name", "visibility" ],
+        "required" : [ "name", "media", "visibility" ],
         "properties" : {
           "name" : {
             "type" : "string",
@@ -1074,13 +1081,12 @@
             "examples" : [ "Awesome Cycling Team" ],
             "pattern" : "\\S",
             "minLength" : 2,
-            "maxLength" : 255
+            "maxLength" : 200
           },
-          "description" : {
-            "type" : "string",
-            "description" : "Team description",
-            "examples" : [ "A team for weekend warriors" ],
-            "maxLength" : 2000
+          "media" : {
+            "description" : "Media",
+            "type" : "object",
+            "$ref" : "#/components/schemas/MediaDto"
           },
           "visibility" : {
             "description" : "Whether the team is publicly visible",
@@ -1142,7 +1148,7 @@
             "description" : "User display name",
             "examples" : [ "John Doe" ],
             "minLength" : 1,
-            "maxLength" : 255
+            "maxLength" : 200
           }
         }
       },
@@ -1183,7 +1189,7 @@
     "securitySchemes" : {
       "SecurityScheme" : {
         "type" : "openIdConnect",
-        "openIdConnectUrl" : "http://localhost:8180/realms/tribly/.well-known/openid-configuration",
+        "openIdConnectUrl" : "http://localhost:8180/realms/quarkus/.well-known/openid-configuration",
         "description" : "Authentication"
       }
     }
@@ -1260,7 +1266,7 @@
             "default" : 0
           }
         }, {
-          "description" : "Search by name/description",
+          "description" : "Search by name/markdown",
           "name" : "search",
           "in" : "query",
           "schema" : {
@@ -2398,7 +2404,7 @@
             "default" : 0
           }
         }, {
-          "description" : "Search by name/description",
+          "description" : "Search by name/markdown",
           "name" : "search",
           "in" : "query",
           "schema" : {
@@ -2476,7 +2482,7 @@
             "default" : 0
           }
         }, {
-          "description" : "Search by name/description",
+          "description" : "Search by name/markdown",
           "name" : "search",
           "in" : "query",
           "schema" : {
@@ -2968,7 +2974,7 @@
             "default" : 0
           }
         }, {
-          "description" : "Search by name/description",
+          "description" : "Search by name/markdown",
           "name" : "search",
           "in" : "query",
           "schema" : {
@@ -3105,7 +3111,7 @@
     "/api/teams/{slug}/routes/{routeSlug}" : {
       "put" : {
         "summary" : "Update route",
-        "description" : "Update route metadata (name, description, etc.) and optionally replace the GPX file. If a new GPX file is provided, the old track data and climbs will be replaced.",
+        "description" : "Update route metadata (name, markdown, etc.) and optionally replace the GPX file. If a new GPX file is provided, the old track data and climbs will be replaced.",
         "operationId" : "updateRoute",
         "tags" : [ "Routes" ],
         "parameters" : [ {

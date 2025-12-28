@@ -45,17 +45,10 @@
         "placeholder": "Décrivez la sortie, les points forts du parcours, les arrêts café..."
       },
       "date": {
-        "label": "Date"
+        "label": "Départ"
       },
-      "startTime": {
-        "label": "Heure de départ"
-      },
-      "visibility": {
-        "label": "Visibilité",
-        "team": "Équipe uniquement",
-        "public": "Publique",
-        "privateTeamHint": "Les sorties publiques ne sont pas disponibles pour les équipes privées"
-      },
+      "visibility": "Visibilité",
+      "visibilityDisabledHint": "Les parcours d'une équipe privée ne peuvent pas être publics",
       "status": {
         "label": "Statut"
       },
@@ -95,7 +88,7 @@
       },
       "publishAt": {
         "label": "Publication programmée",
-        "hint": "Laissez vide pour publier manuellement, ou définissez une date/heure pour une publication automatique"
+        "hint": "Définissez une date/heure pour une publication automatique"
       }
     },
     "button": "Créer la sortie",

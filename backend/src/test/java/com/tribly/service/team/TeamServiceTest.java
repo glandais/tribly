@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
+import com.tribly.dto.common.MediaDto;
 import com.tribly.dto.teams.request.TeamRequest;
 import com.tribly.dto.teams.response.TeamDetailDto;
 import com.tribly.dto.teams.response.TeamListResponse;
@@ -39,14 +40,16 @@ class TeamServiceTest {
 
   @Test
   void createTeam_shouldCreateTeamWithSlug() {
-    TeamRequest request = new TeamRequest("Test Team", "A test team", Visibility.PUBLIC);
+    TeamRequest request =
+        new TeamRequest(
+            "Test Team", MediaDto.builder().markdown("A test team").build(), Visibility.PUBLIC);
 
     TeamDetailDto result = teamService.createTeam(request, user1.getId());
 
     assertNotNull(result);
     assertEquals("Test Team", result.name());
     assertEquals("test-team", result.slug());
-    assertEquals("A test team", result.description());
+    assertEquals("A test team", result.media().markdown());
     assertEquals(Visibility.PUBLIC, result.visibility());
     assertEquals(TeamRole.ADMIN, result.role());
     assertEquals(1L, result.memberCount());
@@ -54,7 +57,7 @@ class TeamServiceTest {
 
   @Test
   void createTeam_shouldCreateAdminMembership() {
-    TeamRequest request = new TeamRequest("My Team", null, Visibility.PUBLIC);
+    TeamRequest request = new TeamRequest("My Team", MediaDto.builder().build(), Visibility.PUBLIC);
 
     TeamDetailDto result = teamService.createTeam(request, user1.getId());
 
@@ -65,8 +68,10 @@ class TeamServiceTest {
 
   @Test
   void createTeam_shouldHandleSlugCollisionWithTimestamp() {
-    TeamRequest request1 = new TeamRequest("Test Team", null, Visibility.PUBLIC);
-    TeamRequest request2 = new TeamRequest("Test Team", null, Visibility.PUBLIC);
+    TeamRequest request1 =
+        new TeamRequest("Test Team", MediaDto.builder().build(), Visibility.PUBLIC);
+    TeamRequest request2 =
+        new TeamRequest("Test Team", MediaDto.builder().build(), Visibility.PUBLIC);
 
     TeamDetailDto team1 = teamService.createTeam(request1, user1.getId());
     TeamDetailDto team2 = teamService.createTeam(request2, user2.getId());
@@ -78,7 +83,8 @@ class TeamServiceTest {
 
   @Test
   void createTeam_shouldThrowWhenUserNotFound() {
-    TeamRequest request = new TeamRequest("Test Team", null, Visibility.PUBLIC);
+    TeamRequest request =
+        new TeamRequest("Test Team", MediaDto.builder().build(), Visibility.PUBLIC);
 
     BusinessException exception =
         assertThrows(BusinessException.class, () -> teamService.createTeam(request, 999999L));
@@ -161,12 +167,16 @@ class TeamServiceTest {
   void updateTeam_shouldUpdateAllFields() {
     Team team = dataService.createTeam("Original", "original", Visibility.PUBLIC);
     dataService.addUserToTeam(user1, team, TeamRole.ADMIN);
-    TeamRequest request = new TeamRequest("Updated Name", "Updated description", Visibility.TEAM);
+    TeamRequest request =
+        new TeamRequest(
+            "Updated Name",
+            MediaDto.builder().markdown("Updated description").build(),
+            Visibility.TEAM);
 
     TeamDetailDto result = teamService.updateTeam("original", request, user1.getId());
 
     assertEquals("Updated Name", result.name());
-    assertEquals("Updated description", result.description());
+    assertEquals("Updated description", result.media().markdown());
     assertEquals(Visibility.TEAM, result.visibility());
   }
 
@@ -174,7 +184,9 @@ class TeamServiceTest {
   void updateTeam_shouldUpdatePartialFields() {
     Team team = dataService.createTeam("Original", "original", Visibility.PUBLIC);
     dataService.addUserToTeam(user1, team, TeamRole.ADMIN);
-    TeamRequest request = new TeamRequest("New Name", "original", Visibility.PUBLIC);
+    TeamRequest request =
+        new TeamRequest(
+            "New Name", MediaDto.builder().markdown("original").build(), Visibility.PUBLIC);
 
     TeamDetailDto result = teamService.updateTeam("original", request, user1.getId());
 
@@ -186,19 +198,24 @@ class TeamServiceTest {
   void updateTeam_shouldPreserveNameWhenNull() {
     Team team = dataService.createTeam("Original Name", "original", Visibility.PUBLIC);
     dataService.addUserToTeam(user1, team, TeamRole.ADMIN);
-    TeamRequest request = new TeamRequest("New name", "Updated description", Visibility.PUBLIC);
+    TeamRequest request =
+        new TeamRequest(
+            "New name",
+            MediaDto.builder().markdown("Updated description").build(),
+            Visibility.PUBLIC);
 
     TeamDetailDto result = teamService.updateTeam("original", request, user1.getId());
 
     assertEquals("New name", result.name());
-    assertEquals("Updated description", result.description());
+    assertEquals("Updated description", result.media().markdown());
   }
 
   @Test
   void updateTeam_shouldThrowForNonAdmin() {
     Team team = dataService.createTeam("Test Team", "test-team", Visibility.PUBLIC);
     dataService.addUserToTeam(user1, team, TeamRole.MEMBER);
-    TeamRequest request = new TeamRequest("New Name", null, null);
+    TeamRequest request =
+        new TeamRequest("New Name", MediaDto.builder().build(), Visibility.PUBLIC);
 
     assertThrows(
         BusinessException.class, () -> teamService.updateTeam("test-team", request, user1.getId()));

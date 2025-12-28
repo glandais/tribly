@@ -26,15 +26,11 @@ public class RideGroup extends BaseEntity {
   private Ride ride;
 
   @NotBlank
-  @Size(max = 100)
+  @Size(max = 255)
   @Column(name = "name", nullable = false)
   private String name;
 
-  @Column(name = "description", columnDefinition = "TEXT")
-  @Nullable
-  private String description;
-
-  @ManyToOne(fetch = FetchType.LAZY)
+  @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "route_id")
   @Nullable
   private Route route;

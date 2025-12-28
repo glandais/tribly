@@ -3,6 +3,7 @@ package com.tribly.api.rides;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
+import com.tribly.dto.common.MediaDto;
 import com.tribly.dto.rides.request.GroupRequest;
 import com.tribly.dto.rides.request.RideRequest;
 import com.tribly.dto.rides.response.RideDto;
@@ -80,13 +81,13 @@ class RideResourceTest {
         .body(
             new RideRequest(
                 "Sunday Morning Ride",
-                null,
+                MediaDto.builder().build(),
                 LocalDate.parse("2025-01-20").atTime(0, 0).toInstant(ZoneOffset.UTC),
                 Status.DRAFT,
                 Visibility.PUBLIC,
                 null,
                 null,
-                List.of(new GroupRequest(null, "G1", null, null, null, null))))
+                List.of(new GroupRequest(null, "G1", null, null, null))))
         .when()
         .post("/api/teams/" + teamSlug + "/rides")
         .then()
@@ -109,13 +110,13 @@ class RideResourceTest {
         .body(
             new RideRequest(
                 "Sunday Morning Ride",
-                null,
+                MediaDto.builder().build(),
                 LocalDate.parse("2025-01-20").atTime(0, 0).toInstant(ZoneOffset.UTC),
                 Status.DRAFT,
                 Visibility.PUBLIC,
                 null,
                 null,
-                List.of(new GroupRequest(null, "G1", null, null, null, null))))
+                List.of(new GroupRequest(null, "G1", null, null, null))))
         .when()
         .post("/api/teams/" + teamSlug + "/rides")
         .then()
@@ -129,16 +130,16 @@ class RideResourceTest {
     var body =
         new RideRequest(
             "Multi-Group Ride",
-            null,
+            MediaDto.builder().build(),
             LocalDate.parse("2025-01-20").atTime(0, 0).toInstant(ZoneOffset.UTC),
             Status.DRAFT,
             Visibility.PUBLIC,
             null,
             null,
             List.of(
-                new GroupRequest(null, "Fast", null, 32, 10, null),
-                new GroupRequest(null, "Fase", null, 28, 15, null),
-                new GroupRequest(null, "Social", null, 25, null, null)));
+                new GroupRequest(null, "Fast", 32, 10, null),
+                new GroupRequest(null, "Fase", 28, 15, null),
+                new GroupRequest(null, "Social", 25, null, null)));
 
     given()
         .auth()
@@ -165,13 +166,13 @@ class RideResourceTest {
             .body(
                 new RideRequest(
                     "Get Test Ride",
-                    null,
+                    MediaDto.builder().build(),
                     LocalDate.parse("2025-01-22").atTime(0, 0).toInstant(ZoneOffset.UTC),
                     Status.DRAFT,
                     Visibility.PUBLIC,
                     null,
                     null,
-                    List.of(new GroupRequest(null, "G1", null, null, null, null))))
+                    List.of(new GroupRequest(null, "G1", null, null, null))))
             .when()
             .post("/api/teams/" + teamSlug + "/rides")
             .then()
@@ -203,13 +204,13 @@ class RideResourceTest {
         .body(
             new RideRequest(
                 "Ride 1",
-                null,
+                MediaDto.builder().build(),
                 LocalDate.parse("2025-01-20").atTime(0, 0).toInstant(ZoneOffset.UTC),
                 Status.DRAFT,
                 Visibility.PUBLIC,
                 null,
                 null,
-                List.of(new GroupRequest(null, "G1", null, null, null, null))))
+                List.of(new GroupRequest(null, "G1", null, null, null))))
         .when()
         .post("/api/teams/" + teamSlug + "/rides")
         .then()
@@ -222,13 +223,13 @@ class RideResourceTest {
         .body(
             new RideRequest(
                 "Ride 2",
-                null,
+                MediaDto.builder().build(),
                 LocalDate.parse("2025-01-27").atTime(0, 0).toInstant(ZoneOffset.UTC),
                 Status.DRAFT,
                 Visibility.PUBLIC,
                 null,
                 null,
-                List.of(new GroupRequest(null, "G1", null, null, null, null))))
+                List.of(new GroupRequest(null, "G1", null, null, null))))
         .when()
         .post("/api/teams/" + teamSlug + "/rides")
         .then()
@@ -257,15 +258,15 @@ class RideResourceTest {
             .body(
                 new RideRequest(
                     "Sunday Morning Ride",
-                    null,
+                    MediaDto.builder().build(),
                     LocalDate.parse("2025-01-20").atTime(0, 0).toInstant(ZoneOffset.UTC),
                     Status.DRAFT,
                     Visibility.PUBLIC,
                     null,
                     null,
                     List.of(
-                        new GroupRequest(null, "G1", null, null, null, null),
-                        new GroupRequest(null, "G0", null, null, null, null))))
+                        new GroupRequest(null, "G1", null, null, null),
+                        new GroupRequest(null, "G0", null, null, null))))
             .when()
             .post("/api/teams/" + teamSlug + "/rides")
             .then()
@@ -282,15 +283,15 @@ class RideResourceTest {
         .body(
             new RideRequest(
                 "Updated Title",
-                null,
+                MediaDto.builder().build(),
                 LocalDate.parse("2025-01-20").atTime(0, 0).toInstant(ZoneOffset.UTC),
                 Status.PUBLISHED,
                 Visibility.PUBLIC,
                 null,
                 null,
                 List.of(
-                    new GroupRequest(groupId, "G1 modified", null, null, null, null),
-                    new GroupRequest(null, "G2", null, null, null, null))))
+                    new GroupRequest(groupId, "G1 modified", null, null, null),
+                    new GroupRequest(null, "G2", null, null, null))))
         .when()
         .put("/api/teams/" + teamSlug + "/rides/" + rideSlug)
         .then()
@@ -311,13 +312,13 @@ class RideResourceTest {
             .body(
                 new RideRequest(
                     "To be deleted",
-                    null,
+                    MediaDto.builder().build(),
                     LocalDate.parse("2025-01-20").atTime(0, 0).toInstant(ZoneOffset.UTC),
                     Status.PUBLISHED,
                     Visibility.PUBLIC,
                     null,
                     null,
-                    List.of(new GroupRequest(null, "G1", null, null, null, null))))
+                    List.of(new GroupRequest(null, "G1", null, null, null))))
             .when()
             .post("/api/teams/" + teamSlug + "/rides")
             .then()
@@ -357,13 +358,13 @@ class RideResourceTest {
             .body(
                 new RideRequest(
                     "Ride",
-                    null,
+                    MediaDto.builder().build(),
                     LocalDate.parse("2025-01-20").atTime(0, 0).toInstant(ZoneOffset.UTC),
                     Status.PUBLISHED,
                     Visibility.PUBLIC,
                     null,
                     null,
-                    List.of(new GroupRequest(null, "G1", null, null, null, null))))
+                    List.of(new GroupRequest(null, "G1", null, null, null))))
             .when()
             .post("/api/teams/" + teamSlug + "/rides")
             .then()
@@ -398,13 +399,13 @@ class RideResourceTest {
             .body(
                 new RideRequest(
                     "Ride",
-                    null,
+                    MediaDto.builder().build(),
                     LocalDate.parse("2025-01-20").atTime(0, 0).toInstant(ZoneOffset.UTC),
                     Status.DRAFT,
                     Visibility.PUBLIC,
                     null,
                     null,
-                    List.of(new GroupRequest(null, "G1", null, null, null, null))))
+                    List.of(new GroupRequest(null, "G1", null, null, null))))
             .when()
             .post("/api/teams/" + teamSlug + "/rides")
             .then()
@@ -439,13 +440,13 @@ class RideResourceTest {
             .body(
                 new RideRequest(
                     "Ride",
-                    null,
+                    MediaDto.builder().build(),
                     LocalDate.parse("2025-01-20").atTime(0, 0).toInstant(ZoneOffset.UTC),
                     Status.PUBLISHED,
                     Visibility.PUBLIC,
                     null,
                     null,
-                    List.of(new GroupRequest(null, "G1", null, null, null, null))))
+                    List.of(new GroupRequest(null, "G1", null, null, null))))
             .when()
             .post("/api/teams/" + teamSlug + "/rides")
             .then()

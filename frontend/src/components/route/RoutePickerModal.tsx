@@ -143,14 +143,12 @@ export function RoutePickerModal({
                       className="w-full h-32 object-cover rounded mb-3"
                     />
                     <h3 className="font-medium text-gray-900 truncate">{route.name}</h3>
-                    {route.description && (
-                      <MarkdownDisplay
-                        content={route.description}
-                        preview={true}
-                        maxLength={120}
-                        className="mt-1 text-sm text-gray-500"
-                      />
-                    )}
+                    <MarkdownDisplay
+                      media={route.media}
+                      preview={true}
+                      maxLength={120}
+                      className="mt-1 text-sm text-gray-500"
+                    />
                     <div className="flex gap-3 mt-2 text-xs text-gray-500">
                       <span className="flex items-center gap-1">
                         <ArrowsPointingOutIcon className="w-3.5 h-3.5" />

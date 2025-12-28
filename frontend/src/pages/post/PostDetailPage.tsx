@@ -96,11 +96,9 @@ export function PostDetailPage() {
                 {t(`status.${post.status}`)}
               </span>
             </div>
-            {post.description && (
-              <div className="mt-4">
-                <MarkdownDisplay content={post.description} className="text-gray-600" />
-              </div>
-            )}
+            <div className="mt-4">
+              <MarkdownDisplay media={post.media} className="text-gray-600" />
+            </div>
             {post.status === Status.Draft && post.publishAt && (
               <div className="mt-2 text-sm text-amber-600 flex items-center">
                 <ClockIcon className="w-4 h-4 mr-1" />

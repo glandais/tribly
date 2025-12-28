@@ -108,7 +108,7 @@ public class PostService extends TeamEntityService {
             request.name(), s -> postRepository.existsByTeamAndSlug(team.getId(), s));
 
     Post post = new Post(team, creator, request.name(), slug, request.dateTime());
-    post.setDescription(request.description());
+    post.setMarkdown(request.media().markdown());
     post.setVisibility(visibility);
     post.setStatus(request.status());
     post.setPublishAt(request.publishAt());
@@ -134,7 +134,7 @@ public class PostService extends TeamEntityService {
     post.setVisibility(request.visibility());
 
     post.setName(request.name());
-    post.setDescription(request.description());
+    post.setMarkdown(request.media().markdown());
     post.setDateTime(request.dateTime());
     post.setStatus(request.status());
     // publishAt can be explicitly set to null to remove scheduled publishing

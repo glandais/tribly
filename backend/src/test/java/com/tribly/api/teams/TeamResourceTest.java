@@ -5,6 +5,7 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.tribly.domain.user.User;
+import com.tribly.dto.common.MediaDto;
 import com.tribly.dto.teams.request.TeamRequest;
 import com.tribly.dto.teams.response.TeamDetailDto;
 import com.tribly.enums.TeamRole;
@@ -56,13 +57,19 @@ class TeamResourceTest {
     // Create public team with admin as owner
     publicTeam =
         teamService.createTeam(
-            new TeamRequest("Test Public Team", "A public team", Visibility.PUBLIC),
+            new TeamRequest(
+                "Test Public Team",
+                MediaDto.builder().markdown("A public team").build(),
+                Visibility.PUBLIC),
             adminUser.getId());
 
     // Create private team with admin as owner
     privateTeam =
         teamService.createTeam(
-            new TeamRequest("Test Private Team", "A private team", Visibility.TEAM),
+            new TeamRequest(
+                "Test Private Team",
+                MediaDto.builder().markdown("A private team").build(),
+                Visibility.TEAM),
             adminUser.getId());
   }
 
@@ -70,7 +77,10 @@ class TeamResourceTest {
   void createTeam_shouldCreateTeamAndMakeUserAdmin() {
     TeamDetailDto team =
         teamService.createTeam(
-            new TeamRequest("Test Cyclists", "A great cycling team", Visibility.PUBLIC),
+            new TeamRequest(
+                "Test Cyclists",
+                MediaDto.builder().markdown("A great cycling team").build(),
+                Visibility.PUBLIC),
             adminUser.getId());
 
     assertNotNull(team.id());
@@ -140,7 +150,11 @@ class TeamResourceTest {
 
   @Test
   void updateTeam_asAdmin_shouldSucceed() {
-    TeamRequest teamRequest = new TeamRequest("Updated Name", "New description", Visibility.PUBLIC);
+    TeamRequest teamRequest =
+        new TeamRequest(
+            "Updated Name",
+            MediaDto.builder().markdown("New description").build(),
+            Visibility.PUBLIC);
 
     given()
         .auth()
@@ -160,7 +174,8 @@ class TeamResourceTest {
     // Add member to team first via HTTP (pure HTTP pattern)
     addMemberViaApi(publicTeam.slug(), memberUser.getId());
 
-    TeamRequest teamRequest = new TeamRequest("Hacked Name", null, Visibility.PUBLIC);
+    TeamRequest teamRequest =
+        new TeamRequest("Hacked Name", MediaDto.builder().build(), Visibility.PUBLIC);
 
     given()
         .auth()

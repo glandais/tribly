@@ -3,8 +3,10 @@ import { useTranslation } from 'react-i18next'
 import { ChevronLeftIcon } from '@heroicons/react/24/outline'
 import { useTeam } from '../../hooks/useTeam'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
-import { RouteForm } from '../../components/route/RouteForm'
-import type { RouteDto } from '../../api/api'
+import { RouteEditor } from '../../components/route/RouteEditor'
+import type { RouteFormData } from '../../components/route/RouteEditor'
+import { useCreateRoute, SurfaceType } from '../../hooks/useRoute'
+import { Visibility } from '../../api/api'
 
 export function CreateRoutePage() {
   const { teamSlug } = useParams<{ teamSlug: string }>()
@@ -12,8 +14,21 @@ export function CreateRoutePage() {
   const { t } = useTranslation('routes')
 
   const { data: team, isLoading: isLoadingTeam } = useTeam(teamSlug)
+  const createRoute = useCreateRoute(teamSlug!)
 
-  const handleSuccess = (route: RouteDto) => {
+  const handleSubmit = async (data: RouteFormData, gpxFile?: File) => {
+    if (!gpxFile) return // TypeScript guard (shouldn't happen with requireGpxFile=true)
+
+    const route = await createRoute.mutateAsync({
+      route: {
+        name: data.name,
+        media: data.media,
+        surfaceType: data.surfaceType,
+        visibility: data.visibility,
+      },
+      gpxFile,
+    })
+
     navigate(`/teams/${teamSlug}/routes/${route.slug}`)
   }
 
@@ -27,6 +42,20 @@ export function CreateRoutePage() {
 
   if (!team) {
     return <Navigate to="/teams" replace />
+  }
+
+  const canCreate = team.role === 'ADMIN' || team.role === 'ORGANIZER'
+
+  if (!canCreate) {
+    return <Navigate to={`/teams/${teamSlug}/routes`} replace />
+  }
+
+  // Prepare initial values for create mode
+  const initialValues = {
+    name: '',
+    media: { markdown: '' },
+    surfaceType: SurfaceType.Road,
+    visibility: team.visibility === Visibility.Team ? Visibility.Team : Visibility.Public,
   }
 
   return (
@@ -43,11 +72,15 @@ export function CreateRoutePage() {
         <p className="mt-2 text-gray-600">{t('create.subtitle')}</p>
       </div>
 
-      <RouteForm
+      <RouteEditor
+        team={team}
         teamSlug={teamSlug!}
-        teamVisibility={team.visibility}
-        onSuccess={handleSuccess}
+        initialValues={initialValues}
+        requireGpxFile={true}
+        onSubmit={handleSubmit}
         onCancel={handleCancel}
+        isPending={createRoute.isPending}
+        error={createRoute.error}
         submitButtonText={t('create.submit')}
       />
     </div>

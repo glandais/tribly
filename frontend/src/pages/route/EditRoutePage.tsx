@@ -1,86 +1,34 @@
-import { useState, useEffect, useCallback } from 'react'
-import { useParams, Link, useNavigate } from 'react-router-dom'
+import { useParams, Link, useNavigate, Navigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { ChevronLeftIcon } from '@heroicons/react/24/outline'
 import { SurfaceType, useRoute, useUpdateRoute } from '../../hooks/useRoute'
 import { useTeam } from '../../hooks/useTeam'
 import { Visibility } from '../../api/api'
-import { MarkdownEditor } from '../../components/common/MarkdownEditor'
+import { LoadingPage } from '@/components/common/LoadingSpinner'
+import { RouteEditor } from '@/components/route/RouteEditor'
+import type { RouteFormData } from '@/components/route/RouteEditor'
 
 export function EditRoutePage() {
   const { teamSlug, routeSlug } = useParams<{ teamSlug: string; routeSlug: string }>()
   const { t } = useTranslation('routes')
-  const { t: tCommon } = useTranslation('common')
-  const { t: tErrors } = useTranslation('errors')
   const navigate = useNavigate()
 
-  const { data: team } = useTeam(teamSlug)
+  const { data: team, isLoading: isLoadingTeam } = useTeam(teamSlug)
   const { data: route, isLoading } = useRoute(teamSlug, routeSlug)
   const updateRoute = useUpdateRoute(teamSlug!, routeSlug!)
 
-  const [name, setName] = useState('')
-  const [description, setDescription] = useState('')
-  const [surfaceType, setSurfaceType] = useState<SurfaceType>(SurfaceType.Road)
-  const [visibility, setVisibility] = useState<Visibility>(Visibility.Team)
-  const [gpxFile, setGpxFile] = useState<File | undefined>(undefined)
-  const [error, setError] = useState<string | null>(null)
+  if (isLoadingTeam) {
+    return <LoadingPage message={t('create.title')} />
+  }
 
-  // Load route data into form
-  useEffect(() => {
-    if (route) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- Form initialization from server data
-      setName(route.name)
-      setDescription(route.description || '')
-      setSurfaceType(route.surfaceType || 'ROAD')
-      // For team-only teams, routes must always be team-only
-      setVisibility(team?.visibility === Visibility.Team ? Visibility.Team : route.visibility)
-    }
-  }, [route, team])
+  if (!team) {
+    return <Navigate to="/teams" replace />
+  }
 
-  const handleFileChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0]
-      if (!name && file?.name) {
-        const defaultName = file.name.replace(/\.gpx$/i, '')
-        setName(defaultName)
-      }
-      if (file) {
-        // Validate file type
-        if (!file.name.endsWith('.gpx')) {
-          setError(t('create.validation.invalidFileType'))
-          setGpxFile(undefined)
-          return
-        }
-        // Validate file size (10MB max)
-        if (file.size > 10 * 1024 * 1024) {
-          setError(t('create.validation.fileTooLarge'))
-          setGpxFile(undefined)
-          return
-        }
-        setError(null)
-        setGpxFile(file)
-      }
-    },
-    [t, name]
-  )
+  const canEdit = team.role === 'ADMIN' || team.role === 'ORGANIZER'
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    try {
-      await updateRoute.mutateAsync({
-        route: {
-          name,
-          description,
-          surfaceType,
-          visibility,
-        },
-        gpxFile,
-      })
-      navigate(`/teams/${teamSlug}/routes/${routeSlug}`)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : tErrors('api.unknown'))
-    }
+  if (!canEdit) {
+    return <Navigate to={`/teams/${teamSlug}/routes`} replace />
   }
 
   if (isLoading) {
@@ -103,17 +51,29 @@ export function EditRoutePage() {
   }
 
   if (!route) {
-    return (
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="text-center">
-          <p className="text-gray-500">{tErrors('api.notFound')}</p>
-        </div>
-      </div>
-    )
+    return <Navigate to={`/teams/${teamSlug}/routes`} replace />
   }
 
-  // For team-only teams, routes must always be team-only
-  const visibilityDisabled = team?.visibility === Visibility.Team
+  // Prepare initial values from fetched route data
+  const initialValues = {
+    name: route.name,
+    media: route.media,
+    surfaceType: route.surfaceType || SurfaceType.Road,
+    visibility: team.visibility === Visibility.Team ? Visibility.Team : route.visibility,
+  }
+
+  const handleSubmit = async (data: RouteFormData, gpxFile?: File) => {
+    await updateRoute.mutateAsync({
+      route: {
+        name: data.name,
+        media: data.media,
+        surfaceType: data.surfaceType,
+        visibility: data.visibility,
+      },
+      gpxFile,
+    })
+    navigate(`/teams/${teamSlug}/routes/${routeSlug}`)
+  }
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -129,127 +89,17 @@ export function EditRoutePage() {
         <p className="mt-2 text-gray-600">{t('edit.subtitle')}</p>
       </div>
 
-      {error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-          <p className="text-red-700">{error}</p>
-        </div>
-      )}
-
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* GPX File Upload */}
-        <div>
-          <label htmlFor="gpxFile" className="block text-sm font-medium text-gray-700">
-            {t('edit.form.gpxFile')}
-          </label>
-          <div className="mt-1">
-            <input
-              id="gpxFile"
-              name="gpxFile"
-              type="file"
-              accept=".gpx"
-              onChange={handleFileChange}
-              className="block w-full text-sm text-gray-500
-              file:mr-4 file:py-2 file:px-4
-              file:rounded-md file:border-0
-              file:text-sm file:font-semibold
-              file:bg-indigo-50 file:text-indigo-700
-              hover:file:bg-indigo-100"
-              required
-            />
-          </div>
-          <p className="mt-2 text-sm text-gray-500">{t('create.form.gpxFileHint')}</p>
-        </div>
-
-        {/* Name */}
-        <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-            {t('edit.form.name')} *
-          </label>
-          <input
-            id="name"
-            name="name"
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-xs focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-            required
-            maxLength={255}
-          />
-        </div>
-
-        {/* Description */}
-        <div>
-          <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
-            {t('edit.form.description')}
-          </label>
-          <MarkdownEditor
-            initialValue={description}
-            onChange={setDescription}
-            placeholder={t('edit.form.description')}
-            minHeight="150px"
-            maxHeight="300px"
-            disabled={updateRoute.isPending}
-            ariaLabel={t('edit.form.description')}
-          />
-        </div>
-
-        {/* Surface Type */}
-        <div>
-          <label htmlFor="surfaceType" className="block text-sm font-medium text-gray-700">
-            {t('edit.form.surfaceType')}
-          </label>
-          <select
-            id="surfaceType"
-            name="surfaceType"
-            value={surfaceType}
-            onChange={(e) => setSurfaceType(e.target.value as typeof surfaceType)}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-xs focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-          >
-            <option value="ROAD">{t('surfaceType.ROAD')}</option>
-            <option value="GRAVEL">{t('surfaceType.GRAVEL')}</option>
-            <option value="MTB">{t('surfaceType.MTB')}</option>
-            <option value="MIXED">{t('surfaceType.MIXED')}</option>
-          </select>
-        </div>
-
-        {/* Visibility */}
-        <div>
-          <label htmlFor="visibility" className="block text-sm font-medium text-gray-700">
-            {t('edit.form.visibility')}
-          </label>
-          <select
-            id="visibility"
-            name="visibility"
-            value={visibility}
-            onChange={(e) => setVisibility(e.target.value as Visibility)}
-            disabled={visibilityDisabled}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-xs focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <option value={Visibility.Team}>{tCommon('visibility.team')}</option>
-            <option value={Visibility.Public}>{tCommon('visibility.public')}</option>
-          </select>
-          {visibilityDisabled && (
-            <p className="mt-2 text-sm text-gray-500">{t('edit.form.visibilityDisabledHint')}</p>
-          )}
-        </div>
-
-        {/* Submit Buttons */}
-        <div className="flex justify-end gap-3">
-          <Link
-            to={`/teams/${teamSlug}/routes/${routeSlug}`}
-            className="px-4 py-2 border border-gray-300 rounded-md shadow-xs text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-          >
-            {tCommon('buttons.cancel')}
-          </Link>
-          <button
-            type="submit"
-            disabled={updateRoute.isPending}
-            className="px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {updateRoute.isPending ? tCommon('status.saving') : tCommon('buttons.save')}
-          </button>
-        </div>
-      </form>
+      <RouteEditor
+        team={team}
+        teamSlug={teamSlug!}
+        initialValues={initialValues}
+        requireGpxFile={false}
+        onSubmit={handleSubmit}
+        onCancel={() => navigate(`/teams/${teamSlug}/routes/${routeSlug}`)}
+        isPending={updateRoute.isPending}
+        error={updateRoute.error}
+        submitButtonText={t('edit.submit')}
+      />
     </div>
   )
 }

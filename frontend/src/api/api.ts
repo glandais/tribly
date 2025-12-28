@@ -142,10 +142,6 @@ export interface GroupRequest {
    */
   name: string
   /**
-   * Group description
-   */
-  description?: string
-  /**
    * Average speed in km/h
    */
   averageSpeed?: number
@@ -187,6 +183,12 @@ export interface MapConfig {
    * Map attribution text
    */
   attribution: string
+}
+export interface MediaDto {
+  /**
+   * Markdown
+   */
+  markdown?: string
 }
 /**
  * Team member information
@@ -250,9 +252,9 @@ export interface PostDto extends PublicationDto {
    */
   name: string
   /**
-   * Publication description
+   * Publication media
    */
-  description?: string
+  media: any
   dateTime: string
   /**
    * Publication status
@@ -298,7 +300,7 @@ export interface PostRequest {
   /**
    * Post description
    */
-  description?: string
+  media: MediaDto
   dateTime: string
   /**
    * Post status
@@ -385,9 +387,9 @@ export interface RideDto extends PublicationDto {
    */
   name: string
   /**
-   * Publication description
+   * Publication media
    */
-  description?: string
+  media: any
   dateTime: string
   /**
    * Publication status
@@ -429,10 +431,6 @@ export interface RideGroupDto {
    * Group name
    */
   name: string
-  /**
-   * Group description
-   */
-  description?: string
   /**
    * Route slug
    */
@@ -511,9 +509,9 @@ export interface RideRequest {
    */
   name: string
   /**
-   * Ride description
+   * Ride media
    */
-  description?: string
+  media: MediaDto
   dateTime: string
   /**
    * Ride status
@@ -589,9 +587,9 @@ export interface RouteDetailDto {
    */
   name: string
   /**
-   * Route description
+   * Media
    */
-  description: string
+  media: MediaDto
   /**
    * Distance in meters
    */
@@ -663,7 +661,7 @@ export interface RouteDto {
   /**
    * Route description
    */
-  description?: string
+  media: MediaDto
   /**
    * Distance in meters
    */
@@ -717,9 +715,9 @@ export interface RouteRequest {
    */
   name: string
   /**
-   * Route description
+   * Media
    */
-  description?: string
+  media: MediaDto
   /**
    * Surface type
    */
@@ -766,7 +764,7 @@ export interface TeamDetailDto {
   /**
    * Team description
    */
-  description?: string
+  media: MediaDto
   /**
    * Whether the team is public
    */
@@ -834,9 +832,9 @@ export interface TeamRequest {
    */
   name: string
   /**
-   * Team description
+   * Media
    */
-  description?: string
+  media: MediaDto
   /**
    * Whether the team is publicly visible
    */
@@ -1680,7 +1678,7 @@ export const PublicationsApiAxiosParamCreator = function (configuration?: Config
      * @summary List all publications
      * @param {string} [from] Start date filter (ISO format)
      * @param {number} [page] Page number
-     * @param {string} [search] Search by name/description
+     * @param {string} [search] Search by name/markdown
      * @param {number} [size] Page size
      * @param {string} [to] End date filter (ISO format)
      * @param {*} [options] Override http request option.
@@ -1745,7 +1743,7 @@ export const PublicationsApiAxiosParamCreator = function (configuration?: Config
      * @param {string} slug Team URL slug
      * @param {string} [from] Start date filter (ISO format)
      * @param {number} [page] Page number
-     * @param {string} [search] Search by name/description
+     * @param {string} [search] Search by name/markdown
      * @param {number} [size] Page size
      * @param {string} [to] End date filter (ISO format)
      * @param {*} [options] Override http request option.
@@ -1824,7 +1822,7 @@ export const PublicationsApiFp = function (configuration?: Configuration) {
      * @summary List all publications
      * @param {string} [from] Start date filter (ISO format)
      * @param {number} [page] Page number
-     * @param {string} [search] Search by name/description
+     * @param {string} [search] Search by name/markdown
      * @param {number} [size] Page size
      * @param {string} [to] End date filter (ISO format)
      * @param {*} [options] Override http request option.
@@ -1866,7 +1864,7 @@ export const PublicationsApiFp = function (configuration?: Configuration) {
      * @param {string} slug Team URL slug
      * @param {string} [from] Start date filter (ISO format)
      * @param {number} [page] Page number
-     * @param {string} [search] Search by name/description
+     * @param {string} [search] Search by name/markdown
      * @param {number} [size] Page size
      * @param {string} [to] End date filter (ISO format)
      * @param {*} [options] Override http request option.
@@ -1921,7 +1919,7 @@ export const PublicationsApiFactory = function (
      * @summary List all publications
      * @param {string} [from] Start date filter (ISO format)
      * @param {number} [page] Page number
-     * @param {string} [search] Search by name/description
+     * @param {string} [search] Search by name/markdown
      * @param {number} [size] Page size
      * @param {string} [to] End date filter (ISO format)
      * @param {*} [options] Override http request option.
@@ -1945,7 +1943,7 @@ export const PublicationsApiFactory = function (
      * @param {string} slug Team URL slug
      * @param {string} [from] Start date filter (ISO format)
      * @param {number} [page] Page number
-     * @param {string} [search] Search by name/description
+     * @param {string} [search] Search by name/markdown
      * @param {number} [size] Page size
      * @param {string} [to] End date filter (ISO format)
      * @param {*} [options] Override http request option.
@@ -1976,7 +1974,7 @@ export class PublicationsApi extends BaseAPI {
    * @summary List all publications
    * @param {string} [from] Start date filter (ISO format)
    * @param {number} [page] Page number
-   * @param {string} [search] Search by name/description
+   * @param {string} [search] Search by name/markdown
    * @param {number} [size] Page size
    * @param {string} [to] End date filter (ISO format)
    * @param {*} [options] Override http request option.
@@ -2001,7 +1999,7 @@ export class PublicationsApi extends BaseAPI {
    * @param {string} slug Team URL slug
    * @param {string} [from] Start date filter (ISO format)
    * @param {number} [page] Page number
-   * @param {string} [search] Search by name/description
+   * @param {string} [search] Search by name/markdown
    * @param {number} [size] Page size
    * @param {string} [to] End date filter (ISO format)
    * @param {*} [options] Override http request option.
@@ -2279,7 +2277,7 @@ export const RidesApiAxiosParamCreator = function (configuration?: Configuration
      * @param {string} slug Team URL slug
      * @param {string} [from] Start date filter (ISO format)
      * @param {number} [page] Page number
-     * @param {string} [search] Search by name/description
+     * @param {string} [search] Search by name/markdown
      * @param {number} [size] Page size
      * @param {string} [to] End date filter (ISO format)
      * @param {*} [options] Override http request option.
@@ -2559,7 +2557,7 @@ export const RidesApiFp = function (configuration?: Configuration) {
      * @param {string} slug Team URL slug
      * @param {string} [from] Start date filter (ISO format)
      * @param {number} [page] Page number
-     * @param {string} [search] Search by name/description
+     * @param {string} [search] Search by name/markdown
      * @param {number} [size] Page size
      * @param {string} [to] End date filter (ISO format)
      * @param {*} [options] Override http request option.
@@ -2732,7 +2730,7 @@ export const RidesApiFactory = function (
      * @param {string} slug Team URL slug
      * @param {string} [from] Start date filter (ISO format)
      * @param {number} [page] Page number
-     * @param {string} [search] Search by name/description
+     * @param {string} [search] Search by name/markdown
      * @param {number} [size] Page size
      * @param {string} [to] End date filter (ISO format)
      * @param {*} [options] Override http request option.
@@ -2865,7 +2863,7 @@ export class RidesApi extends BaseAPI {
    * @param {string} slug Team URL slug
    * @param {string} [from] Start date filter (ISO format)
    * @param {number} [page] Page number
-   * @param {string} [search] Search by name/description
+   * @param {string} [search] Search by name/markdown
    * @param {number} [size] Page size
    * @param {string} [to] End date filter (ISO format)
    * @param {*} [options] Override http request option.
@@ -3068,7 +3066,7 @@ export const RoutesApiAxiosParamCreator = function (configuration?: Configuratio
      * @summary List routes
      * @param {string} slug Team URL slug
      * @param {number} [page] Page number (0-indexed)
-     * @param {string} [search] Search by name/description
+     * @param {string} [search] Search by name/markdown
      * @param {number} [size] Page size
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -3123,7 +3121,7 @@ export const RoutesApiAxiosParamCreator = function (configuration?: Configuratio
       }
     },
     /**
-     * Update route metadata (name, description, etc.) and optionally replace the GPX file. If a new GPX file is provided, the old track data and climbs will be replaced.
+     * Update route metadata (name, markdown, etc.) and optionally replace the GPX file. If a new GPX file is provided, the old track data and climbs will be replaced.
      * @summary Update route
      * @param {string} routeSlug Route slug
      * @param {string} slug Team URL slug
@@ -3287,7 +3285,7 @@ export const RoutesApiFp = function (configuration?: Configuration) {
      * @summary List routes
      * @param {string} slug Team URL slug
      * @param {number} [page] Page number (0-indexed)
-     * @param {string} [search] Search by name/description
+     * @param {string} [search] Search by name/markdown
      * @param {number} [size] Page size
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -3318,7 +3316,7 @@ export const RoutesApiFp = function (configuration?: Configuration) {
         )(axios, localVarOperationServerBasePath || basePath)
     },
     /**
-     * Update route metadata (name, description, etc.) and optionally replace the GPX file. If a new GPX file is provided, the old track data and climbs will be replaced.
+     * Update route metadata (name, markdown, etc.) and optionally replace the GPX file. If a new GPX file is provided, the old track data and climbs will be replaced.
      * @summary Update route
      * @param {string} routeSlug Route slug
      * @param {string} slug Team URL slug
@@ -3423,7 +3421,7 @@ export const RoutesApiFactory = function (
      * @summary List routes
      * @param {string} slug Team URL slug
      * @param {number} [page] Page number (0-indexed)
-     * @param {string} [search] Search by name/description
+     * @param {string} [search] Search by name/markdown
      * @param {number} [size] Page size
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -3440,7 +3438,7 @@ export const RoutesApiFactory = function (
         .then((request) => request(axios, basePath))
     },
     /**
-     * Update route metadata (name, description, etc.) and optionally replace the GPX file. If a new GPX file is provided, the old track data and climbs will be replaced.
+     * Update route metadata (name, markdown, etc.) and optionally replace the GPX file. If a new GPX file is provided, the old track data and climbs will be replaced.
      * @summary Update route
      * @param {string} routeSlug Route slug
      * @param {string} slug Team URL slug
@@ -3520,7 +3518,7 @@ export class RoutesApi extends BaseAPI {
    * @summary List routes
    * @param {string} slug Team URL slug
    * @param {number} [page] Page number (0-indexed)
-   * @param {string} [search] Search by name/description
+   * @param {string} [search] Search by name/markdown
    * @param {number} [size] Page size
    * @param {*} [options] Override http request option.
    * @throws {RequiredError}
@@ -3538,7 +3536,7 @@ export class RoutesApi extends BaseAPI {
   }
 
   /**
-   * Update route metadata (name, description, etc.) and optionally replace the GPX file. If a new GPX file is provided, the old track data and climbs will be replaced.
+   * Update route metadata (name, markdown, etc.) and optionally replace the GPX file. If a new GPX file is provided, the old track data and climbs will be replaced.
    * @summary Update route
    * @param {string} routeSlug Route slug
    * @param {string} slug Team URL slug

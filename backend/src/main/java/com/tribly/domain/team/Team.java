@@ -10,17 +10,13 @@ import java.util.HashSet;
 import java.util.Set;
 import lombok.Getter;
 import lombok.Setter;
-import org.jspecify.annotations.Nullable;
 
 @Setter
 @Getter
 @Entity
 @Table(
     name = "teams",
-    indexes = {
-      @Index(columnList = "slug, deleted"),
-      @Index(columnList = "name, deleted"),
-    })
+    indexes = {@Index(columnList = "slug, deleted")})
 public class Team extends BaseEntity {
 
   @NotBlank
@@ -29,26 +25,30 @@ public class Team extends BaseEntity {
   private String name;
 
   @NotBlank
-  @Size(max = 100)
+  @Size(max = 255)
   @Pattern(
       regexp = "^[a-z0-9-]+$",
       message = "Slug must contain only lowercase letters, numbers, and hyphens")
   @Column(name = "slug", nullable = false, unique = true)
   private String slug;
 
-  @Column(name = "description", columnDefinition = "TEXT")
-  private @Nullable String description;
-
   @Enumerated(EnumType.STRING)
   @Column(name = "visibility", nullable = false, length = 20)
   private Visibility visibility = Visibility.TEAM;
 
+  @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+  @JoinColumn(name = "description_id")
+  private TeamDescription teamDescription;
+
   @OneToMany(mappedBy = "team", cascade = CascadeType.ALL, orphanRemoval = true)
   private Set<UserTeam> members = new HashSet<>();
 
-  public Team() {}
+  public Team() {
+    this.teamDescription = new TeamDescription();
+  }
 
   public Team(String name, String slug) {
+    this();
     this.name = name;
     this.slug = slug;
   }

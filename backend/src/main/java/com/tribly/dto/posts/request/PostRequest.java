@@ -1,5 +1,6 @@
 package com.tribly.dto.posts.request;
 
+import com.tribly.dto.common.MediaDto;
 import com.tribly.dto.validation.ValidateSchema;
 import com.tribly.enums.Status;
 import com.tribly.enums.Visibility;
@@ -14,7 +15,7 @@ import org.jspecify.annotations.Nullable;
 public record PostRequest(
     @Schema(description = "Post name", required = true) @NotBlank @Size(min = 3, max = 200)
         String name,
-    @Nullable @Schema(description = "Post description") @Size(max = 5000) String description,
+    @Schema(description = "Post description", required = true) MediaDto media,
     @Schema(description = "Post date/time", examples = "2025-06-15", required = true)
         Instant dateTime,
     @Schema(description = "Post status", required = true) Status status,

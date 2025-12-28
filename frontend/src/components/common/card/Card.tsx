@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { ReactNode } from 'react'
 import { MarkdownDisplay } from '../MarkdownDisplay'
+import { MediaDto } from '@/api'
 
 interface CardProps {
   to: string
@@ -54,23 +55,23 @@ export function CardTitle({ children, truncate = false, className = '' }: CardTi
 }
 
 interface CardDescriptionProps {
-  content?: string
+  media: MediaDto
   markdown?: boolean
   maxLength?: number
   className?: string
 }
 
 export function CardDescription({
-  content,
+  media,
   markdown = false,
   maxLength = 150,
   className = '',
 }: CardDescriptionProps) {
   // Markdown preview mode
-  if (markdown && content) {
+  if (markdown && media.markdown) {
     return (
       <MarkdownDisplay
-        content={content}
+        media={media}
         preview={true}
         maxLength={maxLength}
         className={`text-sm text-gray-600 ${className}`}
@@ -78,6 +79,5 @@ export function CardDescription({
     )
   }
 
-  // Regular text mode (backwards compatible)
-  return <p className={`text-sm text-gray-600 line-clamp-2 ${className}`}>{content}</p>
+  return <p></p>
 }

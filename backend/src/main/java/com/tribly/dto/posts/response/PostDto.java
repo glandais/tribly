@@ -1,6 +1,7 @@
 package com.tribly.dto.posts.response;
 
 import com.tribly.domain.post.Post;
+import com.tribly.dto.common.MediaDto;
 import com.tribly.dto.publications.response.PublicationDto;
 import com.tribly.dto.publications.response.PublicationType;
 import com.tribly.dto.publications.response.TeamPublicationDto;
@@ -15,7 +16,7 @@ import org.jspecify.annotations.Nullable;
 // Response DTOs
 @Schema(description = "Post summary data", allOf = PublicationDto.class)
 @Getter
-public class PostDto extends PublicationDto {
+public class PostDto implements PublicationDto {
 
   @Schema(description = "Type", required = true)
   final PublicationType type = PublicationType.POST;
@@ -32,9 +33,8 @@ public class PostDto extends PublicationDto {
   @Schema(description = "Publication name", required = true)
   final String name;
 
-  @Nullable
-  @Schema(description = "Publication description")
-  final String description;
+  @Schema(description = "Publication media", required = true)
+  final MediaDto media;
 
   @Schema(description = "Publication date/time", required = true)
   final Instant dateTime;
@@ -58,17 +58,18 @@ public class PostDto extends PublicationDto {
       String id,
       String slug,
       String name,
-      @Nullable String description,
+      MediaDto media,
       Instant dateTime,
       Status status,
       Visibility visibility,
       @Nullable Instant publishAt,
       @Nullable Instant createdAt) {
+    super();
     this.team = team;
     this.id = id;
     this.slug = slug;
     this.name = name;
-    this.description = description;
+    this.media = media;
     this.dateTime = dateTime;
     this.status = status;
     this.visibility = visibility;
@@ -82,7 +83,7 @@ public class PostDto extends PublicationDto {
         TsidUtils.toString(post.getId()),
         post.getSlug(),
         post.getName(),
-        post.getDescription(),
+        MediaDto.from(post),
         post.getDateTime(),
         post.getStatus(),
         post.getVisibility(),

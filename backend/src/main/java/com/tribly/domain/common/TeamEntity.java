@@ -61,16 +61,16 @@ public abstract class TeamEntity extends BaseEntity {
   protected String name;
 
   @NotBlank
-  @Size(max = 100)
+  @Size(max = 255)
   @Pattern(
       regexp = "^[a-z0-9-]+$",
       message = "Slug must contain only lowercase letters, numbers, and hyphens")
   @Column(name = "slug", nullable = false)
   protected String slug;
 
-  @Column(name = "description", columnDefinition = "TEXT")
+  @Column(name = "markdown", columnDefinition = "TEXT")
   @Nullable
-  protected String description;
+  protected String markdown;
 
   @Enumerated(EnumType.STRING)
   @Column(name = "visibility", nullable = false, length = 20)

@@ -125,7 +125,7 @@ public class RideService extends TeamEntityService {
     Route route = getRoute(request.routeSlug(), team);
 
     Ride ride = new Ride(team, creator, request.name(), slug, request.dateTime());
-    ride.setDescription(request.description());
+    ride.setMarkdown(request.media().markdown());
     ride.setVisibility(visibility);
     ride.setRoute(route);
     ride.setStatus(request.status());
@@ -154,7 +154,6 @@ public class RideService extends TeamEntityService {
     group.setRide(ride);
     group.setName(groupRequest.name());
     Route groupRoute = getRoute(groupRequest.routeSlug(), ride.getTeam());
-    group.setDescription(groupRequest.description());
     group.setAverageSpeed(groupRequest.averageSpeed());
     group.setMaxParticipants(groupRequest.maxParticipants());
     group.setSortOrder(sortOrder);
@@ -195,7 +194,7 @@ public class RideService extends TeamEntityService {
     ride.setVisibility(request.visibility());
 
     ride.setName(request.name());
-    ride.setDescription(request.description());
+    ride.setMarkdown(request.media().markdown());
     ride.setDateTime(request.dateTime());
     ride.setStatus(request.status());
     Route route = getRoute(request.routeSlug(), ride.getTeam());

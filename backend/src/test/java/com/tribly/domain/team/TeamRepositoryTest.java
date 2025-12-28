@@ -115,7 +115,7 @@ class TeamRepositoryTest {
   @Test
   void find_shouldFilterBySearch() {
     Team team1 = dataService.createTeam("Cycling Club", "cycling-club", Visibility.PUBLIC);
-    team1.setDescription("A great cycling team");
+    team1.getTeamDescription().setMarkdown("A great cycling team");
     dataService.updateTeam(team1);
 
     dataService.createTeam("Running Club", "running-club", Visibility.PUBLIC);

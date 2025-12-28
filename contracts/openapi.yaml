@@ -126,10 +126,7 @@ components:
           - Fast Group
           pattern: \S
           minLength: 1
-          maxLength: 100
-        description:
-          type: string
-          description: Group description
+          maxLength: 200
         averageSpeed:
           type: integer
           format: int32
@@ -188,6 +185,12 @@ components:
         attribution:
           type: string
           description: Map attribution text
+    MediaDto:
+      type: object
+      properties:
+        markdown:
+          type: string
+          description: Markdown
     MemberDto:
       description: Team member information
       type: object
@@ -248,6 +251,7 @@ components:
       - id
       - slug
       - name
+      - media
       - dateTime
       - status
       - visibility
@@ -269,9 +273,10 @@ components:
         name:
           type: string
           description: Publication name
-        description:
-          type: string
-          description: Publication description
+        media:
+          description: Publication media
+          type: object
+          $ref: "#/components/schemas/MediaDto"
         dateTime:
           description: Publication date/time
           type: string
@@ -323,6 +328,7 @@ components:
       type: object
       required:
       - name
+      - media
       - dateTime
       - status
       - visibility
@@ -333,10 +339,10 @@ components:
           pattern: \S
           minLength: 3
           maxLength: 200
-        description:
-          type: string
+        media:
           description: Post description
-          maxLength: 5000
+          type: object
+          $ref: "#/components/schemas/MediaDto"
         dateTime:
           description: Post date/time
           type: string
@@ -429,6 +435,7 @@ components:
       - id
       - slug
       - name
+      - media
       - dateTime
       - status
       - visibility
@@ -453,9 +460,10 @@ components:
         name:
           type: string
           description: Publication name
-        description:
-          type: string
-          description: Publication description
+        media:
+          description: Publication media
+          type: object
+          $ref: "#/components/schemas/MediaDto"
         dateTime:
           description: Publication date/time
           type: string
@@ -508,9 +516,6 @@ components:
         name:
           type: string
           description: Group name
-        description:
-          type: string
-          description: Group description
         routeSlug:
           type: string
           description: Route slug
@@ -594,6 +599,7 @@ components:
       type: object
       required:
       - name
+      - media
       - dateTime
       - status
       - visibility
@@ -607,10 +613,10 @@ components:
           pattern: \S
           minLength: 3
           maxLength: 200
-        description:
-          type: string
-          description: Ride description
-          maxLength: 5000
+        media:
+          description: Ride media
+          type: object
+          $ref: "#/components/schemas/MediaDto"
         dateTime:
           description: Ride date/time
           type: string
@@ -683,7 +689,7 @@ components:
       - id
       - slug
       - name
-      - description
+      - media
       - distance
       - elevationGain
       - elevationLoss
@@ -708,9 +714,10 @@ components:
         name:
           type: string
           description: Route name
-        description:
-          type: string
-          description: Route description
+        media:
+          description: Media
+          type: object
+          $ref: "#/components/schemas/MediaDto"
         distance:
           type: integer
           format: int32
@@ -771,6 +778,7 @@ components:
       - id
       - slug
       - name
+      - media
       - distance
       - elevationGain
       - elevationLoss
@@ -787,9 +795,10 @@ components:
         name:
           type: string
           description: Route name
-        description:
-          type: string
+        media:
           description: Route description
+          type: object
+          $ref: "#/components/schemas/MediaDto"
         distance:
           type: integer
           format: int32
@@ -845,15 +854,17 @@ components:
       type: object
       required:
       - name
+      - media
       - surfaceType
       - visibility
       properties:
         name:
           type: string
           description: Route name
-        description:
-          type: string
-          description: Route description
+        media:
+          description: Media
+          type: object
+          $ref: "#/components/schemas/MediaDto"
         surfaceType:
           description: Surface type
           type: string
@@ -882,6 +893,7 @@ components:
       - id
       - name
       - slug
+      - media
       - visibility
       - memberCount
       - createdAt
@@ -897,9 +909,10 @@ components:
         slug:
           type: string
           description: Team URL slug
-        description:
-          type: string
+        media:
           description: Team description
+          type: object
+          $ref: "#/components/schemas/MediaDto"
         visibility:
           description: Whether the team is public
           type: string
@@ -971,6 +984,7 @@ components:
       type: object
       required:
       - name
+      - media
       - visibility
       properties:
         name:
@@ -980,13 +994,11 @@ components:
           - Awesome Cycling Team
           pattern: \S
           minLength: 2
-          maxLength: 255
-        description:
-          type: string
-          description: Team description
-          examples:
-          - A team for weekend warriors
-          maxLength: 2000
+          maxLength: 200
+        media:
+          description: Media
+          type: object
+          $ref: "#/components/schemas/MediaDto"
         visibility:
           description: Whether the team is publicly visible
           type: string
@@ -1044,7 +1056,7 @@ components:
           examples:
           - John Doe
           minLength: 1
-          maxLength: 255
+          maxLength: 200
     UserDto:
       description: User profile data
       type: object
@@ -1079,7 +1091,7 @@ components:
   securitySchemes:
     SecurityScheme:
       type: openIdConnect
-      openIdConnectUrl: http://localhost:8180/realms/tribly/.well-known/openid-configuration
+      openIdConnectUrl: http://localhost:8180/realms/quarkus/.well-known/openid-configuration
       description: Authentication
 tags:
 - name: Configuration
@@ -1136,7 +1148,7 @@ paths:
           type: integer
           format: int32
           default: 0
-      - description: Search by name/description
+      - description: Search by name/markdown
         name: search
         in: query
         schema:
@@ -1920,7 +1932,7 @@ paths:
           type: integer
           format: int32
           default: 0
-      - description: Search by name/description
+      - description: Search by name/markdown
         name: search
         in: query
         schema:
@@ -1976,7 +1988,7 @@ paths:
           type: integer
           format: int32
           default: 0
-      - description: Search by name/description
+      - description: Search by name/markdown
         name: search
         in: query
         schema:
@@ -2317,7 +2329,7 @@ paths:
           type: integer
           format: int32
           default: 0
-      - description: Search by name/description
+      - description: Search by name/markdown
         name: search
         in: query
         schema:
@@ -2407,9 +2419,9 @@ paths:
   /api/teams/{slug}/routes/{routeSlug}:
     put:
       summary: Update route
-      description: "Update route metadata (name, description, etc.) and optionally\
-        \ replace the GPX file. If a new GPX file is provided, the old track data\
-        \ and climbs will be replaced."
+      description: "Update route metadata (name, markdown, etc.) and optionally replace\
+        \ the GPX file. If a new GPX file is provided, the old track data and climbs\
+        \ will be replaced."
       operationId: updateRoute
       tags:
       - Routes

@@ -32,7 +32,7 @@
     "visibilityLabel": "Visibility",
     "statusLabel": "Status",
     "publishAtLabel": "Scheduled Publication",
-    "publishAtHint": "Leave blank to publish immediately",
+    "publishAtHint": "Set a date/time for automatic publication",
     "submit": "Create Post",
     "cancel": "Cancel",
     "error": "An error occurred while creating the post"

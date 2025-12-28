@@ -38,7 +38,7 @@ public class PublicationResource extends AbstractAuthenticatedResource {
         content = @Content(schema = @Schema(implementation = PublicationListResponse.class)))
   })
   public Response listAllPublications(
-      @Parameter(description = "Search by name/description") @QueryParam("search")
+      @Parameter(description = "Search by name/markdown") @QueryParam("search")
           @Nullable String search,
       @Parameter(description = "Start date filter (ISO format)") @QueryParam("from")
           @Nullable String fromStr,
