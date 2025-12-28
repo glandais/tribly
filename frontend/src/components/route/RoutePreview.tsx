@@ -25,7 +25,7 @@ export function RoutePreview({ routeSlug, teamSlug }: RoutePreviewProps) {
   return (
     <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
       <img
-        src={`/api/download/${route.visibility.toLowerCase()}/teams/${teamSlug}/routes/${route.slug}/thumbnail`}
+        src={route.media.assets.thumbnail?.url}
         alt={route.name}
         className="w-16 h-16 object-cover rounded"
       />

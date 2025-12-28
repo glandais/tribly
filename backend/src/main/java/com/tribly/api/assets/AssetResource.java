@@ -2,6 +2,7 @@ package com.tribly.api.assets;
 
 import com.tribly.api.AbstractAuthenticatedResource;
 import com.tribly.dto.common.response.AssetDto;
+import com.tribly.dto.error.ErrorResponse;
 import com.tribly.infrastructure.exception.BusinessException;
 import com.tribly.service.asset.AssetService;
 import jakarta.annotation.security.RolesAllowed;
@@ -11,12 +12,19 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.io.FileInputStream;
 import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import org.jboss.resteasy.reactive.RestForm;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
 import org.jspecify.annotations.Nullable;
 
 @Path("/api/teams/{slug}/assets")
 @Produces(MediaType.APPLICATION_JSON)
+@Tag(name = "Assets", description = "Assets management operations")
 public class AssetResource extends AbstractAuthenticatedResource {
   @Inject AssetService assetService;
 
@@ -27,9 +35,32 @@ public class AssetResource extends AbstractAuthenticatedResource {
   @POST
   @Consumes(MediaType.MULTIPART_FORM_DATA)
   @RolesAllowed("user")
-  @Operation(hidden = true)
+  @Operation(summary = "Create asset")
+  @APIResponses({
+    @APIResponse(
+        responseCode = "201",
+        description = "Asset created successfully",
+        content = @Content(schema = @Schema(implementation = AssetDto.class))),
+    @APIResponse(
+        responseCode = "400",
+        description = "Invalid request or file",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "401",
+        description = "Unauthorized",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "403",
+        description = "User is not a team member",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "404",
+        description = "Team not found",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  })
   public Response uploadAsset(
-      @PathParam("slug") String teamSlug, @RestForm("file") @Nullable FileUpload fileUpload)
+      @Parameter(description = "Team URL slug") @PathParam("slug") String teamSlug,
+      @RestForm("file") @Nullable FileUpload fileUpload)
       throws Exception {
 
     Long userId = getCurrentUserId();

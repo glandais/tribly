@@ -969,6 +969,148 @@ export const Visibility = {
 export type Visibility = (typeof Visibility)[keyof typeof Visibility]
 
 /**
+ * AssetsApi - axios parameter creator
+ */
+export const AssetsApiAxiosParamCreator = function (configuration?: Configuration) {
+  return {
+    /**
+     *
+     * @summary Create asset
+     * @param {string} slug Team URL slug
+     * @param {File} [file]
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    uploadAsset: async (
+      slug: string,
+      file?: File,
+      options: RawAxiosRequestConfig = {}
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'slug' is not null or undefined
+      assertParamExists('uploadAsset', 'slug', slug)
+      const localVarPath = `/api/teams/{slug}/assets`.replace(
+        `{${'slug'}}`,
+        encodeURIComponent(String(slug))
+      )
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL)
+      let baseOptions
+      if (configuration) {
+        baseOptions = configuration.baseOptions
+      }
+
+      const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options }
+      const localVarHeaderParameter = {} as any
+      const localVarQueryParameter = {} as any
+      const localVarFormParams = new ((configuration && configuration.formDataCtor) || FormData)()
+
+      // authentication SecurityScheme required
+
+      if (file !== undefined) {
+        localVarFormParams.append('file', file as any)
+      }
+
+      localVarHeaderParameter['Content-Type'] = 'multipart/form-data'
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter)
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {}
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      }
+      localVarRequestOptions.data = localVarFormParams
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      }
+    },
+  }
+}
+
+/**
+ * AssetsApi - functional programming interface
+ */
+export const AssetsApiFp = function (configuration?: Configuration) {
+  const localVarAxiosParamCreator = AssetsApiAxiosParamCreator(configuration)
+  return {
+    /**
+     *
+     * @summary Create asset
+     * @param {string} slug Team URL slug
+     * @param {File} [file]
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async uploadAsset(
+      slug: string,
+      file?: File,
+      options?: RawAxiosRequestConfig
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AssetDto>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.uploadAsset(slug, file, options)
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0
+      const localVarOperationServerBasePath =
+        operationServerMap['AssetsApi.uploadAsset']?.[localVarOperationServerIndex]?.url
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration
+        )(axios, localVarOperationServerBasePath || basePath)
+    },
+  }
+}
+
+/**
+ * AssetsApi - factory interface
+ */
+export const AssetsApiFactory = function (
+  configuration?: Configuration,
+  basePath?: string,
+  axios?: AxiosInstance
+) {
+  const localVarFp = AssetsApiFp(configuration)
+  return {
+    /**
+     *
+     * @summary Create asset
+     * @param {string} slug Team URL slug
+     * @param {File} [file]
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    uploadAsset(
+      slug: string,
+      file?: File,
+      options?: RawAxiosRequestConfig
+    ): AxiosPromise<AssetDto> {
+      return localVarFp.uploadAsset(slug, file, options).then((request) => request(axios, basePath))
+    },
+  }
+}
+
+/**
+ * AssetsApi - object-oriented interface
+ */
+export class AssetsApi extends BaseAPI {
+  /**
+   *
+   * @summary Create asset
+   * @param {string} slug Team URL slug
+   * @param {File} [file]
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   */
+  public uploadAsset(slug: string, file?: File, options?: RawAxiosRequestConfig) {
+    return AssetsApiFp(this.configuration)
+      .uploadAsset(slug, file, options)
+      .then((request) => request(this.axios, this.basePath))
+  }
+}
+
+/**
  * ConfigurationApi - axios parameter creator
  */
 export const ConfigurationApiAxiosParamCreator = function (configuration?: Configuration) {

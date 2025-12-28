@@ -6,7 +6,7 @@ import { RoutePickerModal } from '../route/RoutePickerModal'
 import { CreateRouteModal } from '../route/CreateRouteModal'
 import { RoutePreview } from '../route/RoutePreview'
 import { RoutePreviewCompact } from '../route/RoutePreviewCompact'
-import { MarkdownEditor } from '../common/MarkdownEditor'
+import { MediaEditor } from '../common/MediaEditor'
 import { fromDateTimeLocalValue } from '../../utils/dateFormat'
 import type { MediaDto, RouteDto, TeamDetailDto } from '../../api/api'
 import { Visibility, Status } from '../../hooks/useRide'
@@ -202,7 +202,7 @@ export function RideEditor({
         <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
           {t('create.form.description.label')}
         </label>
-        <MarkdownEditor
+        <MediaEditor
           initialValue={media}
           onChange={setMedia}
           placeholder={t('create.form.description.placeholder')}
@@ -210,6 +210,7 @@ export function RideEditor({
           maxHeight="300px"
           disabled={isPending}
           ariaLabel={t('create.form.description.label')}
+          teamSlug={teamSlug}
         />
       </div>
 

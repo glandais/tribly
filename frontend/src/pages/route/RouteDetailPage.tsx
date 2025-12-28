@@ -12,7 +12,7 @@ import { useRoute, useDeleteRoute } from '../../hooks/useRoute'
 import { useTeam } from '../../hooks/useTeam'
 import { RouteMapView } from '../../components/route/RouteMapView'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
-import { MarkdownDisplay } from '../../components/common/MarkdownDisplay'
+import { MediaDisplay } from '../../components/common/MediaDisplay'
 import 'leaflet/dist/leaflet.css'
 
 export function RouteDetailPage() {
@@ -101,7 +101,7 @@ export function RouteDetailPage() {
         <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">{route.name}</h1>
-            <MarkdownDisplay media={route.media} className="mt-2 text-gray-600" />
+            <MediaDisplay media={route.media} className="mt-2 text-gray-600" />
           </div>
           {canEdit && (
             <div className="mt-4 sm:mt-0 flex gap-3">
@@ -261,14 +261,14 @@ export function RouteDetailPage() {
         <h2 className="text-xl font-bold text-gray-900 mb-4">{t('detail.download.title')}</h2>
         <div className="flex flex-wrap gap-3">
           <a
-            href={`/api/download/${route.visibility.toLowerCase()}/teams/${teamSlug}/routes/${routeSlug}/gpx`}
+            href={route.media.assets.gpx?.url}
             className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-xs text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
           >
             <ArrowDownTrayIcon className="w-5 h-5 mr-2 -ml-1" />
             {t('detail.download.gpx')}
           </a>
           <a
-            href={`/api/download/${route.visibility.toLowerCase()}/teams/${teamSlug}/routes/${routeSlug}/fit`}
+            href={route.media.assets.fit?.url}
             className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-xs text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
           >
             <ArrowDownTrayIcon className="w-5 h-5 mr-2 -ml-1" />

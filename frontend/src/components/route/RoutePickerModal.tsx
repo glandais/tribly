@@ -138,13 +138,13 @@ export function RoutePickerModal({
                     }`}
                   >
                     <img
-                      src={`/api/download/${route.visibility.toLowerCase()}/teams/${teamSlug}/routes/${route.slug}/thumbnail`}
+                      src={route.media.assets.thumbnail?.url}
                       alt={route.name}
                       className="w-full h-32 object-cover rounded mb-3"
                     />
                     <h3 className="font-medium text-gray-900 truncate">{route.name}</h3>
                     <MarkdownDisplay
-                      media={route.media}
+                      markdown={route.media.markdown || ''}
                       preview={true}
                       maxLength={120}
                       className="mt-1 text-sm text-gray-500"

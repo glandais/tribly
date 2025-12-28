@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Visibility, SurfaceType } from '../../api/api'
 import type { MediaDto, TeamDetailDto } from '../../api/api'
 import { LoadingSpinner } from '../common/LoadingSpinner'
-import { MarkdownEditor } from '../common/MarkdownEditor'
+import { MediaEditor } from '../common/MediaEditor'
 
 export interface RouteFormData {
   name: string
@@ -42,7 +42,7 @@ interface RouteEditorProps {
 
 export function RouteEditor({
   team,
-  teamSlug: _teamSlug,
+  teamSlug,
   initialValues,
   onSubmit,
   onCancel,
@@ -178,7 +178,7 @@ export function RouteEditor({
         <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
           {t('create.form.description')}
         </label>
-        <MarkdownEditor
+        <MediaEditor
           initialValue={media}
           onChange={setMedia}
           placeholder={t('create.form.description')}
@@ -186,6 +186,7 @@ export function RouteEditor({
           maxHeight="300px"
           disabled={isPending}
           ariaLabel={t('create.form.description')}
+          teamSlug={teamSlug}
         />
       </div>
 

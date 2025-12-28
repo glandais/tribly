@@ -8,6 +8,7 @@ common.ts
 configuration.ts
 docs/AddMemberRequest.md
 docs/AssetDto.md
+docs/AssetsApi.md
 docs/AssetsDto.md
 docs/ClimbCategory.md
 docs/ClimbListResponse.md

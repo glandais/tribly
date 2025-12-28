@@ -99,5 +99,12 @@
       "heading": "heading",
       "hint": "Markdown shortcuts"
     }
+  },
+  "attachments": {
+    "title": "Attachments",
+    "add": "Add attachment",
+    "remove": "Remove",
+    "uploading": "Uploading...",
+    "uploadError": "Error uploading file"
   }
 }

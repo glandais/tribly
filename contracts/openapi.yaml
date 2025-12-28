@@ -1155,6 +1155,8 @@ components:
       openIdConnectUrl: http://localhost:8180/realms/quarkus/.well-known/openid-configuration
       description: Authentication
 tags:
+- name: Assets
+  description: Assets management operations
 - name: Configuration
   description: Application configuration endpoints
 - name: Posts
@@ -1416,6 +1418,63 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         "403":
           description: User is not the team owner
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Team not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - SecurityScheme:
+        - user
+  /api/teams/{slug}/assets:
+    post:
+      summary: Create asset
+      operationId: uploadAsset
+      tags:
+      - Assets
+      parameters:
+      - description: Team URL slug
+        name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+        required: true
+      responses:
+        "201":
+          description: Asset created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AssetDto"
+        "400":
+          description: Invalid request or file
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: User is not a team member
           content:
             application/json:
               schema:

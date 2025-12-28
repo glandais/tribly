@@ -8,6 +8,7 @@ import {
   UsersApi,
   ConfigurationApi,
   ErrorResponse,
+  AssetsApi,
 } from '../api/api'
 import { Configuration } from '../api/configuration'
 import { useAuthStore } from '../store/authStore'
@@ -38,6 +39,7 @@ const apiConfiguration = new Configuration({
 })
 
 // Singleton API instances (reused across calls, token injected via axios interceptor)
+export const assetsApi = new AssetsApi(apiConfiguration, '', axiosInstance)
 export const teamsApi = new TeamsApi(apiConfiguration, '', axiosInstance)
 export const teamMembersApi = new TeamMembersApi(apiConfiguration, '', axiosInstance)
 export const ridesApi = new RidesApi(apiConfiguration, '', axiosInstance)

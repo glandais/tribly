@@ -51,6 +51,7 @@ All URIs are relative to *http://localhost:8080*
 
 Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
+*AssetsApi* | [**uploadAsset**](docs/AssetsApi.md#uploadasset) | **POST** /api/teams/{slug}/assets | Create asset
 *ConfigurationApi* | [**getConfig**](docs/ConfigurationApi.md#getconfig) | **GET** /api/config | Get application configuration
 *PostsApi* | [**createPost**](docs/PostsApi.md#createpost) | **POST** /api/teams/{slug}/posts | Create post
 *PostsApi* | [**deletePost**](docs/PostsApi.md#deletepost) | **DELETE** /api/teams/{slug}/posts/{postSlug} | Delete post

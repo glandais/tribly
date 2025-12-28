@@ -5,7 +5,7 @@ import { useCreateTeam, useUpdateTeam } from '../../hooks/useTeam'
 import { LoadingSpinner } from '../common/LoadingSpinner'
 import { ApiClientError } from '../../lib/apiClient'
 import { Visibility, TeamDetailDto, MediaDto } from '../../api/api'
-import { MarkdownEditor } from '../common/MarkdownEditor'
+import { MediaEditor } from '../common/MediaEditor'
 import { defaultMedia } from '@/lib/apiUtils'
 
 interface TeamFormProps {
@@ -125,7 +125,7 @@ export function TeamForm({
         <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
           {t(`${namespace}.form.description.label`)}
         </label>
-        <MarkdownEditor
+        <MediaEditor
           initialValue={media}
           onChange={setMedia}
           placeholder={
@@ -137,6 +137,7 @@ export function TeamForm({
           maxHeight="300px"
           disabled={mutation.isPending}
           ariaLabel={t(`${namespace}.form.description.label`)}
+          teamSlug={teamSlug}
         />
         <p className="mt-1 text-sm text-gray-500">
           {t(`${namespace}.form.description.charCount`, {

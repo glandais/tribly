@@ -19,7 +19,7 @@ export function RouteCard({ route, teamSlug }: RouteCardProps) {
     <Card to={`/teams/${teamSlug}/routes/${route.slug}`}>
       {/* Thumbnail */}
       <img
-        src={`/api/download/${route.visibility.toLowerCase()}/teams/${teamSlug}/routes/${route.slug}/thumbnail`}
+        src={route.media.assets.thumbnail?.url}
         alt={route.name}
         className="w-full h-48 object-cover"
       />

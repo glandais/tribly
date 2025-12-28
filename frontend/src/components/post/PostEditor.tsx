@@ -4,7 +4,7 @@ import type { MediaDto, TeamDetailDto } from '../../api/api'
 import { ApiClientError } from '../../lib/apiClient'
 import { fromDateTimeLocalValue, toDateTimeLocalValue } from '../../utils/dateFormat'
 import { LoadingSpinner } from '../common/LoadingSpinner'
-import { MarkdownEditor } from '../common/MarkdownEditor'
+import { MediaEditor } from '../common/MediaEditor'
 import { Visibility, Status } from '../../hooks/usePost'
 import { defaultMedia } from '@/lib/apiUtils'
 
@@ -47,7 +47,7 @@ interface PostEditorProps {
 
 export function PostEditor({
   team,
-  teamSlug: _teamSlug,
+  teamSlug,
   initialValues,
   onSubmit,
   onCancel,
@@ -134,7 +134,7 @@ export function PostEditor({
         <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
           {t('create.descriptionLabel')}
         </label>
-        <MarkdownEditor
+        <MediaEditor
           initialValue={media}
           onChange={setMedia}
           placeholder={t('create.descriptionPlaceholder')}
@@ -142,6 +142,7 @@ export function PostEditor({
           maxHeight="400px"
           disabled={isPending}
           ariaLabel={t('create.descriptionLabel')}
+          teamSlug={teamSlug}
         />
       </div>
 
