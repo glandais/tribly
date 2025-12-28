@@ -28,7 +28,7 @@ interface TeamFormProps {
 export function TeamForm({
   teamSlug,
   initialName = '',
-  initialMedia = { markdown: '' },
+  initialMedia = { markdown: '', assets: [] },
   initialVisibility = Visibility.Public,
   onSuccess,
   submitButtonText,

@@ -33,7 +33,7 @@ export function CreatePostPage() {
   // Prepare initial values for create mode
   const initialValues = {
     name: '',
-    media: { markdown: '' },
+    media: { markdown: '', assets: [] },
     dateTime: toDateTimeLocalValue(new Date()),
     visibility: team.visibility === Visibility.Team ? Visibility.Team : Visibility.Public,
     status: Status.Draft,

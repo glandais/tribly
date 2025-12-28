@@ -20,7 +20,7 @@ export function CreateRouteModal({ isOpen, onClose, onRouteCreated, team }: Crea
   // Prepare initial values for create mode
   const initialValues = {
     name: '',
-    media: { markdown: '' },
+    media: { markdown: '', assets: [] },
     surfaceType: SurfaceType.Road,
     visibility: team.visibility === Visibility.Team ? Visibility.Team : Visibility.Public,
   }

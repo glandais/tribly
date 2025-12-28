@@ -13,7 +13,6 @@ import com.tribly.enums.SurfaceType;
 import com.tribly.enums.TeamRole;
 import com.tribly.enums.Visibility;
 import com.tribly.infrastructure.exception.BusinessException;
-import com.tribly.infrastructure.id.TsidUtils;
 import com.tribly.util.TestDataCleaner;
 import com.tribly.util.TestDataService;
 import io.quarkus.test.junit.QuarkusTest;
@@ -52,7 +51,8 @@ class RouteServiceTest {
   @AfterEach
   void cleanup() {
     if (createdRoute != null) {
-      gpxProcessingService.deleteRouteFiles(TsidUtils.toLong(createdRoute.id()));
+      // FIXME
+      //      gpxProcessingService.deleteRouteFiles(createdRoute);
     }
   }
 

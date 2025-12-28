@@ -78,7 +78,7 @@ export function RideEditor({
 
   // Form state
   const [name, setName] = useState('')
-  const [media, setMedia] = useState<MediaDto>({ markdown: '' })
+  const [media, setMedia] = useState<MediaDto>({ markdown: '', assets: [] })
   const [dateTime, setDateTime] = useState('')
   const [visibility, setVisibility] = useState<Visibility>(Visibility.Team)
   const [status, setStatus] = useState<Status>(Status.Draft)

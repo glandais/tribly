@@ -268,7 +268,7 @@ export interface MarkdownEditorProps {
 }
 
 export function MarkdownEditor({
-  initialValue = { markdown: '' },
+  initialValue = { markdown: '', assets: [] },
   onChange,
   placeholder,
   className = '',
@@ -318,7 +318,7 @@ export function MarkdownEditor({
         editorState.read(() => {
           // Convert Lexical nodes to markdown string
           const markdown = $convertToMarkdownString(TRANSFORMERS)
-          onChange({ markdown })
+          onChange({ markdown, assets: [] })
         })
       }
     },

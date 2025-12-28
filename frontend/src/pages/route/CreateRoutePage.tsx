@@ -53,7 +53,7 @@ export function CreateRoutePage() {
   // Prepare initial values for create mode
   const initialValues = {
     name: '',
-    media: { markdown: '' },
+    media: { markdown: '', assets: [] },
     surfaceType: SurfaceType.Road,
     visibility: team.visibility === Visibility.Team ? Visibility.Team : Visibility.Public,
   }

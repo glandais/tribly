@@ -7,9 +7,7 @@ import { MarkdownEditor } from '../common/MarkdownEditor'
 
 export interface RouteFormData {
   name: string
-  media: {
-    markdown?: string
-  }
+  media: MediaDto
   surfaceType: SurfaceType
   visibility: Visibility
 }

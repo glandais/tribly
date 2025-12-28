@@ -48,6 +48,34 @@ export interface AddMemberRequest {
   role?: TeamRole
 }
 
+export interface AssetDto {
+  /**
+   * ID (TSID)
+   */
+  id: string
+  /**
+   * Type
+   */
+  type: AssetType
+  /**
+   * Filename
+   */
+  fileName: string
+}
+
+export const AssetType = {
+  Logo: 'LOGO',
+  Image: 'IMAGE',
+  Video: 'VIDEO',
+  Attachment: 'ATTACHMENT',
+  TrackOriginalGpx: 'TRACK_ORIGINAL_GPX',
+  TrackFilteredGpx: 'TRACK_FILTERED_GPX',
+  TrackFit: 'TRACK_FIT',
+  TrackThumbnail: 'TRACK_THUMBNAIL',
+} as const
+
+export type AssetType = (typeof AssetType)[keyof typeof AssetType]
+
 export const ClimbCategory = {
   Hc: 'HC',
   Cat1: 'CAT1',
@@ -189,6 +217,10 @@ export interface MediaDto {
    * Markdown
    */
   markdown?: string
+  /**
+   * Markdown
+   */
+  assets: Array<AssetDto>
 }
 /**
  * Team member information

@@ -9,6 +9,19 @@ CREATE EXTENSION IF NOT EXISTS postgis;
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
 
 
+create table assets (
+                        deleted boolean not null,
+                        created_at timestamp(6) with time zone not null,
+                        id bigint not null,
+                        team_entity_id bigint,
+                        team_id bigint not null,
+                        updated_at timestamp(6) with time zone not null,
+                        version bigint,
+                        type varchar(20) not null check ((type in ('LOGO','IMAGE','VIDEO','ATTACHMENT','TRACK_ORIGINAL_GPX','TRACK_FILTERED_GPX','TRACK_FIT','TRACK_THUMBNAIL'))),
+                        file_name varchar(255) not null,
+                        primary key (id)
+);
+
 create table gpx_tracks (
                             deleted boolean not null,
                             created_at timestamp(6) with time zone not null,
@@ -76,7 +89,7 @@ create table team_entities (
                                elevation_loss integer,
                                end_lat numeric(10,8),
                                end_lng numeric(11,8),
-                               entity_type integer not null check ((entity_type in (3,1,4,2))),
+                               entity_type integer not null check ((entity_type in (3,1,2,4))),
                                start_lat numeric(10,8),
                                start_lng numeric(11,8),
                                created_at timestamp(6) with time zone not null,
@@ -161,6 +174,16 @@ create index IDXngsx2ujy92deb6wsf1bg6wd4a
 
 create index IDXo3hbo8wlcgmi4dqwrqm9jtm8f
     on teams (slug, deleted);
+
+alter table if exists assets
+    add constraint FKjr39lgci2ppfv4xnn1lohpb1t
+    foreign key (team_id)
+    references teams;
+
+alter table if exists assets
+    add constraint FKenrk244dfrua38w17igcj3g
+    foreign key (team_entity_id)
+    references team_entities;
 
 alter table if exists gpx_tracks
     add constraint FK8caclj6tlkl3wydyngervcys

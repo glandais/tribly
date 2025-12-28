@@ -1,5 +1,6 @@
 package com.tribly.domain.common;
 
+import com.tribly.domain.asset.Asset;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
 import com.tribly.enums.Status;
@@ -9,6 +10,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import java.time.Instant;
+import java.util.HashSet;
+import java.util.Set;
 import lombok.Getter;
 import lombok.Setter;
 import org.jspecify.annotations.Nullable;
@@ -75,4 +78,7 @@ public abstract class TeamEntity extends BaseEntity {
   @Enumerated(EnumType.STRING)
   @Column(name = "visibility", nullable = false, length = 20)
   protected Visibility visibility = Visibility.TEAM;
+
+  @OneToMany(mappedBy = "teamEntity", cascade = CascadeType.ALL, orphanRemoval = true)
+  private Set<Asset> assets = new HashSet<>();
 }

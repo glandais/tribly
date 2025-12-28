@@ -106,7 +106,7 @@ public class RouteService extends TeamEntityService {
 
     } catch (Exception e) {
       LOG.errorv("GPX processing failed for route {0}, cleaning up files", route.getId());
-      gpxProcessingService.deleteRouteFiles(route.getId());
+      gpxProcessingService.deleteRouteFiles(route);
       throw e;
     }
   }
@@ -118,8 +118,7 @@ public class RouteService extends TeamEntityService {
   private void processAndUpdateGpx(
       Route route, String trackName, InputStream gpxFile, String fileName) {
     // Process GPX file
-    ProcessedGpx processed =
-        gpxProcessingService.processGpxUpload(route.getId(), gpxFile, fileName);
+    ProcessedGpx processed = gpxProcessingService.processGpxUpload(route, gpxFile, fileName);
 
     // Update route with extracted metadata
     RouteMetadata metadata = processed.metadata();
@@ -248,7 +247,7 @@ public class RouteService extends TeamEntityService {
         LOG.infov("Deleted {0} old climbs for route {1}", oldClimbs.size(), route.getId());
 
         // Delete old GPX files
-        gpxProcessingService.deleteRouteFiles(route.getId());
+        gpxProcessingService.deleteRouteFiles(route);
 
         // Process new GPX file
         processAndUpdateGpx(route, request.name(), gpxFile, fileName);
@@ -256,7 +255,7 @@ public class RouteService extends TeamEntityService {
 
       } catch (Exception e) {
         LOG.errorv("GPX processing failed for route {0}, cleaning up files", route.getId());
-        gpxProcessingService.deleteRouteFiles(route.getId());
+        gpxProcessingService.deleteRouteFiles(route);
         throw e;
       }
     }
@@ -280,7 +279,7 @@ public class RouteService extends TeamEntityService {
     routeRepository.persist(route);
 
     // Delete associated files
-    gpxProcessingService.deleteRouteFiles(route.getId());
+    gpxProcessingService.deleteRouteFiles(route);
 
     LOG.infov("Route {0} deleted by user {1}", slug, userId);
   }
@@ -290,7 +289,7 @@ public class RouteService extends TeamEntityService {
    */
   public FileResult getFilteredGpxFile(String teamSlug, String slug, @Nullable Long userId) {
     Route route = getRouteEntity(teamSlug, slug, userId);
-    File gpxFile = gpxProcessingService.getFilteredGpxFile(route.getId());
+    File gpxFile = gpxProcessingService.getFilteredGpxFile(route);
     return new FileResult(gpxFile, route.getSlug() + ".gpx");
   }
 
@@ -299,7 +298,7 @@ public class RouteService extends TeamEntityService {
    */
   public FileResult getFitFile(String teamSlug, String slug, @Nullable Long userId) {
     Route route = getRouteEntity(teamSlug, slug, userId);
-    File fitFile = gpxProcessingService.getFitFile(route.getId());
+    File fitFile = gpxProcessingService.getFitFile(route);
     return new FileResult(fitFile, route.getSlug() + ".fit");
   }
 
@@ -308,7 +307,7 @@ public class RouteService extends TeamEntityService {
    */
   public FileResult getThumbnailFile(String teamSlug, String slug, @Nullable Long userId) {
     Route route = getRouteEntity(teamSlug, slug, userId);
-    File thumbnailFile = gpxProcessingService.getThumbnailFile(route.getId());
+    File thumbnailFile = gpxProcessingService.getThumbnailFile(route);
     return new FileResult(thumbnailFile, route.getSlug() + ".png");
   }
 }

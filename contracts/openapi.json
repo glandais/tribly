@@ -19,6 +19,29 @@
           }
         }
       },
+      "AssetDto" : {
+        "type" : "object",
+        "required" : [ "id", "type", "fileName" ],
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "description" : "ID (TSID)"
+          },
+          "type" : {
+            "description" : "Type",
+            "type" : "string",
+            "$ref" : "#/components/schemas/AssetType"
+          },
+          "fileName" : {
+            "type" : "string",
+            "description" : "Filename"
+          }
+        }
+      },
+      "AssetType" : {
+        "type" : "string",
+        "enum" : [ "LOGO", "IMAGE", "VIDEO", "ATTACHMENT", "TRACK_ORIGINAL_GPX", "TRACK_FILTERED_GPX", "TRACK_FIT", "TRACK_THUMBNAIL" ]
+      },
       "ClimbCategory" : {
         "type" : "string",
         "enum" : [ "HC", "CAT1", "CAT2", "CAT3", "CAT4" ]
@@ -212,8 +235,16 @@
           "markdown" : {
             "type" : "string",
             "description" : "Markdown"
+          },
+          "assets" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/AssetDto"
+            },
+            "description" : "Assets"
           }
-        }
+        },
+        "required" : [ "assets" ]
       },
       "MemberDto" : {
         "description" : "Team member information",

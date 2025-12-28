@@ -43,7 +43,7 @@ export function CreateRidePage() {
   // Prepare initial values for create mode
   const initialValues = {
     name: '',
-    media: { markdown: '' },
+    media: { markdown: '', assets: [] },
     dateTime: getNextSunday(),
     visibility: team.visibility === Visibility.Team ? Visibility.Team : Visibility.Public,
     status: Status.Draft,

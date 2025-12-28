@@ -2,6 +2,7 @@ package com.tribly.service.route;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.tribly.domain.route.Route;
 import com.tribly.enums.ClimbCategory;
 import com.tribly.infrastructure.exception.BusinessException;
 import com.tribly.service.route.response.ProcessedGpx;
@@ -23,11 +24,12 @@ class GpxProcessingServiceTest {
 
   @Inject GpxProcessingService gpxProcessingService;
 
-  private static final Long TEST_ROUTE_ID = 999999L;
+  // FIXME
+  private static final Route route = new Route();
 
   @AfterEach
   void cleanup() {
-    gpxProcessingService.deleteRouteFiles(TEST_ROUTE_ID);
+    gpxProcessingService.deleteRouteFiles(route);
   }
 
   // ==================== Process GPX Upload ====================
@@ -37,8 +39,7 @@ class GpxProcessingServiceTest {
     InputStream gpxStream = getClass().getClassLoader().getResourceAsStream("example.gpx");
     assertNotNull(gpxStream, "example.gpx not found in test resources");
 
-    ProcessedGpx result =
-        gpxProcessingService.processGpxUpload(TEST_ROUTE_ID, gpxStream, "example.gpx");
+    ProcessedGpx result = gpxProcessingService.processGpxUpload(route, gpxStream, "example.gpx");
 
     assertNotNull(result);
     assertNotNull(result.wkt());
@@ -54,8 +55,7 @@ class GpxProcessingServiceTest {
   void processGpxUpload_shouldExtractCorrectMetadata() throws IOException {
     InputStream gpxStream = getClass().getClassLoader().getResourceAsStream("example.gpx");
 
-    ProcessedGpx result =
-        gpxProcessingService.processGpxUpload(TEST_ROUTE_ID, gpxStream, "example.gpx");
+    ProcessedGpx result = gpxProcessingService.processGpxUpload(route, gpxStream, "example.gpx");
 
     // Verify metadata structure
     assertNotNull(result.metadata());
@@ -82,8 +82,7 @@ class GpxProcessingServiceTest {
   void processGpxUpload_shouldGenerateValidWKT() throws IOException {
     InputStream gpxStream = getClass().getClassLoader().getResourceAsStream("example.gpx");
 
-    ProcessedGpx result =
-        gpxProcessingService.processGpxUpload(TEST_ROUTE_ID, gpxStream, "example.gpx");
+    ProcessedGpx result = gpxProcessingService.processGpxUpload(route, gpxStream, "example.gpx");
 
     String wkt = result.wkt();
     assertTrue(wkt.startsWith("LINESTRING("));
@@ -110,8 +109,7 @@ class GpxProcessingServiceTest {
   void processGpxUpload_shouldGenerateTrackPoints() throws IOException {
     InputStream gpxStream = getClass().getClassLoader().getResourceAsStream("example.gpx");
 
-    ProcessedGpx result =
-        gpxProcessingService.processGpxUpload(TEST_ROUTE_ID, gpxStream, "example.gpx");
+    ProcessedGpx result = gpxProcessingService.processGpxUpload(route, gpxStream, "example.gpx");
 
     assertFalse(result.trackPoints().isEmpty(), "Track points should not be empty");
 
@@ -129,9 +127,9 @@ class GpxProcessingServiceTest {
   void processGpxUpload_shouldCreateFiles() throws IOException {
     InputStream gpxStream = getClass().getClassLoader().getResourceAsStream("example.gpx");
 
-    gpxProcessingService.processGpxUpload(TEST_ROUTE_ID, gpxStream, "example.gpx");
+    gpxProcessingService.processGpxUpload(route, gpxStream, "example.gpx");
 
-    Path routeDir = Path.of("/tmp", "tribly-data-gpx-test", "routes", TEST_ROUTE_ID.toString());
+    Path routeDir = Path.of("/tmp", "tribly-data-gpx-test", "routes", route.toString());
     assertTrue(Files.exists(routeDir), "Route directory should exist");
     assertTrue(Files.exists(routeDir.resolve("original.gpx")), "Original GPX should exist");
     assertTrue(Files.exists(routeDir.resolve("filtered.gpx")), "Filtered GPX should exist");
@@ -151,7 +149,7 @@ class GpxProcessingServiceTest {
     BusinessException exception =
         assertThrows(
             BusinessException.class,
-            () -> gpxProcessingService.processGpxUpload(TEST_ROUTE_ID, gpxStream, "empty.gpx"));
+            () -> gpxProcessingService.processGpxUpload(route, gpxStream, "empty.gpx"));
 
     assertTrue(exception.getMessage().contains("no tracks"));
   }
@@ -163,7 +161,7 @@ class GpxProcessingServiceTest {
 
     assertThrows(
         BusinessException.class,
-        () -> gpxProcessingService.processGpxUpload(TEST_ROUTE_ID, gpxStream, "invalid.gpx"));
+        () -> gpxProcessingService.processGpxUpload(route, gpxStream, "invalid.gpx"));
   }
 
   // ==================== Categorize Climb ====================
@@ -227,9 +225,9 @@ class GpxProcessingServiceTest {
   @Test
   void getFilteredGpxFile_shouldReturnFileIfExists() throws IOException {
     InputStream gpxStream = getClass().getClassLoader().getResourceAsStream("example.gpx");
-    gpxProcessingService.processGpxUpload(TEST_ROUTE_ID, gpxStream, "example.gpx");
+    gpxProcessingService.processGpxUpload(route, gpxStream, "example.gpx");
 
-    File result = gpxProcessingService.getFilteredGpxFile(TEST_ROUTE_ID);
+    File result = gpxProcessingService.getFilteredGpxFile(route);
 
     assertNotNull(result);
     assertTrue(result.exists());
@@ -238,16 +236,15 @@ class GpxProcessingServiceTest {
 
   @Test
   void getFilteredGpxFile_shouldThrowIfNotExists() {
-    assertThrows(
-        BusinessException.class, () -> gpxProcessingService.getFilteredGpxFile(TEST_ROUTE_ID));
+    assertThrows(BusinessException.class, () -> gpxProcessingService.getFilteredGpxFile(route));
   }
 
   @Test
   void getFitFile_shouldReturnFileIfExists() throws IOException {
     InputStream gpxStream = getClass().getClassLoader().getResourceAsStream("example.gpx");
-    gpxProcessingService.processGpxUpload(TEST_ROUTE_ID, gpxStream, "example.gpx");
+    gpxProcessingService.processGpxUpload(route, gpxStream, "example.gpx");
 
-    File result = gpxProcessingService.getFitFile(TEST_ROUTE_ID);
+    File result = gpxProcessingService.getFitFile(route);
 
     assertNotNull(result);
     assertTrue(result.exists());
@@ -256,31 +253,30 @@ class GpxProcessingServiceTest {
 
   @Test
   void getFitFile_shouldThrowIfNotExists() {
-    assertThrows(BusinessException.class, () -> gpxProcessingService.getFitFile(TEST_ROUTE_ID));
+    assertThrows(BusinessException.class, () -> gpxProcessingService.getFitFile(route));
   }
 
   @Test
   void getThumbnailFile_shouldThrowIfNotExists() {
-    assertThrows(
-        BusinessException.class, () -> gpxProcessingService.getThumbnailFile(TEST_ROUTE_ID));
+    assertThrows(BusinessException.class, () -> gpxProcessingService.getThumbnailFile(route));
   }
 
   @Test
   void deleteRouteFiles_shouldDeleteAllFiles() throws IOException {
     InputStream gpxStream = getClass().getClassLoader().getResourceAsStream("example.gpx");
-    gpxProcessingService.processGpxUpload(TEST_ROUTE_ID, gpxStream, "example.gpx");
+    gpxProcessingService.processGpxUpload(route, gpxStream, "example.gpx");
 
-    Path routeDir = Path.of("/tmp", "tribly-data-gpx-test", "routes", TEST_ROUTE_ID.toString());
+    Path routeDir = Path.of("/tmp", "tribly-data-gpx-test", "routes", route.toString());
     assertTrue(Files.exists(routeDir), "Route directory should exist before deletion");
 
-    gpxProcessingService.deleteRouteFiles(TEST_ROUTE_ID);
+    gpxProcessingService.deleteRouteFiles(route);
 
     assertFalse(Files.exists(routeDir), "Route directory should not exist after deletion");
   }
 
   @Test
   void deleteRouteFiles_shouldNotThrowIfDirectoryNotExists() {
-    assertDoesNotThrow(() -> gpxProcessingService.deleteRouteFiles(TEST_ROUTE_ID));
+    assertDoesNotThrow(() -> gpxProcessingService.deleteRouteFiles(route));
   }
 
   // ==================== Helper Methods ====================

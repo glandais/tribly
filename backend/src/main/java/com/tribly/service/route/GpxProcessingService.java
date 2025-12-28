@@ -1,8 +1,13 @@
 package com.tribly.service.route;
 
+import com.tribly.domain.asset.Asset;
 import com.tribly.domain.route.GpxTrack;
+import com.tribly.domain.route.Route;
+import com.tribly.enums.AssetType;
 import com.tribly.enums.ClimbCategory;
 import com.tribly.infrastructure.exception.BusinessException;
+import com.tribly.service.asset.AssetService;
+import com.tribly.service.asset.response.AssetFile;
 import com.tribly.service.route.response.ProcessedGpx;
 import com.tribly.service.route.response.RouteMetadata;
 import io.github.glandais.gpx.climb.Climb;
@@ -21,15 +26,9 @@ import io.github.glandais.gpx.srtm.GPXElevationFixer;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Stream;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
 /**
@@ -55,8 +54,7 @@ public class GpxProcessingService {
 
   @Inject TileMapProducer tileMapProducer;
 
-  @ConfigProperty(name = "gpx.storage.path")
-  String storagePath = "/tmp";
+  @Inject AssetService assetService;
 
   /**
    * Process uploaded GPX file through complete pipeline.
@@ -70,12 +68,13 @@ public class GpxProcessingService {
    * 6. Generate files (original, filtered, FIT, thumbnail)
    * 7. Convert to PostGIS WKT and JSONB track points
    *
-   * @param routeId        Route ID for file storage path
+   * @param route        Route
    * @param gpxInputStream Input stream of uploaded GPX file
    * @param fileName       Original filename
    * @return ProcessedGpx containing all extracted data
    */
-  public ProcessedGpx processGpxUpload(Long routeId, InputStream gpxInputStream, String fileName) {
+  public ProcessedGpx processGpxUpload(Route route, InputStream gpxInputStream, String fileName) {
+    Long routeId = route.getId();
     try {
       // Step 1: Parse GPX
       LOG.infov("Processing GPX file {0} for route {1}", fileName, routeId);
@@ -110,26 +109,34 @@ public class GpxProcessingService {
       Climbs climbs = climbDetector.getClimbs(path);
       LOG.infov("Detected {0} climbs", climbs.size());
 
-      // Step 6: Create route directory and save files
-      Path routeDir = createRouteDirectory(routeId);
-
       // Save original GPX (parsed, before filtering)
-      File originalFile = routeDir.resolve("original.gpx").toFile();
+      AssetFile gpxAssetFile =
+          assetService.addAsset(route, AssetType.TRACK_ORIGINAL_GPX, "original.gpx");
+      route.getAssets().add(gpxAssetFile.asset());
+      File originalFile = gpxAssetFile.file();
       gpxFileWriter.writeGPX(gpx, originalFile, false);
       LOG.infov("Saved original GPX to {0}", originalFile);
 
       // Save filtered GPX
-      File filteredFile = routeDir.resolve("filtered.gpx").toFile();
+      AssetFile filteredAssetFile =
+          assetService.addAsset(route, AssetType.TRACK_FILTERED_GPX, "filtered.gpx");
+      route.getAssets().add(filteredAssetFile.asset());
+      File filteredFile = filteredAssetFile.file();
       gpxFileWriter.writeGPX(gpx, filteredFile, true);
       LOG.infov("Saved filtered GPX to {0}", filteredFile);
 
       // Save FIT file
-      File fitFile = routeDir.resolve("route.fit").toFile();
+      AssetFile fitAssetFile = assetService.addAsset(route, AssetType.TRACK_FIT, "route.fit");
+      route.getAssets().add(fitAssetFile.asset());
+      File fitFile = fitAssetFile.file();
       fitFileWriter.writeGPX(gpx, fitFile);
       LOG.infov("Saved FIT file to {0}", fitFile);
 
       // Generate thumbnail map
-      File thumbnailFile = routeDir.resolve("thumbnail.png").toFile();
+      AssetFile thumbnailAssetFile =
+          assetService.addAsset(route, AssetType.TRACK_THUMBNAIL, "thumbnail.png");
+      route.getAssets().add(thumbnailAssetFile.asset());
+      File thumbnailFile = thumbnailAssetFile.file();
       try {
         // Use OpenStreetMap tiles, 512x512 max size, 0.1 margin
         tileMapProducer.createTileMap(
@@ -240,72 +247,39 @@ public class GpxProcessingService {
   }
 
   /**
-   * Create directory structure for route file storage.
-   * Path: {storagePath}/routes/{routeId}/
-   */
-  private Path createRouteDirectory(Long routeId) throws IOException {
-    Path routeDir = Path.of(storagePath, "routes", routeId.toString());
-    Files.createDirectories(routeDir);
-    LOG.debugv("Created route directory: {0}", routeDir);
-    return routeDir;
-  }
-
-  /**
    * Delete all files for a route (cleanup on error or deletion).
    */
-  public void deleteRouteFiles(Long routeId) {
-    try {
-      Path routeDir = Path.of(storagePath, "routes", routeId.toString());
-      if (Files.exists(routeDir)) {
-        try (Stream<Path> paths = Files.walk(routeDir)) {
-          paths
-              .sorted(Comparator.reverseOrder()) // Delete files before directories
-              .forEach(
-                  path -> {
-                    try {
-                      Files.delete(path);
-                    } catch (IOException e) {
-                      LOG.warnv("Failed to delete {0}: {1}", path, e.getMessage());
-                    }
-                  });
-          LOG.infov("Deleted route files for route {0}", routeId);
-        }
-      }
-    } catch (Exception e) {
-      LOG.errorv("Failed to delete route files for route {0}", routeId, e);
-    }
+  public void deleteRouteFiles(Route route) {
+    // FIXME
   }
 
   /**
    * Get file path for filtered GPX download.
    */
-  public File getFilteredGpxFile(Long routeId) {
-    Path filePath = Path.of(storagePath, "routes", routeId.toString(), "filtered.gpx");
-    if (!Files.exists(filePath)) {
-      throw BusinessException.notFound("GPX file not found for route " + routeId);
-    }
-    return filePath.toFile();
+  public File getFilteredGpxFile(Route route) {
+    return getFile(route, AssetType.TRACK_FILTERED_GPX);
   }
 
   /**
    * Get file path for FIT download.
    */
-  public File getFitFile(Long routeId) {
-    Path filePath = Path.of(storagePath, "routes", routeId.toString(), "route.fit");
-    if (!Files.exists(filePath)) {
-      throw BusinessException.notFound("FIT file not found for route " + routeId);
-    }
-    return filePath.toFile();
+  public File getFitFile(Route route) {
+    return getFile(route, AssetType.TRACK_FIT);
   }
 
   /**
    * Get file path for thumbnail image.
    */
-  public File getThumbnailFile(Long routeId) {
-    Path filePath = Path.of(storagePath, "routes", routeId.toString(), "thumbnail.png");
-    if (!Files.exists(filePath)) {
-      throw BusinessException.notFound("Thumbnail not found for route " + routeId);
+  public File getThumbnailFile(Route route) {
+    return getFile(route, AssetType.TRACK_THUMBNAIL);
+  }
+
+  private File getFile(Route route, AssetType assetType) {
+    for (Asset asset : route.getAssets()) {
+      if (asset.getType() == assetType) {
+        return assetService.getAsset(asset.getId()).file();
+      }
     }
-    return filePath.toFile();
+    throw BusinessException.notFound("Asset not found for route " + route.getId());
   }
 }
