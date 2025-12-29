@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from 'react'
+import React, { useCallback, useEffect, useRef, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { LexicalComposer } from '@lexical/react/LexicalComposer'
 import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin'
@@ -16,6 +16,7 @@ import { CodeNode } from '@lexical/code'
 import {
   $getSelection,
   $isRangeSelection,
+  $insertNodes,
   EditorState,
   FORMAT_TEXT_COMMAND,
   UNDO_COMMAND,
@@ -30,6 +31,12 @@ import {
   $convertFromMarkdownString,
   $convertToMarkdownString,
 } from '@lexical/markdown'
+import type { AssetDto } from '../../api/api'
+import { ImageNode, $createImageNode, ImageResolverProvider, IMAGE_TRANSFORMER } from './lexical'
+import { createAssetSrc } from '../../lib/assetMarkdown'
+
+// Custom transformers array with image support for asset: URLs
+const CUSTOM_TRANSFORMERS = [...TRANSFORMERS, IMAGE_TRANSFORMER]
 import {
   BoldIcon,
   ItalicIcon,
@@ -107,13 +114,10 @@ function ToolbarPlugin({ onImageUpload, isUploadingImage }: ToolbarPluginProps) 
       const result = await onImageUpload(file)
       if (result) {
         const altText = result.fileName.replace(/\.[^/.]+$/, '') // Remove extension
-        const imageMarkdown = `![${altText}](asset:${result.id})`
 
         editor.update(() => {
-          const selection = $getSelection()
-          if ($isRangeSelection(selection)) {
-            selection.insertText(imageMarkdown)
-          }
+          const imageNode = $createImageNode(createAssetSrc(result.id), altText)
+          $insertNodes([imageNode])
         })
       }
       // Reset input to allow selecting the same file again
@@ -308,7 +312,7 @@ function InitialValuePlugin({ value }: { value: string }) {
       editor.update(() => {
         // Convert markdown string to Lexical nodes
         // This automatically clears the root and sets the new content
-        $convertFromMarkdownString(value, TRANSFORMERS)
+        $convertFromMarkdownString(value, CUSTOM_TRANSFORMERS)
       })
       hasInitializedRef.current = true
     }
@@ -328,6 +332,7 @@ export interface MarkdownEditorProps {
   ariaLabel?: string
   onImageUpload?: (file: File) => Promise<{ id: string; fileName: string } | null>
   isUploadingImage?: boolean
+  images?: AssetDto[] // For resolving asset:id URLs to actual image URLs
 }
 
 export function MarkdownEditor({
@@ -341,48 +346,61 @@ export function MarkdownEditor({
   ariaLabel,
   onImageUpload,
   isUploadingImage,
+  images = [],
 }: MarkdownEditorProps) {
   const { t } = useTranslation('common')
 
-  const initialConfig = {
-    namespace: 'MarkdownEditor',
-    theme: {
-      paragraph: 'mb-2 text-gray-900 leading-relaxed',
-      heading: {
-        h1: 'text-3xl font-bold mb-4 mt-6 text-gray-900 tracking-tight',
-        h2: 'text-2xl font-bold mb-3 mt-5 text-gray-900 tracking-tight',
-        h3: 'text-xl font-bold mb-2 mt-4 text-gray-900 tracking-tight',
-      },
-      list: {
-        ul: 'list-disc list-inside mb-2 text-gray-900',
-        ol: 'list-decimal list-inside mb-2 text-gray-900',
-        listitem: 'mb-1',
-        nested: {
-          listitem: 'list-none',
+  const initialConfig = useMemo(
+    () => ({
+      namespace: 'MarkdownEditor',
+      theme: {
+        paragraph: 'mb-2 text-gray-900 leading-relaxed',
+        heading: {
+          h1: 'text-3xl font-bold mb-4 mt-6 text-gray-900 tracking-tight',
+          h2: 'text-2xl font-bold mb-3 mt-5 text-gray-900 tracking-tight',
+          h3: 'text-xl font-bold mb-2 mt-4 text-gray-900 tracking-tight',
         },
+        list: {
+          ul: 'list-disc list-inside mb-2 text-gray-900',
+          ol: 'list-decimal list-inside mb-2 text-gray-900',
+          listitem: 'mb-1',
+          nested: {
+            listitem: 'list-none',
+          },
+        },
+        link: 'text-cyan-600 hover:text-cyan-700 underline cursor-pointer transition-colors',
+        text: {
+          bold: 'font-bold',
+          italic: 'italic',
+          code: 'bg-gray-100 text-pink-600 px-1.5 py-0.5 rounded font-mono text-sm',
+        },
+        quote: 'border-l-4 border-cyan-500 pl-4 italic text-gray-700 my-4',
+        code: 'bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-sm my-4 overflow-x-auto block',
       },
-      link: 'text-cyan-600 hover:text-cyan-700 underline cursor-pointer transition-colors',
-      text: {
-        bold: 'font-bold',
-        italic: 'italic',
-        code: 'bg-gray-100 text-pink-600 px-1.5 py-0.5 rounded font-mono text-sm',
+      nodes: [
+        HeadingNode,
+        QuoteNode,
+        ListNode,
+        ListItemNode,
+        LinkNode,
+        AutoLinkNode,
+        CodeNode,
+        ImageNode,
+      ],
+      onError: (error: Error) => {
+        console.error('Lexical error:', error)
       },
-      quote: 'border-l-4 border-cyan-500 pl-4 italic text-gray-700 my-4',
-      code: 'bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-sm my-4 overflow-x-auto block',
-    },
-    nodes: [HeadingNode, QuoteNode, ListNode, ListItemNode, LinkNode, AutoLinkNode, CodeNode],
-    onError: (error: Error) => {
-      console.error('Lexical error:', error)
-    },
-    editable: !disabled,
-  }
+      editable: !disabled,
+    }),
+    [disabled]
+  )
 
   const handleChange = useCallback(
     (editorState: EditorState) => {
       if (onChange) {
         editorState.read(() => {
           // Convert Lexical nodes to markdown string
-          const markdown = $convertToMarkdownString(TRANSFORMERS)
+          const markdown = $convertToMarkdownString(CUSTOM_TRANSFORMERS)
           onChange(markdown)
         })
       }
@@ -391,63 +409,65 @@ export function MarkdownEditor({
   )
 
   return (
-    <div
-      className={`markdown-editor-container border border-gray-300 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300 bg-white ${className}`}
-    >
-      <LexicalComposer initialConfig={initialConfig}>
-        <ToolbarPlugin onImageUpload={onImageUpload} isUploadingImage={isUploadingImage} />
-        <div className="relative">
-          <RichTextPlugin
-            contentEditable={
-              <ContentEditable
-                className="editor-input px-6 py-5 focus:outline-hidden text-base leading-relaxed"
-                style={{ minHeight, maxHeight, overflowY: 'auto' }}
-                aria-label={ariaLabel || t('editor.ariaLabel')}
-              />
-            }
-            placeholder={
-              <div
-                className="editor-placeholder absolute top-5 left-6 text-gray-400 pointer-events-none select-none text-base"
-                aria-hidden="true"
-              >
-                {placeholder || t('editor.placeholder')}
-              </div>
-            }
-            ErrorBoundary={EditorErrorBoundary}
-          />
-          <HistoryPlugin />
-          <OnChangePlugin onChange={handleChange} />
-          <MarkdownShortcutPlugin transformers={TRANSFORMERS} />
-          <ListPlugin />
-          <LinkPlugin />
-          <InitialValuePlugin value={value} />
-        </div>
-      </LexicalComposer>
+    <ImageResolverProvider images={images}>
+      <div
+        className={`markdown-editor-container border border-gray-300 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300 bg-white ${className}`}
+      >
+        <LexicalComposer initialConfig={initialConfig}>
+          <ToolbarPlugin onImageUpload={onImageUpload} isUploadingImage={isUploadingImage} />
+          <div className="relative">
+            <RichTextPlugin
+              contentEditable={
+                <ContentEditable
+                  className="editor-input px-6 py-5 focus:outline-hidden text-base leading-relaxed"
+                  style={{ minHeight, maxHeight, overflowY: 'auto' }}
+                  aria-label={ariaLabel || t('editor.ariaLabel')}
+                />
+              }
+              placeholder={
+                <div
+                  className="editor-placeholder absolute top-5 left-6 text-gray-400 pointer-events-none select-none text-base"
+                  aria-hidden="true"
+                >
+                  {placeholder || t('editor.placeholder')}
+                </div>
+              }
+              ErrorBoundary={EditorErrorBoundary}
+            />
+            <HistoryPlugin />
+            <OnChangePlugin onChange={handleChange} />
+            <MarkdownShortcutPlugin transformers={CUSTOM_TRANSFORMERS} />
+            <ListPlugin />
+            <LinkPlugin />
+            <InitialValuePlugin value={value} />
+          </div>
+        </LexicalComposer>
 
-      {/* Keyboard shortcuts hint */}
-      <div className="px-4 py-2 bg-gray-50 border-t border-gray-200 text-xs text-gray-500 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <span>
-            <kbd className="px-1.5 py-0.5 bg-white border border-gray-300 rounded text-xs font-mono">
-              **
-            </kbd>{' '}
-            {t('editor.shortcuts.bold')}
-          </span>
-          <span>
-            <kbd className="px-1.5 py-0.5 bg-white border border-gray-300 rounded text-xs font-mono">
-              *
-            </kbd>{' '}
-            {t('editor.shortcuts.italic')}
-          </span>
-          <span>
-            <kbd className="px-1.5 py-0.5 bg-white border border-gray-300 rounded text-xs font-mono">
-              #
-            </kbd>{' '}
-            {t('editor.shortcuts.heading')}
-          </span>
+        {/* Keyboard shortcuts hint */}
+        <div className="px-4 py-2 bg-gray-50 border-t border-gray-200 text-xs text-gray-500 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <span>
+              <kbd className="px-1.5 py-0.5 bg-white border border-gray-300 rounded text-xs font-mono">
+                **
+              </kbd>{' '}
+              {t('editor.shortcuts.bold')}
+            </span>
+            <span>
+              <kbd className="px-1.5 py-0.5 bg-white border border-gray-300 rounded text-xs font-mono">
+                *
+              </kbd>{' '}
+              {t('editor.shortcuts.italic')}
+            </span>
+            <span>
+              <kbd className="px-1.5 py-0.5 bg-white border border-gray-300 rounded text-xs font-mono">
+                #
+              </kbd>{' '}
+              {t('editor.shortcuts.heading')}
+            </span>
+          </div>
+          <div className="text-gray-400">{t('editor.shortcuts.hint')}</div>
         </div>
-        <div className="text-gray-400">{t('editor.shortcuts.hint')}</div>
       </div>
-    </div>
+    </ImageResolverProvider>
   )
 }

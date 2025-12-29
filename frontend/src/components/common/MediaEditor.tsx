@@ -246,6 +246,7 @@ export function MediaEditor({
         ariaLabel={ariaLabel}
         onImageUpload={teamSlug ? handleImageUpload : undefined}
         isUploadingImage={imageUploading}
+        images={value.assets.images}
       />
       {imageError && <p className="text-sm text-red-600">{imageError}</p>}
 

@@ -1,9 +1,9 @@
-import { useTranslation } from 'react-i18next'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import removeMd from 'remove-markdown'
-import { PhotoIcon } from '@heroicons/react/24/outline'
-import { AssetDto } from '../../api/api'
+import type { AssetDto } from '../../api/api'
+import { isAssetSrc, parseAssetSrc } from '../../lib/assetMarkdown'
+import { AssetImage } from './AssetImage'
 
 export interface MarkdownDisplayProps {
   markdown: string
@@ -13,21 +13,42 @@ export interface MarkdownDisplayProps {
   images?: AssetDto[]
 }
 
+const safeProtocol = /^(https?|ircs?|mailto|xmpp|asset)$/i
 /**
- * Resolve asset references in markdown content.
- * Replaces ![alt](asset:id) with actual URLs from the images array.
+ * Make a URL safe.
+ *
+ * @satisfies {UrlTransform}
+ * @param {string} value
+ *   URL.
+ * @returns {string}
+ *   Safe URL.
  */
-function resolveAssetReferences(markdown: string, images?: AssetDto[]): string {
-  if (!images?.length) return markdown
+function urlTransform(value?: string): string {
+  if (!value) {
+    return ''
+  }
+  // Same as:
+  // <https://github.com/micromark/micromark/blob/929275e/packages/micromark-util-sanitize-uri/dev/index.js#L34>
+  // But without the `encode` part.
+  const colon = value.indexOf(':')
+  const questionMark = value.indexOf('?')
+  const numberSign = value.indexOf('#')
+  const slash = value.indexOf('/')
 
-  // Create lookup map for O(1) access
-  const imageMap = new Map(images.map((img) => [img.id, img.url]))
+  if (
+    // If there is no protocol, it’s relative.
+    colon === -1 ||
+    // If the first colon is after a `?`, `#`, or `/`, it’s not a protocol.
+    (slash !== -1 && colon > slash) ||
+    (questionMark !== -1 && colon > questionMark) ||
+    (numberSign !== -1 && colon > numberSign) ||
+    // It is a protocol, it should be allowed.
+    safeProtocol.test(value.slice(0, colon))
+  ) {
+    return value
+  }
 
-  // Replace asset:id references with actual URLs
-  return markdown.replace(/!\[([^\]]*)\]\(asset:([a-z0-9]+)\)/g, (_match, alt, assetId) => {
-    const url = imageMap.get(assetId)
-    return url ? `![${alt}](${url})` : `![${alt}](#missing-image-${assetId})`
-  })
+  return ''
 }
 
 export function MarkdownDisplay({
@@ -35,10 +56,8 @@ export function MarkdownDisplay({
   className = '',
   preview = false,
   maxLength = 150,
-  images,
+  images = [],
 }: MarkdownDisplayProps) {
-  const { t } = useTranslation('common')
-
   if (!markdown) {
     return null
   }
@@ -51,10 +70,7 @@ export function MarkdownDisplay({
     return <p className={className}>{truncated}</p>
   }
 
-  // Resolve asset references to actual URLs
-  const resolvedMarkdown = resolveAssetReferences(markdown, images)
-
-  // Full markdown rendering
+  // Full markdown rendering - asset URLs handled at render time via AssetImage
   return (
     <div
       className={`markdown-display prose prose-gray max-w-none ${className}`}
@@ -66,18 +82,27 @@ export function MarkdownDisplay({
     >
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
+        urlTransform={urlTransform} // Preserve asset: URLs without sanitization
         components={{
-          // Images - handle missing image placeholders
+          // Images - detect asset: URLs and render via AssetImage
           img: ({ src, alt, ...props }) => {
-            // Handle missing images (marked with #missing-image- prefix)
-            if (src?.startsWith('#missing-image-')) {
-              return (
-                <span className="inline-flex items-center px-2 py-1 bg-gray-100 text-gray-500 text-sm rounded">
-                  <PhotoIcon className="w-4 h-4 mr-1" />
-                  {alt || t('images.notFound')}
-                </span>
-              )
+            // Handle asset: URLs - render via AssetImage component
+            if (src && isAssetSrc(src)) {
+              const parsed = parseAssetSrc(src)
+              if (parsed) {
+                return (
+                  <AssetImage
+                    assetId={parsed.assetId}
+                    images={images}
+                    size={parsed.size}
+                    altText={alt}
+                    className="my-4"
+                  />
+                )
+              }
             }
+
+            // Regular URLs - render normal img tag
             return (
               <img
                 src={src}
@@ -172,7 +197,7 @@ export function MarkdownDisplay({
           em: ({ ...props }) => <em className="italic" {...props} />,
         }}
       >
-        {resolvedMarkdown}
+        {markdown}
       </ReactMarkdown>
     </div>
   )
