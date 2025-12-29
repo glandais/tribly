@@ -1,12 +1,33 @@
+import { useTranslation } from 'react-i18next'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import removeMd from 'remove-markdown'
+import { PhotoIcon } from '@heroicons/react/24/outline'
+import { AssetDto } from '../../api/api'
 
 export interface MarkdownDisplayProps {
   markdown: string
   className?: string
   preview?: boolean
   maxLength?: number
+  images?: AssetDto[]
+}
+
+/**
+ * Resolve asset references in markdown content.
+ * Replaces ![alt](asset:id) with actual URLs from the images array.
+ */
+function resolveAssetReferences(markdown: string, images?: AssetDto[]): string {
+  if (!images?.length) return markdown
+
+  // Create lookup map for O(1) access
+  const imageMap = new Map(images.map((img) => [img.id, img.url]))
+
+  // Replace asset:id references with actual URLs
+  return markdown.replace(/!\[([^\]]*)\]\(asset:([a-z0-9]+)\)/g, (_match, alt, assetId) => {
+    const url = imageMap.get(assetId)
+    return url ? `![${alt}](${url})` : `![${alt}](#missing-image-${assetId})`
+  })
 }
 
 export function MarkdownDisplay({
@@ -14,7 +35,10 @@ export function MarkdownDisplay({
   className = '',
   preview = false,
   maxLength = 150,
+  images,
 }: MarkdownDisplayProps) {
+  const { t } = useTranslation('common')
+
   if (!markdown) {
     return null
   }
@@ -26,6 +50,9 @@ export function MarkdownDisplay({
       plainText.length > maxLength ? plainText.slice(0, maxLength) + '...' : plainText
     return <p className={className}>{truncated}</p>
   }
+
+  // Resolve asset references to actual URLs
+  const resolvedMarkdown = resolveAssetReferences(markdown, images)
 
   // Full markdown rendering
   return (
@@ -40,6 +67,27 @@ export function MarkdownDisplay({
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
+          // Images - handle missing image placeholders
+          img: ({ src, alt, ...props }) => {
+            // Handle missing images (marked with #missing-image- prefix)
+            if (src?.startsWith('#missing-image-')) {
+              return (
+                <span className="inline-flex items-center px-2 py-1 bg-gray-100 text-gray-500 text-sm rounded">
+                  <PhotoIcon className="w-4 h-4 mr-1" />
+                  {alt || t('images.notFound')}
+                </span>
+              )
+            }
+            return (
+              <img
+                src={src}
+                alt={alt}
+                className="max-w-full h-auto rounded-lg my-4"
+                loading="lazy"
+                {...props}
+              />
+            )
+          },
           // Headings
           h1: ({ ...props }) => (
             <h1 className="text-3xl font-bold mb-4 mt-6 text-gray-900 tracking-tight" {...props} />
@@ -124,7 +172,7 @@ export function MarkdownDisplay({
           em: ({ ...props }) => <em className="italic" {...props} />,
         }}
       >
-        {markdown}
+        {resolvedMarkdown}
       </ReactMarkdown>
     </div>
   )

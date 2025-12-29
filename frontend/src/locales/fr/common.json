@@ -92,6 +92,7 @@
     "numberedList": "Liste numérotée",
     "link": "Lien",
     "linkPrompt": "Entrez l'URL du lien",
+    "image": "Image",
     "markdownSupported": "Markdown supporté",
     "shortcuts": {
       "bold": "gras",
@@ -114,5 +115,10 @@
     "remove": "Supprimer",
     "uploading": "Téléversement...",
     "uploadError": "Erreur lors du téléversement du logo"
+  },
+  "images": {
+    "uploading": "Téléversement de l'image...",
+    "uploadError": "Erreur lors du téléversement de l'image",
+    "notFound": "Image non trouvée"
   }
 }

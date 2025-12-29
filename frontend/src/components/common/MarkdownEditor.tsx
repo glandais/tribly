@@ -39,12 +39,20 @@ import {
   CodeBracketIcon,
   ArrowUturnLeftIcon,
   ArrowUturnRightIcon,
+  PhotoIcon,
 } from '@heroicons/react/24/outline'
+import { LoadingSpinner } from './LoadingSpinner'
 
 // Toolbar Component
-function ToolbarPlugin() {
+interface ToolbarPluginProps {
+  onImageUpload?: (file: File) => Promise<{ id: string; fileName: string } | null>
+  isUploadingImage?: boolean
+}
+
+function ToolbarPlugin({ onImageUpload, isUploadingImage }: ToolbarPluginProps) {
   const { t } = useTranslation('common')
   const [editor] = useLexicalComposerContext()
+  const imageInputRef = useRef<HTMLInputElement>(null)
 
   const formatBold = useCallback(() => {
     editor.dispatchCommand(FORMAT_TEXT_COMMAND, 'bold')
@@ -84,6 +92,35 @@ function ToolbarPlugin() {
       editor.dispatchCommand(TOGGLE_LINK_COMMAND, url)
     }
   }, [editor, t])
+
+  const insertImage = useCallback(() => {
+    if (imageInputRef.current) {
+      imageInputRef.current.click()
+    }
+  }, [])
+
+  const handleImageSelect = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0]
+      if (!file || !onImageUpload) return
+
+      const result = await onImageUpload(file)
+      if (result) {
+        const altText = result.fileName.replace(/\.[^/.]+$/, '') // Remove extension
+        const imageMarkdown = `![${altText}](asset:${result.id})`
+
+        editor.update(() => {
+          const selection = $getSelection()
+          if ($isRangeSelection(selection)) {
+            selection.insertText(imageMarkdown)
+          }
+        })
+      }
+      // Reset input to allow selecting the same file again
+      e.target.value = ''
+    },
+    [editor, onImageUpload]
+  )
 
   const undo = useCallback(() => {
     editor.dispatchCommand(UNDO_COMMAND, undefined)
@@ -219,6 +256,31 @@ function ToolbarPlugin() {
         >
           <LinkIcon className="w-5 h-5" />
         </button>
+        {onImageUpload && (
+          <>
+            <button
+              onClick={insertImage}
+              disabled={isUploadingImage}
+              className={toolbarButtonClass()}
+              aria-label={t('editor.image')}
+              title={t('editor.image')}
+              type="button"
+            >
+              {isUploadingImage ? (
+                <LoadingSpinner size="sm" color="gray" className="h-5 w-5" />
+              ) : (
+                <PhotoIcon className="w-5 h-5" />
+              )}
+            </button>
+            <input
+              ref={imageInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleImageSelect}
+              className="hidden"
+            />
+          </>
+        )}
       </div>
 
       {/* Helper text */}
@@ -264,6 +326,8 @@ export interface MarkdownEditorProps {
   maxHeight?: string
   disabled?: boolean
   ariaLabel?: string
+  onImageUpload?: (file: File) => Promise<{ id: string; fileName: string } | null>
+  isUploadingImage?: boolean
 }
 
 export function MarkdownEditor({
@@ -275,6 +339,8 @@ export function MarkdownEditor({
   maxHeight = '500px',
   disabled = false,
   ariaLabel,
+  onImageUpload,
+  isUploadingImage,
 }: MarkdownEditorProps) {
   const { t } = useTranslation('common')
 
@@ -329,7 +395,7 @@ export function MarkdownEditor({
       className={`markdown-editor-container border border-gray-300 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300 bg-white ${className}`}
     >
       <LexicalComposer initialConfig={initialConfig}>
-        <ToolbarPlugin />
+        <ToolbarPlugin onImageUpload={onImageUpload} isUploadingImage={isUploadingImage} />
         <div className="relative">
           <RichTextPlugin
             contentEditable={

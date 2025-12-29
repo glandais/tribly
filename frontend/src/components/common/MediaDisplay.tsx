@@ -16,10 +16,11 @@ export interface MediaDisplayProps {
 export function MediaDisplay({ media, className = '' }: MediaDisplayProps) {
   const { t } = useTranslation('common')
   const attachments = media.assets?.attachments || []
+  const images = media.assets?.images || []
 
   return (
     <div className={className}>
-      <MarkdownDisplay markdown={media.markdown || ''} preview={false} />
+      <MarkdownDisplay markdown={media.markdown || ''} preview={false} images={images} />
 
       {/* Attachments section */}
       {attachments.length > 0 && (

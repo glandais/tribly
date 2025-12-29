@@ -39,6 +39,8 @@ export function MediaEditor({
   const [uploadError, setUploadError] = useState<string | null>(null)
   const [logoUploading, setLogoUploading] = useState(false)
   const [logoError, setLogoError] = useState<string | null>(null)
+  const [imageUploading, setImageUploading] = useState(false)
+  const [imageError, setImageError] = useState<string | null>(null)
 
   const handleMarkdownChange = (markdown: string) => {
     onChange({
@@ -46,6 +48,41 @@ export function MediaEditor({
       markdown,
       assets: initialValue.assets,
     })
+  }
+
+  // Handle image upload from markdown editor toolbar
+  const handleImageUpload = async (
+    file: File
+  ): Promise<{ id: string; fileName: string } | null> => {
+    if (!teamSlug) return null
+
+    setImageUploading(true)
+    setImageError(null)
+
+    try {
+      const asset = await unwrapResponse(assetsApi.uploadAsset(teamSlug, file))
+
+      // Add to images array
+      const currentImages: AssetDto[] = initialValue.assets?.images || []
+      const updatedAssets: AssetsDto = {
+        ...initialValue.assets,
+        images: [...currentImages, asset],
+        attachments: initialValue.assets?.attachments || [],
+        videos: initialValue.assets?.videos || [],
+      }
+
+      onChange({
+        ...initialValue,
+        assets: updatedAssets,
+      })
+
+      return { id: asset.id, fileName: asset.fileName }
+    } catch {
+      setImageError(t('images.uploadError'))
+      return null
+    } finally {
+      setImageUploading(false)
+    }
   }
 
   const handleLogoSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -234,7 +271,10 @@ export function MediaEditor({
         maxHeight={maxHeight}
         disabled={disabled}
         ariaLabel={ariaLabel}
+        onImageUpload={teamSlug ? handleImageUpload : undefined}
+        isUploadingImage={imageUploading}
       />
+      {imageError && <p className="text-sm text-red-600">{imageError}</p>}
 
       {/* Attachments section - only show when teamSlug is available */}
       {teamSlug && (

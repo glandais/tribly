@@ -80,6 +80,7 @@ frontend/src/
 - Always use `ConfirmDialog` for confirmations (never `confirm()` or custom modals)
 - `MediaEditor` needs `teamSlug` prop for uploads (hidden during team creation)
 - Logos: `TeamAvatar` (with initials fallback) vs `EntityLogo` (no fallback)
+- Never use SVG for icons, use `@heroicons`
 
 **Keycloak**:
 - Users need `firstName`/`lastName` in realm or prompted for profile update

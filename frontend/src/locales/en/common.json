@@ -92,6 +92,7 @@
     "numberedList": "Numbered list",
     "link": "Link",
     "linkPrompt": "Enter link URL",
+    "image": "Image",
     "markdownSupported": "Markdown supported",
     "shortcuts": {
       "bold": "bold",
@@ -114,5 +115,10 @@
     "remove": "Remove",
     "uploading": "Uploading...",
     "uploadError": "Error uploading logo"
+  },
+  "images": {
+    "uploading": "Uploading image...",
+    "uploadError": "Error uploading image",
+    "notFound": "Image not found"
   }
 }
