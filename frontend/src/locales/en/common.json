@@ -93,12 +93,19 @@
     "link": "Link",
     "linkPrompt": "Enter link URL",
     "image": "Image",
+    "table": "Insert table",
     "markdownSupported": "Markdown supported",
     "shortcuts": {
       "bold": "bold",
       "italic": "italic",
       "heading": "heading",
       "hint": "Markdown shortcuts"
+    },
+    "imageSize": {
+      "icon": "Extra small",
+      "thumbnail": "Small",
+      "medium": "Medium",
+      "full": "Large"
     }
   },
   "attachments": {
@@ -119,6 +126,7 @@
   "images": {
     "uploading": "Uploading image...",
     "uploadError": "Error uploading image",
-    "notFound": "Image not found"
+    "notFound": "Image not found",
+    "loadError": "Error loading image"
   }
 }

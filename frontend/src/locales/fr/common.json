@@ -93,12 +93,19 @@
     "link": "Lien",
     "linkPrompt": "Entrez l'URL du lien",
     "image": "Image",
+    "table": "Insérer un tableau",
     "markdownSupported": "Markdown supporté",
     "shortcuts": {
       "bold": "gras",
       "italic": "italique",
       "heading": "titre",
       "hint": "Raccourcis markdown"
+    },
+    "imageSize": {
+      "icon": "Très petit",
+      "thumbnail": "Petit",
+      "medium": "Moyen",
+      "full": "Grand"
     }
   },
   "attachments": {
@@ -119,6 +126,7 @@
   "images": {
     "uploading": "Téléversement de l'image...",
     "uploadError": "Erreur lors du téléversement de l'image",
-    "notFound": "Image non trouvée"
+    "notFound": "Image non trouvée",
+    "loadError": "Erreur lors du chargement de l'image"
   }
 }

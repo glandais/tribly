@@ -1,8 +1,10 @@
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import remarkDirective from 'remark-directive'
 import removeMd from 'remove-markdown'
 import type { AssetDto } from '../../api/api'
-import { isAssetSrc, parseAssetSrc } from '../../lib/assetMarkdown'
+import type { ImageSize } from '../../lib/assetMarkdown'
+import { remarkAssetDirective } from '../../lib/remarkAssetDirective'
 import { AssetImage } from './AssetImage'
 
 export interface MarkdownDisplayProps {
@@ -11,44 +13,6 @@ export interface MarkdownDisplayProps {
   preview?: boolean
   maxLength?: number
   images?: AssetDto[]
-}
-
-const safeProtocol = /^(https?|ircs?|mailto|xmpp|asset)$/i
-/**
- * Make a URL safe.
- *
- * @satisfies {UrlTransform}
- * @param {string} value
- *   URL.
- * @returns {string}
- *   Safe URL.
- */
-function urlTransform(value?: string): string {
-  if (!value) {
-    return ''
-  }
-  // Same as:
-  // <https://github.com/micromark/micromark/blob/929275e/packages/micromark-util-sanitize-uri/dev/index.js#L34>
-  // But without the `encode` part.
-  const colon = value.indexOf(':')
-  const questionMark = value.indexOf('?')
-  const numberSign = value.indexOf('#')
-  const slash = value.indexOf('/')
-
-  if (
-    // If there is no protocol, it’s relative.
-    colon === -1 ||
-    // If the first colon is after a `?`, `#`, or `/`, it’s not a protocol.
-    (slash !== -1 && colon > slash) ||
-    (questionMark !== -1 && colon > questionMark) ||
-    (numberSign !== -1 && colon > numberSign) ||
-    // It is a protocol, it should be allowed.
-    safeProtocol.test(value.slice(0, colon))
-  ) {
-    return value
-  }
-
-  return ''
 }
 
 export function MarkdownDisplay({
@@ -81,38 +45,40 @@ export function MarkdownDisplay({
       }}
     >
       <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
-        urlTransform={urlTransform} // Preserve asset: URLs without sanitization
+        remarkPlugins={[remarkGfm, remarkDirective, remarkAssetDirective]}
         components={{
-          // Images - detect asset: URLs and render via AssetImage
-          img: ({ src, alt, ...props }) => {
-            // Handle asset: URLs - render via AssetImage component
-            if (src && isAssetSrc(src)) {
-              const parsed = parseAssetSrc(src)
-              if (parsed) {
-                return (
-                  <AssetImage
-                    assetId={parsed.assetId}
-                    images={images}
-                    size={parsed.size}
-                    altText={alt}
-                    className="my-4"
-                  />
-                )
-              }
-            }
-
-            // Regular URLs - render normal img tag
+          // Asset directive - handles ::asset{id="..." size="..." alt="..."}
+          // @ts-expect-error - custom component from remark-directive
+          'asset-image': ({
+            id,
+            size,
+            alt,
+          }: {
+            id?: string
+            size?: string
+            alt?: string
+          }) => {
+            if (!id) return null
             return (
-              <img
-                src={src}
-                alt={alt}
-                className="max-w-full h-auto rounded-lg my-4"
-                loading="lazy"
-                {...props}
+              <AssetImage
+                assetId={id}
+                images={images}
+                size={size as ImageSize}
+                altText={alt}
+                className="my-4"
               />
             )
           },
+          // Regular image URLs
+          img: ({ src, alt, ...props }) => (
+            <img
+              src={src}
+              alt={alt}
+              className="max-w-full h-auto rounded-lg my-4"
+              loading="lazy"
+              {...props}
+            />
+          ),
           // Headings
           h1: ({ ...props }) => (
             <h1 className="text-3xl font-bold mb-4 mt-6 text-gray-900 tracking-tight" {...props} />
