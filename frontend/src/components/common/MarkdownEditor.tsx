@@ -50,11 +50,7 @@ interface AssetUploadButtonProps {
   isUploadingImage?: boolean
 }
 
-function AssetUploadButton({
-  editorRef,
-  onImageUpload,
-  isUploadingImage,
-}: AssetUploadButtonProps) {
+function AssetUploadButton({ editorRef, onImageUpload, isUploadingImage }: AssetUploadButtonProps) {
   const { t } = useTranslation('common')
   const imageInputRef = useRef<HTMLInputElement>(null)
 
@@ -120,13 +116,7 @@ interface ToolbarContentsProps {
   isUploadingImage?: boolean
 }
 
-function ToolbarContents({
-  editorRef,
-  onImageUpload,
-  isUploadingImage,
-}: ToolbarContentsProps) {
-  const { t } = useTranslation('common')
-
+function ToolbarContents({ editorRef, onImageUpload, isUploadingImage }: ToolbarContentsProps) {
   return (
     <>
       <UndoRedo />
@@ -239,8 +229,7 @@ export function MarkdownEditor({
               directiveDescriptors: [AssetDirectiveDescriptor],
             }),
             toolbarPlugin({
-              toolbarClassName:
-                'flex items-start gap-1 p-2 border-b border-gray-200 bg-gray-50/50',
+              toolbarClassName: 'flex items-start gap-1 p-2 border-b border-gray-200 bg-gray-50/50',
               toolbarContents: () => (
                 <ToolbarContents
                   editorRef={editorRef}

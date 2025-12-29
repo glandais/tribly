@@ -24,8 +24,8 @@
   color: #111827;
 }
 
-.mdxeditor-custom [data-active="true"] .mdxeditor-toolbar-button,
-.mdxeditor-custom .mdxeditor-toolbar-button[data-state="on"] {
+.mdxeditor-custom [data-active='true'] .mdxeditor-toolbar-button,
+.mdxeditor-custom .mdxeditor-toolbar-button[data-state='on'] {
   background-color: #ecfeff;
   color: #0e7490;
 }

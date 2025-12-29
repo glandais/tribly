@@ -9,6 +9,7 @@ import {
   ConfigurationApi,
   ErrorResponse,
   AssetsApi,
+  PlacesApi,
 } from '../api/api'
 import { Configuration } from '../api/configuration'
 import { useAuthStore } from '../store/authStore'
@@ -48,6 +49,7 @@ export const publicationsApi = new PublicationsApi(apiConfiguration, '', axiosIn
 export const routesApi = new RoutesApi(apiConfiguration, '', axiosInstance)
 export const usersApi = new UsersApi(apiConfiguration, '', axiosInstance)
 export const configurationApi = new ConfigurationApi(apiConfiguration, '', axiosInstance)
+export const placesApi = new PlacesApi(apiConfiguration, '', axiosInstance)
 
 export class ApiClientError extends Error {
   constructor(

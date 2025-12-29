@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { XMarkIcon } from '@heroicons/react/24/outline'
 import { LoadingSpinner } from '../common/LoadingSpinner'
 import { ApiClientError } from '../../lib/apiClient'
 import { RoutePickerModal } from '../route/RoutePickerModal'
@@ -7,10 +8,10 @@ import { CreateRouteModal } from '../route/CreateRouteModal'
 import { RoutePreview } from '../route/RoutePreview'
 import { RoutePreviewCompact } from '../route/RoutePreviewCompact'
 import { MediaEditor } from '../common/MediaEditor'
+import { PlaceAutocomplete } from '../common/PlaceAutocomplete'
 import { fromDateTimeLocalValue } from '../../utils/dateFormat'
-import type { MediaDto, RouteDto, TeamDetailDto } from '../../api/api'
+import type { MediaDto, RouteDto, TeamDetailDto, PlaceDetailDto } from '../../api/api'
 import { Visibility, Status } from '../../hooks/useRide'
-import { defaultMedia } from '@/lib/apiUtils'
 
 export interface EditableGroup {
   id?: string
@@ -30,6 +31,8 @@ export interface RideFormData {
   status: Status
   publishAt?: string // ISO string
   routeSlug?: string
+  startPlaceId?: string
+  endPlaceId?: string
   groups: EditableGroup[]
 }
 
@@ -47,6 +50,8 @@ interface RideEditorProps {
     status: Status
     publishAt?: string // datetime-local value
     routeSlug?: string
+    startPlace?: PlaceDetailDto
+    endPlace?: PlaceDetailDto
     groups: EditableGroup[]
   }
 
@@ -77,15 +82,19 @@ export function RideEditor({
   const { t } = useTranslation('rides')
   const { t: tCommon } = useTranslation('common')
 
-  // Form state
-  const [name, setName] = useState('')
-  const [media, setMedia] = useState<MediaDto>(defaultMedia())
-  const [dateTime, setDateTime] = useState('')
-  const [visibility, setVisibility] = useState<Visibility>(Visibility.Team)
-  const [status, setStatus] = useState<Status>(Status.Draft)
-  const [publishAt, setPublishAt] = useState('')
-  const [rideRouteSlug, setRideRouteSlug] = useState<string | null>(null)
-  const [groups, setGroups] = useState<EditableGroup[]>([])
+  // Form state - initialized from props (use key prop on parent to reset)
+  const [name, setName] = useState(initialValues.name)
+  const [media, setMedia] = useState<MediaDto>(initialValues.media)
+  const [dateTime, setDateTime] = useState(initialValues.dateTime)
+  const [visibility, setVisibility] = useState<Visibility>(initialValues.visibility)
+  const [status, setStatus] = useState<Status>(initialValues.status)
+  const [publishAt, setPublishAt] = useState(initialValues.publishAt || '')
+  const [rideRouteSlug, setRideRouteSlug] = useState<string | null>(initialValues.routeSlug || null)
+  const [startPlace, setStartPlace] = useState<PlaceDetailDto | null>(
+    initialValues.startPlace || null
+  )
+  const [endPlace, setEndPlace] = useState<PlaceDetailDto | null>(initialValues.endPlace || null)
+  const [groups, setGroups] = useState<EditableGroup[]>(initialValues.groups)
 
   // Modal state
   const [showRoutePickerModal, setShowRoutePickerModal] = useState(false)
@@ -93,18 +102,6 @@ export function RideEditor({
   const [pickerTarget, setPickerTarget] = useState<
     'ride' | { type: 'group'; index: number } | null
   >(null)
-
-  // Initialize form state from initialValues prop (happens once on mount)
-  useEffect(() => {
-    setName(initialValues.name)
-    setMedia(initialValues.media)
-    setDateTime(initialValues.dateTime)
-    setVisibility(initialValues.visibility)
-    setStatus(initialValues.status)
-    setPublishAt(initialValues.publishAt || '')
-    setRideRouteSlug(initialValues.routeSlug || null)
-    setGroups(initialValues.groups)
-  }, [initialValues])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -118,6 +115,8 @@ export function RideEditor({
       visibility,
       publishAt: publishAt ? fromDateTimeLocalValue(publishAt).toISOString() : undefined,
       routeSlug: rideRouteSlug || undefined,
+      startPlaceId: startPlace?.id,
+      endPlaceId: endPlace?.id,
       groups: filteredGroups,
     })
   }
@@ -232,6 +231,68 @@ export function RideEditor({
           />
           {getFieldError('date') && (
             <p className="mt-1 text-sm text-red-600">{getFieldError('date')}</p>
+          )}
+        </div>
+      </div>
+
+      {/* Start and End Places */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            {t('create.form.startPlace.label')}
+          </label>
+          {startPlace ? (
+            <div className="flex items-center justify-between px-4 py-2 border border-gray-300 rounded-lg bg-gray-50">
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-gray-900 truncate">{startPlace.name}</p>
+                {startPlace.address && (
+                  <p className="text-xs text-gray-500 truncate">{startPlace.address}</p>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => setStartPlace(null)}
+                className="ml-2 p-1 text-gray-400 hover:text-red-500"
+              >
+                <XMarkIcon className="h-4 w-4" />
+              </button>
+            </div>
+          ) : (
+            <PlaceAutocomplete
+              teamSlug={teamSlug}
+              onSelect={setStartPlace}
+              filterStart={true}
+              placeholder={t('create.form.startPlace.placeholder')}
+            />
+          )}
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            {t('create.form.endPlace.label')}
+          </label>
+          {endPlace ? (
+            <div className="flex items-center justify-between px-4 py-2 border border-gray-300 rounded-lg bg-gray-50">
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-gray-900 truncate">{endPlace.name}</p>
+                {endPlace.address && (
+                  <p className="text-xs text-gray-500 truncate">{endPlace.address}</p>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => setEndPlace(null)}
+                className="ml-2 p-1 text-gray-400 hover:text-red-500"
+              >
+                <XMarkIcon className="h-4 w-4" />
+              </button>
+            </div>
+          ) : (
+            <PlaceAutocomplete
+              teamSlug={teamSlug}
+              onSelect={setEndPlace}
+              filterEnd={true}
+              placeholder={t('create.form.endPlace.placeholder')}
+            />
           )}
         </div>
       </div>

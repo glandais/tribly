@@ -150,5 +150,40 @@
         "placeholder": "Search by title or description..."
       }
     }
+  },
+  "places": {
+    "title": "Places",
+    "add": "Add Place",
+    "edit": "Edit place",
+    "delete": "Delete place",
+    "empty": "No places defined yet. Add places for ride start/end points.",
+    "startPlace": "Start",
+    "endPlace": "End",
+    "viewLink": "View on map",
+    "form": {
+      "createTitle": "Add Place",
+      "editTitle": "Edit Place",
+      "name": {
+        "label": "Name",
+        "placeholder": "Enter place name"
+      },
+      "address": {
+        "label": "Address",
+        "placeholder": "Enter address (optional)"
+      },
+      "link": {
+        "label": "Link",
+        "placeholder": "https://maps.google.com/..."
+      },
+      "startPlace": "Can be used as start",
+      "endPlace": "Can be used as end",
+      "create": "Add Place",
+      "save": "Save Changes"
+    },
+    "deleteConfirm": {
+      "title": "Delete Place",
+      "message": "Are you sure you want to delete this place? This action cannot be undone.",
+      "confirm": "Delete"
+    }
   }
 }

@@ -91,6 +91,8 @@ class RideResourceTest {
                 Visibility.PUBLIC,
                 null,
                 null,
+                null,
+                null,
                 List.of(new GroupRequest(null, "G1", null, null, null))))
         .when()
         .post("/api/teams/" + teamSlug + "/rides")
@@ -120,6 +122,8 @@ class RideResourceTest {
                 Visibility.PUBLIC,
                 null,
                 null,
+                null,
+                null,
                 List.of(new GroupRequest(null, "G1", null, null, null))))
         .when()
         .post("/api/teams/" + teamSlug + "/rides")
@@ -138,6 +142,8 @@ class RideResourceTest {
             LocalDate.parse("2025-01-20").atTime(0, 0).toInstant(ZoneOffset.UTC),
             Status.DRAFT,
             Visibility.PUBLIC,
+            null,
+            null,
             null,
             null,
             List.of(
@@ -174,6 +180,8 @@ class RideResourceTest {
                     LocalDate.parse("2025-01-22").atTime(0, 0).toInstant(ZoneOffset.UTC),
                     Status.DRAFT,
                     Visibility.PUBLIC,
+                    null,
+                    null,
                     null,
                     null,
                     List.of(new GroupRequest(null, "G1", null, null, null))))
@@ -214,6 +222,8 @@ class RideResourceTest {
                 Visibility.PUBLIC,
                 null,
                 null,
+                null,
+                null,
                 List.of(new GroupRequest(null, "G1", null, null, null))))
         .when()
         .post("/api/teams/" + teamSlug + "/rides")
@@ -231,6 +241,8 @@ class RideResourceTest {
                 LocalDate.parse("2025-01-27").atTime(0, 0).toInstant(ZoneOffset.UTC),
                 Status.DRAFT,
                 Visibility.PUBLIC,
+                null,
+                null,
                 null,
                 null,
                 List.of(new GroupRequest(null, "G1", null, null, null))))
@@ -268,6 +280,8 @@ class RideResourceTest {
                     Visibility.PUBLIC,
                     null,
                     null,
+                    null,
+                    null,
                     List.of(
                         new GroupRequest(null, "G1", null, null, null),
                         new GroupRequest(null, "G0", null, null, null))))
@@ -291,6 +305,8 @@ class RideResourceTest {
                 LocalDate.parse("2025-01-20").atTime(0, 0).toInstant(ZoneOffset.UTC),
                 Status.PUBLISHED,
                 Visibility.PUBLIC,
+                null,
+                null,
                 null,
                 null,
                 List.of(
@@ -320,6 +336,8 @@ class RideResourceTest {
                     LocalDate.parse("2025-01-20").atTime(0, 0).toInstant(ZoneOffset.UTC),
                     Status.PUBLISHED,
                     Visibility.PUBLIC,
+                    null,
+                    null,
                     null,
                     null,
                     List.of(new GroupRequest(null, "G1", null, null, null))))
@@ -368,6 +386,8 @@ class RideResourceTest {
                     Visibility.PUBLIC,
                     null,
                     null,
+                    null,
+                    null,
                     List.of(new GroupRequest(null, "G1", null, null, null))))
             .when()
             .post("/api/teams/" + teamSlug + "/rides")
@@ -409,6 +429,8 @@ class RideResourceTest {
                     Visibility.PUBLIC,
                     null,
                     null,
+                    null,
+                    null,
                     List.of(new GroupRequest(null, "G1", null, null, null))))
             .when()
             .post("/api/teams/" + teamSlug + "/rides")
@@ -448,6 +470,8 @@ class RideResourceTest {
                     LocalDate.parse("2025-01-20").atTime(0, 0).toInstant(ZoneOffset.UTC),
                     Status.PUBLISHED,
                     Visibility.PUBLIC,
+                    null,
+                    null,
                     null,
                     null,
                     List.of(new GroupRequest(null, "G1", null, null, null))))

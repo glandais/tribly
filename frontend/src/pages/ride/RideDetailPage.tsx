@@ -1,7 +1,13 @@
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { ClockIcon, CalendarIcon, UsersIcon, PencilIcon } from '@heroicons/react/24/outline'
+import {
+  ClockIcon,
+  CalendarIcon,
+  UsersIcon,
+  PencilIcon,
+  MapPinIcon,
+} from '@heroicons/react/24/outline'
 import { useTeam } from '../../hooks/useTeam'
 import {
   useRide,
@@ -160,6 +166,35 @@ export function RideDetailPage() {
                 {t('card.participantCount', { count: ride.participantCount })}
               </span>
             </div>
+            {/* Start and End Places */}
+            {(ride.startPlace || ride.endPlace) && (
+              <div className="mt-3 flex flex-wrap items-center gap-4 text-sm text-gray-600">
+                {ride.startPlace && (
+                  <span className="flex items-center">
+                    <MapPinIcon className="w-4 h-4 mr-1 text-green-600" />
+                    <span className="font-medium text-green-700">{t('detail.startPlace')}:</span>
+                    <span className="ml-1">
+                      {ride.startPlace.name}
+                      {ride.startPlace.address && (
+                        <span className="text-gray-500"> ({ride.startPlace.address})</span>
+                      )}
+                    </span>
+                  </span>
+                )}
+                {ride.endPlace && (
+                  <span className="flex items-center">
+                    <MapPinIcon className="w-4 h-4 mr-1 text-red-600" />
+                    <span className="font-medium text-red-700">{t('detail.endPlace')}:</span>
+                    <span className="ml-1">
+                      {ride.endPlace.name}
+                      {ride.endPlace.address && (
+                        <span className="text-gray-500"> ({ride.endPlace.address})</span>
+                      )}
+                    </span>
+                  </span>
+                )}
+              </div>
+            )}
           </div>
 
           {canEdit && (

@@ -128,5 +128,12 @@
     "uploadError": "Erreur lors du téléversement de l'image",
     "notFound": "Image non trouvée",
     "loadError": "Erreur lors du chargement de l'image"
+  },
+  "autocomplete": {
+    "searchUsers": "Rechercher des utilisateurs...",
+    "noUsersFound": "Aucun utilisateur trouvé",
+    "searchPlaces": "Rechercher des lieux...",
+    "noPlacesFound": "Aucun lieu trouvé",
+    "noResults": "Aucun résultat trouvé"
   }
 }

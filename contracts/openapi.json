@@ -172,6 +172,46 @@
           "rejectedValue" : { }
         }
       },
+      "GeoJsonLineString" : {
+        "type" : "object",
+        "properties" : {
+          "type" : {
+            "type" : "string",
+            "enum" : [ "LineString" ]
+          },
+          "coordinates" : {
+            "type" : "array",
+            "items" : {
+              "type" : "array",
+              "items" : {
+                "type" : "number",
+                "format" : "double"
+              }
+            },
+            "description" : "Array of [lon, lat] coordinates"
+          }
+        }
+      },
+      "GeoJsonPoint" : {
+        "description" : "GeoJSON Point geometry",
+        "type" : "object",
+        "properties" : {
+          "type" : {
+            "type" : "string",
+            "examples" : [ "Point" ],
+            "enum" : [ "Point" ]
+          },
+          "coordinates" : {
+            "type" : "array",
+            "items" : {
+              "type" : "number",
+              "format" : "double"
+            },
+            "description" : "Coordinates [longitude, latitude]",
+            "examples" : [ [ 2.3522, 48.8566 ] ]
+          }
+        }
+      },
       "GpxTrackDto" : {
         "description" : "GPX track with track points",
         "type" : "object",
@@ -339,6 +379,100 @@
             "type" : "integer",
             "format" : "int32",
             "description" : "Page size"
+          }
+        }
+      },
+      "PlaceDetailDto" : {
+        "type" : "object",
+        "required" : [ "id", "name", "startPlace", "endPlace" ],
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "description" : "Place ID (TSID)",
+            "examples" : [ "0h4a8xzk8jv80" ]
+          },
+          "name" : {
+            "type" : "string"
+          },
+          "address" : {
+            "type" : "string"
+          },
+          "link" : {
+            "type" : "string"
+          },
+          "startPlace" : {
+            "type" : "boolean"
+          },
+          "endPlace" : {
+            "type" : "boolean"
+          },
+          "geometry" : {
+            "$ref" : "#/components/schemas/GeoJsonPoint",
+            "type" : "object"
+          }
+        }
+      },
+      "PlaceListResponse" : {
+        "description" : "Paginated place list response",
+        "type" : "object",
+        "required" : [ "places", "total", "page", "size" ],
+        "properties" : {
+          "places" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/PlaceDetailDto"
+            },
+            "description" : "List of places"
+          },
+          "total" : {
+            "type" : "integer",
+            "format" : "int64",
+            "description" : "Total number of places"
+          },
+          "page" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Current page number"
+          },
+          "size" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Page size"
+          }
+        }
+      },
+      "PlaceRequest" : {
+        "description" : "Place create/update request",
+        "type" : "object",
+        "required" : [ "name", "startPlace", "endPlace" ],
+        "properties" : {
+          "name" : {
+            "type" : "string",
+            "description" : "Place name"
+          },
+          "address" : {
+            "type" : "string",
+            "description" : "Address"
+          },
+          "link" : {
+            "type" : "string",
+            "description" : "External link (e.g., Google Maps URL)"
+          },
+          "startPlace" : {
+            "type" : "boolean",
+            "description" : "Can be used as ride start point"
+          },
+          "endPlace" : {
+            "type" : "boolean",
+            "description" : "Can be used as ride end point"
+          },
+          "coordinates" : {
+            "type" : "array",
+            "items" : {
+              "type" : "number",
+              "format" : "double"
+            },
+            "description" : "Geographic coordinates [longitude, latitude]"
           }
         }
       },
@@ -627,6 +761,16 @@
               "$ref" : "#/components/schemas/RideGroupDto"
             },
             "description" : "Ride groups"
+          },
+          "startPlace" : {
+            "description" : "Start place",
+            "type" : "object",
+            "$ref" : "#/components/schemas/PlaceDetailDto"
+          },
+          "endPlace" : {
+            "description" : "End place",
+            "type" : "object",
+            "$ref" : "#/components/schemas/PlaceDetailDto"
           }
         }
       },
@@ -776,6 +920,14 @@
           "routeSlug" : {
             "type" : "string",
             "description" : "Route slug"
+          },
+          "startPlaceId" : {
+            "type" : "string",
+            "description" : "Start place ID (TSID)"
+          },
+          "endPlaceId" : {
+            "type" : "string",
+            "description" : "End place ID (TSID)"
           },
           "publishAt" : {
             "description" : "Publication timestamp (for scheduled publishing)",
@@ -1272,6 +1424,9 @@
   }, {
     "name" : "Configuration",
     "description" : "Application configuration endpoints"
+  }, {
+    "name" : "Places",
+    "description" : "Place management for ride starting/ending points"
   }, {
     "name" : "Posts",
     "description" : "Post management and participation operations"
@@ -2164,6 +2319,339 @@
           },
           "404" : {
             "description" : "Team or member not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
+    "/api/teams/{slug}/places" : {
+      "get" : {
+        "summary" : "List places",
+        "description" : "Get all places for a team",
+        "operationId" : "listPlaces",
+        "tags" : [ "Places" ],
+        "parameters" : [ {
+          "description" : "Team URL slug",
+          "name" : "slug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Page number",
+          "name" : "page",
+          "in" : "query",
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 0
+          }
+        }, {
+          "description" : "Page size",
+          "name" : "size",
+          "in" : "query",
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 50
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Places retrieved successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PlaceListResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Team not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post" : {
+        "summary" : "Create place",
+        "description" : "Create a new place for the team",
+        "operationId" : "createPlace",
+        "tags" : [ "Places" ],
+        "parameters" : [ {
+          "description" : "Team URL slug",
+          "name" : "slug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PlaceRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "description" : "Place created successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PlaceDetailDto"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Invalid request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "User is not a team organizer",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Team not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
+    "/api/teams/{slug}/places/{placeId}" : {
+      "put" : {
+        "summary" : "Update place",
+        "description" : "Update an existing place",
+        "operationId" : "updatePlace",
+        "tags" : [ "Places" ],
+        "parameters" : [ {
+          "description" : "Place ID (TSID)",
+          "name" : "placeId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Team URL slug",
+          "name" : "slug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PlaceRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Place updated successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PlaceDetailDto"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Invalid request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "User is not a team organizer",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Team or place not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      },
+      "get" : {
+        "summary" : "Get place details",
+        "description" : "Get a specific place by ID",
+        "operationId" : "getPlace",
+        "tags" : [ "Places" ],
+        "parameters" : [ {
+          "description" : "Place ID (TSID)",
+          "name" : "placeId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Team URL slug",
+          "name" : "slug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Place retrieved successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PlaceDetailDto"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Team or place not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete" : {
+        "summary" : "Delete place",
+        "description" : "Soft delete a place",
+        "operationId" : "deletePlace",
+        "tags" : [ "Places" ],
+        "parameters" : [ {
+          "description" : "Place ID (TSID)",
+          "name" : "placeId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Team URL slug",
+          "name" : "slug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "Place deleted successfully"
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "User is not a team organizer",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Team or place not found",
             "content" : {
               "application/json" : {
                 "schema" : {

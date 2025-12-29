@@ -120,7 +120,7 @@ public class RouteService extends TeamEntityService {
 
     // Save GPX track
     GpxTrack track =
-        new GpxTrack(creator, route, processed.wkt(), processed.trackPoints(), Instant.now());
+        new GpxTrack(creator, route, processed.geometry(), processed.trackPoints(), Instant.now());
     gpxTrackRepository.persist(track);
     LOG.infov("GPX track saved for route {0}", route.getId());
 

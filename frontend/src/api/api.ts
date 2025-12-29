@@ -160,6 +160,38 @@ export interface FieldError {
   message?: string
   rejectedValue?: any
 }
+export interface GeoJsonLineString {
+  type?: GeoJsonLineStringTypeEnum
+  /**
+   * Array of [lon, lat] coordinates
+   */
+  coordinates?: Array<Array<number>>
+}
+
+export const GeoJsonLineStringTypeEnum = {
+  LineString: 'LineString',
+} as const
+
+export type GeoJsonLineStringTypeEnum =
+  (typeof GeoJsonLineStringTypeEnum)[keyof typeof GeoJsonLineStringTypeEnum]
+
+/**
+ * GeoJSON Point geometry
+ */
+export interface GeoJsonPoint {
+  type?: GeoJsonPointTypeEnum
+  /**
+   * Coordinates [longitude, latitude]
+   */
+  coordinates?: Array<number>
+}
+
+export const GeoJsonPointTypeEnum = {
+  Point: 'Point',
+} as const
+
+export type GeoJsonPointTypeEnum = (typeof GeoJsonPointTypeEnum)[keyof typeof GeoJsonPointTypeEnum]
+
 /**
  * GPX track with track points
  */
@@ -278,6 +310,68 @@ export interface MemberListResponse {
    * Page size
    */
   size: number
+}
+export interface PlaceDetailDto {
+  /**
+   * Place ID (TSID)
+   */
+  id: string
+  name: string
+  address?: string
+  link?: string
+  startPlace: boolean
+  endPlace: boolean
+  geometry?: GeoJsonPoint
+}
+/**
+ * Paginated place list response
+ */
+export interface PlaceListResponse {
+  /**
+   * List of places
+   */
+  places: Array<PlaceDetailDto>
+  /**
+   * Total number of places
+   */
+  total: number
+  /**
+   * Current page number
+   */
+  page: number
+  /**
+   * Page size
+   */
+  size: number
+}
+/**
+ * Place create/update request
+ */
+export interface PlaceRequest {
+  /**
+   * Place name
+   */
+  name: string
+  /**
+   * Address
+   */
+  address?: string
+  /**
+   * External link (e.g., Google Maps URL)
+   */
+  link?: string
+  /**
+   * Can be used as ride start point
+   */
+  startPlace: boolean
+  /**
+   * Can be used as ride end point
+   */
+  endPlace: boolean
+  /**
+   * Geographic coordinates [longitude, latitude]
+   */
+  coordinates?: Array<number>
 }
 export interface PostDto extends PublicationDto {
   /**
@@ -466,6 +560,14 @@ export interface RideDto extends PublicationDto {
    * Ride groups
    */
   groups: Array<RideGroupDto>
+  /**
+   * Start place
+   */
+  startPlace?: any
+  /**
+   * End place
+   */
+  endPlace?: any
 }
 
 /**
@@ -574,6 +676,14 @@ export interface RideRequest {
    * Route slug
    */
   routeSlug?: string
+  /**
+   * Start place ID (TSID)
+   */
+  startPlaceId?: string
+  /**
+   * End place ID (TSID)
+   */
+  endPlaceId?: string
   publishAt?: string
   /**
    * Ride groups to create
@@ -1215,6 +1325,602 @@ export class ConfigurationApi extends BaseAPI {
   public getConfig(options?: RawAxiosRequestConfig) {
     return ConfigurationApiFp(this.configuration)
       .getConfig(options)
+      .then((request) => request(this.axios, this.basePath))
+  }
+}
+
+/**
+ * PlacesApi - axios parameter creator
+ */
+export const PlacesApiAxiosParamCreator = function (configuration?: Configuration) {
+  return {
+    /**
+     * Create a new place for the team
+     * @summary Create place
+     * @param {string} slug Team URL slug
+     * @param {PlaceRequest} placeRequest
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    createPlace: async (
+      slug: string,
+      placeRequest: PlaceRequest,
+      options: RawAxiosRequestConfig = {}
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'slug' is not null or undefined
+      assertParamExists('createPlace', 'slug', slug)
+      // verify required parameter 'placeRequest' is not null or undefined
+      assertParamExists('createPlace', 'placeRequest', placeRequest)
+      const localVarPath = `/api/teams/{slug}/places`.replace(
+        `{${'slug'}}`,
+        encodeURIComponent(String(slug))
+      )
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL)
+      let baseOptions
+      if (configuration) {
+        baseOptions = configuration.baseOptions
+      }
+
+      const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options }
+      const localVarHeaderParameter = {} as any
+      const localVarQueryParameter = {} as any
+
+      // authentication SecurityScheme required
+
+      localVarHeaderParameter['Content-Type'] = 'application/json'
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter)
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {}
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      }
+      localVarRequestOptions.data = serializeDataIfNeeded(
+        placeRequest,
+        localVarRequestOptions,
+        configuration
+      )
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      }
+    },
+    /**
+     * Soft delete a place
+     * @summary Delete place
+     * @param {string} placeId Place ID (TSID)
+     * @param {string} slug Team URL slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    deletePlace: async (
+      placeId: string,
+      slug: string,
+      options: RawAxiosRequestConfig = {}
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'placeId' is not null or undefined
+      assertParamExists('deletePlace', 'placeId', placeId)
+      // verify required parameter 'slug' is not null or undefined
+      assertParamExists('deletePlace', 'slug', slug)
+      const localVarPath = `/api/teams/{slug}/places/{placeId}`
+        .replace(`{${'placeId'}}`, encodeURIComponent(String(placeId)))
+        .replace(`{${'slug'}}`, encodeURIComponent(String(slug)))
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL)
+      let baseOptions
+      if (configuration) {
+        baseOptions = configuration.baseOptions
+      }
+
+      const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options }
+      const localVarHeaderParameter = {} as any
+      const localVarQueryParameter = {} as any
+
+      // authentication SecurityScheme required
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter)
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {}
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      }
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      }
+    },
+    /**
+     * Get a specific place by ID
+     * @summary Get place details
+     * @param {string} placeId Place ID (TSID)
+     * @param {string} slug Team URL slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getPlace: async (
+      placeId: string,
+      slug: string,
+      options: RawAxiosRequestConfig = {}
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'placeId' is not null or undefined
+      assertParamExists('getPlace', 'placeId', placeId)
+      // verify required parameter 'slug' is not null or undefined
+      assertParamExists('getPlace', 'slug', slug)
+      const localVarPath = `/api/teams/{slug}/places/{placeId}`
+        .replace(`{${'placeId'}}`, encodeURIComponent(String(placeId)))
+        .replace(`{${'slug'}}`, encodeURIComponent(String(slug)))
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL)
+      let baseOptions
+      if (configuration) {
+        baseOptions = configuration.baseOptions
+      }
+
+      const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options }
+      const localVarHeaderParameter = {} as any
+      const localVarQueryParameter = {} as any
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter)
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {}
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      }
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      }
+    },
+    /**
+     * Get all places for a team
+     * @summary List places
+     * @param {string} slug Team URL slug
+     * @param {number} [page] Page number
+     * @param {number} [size] Page size
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listPlaces: async (
+      slug: string,
+      page?: number,
+      size?: number,
+      options: RawAxiosRequestConfig = {}
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'slug' is not null or undefined
+      assertParamExists('listPlaces', 'slug', slug)
+      const localVarPath = `/api/teams/{slug}/places`.replace(
+        `{${'slug'}}`,
+        encodeURIComponent(String(slug))
+      )
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL)
+      let baseOptions
+      if (configuration) {
+        baseOptions = configuration.baseOptions
+      }
+
+      const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options }
+      const localVarHeaderParameter = {} as any
+      const localVarQueryParameter = {} as any
+
+      if (page !== undefined) {
+        localVarQueryParameter['page'] = page
+      }
+
+      if (size !== undefined) {
+        localVarQueryParameter['size'] = size
+      }
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter)
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {}
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      }
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      }
+    },
+    /**
+     * Update an existing place
+     * @summary Update place
+     * @param {string} placeId Place ID (TSID)
+     * @param {string} slug Team URL slug
+     * @param {PlaceRequest} placeRequest
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    updatePlace: async (
+      placeId: string,
+      slug: string,
+      placeRequest: PlaceRequest,
+      options: RawAxiosRequestConfig = {}
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'placeId' is not null or undefined
+      assertParamExists('updatePlace', 'placeId', placeId)
+      // verify required parameter 'slug' is not null or undefined
+      assertParamExists('updatePlace', 'slug', slug)
+      // verify required parameter 'placeRequest' is not null or undefined
+      assertParamExists('updatePlace', 'placeRequest', placeRequest)
+      const localVarPath = `/api/teams/{slug}/places/{placeId}`
+        .replace(`{${'placeId'}}`, encodeURIComponent(String(placeId)))
+        .replace(`{${'slug'}}`, encodeURIComponent(String(slug)))
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL)
+      let baseOptions
+      if (configuration) {
+        baseOptions = configuration.baseOptions
+      }
+
+      const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options }
+      const localVarHeaderParameter = {} as any
+      const localVarQueryParameter = {} as any
+
+      // authentication SecurityScheme required
+
+      localVarHeaderParameter['Content-Type'] = 'application/json'
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter)
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {}
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      }
+      localVarRequestOptions.data = serializeDataIfNeeded(
+        placeRequest,
+        localVarRequestOptions,
+        configuration
+      )
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      }
+    },
+  }
+}
+
+/**
+ * PlacesApi - functional programming interface
+ */
+export const PlacesApiFp = function (configuration?: Configuration) {
+  const localVarAxiosParamCreator = PlacesApiAxiosParamCreator(configuration)
+  return {
+    /**
+     * Create a new place for the team
+     * @summary Create place
+     * @param {string} slug Team URL slug
+     * @param {PlaceRequest} placeRequest
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async createPlace(
+      slug: string,
+      placeRequest: PlaceRequest,
+      options?: RawAxiosRequestConfig
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<PlaceDetailDto>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.createPlace(
+        slug,
+        placeRequest,
+        options
+      )
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0
+      const localVarOperationServerBasePath =
+        operationServerMap['PlacesApi.createPlace']?.[localVarOperationServerIndex]?.url
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration
+        )(axios, localVarOperationServerBasePath || basePath)
+    },
+    /**
+     * Soft delete a place
+     * @summary Delete place
+     * @param {string} placeId Place ID (TSID)
+     * @param {string} slug Team URL slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async deletePlace(
+      placeId: string,
+      slug: string,
+      options?: RawAxiosRequestConfig
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.deletePlace(placeId, slug, options)
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0
+      const localVarOperationServerBasePath =
+        operationServerMap['PlacesApi.deletePlace']?.[localVarOperationServerIndex]?.url
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration
+        )(axios, localVarOperationServerBasePath || basePath)
+    },
+    /**
+     * Get a specific place by ID
+     * @summary Get place details
+     * @param {string} placeId Place ID (TSID)
+     * @param {string} slug Team URL slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async getPlace(
+      placeId: string,
+      slug: string,
+      options?: RawAxiosRequestConfig
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<PlaceDetailDto>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.getPlace(placeId, slug, options)
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0
+      const localVarOperationServerBasePath =
+        operationServerMap['PlacesApi.getPlace']?.[localVarOperationServerIndex]?.url
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration
+        )(axios, localVarOperationServerBasePath || basePath)
+    },
+    /**
+     * Get all places for a team
+     * @summary List places
+     * @param {string} slug Team URL slug
+     * @param {number} [page] Page number
+     * @param {number} [size] Page size
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async listPlaces(
+      slug: string,
+      page?: number,
+      size?: number,
+      options?: RawAxiosRequestConfig
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<PlaceListResponse>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.listPlaces(
+        slug,
+        page,
+        size,
+        options
+      )
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0
+      const localVarOperationServerBasePath =
+        operationServerMap['PlacesApi.listPlaces']?.[localVarOperationServerIndex]?.url
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration
+        )(axios, localVarOperationServerBasePath || basePath)
+    },
+    /**
+     * Update an existing place
+     * @summary Update place
+     * @param {string} placeId Place ID (TSID)
+     * @param {string} slug Team URL slug
+     * @param {PlaceRequest} placeRequest
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async updatePlace(
+      placeId: string,
+      slug: string,
+      placeRequest: PlaceRequest,
+      options?: RawAxiosRequestConfig
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<PlaceDetailDto>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.updatePlace(
+        placeId,
+        slug,
+        placeRequest,
+        options
+      )
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0
+      const localVarOperationServerBasePath =
+        operationServerMap['PlacesApi.updatePlace']?.[localVarOperationServerIndex]?.url
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration
+        )(axios, localVarOperationServerBasePath || basePath)
+    },
+  }
+}
+
+/**
+ * PlacesApi - factory interface
+ */
+export const PlacesApiFactory = function (
+  configuration?: Configuration,
+  basePath?: string,
+  axios?: AxiosInstance
+) {
+  const localVarFp = PlacesApiFp(configuration)
+  return {
+    /**
+     * Create a new place for the team
+     * @summary Create place
+     * @param {string} slug Team URL slug
+     * @param {PlaceRequest} placeRequest
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    createPlace(
+      slug: string,
+      placeRequest: PlaceRequest,
+      options?: RawAxiosRequestConfig
+    ): AxiosPromise<PlaceDetailDto> {
+      return localVarFp
+        .createPlace(slug, placeRequest, options)
+        .then((request) => request(axios, basePath))
+    },
+    /**
+     * Soft delete a place
+     * @summary Delete place
+     * @param {string} placeId Place ID (TSID)
+     * @param {string} slug Team URL slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    deletePlace(
+      placeId: string,
+      slug: string,
+      options?: RawAxiosRequestConfig
+    ): AxiosPromise<void> {
+      return localVarFp
+        .deletePlace(placeId, slug, options)
+        .then((request) => request(axios, basePath))
+    },
+    /**
+     * Get a specific place by ID
+     * @summary Get place details
+     * @param {string} placeId Place ID (TSID)
+     * @param {string} slug Team URL slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getPlace(
+      placeId: string,
+      slug: string,
+      options?: RawAxiosRequestConfig
+    ): AxiosPromise<PlaceDetailDto> {
+      return localVarFp.getPlace(placeId, slug, options).then((request) => request(axios, basePath))
+    },
+    /**
+     * Get all places for a team
+     * @summary List places
+     * @param {string} slug Team URL slug
+     * @param {number} [page] Page number
+     * @param {number} [size] Page size
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listPlaces(
+      slug: string,
+      page?: number,
+      size?: number,
+      options?: RawAxiosRequestConfig
+    ): AxiosPromise<PlaceListResponse> {
+      return localVarFp
+        .listPlaces(slug, page, size, options)
+        .then((request) => request(axios, basePath))
+    },
+    /**
+     * Update an existing place
+     * @summary Update place
+     * @param {string} placeId Place ID (TSID)
+     * @param {string} slug Team URL slug
+     * @param {PlaceRequest} placeRequest
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    updatePlace(
+      placeId: string,
+      slug: string,
+      placeRequest: PlaceRequest,
+      options?: RawAxiosRequestConfig
+    ): AxiosPromise<PlaceDetailDto> {
+      return localVarFp
+        .updatePlace(placeId, slug, placeRequest, options)
+        .then((request) => request(axios, basePath))
+    },
+  }
+}
+
+/**
+ * PlacesApi - object-oriented interface
+ */
+export class PlacesApi extends BaseAPI {
+  /**
+   * Create a new place for the team
+   * @summary Create place
+   * @param {string} slug Team URL slug
+   * @param {PlaceRequest} placeRequest
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   */
+  public createPlace(slug: string, placeRequest: PlaceRequest, options?: RawAxiosRequestConfig) {
+    return PlacesApiFp(this.configuration)
+      .createPlace(slug, placeRequest, options)
+      .then((request) => request(this.axios, this.basePath))
+  }
+
+  /**
+   * Soft delete a place
+   * @summary Delete place
+   * @param {string} placeId Place ID (TSID)
+   * @param {string} slug Team URL slug
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   */
+  public deletePlace(placeId: string, slug: string, options?: RawAxiosRequestConfig) {
+    return PlacesApiFp(this.configuration)
+      .deletePlace(placeId, slug, options)
+      .then((request) => request(this.axios, this.basePath))
+  }
+
+  /**
+   * Get a specific place by ID
+   * @summary Get place details
+   * @param {string} placeId Place ID (TSID)
+   * @param {string} slug Team URL slug
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   */
+  public getPlace(placeId: string, slug: string, options?: RawAxiosRequestConfig) {
+    return PlacesApiFp(this.configuration)
+      .getPlace(placeId, slug, options)
+      .then((request) => request(this.axios, this.basePath))
+  }
+
+  /**
+   * Get all places for a team
+   * @summary List places
+   * @param {string} slug Team URL slug
+   * @param {number} [page] Page number
+   * @param {number} [size] Page size
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   */
+  public listPlaces(slug: string, page?: number, size?: number, options?: RawAxiosRequestConfig) {
+    return PlacesApiFp(this.configuration)
+      .listPlaces(slug, page, size, options)
+      .then((request) => request(this.axios, this.basePath))
+  }
+
+  /**
+   * Update an existing place
+   * @summary Update place
+   * @param {string} placeId Place ID (TSID)
+   * @param {string} slug Team URL slug
+   * @param {PlaceRequest} placeRequest
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   */
+  public updatePlace(
+    placeId: string,
+    slug: string,
+    placeRequest: PlaceRequest,
+    options?: RawAxiosRequestConfig
+  ) {
+    return PlacesApiFp(this.configuration)
+      .updatePlace(placeId, slug, placeRequest, options)
       .then((request) => request(this.axios, this.basePath))
   }
 }

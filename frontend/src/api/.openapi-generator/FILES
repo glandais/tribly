@@ -16,6 +16,8 @@ docs/ConfigDto.md
 docs/ConfigurationApi.md
 docs/ErrorResponse.md
 docs/FieldError.md
+docs/GeoJsonLineString.md
+docs/GeoJsonPoint.md
 docs/GpxTrackDto.md
 docs/GroupRequest.md
 docs/KeycloakConfig.md
@@ -23,6 +25,10 @@ docs/MapConfig.md
 docs/MediaDto.md
 docs/MemberDto.md
 docs/MemberListResponse.md
+docs/PlaceDetailDto.md
+docs/PlaceListResponse.md
+docs/PlaceRequest.md
+docs/PlacesApi.md
 docs/PostDto.md
 docs/PostListResponse.md
 docs/PostRequest.md

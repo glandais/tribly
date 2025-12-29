@@ -47,6 +47,14 @@
       "date": {
         "label": "Start"
       },
+      "startPlace": {
+        "label": "Start Location",
+        "placeholder": "Search for a start location..."
+      },
+      "endPlace": {
+        "label": "End Location",
+        "placeholder": "Search for an end location..."
+      },
       "visibility": {
         "label": "Visibility",
         "team": "Team only",
@@ -108,6 +116,8 @@
     "error": "Failed to update ride. Please try again."
   },
   "detail": {
+    "startPlace": "Start",
+    "endPlace": "End",
     "notFound": {
       "title": "Ride Not Found",
       "message": "The ride you're looking for doesn't exist.",

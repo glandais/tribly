@@ -1,8 +1,10 @@
 package com.tribly.dto.rides.response;
 
+import com.tribly.domain.place.Place;
 import com.tribly.domain.ride.Ride;
 import com.tribly.domain.ride.RideGroup;
 import com.tribly.dto.common.response.MediaDto;
+import com.tribly.dto.places.response.PlaceDetailDto;
 import com.tribly.dto.publications.response.PublicationDto;
 import com.tribly.dto.publications.response.PublicationType;
 import com.tribly.dto.publications.response.TeamPublicationDto;
@@ -70,6 +72,14 @@ public class RideDto implements PublicationDto {
   @Schema(description = "Ride groups", required = true)
   final List<RideGroupDto> groups;
 
+  @Nullable
+  @Schema(description = "Start place")
+  final PlaceDetailDto startPlace;
+
+  @Nullable
+  @Schema(description = "End place")
+  final PlaceDetailDto endPlace;
+
   public RideDto(
       TeamPublicationDto team,
       String id,
@@ -84,7 +94,9 @@ public class RideDto implements PublicationDto {
       @Nullable String routeSlug,
       int participantCount,
       int groupCount,
-      List<RideGroupDto> groups) {
+      List<RideGroupDto> groups,
+      @Nullable PlaceDetailDto startPlace,
+      @Nullable PlaceDetailDto endPlace) {
     super();
     this.team = team;
     this.id = id;
@@ -100,6 +112,8 @@ public class RideDto implements PublicationDto {
     this.participantCount = participantCount;
     this.groupCount = groupCount;
     this.groups = groups;
+    this.startPlace = startPlace;
+    this.endPlace = endPlace;
   }
 
   public static RideDto from(Ride ride, boolean groupDetails, AssetService assetService) {
@@ -111,6 +125,8 @@ public class RideDto implements PublicationDto {
                 .map(RideGroupDto::from)
                 .toList()
             : List.of();
+    Place startPlace = ride.getStart();
+    Place endPlace = ride.getEnd();
     return new RideDto(
         TeamPublicationDto.from(ride.getTeam()),
         TsidUtils.toString(ride.getId()),
@@ -125,6 +141,8 @@ public class RideDto implements PublicationDto {
         ride.getRoute() != null ? ride.getRoute().getSlug() : null,
         ride.getParticipantCount(),
         ride.getGroupCount(),
-        groupDtos);
+        groupDtos,
+        startPlace != null ? PlaceDetailDto.from(startPlace) : null,
+        endPlace != null ? PlaceDetailDto.from(endPlace) : null);
   }
 }

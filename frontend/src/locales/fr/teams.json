@@ -150,5 +150,40 @@
         "placeholder": "Rechercher par titre ou description..."
       }
     }
+  },
+  "places": {
+    "title": "Lieux",
+    "add": "Ajouter un lieu",
+    "edit": "Modifier le lieu",
+    "delete": "Supprimer le lieu",
+    "empty": "Aucun lieu défini. Ajoutez des lieux pour les départs/arrivées de sorties.",
+    "startPlace": "Départ",
+    "endPlace": "Arrivée",
+    "viewLink": "Voir sur la carte",
+    "form": {
+      "createTitle": "Ajouter un lieu",
+      "editTitle": "Modifier le lieu",
+      "name": {
+        "label": "Nom",
+        "placeholder": "Entrez le nom du lieu"
+      },
+      "address": {
+        "label": "Adresse",
+        "placeholder": "Entrez l'adresse (optionnel)"
+      },
+      "link": {
+        "label": "Lien",
+        "placeholder": "https://maps.google.com/..."
+      },
+      "startPlace": "Peut servir de départ",
+      "endPlace": "Peut servir d'arrivée",
+      "create": "Ajouter",
+      "save": "Enregistrer"
+    },
+    "deleteConfirm": {
+      "title": "Supprimer le lieu",
+      "message": "Êtes-vous sûr de vouloir supprimer ce lieu ? Cette action est irréversible.",
+      "confirm": "Supprimer"
+    }
   }
 }

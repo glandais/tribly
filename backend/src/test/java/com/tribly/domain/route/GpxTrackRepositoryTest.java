@@ -1,5 +1,6 @@
 package com.tribly.domain.route;
 
+import static org.geolatte.geom.crs.CoordinateReferenceSystems.WGS84;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.tribly.domain.route.repository.GpxTrackRepository;
@@ -11,6 +12,7 @@ import com.tribly.util.TestDataService;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import java.util.List;
+import org.geolatte.geom.codec.Wkt;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -47,7 +49,7 @@ class GpxTrackRepositoryTest {
 
     assertNotNull(result);
     assertEquals(route.getId(), result.getRoute().getId());
-    assertEquals(geometry, result.getGeometry());
+    assertEquals(Wkt.fromWkt(geometry, WGS84), result.getGeometry());
     assertEquals(3, result.getTrackPoints().size());
     assertEquals(45.0, result.getTrackPoints().get(0).lat());
     assertEquals(6.0, result.getTrackPoints().get(0).lng());
@@ -85,7 +87,7 @@ class GpxTrackRepositoryTest {
 
     assertNotNull(result);
     assertEquals(route.getId(), result.getRoute().getId());
-    assertEquals(geometry, result.getGeometry());
+    assertEquals(Wkt.fromWkt(geometry, WGS84), result.getGeometry());
   }
 
   @Test

@@ -2,6 +2,8 @@ package com.tribly.service.ride;
 
 import com.tribly.domain.common.repository.TeamEntityQueryBasic;
 import com.tribly.domain.common.repository.TriblyPage;
+import com.tribly.domain.place.Place;
+import com.tribly.domain.place.repository.PlaceRepository;
 import com.tribly.domain.ride.Ride;
 import com.tribly.domain.ride.RideGroup;
 import com.tribly.domain.ride.RideParticipation;
@@ -42,6 +44,8 @@ public class RideService extends TeamEntityService {
   @Inject RideParticipationRepository participationRepository;
 
   @Inject RouteRepository routeRepository;
+
+  @Inject PlaceRepository placeRepository;
 
   public RideListResponse listRides(
       String teamSlug,
@@ -115,9 +119,13 @@ public class RideService extends TeamEntityService {
             request.name(), s -> rideRepository.existsByTeamAndSlug(team.getId(), s));
 
     Route route = getRoute(request.routeSlug(), team);
+    Place startPlace = getPlace(request.startPlaceId(), team);
+    Place endPlace = getPlace(request.endPlaceId(), team);
 
     Ride ride = new Ride(creator, team, request.dateTime(), request.name(), slug, visibility);
     ride.setRoute(route);
+    ride.setStart(startPlace);
+    ride.setEnd(endPlace);
     ride.setStatus(request.status());
     ride.setPublishAt(request.publishAt());
 
@@ -172,6 +180,16 @@ public class RideService extends TeamEntityService {
     return route;
   }
 
+  private @Nullable Place getPlace(@Nullable String placeId, Team team) {
+    if (placeId == null) {
+      return null;
+    }
+    Long id = TsidUtils.toLong(placeId);
+    return placeRepository
+        .findByIdAndTeam(id, team.getId())
+        .orElseThrow(() -> BusinessException.notFound("Place", placeId));
+  }
+
   @Transactional
   public RideDto updateRide(String teamSlug, String rideSlug, RideRequest request, Long userId) {
     Ride ride = getRide(teamSlug, rideSlug, userId);
@@ -196,6 +214,10 @@ public class RideService extends TeamEntityService {
     ride.setStatus(request.status());
     Route route = getRoute(request.routeSlug(), ride.getTeam());
     ride.setRoute(route);
+    Place startPlace = getPlace(request.startPlaceId(), team);
+    Place endPlace = getPlace(request.endPlaceId(), team);
+    ride.setStart(startPlace);
+    ride.setEnd(endPlace);
     // publishAt can be explicitly set to null to remove scheduled publishing
     ride.setPublishAt(request.publishAt());
 

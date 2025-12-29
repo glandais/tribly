@@ -260,6 +260,8 @@ class RideServiceTest {
             Visibility.TEAM,
             null,
             null,
+            null,
+            null,
             List.of());
 
     RideDto result = rideService.createRide("test-team", request, organizer.getId());
@@ -280,6 +282,8 @@ class RideServiceTest {
             Instant.now().plusSeconds(24 * 3600),
             Status.DRAFT,
             Visibility.PUBLIC,
+            null,
+            null,
             null,
             null,
             List.of());
@@ -303,6 +307,8 @@ class RideServiceTest {
             Visibility.PUBLIC,
             null,
             null,
+            null,
+            null,
             List.of(group1, group2));
 
     RideDto result = rideService.createRide("test-team", request, organizer.getId());
@@ -321,6 +327,8 @@ class RideServiceTest {
             Instant.now().plusSeconds(24 * 3600),
             Status.DRAFT,
             Visibility.PUBLIC,
+            null,
+            null,
             null,
             null,
             List.of());
@@ -343,6 +351,8 @@ class RideServiceTest {
             Instant.now().plusSeconds(24 * 3600),
             Status.DRAFT,
             Visibility.PUBLIC,
+            null,
+            null,
             null,
             null,
             List.of());
@@ -370,6 +380,8 @@ class RideServiceTest {
             Visibility.TEAM,
             null,
             null,
+            null,
+            null,
             List.of());
 
     RideDto result = rideService.createRide("private-team", request, organizer.getId());
@@ -393,6 +405,8 @@ class RideServiceTest {
             Visibility.TEAM,
             null,
             null,
+            null,
+            null,
             List.of());
 
     RideDto result = rideService.updateRide("test-team", "original", request, organizer.getId());
@@ -413,6 +427,8 @@ class RideServiceTest {
             Instant.now().plusSeconds(24 * 3600),
             Status.PUBLISHED,
             Visibility.PUBLIC,
+            null,
+            null,
             null,
             null,
             List.of());
@@ -442,6 +458,8 @@ class RideServiceTest {
             Visibility.PUBLIC,
             null,
             null,
+            null,
+            null,
             List.of());
 
     RideDto result =
@@ -461,6 +479,8 @@ class RideServiceTest {
             Instant.now().plusSeconds(24 * 3600),
             Status.DRAFT,
             Visibility.PUBLIC,
+            null,
+            null,
             null,
             null,
             List.of());
@@ -491,6 +511,8 @@ class RideServiceTest {
             Instant.now().plusSeconds(24 * 3600),
             Status.DRAFT,
             Visibility.PUBLIC,
+            null,
+            null,
             null,
             null,
             List.of());
@@ -524,6 +546,8 @@ class RideServiceTest {
             Instant.now().plusSeconds(24 * 3600),
             Status.DRAFT,
             Visibility.TEAM,
+            null,
+            null,
             null,
             null,
             List.of());

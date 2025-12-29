@@ -1,6 +1,7 @@
 package com.tribly.domain.ride;
 
 import com.tribly.domain.common.Publication;
+import com.tribly.domain.place.Place;
 import com.tribly.domain.route.Route;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
@@ -28,6 +29,16 @@ public class Ride extends Publication {
 
   @OneToMany(mappedBy = "ride", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<RideGroup> groups = new ArrayList<>();
+
+  @ManyToOne(fetch = FetchType.EAGER)
+  @JoinColumn(name = "place_start_id")
+  @Nullable
+  private Place start;
+
+  @ManyToOne(fetch = FetchType.EAGER)
+  @JoinColumn(name = "place_end_id")
+  @Nullable
+  private Place end;
 
   public Ride(
       User createdBy,

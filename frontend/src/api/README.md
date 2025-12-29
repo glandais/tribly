@@ -53,6 +53,11 @@ Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
 *AssetsApi* | [**uploadAsset**](docs/AssetsApi.md#uploadasset) | **POST** /api/teams/{slug}/assets | Create asset
 *ConfigurationApi* | [**getConfig**](docs/ConfigurationApi.md#getconfig) | **GET** /api/config | Get application configuration
+*PlacesApi* | [**createPlace**](docs/PlacesApi.md#createplace) | **POST** /api/teams/{slug}/places | Create place
+*PlacesApi* | [**deletePlace**](docs/PlacesApi.md#deleteplace) | **DELETE** /api/teams/{slug}/places/{placeId} | Delete place
+*PlacesApi* | [**getPlace**](docs/PlacesApi.md#getplace) | **GET** /api/teams/{slug}/places/{placeId} | Get place details
+*PlacesApi* | [**listPlaces**](docs/PlacesApi.md#listplaces) | **GET** /api/teams/{slug}/places | List places
+*PlacesApi* | [**updatePlace**](docs/PlacesApi.md#updateplace) | **PUT** /api/teams/{slug}/places/{placeId} | Update place
 *PostsApi* | [**createPost**](docs/PostsApi.md#createpost) | **POST** /api/teams/{slug}/posts | Create post
 *PostsApi* | [**deletePost**](docs/PostsApi.md#deletepost) | **DELETE** /api/teams/{slug}/posts/{postSlug} | Delete post
 *PostsApi* | [**getPost**](docs/PostsApi.md#getpost) | **GET** /api/teams/{slug}/posts/{postSlug} | Get post details
@@ -100,6 +105,8 @@ Class | Method | HTTP request | Description
  - [ConfigDto](docs/ConfigDto.md)
  - [ErrorResponse](docs/ErrorResponse.md)
  - [FieldError](docs/FieldError.md)
+ - [GeoJsonLineString](docs/GeoJsonLineString.md)
+ - [GeoJsonPoint](docs/GeoJsonPoint.md)
  - [GpxTrackDto](docs/GpxTrackDto.md)
  - [GroupRequest](docs/GroupRequest.md)
  - [KeycloakConfig](docs/KeycloakConfig.md)
@@ -107,6 +114,9 @@ Class | Method | HTTP request | Description
  - [MediaDto](docs/MediaDto.md)
  - [MemberDto](docs/MemberDto.md)
  - [MemberListResponse](docs/MemberListResponse.md)
+ - [PlaceDetailDto](docs/PlaceDetailDto.md)
+ - [PlaceListResponse](docs/PlaceListResponse.md)
+ - [PlaceRequest](docs/PlaceRequest.md)
  - [PostDto](docs/PostDto.md)
  - [PostListResponse](docs/PostListResponse.md)
  - [PostRequest](docs/PostRequest.md)

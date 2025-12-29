@@ -49,15 +49,7 @@ export function MarkdownDisplay({
         components={{
           // Asset directive - handles ::asset{id="..." size="..." alt="..."}
           // @ts-expect-error - custom component from remark-directive
-          'asset-image': ({
-            id,
-            size,
-            alt,
-          }: {
-            id?: string
-            size?: string
-            alt?: string
-          }) => {
+          'asset-image': ({ id, size, alt }: { id?: string; size?: string; alt?: string }) => {
             if (!id) return null
             return (
               <AssetImage

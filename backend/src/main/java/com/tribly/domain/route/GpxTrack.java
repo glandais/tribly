@@ -9,6 +9,8 @@ import java.util.List;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.geolatte.geom.G2D;
+import org.geolatte.geom.LineString;
 import org.hibernate.annotations.Type;
 
 /**
@@ -26,16 +28,8 @@ public class GpxTrack extends BaseEntity {
   @JoinColumn(name = "route_id", nullable = false)
   private Route route;
 
-  /**
-   * PostGIS LineString geometry in WKT format.
-   * Example: "LINESTRING(6.0 45.0, 6.1 45.1, ...)"
-   * Used for spatial queries and route analysis.
-   */
   @Column(name = "geometry", columnDefinition = "geometry(LineString,4326)", nullable = false)
-  @org.hibernate.annotations.ColumnTransformer(
-      write = "ST_GeomFromText(?, 4326)",
-      read = "ST_AsText(geometry)")
-  private String geometry;
+  private LineString<G2D> geometry;
 
   /**
    * Simplified track points stored as JSONB for efficient frontend consumption.
@@ -51,7 +45,7 @@ public class GpxTrack extends BaseEntity {
   public GpxTrack(
       User createdBy,
       Route route,
-      String geometry,
+      LineString<G2D> geometry,
       List<TrackPoint> trackPoints,
       Instant processedAt) {
     super(createdBy);

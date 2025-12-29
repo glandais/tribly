@@ -23,6 +23,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Set;
+import org.geolatte.geom.G2D;
+import org.geolatte.geom.LineString;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -62,9 +64,7 @@ class GpxProcessingServiceTest {
     ProcessedGpx result = gpxProcessingService.processGpxUpload(user, route, gpxStream);
 
     assertNotNull(result);
-    assertNotNull(result.wkt());
-    assertTrue(result.wkt().startsWith("LINESTRING("));
-    assertTrue(result.wkt().endsWith(")"));
+    assertNotNull(result.geometry());
     assertFalse(result.trackPoints().isEmpty());
     assertNotNull(result.metadata());
     assertTrue(result.metadata().distance() > 0);
@@ -110,22 +110,12 @@ class GpxProcessingServiceTest {
 
     ProcessedGpx result = gpxProcessingService.processGpxUpload(user, route, gpxStream);
 
-    String wkt = result.wkt();
-    assertTrue(wkt.startsWith("LINESTRING("));
-    assertTrue(wkt.endsWith(")"));
-    assertTrue(wkt.contains(" "), "WKT should contain space-separated coordinates");
-    assertTrue(wkt.contains(","), "WKT should contain comma-separated points");
+    LineString<G2D> lineString = result.geometry();
+    assertNotNull(lineString);
 
-    // Verify WKT contains valid longitude/latitude pairs
-    String coords = wkt.substring("LINESTRING(".length(), wkt.length() - 1);
-    String[] points = coords.split(",");
-    assertTrue(points.length > 0, "WKT should contain at least one point");
-
-    for (String point : points) {
-      String[] lngLat = point.trim().split(" ");
-      assertEquals(2, lngLat.length, "Each point should have longitude and latitude");
-      double lng = Double.parseDouble(lngLat[0]);
-      double lat = Double.parseDouble(lngLat[1]);
+    for (G2D point : lineString.getPositions()) {
+      double lng = point.getLon();
+      double lat = point.getLat();
       assertTrue(lng >= -180 && lng <= 180, "Longitude should be valid");
       assertTrue(lat >= -90 && lat <= 90, "Latitude should be valid");
     }

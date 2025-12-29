@@ -1,5 +1,8 @@
 package com.tribly.service.route;
 
+import static org.geolatte.geom.builder.DSL.*;
+import static org.geolatte.geom.crs.CoordinateReferenceSystems.WGS84;
+
 import com.tribly.domain.asset.Asset;
 import com.tribly.domain.route.GpxTrack;
 import com.tribly.domain.route.Route;
@@ -32,6 +35,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import org.geolatte.geom.G2D;
+import org.geolatte.geom.LineString;
 import org.jboss.logging.Logger;
 import org.jspecify.annotations.Nullable;
 
@@ -147,7 +152,7 @@ public class GpxProcessingService {
       }
 
       // Step 7: Convert to PostGIS WKT
-      String wkt = toLineStringWKT(path);
+      LineString<G2D> lineString = toLineString(path);
 
       // Step 8: Convert to JSONB track points for frontend
       List<GpxTrack.TrackPoint> trackPoints = toTrackPoints(path);
@@ -156,7 +161,7 @@ public class GpxProcessingService {
       RouteMetadata metadata = extractMetadata(path);
 
       LOG.infov("GPX processing complete for route {0}", routeId);
-      return new ProcessedGpx(wkt, trackPoints, climbs, metadata);
+      return new ProcessedGpx(lineString, trackPoints, climbs, metadata);
 
     } catch (Exception e) {
       LOG.errorv("GPX processing failed for route {0}", routeId);
@@ -179,21 +184,12 @@ public class GpxProcessingService {
    * Convert GPXPath to PostGIS LineString in WKT format.
    * Format: "LINESTRING(lng lat, lng lat, ...)"
    */
-  private String toLineStringWKT(GPXPath path) {
-    StringBuilder wkt = new StringBuilder("LINESTRING(");
-    List<Point> points = path.getPoints();
-
-    for (int i = 0; i < points.size(); i++) {
-      Point p = points.get(i);
-      // PostGIS format: longitude first, then latitude
-      wkt.append(Math.toDegrees(p.getLon())).append(" ").append(Math.toDegrees(p.getLat()));
-      if (i < points.size() - 1) {
-        wkt.append(",");
-      }
-    }
-
-    wkt.append(")");
-    return wkt.toString();
+  private LineString<G2D> toLineString(GPXPath path) {
+    G2D[] geomPoints =
+        path.getPoints().stream()
+            .map(p -> g(Math.toDegrees(p.getLon()), Math.toDegrees(p.getLat())))
+            .toArray(G2D[]::new);
+    return linestring(WGS84, geomPoints);
   }
 
   /**

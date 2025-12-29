@@ -51,9 +51,9 @@ frontend/src/
 
 ## Contract-First Workflow
 
-1. Annotate backend resources with SmallRye OpenAPI → auto-generates `contracts/openapi.yaml`
-2. Convert to JSON: `contracts/openapi.json`
-3. Frontend: `pnpm generate-api`
+1. Annotate backend resources with SmallRye OpenAPI
+2. Run `mvn package -DskipTests` in backend/ → generates `contracts/openapi.yaml` and `contracts/openapi.json`
+3. Run `pnpm generate-api` in frontend/ → generates TypeScript client from OpenAPI
 
 ## Key Patterns
 

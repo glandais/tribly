@@ -91,9 +91,7 @@ export function createAssetDirective(
 /**
  * Parse directive attributes from a string like 'id="abc" size="medium" alt="text"'
  */
-export function parseDirectiveAttributes(
-  attributeString: string
-): Record<string, string> {
+export function parseDirectiveAttributes(attributeString: string): Record<string, string> {
   const attrs: Record<string, string> = {}
   const attrRegex = /(\w+)="([^"]*)"/g
   let match
@@ -118,9 +116,7 @@ export function parseAssetDirective(attributes: Record<string, string>): {
 
   const sizeAttr = attributes.size
   const size =
-    sizeAttr && IMAGE_SIZES.includes(sizeAttr as ImageSize)
-      ? (sizeAttr as ImageSize)
-      : undefined
+    sizeAttr && IMAGE_SIZES.includes(sizeAttr as ImageSize) ? (sizeAttr as ImageSize) : undefined
 
   return {
     assetId: id,

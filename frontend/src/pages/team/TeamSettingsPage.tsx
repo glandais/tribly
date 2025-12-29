@@ -6,6 +6,7 @@ import { useTeam, useDeleteTeam } from '../../hooks/useTeam'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import { TeamForm } from '../../components/team/TeamForm'
+import { PlaceList } from '../../components/team/PlaceList'
 import { TeamDetailDto } from '../../api/api'
 
 export function TeamSettingsPage() {
@@ -91,6 +92,11 @@ export function TeamSettingsPage() {
         cancelLink={`/teams/${teamSlug}`}
         namespace="settings"
       />
+
+      {/* Places Management */}
+      <div className="mt-12 pt-8 border-t border-gray-200">
+        <PlaceList teamSlug={teamSlug!} canManage={true} />
+      </div>
 
       {/* Danger Zone */}
       <div className="mt-12 pt-8 border-t border-gray-200">

@@ -128,5 +128,12 @@
     "uploadError": "Error uploading image",
     "notFound": "Image not found",
     "loadError": "Error loading image"
+  },
+  "autocomplete": {
+    "searchUsers": "Search users...",
+    "noUsersFound": "No users found",
+    "searchPlaces": "Search places...",
+    "noPlacesFound": "No places found",
+    "noResults": "No results found"
   }
 }

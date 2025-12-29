@@ -25,6 +25,8 @@ public record RideRequest(
     @Schema(description = "Ride status", required = true) Status status,
     @Schema(description = "Visibility level", required = true) Visibility visibility,
     @Nullable @Schema(description = "Route slug") String routeSlug,
+    @Nullable @Schema(description = "Start place ID (TSID)") String startPlaceId,
+    @Nullable @Schema(description = "End place ID (TSID)") String endPlaceId,
     @Nullable @Schema(description = "Publication timestamp (for scheduled publishing)")
         Instant publishAt,
     @Schema(description = "Ride groups to create", required = true)

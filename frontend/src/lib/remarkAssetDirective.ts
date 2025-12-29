@@ -13,10 +13,7 @@ interface DirectiveNode extends Node {
 }
 
 function isDirectiveNode(node: Node): node is DirectiveNode {
-  return (
-    (node.type === 'leafDirective' || node.type === 'containerDirective') &&
-    'name' in node
-  )
+  return (node.type === 'leafDirective' || node.type === 'containerDirective') && 'name' in node
 }
 
 /**

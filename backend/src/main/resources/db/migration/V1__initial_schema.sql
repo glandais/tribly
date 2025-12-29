@@ -38,6 +38,23 @@ create table gpx_tracks (
                             primary key (id)
 );
 
+create table places (
+                        deleted boolean not null,
+                        end_place boolean,
+                        start_place boolean,
+                        created_at timestamp(6) with time zone not null,
+                        created_by_id bigint not null,
+                        id bigint not null,
+                        team_id bigint not null,
+                        updated_at timestamp(6) with time zone not null,
+                        version bigint,
+                        address varchar(255),
+                        link varchar(255),
+                        name varchar(255) not null,
+                        geometry geometry(Point,4326),
+                        primary key (id)
+);
+
 create table ride_groups (
                              average_speed integer,
                              deleted boolean not null,
@@ -93,13 +110,15 @@ create table team_entities (
                                elevation_loss integer,
                                end_lat numeric(10,8),
                                end_lng numeric(11,8),
-                               entity_type integer not null check ((entity_type in (3,1,2,4))),
+                               entity_type integer not null check ((entity_type in (1,3,2,4))),
                                start_lat numeric(10,8),
                                start_lng numeric(11,8),
                                created_at timestamp(6) with time zone not null,
                                created_by_id bigint not null,
                                date_time timestamp(6) with time zone not null,
                                id bigint not null,
+                               place_end_id bigint,
+                               place_start_id bigint,
                                publish_at timestamp(6) with time zone,
                                route_id bigint,
                                team_id bigint not null,
@@ -207,6 +226,16 @@ alter table if exists gpx_tracks
     foreign key (route_id)
     references team_entities;
 
+alter table if exists places
+    add constraint FKt5u395u1lpaabeikbk3lbbvud
+    foreign key (created_by_id)
+    references users;
+
+alter table if exists places
+    add constraint FKjpbds7clrhctishgyn1ggocs4
+    foreign key (team_id)
+    references teams;
+
 alter table if exists ride_groups
     add constraint FK8qjxje3lbfu8xlx62gosyert8
     foreign key (created_by_id)
@@ -258,9 +287,19 @@ alter table if exists team_entities
     references teams;
 
 alter table if exists team_entities
+    add constraint FKjukml9fp2eipuhmugtiaf12gs
+    foreign key (place_end_id)
+    references places;
+
+alter table if exists team_entities
     add constraint FKsm0040p8exgxema0d3j4osclb
     foreign key (route_id)
     references team_entities;
+
+alter table if exists team_entities
+    add constraint FKm7w1a9lbh6795ida5u4n95vdv
+    foreign key (place_start_id)
+    references places;
 
 alter table if exists teams
     add constraint FKcq9jk9qh4ox827y0d161rabce

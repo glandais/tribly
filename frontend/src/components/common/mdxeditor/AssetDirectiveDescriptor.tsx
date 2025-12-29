@@ -112,12 +112,7 @@ function AssetDirectiveEditor({
   return (
     <div className="relative inline-block group my-2">
       {/* Image */}
-      <img
-        src={url}
-        alt={altText}
-        className={`${sizeClass} rounded-lg`}
-        draggable={false}
-      />
+      <img src={url} alt={altText} className={`${sizeClass} rounded-lg`} draggable={false} />
 
       {/* Size controls - visible on hover */}
       <div className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity">

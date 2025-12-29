@@ -1,5 +1,7 @@
 package com.tribly.util;
 
+import static org.geolatte.geom.crs.CoordinateReferenceSystems.WGS84;
+
 import com.tribly.domain.ride.*;
 import com.tribly.domain.ride.repository.RideGroupRepository;
 import com.tribly.domain.ride.repository.RideParticipationRepository;
@@ -24,6 +26,9 @@ import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
+import org.geolatte.geom.G2D;
+import org.geolatte.geom.LineString;
+import org.geolatte.geom.codec.Wkt;
 import org.jspecify.annotations.Nullable;
 
 @ApplicationScoped
@@ -191,8 +196,8 @@ public class TestDataService {
       List<GpxTrack.TrackPoint> trackPoints) {
     Route route = new Route(createdBy, team, name, SlugService.slugify(name), visibility);
     routeRepository.persistAndFlush(route);
-
-    GpxTrack track = new GpxTrack(createdBy, route, geometry, trackPoints, Instant.now());
+    LineString<G2D> lineString = (LineString<G2D>) Wkt.fromWkt(geometry, WGS84);
+    GpxTrack track = new GpxTrack(createdBy, route, lineString, trackPoints, Instant.now());
     gpxTrackRepository.persistAndFlush(track);
     return route;
   }
