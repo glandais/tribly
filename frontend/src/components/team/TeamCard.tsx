@@ -3,6 +3,7 @@ import { UsersIcon } from '@heroicons/react/24/outline'
 import type { TeamDetailDto } from '../../hooks/useTeam'
 import { Card, CardContent, CardTitle, CardDescription } from '../common/card'
 import { Badge, VisibilityBadge, Stat, CardSkeleton } from '../common/card'
+import { TeamAvatar } from './TeamAvatar'
 
 interface TeamCardProps {
   team: TeamDetailDto
@@ -23,7 +24,10 @@ export function TeamCard({ team, showRole = false }: TeamCardProps) {
   return (
     <Card to={`/teams/${team.slug}`}>
       <CardContent>
-        <CardTitle>{team.name}</CardTitle>
+        <div className="flex items-center gap-3 mb-2">
+          <TeamAvatar team={team} size="lg" />
+          <CardTitle>{team.name}</CardTitle>
+        </div>
         <CardDescription markdown={true} media={team.media} />
 
         <div className="mt-4 flex items-center justify-between">

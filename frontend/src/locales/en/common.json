@@ -106,5 +106,13 @@
     "remove": "Remove",
     "uploading": "Uploading...",
     "uploadError": "Error uploading file"
+  },
+  "logo": {
+    "title": "Logo",
+    "upload": "Add logo",
+    "change": "Change",
+    "remove": "Remove",
+    "uploading": "Uploading...",
+    "uploadError": "Error uploading logo"
   }
 }

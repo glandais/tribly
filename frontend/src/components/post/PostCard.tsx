@@ -4,6 +4,7 @@ import { Status } from '../../hooks/usePost'
 import type { PostDto } from '../../hooks/usePost'
 import { Card, CardContent, CardTitle, CardDescription } from '../common/card'
 import { Badge, VisibilityBadge, Stat, StatGroup, CardSkeleton } from '../common/card'
+import { EntityLogo } from '../common/EntityLogo'
 import { useFormattedDate } from '../../utils/dateFormat'
 
 interface PostCardProps {
@@ -30,9 +31,17 @@ export function PostCard({ post, teamSlug, showTypeBadge = false }: PostCardProp
     <Card to={`/teams/${teamSlug}/posts/${post.slug}`}>
       <CardContent>
         <div className="flex items-start justify-between mb-4">
-          <div className="flex-1 min-w-0">
-            <CardTitle>{post.name}</CardTitle>
-            <CardDescription markdown={true} media={post.media} />
+          <div className="flex items-start gap-3 flex-1 min-w-0">
+            <EntityLogo
+              logo={post.media?.assets?.logo}
+              alt={post.name}
+              size="md"
+              className="shrink-0"
+            />
+            <div className="flex-1 min-w-0">
+              <CardTitle>{post.name}</CardTitle>
+              <CardDescription markdown={true} media={post.media} />
+            </div>
           </div>
           <div className="ml-3 flex flex-col items-end gap-1">
             {showTypeBadge && <Badge variant="purple">{tCommon('publicationType.post')}</Badge>}

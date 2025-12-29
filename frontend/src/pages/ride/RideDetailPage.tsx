@@ -18,6 +18,7 @@ import { RideMapView } from '../../components/ride/RideMapView'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import { useFormattedDate } from '../../utils/dateFormat'
 import { MediaDisplay } from '../../components/common/MediaDisplay'
+import { EntityLogo } from '../../components/common/EntityLogo'
 
 const statusColors: Record<Status, string> = {
   [Status.Draft]: 'bg-gray-100 text-gray-800',
@@ -126,6 +127,7 @@ export function RideDetailPage() {
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div>
             <div className="flex items-center gap-3">
+              <EntityLogo logo={ride.media?.assets?.logo} alt={ride.name} size="lg" />
               <h1 className="text-2xl font-bold text-gray-900">{ride.name}</h1>
               <span
                 className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColors[ride.status]}`}

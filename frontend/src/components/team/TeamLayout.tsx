@@ -6,6 +6,7 @@ import { useLeaveTeam, useJoinTeam } from '../../hooks/useTeam'
 import { useAuth } from '../../hooks/useAuth'
 import { ConfirmDialog } from '../common/ConfirmDialog'
 import { VisibilityBadge } from '../common/card/VisibilityBadge'
+import { TeamAvatar } from './TeamAvatar'
 import type { TeamDetailDto } from '../../hooks/useTeam'
 import { MediaDisplay } from '../../components/common/MediaDisplay'
 
@@ -63,7 +64,12 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="pt-14 sm:pt-8 sm:pl-32">
+      <div className="relative pt-14 sm:pt-8 sm:pl-32">
+        {/* Team Avatar - absolute on larger screens, centered on mobile */}
+        <div className="absolute left-1/2 -translate-x-1/2 top-0 sm:left-0 sm:translate-x-0 sm:top-0">
+          <TeamAvatar team={team} size="xl" className="ring-4 ring-white shadow-lg" />
+        </div>
+
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div>
             <div className="flex items-center gap-3">

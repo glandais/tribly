@@ -13,6 +13,7 @@ import { useTeam } from '../../hooks/useTeam'
 import { RouteMapView } from '../../components/route/RouteMapView'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import { MediaDisplay } from '../../components/common/MediaDisplay'
+import { EntityLogo } from '../../components/common/EntityLogo'
 import 'leaflet/dist/leaflet.css'
 
 export function RouteDetailPage() {
@@ -100,7 +101,10 @@ export function RouteDetailPage() {
         </Link>
         <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">{route.name}</h1>
+            <div className="flex items-center gap-3">
+              <EntityLogo logo={route.media?.assets?.logo} alt={route.name} size="lg" />
+              <h1 className="text-3xl font-bold text-gray-900">{route.name}</h1>
+            </div>
             <MediaDisplay media={route.media} className="mt-2 text-gray-600" />
           </div>
           {canEdit && (

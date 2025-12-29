@@ -106,5 +106,13 @@
     "remove": "Supprimer",
     "uploading": "Téléversement...",
     "uploadError": "Erreur lors du téléversement"
+  },
+  "logo": {
+    "title": "Logo",
+    "upload": "Ajouter un logo",
+    "change": "Changer",
+    "remove": "Supprimer",
+    "uploading": "Téléversement...",
+    "uploadError": "Erreur lors du téléversement du logo"
   }
 }

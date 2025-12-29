@@ -3,6 +3,7 @@ import { MapIcon, ArrowUpIcon } from '@heroicons/react/24/outline'
 import type { RouteDto } from '../../api/api'
 import { Card, CardContent, CardTitle, CardDescription } from '../common/card'
 import { Badge, VisibilityBadge, Stat, StatGroup, CardSkeleton } from '../common/card'
+import { EntityLogo } from '../common/EntityLogo'
 
 interface RouteCardProps {
   route: RouteDto
@@ -25,8 +26,18 @@ export function RouteCard({ route, teamSlug }: RouteCardProps) {
       />
 
       <CardContent>
-        <CardTitle>{route.name}</CardTitle>
-        <CardDescription markdown={true} media={route.media} />
+        <div className="flex items-start gap-3">
+          <EntityLogo
+            logo={route.media?.assets?.logo}
+            alt={route.name}
+            size="md"
+            className="shrink-0"
+          />
+          <div className="flex-1 min-w-0">
+            <CardTitle>{route.name}</CardTitle>
+            <CardDescription markdown={true} media={route.media} />
+          </div>
+        </div>
 
         <StatGroup className="mb-3">
           <Stat icon={distanceIcon}>{(route.distance / 1000).toFixed(1)} km</Stat>
