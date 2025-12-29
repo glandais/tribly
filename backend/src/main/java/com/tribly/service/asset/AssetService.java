@@ -17,16 +17,22 @@ import com.tribly.enums.Visibility;
 import com.tribly.infrastructure.exception.BusinessException;
 import com.tribly.infrastructure.id.TsidUtils;
 import com.tribly.service.asset.response.AssetWithFile;
+import com.tribly.service.asset.response.DownloadableAsset;
 import com.tribly.service.security.TeamSecurityService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import jakarta.ws.rs.core.MediaType;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.apache.commons.io.IOUtils;
+import org.apache.tika.Tika;
+import org.apache.tika.io.TikaInputStream;
+import org.apache.tika.metadata.Metadata;
+import org.apache.tika.metadata.TikaCoreProperties;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jspecify.annotations.Nullable;
 
@@ -45,6 +51,8 @@ public class AssetService {
 
   @ConfigProperty(name = "gpx.storage.path")
   String storagePath = "/tmp";
+
+  private final Tika tika = new Tika();
 
   public AssetDto createAsset(
       String teamSlug, Long userId, InputStream inputStream, String fileName) throws IOException {
@@ -105,9 +113,46 @@ public class AssetService {
     return new File(assetDirectory.toFile(), idString);
   }
 
-  public File getAssetFile(String assetId, @Nullable Long userId) {
-    Asset assetFile = getAsset(TsidUtils.toLong(assetId), userId);
-    return getAssetFile(assetFile);
+  public DownloadableAsset getDownloadableAsset(String assetId, @Nullable Long userId) {
+    Asset asset = getAsset(TsidUtils.toLong(assetId), userId);
+    File file = getAssetFile(asset);
+    String contentType = getContentType(file, asset.getFileName());
+    return new DownloadableAsset(file, contentType);
+  }
+
+  private String getContentType(File file, String fileName) {
+    Metadata metadata = new Metadata();
+    metadata.set(TikaCoreProperties.RESOURCE_NAME_KEY, fileName);
+    String contentTypeOverride = getContentTypeOverride(fileName);
+    if (contentTypeOverride != null) {
+      metadata.set(TikaCoreProperties.CONTENT_TYPE_USER_OVERRIDE, contentTypeOverride);
+    }
+    try (TikaInputStream fis = TikaInputStream.get(file.toPath(), metadata)) {
+      return tika.detect(fis, metadata);
+    } catch (IOException e) {
+      return MediaType.APPLICATION_OCTET_STREAM;
+    }
+  }
+
+  @Nullable
+  private String getContentTypeOverride(String fileName) {
+    String fileNameLowerCase = fileName.toLowerCase();
+    if (fileNameLowerCase.endsWith(".png")) {
+      return "image/png";
+    }
+    if (fileNameLowerCase.endsWith(".gif")) {
+      return "image/gif";
+    }
+    if (fileNameLowerCase.endsWith(".jpg")) {
+      return "image/jpeg";
+    }
+    if (fileNameLowerCase.endsWith(".gpx")) {
+      return "application/gpx+xml";
+    }
+    if (fileNameLowerCase.endsWith(".fit")) {
+      return "application/vnd.ant.fit";
+    }
+    return null;
   }
 
   public Asset getAsset(Long id) {

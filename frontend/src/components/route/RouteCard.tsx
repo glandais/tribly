@@ -28,7 +28,7 @@ export function RouteCard({ route, teamSlug }: RouteCardProps) {
       <CardContent>
         <div className="flex items-start gap-3">
           <EntityLogo
-            logo={route.media?.assets?.logo}
+            logo={route.media.assets.logo}
             alt={route.name}
             size="md"
             className="shrink-0"

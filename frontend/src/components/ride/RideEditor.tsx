@@ -203,7 +203,7 @@ export function RideEditor({
           {t('create.form.description.label')}
         </label>
         <MediaEditor
-          initialValue={media}
+          value={media}
           onChange={setMedia}
           placeholder={t('create.form.description.placeholder')}
           minHeight="150px"

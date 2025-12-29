@@ -26,6 +26,7 @@
         <jspecify.version>1.0.0</jspecify.version>
         <slugify.version>3.0.7</slugify.version>
         <icu4j.version>78.1</icu4j.version>
+        <tika.version>3.2.3</tika.version>
     </properties>
 
     <dependencyManagement>
@@ -153,6 +154,16 @@
             <groupId>com.ibm.icu</groupId>
             <artifactId>icu4j</artifactId>
             <version>${icu4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.tika</groupId>
+            <artifactId>tika-core</artifactId>
+            <version>${tika.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.tika</groupId>
+            <artifactId>tika-parsers-standard-package</artifactId>
+            <version>${tika.version}</version>
         </dependency>
 
         <!-- Testing -->

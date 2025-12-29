@@ -1,14 +1,14 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, type SetStateAction } from 'react'
 import { useTranslation } from 'react-i18next'
 import { PaperClipIcon, XMarkIcon, PlusIcon, PhotoIcon } from '@heroicons/react/24/outline'
-import { MediaDto, AssetDto, AssetsDto } from '../../api/api'
+import { MediaDto, AssetDto } from '../../api/api'
 import { MarkdownEditor } from './MarkdownEditor'
 import { assetsApi, unwrapResponse } from '../../lib/apiClient'
 import { LoadingSpinner } from './LoadingSpinner'
 
 export interface MediaEditorProps {
-  initialValue: MediaDto
-  onChange: (value: MediaDto) => void
+  value: MediaDto
+  onChange: (value: SetStateAction<MediaDto>) => void
   placeholder?: string
   minHeight?: string
   maxHeight?: string
@@ -23,7 +23,7 @@ export interface MediaEditorProps {
  * Supports logo and file attachments when teamSlug is provided.
  */
 export function MediaEditor({
-  initialValue,
+  value,
   onChange,
   placeholder,
   minHeight,
@@ -43,11 +43,10 @@ export function MediaEditor({
   const [imageError, setImageError] = useState<string | null>(null)
 
   const handleMarkdownChange = (markdown: string) => {
-    onChange({
-      ...initialValue,
+    onChange((prev) => ({
+      ...prev,
       markdown,
-      assets: initialValue.assets,
-    })
+    }))
   }
 
   // Handle image upload from markdown editor toolbar
@@ -63,18 +62,13 @@ export function MediaEditor({
       const asset = await unwrapResponse(assetsApi.uploadAsset(teamSlug, file))
 
       // Add to images array
-      const currentImages: AssetDto[] = initialValue.assets?.images || []
-      const updatedAssets: AssetsDto = {
-        ...initialValue.assets,
-        images: [...currentImages, asset],
-        attachments: initialValue.assets?.attachments || [],
-        videos: initialValue.assets?.videos || [],
-      }
-
-      onChange({
-        ...initialValue,
-        assets: updatedAssets,
-      })
+      onChange((prev) => ({
+        ...prev,
+        assets: {
+          ...prev.assets,
+          images: [...prev.assets.images, asset],
+        },
+      }))
 
       return { id: asset.id, fileName: asset.fileName }
     } catch {
@@ -95,18 +89,13 @@ export function MediaEditor({
     try {
       const asset = await unwrapResponse(assetsApi.uploadAsset(teamSlug, file))
 
-      const updatedAssets: AssetsDto = {
-        ...initialValue.assets,
-        logo: asset,
-        images: initialValue.assets?.images || [],
-        videos: initialValue.assets?.videos || [],
-        attachments: initialValue.assets?.attachments || [],
-      }
-
-      onChange({
-        ...initialValue,
-        assets: updatedAssets,
-      })
+      onChange((prev) => ({
+        ...prev,
+        assets: {
+          ...prev.assets,
+          logo: asset,
+        },
+      }))
     } catch {
       setLogoError(t('logo.uploadError'))
     } finally {
@@ -118,16 +107,13 @@ export function MediaEditor({
   }
 
   const handleRemoveLogo = () => {
-    onChange({
-      ...initialValue,
+    onChange((prev) => ({
+      ...prev,
       assets: {
-        ...initialValue.assets,
+        ...prev.assets,
         logo: undefined,
-        images: initialValue.assets?.images || [],
-        videos: initialValue.assets?.videos || [],
-        attachments: initialValue.assets?.attachments || [],
       },
-    })
+    }))
   }
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -141,22 +127,13 @@ export function MediaEditor({
       const asset = await unwrapResponse(assetsApi.uploadAsset(teamSlug, file))
 
       // Add the new attachment to the assets
-      const currentAttachments: AssetDto[] = initialValue.assets?.attachments || []
-      const updatedAssets: AssetsDto = {
-        logo: initialValue.assets?.logo,
-        images: initialValue.assets?.images || [],
-        videos: initialValue.assets?.videos || [],
-        attachments: [...currentAttachments, asset],
-        originalGpx: initialValue.assets?.originalGpx,
-        gpx: initialValue.assets?.gpx,
-        fit: initialValue.assets?.fit,
-        thumbnail: initialValue.assets?.thumbnail,
-      }
-
-      onChange({
-        ...initialValue,
-        assets: updatedAssets,
-      })
+      onChange((prev) => ({
+        ...prev,
+        assets: {
+          ...prev.assets,
+          attachments: [...prev.assets.attachments, asset],
+        },
+      }))
     } catch {
       setUploadError(t('attachments.uploadError'))
     } finally {
@@ -169,21 +146,17 @@ export function MediaEditor({
   }
 
   const handleRemoveAttachment = (attachmentId: string) => {
-    const updatedAttachments = (initialValue.assets.attachments || []).filter(
-      (a: AssetDto) => a.id !== attachmentId
-    )
-
-    onChange({
-      ...initialValue,
+    onChange((prev) => ({
+      ...prev,
       assets: {
-        ...initialValue.assets,
-        attachments: updatedAttachments,
+        ...prev.assets,
+        attachments: prev.assets.attachments.filter((a: AssetDto) => a.id !== attachmentId),
       },
-    })
+    }))
   }
 
-  const attachments = initialValue.assets?.attachments || []
-  const logo = initialValue.assets?.logo
+  const attachments = value.assets.attachments
+  const logo = value.assets.logo
   const canUpload = !!teamSlug && !disabled
 
   return (
@@ -264,7 +237,7 @@ export function MediaEditor({
       )}
 
       <MarkdownEditor
-        value={initialValue.markdown || ''}
+        value={value.markdown || ''}
         onChange={handleMarkdownChange}
         placeholder={placeholder}
         minHeight={minHeight}

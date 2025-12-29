@@ -1,4 +1,4 @@
-import { AssetDto } from '../../api/api'
+import { MediaDto } from '../../api/api'
 
 // Size configurations for the avatar
 const sizeClasses = {
@@ -58,11 +58,7 @@ function getInitials(name: string): string {
 export interface TeamAvatarProps {
   team: {
     name: string
-    media?: {
-      assets?: {
-        logo?: AssetDto
-      }
-    }
+    media: MediaDto
   }
   size?: keyof typeof sizeClasses
   className?: string
@@ -73,7 +69,7 @@ export interface TeamAvatarProps {
  * Uses consistent hash-based colors for teams without logos.
  */
 export function TeamAvatar({ team, size = 'md', className = '' }: TeamAvatarProps) {
-  const logo = team.media?.assets?.logo
+  const logo = team.media.assets.logo
   const sizeClass = sizeClasses[size]
 
   if (logo?.url) {

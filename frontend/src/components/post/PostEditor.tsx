@@ -135,7 +135,7 @@ export function PostEditor({
           {t('create.descriptionLabel')}
         </label>
         <MediaEditor
-          initialValue={media}
+          value={media}
           onChange={setMedia}
           placeholder={t('create.descriptionPlaceholder')}
           minHeight="200px"

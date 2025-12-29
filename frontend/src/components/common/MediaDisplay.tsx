@@ -15,8 +15,8 @@ export interface MediaDisplayProps {
  */
 export function MediaDisplay({ media, className = '' }: MediaDisplayProps) {
   const { t } = useTranslation('common')
-  const attachments = media.assets?.attachments || []
-  const images = media.assets?.images || []
+  const attachments = media.assets.attachments
+  const images = media.assets.images
 
   return (
     <div className={className}>
@@ -34,7 +34,6 @@ export function MediaDisplay({ media, className = '' }: MediaDisplayProps) {
               <li key={attachment.id}>
                 <a
                   href={attachment.url}
-                  download={attachment.fileName}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-2 text-sm text-indigo-600 hover:text-indigo-800 hover:underline py-1"

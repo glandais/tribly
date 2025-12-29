@@ -102,7 +102,7 @@ export function RouteDetailPage() {
         <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="flex items-center gap-3">
-              <EntityLogo logo={route.media?.assets?.logo} alt={route.name} size="lg" />
+              <EntityLogo logo={route.media.assets.logo} alt={route.name} size="lg" />
               <h1 className="text-3xl font-bold text-gray-900">{route.name}</h1>
             </div>
             <MediaDisplay media={route.media} className="mt-2 text-gray-600" />

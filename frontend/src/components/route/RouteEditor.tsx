@@ -4,6 +4,7 @@ import { Visibility, SurfaceType } from '../../api/api'
 import type { MediaDto, TeamDetailDto } from '../../api/api'
 import { LoadingSpinner } from '../common/LoadingSpinner'
 import { MediaEditor } from '../common/MediaEditor'
+import { defaultMedia } from '@/lib/apiUtils'
 
 export interface RouteFormData {
   name: string
@@ -57,7 +58,7 @@ export function RouteEditor({
   const { t: tCommon } = useTranslation('common')
 
   const [name, setName] = useState('')
-  const [media, setMedia] = useState({ markdown: '' } as MediaDto)
+  const [media, setMedia] = useState(defaultMedia())
   const [surfaceType, setSurfaceType] = useState<SurfaceType>(SurfaceType.Road)
   const [visibility, setVisibility] = useState<Visibility>(
     team.visibility === Visibility.Team ? Visibility.Team : Visibility.Public
@@ -179,7 +180,7 @@ export function RouteEditor({
           {t('create.form.description')}
         </label>
         <MediaEditor
-          initialValue={media}
+          value={media}
           onChange={setMedia}
           placeholder={t('create.form.description')}
           minHeight="150px"

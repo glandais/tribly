@@ -6,7 +6,7 @@ import java.util.function.Function;
 
 @ApplicationScoped
 public class SlugService {
-  static final Slugify slg = Slugify.builder().build();
+  static final Slugify slg = Slugify.builder().underscoreSeparator(true).build();
 
   public String generateSlug(String name, Function<String, Boolean> checkExists) {
     String baseSlug = slugify(name);
@@ -20,6 +20,6 @@ public class SlugService {
   }
 
   public static String slugify(String name) {
-    return slg.slugify(name);
+    return slg.slugify(name).replace('_', '-');
   }
 }

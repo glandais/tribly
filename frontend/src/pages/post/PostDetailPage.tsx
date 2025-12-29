@@ -90,7 +90,7 @@ export function PostDetailPage() {
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div className="flex-1">
             <div className="flex items-center gap-3">
-              <EntityLogo logo={post.media?.assets?.logo} alt={post.name} size="lg" />
+              <EntityLogo logo={post.media.assets.logo} alt={post.name} size="lg" />
               <h1 className="text-2xl font-bold text-gray-900">{post.name}</h1>
               <span
                 className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColors[post.status]}`}

@@ -33,7 +33,7 @@ export function PostCard({ post, teamSlug, showTypeBadge = false }: PostCardProp
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-start gap-3 flex-1 min-w-0">
             <EntityLogo
-              logo={post.media?.assets?.logo}
+              logo={post.media.assets.logo}
               alt={post.name}
               size="md"
               className="shrink-0"

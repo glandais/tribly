@@ -35,7 +35,7 @@ export function RideCard({ ride, teamSlug, showTypeBadge = false }: RideCardProp
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-start gap-3 flex-1 min-w-0">
             <EntityLogo
-              logo={ride.media?.assets?.logo}
+              logo={ride.media.assets.logo}
               alt={ride.name}
               size="md"
               className="shrink-0"

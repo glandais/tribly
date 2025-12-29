@@ -42,7 +42,7 @@ export function TeamForm({
   const { t: tCommon } = useTranslation('common')
 
   const [name, setName] = useState(initialName)
-  const [media, setMedia] = useState({ markdown: '' } as MediaDto)
+  const [media, setMedia] = useState(defaultMedia())
   const [visibility, setVisibility] = useState<Visibility>(initialVisibility)
 
   // Conditional mutation based on context
@@ -126,7 +126,7 @@ export function TeamForm({
           {t(`${namespace}.form.description.label`)}
         </label>
         <MediaEditor
-          initialValue={media}
+          value={media}
           onChange={setMedia}
           placeholder={
             namespace === 'create'
