@@ -26,14 +26,7 @@ export function CreateTeamPage() {
         <p className="mt-1 text-gray-600">{t('create.subtitle')}</p>
       </div>
 
-      <TeamForm
-        onSuccess={handleSuccess}
-        submitButtonText={t('create.button')}
-        submitLoadingText={t('create.creating')}
-        cancelLink="/teams"
-        disableSubmitWhenEmpty={true}
-        namespace="create"
-      />
+      <TeamForm onSuccess={handleSuccess} create={true} />
     </div>
   )
 }

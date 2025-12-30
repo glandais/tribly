@@ -3,12 +3,21 @@
     "backToTeams": "Back to Teams",
     "button": "Create Team",
     "creating": "Creating...",
+    "error": "Failed to create team. Please try again.",
     "form": {
       "description": {
+        "charCount_one": "{{count}}/{{max}} character",
+        "charCount_other": "{{count}}/{{max}} characters",
+        "label": "Description",
         "placeholder": "Describe your team, riding style, or community..."
       },
       "name": {
+        "label": "Team Name",
         "placeholder": "Enter team name"
+      },
+      "visibility": {
+        "hint": "Control who can find and join this team",
+        "label": "Team Visibility"
       }
     },
     "subtitle": "Start your cycling community and invite others to join",
@@ -150,11 +159,6 @@
       "adminRequired": "You need to be an admin to access team settings.",
       "loadFailed": "Failed to load team settings. Please try again.",
       "title": "Error"
-    },
-    "form": {
-      "description": {
-        "label": "Description"
-      }
     },
     "loading": "Loading team settings...",
     "saveChanges": "Save Changes",

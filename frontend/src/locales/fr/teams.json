@@ -3,12 +3,22 @@
     "backToTeams": "Retour aux équipes",
     "button": "Créer l'équipe",
     "creating": "Création...",
+    "error": "Échec de la création de l'équipe. Veuillez réessayer.",
     "form": {
       "description": {
+        "charCount_one": "{{count}}/{{max}} caractère",
+        "charCount_many": "{{count}}/{{max}} caractères",
+        "charCount_other": "{{count}}/{{max}} caractères",
+        "label": "Description",
         "placeholder": "Décrivez votre équipe, votre style de cyclisme ou votre communauté..."
       },
       "name": {
+        "label": "Nom de l'équipe",
         "placeholder": "Entrez le nom de l'équipe"
+      },
+      "visibility": {
+        "hint": "Contrôle qui peut trouver et rejoindre cette équipe",
+        "label": "Visibilité de l'équipe"
       }
     },
     "subtitle": "Lancez votre communauté cycliste et invitez d'autres personnes",
@@ -151,11 +161,6 @@
       "adminRequired": "Vous devez être administrateur pour accéder aux paramètres de l'équipe.",
       "loadFailed": "Échec du chargement des paramètres. Veuillez réessayer.",
       "title": "Erreur"
-    },
-    "form": {
-      "description": {
-        "label": "Description"
-      }
     },
     "loading": "Chargement...",
     "saveChanges": "Enregistrer les modifications",

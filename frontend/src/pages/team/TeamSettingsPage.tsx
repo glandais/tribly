@@ -87,10 +87,7 @@ export function TeamSettingsPage() {
         initialMedia={team.media}
         initialVisibility={team.visibility}
         onSuccess={handleSuccess}
-        submitButtonText={t('settings.saveChanges')}
-        submitLoadingText={t('settings.saving')}
-        cancelLink={`/teams/${teamSlug}`}
-        namespace="settings"
+        create={false}
       />
 
       {/* Places Management */}

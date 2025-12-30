@@ -18,12 +18,7 @@ interface TeamFormProps {
   // Behavior
   onSuccess: (team: TeamDetailDto) => void
 
-  // UI Customization
-  submitButtonText: string
-  submitLoadingText: string
-  cancelLink: string
-  disableSubmitWhenEmpty?: boolean
-  namespace: 'create' | 'settings'
+  create: boolean
 }
 
 export function TeamForm({
@@ -32,11 +27,7 @@ export function TeamForm({
   initialMedia = defaultMedia(),
   initialVisibility = Visibility.Public,
   onSuccess,
-  submitButtonText,
-  submitLoadingText,
-  cancelLink,
-  disableSubmitWhenEmpty = false,
-  namespace,
+  create,
 }: TeamFormProps) {
   const { t } = useTranslation('teams')
   const { t: tCommon } = useTranslation('common')
@@ -97,15 +88,17 @@ export function TeamForm({
             <p className="text-red-700">
               {mutation.error instanceof ApiClientError
                 ? mutation.error.error.message
-                : t(`${namespace}.error`)}
+                : create
+                  ? t('create.error')
+                  : t('settings.error')}
             </p>
           </div>
         )}
 
       <div>
         <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-          {t(`${namespace}.form.name.label`)}
-          {namespace === 'create' && <span className="text-red-500"> *</span>}
+          {t('create.form.name.label')}
+          {create && <span className="text-red-500"> *</span>}
         </label>
         <input
           type="text"
@@ -118,7 +111,7 @@ export function TeamForm({
           className={`mt-1 block w-full px-4 py-2 border rounded-lg focus:ring-indigo-500 focus:border-indigo-500 ${
             getFieldError('name') ? 'border-red-300' : 'border-gray-300'
           }`}
-          placeholder={namespace === 'create' ? t('create.form.name.placeholder') : undefined}
+          placeholder={create ? t('create.form.name.placeholder') : undefined}
         />
         {getFieldError('name') && (
           <p className="mt-1 text-sm text-red-600">{getFieldError('name')}</p>
@@ -127,24 +120,20 @@ export function TeamForm({
 
       <div>
         <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
-          {t(`${namespace}.form.description.label`)}
+          {t('create.form.description.label')}
         </label>
         <MediaEditor
           value={media}
           onChange={setMedia}
-          placeholder={
-            namespace === 'create'
-              ? t('create.form.description.placeholder')
-              : t('settings.form.description.label')
-          }
+          placeholder={t('create.form.description.placeholder')}
           minHeight="150px"
           maxHeight="300px"
           disabled={mutation.isPending}
-          ariaLabel={t(`${namespace}.form.description.label`)}
+          ariaLabel={t('create.form.description.placeholder')}
           teamSlug={teamSlug}
         />
         <p className="mt-1 text-sm text-gray-500">
-          {t(`${namespace}.form.description.charCount`, {
+          {t(`create.form.description.charCount`, {
             count: media.markdown?.length || 0,
             max: 2000,
           })}
@@ -153,7 +142,7 @@ export function TeamForm({
 
       <div>
         <label htmlFor="visibility" className="block text-sm font-medium text-gray-700">
-          {t(`${namespace}.form.visibility.label`)}
+          {t(`create.form.visibility.label`)}
         </label>
         <select
           id="visibility"
@@ -164,28 +153,30 @@ export function TeamForm({
           <option value={Visibility.Team}>{tCommon('visibility.team')}</option>
           <option value={Visibility.Public}>{tCommon('visibility.public')}</option>
         </select>
-        <p className="mt-1 text-sm text-gray-500">{t(`${namespace}.form.visibility.hint`)}</p>
+        <p className="mt-1 text-sm text-gray-500">{t(`create.form.visibility.hint`)}</p>
       </div>
 
       <div className="pt-4 flex items-center justify-end gap-3">
         <Link
-          to={cancelLink}
+          to={create ? '/teams' : `/teams/${teamSlug}`}
           className="px-4 py-2 border border-gray-300 rounded-md shadow-xs text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
         >
           {tCommon('buttons.cancel')}
         </Link>
         <button
           type="submit"
-          disabled={mutation.isPending || (disableSubmitWhenEmpty && !name.trim())}
+          disabled={mutation.isPending || (create && !name.trim())}
           className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {mutation.isPending ? (
             <>
               <LoadingSpinner size="sm" color="white" className="mr-2" />
-              {submitLoadingText}
+              {create ? t('create.creating') : t('settings.saving')}
             </>
+          ) : create ? (
+            t('create.button')
           ) : (
-            submitButtonText
+            t('settings.saveChanges')
           )}
         </button>
       </div>
