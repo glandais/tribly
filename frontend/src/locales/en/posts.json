@@ -1,17 +1,56 @@
 {
-  "status": {
-    "DRAFT": "Draft",
-    "PUBLISHED": "Published",
-    "CANCELLED": "Cancelled",
-    "COMPLETED": "Completed"
+  "breadcrumb": {
+    "editPost": "Edit",
+    "newPost": "New Post",
+    "posts": "Posts"
   },
-  "visibility": {
-    "PUBLIC": "Public",
-    "TEAM": "Team",
-    "PRIVATE": "Private"
+  "card": {
+    "publishedOn": "Published on {{date}}"
+  },
+  "create": {
+    "cancel": "Cancel",
+    "dateTimeHint": "Date and time of the post",
+    "dateTimeLabel": "Date and Time",
+    "descriptionLabel": "Description",
+    "descriptionPlaceholder": "Describe your post...",
+    "error": "An error occurred while creating the post",
+    "nameLabel": "Title",
+    "namePlaceholder": "Enter the post title",
+    "publishAtHint": "Set a date/time for automatic publication",
+    "publishAtLabel": "Scheduled Publication",
+    "statusLabel": "Status",
+    "submit": "Create Post",
+    "title": "New Post",
+    "visibilityLabel": "Visibility"
+  },
+  "detail": {
+    "actions": {
+      "cancel": "Cancel",
+      "delete": "Delete",
+      "edit": "Edit",
+      "publish": "Publish",
+      "uncancel": "Reactivate",
+      "unpublish": "Unpublish"
+    },
+    "confirmations": {
+      "cancel": "Do you want to cancel this post? It will no longer be visible.",
+      "delete": "Are you sure you want to delete this post? This action cannot be undone.",
+      "publish": "Do you want to publish this post? It will be visible according to visibility settings.",
+      "uncancel": "Do you want to reactivate this post? It will be published again.",
+      "unpublish": "Do you want to unpublish this post? It will become a draft again."
+    },
+    "notFound": {
+      "message": "This post does not exist or has been deleted",
+      "title": "Post not found"
+    },
+    "scheduledPublish": "Scheduled for publication on {{date}}"
+  },
+  "edit": {
+    "error": "An error occurred while updating the post",
+    "submit": "Save Changes",
+    "title": "Edit Post"
   },
   "list": {
-    "title": "Posts",
     "createPost": "Create Post",
     "emptyAdmin": "No posts yet. Create the first one!",
     "emptyMember": "No posts yet.",
@@ -19,63 +58,24 @@
     "search": {
       "label": "Search posts",
       "placeholder": "Search by title or description..."
-    }
-  },
-  "create": {
-    "title": "New Post",
-    "nameLabel": "Title",
-    "namePlaceholder": "Enter the post title",
-    "descriptionLabel": "Description",
-    "descriptionPlaceholder": "Describe your post...",
-    "dateTimeLabel": "Date and Time",
-    "dateTimeHint": "Date and time of the post",
-    "visibilityLabel": "Visibility",
-    "statusLabel": "Status",
-    "publishAtLabel": "Scheduled Publication",
-    "publishAtHint": "Set a date/time for automatic publication",
-    "submit": "Create Post",
-    "cancel": "Cancel",
-    "error": "An error occurred while creating the post"
-  },
-  "edit": {
-    "title": "Edit Post",
-    "submit": "Save Changes",
-    "error": "An error occurred while updating the post"
-  },
-  "detail": {
-    "notFound": {
-      "title": "Post not found",
-      "message": "This post does not exist or has been deleted"
     },
-    "scheduledPublish": "Scheduled for publication on {{date}}",
-    "actions": {
-      "edit": "Edit",
-      "delete": "Delete",
-      "publish": "Publish",
-      "unpublish": "Unpublish",
-      "cancel": "Cancel",
-      "uncancel": "Reactivate"
-    },
-    "confirmations": {
-      "delete": "Are you sure you want to delete this post? This action cannot be undone.",
-      "publish": "Do you want to publish this post? It will be visible according to visibility settings.",
-      "unpublish": "Do you want to unpublish this post? It will become a draft again.",
-      "cancel": "Do you want to cancel this post? It will no longer be visible.",
-      "uncancel": "Do you want to reactivate this post? It will be published again."
-    }
-  },
-  "card": {
-    "publishedOn": "Published on {{date}}"
-  },
-  "breadcrumb": {
-    "posts": "Posts",
-    "newPost": "New Post",
-    "editPost": "Edit"
+    "title": "Posts"
   },
   "loading": "Loading...",
   "notifications": {
     "created": "Post created successfully",
-    "updated": "Post updated successfully",
-    "deleted": "Post deleted successfully"
+    "deleted": "Post deleted successfully",
+    "updated": "Post updated successfully"
+  },
+  "status": {
+    "CANCELLED": "Cancelled",
+    "COMPLETED": "Completed",
+    "DRAFT": "Draft",
+    "PUBLISHED": "Published"
+  },
+  "visibility": {
+    "PRIVATE": "Private",
+    "PUBLIC": "Public",
+    "TEAM": "Team"
   }
 }

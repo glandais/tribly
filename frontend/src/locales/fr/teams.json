@@ -1,201 +1,201 @@
 {
-  "list": {
-    "title": "Équipes",
-    "subtitle": "Parcourez les équipes cyclistes ou créez la vôtre",
-    "createTeam": "Créer une équipe",
+  "card": {
+    "memberCount": "{{count}} membre",
+    "memberCount_plural": "{{count}} membres"
+  },
+  "create": {
+    "backToTeams": "Retour aux équipes",
+    "button": "Créer l'équipe",
+    "creating": "Création...",
+    "error": "Échec de la création de l'équipe. Veuillez réessayer.",
+    "form": {
+      "description": {
+        "charCount": "{{count}}/{{max}} caractères",
+        "label": "Description",
+        "placeholder": "Décrivez votre équipe, votre style de cyclisme ou votre communauté..."
+      },
+      "name": {
+        "label": "Nom de l'équipe",
+        "placeholder": "Entrez le nom de l'équipe"
+      },
+      "visibility": {
+        "hint": "Contrôle qui peut trouver et rejoindre cette équipe",
+        "label": "Visibilité de l'équipe"
+      }
+    },
+    "subtitle": "Lancez votre communauté cycliste et invitez d'autres personnes",
+    "title": "Créer une équipe"
+  },
+  "detail": {
+    "actions": {
+      "confirmLeave": "Êtes-vous sûr de vouloir quitter cette équipe ?",
+      "edit": "Éditer",
+      "join": "Rejoindre l'équipe",
+      "joining": "Adhésion...",
+      "leave": "Quitter l'équipe",
+      "leaving": "Départ..."
+    },
+    "error": {
+      "message": "Une erreur est survenue lors du chargement de cette équipe. Veuillez réessayer.",
+      "title": "Erreur de chargement"
+    },
+    "info": {
+      "created": "Créé le {{date}}",
+      "memberCount_many": "{{count}} membres",
+      "memberCount_one": "{{count}} membre",
+      "memberCount_other": "{{count}} membres"
+    },
+    "loading": "Chargement de l'équipe...",
+    "members": {
+      "addError": "Échec de l'ajout du membre. Veuillez réessayer.",
+      "addMember": "Ajouter un membre",
+      "confirmRemove": "Êtes-vous sûr de vouloir retirer ce membre ?",
+      "edit": "Modifier",
+      "empty": "Aucun membre trouvé.",
+      "joined": "A rejoint le {{date}}",
+      "remove": "Retirer",
+      "role": "Rôle",
+      "save": "Enregistrer",
+      "searchPlaceholder": "Rechercher par nom...",
+      "searchUser": "Rechercher un utilisateur",
+      "title": "Membres",
+      "you": "(vous)"
+    },
+    "notFound": {
+      "backToTeams": "Retour aux équipes",
+      "message": "L'équipe que vous recherchez n'existe pas ou a été supprimée.",
+      "title": "Équipe non trouvée"
+    },
     "tabs": {
-      "public": "Équipes publiques",
-      "my": "Mes équipes"
+      "members": "Membres",
+      "posts": "Publications",
+      "publications": "Activités",
+      "rides": "Sorties",
+      "routes": "Parcours",
+      "trips": "Voyages"
+    }
+  },
+  "list": {
+    "createTeam": "Créer une équipe",
+    "empty": {
+      "createAction": "Créer une équipe",
+      "myTeams": "Vous n'avez rejoint aucune équipe.",
+      "publicTeams": "Aucune équipe publique ne correspond à votre recherche.",
+      "title": "Aucune équipe trouvée"
     },
     "search": {
       "label": "Rechercher des équipes",
       "placeholder": "Rechercher des équipes..."
     },
-    "empty": {
-      "title": "Aucune équipe trouvée",
-      "myTeams": "Vous n'avez rejoint aucune équipe.",
-      "publicTeams": "Aucune équipe publique ne correspond à votre recherche.",
-      "createAction": "Créer une équipe"
-    }
+    "subtitle": "Parcourez les équipes cyclistes ou créez la vôtre",
+    "tabs": {
+      "my": "Mes équipes",
+      "public": "Équipes publiques"
+    },
+    "title": "Équipes"
   },
   "myTeams": {
-    "title": "Mes équipes",
-    "subtitle": "Équipes dont vous êtes membre",
     "createTeam": "Créer une équipe",
     "empty": {
-      "title": "Aucune équipe",
+      "createAction": "Créer une équipe",
       "description": "Vous n'avez rejoint aucune équipe. Créez-en une ou rejoignez une équipe publique.",
-      "createAction": "Créer une équipe"
-    }
+      "title": "Aucune équipe"
+    },
+    "subtitle": "Équipes dont vous êtes membre",
+    "title": "Mes équipes"
   },
-  "create": {
-    "title": "Créer une équipe",
-    "subtitle": "Lancez votre communauté cycliste et invitez d'autres personnes",
-    "backToTeams": "Retour aux équipes",
+  "notifications": {
+    "created": "Équipe créée avec succès",
+    "deleted": "Équipe supprimée avec succès",
+    "memberAdded": "Membre ajouté à l'équipe",
+    "memberRemoved": "Membre retiré de l'équipe",
+    "placeCreated": "Lieu créé avec succès",
+    "placeDeleted": "Lieu supprimé avec succès",
+    "placeUpdated": "Lieu mis à jour avec succès",
+    "updated": "Équipe mise à jour avec succès"
+  },
+  "places": {
+    "add": "Ajouter un lieu",
+    "delete": "Supprimer le lieu",
+    "deleteConfirm": {
+      "confirm": "Supprimer",
+      "message": "Êtes-vous sûr de vouloir supprimer ce lieu ? Cette action est irréversible.",
+      "title": "Supprimer le lieu"
+    },
+    "edit": "Modifier le lieu",
+    "empty": "Aucun lieu défini. Ajoutez des lieux pour les départs/arrivées de sorties.",
+    "endPlace": "Arrivée",
     "form": {
+      "address": {
+        "label": "Adresse",
+        "placeholder": "Entrez l'adresse (optionnel)"
+      },
+      "create": "Ajouter",
+      "createTitle": "Ajouter un lieu",
+      "editTitle": "Modifier le lieu",
+      "endPlace": "Peut servir d'arrivée",
+      "link": {
+        "label": "Lien",
+        "placeholder": "https://maps.google.com/..."
+      },
       "name": {
-        "label": "Nom de l'équipe",
-        "placeholder": "Entrez le nom de l'équipe"
+        "label": "Nom",
+        "placeholder": "Entrez le nom du lieu"
       },
-      "description": {
-        "label": "Description",
-        "placeholder": "Décrivez votre équipe, votre style de cyclisme ou votre communauté...",
-        "charCount": "{{count}}/{{max}} caractères"
-      },
-      "visibility": {
-        "label": "Visibilité de l'équipe",
-        "hint": "Contrôle qui peut trouver et rejoindre cette équipe"
-      }
-    },
-    "button": "Créer l'équipe",
-    "creating": "Création...",
-    "error": "Échec de la création de l'équipe. Veuillez réessayer."
-  },
-  "detail": {
-    "loading": "Chargement de l'équipe...",
-    "notFound": {
-      "title": "Équipe non trouvée",
-      "message": "L'équipe que vous recherchez n'existe pas ou a été supprimée.",
-      "backToTeams": "Retour aux équipes"
-    },
-    "error": {
-      "title": "Erreur de chargement",
-      "message": "Une erreur est survenue lors du chargement de cette équipe. Veuillez réessayer."
-    },
-    "tabs": {
-      "publications": "Activités",
-      "rides": "Sorties",
-      "trips": "Voyages",
-      "posts": "Publications",
-      "routes": "Parcours",
-      "members": "Membres"
-    },
-    "info": {
-      "memberCount_one": "{{count}} membre",
-      "memberCount_other": "{{count}} membres",
-      "memberCount_many": "{{count}} membres",
-      "created": "Créé le {{date}}"
-    },
-    "actions": {
-      "join": "Rejoindre l'équipe",
-      "leave": "Quitter l'équipe",
-      "edit": "Éditer",
-      "joining": "Adhésion...",
-      "leaving": "Départ...",
-      "confirmLeave": "Êtes-vous sûr de vouloir quitter cette équipe ?"
-    },
-    "members": {
-      "title": "Membres",
-      "empty": "Aucun membre trouvé.",
-      "you": "(vous)",
-      "joined": "A rejoint le {{date}}",
-      "edit": "Modifier",
-      "remove": "Retirer",
       "save": "Enregistrer",
-      "confirmRemove": "Êtes-vous sûr de vouloir retirer ce membre ?",
-      "addMember": "Ajouter un membre",
-      "searchUser": "Rechercher un utilisateur",
-      "searchPlaceholder": "Rechercher par nom...",
-      "role": "Rôle",
-      "addError": "Échec de l'ajout du membre. Veuillez réessayer."
-    }
-  },
-  "settings": {
-    "title": "Paramètres de l'équipe",
-    "subtitle": "Gérer le profil et les paramètres de votre équipe",
-    "backToTeam": "Retour à {{teamName}}",
-    "loading": "Chargement des paramètres...",
-    "error": {
-      "title": "Erreur",
-      "loadFailed": "Échec du chargement des paramètres. Veuillez réessayer.",
-      "accessDenied": "Accès refusé",
-      "adminRequired": "Vous devez être administrateur pour accéder aux paramètres de l'équipe."
+      "startPlace": "Peut servir de départ"
     },
-    "form": {
-      "name": {
-        "label": "Nom de l'équipe"
-      },
-      "description": {
-        "label": "Description",
-        "charCount": "{{count}}/{{max}} caractères"
-      },
-      "visibility": {
-        "label": "Visibilité de l'équipe",
-        "hint": "Contrôle qui peut trouver et rejoindre cette équipe"
-      }
-    },
-    "success": "Paramètres de l'équipe mis à jour avec succès !",
-    "updateError": "Échec de la mise à jour de l'équipe. Veuillez réessayer.",
-    "saving": "Enregistrement...",
-    "saveChanges": "Enregistrer les modifications",
-    "dangerZone": {
-      "title": "Zone de danger",
-      "description": "Une fois que vous supprimez une équipe, il n'y a pas de retour en arrière. Soyez certain.",
-      "deleteTeam": "Supprimer l'équipe",
-      "deleteWarning": "Êtes-vous sûr de vouloir supprimer <strong>{{teamName}}</strong> ? Cette action est irréversible et supprimera toutes les données de l'équipe, y compris les sorties et les parcours.",
-      "confirmDelete": "Oui, supprimer l'équipe",
-      "deleting": "Suppression..."
-    }
-  },
-  "card": {
-    "memberCount": "{{count}} membre",
-    "memberCount_plural": "{{count}} membres"
+    "startPlace": "Départ",
+    "title": "Lieux",
+    "viewLink": "Voir sur la carte"
   },
   "publications": {
     "list": {
-      "title": "Activités",
       "empty": "Aucune activité pour le moment",
       "emptyDescription": "Les publications et sorties apparaîtront ici une fois publiées",
       "noResults": "Aucune publication ne correspond à votre recherche.",
       "search": {
         "label": "Rechercher des publications",
         "placeholder": "Rechercher par titre ou description..."
-      }
+      },
+      "title": "Activités"
     }
   },
-  "places": {
-    "title": "Lieux",
-    "add": "Ajouter un lieu",
-    "edit": "Modifier le lieu",
-    "delete": "Supprimer le lieu",
-    "empty": "Aucun lieu défini. Ajoutez des lieux pour les départs/arrivées de sorties.",
-    "startPlace": "Départ",
-    "endPlace": "Arrivée",
-    "viewLink": "Voir sur la carte",
-    "form": {
-      "createTitle": "Ajouter un lieu",
-      "editTitle": "Modifier le lieu",
-      "name": {
-        "label": "Nom",
-        "placeholder": "Entrez le nom du lieu"
-      },
-      "address": {
-        "label": "Adresse",
-        "placeholder": "Entrez l'adresse (optionnel)"
-      },
-      "link": {
-        "label": "Lien",
-        "placeholder": "https://maps.google.com/..."
-      },
-      "startPlace": "Peut servir de départ",
-      "endPlace": "Peut servir d'arrivée",
-      "create": "Ajouter",
-      "save": "Enregistrer"
+  "settings": {
+    "backToTeam": "Retour à {{teamName}}",
+    "dangerZone": {
+      "confirmDelete": "Oui, supprimer l'équipe",
+      "deleteTeam": "Supprimer l'équipe",
+      "deleteWarning": "Êtes-vous sûr de vouloir supprimer <strong>{{teamName}}</strong> ? Cette action est irréversible et supprimera toutes les données de l'équipe, y compris les sorties et les parcours.",
+      "deleting": "Suppression...",
+      "description": "Une fois que vous supprimez une équipe, il n'y a pas de retour en arrière. Soyez certain.",
+      "title": "Zone de danger"
     },
-    "deleteConfirm": {
-      "title": "Supprimer le lieu",
-      "message": "Êtes-vous sûr de vouloir supprimer ce lieu ? Cette action est irréversible.",
-      "confirm": "Supprimer"
-    }
-  },
-  "notifications": {
-    "created": "Équipe créée avec succès",
-    "updated": "Équipe mise à jour avec succès",
-    "deleted": "Équipe supprimée avec succès",
-    "memberAdded": "Membre ajouté à l'équipe",
-    "memberRemoved": "Membre retiré de l'équipe",
-    "placeCreated": "Lieu créé avec succès",
-    "placeUpdated": "Lieu mis à jour avec succès",
-    "placeDeleted": "Lieu supprimé avec succès"
+    "error": {
+      "accessDenied": "Accès refusé",
+      "adminRequired": "Vous devez être administrateur pour accéder aux paramètres de l'équipe.",
+      "loadFailed": "Échec du chargement des paramètres. Veuillez réessayer.",
+      "title": "Erreur"
+    },
+    "form": {
+      "description": {
+        "charCount": "{{count}}/{{max}} caractères",
+        "label": "Description"
+      },
+      "name": {
+        "label": "Nom de l'équipe"
+      },
+      "visibility": {
+        "hint": "Contrôle qui peut trouver et rejoindre cette équipe",
+        "label": "Visibilité de l'équipe"
+      }
+    },
+    "loading": "Chargement des paramètres...",
+    "saveChanges": "Enregistrer les modifications",
+    "saving": "Enregistrement...",
+    "subtitle": "Gérer le profil et les paramètres de votre équipe",
+    "success": "Paramètres de l'équipe mis à jour avec succès !",
+    "title": "Paramètres de l'équipe",
+    "updateError": "Échec de la mise à jour de l'équipe. Veuillez réessayer."
   }
 }

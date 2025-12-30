@@ -1,5 +1,19 @@
 {
-  "title": "Paramètres du profil",
+  "account": {
+    "dangerZone": {
+      "confirmButton": "Oui, supprimer mon compte",
+      "confirmMessage": "Êtes-vous sûr ? Cette action est irréversible.",
+      "deleteButton": "Supprimer le compte",
+      "deleteDescription": "Supprimer définitivement votre compte et toutes les données associées.",
+      "title": "Zone de danger"
+    },
+    "signOut": "Se déconnecter",
+    "title": "Actions du compte"
+  },
+  "actions": {
+    "editProfile": "Modifier le profil",
+    "save": "Enregistrer"
+  },
   "form": {
     "displayName": {
       "label": "Nom d'affichage"
@@ -8,23 +22,9 @@
       "label": "Email"
     }
   },
-  "actions": {
-    "editProfile": "Modifier le profil",
-    "save": "Enregistrer"
-  },
-  "account": {
-    "title": "Actions du compte",
-    "signOut": "Se déconnecter",
-    "dangerZone": {
-      "title": "Zone de danger",
-      "deleteDescription": "Supprimer définitivement votre compte et toutes les données associées.",
-      "deleteButton": "Supprimer le compte",
-      "confirmMessage": "Êtes-vous sûr ? Cette action est irréversible.",
-      "confirmButton": "Oui, supprimer mon compte"
-    }
-  },
   "notifications": {
-    "updated": "Profil mis à jour avec succès",
-    "accountDeleted": "Compte supprimé avec succès"
-  }
+    "accountDeleted": "Compte supprimé avec succès",
+    "updated": "Profil mis à jour avec succès"
+  },
+  "title": "Paramètres du profil"
 }

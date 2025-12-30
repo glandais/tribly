@@ -1,145 +1,103 @@
 {
-  "status": {
-    "DRAFT": "Draft",
-    "PUBLISHED": "Published",
-    "CANCELLED": "Cancelled"
+  "breadcrumb": {
+    "trips": "Trips"
   },
-  "visibility": {
-    "PUBLIC": "Public",
-    "TEAM": "Team only"
-  },
-  "list": {
-    "title": "Trips",
-    "subtitle": "Upcoming and past trips for {{teamName}}",
-    "createTrip": "Create Trip",
-    "search": {
-      "label": "Search trips",
-      "placeholder": "Search by title or description..."
-    },
-    "noResults": "No trips found matching your search.",
-    "empty": {
-      "title": "No trips yet",
-      "member": "No trips are scheduled at the moment.",
-      "admin": "Get started by creating your first trip.",
-      "createAction": "Create a Trip"
-    },
-    "notFound": {
-      "title": "Team Not Found",
-      "message": "The team you're looking for doesn't exist.",
-      "backToTeams": "Back to Teams"
-    }
+  "card": {
+    "participantCount_one": "{{count}} participant",
+    "participantCount_other": "{{count}} participants",
+    "stageCount_one": "{{count}} stage",
+    "stageCount_other": "{{count}} stages"
   },
   "create": {
-    "title": "Create a Trip",
-    "subtitle": "Plan a multi-day trip for {{teamName}}",
     "backToTrips": "Back to Trips",
+    "button": "Create Trip",
+    "creating": "Creating...",
+    "error": "Failed to create trip. Please try again.",
     "form": {
-      "title": {
-        "label": "Trip Title",
-        "placeholder": "e.g., Alps Cycling Adventure"
+      "date": {
+        "label": "Start Date"
       },
       "description": {
         "label": "Description",
         "placeholder": "Describe the trip, highlights, logistics..."
       },
-      "date": {
-        "label": "Start Date"
-      },
-      "visibility": {
-        "label": "Visibility",
-        "team": "Team only",
-        "public": "Public",
-        "privateTeamHint": "Public trips are not available for private teams"
-      },
-      "status": {
-        "label": "Status"
+      "publishAt": {
+        "hint": "Set a date/time for automatic publication",
+        "label": "Schedule Publication"
       },
       "route": {
-        "label": "Overall Route",
-        "select": "Select a route",
         "change": "Change",
         "clear": "Remove",
-        "none": "No route selected",
         "hint": "Optional: attach an overall GPX route for the entire trip",
-        "selectForTrip": "Select route for trip",
-        "selectForStage": "Select route for stage"
+        "label": "Overall Route",
+        "none": "No route selected",
+        "select": "Select a route",
+        "selectForStage": "Select route for stage",
+        "selectForTrip": "Select route for trip"
       },
       "stages": {
-        "label": "Stages",
         "add": "+ Add Stage",
         "defaultName": "Day {{day}}",
-        "name": {
-          "placeholder": "Stage name (e.g., Day 1: Mountain Pass)"
-        },
-        "new": "New Stage",
-        "willBeDeleted": "(will be deleted)",
-        "restore": "Restore",
-        "remove": "Remove",
-        "empty": "No stages defined. Add at least one stage.",
-        "hint": "Create stages for each day or segment of your trip",
-        "startPlace": {
-          "label": "Start Location",
-          "placeholder": "Search for start location..."
-        },
-        "endPlace": {
-          "label": "End Location",
-          "placeholder": "Search for end location..."
-        },
         "description": {
           "label": "Description",
           "placeholder": "Describe this stage..."
         },
+        "empty": "No stages defined. Add at least one stage.",
+        "endPlace": {
+          "label": "End Location",
+          "placeholder": "Search for end location..."
+        },
+        "hint": "Create stages for each day or segment of your trip",
+        "label": "Stages",
+        "name": {
+          "placeholder": "Stage name (e.g., Day 1: Mountain Pass)"
+        },
+        "new": "New Stage",
+        "remove": "Remove",
+        "restore": "Restore",
         "route": {
           "label": "Stage Route",
           "none": "No route for this stage"
-        }
+        },
+        "startPlace": {
+          "label": "Start Location",
+          "placeholder": "Search for start location..."
+        },
+        "willBeDeleted": "(will be deleted)"
       },
-      "publishAt": {
-        "label": "Schedule Publication",
-        "hint": "Set a date/time for automatic publication"
+      "status": {
+        "label": "Status"
+      },
+      "title": {
+        "label": "Trip Title",
+        "placeholder": "e.g., Alps Cycling Adventure"
+      },
+      "visibility": {
+        "label": "Visibility",
+        "privateTeamHint": "Public trips are not available for private teams",
+        "public": "Public",
+        "team": "Team only"
       }
     },
-    "button": "Create Trip",
-    "creating": "Creating...",
-    "error": "Failed to create trip. Please try again."
-  },
-  "edit": {
-    "title": "Edit Trip",
-    "subtitle": "Update trip details for {{teamName}}",
-    "backToTrip": "Back to Trip",
-    "button": "Save Changes",
-    "saving": "Saving...",
-    "error": "Failed to update trip. Please try again."
+    "subtitle": "Plan a multi-day trip for {{teamName}}",
+    "title": "Create a Trip"
   },
   "detail": {
-    "notFound": {
-      "title": "Trip Not Found",
-      "message": "The trip you're looking for doesn't exist.",
-      "backToTrips": "Back to Trips"
-    },
     "actions": {
-      "edit": "Edit",
-      "publish": "Publish",
-      "unpublish": "Unpublish",
       "cancel": "Cancel Trip",
-      "uncancel": "Restore Trip",
       "delete": "Delete",
+      "edit": "Edit",
       "join": "Join Trip",
-      "leave": "Leave Trip"
+      "leave": "Leave Trip",
+      "publish": "Publish",
+      "uncancel": "Restore Trip",
+      "unpublish": "Unpublish"
     },
     "confirmations": {
-      "unpublish": "Are you sure you want to unpublish this trip? It will return to draft status.",
       "cancel": "Are you sure you want to cancel this trip?",
+      "delete": "Are you sure you want to delete this trip? This cannot be undone.",
       "uncancel": "Are you sure you want to restore this trip? It will return to draft status.",
-      "delete": "Are you sure you want to delete this trip? This cannot be undone."
-    },
-    "scheduledPublish": "Scheduled to publish on {{date}}",
-    "stages": {
-      "title": "Stages",
-      "empty": "No stages defined for this trip."
-    },
-    "participants": {
-      "title": "Participants"
+      "unpublish": "Are you sure you want to unpublish this trip? It will return to draft status."
     },
     "nonMember": {
       "message": "Join this team to participate in trips.",
@@ -148,28 +106,70 @@
     "notAuthenticated": {
       "message": "Sign in and join this team to participate in trips.",
       "signIn": "Sign in"
+    },
+    "notFound": {
+      "backToTrips": "Back to Trips",
+      "message": "The trip you're looking for doesn't exist.",
+      "title": "Trip Not Found"
+    },
+    "participants": {
+      "title": "Participants"
+    },
+    "scheduledPublish": "Scheduled to publish on {{date}}",
+    "stages": {
+      "empty": "No stages defined for this trip.",
+      "title": "Stages"
     }
   },
-  "stage": {
-    "startPlace": "Start",
-    "endPlace": "End",
-    "viewRoute": "View Route"
+  "edit": {
+    "backToTrip": "Back to Trip",
+    "button": "Save Changes",
+    "error": "Failed to update trip. Please try again.",
+    "saving": "Saving...",
+    "subtitle": "Update trip details for {{teamName}}",
+    "title": "Edit Trip"
   },
-  "card": {
-    "participantCount_one": "{{count}} participant",
-    "participantCount_other": "{{count}} participants",
-    "stageCount_one": "{{count}} stage",
-    "stageCount_other": "{{count}} stages"
-  },
-  "breadcrumb": {
-    "trips": "Trips"
+  "list": {
+    "createTrip": "Create Trip",
+    "empty": {
+      "admin": "Get started by creating your first trip.",
+      "createAction": "Create a Trip",
+      "member": "No trips are scheduled at the moment.",
+      "title": "No trips yet"
+    },
+    "noResults": "No trips found matching your search.",
+    "notFound": {
+      "backToTeams": "Back to Teams",
+      "message": "The team you're looking for doesn't exist.",
+      "title": "Team Not Found"
+    },
+    "search": {
+      "label": "Search trips",
+      "placeholder": "Search by title or description..."
+    },
+    "subtitle": "Upcoming and past trips for {{teamName}}",
+    "title": "Trips"
   },
   "loading": "Loading trip...",
   "notifications": {
     "created": "Trip created successfully",
-    "updated": "Trip updated successfully",
     "deleted": "Trip deleted successfully",
     "joined": "Successfully joined the trip",
-    "left": "Successfully left the trip"
+    "left": "Successfully left the trip",
+    "updated": "Trip updated successfully"
+  },
+  "stage": {
+    "endPlace": "End",
+    "startPlace": "Start",
+    "viewRoute": "View Route"
+  },
+  "status": {
+    "CANCELLED": "Cancelled",
+    "DRAFT": "Draft",
+    "PUBLISHED": "Published"
+  },
+  "visibility": {
+    "PUBLIC": "Public",
+    "TEAM": "Team only"
   }
 }

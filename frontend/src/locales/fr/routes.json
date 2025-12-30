@@ -1,117 +1,117 @@
 {
-  "surfaceType": {
-    "ROAD": "Route",
-    "GRAVEL": "Gravel",
-    "MTB": "VTT",
-    "MIXED": "Mixte"
-  },
   "climbCategory": {
-    "HC": "Hors Catégorie",
     "CAT1": "1ère Catégorie",
     "CAT2": "2ème Catégorie",
     "CAT3": "3ème Catégorie",
-    "CAT4": "4ème Catégorie"
-  },
-  "list": {
-    "title": "Parcours",
-    "subtitle": "Parcours GPX de l'équipe",
-    "createRoute": "Créer un parcours",
-    "search": {
-      "label": "Rechercher des parcours",
-      "placeholder": "Rechercher par nom ou description..."
-    },
-    "noResults": "Aucun parcours ne correspond à votre recherche.",
-    "empty": {
-      "title": "Aucun parcours",
-      "description": "Aucun parcours n'est disponible pour le moment.",
-      "createAction": "Créer un parcours"
-    }
+    "CAT4": "4ème Catégorie",
+    "HC": "Hors Catégorie"
   },
   "create": {
-    "title": "Créer un parcours",
-    "subtitle": "Téléchargez un fichier GPX pour créer un nouveau parcours",
     "backToList": "Retour aux parcours",
     "form": {
+      "description": "Description",
       "gpxFile": "Fichier GPX",
       "gpxFileHint": "Format .gpx uniquement, taille maximale 10 Mo",
       "name": "Nom du parcours",
-      "description": "Description",
       "surfaceType": "Type de revêtement",
       "visibility": "Visibilité",
       "visibilityDisabledHint": "Les parcours d'une équipe privée ne peuvent pas être publics"
     },
     "submit": "Créer le parcours",
+    "subtitle": "Téléchargez un fichier GPX pour créer un nouveau parcours",
+    "title": "Créer un parcours",
     "validation": {
-      "invalidFileType": "Le fichier doit être au format .gpx",
+      "fileRequired": "Un fichier GPX est requis",
       "fileTooLarge": "Le fichier est trop volumineux (maximum 10 Mo)",
-      "fileRequired": "Un fichier GPX est requis"
+      "invalidFileType": "Le fichier doit être au format .gpx"
     }
   },
-  "edit": {
-    "title": "Modifier le parcours",
-    "subtitle": "Modifier les informations du parcours",
-    "backToDetail": "Retour au parcours",
-    "submit": "Enregistrer les modifications",
-    "form": {
-      "gpxFile": "Fichier GPX (pour remplacer l'existant)",
-      "gpxFileHint": "Format .gpx uniquement, taille maximale 10 Mo",
-      "name": "Nom du parcours",
-      "description": "Description",
-      "surfaceType": "Type de revêtement",
-      "visibility": "Visibilité",
-      "visibilityDisabledHint": "Les parcours d'une équipe privée ne peuvent pas être publics"
-    }
+  "createModal": {
+    "create": "Créer",
+    "title": "Créer un nouveau parcours"
   },
   "detail": {
     "backToList": "Retour aux parcours",
+    "climbs": {
+      "avgGradient": "Pente moyenne",
+      "distance": "De {{start}} km à {{end}} km",
+      "gain": "Dénivelé",
+      "maxGradient": "Pente maximale",
+      "title": "Cols et montées",
+      "unnamed": "Montée {{number}}"
+    },
     "deleteConfirm": {
-      "title": "Supprimer le parcours",
-      "message": "Êtes-vous sûr de vouloir supprimer ce parcours ? Cette action est irréversible."
+      "message": "Êtes-vous sûr de vouloir supprimer ce parcours ? Cette action est irréversible.",
+      "title": "Supprimer le parcours"
+    },
+    "download": {
+      "fit": "Télécharger FIT",
+      "gpx": "Télécharger GPX",
+      "title": "Télécharger"
+    },
+    "info": {
+      "createdAt": "Créé le",
+      "surfaceType": "Type de revêtement",
+      "title": "Informations du parcours",
+      "visibility": "Visibilité"
     },
     "stats": {
       "distance": "Distance",
       "elevationGain": "Dénivelé positif",
       "elevationLoss": "Dénivelé négatif"
-    },
-    "info": {
-      "title": "Informations du parcours",
-      "surfaceType": "Type de revêtement",
-      "visibility": "Visibilité",
-      "createdAt": "Créé le"
-    },
-    "climbs": {
-      "title": "Cols et montées",
-      "unnamed": "Montée {{number}}",
-      "distance": "De {{start}} km à {{end}} km",
-      "gain": "Dénivelé",
-      "avgGradient": "Pente moyenne",
-      "maxGradient": "Pente maximale"
-    },
-    "download": {
-      "title": "Télécharger",
-      "gpx": "Télécharger GPX",
-      "fit": "Télécharger FIT"
     }
   },
-  "picker": {
-    "title": "Sélectionner un parcours",
-    "search": "Rechercher par nom...",
-    "createNew": "Créer un nouveau parcours",
-    "clearSelection": "Retirer le parcours",
-    "noResults": "Aucun parcours trouvé",
-    "loading": "Chargement des parcours..."
+  "edit": {
+    "backToDetail": "Retour au parcours",
+    "form": {
+      "description": "Description",
+      "gpxFile": "Fichier GPX (pour remplacer l'existant)",
+      "gpxFileHint": "Format .gpx uniquement, taille maximale 10 Mo",
+      "name": "Nom du parcours",
+      "surfaceType": "Type de revêtement",
+      "visibility": "Visibilité",
+      "visibilityDisabledHint": "Les parcours d'une équipe privée ne peuvent pas être publics"
+    },
+    "submit": "Enregistrer les modifications",
+    "subtitle": "Modifier les informations du parcours",
+    "title": "Modifier le parcours"
   },
-  "createModal": {
-    "title": "Créer un nouveau parcours",
-    "create": "Créer"
+  "list": {
+    "createRoute": "Créer un parcours",
+    "empty": {
+      "createAction": "Créer un parcours",
+      "description": "Aucun parcours n'est disponible pour le moment.",
+      "title": "Aucun parcours"
+    },
+    "noResults": "Aucun parcours ne correspond à votre recherche.",
+    "search": {
+      "label": "Rechercher des parcours",
+      "placeholder": "Rechercher par nom ou description..."
+    },
+    "subtitle": "Parcours GPX de l'équipe",
+    "title": "Parcours"
+  },
+  "notifications": {
+    "created": "Parcours créé avec succès",
+    "deleted": "Parcours supprimé avec succès",
+    "updated": "Parcours mis à jour avec succès"
+  },
+  "picker": {
+    "clearSelection": "Retirer le parcours",
+    "createNew": "Créer un nouveau parcours",
+    "loading": "Chargement des parcours...",
+    "noResults": "Aucun parcours trouvé",
+    "search": "Rechercher par nom...",
+    "title": "Sélectionner un parcours"
   },
   "preview": {
     "loading": "Chargement...",
     "notFound": "Parcours non trouvé"
   },
-  "notifications": {
-    "created": "Parcours créé avec succès",
-    "updated": "Parcours mis à jour avec succès",
-    "deleted": "Parcours supprimé avec succès"
+  "surfaceType": {
+    "GRAVEL": "Gravel",
+    "MIXED": "Mixte",
+    "MTB": "VTT",
+    "ROAD": "Route"
   }
 }

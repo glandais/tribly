@@ -1,5 +1,19 @@
 {
-  "title": "Profile Settings",
+  "account": {
+    "dangerZone": {
+      "confirmButton": "Yes, Delete My Account",
+      "confirmMessage": "Are you sure? This action cannot be undone.",
+      "deleteButton": "Delete Account",
+      "deleteDescription": "Permanently delete your account and all associated data.",
+      "title": "Danger Zone"
+    },
+    "signOut": "Sign Out",
+    "title": "Account Actions"
+  },
+  "actions": {
+    "editProfile": "Edit Profile",
+    "save": "Save"
+  },
   "form": {
     "displayName": {
       "label": "Display Name"
@@ -8,23 +22,9 @@
       "label": "Email"
     }
   },
-  "actions": {
-    "editProfile": "Edit Profile",
-    "save": "Save"
-  },
-  "account": {
-    "title": "Account Actions",
-    "signOut": "Sign Out",
-    "dangerZone": {
-      "title": "Danger Zone",
-      "deleteDescription": "Permanently delete your account and all associated data.",
-      "deleteButton": "Delete Account",
-      "confirmMessage": "Are you sure? This action cannot be undone.",
-      "confirmButton": "Yes, Delete My Account"
-    }
-  },
   "notifications": {
-    "updated": "Profile updated successfully",
-    "accountDeleted": "Account deleted successfully"
-  }
+    "accountDeleted": "Account deleted successfully",
+    "updated": "Profile updated successfully"
+  },
+  "title": "Profile Settings"
 }

@@ -1,151 +1,115 @@
 {
-  "status": {
-    "DRAFT": "Brouillon",
-    "PUBLISHED": "Publiée",
-    "CANCELLED": "Annulée",
-    "COMPLETED": "Terminée"
+  "breadcrumb": {
+    "rides": "Sorties"
   },
-  "visibility": {
-    "PUBLIC": "Publique",
-    "TEAM": "Équipe uniquement",
-    "PRIVATE": "Privée"
-  },
-  "list": {
-    "title": "Sorties",
-    "subtitle": "Sorties à venir et passées pour {{teamName}}",
-    "createRide": "Créer une sortie",
-    "search": {
-      "label": "Rechercher des sorties",
-      "placeholder": "Rechercher par titre ou description..."
-    },
-    "noResults": "Aucune sortie ne correspond à votre recherche.",
-    "empty": {
-      "title": "Aucune sortie",
-      "member": "Aucune sortie n'est prévue pour le moment.",
-      "admin": "Commencez par créer votre première sortie.",
-      "createAction": "Créer une sortie"
-    },
-    "notFound": {
-      "title": "Équipe non trouvée",
-      "message": "L'équipe que vous recherchez n'existe pas.",
-      "backToTeams": "Retour aux équipes"
-    }
+  "card": {
+    "groupCount_many": "{{count}} groupes",
+    "groupCount_one": "{{count}} groupe",
+    "groupCount_other": "{{count}} groupes",
+    "participantCount_many": "{{count}} participants",
+    "participantCount_one": "{{count}} participant",
+    "participantCount_other": "{{count}} participants"
   },
   "create": {
-    "title": "Créer une sortie",
-    "subtitle": "Planifiez une sortie pour {{teamName}}",
     "backToRides": "Retour aux sorties",
+    "button": "Créer la sortie",
+    "creating": "Création...",
+    "error": "Échec de la création de la sortie. Veuillez réessayer.",
     "form": {
-      "title": {
-        "label": "Titre de la sortie",
-        "placeholder": "ex. Sortie du dimanche matin"
+      "date": {
+        "label": "Départ"
       },
       "description": {
         "label": "Description",
         "placeholder": "Décrivez la sortie, les points forts du parcours, les arrêts café..."
       },
-      "date": {
-        "label": "Départ"
+      "endPlace": {
+        "label": "Lieu d'arrivée",
+        "placeholder": "Rechercher un lieu d'arrivée..."
+      },
+      "groups": {
+        "add": "+ Ajouter un groupe",
+        "defaultName": "Groupe principal",
+        "empty": "Aucun groupe défini. Ajoutez au moins un groupe.",
+        "hint": "Créez différents groupes pour différents niveaux ou vitesses",
+        "label": "Groupes",
+        "maxParticipants": {
+          "placeholder": "Max coureurs"
+        },
+        "name": {
+          "placeholder": "Nom du groupe"
+        },
+        "new": "Nouveau groupe",
+        "remove": "Supprimer",
+        "restore": "Restaurer",
+        "route": {
+          "label": "Parcours du groupe",
+          "none": "Pas de parcours spécifique"
+        },
+        "speed": {
+          "placeholder": "Vitesse (km/h)"
+        },
+        "willBeDeleted": "(sera supprimé)"
+      },
+      "publishAt": {
+        "hint": "Définissez une date/heure pour une publication automatique",
+        "label": "Publication programmée"
+      },
+      "route": {
+        "change": "Changer",
+        "clear": "Retirer",
+        "hint": "Optionnel : associez un parcours GPX à cette sortie",
+        "label": "Parcours",
+        "none": "Aucun parcours sélectionné",
+        "select": "Sélectionner un parcours",
+        "selectForGroup": "Sélectionner un parcours pour le groupe",
+        "selectForRide": "Sélectionner un parcours pour la sortie"
       },
       "startPlace": {
         "label": "Lieu de départ",
         "placeholder": "Rechercher un lieu de départ..."
       },
-      "endPlace": {
-        "label": "Lieu d'arrivée",
-        "placeholder": "Rechercher un lieu d'arrivée..."
-      },
-      "visibility": "Visibilité",
-      "visibilityDisabledHint": "Les parcours d'une équipe privée ne peuvent pas être publics",
       "status": {
         "label": "Statut"
       },
-      "route": {
-        "label": "Parcours",
-        "select": "Sélectionner un parcours",
-        "change": "Changer",
-        "clear": "Retirer",
-        "none": "Aucun parcours sélectionné",
-        "hint": "Optionnel : associez un parcours GPX à cette sortie",
-        "selectForRide": "Sélectionner un parcours pour la sortie",
-        "selectForGroup": "Sélectionner un parcours pour le groupe"
+      "title": {
+        "label": "Titre de la sortie",
+        "placeholder": "ex. Sortie du dimanche matin"
       },
-      "groups": {
-        "label": "Groupes",
-        "add": "+ Ajouter un groupe",
-        "defaultName": "Groupe principal",
-        "name": {
-          "placeholder": "Nom du groupe"
-        },
-        "speed": {
-          "placeholder": "Vitesse (km/h)"
-        },
-        "maxParticipants": {
-          "placeholder": "Max coureurs"
-        },
-        "new": "Nouveau groupe",
-        "willBeDeleted": "(sera supprimé)",
-        "restore": "Restaurer",
-        "remove": "Supprimer",
-        "empty": "Aucun groupe défini. Ajoutez au moins un groupe.",
-        "hint": "Créez différents groupes pour différents niveaux ou vitesses",
-        "route": {
-          "label": "Parcours du groupe",
-          "none": "Pas de parcours spécifique"
-        }
-      },
-      "publishAt": {
-        "label": "Publication programmée",
-        "hint": "Définissez une date/heure pour une publication automatique"
-      }
+      "visibility": "Visibilité",
+      "visibilityDisabledHint": "Les parcours d'une équipe privée ne peuvent pas être publics"
     },
-    "button": "Créer la sortie",
-    "creating": "Création...",
-    "error": "Échec de la création de la sortie. Veuillez réessayer."
-  },
-  "edit": {
-    "title": "Modifier la sortie",
-    "subtitle": "Modifier les détails de la sortie pour {{teamName}}",
-    "backToRide": "Retour à la sortie",
-    "button": "Enregistrer les modifications",
-    "saving": "Enregistrement...",
-    "error": "Échec de la mise à jour de la sortie. Veuillez réessayer."
+    "subtitle": "Planifiez une sortie pour {{teamName}}",
+    "title": "Créer une sortie"
   },
   "detail": {
-    "startPlace": "Départ",
-    "endPlace": "Arrivée",
-    "notFound": {
-      "title": "Sortie non trouvée",
-      "message": "La sortie que vous recherchez n'existe pas.",
-      "backToRides": "Retour aux sorties"
-    },
     "actions": {
+      "cancel": "Annuler la sortie",
+      "delete": "Supprimer",
       "edit": "Modifier",
       "publish": "Publier",
-      "unpublish": "Dépublier",
-      "cancel": "Annuler la sortie",
       "uncancel": "Restaurer la sortie",
-      "delete": "Supprimer"
+      "unpublish": "Dépublier"
     },
     "confirmations": {
-      "unpublish": "Êtes-vous sûr de vouloir dépublier cette sortie ? Elle repassera en brouillon.",
       "cancel": "Êtes-vous sûr de vouloir annuler cette sortie ?",
+      "delete": "Êtes-vous sûr de vouloir supprimer cette sortie ? Cette action est irréversible.",
       "uncancel": "Êtes-vous sûr de vouloir restaurer cette sortie ? Elle repassera en brouillon.",
-      "delete": "Êtes-vous sûr de vouloir supprimer cette sortie ? Cette action est irréversible."
+      "unpublish": "Êtes-vous sûr de vouloir dépublier cette sortie ? Elle repassera en brouillon."
     },
-    "scheduledPublish": "Publication programmée le {{date}}",
+    "endPlace": "Arrivée",
     "groups": {
-      "title": "Groupes",
       "empty": "Aucun groupe défini pour cette sortie.",
-      "speed": "{{speed}} km/h",
+      "full": "Complet",
+      "join": "Rejoindre",
+      "joined": "Inscrit",
+      "leave": "Quitter",
       "participants": "{{current}}/{{max}} participants",
       "participantsNoMax": "{{current}} participants",
-      "join": "Rejoindre",
-      "leave": "Quitter",
-      "full": "Complet",
-      "joined": "Inscrit",
-      "viewParticipants": "Voir tous les participants",
-      "viewAll": "Voir tout"
+      "speed": "{{speed}} km/h",
+      "title": "Groupes",
+      "viewAll": "Voir tout",
+      "viewParticipants": "Voir tous les participants"
     },
     "nonMember": {
       "message": "Rejoignez cette équipe pour participer aux sorties.",
@@ -154,29 +118,65 @@
     "notAuthenticated": {
       "message": "Connectez-vous et rejoignez cette équipe pour participer aux sorties.",
       "signIn": "Se connecter"
-    }
+    },
+    "notFound": {
+      "backToRides": "Retour aux sorties",
+      "message": "La sortie que vous recherchez n'existe pas.",
+      "title": "Sortie non trouvée"
+    },
+    "scheduledPublish": "Publication programmée le {{date}}",
+    "startPlace": "Départ"
   },
-  "card": {
-    "participantCount_one": "{{count}} participant",
-    "participantCount_other": "{{count}} participants",
-    "participantCount_many": "{{count}} participants",
-    "groupCount_one": "{{count}} groupe",
-    "groupCount_other": "{{count}} groupes",
-    "groupCount_many": "{{count}} groupes"
+  "edit": {
+    "backToRide": "Retour à la sortie",
+    "button": "Enregistrer les modifications",
+    "error": "Échec de la mise à jour de la sortie. Veuillez réessayer.",
+    "saving": "Enregistrement...",
+    "subtitle": "Modifier les détails de la sortie pour {{teamName}}",
+    "title": "Modifier la sortie"
   },
-  "breadcrumb": {
-    "rides": "Sorties"
+  "list": {
+    "createRide": "Créer une sortie",
+    "empty": {
+      "admin": "Commencez par créer votre première sortie.",
+      "createAction": "Créer une sortie",
+      "member": "Aucune sortie n'est prévue pour le moment.",
+      "title": "Aucune sortie"
+    },
+    "noResults": "Aucune sortie ne correspond à votre recherche.",
+    "notFound": {
+      "backToTeams": "Retour aux équipes",
+      "message": "L'équipe que vous recherchez n'existe pas.",
+      "title": "Équipe non trouvée"
+    },
+    "search": {
+      "label": "Rechercher des sorties",
+      "placeholder": "Rechercher par titre ou description..."
+    },
+    "subtitle": "Sorties à venir et passées pour {{teamName}}",
+    "title": "Sorties"
   },
   "loading": "Chargement de la sortie...",
   "notifications": {
-    "created": "Sortie créée avec succès",
-    "updated": "Sortie mise à jour avec succès",
-    "deleted": "Sortie supprimée avec succès",
     "cancelled": "Sortie annulée avec succès",
+    "created": "Sortie créée avec succès",
+    "deleted": "Sortie supprimée avec succès",
+    "groupCreated": "Groupe créé avec succès",
+    "groupDeleted": "Groupe supprimé avec succès",
+    "groupUpdated": "Groupe mis à jour avec succès",
     "joined": "Inscription à la sortie confirmée",
     "left": "Désinscription de la sortie confirmée",
-    "groupCreated": "Groupe créé avec succès",
-    "groupUpdated": "Groupe mis à jour avec succès",
-    "groupDeleted": "Groupe supprimé avec succès"
+    "updated": "Sortie mise à jour avec succès"
+  },
+  "status": {
+    "CANCELLED": "Annulée",
+    "COMPLETED": "Terminée",
+    "DRAFT": "Brouillon",
+    "PUBLISHED": "Publiée"
+  },
+  "visibility": {
+    "PRIVATE": "Privée",
+    "PUBLIC": "Publique",
+    "TEAM": "Équipe uniquement"
   }
 }
