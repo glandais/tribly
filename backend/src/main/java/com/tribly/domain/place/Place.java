@@ -55,5 +55,4 @@ public class Place extends BaseEntity {
     this.startPlace = startPlace;
     this.endPlace = endPlace;
   }
-
 }

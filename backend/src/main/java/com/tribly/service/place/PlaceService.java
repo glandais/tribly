@@ -83,7 +83,8 @@ public class PlaceService {
             .findActiveById(creatorId)
             .orElseThrow(() -> BusinessException.notFound("User", creatorId));
 
-    Place place = new Place(creator, team, request.name(), request.startPlace(), request.endPlace());
+    Place place =
+        new Place(creator, team, request.name(), request.startPlace(), request.endPlace());
     updatePlaceFromRequest(place, request);
 
     placeRepository.persistAndFlush(place);
