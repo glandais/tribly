@@ -72,5 +72,10 @@
     "newPost": "Nouvelle publication",
     "editPost": "Modifier"
   },
-  "loading": "Chargement..."
+  "loading": "Chargement...",
+  "notifications": {
+    "created": "Publication créée avec succès",
+    "updated": "Publication mise à jour avec succès",
+    "deleted": "Publication supprimée avec succès"
+  }
 }

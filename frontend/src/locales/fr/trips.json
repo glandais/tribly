@@ -55,14 +55,14 @@
         "label": "Statut"
       },
       "route": {
-        "label": "Itinéraire global",
-        "select": "Sélectionner un itinéraire",
+        "label": "Parcours global",
+        "select": "Sélectionner un parcours",
         "change": "Modifier",
         "clear": "Supprimer",
-        "none": "Aucun itinéraire sélectionné",
-        "hint": "Optionnel: joindre un itinéraire GPX global pour tout le voyage",
-        "selectForTrip": "Sélectionner l'itinéraire du voyage",
-        "selectForStage": "Sélectionner l'itinéraire de l'étape"
+        "none": "Aucun parcours sélectionné",
+        "hint": "Optionnel : associer un parcours GPX global pour tout le voyage",
+        "selectForTrip": "Sélectionner le parcours du voyage",
+        "selectForStage": "Sélectionner le parcours de l'étape"
       },
       "stages": {
         "label": "Étapes",
@@ -90,8 +90,8 @@
           "placeholder": "Décrivez cette étape..."
         },
         "route": {
-          "label": "Itinéraire de l'étape",
-          "none": "Pas d'itinéraire pour cette étape"
+          "label": "Parcours de l'étape",
+          "none": "Pas de parcours pour cette étape"
         }
       },
       "publishAt": {
@@ -153,16 +153,25 @@
   "stage": {
     "startPlace": "Départ",
     "endPlace": "Arrivée",
-    "viewRoute": "Voir l'itinéraire"
+    "viewRoute": "Voir le parcours"
   },
   "card": {
     "participantCount_one": "{{count}} participant",
     "participantCount_other": "{{count}} participants",
+    "participantCount_many": "{{count}} participants",
     "stageCount_one": "{{count}} étape",
-    "stageCount_other": "{{count}} étapes"
+    "stageCount_other": "{{count}} étapes",
+    "stageCount_many": "{{count}} étapes"
   },
   "breadcrumb": {
     "trips": "Voyages"
   },
-  "loading": "Chargement du voyage..."
+  "loading": "Chargement du voyage...",
+  "notifications": {
+    "created": "Voyage créé avec succès",
+    "updated": "Voyage mis à jour avec succès",
+    "deleted": "Voyage supprimé avec succès",
+    "joined": "Inscription au voyage confirmée",
+    "left": "Désinscription du voyage confirmée"
+  }
 }

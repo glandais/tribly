@@ -22,7 +22,7 @@ export function Breadcrumb({ items }: BreadcrumbProps) {
   const previousItem = items.length > 1 ? items[items.length - 2] : null
 
   return (
-    <nav className="mb-6" aria-label="Breadcrumb">
+    <nav className="mb-6" aria-label={t('aria.breadcrumb')}>
       {/* Mobile: Back button */}
       {previousItem && previousItem.path && (
         <Link

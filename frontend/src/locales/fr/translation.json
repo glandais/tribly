@@ -1,0 +1,12 @@
+{
+  "boundary": {
+    "title": "Une erreur est survenue",
+    "message": "Nous sommes désolés, mais quelque chose d'inattendu s'est produit. Veuillez réessayer.",
+    "retry": "Réessayer",
+    "reload": "Recharger la page"
+  },
+  "generic": {
+    "title": "Une erreur est survenue",
+    "retry": "Réessayer"
+  }
+}

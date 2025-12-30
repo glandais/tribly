@@ -5,10 +5,8 @@ export type NotificationType = 'success' | 'error' | 'warning' | 'info'
 export interface Notification {
   id: string
   type: NotificationType
-  message: string
+  translatedMessage: string
   duration?: number // ms, undefined = manual dismiss only
-  translationKey?: string // For i18n messages
-  translationParams?: Record<string, unknown>
 }
 
 interface NotificationState {

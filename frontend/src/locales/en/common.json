@@ -1,4 +1,5 @@
 {
+  "appName": "Tribly",
   "nav": {
     "teams": "Teams",
     "myTeams": "My Teams",
@@ -31,6 +32,7 @@
     "next": "Next",
     "confirm": "Confirm",
     "close": "Close",
+    "dismiss": "Dismiss",
     "loading": "Loading..."
   },
   "status": {
@@ -63,7 +65,9 @@
     "participant_plural": "participants",
     "group": "group",
     "group_plural": "groups",
-    "characters": "characters"
+    "characters": "characters",
+    "km": "km",
+    "m": "m"
   },
   "roles": {
     "ADMIN": "Admin",
@@ -80,6 +84,9 @@
   "memberCount_other": "{{count}} members",
   "unknown": "Unknown",
   "placeholder": {},
+  "error": {
+    "loading": "Error loading data"
+  },
   "editor": {
     "placeholder": "Start writing... Use markdown for formatting",
     "ariaLabel": "Rich text editor",
@@ -142,6 +149,12 @@
     "noRoutes": {
       "ride": "No routes available for this ride",
       "trip": "No routes available for this trip"
-    }
-  }
+    },
+    "noTrackData": "No track data available for this route"
+  },
+  "aria": {
+    "breadcrumb": "Breadcrumb",
+    "closeDialog": "Close dialog"
+  },
+  "groupOrganizer": "Group organizer"
 }

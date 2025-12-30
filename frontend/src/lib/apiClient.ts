@@ -13,6 +13,7 @@ import {
   TripsApi,
 } from '../api/api'
 import { Configuration } from '../api/configuration'
+import i18next from 'i18next'
 import { useAuthStore } from '../store/authStore'
 import { useNotificationStore } from '../store/notificationStore'
 import axios, { AxiosError, AxiosResponse } from 'axios'
@@ -74,22 +75,12 @@ export const unwrapResponse = <T>(promise: Promise<AxiosResponse<T>>): Promise<T
         const apiError = new ApiClientError(axiosError.status || 500, errorData)
 
         // Show error notification (outside React context, direct store access)
-        // Use backend error message if available, otherwise use translation key
-        if (errorData?.message) {
-          useNotificationStore.getState().addNotification({
-            message: errorData.message,
-            type: 'error',
-            duration: 7000,
-          })
-        } else {
-          // Use translation key for fallback errors
-          useNotificationStore.getState().addNotification({
-            message: '',
-            type: 'error',
-            duration: 7000,
-            translationKey: 'api.unknown',
-          })
-        }
+        // Use backend error message if available, otherwise use translated fallback
+        useNotificationStore.getState().addNotification({
+          type: 'error',
+          translatedMessage: errorData?.message || i18next.t('errors:api.unknown'),
+          duration: 7000,
+        })
 
         throw apiError
       }

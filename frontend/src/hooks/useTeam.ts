@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
+import i18next from 'i18next'
 import { teamsApi, teamMembersApi, unwrapResponse } from '../lib/apiClient'
 import { useAuthStore } from '../store/authStore'
 import { useNotificationStore } from '../store/notificationStore'
@@ -79,10 +80,9 @@ export function useCreateTeam() {
 
       // Show success notification
       useNotificationStore.getState().addNotification({
-        message: '',
         type: 'success',
+        translatedMessage: i18next.t('teams:notifications.created'),
         duration: 4000,
-        translationKey: 'notifications.teamCreated',
       })
 
       if (team) {
@@ -107,10 +107,9 @@ export function useUpdateTeam(slug: string) {
 
       // Show success notification
       useNotificationStore.getState().addNotification({
-        message: '',
         type: 'success',
+        translatedMessage: i18next.t('teams:notifications.updated'),
         duration: 4000,
-        translationKey: 'notifications.teamUpdated',
       })
 
       if (team) {
@@ -136,10 +135,9 @@ export function useDeleteTeam(slug: string) {
 
       // Show success notification
       useNotificationStore.getState().addNotification({
-        message: '',
         type: 'success',
+        translatedMessage: i18next.t('teams:notifications.deleted'),
         duration: 4000,
-        translationKey: 'notifications.teamDeleted',
       })
 
       navigate('/teams')
@@ -190,10 +188,9 @@ export function useAddMember(slug: string) {
 
       // Show success notification
       useNotificationStore.getState().addNotification({
-        message: '',
         type: 'success',
+        translatedMessage: i18next.t('teams:notifications.memberAdded'),
         duration: 4000,
-        translationKey: 'notifications.memberAdded',
       })
     },
   })
@@ -225,10 +222,9 @@ export function useRemoveMember(slug: string) {
 
       // Show success notification
       useNotificationStore.getState().addNotification({
-        message: '',
         type: 'success',
+        translatedMessage: i18next.t('teams:notifications.memberRemoved'),
         duration: 4000,
-        translationKey: 'notifications.memberRemoved',
       })
     },
   })

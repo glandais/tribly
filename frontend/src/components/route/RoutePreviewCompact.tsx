@@ -9,6 +9,7 @@ interface RoutePreviewCompactProps {
 
 export function RoutePreviewCompact({ routeSlug, teamSlug }: RoutePreviewCompactProps) {
   const { t } = useTranslation('routes')
+  const { t: tCommon } = useTranslation('common')
   const { data: route, isLoading } = useRoute(teamSlug, routeSlug)
 
   if (isLoading)
@@ -25,7 +26,8 @@ export function RoutePreviewCompact({ routeSlug, teamSlug }: RoutePreviewCompact
     <div className="text-xs text-gray-600">
       <span className="font-medium">{route.name}</span>
       <span className="ml-2">
-        ({(route.distance / 1000).toFixed(1)} km, {route.elevationGain}m)
+        ({(route.distance / 1000).toFixed(1)} {tCommon('units.km')}, {route.elevationGain}
+        {tCommon('units.m')})
       </span>
     </div>
   )

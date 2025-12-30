@@ -169,5 +169,16 @@
   "breadcrumb": {
     "rides": "Rides"
   },
-  "loading": "Loading ride..."
+  "loading": "Loading ride...",
+  "notifications": {
+    "created": "Ride created successfully",
+    "updated": "Ride updated successfully",
+    "deleted": "Ride deleted successfully",
+    "cancelled": "Ride cancelled successfully",
+    "joined": "Successfully joined the ride",
+    "left": "Successfully left the ride",
+    "groupCreated": "Group created successfully",
+    "groupUpdated": "Group updated successfully",
+    "groupDeleted": "Group deleted successfully"
+  }
 }

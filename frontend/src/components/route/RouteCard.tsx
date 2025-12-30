@@ -12,6 +12,7 @@ interface RouteCardProps {
 
 export function RouteCard({ route, teamSlug }: RouteCardProps) {
   const { t } = useTranslation('routes')
+  const { t: tCommon } = useTranslation('common')
 
   const distanceIcon = <MapIcon />
   const elevationIcon = <ArrowUpIcon />
@@ -40,8 +41,13 @@ export function RouteCard({ route, teamSlug }: RouteCardProps) {
         </div>
 
         <StatGroup className="mb-3">
-          <Stat icon={distanceIcon}>{(route.distance / 1000).toFixed(1)} km</Stat>
-          <Stat icon={elevationIcon}>{route.elevationGain}m</Stat>
+          <Stat icon={distanceIcon}>
+            {(route.distance / 1000).toFixed(1)} {tCommon('units.km')}
+          </Stat>
+          <Stat icon={elevationIcon}>
+            {route.elevationGain}
+            {tCommon('units.m')}
+          </Stat>
         </StatGroup>
 
         <div className="flex flex-wrap gap-2">

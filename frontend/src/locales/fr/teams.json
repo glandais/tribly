@@ -67,12 +67,13 @@
       "rides": "Sorties",
       "trips": "Voyages",
       "posts": "Publications",
-      "routes": "Itinéraires",
+      "routes": "Parcours",
       "members": "Membres"
     },
     "info": {
       "memberCount_one": "{{count}} membre",
       "memberCount_other": "{{count}} membres",
+      "memberCount_many": "{{count}} membres",
       "created": "Créé le {{date}}"
     },
     "actions": {
@@ -131,7 +132,7 @@
       "title": "Zone de danger",
       "description": "Une fois que vous supprimez une équipe, il n'y a pas de retour en arrière. Soyez certain.",
       "deleteTeam": "Supprimer l'équipe",
-      "deleteWarning": "Êtes-vous sûr de vouloir supprimer <strong>{{teamName}}</strong> ? Cette action est irréversible et supprimera toutes les données de l'équipe, y compris les sorties et les itinéraires.",
+      "deleteWarning": "Êtes-vous sûr de vouloir supprimer <strong>{{teamName}}</strong> ? Cette action est irréversible et supprimera toutes les données de l'équipe, y compris les sorties et les parcours.",
       "confirmDelete": "Oui, supprimer l'équipe",
       "deleting": "Suppression..."
     }
@@ -186,5 +187,15 @@
       "message": "Êtes-vous sûr de vouloir supprimer ce lieu ? Cette action est irréversible.",
       "confirm": "Supprimer"
     }
+  },
+  "notifications": {
+    "created": "Équipe créée avec succès",
+    "updated": "Équipe mise à jour avec succès",
+    "deleted": "Équipe supprimée avec succès",
+    "memberAdded": "Membre ajouté à l'équipe",
+    "memberRemoved": "Membre retiré de l'équipe",
+    "placeCreated": "Lieu créé avec succès",
+    "placeUpdated": "Lieu mis à jour avec succès",
+    "placeDeleted": "Lieu supprimé avec succès"
   }
 }

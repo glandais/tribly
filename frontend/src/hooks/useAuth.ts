@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import i18next from 'i18next'
 import { useAuthStore } from '../store/authStore'
 import { useNotificationStore } from '../store/notificationStore'
 import { usersApi, unwrapResponse } from '../lib/apiClient'
@@ -73,10 +74,9 @@ export function useAuth() {
 
       // Show success notification
       useNotificationStore.getState().addNotification({
-        message: '',
         type: 'success',
+        translatedMessage: i18next.t('profile:notifications.updated'),
         duration: 4000,
-        translationKey: 'notifications.profileUpdated',
       })
     },
   })
@@ -88,10 +88,9 @@ export function useAuth() {
     onSuccess: () => {
       // Show success notification before logout
       useNotificationStore.getState().addNotification({
-        message: '',
         type: 'success',
+        translatedMessage: i18next.t('profile:notifications.accountDeleted'),
         duration: 4000,
-        translationKey: 'notifications.accountDeleted',
       })
 
       logout()

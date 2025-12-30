@@ -150,7 +150,7 @@ export function RouteDetailPage() {
             <div>
               <p className="text-sm text-gray-500">{t('detail.stats.distance')}</p>
               <p className="text-2xl font-bold text-gray-900">
-                {(route.distance / 1000).toFixed(1)} km
+                {(route.distance / 1000).toFixed(1)} {tCommon('units.km')}
               </p>
             </div>
           </div>
@@ -161,7 +161,10 @@ export function RouteDetailPage() {
             <ArrowUpIcon className="h-8 w-8 text-green-600 mr-3" />
             <div>
               <p className="text-sm text-gray-500">{t('detail.stats.elevationGain')}</p>
-              <p className="text-2xl font-bold text-gray-900">{route.elevationGain}m</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {route.elevationGain}
+                {tCommon('units.m')}
+              </p>
             </div>
           </div>
         </div>
@@ -171,7 +174,10 @@ export function RouteDetailPage() {
             <ArrowDownIcon className="h-8 w-8 text-red-600 mr-3" />
             <div>
               <p className="text-sm text-gray-500">{t('detail.stats.elevationLoss')}</p>
-              <p className="text-2xl font-bold text-gray-900">{route.elevationLoss}m</p>
+              <p className="text-2xl font-bold text-gray-900">
+                {route.elevationLoss}
+                {tCommon('units.m')}
+              </p>
             </div>
           </div>
         </div>
@@ -239,7 +245,10 @@ export function RouteDetailPage() {
                 <div className="grid grid-cols-3 gap-4 text-sm">
                   <div>
                     <span className="text-gray-500">{t('detail.climbs.gain')}: </span>
-                    <span className="font-medium text-gray-900">{climb.elevationGain}m</span>
+                    <span className="font-medium text-gray-900">
+                      {climb.elevationGain}
+                      {tCommon('units.m')}
+                    </span>
                   </div>
                   <div>
                     <span className="text-gray-500">{t('detail.climbs.avgGradient')}: </span>

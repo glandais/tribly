@@ -159,11 +159,24 @@
   "card": {
     "participantCount_one": "{{count}} participant",
     "participantCount_other": "{{count}} participants",
+    "participantCount_many": "{{count}} participants",
     "groupCount_one": "{{count}} groupe",
-    "groupCount_other": "{{count}} groupes"
+    "groupCount_other": "{{count}} groupes",
+    "groupCount_many": "{{count}} groupes"
   },
   "breadcrumb": {
     "rides": "Sorties"
   },
-  "loading": "Chargement de la sortie..."
+  "loading": "Chargement de la sortie...",
+  "notifications": {
+    "created": "Sortie créée avec succès",
+    "updated": "Sortie mise à jour avec succès",
+    "deleted": "Sortie supprimée avec succès",
+    "cancelled": "Sortie annulée avec succès",
+    "joined": "Inscription à la sortie confirmée",
+    "left": "Désinscription de la sortie confirmée",
+    "groupCreated": "Groupe créé avec succès",
+    "groupUpdated": "Groupe mis à jour avec succès",
+    "groupDeleted": "Groupe supprimé avec succès"
+  }
 }

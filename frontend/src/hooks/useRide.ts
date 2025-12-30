@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
+import i18next from 'i18next'
 import { ridesApi, unwrapResponse } from '../lib/apiClient'
 import { useNotificationStore } from '../store/notificationStore'
 import type {
@@ -74,10 +75,9 @@ export function useCreateRide(teamSlug: string | undefined) {
 
       // Show success notification
       useNotificationStore.getState().addNotification({
-        message: '',
         type: 'success',
+        translatedMessage: i18next.t('rides:notifications.created'),
         duration: 4000,
-        translationKey: 'notifications.rideCreated',
       })
 
       if (ride) {
@@ -101,10 +101,9 @@ export function useUpdateRide(teamSlug: string | undefined, rideSlug: string) {
 
       // Show success notification
       useNotificationStore.getState().addNotification({
-        message: '',
         type: 'success',
+        translatedMessage: i18next.t('rides:notifications.updated'),
         duration: 4000,
-        translationKey: 'notifications.rideUpdated',
       })
     },
   })
@@ -124,10 +123,9 @@ export function useDeleteRide(teamSlug: string | undefined) {
 
       // Show success notification
       useNotificationStore.getState().addNotification({
-        message: '',
         type: 'success',
+        translatedMessage: i18next.t('rides:notifications.deleted'),
         duration: 4000,
-        translationKey: 'notifications.rideDeleted',
       })
 
       navigate(`/teams/${teamSlug}/rides`)
@@ -150,10 +148,9 @@ export function useJoinRide(teamSlug: string | undefined, rideSlug: string) {
 
       // Show success notification
       useNotificationStore.getState().addNotification({
-        message: '',
         type: 'success',
+        translatedMessage: i18next.t('rides:notifications.joined'),
         duration: 4000,
-        translationKey: 'notifications.rideJoined',
       })
     },
   })
@@ -174,10 +171,9 @@ export function useLeaveRide(teamSlug: string | undefined, rideSlug: string) {
 
       // Show success notification
       useNotificationStore.getState().addNotification({
-        message: '',
         type: 'success',
+        translatedMessage: i18next.t('rides:notifications.left'),
         duration: 4000,
-        translationKey: 'notifications.rideLeft',
       })
     },
   })

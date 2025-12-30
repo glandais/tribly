@@ -14,7 +14,7 @@
   },
   "list": {
     "title": "Routes",
-    "subtitle": "GPX routes and itineraries for the team",
+    "subtitle": "GPX routes for the team",
     "createRoute": "Create route",
     "search": {
       "label": "Search routes",
@@ -51,6 +51,7 @@
     "title": "Edit route",
     "subtitle": "Edit route information",
     "backToDetail": "Back to route",
+    "submit": "Save changes",
     "form": {
       "gpxFile": "GPX File (to replace existing)",
       "gpxFileHint": ".gpx format only, maximum size 10 MB",
@@ -107,5 +108,10 @@
   "preview": {
     "loading": "Loading...",
     "notFound": "Route not found"
+  },
+  "notifications": {
+    "created": "Route created successfully",
+    "updated": "Route updated successfully",
+    "deleted": "Route deleted successfully"
   }
 }

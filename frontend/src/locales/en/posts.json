@@ -72,5 +72,10 @@
     "newPost": "New Post",
     "editPost": "Edit"
   },
-  "loading": "Loading..."
+  "loading": "Loading...",
+  "notifications": {
+    "created": "Post created successfully",
+    "updated": "Post updated successfully",
+    "deleted": "Post deleted successfully"
+  }
 }

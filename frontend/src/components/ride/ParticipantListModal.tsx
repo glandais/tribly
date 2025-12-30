@@ -24,7 +24,7 @@ export function ParticipantListModal({
   participants,
   groupName,
 }: ParticipantListModalProps) {
-  const { t } = useTranslation('rides')
+  const { t } = useTranslation(['rides', 'common'])
 
   // Handle escape key and body scroll lock
   useEffect(() => {
@@ -84,7 +84,7 @@ export function ParticipantListModal({
               <button
                 onClick={onClose}
                 className="ml-4 flex-shrink-0 rounded-lg p-1.5 text-gray-400 transition-all hover:bg-white hover:text-gray-600 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                aria-label="Close dialog"
+                aria-label={t('common:aria.closeDialog')}
               >
                 <XMarkIcon className="h-5 w-5" />
               </button>
@@ -115,7 +115,7 @@ export function ParticipantListModal({
                       {participant.isOrganizer && (
                         <div
                           className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-indigo-600 ring-2 ring-white shadow-sm"
-                          title="Organizer"
+                          title={t('common:roles.ORGANIZER')}
                         >
                           <ShieldCheckIcon className="h-3 w-3 text-white" />
                         </div>
@@ -128,7 +128,7 @@ export function ParticipantListModal({
                         {participant.displayName}
                       </p>
                       {participant.isOrganizer && (
-                        <p className="text-xs text-gray-500 mt-0.5">Group organizer</p>
+                        <p className="text-xs text-gray-500 mt-0.5">{t('common:groupOrganizer')}</p>
                       )}
                     </div>
 

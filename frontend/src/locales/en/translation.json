@@ -1,0 +1,12 @@
+{
+  "boundary": {
+    "title": "Something went wrong",
+    "message": "We're sorry, but something unexpected happened. Please try again.",
+    "retry": "Try again",
+    "reload": "Reload page"
+  },
+  "generic": {
+    "title": "An error occurred",
+    "retry": "Retry"
+  }
+}

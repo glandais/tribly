@@ -14,7 +14,7 @@
   },
   "list": {
     "title": "Parcours",
-    "subtitle": "Parcours et itinéraires GPX pour l'équipe",
+    "subtitle": "Parcours GPX de l'équipe",
     "createRoute": "Créer un parcours",
     "search": {
       "label": "Rechercher des parcours",
@@ -51,6 +51,7 @@
     "title": "Modifier le parcours",
     "subtitle": "Modifier les informations du parcours",
     "backToDetail": "Retour au parcours",
+    "submit": "Enregistrer les modifications",
     "form": {
       "gpxFile": "Fichier GPX (pour remplacer l'existant)",
       "gpxFileHint": "Format .gpx uniquement, taille maximale 10 Mo",
@@ -107,5 +108,10 @@
   "preview": {
     "loading": "Chargement...",
     "notFound": "Parcours non trouvé"
+  },
+  "notifications": {
+    "created": "Parcours créé avec succès",
+    "updated": "Parcours mis à jour avec succès",
+    "deleted": "Parcours supprimé avec succès"
   }
 }

@@ -164,5 +164,12 @@
   "breadcrumb": {
     "trips": "Trips"
   },
-  "loading": "Loading trip..."
+  "loading": "Loading trip...",
+  "notifications": {
+    "created": "Trip created successfully",
+    "updated": "Trip updated successfully",
+    "deleted": "Trip deleted successfully",
+    "joined": "Successfully joined the trip",
+    "left": "Successfully left the trip"
+  }
 }

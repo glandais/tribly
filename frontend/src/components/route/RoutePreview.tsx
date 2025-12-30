@@ -10,6 +10,7 @@ interface RoutePreviewProps {
 
 export function RoutePreview({ routeSlug, teamSlug }: RoutePreviewProps) {
   const { t } = useTranslation('routes')
+  const { t: tCommon } = useTranslation('common')
   const { data: route, isLoading } = useRoute(teamSlug, routeSlug)
 
   if (isLoading)
@@ -34,11 +35,12 @@ export function RoutePreview({ routeSlug, teamSlug }: RoutePreviewProps) {
         <div className="flex gap-3 mt-1 text-xs text-gray-500">
           <span className="flex items-center gap-1">
             <ArrowsPointingOutIcon className="w-3.5 h-3.5" />
-            {(route.distance / 1000).toFixed(1)} km
+            {(route.distance / 1000).toFixed(1)} {tCommon('units.km')}
           </span>
           <span className="flex items-center gap-1">
             <ArrowUpIcon className="w-3.5 h-3.5" />
-            {route.elevationGain}m
+            {route.elevationGain}
+            {tCommon('units.m')}
           </span>
         </div>
       </div>

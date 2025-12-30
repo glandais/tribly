@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
+import i18next from 'i18next'
 import { tripsApi, unwrapResponse } from '../lib/apiClient'
 import { useNotificationStore } from '../store/notificationStore'
 import type {
@@ -72,10 +73,9 @@ export function useCreateTrip(teamSlug: string | undefined) {
 
       // Show success notification
       useNotificationStore.getState().addNotification({
-        message: '',
         type: 'success',
+        translatedMessage: i18next.t('trips:notifications.created'),
         duration: 4000,
-        translationKey: 'notifications.tripCreated',
       })
 
       if (trip) {
@@ -99,10 +99,9 @@ export function useUpdateTrip(teamSlug: string | undefined, tripSlug: string) {
 
       // Show success notification
       useNotificationStore.getState().addNotification({
-        message: '',
         type: 'success',
+        translatedMessage: i18next.t('trips:notifications.updated'),
         duration: 4000,
-        translationKey: 'notifications.tripUpdated',
       })
     },
   })
@@ -122,10 +121,9 @@ export function useDeleteTrip(teamSlug: string | undefined) {
 
       // Show success notification
       useNotificationStore.getState().addNotification({
-        message: '',
         type: 'success',
+        translatedMessage: i18next.t('trips:notifications.deleted'),
         duration: 4000,
-        translationKey: 'notifications.tripDeleted',
       })
 
       navigate(`/teams/${teamSlug}/trips`)
@@ -147,10 +145,9 @@ export function useJoinTrip(teamSlug: string | undefined, tripSlug: string) {
 
       // Show success notification
       useNotificationStore.getState().addNotification({
-        message: '',
         type: 'success',
+        translatedMessage: i18next.t('trips:notifications.joined'),
         duration: 4000,
-        translationKey: 'notifications.tripJoined',
       })
     },
   })
@@ -170,10 +167,9 @@ export function useLeaveTrip(teamSlug: string | undefined, tripSlug: string) {
 
       // Show success notification
       useNotificationStore.getState().addNotification({
-        message: '',
         type: 'success',
+        translatedMessage: i18next.t('trips:notifications.left'),
         duration: 4000,
-        translationKey: 'notifications.tripLeft',
       })
     },
   })

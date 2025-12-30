@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
+import i18next from 'i18next'
 import { routesApi, unwrapResponse } from '../lib/apiClient'
 import { useNotificationStore } from '../store/notificationStore'
 import type {
@@ -64,10 +65,9 @@ export function useCreateRoute(teamSlug: string) {
 
       // Show success notification
       useNotificationStore.getState().addNotification({
-        message: '',
         type: 'success',
+        translatedMessage: i18next.t('routes:notifications.created'),
         duration: 4000,
-        translationKey: 'notifications.routeCreated',
       })
     },
   })
@@ -88,10 +88,9 @@ export function useUpdateRoute(teamSlug: string, routeSlug: string) {
 
       // Show success notification
       useNotificationStore.getState().addNotification({
-        message: '',
         type: 'success',
+        translatedMessage: i18next.t('routes:notifications.updated'),
         duration: 4000,
-        translationKey: 'notifications.routeUpdated',
       })
     },
   })
@@ -110,10 +109,9 @@ export function useDeleteRoute(teamSlug: string) {
 
       // Show success notification
       useNotificationStore.getState().addNotification({
-        message: '',
         type: 'success',
+        translatedMessage: i18next.t('routes:notifications.deleted'),
         duration: 4000,
-        translationKey: 'notifications.routeDeleted',
       })
 
       navigate(`/teams/${teamSlug}/routes`)

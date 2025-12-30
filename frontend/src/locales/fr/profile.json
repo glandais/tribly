@@ -22,5 +22,9 @@
       "confirmMessage": "Êtes-vous sûr ? Cette action est irréversible.",
       "confirmButton": "Oui, supprimer mon compte"
     }
+  },
+  "notifications": {
+    "updated": "Profil mis à jour avec succès",
+    "accountDeleted": "Compte supprimé avec succès"
   }
 }

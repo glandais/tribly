@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import { MapContainer, TileLayer, Polyline, Marker, useMap, useMapEvents } from 'react-leaflet'
 import { LatLngBounds, DivIcon } from 'leaflet'
 import { Line } from 'react-chartjs-2'
@@ -194,6 +195,7 @@ interface RouteMapViewProps {
 }
 
 export function RouteMapView({ route }: RouteMapViewProps) {
+  const { t } = useTranslation('common')
   const [hoveredPointIndex, setHoveredPointIndex] = useState<number>(-1)
   const chartRef = useRef<ChartJS<'line'>>(null)
 
@@ -383,7 +385,7 @@ export function RouteMapView({ route }: RouteMapViewProps) {
   if (trackPoints.length === 0) {
     return (
       <div className="w-full h-[500px] flex items-center justify-center bg-gray-100 rounded">
-        <div className="text-gray-500">No track data available for this route</div>
+        <div className="text-gray-500">{t('map.noTrackData')}</div>
       </div>
     )
   }

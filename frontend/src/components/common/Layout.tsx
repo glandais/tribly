@@ -39,7 +39,7 @@ export function Layout() {
           <div className="flex justify-between h-16">
             <div className="flex items-center">
               <Link to="/" className="shrink-0 flex items-center">
-                <span className="text-2xl font-bold text-indigo-600">Tribly</span>
+                <span className="text-2xl font-bold text-indigo-600">{t('appName')}</span>
               </Link>
               {/* Desktop navigation */}
               <div className="hidden sm:ml-6 sm:flex sm:space-x-8">

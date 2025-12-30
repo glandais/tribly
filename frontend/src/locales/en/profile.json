@@ -22,5 +22,9 @@
       "confirmMessage": "Are you sure? This action cannot be undone.",
       "confirmButton": "Yes, Delete My Account"
     }
+  },
+  "notifications": {
+    "updated": "Profile updated successfully",
+    "accountDeleted": "Account deleted successfully"
   }
 }

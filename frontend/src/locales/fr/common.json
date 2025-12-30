@@ -1,4 +1,5 @@
 {
+  "appName": "Tribly",
   "nav": {
     "teams": "Équipes",
     "myTeams": "Mes équipes",
@@ -7,7 +8,7 @@
     "avatar": "Avatar de",
     "settings": "Paramètres",
     "members": "Membres",
-    "routes": "Itinéraires",
+    "routes": "Parcours",
     "signIn": "Se connecter",
     "signOut": "Se déconnecter",
     "openMenu": "Ouvrir le menu",
@@ -31,6 +32,7 @@
     "next": "Suivant",
     "confirm": "Confirmer",
     "close": "Fermer",
+    "dismiss": "Fermer",
     "loading": "Chargement..."
   },
   "status": {
@@ -63,7 +65,9 @@
     "participant_plural": "participants",
     "group": "groupe",
     "group_plural": "groupes",
-    "characters": "caractères"
+    "characters": "caractères",
+    "km": "km",
+    "m": "m"
   },
   "roles": {
     "ADMIN": "Admin",
@@ -78,8 +82,12 @@
   },
   "memberCount_one": "{{count}} membre",
   "memberCount_other": "{{count}} membres",
+  "memberCount_many": "{{count}} membres",
   "unknown": "Inconnu",
   "placeholder": {},
+  "error": {
+    "loading": "Erreur lors du chargement"
+  },
   "editor": {
     "placeholder": "Commencez à écrire... Utilisez le markdown pour le formatage",
     "ariaLabel": "Éditeur de texte enrichi",
@@ -138,10 +146,16 @@
     "noResults": "Aucun résultat trouvé"
   },
   "map": {
-    "loading": "Chargement des itinéraires...",
+    "loading": "Chargement des parcours...",
     "noRoutes": {
-      "ride": "Aucun itinéraire disponible pour cette sortie",
-      "trip": "Aucun itinéraire disponible pour ce voyage"
-    }
-  }
+      "ride": "Aucun parcours disponible pour cette sortie",
+      "trip": "Aucun parcours disponible pour ce voyage"
+    },
+    "noTrackData": "Aucune donnée de tracé disponible pour ce parcours"
+  },
+  "aria": {
+    "breadcrumb": "Fil d'Ariane",
+    "closeDialog": "Fermer la fenêtre"
+  },
+  "groupOrganizer": "Organisateur du groupe"
 }

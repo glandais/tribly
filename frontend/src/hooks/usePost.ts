@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
+import i18next from 'i18next'
 import { postsApi, unwrapResponse } from '../lib/apiClient'
 import { useNotificationStore } from '../store/notificationStore'
 import type { PostDto, PostListResponse, PostRequest } from '../api/api'
@@ -58,10 +59,9 @@ export function useCreatePost(teamSlug: string | undefined) {
 
       // Show success notification
       useNotificationStore.getState().addNotification({
-        message: '',
         type: 'success',
+        translatedMessage: i18next.t('posts:notifications.created'),
         duration: 4000,
-        translationKey: 'notifications.postCreated',
       })
 
       if (post) {
@@ -85,10 +85,9 @@ export function useUpdatePost(teamSlug: string | undefined, postSlug: string) {
 
       // Show success notification
       useNotificationStore.getState().addNotification({
-        message: '',
         type: 'success',
+        translatedMessage: i18next.t('posts:notifications.updated'),
         duration: 4000,
-        translationKey: 'notifications.postUpdated',
       })
     },
   })
@@ -108,10 +107,9 @@ export function useDeletePost(teamSlug: string | undefined) {
 
       // Show success notification
       useNotificationStore.getState().addNotification({
-        message: '',
         type: 'success',
+        translatedMessage: i18next.t('posts:notifications.deleted'),
         duration: 4000,
-        translationKey: 'notifications.postDeleted',
       })
 
       navigate(`/teams/${teamSlug}/posts`)
