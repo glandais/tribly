@@ -1,45 +1,12 @@
 {
   "api": {
-    "failedToDelete": "Failed to delete",
     "failedToLoad": "Failed to load data",
-    "failedToSave": "Failed to save",
-    "forbidden": "You don't have permission to perform this action.",
-    "networkError": "Network error. Please check your connection.",
     "notFound": "The requested resource was not found.",
-    "serverError": "Server error. Please try again later.",
-    "unauthorized": "You must be logged in to perform this action.",
     "unknown": "An unexpected error occurred"
-  },
-  "boundary": {
-    "message": "We're sorry, but something unexpected happened. Please try again.",
-    "reload": "Reload page",
-    "retry": "Try again",
-    "title": "Something went wrong"
-  },
-  "forbidden": {
-    "message": "You don't have access to this resource.",
-    "title": "Access Denied"
-  },
-  "generic": {
-    "message": "Something went wrong. Please try again.",
-    "retry": "Retry",
-    "title": "An error occurred"
-  },
-  "network": {
-    "message": "Unable to connect to the server. Check your internet connection.",
-    "title": "Connection Error"
   },
   "notFound": {
     "backHome": "Back to Home",
     "message": "Page not found",
     "title": "404"
-  },
-  "unauthorized": {
-    "message": "You don't have permission to perform this action.",
-    "title": "Unauthorized"
-  },
-  "validation": {
-    "checkFields": "Please check the form fields.",
-    "title": "Validation Error"
   }
 }

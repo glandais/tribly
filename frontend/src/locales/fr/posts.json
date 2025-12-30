@@ -1,27 +1,19 @@
 {
   "breadcrumb": {
-    "editPost": "Modifier",
-    "newPost": "Nouvelle publication",
     "posts": "Publications"
   },
-  "card": {
-    "publishedOn": "Publié le {{date}}"
-  },
   "create": {
-    "cancel": "Annuler",
     "dateTimeHint": "Date et heure de la publication",
     "dateTimeLabel": "Date et heure",
     "descriptionLabel": "Description",
     "descriptionPlaceholder": "Décrivez votre publication...",
-    "error": "Une erreur est survenue lors de la création de la publication",
     "nameLabel": "Titre",
     "namePlaceholder": "Entrez le titre de la publication",
     "publishAtHint": "Définissez une date/heure pour une publication automatique",
     "publishAtLabel": "Publication programmée",
     "statusLabel": "Statut",
     "submit": "Créer la publication",
-    "title": "Nouvelle publication",
-    "visibilityLabel": "Visibilité"
+    "title": "Nouvelle publication"
   },
   "detail": {
     "actions": {
@@ -35,7 +27,6 @@
     "confirmations": {
       "cancel": "Voulez-vous annuler cette publication ? Elle ne sera plus visible.",
       "delete": "Voulez-vous vraiment supprimer cette publication ? Cette action est irréversible.",
-      "publish": "Voulez-vous publier cette publication ? Elle sera visible selon les paramètres de visibilité.",
       "uncancel": "Voulez-vous réactiver cette publication ? Elle sera à nouveau publiée.",
       "unpublish": "Voulez-vous dépublier cette publication ? Elle redeviendra un brouillon."
     },
@@ -68,14 +59,7 @@
     "updated": "Publication mise à jour avec succès"
   },
   "status": {
-    "CANCELLED": "Annulé",
-    "COMPLETED": "Terminé",
     "DRAFT": "Brouillon",
     "PUBLISHED": "Publié"
-  },
-  "visibility": {
-    "PRIVATE": "Privé",
-    "PUBLIC": "Public",
-    "TEAM": "Équipe"
   }
 }

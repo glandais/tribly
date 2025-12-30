@@ -1,45 +1,12 @@
 {
   "api": {
-    "failedToDelete": "Échec de la suppression",
     "failedToLoad": "Échec du chargement des données",
-    "failedToSave": "Échec de l'enregistrement",
-    "forbidden": "Vous n'avez pas la permission d'effectuer cette action.",
-    "networkError": "Erreur réseau. Veuillez vérifier votre connexion.",
     "notFound": "La ressource demandée est introuvable.",
-    "serverError": "Erreur serveur. Veuillez réessayer plus tard.",
-    "unauthorized": "Vous devez être connecté pour effectuer cette action.",
     "unknown": "Une erreur inattendue s'est produite"
-  },
-  "boundary": {
-    "message": "Nous sommes désolés, mais quelque chose d'inattendu s'est produit. Veuillez réessayer.",
-    "reload": "Recharger la page",
-    "retry": "Réessayer",
-    "title": "Une erreur est survenue"
-  },
-  "forbidden": {
-    "message": "Vous n'avez pas accès à cette ressource.",
-    "title": "Accès refusé"
-  },
-  "generic": {
-    "message": "Quelque chose s'est mal passé. Veuillez réessayer.",
-    "retry": "Réessayer",
-    "title": "Une erreur est survenue"
-  },
-  "network": {
-    "message": "Impossible de se connecter au serveur. Vérifiez votre connexion internet.",
-    "title": "Erreur de connexion"
   },
   "notFound": {
     "backHome": "Retour à l'accueil",
     "message": "Page non trouvée",
     "title": "404"
-  },
-  "unauthorized": {
-    "message": "Vous n'avez pas la permission d'effectuer cette action.",
-    "title": "Non autorisé"
-  },
-  "validation": {
-    "checkFields": "Veuillez vérifier les champs du formulaire.",
-    "title": "Erreur de validation"
   }
 }

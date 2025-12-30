@@ -1,11 +1,4 @@
 {
-  "climbCategory": {
-    "CAT1": "Category 1",
-    "CAT2": "Category 2",
-    "CAT3": "Category 3",
-    "CAT4": "Category 4",
-    "HC": "Hors Catégorie"
-  },
   "create": {
     "backToList": "Back to routes",
     "form": {
@@ -13,9 +6,7 @@
       "gpxFile": "GPX File",
       "gpxFileHint": ".gpx format only, maximum size 10 MB",
       "name": "Route name",
-      "surfaceType": "Surface type",
-      "visibility": "Visibility",
-      "visibilityDisabledHint": "Routes in a team-only team cannot be public"
+      "surfaceType": "Surface type"
     },
     "submit": "Create route",
     "subtitle": "Upload a GPX file to create a new route",
@@ -63,15 +54,6 @@
   },
   "edit": {
     "backToDetail": "Back to route",
-    "form": {
-      "description": "Description",
-      "gpxFile": "GPX File (to replace existing)",
-      "gpxFileHint": ".gpx format only, maximum size 10 MB",
-      "name": "Route name",
-      "surfaceType": "Surface type",
-      "visibility": "Visibility",
-      "visibilityDisabledHint": "Routes in a team-only team cannot be public"
-    },
     "submit": "Save changes",
     "subtitle": "Edit route information",
     "title": "Edit route"
@@ -88,7 +70,6 @@
       "label": "Search routes",
       "placeholder": "Search by name or description..."
     },
-    "subtitle": "GPX routes for the team",
     "title": "Routes"
   },
   "notifications": {

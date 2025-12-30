@@ -1,26 +1,14 @@
 {
-  "card": {
-    "memberCount": "{{count}} member",
-    "memberCount_plural": "{{count}} members"
-  },
   "create": {
     "backToTeams": "Back to Teams",
     "button": "Create Team",
     "creating": "Creating...",
-    "error": "Failed to create team. Please try again.",
     "form": {
       "description": {
-        "charCount": "{{count}}/{{max}} characters",
-        "label": "Description",
         "placeholder": "Describe your team, riding style, or community..."
       },
       "name": {
-        "label": "Team Name",
         "placeholder": "Enter team name"
-      },
-      "visibility": {
-        "hint": "Control who can find and join this team",
-        "label": "Team Visibility"
       }
     },
     "subtitle": "Start your cycling community and invite others to join",
@@ -32,12 +20,7 @@
       "edit": "Edit",
       "join": "Join Team",
       "joining": "Joining...",
-      "leave": "Leave Team",
-      "leaving": "Leaving..."
-    },
-    "error": {
-      "message": "There was an error loading this team. Please try again.",
-      "title": "Error Loading Team"
+      "leave": "Leave Team"
     },
     "info": {
       "created": "Created {{date}}",
@@ -61,9 +44,7 @@
       "you": "(you)"
     },
     "notFound": {
-      "backToTeams": "Back to Teams",
-      "message": "The team you're looking for doesn't exist or has been removed.",
-      "title": "Team Not Found"
+      "backToTeams": "Back to Teams"
     },
     "tabs": {
       "members": "Members",
@@ -78,7 +59,6 @@
     "createTeam": "Create Team",
     "empty": {
       "createAction": "Create a Team",
-      "myTeams": "You haven't joined any teams yet.",
       "publicTeams": "No public teams match your search.",
       "title": "No teams found"
     },
@@ -87,10 +67,6 @@
       "placeholder": "Search teams..."
     },
     "subtitle": "Browse cycling teams or create your own",
-    "tabs": {
-      "my": "My Teams",
-      "public": "Public Teams"
-    },
     "title": "Teams"
   },
   "myTeams": {
@@ -166,7 +142,6 @@
       "confirmDelete": "Yes, Delete Team",
       "deleteTeam": "Delete Team",
       "deleteWarning": "Are you sure you want to delete <strong>{{teamName}}</strong>? This action cannot be undone and will remove all team data including rides and routes.",
-      "deleting": "Deleting...",
       "description": "Once you delete a team, there is no going back. Please be certain.",
       "title": "Danger Zone"
     },
@@ -178,23 +153,13 @@
     },
     "form": {
       "description": {
-        "charCount": "{{count}}/{{max}} characters",
         "label": "Description"
-      },
-      "name": {
-        "label": "Team Name"
-      },
-      "visibility": {
-        "hint": "Control who can find and join this team",
-        "label": "Team Visibility"
       }
     },
     "loading": "Loading team settings...",
     "saveChanges": "Save Changes",
     "saving": "Saving...",
     "subtitle": "Manage your team's profile and settings",
-    "success": "Team settings updated successfully!",
-    "title": "Team Settings",
-    "updateError": "Failed to update team. Please try again."
+    "title": "Team Settings"
   }
 }

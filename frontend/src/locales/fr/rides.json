@@ -3,17 +3,16 @@
     "rides": "Sorties"
   },
   "card": {
-    "groupCount_many": "{{count}} groupes",
     "groupCount_one": "{{count}} groupe",
+    "groupCount_many": "{{count}} groupes",
     "groupCount_other": "{{count}} groupes",
-    "participantCount_many": "{{count}} participants",
     "participantCount_one": "{{count}} participant",
+    "participantCount_many": "{{count}} participants",
     "participantCount_other": "{{count}} participants"
   },
   "create": {
     "backToRides": "Retour aux sorties",
     "button": "Créer la sortie",
-    "creating": "Création...",
     "error": "Échec de la création de la sortie. Veuillez réessayer.",
     "form": {
       "date": {
@@ -75,9 +74,7 @@
       "title": {
         "label": "Titre de la sortie",
         "placeholder": "ex. Sortie du dimanche matin"
-      },
-      "visibility": "Visibilité",
-      "visibilityDisabledHint": "Les parcours d'une équipe privée ne peuvent pas être publics"
+      }
     },
     "subtitle": "Planifiez une sortie pour {{teamName}}",
     "title": "Créer une sortie"
@@ -130,8 +127,6 @@
   "edit": {
     "backToRide": "Retour à la sortie",
     "button": "Enregistrer les modifications",
-    "error": "Échec de la mise à jour de la sortie. Veuillez réessayer.",
-    "saving": "Enregistrement...",
     "subtitle": "Modifier les détails de la sortie pour {{teamName}}",
     "title": "Modifier la sortie"
   },
@@ -145,38 +140,25 @@
     },
     "noResults": "Aucune sortie ne correspond à votre recherche.",
     "notFound": {
-      "backToTeams": "Retour aux équipes",
-      "message": "L'équipe que vous recherchez n'existe pas.",
       "title": "Équipe non trouvée"
     },
     "search": {
       "label": "Rechercher des sorties",
       "placeholder": "Rechercher par titre ou description..."
     },
-    "subtitle": "Sorties à venir et passées pour {{teamName}}",
     "title": "Sorties"
   },
-  "loading": "Chargement de la sortie...",
+  "loading": "Chargement...",
   "notifications": {
-    "cancelled": "Sortie annulée avec succès",
     "created": "Sortie créée avec succès",
     "deleted": "Sortie supprimée avec succès",
-    "groupCreated": "Groupe créé avec succès",
-    "groupDeleted": "Groupe supprimé avec succès",
-    "groupUpdated": "Groupe mis à jour avec succès",
     "joined": "Inscription à la sortie confirmée",
     "left": "Désinscription de la sortie confirmée",
     "updated": "Sortie mise à jour avec succès"
   },
   "status": {
-    "CANCELLED": "Annulée",
-    "COMPLETED": "Terminée",
+    "CANCELLED": "Annulé",
     "DRAFT": "Brouillon",
-    "PUBLISHED": "Publiée"
-  },
-  "visibility": {
-    "PRIVATE": "Privée",
-    "PUBLIC": "Publique",
-    "TEAM": "Équipe uniquement"
+    "PUBLISHED": "Publié"
   }
 }

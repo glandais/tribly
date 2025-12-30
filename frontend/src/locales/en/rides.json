@@ -11,7 +11,6 @@
   "create": {
     "backToRides": "Back to Rides",
     "button": "Create Ride",
-    "creating": "Creating...",
     "error": "Failed to create ride. Please try again.",
     "form": {
       "date": {
@@ -73,12 +72,6 @@
       "title": {
         "label": "Ride Title",
         "placeholder": "e.g., Sunday Morning Ride"
-      },
-      "visibility": {
-        "label": "Visibility",
-        "privateTeamHint": "Public rides are not available for private teams",
-        "public": "Public",
-        "team": "Team only"
       }
     },
     "subtitle": "Plan a ride for {{teamName}}",
@@ -132,8 +125,6 @@
   "edit": {
     "backToRide": "Back to Ride",
     "button": "Save Changes",
-    "error": "Failed to update ride. Please try again.",
-    "saving": "Saving...",
     "subtitle": "Update ride details for {{teamName}}",
     "title": "Edit Ride"
   },
@@ -147,38 +138,25 @@
     },
     "noResults": "No rides found matching your search.",
     "notFound": {
-      "backToTeams": "Back to Teams",
-      "message": "The team you're looking for doesn't exist.",
       "title": "Team Not Found"
     },
     "search": {
       "label": "Search rides",
       "placeholder": "Search by title or description..."
     },
-    "subtitle": "Upcoming and past rides for {{teamName}}",
     "title": "Rides"
   },
   "loading": "Loading ride...",
   "notifications": {
-    "cancelled": "Ride cancelled successfully",
     "created": "Ride created successfully",
     "deleted": "Ride deleted successfully",
-    "groupCreated": "Group created successfully",
-    "groupDeleted": "Group deleted successfully",
-    "groupUpdated": "Group updated successfully",
     "joined": "Successfully joined the ride",
     "left": "Successfully left the ride",
     "updated": "Ride updated successfully"
   },
   "status": {
     "CANCELLED": "Cancelled",
-    "COMPLETED": "Completed",
     "DRAFT": "Draft",
     "PUBLISHED": "Published"
-  },
-  "visibility": {
-    "PRIVATE": "Private",
-    "PUBLIC": "Public",
-    "TEAM": "Team only"
   }
 }

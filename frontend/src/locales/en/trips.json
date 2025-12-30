@@ -11,7 +11,6 @@
   "create": {
     "backToTrips": "Back to Trips",
     "button": "Create Trip",
-    "creating": "Creating...",
     "error": "Failed to create trip. Please try again.",
     "form": {
       "date": {
@@ -71,12 +70,6 @@
       "title": {
         "label": "Trip Title",
         "placeholder": "e.g., Alps Cycling Adventure"
-      },
-      "visibility": {
-        "label": "Visibility",
-        "privateTeamHint": "Public trips are not available for private teams",
-        "public": "Public",
-        "team": "Team only"
       }
     },
     "subtitle": "Plan a multi-day trip for {{teamName}}",
@@ -124,8 +117,6 @@
   "edit": {
     "backToTrip": "Back to Trip",
     "button": "Save Changes",
-    "error": "Failed to update trip. Please try again.",
-    "saving": "Saving...",
     "subtitle": "Update trip details for {{teamName}}",
     "title": "Edit Trip"
   },
@@ -139,15 +130,12 @@
     },
     "noResults": "No trips found matching your search.",
     "notFound": {
-      "backToTeams": "Back to Teams",
-      "message": "The team you're looking for doesn't exist.",
       "title": "Team Not Found"
     },
     "search": {
       "label": "Search trips",
       "placeholder": "Search by title or description..."
     },
-    "subtitle": "Upcoming and past trips for {{teamName}}",
     "title": "Trips"
   },
   "loading": "Loading trip...",
@@ -167,9 +155,5 @@
     "CANCELLED": "Cancelled",
     "DRAFT": "Draft",
     "PUBLISHED": "Published"
-  },
-  "visibility": {
-    "PUBLIC": "Public",
-    "TEAM": "Team only"
   }
 }

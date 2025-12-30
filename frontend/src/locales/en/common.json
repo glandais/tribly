@@ -16,7 +16,6 @@
   },
   "autocomplete": {
     "noPlacesFound": "No places found",
-    "noResults": "No results found",
     "noUsersFound": "No users found",
     "searchPlaces": "Search places...",
     "searchUsers": "Search users..."
@@ -24,9 +23,7 @@
   "buttons": {
     "back": "Back",
     "cancel": "Cancel",
-    "close": "Close",
     "confirm": "Confirm",
-    "create": "Create",
     "delete": "Delete",
     "dismiss": "Dismiss",
     "edit": "Edit",
@@ -36,33 +33,8 @@
     "save": "Save"
   },
   "editor": {
-    "ariaLabel": "Rich text editor",
-    "bold": "Bold",
-    "bulletList": "Bullet list",
-    "code": "Code",
-    "heading1": "Heading 1",
-    "heading2": "Heading 2",
-    "heading3": "Heading 3",
     "image": "Image",
-    "imageSize": {
-      "full": "Large",
-      "icon": "Extra small",
-      "medium": "Medium",
-      "thumbnail": "Small"
-    },
-    "italic": "Italic",
-    "link": "Link",
-    "linkPrompt": "Enter link URL",
-    "markdownSupported": "Markdown supported",
-    "numberedList": "Numbered list",
-    "placeholder": "Start writing... Use markdown for formatting",
-    "shortcuts": {
-      "bold": "bold",
-      "heading": "heading",
-      "hint": "Markdown shortcuts",
-      "italic": "italic"
-    },
-    "table": "Insert table"
+    "placeholder": "Start writing... Use markdown for formatting"
   },
   "error": {
     "loading": "Error loading data"
@@ -74,8 +46,7 @@
   "images": {
     "loadError": "Error loading image",
     "notFound": "Image not found",
-    "uploadError": "Error uploading image",
-    "uploading": "Uploading image..."
+    "uploadError": "Error uploading image"
   },
   "logo": {
     "change": "Change",
@@ -87,10 +58,6 @@
   },
   "map": {
     "loading": "Loading routes...",
-    "noRoutes": {
-      "ride": "No routes available for this ride",
-      "trip": "No routes available for this trip"
-    },
     "noTrackData": "No track data available for this route"
   },
   "memberCount_one": "{{count}} member",
@@ -116,7 +83,6 @@
     "page": "Page {{current}} of {{total}}",
     "previousPage": "Previous page"
   },
-  "placeholder": {},
   "publicationType": {
     "post": "Post",
     "ride": "Ride",
@@ -130,30 +96,15 @@
   "status": {
     "checkingAuth": "Checking authentication...",
     "creating": "Creating...",
-    "deleting": "Deleting...",
-    "loading": "Loading...",
     "saving": "Saving..."
   },
   "units": {
-    "characters": "characters",
-    "group": "group",
-    "group_plural": "groups",
     "km": "km",
-    "m": "m",
-    "member": "member",
-    "member_plural": "members",
-    "participant": "participant",
-    "participant_plural": "participants"
+    "m": "m"
   },
   "unknown": "Unknown",
-  "validation": {
-    "maxLength": "Maximum {{max}} characters",
-    "minLength": "Minimum {{min}} characters",
-    "required": "This field is required"
-  },
   "visibility": {
     "label": "Visibility",
-    "private": "Private",
     "public": "Public",
     "team": "Team only"
   }

@@ -1,11 +1,4 @@
 {
-  "climbCategory": {
-    "CAT1": "1ère Catégorie",
-    "CAT2": "2ème Catégorie",
-    "CAT3": "3ème Catégorie",
-    "CAT4": "4ème Catégorie",
-    "HC": "Hors Catégorie"
-  },
   "create": {
     "backToList": "Retour aux parcours",
     "form": {
@@ -13,9 +6,7 @@
       "gpxFile": "Fichier GPX",
       "gpxFileHint": "Format .gpx uniquement, taille maximale 10 Mo",
       "name": "Nom du parcours",
-      "surfaceType": "Type de revêtement",
-      "visibility": "Visibilité",
-      "visibilityDisabledHint": "Les parcours d'une équipe privée ne peuvent pas être publics"
+      "surfaceType": "Type de revêtement"
     },
     "submit": "Créer le parcours",
     "subtitle": "Téléchargez un fichier GPX pour créer un nouveau parcours",
@@ -63,15 +54,6 @@
   },
   "edit": {
     "backToDetail": "Retour au parcours",
-    "form": {
-      "description": "Description",
-      "gpxFile": "Fichier GPX (pour remplacer l'existant)",
-      "gpxFileHint": "Format .gpx uniquement, taille maximale 10 Mo",
-      "name": "Nom du parcours",
-      "surfaceType": "Type de revêtement",
-      "visibility": "Visibilité",
-      "visibilityDisabledHint": "Les parcours d'une équipe privée ne peuvent pas être publics"
-    },
     "submit": "Enregistrer les modifications",
     "subtitle": "Modifier les informations du parcours",
     "title": "Modifier le parcours"
@@ -88,7 +70,6 @@
       "label": "Rechercher des parcours",
       "placeholder": "Rechercher par nom ou description..."
     },
-    "subtitle": "Parcours GPX de l'équipe",
     "title": "Parcours"
   },
   "notifications": {
@@ -99,7 +80,7 @@
   "picker": {
     "clearSelection": "Retirer le parcours",
     "createNew": "Créer un nouveau parcours",
-    "loading": "Chargement des parcours...",
+    "loading": "Chargement...",
     "noResults": "Aucun parcours trouvé",
     "search": "Rechercher par nom...",
     "title": "Sélectionner un parcours"

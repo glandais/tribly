@@ -3,17 +3,16 @@
     "trips": "Voyages"
   },
   "card": {
-    "participantCount_many": "{{count}} participants",
     "participantCount_one": "{{count}} participant",
+    "participantCount_many": "{{count}} participants",
     "participantCount_other": "{{count}} participants",
-    "stageCount_many": "{{count}} étapes",
     "stageCount_one": "{{count}} étape",
+    "stageCount_many": "{{count}} étapes",
     "stageCount_other": "{{count}} étapes"
   },
   "create": {
     "backToTrips": "Retour aux voyages",
     "button": "Créer le voyage",
-    "creating": "Création en cours...",
     "error": "Échec de la création du voyage. Veuillez réessayer.",
     "form": {
       "date": {
@@ -73,12 +72,6 @@
       "title": {
         "label": "Titre du voyage",
         "placeholder": "ex: Aventure cycliste dans les Alpes"
-      },
-      "visibility": {
-        "label": "Visibilité",
-        "privateTeamHint": "Les voyages publics ne sont pas disponibles pour les équipes privées",
-        "public": "Public",
-        "team": "Équipe uniquement"
       }
     },
     "subtitle": "Planifiez un voyage de plusieurs jours pour {{teamName}}",
@@ -126,8 +119,6 @@
   "edit": {
     "backToTrip": "Retour au voyage",
     "button": "Enregistrer les modifications",
-    "error": "Échec de la mise à jour du voyage. Veuillez réessayer.",
-    "saving": "Enregistrement...",
     "subtitle": "Mettre à jour les détails du voyage pour {{teamName}}",
     "title": "Modifier le voyage"
   },
@@ -141,18 +132,15 @@
     },
     "noResults": "Aucun voyage trouvé correspondant à votre recherche.",
     "notFound": {
-      "backToTeams": "Retour aux équipes",
-      "message": "L'équipe que vous recherchez n'existe pas.",
       "title": "Équipe introuvable"
     },
     "search": {
       "label": "Rechercher des voyages",
       "placeholder": "Rechercher par titre ou description..."
     },
-    "subtitle": "Voyages à venir et passés pour {{teamName}}",
     "title": "Voyages"
   },
-  "loading": "Chargement du voyage...",
+  "loading": "Chargement...",
   "notifications": {
     "created": "Voyage créé avec succès",
     "deleted": "Voyage supprimé avec succès",
@@ -169,9 +157,5 @@
     "CANCELLED": "Annulé",
     "DRAFT": "Brouillon",
     "PUBLISHED": "Publié"
-  },
-  "visibility": {
-    "PUBLIC": "Public",
-    "TEAM": "Équipe uniquement"
   }
 }

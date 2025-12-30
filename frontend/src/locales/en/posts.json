@@ -1,27 +1,19 @@
 {
   "breadcrumb": {
-    "editPost": "Edit",
-    "newPost": "New Post",
     "posts": "Posts"
   },
-  "card": {
-    "publishedOn": "Published on {{date}}"
-  },
   "create": {
-    "cancel": "Cancel",
     "dateTimeHint": "Date and time of the post",
     "dateTimeLabel": "Date and Time",
     "descriptionLabel": "Description",
     "descriptionPlaceholder": "Describe your post...",
-    "error": "An error occurred while creating the post",
     "nameLabel": "Title",
     "namePlaceholder": "Enter the post title",
     "publishAtHint": "Set a date/time for automatic publication",
     "publishAtLabel": "Scheduled Publication",
     "statusLabel": "Status",
     "submit": "Create Post",
-    "title": "New Post",
-    "visibilityLabel": "Visibility"
+    "title": "New Post"
   },
   "detail": {
     "actions": {
@@ -35,7 +27,6 @@
     "confirmations": {
       "cancel": "Do you want to cancel this post? It will no longer be visible.",
       "delete": "Are you sure you want to delete this post? This action cannot be undone.",
-      "publish": "Do you want to publish this post? It will be visible according to visibility settings.",
       "uncancel": "Do you want to reactivate this post? It will be published again.",
       "unpublish": "Do you want to unpublish this post? It will become a draft again."
     },
@@ -68,14 +59,7 @@
     "updated": "Post updated successfully"
   },
   "status": {
-    "CANCELLED": "Cancelled",
-    "COMPLETED": "Completed",
     "DRAFT": "Draft",
     "PUBLISHED": "Published"
-  },
-  "visibility": {
-    "PRIVATE": "Private",
-    "PUBLIC": "Public",
-    "TEAM": "Team"
   }
 }

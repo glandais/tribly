@@ -1,26 +1,14 @@
 {
-  "card": {
-    "memberCount": "{{count}} membre",
-    "memberCount_plural": "{{count}} membres"
-  },
   "create": {
     "backToTeams": "Retour aux équipes",
     "button": "Créer l'équipe",
     "creating": "Création...",
-    "error": "Échec de la création de l'équipe. Veuillez réessayer.",
     "form": {
       "description": {
-        "charCount": "{{count}}/{{max}} caractères",
-        "label": "Description",
         "placeholder": "Décrivez votre équipe, votre style de cyclisme ou votre communauté..."
       },
       "name": {
-        "label": "Nom de l'équipe",
         "placeholder": "Entrez le nom de l'équipe"
-      },
-      "visibility": {
-        "hint": "Contrôle qui peut trouver et rejoindre cette équipe",
-        "label": "Visibilité de l'équipe"
       }
     },
     "subtitle": "Lancez votre communauté cycliste et invitez d'autres personnes",
@@ -32,20 +20,15 @@
       "edit": "Éditer",
       "join": "Rejoindre l'équipe",
       "joining": "Adhésion...",
-      "leave": "Quitter l'équipe",
-      "leaving": "Départ..."
-    },
-    "error": {
-      "message": "Une erreur est survenue lors du chargement de cette équipe. Veuillez réessayer.",
-      "title": "Erreur de chargement"
+      "leave": "Quitter l'équipe"
     },
     "info": {
       "created": "Créé le {{date}}",
-      "memberCount_many": "{{count}} membres",
       "memberCount_one": "{{count}} membre",
+      "memberCount_many": "{{count}} membres",
       "memberCount_other": "{{count}} membres"
     },
-    "loading": "Chargement de l'équipe...",
+    "loading": "Chargement...",
     "members": {
       "addError": "Échec de l'ajout du membre. Veuillez réessayer.",
       "addMember": "Ajouter un membre",
@@ -62,9 +45,7 @@
       "you": "(vous)"
     },
     "notFound": {
-      "backToTeams": "Retour aux équipes",
-      "message": "L'équipe que vous recherchez n'existe pas ou a été supprimée.",
-      "title": "Équipe non trouvée"
+      "backToTeams": "Retour aux équipes"
     },
     "tabs": {
       "members": "Membres",
@@ -79,7 +60,6 @@
     "createTeam": "Créer une équipe",
     "empty": {
       "createAction": "Créer une équipe",
-      "myTeams": "Vous n'avez rejoint aucune équipe.",
       "publicTeams": "Aucune équipe publique ne correspond à votre recherche.",
       "title": "Aucune équipe trouvée"
     },
@@ -88,10 +68,6 @@
       "placeholder": "Rechercher des équipes..."
     },
     "subtitle": "Parcourez les équipes cyclistes ou créez la vôtre",
-    "tabs": {
-      "my": "Mes équipes",
-      "public": "Équipes publiques"
-    },
     "title": "Équipes"
   },
   "myTeams": {
@@ -167,7 +143,6 @@
       "confirmDelete": "Oui, supprimer l'équipe",
       "deleteTeam": "Supprimer l'équipe",
       "deleteWarning": "Êtes-vous sûr de vouloir supprimer <strong>{{teamName}}</strong> ? Cette action est irréversible et supprimera toutes les données de l'équipe, y compris les sorties et les parcours.",
-      "deleting": "Suppression...",
       "description": "Une fois que vous supprimez une équipe, il n'y a pas de retour en arrière. Soyez certain.",
       "title": "Zone de danger"
     },
@@ -179,23 +154,13 @@
     },
     "form": {
       "description": {
-        "charCount": "{{count}}/{{max}} caractères",
         "label": "Description"
-      },
-      "name": {
-        "label": "Nom de l'équipe"
-      },
-      "visibility": {
-        "hint": "Contrôle qui peut trouver et rejoindre cette équipe",
-        "label": "Visibilité de l'équipe"
       }
     },
-    "loading": "Chargement des paramètres...",
+    "loading": "Chargement...",
     "saveChanges": "Enregistrer les modifications",
     "saving": "Enregistrement...",
     "subtitle": "Gérer le profil et les paramètres de votre équipe",
-    "success": "Paramètres de l'équipe mis à jour avec succès !",
-    "title": "Paramètres de l'équipe",
-    "updateError": "Échec de la mise à jour de l'équipe. Veuillez réessayer."
+    "title": "Paramètres de l'équipe"
   }
 }

@@ -11,12 +11,11 @@
     "add": "Ajouter une pièce jointe",
     "remove": "Supprimer",
     "title": "Pièces jointes",
-    "uploadError": "Erreur lors du téléversement",
-    "uploading": "Téléversement..."
+    "uploadError": "Erreur lors du chargement",
+    "uploading": "Chargement..."
   },
   "autocomplete": {
     "noPlacesFound": "Aucun lieu trouvé",
-    "noResults": "Aucun résultat trouvé",
     "noUsersFound": "Aucun utilisateur trouvé",
     "searchPlaces": "Rechercher des lieux...",
     "searchUsers": "Rechercher des utilisateurs..."
@@ -24,9 +23,7 @@
   "buttons": {
     "back": "Retour",
     "cancel": "Annuler",
-    "close": "Fermer",
     "confirm": "Confirmer",
-    "create": "Créer",
     "delete": "Supprimer",
     "dismiss": "Fermer",
     "edit": "Modifier",
@@ -36,33 +33,8 @@
     "save": "Enregistrer"
   },
   "editor": {
-    "ariaLabel": "Éditeur de texte enrichi",
-    "bold": "Gras",
-    "bulletList": "Liste à puces",
-    "code": "Code",
-    "heading1": "Titre 1",
-    "heading2": "Titre 2",
-    "heading3": "Titre 3",
     "image": "Image",
-    "imageSize": {
-      "full": "Grand",
-      "icon": "Très petit",
-      "medium": "Moyen",
-      "thumbnail": "Petit"
-    },
-    "italic": "Italique",
-    "link": "Lien",
-    "linkPrompt": "Entrez l'URL du lien",
-    "markdownSupported": "Markdown supporté",
-    "numberedList": "Liste numérotée",
-    "placeholder": "Commencez à écrire... Utilisez le markdown pour le formatage",
-    "shortcuts": {
-      "bold": "gras",
-      "heading": "titre",
-      "hint": "Raccourcis markdown",
-      "italic": "italique"
-    },
-    "table": "Insérer un tableau"
+    "placeholder": "Commencez à écrire... Utilisez le markdown pour le formatage"
   },
   "error": {
     "loading": "Erreur lors du chargement"
@@ -74,27 +46,22 @@
   "images": {
     "loadError": "Erreur lors du chargement de l'image",
     "notFound": "Image non trouvée",
-    "uploadError": "Erreur lors du téléversement de l'image",
-    "uploading": "Téléversement de l'image..."
+    "uploadError": "Erreur lors du chargement de l'image"
   },
   "logo": {
     "change": "Changer",
     "remove": "Supprimer",
     "title": "Logo",
     "upload": "Ajouter un logo",
-    "uploadError": "Erreur lors du téléversement du logo",
-    "uploading": "Téléversement..."
+    "uploadError": "Erreur lors du chargement du logo",
+    "uploading": "Chargement..."
   },
   "map": {
-    "loading": "Chargement des parcours...",
-    "noRoutes": {
-      "ride": "Aucun parcours disponible pour cette sortie",
-      "trip": "Aucun parcours disponible pour ce voyage"
-    },
+    "loading": "Chargement...",
     "noTrackData": "Aucune donnée de tracé disponible pour ce parcours"
   },
-  "memberCount_many": "{{count}} membres",
   "memberCount_one": "{{count}} membre",
+  "memberCount_many": "{{count}} membres",
   "memberCount_other": "{{count}} membres",
   "nav": {
     "avatar": "Avatar de",
@@ -117,7 +84,6 @@
     "page": "Page {{current}} sur {{total}}",
     "previousPage": "Page précédente"
   },
-  "placeholder": {},
   "publicationType": {
     "post": "Publication",
     "ride": "Sortie",
@@ -131,30 +97,15 @@
   "status": {
     "checkingAuth": "Vérification de l'authentification...",
     "creating": "Création...",
-    "deleting": "Suppression...",
-    "loading": "Chargement...",
     "saving": "Enregistrement..."
   },
   "units": {
-    "characters": "caractères",
-    "group": "groupe",
-    "group_plural": "groupes",
     "km": "km",
-    "m": "m",
-    "member": "membre",
-    "member_plural": "membres",
-    "participant": "participant",
-    "participant_plural": "participants"
+    "m": "m"
   },
   "unknown": "Inconnu",
-  "validation": {
-    "maxLength": "Maximum {{max}} caractères",
-    "minLength": "Minimum {{min}} caractères",
-    "required": "Ce champ est requis"
-  },
   "visibility": {
     "label": "Visibilité",
-    "private": "Privé",
     "public": "Public",
     "team": "Équipe uniquement"
   }
