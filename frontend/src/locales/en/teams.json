@@ -65,6 +65,7 @@
     "tabs": {
       "publications": "Feed",
       "rides": "Rides",
+      "trips": "Trips",
       "posts": "Posts",
       "routes": "Routes",
       "members": "Members"

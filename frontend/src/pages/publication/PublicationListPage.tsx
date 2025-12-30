@@ -7,8 +7,9 @@ import { usePublications } from '../../hooks/usePublications'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { RideCard, RideCardSkeleton } from '../../components/ride/RideCard'
 import { PostCard, PostCardSkeleton } from '../../components/post/PostCard'
+import { TripCard, TripCardSkeleton } from '../../components/trip/TripCard'
 import { TeamLayout } from '../../components/team/TeamLayout'
-import type { RideDto, PostDto } from '../../api/api'
+import type { RideDto, PostDto, TripDto } from '../../api/api'
 import { Pagination } from '../../components/common/Pagination'
 import { usePagination } from '../../hooks/usePagination'
 import { SearchInput } from '../../components/common/SearchInput'
@@ -18,6 +19,7 @@ export function PublicationListPage() {
   const { t: tRides } = useTranslation('rides')
   const { t: tPosts } = useTranslation('posts')
   const { t: tRoutes } = useTranslation('routes')
+  const { t: tTrips } = useTranslation('trips')
   const { teamSlug } = useParams<{ teamSlug: string }>()
   const [page, setPage] = useState(0)
   const [search, setSearch] = useState('')
@@ -72,6 +74,13 @@ export function PublicationListPage() {
                 {tPosts('list.createPost')}
               </Link>
               <Link
+                to={`/teams/${teamSlug}/trips/new`}
+                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
+              >
+                <PlusIcon className="w-4 h-4 mr-2" />
+                {tTrips('list.createTrip')}
+              </Link>
+              <Link
                 to={`/teams/${teamSlug}/routes/new`}
                 className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
               >
@@ -99,8 +108,14 @@ export function PublicationListPage() {
         {isLoadingPublications ? (
           <div className="space-y-4">
             {[...Array(3)].map((_, i) =>
-              // Alternate between ride and post skeletons for visual variety
-              i % 2 === 0 ? <RideCardSkeleton key={i} /> : <PostCardSkeleton key={i} />
+              // Alternate between ride, post, and trip skeletons for visual variety
+              i % 3 === 0 ? (
+                <RideCardSkeleton key={i} />
+              ) : i % 3 === 1 ? (
+                <PostCardSkeleton key={i} />
+              ) : (
+                <TripCardSkeleton key={i} />
+              )
             )}
           </div>
         ) : publicationsData?.publications && publicationsData.publications.length > 0 ? (
@@ -113,6 +128,16 @@ export function PublicationListPage() {
                     <RideCard
                       key={publication.id}
                       ride={publication as RideDto}
+                      teamSlug={teamSlug!}
+                      showTypeBadge={true}
+                    />
+                  )
+                }
+                if (publication.type === 'TRIP') {
+                  return (
+                    <TripCard
+                      key={publication.id}
+                      trip={publication as TripDto}
                       teamSlug={teamSlug!}
                       showTypeBadge={true}
                     />

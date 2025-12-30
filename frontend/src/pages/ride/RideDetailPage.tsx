@@ -20,7 +20,7 @@ import { Status } from '../../hooks/useRide'
 import { useAuth } from '../../hooks/useAuth'
 import { LoadingPage, LoadingSpinner } from '../../components/common/LoadingSpinner'
 import { RideGroupCard } from '../../components/ride/RideGroupCard'
-import { RideMapView } from '../../components/ride/RideMapView'
+import { RoutesMapView } from '../../components/common/RoutesMapView'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import { useFormattedDate } from '../../utils/dateFormat'
 import { MediaDisplay } from '../../components/common/MediaDisplay'
@@ -285,11 +285,12 @@ export function RideDetailPage() {
         {/* Map on right (takes 2 columns on xl screens) */}
         <div className="xl:col-span-2 order-1 xl:order-2">
           {ride.groups && ride.groups.length > 0 && (
-            <RideMapView
-              groups={ride.groups}
+            <RoutesMapView
+              items={ride.groups}
               teamSlug={teamSlug!}
-              highlightedGroupId={highlightedGroupId}
-              onGroupHover={setHighlightedGroupId}
+              highlightedItemId={highlightedGroupId}
+              onItemHover={setHighlightedGroupId}
+              entityType="ride"
             />
           )}
         </div>

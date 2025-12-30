@@ -632,13 +632,16 @@
           "$ref" : "#/components/schemas/RideDto"
         }, {
           "$ref" : "#/components/schemas/PostDto"
+        }, {
+          "$ref" : "#/components/schemas/TripDto"
         } ],
         "description" : "Publication data",
         "discriminator" : {
           "propertyName" : "type",
           "mapping" : {
             "RIDE" : "#/components/schemas/RideDto",
-            "POST" : "#/components/schemas/PostDto"
+            "POST" : "#/components/schemas/PostDto",
+            "TRIP" : "#/components/schemas/TripDto"
           }
         },
         "type" : "object",
@@ -679,7 +682,7 @@
       },
       "PublicationType" : {
         "type" : "string",
-        "enum" : [ "RIDE", "POST" ]
+        "enum" : [ "RIDE", "POST", "TRIP" ]
       },
       "RideDto" : {
         "allOf" : [ {
@@ -1187,6 +1190,48 @@
           }
         }
       },
+      "StageRequest" : {
+        "description" : "Trip stage creation request",
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "description" : "Stage ID (for updates)"
+          },
+          "name" : {
+            "type" : "string",
+            "description" : "Stage name",
+            "examples" : [ "Day 1 - Geneva to Chamonix" ],
+            "pattern" : "\\S",
+            "minLength" : 1,
+            "maxLength" : 200
+          },
+          "dateTime" : {
+            "description" : "Stage date/time",
+            "type" : "string",
+            "examples" : [ "2025-07-01" ],
+            "$ref" : "#/components/schemas/Instant"
+          },
+          "routeSlug" : {
+            "type" : "string",
+            "description" : "Route slug for this stage"
+          },
+          "startPlaceId" : {
+            "type" : "string",
+            "description" : "Start place ID (TSID)"
+          },
+          "endPlaceId" : {
+            "type" : "string",
+            "description" : "End place ID (TSID)"
+          },
+          "media" : {
+            "description" : "Stage media",
+            "type" : "object",
+            "$ref" : "#/components/schemas/MediaDto"
+          }
+        },
+        "required" : [ "name", "dateTime", "media" ]
+      },
       "Status" : {
         "type" : "string",
         "enum" : [ "DRAFT", "PUBLISHED", "CANCELLED" ]
@@ -1351,6 +1396,241 @@
           }
         }
       },
+      "TripDto" : {
+        "allOf" : [ {
+          "$ref" : "#/components/schemas/PublicationDto"
+        } ],
+        "description" : "Trip data",
+        "type" : "object",
+        "required" : [ "type", "team", "id", "slug", "name", "media", "dateTime", "status", "visibility", "participantCount", "stageCount", "stages", "participants" ],
+        "properties" : {
+          "type" : {
+            "description" : "Type",
+            "type" : "string",
+            "$ref" : "#/components/schemas/PublicationType"
+          },
+          "team" : {
+            "description" : "Team",
+            "type" : "object",
+            "$ref" : "#/components/schemas/TeamPublicationDto"
+          },
+          "id" : {
+            "type" : "string",
+            "description" : "Publication ID (TSID)"
+          },
+          "slug" : {
+            "type" : "string",
+            "description" : "Publication URL slug"
+          },
+          "name" : {
+            "type" : "string",
+            "description" : "Publication name"
+          },
+          "media" : {
+            "description" : "Publication media",
+            "type" : "object",
+            "$ref" : "#/components/schemas/MediaDto"
+          },
+          "dateTime" : {
+            "description" : "Trip start date/time",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Instant"
+          },
+          "status" : {
+            "description" : "Publication status",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Status"
+          },
+          "visibility" : {
+            "description" : "Visibility level",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Visibility"
+          },
+          "publishAt" : {
+            "description" : "Publication timestamp",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Instant"
+          },
+          "createdAt" : {
+            "description" : "Creation timestamp",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Instant"
+          },
+          "routeSlug" : {
+            "type" : "string",
+            "description" : "Route slug"
+          },
+          "participantCount" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Number of participants"
+          },
+          "stageCount" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Number of stages"
+          },
+          "stages" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/TripStageDto"
+            },
+            "description" : "Trip stages"
+          },
+          "participants" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/PublicUserDto"
+            },
+            "description" : "Trip participants"
+          }
+        }
+      },
+      "TripListResponse" : {
+        "description" : "Paginated trip list response",
+        "type" : "object",
+        "required" : [ "trips", "total", "page", "size" ],
+        "properties" : {
+          "trips" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/TripDto"
+            },
+            "description" : "List of trips"
+          },
+          "total" : {
+            "type" : "integer",
+            "format" : "int64",
+            "description" : "Total number of trips"
+          },
+          "page" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Current page number"
+          },
+          "size" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Page size"
+          }
+        }
+      },
+      "TripParticipationDto" : {
+        "description" : "Trip participation information",
+        "type" : "object",
+        "required" : [ "id", "userId" ],
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "description" : "Participation ID (TSID)"
+          },
+          "userId" : {
+            "type" : "string",
+            "description" : "User ID (TSID)"
+          },
+          "registeredAt" : {
+            "description" : "Registration timestamp",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Instant"
+          }
+        }
+      },
+      "TripRequest" : {
+        "description" : "Trip request",
+        "type" : "object",
+        "required" : [ "name", "media", "dateTime", "status", "visibility", "stages" ],
+        "properties" : {
+          "name" : {
+            "type" : "string",
+            "description" : "Trip name",
+            "examples" : [ "Summer Alps Tour" ],
+            "pattern" : "\\S",
+            "minLength" : 3,
+            "maxLength" : 200
+          },
+          "media" : {
+            "description" : "Trip media",
+            "type" : "object",
+            "$ref" : "#/components/schemas/MediaDto"
+          },
+          "dateTime" : {
+            "description" : "Trip start date/time",
+            "type" : "string",
+            "examples" : [ "2025-07-01" ],
+            "$ref" : "#/components/schemas/Instant"
+          },
+          "status" : {
+            "description" : "Trip status",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Status"
+          },
+          "visibility" : {
+            "description" : "Visibility level",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Visibility"
+          },
+          "routeSlug" : {
+            "type" : "string",
+            "description" : "Overall route slug for the trip"
+          },
+          "publishAt" : {
+            "description" : "Publication timestamp (for scheduled publishing)",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Instant"
+          },
+          "stages" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/StageRequest"
+            },
+            "description" : "Trip stages to create"
+          }
+        }
+      },
+      "TripStageDto" : {
+        "type" : "object",
+        "description" : "Trip stage information",
+        "required" : [ "id", "name", "dateTime", "media", "sortOrder" ],
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "description" : "Stage ID (TSID)"
+          },
+          "name" : {
+            "type" : "string",
+            "description" : "Stage name"
+          },
+          "dateTime" : {
+            "description" : "Stage date/time",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Instant"
+          },
+          "routeSlug" : {
+            "type" : "string",
+            "description" : "Route slug"
+          },
+          "startPlace" : {
+            "description" : "Start place",
+            "type" : "object",
+            "$ref" : "#/components/schemas/PlaceDetailDto"
+          },
+          "endPlace" : {
+            "description" : "End place",
+            "type" : "object",
+            "$ref" : "#/components/schemas/PlaceDetailDto"
+          },
+          "media" : {
+            "description" : "Stage media",
+            "type" : "object",
+            "$ref" : "#/components/schemas/MediaDto"
+          },
+          "sortOrder" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Sort order"
+          }
+        }
+      },
       "UpdateMemberRoleRequest" : {
         "description" : "Request to update a member's role",
         "type" : "object",
@@ -1445,6 +1725,9 @@
   }, {
     "name" : "Teams",
     "description" : "Team management operations"
+  }, {
+    "name" : "Trips",
+    "description" : "Trip management and participation operations"
   }, {
     "name" : "Users",
     "description" : "User profile management operations"
@@ -3958,6 +4241,489 @@
                 }
               }
             }
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
+    "/api/teams/{slug}/trips" : {
+      "get" : {
+        "summary" : "List trips",
+        "description" : "Get paginated list of trips for a team with optional filtering",
+        "operationId" : "listTrips",
+        "tags" : [ "Trips" ],
+        "parameters" : [ {
+          "description" : "Team URL slug",
+          "name" : "slug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Start date filter (ISO format)",
+          "name" : "from",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Page number",
+          "name" : "page",
+          "in" : "query",
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 0
+          }
+        }, {
+          "description" : "Search by name/markdown",
+          "name" : "search",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Page size",
+          "name" : "size",
+          "in" : "query",
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 20
+          }
+        }, {
+          "description" : "End date filter (ISO format)",
+          "name" : "to",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Trips retrieved successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TripListResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Team not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post" : {
+        "summary" : "Create trip",
+        "description" : "Create a new trip with optional stages",
+        "operationId" : "createTrip",
+        "tags" : [ "Trips" ],
+        "parameters" : [ {
+          "description" : "Team URL slug",
+          "name" : "slug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/TripRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "description" : "Trip created successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TripDto"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Invalid request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "User is not a team member",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Team not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
+    "/api/teams/{slug}/trips/{tripSlug}" : {
+      "put" : {
+        "summary" : "Update trip",
+        "description" : "Update trip information. Requires organizer permissions.",
+        "operationId" : "updateTrip",
+        "tags" : [ "Trips" ],
+        "parameters" : [ {
+          "description" : "Team URL slug",
+          "name" : "slug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Trip URL slug",
+          "name" : "tripSlug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/TripRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Trip updated successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TripDto"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Invalid request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "User is not authorized to update this trip",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Team or trip not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      },
+      "get" : {
+        "summary" : "Get trip details",
+        "description" : "Get detailed trip information including stages and participants",
+        "operationId" : "getTrip",
+        "tags" : [ "Trips" ],
+        "parameters" : [ {
+          "description" : "Team URL slug",
+          "name" : "slug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Trip URL slug",
+          "name" : "tripSlug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Trip retrieved successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TripDto"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Team or trip not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete" : {
+        "summary" : "Delete trip",
+        "description" : "Soft delete a trip. Requires organizer permissions.",
+        "operationId" : "deleteTrip",
+        "tags" : [ "Trips" ],
+        "parameters" : [ {
+          "description" : "Team URL slug",
+          "name" : "slug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Trip URL slug",
+          "name" : "tripSlug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "Trip deleted successfully"
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "User is not authorized to delete this trip",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Team or trip not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
+    "/api/teams/{slug}/trips/{tripSlug}/join" : {
+      "post" : {
+        "summary" : "Join trip",
+        "description" : "Join a trip as a participant",
+        "operationId" : "joinTrip",
+        "tags" : [ "Trips" ],
+        "parameters" : [ {
+          "description" : "Team URL slug",
+          "name" : "slug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Trip URL slug",
+          "name" : "tripSlug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "201" : {
+            "description" : "Successfully joined trip",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/TripParticipationDto"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "User already joined or trip not published",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Team or trip not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
+    "/api/teams/{slug}/trips/{tripSlug}/leave" : {
+      "post" : {
+        "summary" : "Leave trip",
+        "description" : "Leave a trip as a participant",
+        "operationId" : "leaveTrip",
+        "tags" : [ "Trips" ],
+        "parameters" : [ {
+          "description" : "Team URL slug",
+          "name" : "slug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Trip URL slug",
+          "name" : "tripSlug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "Successfully left trip"
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Team, trip, or participation not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Not Allowed"
           }
         },
         "security" : [ {

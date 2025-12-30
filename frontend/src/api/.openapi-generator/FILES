@@ -51,6 +51,7 @@ docs/RouteDto.md
 docs/RouteListResponse.md
 docs/RouteRequest.md
 docs/RoutesApi.md
+docs/StageRequest.md
 docs/Status.md
 docs/SurfaceType.md
 docs/TeamDetailDto.md
@@ -61,6 +62,12 @@ docs/TeamRequest.md
 docs/TeamRole.md
 docs/TeamsApi.md
 docs/TrackPointDto.md
+docs/TripDto.md
+docs/TripListResponse.md
+docs/TripParticipationDto.md
+docs/TripRequest.md
+docs/TripStageDto.md
+docs/TripsApi.md
 docs/UpdateMemberRoleRequest.md
 docs/UpdateUserRequest.md
 docs/UserDto.md

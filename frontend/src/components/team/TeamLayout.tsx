@@ -12,7 +12,7 @@ import { MediaDisplay } from '../../components/common/MediaDisplay'
 
 interface TeamLayoutProps {
   team: TeamDetailDto
-  currentTab: 'publications' | 'rides' | 'posts' | 'routes' | 'members'
+  currentTab: 'publications' | 'rides' | 'trips' | 'posts' | 'routes' | 'members'
   children: React.ReactNode
 }
 
@@ -50,6 +50,7 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
     },
     { id: 'rides', path: `/teams/${team.slug}/rides`, label: t('detail.tabs.rides') },
     { id: 'posts', path: `/teams/${team.slug}/posts`, label: t('detail.tabs.posts') },
+    { id: 'trips', path: `/teams/${team.slug}/trips`, label: t('detail.tabs.trips') },
     { id: 'routes', path: `/teams/${team.slug}/routes`, label: t('detail.tabs.routes') },
   ]
 

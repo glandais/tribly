@@ -69,10 +69,20 @@ export function RouteEditor({
   // Initialize form state from initialValues prop
   useEffect(() => {
     setName(initialValues.name)
-    setMedia(initialValues.media)
+    // Only sync media if there's actual content, not on empty default
+    if (initialValues.media.markdown || initialValues.media.assets?.images?.length) {
+      setMedia(initialValues.media)
+    }
     setSurfaceType(initialValues.surfaceType)
     setVisibility(initialValues.visibility)
-  }, [initialValues])
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- Only sync on actual value changes
+  }, [
+    initialValues.name,
+    initialValues.media.markdown,
+    initialValues.media.assets?.images?.length,
+    initialValues.surfaceType,
+    initialValues.visibility,
+  ])
 
   const handleFileChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -53,7 +53,8 @@
   },
   "publicationType": {
     "ride": "Sortie",
-    "post": "Publication"
+    "post": "Publication",
+    "trip": "Voyage"
   },
   "units": {
     "member": "membre",
@@ -135,5 +136,12 @@
     "searchPlaces": "Rechercher des lieux...",
     "noPlacesFound": "Aucun lieu trouvé",
     "noResults": "Aucun résultat trouvé"
+  },
+  "map": {
+    "loading": "Chargement des itinéraires...",
+    "noRoutes": {
+      "ride": "Aucun itinéraire disponible pour cette sortie",
+      "trip": "Aucun itinéraire disponible pour ce voyage"
+    }
   }
 }

@@ -56,11 +56,15 @@ export function TeamForm({
       // eslint-disable-next-line react-hooks/set-state-in-effect -- Form initialization from server data
       setName(initialName)
     }
-    setMedia(initialMedia)
+    // Only sync media if we have actual content (edit mode), not on default empty media
+    if (initialMedia.markdown || initialMedia.assets?.images?.length) {
+      setMedia(initialMedia)
+    }
     if (initialVisibility) {
       setVisibility(initialVisibility)
     }
-  }, [initialName, initialMedia, initialVisibility])
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- Only sync on actual prop changes, not default object recreation
+  }, [initialName, initialMedia.markdown, initialMedia.assets?.images?.length, initialVisibility])
 
   // Call onSuccess when mutation succeeds
   useEffect(() => {

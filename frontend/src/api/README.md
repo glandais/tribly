@@ -88,6 +88,13 @@ Class | Method | HTTP request | Description
 *TeamsApi* | [**getTeam**](docs/TeamsApi.md#getteam) | **GET** /api/teams/{slug} | Get team by slug
 *TeamsApi* | [**listTeams**](docs/TeamsApi.md#listteams) | **GET** /api/teams | List public teams
 *TeamsApi* | [**updateTeam**](docs/TeamsApi.md#updateteam) | **PUT** /api/teams/{slug} | Update team
+*TripsApi* | [**createTrip**](docs/TripsApi.md#createtrip) | **POST** /api/teams/{slug}/trips | Create trip
+*TripsApi* | [**deleteTrip**](docs/TripsApi.md#deletetrip) | **DELETE** /api/teams/{slug}/trips/{tripSlug} | Delete trip
+*TripsApi* | [**getTrip**](docs/TripsApi.md#gettrip) | **GET** /api/teams/{slug}/trips/{tripSlug} | Get trip details
+*TripsApi* | [**joinTrip**](docs/TripsApi.md#jointrip) | **POST** /api/teams/{slug}/trips/{tripSlug}/join | Join trip
+*TripsApi* | [**leaveTrip**](docs/TripsApi.md#leavetrip) | **POST** /api/teams/{slug}/trips/{tripSlug}/leave | Leave trip
+*TripsApi* | [**listTrips**](docs/TripsApi.md#listtrips) | **GET** /api/teams/{slug}/trips | List trips
+*TripsApi* | [**updateTrip**](docs/TripsApi.md#updatetrip) | **PUT** /api/teams/{slug}/trips/{tripSlug} | Update trip
 *UsersApi* | [**deleteCurrentUser**](docs/UsersApi.md#deletecurrentuser) | **DELETE** /api/users/me | Delete current user
 *UsersApi* | [**getCurrentUser**](docs/UsersApi.md#getcurrentuser) | **GET** /api/users/me | Get current user
 *UsersApi* | [**getUserById**](docs/UsersApi.md#getuserbyid) | **GET** /api/users/{id} | Get user by ID
@@ -135,6 +142,7 @@ Class | Method | HTTP request | Description
  - [RouteDto](docs/RouteDto.md)
  - [RouteListResponse](docs/RouteListResponse.md)
  - [RouteRequest](docs/RouteRequest.md)
+ - [StageRequest](docs/StageRequest.md)
  - [Status](docs/Status.md)
  - [SurfaceType](docs/SurfaceType.md)
  - [TeamDetailDto](docs/TeamDetailDto.md)
@@ -143,6 +151,11 @@ Class | Method | HTTP request | Description
  - [TeamRequest](docs/TeamRequest.md)
  - [TeamRole](docs/TeamRole.md)
  - [TrackPointDto](docs/TrackPointDto.md)
+ - [TripDto](docs/TripDto.md)
+ - [TripListResponse](docs/TripListResponse.md)
+ - [TripParticipationDto](docs/TripParticipationDto.md)
+ - [TripRequest](docs/TripRequest.md)
+ - [TripStageDto](docs/TripStageDto.md)
  - [UpdateMemberRoleRequest](docs/UpdateMemberRoleRequest.md)
  - [UpdateUserRequest](docs/UpdateUserRequest.md)
  - [UserDto](docs/UserDto.md)

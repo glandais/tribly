@@ -53,7 +53,8 @@
   },
   "publicationType": {
     "ride": "Ride",
-    "post": "Post"
+    "post": "Post",
+    "trip": "Trip"
   },
   "units": {
     "member": "member",
@@ -135,5 +136,12 @@
     "searchPlaces": "Search places...",
     "noPlacesFound": "No places found",
     "noResults": "No results found"
+  },
+  "map": {
+    "loading": "Loading routes...",
+    "noRoutes": {
+      "ride": "No routes available for this ride",
+      "trip": "No routes available for this trip"
+    }
   }
 }

@@ -110,7 +110,8 @@ create table team_entities (
                                elevation_loss integer,
                                end_lat numeric(10,8),
                                end_lng numeric(11,8),
-                               entity_type integer not null check ((entity_type in (1,3,2,4))),
+                               entity_type integer not null check ((entity_type in (3,1,5,6,4,2))),
+                               sort_order integer,
                                start_lat numeric(10,8),
                                start_lng numeric(11,8),
                                created_at timestamp(6) with time zone not null,
@@ -122,6 +123,7 @@ create table team_entities (
                                publish_at timestamp(6) with time zone,
                                route_id bigint,
                                team_id bigint not null,
+                               trip_id bigint,
                                updated_at timestamp(6) with time zone not null,
                                version bigint,
                                status varchar(20) check ((status in ('DRAFT','PUBLISHED','CANCELLED'))),
@@ -131,7 +133,8 @@ create table team_entities (
                                name varchar(255) not null,
                                slug varchar(255) not null,
                                primary key (id),
-                               constraint uk_team_entity_slug unique (team_id, entity_type, slug)
+                               constraint uk_team_entity_slug unique (team_id, entity_type, slug),
+                               check (entity_type <> 6 or (sort_order is not null))
 );
 
 create table teams (
@@ -146,6 +149,20 @@ create table teams (
                        name varchar(255) not null,
                        slug varchar(255) not null unique,
                        primary key (id)
+);
+
+create table trip_participations (
+                                     deleted boolean not null,
+                                     created_at timestamp(6) with time zone not null,
+                                     created_by_id bigint not null,
+                                     id bigint not null,
+                                     registered_at timestamp(6) with time zone not null,
+                                     trip_id bigint not null,
+                                     updated_at timestamp(6) with time zone not null,
+                                     user_id bigint not null,
+                                     version bigint,
+                                     primary key (id),
+                                     unique (trip_id, user_id)
 );
 
 create table user_teams (
@@ -301,6 +318,11 @@ alter table if exists team_entities
     foreign key (place_start_id)
     references places;
 
+alter table if exists team_entities
+    add constraint FKsv6ybr332iwjj0ya7947jv2kx
+    foreign key (trip_id)
+    references team_entities;
+
 alter table if exists teams
     add constraint FKcq9jk9qh4ox827y0d161rabce
     foreign key (created_by_id)
@@ -310,6 +332,21 @@ alter table if exists teams
     add constraint FKlorb7wivvrwpknrj7pcc6pqny
     foreign key (description_id)
     references team_entities;
+
+alter table if exists trip_participations
+    add constraint FK53e4u32gp8syx3tks1hc5wlt6
+    foreign key (created_by_id)
+    references users;
+
+alter table if exists trip_participations
+    add constraint FKp7t4suoehqwc2ro5magoclp9y
+    foreign key (trip_id)
+    references team_entities;
+
+alter table if exists trip_participations
+    add constraint FKt533ggb78hp0camm0gfkhqg1w
+    foreign key (user_id)
+    references users;
 
 alter table if exists user_teams
     add constraint FKr2g0ggpshfw7qtfqj311b9xu0

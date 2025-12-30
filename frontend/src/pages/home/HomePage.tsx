@@ -4,7 +4,8 @@ import { NewspaperIcon, UsersIcon } from '@heroicons/react/24/outline'
 import { useAllPublications } from '../../hooks/useAllPublications'
 import { RideCard, RideCardSkeleton } from '../../components/ride/RideCard'
 import { PostCard, PostCardSkeleton } from '../../components/post/PostCard'
-import type { RideDto, PostDto } from '../../api/api'
+import { TripCard, TripCardSkeleton } from '../../components/trip/TripCard'
+import type { RideDto, PostDto, TripDto } from '../../api/api'
 import { Pagination } from '../../components/common/Pagination'
 import { usePagination } from '../../hooks/usePagination'
 import { SearchInput } from '../../components/common/SearchInput'
@@ -64,8 +65,14 @@ export function HomePage() {
       {isLoading ? (
         <div className="space-y-6">
           {[...Array(6)].map((_, i) =>
-            // Alternate between ride and post skeletons for visual variety
-            i % 2 === 0 ? <RideCardSkeleton key={i} /> : <PostCardSkeleton key={i} />
+            // Alternate between ride, post, and trip skeletons for visual variety
+            i % 3 === 0 ? (
+              <RideCardSkeleton key={i} />
+            ) : i % 3 === 1 ? (
+              <PostCardSkeleton key={i} />
+            ) : (
+              <TripCardSkeleton key={i} />
+            )
           )}
         </div>
       ) : isError ? (
@@ -89,6 +96,12 @@ export function HomePage() {
               {publication.type === 'RIDE' ? (
                 <RideCard
                   ride={publication as RideDto}
+                  teamSlug={publication.team?.slug || ''}
+                  showTypeBadge={true}
+                />
+              ) : publication.type === 'TRIP' ? (
+                <TripCard
+                  trip={publication as TripDto}
                   teamSlug={publication.team?.slug || ''}
                   showTypeBadge={true}
                 />

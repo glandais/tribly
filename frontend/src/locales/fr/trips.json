@@ -1,0 +1,168 @@
+{
+  "status": {
+    "DRAFT": "Brouillon",
+    "PUBLISHED": "Publié",
+    "CANCELLED": "Annulé"
+  },
+  "visibility": {
+    "PUBLIC": "Public",
+    "TEAM": "Équipe uniquement"
+  },
+  "list": {
+    "title": "Voyages",
+    "subtitle": "Voyages à venir et passés pour {{teamName}}",
+    "createTrip": "Créer un voyage",
+    "search": {
+      "label": "Rechercher des voyages",
+      "placeholder": "Rechercher par titre ou description..."
+    },
+    "noResults": "Aucun voyage trouvé correspondant à votre recherche.",
+    "empty": {
+      "title": "Pas encore de voyages",
+      "member": "Aucun voyage n'est prévu pour le moment.",
+      "admin": "Commencez par créer votre premier voyage.",
+      "createAction": "Créer un voyage"
+    },
+    "notFound": {
+      "title": "Équipe introuvable",
+      "message": "L'équipe que vous recherchez n'existe pas.",
+      "backToTeams": "Retour aux équipes"
+    }
+  },
+  "create": {
+    "title": "Créer un voyage",
+    "subtitle": "Planifiez un voyage de plusieurs jours pour {{teamName}}",
+    "backToTrips": "Retour aux voyages",
+    "form": {
+      "title": {
+        "label": "Titre du voyage",
+        "placeholder": "ex: Aventure cycliste dans les Alpes"
+      },
+      "description": {
+        "label": "Description",
+        "placeholder": "Décrivez le voyage, les points forts, la logistique..."
+      },
+      "date": {
+        "label": "Date de début"
+      },
+      "visibility": {
+        "label": "Visibilité",
+        "team": "Équipe uniquement",
+        "public": "Public",
+        "privateTeamHint": "Les voyages publics ne sont pas disponibles pour les équipes privées"
+      },
+      "status": {
+        "label": "Statut"
+      },
+      "route": {
+        "label": "Itinéraire global",
+        "select": "Sélectionner un itinéraire",
+        "change": "Modifier",
+        "clear": "Supprimer",
+        "none": "Aucun itinéraire sélectionné",
+        "hint": "Optionnel: joindre un itinéraire GPX global pour tout le voyage",
+        "selectForTrip": "Sélectionner l'itinéraire du voyage",
+        "selectForStage": "Sélectionner l'itinéraire de l'étape"
+      },
+      "stages": {
+        "label": "Étapes",
+        "add": "+ Ajouter une étape",
+        "defaultName": "Jour {{day}}",
+        "name": {
+          "placeholder": "Nom de l'étape (ex: Jour 1: Col de montagne)"
+        },
+        "new": "Nouvelle étape",
+        "willBeDeleted": "(sera supprimée)",
+        "restore": "Restaurer",
+        "remove": "Supprimer",
+        "empty": "Aucune étape définie. Ajoutez au moins une étape.",
+        "hint": "Créez des étapes pour chaque jour ou segment de votre voyage",
+        "startPlace": {
+          "label": "Lieu de départ",
+          "placeholder": "Rechercher un lieu de départ..."
+        },
+        "endPlace": {
+          "label": "Lieu d'arrivée",
+          "placeholder": "Rechercher un lieu d'arrivée..."
+        },
+        "description": {
+          "label": "Description",
+          "placeholder": "Décrivez cette étape..."
+        },
+        "route": {
+          "label": "Itinéraire de l'étape",
+          "none": "Pas d'itinéraire pour cette étape"
+        }
+      },
+      "publishAt": {
+        "label": "Planifier la publication",
+        "hint": "Définir une date/heure pour la publication automatique"
+      }
+    },
+    "button": "Créer le voyage",
+    "creating": "Création en cours...",
+    "error": "Échec de la création du voyage. Veuillez réessayer."
+  },
+  "edit": {
+    "title": "Modifier le voyage",
+    "subtitle": "Mettre à jour les détails du voyage pour {{teamName}}",
+    "backToTrip": "Retour au voyage",
+    "button": "Enregistrer les modifications",
+    "saving": "Enregistrement...",
+    "error": "Échec de la mise à jour du voyage. Veuillez réessayer."
+  },
+  "detail": {
+    "notFound": {
+      "title": "Voyage introuvable",
+      "message": "Le voyage que vous recherchez n'existe pas.",
+      "backToTrips": "Retour aux voyages"
+    },
+    "actions": {
+      "edit": "Modifier",
+      "publish": "Publier",
+      "unpublish": "Dépublier",
+      "cancel": "Annuler le voyage",
+      "uncancel": "Restaurer le voyage",
+      "delete": "Supprimer",
+      "join": "Rejoindre le voyage",
+      "leave": "Quitter le voyage"
+    },
+    "confirmations": {
+      "unpublish": "Êtes-vous sûr de vouloir dépublier ce voyage ? Il reviendra au statut brouillon.",
+      "cancel": "Êtes-vous sûr de vouloir annuler ce voyage ?",
+      "uncancel": "Êtes-vous sûr de vouloir restaurer ce voyage ? Il reviendra au statut brouillon.",
+      "delete": "Êtes-vous sûr de vouloir supprimer ce voyage ? Cette action est irréversible."
+    },
+    "scheduledPublish": "Publication prévue le {{date}}",
+    "stages": {
+      "title": "Étapes",
+      "empty": "Aucune étape définie pour ce voyage."
+    },
+    "participants": {
+      "title": "Participants"
+    },
+    "nonMember": {
+      "message": "Rejoignez cette équipe pour participer aux voyages.",
+      "viewTeam": "Voir l'équipe"
+    },
+    "notAuthenticated": {
+      "message": "Connectez-vous et rejoignez cette équipe pour participer aux voyages.",
+      "signIn": "Se connecter"
+    }
+  },
+  "stage": {
+    "startPlace": "Départ",
+    "endPlace": "Arrivée",
+    "viewRoute": "Voir l'itinéraire"
+  },
+  "card": {
+    "participantCount_one": "{{count}} participant",
+    "participantCount_other": "{{count}} participants",
+    "stageCount_one": "{{count}} étape",
+    "stageCount_other": "{{count}} étapes"
+  },
+  "breadcrumb": {
+    "trips": "Voyages"
+  },
+  "loading": "Chargement du voyage..."
+}

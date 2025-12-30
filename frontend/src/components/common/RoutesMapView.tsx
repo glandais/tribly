@@ -14,8 +14,9 @@ import {
   ChartOptions,
   TooltipItem,
 } from 'chart.js'
+import { useTranslation } from 'react-i18next'
 import { routesApi, unwrapResponse } from '../../lib/apiClient'
-import type { RideGroupDto, TrackPointDto } from '../../api/api'
+import type { TrackPointDto } from '../../api/api'
 import 'leaflet/dist/leaflet.css'
 
 // Register Chart.js components
@@ -35,20 +36,28 @@ const ROUTE_COLORS = [
   '#e3a209',
 ]
 
+// Minimal interface that both RideGroupDto and TripStageDto satisfy
+export interface MapRouteItem {
+  id: string
+  name: string
+  routeSlug?: string
+}
+
 interface RouteData {
-  groupId: string
-  groupName: string
+  itemId: string
+  itemName: string
   color: string
   trackPoints: TrackPointDto[]
   distance: number
   elevationGain: number
 }
 
-interface RideMapViewProps {
-  groups: RideGroupDto[]
+export interface RoutesMapViewProps {
+  items: MapRouteItem[]
   teamSlug: string
-  highlightedGroupId?: string | null
-  onGroupHover?: (groupId: string | null) => void
+  highlightedItemId?: string | null
+  onItemHover?: (itemId: string | null) => void
+  entityType: 'ride' | 'trip'
 }
 
 // Custom marker icons
@@ -91,14 +100,14 @@ function MapBoundsSetter({ routesData }: { routesData: RouteData[] }) {
 
 // Component to handle route highlighting via map interactions
 function RouteInteractionHandler({
-  onGroupHover,
+  onItemHover,
 }: {
-  onGroupHover?: (groupId: string | null) => void
+  onItemHover?: (itemId: string | null) => void
 }) {
   useMapEvents({
     mouseout: () => {
-      if (onGroupHover) {
-        onGroupHover(null)
+      if (onItemHover) {
+        onItemHover(null)
       }
     },
   })
@@ -106,36 +115,38 @@ function RouteInteractionHandler({
   return null
 }
 
-export function RideMapView({
-  groups,
+export function RoutesMapView({
+  items,
   teamSlug,
-  highlightedGroupId,
-  onGroupHover,
-}: RideMapViewProps) {
+  highlightedItemId,
+  onItemHover,
+  entityType,
+}: RoutesMapViewProps) {
+  const { t } = useTranslation('common')
   const [routesData, setRoutesData] = useState<RouteData[]>([])
   const [highlightedRoute, setHighlightedRoute] = useState<RouteData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
-  // Load route data for all groups with routes
+  // Load route data for all items with routes
   useEffect(() => {
     const loadRoutes = async () => {
       setIsLoading(true)
       const routes: RouteData[] = []
 
-      // Filter groups that have routes
-      const groupsWithRoutes = groups.filter((group) => group.routeSlug)
+      // Filter items that have routes
+      const itemsWithRoutes = items.filter((item) => item.routeSlug)
 
-      for (let i = 0; i < groupsWithRoutes.length; i++) {
-        const group = groupsWithRoutes[i]
-        if (!group.routeSlug) continue
+      for (let i = 0; i < itemsWithRoutes.length; i++) {
+        const item = itemsWithRoutes[i]
+        if (!item.routeSlug) continue
 
         try {
           // Fetch route details from API using the generated API client
-          const routeDetail = await unwrapResponse(routesApi.getRoute(group.routeSlug, teamSlug))
+          const routeDetail = await unwrapResponse(routesApi.getRoute(item.routeSlug, teamSlug))
           if (routeDetail.track && routeDetail.track.trackPoints) {
             routes.push({
-              groupId: group.id,
-              groupName: group.name,
+              itemId: item.id,
+              itemName: item.name,
               color: ROUTE_COLORS[i % ROUTE_COLORS.length],
               trackPoints: routeDetail.track.trackPoints,
               distance: routeDetail.distance,
@@ -143,7 +154,7 @@ export function RideMapView({
             })
           }
         } catch (error) {
-          console.error(`Failed to load route for group ${group.id}:`, error)
+          console.error(`Failed to load route for item ${item.id}:`, error)
         }
       }
 
@@ -155,31 +166,31 @@ export function RideMapView({
     }
 
     loadRoutes()
-  }, [groups, teamSlug])
+  }, [items, teamSlug])
 
-  // Update highlighted route when highlightedGroupId changes
+  // Update highlighted route when highlightedItemId changes
   useEffect(() => {
-    if (highlightedGroupId) {
-      const route = routesData.find((r) => r.groupId === highlightedGroupId)
+    if (highlightedItemId) {
+      const route = routesData.find((r) => r.itemId === highlightedItemId)
       if (route) {
         setHighlightedRoute(route)
       }
     } else if (routesData.length > 0) {
       setHighlightedRoute(routesData[0])
     }
-  }, [highlightedGroupId, routesData])
+  }, [highlightedItemId, routesData])
 
   const handlePolylineClick = useCallback(
-    (groupId: string) => {
-      const route = routesData.find((r) => r.groupId === groupId)
+    (itemId: string) => {
+      const route = routesData.find((r) => r.itemId === itemId)
       if (route) {
         setHighlightedRoute(route)
-        if (onGroupHover) {
-          onGroupHover(groupId)
+        if (onItemHover) {
+          onItemHover(itemId)
         }
       }
     },
-    [routesData, onGroupHover]
+    [routesData, onItemHover]
   )
 
   // Prepare chart data from highlighted route
@@ -215,9 +226,9 @@ export function RideMapView({
       tooltip: {
         enabled: true,
         callbacks: {
-          title: (items: TooltipItem<'line'>[]) => {
-            if (items.length > 0 && highlightedRoute) {
-              const index = items[0].dataIndex
+          title: (tooltipItems: TooltipItem<'line'>[]) => {
+            if (tooltipItems.length > 0 && highlightedRoute) {
+              const index = tooltipItems[0].dataIndex
               const point = highlightedRoute.trackPoints[index]
               return `${(point.dist / 1000).toFixed(1)} km`
             }
@@ -253,7 +264,7 @@ export function RideMapView({
   if (isLoading) {
     return (
       <div className="w-full h-[500px] flex items-center justify-center bg-gray-100 rounded">
-        <div className="text-gray-500">Loading routes...</div>
+        <div className="text-gray-500">{t('map.loading')}</div>
       </div>
     )
   }
@@ -261,7 +272,7 @@ export function RideMapView({
   if (routesData.length === 0) {
     return (
       <div className="w-full h-[500px] flex items-center justify-center bg-gray-100 rounded">
-        <div className="text-gray-500">No routes available for this ride</div>
+        <div className="text-gray-500">{t(`map.noRoutes.${entityType}`)}</div>
       </div>
     )
   }
@@ -270,6 +281,10 @@ export function RideMapView({
     routesData[0].trackPoints[0].lat,
     routesData[0].trackPoints[0].lng,
   ]
+
+  // End marker: always use last route's last point
+  const lastRoute = routesData[routesData.length - 1]
+  const endPoint = lastRoute.trackPoints[lastRoute.trackPoints.length - 1]
 
   return (
     <div className="border rounded overflow-hidden">
@@ -288,19 +303,19 @@ export function RideMapView({
 
           {/* Render all routes */}
           {routesData.map((route) => {
-            const isHighlighted = highlightedRoute?.groupId === route.groupId
+            const isHighlighted = highlightedRoute?.itemId === route.itemId
             const positions = route.trackPoints.map((p) => [p.lat, p.lng] as [number, number])
 
             return (
               <Polyline
-                key={route.groupId}
+                key={route.itemId}
                 positions={positions}
                 color={route.color}
                 weight={isHighlighted ? 8 : 5}
                 opacity={isHighlighted ? 0.7 : 0.5}
                 eventHandlers={{
-                  click: () => handlePolylineClick(route.groupId),
-                  mouseover: () => handlePolylineClick(route.groupId),
+                  click: () => handlePolylineClick(route.itemId),
+                  mouseover: () => handlePolylineClick(route.itemId),
                 }}
               />
             )
@@ -314,19 +329,13 @@ export function RideMapView({
             />
           )}
 
-          {/* End marker (first route's last point) */}
+          {/* End marker (last route's last point) */}
           {routesData.length > 0 && (
-            <Marker
-              position={[
-                routesData[0].trackPoints[routesData[0].trackPoints.length - 1].lat,
-                routesData[0].trackPoints[routesData[0].trackPoints.length - 1].lng,
-              ]}
-              icon={createEndIcon()}
-            />
+            <Marker position={[endPoint.lat, endPoint.lng]} icon={createEndIcon()} />
           )}
 
           <MapBoundsSetter routesData={routesData} />
-          <RouteInteractionHandler onGroupHover={onGroupHover} />
+          <RouteInteractionHandler onItemHover={onItemHover} />
         </MapContainer>
 
         {/* Elevation chart overlay */}

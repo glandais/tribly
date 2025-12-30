@@ -63,6 +63,11 @@
     "routeCreated": "Route created successfully",
     "routeUpdated": "Route updated successfully",
     "routeDeleted": "Route deleted successfully",
+    "tripCreated": "Trip created successfully",
+    "tripUpdated": "Trip updated successfully",
+    "tripDeleted": "Trip deleted successfully",
+    "tripJoined": "Successfully joined the trip",
+    "tripLeft": "Successfully left the trip",
     "profileUpdated": "Profile updated successfully",
     "accountDeleted": "Account deleted successfully"
   }

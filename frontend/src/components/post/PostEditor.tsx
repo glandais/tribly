@@ -69,12 +69,24 @@ export function PostEditor({
   // Initialize form state from initialValues prop (happens once on mount)
   useEffect(() => {
     setName(initialValues.name)
-    setMedia(initialValues.media)
+    // Only sync media if there's actual content, not on empty default
+    if (initialValues.media.markdown || initialValues.media.assets?.images?.length) {
+      setMedia(initialValues.media)
+    }
     setDateTime(initialValues.dateTime)
     setVisibility(initialValues.visibility)
     setStatus(initialValues.status)
     setPublishAt(initialValues.publishAt || '')
-  }, [initialValues])
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- Only sync on actual value changes
+  }, [
+    initialValues.name,
+    initialValues.media.markdown,
+    initialValues.media.assets?.images?.length,
+    initialValues.dateTime,
+    initialValues.visibility,
+    initialValues.status,
+    initialValues.publishAt,
+  ])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()

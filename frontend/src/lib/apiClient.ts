@@ -10,6 +10,7 @@ import {
   ErrorResponse,
   AssetsApi,
   PlacesApi,
+  TripsApi,
 } from '../api/api'
 import { Configuration } from '../api/configuration'
 import { useAuthStore } from '../store/authStore'
@@ -50,6 +51,7 @@ export const routesApi = new RoutesApi(apiConfiguration, '', axiosInstance)
 export const usersApi = new UsersApi(apiConfiguration, '', axiosInstance)
 export const configurationApi = new ConfigurationApi(apiConfiguration, '', axiosInstance)
 export const placesApi = new PlacesApi(apiConfiguration, '', axiosInstance)
+export const tripsApi = new TripsApi(apiConfiguration, '', axiosInstance)
 
 export class ApiClientError extends Error {
   constructor(

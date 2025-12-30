@@ -477,7 +477,10 @@ export interface PublicUserDto {
  * @type PublicationDto
  * Publication data
  */
-export type PublicationDto = ({ type: 'POST' } & PostDto) | ({ type: 'RIDE' } & RideDto)
+export type PublicationDto =
+  | ({ type: 'POST' } & PostDto)
+  | ({ type: 'RIDE' } & RideDto)
+  | ({ type: 'TRIP' } & TripDto)
 
 /**
  * Paginated publication list response
@@ -504,6 +507,7 @@ export interface PublicationListResponse {
 export const PublicationType = {
   Ride: 'RIDE',
   Post: 'POST',
+  Trip: 'TRIP',
 } as const
 
 export type PublicationType = (typeof PublicationType)[keyof typeof PublicationType]
@@ -887,6 +891,37 @@ export interface RouteRequest {
   visibility: Visibility
 }
 
+/**
+ * Trip stage creation request
+ */
+export interface StageRequest {
+  /**
+   * Stage ID (for updates)
+   */
+  id?: string
+  /**
+   * Stage name
+   */
+  name: string
+  dateTime: string
+  /**
+   * Route slug for this stage
+   */
+  routeSlug?: string
+  /**
+   * Start place ID (TSID)
+   */
+  startPlaceId?: string
+  /**
+   * End place ID (TSID)
+   */
+  endPlaceId?: string
+  /**
+   * Stage media
+   */
+  media: MediaDto
+}
+
 export const Status = {
   Draft: 'DRAFT',
   Published: 'PUBLISHED',
@@ -1028,6 +1063,165 @@ export interface TrackPointDto {
    * Distance from start in meters
    */
   dist: number
+}
+export interface TripDto extends PublicationDto {
+  /**
+   * Type
+   */
+  type: PublicationType
+  /**
+   * Team
+   */
+  team: any
+  /**
+   * Publication ID (TSID)
+   */
+  id: string
+  /**
+   * Publication URL slug
+   */
+  slug: string
+  /**
+   * Publication name
+   */
+  name: string
+  /**
+   * Publication media
+   */
+  media: any
+  dateTime: string
+  /**
+   * Publication status
+   */
+  status: Status
+  /**
+   * Visibility level
+   */
+  visibility: Visibility
+  publishAt?: string
+  createdAt?: string
+  /**
+   * Route slug
+   */
+  routeSlug?: string
+  /**
+   * Number of participants
+   */
+  participantCount: number
+  /**
+   * Number of stages
+   */
+  stageCount: number
+  /**
+   * Trip stages
+   */
+  stages: Array<TripStageDto>
+  /**
+   * Trip participants
+   */
+  participants: Array<PublicUserDto>
+}
+
+/**
+ * Paginated trip list response
+ */
+export interface TripListResponse {
+  /**
+   * List of trips
+   */
+  trips: Array<TripDto>
+  /**
+   * Total number of trips
+   */
+  total: number
+  /**
+   * Current page number
+   */
+  page: number
+  /**
+   * Page size
+   */
+  size: number
+}
+/**
+ * Trip participation information
+ */
+export interface TripParticipationDto {
+  /**
+   * Participation ID (TSID)
+   */
+  id: string
+  /**
+   * User ID (TSID)
+   */
+  userId: string
+  registeredAt?: string
+}
+/**
+ * Trip request
+ */
+export interface TripRequest {
+  /**
+   * Trip name
+   */
+  name: string
+  /**
+   * Trip media
+   */
+  media: MediaDto
+  dateTime: string
+  /**
+   * Trip status
+   */
+  status: Status
+  /**
+   * Visibility level
+   */
+  visibility: Visibility
+  /**
+   * Overall route slug for the trip
+   */
+  routeSlug?: string
+  publishAt?: string
+  /**
+   * Trip stages to create
+   */
+  stages: Array<StageRequest>
+}
+
+/**
+ * Trip stage information
+ */
+export interface TripStageDto {
+  /**
+   * Stage ID (TSID)
+   */
+  id: string
+  /**
+   * Stage name
+   */
+  name: string
+  dateTime: string
+  /**
+   * Route slug
+   */
+  routeSlug?: string
+  /**
+   * Start place
+   */
+  startPlace?: PlaceDetailDto
+  /**
+   * End place
+   */
+  endPlace?: PlaceDetailDto
+  /**
+   * Stage media
+   */
+  media: MediaDto
+  /**
+   * Sort order
+   */
+  sortOrder: number
 }
 /**
  * Request to update a member\'s role
@@ -5682,6 +5876,846 @@ export class TeamsApi extends BaseAPI {
   public updateTeam(slug: string, teamRequest: TeamRequest, options?: RawAxiosRequestConfig) {
     return TeamsApiFp(this.configuration)
       .updateTeam(slug, teamRequest, options)
+      .then((request) => request(this.axios, this.basePath))
+  }
+}
+
+/**
+ * TripsApi - axios parameter creator
+ */
+export const TripsApiAxiosParamCreator = function (configuration?: Configuration) {
+  return {
+    /**
+     * Create a new trip with optional stages
+     * @summary Create trip
+     * @param {string} slug Team URL slug
+     * @param {TripRequest} tripRequest
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    createTrip: async (
+      slug: string,
+      tripRequest: TripRequest,
+      options: RawAxiosRequestConfig = {}
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'slug' is not null or undefined
+      assertParamExists('createTrip', 'slug', slug)
+      // verify required parameter 'tripRequest' is not null or undefined
+      assertParamExists('createTrip', 'tripRequest', tripRequest)
+      const localVarPath = `/api/teams/{slug}/trips`.replace(
+        `{${'slug'}}`,
+        encodeURIComponent(String(slug))
+      )
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL)
+      let baseOptions
+      if (configuration) {
+        baseOptions = configuration.baseOptions
+      }
+
+      const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options }
+      const localVarHeaderParameter = {} as any
+      const localVarQueryParameter = {} as any
+
+      // authentication SecurityScheme required
+
+      localVarHeaderParameter['Content-Type'] = 'application/json'
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter)
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {}
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      }
+      localVarRequestOptions.data = serializeDataIfNeeded(
+        tripRequest,
+        localVarRequestOptions,
+        configuration
+      )
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      }
+    },
+    /**
+     * Soft delete a trip. Requires organizer permissions.
+     * @summary Delete trip
+     * @param {string} slug Team URL slug
+     * @param {string} tripSlug Trip URL slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    deleteTrip: async (
+      slug: string,
+      tripSlug: string,
+      options: RawAxiosRequestConfig = {}
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'slug' is not null or undefined
+      assertParamExists('deleteTrip', 'slug', slug)
+      // verify required parameter 'tripSlug' is not null or undefined
+      assertParamExists('deleteTrip', 'tripSlug', tripSlug)
+      const localVarPath = `/api/teams/{slug}/trips/{tripSlug}`
+        .replace(`{${'slug'}}`, encodeURIComponent(String(slug)))
+        .replace(`{${'tripSlug'}}`, encodeURIComponent(String(tripSlug)))
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL)
+      let baseOptions
+      if (configuration) {
+        baseOptions = configuration.baseOptions
+      }
+
+      const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options }
+      const localVarHeaderParameter = {} as any
+      const localVarQueryParameter = {} as any
+
+      // authentication SecurityScheme required
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter)
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {}
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      }
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      }
+    },
+    /**
+     * Get detailed trip information including stages and participants
+     * @summary Get trip details
+     * @param {string} slug Team URL slug
+     * @param {string} tripSlug Trip URL slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getTrip: async (
+      slug: string,
+      tripSlug: string,
+      options: RawAxiosRequestConfig = {}
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'slug' is not null or undefined
+      assertParamExists('getTrip', 'slug', slug)
+      // verify required parameter 'tripSlug' is not null or undefined
+      assertParamExists('getTrip', 'tripSlug', tripSlug)
+      const localVarPath = `/api/teams/{slug}/trips/{tripSlug}`
+        .replace(`{${'slug'}}`, encodeURIComponent(String(slug)))
+        .replace(`{${'tripSlug'}}`, encodeURIComponent(String(tripSlug)))
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL)
+      let baseOptions
+      if (configuration) {
+        baseOptions = configuration.baseOptions
+      }
+
+      const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options }
+      const localVarHeaderParameter = {} as any
+      const localVarQueryParameter = {} as any
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter)
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {}
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      }
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      }
+    },
+    /**
+     * Join a trip as a participant
+     * @summary Join trip
+     * @param {string} slug Team URL slug
+     * @param {string} tripSlug Trip URL slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    joinTrip: async (
+      slug: string,
+      tripSlug: string,
+      options: RawAxiosRequestConfig = {}
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'slug' is not null or undefined
+      assertParamExists('joinTrip', 'slug', slug)
+      // verify required parameter 'tripSlug' is not null or undefined
+      assertParamExists('joinTrip', 'tripSlug', tripSlug)
+      const localVarPath = `/api/teams/{slug}/trips/{tripSlug}/join`
+        .replace(`{${'slug'}}`, encodeURIComponent(String(slug)))
+        .replace(`{${'tripSlug'}}`, encodeURIComponent(String(tripSlug)))
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL)
+      let baseOptions
+      if (configuration) {
+        baseOptions = configuration.baseOptions
+      }
+
+      const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options }
+      const localVarHeaderParameter = {} as any
+      const localVarQueryParameter = {} as any
+
+      // authentication SecurityScheme required
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter)
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {}
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      }
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      }
+    },
+    /**
+     * Leave a trip as a participant
+     * @summary Leave trip
+     * @param {string} slug Team URL slug
+     * @param {string} tripSlug Trip URL slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    leaveTrip: async (
+      slug: string,
+      tripSlug: string,
+      options: RawAxiosRequestConfig = {}
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'slug' is not null or undefined
+      assertParamExists('leaveTrip', 'slug', slug)
+      // verify required parameter 'tripSlug' is not null or undefined
+      assertParamExists('leaveTrip', 'tripSlug', tripSlug)
+      const localVarPath = `/api/teams/{slug}/trips/{tripSlug}/leave`
+        .replace(`{${'slug'}}`, encodeURIComponent(String(slug)))
+        .replace(`{${'tripSlug'}}`, encodeURIComponent(String(tripSlug)))
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL)
+      let baseOptions
+      if (configuration) {
+        baseOptions = configuration.baseOptions
+      }
+
+      const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options }
+      const localVarHeaderParameter = {} as any
+      const localVarQueryParameter = {} as any
+
+      // authentication SecurityScheme required
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter)
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {}
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      }
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      }
+    },
+    /**
+     * Get paginated list of trips for a team with optional filtering
+     * @summary List trips
+     * @param {string} slug Team URL slug
+     * @param {string} [from] Start date filter (ISO format)
+     * @param {number} [page] Page number
+     * @param {string} [search] Search by name/markdown
+     * @param {number} [size] Page size
+     * @param {string} [to] End date filter (ISO format)
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listTrips: async (
+      slug: string,
+      from?: string,
+      page?: number,
+      search?: string,
+      size?: number,
+      to?: string,
+      options: RawAxiosRequestConfig = {}
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'slug' is not null or undefined
+      assertParamExists('listTrips', 'slug', slug)
+      const localVarPath = `/api/teams/{slug}/trips`.replace(
+        `{${'slug'}}`,
+        encodeURIComponent(String(slug))
+      )
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL)
+      let baseOptions
+      if (configuration) {
+        baseOptions = configuration.baseOptions
+      }
+
+      const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options }
+      const localVarHeaderParameter = {} as any
+      const localVarQueryParameter = {} as any
+
+      if (from !== undefined) {
+        localVarQueryParameter['from'] = from
+      }
+
+      if (page !== undefined) {
+        localVarQueryParameter['page'] = page
+      }
+
+      if (search !== undefined) {
+        localVarQueryParameter['search'] = search
+      }
+
+      if (size !== undefined) {
+        localVarQueryParameter['size'] = size
+      }
+
+      if (to !== undefined) {
+        localVarQueryParameter['to'] = to
+      }
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter)
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {}
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      }
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      }
+    },
+    /**
+     * Update trip information. Requires organizer permissions.
+     * @summary Update trip
+     * @param {string} slug Team URL slug
+     * @param {string} tripSlug Trip URL slug
+     * @param {TripRequest} tripRequest
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    updateTrip: async (
+      slug: string,
+      tripSlug: string,
+      tripRequest: TripRequest,
+      options: RawAxiosRequestConfig = {}
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'slug' is not null or undefined
+      assertParamExists('updateTrip', 'slug', slug)
+      // verify required parameter 'tripSlug' is not null or undefined
+      assertParamExists('updateTrip', 'tripSlug', tripSlug)
+      // verify required parameter 'tripRequest' is not null or undefined
+      assertParamExists('updateTrip', 'tripRequest', tripRequest)
+      const localVarPath = `/api/teams/{slug}/trips/{tripSlug}`
+        .replace(`{${'slug'}}`, encodeURIComponent(String(slug)))
+        .replace(`{${'tripSlug'}}`, encodeURIComponent(String(tripSlug)))
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL)
+      let baseOptions
+      if (configuration) {
+        baseOptions = configuration.baseOptions
+      }
+
+      const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options }
+      const localVarHeaderParameter = {} as any
+      const localVarQueryParameter = {} as any
+
+      // authentication SecurityScheme required
+
+      localVarHeaderParameter['Content-Type'] = 'application/json'
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter)
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {}
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      }
+      localVarRequestOptions.data = serializeDataIfNeeded(
+        tripRequest,
+        localVarRequestOptions,
+        configuration
+      )
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      }
+    },
+  }
+}
+
+/**
+ * TripsApi - functional programming interface
+ */
+export const TripsApiFp = function (configuration?: Configuration) {
+  const localVarAxiosParamCreator = TripsApiAxiosParamCreator(configuration)
+  return {
+    /**
+     * Create a new trip with optional stages
+     * @summary Create trip
+     * @param {string} slug Team URL slug
+     * @param {TripRequest} tripRequest
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async createTrip(
+      slug: string,
+      tripRequest: TripRequest,
+      options?: RawAxiosRequestConfig
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TripDto>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.createTrip(
+        slug,
+        tripRequest,
+        options
+      )
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0
+      const localVarOperationServerBasePath =
+        operationServerMap['TripsApi.createTrip']?.[localVarOperationServerIndex]?.url
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration
+        )(axios, localVarOperationServerBasePath || basePath)
+    },
+    /**
+     * Soft delete a trip. Requires organizer permissions.
+     * @summary Delete trip
+     * @param {string} slug Team URL slug
+     * @param {string} tripSlug Trip URL slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async deleteTrip(
+      slug: string,
+      tripSlug: string,
+      options?: RawAxiosRequestConfig
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.deleteTrip(slug, tripSlug, options)
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0
+      const localVarOperationServerBasePath =
+        operationServerMap['TripsApi.deleteTrip']?.[localVarOperationServerIndex]?.url
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration
+        )(axios, localVarOperationServerBasePath || basePath)
+    },
+    /**
+     * Get detailed trip information including stages and participants
+     * @summary Get trip details
+     * @param {string} slug Team URL slug
+     * @param {string} tripSlug Trip URL slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async getTrip(
+      slug: string,
+      tripSlug: string,
+      options?: RawAxiosRequestConfig
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TripDto>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.getTrip(slug, tripSlug, options)
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0
+      const localVarOperationServerBasePath =
+        operationServerMap['TripsApi.getTrip']?.[localVarOperationServerIndex]?.url
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration
+        )(axios, localVarOperationServerBasePath || basePath)
+    },
+    /**
+     * Join a trip as a participant
+     * @summary Join trip
+     * @param {string} slug Team URL slug
+     * @param {string} tripSlug Trip URL slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async joinTrip(
+      slug: string,
+      tripSlug: string,
+      options?: RawAxiosRequestConfig
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TripParticipationDto>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.joinTrip(slug, tripSlug, options)
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0
+      const localVarOperationServerBasePath =
+        operationServerMap['TripsApi.joinTrip']?.[localVarOperationServerIndex]?.url
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration
+        )(axios, localVarOperationServerBasePath || basePath)
+    },
+    /**
+     * Leave a trip as a participant
+     * @summary Leave trip
+     * @param {string} slug Team URL slug
+     * @param {string} tripSlug Trip URL slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async leaveTrip(
+      slug: string,
+      tripSlug: string,
+      options?: RawAxiosRequestConfig
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.leaveTrip(slug, tripSlug, options)
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0
+      const localVarOperationServerBasePath =
+        operationServerMap['TripsApi.leaveTrip']?.[localVarOperationServerIndex]?.url
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration
+        )(axios, localVarOperationServerBasePath || basePath)
+    },
+    /**
+     * Get paginated list of trips for a team with optional filtering
+     * @summary List trips
+     * @param {string} slug Team URL slug
+     * @param {string} [from] Start date filter (ISO format)
+     * @param {number} [page] Page number
+     * @param {string} [search] Search by name/markdown
+     * @param {number} [size] Page size
+     * @param {string} [to] End date filter (ISO format)
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async listTrips(
+      slug: string,
+      from?: string,
+      page?: number,
+      search?: string,
+      size?: number,
+      to?: string,
+      options?: RawAxiosRequestConfig
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TripListResponse>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.listTrips(
+        slug,
+        from,
+        page,
+        search,
+        size,
+        to,
+        options
+      )
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0
+      const localVarOperationServerBasePath =
+        operationServerMap['TripsApi.listTrips']?.[localVarOperationServerIndex]?.url
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration
+        )(axios, localVarOperationServerBasePath || basePath)
+    },
+    /**
+     * Update trip information. Requires organizer permissions.
+     * @summary Update trip
+     * @param {string} slug Team URL slug
+     * @param {string} tripSlug Trip URL slug
+     * @param {TripRequest} tripRequest
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async updateTrip(
+      slug: string,
+      tripSlug: string,
+      tripRequest: TripRequest,
+      options?: RawAxiosRequestConfig
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TripDto>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.updateTrip(
+        slug,
+        tripSlug,
+        tripRequest,
+        options
+      )
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0
+      const localVarOperationServerBasePath =
+        operationServerMap['TripsApi.updateTrip']?.[localVarOperationServerIndex]?.url
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration
+        )(axios, localVarOperationServerBasePath || basePath)
+    },
+  }
+}
+
+/**
+ * TripsApi - factory interface
+ */
+export const TripsApiFactory = function (
+  configuration?: Configuration,
+  basePath?: string,
+  axios?: AxiosInstance
+) {
+  const localVarFp = TripsApiFp(configuration)
+  return {
+    /**
+     * Create a new trip with optional stages
+     * @summary Create trip
+     * @param {string} slug Team URL slug
+     * @param {TripRequest} tripRequest
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    createTrip(
+      slug: string,
+      tripRequest: TripRequest,
+      options?: RawAxiosRequestConfig
+    ): AxiosPromise<TripDto> {
+      return localVarFp
+        .createTrip(slug, tripRequest, options)
+        .then((request) => request(axios, basePath))
+    },
+    /**
+     * Soft delete a trip. Requires organizer permissions.
+     * @summary Delete trip
+     * @param {string} slug Team URL slug
+     * @param {string} tripSlug Trip URL slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    deleteTrip(
+      slug: string,
+      tripSlug: string,
+      options?: RawAxiosRequestConfig
+    ): AxiosPromise<void> {
+      return localVarFp
+        .deleteTrip(slug, tripSlug, options)
+        .then((request) => request(axios, basePath))
+    },
+    /**
+     * Get detailed trip information including stages and participants
+     * @summary Get trip details
+     * @param {string} slug Team URL slug
+     * @param {string} tripSlug Trip URL slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getTrip(
+      slug: string,
+      tripSlug: string,
+      options?: RawAxiosRequestConfig
+    ): AxiosPromise<TripDto> {
+      return localVarFp.getTrip(slug, tripSlug, options).then((request) => request(axios, basePath))
+    },
+    /**
+     * Join a trip as a participant
+     * @summary Join trip
+     * @param {string} slug Team URL slug
+     * @param {string} tripSlug Trip URL slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    joinTrip(
+      slug: string,
+      tripSlug: string,
+      options?: RawAxiosRequestConfig
+    ): AxiosPromise<TripParticipationDto> {
+      return localVarFp
+        .joinTrip(slug, tripSlug, options)
+        .then((request) => request(axios, basePath))
+    },
+    /**
+     * Leave a trip as a participant
+     * @summary Leave trip
+     * @param {string} slug Team URL slug
+     * @param {string} tripSlug Trip URL slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    leaveTrip(slug: string, tripSlug: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+      return localVarFp
+        .leaveTrip(slug, tripSlug, options)
+        .then((request) => request(axios, basePath))
+    },
+    /**
+     * Get paginated list of trips for a team with optional filtering
+     * @summary List trips
+     * @param {string} slug Team URL slug
+     * @param {string} [from] Start date filter (ISO format)
+     * @param {number} [page] Page number
+     * @param {string} [search] Search by name/markdown
+     * @param {number} [size] Page size
+     * @param {string} [to] End date filter (ISO format)
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listTrips(
+      slug: string,
+      from?: string,
+      page?: number,
+      search?: string,
+      size?: number,
+      to?: string,
+      options?: RawAxiosRequestConfig
+    ): AxiosPromise<TripListResponse> {
+      return localVarFp
+        .listTrips(slug, from, page, search, size, to, options)
+        .then((request) => request(axios, basePath))
+    },
+    /**
+     * Update trip information. Requires organizer permissions.
+     * @summary Update trip
+     * @param {string} slug Team URL slug
+     * @param {string} tripSlug Trip URL slug
+     * @param {TripRequest} tripRequest
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    updateTrip(
+      slug: string,
+      tripSlug: string,
+      tripRequest: TripRequest,
+      options?: RawAxiosRequestConfig
+    ): AxiosPromise<TripDto> {
+      return localVarFp
+        .updateTrip(slug, tripSlug, tripRequest, options)
+        .then((request) => request(axios, basePath))
+    },
+  }
+}
+
+/**
+ * TripsApi - object-oriented interface
+ */
+export class TripsApi extends BaseAPI {
+  /**
+   * Create a new trip with optional stages
+   * @summary Create trip
+   * @param {string} slug Team URL slug
+   * @param {TripRequest} tripRequest
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   */
+  public createTrip(slug: string, tripRequest: TripRequest, options?: RawAxiosRequestConfig) {
+    return TripsApiFp(this.configuration)
+      .createTrip(slug, tripRequest, options)
+      .then((request) => request(this.axios, this.basePath))
+  }
+
+  /**
+   * Soft delete a trip. Requires organizer permissions.
+   * @summary Delete trip
+   * @param {string} slug Team URL slug
+   * @param {string} tripSlug Trip URL slug
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   */
+  public deleteTrip(slug: string, tripSlug: string, options?: RawAxiosRequestConfig) {
+    return TripsApiFp(this.configuration)
+      .deleteTrip(slug, tripSlug, options)
+      .then((request) => request(this.axios, this.basePath))
+  }
+
+  /**
+   * Get detailed trip information including stages and participants
+   * @summary Get trip details
+   * @param {string} slug Team URL slug
+   * @param {string} tripSlug Trip URL slug
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   */
+  public getTrip(slug: string, tripSlug: string, options?: RawAxiosRequestConfig) {
+    return TripsApiFp(this.configuration)
+      .getTrip(slug, tripSlug, options)
+      .then((request) => request(this.axios, this.basePath))
+  }
+
+  /**
+   * Join a trip as a participant
+   * @summary Join trip
+   * @param {string} slug Team URL slug
+   * @param {string} tripSlug Trip URL slug
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   */
+  public joinTrip(slug: string, tripSlug: string, options?: RawAxiosRequestConfig) {
+    return TripsApiFp(this.configuration)
+      .joinTrip(slug, tripSlug, options)
+      .then((request) => request(this.axios, this.basePath))
+  }
+
+  /**
+   * Leave a trip as a participant
+   * @summary Leave trip
+   * @param {string} slug Team URL slug
+   * @param {string} tripSlug Trip URL slug
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   */
+  public leaveTrip(slug: string, tripSlug: string, options?: RawAxiosRequestConfig) {
+    return TripsApiFp(this.configuration)
+      .leaveTrip(slug, tripSlug, options)
+      .then((request) => request(this.axios, this.basePath))
+  }
+
+  /**
+   * Get paginated list of trips for a team with optional filtering
+   * @summary List trips
+   * @param {string} slug Team URL slug
+   * @param {string} [from] Start date filter (ISO format)
+   * @param {number} [page] Page number
+   * @param {string} [search] Search by name/markdown
+   * @param {number} [size] Page size
+   * @param {string} [to] End date filter (ISO format)
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   */
+  public listTrips(
+    slug: string,
+    from?: string,
+    page?: number,
+    search?: string,
+    size?: number,
+    to?: string,
+    options?: RawAxiosRequestConfig
+  ) {
+    return TripsApiFp(this.configuration)
+      .listTrips(slug, from, page, search, size, to, options)
+      .then((request) => request(this.axios, this.basePath))
+  }
+
+  /**
+   * Update trip information. Requires organizer permissions.
+   * @summary Update trip
+   * @param {string} slug Team URL slug
+   * @param {string} tripSlug Trip URL slug
+   * @param {TripRequest} tripRequest
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   */
+  public updateTrip(
+    slug: string,
+    tripSlug: string,
+    tripRequest: TripRequest,
+    options?: RawAxiosRequestConfig
+  ) {
+    return TripsApiFp(this.configuration)
+      .updateTrip(slug, tripSlug, tripRequest, options)
       .then((request) => request(this.axios, this.basePath))
   }
 }

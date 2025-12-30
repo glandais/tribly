@@ -2,20 +2,24 @@ import { useLocation, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useTeam } from './useTeam'
 import { useRide } from './useRide'
+import { useTrip } from './useTrip'
 import { usePost } from './usePost'
 import { useRoute } from './useRoute'
 import type { BreadcrumbItem } from '../components/common/Breadcrumb'
 
 export function useBreadcrumb(): BreadcrumbItem[] {
   const location = useLocation()
-  const { teamSlug, rideSlug, postSlug, routeSlug } = useParams<{
+  const { teamSlug, rideSlug, tripSlug, postSlug, routeSlug } = useParams<{
     teamSlug?: string
     rideSlug?: string
+    tripSlug?: string
     postSlug?: string
     routeSlug?: string
   }>()
   const { t: tCommon } = useTranslation('common')
+  const { t: tTeams } = useTranslation('teams')
   const { t: tRides } = useTranslation('rides')
+  const { t: tTrips } = useTranslation('trips')
   const { t: tPosts } = useTranslation('posts')
 
   // Fetch team data if we're on a team-related route
@@ -23,6 +27,9 @@ export function useBreadcrumb(): BreadcrumbItem[] {
 
   // Fetch ride data if we're on a ride-related route
   const { data: ride } = useRide(teamSlug, rideSlug)
+
+  // Fetch trip data if we're on a trip-related route
+  const { data: trip } = useTrip(teamSlug, tripSlug)
 
   // Fetch post data if we're on a post-related route
   const { data: post } = usePost(teamSlug, postSlug)
@@ -40,6 +47,13 @@ export function useBreadcrumb(): BreadcrumbItem[] {
   // Teams list page
   if (location.pathname === '/teams') {
     items.push({ label: tCommon('nav.teams') })
+    return items
+  }
+
+  // Create team page
+  if (location.pathname === '/teams/new') {
+    items.push({ label: tCommon('nav.teams'), path: '/teams' })
+    items.push({ label: tTeams('create.title') })
     return items
   }
 
@@ -77,6 +91,12 @@ export function useBreadcrumb(): BreadcrumbItem[] {
       return items
     }
 
+    // Publications section
+    if (location.pathname === `/teams/${teamSlug}/publications`) {
+      items.push({ label: tTeams('publications.list.title') })
+      return items
+    }
+
     // Rides section
     if (location.pathname.includes('/rides')) {
       items.push({ label: tRides('breadcrumb.rides'), path: `/teams/${teamSlug}/rides` })
@@ -93,6 +113,29 @@ export function useBreadcrumb(): BreadcrumbItem[] {
 
         // Edit ride
         if (location.pathname === `/teams/${teamSlug}/rides/${rideSlug}/edit`) {
+          items.push({ label: tCommon('buttons.edit') })
+        }
+      }
+
+      return items
+    }
+
+    // Trips section
+    if (location.pathname.includes('/trips')) {
+      items.push({ label: tTrips('breadcrumb.trips'), path: `/teams/${teamSlug}/trips` })
+
+      // New trip
+      if (location.pathname === `/teams/${teamSlug}/trips/new`) {
+        items.push({ label: tCommon('actions.new') })
+        return items
+      }
+
+      // Trip detail or edit
+      if (tripSlug && trip) {
+        items.push({ label: trip.name, path: `/teams/${teamSlug}/trips/${tripSlug}` })
+
+        // Edit trip
+        if (location.pathname === `/teams/${teamSlug}/trips/${tripSlug}/edit`) {
           items.push({ label: tCommon('buttons.edit') })
         }
       }
