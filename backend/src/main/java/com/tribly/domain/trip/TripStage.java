@@ -1,5 +1,6 @@
 package com.tribly.domain.trip;
 
+import com.tribly.domain.common.NotNullableDbValue;
 import com.tribly.domain.common.TeamEntity;
 import com.tribly.domain.place.Place;
 import com.tribly.domain.route.Route;
@@ -22,6 +23,7 @@ public class TripStage extends TeamEntity {
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "trip_id")
+  @NotNullableDbValue
   private Trip trip;
 
   @ManyToOne(fetch = FetchType.EAGER)
@@ -40,6 +42,7 @@ public class TripStage extends TeamEntity {
   private Place endPlace;
 
   @Column(name = "sort_order")
+  @NotNullableDbValue
   private int sortOrder = 0;
 
   public TripStage(

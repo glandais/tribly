@@ -1,6 +1,7 @@
 package com.tribly.domain.team;
 
 import com.tribly.domain.common.BaseEntity;
+import com.tribly.domain.common.NotNullableDbValue;
 import com.tribly.domain.user.User;
 import com.tribly.enums.Visibility;
 import jakarta.persistence.*;
@@ -42,6 +43,7 @@ public class Team extends BaseEntity {
 
   @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
   @JoinColumn(name = "description_id")
+  @NotNullableDbValue
   private TeamDescription teamDescription;
 
   @OneToMany(mappedBy = "team", cascade = CascadeType.ALL, orphanRemoval = true)

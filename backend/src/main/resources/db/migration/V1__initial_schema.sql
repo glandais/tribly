@@ -40,8 +40,8 @@ create table gpx_tracks (
 
 create table places (
                         deleted boolean not null,
-                        end_place boolean,
-                        start_place boolean,
+                        end_place boolean not null,
+                        start_place boolean not null,
                         created_at timestamp(6) with time zone not null,
                         created_by_id bigint not null,
                         id bigint not null,
@@ -110,7 +110,7 @@ create table team_entities (
                                elevation_loss integer,
                                end_lat numeric(10,8),
                                end_lng numeric(11,8),
-                               entity_type integer not null check ((entity_type in (3,1,5,6,4,2))),
+                               entity_type integer not null check ((entity_type in (5,1,3,6,2,4))),
                                sort_order integer,
                                start_lat numeric(10,8),
                                start_lng numeric(11,8),
@@ -126,7 +126,7 @@ create table team_entities (
                                trip_id bigint,
                                updated_at timestamp(6) with time zone not null,
                                version bigint,
-                               status varchar(20) check ((status in ('DRAFT','PUBLISHED','CANCELLED'))),
+                               status varchar(20) not null check ((status in ('DRAFT','PUBLISHED','CANCELLED'))),
                                surface_type varchar(20) check ((surface_type in ('ROAD','GRAVEL','MTB','MIXED'))),
                                visibility varchar(20) not null check ((visibility in ('TEAM','PUBLIC'))),
                                markdown TEXT,
@@ -304,14 +304,14 @@ alter table if exists team_entities
     references teams;
 
 alter table if exists team_entities
-    add constraint FKjukml9fp2eipuhmugtiaf12gs
-    foreign key (place_end_id)
-    references places;
-
-alter table if exists team_entities
     add constraint FKsm0040p8exgxema0d3j4osclb
     foreign key (route_id)
     references team_entities;
+
+alter table if exists team_entities
+    add constraint FKjukml9fp2eipuhmugtiaf12gs
+    foreign key (place_end_id)
+    references places;
 
 alter table if exists team_entities
     add constraint FKm7w1a9lbh6795ida5u4n95vdv

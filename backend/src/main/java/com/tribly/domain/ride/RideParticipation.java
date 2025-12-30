@@ -26,12 +26,11 @@ public class RideParticipation extends BaseEntity {
   private User user;
 
   @Column(name = "registered_at", nullable = false)
-  private Instant registeredAt;
+  private Instant registeredAt = Instant.now();
 
   public RideParticipation(RideGroup rideGroup, User user) {
     super(user);
     this.rideGroup = rideGroup;
     this.user = user;
-    this.registeredAt = Instant.now();
   }
 }

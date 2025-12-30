@@ -49,7 +49,7 @@ public abstract class TeamEntity extends BaseEntity {
   protected Instant dateTime;
 
   @Enumerated(EnumType.STRING)
-  @Column(name = "status", length = 20)
+  @Column(name = "status", length = 20, nullable = false)
   protected Status status = Status.PUBLISHED;
 
   @Nullable

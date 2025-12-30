@@ -28,6 +28,7 @@
         <tika.version>3.2.3</tika.version>
         <dependencyversion-maven-plugin.version>1.0.0</dependencyversion-maven-plugin.version>
         <geolatte-geojson.version>1.10</geolatte-geojson.version>
+        <archunit-junit5.version>1.4.1</archunit-junit5.version>
     </properties>
 
     <dependencyManagement>
@@ -201,6 +202,12 @@
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-junit5-mockito</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.tngtech.archunit</groupId>
+            <artifactId>archunit-junit5</artifactId>
+            <version>${archunit-junit5.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

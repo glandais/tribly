@@ -38,18 +38,22 @@ public class Place extends BaseEntity {
   @Nullable
   private String link;
 
-  @Column(name = "start_place")
+  @Column(name = "start_place", nullable = false)
   private boolean startPlace = true;
 
-  @Column(name = "end_place")
+  @Column(name = "end_place", nullable = false)
   private boolean endPlace = true;
 
   @Column(name = "geometry", columnDefinition = "geometry(Point,4326)")
   @Nullable
   private Point<G2D> geometry;
 
-  public Place(User createdBy, Team team) {
+  public Place(User createdBy, Team team, String name, boolean startPlace, boolean endPlace) {
     super(createdBy);
     this.team = team;
+    this.name = name;
+    this.startPlace = startPlace;
+    this.endPlace = endPlace;
   }
+
 }
