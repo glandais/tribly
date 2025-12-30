@@ -3,18 +3,14 @@ package com.tribly.api.rides;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
-import com.tribly.dto.common.response.AssetsDto;
+import com.tribly.api.AbstractResourceTest;
 import com.tribly.dto.common.response.MediaDto;
 import com.tribly.dto.rides.request.GroupRequest;
 import com.tribly.dto.rides.request.RideRequest;
 import com.tribly.dto.rides.response.RideDto;
-import com.tribly.dto.teams.request.TeamRequest;
 import com.tribly.enums.Status;
 import com.tribly.enums.Visibility;
-import com.tribly.util.TestDataCleaner;
 import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.keycloak.client.KeycloakTestClient;
-import jakarta.inject.Inject;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
 import java.util.List;
@@ -22,65 +18,19 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
-class RideResourceTest {
+class RideResourceTest extends AbstractResourceTest {
 
-  public static final String USERNAME_ADMIN = "user1";
-  public static final String USERNAME_TEST = "user2";
-
-  @Inject TestDataCleaner dataCleaner;
-
-  private String teamSlug;
-
-  final KeycloakTestClient keycloakClient = new KeycloakTestClient();
-
-  protected String getAccessToken(String userName) {
-    return keycloakClient.getAccessToken(userName, userName, "tribly-backend");
-  }
-
+  @Override
   @BeforeEach
-  void setUp() {
-    dataCleaner.cleanAll();
-  }
-
-  private void createTeamViaHttp() {
-    TeamRequest teamRequest =
-        new TeamRequest(
-            "Ride Test Team " + System.currentTimeMillis(),
-            new MediaDto(null, AssetsDto.builder().build()),
-            Visibility.PUBLIC);
-    var response =
-        given()
-            .auth()
-            .oauth2(getAccessToken(USERNAME_ADMIN))
-            .contentType("application/json")
-            .body(teamRequest)
-            .when()
-            .post("/api/teams")
-            .then()
-            .statusCode(201)
-            .extract();
-
-    teamSlug = response.path("slug");
-  }
-
-  private void memberJoinsTeam() {
-    given()
-        .auth()
-        .oauth2(getAccessToken(USERNAME_TEST))
-        .contentType("application/json")
-        .when()
-        .post("/api/teams/" + teamSlug + "/members/join")
-        .then()
-        .statusCode(201);
+  public void setUp() {
+    super.setUp();
   }
 
   @Test
   void createRide_asAdmin_shouldSucceed() {
-    createTeamViaHttp();
-
     given()
         .auth()
-        .oauth2(getAccessToken(USERNAME_ADMIN))
+        .oauth2(getAccessToken(USER1))
         .contentType("application/json")
         .body(
             new RideRequest(
@@ -95,7 +45,7 @@ class RideResourceTest {
                 null,
                 List.of(new GroupRequest(null, "G1", null, null, null))))
         .when()
-        .post("/api/teams/" + teamSlug + "/rides")
+        .post("/api/teams/" + team1Slug + "/rides")
         .then()
         .statusCode(201)
         .body("name", equalTo("Sunday Morning Ride"))
@@ -106,12 +56,9 @@ class RideResourceTest {
 
   @Test
   void createRide_asMember_shouldBeDenied() {
-    createTeamViaHttp();
-    memberJoinsTeam();
-
     given()
         .auth()
-        .oauth2(getAccessToken(USERNAME_TEST))
+        .oauth2(getAccessToken(USER3))
         .contentType("application/json")
         .body(
             new RideRequest(
@@ -126,15 +73,35 @@ class RideResourceTest {
                 null,
                 List.of(new GroupRequest(null, "G1", null, null, null))))
         .when()
-        .post("/api/teams/" + teamSlug + "/rides")
+        .post("/api/teams/" + team1Slug + "/rides")
         .then()
         .statusCode(403);
   }
 
   @Test
-  void createRide_withGroups_shouldCreateAllGroups() {
-    createTeamViaHttp();
+  void createRide_withoutAuth_shouldReturn401() {
+    given()
+        .contentType("application/json")
+        .body(
+            new RideRequest(
+                "Sunday Morning Ride",
+                MediaDto.builder().build(),
+                LocalDate.parse("2025-01-20").atTime(0, 0).toInstant(ZoneOffset.UTC),
+                Status.DRAFT,
+                Visibility.PUBLIC,
+                null,
+                null,
+                null,
+                null,
+                List.of(new GroupRequest(null, "G1", null, null, null))))
+        .when()
+        .post("/api/teams/" + team1Slug + "/rides")
+        .then()
+        .statusCode(401);
+  }
 
+  @Test
+  void createRide_withGroups_shouldCreateAllGroups() {
     var body =
         new RideRequest(
             "Multi-Group Ride",
@@ -153,11 +120,11 @@ class RideResourceTest {
 
     given()
         .auth()
-        .oauth2(getAccessToken(USERNAME_ADMIN))
+        .oauth2(getAccessToken(USER2))
         .contentType("application/json")
         .body(body)
         .when()
-        .post("/api/teams/" + teamSlug + "/rides")
+        .post("/api/teams/" + team1Slug + "/rides")
         .then()
         .statusCode(201)
         .body("name", equalTo("Multi-Group Ride"))
@@ -166,12 +133,10 @@ class RideResourceTest {
 
   @Test
   void getRide_shouldReturnRideDetails() {
-    createTeamViaHttp();
-
     String rideSlug =
         given()
             .auth()
-            .oauth2(getAccessToken(USERNAME_ADMIN))
+            .oauth2(getAccessToken(USER2))
             .contentType("application/json")
             .body(
                 new RideRequest(
@@ -186,7 +151,7 @@ class RideResourceTest {
                     null,
                     List.of(new GroupRequest(null, "G1", null, null, null))))
             .when()
-            .post("/api/teams/" + teamSlug + "/rides")
+            .post("/api/teams/" + team1Slug + "/rides")
             .then()
             .statusCode(201)
             .extract()
@@ -194,9 +159,9 @@ class RideResourceTest {
 
     given()
         .auth()
-        .oauth2(getAccessToken(USERNAME_ADMIN))
+        .oauth2(getAccessToken(USER1))
         .when()
-        .get("/api/teams/" + teamSlug + "/rides/" + rideSlug)
+        .get("/api/teams/" + team1Slug + "/rides/" + rideSlug)
         .then()
         .statusCode(200)
         .body("slug", equalTo(rideSlug))
@@ -205,13 +170,40 @@ class RideResourceTest {
   }
 
   @Test
-  void listRides_shouldReturnTeamRides() {
-    createTeamViaHttp();
+  void getRide_withoutAuth_shouldReturn404() {
+    String rideSlug =
+        given()
+            .auth()
+            .oauth2(getAccessToken(USER2))
+            .contentType("application/json")
+            .body(
+                new RideRequest(
+                    "Get Test Ride",
+                    MediaDto.builder().build(),
+                    LocalDate.parse("2025-01-22").atTime(0, 0).toInstant(ZoneOffset.UTC),
+                    Status.PUBLISHED,
+                    Visibility.TEAM,
+                    null,
+                    null,
+                    null,
+                    null,
+                    List.of(new GroupRequest(null, "G1", null, null, null))))
+            .when()
+            .post("/api/teams/" + team1Slug + "/rides")
+            .then()
+            .statusCode(201)
+            .extract()
+            .path("slug");
 
+    given().when().get("/api/teams/" + team1Slug + "/rides/" + rideSlug).then().statusCode(404);
+  }
+
+  @Test
+  void listRides_shouldReturnTeamRides() {
     // Create two rides
     given()
         .auth()
-        .oauth2(getAccessToken(USERNAME_ADMIN))
+        .oauth2(getAccessToken(USER1))
         .contentType("application/json")
         .body(
             new RideRequest(
@@ -226,13 +218,13 @@ class RideResourceTest {
                 null,
                 List.of(new GroupRequest(null, "G1", null, null, null))))
         .when()
-        .post("/api/teams/" + teamSlug + "/rides")
+        .post("/api/teams/" + team1Slug + "/rides")
         .then()
         .statusCode(201);
 
     given()
         .auth()
-        .oauth2(getAccessToken(USERNAME_ADMIN))
+        .oauth2(getAccessToken(USER1))
         .contentType("application/json")
         .body(
             new RideRequest(
@@ -247,15 +239,15 @@ class RideResourceTest {
                 null,
                 List.of(new GroupRequest(null, "G1", null, null, null))))
         .when()
-        .post("/api/teams/" + teamSlug + "/rides")
+        .post("/api/teams/" + team1Slug + "/rides")
         .then()
         .statusCode(201);
 
     given()
         .auth()
-        .oauth2(getAccessToken(USERNAME_ADMIN))
+        .oauth2(getAccessToken(USER1))
         .when()
-        .get("/api/teams/" + teamSlug + "/rides")
+        .get("/api/teams/" + team1Slug + "/rides")
         .then()
         .statusCode(200)
         .body("rides", hasSize(greaterThanOrEqualTo(2)))
@@ -264,12 +256,10 @@ class RideResourceTest {
 
   @Test
   void updateRide_asAdmin_shouldSucceed() {
-    createTeamViaHttp();
-
     RideDto ride =
         given()
             .auth()
-            .oauth2(getAccessToken(USERNAME_ADMIN))
+            .oauth2(getAccessToken(USER1))
             .contentType("application/json")
             .body(
                 new RideRequest(
@@ -286,7 +276,7 @@ class RideResourceTest {
                         new GroupRequest(null, "G1", null, null, null),
                         new GroupRequest(null, "G0", null, null, null))))
             .when()
-            .post("/api/teams/" + teamSlug + "/rides")
+            .post("/api/teams/" + team1Slug + "/rides")
             .then()
             .statusCode(201)
             .extract()
@@ -296,7 +286,7 @@ class RideResourceTest {
 
     given()
         .auth()
-        .oauth2(getAccessToken(USERNAME_ADMIN))
+        .oauth2(getAccessToken(USER1))
         .contentType("application/json")
         .body(
             new RideRequest(
@@ -313,7 +303,7 @@ class RideResourceTest {
                     new GroupRequest(groupId, "G1 modified", null, null, null),
                     new GroupRequest(null, "G2", null, null, null))))
         .when()
-        .put("/api/teams/" + teamSlug + "/rides/" + rideSlug)
+        .put("/api/teams/" + team1Slug + "/rides/" + rideSlug)
         .then()
         .statusCode(200)
         .body("name", equalTo("Updated Title"))
@@ -321,13 +311,49 @@ class RideResourceTest {
   }
 
   @Test
-  void deleteRide_asAdmin_shouldSucceed() {
-    createTeamViaHttp();
-
+  void updateRide_withoutAuth_shouldReturn401() {
     String rideSlug =
         given()
             .auth()
-            .oauth2(getAccessToken(USERNAME_ADMIN))
+            .oauth2(getAccessToken(USER1))
+            .contentType("application/json")
+            .body(
+                new RideRequest(
+                    "Sunday Morning Ride",
+                    MediaDto.builder().build(),
+                    LocalDate.parse("2025-01-20").atTime(0, 0).toInstant(ZoneOffset.UTC),
+                    Status.DRAFT,
+                    Visibility.PUBLIC,
+                    null,
+                    null,
+                    null,
+                    null,
+                    List.of(
+                        new GroupRequest(null, "G1", null, null, null),
+                        new GroupRequest(null, "G0", null, null, null))))
+            .when()
+            .post("/api/teams/" + team1Slug + "/rides")
+            .then()
+            .statusCode(201)
+            .extract()
+            .as(RideDto.class)
+            .getSlug();
+
+    given()
+        .contentType("application/json")
+        .body("{\"name\": \"Updated Ride\"}")
+        .when()
+        .put("/api/teams/" + team1Slug + "/rides/" + rideSlug)
+        .then()
+        .statusCode(401);
+  }
+
+  @Test
+  void deleteRide_asAdmin_shouldSucceed() {
+    String rideSlug =
+        given()
+            .auth()
+            .oauth2(getAccessToken(USER1))
             .contentType("application/json")
             .body(
                 new RideRequest(
@@ -342,7 +368,7 @@ class RideResourceTest {
                     null,
                     List.of(new GroupRequest(null, "G1", null, null, null))))
             .when()
-            .post("/api/teams/" + teamSlug + "/rides")
+            .post("/api/teams/" + team1Slug + "/rides")
             .then()
             .statusCode(201)
             .extract()
@@ -350,32 +376,58 @@ class RideResourceTest {
 
     given()
         .auth()
-        .oauth2(getAccessToken(USERNAME_ADMIN))
+        .oauth2(getAccessToken(USER1))
         .when()
-        .delete("/api/teams/" + teamSlug + "/rides/" + rideSlug)
+        .delete("/api/teams/" + team1Slug + "/rides/" + rideSlug)
         .then()
         .statusCode(204);
 
     // Verify it's gone
     given()
         .auth()
-        .oauth2(getAccessToken(USERNAME_ADMIN))
+        .oauth2(getAccessToken(USER1))
         .when()
-        .get("/api/teams/" + teamSlug + "/rides/" + rideSlug)
+        .get("/api/teams/" + team1Slug + "/rides/" + rideSlug)
         .then()
         .statusCode(404);
   }
 
   @Test
-  void joinRide_shouldAddParticipant() {
-    createTeamViaHttp();
-    memberJoinsTeam();
+  void deleteRide_withoutAuth_shouldReturn401() {
+    String rideSlug =
+        given()
+            .auth()
+            .oauth2(getAccessToken(USER1))
+            .contentType("application/json")
+            .body(
+                new RideRequest(
+                    "To be deleted",
+                    MediaDto.builder().build(),
+                    LocalDate.parse("2025-01-20").atTime(0, 0).toInstant(ZoneOffset.UTC),
+                    Status.PUBLISHED,
+                    Visibility.PUBLIC,
+                    null,
+                    null,
+                    null,
+                    null,
+                    List.of(new GroupRequest(null, "G1", null, null, null))))
+            .when()
+            .post("/api/teams/" + team1Slug + "/rides")
+            .then()
+            .statusCode(201)
+            .extract()
+            .path("slug");
 
+    given().when().delete("/api/teams/" + team1Slug + "/rides/" + rideSlug).then().statusCode(401);
+  }
+
+  @Test
+  void joinRide_shouldAddParticipant() {
     // Create and publish ride
     RideDto ride =
         given()
             .auth()
-            .oauth2(getAccessToken(USERNAME_ADMIN))
+            .oauth2(getAccessToken(USER1))
             .contentType("application/json")
             .body(
                 new RideRequest(
@@ -390,7 +442,7 @@ class RideResourceTest {
                     null,
                     List.of(new GroupRequest(null, "G1", null, null, null))))
             .when()
-            .post("/api/teams/" + teamSlug + "/rides")
+            .post("/api/teams/" + team1Slug + "/rides")
             .then()
             .statusCode(201)
             .extract()
@@ -401,24 +453,21 @@ class RideResourceTest {
     // Member joins the ride
     given()
         .auth()
-        .oauth2(getAccessToken(USERNAME_TEST))
+        .oauth2(getAccessToken(USER2))
         .contentType("application/json")
         .when()
-        .post("/api/teams/" + teamSlug + "/rides/" + rideSlug + "/groups/" + groupId + "/join")
+        .post("/api/teams/" + team1Slug + "/rides/" + rideSlug + "/groups/" + groupId + "/join")
         .then()
         .statusCode(201);
   }
 
   @Test
   void joinRide_whenNotPublished_shouldBeDenied() {
-    createTeamViaHttp();
-    memberJoinsTeam();
-
     // Create ride (stays in DRAFT)
     RideDto ride =
         given()
             .auth()
-            .oauth2(getAccessToken(USERNAME_ADMIN))
+            .oauth2(getAccessToken(USER1))
             .contentType("application/json")
             .body(
                 new RideRequest(
@@ -433,7 +482,7 @@ class RideResourceTest {
                     null,
                     List.of(new GroupRequest(null, "G1", null, null, null))))
             .when()
-            .post("/api/teams/" + teamSlug + "/rides")
+            .post("/api/teams/" + team1Slug + "/rides")
             .then()
             .statusCode(201)
             .extract()
@@ -444,24 +493,21 @@ class RideResourceTest {
     // Member tries to join (should fail - ride not published)
     given()
         .auth()
-        .oauth2(getAccessToken(USERNAME_TEST))
+        .oauth2(getAccessToken(USER3))
         .contentType("application/json")
         .when()
-        .post("/api/teams/" + teamSlug + "/rides/" + rideSlug + "/groups/" + groupId + "/join")
+        .post("/api/teams/" + team1Slug + "/rides/" + rideSlug + "/groups/" + groupId + "/join")
         .then()
         .statusCode(404);
   }
 
   @Test
   void leaveRide_shouldRemoveParticipant() {
-    createTeamViaHttp();
-    memberJoinsTeam();
-
     // Create and publish ride
     RideDto ride =
         given()
             .auth()
-            .oauth2(getAccessToken(USERNAME_ADMIN))
+            .oauth2(getAccessToken(USER1))
             .contentType("application/json")
             .body(
                 new RideRequest(
@@ -476,7 +522,7 @@ class RideResourceTest {
                     null,
                     List.of(new GroupRequest(null, "G1", null, null, null))))
             .when()
-            .post("/api/teams/" + teamSlug + "/rides")
+            .post("/api/teams/" + team1Slug + "/rides")
             .then()
             .statusCode(201)
             .extract()
@@ -487,21 +533,58 @@ class RideResourceTest {
     // Member joins
     given()
         .auth()
-        .oauth2(getAccessToken(USERNAME_TEST))
+        .oauth2(getAccessToken(USER2))
         .contentType("application/json")
         .when()
-        .post("/api/teams/" + teamSlug + "/rides/" + rideSlug + "/groups/" + groupId + "/join")
+        .post("/api/teams/" + team1Slug + "/rides/" + rideSlug + "/groups/" + groupId + "/join")
         .then()
         .statusCode(201);
 
     // Member leaves
     given()
         .auth()
-        .oauth2(getAccessToken(USERNAME_TEST))
+        .oauth2(getAccessToken(USER2))
         .contentType("application/json")
         .when()
-        .post("/api/teams/" + teamSlug + "/rides/" + rideSlug + "/groups/" + groupId + "/leave")
+        .post("/api/teams/" + team1Slug + "/rides/" + rideSlug + "/groups/" + groupId + "/leave")
         .then()
         .statusCode(204);
+  }
+
+  @Test
+  void leaveRideGroup_withoutAuth_shouldReturn401() {
+    // Create and publish ride
+    RideDto ride =
+        given()
+            .auth()
+            .oauth2(getAccessToken(USER1))
+            .contentType("application/json")
+            .body(
+                new RideRequest(
+                    "Ride",
+                    MediaDto.builder().build(),
+                    LocalDate.parse("2025-01-20").atTime(0, 0).toInstant(ZoneOffset.UTC),
+                    Status.PUBLISHED,
+                    Visibility.PUBLIC,
+                    null,
+                    null,
+                    null,
+                    null,
+                    List.of(new GroupRequest(null, "G1", null, null, null))))
+            .when()
+            .post("/api/teams/" + team1Slug + "/rides")
+            .then()
+            .statusCode(201)
+            .extract()
+            .as(RideDto.class);
+    String rideSlug = ride.getSlug();
+    String groupId = ride.getGroups().getFirst().id();
+
+    given()
+        .contentType("application/json")
+        .when()
+        .post("/api/teams/" + team1Slug + "/rides/" + rideSlug + "/groups/" + groupId + "/leave")
+        .then()
+        .statusCode(401);
   }
 }

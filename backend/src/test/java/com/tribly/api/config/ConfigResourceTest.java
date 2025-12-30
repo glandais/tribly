@@ -3,7 +3,9 @@ package com.tribly.api.config;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
+import com.tribly.api.AbstractResourceTest;
 import io.quarkus.test.junit.QuarkusTest;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -11,7 +13,12 @@ import org.junit.jupiter.api.Test;
  * Verifies configuration values match application.properties (%test. profile).
  */
 @QuarkusTest
-class ConfigResourceTest {
+class ConfigResourceTest extends AbstractResourceTest {
+  @Override
+  @BeforeEach
+  public void setUp() {
+    super.setUp();
+  }
 
   @Test
   void getConfig_shouldReturnConfiguration() {

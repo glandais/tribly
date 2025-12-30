@@ -3,61 +3,35 @@ package com.tribly.api.routes;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
+import com.tribly.api.AbstractResourceTest;
 import com.tribly.domain.route.Route;
-import com.tribly.domain.team.Team;
-import com.tribly.domain.user.User;
 import com.tribly.dto.common.response.MediaDto;
 import com.tribly.dto.routes.request.RouteRequest;
 import com.tribly.enums.SurfaceType;
-import com.tribly.enums.TeamRole;
 import com.tribly.enums.Visibility;
 import com.tribly.infrastructure.id.TsidUtils;
-import com.tribly.util.TestDataCleaner;
-import com.tribly.util.TestDataService;
 import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.keycloak.client.KeycloakTestClient;
-import jakarta.inject.Inject;
 import jakarta.ws.rs.core.MediaType;
 import java.io.File;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
-class RouteResourceTest {
+class RouteResourceTest extends AbstractResourceTest {
 
-  public static final String USERNAME_TEST = "user1";
-  private static final String TEST_EMAIL = "user1@example.com";
-
-  @Inject TestDataService dataService;
-  @Inject TestDataCleaner dataCleaner;
-
-  private Team testTeam;
-  private User testUser;
-  private Route testRoute;
-
-  final KeycloakTestClient keycloakClient = new KeycloakTestClient();
-
-  protected String getAccessToken(String userName) {
-    return keycloakClient.getAccessToken(userName, userName, "tribly-backend");
-  }
-
+  @Override
   @BeforeEach
-  void setUp() {
-    dataCleaner.cleanAll();
-
-    // Create test user
-    testUser = dataService.createUser(TEST_EMAIL, "Test User");
-
-    // Create test team with organizer
-    testTeam = dataService.createTeam(testUser, "Test Team", "test-team", Visibility.PUBLIC);
-    dataService.addUserToTeam(testUser, testTeam, TeamRole.ORGANIZER);
+  public void setUp() {
+    super.setUp();
   }
+
+  // ==================== List Routes Tests ====================
 
   @Test
-  void listRoutes_shouldReturnRoutes() {
+  void listRoutes_withoutAuth_shouldSucceed() {
     given()
         .when()
-        .get("/api/teams/test-team/routes")
+        .get("/api/teams/" + team1Slug + "/routes")
         .then()
         .statusCode(200)
         .body("routes", notNullValue())
@@ -65,49 +39,256 @@ class RouteResourceTest {
   }
 
   @Test
-  void createRoute_shouldCreateWithGpxFile() {
+  void listRoutes_asMember_shouldSucceed() {
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER3))
+        .when()
+        .get("/api/teams/" + team1Slug + "/routes")
+        .then()
+        .statusCode(200)
+        .body("routes", notNullValue());
+  }
+
+  @Test
+  void listRoutes_asNonMember_shouldSucceed() {
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER4))
+        .when()
+        .get("/api/teams/" + team1Slug + "/routes")
+        .then()
+        .statusCode(200)
+        .body("routes", notNullValue());
+  }
+
+  @Test
+  void listRoutes_toNonexistentTeam_shouldReturn200() {
+    given()
+        .when()
+        .get("/api/teams/nonexistent-team/routes")
+        .then()
+        // empty list
+        .statusCode(200);
+  }
+
+  @Test
+  void listRoutes_shouldSupportPagination() {
+    given()
+        .queryParam("page", 1)
+        .queryParam("size", 10)
+        .when()
+        .get("/api/teams/" + team1Slug + "/routes")
+        .then()
+        .statusCode(200)
+        .body("page", equalTo(1))
+        .body("size", equalTo(10));
+  }
+
+  // ==================== Create Route Tests ====================
+
+  @Test
+  void createRoute_asAdmin_shouldSucceed() {
     File gpxFile = new File("src/test/resources/example.gpx");
 
     RouteRequest route =
         new RouteRequest(
-            "Test Route",
+            "Admin Route",
             MediaDto.builder().markdown("A test route").build(),
             SurfaceType.GRAVEL,
             Visibility.PUBLIC);
 
     given()
         .auth()
-        .oauth2(getAccessToken(USERNAME_TEST))
+        .oauth2(getAccessToken(USER1))
         .multiPart("route", route, MediaType.APPLICATION_JSON)
         .multiPart("gpxFile", gpxFile, "application/gpx+xml")
         .when()
-        .post("/api/teams/test-team/routes")
+        .post("/api/teams/" + team1Slug + "/routes")
         .then()
         .statusCode(201)
-        .body("name", equalTo("Test Route"))
+        .body("name", equalTo("Admin Route"))
         .body("media.markdown", equalTo("A test route"))
         .body("distance", greaterThan(0))
         .body("elevationGain", greaterThanOrEqualTo(0));
   }
 
   @Test
-  void getRoute_shouldReturnRouteDetails() {
-    // Create route for testing
-    testRoute = dataService.createRoute(testTeam, testUser, "Test Route", Visibility.PUBLIC);
+  void createRoute_asOrganizer_shouldSucceed() {
+    File gpxFile = new File("src/test/resources/example.gpx");
+
+    RouteRequest route =
+        new RouteRequest(
+            "Organizer Route",
+            MediaDto.builder().markdown("Route by organizer").build(),
+            SurfaceType.ROAD,
+            Visibility.PUBLIC);
 
     given()
+        .auth()
+        .oauth2(getAccessToken(USER2))
+        .multiPart("route", route, MediaType.APPLICATION_JSON)
+        .multiPart("gpxFile", gpxFile, "application/gpx+xml")
         .when()
-        .get("/api/teams/test-team/routes/" + testRoute.getSlug())
+        .post("/api/teams/" + team1Slug + "/routes")
         .then()
-        .statusCode(200)
-        .body("id", equalTo(TsidUtils.toString(testRoute.getId())))
-        .body("name", equalTo("Test Route"));
+        .statusCode(201)
+        .body("name", equalTo("Organizer Route"));
   }
 
   @Test
-  void updateRoute_shouldUpdateMetadata() {
-    // Create route for testing
-    testRoute = dataService.createRoute(testTeam, testUser, "Original Name", Visibility.PUBLIC);
+  void createRoute_asMember_shouldBeDenied() {
+    File gpxFile = new File("src/test/resources/example.gpx");
+
+    RouteRequest route =
+        new RouteRequest(
+            "Member Route", MediaDto.builder().build(), SurfaceType.GRAVEL, Visibility.PUBLIC);
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER3))
+        .multiPart("route", route, MediaType.APPLICATION_JSON)
+        .multiPart("gpxFile", gpxFile, "application/gpx+xml")
+        .when()
+        .post("/api/teams/" + team1Slug + "/routes")
+        .then()
+        .statusCode(403);
+  }
+
+  @Test
+  void createRoute_withoutAuth_shouldReturn401() {
+    File gpxFile = new File("src/test/resources/example.gpx");
+
+    RouteRequest route =
+        new RouteRequest(
+            "Unauth Route", MediaDto.builder().build(), SurfaceType.GRAVEL, Visibility.PUBLIC);
+
+    given()
+        .multiPart("route", route, MediaType.APPLICATION_JSON)
+        .multiPart("gpxFile", gpxFile, "application/gpx+xml")
+        .when()
+        .post("/api/teams/" + team1Slug + "/routes")
+        .then()
+        .statusCode(401);
+  }
+
+  @Test
+  void createRoute_asNonMember_shouldReturn403() {
+    File gpxFile = new File("src/test/resources/example.gpx");
+
+    RouteRequest route =
+        new RouteRequest(
+            "NonMember Route", MediaDto.builder().build(), SurfaceType.GRAVEL, Visibility.PUBLIC);
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER4))
+        .multiPart("route", route, MediaType.APPLICATION_JSON)
+        .multiPart("gpxFile", gpxFile, "application/gpx+xml")
+        .when()
+        .post("/api/teams/" + team1Slug + "/routes")
+        .then()
+        .statusCode(403);
+  }
+
+  @Test
+  void createRoute_withoutGpxFile_shouldReturn400() {
+    RouteRequest route =
+        new RouteRequest(
+            "No GPX Route", MediaDto.builder().build(), SurfaceType.GRAVEL, Visibility.PUBLIC);
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .multiPart("route", route, MediaType.APPLICATION_JSON)
+        .when()
+        .post("/api/teams/" + team1Slug + "/routes")
+        .then()
+        .statusCode(400);
+  }
+
+  @Test
+  void createRoute_toNonexistentTeam_shouldReturn404() {
+    File gpxFile = new File("src/test/resources/example.gpx");
+
+    RouteRequest route =
+        new RouteRequest(
+            "Test Route", MediaDto.builder().build(), SurfaceType.GRAVEL, Visibility.PUBLIC);
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .multiPart("route", route, MediaType.APPLICATION_JSON)
+        .multiPart("gpxFile", gpxFile, "application/gpx+xml")
+        .when()
+        .post("/api/teams/nonexistent-team/routes")
+        .then()
+        .statusCode(404);
+  }
+
+  // ==================== Get Route Tests ====================
+
+  @Test
+  void getRoute_withoutAuth_shouldSucceed() {
+    Route testRoute = dataService.createRoute(team1, user1, "Public Route", Visibility.PUBLIC);
+
+    given()
+        .when()
+        .get("/api/teams/" + team1Slug + "/routes/" + testRoute.getSlug())
+        .then()
+        .statusCode(200)
+        .body("id", equalTo(TsidUtils.toString(testRoute.getId())))
+        .body("name", equalTo("Public Route"));
+  }
+
+  @Test
+  void getRoute_asMember_shouldSucceed() {
+    Route testRoute = dataService.createRoute(team1, user1, "Member Get Route", Visibility.PUBLIC);
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER3))
+        .when()
+        .get("/api/teams/" + team1Slug + "/routes/" + testRoute.getSlug())
+        .then()
+        .statusCode(200)
+        .body("name", equalTo("Member Get Route"));
+  }
+
+  @Test
+  void getRoute_asNonMember_shouldSucceed() {
+    Route testRoute =
+        dataService.createRoute(team1, user1, "NonMember Get Route", Visibility.PUBLIC);
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER4))
+        .when()
+        .get("/api/teams/" + team1Slug + "/routes/" + testRoute.getSlug())
+        .then()
+        .statusCode(200)
+        .body("name", equalTo("NonMember Get Route"));
+  }
+
+  @Test
+  void getRoute_nonexistent_shouldReturn404() {
+    given()
+        .when()
+        .get("/api/teams/" + team1Slug + "/routes/nonexistent-route")
+        .then()
+        .statusCode(404);
+  }
+
+  @Test
+  void getRoute_toNonexistentTeam_shouldReturn404() {
+    given().when().get("/api/teams/nonexistent-team/routes/some-route").then().statusCode(404);
+  }
+
+  // ==================== Update Route Tests ====================
+
+  @Test
+  void updateRoute_asAdmin_shouldSucceed() {
+    Route testRoute = dataService.createRoute(team1, user1, "Original Name", Visibility.PUBLIC);
 
     RouteRequest route =
         new RouteRequest(
@@ -118,10 +299,10 @@ class RouteResourceTest {
 
     given()
         .auth()
-        .oauth2(getAccessToken(USERNAME_TEST))
+        .oauth2(getAccessToken(USER1))
         .multiPart("route", route, MediaType.APPLICATION_JSON)
         .when()
-        .put("/api/teams/test-team/routes/" + testRoute.getSlug())
+        .put("/api/teams/" + team1Slug + "/routes/" + testRoute.getSlug())
         .then()
         .statusCode(200)
         .body("name", equalTo("Updated Name"))
@@ -129,9 +310,92 @@ class RouteResourceTest {
   }
 
   @Test
-  void updateRoute_shouldUpdateGpxFile() {
-    // Create route for testing
-    testRoute = dataService.createRoute(testTeam, testUser, "Original Route", Visibility.PUBLIC);
+  void updateRoute_asOrganizer_shouldSucceed() {
+    Route testRoute =
+        dataService.createRoute(team1, user1, "Organizer Update Route", Visibility.PUBLIC);
+
+    RouteRequest route =
+        new RouteRequest(
+            "Updated by Organizer",
+            MediaDto.builder().markdown("Organizer updated").build(),
+            SurfaceType.GRAVEL,
+            Visibility.PUBLIC);
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER2))
+        .multiPart("route", route, MediaType.APPLICATION_JSON)
+        .when()
+        .put("/api/teams/" + team1Slug + "/routes/" + testRoute.getSlug())
+        .then()
+        .statusCode(200)
+        .body("name", equalTo("Updated by Organizer"));
+  }
+
+  @Test
+  void updateRoute_asMember_shouldBeDenied() {
+    Route testRoute =
+        dataService.createRoute(team1, user1, "Member Update Route", Visibility.PUBLIC);
+
+    RouteRequest route =
+        new RouteRequest(
+            "Hacked by Member", MediaDto.builder().build(), SurfaceType.GRAVEL, Visibility.PUBLIC);
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER3))
+        .multiPart("route", route, MediaType.APPLICATION_JSON)
+        .when()
+        .put("/api/teams/" + team1Slug + "/routes/" + testRoute.getSlug())
+        .then()
+        .statusCode(403);
+  }
+
+  @Test
+  void updateRoute_withoutAuth_shouldReturn401() {
+    Route testRoute =
+        dataService.createRoute(team1, user1, "Unauth Update Route", Visibility.PUBLIC);
+
+    RouteRequest route =
+        new RouteRequest(
+            "Unauthorized Update",
+            MediaDto.builder().build(),
+            SurfaceType.GRAVEL,
+            Visibility.PUBLIC);
+
+    given()
+        .multiPart("route", route, MediaType.APPLICATION_JSON)
+        .when()
+        .put("/api/teams/" + team1Slug + "/routes/" + testRoute.getSlug())
+        .then()
+        .statusCode(401);
+  }
+
+  @Test
+  void updateRoute_asNonMember_shouldReturn403() {
+    Route testRoute =
+        dataService.createRoute(team1, user1, "NonMember Update Route", Visibility.PUBLIC);
+
+    RouteRequest route =
+        new RouteRequest(
+            "Hacked by NonMember",
+            MediaDto.builder().build(),
+            SurfaceType.GRAVEL,
+            Visibility.PUBLIC);
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER4))
+        .multiPart("route", route, MediaType.APPLICATION_JSON)
+        .when()
+        .put("/api/teams/" + team1Slug + "/routes/" + testRoute.getSlug())
+        .then()
+        .statusCode(403);
+  }
+
+  @Test
+  void updateRoute_withNewGpxFile_shouldSucceed() {
+    Route testRoute = dataService.createRoute(team1, user1, "Original Route", Visibility.PUBLIC);
 
     RouteRequest route =
         new RouteRequest(
@@ -144,11 +408,11 @@ class RouteResourceTest {
 
     given()
         .auth()
-        .oauth2(getAccessToken(USERNAME_TEST))
+        .oauth2(getAccessToken(USER1))
         .multiPart("route", route, MediaType.APPLICATION_JSON)
         .multiPart("gpxFile", gpxFile, "application/gpx+xml")
         .when()
-        .put("/api/teams/test-team/routes/" + testRoute.getSlug())
+        .put("/api/teams/" + team1Slug + "/routes/" + testRoute.getSlug())
         .then()
         .statusCode(200)
         .body("name", equalTo("Updated Route"))
@@ -158,19 +422,101 @@ class RouteResourceTest {
   }
 
   @Test
-  void deleteRoute_shouldSoftDelete() {
-    // Create route for testing
-    testRoute = dataService.createRoute(testTeam, testUser, "To Delete", Visibility.PUBLIC);
+  void updateRoute_nonexistent_shouldReturn404() {
+    RouteRequest route =
+        new RouteRequest(
+            "Nonexistent", MediaDto.builder().build(), SurfaceType.GRAVEL, Visibility.PUBLIC);
 
     given()
         .auth()
-        .oauth2(getAccessToken(USERNAME_TEST))
+        .oauth2(getAccessToken(USER1))
+        .multiPart("route", route, MediaType.APPLICATION_JSON)
         .when()
-        .delete("/api/teams/test-team/routes/" + testRoute.getSlug())
+        .put("/api/teams/" + team1Slug + "/routes/nonexistent-route")
+        .then()
+        .statusCode(404);
+  }
+
+  // ==================== Delete Route Tests ====================
+
+  @Test
+  void deleteRoute_asAdmin_shouldSucceed() {
+    Route testRoute = dataService.createRoute(team1, user1, "To Delete", Visibility.PUBLIC);
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .when()
+        .delete("/api/teams/" + team1Slug + "/routes/" + testRoute.getSlug())
         .then()
         .statusCode(204);
 
     // Verify route is no longer accessible
-    given().when().get("/api/teams/test-team/routes/" + testRoute.getSlug()).then().statusCode(404);
+    given()
+        .when()
+        .get("/api/teams/" + team1Slug + "/routes/" + testRoute.getSlug())
+        .then()
+        .statusCode(404);
+  }
+
+  @Test
+  void deleteRoute_asOrganizer_shouldSucceed() {
+    Route testRoute = dataService.createRoute(team1, user1, "Organizer Delete", Visibility.PUBLIC);
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER2))
+        .when()
+        .delete("/api/teams/" + team1Slug + "/routes/" + testRoute.getSlug())
+        .then()
+        .statusCode(204);
+  }
+
+  @Test
+  void deleteRoute_asMember_shouldBeDenied() {
+    Route testRoute = dataService.createRoute(team1, user1, "Member Delete", Visibility.PUBLIC);
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER3))
+        .when()
+        .delete("/api/teams/" + team1Slug + "/routes/" + testRoute.getSlug())
+        .then()
+        .statusCode(403);
+  }
+
+  @Test
+  void deleteRoute_withoutAuth_shouldReturn401() {
+    Route testRoute = dataService.createRoute(team1, user1, "Unauth Delete", Visibility.PUBLIC);
+
+    given()
+        .when()
+        .delete("/api/teams/" + team1Slug + "/routes/" + testRoute.getSlug())
+        .then()
+        .statusCode(401);
+  }
+
+  @Test
+  void deleteRoute_asNonMember_shouldReturn403() {
+    Route testRoute = dataService.createRoute(team1, user1, "NonMember Delete", Visibility.PUBLIC);
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER4))
+        .when()
+        .delete("/api/teams/" + team1Slug + "/routes/" + testRoute.getSlug())
+        .then()
+        .statusCode(403);
+  }
+
+  @Test
+  void deleteRoute_nonexistent_shouldReturn404() {
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .when()
+        .delete("/api/teams/" + team1Slug + "/routes/nonexistent-route")
+        .then()
+        .statusCode(404);
   }
 }

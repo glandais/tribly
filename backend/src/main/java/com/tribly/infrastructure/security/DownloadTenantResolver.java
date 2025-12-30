@@ -13,8 +13,13 @@ public class DownloadTenantResolver implements TenantResolver {
   public String resolve(RoutingContext context) {
     String path = context.request().path();
 
-    // Route download endpoints to download tenant only if enabled (not in test mode)
     if (path != null && path.startsWith("/api/download/team/")) {
+      // Check for Bearer token first - use default tenant (service) for API clients
+      String authHeader = context.request().getHeader("Authorization");
+      if (authHeader != null && authHeader.startsWith("Bearer ")) {
+        return "default"; // Default tenant handles Bearer tokens
+      }
+      // No Bearer token - use download tenant (web-app) for cookie-based auth
       return "download";
     }
 

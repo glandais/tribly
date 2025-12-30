@@ -6,7 +6,6 @@ import com.tribly.dto.places.request.PlaceRequest;
 import com.tribly.dto.places.response.PlaceDetailDto;
 import com.tribly.dto.places.response.PlaceListResponse;
 import com.tribly.service.place.PlaceService;
-import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
@@ -30,7 +29,7 @@ public class PlaceResource extends AbstractAuthenticatedResource {
   @Inject PlaceService placeService;
 
   @GET
-  @PermitAll
+  @RolesAllowed("user")
   @Operation(summary = "List places", description = "Get all places for a team")
   @APIResponses({
     @APIResponse(
@@ -47,13 +46,14 @@ public class PlaceResource extends AbstractAuthenticatedResource {
       @Parameter(description = "Page number") @QueryParam("page") @DefaultValue("0") int page,
       @Parameter(description = "Page size") @QueryParam("size") @DefaultValue("50") int size) {
 
-    PlaceListResponse places = placeService.listPlaces(slug, page, size);
+    Long userId = getCurrentUserId();
+    PlaceListResponse places = placeService.listPlaces(slug, page, size, userId);
     return Response.ok(places).build();
   }
 
   @GET
+  @RolesAllowed("user")
   @Path("/{placeId}")
-  @PermitAll
   @Operation(summary = "Get place details", description = "Get a specific place by ID")
   @APIResponses({
     @APIResponse(

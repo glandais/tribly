@@ -228,11 +228,13 @@ public class TripService extends TeamEntityService {
     trip.setPublishAt(request.publishAt());
 
     updateMedia(trip, request.media());
-    tripRepository.persist(trip);
 
     Map<Long, TripStage> existingStages =
         trip.getStages().stream().collect(Collectors.toMap(TripStage::getId, Function.identity()));
-    trip.getStages().clear();
+    for (TripStage stage : trip.getStages()) {
+      stage.setDeleted(true);
+      stage.setSortOrder(0);
+    }
     int sortOrder = 0;
     for (StageRequest stageRequest : request.stages()) {
       Long stageId = TsidUtils.toLongNullable(stageRequest.id());
@@ -241,24 +243,18 @@ public class TripService extends TeamEntityService {
       } else {
         TripStage existingStage = existingStages.remove(stageId);
         if (existingStage != null) {
+          existingStage.setDeleted(false);
           setStageProperties(trip, existingStage, stageRequest, sortOrder);
           updateMedia(existingStage, stageRequest.media());
-          trip.addStage(existingStage);
-          tripStageRepository.persist(existingStage);
+          // No persist needed - entity is already managed and will be updated on flush
         } else {
           createTripStage(user, trip, stageRequest, sortOrder);
         }
       }
       sortOrder++;
     }
-    for (TripStage stage : existingStages.values()) {
-      stage.setTrip(trip);
-      stage.setDeleted(true);
-      stage.setSortOrder(sortOrder);
-      trip.addStage(stage);
-      tripStageRepository.persist(stage);
-      sortOrder++;
-    }
+
+    tripRepository.persist(trip);
 
     LOG.infov("Trip {0} updated by user {1}", tripSlug, userId);
     return TripDto.from(trip, true, assetService);

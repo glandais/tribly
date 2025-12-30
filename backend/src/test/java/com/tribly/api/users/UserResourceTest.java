@@ -3,52 +3,31 @@ package com.tribly.api.users;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
-import com.tribly.domain.user.User;
+import com.tribly.api.AbstractResourceTest;
 import com.tribly.infrastructure.id.TsidUtils;
-import com.tribly.util.TestDataCleaner;
-import com.tribly.util.TestDataService;
 import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.keycloak.client.KeycloakTestClient;
-import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
-class UserResourceTest {
+class UserResourceTest extends AbstractResourceTest {
 
-  public static final String USERNAME_TEST = "user1";
-  public static final String USERNAME2_TEST = "user2";
-
-  private static final String TEST_EMAIL = "user1@example.com";
-
-  @Inject TestDataService dataService;
-  @Inject TestDataCleaner dataCleaner;
-
-  private User testUser;
-
-  final KeycloakTestClient keycloakClient = new KeycloakTestClient();
-
-  protected String getAccessToken(String userName) {
-    return keycloakClient.getAccessToken(userName, userName, "tribly-backend");
-  }
-
+  @Override
   @BeforeEach
-  void setUp() {
-    dataCleaner.cleanAll();
-
-    testUser = dataService.createUser(TEST_EMAIL, "Test User");
+  public void setUp() {
+    super.setUp();
   }
 
   @Test
   void getCurrentUser_shouldReturnUserDetails() {
     given()
         .auth()
-        .oauth2(getAccessToken(USERNAME_TEST))
+        .oauth2(getAccessToken(USER1))
         .when()
         .get("/api/users/me")
         .then()
         .statusCode(200)
-        .body("email", equalTo(TEST_EMAIL));
+        .body("email", equalTo(EMAIL1));
   }
 
   @Test
@@ -60,7 +39,7 @@ class UserResourceTest {
   void updateCurrentUser_shouldUpdateDisplayName() {
     given()
         .auth()
-        .oauth2(getAccessToken(USERNAME_TEST))
+        .oauth2(getAccessToken(USER1))
         .contentType("application/json")
         .body("{\"displayName\": \"Updated Name\"}")
         .when()
@@ -85,12 +64,12 @@ class UserResourceTest {
   void getUserById_shouldReturnPublicProfile() {
     given()
         .auth()
-        .oauth2(getAccessToken(USERNAME_TEST))
+        .oauth2(getAccessToken(USER1))
         .when()
-        .get("/api/users/" + TsidUtils.toString(testUser.getId()))
+        .get("/api/users/" + TsidUtils.toString(user1.getId()))
         .then()
         .statusCode(200)
-        .body("id", equalTo(TsidUtils.toString(testUser.getId())))
+        .body("id", equalTo(TsidUtils.toString(user1.getId())))
         .body("displayName", equalTo("User One"))
         // Public profile should not include email
         .body("$", not(hasKey("email")));
@@ -100,7 +79,7 @@ class UserResourceTest {
   void getUserById_withNonexistentId_shouldReturn404() {
     given()
         .auth()
-        .oauth2(getAccessToken(USERNAME_TEST))
+        .oauth2(getAccessToken(USER1))
         .when()
         .get("/api/users/" + TsidUtils.toString(999999L))
         .then()
@@ -109,14 +88,14 @@ class UserResourceTest {
 
   @Test
   void getUserById_withoutAuth_shouldReturn401() {
-    given().when().get("/api/users/" + testUser.getId()).then().statusCode(401);
+    given().when().get("/api/users/" + user1.getId()).then().statusCode(401);
   }
 
   @Test
   void deleteCurrentUser_shouldSoftDeleteAccount() {
     given()
         .auth()
-        .oauth2(getAccessToken(USERNAME_TEST))
+        .oauth2(getAccessToken(USER1))
         .when()
         .delete("/api/users/me")
         .then()
@@ -125,9 +104,9 @@ class UserResourceTest {
     // Verify user is no longer accessible (will return 404 because user is deleted)
     given()
         .auth()
-        .oauth2(getAccessToken(USERNAME2_TEST))
+        .oauth2(getAccessToken(USER2))
         .when()
-        .get("/api/users/" + TsidUtils.toString(testUser.getId()))
+        .get("/api/users/" + TsidUtils.toString(user1.getId()))
         .then()
         .statusCode(404);
   }
@@ -145,7 +124,7 @@ class UserResourceTest {
 
     given()
         .auth()
-        .oauth2(getAccessToken(USERNAME_TEST))
+        .oauth2(getAccessToken(USER1))
         .queryParam("q", "alice")
         .when()
         .get("/api/users/search")

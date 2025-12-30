@@ -38,11 +38,13 @@ public class PlaceService {
 
   @Inject TeamSecurityService securityService;
 
-  public PlaceListResponse listPlaces(String teamSlug, int page, int size) {
+  public PlaceListResponse listPlaces(String teamSlug, int page, int size, Long userId) {
     Team team =
         teamRepository
             .findBySlug(teamSlug)
             .orElseThrow(() -> BusinessException.notFound("Team", teamSlug));
+
+    securityService.requireOrganizer(userId, team.getSlug());
 
     TriblyPage<Place> places = placeRepository.findByTeam(team.getId(), page, size);
     List<PlaceDetailDto> dtos = places.items().stream().map(PlaceDetailDto::from).toList();
@@ -56,7 +58,7 @@ public class PlaceService {
             .findBySlug(teamSlug)
             .orElseThrow(() -> BusinessException.notFound("Team", teamSlug));
 
-    securityService.requireMembership(userId, team.getSlug());
+    securityService.requireOrganizer(userId, team.getSlug());
 
     Place place =
         placeRepository

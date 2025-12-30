@@ -4,73 +4,81 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.tribly.domain.user.User;
+import com.tribly.api.AbstractResourceTest;
 import com.tribly.dto.common.response.MediaDto;
 import com.tribly.dto.teams.request.TeamRequest;
 import com.tribly.dto.teams.response.TeamDetailDto;
 import com.tribly.enums.TeamRole;
 import com.tribly.enums.Visibility;
-import com.tribly.infrastructure.id.TsidUtils;
 import com.tribly.service.team.TeamService;
-import com.tribly.util.TestDataCleaner;
-import com.tribly.util.TestDataService;
 import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.keycloak.client.KeycloakTestClient;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
-class TeamResourceTest {
-
-  public static final String USERNAME_ADMIN = "user1";
-  public static final String USERNAME_TEST = "user2";
+class TeamResourceTest extends AbstractResourceTest {
 
   @Inject TeamService teamService;
-  @Inject TestDataService dataService;
-  @Inject TestDataCleaner dataCleaner;
 
-  private User adminUser;
-  private User memberUser;
-  private TeamDetailDto publicTeam;
-  private TeamDetailDto privateTeam;
-
-  final KeycloakTestClient keycloakClient = new KeycloakTestClient();
-
-  protected String getAccessToken(String userName) {
-    return keycloakClient.getAccessToken(userName, userName, "tribly-backend");
+  @Override
+  @BeforeEach
+  public void setUp() {
+    super.setUp();
   }
 
-  private static final String ADMIN_EMAIL = "user1@example.com";
-  private static final String MEMBER_EMAIL = "user2@example.com";
+  @Test
+  void listPublicTeams_shouldReturnEmptyList() {
+    given()
+        .when()
+        .get("/api/teams")
+        .then()
+        .statusCode(200)
+        .body("teams", is(notNullValue()))
+        .body("total", greaterThanOrEqualTo(0))
+        .body("page", equalTo(0))
+        .body("size", equalTo(20));
+  }
 
-  @BeforeEach
-  void setUp() {
-    dataCleaner.cleanAll();
+  @Test
+  void listPublicTeams_shouldSupportPagination() {
+    given()
+        .queryParam("page", 1)
+        .queryParam("size", 10)
+        .when()
+        .get("/api/teams")
+        .then()
+        .statusCode(200)
+        .body("page", equalTo(1))
+        .body("size", equalTo(10));
+  }
 
-    // Create admin user
-    adminUser = dataService.createUser(ADMIN_EMAIL, "Admin User");
+  @Test
+  void listPublicTeams_shouldSupportSearch() {
+    given()
+        .queryParam("search", "cycling")
+        .when()
+        .get("/api/teams")
+        .then()
+        .statusCode(200)
+        .body("teams", is(notNullValue()));
+  }
 
-    // Create member user
-    memberUser = dataService.createUser(MEMBER_EMAIL, "Member User");
+  @Test
+  void getTeam_withNonexistentSlug_shouldReturn404() {
+    given().when().get("/api/teams/nonexistent-team-slug").then().statusCode(404);
+  }
 
-    // Create public team with admin as owner
-    publicTeam =
-        teamService.createTeam(
-            new TeamRequest(
-                "Test Public Team",
-                MediaDto.builder().markdown("A public team").build(),
-                Visibility.PUBLIC),
-            adminUser.getId());
-
-    // Create private team with admin as owner
-    privateTeam =
-        teamService.createTeam(
-            new TeamRequest(
-                "Test Private Team",
-                MediaDto.builder().markdown("A private team").build(),
-                Visibility.TEAM),
-            adminUser.getId());
+  @Test
+  void getTeam_publicTeam_shouldReturnTeamDetails() {
+    given()
+        .when()
+        .get("/api/teams/" + team1Slug)
+        .then()
+        .statusCode(200)
+        .body("slug", equalTo(team1Slug))
+        .body("name", equalTo("Team 1"))
+        .body("visibility", equalTo("PUBLIC"));
   }
 
   @Test
@@ -81,14 +89,14 @@ class TeamResourceTest {
                 "Test Cyclists",
                 MediaDto.builder().markdown("A great cycling team").build(),
                 Visibility.PUBLIC),
-            adminUser.getId());
+            user1.getId());
 
     assertNotNull(team.id());
     assertEquals("Test Cyclists", team.name());
     assertTrue(team.slug().startsWith("test-cyclists"));
     assertSame(Visibility.PUBLIC, team.visibility());
 
-    TeamRole role = teamService.getUserRole(adminUser.getId(), team.slug()).orElse(null);
+    TeamRole role = teamService.getUserRole(user1.getId(), team.slug()).orElse(null);
     assertEquals(TeamRole.ADMIN, role);
   }
 
@@ -98,7 +106,7 @@ class TeamResourceTest {
         new TeamRequest("API Test Team", MediaDto.builder().build(), Visibility.PUBLIC);
     given()
         .auth()
-        .oauth2(getAccessToken(USERNAME_ADMIN))
+        .oauth2(getAccessToken(USER1))
         .contentType("application/json")
         .body(teamRequest)
         .when()
@@ -111,10 +119,23 @@ class TeamResourceTest {
   }
 
   @Test
+  void createTeam_withoutAuth_shouldReturn401() {
+    TeamRequest teamRequest =
+        new TeamRequest("API Test Team", MediaDto.builder().build(), Visibility.PUBLIC);
+    given()
+        .contentType("application/json")
+        .body(teamRequest)
+        .when()
+        .post("/api/teams")
+        .then()
+        .statusCode(401);
+  }
+
+  @Test
   void getMyTeams_shouldReturnUserTeams() {
     given()
         .auth()
-        .oauth2(getAccessToken(USERNAME_ADMIN))
+        .oauth2(getAccessToken(USER1))
         .when()
         .get("/api/teams?member=true")
         .then()
@@ -127,10 +148,10 @@ class TeamResourceTest {
   void joinPublicTeam_shouldAddUserAsMember() {
     given()
         .auth()
-        .oauth2(getAccessToken(USERNAME_TEST))
+        .oauth2(getAccessToken(USER4))
         .contentType("application/json")
         .when()
-        .post("/api/teams/" + publicTeam.slug() + "/members/join")
+        .post("/api/teams/" + team1Slug + "/members/join")
         .then()
         .statusCode(201)
         .body("role", equalTo("MEMBER"));
@@ -140,10 +161,10 @@ class TeamResourceTest {
   void joinPrivateTeam_shouldBeDenied() {
     given()
         .auth()
-        .oauth2(getAccessToken(USERNAME_TEST))
+        .oauth2(getAccessToken(USER4))
         .contentType("application/json")
         .when()
-        .post("/api/teams/" + privateTeam.slug() + "/members/join")
+        .post("/api/teams/" + team2Slug + "/members/join")
         .then()
         .statusCode(404);
   }
@@ -158,11 +179,11 @@ class TeamResourceTest {
 
     given()
         .auth()
-        .oauth2(getAccessToken(USERNAME_ADMIN))
+        .oauth2(getAccessToken(USER1))
         .contentType("application/json")
         .body(teamRequest)
         .when()
-        .put("/api/teams/" + publicTeam.slug())
+        .put("/api/teams/" + team1Slug)
         .then()
         .statusCode(200)
         .body("name", equalTo("Updated Name"))
@@ -171,90 +192,71 @@ class TeamResourceTest {
 
   @Test
   void updateTeam_asNonAdmin_shouldBeDenied() {
-    // Add member to team first via HTTP (pure HTTP pattern)
-    addMemberViaApi(publicTeam.slug(), memberUser.getId());
-
     TeamRequest teamRequest =
         new TeamRequest("Hacked Name", MediaDto.builder().build(), Visibility.PUBLIC);
 
     given()
         .auth()
-        .oauth2(getAccessToken(USERNAME_TEST))
+        .oauth2(getAccessToken(USER2))
         .contentType("application/json")
         .body(teamRequest)
         .when()
-        .put("/api/teams/" + publicTeam.slug())
+        .put("/api/teams/" + team1Slug)
         .then()
         .statusCode(403);
   }
 
-  private void addMemberViaApi(String teamSlug, Long userId) {
-    given()
-        .auth()
-        .oauth2(getAccessToken(USERNAME_ADMIN))
-        .contentType("application/json")
-        .body("{\"userId\": \"" + TsidUtils.toString(userId) + "\", \"role\": \"MEMBER\"}")
-        .when()
-        .post("/api/teams/" + teamSlug + "/members")
-        .then()
-        .statusCode(201);
-  }
-
   @Test
   void leaveTeam_shouldRemoveMembership() {
-    // Add member to team first via HTTP (pure HTTP pattern)
-    addMemberViaApi(publicTeam.slug(), memberUser.getId());
-
     given()
         .auth()
-        .oauth2(getAccessToken(USERNAME_TEST))
+        .oauth2(getAccessToken(USER2))
         .contentType("application/json")
         .when()
-        .post("/api/teams/" + publicTeam.slug() + "/members/leave")
+        .post("/api/teams/" + team1Slug + "/members/leave")
         .then()
         .statusCode(204);
   }
 
   @Test
   void getTeamMembers_shouldReturnMemberList() {
-    // Add member to team first via HTTP (pure HTTP pattern)
-    addMemberViaApi(publicTeam.slug(), memberUser.getId());
-
     given()
         .auth()
-        .oauth2(getAccessToken(USERNAME_ADMIN))
+        .oauth2(getAccessToken(USER1))
         .when()
-        .get("/api/teams/" + publicTeam.slug() + "/members")
+        .get("/api/teams/" + team1Slug + "/members")
         .then()
         .statusCode(200)
-        .body("members", hasSize(2))
-        .body("total", equalTo(2));
+        .body("members", hasSize(3))
+        .body("total", equalTo(3));
+  }
+
+  @Test
+  void getMembers_withoutAuth_shouldReturn401() {
+    given().when().get("/api/teams/some-team/members").then().statusCode(401);
   }
 
   @Test
   void deleteTeam_asAdmin_shouldSucceed() {
     given()
         .auth()
-        .oauth2(getAccessToken(USERNAME_ADMIN))
+        .oauth2(getAccessToken(USER1))
         .when()
-        .delete("/api/teams/" + publicTeam.slug())
+        .delete("/api/teams/" + team1Slug)
         .then()
         .statusCode(204);
 
     // Verify team is no longer accessible
-    given().when().get("/api/teams/" + publicTeam.slug()).then().statusCode(404);
+    given().when().get("/api/teams/" + team1Slug).then().statusCode(404);
   }
 
   @Test
   void deleteTeam_asNonAdmin_shouldBeDenied() {
-    // Add member to team first via HTTP (pure HTTP pattern)
-    addMemberViaApi(publicTeam.slug(), memberUser.getId());
-
     given()
         .auth()
-        .oauth2(getAccessToken(USERNAME_TEST))
+        .oauth2(getAccessToken(USER2))
         .when()
-        .delete("/api/teams/" + publicTeam.slug())
+        .delete("/api/teams/" + team1Slug)
         .then()
         .statusCode(403);
   }
@@ -263,9 +265,9 @@ class TeamResourceTest {
   void deleteTeam_asNonMember_shouldBeDenied() {
     given()
         .auth()
-        .oauth2(getAccessToken(USERNAME_TEST))
+        .oauth2(getAccessToken(USER2))
         .when()
-        .delete("/api/teams/" + privateTeam.slug())
+        .delete("/api/teams/" + team2Slug)
         .then()
         .statusCode(403);
   }

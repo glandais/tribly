@@ -4,46 +4,26 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 
-import com.tribly.domain.user.User;
+import com.tribly.api.AbstractResourceTest;
 import com.tribly.dto.common.response.MediaDto;
 import com.tribly.dto.teams.request.TeamRequest;
 import com.tribly.enums.Visibility;
 import com.tribly.infrastructure.id.TsidUtils;
-import com.tribly.util.TestDataCleaner;
-import com.tribly.util.TestDataService;
 import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.keycloak.client.KeycloakTestClient;
-import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
-class TeamMembershipResourceTest {
+class TeamMembershipResourceTest extends AbstractResourceTest {
 
-  public static final String USERNAME_ADMIN = "user1";
-  public static final String USERNAME_TEST = "user2";
-  public static final String USERNAME2_TEST = "user3";
+  public static final String USER1 = "user1";
+  public static final String USER2 = "user2";
+  public static final String USER3 = "user3";
 
-  @Inject TestDataService dataService;
-  @Inject TestDataCleaner dataCleaner;
-
-  private User adminUser;
-  private User memberUser;
-  private User thirdUser;
-
-  final KeycloakTestClient keycloakClient = new KeycloakTestClient();
-
-  protected String getAccessToken(String userName) {
-    return keycloakClient.getAccessToken(userName, userName, "tribly-backend");
-  }
-
+  @Override
   @BeforeEach
-  void setUp() {
-    dataCleaner.cleanAll();
-
-    adminUser = dataService.createUser("user1@example.com", "Admin User");
-    memberUser = dataService.createUser("user2@example.com", "Member User");
-    thirdUser = dataService.createUser("user3@example.com", "Third User");
+  public void setUp() {
+    super.setUp();
   }
 
   @Test
@@ -54,7 +34,7 @@ class TeamMembershipResourceTest {
     String slug =
         given()
             .auth()
-            .oauth2(getAccessToken(USERNAME_ADMIN))
+            .oauth2(getAccessToken(USER1))
             .contentType("application/json")
             .body(teamRequest)
             .when()
@@ -67,7 +47,7 @@ class TeamMembershipResourceTest {
     // Member joins
     given()
         .auth()
-        .oauth2(getAccessToken(USERNAME_TEST))
+        .oauth2(getAccessToken(USER2))
         .contentType("application/json")
         .when()
         .post("/api/teams/" + slug + "/members/join")
@@ -77,7 +57,7 @@ class TeamMembershipResourceTest {
     // Member tries to join again - should fail
     given()
         .auth()
-        .oauth2(getAccessToken(USERNAME_TEST))
+        .oauth2(getAccessToken(USER2))
         .contentType("application/json")
         .when()
         .post("/api/teams/" + slug + "/members/join")
@@ -94,7 +74,7 @@ class TeamMembershipResourceTest {
     String slug =
         given()
             .auth()
-            .oauth2(getAccessToken(USERNAME_ADMIN))
+            .oauth2(getAccessToken(USER1))
             .contentType("application/json")
             .body(teamRequest)
             .when()
@@ -107,7 +87,7 @@ class TeamMembershipResourceTest {
     // Member joins
     given()
         .auth()
-        .oauth2(getAccessToken(USERNAME_TEST))
+        .oauth2(getAccessToken(USER2))
         .contentType("application/json")
         .when()
         .post("/api/teams/" + slug + "/members/join")
@@ -117,11 +97,11 @@ class TeamMembershipResourceTest {
     // Admin promotes member to admin
     given()
         .auth()
-        .oauth2(getAccessToken(USERNAME_ADMIN))
+        .oauth2(getAccessToken(USER1))
         .contentType("application/json")
         .body("{\"role\": \"ADMIN\"}")
         .when()
-        .put("/api/teams/" + slug + "/members/" + TsidUtils.toString(memberUser.getId()))
+        .put("/api/teams/" + slug + "/members/" + TsidUtils.toString(user2.getId()))
         .then()
         .statusCode(200)
         .body("role", equalTo("ADMIN"));
@@ -136,7 +116,7 @@ class TeamMembershipResourceTest {
     String slug =
         given()
             .auth()
-            .oauth2(getAccessToken(USERNAME_ADMIN))
+            .oauth2(getAccessToken(USER1))
             .contentType("application/json")
             .body(teamRequest)
             .when()
@@ -149,7 +129,7 @@ class TeamMembershipResourceTest {
     // Two members join
     given()
         .auth()
-        .oauth2(getAccessToken(USERNAME_TEST))
+        .oauth2(getAccessToken(USER2))
         .contentType("application/json")
         .when()
         .post("/api/teams/" + slug + "/members/join")
@@ -158,7 +138,7 @@ class TeamMembershipResourceTest {
 
     given()
         .auth()
-        .oauth2(getAccessToken(USERNAME2_TEST))
+        .oauth2(getAccessToken(USER3))
         .contentType("application/json")
         .when()
         .post("/api/teams/" + slug + "/members/join")
@@ -168,11 +148,11 @@ class TeamMembershipResourceTest {
     // Member tries to promote another member - should be denied
     given()
         .auth()
-        .oauth2(getAccessToken(USERNAME_TEST))
+        .oauth2(getAccessToken(USER2))
         .contentType("application/json")
         .body("{\"role\": \"ADMIN\"}")
         .when()
-        .put("/api/teams/" + slug + "/members/" + TsidUtils.toString(thirdUser.getId()))
+        .put("/api/teams/" + slug + "/members/" + TsidUtils.toString(user3.getId()))
         .then()
         .statusCode(403);
   }
@@ -185,7 +165,7 @@ class TeamMembershipResourceTest {
     String slug =
         given()
             .auth()
-            .oauth2(getAccessToken(USERNAME_ADMIN))
+            .oauth2(getAccessToken(USER1))
             .contentType("application/json")
             .body(teamRequest)
             .when()
@@ -198,7 +178,7 @@ class TeamMembershipResourceTest {
     // Member joins
     given()
         .auth()
-        .oauth2(getAccessToken(USERNAME_TEST))
+        .oauth2(getAccessToken(USER2))
         .contentType("application/json")
         .when()
         .post("/api/teams/" + slug + "/members/join")
@@ -208,16 +188,16 @@ class TeamMembershipResourceTest {
     // Admin removes member
     given()
         .auth()
-        .oauth2(getAccessToken(USERNAME_ADMIN))
+        .oauth2(getAccessToken(USER1))
         .when()
-        .delete("/api/teams/" + slug + "/members/" + TsidUtils.toString(memberUser.getId()))
+        .delete("/api/teams/" + slug + "/members/" + TsidUtils.toString(user2.getId()))
         .then()
         .statusCode(204);
 
     // Verify member count decreased
     given()
         .auth()
-        .oauth2(getAccessToken(USERNAME_ADMIN))
+        .oauth2(getAccessToken(USER1))
         .when()
         .get("/api/teams/" + slug + "/members")
         .then()
@@ -233,7 +213,7 @@ class TeamMembershipResourceTest {
     String slug =
         given()
             .auth()
-            .oauth2(getAccessToken(USERNAME_ADMIN))
+            .oauth2(getAccessToken(USER1))
             .contentType("application/json")
             .body(teamRequest)
             .when()
@@ -246,7 +226,7 @@ class TeamMembershipResourceTest {
     // Two members join
     given()
         .auth()
-        .oauth2(getAccessToken(USERNAME_TEST))
+        .oauth2(getAccessToken(USER2))
         .contentType("application/json")
         .when()
         .post("/api/teams/" + slug + "/members/join")
@@ -255,7 +235,7 @@ class TeamMembershipResourceTest {
 
     given()
         .auth()
-        .oauth2(getAccessToken(USERNAME2_TEST))
+        .oauth2(getAccessToken(USER3))
         .contentType("application/json")
         .when()
         .post("/api/teams/" + slug + "/members/join")
@@ -265,9 +245,9 @@ class TeamMembershipResourceTest {
     // Member tries to remove another member - should be denied
     given()
         .auth()
-        .oauth2(getAccessToken(USERNAME_TEST))
+        .oauth2(getAccessToken(USER2))
         .when()
-        .delete("/api/teams/" + slug + "/members/" + TsidUtils.toString(thirdUser.getId()))
+        .delete("/api/teams/" + slug + "/members/" + TsidUtils.toString(user3.getId()))
         .then()
         .statusCode(403);
   }
@@ -280,7 +260,7 @@ class TeamMembershipResourceTest {
     String slug =
         given()
             .auth()
-            .oauth2(getAccessToken(USERNAME_ADMIN))
+            .oauth2(getAccessToken(USER1))
             .contentType("application/json")
             .body(teamRequest)
             .when()
@@ -293,7 +273,7 @@ class TeamMembershipResourceTest {
     // Admin tries to leave (self-removal as last admin)
     given()
         .auth()
-        .oauth2(getAccessToken(USERNAME_ADMIN))
+        .oauth2(getAccessToken(USER1))
         .contentType("application/json")
         .when()
         .post("/api/teams/" + slug + "/members/leave")
@@ -310,7 +290,7 @@ class TeamMembershipResourceTest {
     String slug =
         given()
             .auth()
-            .oauth2(getAccessToken(USERNAME_ADMIN))
+            .oauth2(getAccessToken(USER1))
             .contentType("application/json")
             .body(teamRequest)
             .when()
@@ -323,11 +303,11 @@ class TeamMembershipResourceTest {
     // Admin tries to demote themselves (last admin)
     given()
         .auth()
-        .oauth2(getAccessToken(USERNAME_ADMIN))
+        .oauth2(getAccessToken(USER1))
         .contentType("application/json")
         .body("{\"role\": \"MEMBER\"}")
         .when()
-        .put("/api/teams/" + slug + "/members/" + TsidUtils.toString(adminUser.getId()))
+        .put("/api/teams/" + slug + "/members/" + TsidUtils.toString(user1.getId()))
         .then()
         .statusCode(400)
         .body("code", equalTo("LAST_ADMIN"));
@@ -341,7 +321,7 @@ class TeamMembershipResourceTest {
     String slug =
         given()
             .auth()
-            .oauth2(getAccessToken(USERNAME_ADMIN))
+            .oauth2(getAccessToken(USER1))
             .contentType("application/json")
             .body(teamRequest)
             .when()
@@ -354,7 +334,7 @@ class TeamMembershipResourceTest {
     // Two members join
     given()
         .auth()
-        .oauth2(getAccessToken(USERNAME_TEST))
+        .oauth2(getAccessToken(USER2))
         .contentType("application/json")
         .when()
         .post("/api/teams/" + slug + "/members/join")
@@ -363,7 +343,7 @@ class TeamMembershipResourceTest {
 
     given()
         .auth()
-        .oauth2(getAccessToken(USERNAME2_TEST))
+        .oauth2(getAccessToken(USER3))
         .contentType("application/json")
         .when()
         .post("/api/teams/" + slug + "/members/join")
@@ -373,7 +353,7 @@ class TeamMembershipResourceTest {
     // Get members with pagination
     given()
         .auth()
-        .oauth2(getAccessToken(USERNAME_ADMIN))
+        .oauth2(getAccessToken(USER1))
         .queryParam("page", 0)
         .queryParam("size", 2)
         .when()
@@ -388,7 +368,7 @@ class TeamMembershipResourceTest {
     // Get second page
     given()
         .auth()
-        .oauth2(getAccessToken(USERNAME_ADMIN))
+        .oauth2(getAccessToken(USER1))
         .queryParam("page", 1)
         .queryParam("size", 2)
         .when()
@@ -406,7 +386,7 @@ class TeamMembershipResourceTest {
     String slug =
         given()
             .auth()
-            .oauth2(getAccessToken(USERNAME_ADMIN))
+            .oauth2(getAccessToken(USER1))
             .contentType("application/json")
             .body(teamRequest)
             .when()
@@ -419,12 +399,9 @@ class TeamMembershipResourceTest {
     // Admin adds member to private team
     given()
         .auth()
-        .oauth2(getAccessToken(USERNAME_ADMIN))
+        .oauth2(getAccessToken(USER1))
         .contentType("application/json")
-        .body(
-            "{\"userId\": \""
-                + TsidUtils.toString(memberUser.getId())
-                + "\", \"role\": \"MEMBER\"}")
+        .body("{\"userId\": \"" + TsidUtils.toString(user2.getId()) + "\", \"role\": \"MEMBER\"}")
         .when()
         .post("/api/teams/" + slug + "/members")
         .then()
@@ -434,7 +411,7 @@ class TeamMembershipResourceTest {
     // Verify member was added
     given()
         .auth()
-        .oauth2(getAccessToken(USERNAME_ADMIN))
+        .oauth2(getAccessToken(USER1))
         .when()
         .get("/api/teams/" + slug + "/members")
         .then()

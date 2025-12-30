@@ -222,11 +222,13 @@ public class RideService extends TeamEntityService {
     ride.setPublishAt(request.publishAt());
 
     updateMedia(ride, request.media());
-    rideRepository.persist(ride);
 
     Map<Long, RideGroup> existingGroups =
         ride.getGroups().stream().collect(Collectors.toMap(RideGroup::getId, Function.identity()));
-    ride.getGroups().clear();
+    for (RideGroup group : ride.getGroups()) {
+      group.setDeleted(true);
+      group.setSortOrder(0);
+    }
     int sortOrder = 0;
     for (GroupRequest groupRequest : request.groups()) {
       Long groupId = TsidUtils.toLongNullable(groupRequest.id());
@@ -235,23 +237,16 @@ public class RideService extends TeamEntityService {
       } else {
         RideGroup existingRideGroup = existingGroups.remove(groupId);
         if (existingRideGroup != null) {
+          existingRideGroup.setDeleted(false);
           setProperties(ride, existingRideGroup, groupRequest, sortOrder);
-          ride.addGroup(existingRideGroup);
-          rideGroupRepository.persist(existingRideGroup);
         } else {
           createRideGroup(user, ride, groupRequest, sortOrder);
         }
       }
       sortOrder++;
     }
-    for (RideGroup rideGroup : existingGroups.values()) {
-      rideGroup.setRide(ride);
-      rideGroup.setDeleted(true);
-      rideGroup.setSortOrder(sortOrder);
-      ride.addGroup(rideGroup);
-      rideGroupRepository.persist(rideGroup);
-      sortOrder++;
-    }
+
+    rideRepository.persist(ride);
 
     LOG.infov("Ride {0} updated by user {1}", rideSlug, userId);
     return RideDto.from(ride, true, assetService);
