@@ -3,12 +3,14 @@ package com.tribly.dto.rides.response;
 import com.tribly.domain.ride.RideGroup;
 import com.tribly.domain.ride.RideParticipation;
 import com.tribly.dto.users.response.PublicUserDto;
+import com.tribly.dto.validation.ValidateSchema;
 import com.tribly.infrastructure.id.TsidUtils;
 import java.util.List;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.jspecify.annotations.Nullable;
 
 @Schema(description = "Ride group information")
+@ValidateSchema
 public record RideGroupDto(
     @Schema(description = "Group ID (TSID)", required = true) String id,
     @Schema(description = "Group name", required = true) String name,

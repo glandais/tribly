@@ -108,15 +108,6 @@ export const ClimbCategory = {
 export type ClimbCategory = (typeof ClimbCategory)[keyof typeof ClimbCategory]
 
 /**
- * Climb list response
- */
-export interface ClimbListResponse {
-  /**
-   * List of climbs on the route
-   */
-  climbs: Array<RouteClimbDto>
-}
-/**
  * Application configuration
  */
 export interface ConfigDto {
@@ -161,11 +152,11 @@ export interface FieldError {
   rejectedValue?: any
 }
 export interface GeoJsonLineString {
-  type?: GeoJsonLineStringTypeEnum
+  type: GeoJsonLineStringTypeEnum
   /**
    * Array of [lon, lat] coordinates
    */
-  coordinates?: Array<Array<number>>
+  coordinates: Array<Array<number>>
 }
 
 export const GeoJsonLineStringTypeEnum = {
@@ -179,11 +170,11 @@ export type GeoJsonLineStringTypeEnum =
  * GeoJSON Point geometry
  */
 export interface GeoJsonPoint {
-  type?: GeoJsonPointTypeEnum
+  type: GeoJsonPointTypeEnum
   /**
    * Coordinates [longitude, latitude]
    */
-  coordinates?: Array<number>
+  coordinates: Array<number>
 }
 
 export const GeoJsonPointTypeEnum = {
@@ -610,15 +601,6 @@ export interface RideGroupDto {
    * Sort order
    */
   sortOrder: number
-}
-/**
- * Ride group list response
- */
-export interface RideGroupListResponse {
-  /**
-   * List of ride groups
-   */
-  data: Array<RideGroupDto>
 }
 /**
  * Paginated ride list response

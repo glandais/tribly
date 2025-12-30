@@ -1,6 +1,7 @@
 package com.tribly.dto.routes.response;
 
 import com.tribly.domain.route.RouteClimb;
+import com.tribly.dto.validation.ValidateSchema;
 import com.tribly.enums.ClimbCategory;
 import com.tribly.infrastructure.id.TsidUtils;
 import java.math.BigDecimal;
@@ -11,6 +12,7 @@ import org.jspecify.annotations.Nullable;
  * Climb DTO for climb segments.
  */
 @Schema(description = "Climb segment information")
+@ValidateSchema
 public record RouteClimbDto(
     @Schema(description = "Climb ID (TSID)", required = true) String id,
     @Nullable @Schema(description = "Climb name (if named)") String name,

@@ -1,5 +1,6 @@
 package com.tribly.dto.error;
 
+import com.tribly.dto.validation.ValidateSchema;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -7,6 +8,7 @@ import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.jspecify.annotations.Nullable;
 
 @Schema(description = "Error response")
+@ValidateSchema
 public record ErrorResponse(
     @Schema(description = "Error code", required = true) String code,
     @Schema(description = "Error message", required = true) String message,

@@ -13,12 +13,14 @@ import com.tngtech.archunit.lang.ArchRule;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
 import com.tribly.domain.common.NotNullableDbValue;
+import com.tribly.dto.validation.ValidateSchema;
 import jakarta.persistence.*;
 import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.jspecify.annotations.NullMarked;
@@ -52,6 +54,15 @@ class ArchitectureTest {
           .because(
               "nullable database fields must be annotated with @Nullable, "
                   + "non-null fields must NOT be annotated with @Nullable");
+
+  @ArchTest
+  static final ArchRule schema_annotated_types_should_have_validate_schema =
+      classes()
+          .that()
+          .areAnnotatedWith(Schema.class)
+          .should()
+          .beAnnotatedWith(ValidateSchema.class)
+          .because("all @Schema annotated types must have @ValidateSchema for validation");
 
   private static ArchCondition<JavaClass> haveNoArgsConstructor() {
     return new ArchCondition<>("have a no-args constructor") {

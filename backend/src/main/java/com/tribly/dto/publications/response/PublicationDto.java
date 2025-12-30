@@ -9,6 +9,8 @@ import com.tribly.domain.trip.Trip;
 import com.tribly.dto.posts.response.PostDto;
 import com.tribly.dto.rides.response.RideDto;
 import com.tribly.dto.trips.response.TripDto;
+import com.tribly.dto.validation.ValidateSchema;
+import com.tribly.enums.Visibility;
 import com.tribly.service.asset.AssetService;
 import org.eclipse.microprofile.openapi.annotations.media.DiscriminatorMapping;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
@@ -33,9 +35,14 @@ import org.eclipse.microprofile.openapi.annotations.media.Schema;
       @DiscriminatorMapping(value = "TRIP", schema = TripDto.class)
     },
     oneOf = {RideDto.class, PostDto.class, TripDto.class})
+@ValidateSchema
 public interface PublicationDto {
 
   PublicationType getType();
+
+  Visibility getVisibility();
+
+  String getName();
 
   static PublicationDto from(Publication publication, AssetService assetService) {
     return switch (publication) {

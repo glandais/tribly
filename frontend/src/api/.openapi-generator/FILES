@@ -11,7 +11,6 @@ docs/AssetDto.md
 docs/AssetsApi.md
 docs/AssetsDto.md
 docs/ClimbCategory.md
-docs/ClimbListResponse.md
 docs/ConfigDto.md
 docs/ConfigurationApi.md
 docs/ErrorResponse.md
@@ -40,7 +39,6 @@ docs/PublicationType.md
 docs/PublicationsApi.md
 docs/RideDto.md
 docs/RideGroupDto.md
-docs/RideGroupListResponse.md
 docs/RideListResponse.md
 docs/RideParticipationDto.md
 docs/RideRequest.md

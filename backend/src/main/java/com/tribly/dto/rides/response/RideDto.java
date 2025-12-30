@@ -8,6 +8,7 @@ import com.tribly.dto.places.response.PlaceDetailDto;
 import com.tribly.dto.publications.response.PublicationDto;
 import com.tribly.dto.publications.response.PublicationType;
 import com.tribly.dto.publications.response.TeamPublicationDto;
+import com.tribly.dto.validation.ValidateSchema;
 import com.tribly.enums.Status;
 import com.tribly.enums.Visibility;
 import com.tribly.infrastructure.id.TsidUtils;
@@ -21,6 +22,7 @@ import org.jspecify.annotations.Nullable;
 
 // Response DTOs
 @Schema(description = "Ride summary data", allOf = PublicationDto.class)
+@ValidateSchema
 @Getter
 public class RideDto implements PublicationDto {
 

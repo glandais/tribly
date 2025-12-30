@@ -118,7 +118,7 @@ public class RideService extends TeamEntityService {
         slugService.generateSlug(
             request.name(), s -> rideRepository.existsByTeamAndSlug(team.getId(), s));
 
-    Route route = getRoute(request.routeSlug(), team);
+    Route route = getRoute(request.routeSlug(), team, visibility);
     Place startPlace = getPlace(request.startPlaceId(), team);
     Place endPlace = getPlace(request.endPlaceId(), team);
 
@@ -154,25 +154,21 @@ public class RideService extends TeamEntityService {
   private void setProperties(Ride ride, RideGroup group, GroupRequest groupRequest, int sortOrder) {
     group.setRide(ride);
     group.setName(groupRequest.name());
-    Route groupRoute = getRoute(groupRequest.routeSlug(), ride.getTeam());
+    Route groupRoute = getRoute(groupRequest.routeSlug(), ride.getTeam(), ride.getVisibility());
     group.setAverageSpeed(groupRequest.averageSpeed());
     group.setMaxParticipants(groupRequest.maxParticipants());
     group.setSortOrder(sortOrder);
     group.setRoute(groupRoute);
   }
 
-  private @Nullable Route getRoute(@Nullable String routeSlug, Team team) {
+  private @Nullable Route getRoute(@Nullable String routeSlug, Team team, Visibility visibility) {
     Route route = null;
     if (routeSlug != null) {
       route =
           routeRepository
               .findByTeamAndSlug(team.getId(), routeSlug)
               .orElseThrow(() -> BusinessException.notFound("Route not found"));
-      if (!route.getTeam().getId().equals(team.getId())) {
-        throw BusinessException.businessRule(
-            "Route team is not ride team", "ROUTE_TEAM_RIDE_TEAM_DIFFERENT");
-      }
-      if (team.getVisibility() == Visibility.PUBLIC && route.getVisibility() != Visibility.PUBLIC) {
+      if (visibility == Visibility.PUBLIC && route.getVisibility() != Visibility.PUBLIC) {
         throw BusinessException.businessRule(
             "Can't use private route on public ride", "PUBLIC_RIDE_PRIVATE_ROUTE");
       }
@@ -212,7 +208,7 @@ public class RideService extends TeamEntityService {
     ride.setName(request.name());
     ride.setDateTime(request.dateTime());
     ride.setStatus(request.status());
-    Route route = getRoute(request.routeSlug(), ride.getTeam());
+    Route route = getRoute(request.routeSlug(), ride.getTeam(), request.visibility());
     ride.setRoute(route);
     Place startPlace = getPlace(request.startPlaceId(), team);
     Place endPlace = getPlace(request.endPlaceId(), team);
@@ -240,7 +236,7 @@ public class RideService extends TeamEntityService {
           existingRideGroup.setDeleted(false);
           setProperties(ride, existingRideGroup, groupRequest, sortOrder);
         } else {
-          createRideGroup(user, ride, groupRequest, sortOrder);
+          throw BusinessException.notFound("Group", groupRequest.id());
         }
       }
       sortOrder++;

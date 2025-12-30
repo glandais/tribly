@@ -115,6 +115,16 @@ class TeamSecurityServiceTest {
     assertEquals("You are not a member of this team", exception.getMessage());
   }
 
+  @Test
+  void requireMembership_shouldThrowForNullUserId() {
+    BusinessException exception =
+        assertThrows(
+            BusinessException.class,
+            () -> teamSecurityService.requireMembership(null, "test-team"));
+
+    assertEquals("You are not a member of this team", exception.getMessage());
+  }
+
   // ==================== Role-Based Checks ====================
 
   @Test

@@ -123,7 +123,7 @@ public class TripService extends TeamEntityService {
         slugService.generateSlug(
             request.name(), s -> tripRepository.existsByTeamAndSlug(team.getId(), s));
 
-    Route route = getRoute(request.routeSlug(), team);
+    Route route = getRoute(request.routeSlug(), team, visibility);
 
     Trip trip = new Trip(creator, team, request.dateTime(), request.name(), slug, visibility);
     trip.setRoute(route);
@@ -159,7 +159,7 @@ public class TripService extends TeamEntityService {
     stage.setTrip(trip);
     stage.setName(stageRequest.name());
     stage.setDateTime(stageRequest.dateTime());
-    Route stageRoute = getRoute(stageRequest.routeSlug(), trip.getTeam());
+    Route stageRoute = getRoute(stageRequest.routeSlug(), trip.getTeam(), trip.getVisibility());
     stage.setRoute(stageRoute);
     Place startPlace = getPlace(stageRequest.startPlaceId(), trip.getTeam());
     Place endPlace = getPlace(stageRequest.endPlaceId(), trip.getTeam());
@@ -171,18 +171,14 @@ public class TripService extends TeamEntityService {
     stage.setStatus(trip.getStatus());
   }
 
-  private @Nullable Route getRoute(@Nullable String routeSlug, Team team) {
+  private @Nullable Route getRoute(@Nullable String routeSlug, Team team, Visibility visibility) {
     Route route = null;
     if (routeSlug != null) {
       route =
           routeRepository
               .findByTeamAndSlug(team.getId(), routeSlug)
               .orElseThrow(() -> BusinessException.notFound("Route not found"));
-      if (!route.getTeam().getId().equals(team.getId())) {
-        throw BusinessException.businessRule(
-            "Route team is not trip team", "ROUTE_TEAM_TRIP_TEAM_DIFFERENT");
-      }
-      if (team.getVisibility() == Visibility.PUBLIC && route.getVisibility() != Visibility.PUBLIC) {
+      if (visibility == Visibility.PUBLIC && route.getVisibility() != Visibility.PUBLIC) {
         throw BusinessException.businessRule(
             "Can't use private route on public trip", "PUBLIC_TRIP_PRIVATE_ROUTE");
       }
@@ -222,7 +218,7 @@ public class TripService extends TeamEntityService {
     trip.setName(request.name());
     trip.setDateTime(request.dateTime());
     trip.setStatus(request.status());
-    Route route = getRoute(request.routeSlug(), trip.getTeam());
+    Route route = getRoute(request.routeSlug(), trip.getTeam(), trip.getVisibility());
     trip.setRoute(route);
     // publishAt can be explicitly set to null to remove scheduled publishing
     trip.setPublishAt(request.publishAt());
@@ -248,7 +244,7 @@ public class TripService extends TeamEntityService {
           updateMedia(existingStage, stageRequest.media());
           // No persist needed - entity is already managed and will be updated on flush
         } else {
-          createTripStage(user, trip, stageRequest, sortOrder);
+          throw BusinessException.notFound("Stage", stageRequest.id());
         }
       }
       sortOrder++;

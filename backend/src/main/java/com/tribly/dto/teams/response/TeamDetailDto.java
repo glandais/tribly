@@ -2,6 +2,7 @@ package com.tribly.dto.teams.response;
 
 import com.tribly.domain.team.Team;
 import com.tribly.dto.common.response.MediaDto;
+import com.tribly.dto.validation.ValidateSchema;
 import com.tribly.enums.TeamRole;
 import com.tribly.enums.Visibility;
 import com.tribly.infrastructure.id.TsidUtils;
@@ -12,6 +13,7 @@ import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.jspecify.annotations.Nullable;
 
 @Schema(description = "Detailed team information")
+@ValidateSchema
 public record TeamDetailDto(
     @Schema(description = "Team ID (TSID)", examples = "0h4a8xzk8jv80", required = true) String id,
     @Schema(description = "Team name", required = true) String name,

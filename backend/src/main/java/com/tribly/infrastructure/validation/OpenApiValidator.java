@@ -1,5 +1,6 @@
-package com.tribly.dto.validation;
+package com.tribly.infrastructure.validation;
 
+import com.tribly.dto.validation.ValidateSchema;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import java.lang.reflect.Field;

@@ -1,9 +1,11 @@
 package com.tribly.dto.teams.response;
 
+import com.tribly.dto.validation.ValidateSchema;
 import java.util.List;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 
 @Schema(description = "Paginated member list response")
+@ValidateSchema
 public record MemberListResponse(
     @Schema(description = "List of members", required = true) List<MemberDto> members,
     @Schema(description = "Total number of members", required = true) long total,

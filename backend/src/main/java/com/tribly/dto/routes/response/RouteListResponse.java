@@ -1,9 +1,11 @@
 package com.tribly.dto.routes.response;
 
+import com.tribly.dto.validation.ValidateSchema;
 import java.util.List;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 
 @Schema(description = "Paginated route list response")
+@ValidateSchema
 public record RouteListResponse(
     @Schema(description = "List of routes", required = true) List<RouteDto> routes,
     @Schema(description = "Total number of routes", required = true) long total,

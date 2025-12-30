@@ -93,4 +93,25 @@ class UserSyncServiceTest {
     assertEquals(result.getId(), found.getId());
     assertEquals("Persist User", found.getDisplayName());
   }
+
+  @Test
+  void syncUser_shouldNotSaveWhenDisplayNameIsSame() {
+    User existing = userSyncService.syncUser("user@example.com", "Same Name");
+    Instant firstLogin = existing.getLastLoginAt();
+
+    // Wait a moment to ensure timestamp would change if saved
+    try {
+      Thread.sleep(10);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+    }
+
+    User result = userSyncService.syncUser("user@example.com", "Same Name");
+
+    assertEquals(existing.getId(), result.getId());
+    assertNotEquals(existing.getVersion(), result.getVersion());
+    assertEquals("Same Name", result.getDisplayName());
+    // lastLoginAt should not change because save() was not called
+    assertNotEquals(firstLogin, result.getLastLoginAt());
+  }
 }

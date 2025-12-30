@@ -10,7 +10,6 @@ import type {
   TrackPointDto,
   GpxTrackDto,
   RouteListResponse,
-  ClimbListResponse,
   RouteRequest,
 } from '../api/api'
 import { SurfaceType } from '../api/api'
@@ -23,7 +22,6 @@ export type {
   TrackPointDto,
   GpxTrackDto,
   RouteListResponse,
-  ClimbListResponse,
   RouteRequest,
 }
 

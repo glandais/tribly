@@ -83,17 +83,6 @@ components:
       - CAT2
       - CAT3
       - CAT4
-    ClimbListResponse:
-      description: Climb list response
-      type: object
-      required:
-      - climbs
-      properties:
-        climbs:
-          type: array
-          items:
-            $ref: "#/components/schemas/RouteClimbDto"
-          description: List of climbs on the route
     ConfigDto:
       description: Application configuration
       type: object
@@ -150,6 +139,9 @@ components:
         rejectedValue: {}
     GeoJsonLineString:
       type: object
+      required:
+      - type
+      - coordinates
       properties:
         type:
           type: string
@@ -166,6 +158,9 @@ components:
     GeoJsonPoint:
       description: GeoJSON Point geometry
       type: object
+      required:
+      - type
+      - coordinates
       properties:
         type:
           type: string
@@ -571,6 +566,10 @@ components:
       properties:
         type:
           $ref: "#/components/schemas/PublicationType"
+        visibility:
+          $ref: "#/components/schemas/Visibility"
+        name:
+          type: string
     PublicationListResponse:
       description: Paginated publication list response
       type: object
@@ -727,17 +726,6 @@ components:
           type: integer
           format: int32
           description: Sort order
-    RideGroupListResponse:
-      description: Ride group list response
-      type: object
-      required:
-      - data
-      properties:
-        data:
-          type: array
-          items:
-            $ref: "#/components/schemas/RideGroupDto"
-          description: List of ride groups
     RideListResponse:
       description: Paginated ride list response
       type: object
@@ -837,8 +825,8 @@ components:
             $ref: "#/components/schemas/GroupRequest"
           description: Ride groups to create
     RouteClimbDto:
-      type: object
       description: Climb segment information
+      type: object
       required:
       - id
       - startDistance
@@ -1525,7 +1513,7 @@ components:
   securitySchemes:
     SecurityScheme:
       type: openIdConnect
-      openIdConnectUrl: http://localhost:8180/realms/tribly/.well-known/openid-configuration
+      openIdConnectUrl: http://localhost:8180/realms/quarkus/.well-known/openid-configuration
       description: Authentication
 tags:
 - name: Assets

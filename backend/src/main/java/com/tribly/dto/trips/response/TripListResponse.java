@@ -1,9 +1,11 @@
 package com.tribly.dto.trips.response;
 
+import com.tribly.dto.validation.ValidateSchema;
 import java.util.List;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 
 @Schema(description = "Paginated trip list response")
+@ValidateSchema
 public record TripListResponse(
     @Schema(description = "List of trips", required = true) List<TripDto> trips,
     @Schema(description = "Total number of trips", required = true) long total,

@@ -8,7 +8,6 @@ import type {
   RideGroupDto,
   RideParticipationDto,
   RideListResponse,
-  RideGroupListResponse,
   RideRequest,
   GroupRequest,
 } from '../api/api'
@@ -20,7 +19,6 @@ export type {
   RideGroupDto,
   RideParticipationDto,
   RideListResponse,
-  RideGroupListResponse,
   RideRequest,
   GroupRequest,
 }

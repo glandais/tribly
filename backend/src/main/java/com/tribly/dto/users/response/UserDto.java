@@ -1,12 +1,14 @@
 package com.tribly.dto.users.response;
 
 import com.tribly.domain.user.User;
+import com.tribly.dto.validation.ValidateSchema;
 import com.tribly.infrastructure.id.TsidUtils;
 import java.time.Instant;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.jspecify.annotations.Nullable;
 
 @Schema(description = "User profile data")
+@ValidateSchema
 public record UserDto(
     @Schema(description = "User ID (TSID)", examples = "0h4a8xzk8jv80", required = true) String id,
     @Schema(description = "User email address", required = true) String email,

@@ -108,7 +108,7 @@ create table team_entities (
                                distance integer,
                                elevation_gain integer,
                                elevation_loss integer,
-                               entity_type integer not null check ((entity_type in (3,1,5,4,6,2))),
+                               entity_type integer not null check ((entity_type in (3,1,5,2,4,6))),
                                sort_order integer,
                                created_at timestamp(6) with time zone not null,
                                created_by_id bigint not null,

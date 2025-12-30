@@ -49,11 +49,9 @@ public class UserSyncService {
     // Update profile from Keycloak claims
     if (!displayName.isBlank() && !displayName.equals(user.getDisplayName())) {
       user.setDisplayName(displayName);
-
-      save(user);
-      return user;
     }
 
+    save(user);
     return user;
   }
 

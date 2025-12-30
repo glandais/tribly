@@ -8,6 +8,7 @@ import com.tribly.dto.publications.response.PublicationDto;
 import com.tribly.dto.publications.response.PublicationType;
 import com.tribly.dto.publications.response.TeamPublicationDto;
 import com.tribly.dto.users.response.PublicUserDto;
+import com.tribly.dto.validation.ValidateSchema;
 import com.tribly.enums.Status;
 import com.tribly.enums.Visibility;
 import com.tribly.infrastructure.id.TsidUtils;
@@ -20,6 +21,7 @@ import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.jspecify.annotations.Nullable;
 
 @Schema(description = "Trip data", allOf = PublicationDto.class)
+@ValidateSchema
 @Getter
 public class TripDto implements PublicationDto {
 

@@ -2,6 +2,7 @@ package com.tribly.dto.routes.response;
 
 import com.tribly.domain.route.Route;
 import com.tribly.dto.common.response.MediaDto;
+import com.tribly.dto.validation.ValidateSchema;
 import com.tribly.enums.SurfaceType;
 import com.tribly.enums.Visibility;
 import com.tribly.infrastructure.id.TsidUtils;
@@ -13,6 +14,7 @@ import org.eclipse.microprofile.openapi.annotations.media.Schema;
  * Route DTO for list view.
  */
 @Schema(description = "Route summary data")
+@ValidateSchema
 public record RouteDto(
     @Schema(description = "Route ID (TSID)", required = true) String id,
     @Schema(description = "Route slug", required = true) String slug,

@@ -7,6 +7,7 @@ import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
 import com.tribly.dto.common.response.MediaDto;
 import com.tribly.dto.routes.request.RouteRequest;
+import com.tribly.dto.routes.response.RouteDetailDto;
 import com.tribly.dto.routes.response.RouteDto;
 import com.tribly.dto.routes.response.RouteListResponse;
 import com.tribly.enums.SurfaceType;
@@ -18,6 +19,7 @@ import com.tribly.util.TestDataService;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import java.io.InputStream;
+import java.math.BigDecimal;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -146,6 +148,62 @@ class RouteServiceTest {
     assertThrows(
         BusinessException.class,
         () -> routeService.getRoute("test-team", "missing", admin.getId()));
+  }
+
+  // ==================== Get Route Detail ====================
+
+  @Test
+  void getRouteDetail_shouldReturnRouteWithTrackForMember() {
+    Route route = dataService.createRoute(team, admin, "Detailed Route", Visibility.PUBLIC);
+
+    RouteDetailDto result =
+        routeService.getRouteDetail("test-team", route.getSlug(), member.getId());
+
+    assertNotNull(result);
+    assertEquals("Detailed Route", result.name());
+    assertNotNull(result.track());
+    assertNotNull(result.climbs());
+  }
+
+  @Test
+  void getRouteDetail_shouldReturnRouteWithClimbs() {
+    Route route = dataService.createRoute(team, admin, "Route With Climbs", Visibility.PUBLIC);
+    dataService.createRouteClimb(
+        admin, route, 0, 1000, 100, BigDecimal.valueOf(10.0), BigDecimal.valueOf(15.0));
+    dataService.createRouteClimb(
+        admin, route, 2000, 3000, 150, BigDecimal.valueOf(15.0), BigDecimal.valueOf(20.0));
+
+    RouteDetailDto result =
+        routeService.getRouteDetail("test-team", route.getSlug(), member.getId());
+
+    assertNotNull(result);
+    assertEquals(2, result.climbs().size());
+  }
+
+  @Test
+  void getRouteDetail_shouldReturnRouteForNonMemberIfPublic() {
+    Route route = dataService.createRoute(team, admin, "Public Route Detail", Visibility.PUBLIC);
+
+    RouteDetailDto result = routeService.getRouteDetail("test-team", route.getSlug(), null);
+
+    assertNotNull(result);
+    assertEquals("Public Route Detail", result.name());
+  }
+
+  @Test
+  void getRouteDetail_shouldHideTeamRouteFromNonMembers() {
+    Route route = dataService.createRoute(team, admin, "Team Route Detail", Visibility.TEAM);
+
+    assertThrows(
+        BusinessException.class,
+        () -> routeService.getRouteDetail("test-team", route.getSlug(), null));
+  }
+
+  @Test
+  void getRouteDetail_shouldThrowForNonexistentRoute() {
+    assertThrows(
+        BusinessException.class,
+        () -> routeService.getRouteDetail("test-team", "missing", admin.getId()));
   }
 
   // ==================== List Routes ====================

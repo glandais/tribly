@@ -6,6 +6,7 @@ import com.tribly.domain.route.RouteClimb;
 import com.tribly.dto.common.response.GeoJsonPoint;
 import com.tribly.dto.common.response.MediaDto;
 import com.tribly.dto.users.response.PublicUserDto;
+import com.tribly.dto.validation.ValidateSchema;
 import com.tribly.enums.SurfaceType;
 import com.tribly.enums.Visibility;
 import com.tribly.infrastructure.id.TsidUtils;
@@ -20,6 +21,7 @@ import org.geolatte.geom.Point;
  * Route DTO for detail view with full information.
  */
 @Schema(description = "Detailed route information")
+@ValidateSchema
 public record RouteDetailDto(
     @Schema(description = "Route ID (TSID)", required = true) String id,
     @Schema(description = "Route slug", required = true) String slug,

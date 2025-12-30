@@ -1,8 +1,10 @@
 package com.tribly.dto.config;
 
+import com.tribly.dto.validation.ValidateSchema;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 
 @Schema(description = "Keycloak configuration")
+@ValidateSchema
 public record KeycloakConfig(
     @Schema(
             description = "Keycloak server URL",

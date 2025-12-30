@@ -391,6 +391,215 @@ class RideServiceTest {
     assertEquals(Visibility.TEAM, result.getVisibility());
   }
 
+  @Test
+  void createRide_shouldCreateWithRoute() {
+    var route = dataService.createRoute(team, admin, "Test Route", Visibility.PUBLIC);
+
+    RideRequest request =
+        new RideRequest(
+            "Ride with Route",
+            MediaDto.builder().build(),
+            Instant.now().plusSeconds(24 * 3600),
+            Status.DRAFT,
+            Visibility.PUBLIC,
+            route.getSlug(),
+            null,
+            null,
+            null,
+            List.of());
+
+    RideDto result = rideService.createRide("test-team", request, organizer.getId());
+
+    assertNotNull(result);
+    assertNotNull(result.getRouteSlug());
+    assertEquals(route.getSlug(), result.getRouteSlug());
+  }
+
+  @Test
+  void createRide_shouldThrowForInvalidRouteSlug() {
+    RideRequest request =
+        new RideRequest(
+            "Ride with Invalid Route",
+            MediaDto.builder().build(),
+            Instant.now().plusSeconds(24 * 3600),
+            Status.DRAFT,
+            Visibility.PUBLIC,
+            "nonexistent-route",
+            null,
+            null,
+            null,
+            List.of());
+
+    assertThrows(
+        BusinessException.class,
+        () -> rideService.createRide("test-team", request, organizer.getId()));
+  }
+
+  @Test
+  void createRide_shouldThrowForRouteFromDifferentTeam() {
+    Team otherTeam = dataService.createTeam(admin, "Other Team", "other-team", Visibility.PUBLIC);
+    var foreignRoute =
+        dataService.createRoute(otherTeam, admin, "Foreign Route", Visibility.PUBLIC);
+
+    RideRequest request =
+        new RideRequest(
+            "Ride with Foreign Route",
+            MediaDto.builder().build(),
+            Instant.now().plusSeconds(24 * 3600),
+            Status.DRAFT,
+            Visibility.PUBLIC,
+            foreignRoute.getSlug(),
+            null,
+            null,
+            null,
+            List.of());
+
+    assertThrows(
+        BusinessException.class,
+        () -> rideService.createRide("test-team", request, organizer.getId()));
+  }
+
+  @Test
+  void createRide_shouldThrowForPrivateRouteOnPublicTeam() {
+    var privateRoute = dataService.createRoute(team, admin, "Private Route", Visibility.TEAM);
+
+    RideRequest request =
+        new RideRequest(
+            "Public Ride with Private Route",
+            MediaDto.builder().build(),
+            Instant.now().plusSeconds(24 * 3600),
+            Status.DRAFT,
+            Visibility.PUBLIC,
+            privateRoute.getSlug(),
+            null,
+            null,
+            null,
+            List.of());
+
+    BusinessException exception =
+        assertThrows(
+            BusinessException.class,
+            () -> rideService.createRide("test-team", request, organizer.getId()));
+
+    assertTrue(exception.getMessage().contains("private route"));
+  }
+
+  @Test
+  void createRide_shouldAllowTeamRouteOnTeamRide() {
+    var teamRoute = dataService.createRoute(team, admin, "Team Route", Visibility.TEAM);
+
+    RideRequest request =
+        new RideRequest(
+            "Team Ride with Team Route",
+            MediaDto.builder().build(),
+            Instant.now().plusSeconds(24 * 3600),
+            Status.DRAFT,
+            Visibility.TEAM,
+            teamRoute.getSlug(),
+            null,
+            null,
+            null,
+            List.of());
+
+    RideDto result = rideService.createRide("test-team", request, organizer.getId());
+
+    assertNotNull(result);
+    assertEquals(teamRoute.getSlug(), result.getRouteSlug());
+  }
+
+  @Test
+  void createRide_shouldCreateWithStartAndEndPlaces() {
+    var startPlace = dataService.createPlace(team, admin, "Start Location", true, false);
+    var endPlace = dataService.createPlace(team, admin, "End Location", false, true);
+    String startPlaceId = TsidUtils.toString(startPlace.getId());
+    String endPlaceId = TsidUtils.toString(endPlace.getId());
+
+    RideRequest request =
+        new RideRequest(
+            "Ride with Places",
+            MediaDto.builder().build(),
+            Instant.now().plusSeconds(24 * 3600),
+            Status.DRAFT,
+            Visibility.PUBLIC,
+            null,
+            startPlaceId,
+            endPlaceId,
+            null,
+            List.of());
+
+    RideDto result = rideService.createRide("test-team", request, organizer.getId());
+
+    assertNotNull(result);
+    assertNotNull(result.getStartPlace());
+    assertNotNull(result.getEndPlace());
+    assertEquals("Start Location", result.getStartPlace().name());
+    assertEquals("End Location", result.getEndPlace().name());
+  }
+
+  @Test
+  void createRide_shouldThrowForInvalidStartPlaceId() {
+    RideRequest request =
+        new RideRequest(
+            "Ride with Invalid Start",
+            MediaDto.builder().build(),
+            Instant.now().plusSeconds(24 * 3600),
+            Status.DRAFT,
+            Visibility.PUBLIC,
+            null,
+            TsidUtils.toString(9999L),
+            null,
+            null,
+            List.of());
+
+    assertThrows(
+        BusinessException.class,
+        () -> rideService.createRide("test-team", request, organizer.getId()));
+  }
+
+  @Test
+  void createRide_shouldThrowForInvalidEndPlaceId() {
+    RideRequest request =
+        new RideRequest(
+            "Ride with Invalid End",
+            MediaDto.builder().build(),
+            Instant.now().plusSeconds(24 * 3600),
+            Status.DRAFT,
+            Visibility.PUBLIC,
+            null,
+            null,
+            TsidUtils.toString(9999L),
+            null,
+            List.of());
+
+    assertThrows(
+        BusinessException.class,
+        () -> rideService.createRide("test-team", request, organizer.getId()));
+  }
+
+  @Test
+  void createRide_shouldThrowForPlaceFromDifferentTeam() {
+    Team otherTeam = dataService.createTeam(admin, "Other Team", "other-team", Visibility.PUBLIC);
+    var foreignPlace = dataService.createPlace(otherTeam, admin, "Foreign Place");
+    String foreignPlaceId = TsidUtils.toString(foreignPlace.getId());
+
+    RideRequest request =
+        new RideRequest(
+            "Ride with Foreign Place",
+            MediaDto.builder().build(),
+            Instant.now().plusSeconds(24 * 3600),
+            Status.DRAFT,
+            Visibility.PUBLIC,
+            null,
+            foreignPlaceId,
+            null,
+            null,
+            List.of());
+
+    assertThrows(
+        BusinessException.class,
+        () -> rideService.createRide("test-team", request, organizer.getId()));
+  }
+
   // ==================== Update Ride ====================
 
   @Test
@@ -557,6 +766,441 @@ class RideServiceTest {
 
     assertEquals("Updated Title", result.getName());
     assertEquals(Visibility.TEAM, result.getVisibility());
+  }
+
+  @Test
+  void updateRide_shouldAddNewGroups() {
+    Ride ride = dataService.createRide(team, admin, "Test Ride", "test-ride", Instant.now());
+
+    GroupRequest newGroup = new GroupRequest(null, "New Group", 25, 10, null);
+    RideRequest request =
+        new RideRequest(
+            "Test Ride",
+            MediaDto.builder().build(),
+            Instant.now().plusSeconds(24 * 3600),
+            Status.DRAFT,
+            Visibility.PUBLIC,
+            null,
+            null,
+            null,
+            null,
+            List.of(newGroup));
+
+    RideDto result = rideService.updateRide("test-team", "test-ride", request, organizer.getId());
+
+    assertEquals(1, result.getGroups().size());
+    assertEquals("New Group", result.getGroups().getFirst().name());
+    assertEquals(25, result.getGroups().getFirst().averageSpeed());
+  }
+
+  @Test
+  void updateRide_shouldUpdateExistingGroups() {
+    Ride ride = dataService.createRide(team, admin, "Test Ride", "test-ride", Instant.now());
+    RideGroup existingGroup = dataService.createRideGroup(admin, ride, "Original Group", 0);
+    String groupId = TsidUtils.toString(existingGroup.getId());
+
+    GroupRequest updatedGroup = new GroupRequest(groupId, "Updated Group", 30, 15, null);
+    RideRequest request =
+        new RideRequest(
+            "Test Ride",
+            MediaDto.builder().build(),
+            Instant.now().plusSeconds(24 * 3600),
+            Status.DRAFT,
+            Visibility.PUBLIC,
+            null,
+            null,
+            null,
+            null,
+            List.of(updatedGroup));
+
+    RideDto result = rideService.updateRide("test-team", "test-ride", request, organizer.getId());
+
+    assertEquals(1, result.getGroups().size());
+    assertEquals("Updated Group", result.getGroups().getFirst().name());
+    assertEquals(30, result.getGroups().getFirst().averageSpeed());
+  }
+
+  @Test
+  void updateRide_shouldRemoveGroupsNotInRequest() {
+    Ride ride = dataService.createRide(team, admin, "Test Ride", "test-ride", Instant.now());
+    dataService.createRideGroup(admin, ride, "Group 1", 0);
+    dataService.createRideGroup(admin, ride, "Group 2", 1);
+
+    // Update with empty groups list - should remove all groups
+    RideRequest request =
+        new RideRequest(
+            "Test Ride",
+            MediaDto.builder().build(),
+            Instant.now().plusSeconds(24 * 3600),
+            Status.DRAFT,
+            Visibility.PUBLIC,
+            null,
+            null,
+            null,
+            null,
+            List.of());
+
+    RideDto result = rideService.updateRide("test-team", "test-ride", request, organizer.getId());
+
+    assertEquals(0, result.getGroups().size());
+  }
+
+  @Test
+  void updateRide_shouldReorderGroups() {
+    Ride ride = dataService.createRide(team, admin, "Test Ride", "test-ride", Instant.now());
+    RideGroup group1 = dataService.createRideGroup(admin, ride, "Group A", 0);
+    RideGroup group2 = dataService.createRideGroup(admin, ride, "Group B", 1);
+    String group1Id = TsidUtils.toString(group1.getId());
+    String group2Id = TsidUtils.toString(group2.getId());
+
+    // Swap order: B first, then A
+    GroupRequest reorderedGroup1 = new GroupRequest(group2Id, "Group B", 25, 10, null);
+    GroupRequest reorderedGroup2 = new GroupRequest(group1Id, "Group A", 20, 5, null);
+    RideRequest request =
+        new RideRequest(
+            "Test Ride",
+            MediaDto.builder().build(),
+            Instant.now().plusSeconds(24 * 3600),
+            Status.DRAFT,
+            Visibility.PUBLIC,
+            null,
+            null,
+            null,
+            null,
+            List.of(reorderedGroup1, reorderedGroup2));
+
+    RideDto result = rideService.updateRide("test-team", "test-ride", request, organizer.getId());
+
+    assertEquals(2, result.getGroups().size());
+    assertEquals("Group B", result.getGroups().get(0).name());
+    assertEquals("Group A", result.getGroups().get(1).name());
+  }
+
+  @Test
+  void updateRide_shouldAddAndKeepExistingGroups() {
+    Ride ride = dataService.createRide(team, admin, "Test Ride", "test-ride", Instant.now());
+    RideGroup existingGroup = dataService.createRideGroup(admin, ride, "Existing Group", 0);
+    String existingGroupId = TsidUtils.toString(existingGroup.getId());
+
+    GroupRequest keepExisting = new GroupRequest(existingGroupId, "Existing Group", 25, 10, null);
+    GroupRequest addNew = new GroupRequest(null, "New Group", 30, 15, null);
+    RideRequest request =
+        new RideRequest(
+            "Test Ride",
+            MediaDto.builder().build(),
+            Instant.now().plusSeconds(24 * 3600),
+            Status.DRAFT,
+            Visibility.PUBLIC,
+            null,
+            null,
+            null,
+            null,
+            List.of(keepExisting, addNew));
+
+    RideDto result = rideService.updateRide("test-team", "test-ride", request, organizer.getId());
+
+    assertEquals(2, result.getGroups().size());
+    assertEquals("Existing Group", result.getGroups().get(0).name());
+    assertEquals("New Group", result.getGroups().get(1).name());
+  }
+
+  @Test
+  void updateRide_shouldThrowForGroupWithInvalidId() {
+    Ride ride = dataService.createRide(team, admin, "Test Ride", "test-ride", Instant.now());
+
+    GroupRequest invalidGroup =
+        new GroupRequest(TsidUtils.toString(9999L), "Invalid Group", 25, 10, null);
+    RideRequest request =
+        new RideRequest(
+            "Test Ride",
+            MediaDto.builder().build(),
+            Instant.now().plusSeconds(24 * 3600),
+            Status.DRAFT,
+            Visibility.PUBLIC,
+            null,
+            null,
+            null,
+            null,
+            List.of(invalidGroup));
+
+    BusinessException exception =
+        assertThrows(
+            BusinessException.class,
+            () -> rideService.updateRide("test-team", "test-ride", request, organizer.getId()));
+
+    assertTrue(exception.getMessage().contains("Group"));
+  }
+
+  @Test
+  void updateRide_shouldUpdateWithStartAndEndPlaces() {
+    dataService.createRide(team, admin, "Test Ride", "test-ride", Instant.now());
+    var startPlace = dataService.createPlace(team, admin, "Start Location", true, false);
+    var endPlace = dataService.createPlace(team, admin, "End Location", false, true);
+    String startPlaceId = TsidUtils.toString(startPlace.getId());
+    String endPlaceId = TsidUtils.toString(endPlace.getId());
+
+    RideRequest request =
+        new RideRequest(
+            "Test Ride",
+            MediaDto.builder().build(),
+            Instant.now().plusSeconds(24 * 3600),
+            Status.DRAFT,
+            Visibility.PUBLIC,
+            null,
+            startPlaceId,
+            endPlaceId,
+            null,
+            List.of());
+
+    RideDto result = rideService.updateRide("test-team", "test-ride", request, organizer.getId());
+
+    assertNotNull(result.getStartPlace());
+    assertNotNull(result.getEndPlace());
+    assertEquals("Start Location", result.getStartPlace().name());
+    assertEquals("End Location", result.getEndPlace().name());
+  }
+
+  @Test
+  void updateRide_shouldThrowForInvalidStartPlaceId() {
+    dataService.createRide(team, admin, "Test Ride", "test-ride", Instant.now());
+
+    RideRequest request =
+        new RideRequest(
+            "Test Ride",
+            MediaDto.builder().build(),
+            Instant.now().plusSeconds(24 * 3600),
+            Status.DRAFT,
+            Visibility.PUBLIC,
+            null,
+            TsidUtils.toString(9999L),
+            null,
+            null,
+            List.of());
+
+    assertThrows(
+        BusinessException.class,
+        () -> rideService.updateRide("test-team", "test-ride", request, organizer.getId()));
+  }
+
+  @Test
+  void updateRide_shouldThrowForInvalidEndPlaceId() {
+    dataService.createRide(team, admin, "Test Ride", "test-ride", Instant.now());
+
+    RideRequest request =
+        new RideRequest(
+            "Test Ride",
+            MediaDto.builder().build(),
+            Instant.now().plusSeconds(24 * 3600),
+            Status.DRAFT,
+            Visibility.PUBLIC,
+            null,
+            null,
+            TsidUtils.toString(9999L),
+            null,
+            List.of());
+
+    assertThrows(
+        BusinessException.class,
+        () -> rideService.updateRide("test-team", "test-ride", request, organizer.getId()));
+  }
+
+  @Test
+  void updateRide_shouldThrowForPlaceFromDifferentTeam() {
+    dataService.createRide(team, admin, "Test Ride", "test-ride", Instant.now());
+    Team otherTeam = dataService.createTeam(admin, "Other Team", "other-team", Visibility.PUBLIC);
+    var foreignPlace = dataService.createPlace(otherTeam, admin, "Foreign Place");
+    String foreignPlaceId = TsidUtils.toString(foreignPlace.getId());
+
+    RideRequest request =
+        new RideRequest(
+            "Test Ride",
+            MediaDto.builder().build(),
+            Instant.now().plusSeconds(24 * 3600),
+            Status.DRAFT,
+            Visibility.PUBLIC,
+            null,
+            foreignPlaceId,
+            null,
+            null,
+            List.of());
+
+    assertThrows(
+        BusinessException.class,
+        () -> rideService.updateRide("test-team", "test-ride", request, organizer.getId()));
+  }
+
+  @Test
+  void updateRide_shouldClearStartAndEndPlaces() {
+    var startPlace = dataService.createPlace(team, admin, "Start", true, false);
+    var endPlace = dataService.createPlace(team, admin, "End", false, true);
+    Ride ride = dataService.createRide(team, admin, "Test Ride", "test-ride", Instant.now());
+    ride.setStart(startPlace);
+    ride.setEnd(endPlace);
+
+    RideRequest request =
+        new RideRequest(
+            "Test Ride",
+            MediaDto.builder().build(),
+            Instant.now().plusSeconds(24 * 3600),
+            Status.DRAFT,
+            Visibility.PUBLIC,
+            null,
+            null,
+            null,
+            null,
+            List.of());
+
+    RideDto result = rideService.updateRide("test-team", "test-ride", request, organizer.getId());
+
+    assertNull(result.getStartPlace());
+    assertNull(result.getEndPlace());
+  }
+
+  @Test
+  void updateRide_shouldUpdateWithRoute() {
+    dataService.createRide(team, admin, "Test Ride", "test-ride", Instant.now());
+    var route = dataService.createRoute(team, admin, "Test Route", Visibility.PUBLIC);
+
+    RideRequest request =
+        new RideRequest(
+            "Test Ride",
+            MediaDto.builder().build(),
+            Instant.now().plusSeconds(24 * 3600),
+            Status.DRAFT,
+            Visibility.PUBLIC,
+            route.getSlug(),
+            null,
+            null,
+            null,
+            List.of());
+
+    RideDto result = rideService.updateRide("test-team", "test-ride", request, organizer.getId());
+
+    assertNotNull(result.getRouteSlug());
+    assertEquals(route.getSlug(), result.getRouteSlug());
+  }
+
+  @Test
+  void updateRide_shouldThrowForInvalidRouteSlug() {
+    dataService.createRide(team, admin, "Test Ride", "test-ride", Instant.now());
+
+    RideRequest request =
+        new RideRequest(
+            "Test Ride",
+            MediaDto.builder().build(),
+            Instant.now().plusSeconds(24 * 3600),
+            Status.DRAFT,
+            Visibility.PUBLIC,
+            "nonexistent-route",
+            null,
+            null,
+            null,
+            List.of());
+
+    assertThrows(
+        BusinessException.class,
+        () -> rideService.updateRide("test-team", "test-ride", request, organizer.getId()));
+  }
+
+  @Test
+  void updateRide_shouldThrowForRouteFromDifferentTeam() {
+    dataService.createRide(team, admin, "Test Ride", "test-ride", Instant.now());
+    Team otherTeam = dataService.createTeam(admin, "Other Team", "other-team", Visibility.PUBLIC);
+    var foreignRoute =
+        dataService.createRoute(otherTeam, admin, "Foreign Route", Visibility.PUBLIC);
+
+    RideRequest request =
+        new RideRequest(
+            "Test Ride",
+            MediaDto.builder().build(),
+            Instant.now().plusSeconds(24 * 3600),
+            Status.DRAFT,
+            Visibility.PUBLIC,
+            foreignRoute.getSlug(),
+            null,
+            null,
+            null,
+            List.of());
+
+    assertThrows(
+        BusinessException.class,
+        () -> rideService.updateRide("test-team", "test-ride", request, organizer.getId()));
+  }
+
+  @Test
+  void updateRide_shouldThrowForPrivateRouteOnPublicRide() {
+    dataService.createRide(team, admin, "Test Ride", "test-ride", Instant.now());
+    var privateRoute = dataService.createRoute(team, admin, "Private Route", Visibility.TEAM);
+
+    RideRequest request =
+        new RideRequest(
+            "Test Ride",
+            MediaDto.builder().build(),
+            Instant.now().plusSeconds(24 * 3600),
+            Status.DRAFT,
+            Visibility.PUBLIC,
+            privateRoute.getSlug(),
+            null,
+            null,
+            null,
+            List.of());
+
+    BusinessException exception =
+        assertThrows(
+            BusinessException.class,
+            () -> rideService.updateRide("test-team", "test-ride", request, organizer.getId()));
+
+    assertTrue(exception.getMessage().contains("private route"));
+  }
+
+  @Test
+  void updateRide_shouldAllowTeamRouteOnTeamRide() {
+    Ride ride =
+        dataService.createRide(
+            team, admin, "Team Ride", "team-ride", Instant.now(), Visibility.TEAM, Status.DRAFT);
+    var teamRoute = dataService.createRoute(team, admin, "Team Route", Visibility.TEAM);
+
+    RideRequest request =
+        new RideRequest(
+            "Team Ride",
+            MediaDto.builder().build(),
+            Instant.now().plusSeconds(24 * 3600),
+            Status.DRAFT,
+            Visibility.TEAM,
+            teamRoute.getSlug(),
+            null,
+            null,
+            null,
+            List.of());
+
+    RideDto result = rideService.updateRide("test-team", "team-ride", request, organizer.getId());
+
+    assertNotNull(result);
+    assertEquals(teamRoute.getSlug(), result.getRouteSlug());
+  }
+
+  @Test
+  void updateRide_shouldClearRoute() {
+    var route = dataService.createRoute(team, admin, "Test Route", Visibility.PUBLIC);
+    Ride ride = dataService.createRide(team, admin, "Test Ride", "test-ride", Instant.now());
+    ride.setRoute(route);
+
+    RideRequest request =
+        new RideRequest(
+            "Test Ride",
+            MediaDto.builder().build(),
+            Instant.now().plusSeconds(24 * 3600),
+            Status.DRAFT,
+            Visibility.PUBLIC,
+            null,
+            null,
+            null,
+            null,
+            List.of());
+
+    RideDto result = rideService.updateRide("test-team", "test-ride", request, organizer.getId());
+
+    assertNull(result.getRouteSlug());
   }
 
   // ==================== Delete Ride ====================

@@ -388,6 +388,11 @@ public class TestDataService {
     postRepository.getEntityManager().merge(post);
   }
 
+  @Transactional
+  public void updatePost(Post post) {
+    postRepository.getEntityManager().merge(post);
+  }
+
   @Inject AssetRepository assetRepository;
 
   @Transactional
@@ -400,6 +405,11 @@ public class TestDataService {
   @Transactional
   public void deleteAsset(Asset asset) {
     asset.setDeleted(true);
+    assetRepository.getEntityManager().merge(asset);
+  }
+
+  @Transactional
+  public void updateAsset(Asset asset) {
     assetRepository.getEntityManager().merge(asset);
   }
 

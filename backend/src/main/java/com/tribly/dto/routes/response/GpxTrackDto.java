@@ -1,6 +1,7 @@
 package com.tribly.dto.routes.response;
 
 import com.tribly.domain.route.GpxTrack;
+import com.tribly.dto.validation.ValidateSchema;
 import com.tribly.infrastructure.id.TsidUtils;
 import java.time.Instant;
 import java.util.List;
@@ -11,6 +12,7 @@ import org.jspecify.annotations.Nullable;
  * GPX Track DTO with track points for frontend rendering.
  */
 @Schema(description = "GPX track with track points")
+@ValidateSchema
 public record GpxTrackDto(
     @Schema(description = "Track ID (TSID)", required = true) String id,
     @Schema(description = "List of track points", required = true) List<TrackPointDto> trackPoints,
@@ -25,6 +27,7 @@ public record GpxTrackDto(
   }
 
   @Schema(description = "GPS track point")
+  @ValidateSchema
   public record TrackPointDto(
       @Schema(description = "Latitude", required = true) double lat,
       @Schema(description = "Longitude", required = true) double lng,

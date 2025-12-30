@@ -1,5 +1,6 @@
 package com.tribly.dto.validation;
 
+import com.tribly.infrastructure.validation.OpenApiValidator;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 import java.lang.annotation.ElementType;

@@ -1,11 +1,13 @@
 package com.tribly.dto.publications.response;
 
 import com.tribly.domain.team.Team;
+import com.tribly.dto.validation.ValidateSchema;
 import com.tribly.enums.Visibility;
 import com.tribly.infrastructure.id.TsidUtils;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 
 @Schema(description = "Team information")
+@ValidateSchema
 public record TeamPublicationDto(
     @Schema(description = "Team ID (TSID)", examples = "0h4a8xzk8jv80", required = true) String id,
     @Schema(description = "Team name", required = true) String name,
