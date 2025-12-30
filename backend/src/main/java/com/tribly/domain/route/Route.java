@@ -7,11 +7,12 @@ import com.tribly.domain.user.User;
 import com.tribly.enums.SurfaceType;
 import com.tribly.enums.Visibility;
 import jakarta.persistence.*;
-import java.math.BigDecimal;
 import java.time.Instant;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.geolatte.geom.G2D;
+import org.geolatte.geom.Point;
 
 @Setter
 @Getter
@@ -37,21 +38,13 @@ public class Route extends TeamEntity {
   @NotNullableDbValue
   private SurfaceType surfaceType;
 
-  @Column(name = "start_lat", precision = 10, scale = 8)
+  @Column(name = "`start`", columnDefinition = "geometry(Point,4326)")
   @NotNullableDbValue
-  private BigDecimal startLat;
+  private Point<G2D> start;
 
-  @Column(name = "start_lng", precision = 11, scale = 8)
+  @Column(name = "`end`", columnDefinition = "geometry(Point,4326)")
   @NotNullableDbValue
-  private BigDecimal startLng;
-
-  @Column(name = "end_lat", precision = 10, scale = 8)
-  @NotNullableDbValue
-  private BigDecimal endLat;
-
-  @Column(name = "end_lng", precision = 11, scale = 8)
-  @NotNullableDbValue
-  private BigDecimal endLng;
+  private Point<G2D> end;
 
   public Route(User createdBy, Team team, String name, String slug, Visibility visibility) {
     super(createdBy, team, Instant.now(), name, slug, visibility);

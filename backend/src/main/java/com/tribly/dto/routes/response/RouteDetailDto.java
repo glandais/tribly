@@ -3,16 +3,18 @@ package com.tribly.dto.routes.response;
 import com.tribly.domain.route.GpxTrack;
 import com.tribly.domain.route.Route;
 import com.tribly.domain.route.RouteClimb;
+import com.tribly.dto.common.response.GeoJsonPoint;
 import com.tribly.dto.common.response.MediaDto;
 import com.tribly.dto.users.response.PublicUserDto;
 import com.tribly.enums.SurfaceType;
 import com.tribly.enums.Visibility;
 import com.tribly.infrastructure.id.TsidUtils;
 import com.tribly.service.asset.AssetService;
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.geolatte.geom.G2D;
+import org.geolatte.geom.Point;
 
 /**
  * Route DTO for detail view with full information.
@@ -28,10 +30,8 @@ public record RouteDetailDto(
     @Schema(description = "Total elevation loss in meters", required = true) Integer elevationLoss,
     @Schema(description = "Surface type", required = true) SurfaceType surfaceType,
     @Schema(description = "Whether the route is public", required = true) Visibility visibility,
-    @Schema(description = "Start point latitude", required = true) BigDecimal startLat,
-    @Schema(description = "Start point longitude", required = true) BigDecimal startLng,
-    @Schema(description = "End point latitude", required = true) BigDecimal endLat,
-    @Schema(description = "End point longitude", required = true) BigDecimal endLng,
+    @Schema(implementation = GeoJsonPoint.class) Point<G2D> start,
+    @Schema(implementation = GeoJsonPoint.class) Point<G2D> end,
     @Schema(description = "Creator user", required = true) PublicUserDto createdBy,
     @Schema(description = "Creation timestamp", required = true) Instant createdAt,
     @Schema(description = "Last update timestamp", required = true) Instant updatedAt,
@@ -52,10 +52,8 @@ public record RouteDetailDto(
         route.getElevationLoss(),
         route.getSurfaceType(),
         route.getVisibility(),
-        route.getStartLat(),
-        route.getStartLng(),
-        route.getEndLat(),
-        route.getEndLng(),
+        route.getStart(),
+        route.getEnd(),
         PublicUserDto.from(route.getCreatedBy()),
         route.getCreatedAt(),
         route.getUpdatedAt(),

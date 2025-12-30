@@ -113,10 +113,8 @@ public class RouteService extends TeamEntityService {
     route.setDistance(metadata.distance());
     route.setElevationGain(metadata.elevationGain());
     route.setElevationLoss(metadata.elevationLoss());
-    route.setStartLat(BigDecimal.valueOf(metadata.startLat()));
-    route.setStartLng(BigDecimal.valueOf(metadata.startLng()));
-    route.setEndLat(BigDecimal.valueOf(metadata.endLat()));
-    route.setEndLng(BigDecimal.valueOf(metadata.endLng()));
+    route.setStart(metadata.start());
+    route.setEnd(metadata.end());
 
     // Save GPX track
     GpxTrack track =

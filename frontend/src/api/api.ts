@@ -773,22 +773,8 @@ export interface RouteDetailDto {
    * Whether the route is public
    */
   visibility: Visibility
-  /**
-   * Start point latitude
-   */
-  startLat: number
-  /**
-   * Start point longitude
-   */
-  startLng: number
-  /**
-   * End point latitude
-   */
-  endLat: number
-  /**
-   * End point longitude
-   */
-  endLng: number
+  start?: GeoJsonPoint
+  end?: GeoJsonPoint
   /**
    * Creator user
    */
@@ -1659,6 +1645,8 @@ export const PlacesApiAxiosParamCreator = function (configuration?: Configuratio
       const localVarHeaderParameter = {} as any
       const localVarQueryParameter = {} as any
 
+      // authentication SecurityScheme required
+
       setSearchParams(localVarUrlObj, localVarQueryParameter)
       let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {}
       localVarRequestOptions.headers = {
@@ -1703,6 +1691,8 @@ export const PlacesApiAxiosParamCreator = function (configuration?: Configuratio
       const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options }
       const localVarHeaderParameter = {} as any
       const localVarQueryParameter = {} as any
+
+      // authentication SecurityScheme required
 
       if (page !== undefined) {
         localVarQueryParameter['page'] = page

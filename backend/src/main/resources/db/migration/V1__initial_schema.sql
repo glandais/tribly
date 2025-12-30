@@ -108,12 +108,8 @@ create table team_entities (
                                distance integer,
                                elevation_gain integer,
                                elevation_loss integer,
-                               end_lat numeric(10,8),
-                               end_lng numeric(11,8),
-                               entity_type integer not null check ((entity_type in (5,1,3,6,2,4))),
+                               entity_type integer not null check ((entity_type in (3,1,5,4,6,2))),
                                sort_order integer,
-                               start_lat numeric(10,8),
-                               start_lng numeric(11,8),
                                created_at timestamp(6) with time zone not null,
                                created_by_id bigint not null,
                                date_time timestamp(6) with time zone not null,
@@ -132,6 +128,8 @@ create table team_entities (
                                markdown TEXT,
                                name varchar(255) not null,
                                slug varchar(255) not null,
+                               "end" geometry(Point,4326),
+                               "start" geometry(Point,4326),
                                primary key (id),
                                constraint uk_team_entity_slug unique (team_id, entity_type, slug),
                                check (entity_type <> 6 or (sort_order is not null))
@@ -304,14 +302,14 @@ alter table if exists team_entities
     references teams;
 
 alter table if exists team_entities
-    add constraint FKsm0040p8exgxema0d3j4osclb
-    foreign key (route_id)
-    references team_entities;
-
-alter table if exists team_entities
     add constraint FKjukml9fp2eipuhmugtiaf12gs
     foreign key (place_end_id)
     references places;
+
+alter table if exists team_entities
+    add constraint FKsm0040p8exgxema0d3j4osclb
+    foreign key (route_id)
+    references team_entities;
 
 alter table if exists team_entities
     add constraint FKm7w1a9lbh6795ida5u4n95vdv
@@ -381,3 +379,19 @@ CREATE INDEX idx_team_entities_markdown_gin_trgm ON team_entities USING GIN (mar
 
 -- Note: These indexes dramatically improve LIKE '%search%' query performance
 -- from O(n) table scan to O(log n) index lookup
+
+CREATE INDEX idx_gpx_tracks_geometry
+    ON gpx_tracks
+    USING GIST (geometry);
+
+CREATE INDEX idx_places_geometry
+    ON places
+    USING GIST (geometry);
+
+CREATE INDEX idx_team_entities_start
+    ON team_entities
+    USING GIST ("start");
+
+CREATE INDEX idx_team_entities_end
+    ON team_entities
+    USING GIST ("end");

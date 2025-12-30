@@ -2,6 +2,12 @@ package com.tribly.util;
 
 import static org.geolatte.geom.crs.CoordinateReferenceSystems.WGS84;
 
+import com.tribly.domain.asset.Asset;
+import com.tribly.domain.asset.repository.AssetRepository;
+import com.tribly.domain.place.Place;
+import com.tribly.domain.place.repository.PlaceRepository;
+import com.tribly.domain.post.Post;
+import com.tribly.domain.post.repository.PostRepository;
 import com.tribly.domain.ride.*;
 import com.tribly.domain.ride.repository.RideGroupRepository;
 import com.tribly.domain.ride.repository.RideParticipationRepository;
@@ -16,6 +22,12 @@ import com.tribly.domain.team.Team;
 import com.tribly.domain.team.UserTeam;
 import com.tribly.domain.team.repository.TeamRepository;
 import com.tribly.domain.team.repository.UserTeamRepository;
+import com.tribly.domain.trip.Trip;
+import com.tribly.domain.trip.TripParticipation;
+import com.tribly.domain.trip.TripStage;
+import com.tribly.domain.trip.repository.TripParticipationRepository;
+import com.tribly.domain.trip.repository.TripRepository;
+import com.tribly.domain.trip.repository.TripStageRepository;
 import com.tribly.domain.user.User;
 import com.tribly.domain.user.repository.UserRepository;
 import com.tribly.enums.*;
@@ -203,6 +215,37 @@ public class TestDataService {
   }
 
   @Transactional
+  public Route createRoute(
+      Team team,
+      User createdBy,
+      String name,
+      Visibility visibility,
+      Status status,
+      @Nullable Instant dateTime,
+      @Nullable String markdown) {
+    List<GpxTrack.TrackPoint> trackPoints = List.of(new GpxTrack.TrackPoint(45.0, 6.0, 500.0, 0.0));
+    String geometry = "LINESTRING(6 45,6.1 45.1)";
+    Route route = new Route(createdBy, team, name, SlugService.slugify(name), visibility);
+    route.setStatus(status);
+    if (dateTime != null) {
+      route.setDateTime(dateTime);
+    }
+    if (markdown != null) {
+      route.setMarkdown(markdown);
+    }
+    routeRepository.persistAndFlush(route);
+    LineString<G2D> lineString = (LineString<G2D>) Wkt.fromWkt(geometry, WGS84);
+    GpxTrack track = new GpxTrack(createdBy, route, lineString, trackPoints, Instant.now());
+    gpxTrackRepository.persistAndFlush(track);
+    return route;
+  }
+
+  @Transactional
+  public void updateRoute(Route route) {
+    routeRepository.getEntityManager().merge(route);
+  }
+
+  @Transactional
   public void deleteRoute(Route route) {
     route.setDeleted(true);
     routeRepository.getEntityManager().merge(route);
@@ -276,5 +319,160 @@ public class TestDataService {
   public void deleteRouteClimb(RouteClimb climb) {
     climb.setDeleted(true);
     routeClimbRepository.getEntityManager().merge(climb);
+  }
+
+  @Inject PlaceRepository placeRepository;
+
+  @Transactional
+  public Place createPlace(Team team, User createdBy, String name) {
+    return createPlace(team, createdBy, name, true, true);
+  }
+
+  @Transactional
+  public Place createPlace(
+      Team team, User createdBy, String name, boolean startPlace, boolean endPlace) {
+    Place place = new Place(createdBy, team, name, startPlace, endPlace);
+    placeRepository.persistAndFlush(place);
+    return place;
+  }
+
+  @Transactional
+  public void deletePlace(Place place) {
+    place.setDeleted(true);
+    placeRepository.getEntityManager().merge(place);
+  }
+
+  @Inject PostRepository postRepository;
+
+  @Transactional
+  public Post createPost(Team team, User createdBy, String name, Instant dateTime) {
+    return createPost(team, createdBy, name, dateTime, Visibility.PUBLIC, Status.PUBLISHED, null);
+  }
+
+  @Transactional
+  public Post createPost(
+      Team team, User createdBy, String name, Instant dateTime, Visibility visibility) {
+    return createPost(team, createdBy, name, dateTime, visibility, Status.PUBLISHED, null);
+  }
+
+  @Transactional
+  public Post createPost(
+      Team team,
+      User createdBy,
+      String name,
+      Instant dateTime,
+      Visibility visibility,
+      Status status) {
+    return createPost(team, createdBy, name, dateTime, visibility, status, null);
+  }
+
+  @Transactional
+  public Post createPost(
+      Team team,
+      User createdBy,
+      String name,
+      Instant dateTime,
+      Visibility visibility,
+      Status status,
+      @Nullable Instant publishAt) {
+    Post post = new Post(createdBy, team, dateTime, name, SlugService.slugify(name), visibility);
+    post.setStatus(status);
+    post.setPublishAt(publishAt);
+    postRepository.persistAndFlush(post);
+    return post;
+  }
+
+  @Transactional
+  public void deletePost(Post post) {
+    post.setDeleted(true);
+    postRepository.getEntityManager().merge(post);
+  }
+
+  @Inject AssetRepository assetRepository;
+
+  @Transactional
+  public Asset createAsset(Team team, User createdBy, AssetType type, String fileName) {
+    Asset asset = new Asset(createdBy, team, type, fileName);
+    assetRepository.persistAndFlush(asset);
+    return asset;
+  }
+
+  @Transactional
+  public void deleteAsset(Asset asset) {
+    asset.setDeleted(true);
+    assetRepository.getEntityManager().merge(asset);
+  }
+
+  @Inject TripRepository tripRepository;
+  @Inject TripStageRepository tripStageRepository;
+  @Inject TripParticipationRepository tripParticipationRepository;
+
+  @Transactional
+  public Trip createTrip(Team team, User createdBy, String name, Instant dateTime) {
+    return createTrip(team, createdBy, name, dateTime, Visibility.PUBLIC, Status.PUBLISHED, null);
+  }
+
+  @Transactional
+  public Trip createTrip(
+      Team team, User createdBy, String name, Instant dateTime, Visibility visibility) {
+    return createTrip(team, createdBy, name, dateTime, visibility, Status.PUBLISHED, null);
+  }
+
+  @Transactional
+  public Trip createTrip(
+      Team team,
+      User createdBy,
+      String name,
+      Instant dateTime,
+      Visibility visibility,
+      Status status,
+      @Nullable Instant publishAt) {
+    Trip trip = new Trip(createdBy, team, dateTime, name, SlugService.slugify(name), visibility);
+    trip.setStatus(status);
+    trip.setPublishAt(publishAt);
+    tripRepository.persistAndFlush(trip);
+    return trip;
+  }
+
+  @Transactional
+  public void deleteTrip(Trip trip) {
+    trip.setDeleted(true);
+    tripRepository.getEntityManager().merge(trip);
+  }
+
+  @Transactional
+  public TripStage createTripStage(User createdBy, Trip trip, String name) {
+    TripStage stage = new TripStage(createdBy, trip, name);
+    stage.setSlug(SlugService.slugify(name));
+    tripStageRepository.persistAndFlush(stage);
+    return stage;
+  }
+
+  @Transactional
+  public TripStage createTripStage(User createdBy, Trip trip, String name, int sortOrder) {
+    TripStage stage = new TripStage(createdBy, trip, name);
+    stage.setSlug(SlugService.slugify(name));
+    stage.setSortOrder(sortOrder);
+    tripStageRepository.persistAndFlush(stage);
+    return stage;
+  }
+
+  @Transactional
+  public void deleteTripStage(TripStage stage) {
+    stage.setDeleted(true);
+    tripStageRepository.getEntityManager().merge(stage);
+  }
+
+  @Transactional
+  public TripParticipation createTripParticipation(Trip trip, User user) {
+    TripParticipation participation = new TripParticipation(trip, user);
+    tripParticipationRepository.persistAndFlush(participation);
+    return participation;
+  }
+
+  @Transactional
+  public void deleteTripParticipation(TripParticipation participation) {
+    participation.setDeleted(true);
+    tripParticipationRepository.getEntityManager().merge(participation);
   }
 }

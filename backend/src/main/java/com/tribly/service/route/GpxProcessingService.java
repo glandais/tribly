@@ -220,10 +220,8 @@ public class GpxProcessingService {
         (int) Math.round(path.getDist()),
         (int) Math.round(path.getTotalElevation()),
         (int) Math.round(path.getTotalElevationNegative()),
-        Math.toDegrees(start.getLat()),
-        Math.toDegrees(start.getLon()),
-        Math.toDegrees(end.getLat()),
-        Math.toDegrees(end.getLon()));
+        point(WGS84, g(start.getLonDeg(), start.getLatDeg())),
+        point(WGS84, g(end.getLonDeg(), end.getLatDeg())));
   }
 
   /**

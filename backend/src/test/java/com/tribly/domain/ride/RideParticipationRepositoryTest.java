@@ -144,4 +144,75 @@ class RideParticipationRepositoryTest {
 
     assertTrue(result.isEmpty());
   }
+
+  @Test
+  void findByUserAndRideIncludingDeleted_shouldReturnParticipationWhenExists() {
+    dataService.createParticipation(group, user1);
+
+    Optional<RideParticipation> result =
+        participationRepository.findByUserAndRideIncludingDeleted(user1.getId(), ride.getId());
+
+    assertTrue(result.isPresent());
+    assertEquals(user1.getId(), result.get().getUser().getId());
+  }
+
+  @Test
+  void findByUserAndRideIncludingDeleted_shouldReturnEmptyWhenNotExists() {
+    Optional<RideParticipation> result =
+        participationRepository.findByUserAndRideIncludingDeleted(user1.getId(), ride.getId());
+
+    assertTrue(result.isEmpty());
+  }
+
+  @Test
+  void findByUserAndRideIncludingDeleted_shouldReturnDeletedParticipation() {
+    RideParticipation participation = dataService.createParticipation(group, user1);
+    dataService.deleteParticipation(participation);
+
+    Optional<RideParticipation> result =
+        participationRepository.findByUserAndRideIncludingDeleted(user1.getId(), ride.getId());
+
+    assertTrue(result.isPresent());
+    assertTrue(result.get().isDeleted());
+    assertEquals(user1.getId(), result.get().getUser().getId());
+  }
+
+  @Test
+  void findByUserAndRideIncludingDeleted_shouldReturnEmptyForWrongUser() {
+    dataService.createParticipation(group, user1);
+
+    Optional<RideParticipation> result =
+        participationRepository.findByUserAndRideIncludingDeleted(user2.getId(), ride.getId());
+
+    assertTrue(result.isEmpty());
+  }
+
+  @Test
+  void findByUserAndRideIncludingDeleted_shouldReturnEmptyForDifferentRide() {
+    dataService.createParticipation(group, user1);
+    Ride otherRide =
+        dataService.createRide(
+            team,
+            user1,
+            "Other Ride",
+            "other-ride",
+            LocalDate.of(2025, 1, 20).atTime(0, 0).toInstant(ZoneOffset.UTC));
+
+    Optional<RideParticipation> result =
+        participationRepository.findByUserAndRideIncludingDeleted(user1.getId(), otherRide.getId());
+
+    assertTrue(result.isEmpty());
+  }
+
+  @Test
+  void findByUserAndRideIncludingDeleted_shouldFindParticipationInAnyGroup() {
+    RideGroup group2 = dataService.createRideGroup(user1, ride, "Slow Group");
+    dataService.createParticipation(group2, user1);
+
+    Optional<RideParticipation> result =
+        participationRepository.findByUserAndRideIncludingDeleted(user1.getId(), ride.getId());
+
+    assertTrue(result.isPresent());
+    assertEquals("Slow Group", result.get().getRideGroup().getName());
+  }
 }

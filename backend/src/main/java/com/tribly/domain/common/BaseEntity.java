@@ -8,9 +8,9 @@ import java.util.Objects;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.Hibernate;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
-import org.hibernate.proxy.HibernateProxy;
 import org.jspecify.annotations.Nullable;
 
 @Setter
@@ -48,22 +48,15 @@ public abstract class BaseEntity {
   public final boolean equals(Object o) {
     if (this == o) return true;
     if (o == null) return false;
-    Class<?> oEffectiveClass = getEffectiveClass(o);
-    Class<?> thisEffectiveClass = getEffectiveClass(this);
+    Class<?> oEffectiveClass = Hibernate.getClassLazy(o);
+    Class<?> thisEffectiveClass = Hibernate.getClassLazy(this);
     if (thisEffectiveClass != oEffectiveClass) return false;
-    BaseEntity student = (BaseEntity) o;
-    return getId() != null && Objects.equals(getId(), student.getId());
+    BaseEntity baseEntity = (BaseEntity) o;
+    return getId() != null && Objects.equals(getId(), baseEntity.getId());
   }
 
   @Override
   public final int hashCode() {
-    return getEffectiveClass(this).hashCode();
-  }
-
-  private static Class<?> getEffectiveClass(Object o) {
-    if (o instanceof HibernateProxy hibernateProxy) {
-      return hibernateProxy.getHibernateLazyInitializer().getClass();
-    }
-    return o.getClass();
+    return Hibernate.getClassLazy(this).hashCode();
   }
 }

@@ -992,7 +992,7 @@
       "RouteDetailDto" : {
         "description" : "Detailed route information",
         "type" : "object",
-        "required" : [ "id", "slug", "name", "media", "distance", "elevationGain", "elevationLoss", "surfaceType", "visibility", "startLat", "startLng", "endLat", "endLng", "createdBy", "createdAt", "updatedAt", "climbs", "track" ],
+        "required" : [ "id", "slug", "name", "media", "distance", "elevationGain", "elevationLoss", "surfaceType", "visibility", "createdBy", "createdAt", "updatedAt", "climbs", "track" ],
         "properties" : {
           "id" : {
             "type" : "string",
@@ -1036,21 +1036,13 @@
             "type" : "string",
             "$ref" : "#/components/schemas/Visibility"
           },
-          "startLat" : {
-            "type" : "number",
-            "description" : "Start point latitude"
+          "start" : {
+            "$ref" : "#/components/schemas/GeoJsonPoint",
+            "type" : "object"
           },
-          "startLng" : {
-            "type" : "number",
-            "description" : "Start point longitude"
-          },
-          "endLat" : {
-            "type" : "number",
-            "description" : "End point latitude"
-          },
-          "endLng" : {
-            "type" : "number",
-            "description" : "End point longitude"
+          "end" : {
+            "$ref" : "#/components/schemas/GeoJsonPoint",
+            "type" : "object"
           },
           "createdBy" : {
             "description" : "Creator user",
@@ -1693,7 +1685,7 @@
     "securitySchemes" : {
       "SecurityScheme" : {
         "type" : "openIdConnect",
-        "openIdConnectUrl" : "http://localhost:8180/realms/quarkus/.well-known/openid-configuration",
+        "openIdConnectUrl" : "http://localhost:8180/realms/tribly/.well-known/openid-configuration",
         "description" : "Authentication"
       }
     }

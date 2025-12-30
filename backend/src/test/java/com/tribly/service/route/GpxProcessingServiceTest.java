@@ -90,18 +90,12 @@ class GpxProcessingServiceTest {
     assertTrue(result.metadata().elevationLoss() <= 0, "Elevation loss should be non-negative");
 
     // Verify coordinates are in valid ranges
-    assertTrue(
-        result.metadata().startLat() >= -90 && result.metadata().startLat() <= 90,
-        "Start latitude should be valid");
-    assertTrue(
-        result.metadata().startLng() >= -180 && result.metadata().startLng() <= 180,
-        "Start longitude should be valid");
-    assertTrue(
-        result.metadata().endLat() >= -90 && result.metadata().endLat() <= 90,
-        "End latitude should be valid");
-    assertTrue(
-        result.metadata().endLng() >= -180 && result.metadata().endLng() <= 180,
-        "End longitude should be valid");
+    G2D start = result.metadata().start().getPosition();
+    G2D end = result.metadata().end().getPosition();
+    assertTrue(start.getLat() >= -90 && start.getLat() <= 90, "Start latitude should be valid");
+    assertTrue(start.getLon() >= -180 && start.getLon() <= 180, "Start longitude should be valid");
+    assertTrue(end.getLat() >= -90 && end.getLat() <= 90, "End latitude should be valid");
+    assertTrue(end.getLon() >= -180 && end.getLon() <= 180, "End longitude should be valid");
   }
 
   @Test

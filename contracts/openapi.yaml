@@ -888,10 +888,6 @@ components:
       - elevationLoss
       - surfaceType
       - visibility
-      - startLat
-      - startLng
-      - endLat
-      - endLng
       - createdBy
       - createdAt
       - updatedAt
@@ -931,18 +927,12 @@ components:
           description: Whether the route is public
           type: string
           $ref: "#/components/schemas/Visibility"
-        startLat:
-          type: number
-          description: Start point latitude
-        startLng:
-          type: number
-          description: Start point longitude
-        endLat:
-          type: number
-          description: End point latitude
-        endLng:
-          type: number
-          description: End point longitude
+        start:
+          $ref: "#/components/schemas/GeoJsonPoint"
+          type: object
+        end:
+          $ref: "#/components/schemas/GeoJsonPoint"
+          type: object
         createdBy:
           description: Creator user
           type: object
@@ -1535,7 +1525,7 @@ components:
   securitySchemes:
     SecurityScheme:
       type: openIdConnect
-      openIdConnectUrl: http://localhost:8180/realms/quarkus/.well-known/openid-configuration
+      openIdConnectUrl: http://localhost:8180/realms/tribly/.well-known/openid-configuration
       description: Authentication
 tags:
 - name: Assets
