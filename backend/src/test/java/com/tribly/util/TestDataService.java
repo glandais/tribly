@@ -264,8 +264,8 @@ public class TestDataService {
   }
 
   @Transactional
-  public void updateTeam(Team team) {
-    teamRepository.getEntityManager().merge(team);
+  public Team updateTeam(Team team) {
+    return teamRepository.getEntityManager().merge(team);
   }
 
   @Transactional

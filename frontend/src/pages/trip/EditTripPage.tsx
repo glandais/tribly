@@ -25,6 +25,10 @@ export function EditTripPage() {
     return <Navigate to={`/teams/${teamSlug}/trips`} replace />
   }
 
+  if (!team.enableTrips) {
+    return <Navigate to={`/teams/${teamSlug}`} replace />
+  }
+
   const canEdit = team.role === 'ADMIN' || team.role === 'ORGANIZER'
 
   if (!canEdit) {

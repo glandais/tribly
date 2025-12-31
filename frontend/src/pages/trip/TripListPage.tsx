@@ -41,6 +41,10 @@ export function TripListPage() {
     return <Navigate to="/teams" replace />
   }
 
+  if (!team.enableTrips) {
+    return <Navigate to={`/teams/${teamSlug}`} replace />
+  }
+
   const canCreate = team.role === 'ADMIN' || team.role === 'ORGANIZER'
 
   return (

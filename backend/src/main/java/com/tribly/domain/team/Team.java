@@ -49,6 +49,9 @@ public class Team extends BaseEntity {
   @OneToMany(mappedBy = "team", cascade = CascadeType.ALL, orphanRemoval = true)
   private Set<UserTeam> members = new HashSet<>();
 
+  @Column(name = "enable_trips", nullable = false)
+  private boolean enableTrips = true;
+
   public Team(User creator, String name, String slug, Visibility visibility) {
     super(creator);
     this.name = name;

@@ -73,13 +73,15 @@ export function PublicationListPage() {
                 <PlusIcon className="w-4 h-4 mr-2" />
                 {tPosts('list.createPost')}
               </Link>
-              <Link
-                to={`/teams/${teamSlug}/trips/new`}
-                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
-              >
-                <PlusIcon className="w-4 h-4 mr-2" />
-                {tTrips('list.createTrip')}
-              </Link>
+              {team.enableTrips && (
+                <Link
+                  to={`/teams/${teamSlug}/trips/new`}
+                  className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
+                >
+                  <PlusIcon className="w-4 h-4 mr-2" />
+                  {tTrips('list.createTrip')}
+                </Link>
+              )}
               <Link
                 to={`/teams/${teamSlug}/routes/new`}
                 className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"

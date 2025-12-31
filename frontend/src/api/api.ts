@@ -932,6 +932,10 @@ export interface TeamDetailDto {
    */
   visibility: Visibility
   /**
+   * Trips enabled
+   */
+  enableTrips: boolean
+  /**
    * Number of team members
    */
   memberCount: number
@@ -998,9 +1002,13 @@ export interface TeamRequest {
    */
   media: MediaDto
   /**
-   * Whether the team is publicly visible
+   * Team visibility
    */
   visibility: Visibility
+  /**
+   * Trips enabled for team
+   */
+  enableTrips: boolean
 }
 
 export const TeamRole = {

@@ -1104,6 +1104,7 @@ components:
       - slug
       - media
       - visibility
+      - enableTrips
       - memberCount
       - createdAt
       properties:
@@ -1126,6 +1127,9 @@ components:
           description: Whether the team is public
           type: string
           $ref: "#/components/schemas/Visibility"
+        enableTrips:
+          type: boolean
+          description: Trips enabled
         memberCount:
           type: integer
           format: int64
@@ -1195,6 +1199,7 @@ components:
       - name
       - media
       - visibility
+      - enableTrips
       properties:
         name:
           type: string
@@ -1209,11 +1214,16 @@ components:
           type: object
           $ref: "#/components/schemas/MediaDto"
         visibility:
-          description: Whether the team is publicly visible
+          description: Team visibility
           type: string
           examples:
-          - "true"
+          - PUBLIC
           $ref: "#/components/schemas/Visibility"
+        enableTrips:
+          type: boolean
+          description: Trips enabled for team
+          examples:
+          - true
     TeamRole:
       type: string
       enum:

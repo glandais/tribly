@@ -92,6 +92,7 @@ public class TeamService extends TeamEntityService {
 
     team.setName(request.name());
     team.setVisibility(request.visibility());
+    team.setEnableTrips(request.enableTrips());
     updateMedia(team.getTeamDescription(), request.media());
 
     teamRepository.persist(team);

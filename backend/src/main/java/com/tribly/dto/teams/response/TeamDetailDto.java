@@ -20,6 +20,7 @@ public record TeamDetailDto(
     @Schema(description = "Team URL slug", required = true) String slug,
     @Schema(description = "Team description", required = true) MediaDto media,
     @Schema(description = "Whether the team is public", required = true) Visibility visibility,
+    @Schema(description = "Trips enabled", required = true) boolean enableTrips,
     @Schema(description = "Number of team members", required = true) long memberCount,
     @Nullable @Schema(description = "Current user's role (null if not a member)") TeamRole role,
     @Schema(description = "Team creation timestamp", required = true) Instant createdAt) {
@@ -31,6 +32,7 @@ public record TeamDetailDto(
         team.getSlug(),
         MediaDto.from(team.getTeamDescription(), assetService),
         team.getVisibility(),
+        team.isEnableTrips(),
         teamAndRole.memberCount(),
         teamAndRole.teamRole(),
         team.getCreatedAt());

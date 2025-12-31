@@ -42,7 +42,10 @@ class TeamServiceTest {
   void createTeam_shouldCreateTeamWithSlug() {
     TeamRequest request =
         new TeamRequest(
-            "Test Team", MediaDto.builder().markdown("A test team").build(), Visibility.PUBLIC);
+            "Test Team",
+            MediaDto.builder().markdown("A test team").build(),
+            Visibility.PUBLIC,
+            true);
 
     TeamDetailDto result = teamService.createTeam(request, user1.getId());
 
@@ -57,7 +60,8 @@ class TeamServiceTest {
 
   @Test
   void createTeam_shouldCreateAdminMembership() {
-    TeamRequest request = new TeamRequest("My Team", MediaDto.builder().build(), Visibility.PUBLIC);
+    TeamRequest request =
+        new TeamRequest("My Team", MediaDto.builder().build(), Visibility.PUBLIC, true);
 
     TeamDetailDto result = teamService.createTeam(request, user1.getId());
 
@@ -69,9 +73,9 @@ class TeamServiceTest {
   @Test
   void createTeam_shouldHandleSlugCollisionWithTimestamp() {
     TeamRequest request1 =
-        new TeamRequest("Test Team", MediaDto.builder().build(), Visibility.PUBLIC);
+        new TeamRequest("Test Team", MediaDto.builder().build(), Visibility.PUBLIC, true);
     TeamRequest request2 =
-        new TeamRequest("Test Team", MediaDto.builder().build(), Visibility.PUBLIC);
+        new TeamRequest("Test Team", MediaDto.builder().build(), Visibility.PUBLIC, true);
 
     TeamDetailDto team1 = teamService.createTeam(request1, user1.getId());
     TeamDetailDto team2 = teamService.createTeam(request2, user2.getId());
@@ -84,7 +88,7 @@ class TeamServiceTest {
   @Test
   void createTeam_shouldThrowWhenUserNotFound() {
     TeamRequest request =
-        new TeamRequest("Test Team", MediaDto.builder().build(), Visibility.PUBLIC);
+        new TeamRequest("Test Team", MediaDto.builder().build(), Visibility.PUBLIC, true);
 
     BusinessException exception =
         assertThrows(BusinessException.class, () -> teamService.createTeam(request, 999999L));
@@ -171,7 +175,8 @@ class TeamServiceTest {
         new TeamRequest(
             "Updated Name",
             MediaDto.builder().markdown("Updated description").build(),
-            Visibility.TEAM);
+            Visibility.TEAM,
+            true);
 
     TeamDetailDto result = teamService.updateTeam("original", request, user1.getId());
 
@@ -186,7 +191,7 @@ class TeamServiceTest {
     dataService.addUserToTeam(user1, team, TeamRole.ADMIN);
     TeamRequest request =
         new TeamRequest(
-            "New Name", MediaDto.builder().markdown("original").build(), Visibility.PUBLIC);
+            "New Name", MediaDto.builder().markdown("original").build(), Visibility.PUBLIC, true);
 
     TeamDetailDto result = teamService.updateTeam("original", request, user1.getId());
 
@@ -202,7 +207,8 @@ class TeamServiceTest {
         new TeamRequest(
             "New name",
             MediaDto.builder().markdown("Updated description").build(),
-            Visibility.PUBLIC);
+            Visibility.PUBLIC,
+            true);
 
     TeamDetailDto result = teamService.updateTeam("original", request, user1.getId());
 
@@ -215,7 +221,7 @@ class TeamServiceTest {
     Team team = dataService.createTeam(user1, "Test Team", "test-team", Visibility.PUBLIC);
     dataService.addUserToTeam(user1, team, TeamRole.MEMBER);
     TeamRequest request =
-        new TeamRequest("New Name", MediaDto.builder().build(), Visibility.PUBLIC);
+        new TeamRequest("New Name", MediaDto.builder().build(), Visibility.PUBLIC, true);
 
     assertThrows(
         BusinessException.class, () -> teamService.updateTeam("test-team", request, user1.getId()));

@@ -1208,4 +1208,130 @@ class TripServiceTest {
           () -> tripService.leaveTrip("test-team", trip.getSlug(), member.getId()));
     }
   }
+
+  // ==================== Trips Disabled ====================
+
+  @Nested
+  class TripsDisabled {
+
+    @BeforeEach
+    void disableTrips() {
+      team.setEnableTrips(false);
+      team = dataService.updateTeam(team);
+    }
+
+    @Test
+    void shouldThrowOnCreateWhenTripsDisabled() {
+      TripRequest request =
+          new TripRequest(
+              "Test Trip",
+              MediaDto.builder().build(),
+              Instant.now().plusSeconds(24 * 3600),
+              Status.DRAFT,
+              Visibility.PUBLIC,
+              null,
+              null,
+              List.of());
+
+      BusinessException exception =
+          assertThrows(
+              BusinessException.class,
+              () -> tripService.createTrip("test-team", request, organizer.getId()));
+
+      assertTrue(exception.getMessage().contains("disabled"));
+    }
+
+    @Test
+    void shouldThrowOnUpdateWhenTripsDisabled() {
+      // Create trip while trips are enabled
+      team.setEnableTrips(true);
+      team = dataService.updateTeam(team);
+      Trip trip = dataService.createTrip(team, admin, "Test Trip", Instant.now());
+
+      // Disable trips
+      team.setEnableTrips(false);
+      team = dataService.updateTeam(team);
+
+      TripRequest request =
+          new TripRequest(
+              "Updated Title",
+              MediaDto.builder().build(),
+              Instant.now().plusSeconds(24 * 3600),
+              Status.DRAFT,
+              Visibility.PUBLIC,
+              null,
+              null,
+              List.of());
+
+      BusinessException exception =
+          assertThrows(
+              BusinessException.class,
+              () ->
+                  tripService.updateTrip("test-team", trip.getSlug(), request, organizer.getId()));
+
+      assertTrue(exception.getMessage().contains("not found"));
+    }
+
+    @Test
+    void shouldThrowOnDeleteWhenTripsDisabled() {
+      // Create trip while trips are enabled
+      team.setEnableTrips(true);
+      team = dataService.updateTeam(team);
+      Trip trip = dataService.createTrip(team, admin, "Test Trip", Instant.now());
+
+      // Disable trips
+      team.setEnableTrips(false);
+      team = dataService.updateTeam(team);
+
+      BusinessException exception =
+          assertThrows(
+              BusinessException.class,
+              () -> tripService.deleteTrip("test-team", trip.getSlug(), organizer.getId()));
+
+      assertTrue(exception.getMessage().contains("not found"));
+    }
+
+    @Test
+    void shouldThrowOnJoinWhenTripsDisabled() {
+      // Create trip while trips are enabled
+      team.setEnableTrips(true);
+      team = dataService.updateTeam(team);
+      Trip trip =
+          dataService.createTrip(
+              team, admin, "Test Trip", Instant.now(), Visibility.PUBLIC, Status.PUBLISHED, null);
+
+      // Disable trips
+      team.setEnableTrips(false);
+      team = dataService.updateTeam(team);
+
+      BusinessException exception =
+          assertThrows(
+              BusinessException.class,
+              () -> tripService.joinTrip("test-team", trip.getSlug(), member.getId()));
+
+      assertTrue(exception.getMessage().contains("not found"));
+    }
+
+    @Test
+    void shouldThrowOnLeaveWhenTripsDisabled() {
+      // Create trip and join while trips are enabled
+      team.setEnableTrips(true);
+      team = dataService.updateTeam(team);
+      Trip trip =
+          dataService.createTrip(
+              team, admin, "Test Trip", Instant.now(), Visibility.PUBLIC, Status.PUBLISHED, null);
+      tripService.joinTrip("test-team", trip.getSlug(), member.getId());
+
+      // Disable trips
+      team.setEnableTrips(false);
+      team = dataService.updateTeam(team);
+
+      BusinessException exception =
+          assertThrows(
+              BusinessException.class,
+              () -> tripService.leaveTrip("test-team", trip.getSlug(), member.getId()));
+
+      assertTrue(exception.getMessage().contains("not found"));
+    }
+  }
 }

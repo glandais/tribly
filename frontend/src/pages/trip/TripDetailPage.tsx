@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams, Navigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
   ClockIcon,
@@ -53,6 +53,10 @@ export function TripDetailPage() {
 
   if (isLoadingTeam || isLoadingTrip) {
     return <LoadingPage message={t('loading')} />
+  }
+
+  if (team && !team.enableTrips) {
+    return <Navigate to={`/teams/${teamSlug}`} replace />
   }
 
   if (error || !trip) {

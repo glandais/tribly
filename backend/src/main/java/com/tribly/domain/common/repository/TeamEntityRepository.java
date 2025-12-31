@@ -70,6 +70,7 @@ public interface TeamEntityRepository<T extends TeamEntity, Q extends TeamEntity
         triblyQuery
             .and("te.deleted = false", Map.of())
             .and("te.team.deleted = false", Map.of())
+            .and("(TYPE(te) <> Trip OR te.team.enableTrips = true)", Map.of())
             .order("dateTime desc");
 
     Set<String> teamSlugs = query.teamSlugs();

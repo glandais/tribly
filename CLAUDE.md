@@ -74,6 +74,8 @@ frontend/src/
 - Never mix `@Transactional` with RestAssured HTTP calls (HTTP can't see uncommitted data)
 - Use `persistAndFlush()` when ID needed immediately
 - See test examples in `backend/src/test/`
+- Do not update entities without saving them with a transaction in TestDataService
+- Never run backend tests by yourself, give instructions to user. You're bad at fixing tests from tests outcomes
 
 **Frontend**:
 - Config from `/api/config` endpoint, no .env files

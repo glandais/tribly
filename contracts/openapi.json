@@ -1215,7 +1215,7 @@
       "TeamDetailDto" : {
         "description" : "Detailed team information",
         "type" : "object",
-        "required" : [ "id", "name", "slug", "media", "visibility", "memberCount", "createdAt" ],
+        "required" : [ "id", "name", "slug", "media", "visibility", "enableTrips", "memberCount", "createdAt" ],
         "properties" : {
           "id" : {
             "type" : "string",
@@ -1239,6 +1239,10 @@
             "description" : "Whether the team is public",
             "type" : "string",
             "$ref" : "#/components/schemas/Visibility"
+          },
+          "enableTrips" : {
+            "type" : "boolean",
+            "description" : "Trips enabled"
           },
           "memberCount" : {
             "type" : "integer",
@@ -1314,7 +1318,7 @@
       "TeamRequest" : {
         "description" : "Team creation request",
         "type" : "object",
-        "required" : [ "name", "media", "visibility" ],
+        "required" : [ "name", "media", "visibility", "enableTrips" ],
         "properties" : {
           "name" : {
             "type" : "string",
@@ -1330,10 +1334,15 @@
             "$ref" : "#/components/schemas/MediaDto"
           },
           "visibility" : {
-            "description" : "Whether the team is publicly visible",
+            "description" : "Team visibility",
             "type" : "string",
-            "examples" : [ "true" ],
+            "examples" : [ "PUBLIC" ],
             "$ref" : "#/components/schemas/Visibility"
+          },
+          "enableTrips" : {
+            "type" : "boolean",
+            "description" : "Trips enabled for team",
+            "examples" : [ true ]
           }
         }
       },

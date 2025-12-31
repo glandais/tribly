@@ -19,6 +19,10 @@
       "visibility": {
         "hint": "Contrôle qui peut trouver et rejoindre cette équipe",
         "label": "Visibilité de l'équipe"
+      },
+      "enableTrips": {
+        "hint": "Permet aux organisateurs de créer et gérer des voyages sur plusieurs jours",
+        "label": "Activer les voyages"
       }
     },
     "subtitle": "Lancez votre communauté cycliste et invitez d'autres personnes",

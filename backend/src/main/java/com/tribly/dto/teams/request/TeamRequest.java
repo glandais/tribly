@@ -15,8 +15,7 @@ public record TeamRequest(
         @Size(min = 2, max = 200)
         String name,
     @Schema(description = "Media", required = true) MediaDto media,
-    @Schema(
-            description = "Whether the team is publicly visible",
-            examples = "true",
-            required = true)
-        Visibility visibility) {}
+    @Schema(description = "Team visibility", examples = "PUBLIC", required = true)
+        Visibility visibility,
+    @Schema(description = "Trips enabled for team", examples = "true", required = true)
+        boolean enableTrips) {}

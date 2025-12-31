@@ -111,6 +111,7 @@ public class TripService extends TeamEntityService {
 
     // Security check: must be admin or organizer to create trips
     securityService.requireOrganizer(creatorId, team.getSlug());
+    requireTripEnabled(team);
 
     // Validate visibility: private teams can only have team-only trips
     Visibility visibility = request.visibility();
@@ -143,6 +144,12 @@ public class TripService extends TeamEntityService {
 
     LOG.infov("Trip '{0}' created by user {1} for team {2}", trip.getName(), creatorId, teamSlug);
     return TripDto.from(trip, true, assetService);
+  }
+
+  private void requireTripEnabled(Team team) {
+    if (!team.isEnableTrips()) {
+      throw BusinessException.forbidden("Trips are disabled");
+    }
   }
 
   private void createTripStage(User user, Trip trip, StageRequest stageRequest, int sortOrder) {
@@ -202,6 +209,7 @@ public class TripService extends TeamEntityService {
 
     // Security check: must be admin or creator (if organizer) to edit
     securityService.requireOrganizer(userId, teamSlug);
+    requireTripEnabled(trip.getTeam());
 
     User user =
         userRepository
@@ -262,6 +270,7 @@ public class TripService extends TeamEntityService {
 
     // Security check: must be admin or creator (if organizer) to delete
     securityService.requireOrganizer(userId, teamSlug);
+    requireTripEnabled(trip.getTeam());
 
     trip.setDeleted(true);
     tripRepository.persist(trip);
@@ -283,6 +292,7 @@ public class TripService extends TeamEntityService {
 
     // Security check: must be a team member to join trips
     securityService.requireMembership(userId, teamSlug);
+    requireTripEnabled(trip.getTeam());
 
     Optional<TripParticipation> existingParticipation =
         participationRepository.findByUserAndTripIncludingDeleted(userId, trip.getId());
@@ -312,6 +322,7 @@ public class TripService extends TeamEntityService {
   @Transactional
   public void leaveTrip(String teamSlug, String tripSlug, Long userId) {
     Trip trip = getTrip(teamSlug, tripSlug, userId);
+    requireTripEnabled(trip.getTeam());
 
     TripParticipation participation =
         participationRepository

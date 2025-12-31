@@ -88,7 +88,8 @@ class TeamResourceTest extends AbstractResourceTest {
             new TeamRequest(
                 "Test Cyclists",
                 MediaDto.builder().markdown("A great cycling team").build(),
-                Visibility.PUBLIC),
+                Visibility.PUBLIC,
+                true),
             user1.getId());
 
     assertNotNull(team.id());
@@ -103,7 +104,7 @@ class TeamResourceTest extends AbstractResourceTest {
   @Test
   void createTeamViaApi_shouldCreateTeamSuccessfully() {
     TeamRequest teamRequest =
-        new TeamRequest("API Test Team", MediaDto.builder().build(), Visibility.PUBLIC);
+        new TeamRequest("API Test Team", MediaDto.builder().build(), Visibility.PUBLIC, true);
     given()
         .auth()
         .oauth2(getAccessToken(USER1))
@@ -121,7 +122,7 @@ class TeamResourceTest extends AbstractResourceTest {
   @Test
   void createTeam_withoutAuth_shouldReturn401() {
     TeamRequest teamRequest =
-        new TeamRequest("API Test Team", MediaDto.builder().build(), Visibility.PUBLIC);
+        new TeamRequest("API Test Team", MediaDto.builder().build(), Visibility.PUBLIC, true);
     given()
         .contentType("application/json")
         .body(teamRequest)
@@ -175,7 +176,8 @@ class TeamResourceTest extends AbstractResourceTest {
         new TeamRequest(
             "Updated Name",
             MediaDto.builder().markdown("New description").build(),
-            Visibility.PUBLIC);
+            Visibility.PUBLIC,
+            true);
 
     given()
         .auth()
@@ -193,7 +195,7 @@ class TeamResourceTest extends AbstractResourceTest {
   @Test
   void updateTeam_asNonAdmin_shouldBeDenied() {
     TeamRequest teamRequest =
-        new TeamRequest("Hacked Name", MediaDto.builder().build(), Visibility.PUBLIC);
+        new TeamRequest("Hacked Name", MediaDto.builder().build(), Visibility.PUBLIC, true);
 
     given()
         .auth()

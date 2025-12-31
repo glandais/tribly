@@ -86,6 +86,7 @@ export function TeamSettingsPage() {
         initialName={team.name}
         initialMedia={team.media}
         initialVisibility={team.visibility}
+        initialEnableTrips={team.enableTrips}
         onSuccess={handleSuccess}
         create={false}
       />

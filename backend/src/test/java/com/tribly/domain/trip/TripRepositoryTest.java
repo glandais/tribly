@@ -8,6 +8,7 @@ import com.tribly.domain.team.Team;
 import com.tribly.domain.trip.repository.TripRepository;
 import com.tribly.domain.user.User;
 import com.tribly.enums.Status;
+import com.tribly.enums.TeamRole;
 import com.tribly.enums.Visibility;
 import com.tribly.util.TestDataCleaner;
 import com.tribly.util.TestDataService;
@@ -253,6 +254,94 @@ class TripRepositoryTest {
     @DisplayName("Should return Trip as type name")
     void getTypeName_shouldReturnTrip() {
       assertEquals("Trip", tripRepository.getTypeName());
+    }
+  }
+
+  @Nested
+  @DisplayName("Enable Trips Filtering")
+  class EnableTripsFiltering {
+
+    @Test
+    @DisplayName("Should return Trip when enableTrips is true")
+    void find_shouldReturnTripWhenEnableTripsTrue() {
+      team.setEnableTrips(true);
+      dataService.updateTeam(team);
+      dataService.createTrip(team, user, "Summer Trip", now);
+
+      TeamEntityQueryBasic query =
+          new TeamEntityQueryBasic(null, null, null, null, null, null, null, 0, 10);
+      TriblyPage<Trip> result = tripRepository.find(query);
+
+      assertEquals(1, result.items().size());
+      assertEquals("Summer Trip", result.items().getFirst().getName());
+    }
+
+    @Test
+    @DisplayName("Should NOT return Trip when enableTrips is false")
+    void find_shouldNotReturnTripWhenEnableTripsFalse() {
+      team.setEnableTrips(false);
+      dataService.updateTeam(team);
+      dataService.createTrip(team, user, "Hidden Trip", now);
+
+      TeamEntityQueryBasic query =
+          new TeamEntityQueryBasic(null, null, null, null, null, null, null, 0, 10);
+      TriblyPage<Trip> result = tripRepository.find(query);
+
+      assertEquals(0, result.items().size());
+    }
+
+    @Test
+    @DisplayName("Should filter Trips by enableTrips across multiple teams")
+    void find_shouldFilterTripsAcrossMultipleTeams() {
+      Team enabledTeam =
+          dataService.createTeam(user, "Enabled Team", "enabled-team", Visibility.PUBLIC);
+      Team disabledTeam =
+          dataService.createTeam(user, "Disabled Team", "disabled-team", Visibility.PUBLIC);
+      disabledTeam.setEnableTrips(false);
+      dataService.updateTeam(disabledTeam);
+
+      dataService.createTrip(enabledTeam, user, "Enabled Trip", now);
+      dataService.createTrip(disabledTeam, user, "Disabled Trip", now.plus(1, ChronoUnit.HOURS));
+
+      TeamEntityQueryBasic query =
+          new TeamEntityQueryBasic(null, null, null, null, null, null, null, 0, 10);
+      TriblyPage<Trip> result = tripRepository.find(query);
+
+      assertEquals(1, result.items().size());
+      assertEquals("Enabled Trip", result.items().getFirst().getName());
+    }
+
+    @Test
+    @DisplayName("Should return TEAM Trip for authenticated member when enableTrips is true")
+    void find_authenticatedMember_shouldReturnTeamTripWhenEnableTripsTrue() {
+      User member = dataService.createUser("member@example.com", "Member");
+      dataService.addUserToTeam(member, team, TeamRole.MEMBER);
+      team.setEnableTrips(true);
+      dataService.updateTeam(team);
+      dataService.createTrip(team, user, "Team Trip", now, Visibility.TEAM);
+
+      TeamEntityQueryBasic query =
+          new TeamEntityQueryBasic(member.getId(), null, null, null, null, null, null, 0, 10);
+      TriblyPage<Trip> result = tripRepository.find(query);
+
+      assertEquals(1, result.items().size());
+      assertEquals("Team Trip", result.items().getFirst().getName());
+    }
+
+    @Test
+    @DisplayName("Should NOT return TEAM Trip for authenticated member when enableTrips is false")
+    void find_authenticatedMember_shouldNotReturnTeamTripWhenEnableTripsFalse() {
+      User member = dataService.createUser("member@example.com", "Member");
+      dataService.addUserToTeam(member, team, TeamRole.MEMBER);
+      team.setEnableTrips(false);
+      dataService.updateTeam(team);
+      dataService.createTrip(team, user, "Team Trip", now, Visibility.TEAM);
+
+      TeamEntityQueryBasic query =
+          new TeamEntityQueryBasic(member.getId(), null, null, null, null, null, null, 0, 10);
+      TriblyPage<Trip> result = tripRepository.find(query);
+
+      assertEquals(0, result.items().size());
     }
   }
 }

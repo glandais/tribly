@@ -14,6 +14,7 @@ interface TeamFormProps {
   initialName?: string
   initialMedia?: MediaDto
   initialVisibility?: Visibility
+  initialEnableTrips?: boolean
 
   // Behavior
   onSuccess: (team: TeamDetailDto) => void
@@ -26,6 +27,7 @@ export function TeamForm({
   initialName = '',
   initialMedia = defaultMedia(),
   initialVisibility = Visibility.Public,
+  initialEnableTrips = true,
   onSuccess,
   create,
 }: TeamFormProps) {
@@ -35,6 +37,7 @@ export function TeamForm({
   const [name, setName] = useState(initialName)
   const [media, setMedia] = useState(defaultMedia())
   const [visibility, setVisibility] = useState<Visibility>(initialVisibility)
+  const [enableTrips, setEnableTrips] = useState(initialEnableTrips)
 
   // Conditional mutation based on context
   const createMutation = useCreateTeam()
@@ -54,8 +57,17 @@ export function TeamForm({
     if (initialVisibility) {
       setVisibility(initialVisibility)
     }
+    if (initialEnableTrips !== undefined) {
+      setEnableTrips(initialEnableTrips)
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- Only sync on actual prop changes, not default object recreation
-  }, [initialName, initialMedia.markdown, initialMedia.assets?.images?.length, initialVisibility])
+  }, [
+    initialName,
+    initialMedia.markdown,
+    initialMedia.assets?.images?.length,
+    initialVisibility,
+    initialEnableTrips,
+  ])
 
   // Call onSuccess when mutation succeeds
   useEffect(() => {
@@ -70,6 +82,7 @@ export function TeamForm({
       name,
       media,
       visibility,
+      enableTrips,
     })
   }
 
@@ -154,6 +167,24 @@ export function TeamForm({
           <option value={Visibility.Public}>{tCommon('visibility.public')}</option>
         </select>
         <p className="mt-1 text-sm text-gray-500">{t(`create.form.visibility.hint`)}</p>
+      </div>
+
+      <div className="flex items-start">
+        <div className="flex h-6 items-center">
+          <input
+            id="enableTrips"
+            type="checkbox"
+            checked={enableTrips}
+            onChange={(e) => setEnableTrips(e.target.checked)}
+            className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+          />
+        </div>
+        <div className="ml-3">
+          <label htmlFor="enableTrips" className="text-sm font-medium text-gray-700">
+            {t('create.form.enableTrips.label')}
+          </label>
+          <p className="text-sm text-gray-500">{t('create.form.enableTrips.hint')}</p>
+        </div>
       </div>
 
       <div className="pt-4 flex items-center justify-end gap-3">
