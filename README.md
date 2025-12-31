@@ -105,11 +105,3 @@ cd backend && ./mvnw checkstyle:check
 # Frontend linting
 cd frontend && pnpm lint
 ```
-
-## Documentation
-
-See `/specs/001-cycling-team-platform/` for:
-- `spec.md` - Feature specification
-- `plan.md` - Implementation plan
-- `data-model.md` - Database schema
-- `quickstart.md` - Developer guide

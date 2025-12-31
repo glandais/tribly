@@ -6,6 +6,8 @@ import com.tribly.service.asset.response.DownloadableAsset;
 import jakarta.annotation.security.PermitAll;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
+import jakarta.ws.rs.HeaderParam;
+import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.openapi.annotations.Operation;
@@ -18,6 +20,7 @@ public class AbstractDownloadAssetResource extends AbstractAuthenticatedResource
    * Download filtered GPX file.
    */
   @GET
+  @Path("assets/{assetId}/{fileName}")
   @PermitAll
   @Operation(hidden = true)
   public Response downloadAsset(
@@ -29,5 +32,20 @@ public class AbstractDownloadAssetResource extends AbstractAuthenticatedResource
         .type(downloadableAsset.contentType())
         .header("Content-Disposition", "inline")
         .build();
+  }
+
+  /**
+   * Download filtered GPX file.
+   */
+  @GET
+  @Path("images/{assetId}/{size}")
+  @PermitAll
+  @Operation(hidden = true)
+  public Response downloadImage(
+      @HeaderParam("Accept") String accept,
+      @PathParam("assetId") String assetId,
+      @PathParam("size") int size) {
+    Long userId = getCurrentUserIdOrNull();
+    return assetService.getImage(assetId, userId, size, accept);
   }
 }

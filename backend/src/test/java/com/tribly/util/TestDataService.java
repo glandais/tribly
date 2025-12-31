@@ -32,9 +32,11 @@ import com.tribly.domain.user.User;
 import com.tribly.domain.user.repository.UserRepository;
 import com.tribly.enums.*;
 import com.tribly.service.common.SlugService;
+import io.hypersistence.tsid.TSID;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import jakarta.ws.rs.core.MediaType;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
@@ -397,9 +399,20 @@ public class TestDataService {
 
   @Transactional
   public Asset createAsset(Team team, User createdBy, AssetType type, String fileName) {
-    Asset asset = new Asset(createdBy, team, type, fileName);
+    String contentType = guessContentType(fileName);
+    Asset asset = new Asset(createdBy, team, type, TSID.fast().toLong(), fileName, contentType);
     assetRepository.persistAndFlush(asset);
     return asset;
+  }
+
+  private String guessContentType(String fileName) {
+    String lower = fileName.toLowerCase();
+    if (lower.endsWith(".png")) return "image/png";
+    if (lower.endsWith(".jpg") || lower.endsWith(".jpeg")) return "image/jpeg";
+    if (lower.endsWith(".gif")) return "image/gif";
+    if (lower.endsWith(".gpx")) return "application/gpx+xml";
+    if (lower.endsWith(".fit")) return "application/vnd.ant.fit";
+    return MediaType.APPLICATION_OCTET_STREAM;
   }
 
   @Transactional

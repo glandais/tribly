@@ -1,14 +1,19 @@
+
 create table assets (
                         deleted boolean not null,
+                        height integer,
                         sort_order integer not null,
+                        width integer,
                         created_at timestamp(6) with time zone not null,
                         created_by_id bigint not null,
+                        file_id bigint not null,
                         id bigint not null,
                         team_entity_id bigint,
                         team_id bigint not null,
                         updated_at timestamp(6) with time zone not null,
                         version bigint,
                         type varchar(20) not null check ((type in ('LOGO','IMAGE','VIDEO','ATTACHMENT','ROUTE_ORIGINAL_GPX','ROUTE_FILTERED_GPX','ROUTE_FIT','ROUTE_THUMBNAIL'))),
+                        content_type varchar(255) not null,
                         file_name varchar(255) not null,
                         primary key (id)
 );
@@ -97,7 +102,7 @@ create table team_entities (
                                distance integer,
                                elevation_gain integer,
                                elevation_loss integer,
-                               entity_type integer not null check ((entity_type in (3,5,1,2,6,4))),
+                               entity_type integer not null check ((entity_type in (1,5,3,4,2,6))),
                                sort_order integer,
                                created_at timestamp(6) with time zone not null,
                                created_by_id bigint not null,
@@ -292,14 +297,14 @@ alter table if exists team_entities
     references teams;
 
 alter table if exists team_entities
-    add constraint FKsm0040p8exgxema0d3j4osclb
-    foreign key (route_id)
-    references team_entities;
-
-alter table if exists team_entities
     add constraint FKjukml9fp2eipuhmugtiaf12gs
     foreign key (place_end_id)
     references places;
+
+alter table if exists team_entities
+    add constraint FKsm0040p8exgxema0d3j4osclb
+    foreign key (route_id)
+    references team_entities;
 
 alter table if exists team_entities
     add constraint FKm7w1a9lbh6795ida5u4n95vdv

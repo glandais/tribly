@@ -67,3 +67,6 @@ backend/data
 frontend/tsconfig.tsbuildinfo
 
 frontend/stats.html
+
+data/storage/*
+!data/storage/.gitkeep

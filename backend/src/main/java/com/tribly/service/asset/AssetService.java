@@ -10,24 +10,35 @@ import com.tribly.domain.team.Team;
 import com.tribly.domain.team.repository.TeamRepository;
 import com.tribly.domain.user.User;
 import com.tribly.domain.user.repository.UserRepository;
+import com.tribly.dto.common.response.AssetDimensionsDto;
 import com.tribly.dto.common.response.AssetDto;
 import com.tribly.dto.common.response.AssetsDto;
 import com.tribly.enums.AssetType;
 import com.tribly.enums.Visibility;
 import com.tribly.infrastructure.exception.BusinessException;
 import com.tribly.infrastructure.id.TsidUtils;
+import com.tribly.infrastructure.imgproxy.ImgProxyService;
 import com.tribly.service.asset.response.AssetWithFile;
 import com.tribly.service.asset.response.DownloadableAsset;
 import com.tribly.service.security.TeamSecurityService;
+import io.hypersistence.tsid.TSID;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.core.MediaType;
-import java.io.*;
+import jakarta.ws.rs.core.Response;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.*;
 import java.util.stream.Collectors;
+import javax.imageio.ImageIO;
 import org.apache.commons.io.IOUtils;
 import org.apache.tika.Tika;
 import org.apache.tika.io.TikaInputStream;
@@ -49,7 +60,9 @@ public class AssetService {
 
   @Inject TeamSecurityService securityService;
 
-  @ConfigProperty(name = "gpx.storage.path")
+  @Inject ImgProxyService imgProxyService;
+
+  @ConfigProperty(name = "storage.path")
   String storagePath = "/tmp";
 
   private final Tika tika = new Tika();
@@ -88,36 +101,68 @@ public class AssetService {
       @Nullable InputStream content,
       String fileName)
       throws IOException {
-    Asset asset = new Asset(creator, team, type, fileName);
-    asset.setTeamEntity(teamEntity);
-    assetRepository.persistAndFlush(asset);
+    long fileId = TSID.Factory.getTsid().toLong();
 
-    File file = getAssetFile(asset);
-
+    File file = getAssetFile(team, fileId);
     Files.createDirectories(file.getParentFile().toPath());
-
     if (content != null) {
       try (FileOutputStream fos = new FileOutputStream(file)) {
         IOUtils.copy(content, fos);
       }
+
+      Set<PosixFilePermission> ownerWritable = PosixFilePermissions.fromString("rw-r--r--");
+      Files.setPosixFilePermissions(file.toPath(), ownerWritable);
     }
+    String contentType = getContentType(file, fileName);
+
+    Asset asset = new Asset(creator, team, type, fileId, fileName, contentType);
+    asset.setTeamEntity(teamEntity);
+
+    if (content != null && contentType.startsWith("image/")) {
+      try (InputStream is =
+          imgProxyService.getPhotoContent(
+              "image/jpeg", getRelativeAssetFile(team, fileId), 4096, 4096)) {
+        BufferedImage read = ImageIO.read(is);
+        asset.setWidth(read.getWidth());
+        asset.setHeight(read.getHeight());
+      } catch (Exception e) {
+        // imgproxy may fail for invalid images - continue without dimensions
+      }
+    }
+
+    assetRepository.persistAndFlush(asset);
 
     return new AssetWithFile(asset, file);
   }
 
   public File getAssetFile(Asset asset) {
-    String idString = TsidUtils.toString(asset.getId());
+    return getAssetFile(asset.getTeam(), asset.getFileId());
+  }
+
+  public File getAssetFile(Team team, long fileId) {
+    String idString = TsidUtils.toString(fileId);
     String subPath = idString.substring(0, 4);
-    Path assetDirectory =
-        Path.of(storagePath, TsidUtils.toString(asset.getTeam().getId()), subPath);
+    Path assetDirectory = Path.of(storagePath, TsidUtils.toString(team.getId()), subPath);
     return new File(assetDirectory.toFile(), idString);
+  }
+
+  public String getRelativeAssetFile(Team team, long fileId) {
+    String idString = TsidUtils.toString(fileId);
+    String subPath = idString.substring(0, 4);
+    return TsidUtils.toString(team.getId()) + "/" + subPath + "/" + idString;
   }
 
   public DownloadableAsset getDownloadableAsset(String assetId, @Nullable Long userId) {
     Asset asset = getAsset(TsidUtils.toLong(assetId), userId);
     File file = getAssetFile(asset);
-    String contentType = getContentType(file, asset.getFileName());
-    return new DownloadableAsset(file, contentType);
+    return new DownloadableAsset(file, asset.getContentType());
+  }
+
+  public Response getImage(String assetId, @Nullable Long userId, int size, String accept) {
+    Asset asset = getAsset(TsidUtils.toLong(assetId), userId);
+    String relativeAssetFile = getRelativeAssetFile(asset.getTeam(), asset.getFileId());
+    return Response.fromResponse(imgProxyService.getPhoto(accept, relativeAssetFile, size, size))
+        .build();
   }
 
   private String getContentType(File file, String fileName) {
@@ -127,10 +172,18 @@ public class AssetService {
     if (contentTypeOverride != null) {
       metadata.set(TikaCoreProperties.CONTENT_TYPE_USER_OVERRIDE, contentTypeOverride);
     }
-    try (TikaInputStream fis = TikaInputStream.get(file.toPath(), metadata)) {
-      return tika.detect(fis, metadata);
-    } catch (IOException e) {
-      return MediaType.APPLICATION_OCTET_STREAM;
+    if (!file.exists()) {
+      try {
+        return tika.detect(null, metadata);
+      } catch (IOException e) {
+        return MediaType.APPLICATION_OCTET_STREAM;
+      }
+    } else {
+      try (TikaInputStream fis = TikaInputStream.get(file.toPath(), metadata)) {
+        return tika.detect(fis, metadata);
+      } catch (IOException e) {
+        return MediaType.APPLICATION_OCTET_STREAM;
+      }
     }
   }
 
@@ -205,6 +258,23 @@ public class AssetService {
     } else {
       visibility = asset.getTeamEntity().getVisibility();
     }
+    AssetDimensionsDto assetDimensionsDto;
+    String imageUrl;
+    if (asset.getContentType().startsWith("image/")) {
+      imageUrl =
+          "/api/download/"
+              + visibility.name().toLowerCase()
+              + "/images/"
+              + TsidUtils.toString(asset.getId())
+              + "/{size}";
+    } else {
+      imageUrl = null;
+    }
+    if (asset.getWidth() != null && asset.getHeight() != null) {
+      assetDimensionsDto = new AssetDimensionsDto(asset.getWidth(), asset.getHeight());
+    } else {
+      assetDimensionsDto = null;
+    }
     String url =
         "/api/download/"
             + visibility.name().toLowerCase()
@@ -212,7 +282,13 @@ public class AssetService {
             + TsidUtils.toString(asset.getId())
             + "/"
             + asset.getFileName();
-    return new AssetDto(TsidUtils.toString(asset.getId()), asset.getFileName(), url);
+    return new AssetDto(
+        TsidUtils.toString(asset.getId()),
+        asset.getFileName(),
+        asset.getContentType(),
+        url,
+        imageUrl,
+        assetDimensionsDto);
   }
 
   public AssetsDto getAssetsDto(TeamEntity teamEntity) {

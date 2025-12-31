@@ -48,6 +48,10 @@ export interface AddMemberRequest {
   role?: TeamRole
 }
 
+export interface AssetDimensionsDto {
+  width?: number
+  height?: number
+}
 export interface AssetDto {
   /**
    * ID (TSID)
@@ -58,9 +62,21 @@ export interface AssetDto {
    */
   fileName: string
   /**
+   * Content-Type
+   */
+  contentType: string
+  /**
    * url
    */
   url: string
+  /**
+   * image template url
+   */
+  imageUrl?: string
+  /**
+   * image dimensions
+   */
+  imageDimensions?: AssetDimensionsDto
 }
 export interface AssetsDto {
   /**

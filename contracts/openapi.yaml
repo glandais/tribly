@@ -17,11 +17,21 @@ components:
           description: Role to assign (defaults to MEMBER)
           type: string
           $ref: "#/components/schemas/TeamRole"
+    AssetDimensionsDto:
+      type: object
+      properties:
+        width:
+          type: integer
+          format: int32
+        height:
+          type: integer
+          format: int32
     AssetDto:
       type: object
       required:
       - id
       - fileName
+      - contentType
       - url
       properties:
         id:
@@ -30,9 +40,19 @@ components:
         fileName:
           type: string
           description: Filename
+        contentType:
+          type: string
+          description: Content-Type
         url:
           type: string
           description: url
+        imageUrl:
+          type: string
+          description: image template url
+        imageDimensions:
+          description: image dimensions
+          type: object
+          $ref: "#/components/schemas/AssetDimensionsDto"
     AssetsDto:
       type: object
       properties:

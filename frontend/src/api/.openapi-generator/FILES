@@ -7,6 +7,7 @@ base.ts
 common.ts
 configuration.ts
 docs/AddMemberRequest.md
+docs/AssetDimensionsDto.md
 docs/AssetDto.md
 docs/AssetsApi.md
 docs/AssetsDto.md

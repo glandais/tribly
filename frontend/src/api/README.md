@@ -105,6 +105,7 @@ Class | Method | HTTP request | Description
 ### Documentation For Models
 
  - [AddMemberRequest](docs/AddMemberRequest.md)
+ - [AssetDimensionsDto](docs/AssetDimensionsDto.md)
  - [AssetDto](docs/AssetDto.md)
  - [AssetsDto](docs/AssetsDto.md)
  - [ClimbCategory](docs/ClimbCategory.md)

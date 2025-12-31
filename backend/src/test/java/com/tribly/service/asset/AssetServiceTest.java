@@ -70,6 +70,12 @@ class AssetServiceTest {
     return resourceAsStream;
   }
 
+  private InputStream getTestImageStream() {
+    InputStream resourceAsStream = getClass().getClassLoader().getResourceAsStream("image.png");
+    assertNotNull(resourceAsStream, "image.png not found in test resources");
+    return resourceAsStream;
+  }
+
   @Nested
   class CreateAsset {
 
@@ -147,9 +153,9 @@ class AssetServiceTest {
       File file = assetService.getAssetFile(asset);
 
       assertNotNull(file);
-      String assetIdString = TsidUtils.toString(asset.getId());
-      assertTrue(file.getPath().contains(assetIdString.substring(0, 4)));
-      assertTrue(file.getName().equals(assetIdString));
+      String fileIdString = TsidUtils.toString(asset.getFileId());
+      assertTrue(file.getPath().contains(fileIdString.substring(0, 4)));
+      assertEquals(fileIdString, file.getName());
     }
   }
 
@@ -313,6 +319,161 @@ class AssetServiceTest {
       assertNotNull(result);
       assertTrue(result.url().contains("/team/")); // Post is team-visibility
     }
+
+    @Test
+    void shouldIncludeImageUrlForImageAssets() {
+      Asset asset = dataService.createAsset(team, admin, AssetType.IMAGE, "test.png");
+
+      AssetDto result = assetService.map(asset);
+
+      assertNotNull(result);
+      assertNotNull(result.imageUrl(), "imageUrl should be set for image assets");
+      assertTrue(result.imageUrl().contains("/images/"));
+      assertTrue(result.imageUrl().contains("/{size}"));
+    }
+
+    @Test
+    void shouldNotIncludeImageUrlForNonImageAssets() throws Exception {
+      InputStream content = getExampleGpxStream();
+      AssetWithFile assetWithFile =
+          assetService.addAssetStream(
+              admin, team, AssetType.ROUTE_ORIGINAL_GPX, null, content, "route.gpx");
+
+      AssetDto result = assetService.map(assetWithFile.asset());
+
+      assertNotNull(result);
+      assertNull(result.imageUrl(), "imageUrl should be null for non-image assets");
+    }
+
+    @Test
+    void shouldIncludeDimensionsWhenAvailable() {
+      Asset asset = dataService.createAsset(team, admin, AssetType.IMAGE, "test.png");
+      asset.setWidth(800);
+      asset.setHeight(600);
+      dataService.updateAsset(asset);
+
+      AssetDto result = assetService.map(asset);
+
+      assertNotNull(result);
+      assertNotNull(
+          result.imageDimensions(), "dimensions should be set when width/height available");
+      assertEquals(800, result.imageDimensions().width());
+      assertEquals(600, result.imageDimensions().height());
+    }
+
+    @Test
+    void shouldNotIncludeDimensionsWhenNotAvailable() {
+      Asset asset = dataService.createAsset(team, admin, AssetType.IMAGE, "test.png");
+      // No width/height set
+
+      AssetDto result = assetService.map(asset);
+
+      assertNotNull(result);
+      assertNull(result.imageDimensions(), "dimensions should be null when not available");
+    }
+
+    @Test
+    void shouldIncludeContentType() {
+      Asset asset = dataService.createAsset(team, admin, AssetType.IMAGE, "test.png");
+
+      AssetDto result = assetService.map(asset);
+
+      assertNotNull(result);
+      assertNotNull(result.contentType());
+    }
+  }
+
+  @Nested
+  class ImageDimensionExtraction {
+
+    @Test
+    void shouldExtractDimensionsFromValidImage() throws Exception {
+      InputStream imageContent = getTestImageStream();
+
+      AssetWithFile result =
+          assetService.addAssetStream(
+              admin, team, AssetType.IMAGE, null, imageContent, "photo.png");
+
+      assertNotNull(result);
+      assertNotNull(result.asset().getWidth(), "Width should be extracted from valid image");
+      assertNotNull(result.asset().getHeight(), "Height should be extracted from valid image");
+      assertTrue(result.asset().getWidth() > 0);
+      assertTrue(result.asset().getHeight() > 0);
+    }
+
+    @Test
+    void shouldHandleInvalidImageGracefully() throws Exception {
+      // Invalid image content (not a real image)
+      InputStream invalidContent =
+          new ByteArrayInputStream("not an image".getBytes(StandardCharsets.UTF_8));
+
+      AssetWithFile result =
+          assetService.addAssetStream(
+              admin, team, AssetType.IMAGE, null, invalidContent, "fake.png");
+
+      assertNotNull(result);
+      // Should not fail, just have no dimensions
+      assertNull(result.asset().getWidth());
+      assertNull(result.asset().getHeight());
+    }
+
+    @Test
+    void shouldNotExtractDimensionsForNonImageFiles() throws Exception {
+      InputStream content = getExampleGpxStream();
+
+      AssetWithFile result =
+          assetService.addAssetStream(
+              admin, team, AssetType.ROUTE_ORIGINAL_GPX, null, content, "route.gpx");
+
+      assertNotNull(result);
+      assertNull(result.asset().getWidth());
+      assertNull(result.asset().getHeight());
+    }
+  }
+
+  @Nested
+  class GetImage {
+
+    @Test
+    void shouldReturnResizedImage() throws Exception {
+      // Upload a valid image first
+      InputStream imageContent = getTestImageStream();
+      AssetWithFile assetWithFile =
+          assetService.addAssetStream(
+              admin, team, AssetType.IMAGE, null, imageContent, "photo.png");
+      String assetId = TsidUtils.toString(assetWithFile.asset().getId());
+
+      // Request resized image
+      jakarta.ws.rs.core.Response response =
+          assetService.getImage(assetId, null, 200, "image/jpeg");
+
+      assertNotNull(response);
+      assertEquals(200, response.getStatus());
+    }
+
+    @Test
+    void shouldThrowForNonexistentAsset() {
+      // Use a valid TSID format that doesn't exist
+      String nonexistentId = TsidUtils.toString(999999999L);
+      assertThrows(
+          BusinessException.class,
+          () -> assetService.getImage(nonexistentId, null, 200, "image/jpeg"));
+    }
+
+    @Test
+    void shouldRespectSecurityForPrivateTeamAsset() throws Exception {
+      // Upload image to private team
+      InputStream imageContent = getTestImageStream();
+      AssetWithFile assetWithFile =
+          assetService.addAssetStream(
+              admin, privateTeam, AssetType.IMAGE, null, imageContent, "private-photo.png");
+      String assetId = TsidUtils.toString(assetWithFile.asset().getId());
+
+      // Non-member should not be able to access
+      assertThrows(
+          BusinessException.class,
+          () -> assetService.getImage(assetId, nonMember.getId(), 200, "image/jpeg"));
+    }
   }
 
   @Nested
@@ -370,7 +531,7 @@ class AssetServiceTest {
       AssetsDto assetsDto =
           new AssetsDto(
               null, // no logo
-              List.of(new AssetDto(imageId, "new-image.png", null)),
+              List.of(new AssetDto(imageId, "new-image.png", null, null, null, null)),
               null,
               null,
               null,
@@ -418,7 +579,7 @@ class AssetServiceTest {
 
       AssetsDto assetsDto =
           new AssetsDto(
-              new AssetDto(foreignId, "foreign.png", null),
+              new AssetDto(foreignId, "foreign.png", null, null, null, null),
               null,
               null,
               null,
@@ -446,7 +607,7 @@ class AssetServiceTest {
       AssetsDto assetsDto =
           new AssetsDto(
               null,
-              List.of(new AssetDto(imageId, "existing-image.png", null)),
+              List.of(new AssetDto(imageId, "existing-image.png", null, null, null, null)),
               null,
               null,
               null,
@@ -472,7 +633,7 @@ class AssetServiceTest {
       AssetsDto assetsDto =
           new AssetsDto(
               null,
-              List.of(new AssetDto(imageId, "other-post-image.png", null)),
+              List.of(new AssetDto(imageId, "other-post-image.png", null, null, null, null)),
               null,
               null,
               null,
