@@ -9,6 +9,13 @@ import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -113,5 +120,70 @@ class UserSyncServiceTest {
     assertEquals("Same Name", result.getDisplayName());
     // lastLoginAt should not change because save() was not called
     assertNotEquals(firstLogin, result.getLastLoginAt());
+  }
+
+  @Test
+  void syncUser_shouldRecoverFromConcurrentInserts() throws Exception {
+    // Simulate race condition: multiple threads try to create the same user concurrently
+    // Some will hit constraint violation and should recover by fetching the existing user
+    String email = "concurrent-insert@example.com";
+    int threadCount = 5;
+
+    try (ExecutorService executor = Executors.newFixedThreadPool(threadCount)) {
+      List<Future<User>> futures = new ArrayList<>();
+
+      for (int i = 0; i < threadCount; i++) {
+        futures.add(executor.submit(() -> userSyncService.syncUser(email, "Concurrent User")));
+      }
+
+      Set<Long> userIds = new HashSet<>();
+      for (Future<User> future : futures) {
+        User user = future.get();
+        assertNotNull(user);
+        assertNotNull(user.getId());
+        assertEquals(email, user.getEmail());
+        userIds.add(user.getId());
+      }
+
+      // All calls should return the same user (only one should be created)
+      assertEquals(1, userIds.size());
+
+      executor.shutdown();
+    }
+  }
+
+  @Test
+  void syncUser_shouldRecoverFromConcurrentUpdates() throws Exception {
+    // First create the user
+    String email = "concurrent-update@example.com";
+    userSyncService.syncUser(email, "Original Name");
+
+    // Simulate race condition: multiple threads try to update the same user concurrently
+    // Some will hit optimistic lock exception and should recover by fetching the current user
+    int threadCount = 5;
+
+    try (ExecutorService executor = Executors.newFixedThreadPool(threadCount)) {
+      List<Future<User>> futures = new ArrayList<>();
+
+      for (int i = 0; i < threadCount; i++) {
+        final int index = i;
+        futures.add(
+            executor.submit(() -> userSyncService.syncUser(email, "Updated Name " + index)));
+      }
+
+      Set<Long> userIds = new HashSet<>();
+      for (Future<User> future : futures) {
+        User user = future.get();
+        assertNotNull(user);
+        assertNotNull(user.getId());
+        assertEquals(email, user.getEmail());
+        userIds.add(user.getId());
+      }
+
+      // All calls should return the same user
+      assertEquals(1, userIds.size());
+
+      executor.shutdown();
+    }
   }
 }

@@ -23,7 +23,7 @@ public class UserSyncService {
   /**
    * Sync user from Keycloak claims to local database.
    * Creates new user if not exists, updates existing user's profile.
-   * Handles optimistic locking conflicts with retry.
+   * Handles concurrent access with catch-and-recover pattern.
    *
    * @param email       User's email from Keycloak
    * @param displayName User's display name (from name claim or constructed from given/family name)
@@ -31,7 +31,22 @@ public class UserSyncService {
    */
   @Transactional
   public User syncUser(String email, String displayName) {
-    // Try by email
+    try {
+      return doSyncUser(email, displayName);
+    } catch (Exception e) {
+      return refetchUser(email);
+    }
+  }
+
+  @Transactional(Transactional.TxType.REQUIRES_NEW)
+  protected User refetchUser(String email) {
+    return userRepository
+        .findByEmail(email)
+        .orElseThrow(
+            () -> new IllegalStateException("User should exist after exception: " + email));
+  }
+
+  private User doSyncUser(String email, String displayName) {
     Optional<User> existingByEmail = userRepository.findByEmail(email);
 
     User user;
@@ -51,14 +66,15 @@ public class UserSyncService {
       user.setDisplayName(displayName);
     }
 
+    // always record login
     save(user);
     return user;
   }
 
   private void save(User user) {
-    // Record login
+    // Record login (lastLoginAt)
     user.recordLogin();
 
-    userRepository.persist(user);
+    userRepository.persistAndFlush(user);
   }
 }
