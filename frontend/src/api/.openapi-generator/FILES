@@ -43,6 +43,12 @@ docs/RideGroupDto.md
 docs/RideListResponse.md
 docs/RideParticipationDto.md
 docs/RideRequest.md
+docs/RideTemplateDto.md
+docs/RideTemplateGroupDto.md
+docs/RideTemplateGroupRequest.md
+docs/RideTemplateListResponse.md
+docs/RideTemplateRequest.md
+docs/RideTemplatesApi.md
 docs/RidesApi.md
 docs/RouteDetailDto.md
 docs/RouteDto.md

@@ -66,7 +66,6 @@ frontend/src/
 ## Critical Gotchas
 
 **OpenAPI**:
-- NEVER add `examples` to `LocalTime` fields (breaks YAML parser)
 - Empty schemas = missing `@Schema(implementation = ...)` in `@APIResponse`
 - See `RideResource.java` for complete annotation example
 

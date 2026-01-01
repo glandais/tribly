@@ -12,6 +12,10 @@ import com.tribly.domain.ride.*;
 import com.tribly.domain.ride.repository.RideGroupRepository;
 import com.tribly.domain.ride.repository.RideParticipationRepository;
 import com.tribly.domain.ride.repository.RideRepository;
+import com.tribly.domain.ridetemplate.RideTemplate;
+import com.tribly.domain.ridetemplate.RideTemplateGroup;
+import com.tribly.domain.ridetemplate.repository.RideTemplateGroupRepository;
+import com.tribly.domain.ridetemplate.repository.RideTemplateRepository;
 import com.tribly.domain.route.GpxTrack;
 import com.tribly.domain.route.Route;
 import com.tribly.domain.route.repository.RouteRepository;
@@ -444,5 +448,59 @@ public class TestDataService {
   public void deleteTripParticipation(TripParticipation participation) {
     participation.setDeleted(true);
     tripParticipationRepository.getEntityManager().merge(participation);
+  }
+
+  @Inject RideTemplateRepository rideTemplateRepository;
+  @Inject RideTemplateGroupRepository rideTemplateGroupRepository;
+
+  @Transactional
+  public RideTemplate createRideTemplate(Team team, User createdBy, String name, String slug) {
+    RideTemplate template = new RideTemplate(createdBy, team, name, slug);
+    rideTemplateRepository.persistAndFlush(template);
+    return template;
+  }
+
+  @Transactional
+  public RideTemplate createRideTemplate(
+      Team team, User createdBy, String name, String slug, Visibility visibility, Status status) {
+    RideTemplate template = new RideTemplate(createdBy, team, name, slug);
+    template.setVisibility(visibility);
+    template.setStatus(status);
+    rideTemplateRepository.persistAndFlush(template);
+    return template;
+  }
+
+  @Transactional
+  public void deleteRideTemplate(RideTemplate template) {
+    template.setDeleted(true);
+    rideTemplateRepository.getEntityManager().merge(template);
+  }
+
+  @Transactional
+  public RideTemplateGroup createRideTemplateGroup(
+      User createdBy, RideTemplate template, String name) {
+    RideTemplateGroup group = new RideTemplateGroup(createdBy, template, name);
+    rideTemplateGroupRepository.persistAndFlush(group);
+    return group;
+  }
+
+  @Transactional
+  public RideTemplateGroup createRideTemplateGroup(
+      User createdBy,
+      RideTemplate template,
+      String name,
+      Integer averageSpeed,
+      Integer maxParticipants) {
+    RideTemplateGroup group = new RideTemplateGroup(createdBy, template, name);
+    group.setAverageSpeed(averageSpeed);
+    group.setMaxParticipants(maxParticipants);
+    rideTemplateGroupRepository.persistAndFlush(group);
+    return group;
+  }
+
+  @Transactional
+  public void deleteRideTemplateGroup(RideTemplateGroup group) {
+    group.setDeleted(true);
+    rideTemplateGroupRepository.getEntityManager().merge(group);
   }
 }

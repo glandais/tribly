@@ -857,6 +857,163 @@ components:
           items:
             $ref: "#/components/schemas/GroupRequest"
           description: Ride groups to create
+    RideTemplateDto:
+      description: Ride template response
+      type: object
+      required:
+      - id
+      - slug
+      - name
+      - visibility
+      - status
+      - createdAt
+      - updatedAt
+      - groupCount
+      - groups
+      properties:
+        id:
+          type: string
+          description: Template ID (TSID)
+        slug:
+          type: string
+          description: Template slug
+        name:
+          type: string
+          description: Template name
+        markdown:
+          type: string
+          description: Template description (markdown)
+        visibility:
+          description: Visibility level
+          type: string
+          $ref: "#/components/schemas/Visibility"
+        status:
+          description: Default status
+          type: string
+          $ref: "#/components/schemas/Status"
+        createdAt:
+          description: Creation timestamp
+          type: string
+          $ref: "#/components/schemas/Instant"
+        updatedAt:
+          description: Last update timestamp
+          type: string
+          $ref: "#/components/schemas/Instant"
+        groupCount:
+          type: integer
+          format: int32
+          description: Number of groups
+        groups:
+          type: array
+          items:
+            $ref: "#/components/schemas/RideTemplateGroupDto"
+          description: Template groups
+    RideTemplateGroupDto:
+      type: object
+      description: Ride template group information
+      required:
+      - id
+      - name
+      - sortOrder
+      properties:
+        id:
+          type: string
+          description: Group ID (TSID)
+        name:
+          type: string
+          description: Group name
+        averageSpeed:
+          type: integer
+          format: int32
+          description: Average speed in km/h
+        maxParticipants:
+          type: integer
+          format: int32
+          description: Maximum participants
+        sortOrder:
+          type: integer
+          format: int32
+          description: Sort order
+    RideTemplateGroupRequest:
+      description: Ride template group request
+      type: object
+      properties:
+        id:
+          type: string
+          description: Group ID (TSID) - only for updates
+        name:
+          type: string
+          description: Group name
+          pattern: \S
+          minLength: 1
+          maxLength: 200
+        averageSpeed:
+          type: integer
+          format: int32
+          description: Average speed in km/h
+        maxParticipants:
+          type: integer
+          format: int32
+          description: Maximum participants
+      required:
+      - name
+    RideTemplateListResponse:
+      description: Paginated ride template list response
+      type: object
+      required:
+      - templates
+      - total
+      - page
+      - size
+      properties:
+        templates:
+          type: array
+          items:
+            $ref: "#/components/schemas/RideTemplateDto"
+          description: List of templates
+        total:
+          type: integer
+          format: int64
+          description: Total number of templates
+        page:
+          type: integer
+          format: int32
+          description: Current page number
+        size:
+          type: integer
+          format: int32
+          description: Page size
+    RideTemplateRequest:
+      description: Ride template request
+      type: object
+      required:
+      - name
+      - visibility
+      - status
+      - groups
+      properties:
+        name:
+          type: string
+          description: Template name
+          pattern: \S
+          minLength: 3
+          maxLength: 200
+        markdown:
+          type: string
+          description: Template description (markdown)
+        visibility:
+          description: Visibility level
+          type: string
+          $ref: "#/components/schemas/Visibility"
+        status:
+          description: Default status for rides created from this template
+          type: string
+          $ref: "#/components/schemas/Status"
+        groups:
+          type: array
+          items:
+            $ref: "#/components/schemas/RideTemplateGroupRequest"
+          description: Template groups
     RouteDetailDto:
       description: Detailed route information
       type: object
@@ -1559,6 +1716,8 @@ tags:
   description: Post management and participation operations
 - name: Publications
   description: Publication listing
+- name: Ride Templates
+  description: Ride template management operations
 - name: Rides
   description: Ride management and participation operations
 - name: Routes
@@ -2721,6 +2880,270 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/teams/{slug}/ride-templates:
+    get:
+      summary: List ride templates
+      description: Get paginated list of ride templates for a team
+      operationId: listTemplates
+      tags:
+      - Ride Templates
+      parameters:
+      - description: Team URL slug
+        name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Page number
+        name: page
+        in: query
+        schema:
+          type: integer
+          format: int32
+          default: 0
+      - description: Search by name
+        name: search
+        in: query
+        schema:
+          type: string
+      - description: Page size
+        name: size
+        in: query
+        schema:
+          type: integer
+          format: int32
+          default: 20
+      responses:
+        "200":
+          description: Templates retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RideTemplateListResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Not a team member
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Team not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - SecurityScheme:
+        - user
+    post:
+      summary: Create ride template
+      description: Create a new ride template. Requires organizer permissions.
+      operationId: createTemplate
+      tags:
+      - Ride Templates
+      parameters:
+      - description: Team URL slug
+        name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RideTemplateRequest"
+        required: true
+      responses:
+        "201":
+          description: Template created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RideTemplateDto"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: User is not an organizer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Team not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - SecurityScheme:
+        - user
+  /api/teams/{slug}/ride-templates/{templateSlug}:
+    put:
+      summary: Update ride template
+      description: Update ride template information. Requires organizer permissions.
+      operationId: updateTemplate
+      tags:
+      - Ride Templates
+      parameters:
+      - description: Team URL slug
+        name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Template URL slug
+        name: templateSlug
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RideTemplateRequest"
+        required: true
+      responses:
+        "200":
+          description: Template updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RideTemplateDto"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: User is not an organizer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Team or template not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - SecurityScheme:
+        - user
+    get:
+      summary: Get ride template
+      description: Get detailed ride template information
+      operationId: getTemplate
+      tags:
+      - Ride Templates
+      parameters:
+      - description: Team URL slug
+        name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Template URL slug
+        name: templateSlug
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Template retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RideTemplateDto"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Not a team member
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Team or template not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - SecurityScheme:
+        - user
+    delete:
+      summary: Delete ride template
+      description: Soft delete a ride template. Requires organizer permissions.
+      operationId: deleteTemplate
+      tags:
+      - Ride Templates
+      parameters:
+      - description: Team URL slug
+        name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Template URL slug
+        name: templateSlug
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "204":
+          description: Template deleted successfully
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: User is not an organizer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Team or template not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - SecurityScheme:
+        - user
   /api/teams/{slug}/rides:
     get:
       summary: List rides

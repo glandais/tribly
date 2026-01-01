@@ -1,6 +1,7 @@
 import {
   TeamsApi,
   RidesApi,
+  RideTemplatesApi,
   PostsApi,
   PublicationsApi,
   RoutesApi,
@@ -46,6 +47,7 @@ export const assetsApi = new AssetsApi(apiConfiguration, '', axiosInstance)
 export const teamsApi = new TeamsApi(apiConfiguration, '', axiosInstance)
 export const teamMembersApi = new TeamMembersApi(apiConfiguration, '', axiosInstance)
 export const ridesApi = new RidesApi(apiConfiguration, '', axiosInstance)
+export const rideTemplatesApi = new RideTemplatesApi(apiConfiguration, '', axiosInstance)
 export const postsApi = new PostsApi(apiConfiguration, '', axiosInstance)
 export const publicationsApi = new PublicationsApi(apiConfiguration, '', axiosInstance)
 export const routesApi = new RoutesApi(apiConfiguration, '', axiosInstance)

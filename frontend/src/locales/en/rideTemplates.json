@@ -1,0 +1,99 @@
+{
+  "breadcrumb": {
+    "rideTemplates": "Templates"
+  },
+  "list": {
+    "title": "Ride Templates",
+    "loading": "Loading templates...",
+    "createTemplate": "Create Template",
+    "groupCount_one": "{{count}} group",
+    "groupCount_other": "{{count}} groups",
+    "speed": "{{speed}} km/h",
+    "edit": "Edit",
+    "delete": "Delete",
+    "noResults": "No templates found",
+    "empty": {
+      "title": "No templates yet",
+      "admin": "Create templates to speed up ride creation.",
+      "member": "No templates have been created yet.",
+      "createAction": "Create Template"
+    },
+    "search": {
+      "label": "Search",
+      "placeholder": "Search by name..."
+    }
+  },
+  "create": {
+    "title": "Create Template",
+    "loading": "Loading...",
+    "subtitle": "Define a reusable template for {{teamName}}",
+    "button": "Create Template",
+    "backToTemplates": "Back to Templates"
+  },
+  "edit": {
+    "title": "Edit Template",
+    "loading": "Loading template...",
+    "subtitle": "Update template details",
+    "button": "Save Changes",
+    "backToTemplates": "Back to Templates"
+  },
+  "form": {
+    "error": "An error occurred",
+    "name": {
+      "label": "Template Name",
+      "placeholder": "e.g., Sunday Ride"
+    },
+    "description": {
+      "label": "Description",
+      "placeholder": "Default ride description..."
+    },
+    "visibility": {
+      "label": "Visibility",
+      "team": "Team only",
+      "public": "Public",
+      "publicDisabled": "private team"
+    },
+    "status": {
+      "label": "Default Status",
+      "draft": "Draft",
+      "published": "Published"
+    },
+    "groups": {
+      "label": "Groups",
+      "add": "+ Add Group",
+      "hint": "Define default groups for this type of ride",
+      "new": "New Group",
+      "defaultName": "Main Group",
+      "remove": "Remove",
+      "restore": "Restore",
+      "willBeDeleted": "(will be deleted)",
+      "empty": "No groups. Add at least one.",
+      "name": {
+        "placeholder": "Group name"
+      },
+      "speed": {
+        "placeholder": "Speed (km/h)"
+      },
+      "maxParticipants": {
+        "placeholder": "Max. participants"
+      }
+    }
+  },
+  "picker": {
+    "title": "Choose a Template",
+    "search": "Search templates...",
+    "noResults": "No templates found",
+    "loading": "Loading templates...",
+    "groupCount_one": "{{count}} group",
+    "groupCount_other": "{{count}} groups"
+  },
+  "notifications": {
+    "created": "Template created successfully",
+    "updated": "Template updated successfully",
+    "deleted": "Template deleted successfully"
+  },
+  "confirmations": {
+    "deleteTitle": "Delete Template",
+    "delete": "Are you sure you want to delete the template \"{{name}}\"?"
+  }
+}

@@ -96,12 +96,44 @@ create table ride_participations (
                                      unique (ride_group_id, user_id)
 );
 
+create table ride_template_groups (
+                                      average_speed integer,
+                                      deleted boolean not null,
+                                      max_participants integer,
+                                      sort_order integer not null,
+                                      created_at timestamp(6) with time zone not null,
+                                      created_by_id bigint not null,
+                                      id bigint not null,
+                                      template_id bigint not null,
+                                      updated_at timestamp(6) with time zone not null,
+                                      version bigint,
+                                      name varchar(255) not null,
+                                      primary key (id)
+);
+
+create table ride_templates (
+                                deleted boolean not null,
+                                created_at timestamp(6) with time zone not null,
+                                created_by_id bigint not null,
+                                id bigint not null,
+                                team_id bigint not null,
+                                updated_at timestamp(6) with time zone not null,
+                                version bigint,
+                                status varchar(20) not null check ((status in ('DRAFT','PUBLISHED','CANCELLED'))),
+                                visibility varchar(20) not null check ((visibility in ('TEAM','PUBLIC'))),
+                                markdown TEXT,
+                                name varchar(255) not null,
+                                slug varchar(255) not null,
+                                primary key (id),
+                                constraint uk_ride_template_slug unique (team_id, slug)
+);
+
 create table team_entities (
                                deleted boolean not null,
                                distance integer,
                                elevation_gain integer,
                                elevation_loss integer,
-                               entity_type integer not null check ((entity_type in (1,3,5,4,6,2))),
+                               entity_type integer not null check ((entity_type in (3,1,5,4,6,2))),
                                sort_order integer,
                                created_at timestamp(6) with time zone not null,
                                created_by_id bigint not null,
@@ -188,6 +220,15 @@ create table users (
 
 create index IDXe5fskel3tfc9ce4a4xu3vn4f5
     on ride_groups (ride_id, deleted);
+
+create index IDXi9tkt14pnxn8jlc7a8tnijxpt
+    on ride_template_groups (template_id, deleted);
+
+create index IDXcqoh6mr47q7qjqrkrg959v4ue
+    on ride_templates (team_id, deleted);
+
+create index IDXldn4q7s3s14kl5v91wx6fclw6
+    on ride_templates (team_id, slug, deleted);
 
 create index IDXab1hjyv07yec90acqoniimhsl
     on team_entities (team_id, deleted);
@@ -284,6 +325,26 @@ alter table if exists ride_participations
     add constraint FKfs60sriol494mpo27wwxhrmrn
     foreign key (user_id)
     references users;
+
+alter table if exists ride_template_groups
+    add constraint FKjjpkdknn7n3mkde0oiops3q9b
+    foreign key (created_by_id)
+    references users;
+
+alter table if exists ride_template_groups
+    add constraint FKa9viktsanmu0xro69911d5il1
+    foreign key (template_id)
+    references ride_templates;
+
+alter table if exists ride_templates
+    add constraint FK1j2jm60j2s32vm8nxookvqyiw
+    foreign key (created_by_id)
+    references users;
+
+alter table if exists ride_templates
+    add constraint FKvxj9mkg2b3mw5fk464fkxk8x
+    foreign key (team_id)
+    references teams;
 
 alter table if exists team_entities
     add constraint FKdrfmubd9rkuh74qb5huontpaq

@@ -12,6 +12,7 @@
     "backToRides": "Back to Rides",
     "button": "Create Ride",
     "error": "Failed to create ride. Please try again.",
+    "loadTemplate": "Load Template",
     "form": {
       "date": {
         "label": "Start"

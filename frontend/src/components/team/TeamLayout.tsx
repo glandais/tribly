@@ -12,7 +12,7 @@ import { MediaDisplay } from '../../components/common/MediaDisplay'
 
 interface TeamLayoutProps {
   team: TeamDetailDto
-  currentTab: 'publications' | 'rides' | 'trips' | 'posts' | 'routes' | 'members'
+  currentTab: 'publications' | 'rides' | 'trips' | 'posts' | 'routes' | 'members' | 'ride-templates'
   children: React.ReactNode
 }
 
@@ -24,6 +24,7 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
 
   const isMember = !!team.role
   const isAdmin = team.role === 'ADMIN'
+  const isOrganizer = team.role === 'ADMIN' || team.role === 'ORGANIZER'
   const canJoin = isAuthenticated && !isMember && team.visibility === 'PUBLIC'
   const canLeave = isMember && !isAdmin
 
@@ -54,6 +55,15 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
       ? [{ id: 'trips', path: `/teams/${team.slug}/trips`, label: t('detail.tabs.trips') }]
       : []),
     { id: 'routes', path: `/teams/${team.slug}/routes`, label: t('detail.tabs.routes') },
+    ...(isOrganizer
+      ? [
+          {
+            id: 'ride-templates',
+            path: `/teams/${team.slug}/ride-templates`,
+            label: t('detail.tabs.rideTemplates'),
+          },
+        ]
+      : []),
   ]
 
   // Only admins can see members tab

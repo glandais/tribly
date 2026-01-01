@@ -710,6 +710,139 @@ export interface RideRequest {
 }
 
 /**
+ * Ride template response
+ */
+export interface RideTemplateDto {
+  /**
+   * Template ID (TSID)
+   */
+  id: string
+  /**
+   * Template slug
+   */
+  slug: string
+  /**
+   * Template name
+   */
+  name: string
+  /**
+   * Template description (markdown)
+   */
+  markdown?: string
+  /**
+   * Visibility level
+   */
+  visibility: Visibility
+  /**
+   * Default status
+   */
+  status: Status
+  createdAt: string
+  updatedAt: string
+  /**
+   * Number of groups
+   */
+  groupCount: number
+  /**
+   * Template groups
+   */
+  groups: Array<RideTemplateGroupDto>
+}
+
+/**
+ * Ride template group information
+ */
+export interface RideTemplateGroupDto {
+  /**
+   * Group ID (TSID)
+   */
+  id: string
+  /**
+   * Group name
+   */
+  name: string
+  /**
+   * Average speed in km/h
+   */
+  averageSpeed?: number
+  /**
+   * Maximum participants
+   */
+  maxParticipants?: number
+  /**
+   * Sort order
+   */
+  sortOrder: number
+}
+/**
+ * Ride template group request
+ */
+export interface RideTemplateGroupRequest {
+  /**
+   * Group ID (TSID) - only for updates
+   */
+  id?: string
+  /**
+   * Group name
+   */
+  name: string
+  /**
+   * Average speed in km/h
+   */
+  averageSpeed?: number
+  /**
+   * Maximum participants
+   */
+  maxParticipants?: number
+}
+/**
+ * Paginated ride template list response
+ */
+export interface RideTemplateListResponse {
+  /**
+   * List of templates
+   */
+  templates: Array<RideTemplateDto>
+  /**
+   * Total number of templates
+   */
+  total: number
+  /**
+   * Current page number
+   */
+  page: number
+  /**
+   * Page size
+   */
+  size: number
+}
+/**
+ * Ride template request
+ */
+export interface RideTemplateRequest {
+  /**
+   * Template name
+   */
+  name: string
+  /**
+   * Template description (markdown)
+   */
+  markdown?: string
+  /**
+   * Visibility level
+   */
+  visibility: Visibility
+  /**
+   * Default status for rides created from this template
+   */
+  status: Status
+  /**
+   * Template groups
+   */
+  groups: Array<RideTemplateGroupRequest>
+}
+
+/**
  * Detailed route information
  */
 export interface RouteDetailDto {
@@ -3100,6 +3233,640 @@ export class PublicationsApi extends BaseAPI {
   ) {
     return PublicationsApiFp(this.configuration)
       .listPublications(slug, from, page, search, size, to, options)
+      .then((request) => request(this.axios, this.basePath))
+  }
+}
+
+/**
+ * RideTemplatesApi - axios parameter creator
+ */
+export const RideTemplatesApiAxiosParamCreator = function (configuration?: Configuration) {
+  return {
+    /**
+     * Create a new ride template. Requires organizer permissions.
+     * @summary Create ride template
+     * @param {string} slug Team URL slug
+     * @param {RideTemplateRequest} rideTemplateRequest
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    createTemplate: async (
+      slug: string,
+      rideTemplateRequest: RideTemplateRequest,
+      options: RawAxiosRequestConfig = {}
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'slug' is not null or undefined
+      assertParamExists('createTemplate', 'slug', slug)
+      // verify required parameter 'rideTemplateRequest' is not null or undefined
+      assertParamExists('createTemplate', 'rideTemplateRequest', rideTemplateRequest)
+      const localVarPath = `/api/teams/{slug}/ride-templates`.replace(
+        `{${'slug'}}`,
+        encodeURIComponent(String(slug))
+      )
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL)
+      let baseOptions
+      if (configuration) {
+        baseOptions = configuration.baseOptions
+      }
+
+      const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options }
+      const localVarHeaderParameter = {} as any
+      const localVarQueryParameter = {} as any
+
+      // authentication SecurityScheme required
+
+      localVarHeaderParameter['Content-Type'] = 'application/json'
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter)
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {}
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      }
+      localVarRequestOptions.data = serializeDataIfNeeded(
+        rideTemplateRequest,
+        localVarRequestOptions,
+        configuration
+      )
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      }
+    },
+    /**
+     * Soft delete a ride template. Requires organizer permissions.
+     * @summary Delete ride template
+     * @param {string} slug Team URL slug
+     * @param {string} templateSlug Template URL slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    deleteTemplate: async (
+      slug: string,
+      templateSlug: string,
+      options: RawAxiosRequestConfig = {}
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'slug' is not null or undefined
+      assertParamExists('deleteTemplate', 'slug', slug)
+      // verify required parameter 'templateSlug' is not null or undefined
+      assertParamExists('deleteTemplate', 'templateSlug', templateSlug)
+      const localVarPath = `/api/teams/{slug}/ride-templates/{templateSlug}`
+        .replace(`{${'slug'}}`, encodeURIComponent(String(slug)))
+        .replace(`{${'templateSlug'}}`, encodeURIComponent(String(templateSlug)))
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL)
+      let baseOptions
+      if (configuration) {
+        baseOptions = configuration.baseOptions
+      }
+
+      const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options }
+      const localVarHeaderParameter = {} as any
+      const localVarQueryParameter = {} as any
+
+      // authentication SecurityScheme required
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter)
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {}
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      }
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      }
+    },
+    /**
+     * Get detailed ride template information
+     * @summary Get ride template
+     * @param {string} slug Team URL slug
+     * @param {string} templateSlug Template URL slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getTemplate: async (
+      slug: string,
+      templateSlug: string,
+      options: RawAxiosRequestConfig = {}
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'slug' is not null or undefined
+      assertParamExists('getTemplate', 'slug', slug)
+      // verify required parameter 'templateSlug' is not null or undefined
+      assertParamExists('getTemplate', 'templateSlug', templateSlug)
+      const localVarPath = `/api/teams/{slug}/ride-templates/{templateSlug}`
+        .replace(`{${'slug'}}`, encodeURIComponent(String(slug)))
+        .replace(`{${'templateSlug'}}`, encodeURIComponent(String(templateSlug)))
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL)
+      let baseOptions
+      if (configuration) {
+        baseOptions = configuration.baseOptions
+      }
+
+      const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options }
+      const localVarHeaderParameter = {} as any
+      const localVarQueryParameter = {} as any
+
+      // authentication SecurityScheme required
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter)
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {}
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      }
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      }
+    },
+    /**
+     * Get paginated list of ride templates for a team
+     * @summary List ride templates
+     * @param {string} slug Team URL slug
+     * @param {number} [page] Page number
+     * @param {string} [search] Search by name
+     * @param {number} [size] Page size
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listTemplates: async (
+      slug: string,
+      page?: number,
+      search?: string,
+      size?: number,
+      options: RawAxiosRequestConfig = {}
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'slug' is not null or undefined
+      assertParamExists('listTemplates', 'slug', slug)
+      const localVarPath = `/api/teams/{slug}/ride-templates`.replace(
+        `{${'slug'}}`,
+        encodeURIComponent(String(slug))
+      )
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL)
+      let baseOptions
+      if (configuration) {
+        baseOptions = configuration.baseOptions
+      }
+
+      const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options }
+      const localVarHeaderParameter = {} as any
+      const localVarQueryParameter = {} as any
+
+      // authentication SecurityScheme required
+
+      if (page !== undefined) {
+        localVarQueryParameter['page'] = page
+      }
+
+      if (search !== undefined) {
+        localVarQueryParameter['search'] = search
+      }
+
+      if (size !== undefined) {
+        localVarQueryParameter['size'] = size
+      }
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter)
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {}
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      }
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      }
+    },
+    /**
+     * Update ride template information. Requires organizer permissions.
+     * @summary Update ride template
+     * @param {string} slug Team URL slug
+     * @param {string} templateSlug Template URL slug
+     * @param {RideTemplateRequest} rideTemplateRequest
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    updateTemplate: async (
+      slug: string,
+      templateSlug: string,
+      rideTemplateRequest: RideTemplateRequest,
+      options: RawAxiosRequestConfig = {}
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'slug' is not null or undefined
+      assertParamExists('updateTemplate', 'slug', slug)
+      // verify required parameter 'templateSlug' is not null or undefined
+      assertParamExists('updateTemplate', 'templateSlug', templateSlug)
+      // verify required parameter 'rideTemplateRequest' is not null or undefined
+      assertParamExists('updateTemplate', 'rideTemplateRequest', rideTemplateRequest)
+      const localVarPath = `/api/teams/{slug}/ride-templates/{templateSlug}`
+        .replace(`{${'slug'}}`, encodeURIComponent(String(slug)))
+        .replace(`{${'templateSlug'}}`, encodeURIComponent(String(templateSlug)))
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL)
+      let baseOptions
+      if (configuration) {
+        baseOptions = configuration.baseOptions
+      }
+
+      const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options }
+      const localVarHeaderParameter = {} as any
+      const localVarQueryParameter = {} as any
+
+      // authentication SecurityScheme required
+
+      localVarHeaderParameter['Content-Type'] = 'application/json'
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter)
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {}
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      }
+      localVarRequestOptions.data = serializeDataIfNeeded(
+        rideTemplateRequest,
+        localVarRequestOptions,
+        configuration
+      )
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      }
+    },
+  }
+}
+
+/**
+ * RideTemplatesApi - functional programming interface
+ */
+export const RideTemplatesApiFp = function (configuration?: Configuration) {
+  const localVarAxiosParamCreator = RideTemplatesApiAxiosParamCreator(configuration)
+  return {
+    /**
+     * Create a new ride template. Requires organizer permissions.
+     * @summary Create ride template
+     * @param {string} slug Team URL slug
+     * @param {RideTemplateRequest} rideTemplateRequest
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async createTemplate(
+      slug: string,
+      rideTemplateRequest: RideTemplateRequest,
+      options?: RawAxiosRequestConfig
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<RideTemplateDto>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.createTemplate(
+        slug,
+        rideTemplateRequest,
+        options
+      )
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0
+      const localVarOperationServerBasePath =
+        operationServerMap['RideTemplatesApi.createTemplate']?.[localVarOperationServerIndex]?.url
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration
+        )(axios, localVarOperationServerBasePath || basePath)
+    },
+    /**
+     * Soft delete a ride template. Requires organizer permissions.
+     * @summary Delete ride template
+     * @param {string} slug Team URL slug
+     * @param {string} templateSlug Template URL slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async deleteTemplate(
+      slug: string,
+      templateSlug: string,
+      options?: RawAxiosRequestConfig
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.deleteTemplate(
+        slug,
+        templateSlug,
+        options
+      )
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0
+      const localVarOperationServerBasePath =
+        operationServerMap['RideTemplatesApi.deleteTemplate']?.[localVarOperationServerIndex]?.url
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration
+        )(axios, localVarOperationServerBasePath || basePath)
+    },
+    /**
+     * Get detailed ride template information
+     * @summary Get ride template
+     * @param {string} slug Team URL slug
+     * @param {string} templateSlug Template URL slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async getTemplate(
+      slug: string,
+      templateSlug: string,
+      options?: RawAxiosRequestConfig
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<RideTemplateDto>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.getTemplate(
+        slug,
+        templateSlug,
+        options
+      )
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0
+      const localVarOperationServerBasePath =
+        operationServerMap['RideTemplatesApi.getTemplate']?.[localVarOperationServerIndex]?.url
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration
+        )(axios, localVarOperationServerBasePath || basePath)
+    },
+    /**
+     * Get paginated list of ride templates for a team
+     * @summary List ride templates
+     * @param {string} slug Team URL slug
+     * @param {number} [page] Page number
+     * @param {string} [search] Search by name
+     * @param {number} [size] Page size
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async listTemplates(
+      slug: string,
+      page?: number,
+      search?: string,
+      size?: number,
+      options?: RawAxiosRequestConfig
+    ): Promise<
+      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<RideTemplateListResponse>
+    > {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.listTemplates(
+        slug,
+        page,
+        search,
+        size,
+        options
+      )
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0
+      const localVarOperationServerBasePath =
+        operationServerMap['RideTemplatesApi.listTemplates']?.[localVarOperationServerIndex]?.url
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration
+        )(axios, localVarOperationServerBasePath || basePath)
+    },
+    /**
+     * Update ride template information. Requires organizer permissions.
+     * @summary Update ride template
+     * @param {string} slug Team URL slug
+     * @param {string} templateSlug Template URL slug
+     * @param {RideTemplateRequest} rideTemplateRequest
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async updateTemplate(
+      slug: string,
+      templateSlug: string,
+      rideTemplateRequest: RideTemplateRequest,
+      options?: RawAxiosRequestConfig
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<RideTemplateDto>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.updateTemplate(
+        slug,
+        templateSlug,
+        rideTemplateRequest,
+        options
+      )
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0
+      const localVarOperationServerBasePath =
+        operationServerMap['RideTemplatesApi.updateTemplate']?.[localVarOperationServerIndex]?.url
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration
+        )(axios, localVarOperationServerBasePath || basePath)
+    },
+  }
+}
+
+/**
+ * RideTemplatesApi - factory interface
+ */
+export const RideTemplatesApiFactory = function (
+  configuration?: Configuration,
+  basePath?: string,
+  axios?: AxiosInstance
+) {
+  const localVarFp = RideTemplatesApiFp(configuration)
+  return {
+    /**
+     * Create a new ride template. Requires organizer permissions.
+     * @summary Create ride template
+     * @param {string} slug Team URL slug
+     * @param {RideTemplateRequest} rideTemplateRequest
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    createTemplate(
+      slug: string,
+      rideTemplateRequest: RideTemplateRequest,
+      options?: RawAxiosRequestConfig
+    ): AxiosPromise<RideTemplateDto> {
+      return localVarFp
+        .createTemplate(slug, rideTemplateRequest, options)
+        .then((request) => request(axios, basePath))
+    },
+    /**
+     * Soft delete a ride template. Requires organizer permissions.
+     * @summary Delete ride template
+     * @param {string} slug Team URL slug
+     * @param {string} templateSlug Template URL slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    deleteTemplate(
+      slug: string,
+      templateSlug: string,
+      options?: RawAxiosRequestConfig
+    ): AxiosPromise<void> {
+      return localVarFp
+        .deleteTemplate(slug, templateSlug, options)
+        .then((request) => request(axios, basePath))
+    },
+    /**
+     * Get detailed ride template information
+     * @summary Get ride template
+     * @param {string} slug Team URL slug
+     * @param {string} templateSlug Template URL slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getTemplate(
+      slug: string,
+      templateSlug: string,
+      options?: RawAxiosRequestConfig
+    ): AxiosPromise<RideTemplateDto> {
+      return localVarFp
+        .getTemplate(slug, templateSlug, options)
+        .then((request) => request(axios, basePath))
+    },
+    /**
+     * Get paginated list of ride templates for a team
+     * @summary List ride templates
+     * @param {string} slug Team URL slug
+     * @param {number} [page] Page number
+     * @param {string} [search] Search by name
+     * @param {number} [size] Page size
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listTemplates(
+      slug: string,
+      page?: number,
+      search?: string,
+      size?: number,
+      options?: RawAxiosRequestConfig
+    ): AxiosPromise<RideTemplateListResponse> {
+      return localVarFp
+        .listTemplates(slug, page, search, size, options)
+        .then((request) => request(axios, basePath))
+    },
+    /**
+     * Update ride template information. Requires organizer permissions.
+     * @summary Update ride template
+     * @param {string} slug Team URL slug
+     * @param {string} templateSlug Template URL slug
+     * @param {RideTemplateRequest} rideTemplateRequest
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    updateTemplate(
+      slug: string,
+      templateSlug: string,
+      rideTemplateRequest: RideTemplateRequest,
+      options?: RawAxiosRequestConfig
+    ): AxiosPromise<RideTemplateDto> {
+      return localVarFp
+        .updateTemplate(slug, templateSlug, rideTemplateRequest, options)
+        .then((request) => request(axios, basePath))
+    },
+  }
+}
+
+/**
+ * RideTemplatesApi - object-oriented interface
+ */
+export class RideTemplatesApi extends BaseAPI {
+  /**
+   * Create a new ride template. Requires organizer permissions.
+   * @summary Create ride template
+   * @param {string} slug Team URL slug
+   * @param {RideTemplateRequest} rideTemplateRequest
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   */
+  public createTemplate(
+    slug: string,
+    rideTemplateRequest: RideTemplateRequest,
+    options?: RawAxiosRequestConfig
+  ) {
+    return RideTemplatesApiFp(this.configuration)
+      .createTemplate(slug, rideTemplateRequest, options)
+      .then((request) => request(this.axios, this.basePath))
+  }
+
+  /**
+   * Soft delete a ride template. Requires organizer permissions.
+   * @summary Delete ride template
+   * @param {string} slug Team URL slug
+   * @param {string} templateSlug Template URL slug
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   */
+  public deleteTemplate(slug: string, templateSlug: string, options?: RawAxiosRequestConfig) {
+    return RideTemplatesApiFp(this.configuration)
+      .deleteTemplate(slug, templateSlug, options)
+      .then((request) => request(this.axios, this.basePath))
+  }
+
+  /**
+   * Get detailed ride template information
+   * @summary Get ride template
+   * @param {string} slug Team URL slug
+   * @param {string} templateSlug Template URL slug
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   */
+  public getTemplate(slug: string, templateSlug: string, options?: RawAxiosRequestConfig) {
+    return RideTemplatesApiFp(this.configuration)
+      .getTemplate(slug, templateSlug, options)
+      .then((request) => request(this.axios, this.basePath))
+  }
+
+  /**
+   * Get paginated list of ride templates for a team
+   * @summary List ride templates
+   * @param {string} slug Team URL slug
+   * @param {number} [page] Page number
+   * @param {string} [search] Search by name
+   * @param {number} [size] Page size
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   */
+  public listTemplates(
+    slug: string,
+    page?: number,
+    search?: string,
+    size?: number,
+    options?: RawAxiosRequestConfig
+  ) {
+    return RideTemplatesApiFp(this.configuration)
+      .listTemplates(slug, page, search, size, options)
+      .then((request) => request(this.axios, this.basePath))
+  }
+
+  /**
+   * Update ride template information. Requires organizer permissions.
+   * @summary Update ride template
+   * @param {string} slug Team URL slug
+   * @param {string} templateSlug Template URL slug
+   * @param {RideTemplateRequest} rideTemplateRequest
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   */
+  public updateTemplate(
+    slug: string,
+    templateSlug: string,
+    rideTemplateRequest: RideTemplateRequest,
+    options?: RawAxiosRequestConfig
+  ) {
+    return RideTemplatesApiFp(this.configuration)
+      .updateTemplate(slug, templateSlug, rideTemplateRequest, options)
       .then((request) => request(this.axios, this.basePath))
   }
 }

@@ -16,6 +16,9 @@ import { RideListPage } from './pages/ride/RideListPage'
 import { RideDetailPage } from './pages/ride/RideDetailPage'
 import { CreateRidePage } from './pages/ride/CreateRidePage'
 import { EditRidePage } from './pages/ride/EditRidePage'
+import { RideTemplateListPage } from './pages/ridetemplate/RideTemplateListPage'
+import { CreateRideTemplatePage } from './pages/ridetemplate/CreateRideTemplatePage'
+import { EditRideTemplatePage } from './pages/ridetemplate/EditRideTemplatePage'
 import { TripListPage } from './pages/trip/TripListPage'
 import { TripDetailPage } from './pages/trip/TripDetailPage'
 import { CreateTripPage } from './pages/trip/CreateTripPage'
@@ -157,6 +160,32 @@ function App() {
               element={
                 <AuthenticatedRoute>
                   <EditRidePage />
+                </AuthenticatedRoute>
+              }
+            />
+
+            {/* Ride Template routes */}
+            <Route
+              path="teams/:teamSlug/ride-templates"
+              element={
+                <AuthenticatedRoute>
+                  <RideTemplateListPage />
+                </AuthenticatedRoute>
+              }
+            />
+            <Route
+              path="teams/:teamSlug/ride-templates/new"
+              element={
+                <AuthenticatedRoute>
+                  <CreateRideTemplatePage />
+                </AuthenticatedRoute>
+              }
+            />
+            <Route
+              path="teams/:teamSlug/ride-templates/:templateSlug/edit"
+              element={
+                <AuthenticatedRoute>
+                  <EditRideTemplatePage />
                 </AuthenticatedRoute>
               }
             />

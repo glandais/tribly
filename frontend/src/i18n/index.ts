@@ -7,6 +7,7 @@ import frCommon from '../locales/fr/common.json'
 import frAuth from '../locales/fr/auth.json'
 import frTeams from '../locales/fr/teams.json'
 import frRides from '../locales/fr/rides.json'
+import frRideTemplates from '../locales/fr/rideTemplates.json'
 import frTrips from '../locales/fr/trips.json'
 import frPosts from '../locales/fr/posts.json'
 import frRoutes from '../locales/fr/routes.json'
@@ -18,6 +19,7 @@ import enCommon from '../locales/en/common.json'
 import enAuth from '../locales/en/auth.json'
 import enTeams from '../locales/en/teams.json'
 import enRides from '../locales/en/rides.json'
+import enRideTemplates from '../locales/en/rideTemplates.json'
 import enTrips from '../locales/en/trips.json'
 import enPosts from '../locales/en/posts.json'
 import enRoutes from '../locales/en/routes.json'
@@ -38,6 +40,7 @@ const resources = {
     auth: frAuth,
     teams: frTeams,
     rides: frRides,
+    rideTemplates: frRideTemplates,
     trips: frTrips,
     posts: frPosts,
     routes: frRoutes,
@@ -49,6 +52,7 @@ const resources = {
     auth: enAuth,
     teams: enTeams,
     rides: enRides,
+    rideTemplates: enRideTemplates,
     trips: enTrips,
     posts: enPosts,
     routes: enRoutes,
@@ -65,7 +69,18 @@ i18n
     fallbackLng: 'fr', // French is the default
     supportedLngs: supportedLanguages,
     defaultNS: 'common',
-    ns: ['common', 'auth', 'teams', 'rides', 'trips', 'posts', 'routes', 'profile', 'errors'],
+    ns: [
+      'common',
+      'auth',
+      'teams',
+      'rides',
+      'rideTemplates',
+      'trips',
+      'posts',
+      'routes',
+      'profile',
+      'errors',
+    ],
     interpolation: {
       escapeValue: false, // React already escapes values
     },

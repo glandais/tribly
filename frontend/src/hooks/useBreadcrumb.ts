@@ -2,6 +2,7 @@ import { useLocation, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useTeam } from './useTeam'
 import { useRide } from './useRide'
+import { useRideTemplate } from './useRideTemplate'
 import { useTrip } from './useTrip'
 import { usePost } from './usePost'
 import { useRoute } from './useRoute'
@@ -9,9 +10,10 @@ import type { BreadcrumbItem } from '../components/common/Breadcrumb'
 
 export function useBreadcrumb(): BreadcrumbItem[] {
   const location = useLocation()
-  const { teamSlug, rideSlug, tripSlug, postSlug, routeSlug } = useParams<{
+  const { teamSlug, rideSlug, templateSlug, tripSlug, postSlug, routeSlug } = useParams<{
     teamSlug?: string
     rideSlug?: string
+    templateSlug?: string
     tripSlug?: string
     postSlug?: string
     routeSlug?: string
@@ -19,6 +21,7 @@ export function useBreadcrumb(): BreadcrumbItem[] {
   const { t: tCommon } = useTranslation('common')
   const { t: tTeams } = useTranslation('teams')
   const { t: tRides } = useTranslation('rides')
+  const { t: tRideTemplates } = useTranslation('rideTemplates')
   const { t: tTrips } = useTranslation('trips')
   const { t: tPosts } = useTranslation('posts')
 
@@ -27,6 +30,9 @@ export function useBreadcrumb(): BreadcrumbItem[] {
 
   // Fetch ride data if we're on a ride-related route
   const { data: ride } = useRide(teamSlug, rideSlug)
+
+  // Fetch ride template data if we're on a ride-template-related route
+  const { data: rideTemplate } = useRideTemplate(teamSlug, templateSlug)
 
   // Fetch trip data if we're on a trip-related route
   const { data: trip } = useTrip(teamSlug, tripSlug)
@@ -109,6 +115,31 @@ export function useBreadcrumb(): BreadcrumbItem[] {
         if (location.pathname === `/teams/${teamSlug}/rides/${rideSlug}/edit`) {
           items.push({ label: tCommon('buttons.edit') })
         }
+      }
+
+      return items
+    }
+
+    // Ride Templates section
+    if (location.pathname.includes('/ride-templates')) {
+      items.push({
+        label: tRideTemplates('breadcrumb.rideTemplates'),
+        path: `/teams/${teamSlug}/ride-templates`,
+      })
+
+      // New ride template
+      if (location.pathname === `/teams/${teamSlug}/ride-templates/new`) {
+        items.push({ label: tCommon('actions.new') })
+        return items
+      }
+
+      // Edit ride template
+      if (templateSlug && rideTemplate) {
+        items.push({
+          label: rideTemplate.name,
+          path: `/teams/${teamSlug}/ride-templates/${templateSlug}/edit`,
+        })
+        items.push({ label: tCommon('buttons.edit') })
       }
 
       return items

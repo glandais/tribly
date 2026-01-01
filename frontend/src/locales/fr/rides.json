@@ -14,6 +14,7 @@
     "backToRides": "Retour aux sorties",
     "button": "Créer la sortie",
     "error": "Échec de la création de la sortie. Veuillez réessayer.",
+    "loadTemplate": "Charger un modèle",
     "form": {
       "date": {
         "label": "Départ"

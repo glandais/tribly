@@ -65,6 +65,11 @@ Class | Method | HTTP request | Description
 *PostsApi* | [**updatePost**](docs/PostsApi.md#updatepost) | **PUT** /api/teams/{slug}/posts/{postSlug} | Update post
 *PublicationsApi* | [**listAllPublications**](docs/PublicationsApi.md#listallpublications) | **GET** /api/publications | List all publications
 *PublicationsApi* | [**listPublications**](docs/PublicationsApi.md#listpublications) | **GET** /api/teams/{slug}/publications | List publications
+*RideTemplatesApi* | [**createTemplate**](docs/RideTemplatesApi.md#createtemplate) | **POST** /api/teams/{slug}/ride-templates | Create ride template
+*RideTemplatesApi* | [**deleteTemplate**](docs/RideTemplatesApi.md#deletetemplate) | **DELETE** /api/teams/{slug}/ride-templates/{templateSlug} | Delete ride template
+*RideTemplatesApi* | [**getTemplate**](docs/RideTemplatesApi.md#gettemplate) | **GET** /api/teams/{slug}/ride-templates/{templateSlug} | Get ride template
+*RideTemplatesApi* | [**listTemplates**](docs/RideTemplatesApi.md#listtemplates) | **GET** /api/teams/{slug}/ride-templates | List ride templates
+*RideTemplatesApi* | [**updateTemplate**](docs/RideTemplatesApi.md#updatetemplate) | **PUT** /api/teams/{slug}/ride-templates/{templateSlug} | Update ride template
 *RidesApi* | [**createRide**](docs/RidesApi.md#createride) | **POST** /api/teams/{slug}/rides | Create ride
 *RidesApi* | [**deleteRide**](docs/RidesApi.md#deleteride) | **DELETE** /api/teams/{slug}/rides/{rideSlug} | Delete ride
 *RidesApi* | [**getRide**](docs/RidesApi.md#getride) | **GET** /api/teams/{slug}/rides/{rideSlug} | Get ride details
@@ -138,6 +143,11 @@ Class | Method | HTTP request | Description
  - [RideListResponse](docs/RideListResponse.md)
  - [RideParticipationDto](docs/RideParticipationDto.md)
  - [RideRequest](docs/RideRequest.md)
+ - [RideTemplateDto](docs/RideTemplateDto.md)
+ - [RideTemplateGroupDto](docs/RideTemplateGroupDto.md)
+ - [RideTemplateGroupRequest](docs/RideTemplateGroupRequest.md)
+ - [RideTemplateListResponse](docs/RideTemplateListResponse.md)
+ - [RideTemplateRequest](docs/RideTemplateRequest.md)
  - [RouteDetailDto](docs/RouteDetailDto.md)
  - [RouteDto](docs/RouteDto.md)
  - [RouteListResponse](docs/RouteListResponse.md)
