@@ -91,7 +91,7 @@ export function TeamMembersPage() {
             <TeamMemberList
               members={membersData.members}
               currentUserRole={team.role}
-              currentUserId={user?.dbId ?? null}
+              currentUserId={user?.id ?? null}
               onUpdateRole={(memberId, role) => updateRoleMutation.mutate({ memberId, role })}
               onRemoveMember={(memberId) => removeMemberMutation.mutate(memberId)}
               isUpdating={updateRoleMutation.isPending}

@@ -6,12 +6,16 @@ import com.tribly.dto.users.request.UpdateUserRequest;
 import com.tribly.dto.users.response.PublicUserDto;
 import com.tribly.dto.users.response.UserDto;
 import com.tribly.infrastructure.id.TsidUtils;
+import com.tribly.service.auth.UserSyncService;
+import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.annotation.security.RolesAllowed;
+import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
+import org.eclipse.microprofile.jwt.JsonWebToken;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
@@ -31,11 +35,17 @@ public class UserResource extends AbstractAuthenticatedResource {
 
   private static final Logger LOG = Logger.getLogger(UserResource.class);
 
+  @Inject SecurityIdentity securityIdentity;
+
+  @Inject UserSyncService userSyncService;
+
   @GET
   @Path("/me")
   @Operation(
       summary = "Get current user",
-      description = "Get the current authenticated user's profile")
+      description =
+          "Get the current authenticated user's profile. Creates the user if first call after"
+              + " login.")
   @APIResponses({
     @APIResponse(
         responseCode = "200",
@@ -47,9 +57,10 @@ public class UserResource extends AbstractAuthenticatedResource {
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
   public Response getCurrentUser() {
-    Long userId = getCurrentUserId();
-    UserDto user = userService.getUserDto(userId);
-    return Response.ok(user).build();
+    Long userId = getCurrentUserIdOrNull();
+    JsonWebToken jwt = (JsonWebToken) securityIdentity.getPrincipal();
+    UserDto userDto = userSyncService.syncUser(userId, jwt);
+    return Response.ok(userDto).build();
   }
 
   @PUT

@@ -81,7 +81,7 @@ export function TripDetailPage() {
   const isOrganizer = team?.role === 'ORGANIZER'
   const canEdit = isAdmin || isOrganizer
   const hasJoined =
-    user && trip.participants ? trip.participants.some((p) => p.id === user.dbId) : false
+    user && trip.participants ? trip.participants.some((p) => p.id === user.id) : false
   const canJoinTrip = isMember && trip.status === Status.Published && !hasJoined
 
   const formattedDate = formatDate(trip.dateTime)

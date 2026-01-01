@@ -1,5 +1,6 @@
 package com.tribly.api;
 
+import com.tribly.infrastructure.exception.BusinessException;
 import com.tribly.service.user.UserService;
 import io.quarkus.security.identity.CurrentIdentityAssociation;
 import io.quarkus.security.identity.SecurityIdentity;
@@ -28,22 +29,34 @@ public abstract class AbstractAuthenticatedResource {
    *
    * @return the user ID
    * @throws NotAuthorizedException if no valid authentication is present
+   * @throws BusinessException with USER_NOT_SYNCED if authenticated but user not synced
    */
   protected Long getCurrentUserId() {
-    Long userId = getCurrentUserIdOrNull();
-    if (userId == null) {
+    SecurityIdentity identity =
+        currentIdentityAssociation.getDeferredIdentity().await().indefinitely();
+
+    if (identity.isAnonymous()) {
       throw new NotAuthorizedException("No valid token");
+    }
+
+    Long userId = identity.getAttribute("userId");
+    if (userId == null) {
+      throw new BusinessException(
+          "User profile not synchronized. Please call /api/users/me first.",
+          BusinessException.ErrorType.FORBIDDEN,
+          "USER_NOT_SYNCED");
     }
     return userId;
   }
 
   /**
-   * Gets the current user's ID, returning null for anonymous users.
+   * Gets the current user's ID, returning null if not available.
    *
    * <p>Use this method for endpoints that support both authenticated and anonymous access
-   * (e.g., {@code @PermitAll} endpoints).
+   * (e.g., {@code @PermitAll} endpoints), or when the caller needs to handle
+   * missing user gracefully (e.g., /me endpoint which handles sync).
    *
-   * @return the user ID, or null if anonymous
+   * @return the user ID, or null if anonymous or not synced
    */
   @Nullable
   protected Long getCurrentUserIdOrNull() {

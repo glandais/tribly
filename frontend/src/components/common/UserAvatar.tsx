@@ -1,7 +1,7 @@
-import { User } from '../../store/authStore'
+import type { UserDto } from '../../api/api'
 
 interface UserAvatarProps {
-  user: Pick<User, 'displayName' | 'avatarUrl'>
+  user: Pick<UserDto, 'displayName' | 'avatarUrl'>
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
   className?: string
 }
@@ -42,7 +42,7 @@ export function UserAvatar({ user, size = 'md', className = '' }: UserAvatarProp
 }
 
 interface UserAvatarGroupProps {
-  users: Array<Pick<User, 'id' | 'displayName' | 'avatarUrl'>>
+  users: Array<Pick<UserDto, 'id' | 'displayName' | 'avatarUrl'>>
   max?: number
   size?: 'xs' | 'sm' | 'md'
 }

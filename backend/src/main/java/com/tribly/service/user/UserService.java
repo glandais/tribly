@@ -9,6 +9,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import java.util.List;
+import java.util.Optional;
 import org.jspecify.annotations.Nullable;
 
 @ApplicationScoped
@@ -52,5 +53,16 @@ public class UserService {
     User user = getUserEntity(userId);
     user.setDeleted(true);
     userRepository.persist(user);
+  }
+
+  /**
+   * Lookup user by email without creating/updating. Used by SecurityIdentityAugmentor.
+   *
+   * @param email the user's email
+   * @return Optional containing the user if found, empty otherwise
+   */
+  @Transactional
+  public Optional<User> lookupUserByEmail(String email) {
+    return userRepository.findByEmail(email);
   }
 }

@@ -1543,7 +1543,7 @@ components:
   securitySchemes:
     SecurityScheme:
       type: openIdConnect
-      openIdConnectUrl: http://localhost:8180/realms/quarkus/.well-known/openid-configuration
+      openIdConnectUrl: http://localhost:8180/realms/tribly/.well-known/openid-configuration
       description: Authentication
 tags:
 - name: Assets
@@ -3691,7 +3691,8 @@ paths:
         - user
     get:
       summary: Get current user
-      description: Get the current authenticated user's profile
+      description: Get the current authenticated user's profile. Creates the user
+        if first call after login.
       operationId: getCurrentUser
       tags:
       - Users

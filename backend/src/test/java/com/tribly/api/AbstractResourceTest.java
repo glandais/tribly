@@ -19,6 +19,8 @@ public abstract class AbstractResourceTest {
   protected static final String EMAIL3 = "user3@example.com";
   protected static final String USER4 = "user4";
   protected static final String EMAIL4 = "user4@example.com";
+  protected static final String USER5 = "user5";
+  protected static final String EMAIL5 = "user5@example.com";
 
   @Inject protected TestDataService dataService;
   @Inject protected TestDataCleaner dataCleaner;

@@ -66,22 +66,4 @@ export const isAuthenticated = (): boolean => {
   return !!keycloak?.authenticated
 }
 
-export interface KeycloakUserProfile {
-  id: string
-  email: string
-  displayName: string
-}
-
-export const getUserProfile = (): KeycloakUserProfile | null => {
-  if (!keycloak?.tokenParsed) return null
-
-  const tokenParsed = keycloak.tokenParsed as Record<string, unknown>
-
-  return {
-    id: tokenParsed.sub as string,
-    email: (tokenParsed.email as string) || '',
-    displayName: (tokenParsed.name as string) || (tokenParsed.preferred_username as string) || '',
-  }
-}
-
-export default { getKeycloak, initKeycloak, getToken, isAuthenticated, getUserProfile }
+export default { getKeycloak, initKeycloak, getToken, isAuthenticated }

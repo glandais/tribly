@@ -32,6 +32,7 @@ import { CreateRoutePage } from './pages/route/CreateRoutePage'
 import { EditRoutePage } from './pages/route/EditRoutePage'
 import { HomePage } from './pages/home/HomePage'
 import { useAuthStore } from './store/authStore'
+import { useAuth } from './hooks/useAuth'
 
 function NotFoundPage() {
   const { t } = useTranslation('errors')
@@ -51,13 +52,16 @@ function App() {
   const initialize = useAuthStore((state) => state.initialize)
   const { t } = useTranslation('common')
 
-  // Initialize auth on mount
+  // Initialize Keycloak auth on mount
   useEffect(() => {
     initialize()
   }, [initialize])
 
-  // Wait for auth initialization before rendering routes
-  if (!isInitialized) {
+  // useAuth triggers the /me query and sets isLoading to false when done
+  const { isLoading } = useAuth()
+
+  // Wait for auth initialization and user sync before rendering routes
+  if (!isInitialized || isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">

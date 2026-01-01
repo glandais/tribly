@@ -1,16 +1,9 @@
 import { create } from 'zustand'
-import { getKeycloak, initKeycloak, getUserProfile, KeycloakUserProfile } from '../config/keycloak'
-
-export interface User {
-  id: string
-  email: string
-  displayName: string
-  avatarUrl?: string | null
-  dbId?: string
-}
+import { getKeycloak, initKeycloak } from '../config/keycloak'
+import type { UserDto } from '../api/api'
 
 export interface AuthState {
-  user: User | null
+  user: UserDto | null
   isAuthenticated: boolean
   isInitialized: boolean
   isInitializing: boolean
@@ -22,7 +15,7 @@ export interface AuthActions {
   initialize: () => Promise<void>
   login: () => void
   logout: () => void
-  setUser: (user: User | null) => void
+  setUser: (user: UserDto | null) => void
   setLoading: (isLoading: boolean) => void
   setError: (error: string | null) => void
   clearError: () => void
@@ -40,16 +33,6 @@ const initialState: AuthState = {
   error: null,
 }
 
-const mapKeycloakProfileToUser = (profile: KeycloakUserProfile | null): User | null => {
-  if (!profile) return null
-
-  return {
-    id: profile.id,
-    email: profile.email,
-    displayName: profile.displayName,
-  }
-}
-
 export const useAuthStore = create<AuthStore>()((set, get) => ({
   ...initialState,
 
@@ -63,24 +46,15 @@ export const useAuthStore = create<AuthStore>()((set, get) => ({
     try {
       const authenticated = await initKeycloak()
 
-      if (authenticated) {
-        const profile = getUserProfile()
-        set({
-          user: mapKeycloakProfileToUser(profile),
-          isAuthenticated: true,
-          isInitialized: true,
-          isInitializing: false,
-          isLoading: false,
-        })
-      } else {
-        set({
-          user: null,
-          isAuthenticated: false,
-          isInitialized: true,
-          isInitializing: false,
-          isLoading: false,
-        })
-      }
+      // Don't set user here - useAuth will fetch from /me
+      // Keep isLoading: true if authenticated, useAuth will set it to false after user is loaded
+      set({
+        user: null,
+        isAuthenticated: authenticated,
+        isInitialized: true,
+        isInitializing: false,
+        isLoading: authenticated, // Stay loading until user is fetched from /me
+      })
     } catch (error) {
       console.error('Auth initialization failed:', error)
       set({

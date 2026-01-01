@@ -79,7 +79,7 @@ export function RideDetailPage() {
   const canEdit = isAdmin || isOrganizer
   const hasJoinedAnyGroup =
     user && ride.groups
-      ? ride.groups.some((group) => group.participants.some((p) => p.id === user.dbId))
+      ? ride.groups.some((group) => group.participants.some((p) => p.id === user.id))
       : false
   const canJoinRide = isMember && ride.status === Status.Published && !hasJoinedAnyGroup
 
@@ -259,7 +259,7 @@ export function RideDetailPage() {
           {ride.groups && ride.groups.length > 0 ? (
             <div className="space-y-3">
               {ride.groups.map((group) => {
-                const isJoined = user ? group.participants.some((p) => p.id === user.dbId) : false
+                const isJoined = user ? group.participants.some((p) => p.id === user.id) : false
                 return (
                   <RideGroupCard
                     key={group.id}

@@ -2,11 +2,13 @@ package com.tribly.service.auth;
 
 import com.tribly.domain.user.User;
 import com.tribly.domain.user.repository.UserRepository;
+import com.tribly.dto.users.response.UserDto;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
-import java.util.Optional;
+import org.eclipse.microprofile.jwt.JsonWebToken;
 import org.jboss.logging.Logger;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Service responsible for synchronizing users from Keycloak to the local database.
@@ -20,61 +22,37 @@ public class UserSyncService {
 
   @Inject UserRepository userRepository;
 
-  /**
-   * Sync user from Keycloak claims to local database.
-   * Creates new user if not exists, updates existing user's profile.
-   * Handles concurrent access with catch-and-recover pattern.
-   *
-   * @param email       User's email from Keycloak
-   * @param displayName User's display name (from name claim or constructed from given/family name)
-   * @return The synced User entity
-   */
   @Transactional
-  public User syncUser(String email, String displayName) {
-    try {
-      return doSyncUser(email, displayName);
-    } catch (Exception e) {
-      return refetchUser(email);
-    }
-  }
-
-  @Transactional(Transactional.TxType.REQUIRES_NEW)
-  protected User refetchUser(String email) {
-    return userRepository
-        .findByEmail(email)
-        .orElseThrow(
-            () -> new IllegalStateException("User should exist after exception: " + email));
-  }
-
-  private User doSyncUser(String email, String displayName) {
-    Optional<User> existingByEmail = userRepository.findByEmail(email);
-
+  public UserDto syncUser(@Nullable Long userId, JsonWebToken jwt) {
     User user;
-    if (existingByEmail.isPresent()) {
-      user = existingByEmail.get();
-      LOG.debugv("Found existing user by email: {0}", email);
-    } else {
-      // Create new user
+    if (userId == null) {
+      String email = jwt.getClaim("email");
+      // User not synced yet - extract from JWT and sync
+      String displayName = extractDisplayName(jwt);
       user = new User(email, displayName);
-      save(user);
-      LOG.infov("Creating new user from Keycloak: {0}", email);
-      return user;
+    } else {
+      user = userRepository.findById(userId);
     }
-
-    // Update profile from Keycloak claims
-    if (!displayName.isBlank() && !displayName.equals(user.getDisplayName())) {
-      user.setDisplayName(displayName);
-    }
-
-    // always record login
-    save(user);
-    return user;
+    user.recordLogin();
+    userRepository.persistAndFlush(user);
+    return UserDto.from(user);
   }
 
-  private void save(User user) {
-    // Record login (lastLoginAt)
-    user.recordLogin();
-
-    userRepository.persistAndFlush(user);
+  private String extractDisplayName(JsonWebToken jwt) {
+    String displayName = jwt.getClaim("name");
+    if (displayName == null || displayName.isBlank()) {
+      String givenName = jwt.getClaim("given_name");
+      String familyName = jwt.getClaim("family_name");
+      if (givenName != null || familyName != null) {
+        displayName =
+            ((givenName != null ? givenName : "") + " " + (familyName != null ? familyName : ""))
+                .trim();
+      }
+    }
+    if (displayName == null || displayName.isBlank()) {
+      String preferredUsername = jwt.getClaim("preferred_username");
+      displayName = preferredUsername != null ? preferredUsername : jwt.getClaim("email");
+    }
+    return displayName;
   }
 }

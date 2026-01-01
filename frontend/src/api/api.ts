@@ -6756,7 +6756,7 @@ export const UsersApiAxiosParamCreator = function (configuration?: Configuration
       }
     },
     /**
-     * Get the current authenticated user\'s profile
+     * Get the current authenticated user\'s profile. Creates the user if first call after login.
      * @summary Get current user
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -6952,7 +6952,7 @@ export const UsersApiFp = function (configuration?: Configuration) {
         )(axios, localVarOperationServerBasePath || basePath)
     },
     /**
-     * Get the current authenticated user\'s profile
+     * Get the current authenticated user\'s profile. Creates the user if first call after login.
      * @summary Get current user
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -7069,7 +7069,7 @@ export const UsersApiFactory = function (
       return localVarFp.deleteCurrentUser(options).then((request) => request(axios, basePath))
     },
     /**
-     * Get the current authenticated user\'s profile
+     * Get the current authenticated user\'s profile. Creates the user if first call after login.
      * @summary Get current user
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -7137,7 +7137,7 @@ export class UsersApi extends BaseAPI {
   }
 
   /**
-   * Get the current authenticated user\'s profile
+   * Get the current authenticated user\'s profile. Creates the user if first call after login.
    * @summary Get current user
    * @param {*} [options] Override http request option.
    * @throws {RequiredError}
