@@ -1,4 +1,11 @@
 {
+   "climbCategory": {
+    "CAT1": "1ère Catégorie",
+    "CAT2": "2ème Catégorie",
+    "CAT3": "3ème Catégorie",
+    "CAT4": "4ème Catégorie",
+    "HC": "Hors Catégorie"
+  },
   "create": {
     "backToList": "Retour aux parcours",
     "form": {

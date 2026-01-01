@@ -238,7 +238,9 @@ export function RouteDetailPage() {
                     <span
                       className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getClimbCategoryColor(climb.category)}`}
                     >
-                      {t(`climbCategory.${climb.category}`)}
+                      {t(
+                        `climbCategory.${climb.category satisfies 'HC' | 'CAT1' | 'CAT2' | 'CAT3' | 'CAT4'}`
+                      )}
                     </span>
                   )}
                 </div>

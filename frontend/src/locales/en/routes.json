@@ -1,4 +1,11 @@
 {
+  "climbCategory": {
+    "CAT1": "Category 1",
+    "CAT2": "Category 2",
+    "CAT3": "Category 3",
+    "CAT4": "Category 4",
+    "HC": "Hors Catégorie"
+  },
   "create": {
     "backToList": "Back to routes",
     "form": {
