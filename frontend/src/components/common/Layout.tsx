@@ -6,6 +6,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { useBreadcrumb } from '../../hooks/useBreadcrumb'
 import { Breadcrumb } from './Breadcrumb'
 import { ToastContainer } from './Toast'
+import { LanguageSwitcher } from './LanguageSwitcher'
 
 export function Layout() {
   const { t } = useTranslation('common')
@@ -61,7 +62,8 @@ export function Layout() {
             </div>
 
             {/* Desktop user menu */}
-            <div className="hidden sm:flex sm:items-center">
+            <div className="hidden sm:flex sm:items-center sm:space-x-4">
+              <LanguageSwitcher />
               {isAuthenticated ? (
                 <div className="flex items-center space-x-4">
                   <Link
@@ -125,6 +127,9 @@ export function Layout() {
           {/* Mobile menu */}
           {mobileMenuOpen && (
             <div className="sm:hidden border-t border-gray-200 pt-4 pb-3">
+              <div className="px-3 pb-3">
+                <LanguageSwitcher />
+              </div>
               <div className="space-y-1">
                 <Link
                   to="/teams"

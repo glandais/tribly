@@ -181,7 +181,6 @@ export function MarkdownEditor({
 
   const handleChange = useCallback(
     (markdown: string) => {
-      console.log(markdown)
       debouncedOnChange(markdown)
     },
     [debouncedOnChange]
