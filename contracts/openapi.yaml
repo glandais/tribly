@@ -244,6 +244,8 @@ components:
           pattern: \S
           minLength: 1
           maxLength: 200
+        time:
+          $ref: "#/components/schemas/LocalTime"
         averageSpeed:
           type: integer
           format: int32
@@ -287,6 +289,14 @@ components:
           description: Keycloak client ID
           examples:
           - tribly-frontend
+    LocalTime:
+      type: string
+      format: local-time
+      examples:
+      - 13:45:30.123456789
+      externalDocs:
+        description: As defined by 'partial-time' in RFC3339
+        url: https://www.rfc-editor.org/rfc/rfc3339.html#section-5.6
     MapConfig:
       type: object
       description: Map configuration
@@ -735,6 +745,8 @@ components:
         name:
           type: string
           description: Group name
+        time:
+          $ref: "#/components/schemas/LocalTime"
         routeSlug:
           type: string
           description: Route slug
@@ -922,6 +934,8 @@ components:
         name:
           type: string
           description: Group name
+        time:
+          $ref: "#/components/schemas/LocalTime"
         averageSpeed:
           type: integer
           format: int32
@@ -947,6 +961,8 @@ components:
           pattern: \S
           minLength: 1
           maxLength: 200
+        time:
+          $ref: "#/components/schemas/LocalTime"
         averageSpeed:
           type: integer
           format: int32
@@ -1703,7 +1719,7 @@ components:
   securitySchemes:
     SecurityScheme:
       type: openIdConnect
-      openIdConnectUrl: http://localhost:8180/realms/tribly/.well-known/openid-configuration
+      openIdConnectUrl: http://localhost:8180/realms/quarkus/.well-known/openid-configuration
       description: Authentication
 tags:
 - name: Assets

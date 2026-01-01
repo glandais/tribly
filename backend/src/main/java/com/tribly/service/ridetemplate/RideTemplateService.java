@@ -120,6 +120,7 @@ public class RideTemplateService {
   private void createTemplateGroup(
       User user, RideTemplate template, RideTemplateGroupRequest groupRequest, int sortOrder) {
     RideTemplateGroup group = new RideTemplateGroup(user, template, groupRequest.name());
+    group.setTime(groupRequest.time());
     group.setAverageSpeed(groupRequest.averageSpeed());
     group.setMaxParticipants(groupRequest.maxParticipants());
     group.setSortOrder(sortOrder);
@@ -174,6 +175,7 @@ public class RideTemplateService {
         if (existingGroup != null) {
           existingGroup.setDeleted(false);
           existingGroup.setName(groupRequest.name());
+          existingGroup.setTime(groupRequest.time());
           existingGroup.setAverageSpeed(groupRequest.averageSpeed());
           existingGroup.setMaxParticipants(groupRequest.maxParticipants());
           existingGroup.setSortOrder(sortOrder);

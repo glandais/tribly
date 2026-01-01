@@ -6,6 +6,7 @@ import com.tribly.domain.user.User;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Getter;
@@ -32,6 +33,10 @@ public class RideGroup extends BaseEntity {
   @Size(max = 255)
   @Column(name = "name", nullable = false)
   private String name;
+
+  @Nullable
+  @Column(name = "time")
+  protected LocalTime time;
 
   @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "route_id")

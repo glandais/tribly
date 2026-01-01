@@ -61,6 +61,7 @@ export function EditRidePage() {
       ride.groups?.map((g) => ({
         id: g.id,
         name: g.name,
+        time: g.time,
         averageSpeed: g.averageSpeed,
         maxParticipants: g.maxParticipants,
         routeSlug: g.routeSlug,

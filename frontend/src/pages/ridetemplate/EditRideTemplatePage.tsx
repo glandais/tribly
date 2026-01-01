@@ -42,6 +42,7 @@ export function EditRideTemplatePage() {
     groups: template.groups.map((g) => ({
       id: g.id,
       name: g.name,
+      time: g.time,
       averageSpeed: g.averageSpeed,
       maxParticipants: g.maxParticipants,
       isNew: false,
@@ -59,6 +60,7 @@ export function EditRideTemplatePage() {
       groups: filteredGroups.map((g) => ({
         id: g.id,
         name: g.name,
+        time: g.time,
         averageSpeed: g.averageSpeed,
         maxParticipants: g.maxParticipants,
       })),

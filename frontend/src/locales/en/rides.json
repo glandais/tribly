@@ -120,6 +120,7 @@
       "message": "The ride you're looking for doesn't exist.",
       "title": "Ride Not Found"
     },
+    "mainRoute": "Main Route",
     "scheduledPublish": "Scheduled to publish on {{date}}",
     "startPlace": "Start"
   },

@@ -5,6 +5,7 @@ import com.tribly.domain.user.User;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import java.time.LocalTime;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -29,6 +30,10 @@ public class RideTemplateGroup extends BaseEntity {
   @Size(max = 255)
   @Column(name = "name", nullable = false)
   private String name;
+
+  @Nullable
+  @Column(name = "time")
+  protected LocalTime time;
 
   @Column(name = "average_speed")
   @Nullable

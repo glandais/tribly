@@ -80,6 +80,7 @@ export function CreateRidePage() {
         groups: [
           {
             name: t('create.form.groups.defaultName'),
+            time: undefined,
             averageSpeed: undefined,
             maxParticipants: undefined,
             routeSlug: undefined,
@@ -96,6 +97,7 @@ export function CreateRidePage() {
       status: template.status as Status,
       groups: template.groups.map((g) => ({
         name: g.name,
+        time: g.time,
         averageSpeed: g.averageSpeed ?? undefined,
         maxParticipants: g.maxParticipants ?? undefined,
         routeSlug: undefined,

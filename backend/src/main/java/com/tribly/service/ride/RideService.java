@@ -154,6 +154,7 @@ public class RideService extends TeamEntityService {
   private void setProperties(Ride ride, RideGroup group, GroupRequest groupRequest, int sortOrder) {
     group.setRide(ride);
     group.setName(groupRequest.name());
+    group.setTime(groupRequest.time());
     Route groupRoute = getRoute(groupRequest.routeSlug(), ride.getTeam(), ride.getVisibility());
     group.setAverageSpeed(groupRequest.averageSpeed());
     group.setMaxParticipants(groupRequest.maxParticipants());

@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { XMarkIcon, PlusIcon, ChevronUpIcon, ChevronDownIcon } from '@heroicons/react/24/outline'
+import { XMarkIcon, PlusIcon } from '@heroicons/react/24/outline'
 import { LoadingSpinner } from '../common/LoadingSpinner'
+import { ReorderControls } from '../common/ReorderControls'
+import { moveItem } from '../../utils/arrayUtils'
 import { ApiClientError } from '../../lib/apiClient'
 import { RoutePickerModal } from '../route/RoutePickerModal'
 import { CreateRouteModal } from '../route/CreateRouteModal'
@@ -154,14 +156,7 @@ export function TripEditor({
   }
 
   const handleMoveStage = (index: number, direction: 'up' | 'down') => {
-    const newIndex = direction === 'up' ? index - 1 : index + 1
-    if (newIndex < 0 || newIndex >= stages.length) return
-
-    const newStages = [...stages]
-    const temp = newStages[index]
-    newStages[index] = newStages[newIndex]
-    newStages[newIndex] = temp
-    setStages(newStages)
+    setStages(moveItem(stages, index, direction))
   }
 
   const getFieldError = (field: string) => {
@@ -402,9 +397,12 @@ export function TripEditor({
             >
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
-                  <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 text-xs font-semibold">
-                    {index + 1}
-                  </span>
+                  <ReorderControls
+                    index={index}
+                    total={stages.length}
+                    onMove={(dir) => handleMoveStage(index, dir)}
+                    disabled={stage.isDeleted}
+                  />
                   <span className="text-sm font-medium text-gray-700">
                     {stage.isNew
                       ? t('create.form.stages.new')
@@ -417,26 +415,6 @@ export function TripEditor({
                   </span>
                 </div>
                 <div className="flex items-center gap-1">
-                  {!stage.isDeleted && (
-                    <>
-                      <button
-                        type="button"
-                        onClick={() => handleMoveStage(index, 'up')}
-                        disabled={index === 0}
-                        className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30"
-                      >
-                        <ChevronUpIcon className="w-4 h-4" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleMoveStage(index, 'down')}
-                        disabled={index === stages.length - 1}
-                        className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30"
-                      >
-                        <ChevronDownIcon className="w-4 h-4" />
-                      </button>
-                    </>
-                  )}
                   {stage.isDeleted ? (
                     <button
                       type="button"

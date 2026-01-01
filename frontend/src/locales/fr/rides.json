@@ -122,6 +122,7 @@
       "message": "La sortie que vous recherchez n'existe pas.",
       "title": "Sortie non trouvée"
     },
+    "mainRoute": "Parcours principal",
     "scheduledPublish": "Publication programmée le {{date}}",
     "startPlace": "Départ"
   },

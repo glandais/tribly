@@ -37,7 +37,7 @@
         "selectForTrip": "Sélectionner le parcours du voyage"
       },
       "stages": {
-        "add": "+ Ajouter une étape",
+        "add": "Ajouter une étape",
         "defaultName": "Jour {{day}}",
         "description": {
           "label": "Description",

@@ -35,7 +35,7 @@
         "selectForTrip": "Select route for trip"
       },
       "stages": {
-        "add": "+ Add Stage",
+        "add": "Add Stage",
         "defaultName": "Day {{day}}",
         "description": {
           "label": "Description",

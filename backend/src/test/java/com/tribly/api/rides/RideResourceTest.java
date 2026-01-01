@@ -43,7 +43,7 @@ class RideResourceTest extends AbstractResourceTest {
                 null,
                 null,
                 null,
-                List.of(new GroupRequest(null, "G1", null, null, null))))
+                List.of(new GroupRequest(null, "G1", null, null, null, null))))
         .when()
         .post("/api/teams/" + team1Slug + "/rides")
         .then()
@@ -71,7 +71,7 @@ class RideResourceTest extends AbstractResourceTest {
                 null,
                 null,
                 null,
-                List.of(new GroupRequest(null, "G1", null, null, null))))
+                List.of(new GroupRequest(null, "G1", null, null, null, null))))
         .when()
         .post("/api/teams/" + team1Slug + "/rides")
         .then()
@@ -93,7 +93,7 @@ class RideResourceTest extends AbstractResourceTest {
                 null,
                 null,
                 null,
-                List.of(new GroupRequest(null, "G1", null, null, null))))
+                List.of(new GroupRequest(null, "G1", null, null, null, null))))
         .when()
         .post("/api/teams/" + team1Slug + "/rides")
         .then()
@@ -114,9 +114,9 @@ class RideResourceTest extends AbstractResourceTest {
             null,
             null,
             List.of(
-                new GroupRequest(null, "Fast", 32, 10, null),
-                new GroupRequest(null, "Fase", 28, 15, null),
-                new GroupRequest(null, "Social", 25, null, null)));
+                new GroupRequest(null, "Fast", null, 32, 10, null),
+                new GroupRequest(null, "Fase", null, 28, 15, null),
+                new GroupRequest(null, "Social", null, 25, null, null)));
 
     given()
         .auth()
@@ -149,7 +149,7 @@ class RideResourceTest extends AbstractResourceTest {
                     null,
                     null,
                     null,
-                    List.of(new GroupRequest(null, "G1", null, null, null))))
+                    List.of(new GroupRequest(null, "G1", null, null, null, null))))
             .when()
             .post("/api/teams/" + team1Slug + "/rides")
             .then()
@@ -187,7 +187,7 @@ class RideResourceTest extends AbstractResourceTest {
                     null,
                     null,
                     null,
-                    List.of(new GroupRequest(null, "G1", null, null, null))))
+                    List.of(new GroupRequest(null, "G1", null, null, null, null))))
             .when()
             .post("/api/teams/" + team1Slug + "/rides")
             .then()
@@ -216,7 +216,7 @@ class RideResourceTest extends AbstractResourceTest {
                 null,
                 null,
                 null,
-                List.of(new GroupRequest(null, "G1", null, null, null))))
+                List.of(new GroupRequest(null, "G1", null, null, null, null))))
         .when()
         .post("/api/teams/" + team1Slug + "/rides")
         .then()
@@ -237,7 +237,7 @@ class RideResourceTest extends AbstractResourceTest {
                 null,
                 null,
                 null,
-                List.of(new GroupRequest(null, "G1", null, null, null))))
+                List.of(new GroupRequest(null, "G1", null, null, null, null))))
         .when()
         .post("/api/teams/" + team1Slug + "/rides")
         .then()
@@ -273,8 +273,8 @@ class RideResourceTest extends AbstractResourceTest {
                     null,
                     null,
                     List.of(
-                        new GroupRequest(null, "G1", null, null, null),
-                        new GroupRequest(null, "G0", null, null, null))))
+                        new GroupRequest(null, "G1", null, null, null, null),
+                        new GroupRequest(null, "G0", null, null, null, null))))
             .when()
             .post("/api/teams/" + team1Slug + "/rides")
             .then()
@@ -300,8 +300,8 @@ class RideResourceTest extends AbstractResourceTest {
                 null,
                 null,
                 List.of(
-                    new GroupRequest(groupId, "G1 modified", null, null, null),
-                    new GroupRequest(null, "G2", null, null, null))))
+                    new GroupRequest(groupId, "G1 modified", null, null, null, null),
+                    new GroupRequest(null, "G2", null, null, null, null))))
         .when()
         .put("/api/teams/" + team1Slug + "/rides/" + rideSlug)
         .then()
@@ -329,8 +329,8 @@ class RideResourceTest extends AbstractResourceTest {
                     null,
                     null,
                     List.of(
-                        new GroupRequest(null, "G1", null, null, null),
-                        new GroupRequest(null, "G0", null, null, null))))
+                        new GroupRequest(null, "G1", null, null, null, null),
+                        new GroupRequest(null, "G0", null, null, null, null))))
             .when()
             .post("/api/teams/" + team1Slug + "/rides")
             .then()
@@ -366,7 +366,7 @@ class RideResourceTest extends AbstractResourceTest {
                     null,
                     null,
                     null,
-                    List.of(new GroupRequest(null, "G1", null, null, null))))
+                    List.of(new GroupRequest(null, "G1", null, null, null, null))))
             .when()
             .post("/api/teams/" + team1Slug + "/rides")
             .then()
@@ -410,7 +410,7 @@ class RideResourceTest extends AbstractResourceTest {
                     null,
                     null,
                     null,
-                    List.of(new GroupRequest(null, "G1", null, null, null))))
+                    List.of(new GroupRequest(null, "G1", null, null, null, null))))
             .when()
             .post("/api/teams/" + team1Slug + "/rides")
             .then()
@@ -440,7 +440,7 @@ class RideResourceTest extends AbstractResourceTest {
                     null,
                     null,
                     null,
-                    List.of(new GroupRequest(null, "G1", null, null, null))))
+                    List.of(new GroupRequest(null, "G1", null, null, null, null))))
             .when()
             .post("/api/teams/" + team1Slug + "/rides")
             .then()
@@ -480,7 +480,7 @@ class RideResourceTest extends AbstractResourceTest {
                     null,
                     null,
                     null,
-                    List.of(new GroupRequest(null, "G1", null, null, null))))
+                    List.of(new GroupRequest(null, "G1", null, null, null, null))))
             .when()
             .post("/api/teams/" + team1Slug + "/rides")
             .then()
@@ -520,7 +520,7 @@ class RideResourceTest extends AbstractResourceTest {
                     null,
                     null,
                     null,
-                    List.of(new GroupRequest(null, "G1", null, null, null))))
+                    List.of(new GroupRequest(null, "G1", null, null, null, null))))
             .when()
             .post("/api/teams/" + team1Slug + "/rides")
             .then()
@@ -570,7 +570,7 @@ class RideResourceTest extends AbstractResourceTest {
                     null,
                     null,
                     null,
-                    List.of(new GroupRequest(null, "G1", null, null, null))))
+                    List.of(new GroupRequest(null, "G1", null, null, null, null))))
             .when()
             .post("/api/teams/" + team1Slug + "/rides")
             .then()

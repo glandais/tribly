@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
@@ -20,7 +20,7 @@ import { Status } from '../../hooks/useRide'
 import { useAuth } from '../../hooks/useAuth'
 import { LoadingPage, LoadingSpinner } from '../../components/common/LoadingSpinner'
 import { RideGroupCard } from '../../components/ride/RideGroupCard'
-import { RoutesMapView } from '../../components/common/RoutesMapView'
+import { RoutesMapView, MapRouteItem } from '../../components/common/RoutesMapView'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import { useFormattedDate } from '../../utils/dateFormat'
 import { MediaDisplay } from '../../components/common/MediaDisplay'
@@ -51,6 +51,29 @@ export function RideDetailPage() {
   const deleteMutation = useDeleteRide(teamSlug)
   const joinMutation = useJoinRide(teamSlug, rideSlug!)
   const leaveMutation = useLeaveRide(teamSlug, rideSlug!)
+
+  // Combine ride's main route with group routes for map display
+  // Must be before early returns to maintain hook order
+  const mapItems = useMemo(() => {
+    if (!ride) return []
+    const items: MapRouteItem[] = []
+
+    // Add ride's main route if it exists
+    if (ride.routeSlug) {
+      items.push({
+        id: 'ride-main-route',
+        name: t('detail.mainRoute'),
+        routeSlug: ride.routeSlug,
+      })
+    }
+
+    // Add all groups
+    if (ride.groups) {
+      items.push(...ride.groups)
+    }
+
+    return items
+  }, [ride, t])
 
   if (isLoadingTeam || isLoadingRide) {
     return <LoadingPage message={t('loading')} />
@@ -284,9 +307,9 @@ export function RideDetailPage() {
 
         {/* Map on right (takes 2 columns on xl screens) */}
         <div className="xl:col-span-2 order-1 xl:order-2">
-          {ride.groups && ride.groups.length > 0 && (
+          {mapItems.length > 0 && (
             <RoutesMapView
-              items={ride.groups}
+              items={mapItems}
               teamSlug={teamSlug!}
               highlightedItemId={highlightedGroupId}
               onItemHover={setHighlightedGroupId}

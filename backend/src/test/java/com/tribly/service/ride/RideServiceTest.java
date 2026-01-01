@@ -296,8 +296,8 @@ class RideServiceTest {
 
   @Test
   void createRide_shouldCreateWithGroups() {
-    GroupRequest group1 = new GroupRequest(null, "Fast", 30, 10, null);
-    GroupRequest group2 = new GroupRequest(null, "Slow", 20, 15, null);
+    GroupRequest group1 = new GroupRequest(null, "Fast", null, 30, 10, null);
+    GroupRequest group2 = new GroupRequest(null, "Slow", null, 20, 15, null);
     RideRequest request =
         new RideRequest(
             "Group Ride",
@@ -772,7 +772,7 @@ class RideServiceTest {
   void updateRide_shouldAddNewGroups() {
     Ride ride = dataService.createRide(team, admin, "Test Ride", "test-ride", Instant.now());
 
-    GroupRequest newGroup = new GroupRequest(null, "New Group", 25, 10, null);
+    GroupRequest newGroup = new GroupRequest(null, "New Group", null, 25, 10, null);
     RideRequest request =
         new RideRequest(
             "Test Ride",
@@ -799,7 +799,7 @@ class RideServiceTest {
     RideGroup existingGroup = dataService.createRideGroup(admin, ride, "Original Group", 0);
     String groupId = TsidUtils.toString(existingGroup.getId());
 
-    GroupRequest updatedGroup = new GroupRequest(groupId, "Updated Group", 30, 15, null);
+    GroupRequest updatedGroup = new GroupRequest(groupId, "Updated Group", null, 30, 15, null);
     RideRequest request =
         new RideRequest(
             "Test Ride",
@@ -854,8 +854,8 @@ class RideServiceTest {
     String group2Id = TsidUtils.toString(group2.getId());
 
     // Swap order: B first, then A
-    GroupRequest reorderedGroup1 = new GroupRequest(group2Id, "Group B", 25, 10, null);
-    GroupRequest reorderedGroup2 = new GroupRequest(group1Id, "Group A", 20, 5, null);
+    GroupRequest reorderedGroup1 = new GroupRequest(group2Id, "Group B", null, 25, 10, null);
+    GroupRequest reorderedGroup2 = new GroupRequest(group1Id, "Group A", null, 20, 5, null);
     RideRequest request =
         new RideRequest(
             "Test Ride",
@@ -882,8 +882,9 @@ class RideServiceTest {
     RideGroup existingGroup = dataService.createRideGroup(admin, ride, "Existing Group", 0);
     String existingGroupId = TsidUtils.toString(existingGroup.getId());
 
-    GroupRequest keepExisting = new GroupRequest(existingGroupId, "Existing Group", 25, 10, null);
-    GroupRequest addNew = new GroupRequest(null, "New Group", 30, 15, null);
+    GroupRequest keepExisting =
+        new GroupRequest(existingGroupId, "Existing Group", null, 25, 10, null);
+    GroupRequest addNew = new GroupRequest(null, "New Group", null, 30, 15, null);
     RideRequest request =
         new RideRequest(
             "Test Ride",
@@ -909,7 +910,7 @@ class RideServiceTest {
     Ride ride = dataService.createRide(team, admin, "Test Ride", "test-ride", Instant.now());
 
     GroupRequest invalidGroup =
-        new GroupRequest(TsidUtils.toString(9999L), "Invalid Group", 25, 10, null);
+        new GroupRequest(TsidUtils.toString(9999L), "Invalid Group", null, 25, 10, null);
     RideRequest request =
         new RideRequest(
             "Test Ride",

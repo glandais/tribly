@@ -1,6 +1,9 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { XMarkIcon } from '@heroicons/react/24/outline'
 import { LoadingSpinner } from '../common/LoadingSpinner'
+import { ReorderControls } from '../common/ReorderControls'
+import { moveItem } from '../../utils/arrayUtils'
 import { MarkdownEditor } from '../common/MarkdownEditor'
 import { ApiClientError } from '../../lib/apiClient'
 import type { TeamDetailDto } from '../../api/api'
@@ -9,6 +12,7 @@ import { Visibility, Status } from '../../api/api'
 export interface EditableTemplateGroup {
   id?: string
   name: string
+  time?: string
   averageSpeed?: number
   maxParticipants?: number
   isNew?: boolean
@@ -77,6 +81,7 @@ export function RideTemplateEditor({
       ...groups,
       {
         name: '',
+        time: undefined,
         averageSpeed: undefined,
         maxParticipants: undefined,
         isNew: true,
@@ -99,6 +104,10 @@ export function RideTemplateEditor({
 
   const handleUpdateGroup = (index: number, updates: Partial<EditableTemplateGroup>) => {
     setGroups(groups.map((g, i) => (i === index ? { ...g, ...updates } : g)))
+  }
+
+  const handleMoveGroup = (index: number, direction: 'up' | 'down') => {
+    setGroups(moveItem(groups, index, direction))
   }
 
   const getFieldError = (field: string) => {
@@ -258,12 +267,22 @@ export function RideTemplateEditor({
               }`}
             >
               <div className="flex items-center justify-between mb-3">
-                <span className="text-sm font-medium text-gray-700">
-                  {group.isNew ? t('form.groups.new') : `${t('form.groups.label')} ${index + 1}`}
-                  {group.isDeleted && (
-                    <span className="ml-2 text-red-600">{t('form.groups.willBeDeleted')}</span>
-                  )}
-                </span>
+                <div className="flex items-center gap-2">
+                  <ReorderControls
+                    index={index}
+                    total={groups.length}
+                    onMove={(dir) => handleMoveGroup(index, dir)}
+                    disabled={group.isDeleted}
+                  />
+                  <span className="text-sm font-medium text-gray-700">
+                    {group.isNew
+                      ? t('form.groups.new')
+                      : group.name || `${t('form.groups.label')} ${index + 1}`}
+                    {group.isDeleted && (
+                      <span className="ml-2 text-red-600">{t('form.groups.willBeDeleted')}</span>
+                    )}
+                  </span>
+                </div>
                 {group.isDeleted ? (
                   <button
                     type="button"
@@ -283,7 +302,7 @@ export function RideTemplateEditor({
                 )}
               </div>
               {!group.isDeleted && (
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
                   <div>
                     <input
                       type="text"
@@ -293,6 +312,27 @@ export function RideTemplateEditor({
                       required
                       className="block w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-indigo-500 focus:border-indigo-500"
                     />
+                  </div>
+                  <div className="relative">
+                    <input
+                      type="time"
+                      value={group.time || ''}
+                      onChange={(e) =>
+                        handleUpdateGroup(index, {
+                          time: e.target.value || undefined,
+                        })
+                      }
+                      className="block w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-indigo-500 focus:border-indigo-500"
+                    />
+                    {group.time && (
+                      <button
+                        type="button"
+                        onClick={() => handleUpdateGroup(index, { time: undefined })}
+                        className="absolute right-8 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600"
+                      >
+                        <XMarkIcon className="w-4 h-4" />
+                      </button>
+                    )}
                   </div>
                   <div>
                     <input

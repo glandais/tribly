@@ -258,6 +258,7 @@ export function RoutesMapView({
         },
       },
     },
+    animation: { duration: 0 },
   }
 
   if (isLoading) {
@@ -309,9 +310,11 @@ export function RoutesMapView({
               <Polyline
                 key={route.itemId}
                 positions={positions}
-                color={route.color}
-                weight={isHighlighted ? 8 : 5}
-                opacity={isHighlighted ? 0.7 : 0.5}
+                pathOptions={{
+                  color: route.color,
+                  weight: isHighlighted ? 8 : 5,
+                  opacity: isHighlighted ? 0.9 : 0.5,
+                }}
                 eventHandlers={{
                   click: () => handlePolylineClick(route.itemId),
                   mouseover: () => handlePolylineClick(route.itemId),

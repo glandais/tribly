@@ -241,6 +241,7 @@ export interface GroupRequest {
    * Group name
    */
   name: string
+  time?: string
   /**
    * Average speed in km/h
    */
@@ -609,6 +610,7 @@ export interface RideGroupDto {
    * Group name
    */
   name: string
+  time?: string
   /**
    * Route slug
    */
@@ -761,6 +763,7 @@ export interface RideTemplateGroupDto {
    * Group name
    */
   name: string
+  time?: string
   /**
    * Average speed in km/h
    */
@@ -786,6 +789,7 @@ export interface RideTemplateGroupRequest {
    * Group name
    */
   name: string
+  time?: string
   /**
    * Average speed in km/h
    */

@@ -38,6 +38,7 @@ export function CreateRideTemplatePage() {
     groups: [
       {
         name: t('form.groups.defaultName'),
+        time: undefined,
         averageSpeed: undefined,
         maxParticipants: undefined,
         isNew: true,
@@ -55,6 +56,7 @@ export function CreateRideTemplatePage() {
       groups: filteredGroups.map((g) => ({
         id: g.id,
         name: g.name,
+        time: g.time,
         averageSpeed: g.averageSpeed,
         maxParticipants: g.maxParticipants,
       })),

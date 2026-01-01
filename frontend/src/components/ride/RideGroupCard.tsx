@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { BoltIcon, UsersIcon } from '@heroicons/react/24/outline'
+import { BoltIcon, UsersIcon, ClockIcon } from '@heroicons/react/24/outline'
 import type { RideGroupDto } from '../../hooks/useRide'
 import { UserAvatarGroup } from '../common/UserAvatar'
 import { ParticipantListModal } from './ParticipantListModal'
@@ -45,6 +45,12 @@ export function RideGroupCard({
             )}
           </div>
           <div className="mt-2 flex items-center gap-4 text-sm text-gray-500">
+            {group.time && (
+              <span className="flex items-center">
+                <ClockIcon className="w-4 h-4 mr-1" />
+                {group.time}
+              </span>
+            )}
             {group.averageSpeed && (
               <span className="flex items-center">
                 <BoltIcon className="w-4 h-4 mr-1" />
