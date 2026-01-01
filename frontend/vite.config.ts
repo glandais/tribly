@@ -29,10 +29,9 @@ export default defineConfig({
           }
 
           // Maps
-          if (id.includes('node_modules/leaflet/') ||
-              id.includes('node_modules/react-leaflet') ||
-              id.includes('node_modules/@react-leaflet')) {
-            return 'leaflet-vendor';
+          if (id.includes('node_modules/maplibre-gl/') ||
+              id.includes('node_modules/react-map-gl/')) {
+            return 'maplibre-vendor';
           }
 
           // Auth

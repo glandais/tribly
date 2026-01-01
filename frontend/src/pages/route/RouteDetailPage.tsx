@@ -14,7 +14,6 @@ import { RouteMapView } from '../../components/route/RouteMapView'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import { MediaDisplay } from '../../components/common/MediaDisplay'
 import { EntityLogo } from '../../components/common/EntityLogo'
-import 'leaflet/dist/leaflet.css'
 
 export function RouteDetailPage() {
   const { teamSlug, routeSlug } = useParams<{ teamSlug: string; routeSlug: string }>()

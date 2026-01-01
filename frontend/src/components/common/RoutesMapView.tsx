@@ -1,6 +1,6 @@
-import { useEffect, useState, useCallback } from 'react'
-import { MapContainer, TileLayer, Polyline, Marker, useMap, useMapEvents } from 'react-leaflet'
-import { LatLngBounds, DivIcon } from 'leaflet'
+import { useEffect, useState, useCallback, useRef, useMemo } from 'react'
+import Map, { Source, Layer, MapRef, MapMouseEvent } from 'react-map-gl/maplibre'
+import maplibregl from 'maplibre-gl'
 import { Line } from 'react-chartjs-2'
 import {
   Chart as ChartJS,
@@ -12,15 +12,20 @@ import {
   Tooltip,
   Filler,
   ChartOptions,
+  ChartData,
   TooltipItem,
 } from 'chart.js'
 import { useTranslation } from 'react-i18next'
 import { routesApi, unwrapResponse } from '../../lib/apiClient'
 import type { TrackPointDto } from '../../api/api'
-import 'leaflet/dist/leaflet.css'
+import { StartMarker, EndMarker } from '../map/MapMarkers'
+import { trackPointsToGeoJSON, calculateBounds } from '../map/mapUtils'
+import 'maplibre-gl/dist/maplibre-gl.css'
 
 // Register Chart.js components
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Filler)
+
+const MAP_STYLE = 'https://vector.openstreetmap.org/styles/shortbread/graybeard.json'
 
 // Route colors (matching biketeam)
 const ROUTE_COLORS = [
@@ -59,61 +64,6 @@ export interface RoutesMapViewProps {
   onItemHover?: (itemId: string | null) => void
 }
 
-// Custom marker icons
-const createStartIcon = () =>
-  new DivIcon({
-    className: '',
-    html: '<div class="w-6 h-6 bg-green-500 border-2 border-white rounded-full shadow-lg"></div>',
-    iconSize: [24, 24],
-    iconAnchor: [12, 12],
-  })
-
-const createEndIcon = () =>
-  new DivIcon({
-    className: '',
-    html: '<div class="w-6 h-6 bg-red-500 border-2 border-white rounded-full shadow-lg"></div>',
-    iconSize: [24, 24],
-    iconAnchor: [12, 12],
-  })
-
-// Component to fit map bounds when routes change
-function MapBoundsSetter({ routesData }: { routesData: RouteData[] }) {
-  const map = useMap()
-
-  useEffect(() => {
-    if (routesData.length > 0) {
-      const bounds = new LatLngBounds([])
-      routesData.forEach((route) => {
-        route.trackPoints.forEach((point) => {
-          bounds.extend([point.lat, point.lng])
-        })
-      })
-      if (bounds.isValid()) {
-        map.fitBounds(bounds)
-      }
-    }
-  }, [routesData, map])
-
-  return null
-}
-
-// Component to handle route highlighting via map interactions
-function RouteInteractionHandler({
-  onItemHover,
-}: {
-  onItemHover?: (itemId: string | null) => void
-}) {
-  useMapEvents({
-    mouseout: () => {
-      if (onItemHover) {
-        onItemHover(null)
-      }
-    },
-  })
-
-  return null
-}
-
 export function RoutesMapView({
   items,
   teamSlug,
@@ -121,9 +71,11 @@ export function RoutesMapView({
   onItemHover,
 }: RoutesMapViewProps) {
   const { t } = useTranslation('common')
+  const mapRef = useRef<MapRef>(null)
   const [routesData, setRoutesData] = useState<RouteData[]>([])
-  const [highlightedRoute, setHighlightedRoute] = useState<RouteData | null>(null)
+  const [selectedRouteId, setSelectedRouteId] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [cursor, setCursor] = useState<string>('grab')
 
   // Load route data for all items with routes
   useEffect(() => {
@@ -158,42 +110,86 @@ export function RoutesMapView({
       }
 
       setRoutesData(routes)
-      if (routes.length > 0) {
-        setHighlightedRoute(routes[0]) // Highlight first route by default
-      }
       setIsLoading(false)
     }
 
     loadRoutes()
   }, [items, teamSlug])
 
-  // Update highlighted route when highlightedItemId changes
+  // Fit bounds when routes are loaded
   useEffect(() => {
-    if (highlightedItemId) {
-      const route = routesData.find((r) => r.itemId === highlightedItemId)
-      if (route) {
-        setHighlightedRoute(route)
-      }
-    } else if (routesData.length > 0) {
-      setHighlightedRoute(routesData[0])
+    if (mapRef.current && routesData.length > 0) {
+      const allTrackPoints = routesData.flatMap((r) => r.trackPoints)
+      const bounds = calculateBounds(allTrackPoints)
+      mapRef.current.fitBounds(bounds, { padding: 50, duration: 0 })
     }
-  }, [highlightedItemId, routesData])
+  }, [routesData])
+
+  // Derive highlighted route from props or selected state
+  const highlightedRoute = useMemo(() => {
+    // Priority: prop > selected > first route
+    const targetId = highlightedItemId ?? selectedRouteId
+    if (targetId) {
+      return routesData.find((r) => r.itemId === targetId) ?? routesData[0] ?? null
+    }
+    return routesData[0] ?? null
+  }, [highlightedItemId, selectedRouteId, routesData])
 
   const handlePolylineClick = useCallback(
     (itemId: string) => {
-      const route = routesData.find((r) => r.itemId === itemId)
-      if (route) {
-        setHighlightedRoute(route)
-        if (onItemHover) {
-          onItemHover(itemId)
-        }
+      setSelectedRouteId(itemId)
+      if (onItemHover) {
+        onItemHover(itemId)
       }
     },
-    [routesData, onItemHover]
+    [onItemHover]
   )
 
+  // Handle click on route layers
+  const handleClick = useCallback(
+    (event: MapMouseEvent) => {
+      if (!mapRef.current) return
+
+      const layerIds = routesData.map((r) => `line-${r.itemId}`)
+      const features = mapRef.current.queryRenderedFeatures(event.point, { layers: layerIds })
+
+      if (features.length > 0) {
+        const clickedId = features[0].layer.id.replace('line-', '')
+        handlePolylineClick(clickedId)
+      }
+    },
+    [routesData, handlePolylineClick]
+  )
+
+  // Handle mouse enter on route layers
+  const handleMouseEnter = useCallback(() => {
+    setCursor('pointer')
+  }, [])
+
+  // Handle mouse leave
+  const handleMouseLeave = useCallback(() => {
+    setCursor('grab')
+    if (onItemHover) {
+      onItemHover(null)
+    }
+  }, [onItemHover])
+
+  // Create GeoJSON data for each route
+  const routeGeoJSONs = useMemo(() => {
+    return routesData.map((route) => ({
+      itemId: route.itemId,
+      color: route.color,
+      geojson: trackPointsToGeoJSON(route.trackPoints, { id: route.itemId }),
+    }))
+  }, [routesData])
+
+  // Interactive layer IDs for hover detection
+  const interactiveLayerIds = useMemo(() => {
+    return routesData.map((r) => `line-${r.itemId}`)
+  }, [routesData])
+
   // Prepare chart data from highlighted route
-  const chartData = highlightedRoute
+  const chartData: ChartData<'line'> | null = highlightedRoute
     ? {
         labels: highlightedRoute.trackPoints.map((p) => (p.dist / 1000).toFixed(1)),
         datasets: [
@@ -277,11 +273,6 @@ export function RoutesMapView({
     )
   }
 
-  const defaultCenter: [number, number] = [
-    routesData[0].trackPoints[0].lat,
-    routesData[0].trackPoints[0].lng,
-  ]
-
   // End marker: always use last route's last point
   const lastRoute = routesData[routesData.length - 1]
   const endPoint = lastRoute.trackPoints[lastRoute.trackPoints.length - 1]
@@ -290,55 +281,50 @@ export function RoutesMapView({
     <div className="border rounded overflow-hidden">
       {/* Map container */}
       <div className="relative w-full h-[500px] z-0">
-        <MapContainer
-          center={defaultCenter}
-          zoom={11}
+        <Map
+          ref={mapRef}
+          mapLib={maplibregl}
+          mapStyle={MAP_STYLE}
+          initialViewState={{
+            longitude: routesData[0].trackPoints[0].lng,
+            latitude: routesData[0].trackPoints[0].lat,
+            zoom: 11,
+          }}
           style={{ width: '100%', height: '100%' }}
-          zoomControl={false}
+          cursor={cursor}
+          onClick={handleClick}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+          interactiveLayerIds={interactiveLayerIds}
         >
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
-
           {/* Render all routes */}
-          {routesData.map((route) => {
+          {routeGeoJSONs.map((route) => {
             const isHighlighted = highlightedRoute?.itemId === route.itemId
-            const positions = route.trackPoints.map((p) => [p.lat, p.lng] as [number, number])
 
             return (
-              <Polyline
-                key={route.itemId}
-                positions={positions}
-                pathOptions={{
-                  color: route.color,
-                  weight: isHighlighted ? 8 : 5,
-                  opacity: isHighlighted ? 0.9 : 0.5,
-                }}
-                eventHandlers={{
-                  click: () => handlePolylineClick(route.itemId),
-                  mouseover: () => handlePolylineClick(route.itemId),
-                }}
-              />
+              <Source key={`source-${route.itemId}`} id={`route-${route.itemId}`} type="geojson" data={route.geojson}>
+                <Layer
+                  id={`line-${route.itemId}`}
+                  type="line"
+                  paint={{
+                    'line-color': route.color,
+                    'line-width': isHighlighted ? 8 : 5,
+                    'line-opacity': isHighlighted ? 0.9 : 0.5,
+                  }}
+                />
+              </Source>
             )
           })}
 
           {/* Start marker (first route's first point) */}
-          {routesData.length > 0 && (
-            <Marker
-              position={[routesData[0].trackPoints[0].lat, routesData[0].trackPoints[0].lng]}
-              icon={createStartIcon()}
-            />
-          )}
+          <StartMarker
+            longitude={routesData[0].trackPoints[0].lng}
+            latitude={routesData[0].trackPoints[0].lat}
+          />
 
           {/* End marker (last route's last point) */}
-          {routesData.length > 0 && (
-            <Marker position={[endPoint.lat, endPoint.lng]} icon={createEndIcon()} />
-          )}
-
-          <MapBoundsSetter routesData={routesData} />
-          <RouteInteractionHandler onItemHover={onItemHover} />
-        </MapContainer>
+          <EndMarker longitude={endPoint.lng} latitude={endPoint.lat} />
+        </Map>
 
         {/* Elevation chart overlay */}
         <div className="absolute top-0 right-0 w-full sm:w-2/5 h-[150px] bg-white shadow-lg z-[1000] pointer-events-auto">
