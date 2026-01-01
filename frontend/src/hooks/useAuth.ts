@@ -73,6 +73,38 @@ export function useAuth() {
     },
   })
 
+  const uploadAvatarMutation = useMutation({
+    mutationFn: async (file: File) => {
+      return await unwrapResponse(usersApi.uploadAvatar(file))
+    },
+    onSuccess: (updatedUser) => {
+      queryClient.setQueryData(['currentUser'], updatedUser)
+      setUser(updatedUser)
+
+      useNotificationStore.getState().addNotification({
+        type: 'success',
+        translatedMessage: i18next.t('profile:notifications.avatarUpdated'),
+        duration: 4000,
+      })
+    },
+  })
+
+  const deleteAvatarMutation = useMutation({
+    mutationFn: async () => {
+      return await unwrapResponse(usersApi.deleteAvatar())
+    },
+    onSuccess: (updatedUser) => {
+      queryClient.setQueryData(['currentUser'], updatedUser)
+      setUser(updatedUser)
+
+      useNotificationStore.getState().addNotification({
+        type: 'success',
+        translatedMessage: i18next.t('profile:notifications.avatarDeleted'),
+        duration: 4000,
+      })
+    },
+  })
+
   const logout = useCallback(() => {
     queryClient.clear()
     storeLogout()
@@ -90,6 +122,10 @@ export function useAuth() {
     isUpdatingProfile: updateProfileMutation.isPending,
     deleteAccount: deleteAccountMutation.mutate,
     isDeletingAccount: deleteAccountMutation.isPending,
+    uploadAvatar: uploadAvatarMutation.mutate,
+    isUploadingAvatar: uploadAvatarMutation.isPending,
+    deleteAvatar: deleteAvatarMutation.mutate,
+    isDeletingAvatar: deleteAvatarMutation.isPending,
     refetchUser,
     clearError,
   }

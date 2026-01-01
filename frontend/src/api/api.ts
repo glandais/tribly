@@ -6722,6 +6722,40 @@ export class TripsApi extends BaseAPI {
 export const UsersApiAxiosParamCreator = function (configuration?: Configuration) {
   return {
     /**
+     * Remove the current user\'s avatar
+     * @summary Delete user avatar
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    deleteAvatar: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+      const localVarPath = `/api/users/me/avatar`
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL)
+      let baseOptions
+      if (configuration) {
+        baseOptions = configuration.baseOptions
+      }
+
+      const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options }
+      const localVarHeaderParameter = {} as any
+      const localVarQueryParameter = {} as any
+
+      // authentication SecurityScheme required
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter)
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {}
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      }
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      }
+    },
+    /**
      * Delete the current user\'s account
      * @summary Delete current user
      * @param {*} [options] Override http request option.
@@ -6921,6 +6955,52 @@ export const UsersApiAxiosParamCreator = function (configuration?: Configuration
         options: localVarRequestOptions,
       }
     },
+    /**
+     * Upload a new avatar image for the current user. Image will be resized to 256x256.
+     * @summary Upload user avatar
+     * @param {File} [file]
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    uploadAvatar: async (
+      file?: File,
+      options: RawAxiosRequestConfig = {}
+    ): Promise<RequestArgs> => {
+      const localVarPath = `/api/users/me/avatar`
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL)
+      let baseOptions
+      if (configuration) {
+        baseOptions = configuration.baseOptions
+      }
+
+      const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options }
+      const localVarHeaderParameter = {} as any
+      const localVarQueryParameter = {} as any
+      const localVarFormParams = new ((configuration && configuration.formDataCtor) || FormData)()
+
+      // authentication SecurityScheme required
+
+      if (file !== undefined) {
+        localVarFormParams.append('file', file as any)
+      }
+
+      localVarHeaderParameter['Content-Type'] = 'multipart/form-data'
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter)
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {}
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      }
+      localVarRequestOptions.data = localVarFormParams
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      }
+    },
   }
 }
 
@@ -6930,6 +7010,27 @@ export const UsersApiAxiosParamCreator = function (configuration?: Configuration
 export const UsersApiFp = function (configuration?: Configuration) {
   const localVarAxiosParamCreator = UsersApiAxiosParamCreator(configuration)
   return {
+    /**
+     * Remove the current user\'s avatar
+     * @summary Delete user avatar
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async deleteAvatar(
+      options?: RawAxiosRequestConfig
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserDto>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.deleteAvatar(options)
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0
+      const localVarOperationServerBasePath =
+        operationServerMap['UsersApi.deleteAvatar']?.[localVarOperationServerIndex]?.url
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration
+        )(axios, localVarOperationServerBasePath || basePath)
+    },
     /**
      * Delete the current user\'s account
      * @summary Delete current user
@@ -7046,6 +7147,29 @@ export const UsersApiFp = function (configuration?: Configuration) {
           configuration
         )(axios, localVarOperationServerBasePath || basePath)
     },
+    /**
+     * Upload a new avatar image for the current user. Image will be resized to 256x256.
+     * @summary Upload user avatar
+     * @param {File} [file]
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async uploadAvatar(
+      file?: File,
+      options?: RawAxiosRequestConfig
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserDto>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.uploadAvatar(file, options)
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0
+      const localVarOperationServerBasePath =
+        operationServerMap['UsersApi.uploadAvatar']?.[localVarOperationServerIndex]?.url
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration
+        )(axios, localVarOperationServerBasePath || basePath)
+    },
   }
 }
 
@@ -7059,6 +7183,15 @@ export const UsersApiFactory = function (
 ) {
   const localVarFp = UsersApiFp(configuration)
   return {
+    /**
+     * Remove the current user\'s avatar
+     * @summary Delete user avatar
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    deleteAvatar(options?: RawAxiosRequestConfig): AxiosPromise<UserDto> {
+      return localVarFp.deleteAvatar(options).then((request) => request(axios, basePath))
+    },
     /**
      * Delete the current user\'s account
      * @summary Delete current user
@@ -7117,6 +7250,16 @@ export const UsersApiFactory = function (
         .updateCurrentUser(updateUserRequest, options)
         .then((request) => request(axios, basePath))
     },
+    /**
+     * Upload a new avatar image for the current user. Image will be resized to 256x256.
+     * @summary Upload user avatar
+     * @param {File} [file]
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    uploadAvatar(file?: File, options?: RawAxiosRequestConfig): AxiosPromise<UserDto> {
+      return localVarFp.uploadAvatar(file, options).then((request) => request(axios, basePath))
+    },
   }
 }
 
@@ -7124,6 +7267,18 @@ export const UsersApiFactory = function (
  * UsersApi - object-oriented interface
  */
 export class UsersApi extends BaseAPI {
+  /**
+   * Remove the current user\'s avatar
+   * @summary Delete user avatar
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   */
+  public deleteAvatar(options?: RawAxiosRequestConfig) {
+    return UsersApiFp(this.configuration)
+      .deleteAvatar(options)
+      .then((request) => request(this.axios, this.basePath))
+  }
+
   /**
    * Delete the current user\'s account
    * @summary Delete current user
@@ -7185,6 +7340,19 @@ export class UsersApi extends BaseAPI {
   public updateCurrentUser(updateUserRequest: UpdateUserRequest, options?: RawAxiosRequestConfig) {
     return UsersApiFp(this.configuration)
       .updateCurrentUser(updateUserRequest, options)
+      .then((request) => request(this.axios, this.basePath))
+  }
+
+  /**
+   * Upload a new avatar image for the current user. Image will be resized to 256x256.
+   * @summary Upload user avatar
+   * @param {File} [file]
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   */
+  public uploadAvatar(file?: File, options?: RawAxiosRequestConfig) {
+    return UsersApiFp(this.configuration)
+      .uploadAvatar(file, options)
       .then((request) => request(this.axios, this.basePath))
   }
 }

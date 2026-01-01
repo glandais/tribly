@@ -275,7 +275,6 @@ export function TripDetailPage() {
               teamSlug={teamSlug!}
               highlightedItemId={highlightedStageId}
               onItemHover={setHighlightedStageId}
-              entityType="trip"
             />
           )}
         </div>

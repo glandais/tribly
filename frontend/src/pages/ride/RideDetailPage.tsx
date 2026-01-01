@@ -290,7 +290,6 @@ export function RideDetailPage() {
               teamSlug={teamSlug!}
               highlightedItemId={highlightedGroupId}
               onItemHover={setHighlightedGroupId}
-              entityType="ride"
             />
           )}
         </div>

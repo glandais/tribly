@@ -11,10 +11,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.jspecify.annotations.Nullable;
 
-/**
- * Represents a GPX track associated with a route.
- * Stores both PostGIS geometry for spatial queries and JSONB track points for efficient frontend rendering.
- */
 @Setter
 @Getter
 @Entity

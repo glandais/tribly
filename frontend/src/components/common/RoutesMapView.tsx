@@ -57,7 +57,6 @@ export interface RoutesMapViewProps {
   teamSlug: string
   highlightedItemId?: string | null
   onItemHover?: (itemId: string | null) => void
-  entityType: 'ride' | 'trip'
 }
 
 // Custom marker icons
@@ -120,7 +119,6 @@ export function RoutesMapView({
   teamSlug,
   highlightedItemId,
   onItemHover,
-  entityType,
 }: RoutesMapViewProps) {
   const { t } = useTranslation('common')
   const [routesData, setRoutesData] = useState<RouteData[]>([])

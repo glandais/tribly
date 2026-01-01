@@ -1,8 +1,10 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
+import { CameraIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import { useAuth } from '../../hooks/useAuth'
 import { LoadingSpinner } from '../../components/common/LoadingSpinner'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
+import { UserAvatar } from '../../components/common/UserAvatar'
 
 export function UserProfilePage() {
   const { t } = useTranslation('profile')
@@ -14,9 +16,14 @@ export function UserProfilePage() {
     isUpdatingProfile,
     deleteAccount,
     isDeletingAccount,
+    uploadAvatar,
+    isUploadingAvatar,
+    deleteAvatar,
+    isDeletingAvatar,
     logout,
   } = useAuth()
 
+  const avatarInputRef = useRef<HTMLInputElement>(null)
   const [isEditing, setIsEditing] = useState(false)
   const [displayName, setDisplayName] = useState(user?.displayName || '')
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
@@ -44,6 +51,16 @@ export function UserProfilePage() {
     deleteAccount()
   }
 
+  const handleAvatarSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      uploadAvatar(file)
+    }
+    if (avatarInputRef.current) {
+      avatarInputRef.current.value = ''
+    }
+  }
+
   return (
     <div className="max-w-2xl mx-auto">
       <div className="bg-white shadow-sm rounded-lg">
@@ -53,13 +70,43 @@ export function UserProfilePage() {
 
         <div className="p-6 space-y-6">
           <div className="flex items-center gap-6">
-            <div className="h-16 w-16 rounded-full bg-indigo-500 flex items-center justify-center text-white text-xl font-medium">
-              {user.displayName
-                .split(' ')
-                .map((n) => n[0])
-                .join('')
-                .toUpperCase()
-                .slice(0, 2)}
+            <div className="relative">
+              <UserAvatar user={user} size="xl" />
+              <div className="absolute -bottom-1 -right-1 flex gap-1">
+                <input
+                  ref={avatarInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleAvatarSelect}
+                  className="hidden"
+                />
+                <button
+                  onClick={() => avatarInputRef.current?.click()}
+                  disabled={isUploadingAvatar}
+                  className="p-1.5 rounded-full bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm disabled:opacity-50"
+                  title={t('avatar.upload')}
+                >
+                  {isUploadingAvatar ? (
+                    <LoadingSpinner size="sm" color="white" />
+                  ) : (
+                    <CameraIcon className="h-4 w-4" />
+                  )}
+                </button>
+                {user.avatarUrl && (
+                  <button
+                    onClick={() => deleteAvatar()}
+                    disabled={isDeletingAvatar}
+                    className="p-1.5 rounded-full bg-red-600 text-white hover:bg-red-700 shadow-sm disabled:opacity-50"
+                    title={t('avatar.remove')}
+                  >
+                    {isDeletingAvatar ? (
+                      <LoadingSpinner size="sm" color="white" />
+                    ) : (
+                      <XMarkIcon className="h-4 w-4" />
+                    )}
+                  </button>
+                )}
+              </div>
             </div>
             <div>
               <h2 className="text-lg font-medium text-gray-900">{user.displayName}</h2>

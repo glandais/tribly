@@ -7,7 +7,6 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import org.eclipse.microprofile.jwt.JsonWebToken;
-import org.jboss.logging.Logger;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -17,8 +16,6 @@ import org.jspecify.annotations.Nullable;
  */
 @ApplicationScoped
 public class UserSyncService {
-
-  private static final Logger LOG = Logger.getLogger(UserSyncService.class);
 
   @Inject UserRepository userRepository;
 

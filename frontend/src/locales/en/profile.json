@@ -14,6 +14,10 @@
     "editProfile": "Edit Profile",
     "save": "Save"
   },
+  "avatar": {
+    "remove": "Remove avatar",
+    "upload": "Upload avatar"
+  },
   "form": {
     "displayName": {
       "label": "Display Name"
@@ -24,6 +28,8 @@
   },
   "notifications": {
     "accountDeleted": "Account deleted successfully",
+    "avatarDeleted": "Avatar removed successfully",
+    "avatarUpdated": "Avatar updated successfully",
     "updated": "Profile updated successfully"
   },
   "title": "Profile Settings"

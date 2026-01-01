@@ -16,9 +16,6 @@ public class AbstractDownloadAssetResource extends AbstractAuthenticatedResource
 
   @Inject AssetService assetService;
 
-  /**
-   * Download filtered GPX file.
-   */
   @GET
   @Path("assets/{assetId}/{fileName}")
   @PermitAll
@@ -34,9 +31,6 @@ public class AbstractDownloadAssetResource extends AbstractAuthenticatedResource
         .build();
   }
 
-  /**
-   * Download filtered GPX file.
-   */
   @GET
   @Path("images/{assetId}/{size}")
   @PermitAll

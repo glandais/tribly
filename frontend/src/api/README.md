@@ -95,11 +95,13 @@ Class | Method | HTTP request | Description
 *TripsApi* | [**leaveTrip**](docs/TripsApi.md#leavetrip) | **POST** /api/teams/{slug}/trips/{tripSlug}/leave | Leave trip
 *TripsApi* | [**listTrips**](docs/TripsApi.md#listtrips) | **GET** /api/teams/{slug}/trips | List trips
 *TripsApi* | [**updateTrip**](docs/TripsApi.md#updatetrip) | **PUT** /api/teams/{slug}/trips/{tripSlug} | Update trip
+*UsersApi* | [**deleteAvatar**](docs/UsersApi.md#deleteavatar) | **DELETE** /api/users/me/avatar | Delete user avatar
 *UsersApi* | [**deleteCurrentUser**](docs/UsersApi.md#deletecurrentuser) | **DELETE** /api/users/me | Delete current user
 *UsersApi* | [**getCurrentUser**](docs/UsersApi.md#getcurrentuser) | **GET** /api/users/me | Get current user
 *UsersApi* | [**getUserById**](docs/UsersApi.md#getuserbyid) | **GET** /api/users/{id} | Get user by ID
 *UsersApi* | [**searchUsers**](docs/UsersApi.md#searchusers) | **GET** /api/users/search | Search users
 *UsersApi* | [**updateCurrentUser**](docs/UsersApi.md#updatecurrentuser) | **PUT** /api/users/me | Update current user
+*UsersApi* | [**uploadAvatar**](docs/UsersApi.md#uploadavatar) | **POST** /api/users/me/avatar | Upload user avatar
 
 
 ### Documentation For Models

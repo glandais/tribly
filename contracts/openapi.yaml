@@ -3734,6 +3734,72 @@ paths:
       security:
       - SecurityScheme:
         - user
+  /api/users/me/avatar:
+    post:
+      summary: Upload user avatar
+      description: Upload a new avatar image for the current user. Image will be resized
+        to 256x256.
+      operationId: uploadAvatar
+      tags:
+      - Users
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+        required: true
+      responses:
+        "200":
+          description: Avatar uploaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserDto"
+        "400":
+          description: Invalid image file
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme:
+        - user
+    delete:
+      summary: Delete user avatar
+      description: Remove the current user's avatar
+      operationId: deleteAvatar
+      tags:
+      - Users
+      responses:
+        "200":
+          description: Avatar deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserDto"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme:
+        - user
   /api/users/search:
     get:
       summary: Search users

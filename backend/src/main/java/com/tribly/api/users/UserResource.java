@@ -5,8 +5,10 @@ import com.tribly.dto.error.ErrorResponse;
 import com.tribly.dto.users.request.UpdateUserRequest;
 import com.tribly.dto.users.response.PublicUserDto;
 import com.tribly.dto.users.response.UserDto;
+import com.tribly.infrastructure.exception.BusinessException;
 import com.tribly.infrastructure.id.TsidUtils;
 import com.tribly.service.auth.UserSyncService;
+import com.tribly.service.user.UserAvatarService;
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
@@ -14,6 +16,7 @@ import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import java.io.FileInputStream;
 import java.util.List;
 import org.eclipse.microprofile.jwt.JsonWebToken;
 import org.eclipse.microprofile.openapi.annotations.Operation;
@@ -24,6 +27,8 @@ import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import org.jboss.logging.Logger;
+import org.jboss.resteasy.reactive.RestForm;
+import org.jboss.resteasy.reactive.multipart.FileUpload;
 import org.jspecify.annotations.Nullable;
 
 @Path("/api/users")
@@ -38,6 +43,8 @@ public class UserResource extends AbstractAuthenticatedResource {
   @Inject SecurityIdentity securityIdentity;
 
   @Inject UserSyncService userSyncService;
+
+  @Inject UserAvatarService userAvatarService;
 
   @GET
   @Path("/me")
@@ -83,6 +90,61 @@ public class UserResource extends AbstractAuthenticatedResource {
   public Response updateCurrentUser(@Valid UpdateUserRequest request) {
     Long userId = getCurrentUserId();
     UserDto user = userService.updateUser(userId, request.displayName());
+    return Response.ok(user).build();
+  }
+
+  @POST
+  @Path("/me/avatar")
+  @Consumes(MediaType.MULTIPART_FORM_DATA)
+  @Operation(
+      summary = "Upload user avatar",
+      description =
+          "Upload a new avatar image for the current user. Image will be resized to 256x256.")
+  @APIResponses({
+    @APIResponse(
+        responseCode = "200",
+        description = "Avatar uploaded successfully",
+        content = @Content(schema = @Schema(implementation = UserDto.class))),
+    @APIResponse(
+        responseCode = "400",
+        description = "Invalid image file",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "401",
+        description = "Unauthorized",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  })
+  public Response uploadAvatar(@RestForm("file") @Nullable FileUpload fileUpload) throws Exception {
+    Long userId = getCurrentUserId();
+
+    if (fileUpload == null || fileUpload.filePath() == null) {
+      throw BusinessException.validation("File is required");
+    }
+
+    userAvatarService.uploadAvatar(
+        userId, new FileInputStream(fileUpload.filePath().toFile()), fileUpload.fileName());
+
+    UserDto user = userService.getUserDto(userId);
+    return Response.ok(user).build();
+  }
+
+  @DELETE
+  @Path("/me/avatar")
+  @Operation(summary = "Delete user avatar", description = "Remove the current user's avatar")
+  @APIResponses({
+    @APIResponse(
+        responseCode = "200",
+        description = "Avatar deleted successfully",
+        content = @Content(schema = @Schema(implementation = UserDto.class))),
+    @APIResponse(
+        responseCode = "401",
+        description = "Unauthorized",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  })
+  public Response deleteAvatar() {
+    Long userId = getCurrentUserId();
+    userAvatarService.deleteAvatar(userId);
+    UserDto user = userService.getUserDto(userId);
     return Response.ok(user).build();
   }
 
