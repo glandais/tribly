@@ -16,7 +16,6 @@ import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -187,62 +186,6 @@ class TripRepositoryTest {
 
       assertEquals(2, result.items().size());
       assertEquals(5, result.total());
-    }
-  }
-
-  @Nested
-  @DisplayName("findPublicationsToAutoPublish")
-  class FindPublicationsToAutoPublish {
-
-    @Test
-    @DisplayName("Should find trips with publishAt in the past")
-    void findPublicationsToAutoPublish_shouldFindPastPublishAt() {
-      Instant pastTime = now.minus(1, ChronoUnit.HOURS);
-      dataService.createTrip(
-          team, user, "Scheduled Trip", now, Visibility.PUBLIC, Status.DRAFT, pastTime);
-
-      List<Trip> result = tripRepository.findPublicationsToAutoPublish();
-
-      assertEquals(1, result.size());
-      assertEquals("Scheduled Trip", result.getFirst().getName());
-    }
-
-    @Test
-    @DisplayName("Should not find trips with publishAt in the future")
-    void findPublicationsToAutoPublish_shouldNotFindFuturePublishAt() {
-      Instant futureTime = now.plus(1, ChronoUnit.HOURS);
-      dataService.createTrip(
-          team, user, "Future Trip", now, Visibility.PUBLIC, Status.DRAFT, futureTime);
-
-      List<Trip> result = tripRepository.findPublicationsToAutoPublish();
-
-      assertTrue(result.isEmpty());
-    }
-
-    @Test
-    @DisplayName("Should not find already published trips")
-    void findPublicationsToAutoPublish_shouldNotFindPublished() {
-      Instant pastTime = now.minus(1, ChronoUnit.HOURS);
-      dataService.createTrip(
-          team, user, "Published Trip", now, Visibility.PUBLIC, Status.PUBLISHED, pastTime);
-
-      List<Trip> result = tripRepository.findPublicationsToAutoPublish();
-
-      assertTrue(result.isEmpty());
-    }
-
-    @Test
-    @DisplayName("Should not find deleted trips")
-    void findPublicationsToAutoPublish_shouldNotFindDeleted() {
-      Instant pastTime = now.minus(1, ChronoUnit.HOURS);
-      Trip trip =
-          dataService.createTrip(
-              team, user, "Deleted Trip", now, Visibility.PUBLIC, Status.DRAFT, pastTime);
-      dataService.deleteTrip(trip);
-
-      List<Trip> result = tripRepository.findPublicationsToAutoPublish();
-
-      assertTrue(result.isEmpty());
     }
   }
 

@@ -15,7 +15,6 @@ import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -231,122 +230,6 @@ class PostRepositoryTest {
       TriblyPage<Post> result = postRepository.find(query);
 
       assertEquals(2, result.total());
-    }
-  }
-
-  @Nested
-  @DisplayName("findPublicationsToAutoPublish")
-  class FindPublicationsToAutoPublish {
-
-    @Test
-    @DisplayName("Should return draft posts with publishAt in the past")
-    void findPublicationsToAutoPublish_shouldReturnDraftWithPastPublishAt() {
-      Instant pastTime = now.minus(1, ChronoUnit.HOURS);
-      Post post =
-          dataService.createPost(
-              team, user, "Scheduled Post", now, Visibility.PUBLIC, Status.DRAFT, pastTime);
-
-      List<Post> result = postRepository.findPublicationsToAutoPublish();
-
-      assertEquals(1, result.size());
-      assertEquals(post.getId(), result.getFirst().getId());
-    }
-
-    @Test
-    @DisplayName("Should not return draft posts with publishAt in the future")
-    void findPublicationsToAutoPublish_shouldNotReturnDraftWithFuturePublishAt() {
-      Instant futureTime = now.plus(1, ChronoUnit.HOURS);
-      dataService.createPost(
-          team, user, "Future Post", now, Visibility.PUBLIC, Status.DRAFT, futureTime);
-
-      List<Post> result = postRepository.findPublicationsToAutoPublish();
-
-      assertTrue(result.isEmpty());
-    }
-
-    @Test
-    @DisplayName("Should not return draft posts without publishAt")
-    void findPublicationsToAutoPublish_shouldNotReturnDraftWithoutPublishAt() {
-      dataService.createPost(team, user, "Draft Post", now, Visibility.PUBLIC, Status.DRAFT);
-
-      List<Post> result = postRepository.findPublicationsToAutoPublish();
-
-      assertTrue(result.isEmpty());
-    }
-
-    @Test
-    @DisplayName("Should not return published posts even with past publishAt")
-    void findPublicationsToAutoPublish_shouldNotReturnPublishedPosts() {
-      Instant pastTime = now.minus(1, ChronoUnit.HOURS);
-      dataService.createPost(
-          team, user, "Published Post", now, Visibility.PUBLIC, Status.PUBLISHED, pastTime);
-
-      List<Post> result = postRepository.findPublicationsToAutoPublish();
-
-      assertTrue(result.isEmpty());
-    }
-
-    @Test
-    @DisplayName("Should not return cancelled posts even with past publishAt")
-    void findPublicationsToAutoPublish_shouldNotReturnCancelledPosts() {
-      Instant pastTime = now.minus(1, ChronoUnit.HOURS);
-      dataService.createPost(
-          team, user, "Cancelled Post", now, Visibility.PUBLIC, Status.CANCELLED, pastTime);
-
-      List<Post> result = postRepository.findPublicationsToAutoPublish();
-
-      assertTrue(result.isEmpty());
-    }
-
-    @Test
-    @DisplayName("Should not return deleted posts")
-    void findPublicationsToAutoPublish_shouldNotReturnDeletedPosts() {
-      Instant pastTime = now.minus(1, ChronoUnit.HOURS);
-      Post post =
-          dataService.createPost(
-              team, user, "Deleted Post", now, Visibility.PUBLIC, Status.DRAFT, pastTime);
-      dataService.deletePost(post);
-
-      List<Post> result = postRepository.findPublicationsToAutoPublish();
-
-      assertTrue(result.isEmpty());
-    }
-
-    @Test
-    @DisplayName("Should return multiple posts ready for publishing")
-    void findPublicationsToAutoPublish_shouldReturnMultiplePosts() {
-      Instant pastTime1 = now.minus(2, ChronoUnit.HOURS);
-      Instant pastTime2 = now.minus(1, ChronoUnit.HOURS);
-      dataService.createPost(team, user, "Post 1", now, Visibility.PUBLIC, Status.DRAFT, pastTime1);
-      dataService.createPost(team, user, "Post 2", now, Visibility.PUBLIC, Status.DRAFT, pastTime2);
-      // This one should not be included (future)
-      dataService.createPost(
-          team,
-          user,
-          "Post 3",
-          now,
-          Visibility.PUBLIC,
-          Status.DRAFT,
-          now.plus(1, ChronoUnit.HOURS));
-
-      List<Post> result = postRepository.findPublicationsToAutoPublish();
-
-      assertEquals(2, result.size());
-    }
-
-    @Test
-    @DisplayName("Should return posts from different teams")
-    void findPublicationsToAutoPublish_shouldReturnPostsFromDifferentTeams() {
-      Instant pastTime = now.minus(1, ChronoUnit.HOURS);
-      Team otherTeam = dataService.createTeam(user, "Other Team", "other-team", Visibility.PUBLIC);
-      dataService.createPost(
-          team, user, "Post in Team 1", now, Visibility.PUBLIC, Status.DRAFT, pastTime);
-      dataService.createPost(
-          otherTeam, user, "Post in Team 2", now, Visibility.PUBLIC, Status.DRAFT, pastTime);
-
-      List<Post> result = postRepository.findPublicationsToAutoPublish();
-
-      assertEquals(2, result.size());
     }
   }
 

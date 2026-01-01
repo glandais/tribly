@@ -19,6 +19,7 @@ import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -410,6 +411,164 @@ class AllPublicationRepositoryTest {
 
       assertEquals(1, result.total());
       assertTrue(result.items().getFirst() instanceof Post);
+    }
+  }
+
+  @Nested
+  @DisplayName("findPublicationsToAutoPublish")
+  class FindPublicationsToAutoPublish {
+
+    @Test
+    @DisplayName("Should return draft publications with publishAt in the past")
+    void findPublicationsToAutoPublish_shouldReturnDraftWithPastPublishAt() {
+      Instant pastTime = now.minus(1, ChronoUnit.HOURS);
+      dataService.createRide(
+          team,
+          user,
+          "Scheduled Ride",
+          "scheduled-ride",
+          now,
+          Visibility.PUBLIC,
+          Status.DRAFT,
+          pastTime);
+      dataService.createPost(
+          team, user, "Scheduled Post", now, Visibility.PUBLIC, Status.DRAFT, pastTime);
+      dataService.createTrip(
+          team, user, "Scheduled Trip", now, Visibility.PUBLIC, Status.DRAFT, pastTime);
+
+      List<Publication> result = publicationRepository.findPublicationsToAutoPublish();
+
+      assertEquals(3, result.size());
+    }
+
+    @Test
+    @DisplayName("Should not return publications with publishAt in the future")
+    void findPublicationsToAutoPublish_shouldNotReturnFuturePublishAt() {
+      Instant futureTime = now.plus(1, ChronoUnit.HOURS);
+      dataService.createRide(
+          team,
+          user,
+          "Future Ride",
+          "future-ride",
+          now,
+          Visibility.PUBLIC,
+          Status.DRAFT,
+          futureTime);
+      dataService.createPost(
+          team, user, "Future Post", now, Visibility.PUBLIC, Status.DRAFT, futureTime);
+
+      List<Publication> result = publicationRepository.findPublicationsToAutoPublish();
+
+      assertTrue(result.isEmpty());
+    }
+
+    @Test
+    @DisplayName("Should not return publications without publishAt")
+    void findPublicationsToAutoPublish_shouldNotReturnWithoutPublishAt() {
+      dataService.createRide(team, user, "Draft Ride", "draft-ride", now, Status.DRAFT);
+      dataService.createPost(team, user, "Draft Post", now, Visibility.PUBLIC, Status.DRAFT);
+
+      List<Publication> result = publicationRepository.findPublicationsToAutoPublish();
+
+      assertTrue(result.isEmpty());
+    }
+
+    @Test
+    @DisplayName("Should not return already published publications")
+    void findPublicationsToAutoPublish_shouldNotReturnPublished() {
+      Instant pastTime = now.minus(1, ChronoUnit.HOURS);
+      dataService.createRide(
+          team,
+          user,
+          "Published Ride",
+          "published-ride",
+          now,
+          Visibility.PUBLIC,
+          Status.PUBLISHED,
+          pastTime);
+      dataService.createPost(
+          team, user, "Published Post", now, Visibility.PUBLIC, Status.PUBLISHED, pastTime);
+
+      List<Publication> result = publicationRepository.findPublicationsToAutoPublish();
+
+      assertTrue(result.isEmpty());
+    }
+
+    @Test
+    @DisplayName("Should not return cancelled publications")
+    void findPublicationsToAutoPublish_shouldNotReturnCancelled() {
+      Instant pastTime = now.minus(1, ChronoUnit.HOURS);
+      dataService.createRide(
+          team,
+          user,
+          "Cancelled Ride",
+          "cancelled-ride",
+          now,
+          Visibility.PUBLIC,
+          Status.CANCELLED,
+          pastTime);
+      dataService.createPost(
+          team, user, "Cancelled Post", now, Visibility.PUBLIC, Status.CANCELLED, pastTime);
+
+      List<Publication> result = publicationRepository.findPublicationsToAutoPublish();
+
+      assertTrue(result.isEmpty());
+    }
+
+    @Test
+    @DisplayName("Should not return deleted publications")
+    void findPublicationsToAutoPublish_shouldNotReturnDeleted() {
+      Instant pastTime = now.minus(1, ChronoUnit.HOURS);
+      Ride ride =
+          dataService.createRide(
+              team,
+              user,
+              "Deleted Ride",
+              "deleted-ride",
+              now,
+              Visibility.PUBLIC,
+              Status.DRAFT,
+              pastTime);
+      Post post =
+          dataService.createPost(
+              team, user, "Deleted Post", now, Visibility.PUBLIC, Status.DRAFT, pastTime);
+      dataService.deleteRide(ride);
+      dataService.deletePost(post);
+
+      List<Publication> result = publicationRepository.findPublicationsToAutoPublish();
+
+      assertTrue(result.isEmpty());
+    }
+
+    @Test
+    @DisplayName("Should return publications from different teams")
+    void findPublicationsToAutoPublish_shouldReturnFromDifferentTeams() {
+      Instant pastTime = now.minus(1, ChronoUnit.HOURS);
+      Team otherTeam = dataService.createTeam(user, "Other Team", "other-team", Visibility.PUBLIC);
+      dataService.createRide(
+          team, user, "Team 1 Ride", "team-1-ride", now, Visibility.PUBLIC, Status.DRAFT, pastTime);
+      dataService.createPost(
+          otherTeam, user, "Team 2 Post", now, Visibility.PUBLIC, Status.DRAFT, pastTime);
+
+      List<Publication> result = publicationRepository.findPublicationsToAutoPublish();
+
+      assertEquals(2, result.size());
+    }
+
+    @Test
+    @DisplayName("Should return mix of past and filter future publications")
+    void findPublicationsToAutoPublish_shouldFilterMixedPublishTimes() {
+      Instant pastTime = now.minus(2, ChronoUnit.HOURS);
+      Instant futureTime = now.plus(1, ChronoUnit.HOURS);
+      dataService.createRide(
+          team, user, "Past Ride", "past-ride", now, Visibility.PUBLIC, Status.DRAFT, pastTime);
+      dataService.createPost(
+          team, user, "Future Post", now, Visibility.PUBLIC, Status.DRAFT, futureTime);
+
+      List<Publication> result = publicationRepository.findPublicationsToAutoPublish();
+
+      assertEquals(1, result.size());
+      assertEquals("Past Ride", result.getFirst().getName());
     }
   }
 }

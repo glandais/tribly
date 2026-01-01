@@ -13,10 +13,8 @@ import com.tribly.util.TestDataCleaner;
 import com.tribly.util.TestDataService;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
-import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -207,48 +205,5 @@ class RideRepositoryTest {
     boolean exists = rideRepository.existsByTeamAndSlug(team.getId(), "nonexistent");
 
     assertFalse(exists);
-  }
-
-  @Test
-  void findRidesToAutoPublish_shouldReturnRidesWithPublishAtInPast() {
-    dataService.createRide(
-        team,
-        user,
-        "Auto Publish 1",
-        "auto-1",
-        LocalDate.of(2025, 1, 15).atTime(0, 0).toInstant(ZoneOffset.UTC),
-        Visibility.PUBLIC,
-        Status.DRAFT,
-        Instant.now().minusSeconds(3600));
-
-    dataService.createRide(
-        team,
-        user,
-        "Auto Publish 2",
-        "auto-2",
-        LocalDate.of(2025, 1, 20).atTime(0, 0).toInstant(ZoneOffset.UTC),
-        Visibility.PUBLIC,
-        Status.DRAFT,
-        Instant.now().plusSeconds(3600));
-
-    List<Ride> result = rideRepository.findPublicationsToAutoPublish();
-
-    assertEquals(1, result.size());
-    assertEquals("auto-1", result.getFirst().getSlug());
-  }
-
-  @Test
-  void findRidesToAutoPublish_shouldIgnoreRidesWithoutPublishAt() {
-    dataService.createRide(
-        team,
-        user,
-        "No Publish At",
-        "no-publish",
-        LocalDate.of(2025, 1, 15).atTime(0, 0).toInstant(ZoneOffset.UTC),
-        Status.DRAFT);
-
-    List<Ride> result = rideRepository.findPublicationsToAutoPublish();
-
-    assertEquals(0, result.size());
   }
 }
