@@ -13,6 +13,7 @@ export interface AuthState {
   user: User | null
   isAuthenticated: boolean
   isInitialized: boolean
+  isInitializing: boolean
   isLoading: boolean
   error: string | null
 }
@@ -34,6 +35,7 @@ const initialState: AuthState = {
   user: null,
   isAuthenticated: false,
   isInitialized: false,
+  isInitializing: false,
   isLoading: true,
   error: null,
 }
@@ -52,11 +54,11 @@ export const useAuthStore = create<AuthStore>()((set, get) => ({
   ...initialState,
 
   initialize: async () => {
-    if (get().isInitialized) {
+    if (get().isInitialized || get().isInitializing) {
       return
     }
 
-    set({ isLoading: true })
+    set({ isInitializing: true, isLoading: true })
 
     try {
       const authenticated = await initKeycloak()
@@ -67,6 +69,7 @@ export const useAuthStore = create<AuthStore>()((set, get) => ({
           user: mapKeycloakProfileToUser(profile),
           isAuthenticated: true,
           isInitialized: true,
+          isInitializing: false,
           isLoading: false,
         })
       } else {
@@ -74,6 +77,7 @@ export const useAuthStore = create<AuthStore>()((set, get) => ({
           user: null,
           isAuthenticated: false,
           isInitialized: true,
+          isInitializing: false,
           isLoading: false,
         })
       }
@@ -82,6 +86,7 @@ export const useAuthStore = create<AuthStore>()((set, get) => ({
       set({
         error: 'Failed to initialize authentication',
         isInitialized: true,
+        isInitializing: false,
         isLoading: false,
       })
     }

@@ -15,19 +15,11 @@ export function useAuth() {
     isInitialized,
     isLoading,
     error,
-    initialize,
     login,
     logout: storeLogout,
     setUser,
     clearError,
   } = useAuthStore()
-
-  // Initialize Keycloak on mount
-  useEffect(() => {
-    if (!isInitialized) {
-      initialize()
-    }
-  }, [isInitialized, initialize])
 
   // Fetch current user from backend (syncs Keycloak user to DB)
   const { data: backendUser, refetch: refetchUser } = useQuery({
