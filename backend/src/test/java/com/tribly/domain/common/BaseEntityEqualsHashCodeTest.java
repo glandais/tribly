@@ -8,6 +8,7 @@ import com.tribly.domain.team.Team;
 import com.tribly.domain.team.repository.TeamRepository;
 import com.tribly.domain.user.User;
 import com.tribly.domain.user.repository.UserRepository;
+import com.tribly.enums.SurfaceType;
 import com.tribly.enums.Visibility;
 import com.tribly.util.TestDataCleaner;
 import com.tribly.util.TestDataService;
@@ -133,8 +134,10 @@ class BaseEntityEqualsHashCodeTest {
     @DisplayName("Entity with null ID should not equal another entity with null ID")
     void equals_bothNullId_shouldNotBeEqual() {
       // Create entities without persisting (no ID assigned yet)
-      Route route1 = new Route(user, team, "Route 1", "route-1", Visibility.PUBLIC);
-      Route route2 = new Route(user, team, "Route 2", "route-2", Visibility.PUBLIC);
+      Route route1 =
+          new Route(user, team, "Route 1", "route-1", Visibility.PUBLIC, SurfaceType.ROAD);
+      Route route2 =
+          new Route(user, team, "Route 2", "route-2", Visibility.PUBLIC, SurfaceType.ROAD);
 
       assertNull(route1.getId());
       assertNull(route2.getId());
@@ -145,7 +148,8 @@ class BaseEntityEqualsHashCodeTest {
     @DisplayName("Entity with null ID should not equal entity with assigned ID")
     void equals_oneNullId_shouldNotBeEqual() {
       Route persistedRoute = dataService.createRoute(team, user, "Persisted", Visibility.PUBLIC);
-      Route transientRoute = new Route(user, team, "Transient", "transient", Visibility.PUBLIC);
+      Route transientRoute =
+          new Route(user, team, "Transient", "transient", Visibility.PUBLIC, SurfaceType.ROAD);
 
       assertNotNull(persistedRoute.getId());
       assertNull(transientRoute.getId());
@@ -156,7 +160,7 @@ class BaseEntityEqualsHashCodeTest {
     @Test
     @DisplayName("Entity with null ID should equal itself")
     void equals_nullIdSameInstance_shouldBeEqual() {
-      Route route = new Route(user, team, "Route", "route", Visibility.PUBLIC);
+      Route route = new Route(user, team, "Route", "route", Visibility.PUBLIC, SurfaceType.ROAD);
 
       assertNull(route.getId());
       assertEquals(route, route); // Same instance always equals
@@ -213,7 +217,7 @@ class BaseEntityEqualsHashCodeTest {
     @Test
     @DisplayName("HashCode should be same before and after persist")
     void hashCode_beforeAndAfterPersist_shouldBeSame() {
-      Route route = new Route(user, team, "Route", "route", Visibility.PUBLIC);
+      Route route = new Route(user, team, "Route", "route", Visibility.PUBLIC, SurfaceType.ROAD);
       int hashCodeBefore = route.hashCode();
 
       persistRoute(route);
@@ -230,7 +234,7 @@ class BaseEntityEqualsHashCodeTest {
     @Test
     @DisplayName("Entity should be findable in HashSet after persist")
     void hashSet_shouldFindEntityAfterPersist() {
-      Route route = new Route(user, team, "Route", "route", Visibility.PUBLIC);
+      Route route = new Route(user, team, "Route", "route", Visibility.PUBLIC, SurfaceType.ROAD);
       Set<Route> set = new HashSet<>();
 
       set.add(route);
@@ -414,9 +418,12 @@ class BaseEntityEqualsHashCodeTest {
     @Test
     @DisplayName("Multiple transient entities in HashSet should remain distinct")
     void hashSet_multipleTransientEntities_shouldRemainDistinct() {
-      Route route1 = new Route(user, team, "Route 1", "route-1", Visibility.PUBLIC);
-      Route route2 = new Route(user, team, "Route 2", "route-2", Visibility.PUBLIC);
-      Route route3 = new Route(user, team, "Route 3", "route-3", Visibility.PUBLIC);
+      Route route1 =
+          new Route(user, team, "Route 1", "route-1", Visibility.PUBLIC, SurfaceType.ROAD);
+      Route route2 =
+          new Route(user, team, "Route 2", "route-2", Visibility.PUBLIC, SurfaceType.ROAD);
+      Route route3 =
+          new Route(user, team, "Route 3", "route-3", Visibility.PUBLIC, SurfaceType.ROAD);
 
       Set<Route> set = new HashSet<>();
       set.add(route1);

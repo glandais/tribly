@@ -111,12 +111,12 @@ Class | Method | HTTP request | Description
  - [AssetDto](docs/AssetDto.md)
  - [AssetsDto](docs/AssetsDto.md)
  - [ClimbCategory](docs/ClimbCategory.md)
+ - [ClimbDto](docs/ClimbDto.md)
  - [ConfigDto](docs/ConfigDto.md)
  - [ErrorResponse](docs/ErrorResponse.md)
  - [FieldError](docs/FieldError.md)
  - [GeoJsonLineString](docs/GeoJsonLineString.md)
  - [GeoJsonPoint](docs/GeoJsonPoint.md)
- - [GpxTrackDto](docs/GpxTrackDto.md)
  - [GroupRequest](docs/GroupRequest.md)
  - [KeycloakConfig](docs/KeycloakConfig.md)
  - [MapConfig](docs/MapConfig.md)
@@ -138,7 +138,6 @@ Class | Method | HTTP request | Description
  - [RideListResponse](docs/RideListResponse.md)
  - [RideParticipationDto](docs/RideParticipationDto.md)
  - [RideRequest](docs/RideRequest.md)
- - [RouteClimbDto](docs/RouteClimbDto.md)
  - [RouteDetailDto](docs/RouteDetailDto.md)
  - [RouteDto](docs/RouteDto.md)
  - [RouteListResponse](docs/RouteListResponse.md)
@@ -151,6 +150,7 @@ Class | Method | HTTP request | Description
  - [TeamPublicationDto](docs/TeamPublicationDto.md)
  - [TeamRequest](docs/TeamRequest.md)
  - [TeamRole](docs/TeamRole.md)
+ - [TrackDto](docs/TrackDto.md)
  - [TrackPointDto](docs/TrackPointDto.md)
  - [TripDto](docs/TripDto.md)
  - [TripListResponse](docs/TripListResponse.md)
@@ -161,6 +161,7 @@ Class | Method | HTTP request | Description
  - [UpdateUserRequest](docs/UpdateUserRequest.md)
  - [UserDto](docs/UserDto.md)
  - [Visibility](docs/Visibility.md)
+ - [WaypointDto](docs/WaypointDto.md)
 
 
 <a id="documentation-for-authorization"></a>

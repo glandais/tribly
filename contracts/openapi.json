@@ -119,6 +119,41 @@
         "type" : "string",
         "enum" : [ "HC", "CAT1", "CAT2", "CAT3", "CAT4" ]
       },
+      "ClimbDto" : {
+        "description" : "Climb segment information",
+        "type" : "object",
+        "required" : [ "startDistance", "endDistance", "elevationGain", "averageGradient", "maxGradient" ],
+        "properties" : {
+          "startDistance" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Start distance from route start in meters"
+          },
+          "endDistance" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "End distance from route start in meters"
+          },
+          "elevationGain" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Elevation gain in meters"
+          },
+          "averageGradient" : {
+            "type" : "number",
+            "description" : "Average gradient percentage"
+          },
+          "maxGradient" : {
+            "type" : "number",
+            "description" : "Maximum gradient percentage"
+          },
+          "category" : {
+            "description" : "Climb category (HC, 1, 2, 3, 4)",
+            "type" : "string",
+            "$ref" : "#/components/schemas/ClimbCategory"
+          }
+        }
+      },
       "ConfigDto" : {
         "description" : "Application configuration",
         "type" : "object",
@@ -223,29 +258,6 @@
             },
             "description" : "Coordinates [longitude, latitude]",
             "examples" : [ [ 2.3522, 48.8566 ] ]
-          }
-        }
-      },
-      "GpxTrackDto" : {
-        "description" : "GPX track with track points",
-        "type" : "object",
-        "required" : [ "id", "trackPoints" ],
-        "properties" : {
-          "id" : {
-            "type" : "string",
-            "description" : "Track ID (TSID)"
-          },
-          "trackPoints" : {
-            "type" : "array",
-            "items" : {
-              "$ref" : "#/components/schemas/TrackPointDto"
-            },
-            "description" : "List of track points"
-          },
-          "processedAt" : {
-            "description" : "Processing timestamp",
-            "type" : "string",
-            "$ref" : "#/components/schemas/Instant"
           }
         }
       },
@@ -952,53 +964,10 @@
           }
         }
       },
-      "RouteClimbDto" : {
-        "description" : "Climb segment information",
-        "type" : "object",
-        "required" : [ "id", "startDistance", "endDistance", "elevationGain", "averageGradient", "maxGradient" ],
-        "properties" : {
-          "id" : {
-            "type" : "string",
-            "description" : "Climb ID (TSID)"
-          },
-          "name" : {
-            "type" : "string",
-            "description" : "Climb name (if named)"
-          },
-          "startDistance" : {
-            "type" : "integer",
-            "format" : "int32",
-            "description" : "Start distance from route start in meters"
-          },
-          "endDistance" : {
-            "type" : "integer",
-            "format" : "int32",
-            "description" : "End distance from route start in meters"
-          },
-          "elevationGain" : {
-            "type" : "integer",
-            "format" : "int32",
-            "description" : "Elevation gain in meters"
-          },
-          "averageGradient" : {
-            "type" : "number",
-            "description" : "Average gradient percentage"
-          },
-          "maxGradient" : {
-            "type" : "number",
-            "description" : "Maximum gradient percentage"
-          },
-          "category" : {
-            "description" : "Climb category (HC, 1, 2, 3, 4)",
-            "type" : "string",
-            "$ref" : "#/components/schemas/ClimbCategory"
-          }
-        }
-      },
       "RouteDetailDto" : {
         "description" : "Detailed route information",
         "type" : "object",
-        "required" : [ "id", "slug", "name", "media", "distance", "elevationGain", "elevationLoss", "surfaceType", "visibility", "createdBy", "createdAt", "updatedAt", "climbs", "track" ],
+        "required" : [ "id", "slug", "name", "media", "distance", "elevationGain", "elevationLoss", "surfaceType", "visibility", "createdBy", "createdAt", "updatedAt", "tracks", "waypoints" ],
         "properties" : {
           "id" : {
             "type" : "string",
@@ -1065,17 +1034,19 @@
             "type" : "string",
             "$ref" : "#/components/schemas/Instant"
           },
-          "climbs" : {
+          "tracks" : {
             "type" : "array",
             "items" : {
-              "$ref" : "#/components/schemas/RouteClimbDto"
+              "$ref" : "#/components/schemas/TrackDto"
             },
-            "description" : "List of climbs on the route"
+            "description" : "Tracks"
           },
-          "track" : {
-            "description" : "Geometry details",
-            "type" : "object",
-            "$ref" : "#/components/schemas/GpxTrackDto"
+          "waypoints" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/WaypointDto"
+            },
+            "description" : "Waypoints"
           }
         }
       },
@@ -1375,6 +1346,27 @@
       "TeamRole" : {
         "type" : "string",
         "enum" : [ "ADMIN", "ORGANIZER", "MEMBER" ]
+      },
+      "TrackDto" : {
+        "type" : "object",
+        "description" : "GPX track with track points",
+        "required" : [ "trackPoints", "climbs" ],
+        "properties" : {
+          "trackPoints" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/TrackPointDto"
+            },
+            "description" : "List of track points"
+          },
+          "climbs" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ClimbDto"
+            },
+            "description" : "List of climbs on the route"
+          }
+        }
       },
       "TrackPointDto" : {
         "type" : "object",
@@ -1695,12 +1687,28 @@
       "Visibility" : {
         "type" : "string",
         "enum" : [ "TEAM", "PUBLIC" ]
+      },
+      "WaypointDto" : {
+        "type" : "object",
+        "properties" : {
+          "lon" : {
+            "type" : "number",
+            "format" : "double"
+          },
+          "lat" : {
+            "type" : "number",
+            "format" : "double"
+          },
+          "name" : {
+            "type" : "string"
+          }
+        }
       }
     },
     "securitySchemes" : {
       "SecurityScheme" : {
         "type" : "openIdConnect",
-        "openIdConnectUrl" : "http://localhost:8180/realms/quarkus/.well-known/openid-configuration",
+        "openIdConnectUrl" : "http://localhost:8180/realms/tribly/.well-known/openid-configuration",
         "description" : "Authentication"
       }
     }

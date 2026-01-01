@@ -1,6 +1,7 @@
 package com.tribly.infrastructure.exception;
 
 import lombok.Getter;
+import org.jspecify.annotations.Nullable;
 
 @Getter
 public class BusinessException extends RuntimeException {
@@ -8,14 +9,23 @@ public class BusinessException extends RuntimeException {
   private final ErrorType errorType;
   private final String errorCode;
 
-  public BusinessException(String message, ErrorType errorType, String errorCode) {
-    super(message);
+  public BusinessException(
+      String message, ErrorType errorType, String errorCode, @Nullable Throwable cause) {
+    super(message, cause);
     this.errorType = errorType;
     this.errorCode = errorCode;
   }
 
+  public BusinessException(String message, ErrorType errorType, String errorCode) {
+    this(message, errorType, errorCode, null);
+  }
+
+  public BusinessException(String message, ErrorType errorType, @Nullable Throwable cause) {
+    this(message, errorType, errorType.name(), cause);
+  }
+
   public BusinessException(String message, ErrorType errorType) {
-    this(message, errorType, errorType.name());
+    this(message, errorType, errorType.name(), null);
   }
 
   public enum ErrorType {
@@ -46,6 +56,10 @@ public class BusinessException extends RuntimeException {
 
   public static BusinessException conflict(String message) {
     return new BusinessException(message, ErrorType.CONFLICT);
+  }
+
+  public static BusinessException conflict(String message, Throwable cause) {
+    return new BusinessException(message, ErrorType.CONFLICT, cause);
   }
 
   public static BusinessException conflict(String message, String errorCode) {

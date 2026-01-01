@@ -124,6 +124,36 @@ export const ClimbCategory = {
 export type ClimbCategory = (typeof ClimbCategory)[keyof typeof ClimbCategory]
 
 /**
+ * Climb segment information
+ */
+export interface ClimbDto {
+  /**
+   * Start distance from route start in meters
+   */
+  startDistance: number
+  /**
+   * End distance from route start in meters
+   */
+  endDistance: number
+  /**
+   * Elevation gain in meters
+   */
+  elevationGain: number
+  /**
+   * Average gradient percentage
+   */
+  averageGradient: number
+  /**
+   * Maximum gradient percentage
+   */
+  maxGradient: number
+  /**
+   * Climb category (HC, 1, 2, 3, 4)
+   */
+  category?: ClimbCategory
+}
+
+/**
  * Application configuration
  */
 export interface ConfigDto {
@@ -199,20 +229,6 @@ export const GeoJsonPointTypeEnum = {
 
 export type GeoJsonPointTypeEnum = (typeof GeoJsonPointTypeEnum)[keyof typeof GeoJsonPointTypeEnum]
 
-/**
- * GPX track with track points
- */
-export interface GpxTrackDto {
-  /**
-   * Track ID (TSID)
-   */
-  id: string
-  /**
-   * List of track points
-   */
-  trackPoints: Array<TrackPointDto>
-  processedAt?: string
-}
 /**
  * Ride group creation request
  */
@@ -694,44 +710,6 @@ export interface RideRequest {
 }
 
 /**
- * Climb segment information
- */
-export interface RouteClimbDto {
-  /**
-   * Climb ID (TSID)
-   */
-  id: string
-  /**
-   * Climb name (if named)
-   */
-  name?: string
-  /**
-   * Start distance from route start in meters
-   */
-  startDistance: number
-  /**
-   * End distance from route start in meters
-   */
-  endDistance: number
-  /**
-   * Elevation gain in meters
-   */
-  elevationGain: number
-  /**
-   * Average gradient percentage
-   */
-  averageGradient: number
-  /**
-   * Maximum gradient percentage
-   */
-  maxGradient: number
-  /**
-   * Climb category (HC, 1, 2, 3, 4)
-   */
-  category?: ClimbCategory
-}
-
-/**
  * Detailed route information
  */
 export interface RouteDetailDto {
@@ -780,13 +758,13 @@ export interface RouteDetailDto {
   createdAt: string
   updatedAt: string
   /**
-   * List of climbs on the route
+   * Tracks
    */
-  climbs: Array<RouteClimbDto>
+  tracks: Array<TrackDto>
   /**
-   * Geometry details
+   * Waypoints
    */
-  track: GpxTrackDto
+  waypoints: Array<WaypointDto>
 }
 
 /**
@@ -1036,6 +1014,19 @@ export const TeamRole = {
 export type TeamRole = (typeof TeamRole)[keyof typeof TeamRole]
 
 /**
+ * GPX track with track points
+ */
+export interface TrackDto {
+  /**
+   * List of track points
+   */
+  trackPoints: Array<TrackPointDto>
+  /**
+   * List of climbs on the route
+   */
+  climbs: Array<ClimbDto>
+}
+/**
  * GPS track point
  */
 export interface TrackPointDto {
@@ -1263,6 +1254,12 @@ export const Visibility = {
 } as const
 
 export type Visibility = (typeof Visibility)[keyof typeof Visibility]
+
+export interface WaypointDto {
+  lon?: number
+  lat?: number
+  name?: string
+}
 
 /**
  * AssetsApi - axios parameter creator

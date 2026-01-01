@@ -16,7 +16,7 @@ import {
   TooltipItem,
   Plugin,
 } from 'chart.js'
-import type { RouteDetailDto, TrackPointDto, RouteClimbDto } from '../../api/api'
+import type { RouteDetailDto, TrackPointDto, ClimbDto } from '../../api/api'
 import 'leaflet/dist/leaflet.css'
 
 // Register Chart.js components
@@ -49,7 +49,7 @@ function getColorFromGradient(gradient: number): string {
 }
 
 // Determine if a point is in a climb and get its gradient
-function getPointClimbGradient(point: TrackPointDto, climbs: RouteClimbDto[]): number {
+function getPointClimbGradient(point: TrackPointDto, climbs: ClimbDto[]): number {
   for (const climb of climbs) {
     if (point.dist >= climb.startDistance && point.dist <= climb.endDistance) {
       return climb.averageGradient
@@ -81,6 +81,17 @@ const createHoverIcon = () =>
     html: '<div class="w-4 h-4 bg-blue-500 border-2 border-white rounded-full shadow-lg"></div>',
     iconSize: [16, 16],
     iconAnchor: [8, 8],
+  })
+
+const createWaypointIcon = (name?: string) =>
+  new DivIcon({
+    className: '',
+    html: `<div class="flex items-center">
+      <div class="w-5 h-5 bg-amber-500 border-2 border-white rounded-full shadow-lg"></div>
+      ${name ? `<span class="ml-1 px-1 bg-white/90 rounded text-xs font-medium shadow-sm whitespace-nowrap">${name}</span>` : ''}
+    </div>`,
+    iconSize: [20, 20],
+    iconAnchor: [10, 10],
   })
 
 // Crosshair plugin for Chart.js
@@ -199,8 +210,10 @@ export function RouteMapView({ route }: RouteMapViewProps) {
   const [hoveredPointIndex, setHoveredPointIndex] = useState<number>(-1)
   const chartRef = useRef<ChartJS<'line'>>(null)
 
-  const trackPoints = route.track?.trackPoints || []
-  const climbs = route.climbs || []
+  // Flatten all track points and climbs from multiple tracks
+  const trackPoints = route.tracks?.flatMap((track) => track.trackPoints) || []
+  const climbs = route.tracks?.flatMap((track) => track.climbs) || []
+  const waypoints = route.waypoints || []
 
   // Calculate colors for each segment based on climbs
   const segmentColors = trackPoints.map((point) => {
@@ -308,7 +321,6 @@ export function RouteMapView({ route }: RouteMapViewProps) {
               if (point.dist >= climb.startDistance && point.dist <= climb.endDistance) {
                 return [
                   '',
-                  `Climb: ${climb.name || 'Unnamed'}`,
                   `${Math.round(climb.elevationGain)}m / ${((climb.endDistance - climb.startDistance) / 1000).toFixed(1)}km`,
                   `Avg: ${climb.averageGradient.toFixed(1)}% | Max: ${climb.maxGradient.toFixed(1)}%`,
                 ]
@@ -430,6 +442,19 @@ export function RouteMapView({ route }: RouteMapViewProps) {
             ]}
             icon={createEndIcon()}
           />
+
+          {/* Waypoint markers */}
+          {waypoints.map(
+            (waypoint, index) =>
+              waypoint.lat &&
+              waypoint.lon && (
+                <Marker
+                  key={`waypoint-${index}`}
+                  position={[waypoint.lat, waypoint.lon]}
+                  icon={createWaypointIcon(waypoint.name)}
+                />
+              )
+          )}
 
           {/* Hovered point marker */}
           {hoveredPoint && (

@@ -12,13 +12,13 @@ docs/AssetDto.md
 docs/AssetsApi.md
 docs/AssetsDto.md
 docs/ClimbCategory.md
+docs/ClimbDto.md
 docs/ConfigDto.md
 docs/ConfigurationApi.md
 docs/ErrorResponse.md
 docs/FieldError.md
 docs/GeoJsonLineString.md
 docs/GeoJsonPoint.md
-docs/GpxTrackDto.md
 docs/GroupRequest.md
 docs/KeycloakConfig.md
 docs/MapConfig.md
@@ -44,7 +44,6 @@ docs/RideListResponse.md
 docs/RideParticipationDto.md
 docs/RideRequest.md
 docs/RidesApi.md
-docs/RouteClimbDto.md
 docs/RouteDetailDto.md
 docs/RouteDto.md
 docs/RouteListResponse.md
@@ -60,6 +59,7 @@ docs/TeamPublicationDto.md
 docs/TeamRequest.md
 docs/TeamRole.md
 docs/TeamsApi.md
+docs/TrackDto.md
 docs/TrackPointDto.md
 docs/TripDto.md
 docs/TripListResponse.md
@@ -72,6 +72,7 @@ docs/UpdateUserRequest.md
 docs/UserDto.md
 docs/UsersApi.md
 docs/Visibility.md
+docs/WaypointDto.md
 git_push.sh
 index.ts
 package.json

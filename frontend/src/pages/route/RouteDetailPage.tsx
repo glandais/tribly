@@ -211,65 +211,70 @@ export function RouteDetailPage() {
       </div>
 
       {/* Climbs Section */}
-      {route.climbs && route.climbs.length > 0 && (
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">
-            {t('detail.climbs.title')} ({route.climbs.length})
-          </h2>
-          <div className="space-y-4">
-            {route.climbs.map((climb, index) => (
-              <div
-                key={climb.id}
-                className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
-              >
-                <div className="flex items-start justify-between mb-2">
-                  <div>
-                    <h3 className="font-semibold text-gray-900">
-                      {climb.name || t('detail.climbs.unnamed', { number: index + 1 })}
-                    </h3>
-                    <p className="text-sm text-gray-600">
-                      {t('detail.climbs.distance', {
-                        start: (climb.startDistance / 1000).toFixed(1),
-                        end: (climb.endDistance / 1000).toFixed(1),
-                      })}
-                    </p>
-                  </div>
-                  {climb.category && (
-                    <span
-                      className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getClimbCategoryColor(climb.category)}`}
-                    >
-                      {t(
-                        `climbCategory.${climb.category satisfies 'HC' | 'CAT1' | 'CAT2' | 'CAT3' | 'CAT4'}`
+      {(() => {
+        const allClimbs = route.tracks?.flatMap((track) => track.climbs) || []
+        return (
+          allClimbs.length > 0 && (
+            <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
+              <h2 className="text-xl font-bold text-gray-900 mb-4">
+                {t('detail.climbs.title')} ({allClimbs.length})
+              </h2>
+              <div className="space-y-4">
+                {allClimbs.map((climb, index) => (
+                  <div
+                    key={index}
+                    className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <div>
+                        <h3 className="font-semibold text-gray-900">
+                          {t('detail.climbs.unnamed', { number: index + 1 })}
+                        </h3>
+                        <p className="text-sm text-gray-600">
+                          {t('detail.climbs.distance', {
+                            start: (climb.startDistance / 1000).toFixed(1),
+                            end: (climb.endDistance / 1000).toFixed(1),
+                          })}
+                        </p>
+                      </div>
+                      {climb.category && (
+                        <span
+                          className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getClimbCategoryColor(climb.category)}`}
+                        >
+                          {t(
+                            `climbCategory.${climb.category satisfies 'HC' | 'CAT1' | 'CAT2' | 'CAT3' | 'CAT4'}`
+                          )}
+                        </span>
                       )}
-                    </span>
-                  )}
-                </div>
-                <div className="grid grid-cols-3 gap-4 text-sm">
-                  <div>
-                    <span className="text-gray-500">{t('detail.climbs.gain')}: </span>
-                    <span className="font-medium text-gray-900">
-                      {climb.elevationGain}
-                      {tCommon('units.m')}
-                    </span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-4 text-sm">
+                      <div>
+                        <span className="text-gray-500">{t('detail.climbs.gain')}: </span>
+                        <span className="font-medium text-gray-900">
+                          {climb.elevationGain}
+                          {tCommon('units.m')}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-gray-500">{t('detail.climbs.avgGradient')}: </span>
+                        <span className="font-medium text-gray-900">
+                          {climb.averageGradient.toFixed(1)}%
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-gray-500">{t('detail.climbs.maxGradient')}: </span>
+                        <span className="font-medium text-gray-900">
+                          {climb.maxGradient.toFixed(1)}%
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <span className="text-gray-500">{t('detail.climbs.avgGradient')}: </span>
-                    <span className="font-medium text-gray-900">
-                      {climb.averageGradient.toFixed(1)}%
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-gray-500">{t('detail.climbs.maxGradient')}: </span>
-                    <span className="font-medium text-gray-900">
-                      {climb.maxGradient.toFixed(1)}%
-                    </span>
-                  </div>
-                </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </div>
-      )}
+            </div>
+          )
+        )
+      })()}
 
       {/* Download Section */}
       <div className="bg-white rounded-lg shadow-sm p-6">

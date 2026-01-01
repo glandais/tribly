@@ -141,12 +141,13 @@ export function RoutesMapView({
         try {
           // Fetch route details from API using the generated API client
           const routeDetail = await unwrapResponse(routesApi.getRoute(item.routeSlug, teamSlug))
-          if (routeDetail.track && routeDetail.track.trackPoints) {
+          const trackPoints = routeDetail.tracks?.flatMap((track) => track.trackPoints) || []
+          if (trackPoints.length > 0) {
             routes.push({
               itemId: item.id,
               itemName: item.name,
               color: ROUTE_COLORS[i % ROUTE_COLORS.length],
-              trackPoints: routeDetail.track.trackPoints,
+              trackPoints,
               distance: routeDetail.distance,
               elevationGain: routeDetail.elevationGain,
             })

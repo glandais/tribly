@@ -94,7 +94,8 @@ public class UserAvatarService {
     }
 
     // Update user with new avatar URL
-    String avatarUrl = "/api/download/public/avatars/" + TsidUtils.toString(fileId) + "/" + AVATAR_SIZE;
+    String avatarUrl =
+        "/api/download/public/avatars/" + TsidUtils.toString(fileId) + "/" + AVATAR_SIZE;
     user.setAvatarUrl(avatarUrl);
     userRepository.persist(user);
 

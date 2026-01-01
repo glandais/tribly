@@ -103,6 +103,38 @@ components:
       - CAT2
       - CAT3
       - CAT4
+    ClimbDto:
+      description: Climb segment information
+      type: object
+      required:
+      - startDistance
+      - endDistance
+      - elevationGain
+      - averageGradient
+      - maxGradient
+      properties:
+        startDistance:
+          type: integer
+          format: int32
+          description: Start distance from route start in meters
+        endDistance:
+          type: integer
+          format: int32
+          description: End distance from route start in meters
+        elevationGain:
+          type: integer
+          format: int32
+          description: Elevation gain in meters
+        averageGradient:
+          type: number
+          description: Average gradient percentage
+        maxGradient:
+          type: number
+          description: Maximum gradient percentage
+        category:
+          description: "Climb category (HC, 1, 2, 3, 4)"
+          type: string
+          $ref: "#/components/schemas/ClimbCategory"
     ConfigDto:
       description: Application configuration
       type: object
@@ -197,25 +229,6 @@ components:
           examples:
           - - 2.3522
             - 48.8566
-    GpxTrackDto:
-      description: GPX track with track points
-      type: object
-      required:
-      - id
-      - trackPoints
-      properties:
-        id:
-          type: string
-          description: Track ID (TSID)
-        trackPoints:
-          type: array
-          items:
-            $ref: "#/components/schemas/TrackPointDto"
-          description: List of track points
-        processedAt:
-          description: Processing timestamp
-          type: string
-          $ref: "#/components/schemas/Instant"
     GroupRequest:
       description: Ride group creation request
       type: object
@@ -844,45 +857,6 @@ components:
           items:
             $ref: "#/components/schemas/GroupRequest"
           description: Ride groups to create
-    RouteClimbDto:
-      description: Climb segment information
-      type: object
-      required:
-      - id
-      - startDistance
-      - endDistance
-      - elevationGain
-      - averageGradient
-      - maxGradient
-      properties:
-        id:
-          type: string
-          description: Climb ID (TSID)
-        name:
-          type: string
-          description: Climb name (if named)
-        startDistance:
-          type: integer
-          format: int32
-          description: Start distance from route start in meters
-        endDistance:
-          type: integer
-          format: int32
-          description: End distance from route start in meters
-        elevationGain:
-          type: integer
-          format: int32
-          description: Elevation gain in meters
-        averageGradient:
-          type: number
-          description: Average gradient percentage
-        maxGradient:
-          type: number
-          description: Maximum gradient percentage
-        category:
-          description: "Climb category (HC, 1, 2, 3, 4)"
-          type: string
-          $ref: "#/components/schemas/ClimbCategory"
     RouteDetailDto:
       description: Detailed route information
       type: object
@@ -899,8 +873,8 @@ components:
       - createdBy
       - createdAt
       - updatedAt
-      - climbs
-      - track
+      - tracks
+      - waypoints
       properties:
         id:
           type: string
@@ -953,15 +927,16 @@ components:
           description: Last update timestamp
           type: string
           $ref: "#/components/schemas/Instant"
-        climbs:
+        tracks:
           type: array
           items:
-            $ref: "#/components/schemas/RouteClimbDto"
-          description: List of climbs on the route
-        track:
-          description: Geometry details
-          type: object
-          $ref: "#/components/schemas/GpxTrackDto"
+            $ref: "#/components/schemas/TrackDto"
+          description: Tracks
+        waypoints:
+          type: array
+          items:
+            $ref: "#/components/schemas/WaypointDto"
+          description: Waypoints
     RouteDto:
       description: Route summary data
       type: object
@@ -1250,6 +1225,23 @@ components:
       - ADMIN
       - ORGANIZER
       - MEMBER
+    TrackDto:
+      type: object
+      description: GPX track with track points
+      required:
+      - trackPoints
+      - climbs
+      properties:
+        trackPoints:
+          type: array
+          items:
+            $ref: "#/components/schemas/TrackPointDto"
+          description: List of track points
+        climbs:
+          type: array
+          items:
+            $ref: "#/components/schemas/ClimbDto"
+          description: List of climbs on the route
     TrackPointDto:
       type: object
       description: GPS track point
@@ -1540,10 +1532,21 @@ components:
       enum:
       - TEAM
       - PUBLIC
+    WaypointDto:
+      type: object
+      properties:
+        lon:
+          type: number
+          format: double
+        lat:
+          type: number
+          format: double
+        name:
+          type: string
   securitySchemes:
     SecurityScheme:
       type: openIdConnect
-      openIdConnectUrl: http://localhost:8180/realms/quarkus/.well-known/openid-configuration
+      openIdConnectUrl: http://localhost:8180/realms/tribly/.well-known/openid-configuration
       description: Authentication
 tags:
 - name: Assets

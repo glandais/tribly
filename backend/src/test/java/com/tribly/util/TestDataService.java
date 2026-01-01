@@ -14,9 +14,6 @@ import com.tribly.domain.ride.repository.RideParticipationRepository;
 import com.tribly.domain.ride.repository.RideRepository;
 import com.tribly.domain.route.GpxTrack;
 import com.tribly.domain.route.Route;
-import com.tribly.domain.route.RouteClimb;
-import com.tribly.domain.route.repository.GpxTrackRepository;
-import com.tribly.domain.route.repository.RouteClimbRepository;
 import com.tribly.domain.route.repository.RouteRepository;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.team.UserTeam;
@@ -32,12 +29,12 @@ import com.tribly.domain.user.User;
 import com.tribly.domain.user.repository.UserRepository;
 import com.tribly.enums.*;
 import com.tribly.service.common.SlugService;
+import io.github.glandais.gpx.climb.Climbs;
 import io.hypersistence.tsid.TSID;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.core.MediaType;
-import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import org.geolatte.geom.G2D;
@@ -55,8 +52,6 @@ public class TestDataService {
   @Inject RideGroupRepository rideGroupRepository;
   @Inject RideParticipationRepository participationRepository;
   @Inject RouteRepository routeRepository;
-  @Inject RouteClimbRepository routeClimbRepository;
-  @Inject GpxTrackRepository gpxTrackRepository;
 
   @Transactional
   public User createUser(String email, String displayName) {
@@ -208,11 +203,13 @@ public class TestDataService {
       Visibility visibility,
       String geometry,
       List<GpxTrack.TrackPoint> trackPoints) {
-    Route route = new Route(createdBy, team, name, SlugService.slugify(name), visibility);
-    routeRepository.persistAndFlush(route);
     LineString<G2D> lineString = (LineString<G2D>) Wkt.fromWkt(geometry, WGS84);
-    GpxTrack track = new GpxTrack(createdBy, route, lineString, trackPoints, Instant.now());
-    gpxTrackRepository.persistAndFlush(track);
+    GpxTrack track =
+        new GpxTrack(createdBy, name, lineString, trackPoints, new Climbs(), 10, 10, 10);
+    Route route =
+        new Route(createdBy, team, name, SlugService.slugify(name), visibility, SurfaceType.ROAD);
+    route.addTrack(track);
+    routeRepository.persistAndFlush(route);
     return route;
   }
 
@@ -227,7 +224,13 @@ public class TestDataService {
       @Nullable String markdown) {
     List<GpxTrack.TrackPoint> trackPoints = List.of(new GpxTrack.TrackPoint(45.0, 6.0, 500.0, 0.0));
     String geometry = "LINESTRING(6 45,6.1 45.1)";
-    Route route = new Route(createdBy, team, name, SlugService.slugify(name), visibility);
+    LineString<G2D> lineString = (LineString<G2D>) Wkt.fromWkt(geometry, WGS84);
+    GpxTrack track =
+        new GpxTrack(createdBy, name, lineString, trackPoints, new Climbs(), 10, 10, 10);
+
+    Route route =
+        new Route(createdBy, team, name, SlugService.slugify(name), visibility, SurfaceType.ROAD);
+    route.addTrack(track);
     route.setStatus(status);
     if (dateTime != null) {
       route.setDateTime(dateTime);
@@ -236,9 +239,6 @@ public class TestDataService {
       route.setMarkdown(markdown);
     }
     routeRepository.persistAndFlush(route);
-    LineString<G2D> lineString = (LineString<G2D>) Wkt.fromWkt(geometry, WGS84);
-    GpxTrack track = new GpxTrack(createdBy, route, lineString, trackPoints, Instant.now());
-    gpxTrackRepository.persistAndFlush(track);
     return route;
   }
 
@@ -268,59 +268,6 @@ public class TestDataService {
   @Transactional
   public Team updateTeam(Team team) {
     return teamRepository.getEntityManager().merge(team);
-  }
-
-  @Transactional
-  public RouteClimb createRouteClimb(
-      User createdBy,
-      Route route,
-      Integer startDistance,
-      Integer endDistance,
-      Integer elevationGain,
-      BigDecimal averageGradient,
-      BigDecimal maxGradient) {
-    return createRouteClimb(
-        createdBy,
-        route,
-        null,
-        startDistance,
-        endDistance,
-        elevationGain,
-        averageGradient,
-        maxGradient,
-        null);
-  }
-
-  @Transactional
-  public RouteClimb createRouteClimb(
-      User createdBy,
-      Route route,
-      @Nullable String name,
-      Integer startDistance,
-      Integer endDistance,
-      Integer elevationGain,
-      BigDecimal averageGradient,
-      BigDecimal maxGradient,
-      @Nullable ClimbCategory category) {
-    RouteClimb climb =
-        new RouteClimb(
-            createdBy,
-            route,
-            startDistance,
-            endDistance,
-            elevationGain,
-            averageGradient,
-            maxGradient);
-    climb.setName(name);
-    climb.setCategory(category);
-    routeClimbRepository.persistAndFlush(climb);
-    return climb;
-  }
-
-  @Transactional
-  public void deleteRouteClimb(RouteClimb climb) {
-    climb.setDeleted(true);
-    routeClimbRepository.getEntityManager().merge(climb);
   }
 
   @Inject PlaceRepository placeRepository;

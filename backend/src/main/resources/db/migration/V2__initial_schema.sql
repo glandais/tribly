@@ -20,16 +20,33 @@ create table assets (
 
 create table gpx_tracks (
                             deleted boolean not null,
+                            distance integer not null,
+                            elevation_gain integer not null,
+                            elevation_loss integer not null,
                             created_at timestamp(6) with time zone not null,
                             created_by_id bigint not null,
                             id bigint not null,
-                            processed_at timestamp(6) with time zone not null,
                             route_id bigint not null,
                             updated_at timestamp(6) with time zone not null,
                             version bigint,
+                            name varchar(255) not null,
+                            climbs jsonb not null,
                             geometry geometry(LineString,4326) not null,
                             track_points jsonb not null,
                             primary key (id)
+);
+
+create table gpx_waypoints (
+                               deleted boolean not null,
+                               created_at timestamp(6) with time zone not null,
+                               created_by_id bigint not null,
+                               id bigint not null,
+                               route_id bigint not null,
+                               updated_at timestamp(6) with time zone not null,
+                               version bigint,
+                               name varchar(255) not null,
+                               geometry geometry(Point,4326) not null,
+                               primary key (id)
 );
 
 create table places (
@@ -79,30 +96,12 @@ create table ride_participations (
                                      unique (ride_group_id, user_id)
 );
 
-create table route_climbs (
-                              average_gradient numeric(5,2) not null,
-                              deleted boolean not null,
-                              elevation_gain integer not null,
-                              end_distance integer not null,
-                              max_gradient numeric(5,2) not null,
-                              start_distance integer not null,
-                              created_at timestamp(6) with time zone not null,
-                              created_by_id bigint not null,
-                              id bigint not null,
-                              route_id bigint not null,
-                              updated_at timestamp(6) with time zone not null,
-                              version bigint,
-                              category varchar(10) check ((category in ('HC','CAT1','CAT2','CAT3','CAT4'))),
-                              name varchar(255),
-                              primary key (id)
-);
-
 create table team_entities (
                                deleted boolean not null,
                                distance integer,
                                elevation_gain integer,
                                elevation_loss integer,
-                               entity_type integer not null check ((entity_type in (1,5,3,4,2,6))),
+                               entity_type integer not null check ((entity_type in (1,3,5,4,6,2))),
                                sort_order integer,
                                created_at timestamp(6) with time zone not null,
                                created_by_id bigint not null,
@@ -236,6 +235,16 @@ alter table if exists gpx_tracks
     foreign key (route_id)
     references team_entities;
 
+alter table if exists gpx_waypoints
+    add constraint FKe5qntgukwly8p449erk45inef
+    foreign key (created_by_id)
+    references users;
+
+alter table if exists gpx_waypoints
+    add constraint FK5cv6u4vigp9if7mvs8utt07m4
+    foreign key (route_id)
+    references team_entities;
+
 alter table if exists places
     add constraint FKt5u395u1lpaabeikbk3lbbvud
     foreign key (created_by_id)
@@ -275,16 +284,6 @@ alter table if exists ride_participations
     add constraint FKfs60sriol494mpo27wwxhrmrn
     foreign key (user_id)
     references users;
-
-alter table if exists route_climbs
-    add constraint FKcd638rg8p0klb8kwdkbwlwycj
-    foreign key (created_by_id)
-    references users;
-
-alter table if exists route_climbs
-    add constraint FKec6cy9j9x23tkh1wdur18y197
-    foreign key (route_id)
-    references team_entities;
 
 alter table if exists team_entities
     add constraint FKdrfmubd9rkuh74qb5huontpaq

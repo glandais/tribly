@@ -8,6 +8,8 @@ import com.tribly.enums.SurfaceType;
 import com.tribly.enums.Visibility;
 import jakarta.persistence.*;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -46,7 +48,30 @@ public class Route extends TeamEntity {
   @NotNullableDbValue
   private Point<G2D> end;
 
-  public Route(User createdBy, Team team, String name, String slug, Visibility visibility) {
+  @OneToMany(mappedBy = "route", cascade = CascadeType.ALL, orphanRemoval = true)
+  private List<GpxTrack> tracks = new ArrayList<>();
+
+  @OneToMany(mappedBy = "route", cascade = CascadeType.ALL, orphanRemoval = true)
+  private List<GpxWaypoint> waypoints = new ArrayList<>();
+
+  public Route(
+      User createdBy,
+      Team team,
+      String name,
+      String slug,
+      Visibility visibility,
+      SurfaceType surfaceType) {
     super(createdBy, team, Instant.now(), name, slug, visibility);
+    this.surfaceType = surfaceType;
+  }
+
+  public void addTrack(GpxTrack track) {
+    tracks.add(track);
+    track.setRoute(this);
+  }
+
+  public void addWaypoint(GpxWaypoint waypoint) {
+    waypoints.add(waypoint);
+    waypoint.setRoute(this);
   }
 }

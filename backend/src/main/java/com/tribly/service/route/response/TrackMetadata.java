@@ -6,5 +6,5 @@ import org.geolatte.geom.Point;
 /**
  * Extracted route metadata from GPX.
  */
-public record RouteMetadata(
+public record TrackMetadata(
     int distance, int elevationGain, int elevationLoss, Point<G2D> start, Point<G2D> end) {}

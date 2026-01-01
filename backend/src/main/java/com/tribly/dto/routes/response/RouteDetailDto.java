@@ -1,8 +1,6 @@
 package com.tribly.dto.routes.response;
 
-import com.tribly.domain.route.GpxTrack;
 import com.tribly.domain.route.Route;
-import com.tribly.domain.route.RouteClimb;
 import com.tribly.dto.common.response.GeoJsonPoint;
 import com.tribly.dto.common.response.MediaDto;
 import com.tribly.dto.users.response.PublicUserDto;
@@ -37,13 +35,9 @@ public record RouteDetailDto(
     @Schema(description = "Creator user", required = true) PublicUserDto createdBy,
     @Schema(description = "Creation timestamp", required = true) Instant createdAt,
     @Schema(description = "Last update timestamp", required = true) Instant updatedAt,
-    @Schema(description = "List of climbs on the route", required = true)
-        List<RouteClimbDto> climbs,
-    @Schema(description = "Geometry details", required = true) GpxTrackDto track) {
-  public static RouteDetailDto from(
-      Route route, List<RouteClimb> climbs, GpxTrack track, AssetService assetService) {
-    List<RouteClimbDto> routeClimbDtos = climbs.stream().map(RouteClimbDto::from).toList();
-
+    @Schema(description = "Tracks", required = true) List<TrackDto> tracks,
+    @Schema(description = "Waypoints", required = true) List<WaypointDto> waypoints) {
+  public static RouteDetailDto from(Route route, AssetService assetService) {
     return new RouteDetailDto(
         TsidUtils.toString(route.getId()),
         route.getSlug(),
@@ -59,7 +53,7 @@ public record RouteDetailDto(
         PublicUserDto.from(route.getCreatedBy()),
         route.getCreatedAt(),
         route.getUpdatedAt(),
-        routeClimbDtos,
-        GpxTrackDto.from(track));
+        route.getTracks().stream().map(TrackDto::from).toList(),
+        route.getWaypoints().stream().map(WaypointDto::from).toList());
   }
 }

@@ -19,7 +19,6 @@ import com.tribly.util.TestDataService;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import java.io.InputStream;
-import java.math.BigDecimal;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -161,23 +160,7 @@ class RouteServiceTest {
 
     assertNotNull(result);
     assertEquals("Detailed Route", result.name());
-    assertNotNull(result.track());
-    assertNotNull(result.climbs());
-  }
-
-  @Test
-  void getRouteDetail_shouldReturnRouteWithClimbs() {
-    Route route = dataService.createRoute(team, admin, "Route With Climbs", Visibility.PUBLIC);
-    dataService.createRouteClimb(
-        admin, route, 0, 1000, 100, BigDecimal.valueOf(10.0), BigDecimal.valueOf(15.0));
-    dataService.createRouteClimb(
-        admin, route, 2000, 3000, 150, BigDecimal.valueOf(15.0), BigDecimal.valueOf(20.0));
-
-    RouteDetailDto result =
-        routeService.getRouteDetail("test-team", route.getSlug(), member.getId());
-
-    assertNotNull(result);
-    assertEquals(2, result.climbs().size());
+    assertNotNull(result.tracks());
   }
 
   @Test

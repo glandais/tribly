@@ -1,10 +1,13 @@
 package com.tribly.domain.route;
 
 import com.tribly.domain.common.BaseEntity;
+import com.tribly.domain.common.NotNullableDbValue;
 import com.tribly.domain.user.User;
+import io.github.glandais.gpx.climb.Climb;
 import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.*;
-import java.time.Instant;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import java.util.List;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -28,31 +31,51 @@ public class GpxTrack extends BaseEntity {
   @JoinColumn(name = "route_id", nullable = false)
   private Route route;
 
+  @NotBlank
+  @Size(max = 255)
+  @Column(name = "name", nullable = false)
+  protected String name;
+
   @Column(name = "geometry", columnDefinition = "geometry(LineString,4326)", nullable = false)
   private LineString<G2D> geometry;
 
-  /**
-   * Simplified track points stored as JSONB for efficient frontend consumption.
-   * Contains lat, lng, elevation, and cumulative distance for each point.
-   */
   @Type(JsonBinaryType.class)
   @Column(name = "track_points", columnDefinition = "jsonb", nullable = false)
   private List<TrackPoint> trackPoints;
 
-  @Column(name = "processed_at", nullable = false)
-  private Instant processedAt;
+  @Type(JsonBinaryType.class)
+  @Column(name = "climbs", columnDefinition = "jsonb", nullable = false)
+  private List<Climb> climbs;
+
+  @Column(name = "distance", nullable = false)
+  @NotNullableDbValue
+  private Integer distance;
+
+  @Column(name = "elevation_gain", nullable = false)
+  @NotNullableDbValue
+  private Integer elevationGain;
+
+  @Column(name = "elevation_loss", nullable = false)
+  @NotNullableDbValue
+  private Integer elevationLoss;
 
   public GpxTrack(
       User createdBy,
-      Route route,
+      String name,
       LineString<G2D> geometry,
       List<TrackPoint> trackPoints,
-      Instant processedAt) {
+      List<Climb> climbs,
+      int distance,
+      int elevationGain,
+      int elevationLoss) {
     super(createdBy);
-    this.route = route;
+    this.name = name;
     this.geometry = geometry;
     this.trackPoints = trackPoints;
-    this.processedAt = processedAt;
+    this.climbs = climbs;
+    this.distance = distance;
+    this.elevationGain = elevationGain;
+    this.elevationLoss = elevationLoss;
   }
 
   /**

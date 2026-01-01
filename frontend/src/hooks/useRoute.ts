@@ -6,9 +6,10 @@ import { useNotificationStore } from '../store/notificationStore'
 import type {
   RouteDto,
   RouteDetailDto,
-  RouteClimbDto,
+  ClimbDto,
   TrackPointDto,
-  GpxTrackDto,
+  TrackDto,
+  WaypointDto,
   RouteListResponse,
   RouteRequest,
 } from '../api/api'
@@ -18,9 +19,10 @@ import { SurfaceType } from '../api/api'
 export type {
   RouteDto,
   RouteDetailDto,
-  RouteClimbDto,
+  ClimbDto,
   TrackPointDto,
-  GpxTrackDto,
+  TrackDto,
+  WaypointDto,
   RouteListResponse,
   RouteRequest,
 }

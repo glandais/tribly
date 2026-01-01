@@ -21,17 +21,29 @@ public class UserSyncService {
 
   @Transactional
   public UserDto syncUser(@Nullable Long userId, JsonWebToken jwt) {
-    User user;
     if (userId == null) {
       String email = jwt.getClaim("email");
       // User not synced yet - extract from JWT and sync
       String displayName = extractDisplayName(jwt);
-      user = new User(email, displayName);
+      return createUser(email, displayName);
     } else {
-      user = userRepository.findById(userId);
+      return updateUser(userId);
     }
+  }
+
+  private UserDto updateUser(Long userId) {
+    User user = userRepository.findById(userId);
     user.recordLogin();
     userRepository.persistAndFlush(user);
+    return UserDto.from(user);
+  }
+
+  private UserDto createUser(String email, String displayName) {
+    User user;
+    user = new User(email, displayName);
+    user.recordLogin();
+    userRepository.persistAndFlush(user);
+    // FIXME create user private team
     return UserDto.from(user);
   }
 
