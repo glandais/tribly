@@ -45,7 +45,7 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
   const tabs = [
     {
       id: 'publications',
-      path: `/teams/${team.slug}/publications`,
+      path: `/teams/${team.slug}`,
       label: t('detail.tabs.publications'),
     },
     { id: 'rides', path: `/teams/${team.slug}/rides`, label: t('detail.tabs.rides') },

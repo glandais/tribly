@@ -9,7 +9,6 @@ import { UserProfilePage } from './pages/auth/UserProfilePage'
 import { AuthenticatedRoute, UnauthenticatedRoute } from './components/auth/ProtectedRoute'
 import { TeamListPage } from './pages/team/TeamListPage'
 import { MyTeamsPage } from './pages/team/MyTeamsPage'
-import { TeamDetailPage } from './pages/team/TeamDetailPage'
 import { TeamMembersPage } from './pages/team/TeamMembersPage'
 import { CreateTeamPage } from './pages/team/CreateTeamPage'
 import { TeamSettingsPage } from './pages/team/TeamSettingsPage'
@@ -124,7 +123,7 @@ function App() {
                 </AuthenticatedRoute>
               }
             />
-            <Route path="teams/:teamSlug" element={<TeamDetailPage />} />
+            <Route path="teams/:teamSlug" element={<PublicationListPage />} />
             <Route
               path="teams/:teamSlug/members"
               element={
@@ -141,9 +140,6 @@ function App() {
                 </AuthenticatedRoute>
               }
             />
-
-            {/* Publications route */}
-            <Route path="teams/:teamSlug/publications" element={<PublicationListPage />} />
 
             {/* Ride routes */}
             <Route path="teams/:teamSlug/rides" element={<RideListPage />} />

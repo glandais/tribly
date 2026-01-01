@@ -91,12 +91,6 @@ export function useBreadcrumb(): BreadcrumbItem[] {
       return items
     }
 
-    // Publications section
-    if (location.pathname === `/teams/${teamSlug}/publications`) {
-      items.push({ label: tTeams('publications.list.title') })
-      return items
-    }
-
     // Rides section
     if (location.pathname.includes('/rides')) {
       items.push({ label: tRides('breadcrumb.rides'), path: `/teams/${teamSlug}/rides` })
