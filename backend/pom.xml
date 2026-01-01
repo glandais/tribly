@@ -23,7 +23,6 @@
         <gpx.version>1.2.7</gpx.version>
         <lombok.version>1.18.42</lombok.version>
         <jspecify.version>1.0.0</jspecify.version>
-        <slugify.version>3.0.7</slugify.version>
         <icu4j.version>78.1</icu4j.version>
         <tika.version>3.2.3</tika.version>
         <dependencyversion-maven-plugin.version>1.0.0</dependencyversion-maven-plugin.version>
@@ -157,11 +156,6 @@
         </dependency>
 
         <!-- Others -->
-        <dependency>
-            <groupId>com.github.slugify</groupId>
-            <artifactId>slugify</artifactId>
-            <version>${slugify.version}</version>
-        </dependency>
         <dependency>
             <groupId>com.ibm.icu</groupId>
             <artifactId>icu4j</artifactId>
