@@ -104,6 +104,9 @@
       "leave": "Quitter",
       "participants": "{{current}}/{{max}} participants",
       "participantsNoMax": "{{current}} participants",
+      "route": {
+        "view": "Voir le parcours"
+      },
       "speed": "{{speed}} km/h",
       "title": "Groupes",
       "viewAll": "Voir tout",

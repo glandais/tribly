@@ -17,9 +17,9 @@ import {
 } from 'chart.js'
 import { useTranslation } from 'react-i18next'
 import { routesApi, unwrapResponse } from '../../lib/apiClient'
-import type { TrackPointDto } from '../../api/api'
+import type { RouteDetailDto, TrackPointDto } from '../../api/api'
 import { StartMarker, EndMarker } from '../map/MapMarkers'
-import { trackPointsToGeoJSON, calculateBounds } from '../map/mapUtils'
+import { calculateBounds, routeToGeoJSON } from '../map/mapUtils'
 import 'maplibre-gl/dist/maplibre-gl.css'
 
 // Register Chart.js components
@@ -52,6 +52,7 @@ interface RouteData {
   itemId: string
   itemName: string
   color: string
+  route: RouteDetailDto
   trackPoints: TrackPointDto[]
   distance: number
   elevationGain: number
@@ -76,6 +77,7 @@ export function RoutesMapView({
   const [selectedRouteId, setSelectedRouteId] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [cursor, setCursor] = useState<string>('grab')
+  const [isMapLoaded, setIsMapLoaded] = useState(false)
 
   // Load route data for all items with routes
   useEffect(() => {
@@ -99,6 +101,7 @@ export function RoutesMapView({
               itemId: item.id,
               itemName: item.name,
               color: ROUTE_COLORS[i % ROUTE_COLORS.length],
+              route: routeDetail,
               trackPoints,
               distance: routeDetail.distance,
               elevationGain: routeDetail.elevationGain,
@@ -116,14 +119,30 @@ export function RoutesMapView({
     loadRoutes()
   }, [items, teamSlug])
 
-  // Fit bounds when routes are loaded
-  useEffect(() => {
+  // Fit bounds when map is loaded AND routes are available
+  const fitBoundsToRoutes = useCallback(() => {
     if (mapRef.current && routesData.length > 0) {
       const allTrackPoints = routesData.flatMap((r) => r.trackPoints)
       const bounds = calculateBounds(allTrackPoints)
-      mapRef.current.fitBounds(bounds, { padding: 50, duration: 0 })
+      // Chart overlay is 150px at top-right, add top padding to keep route visible
+      mapRef.current.fitBounds(bounds, {
+        padding: { top: 170, bottom: 50, left: 50, right: 50 },
+        duration: 0,
+      })
     }
   }, [routesData])
+
+  // Handle map load
+  const handleMapLoad = useCallback(() => {
+    setIsMapLoaded(true)
+  }, [])
+
+  // Fit bounds when both map is loaded and routes are available
+  useEffect(() => {
+    if (isMapLoaded) {
+      fitBoundsToRoutes()
+    }
+  }, [isMapLoaded, fitBoundsToRoutes])
 
   // Derive highlighted route from props or selected state
   const highlightedRoute = useMemo(() => {
@@ -179,7 +198,7 @@ export function RoutesMapView({
     return routesData.map((route) => ({
       itemId: route.itemId,
       color: route.color,
-      geojson: trackPointsToGeoJSON(route.trackPoints, { id: route.itemId }),
+      geojson: routeToGeoJSON(route.route, { id: route.itemId }),
     }))
   }, [routesData])
 
@@ -292,6 +311,7 @@ export function RoutesMapView({
           }}
           style={{ width: '100%', height: '100%' }}
           cursor={cursor}
+          onLoad={handleMapLoad}
           onClick={handleClick}
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
@@ -302,7 +322,12 @@ export function RoutesMapView({
             const isHighlighted = highlightedRoute?.itemId === route.itemId
 
             return (
-              <Source key={`source-${route.itemId}`} id={`route-${route.itemId}`} type="geojson" data={route.geojson}>
+              <Source
+                key={`source-${route.itemId}`}
+                id={`route-${route.itemId}`}
+                type="geojson"
+                data={route.geojson}
+              >
                 <Layer
                   id={`line-${route.itemId}`}
                   type="line"

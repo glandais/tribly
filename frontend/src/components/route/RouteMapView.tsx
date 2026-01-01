@@ -83,16 +83,17 @@ export function RouteMapView({ route }: RouteMapViewProps) {
   const waypoints = route.waypoints || []
 
   // Create gradient line GeoJSON
-  const lineFeatures = useMemo(
-    () => createGradientLineFeatures(trackPoints, climbs),
-    [trackPoints, climbs]
-  )
+  const lineFeatures = useMemo(() => createGradientLineFeatures(route.tracks), [route.tracks])
 
-  // Fit bounds on load
-  useEffect(() => {
+  // Fit bounds when map is loaded (with extra bottom padding for chart overlay)
+  const handleMapLoad = useCallback(() => {
     if (mapRef.current && trackPoints.length > 0) {
       const bounds = calculateBounds(trackPoints)
-      mapRef.current.fitBounds(bounds, { padding: 50, duration: 0 })
+      // Chart overlay is 200px at bottom, add padding to keep route visible
+      mapRef.current.fitBounds(bounds, {
+        padding: { top: 50, bottom: 220, left: 50, right: 50 },
+        duration: 0,
+      })
     }
   }, [trackPoints])
 
@@ -133,12 +134,12 @@ export function RouteMapView({ route }: RouteMapViewProps) {
           label: 'Elevation',
           data: trackPoints.map((p) => p.ele),
           fill: true,
-          backgroundColor: (context: ScriptableContext<'line'>) => {
-            const index = context.dataIndex
-            if (index === undefined) return NEUTRAL_COLOR
-            const gradient = getPointClimbGradient(trackPoints[index], climbs)
-            return getColorFromGradient(gradient) + '33'
-          },
+          // backgroundColor: (context: ScriptableContext<'line'>) => {
+          //   const index = context.dataIndex
+          //   if (index === undefined) return NEUTRAL_COLOR
+          //   const gradient = getPointClimbGradient(trackPoints[index], climbs)
+          //   return getColorFromGradient(gradient) + '33'
+          // },
           borderColor: (context: ScriptableContext<'line'>) => {
             const index = context.dataIndex
             if (index === undefined) return NEUTRAL_COLOR
@@ -148,10 +149,10 @@ export function RouteMapView({ route }: RouteMapViewProps) {
           borderWidth: 2,
           pointRadius: 0,
           segment: {
-            backgroundColor: (ctx: ScriptableLineSegmentContext) => {
-              const gradient = getPointClimbGradient(trackPoints[ctx.p0DataIndex], climbs)
-              return getColorFromGradient(gradient) + '33'
-            },
+            // backgroundColor: (ctx: ScriptableLineSegmentContext) => {
+            //   const gradient = getPointClimbGradient(trackPoints[ctx.p0DataIndex], climbs)
+            //   return getColorFromGradient(gradient) + '33'
+            // },
             borderColor: (ctx: ScriptableLineSegmentContext) => {
               const gradient = getPointClimbGradient(trackPoints[ctx.p0DataIndex], climbs)
               return getColorFromGradient(gradient)
@@ -170,7 +171,7 @@ export function RouteMapView({ route }: RouteMapViewProps) {
       interaction: {
         mode: 'index',
         intersect: false,
-      },      
+      },
       plugins: {
         legend: {
           display: false,
@@ -252,6 +253,7 @@ export function RouteMapView({ route }: RouteMapViewProps) {
           }
         }
       },
+      animation: { duration: 0 },
     }),
     [trackPoints, climbs]
   )
@@ -305,6 +307,7 @@ export function RouteMapView({ route }: RouteMapViewProps) {
             zoom: 11,
           }}
           style={{ width: '100%', height: '100%' }}
+          onLoad={handleMapLoad}
           onMouseMove={handleMouseMove}
           onMouseLeave={handleMouseLeave}
         >
@@ -345,14 +348,17 @@ export function RouteMapView({ route }: RouteMapViewProps) {
           )}
 
           {/* Hover marker */}
-          {hoveredPoint && (
-            <HoverMarker longitude={hoveredPoint.lng} latitude={hoveredPoint.lat} />
-          )}
+          {hoveredPoint && <HoverMarker longitude={hoveredPoint.lng} latitude={hoveredPoint.lat} />}
         </Map>
 
         {/* Elevation chart overlay */}
         <div className="absolute bottom-0 left-0 right-0 h-[200px] bg-white/95 shadow-lg z-[1000] pointer-events-auto">
-          <Line ref={chartRef} data={chartData} options={chartOptions} plugins={[crosshairPlugin]} />
+          <Line
+            ref={chartRef}
+            data={chartData}
+            options={chartOptions}
+            plugins={[crosshairPlugin]}
+          />
         </div>
       </div>
     </div>

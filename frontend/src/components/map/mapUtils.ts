@@ -1,5 +1,5 @@
 import type { LngLatBoundsLike } from 'maplibre-gl'
-import type { TrackPointDto, ClimbDto } from '../../api/api'
+import type { TrackPointDto, ClimbDto, RouteDetailDto, TrackDto } from '../../api/api'
 
 // Color calculation (matching biketeam single-map.js)
 const NEUTRAL_HUE = 210
@@ -38,17 +38,25 @@ export function getPointClimbGradient(point: TrackPointDto, climbs: ClimbDto[]):
 }
 
 // Convert track points to GeoJSON LineString
-export function trackPointsToGeoJSON(
-  trackPoints: TrackPointDto[],
+export function routeToGeoJSON(
+  route: RouteDetailDto,
   properties: Record<string, unknown> = {}
-): GeoJSON.Feature<GeoJSON.LineString> {
+): GeoJSON.FeatureCollection<GeoJSON.LineString> {
+  const features: GeoJSON.Feature<GeoJSON.LineString>[] = []
+  for (let i = 0; i < route.tracks.length; i++) {
+    const trackPoints = route.tracks[i].trackPoints
+    features.push({
+      type: 'Feature',
+      geometry: {
+        type: 'LineString',
+        coordinates: trackPoints.map((p) => [p.lng, p.lat]),
+      },
+      properties: { segmentIndex: i, ...properties },
+    })
+  }
   return {
-    type: 'Feature',
-    geometry: {
-      type: 'LineString',
-      coordinates: trackPoints.map((p) => [p.lng, p.lat, p.ele]),
-    },
-    properties,
+    type: 'FeatureCollection',
+    features,
   }
 }
 
@@ -118,27 +126,50 @@ export function findNearestPoint(
 
 // Create GeoJSON FeatureCollection with multiple line segments for gradient coloring
 export function createGradientLineFeatures(
-  trackPoints: TrackPointDto[],
-  climbs: ClimbDto[]
+  tracks: TrackDto[]
 ): GeoJSON.FeatureCollection<GeoJSON.LineString> {
   const features: GeoJSON.Feature<GeoJSON.LineString>[] = []
 
-  if (trackPoints.length === 0) {
+  if (tracks.length === 0) {
     return { type: 'FeatureCollection', features }
   }
 
-  let currentColor = getColorFromGradient(getPointClimbGradient(trackPoints[0], climbs))
+  let currentColor = getColorFromGradient(
+    getPointClimbGradient(tracks[0].trackPoints[0], tracks[0].climbs)
+  )
   let currentSegment: [number, number][] = []
 
-  for (let i = 0; i < trackPoints.length; i++) {
-    const point = trackPoints[i]
-    const gradient = getPointClimbGradient(point, climbs)
-    const color = getColorFromGradient(gradient)
+  for (let j = 0; j < tracks.length; j++) {
+    const trackPoints = tracks[j].trackPoints
+    const climbs = tracks[j].climbs
 
-    if (color !== currentColor && currentSegment.length > 0) {
-      // Add last point of previous segment for continuity
-      currentSegment.push([point.lng, point.lat])
+    for (let i = 0; i < trackPoints.length; i++) {
+      const point = trackPoints[i]
+      const gradient = getPointClimbGradient(point, climbs)
+      const color = getColorFromGradient(gradient)
 
+      if (color !== currentColor && currentSegment.length > 0) {
+        // Add last point of previous segment for continuity
+        currentSegment.push([point.lng, point.lat])
+
+        features.push({
+          type: 'Feature',
+          properties: { color: currentColor },
+          geometry: {
+            type: 'LineString',
+            coordinates: currentSegment,
+          },
+        })
+
+        currentSegment = [[point.lng, point.lat]]
+        currentColor = color
+      } else {
+        currentSegment.push([point.lng, point.lat])
+      }
+    }
+
+    // Add final segment
+    if (currentSegment.length > 1) {
       features.push({
         type: 'Feature',
         properties: { color: currentColor },
@@ -147,24 +178,8 @@ export function createGradientLineFeatures(
           coordinates: currentSegment,
         },
       })
-
-      currentSegment = [[point.lng, point.lat]]
-      currentColor = color
-    } else {
-      currentSegment.push([point.lng, point.lat])
     }
-  }
-
-  // Add final segment
-  if (currentSegment.length > 1) {
-    features.push({
-      type: 'Feature',
-      properties: { color: currentColor },
-      geometry: {
-        type: 'LineString',
-        coordinates: currentSegment,
-      },
-    })
+    currentSegment = []
   }
 
   return {

@@ -1,12 +1,22 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { BoltIcon, UsersIcon, ClockIcon } from '@heroicons/react/24/outline'
+import {
+  BoltIcon,
+  UsersIcon,
+  ClockIcon,
+  MapIcon,
+  ArrowDownTrayIcon,
+} from '@heroicons/react/24/outline'
 import type { RideGroupDto } from '../../hooks/useRide'
+import { useRoute } from '../../hooks/useRoute'
 import { UserAvatarGroup } from '../common/UserAvatar'
 import { ParticipantListModal } from './ParticipantListModal'
 
 interface RideGroupCardProps {
   group: RideGroupDto
+  teamSlug: string
+  rideRouteSlug?: string
   isJoined?: boolean
   canJoin?: boolean
   onJoin?: () => void
@@ -17,6 +27,8 @@ interface RideGroupCardProps {
 
 export function RideGroupCard({
   group,
+  teamSlug,
+  rideRouteSlug,
   isJoined,
   canJoin,
   onJoin,
@@ -27,6 +39,12 @@ export function RideGroupCard({
   const { t } = useTranslation('rides')
   const [showParticipants, setShowParticipants] = useState(false)
   const isFull = group.maxParticipants && group.countParticipants >= group.maxParticipants
+
+  // Determine effective route slug (group route or ride route as fallback)
+  const effectiveRouteSlug = group.routeSlug || rideRouteSlug
+
+  // Fetch route details for download links
+  const { data: route } = useRoute(teamSlug, effectiveRouteSlug)
 
   return (
     <div
@@ -81,6 +99,39 @@ export function RideGroupCard({
               )}
             </button>
           </div>
+
+          {/* Route actions */}
+          {effectiveRouteSlug && (
+            <div className="mt-3 flex items-center gap-2">
+              <Link
+                to={`/teams/${teamSlug}/routes/${effectiveRouteSlug}`}
+                className="inline-flex items-center px-2 py-1 text-xs font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded"
+              >
+                <MapIcon className="w-4 h-4 mr-1" />
+                {t('detail.groups.route.view')}
+              </Link>
+              {route?.media?.assets?.gpx?.url && (
+                <a
+                  href={route.media.assets.gpx.url}
+                  className="inline-flex items-center px-2 py-1 text-xs font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded"
+                  download
+                >
+                  <ArrowDownTrayIcon className="w-4 h-4 mr-1" />
+                  GPX
+                </a>
+              )}
+              {route?.media?.assets?.fit?.url && (
+                <a
+                  href={route.media.assets.fit.url}
+                  className="inline-flex items-center px-2 py-1 text-xs font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded"
+                  download
+                >
+                  <ArrowDownTrayIcon className="w-4 h-4 mr-1" />
+                  FIT
+                </a>
+              )}
+            </div>
+          )}
         </div>
 
         {(canJoin || isJoined) && (

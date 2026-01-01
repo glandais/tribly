@@ -102,6 +102,9 @@
       "leave": "Leave",
       "participants": "{{current}}/{{max}} participants",
       "participantsNoMax": "{{current}} participants",
+      "route": {
+        "view": "View route"
+      },
       "speed": "{{speed}} km/h",
       "title": "Groups",
       "viewAll": "View all",

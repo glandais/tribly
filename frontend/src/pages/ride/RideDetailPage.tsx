@@ -287,6 +287,8 @@ export function RideDetailPage() {
                   <RideGroupCard
                     key={group.id}
                     group={group}
+                    teamSlug={teamSlug!}
+                    rideRouteSlug={ride.routeSlug}
                     isJoined={isJoined}
                     canJoin={canJoinRide}
                     onJoin={() => handleJoinGroup(group.id)}
