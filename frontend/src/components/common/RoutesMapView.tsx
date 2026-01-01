@@ -272,7 +272,7 @@ export function RoutesMapView({
   if (routesData.length === 0) {
     return (
       <div className="w-full h-[500px] flex items-center justify-center bg-gray-100 rounded">
-        <div className="text-gray-500">{t(`map.noRoutes.${entityType}`)}</div>
+        <div className="text-gray-500">{t(`map.noRoutes`)}</div>
       </div>
     )
   }

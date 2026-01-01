@@ -58,6 +58,7 @@
   },
   "map": {
     "loading": "Loading routes...",
+    "noRoutes": "No routes available",
     "noTrackData": "No track data available for this route"
   },
   "memberCount_one": "{{count}} member",

@@ -11,6 +11,10 @@
         "label": "Description",
         "placeholder": "Describe your team, riding style, or community..."
       },
+      "enableTrips": {
+        "hint": "Allow organizers to create and manage multi-day trips",
+        "label": "Enable Trips"
+      },
       "name": {
         "label": "Team Name",
         "placeholder": "Enter team name"
@@ -18,10 +22,6 @@
       "visibility": {
         "hint": "Control who can find and join this team",
         "label": "Team Visibility"
-      },
-      "enableTrips": {
-        "hint": "Allow organizers to create and manage multi-day trips",
-        "label": "Enable Trips"
       }
     },
     "subtitle": "Start your cycling community and invite others to join",
