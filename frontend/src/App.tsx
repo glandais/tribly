@@ -33,6 +33,7 @@ import { RouteDetailPage } from './pages/route/RouteDetailPage'
 import { CreateRoutePage } from './pages/route/CreateRoutePage'
 import { EditRoutePage } from './pages/route/EditRoutePage'
 import { HomePage } from './pages/home/HomePage'
+import { RoutePlannerPage } from './pages/planner/RoutePlannerPage'
 import { useAuthStore } from './store/authStore'
 import { useAuth } from './hooks/useAuth'
 
@@ -80,6 +81,9 @@ function App() {
         <Routes>
           <Route path="/" element={<Layout />}>
             <Route index element={<HomePage />} />
+
+            {/* Route Planner */}
+            <Route path="route-planner" element={<RoutePlannerPage />} />
 
             {/* Auth routes */}
             <Route

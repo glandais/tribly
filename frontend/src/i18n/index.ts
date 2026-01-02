@@ -13,6 +13,7 @@ import frPosts from '../locales/fr/posts.json'
 import frRoutes from '../locales/fr/routes.json'
 import frProfile from '../locales/fr/profile.json'
 import frErrors from '../locales/fr/errors.json'
+import frPlanner from '../locales/fr/planner.json'
 
 // English translations
 import enCommon from '../locales/en/common.json'
@@ -25,6 +26,7 @@ import enPosts from '../locales/en/posts.json'
 import enRoutes from '../locales/en/routes.json'
 import enProfile from '../locales/en/profile.json'
 import enErrors from '../locales/en/errors.json'
+import enPlanner from '../locales/en/planner.json'
 
 export const supportedLanguages = ['fr', 'en'] as const
 export type SupportedLanguage = (typeof supportedLanguages)[number]
@@ -46,6 +48,7 @@ const resources = {
     routes: frRoutes,
     profile: frProfile,
     errors: frErrors,
+    planner: frPlanner,
   },
   en: {
     common: enCommon,
@@ -58,6 +61,7 @@ const resources = {
     routes: enRoutes,
     profile: enProfile,
     errors: enErrors,
+    planner: enPlanner,
   },
 }
 
@@ -80,6 +84,7 @@ i18n
       'routes',
       'profile',
       'errors',
+      'planner',
     ],
     interpolation: {
       escapeValue: false, // React already escapes values

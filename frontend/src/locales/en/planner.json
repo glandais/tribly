@@ -1,0 +1,12 @@
+{
+  "calculating": "Calculating route...",
+  "clear": "Clear",
+  "instructions": "Click to add points, drag to move, right-click to remove",
+  "pointCount_one": "{{count}} point",
+  "pointCount_other": "{{count}} points",
+  "title": "Route Planner",
+  "units": {
+    "km": "km",
+    "m": "m"
+  }
+}
