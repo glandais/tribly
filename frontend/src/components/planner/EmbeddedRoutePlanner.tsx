@@ -78,10 +78,7 @@ function closestPointOnLine(
   return closest
 }
 
-export function EmbeddedRoutePlanner({
-  onPointsChange,
-  initialTrack,
-}: EmbeddedRoutePlannerProps) {
+export function EmbeddedRoutePlanner({ onPointsChange, initialTrack }: EmbeddedRoutePlannerProps) {
   const { t } = useTranslation('planner')
   const { styleId, setStyleId, style } = useMapStyle()
   const mapRef = useRef<MapRef>(null)

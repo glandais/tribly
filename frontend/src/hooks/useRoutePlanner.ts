@@ -1,8 +1,22 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
-import { calculateSegment, createControlPoint, ControlPoint } from '../lib/brouterClient'
 import { simplifyTrack } from '../lib/douglasPeucker'
+import { routerApi, unwrapResponse } from '../lib/apiClient'
 
-export type { ControlPoint } from '../lib/brouterClient'
+export interface ControlPoint {
+  id: string
+  lng: number
+  lat: number
+}
+
+let pointIdCounter = 0
+
+export function createControlPoint(lng: number, lat: number): ControlPoint {
+  return {
+    id: `cp-${++pointIdCounter}`,
+    lng,
+    lat,
+  }
+}
 
 interface CachedSegment {
   fromId: string
@@ -268,7 +282,29 @@ export function useRoutePlanner(options?: UseRoutePlannerOptions): UseRoutePlann
         // Fetch missing segments in parallel
         if (segmentsToFetch.length > 0) {
           const fetchPromises = segmentsToFetch.map(async ({ from, to }) => {
-            const geojson = await calculateSegment(from, to)
+            const response = await unwrapResponse(
+              routerApi.route({
+                from: { lng: from.lng, lat: from.lat },
+                to: { lng: to.lng, lat: to.lat },
+              })
+            )
+            // Convert RouterResponse to GeoJSON FeatureCollection
+            const geojson: GeoJSON.FeatureCollection = {
+              type: 'FeatureCollection',
+              features: [
+                {
+                  type: 'Feature',
+                  properties: {
+                    'track-length': response.dist ?? 0,
+                    'plain-ascend': response.ascend ?? 0,
+                  },
+                  geometry: {
+                    type: 'LineString',
+                    coordinates: response.route.coordinates,
+                  },
+                },
+              ],
+            }
             return { from, to, geojson }
           })
 

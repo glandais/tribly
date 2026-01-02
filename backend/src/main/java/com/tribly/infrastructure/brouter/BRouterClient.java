@@ -12,7 +12,7 @@ import org.geolatte.geom.json.GeoJsonFeatureCollection;
 public interface BRouterClient {
 
   @GET
-  GeoJsonFeatureCollection<G3D, ?> route(
+  RouterResult route(
       @QueryParam("lonlats") String lonlats,
       @QueryParam("profile") String profile,
       @QueryParam("alternativeidx") Integer alternativeidx,
