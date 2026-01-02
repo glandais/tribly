@@ -31,6 +31,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import org.geolatte.geom.G2D;
@@ -69,13 +70,15 @@ public class GpxProcessingService {
     try (FileInputStream fis = new FileInputStream(path.toFile())) {
       return gpxFileReader.parseGPX(fis);
     } catch (Exception e) {
-      throw new RuntimeException(e);
+      LOG.errorv("Failed to parse GPX file", e);
+      throw BusinessException.conflict("GPX parsing failed", e);
     }
   }
 
   public GPX fromPoints(String name, List<GeoPoint> points) {
     GPXPath gpxPath = new GPXPath(name, GPXPathType.TRACK);
     points.stream().map(this::createGpxPoint).forEach(gpxPath::addPoint);
+    gpxPath.computeArrays();
     return new GPX(name, List.of(gpxPath), List.of());
   }
 
@@ -83,6 +86,8 @@ public class GpxProcessingService {
     Point p = new Point();
     p.setLon(Math.toRadians(geoPoint.lng()));
     p.setLat(Math.toRadians(geoPoint.lat()));
+    p.setEle(0.0);
+    p.setInstant(null, Instant.EPOCH);
     return p;
   }
 
@@ -123,7 +128,7 @@ public class GpxProcessingService {
         } catch (Exception e) {
           LOG.warnv(
               "SRTM elevation fix failed for route {0}, using original elevations: {1}",
-              routeId, e.getMessage());
+              routeId, e);
         }
 
         // Step 4: Simplify with Douglas-Peucker
@@ -180,7 +185,7 @@ public class GpxProcessingService {
             thumbnailFile, gpx, "https://a.tile.openstreetmap.org/{z}/{x}/{y}.png", 0.1, 512);
         LOG.infov("Generated thumbnail to {0}", thumbnailFile);
       } catch (Exception e) {
-        LOG.warnv("Thumbnail generation failed for route {0}: {1}", routeId, e.getMessage());
+        LOG.warnv("Thumbnail generation failed for route {0}: {1}", routeId, e);
       }
 
       LOG.infov("GPX processing complete for route}");
@@ -192,7 +197,7 @@ public class GpxProcessingService {
           tracksMetadata.getFirst().start(),
           tracksMetadata.getLast().end());
     } catch (Exception e) {
-      LOG.errorv("GPX processing failed for route");
+      LOG.errorv("GPX processing failed for route", e);
       throw BusinessException.conflict("GPX processing failed", e);
     }
   }

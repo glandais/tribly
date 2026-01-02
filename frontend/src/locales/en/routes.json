@@ -13,15 +13,22 @@
       "gpxFile": "GPX File",
       "gpxFileHint": ".gpx format only, maximum size 10 MB",
       "name": "Route name",
+      "plannerLabel": "Draw route on map",
+      "pointCount_one": "{{count}} control point",
+      "pointCount_other": "{{count}} control points",
+      "sourceMode": "Route source",
+      "sourceModeGpx": "Upload GPX file",
+      "sourceModePlanner": "Draw on map",
       "surfaceType": "Surface type"
     },
     "submit": "Create route",
-    "subtitle": "Upload a GPX file to create a new route",
+    "subtitle": "Upload a GPX file or draw a route on the map",
     "title": "Create route",
     "validation": {
       "fileRequired": "A GPX file is required",
       "fileTooLarge": "File is too large (maximum 10 MB)",
-      "invalidFileType": "File must be in .gpx format"
+      "invalidFileType": "File must be in .gpx format",
+      "pointsRequired": "At least 2 control points are required"
     }
   },
   "createModal": {

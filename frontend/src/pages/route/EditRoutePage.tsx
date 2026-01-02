@@ -62,6 +62,10 @@ export function EditRoutePage() {
     visibility: team.visibility === Visibility.Team ? Visibility.Team : route.visibility,
   }
 
+  // Check if route has a single track (required for planner mode)
+  const isSingleTrack = route.tracks.length === 1
+  const initialTrack = isSingleTrack ? route.tracks[0].line.coordinates : undefined
+
   const handleSubmit = async (data: RouteFormData, gpxFile?: File) => {
     await updateRoute.mutateAsync({
       route: {
@@ -69,6 +73,7 @@ export function EditRoutePage() {
         media: data.media,
         surfaceType: data.surfaceType,
         visibility: data.visibility,
+        points: data.points,
       },
       gpxFile,
     })
@@ -93,7 +98,7 @@ export function EditRoutePage() {
         team={team}
         teamSlug={teamSlug!}
         initialValues={initialValues}
-        requireGpxFile={false}
+        initialTrack={initialTrack}
         onSubmit={handleSubmit}
         onCancel={() => navigate(`/teams/${teamSlug}/routes/${routeSlug}`)}
         isPending={updateRoute.isPending}

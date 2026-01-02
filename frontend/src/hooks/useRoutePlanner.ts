@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { calculateSegment, createControlPoint, ControlPoint } from '../lib/brouterClient'
+import { simplifyTrack } from '../lib/douglasPeucker'
 
 export type { ControlPoint } from '../lib/brouterClient'
 
@@ -9,6 +10,11 @@ interface CachedSegment {
   fromCoords: { lng: number; lat: number }
   toCoords: { lng: number; lat: number }
   geojson: GeoJSON.FeatureCollection
+}
+
+export interface UseRoutePlannerOptions {
+  initialTrack?: number[][] // [lng, lat, ele, dist][] from existing route
+  epsilon?: number // Douglas-Peucker tolerance (default: 0.0005 ~50m)
 }
 
 interface UseRoutePlannerReturn {
@@ -76,7 +82,45 @@ function mergeSegments(segments: GeoJSON.FeatureCollection[]): RouteFeatureColle
   }
 }
 
-export function useRoutePlanner(): UseRoutePlannerReturn {
+/**
+ * Convert a slice of track coordinates to a GeoJSON FeatureCollection
+ * Compatible with BRouter output format
+ */
+function trackSliceToGeoJson(coords: number[][]): GeoJSON.FeatureCollection {
+  // Calculate track-length from distance values (last - first)
+  const trackLength =
+    coords.length >= 2 ? (coords[coords.length - 1][3] || 0) - (coords[0][3] || 0) : 0
+
+  // Calculate plain-ascend (positive elevation changes)
+  let plainAscend = 0
+  for (let i = 1; i < coords.length; i++) {
+    const elevDiff = (coords[i][2] || 0) - (coords[i - 1][2] || 0)
+    if (elevDiff > 0) {
+      plainAscend += elevDiff
+    }
+  }
+
+  return {
+    type: 'FeatureCollection',
+    features: [
+      {
+        type: 'Feature',
+        properties: {
+          'track-length': trackLength,
+          'plain-ascend': plainAscend,
+        },
+        geometry: {
+          type: 'LineString',
+          coordinates: coords.map((c) => [c[0], c[1]]), // [lng, lat] only
+        },
+      },
+    ],
+  }
+}
+
+export function useRoutePlanner(options?: UseRoutePlannerOptions): UseRoutePlannerReturn {
+  const { initialTrack, epsilon = 0.002 } = options || {}
+
   const [controlPoints, setControlPoints] = useState<ControlPoint[]>([])
   const [routeGeoJson, setRouteGeoJson] = useState<RouteFeatureCollection | null>(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -87,6 +131,56 @@ export function useRoutePlanner(): UseRoutePlannerReturn {
 
   // Track request ID for race condition handling
   const requestIdRef = useRef(0)
+
+  // Track if we've initialized from initial track
+  const initializedRef = useRef(false)
+
+  // Initialize from existing track (runs once on mount if initialTrack provided)
+  useEffect(() => {
+    if (!initialTrack || initialTrack.length < 2 || initializedRef.current) {
+      return
+    }
+
+    initializedRef.current = true
+
+    // Apply Douglas-Peucker to get simplified point indices
+    const indices = simplifyTrack(initialTrack, epsilon)
+
+    if (indices.length < 2) {
+      return
+    }
+
+    // Create control points from simplified indices
+    const points: ControlPoint[] = indices.map((idx) => {
+      const coord = initialTrack[idx]
+      return createControlPoint(coord[0], coord[1])
+    })
+
+    // Pre-populate cache with segments extracted from original track
+    const cache = segmentCacheRef.current
+    for (let i = 0; i < indices.length - 1; i++) {
+      const fromIdx = indices[i]
+      const toIdx = indices[i + 1]
+      const from = points[i]
+      const to = points[i + 1]
+
+      // Extract the slice of coordinates between these control points
+      const sliceCoords = initialTrack.slice(fromIdx, toIdx + 1)
+      const geojson = trackSliceToGeoJson(sliceCoords)
+
+      const key = getSegmentKey(from.id, to.id)
+      cache.set(key, {
+        fromId: from.id,
+        toId: to.id,
+        fromCoords: { lng: from.lng, lat: from.lat },
+        toCoords: { lng: to.lng, lat: to.lat },
+        geojson,
+      })
+    }
+
+    // Set control points (this will trigger the main effect to merge segments)
+    setControlPoints(points)
+  }, [initialTrack, epsilon])
 
   const addControlPoint = useCallback((lng: number, lat: number) => {
     setControlPoints((prev) => [...prev, createControlPoint(lng, lat)])

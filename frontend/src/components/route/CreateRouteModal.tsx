@@ -27,7 +27,8 @@ export function CreateRouteModal({ isOpen, onClose, onRouteCreated, team }: Crea
   }
 
   const handleSubmit = async (data: RouteFormData, gpxFile?: File) => {
-    if (!gpxFile) return // TypeScript guard
+    // Either gpxFile or points must be provided
+    if (!gpxFile && (!data.points || data.points.length < 2)) return
 
     const route = await createRoute.mutateAsync({
       route: {
@@ -35,6 +36,7 @@ export function CreateRouteModal({ isOpen, onClose, onRouteCreated, team }: Crea
         media: data.media,
         surfaceType: data.surfaceType,
         visibility: data.visibility,
+        points: data.points,
       },
       gpxFile,
     })
@@ -62,7 +64,7 @@ export function CreateRouteModal({ isOpen, onClose, onRouteCreated, team }: Crea
             team={team}
             teamSlug={team.slug}
             initialValues={initialValues}
-            requireGpxFile={true}
+            isCreateMode={true}
             onSubmit={handleSubmit}
             onCancel={onClose}
             isPending={createRoute.isPending}

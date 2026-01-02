@@ -18,7 +18,8 @@ export function CreateRoutePage() {
   const createRoute = useCreateRoute(teamSlug!)
 
   const handleSubmit = async (data: RouteFormData, gpxFile?: File) => {
-    if (!gpxFile) return // TypeScript guard (shouldn't happen with requireGpxFile=true)
+    // Either gpxFile or points must be provided
+    if (!gpxFile && (!data.points || data.points.length < 2)) return
 
     const route = await createRoute.mutateAsync({
       route: {
@@ -26,6 +27,7 @@ export function CreateRoutePage() {
         media: data.media,
         surfaceType: data.surfaceType,
         visibility: data.visibility,
+        points: data.points,
       },
       gpxFile,
     })
@@ -77,7 +79,7 @@ export function CreateRoutePage() {
         team={team}
         teamSlug={teamSlug!}
         initialValues={initialValues}
-        requireGpxFile={true}
+        isCreateMode={true}
         onSubmit={handleSubmit}
         onCancel={handleCancel}
         isPending={createRoute.isPending}

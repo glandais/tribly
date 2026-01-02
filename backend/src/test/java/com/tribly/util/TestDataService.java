@@ -194,7 +194,10 @@ public class TestDataService {
 
   @Transactional
   public Route createRoute(Team team, User createdBy, String name, Visibility visibility) {
-    List<GpxTrack.TrackPoint> trackPoints = List.of(new GpxTrack.TrackPoint(45.0, 6.0, 500.0, 0.0));
+    List<GpxTrack.TrackPoint> trackPoints =
+        List.of(
+            new GpxTrack.TrackPoint(45.0, 6.0, 500.0, 0.0),
+            new GpxTrack.TrackPoint(45.1, 6.1, 510.0, 10000.0));
     String geometry = "LINESTRING(6 45,6.1 45.1)";
     return createRoute(team, createdBy, name, visibility, geometry, trackPoints);
   }

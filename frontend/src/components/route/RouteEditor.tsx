@@ -1,16 +1,20 @@
 import { useState, useCallback, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Visibility, SurfaceType } from '../../api/api'
-import type { MediaDto, TeamDetailDto } from '../../api/api'
+import type { MediaDto, TeamDetailDto, GeoPoint } from '../../api/api'
 import { LoadingSpinner } from '../common/LoadingSpinner'
 import { MediaEditor } from '../common/MediaEditor'
+import { EmbeddedRoutePlanner } from '../planner/EmbeddedRoutePlanner'
 import { defaultMedia } from '@/lib/apiUtils'
+
+export type RouteSourceMode = 'gpx' | 'planner'
 
 export interface RouteFormData {
   name: string
   media: MediaDto
   surfaceType: SurfaceType
   visibility: Visibility
+  points?: GeoPoint[]
 }
 
 interface RouteEditorProps {
@@ -35,7 +39,8 @@ interface RouteEditorProps {
   error?: Error | null
 
   // UI customization
-  requireGpxFile?: boolean // true for create, false for edit
+  isCreateMode?: boolean // true for create (requires source), false for edit
+  initialTrack?: number[][] // [lng, lat, ele, dist][] for edit mode with planner
   submitButtonText?: string
   cancelButtonText?: string
   showCancelButton?: boolean
@@ -49,13 +54,23 @@ export function RouteEditor({
   onCancel,
   isPending,
   error: _error,
-  requireGpxFile = false,
+  isCreateMode = false,
+  initialTrack,
   submitButtonText,
   cancelButtonText,
   showCancelButton = true,
 }: RouteEditorProps) {
   const { t } = useTranslation('routes')
   const { t: tCommon } = useTranslation('common')
+
+  // Can use planner if creating or if editing with a single-track route
+  const canUsePlanner = isCreateMode || !!initialTrack
+
+  // Route source mode (GPX upload or Planner)
+  // Default to planner if editing with initialTrack
+  const [sourceMode, setSourceMode] = useState<RouteSourceMode>(
+    !isCreateMode && initialTrack ? 'planner' : 'gpx'
+  )
 
   const [name, setName] = useState('')
   const [media, setMedia] = useState(defaultMedia())
@@ -64,6 +79,7 @@ export function RouteEditor({
     team.visibility === Visibility.Team ? Visibility.Team : Visibility.Public
   )
   const [gpxFile, setGpxFile] = useState<File | null>(null)
+  const [plannerPoints, setPlannerPoints] = useState<GeoPoint[]>([])
   const [error, setError] = useState<string | null>(null)
 
   // Initialize form state from initialValues prop
@@ -114,24 +130,31 @@ export function RouteEditor({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    // Validate GPX file if required
-    if (requireGpxFile && !gpxFile) {
-      setError(t('create.validation.fileRequired'))
-      return
+    // Validate source in create mode
+    if (isCreateMode) {
+      if (sourceMode === 'gpx' && !gpxFile) {
+        setError(t('create.validation.fileRequired'))
+        return
+      }
+      if (sourceMode === 'planner' && plannerPoints.length < 2) {
+        setError(t('create.validation.pointsRequired'))
+        return
+      }
     }
 
     // Clear local errors
     setError(null)
 
-    // Call parent's onSubmit with data and optional file
+    // Call parent's onSubmit with data and optional file/points
     onSubmit(
       {
         name,
         media,
         surfaceType,
         visibility,
+        points: sourceMode === 'planner' ? plannerPoints : undefined,
       },
-      gpxFile || undefined
+      sourceMode === 'gpx' ? gpxFile || undefined : undefined
     )
   }
 
@@ -143,29 +166,80 @@ export function RouteEditor({
         </div>
       )}
 
-      {/* GPX File Upload */}
-      <div>
-        <label htmlFor="gpxFile" className="block text-sm font-medium text-gray-700">
-          {t('create.form.gpxFile')} {requireGpxFile && '*'}
-        </label>
-        <div className="mt-1">
-          <input
-            id="gpxFile"
-            name="gpxFile"
-            type="file"
-            accept=".gpx"
-            onChange={handleFileChange}
-            className="block w-full text-sm text-gray-500
-              file:mr-4 file:py-2 file:px-4
-              file:rounded-md file:border-0
-              file:text-sm file:font-semibold
-              file:bg-indigo-50 file:text-indigo-700
-              hover:file:bg-indigo-100"
-            required={requireGpxFile}
-          />
+      {/* Route Source - Mode selector (create mode or edit with single-track) */}
+      {canUsePlanner && (
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            {t('create.form.sourceMode')} {isCreateMode && '*'}
+          </label>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setSourceMode('gpx')}
+              className={`flex-1 py-2 px-4 text-sm font-medium rounded-lg border transition-colors ${
+                sourceMode === 'gpx'
+                  ? 'bg-indigo-600 text-white border-indigo-600'
+                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+              }`}
+            >
+              {t('create.form.sourceModeGpx')}
+            </button>
+            <button
+              type="button"
+              onClick={() => setSourceMode('planner')}
+              className={`flex-1 py-2 px-4 text-sm font-medium rounded-lg border transition-colors ${
+                sourceMode === 'planner'
+                  ? 'bg-indigo-600 text-white border-indigo-600'
+                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+              }`}
+            >
+              {t('create.form.sourceModePlanner')}
+            </button>
+          </div>
         </div>
-        <p className="mt-2 text-sm text-gray-500">{t('create.form.gpxFileHint')}</p>
-      </div>
+      )}
+
+      {/* GPX File Upload (GPX mode or edit mode without planner) */}
+      {(sourceMode === 'gpx' || !canUsePlanner) && (
+        <div>
+          <label htmlFor="gpxFile" className="block text-sm font-medium text-gray-700">
+            {t('create.form.gpxFile')} {isCreateMode && sourceMode === 'gpx' && '*'}
+          </label>
+          <div className="mt-1">
+            <input
+              id="gpxFile"
+              name="gpxFile"
+              type="file"
+              accept=".gpx"
+              onChange={handleFileChange}
+              className="block w-full text-sm text-gray-500
+                file:mr-4 file:py-2 file:px-4
+                file:rounded-md file:border-0
+                file:text-sm file:font-semibold
+                file:bg-indigo-50 file:text-indigo-700
+                hover:file:bg-indigo-100"
+            />
+          </div>
+          <p className="mt-2 text-sm text-gray-500">{t('create.form.gpxFileHint')}</p>
+        </div>
+      )}
+
+      {/* Route Planner - full viewport width */}
+      {canUsePlanner && sourceMode === 'planner' && (
+        <div className="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen">
+          <label className="block text-sm font-medium text-gray-700 mb-2 px-4 sm:px-6 lg:px-8">
+            {t('create.form.plannerLabel')} {isCreateMode && '*'}
+          </label>
+          <div className="h-[70vh] border-y border-gray-300 overflow-hidden">
+            <EmbeddedRoutePlanner onPointsChange={setPlannerPoints} initialTrack={initialTrack} />
+          </div>
+          {plannerPoints.length > 0 && (
+            <p className="mt-2 text-sm text-gray-500 px-4 sm:px-6 lg:px-8">
+              {t('create.form.pointCount', { count: plannerPoints.length })}
+            </p>
+          )}
+        </div>
+      )}
 
       {/* Name */}
       <div>
@@ -267,7 +341,11 @@ export function RouteEditor({
         )}
         <button
           type="submit"
-          disabled={isPending || (requireGpxFile && !gpxFile)}
+          disabled={
+            isPending ||
+            (isCreateMode && sourceMode === 'gpx' && !gpxFile) ||
+            (isCreateMode && sourceMode === 'planner' && plannerPoints.length < 2)
+          }
           className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
         >
           {isPending && <LoadingSpinner size="sm" />}

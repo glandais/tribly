@@ -13,15 +13,22 @@
       "gpxFile": "Fichier GPX",
       "gpxFileHint": "Format .gpx uniquement, taille maximale 10 Mo",
       "name": "Nom du parcours",
+      "plannerLabel": "Tracer le parcours sur la carte",
+      "pointCount_one": "{{count}} point de contrôle",
+      "pointCount_other": "{{count}} points de contrôle",
+      "sourceMode": "Source du parcours",
+      "sourceModeGpx": "Importer un fichier GPX",
+      "sourceModePlanner": "Tracer sur la carte",
       "surfaceType": "Type de revêtement"
     },
     "submit": "Créer le parcours",
-    "subtitle": "Téléchargez un fichier GPX pour créer un nouveau parcours",
+    "subtitle": "Importez un fichier GPX ou tracez un parcours sur la carte",
     "title": "Créer un parcours",
     "validation": {
       "fileRequired": "Un fichier GPX est requis",
       "fileTooLarge": "Le fichier est trop volumineux (maximum 10 Mo)",
-      "invalidFileType": "Le fichier doit être au format .gpx"
+      "invalidFileType": "Le fichier doit être au format .gpx",
+      "pointsRequired": "Au moins 2 points de contrôle sont requis"
     }
   },
   "createModal": {

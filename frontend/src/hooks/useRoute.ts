@@ -11,6 +11,7 @@ import type {
   WaypointDto,
   RouteListResponse,
   RouteRequest,
+  GeoPoint,
 } from '../api/api'
 import { SurfaceType } from '../api/api'
 
@@ -23,6 +24,7 @@ export type {
   WaypointDto,
   RouteListResponse,
   RouteRequest,
+  GeoPoint,
 }
 
 // Re-export enums as values (not types)
@@ -55,7 +57,7 @@ export function useCreateRoute(teamSlug: string) {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (data: { route: RouteRequest; gpxFile: File }) => {
+    mutationFn: async (data: { route: RouteRequest; gpxFile?: File }) => {
       return await unwrapResponse(routesApi.createRoute(teamSlug, data.route, data.gpxFile))
     },
     onSuccess: () => {
