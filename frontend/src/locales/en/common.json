@@ -59,7 +59,11 @@
   "map": {
     "loading": "Loading routes...",
     "noRoutes": "No routes available",
-    "noTrackData": "No track data available for this route"
+    "noTrackData": "No track data available for this route",
+    "styles": {
+      "switch": "Change map style",
+      "title": "Map Style"
+    }
   },
   "memberCount_one": "{{count}} member",
   "memberCount_other": "{{count}} members",

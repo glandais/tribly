@@ -1,5 +1,5 @@
 {
-   "climbCategory": {
+  "climbCategory": {
     "CAT1": "1ère Catégorie",
     "CAT2": "2ème Catégorie",
     "CAT3": "3ème Catégorie",
@@ -44,8 +44,7 @@
     },
     "download": {
       "fit": "Télécharger FIT",
-      "gpx": "Télécharger GPX",
-      "title": "Télécharger"
+      "gpx": "Télécharger GPX"
     },
     "info": {
       "createdAt": "Créé le",

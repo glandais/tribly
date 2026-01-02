@@ -63,8 +63,8 @@
       "members": "Members",
       "posts": "Posts",
       "publications": "Feed",
-      "rideTemplates": "Templates",
       "rides": "Rides",
+      "rideTemplates": "Templates",
       "routes": "Routes",
       "trips": "Trips"
     }

@@ -59,7 +59,11 @@
   "map": {
     "loading": "Chargement...",
     "noRoutes": "Aucun parcours disponible",
-    "noTrackData": "Aucune donnée de tracé disponible pour ce parcours"
+    "noTrackData": "Aucune donnée de tracé disponible pour ce parcours",
+    "styles": {
+      "switch": "Changer le style",
+      "title": "Style de carte"
+    }
   },
   "memberCount_one": "{{count}} membre",
   "memberCount_many": "{{count}} membres",

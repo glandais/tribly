@@ -20,12 +20,12 @@ import { routesApi, unwrapResponse } from '../../lib/apiClient'
 import type { RouteDetailDto } from '../../api/api'
 import { StartMarker, EndMarker } from '../map/MapMarkers'
 import { calculateBounds, routeToGeoJSON } from '../map/mapUtils'
+import { MapStyleSwitcher } from '../map/MapStyleSwitcher'
+import { useMapStyle } from '../../hooks/useMapStyle'
 import 'maplibre-gl/dist/maplibre-gl.css'
 
 // Register Chart.js components
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Filler)
-
-const MAP_STYLE = 'https://vector.openstreetmap.org/styles/shortbread/graybeard.json'
 
 // Route colors (matching biketeam)
 const ROUTE_COLORS = [
@@ -72,6 +72,7 @@ export function RoutesMapView({
   onItemHover,
 }: RoutesMapViewProps) {
   const { t } = useTranslation('common')
+  const { styleId, setStyleId, style } = useMapStyle()
   const mapRef = useRef<MapRef>(null)
   const [routesData, setRoutesData] = useState<RouteData[]>([])
   const [selectedRouteId, setSelectedRouteId] = useState<string | null>(null)
@@ -303,7 +304,7 @@ export function RoutesMapView({
         <Map
           ref={mapRef}
           mapLib={maplibregl}
-          mapStyle={MAP_STYLE}
+          mapStyle={style}
           initialViewState={{
             longitude: routesData[0].trackPoints[0][0],
             latitude: routesData[0].trackPoints[0][1],
@@ -317,7 +318,12 @@ export function RoutesMapView({
           onMouseLeave={handleMouseLeave}
           interactiveLayerIds={interactiveLayerIds}
         >
-                  <NavigationControl position='top-left' />
+          <NavigationControl position="top-left" />
+          <MapStyleSwitcher
+            position="bottom-left"
+            currentStyleId={styleId}
+            onStyleChange={setStyleId}
+          />
           {/* Render all routes */}
           {routeGeoJSONs.map((route) => {
             const isHighlighted = highlightedRoute?.itemId === route.itemId

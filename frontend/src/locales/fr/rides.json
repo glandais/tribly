@@ -14,7 +14,6 @@
     "backToRides": "Retour aux sorties",
     "button": "Créer la sortie",
     "error": "Échec de la création de la sortie. Veuillez réessayer.",
-    "loadTemplate": "Charger un modèle",
     "form": {
       "date": {
         "label": "Départ"
@@ -77,6 +76,7 @@
         "placeholder": "ex. Sortie du dimanche matin"
       }
     },
+    "loadTemplate": "Charger un modèle",
     "subtitle": "Planifiez une sortie pour {{teamName}}",
     "title": "Créer une sortie"
   },
@@ -112,6 +112,7 @@
       "viewAll": "Voir tout",
       "viewParticipants": "Voir tous les participants"
     },
+    "mainRoute": "Parcours principal",
     "nonMember": {
       "message": "Rejoignez cette équipe pour participer aux sorties.",
       "viewTeam": "Voir l'équipe"
@@ -125,7 +126,6 @@
       "message": "La sortie que vous recherchez n'existe pas.",
       "title": "Sortie non trouvée"
     },
-    "mainRoute": "Parcours principal",
     "scheduledPublish": "Publication programmée le {{date}}",
     "startPlace": "Départ"
   },

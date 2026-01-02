@@ -2,98 +2,100 @@
   "breadcrumb": {
     "rideTemplates": "Modèles"
   },
-  "list": {
-    "title": "Modèles de sortie",
-    "loading": "Chargement des modèles...",
-    "createTemplate": "Créer un modèle",
-    "groupCount_one": "{{count}} groupe",
-    "groupCount_other": "{{count}} groupes",
-    "speed": "{{speed}} km/h",
-    "edit": "Modifier",
-    "delete": "Supprimer",
-    "noResults": "Aucun modele trouve",
-    "empty": {
-      "title": "Aucun modele",
-      "admin": "Creez des modeles pour accelerer la creation de sorties.",
-      "member": "Aucun modele n'a encore ete cree.",
-      "createAction": "Creer un modele"
-    },
-    "search": {
-      "label": "Rechercher",
-      "placeholder": "Rechercher par nom..."
-    }
+  "confirmations": {
+    "delete": "Etes-vous sur de vouloir supprimer le modele \"{{name}}\" ?",
+    "deleteTitle": "Supprimer le modele"
   },
   "create": {
-    "title": "Creer un modele",
+    "backToTemplates": "Retour aux modeles",
+    "button": "Creer le modele",
     "loading": "Chargement...",
     "subtitle": "Definissez un modele reutilisable pour {{teamName}}",
-    "button": "Creer le modele",
-    "backToTemplates": "Retour aux modeles"
+    "title": "Creer un modele"
   },
   "edit": {
-    "title": "Modifier le modele",
+    "backToTemplates": "Retour aux modeles",
+    "button": "Enregistrer",
     "loading": "Chargement du modele...",
     "subtitle": "Modifier les details du modele",
-    "button": "Enregistrer",
-    "backToTemplates": "Retour aux modeles"
+    "title": "Modifier le modele"
   },
   "form": {
-    "error": "Une erreur est survenue",
-    "name": {
-      "label": "Nom du modele",
-      "placeholder": "ex. Sortie du dimanche"
-    },
     "description": {
       "label": "Description",
       "placeholder": "Description par defaut de la sortie..."
     },
-    "visibility": {
-      "label": "Visibilite",
-      "team": "Equipe uniquement",
-      "public": "Public",
-      "publicDisabled": "equipe privee"
-    },
-    "status": {
-      "label": "Statut par defaut",
-      "draft": "Brouillon",
-      "published": "Publie"
-    },
+    "error": "Une erreur est survenue",
     "groups": {
-      "label": "Groupes",
       "add": "+ Ajouter un groupe",
-      "hint": "Definissez les groupes par defaut pour ce type de sortie",
-      "new": "Nouveau groupe",
       "defaultName": "Groupe principal",
-      "remove": "Supprimer",
-      "restore": "Restaurer",
-      "willBeDeleted": "(sera supprime)",
       "empty": "Aucun groupe. Ajoutez-en au moins un.",
+      "hint": "Definissez les groupes par defaut pour ce type de sortie",
+      "label": "Groupes",
+      "maxParticipants": {
+        "placeholder": "Max. participants"
+      },
       "name": {
         "placeholder": "Nom du groupe"
       },
+      "new": "Nouveau groupe",
+      "remove": "Supprimer",
+      "restore": "Restaurer",
       "speed": {
         "placeholder": "Vitesse (km/h)"
       },
-      "maxParticipants": {
-        "placeholder": "Max. participants"
-      }
+      "willBeDeleted": "(sera supprime)"
+    },
+    "name": {
+      "label": "Nom du modele",
+      "placeholder": "ex. Sortie du dimanche"
+    },
+    "status": {
+      "draft": "Brouillon",
+      "label": "Statut par defaut",
+      "published": "Publie"
+    },
+    "visibility": {
+      "label": "Visibilite",
+      "public": "Public",
+      "publicDisabled": "equipe privee",
+      "team": "Equipe uniquement"
     }
   },
-  "picker": {
-    "title": "Choisir un modele",
-    "search": "Rechercher un modele...",
-    "noResults": "Aucun modele trouve",
-    "loading": "Chargement des modeles...",
+  "list": {
+    "createTemplate": "Créer un modèle",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "empty": {
+      "admin": "Creez des modeles pour accelerer la creation de sorties.",
+      "createAction": "Creer un modele",
+      "member": "Aucun modele n'a encore ete cree.",
+      "title": "Aucun modele"
+    },
     "groupCount_one": "{{count}} groupe",
-    "groupCount_other": "{{count}} groupes"
+    "groupCount_many": "list.groupCount",
+    "groupCount_other": "{{count}} groupes",
+    "loading": "Chargement des modèles...",
+    "noResults": "Aucun modele trouve",
+    "search": {
+      "label": "Rechercher",
+      "placeholder": "Rechercher par nom..."
+    },
+    "speed": "{{speed}} km/h",
+    "title": "Modèles de sortie"
   },
   "notifications": {
     "created": "Modele cree avec succes",
-    "updated": "Modele mis a jour avec succes",
-    "deleted": "Modele supprime avec succes"
+    "deleted": "Modele supprime avec succes",
+    "updated": "Modele mis a jour avec succes"
   },
-  "confirmations": {
-    "deleteTitle": "Supprimer le modele",
-    "delete": "Etes-vous sur de vouloir supprimer le modele \"{{name}}\" ?"
+  "picker": {
+    "groupCount_one": "{{count}} groupe",
+    "groupCount_many": "picker.groupCount",
+    "groupCount_other": "{{count}} groupes",
+    "loading": "Chargement des modeles...",
+    "noResults": "Aucun modele trouve",
+    "search": "Rechercher un modele...",
+    "title": "Choisir un modele"
   }
 }

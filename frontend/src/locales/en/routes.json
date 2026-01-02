@@ -44,8 +44,7 @@
     },
     "download": {
       "fit": "Download FIT",
-      "gpx": "Download GPX",
-      "title": "Download"
+      "gpx": "Download GPX"
     },
     "info": {
       "createdAt": "Created on",

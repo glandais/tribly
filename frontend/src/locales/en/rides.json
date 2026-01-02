@@ -12,7 +12,6 @@
     "backToRides": "Back to Rides",
     "button": "Create Ride",
     "error": "Failed to create ride. Please try again.",
-    "loadTemplate": "Load Template",
     "form": {
       "date": {
         "label": "Start"
@@ -75,6 +74,7 @@
         "placeholder": "e.g., Sunday Morning Ride"
       }
     },
+    "loadTemplate": "Load Template",
     "subtitle": "Plan a ride for {{teamName}}",
     "title": "Create a Ride"
   },
@@ -110,6 +110,7 @@
       "viewAll": "View all",
       "viewParticipants": "View all participants"
     },
+    "mainRoute": "Main Route",
     "nonMember": {
       "message": "Join this team to participate in rides.",
       "viewTeam": "View team"
@@ -123,7 +124,6 @@
       "message": "The ride you're looking for doesn't exist.",
       "title": "Ride Not Found"
     },
-    "mainRoute": "Main Route",
     "scheduledPublish": "Scheduled to publish on {{date}}",
     "startPlace": "Start"
   },

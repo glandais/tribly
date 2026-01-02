@@ -32,12 +32,12 @@ import {
   findNearestPoint,
   createGradientLineFeatures,
 } from '../map/mapUtils'
+import { MapStyleSwitcher } from '../map/MapStyleSwitcher'
+import { useMapStyle } from '../../hooks/useMapStyle'
 import 'maplibre-gl/dist/maplibre-gl.css'
 
 // Register Chart.js components
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Filler)
-
-const MAP_STYLE = 'https://vector.openstreetmap.org/styles/shortbread/graybeard.json'
 
 // Extended chart type with crosshair property
 type ChartWithCrosshair = ChartJS<'line'> & { crosshair?: { x: number } | null }
@@ -70,6 +70,7 @@ interface RouteMapViewProps {
 
 export function RouteMapView({ route }: RouteMapViewProps) {
   const { t } = useTranslation('common')
+  const { styleId, setStyleId, style } = useMapStyle()
   const [hoveredPointIndex, setHoveredPointIndex] = useState<number>(-1)
   const mapRef = useRef<MapRef>(null)
   const chartRef = useRef<ChartJS<'line'>>(null)
@@ -300,7 +301,7 @@ export function RouteMapView({ route }: RouteMapViewProps) {
         <Map
           ref={mapRef}
           mapLib={maplibregl}
-          mapStyle={MAP_STYLE}
+          mapStyle={style}
           initialViewState={{
             longitude: trackPoints[0][0],
             latitude: trackPoints[0][1],
@@ -311,7 +312,12 @@ export function RouteMapView({ route }: RouteMapViewProps) {
           onMouseMove={handleMouseMove}
           onMouseLeave={handleMouseLeave}
         >
-          <NavigationControl position='top-left' />
+          <NavigationControl position="top-left" />
+          <MapStyleSwitcher
+            position="top-right"
+            currentStyleId={styleId}
+            onStyleChange={setStyleId}
+          />
           {/* Gradient-colored route line */}
           <Source id="route-segments" type="geojson" data={lineFeatures}>
             <Layer
