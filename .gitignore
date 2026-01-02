@@ -70,3 +70,6 @@ frontend/stats.html
 
 data/storage/*
 !data/storage/.gitkeep
+data/segments4/*
+!data/segments4/.gitkeep
+!data/segments4/download.sh

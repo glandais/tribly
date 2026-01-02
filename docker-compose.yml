@@ -52,6 +52,13 @@ services:
     ports:
       - "127.0.0.1:38080:8080"
 
+  brouter:
+    image: brouter
+    ports:
+      - "17777:17777"
+    volumes:
+      - ./data/segments4:/segments4:ro
+
   pgadmin:
     image: dpage/pgadmin4:latest
     container_name: tribly-pgadmin
