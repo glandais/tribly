@@ -1,4 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react'
+import { useForm, useWatch } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
 import { useTranslation } from 'react-i18next'
 import type { MediaDto, TeamDetailDto } from '../../api/api'
 import { ApiClientError } from '../../lib/apiClient'
@@ -7,6 +10,19 @@ import { LoadingSpinner } from '../common/LoadingSpinner'
 import { MediaEditor } from '../common/MediaEditor'
 import { Visibility, Status } from '../../hooks/usePost'
 import { defaultMedia } from '@/lib/apiUtils'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
 
 export interface PostFormData {
   name: string
@@ -16,6 +32,17 @@ export interface PostFormData {
   status: Status
   publishAt?: string // ISO string
 }
+
+const postSchema = z.object({
+  name: z.string().min(3).max(200),
+  media: z.custom<MediaDto>(),
+  dateTime: z.string(),
+  visibility: z.nativeEnum(Visibility),
+  status: z.nativeEnum(Status),
+  publishAt: z.string().optional(),
+})
+
+type PostFormValues = z.infer<typeof postSchema>
 
 interface PostEditorProps {
   // Context
@@ -59,229 +86,231 @@ export function PostEditor({
   const { t } = useTranslation('posts')
   const { t: tCommon } = useTranslation('common')
 
-  const [name, setName] = useState('')
-  const [media, setMedia] = useState<MediaDto>(defaultMedia())
-  const [dateTime, setDateTime] = useState('')
-  const [visibility, setVisibility] = useState<Visibility>(Visibility.Team)
-  const [status, setStatus] = useState<Status>(Status.Draft)
-  const [publishAt, setPublishAt] = useState('')
+  const form = useForm<PostFormValues>({
+    resolver: zodResolver(postSchema),
+    defaultValues: {
+      name: initialValues.name,
+      media: initialValues.media ?? defaultMedia(),
+      dateTime: initialValues.dateTime,
+      visibility: initialValues.visibility,
+      status: initialValues.status,
+      publishAt: initialValues.publishAt || '',
+    },
+  })
 
-  // Initialize form state from initialValues prop (happens once on mount)
+  const status = useWatch({ control: form.control, name: 'status' })
+  const name = useWatch({ control: form.control, name: 'name' })
+
+  // Sync form values when initial props change (for edit mode)
   useEffect(() => {
-    setName(initialValues.name)
-    // Only sync media if there's actual content, not on empty default
-    if (initialValues.media.markdown || initialValues.media.assets?.images?.length) {
-      setMedia(initialValues.media)
+    form.setValue('name', initialValues.name)
+    if (initialValues.media?.markdown || initialValues.media?.assets?.images?.length) {
+      form.setValue('media', initialValues.media)
     }
-    setDateTime(initialValues.dateTime)
-    setVisibility(initialValues.visibility)
-    setStatus(initialValues.status)
-    setPublishAt(initialValues.publishAt || '')
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- Only sync on actual value changes
+    form.setValue('dateTime', initialValues.dateTime)
+    form.setValue('visibility', initialValues.visibility)
+    form.setValue('status', initialValues.status)
+    form.setValue('publishAt', initialValues.publishAt || '')
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     initialValues.name,
-    initialValues.media.markdown,
-    initialValues.media.assets?.images?.length,
+    initialValues.media?.markdown,
+    initialValues.media?.assets?.images?.length,
     initialValues.dateTime,
     initialValues.visibility,
     initialValues.status,
     initialValues.publishAt,
   ])
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+  // Set server-side errors on form fields
+  useEffect(() => {
+    if (error instanceof ApiClientError && error.error.errors) {
+      error.error.errors.forEach((err) => {
+        if (err.field && err.field in postSchema.shape) {
+          form.setError(err.field as keyof PostFormValues, { message: err.message })
+        }
+      })
+    }
+  }, [error, form])
 
+  const handleSubmit = (values: PostFormValues) => {
     onSubmit({
-      name,
-      media,
-      dateTime: fromDateTimeLocalValue(dateTime).toISOString(),
-      status,
-      visibility,
-      publishAt: publishAt ? fromDateTimeLocalValue(publishAt).toISOString() : undefined,
+      name: values.name,
+      media: values.media,
+      dateTime: fromDateTimeLocalValue(values.dateTime).toISOString(),
+      status: values.status,
+      visibility: values.visibility,
+      publishAt: values.publishAt
+        ? fromDateTimeLocalValue(values.publishAt).toISOString()
+        : undefined,
     })
   }
 
-  const getFieldError = (field: string) => {
-    if (error instanceof ApiClientError) {
-      return error.error.errors?.find((e) => e.field === field)?.message
-    }
-    return undefined
-  }
-
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      {error && !(error instanceof ApiClientError && error.error.errors) && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-          <p className="text-red-700">
-            {error instanceof ApiClientError ? error.error.message : t('edit.error')}
-          </p>
-        </div>
-      )}
-
-      {/* Title */}
-      <div>
-        <label htmlFor="title" className="block text-sm font-medium text-gray-700">
-          {t('create.nameLabel')} <span className="text-red-500">*</span>
-        </label>
-        <input
-          type="text"
-          id="title"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-          minLength={3}
-          maxLength={200}
-          className={`mt-1 block w-full px-4 py-2 border rounded-lg focus:ring-indigo-500 focus:border-indigo-500 ${
-            getFieldError('name') ? 'border-red-300' : 'border-gray-300'
-          }`}
-          placeholder={t('create.namePlaceholder')}
-        />
-        {getFieldError('name') && (
-          <p className="mt-1 text-sm text-red-600">{getFieldError('name')}</p>
-        )}
-      </div>
-
-      {/* Description */}
-      <div>
-        <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
-          {t('create.descriptionLabel')}
-        </label>
-        <MediaEditor
-          value={media}
-          onChange={setMedia}
-          placeholder={t('create.descriptionPlaceholder')}
-          minHeight="200px"
-          maxHeight="400px"
-          disabled={isPending}
-          ariaLabel={t('create.descriptionLabel')}
-          teamSlug={teamSlug}
-        />
-      </div>
-
-      {/* Visibility */}
-      {team.visibility !== 'TEAM' && (
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            {tCommon('visibility.label')}
-          </label>
-          <div className="space-y-2">
-            <label className="flex items-center">
-              <input
-                type="radio"
-                name="visibility"
-                value="TEAM"
-                checked={visibility === 'TEAM'}
-                onChange={() => setVisibility('TEAM')}
-                className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
-              />
-              <span className="ml-2 text-sm text-gray-700">{tCommon('visibility.team')}</span>
-            </label>
-            <label className={`flex items-center`}>
-              <input
-                type="radio"
-                name="visibility"
-                value="PUBLIC"
-                checked={visibility === 'PUBLIC'}
-                onChange={() => setVisibility('PUBLIC')}
-                className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500 disabled:cursor-not-allowed"
-              />
-              <span className="ml-2 text-sm text-gray-700">{tCommon('visibility.public')}</span>
-            </label>
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+        {error && !(error instanceof ApiClientError && error.error.errors) && (
+          <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+            <p className="text-destructive">
+              {error instanceof ApiClientError ? error.error.message : t('edit.error')}
+            </p>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Status */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          {t('create.statusLabel')}
-        </label>
-        <div className="space-y-2">
-          <label className="flex items-center">
-            <input
-              type="radio"
-              name="status"
-              value="DRAFT"
-              checked={status === 'DRAFT'}
-              onChange={() => setStatus('DRAFT')}
-              className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
-            />
-            <span className="ml-2 text-sm text-gray-700">{t('status.DRAFT')}</span>
-          </label>
-          <label className="flex items-center">
-            <input
-              type="radio"
-              name="status"
-              value="PUBLISHED"
-              checked={status === 'PUBLISHED'}
-              onChange={() => setStatus('PUBLISHED')}
-              className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
-            />
-            <span className="ml-2 text-sm text-gray-700">{t('status.PUBLISHED')}</span>
-          </label>
-        </div>
-      </div>
-
-      {/* Date and Time */}
-      {status === Status.Published && (
-        <div>
-          <label htmlFor="dateTime" className="block text-sm font-medium text-gray-700">
-            {t('create.dateTimeLabel')} <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="datetime-local"
-            id="dateTime"
-            value={dateTime}
-            onChange={(e) => setDateTime(e.target.value)}
-            required
-            className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
-          />
-          <p className="mt-1 text-sm text-gray-500">{t('create.dateTimeHint')}</p>
-        </div>
-      )}
-
-      {/* Scheduled Publication */}
-      {status === Status.Draft && (
-        <div>
-          <label htmlFor="publishAt" className="block text-sm font-medium text-gray-700">
-            {t('create.publishAtLabel')}
-          </label>
-          <input
-            type="datetime-local"
-            id="publishAt"
-            value={publishAt}
-            onChange={(e) => setPublishAt(e.target.value)}
-            min={toDateTimeLocalValue(new Date())}
-            className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
-          />
-          <p className="mt-1 text-sm text-gray-500">{t('create.publishAtHint')}</p>
-        </div>
-      )}
-
-      {/* Actions */}
-      <div className="pt-4 flex items-center justify-end gap-3">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="px-4 py-2 border border-gray-300 rounded-md shadow-xs text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-        >
-          {cancelButtonText || tCommon('buttons.cancel')}
-        </button>
-        <button
-          type="submit"
-          disabled={isPending || !name.trim()}
-          className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {isPending ? (
-            <>
-              <LoadingSpinner size="sm" color="white" className="mr-2" />
-              {tCommon('buttons.loading')}
-            </>
-          ) : (
-            submitButtonText || t('edit.submit')
+        {/* Title */}
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>
+                {t('create.nameLabel')} <span className="text-destructive">*</span>
+              </FormLabel>
+              <FormControl>
+                <Input placeholder={t('create.namePlaceholder')} {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
           )}
-        </button>
-      </div>
-    </form>
+        />
+
+        {/* Description */}
+        <FormField
+          control={form.control}
+          name="media"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t('create.descriptionLabel')}</FormLabel>
+              <FormControl>
+                <MediaEditor
+                  value={field.value}
+                  onChange={field.onChange}
+                  placeholder={t('create.descriptionPlaceholder')}
+                  minHeight="200px"
+                  maxHeight="400px"
+                  disabled={isPending}
+                  ariaLabel={t('create.descriptionLabel')}
+                  teamSlug={teamSlug}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Visibility */}
+        {team.visibility !== 'TEAM' && (
+          <FormField
+            control={form.control}
+            name="visibility"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{tCommon('visibility.label')}</FormLabel>
+                <FormControl>
+                  <RadioGroup
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    className="space-y-2"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="TEAM" id="visibility-team" />
+                      <Label htmlFor="visibility-team">{tCommon('visibility.team')}</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="PUBLIC" id="visibility-public" />
+                      <Label htmlFor="visibility-public">{tCommon('visibility.public')}</Label>
+                    </div>
+                  </RadioGroup>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
+
+        {/* Status */}
+        <FormField
+          control={form.control}
+          name="status"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t('create.statusLabel')}</FormLabel>
+              <FormControl>
+                <RadioGroup
+                  value={field.value}
+                  onValueChange={field.onChange}
+                  className="space-y-2"
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="DRAFT" id="status-draft" />
+                    <Label htmlFor="status-draft">{t('status.DRAFT')}</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="PUBLISHED" id="status-published" />
+                    <Label htmlFor="status-published">{t('status.PUBLISHED')}</Label>
+                  </div>
+                </RadioGroup>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Date and Time (shown when PUBLISHED) */}
+        {status === Status.Published && (
+          <FormField
+            control={form.control}
+            name="dateTime"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  {t('create.dateTimeLabel')} <span className="text-destructive">*</span>
+                </FormLabel>
+                <FormControl>
+                  <Input type="datetime-local" {...field} />
+                </FormControl>
+                <FormDescription>{t('create.dateTimeHint')}</FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
+
+        {/* Scheduled Publication (shown when DRAFT) */}
+        {status === Status.Draft && (
+          <FormField
+            control={form.control}
+            name="publishAt"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('create.publishAtLabel')}</FormLabel>
+                <FormControl>
+                  <Input type="datetime-local" min={toDateTimeLocalValue(new Date())} {...field} />
+                </FormControl>
+                <FormDescription>{t('create.publishAtHint')}</FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
+
+        {/* Actions */}
+        <div className="pt-4 flex items-center justify-end gap-3">
+          <Button type="button" variant="outline" onClick={onCancel}>
+            {cancelButtonText || tCommon('buttons.cancel')}
+          </Button>
+          <Button type="submit" disabled={isPending || !name.trim()}>
+            {isPending ? (
+              <>
+                <LoadingSpinner size="sm" color="white" className="mr-2" />
+                {tCommon('buttons.loading')}
+              </>
+            ) : (
+              submitButtonText || t('edit.submit')
+            )}
+          </Button>
+        </div>
+      </form>
+    </Form>
   )
 }

@@ -1,7 +1,18 @@
-import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useForm, useWatch } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
 import { PaperAirplaneIcon } from '@heroicons/react/24/solid'
+import { Button } from '@/components/ui/button'
+import { Textarea } from '@/components/ui/textarea'
+import { Form, FormControl, FormField, FormItem } from '@/components/ui/form'
 import { LoadingSpinner } from '../common/LoadingSpinner'
+
+const commentSchema = z.object({
+  content: z.string().min(1),
+})
+
+type CommentFormValues = z.infer<typeof commentSchema>
 
 interface CommentFormProps {
   onSubmit: (content: string) => void
@@ -19,45 +30,51 @@ export function CommentForm({
   autoFocus = false,
 }: CommentFormProps) {
   const { t } = useTranslation('comments')
-  const [content, setContent] = useState('')
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (content.trim()) {
-      onSubmit(content.trim())
-      setContent('')
-    }
+  const form = useForm<CommentFormValues>({
+    resolver: zodResolver(commentSchema),
+    defaultValues: { content: '' },
+  })
+
+  const content = useWatch({ control: form.control, name: 'content' })
+
+  const handleSubmit = (values: CommentFormValues) => {
+    onSubmit(values.content.trim())
+    form.reset()
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex gap-2">
-      <textarea
-        value={content}
-        onChange={(e) => setContent(e.target.value)}
-        placeholder={placeholder || t('form.placeholder')}
-        autoFocus={autoFocus}
-        rows={2}
-        className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 text-sm resize-none"
-        disabled={isLoading}
-      />
-      <div className="flex flex-col gap-1">
-        <button
-          type="submit"
-          disabled={isLoading || !content.trim()}
-          className="inline-flex items-center px-3 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {isLoading ? <LoadingSpinner size="sm" /> : <PaperAirplaneIcon className="w-4 h-4" />}
-        </button>
-        {onCancel && (
-          <button
-            type="button"
-            onClick={onCancel}
-            className="text-xs text-gray-500 hover:text-gray-700"
-          >
-            {t('form.cancel')}
-          </button>
-        )}
-      </div>
-    </form>
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="flex gap-2">
+        <FormField
+          control={form.control}
+          name="content"
+          render={({ field }) => (
+            <FormItem className="flex-1">
+              <FormControl>
+                <Textarea
+                  {...field}
+                  placeholder={placeholder || t('form.placeholder')}
+                  autoFocus={autoFocus}
+                  rows={2}
+                  className="min-h-0 resize-none"
+                  disabled={isLoading}
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+        <div className="flex flex-col gap-1">
+          <Button type="submit" disabled={isLoading || !content.trim()} size="icon">
+            {isLoading ? <LoadingSpinner size="sm" /> : <PaperAirplaneIcon className="size-4" />}
+          </Button>
+          {onCancel && (
+            <Button type="button" variant="ghost" size="sm" onClick={onCancel} className="text-xs">
+              {t('form.cancel')}
+            </Button>
+          )}
+        </div>
+      </form>
+    </Form>
   )
 }

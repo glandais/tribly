@@ -1,4 +1,16 @@
 import { useTranslation } from 'react-i18next'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import { buttonVariants } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
 interface ConfirmDialogProps {
   isOpen: boolean
@@ -25,69 +37,32 @@ export function ConfirmDialog({
 }: ConfirmDialogProps) {
   const { t } = useTranslation('common')
 
-  if (!isOpen) return null
-
   const variantStyles = {
-    danger: {
-      bg: 'bg-red-50',
-      border: 'border-red-200',
-      text: 'text-red-900',
-      messageText: 'text-red-700',
-      button: 'bg-red-600 hover:bg-red-700 focus:ring-red-500 text-white disabled:bg-red-300',
-    },
-    warning: {
-      bg: 'bg-yellow-50',
-      border: 'border-yellow-200',
-      text: 'text-yellow-900',
-      messageText: 'text-yellow-700',
-      button:
-        'bg-yellow-600 hover:bg-yellow-700 focus:ring-yellow-500 text-white disabled:bg-yellow-300',
-    },
-    info: {
-      bg: 'bg-blue-50',
-      border: 'border-blue-200',
-      text: 'text-blue-900',
-      messageText: 'text-blue-700',
-      button: 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500 text-white disabled:bg-blue-300',
-    },
+    danger: 'bg-destructive text-destructive-foreground hover:bg-destructive/90',
+    warning: 'bg-yellow-600 text-white hover:bg-yellow-700',
+    info: 'bg-blue-600 text-white hover:bg-blue-700',
   }
 
-  const styles = variantStyles[variant]
-
   return (
-    <div className="fixed inset-0 z-9999 overflow-y-auto">
-      <div className="flex min-h-screen items-center justify-center p-4">
-        {/* Backdrop */}
-        <div
-          className="fixed inset-0 bg-black bg-opacity-30 transition-opacity"
-          onClick={onClose}
-        />
-
-        {/* Dialog */}
-        <div
-          className={`relative w-full max-w-md transform rounded-lg ${styles.bg} ${styles.border} border p-6 shadow-xl transition-all z-10000`}
-        >
-          <h3 className={`text-lg font-semibold ${styles.text} mb-3`}>{title}</h3>
-          <p className={`text-sm ${styles.messageText} mb-6`}>{message}</p>
-
-          <div className="flex items-center justify-end gap-3">
-            <button
-              onClick={onClose}
-              disabled={isLoading}
-              className="px-4 py-2 border border-gray-300 rounded-md shadow-xs text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 disabled:opacity-50"
-            >
-              {cancelText || t('buttons.cancel')}
-            </button>
-            <button
-              onClick={onConfirm}
-              disabled={isLoading}
-              className={`px-4 py-2 rounded-md shadow-xs text-sm font-medium focus:outline-hidden focus:ring-2 focus:ring-offset-2 ${styles.button}`}
-            >
-              {isLoading ? t('buttons.loading') : confirmText || t('buttons.confirm')}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
+    <AlertDialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>{title}</AlertDialogTitle>
+          <AlertDialogDescription>{message}</AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={isLoading}>
+            {cancelText || t('buttons.cancel')}
+          </AlertDialogCancel>
+          <AlertDialogAction
+            onClick={onConfirm}
+            disabled={isLoading}
+            className={cn(buttonVariants(), variantStyles[variant])}
+          >
+            {isLoading ? t('buttons.loading') : confirmText || t('buttons.confirm')}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   )
 }

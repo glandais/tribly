@@ -6,9 +6,9 @@ import { useRideTemplate } from './useRideTemplate'
 import { useTrip } from './useTrip'
 import { usePost } from './usePost'
 import { useRoute } from './useRoute'
-import type { BreadcrumbItem } from '../components/common/Breadcrumb'
+import type { BreadcrumbItemType } from '../components/common/Breadcrumb'
 
-export function useBreadcrumb(): BreadcrumbItem[] {
+export function useBreadcrumb(): BreadcrumbItemType[] {
   const location = useLocation()
   const { teamSlug, rideSlug, templateSlug, tripSlug, postSlug, routeSlug } = useParams<{
     teamSlug?: string
@@ -43,7 +43,7 @@ export function useBreadcrumb(): BreadcrumbItem[] {
   // Fetch route data if we're on a route-related route
   const { data: route } = useRoute(teamSlug, routeSlug)
 
-  const items: BreadcrumbItem[] = []
+  const items: BreadcrumbItemType[] = []
 
   // Home page - no breadcrumb
   if (location.pathname === '/') {

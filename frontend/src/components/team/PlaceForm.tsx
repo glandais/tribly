@@ -1,8 +1,31 @@
-import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
 import { useTranslation } from 'react-i18next'
 import { useCreatePlace, useUpdatePlace } from '../../hooks/usePlaces'
-import type { PlaceDetailDto, PlaceRequest } from '../../api/api'
+import type { PlaceDetailDto } from '../../api/api'
 import { Modal } from '../common/Modal'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Checkbox } from '@/components/ui/checkbox'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
+
+const placeSchema = z.object({
+  name: z.string().min(1),
+  address: z.string().optional(),
+  link: z.string().url().optional().or(z.literal('')),
+  startPlace: z.boolean(),
+  endPlace: z.boolean(),
+})
+
+type PlaceFormValues = z.infer<typeof placeSchema>
 
 interface PlaceFormProps {
   teamSlug: string
@@ -16,46 +39,48 @@ export function PlaceForm({ teamSlug, place, onClose }: PlaceFormProps) {
   const createMutation = useCreatePlace(teamSlug)
   const updateMutation = useUpdatePlace(teamSlug, place?.id ?? '')
 
-  const [formData, setFormData] = useState<PlaceRequest>({
-    name: place?.name ?? '',
-    address: place?.address ?? undefined,
-    link: place?.link ?? undefined,
-    startPlace: place?.startPlace ?? true,
-    endPlace: place?.endPlace ?? true,
-    coordinates: undefined,
-  })
-
   const isEditing = !!place
   const mutation = isEditing ? updateMutation : createMutation
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    mutation.mutate(formData, {
-      onSuccess: () => onClose(),
-    })
+  const form = useForm<PlaceFormValues>({
+    resolver: zodResolver(placeSchema),
+    defaultValues: {
+      name: place?.name ?? '',
+      address: place?.address ?? '',
+      link: place?.link ?? '',
+      startPlace: place?.startPlace ?? true,
+      endPlace: place?.endPlace ?? true,
+    },
+  })
+
+  const handleSubmit = (values: PlaceFormValues) => {
+    mutation.mutate(
+      {
+        name: values.name,
+        address: values.address || undefined,
+        link: values.link || undefined,
+        startPlace: values.startPlace,
+        endPlace: values.endPlace,
+        coordinates: undefined,
+      },
+      {
+        onSuccess: () => onClose(),
+      }
+    )
   }
 
   const footerContent = (
     <>
-      <button
-        type="button"
-        onClick={onClose}
-        className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-      >
+      <Button type="button" variant="outline" onClick={onClose}>
         {tCommon('buttons.cancel')}
-      </button>
-      <button
-        type="submit"
-        form="place-form"
-        disabled={mutation.isPending}
-        className="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300"
-      >
+      </Button>
+      <Button type="submit" form="place-form" disabled={mutation.isPending}>
         {mutation.isPending
           ? tCommon('buttons.loading')
           : isEditing
             ? t('places.form.save')
             : t('places.form.create')}
-      </button>
+      </Button>
     </>
   )
 
@@ -67,68 +92,79 @@ export function PlaceForm({ teamSlug, place, onClose }: PlaceFormProps) {
       size="md"
       footer={footerContent}
     >
-      <form id="place-form" onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            {t('places.form.name.label')} *
-          </label>
-          <input
-            type="text"
-            required
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-            placeholder={t('places.form.name.placeholder')}
+      <Form {...form}>
+        <form id="place-form" onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+          <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('places.form.name.label')} *</FormLabel>
+                <FormControl>
+                  <Input placeholder={t('places.form.name.placeholder')} {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
-        </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            {t('places.form.address.label')}
-          </label>
-          <input
-            type="text"
-            value={formData.address ?? ''}
-            onChange={(e) => setFormData({ ...formData, address: e.target.value || undefined })}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-            placeholder={t('places.form.address.placeholder')}
+          <FormField
+            control={form.control}
+            name="address"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('places.form.address.label')}</FormLabel>
+                <FormControl>
+                  <Input placeholder={t('places.form.address.placeholder')} {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
-        </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700">
-            {t('places.form.link.label')}
-          </label>
-          <input
-            type="url"
-            value={formData.link ?? ''}
-            onChange={(e) => setFormData({ ...formData, link: e.target.value || undefined })}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-            placeholder={t('places.form.link.placeholder')}
+          <FormField
+            control={form.control}
+            name="link"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('places.form.link.label')}</FormLabel>
+                <FormControl>
+                  <Input type="url" placeholder={t('places.form.link.placeholder')} {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
-        </div>
 
-        <div className="flex space-x-4">
-          <label className="flex items-center">
-            <input
-              type="checkbox"
-              checked={formData.startPlace}
-              onChange={(e) => setFormData({ ...formData, startPlace: e.target.checked })}
-              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+          <div className="flex space-x-4">
+            <FormField
+              control={form.control}
+              name="startPlace"
+              render={({ field }) => (
+                <FormItem className="flex items-center space-x-2 space-y-0">
+                  <FormControl>
+                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                  </FormControl>
+                  <FormLabel className="font-normal">{t('places.form.startPlace')}</FormLabel>
+                </FormItem>
+              )}
             />
-            <span className="ml-2 text-sm text-gray-700">{t('places.form.startPlace')}</span>
-          </label>
-          <label className="flex items-center">
-            <input
-              type="checkbox"
-              checked={formData.endPlace}
-              onChange={(e) => setFormData({ ...formData, endPlace: e.target.checked })}
-              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+
+            <FormField
+              control={form.control}
+              name="endPlace"
+              render={({ field }) => (
+                <FormItem className="flex items-center space-x-2 space-y-0">
+                  <FormControl>
+                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                  </FormControl>
+                  <FormLabel className="font-normal">{t('places.form.endPlace')}</FormLabel>
+                </FormItem>
+              )}
             />
-            <span className="ml-2 text-sm text-gray-700">{t('places.form.endPlace')}</span>
-          </label>
-        </div>
-      </form>
+          </div>
+        </form>
+      </Form>
     </Modal>
   )
 }

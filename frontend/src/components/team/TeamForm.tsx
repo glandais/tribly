@@ -1,5 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
+import { useForm, useWatch } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
 import { useTranslation } from 'react-i18next'
 import { useCreateTeam, useUpdateTeam } from '../../hooks/useTeam'
 import { LoadingSpinner } from '../common/LoadingSpinner'
@@ -7,6 +10,34 @@ import { ApiClientError } from '../../lib/apiClient'
 import { Visibility, TeamDetailDto, MediaDto } from '../../api/api'
 import { MediaEditor } from '../common/MediaEditor'
 import { defaultMedia } from '@/lib/apiUtils'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Checkbox } from '@/components/ui/checkbox'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
+
+const teamSchema = z.object({
+  name: z.string().min(2).max(255),
+  media: z.custom<MediaDto>(),
+  visibility: z.nativeEnum(Visibility),
+  enableTrips: z.boolean(),
+})
+
+type TeamFormValues = z.infer<typeof teamSchema>
 
 interface TeamFormProps {
   // Data
@@ -25,7 +56,7 @@ interface TeamFormProps {
 export function TeamForm({
   teamSlug,
   initialName = '',
-  initialMedia = defaultMedia(),
+  initialMedia,
   initialVisibility = Visibility.Public,
   initialEnableTrips = true,
   onSuccess,
@@ -34,37 +65,42 @@ export function TeamForm({
   const { t } = useTranslation('teams')
   const { t: tCommon } = useTranslation('common')
 
-  const [name, setName] = useState(initialName)
-  const [media, setMedia] = useState(defaultMedia())
-  const [visibility, setVisibility] = useState<Visibility>(initialVisibility)
-  const [enableTrips, setEnableTrips] = useState(initialEnableTrips)
-
   // Conditional mutation based on context
   const createMutation = useCreateTeam()
   const updateMutation = useUpdateTeam(teamSlug || '')
   const mutation = teamSlug ? updateMutation : createMutation
 
-  // Sync state from props when they change (for edit context)
+  const form = useForm<TeamFormValues>({
+    resolver: zodResolver(teamSchema),
+    defaultValues: {
+      name: initialName,
+      media: initialMedia ?? defaultMedia(),
+      visibility: initialVisibility,
+      enableTrips: initialEnableTrips,
+    },
+  })
+
+  const media = useWatch({ control: form.control, name: 'media' })
+
+  // Sync form values when initial props change (for edit mode)
   useEffect(() => {
     if (initialName) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- Form initialization from server data
-      setName(initialName)
+      form.setValue('name', initialName)
     }
-    // Only sync media if we have actual content (edit mode), not on default empty media
-    if (initialMedia.markdown || initialMedia.assets?.images?.length) {
-      setMedia(initialMedia)
+    if (initialMedia?.markdown || initialMedia?.assets?.images?.length) {
+      form.setValue('media', initialMedia)
     }
     if (initialVisibility) {
-      setVisibility(initialVisibility)
+      form.setValue('visibility', initialVisibility)
     }
     if (initialEnableTrips !== undefined) {
-      setEnableTrips(initialEnableTrips)
+      form.setValue('enableTrips', initialEnableTrips)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- Only sync on actual prop changes, not default object recreation
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     initialName,
-    initialMedia.markdown,
-    initialMedia.assets?.images?.length,
+    initialMedia?.markdown,
+    initialMedia?.assets?.images?.length,
     initialVisibility,
     initialEnableTrips,
   ])
@@ -76,141 +112,143 @@ export function TeamForm({
     }
   }, [mutation.isSuccess, mutation.data, onSuccess])
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    mutation.mutate({
-      name,
-      media,
-      visibility,
-      enableTrips,
-    })
-  }
-
-  const getFieldError = (field: string) => {
-    if (mutation.error instanceof ApiClientError) {
-      return mutation.error.error.errors?.find((e) => e.field === field)?.message
+  // Set server-side errors on form fields
+  useEffect(() => {
+    if (mutation.error instanceof ApiClientError && mutation.error.error.errors) {
+      mutation.error.error.errors.forEach((err) => {
+        if (err.field && err.field in teamSchema.shape) {
+          form.setError(err.field as keyof TeamFormValues, { message: err.message })
+        }
+      })
     }
-    return undefined
+  }, [mutation.error, form])
+
+  const handleSubmit = (values: TeamFormValues) => {
+    mutation.mutate(values)
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      {mutation.error &&
-        !(mutation.error instanceof ApiClientError && mutation.error.error.errors) && (
-          <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-700">
-              {mutation.error instanceof ApiClientError
-                ? mutation.error.error.message
-                : create
-                  ? t('create.error')
-                  : t('settings.error')}
-            </p>
-          </div>
-        )}
-
-      <div>
-        <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-          {t('create.form.name.label')}
-          {create && <span className="text-red-500"> *</span>}
-        </label>
-        <input
-          type="text"
-          id="name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-          minLength={2}
-          maxLength={255}
-          className={`mt-1 block w-full px-4 py-2 border rounded-lg focus:ring-indigo-500 focus:border-indigo-500 ${
-            getFieldError('name') ? 'border-red-300' : 'border-gray-300'
-          }`}
-          placeholder={create ? t('create.form.name.placeholder') : undefined}
-        />
-        {getFieldError('name') && (
-          <p className="mt-1 text-sm text-red-600">{getFieldError('name')}</p>
-        )}
-      </div>
-
-      <div>
-        <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
-          {t('create.form.description.label')}
-        </label>
-        <MediaEditor
-          value={media}
-          onChange={setMedia}
-          placeholder={t('create.form.description.placeholder')}
-          minHeight="150px"
-          maxHeight="300px"
-          disabled={mutation.isPending}
-          ariaLabel={t('create.form.description.placeholder')}
-          teamSlug={teamSlug}
-        />
-        <p className="mt-1 text-sm text-gray-500">
-          {t(`create.form.description.charCount`, {
-            count: media.markdown?.length || 0,
-            max: 2000,
-          })}
-        </p>
-      </div>
-
-      <div>
-        <label htmlFor="visibility" className="block text-sm font-medium text-gray-700">
-          {t(`create.form.visibility.label`)}
-        </label>
-        <select
-          id="visibility"
-          value={visibility}
-          onChange={(e) => setVisibility(e.target.value as Visibility)}
-          className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500"
-        >
-          <option value={Visibility.Team}>{tCommon('visibility.team')}</option>
-          <option value={Visibility.Public}>{tCommon('visibility.public')}</option>
-        </select>
-        <p className="mt-1 text-sm text-gray-500">{t(`create.form.visibility.hint`)}</p>
-      </div>
-
-      <div className="flex items-start">
-        <div className="flex h-6 items-center">
-          <input
-            id="enableTrips"
-            type="checkbox"
-            checked={enableTrips}
-            onChange={(e) => setEnableTrips(e.target.checked)}
-            className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-          />
-        </div>
-        <div className="ml-3">
-          <label htmlFor="enableTrips" className="text-sm font-medium text-gray-700">
-            {t('create.form.enableTrips.label')}
-          </label>
-          <p className="text-sm text-gray-500">{t('create.form.enableTrips.hint')}</p>
-        </div>
-      </div>
-
-      <div className="pt-4 flex items-center justify-end gap-3">
-        <Link
-          to={create ? '/teams' : `/teams/${teamSlug}`}
-          className="px-4 py-2 border border-gray-300 rounded-md shadow-xs text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-        >
-          {tCommon('buttons.cancel')}
-        </Link>
-        <button
-          type="submit"
-          disabled={mutation.isPending || (create && !name.trim())}
-          className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {mutation.isPending ? (
-            <>
-              <LoadingSpinner size="sm" color="white" className="mr-2" />
-              {create ? t('create.creating') : t('settings.saving')}
-            </>
-          ) : create ? (
-            t('create.button')
-          ) : (
-            t('settings.saveChanges')
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+        {mutation.error &&
+          !(mutation.error instanceof ApiClientError && mutation.error.error.errors) && (
+            <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+              <p className="text-destructive">
+                {mutation.error instanceof ApiClientError
+                  ? mutation.error.error.message
+                  : create
+                    ? t('create.error')
+                    : t('settings.error')}
+              </p>
+            </div>
           )}
-        </button>
-      </div>
-    </form>
+
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>
+                {t('create.form.name.label')}
+                {create && <span className="text-destructive"> *</span>}
+              </FormLabel>
+              <FormControl>
+                <Input
+                  placeholder={create ? t('create.form.name.placeholder') : undefined}
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="media"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t('create.form.description.label')}</FormLabel>
+              <FormControl>
+                <MediaEditor
+                  value={field.value}
+                  onChange={field.onChange}
+                  placeholder={t('create.form.description.placeholder')}
+                  minHeight="150px"
+                  maxHeight="300px"
+                  disabled={mutation.isPending}
+                  ariaLabel={t('create.form.description.placeholder')}
+                  teamSlug={teamSlug}
+                />
+              </FormControl>
+              <FormDescription>
+                {t('create.form.description.charCount', {
+                  count: media.markdown?.length || 0,
+                  max: 2000,
+                })}
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="visibility"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t('create.form.visibility.label')}</FormLabel>
+              <Select value={field.value} onValueChange={field.onChange}>
+                <FormControl>
+                  <SelectTrigger className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value={Visibility.Team}>{tCommon('visibility.team')}</SelectItem>
+                  <SelectItem value={Visibility.Public}>{tCommon('visibility.public')}</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormDescription>{t('create.form.visibility.hint')}</FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="enableTrips"
+          render={({ field }) => (
+            <FormItem className="flex items-start space-x-3 space-y-0">
+              <FormControl>
+                <Checkbox checked={field.value} onCheckedChange={field.onChange} className="mt-1" />
+              </FormControl>
+              <div className="space-y-1">
+                <FormLabel>{t('create.form.enableTrips.label')}</FormLabel>
+                <FormDescription>{t('create.form.enableTrips.hint')}</FormDescription>
+              </div>
+            </FormItem>
+          )}
+        />
+
+        <div className="pt-4 flex items-center justify-end gap-3">
+          <Button variant="outline" asChild>
+            <Link to={create ? '/teams' : `/teams/${teamSlug}`}>{tCommon('buttons.cancel')}</Link>
+          </Button>
+          <Button type="submit" disabled={mutation.isPending}>
+            {mutation.isPending ? (
+              <>
+                <LoadingSpinner size="sm" color="white" className="mr-2" />
+                {create ? t('create.creating') : t('settings.saving')}
+              </>
+            ) : create ? (
+              t('create.button')
+            ) : (
+              t('settings.saveChanges')
+            )}
+          </Button>
+        </div>
+      </form>
+    </Form>
   )
 }
