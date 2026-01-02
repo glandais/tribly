@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { ClockIcon, CalendarIcon, PencilIcon } from '@heroicons/react/24/outline'
+import { CalendarIcon, PencilIcon } from '@heroicons/react/24/outline'
 import { useTeam } from '../../hooks/useTeam'
 import { usePost, useUpdatePost, useDeletePost } from '../../hooks/usePost'
 import { Status } from '../../hooks/usePost'
@@ -9,6 +9,7 @@ import { LoadingPage, LoadingSpinner } from '../../components/common/LoadingSpin
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import { MediaDisplay } from '../../components/common/MediaDisplay'
 import { EntityLogo } from '../../components/common/EntityLogo'
+import { CommentSection } from '../../components/comment'
 import { useFormattedDate } from '../../utils/dateFormat'
 
 const statusColors: Record<Status, string> = {
@@ -19,7 +20,7 @@ const statusColors: Record<Status, string> = {
 
 export function PostDetailPage() {
   const { t } = useTranslation('posts')
-  const { formatDate, formatDateTime, formatTime } = useFormattedDate()
+  const { formatDateTime } = useFormattedDate()
   const { teamSlug, postSlug } = useParams<{ teamSlug: string; postSlug: string }>()
   const [showUnpublishConfirm, setShowUnpublishConfirm] = useState(false)
   const [showCancelConfirm, setShowCancelConfirm] = useState(false)
@@ -53,11 +54,12 @@ export function PostDetailPage() {
     )
   }
 
+  const isMember = !!team?.role
   const isAdmin = team?.role === 'ADMIN'
   const isOrganizer = team?.role === 'ORGANIZER'
   const canEdit = isAdmin || isOrganizer
 
-  const formattedDate = formatDate(post.dateTime)
+  const formattedDate = formatDateTime(post.dateTime)
 
   const handlePublish = () => {
     updateMutation.mutate({ ...post, status: Status.Published })
@@ -87,42 +89,19 @@ export function PostDetailPage() {
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-          <div className="flex-1">
-            <div className="flex items-center gap-3">
-              <EntityLogo logo={post.media.assets.logo} alt={post.name} size="lg" />
-              <h1 className="text-2xl font-bold text-gray-900">{post.name}</h1>
-              <span
-                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColors[post.status]}`}
-              >
-                {t(`status.${post.status}`)}
-              </span>
-            </div>
-            <div className="mt-4">
-              <MediaDisplay media={post.media} className="text-gray-600" />
-            </div>
-            {post.status === Status.Draft && post.publishAt && (
-              <div className="mt-2 text-sm text-amber-600 flex items-center">
-                <ClockIcon className="w-4 h-4 mr-1" />
-                {t('detail.scheduledPublish', {
-                  date: formatDateTime(post.publishAt),
-                })}
-              </div>
-            )}
-            <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-gray-500">
-              <span className="flex items-center">
-                <CalendarIcon className="w-4 h-4 mr-1" />
-                {formattedDate}
-              </span>
-              <span className="flex items-center">
-                <ClockIcon className="w-4 h-4 mr-1" />
-                {formatTime(post.dateTime)}
-              </span>
-            </div>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-center gap-3 min-w-0">
+            <EntityLogo logo={post.media.assets.logo} alt={post.name} size="lg" />
+            <h1 className="text-2xl font-bold text-gray-900 truncate">{post.name}</h1>
+            <span
+              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium shrink-0 ${statusColors[post.status]}`}
+            >
+              {t(`status.${post.status}`)}
+            </span>
           </div>
 
           {canEdit && (
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2 shrink-0">
               <Link
                 to={`/teams/${teamSlug}/posts/${postSlug}/edit`}
                 className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
@@ -173,7 +152,35 @@ export function PostDetailPage() {
             </div>
           )}
         </div>
+
+        <div className="mt-4">
+          <MediaDisplay media={post.media} className="text-gray-600" />
+        </div>
+        {post.status === Status.Draft && post.publishAt && (
+          <div className="mt-2 text-sm text-amber-600 flex items-center">
+            <CalendarIcon className="w-4 h-4 mr-1" />
+            {t('detail.scheduledPublish', {
+              date: formatDateTime(post.publishAt),
+            })}
+          </div>
+        )}
+        <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-gray-500">
+          <span className="flex items-center">
+            <CalendarIcon className="w-4 h-4 mr-1" />
+            {formattedDate}
+          </span>
+        </div>
       </div>
+
+      {/* Comments Section - only visible to team members */}
+      {isMember && (
+        <CommentSection
+          teamSlug={teamSlug!}
+          entityType="posts"
+          entitySlug={postSlug!}
+          isOrganizer={canEdit}
+        />
+      )}
 
       {/* Confirmation Dialogs */}
       <ConfirmDialog

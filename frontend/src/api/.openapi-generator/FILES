@@ -13,6 +13,9 @@ docs/AssetsApi.md
 docs/AssetsDto.md
 docs/ClimbCategory.md
 docs/ClimbDto.md
+docs/CommentDto.md
+docs/CommentListResponse.md
+docs/CommentRequest.md
 docs/ConfigDto.md
 docs/ConfigurationApi.md
 docs/ErrorResponse.md
@@ -30,6 +33,7 @@ docs/PlaceDetailDto.md
 docs/PlaceListResponse.md
 docs/PlaceRequest.md
 docs/PlacesApi.md
+docs/PostCommentsApi.md
 docs/PostDto.md
 docs/PostListResponse.md
 docs/PostRequest.md
@@ -39,6 +43,7 @@ docs/PublicationDto.md
 docs/PublicationListResponse.md
 docs/PublicationType.md
 docs/PublicationsApi.md
+docs/RideCommentsApi.md
 docs/RideDto.md
 docs/RideGroupDto.md
 docs/RideListResponse.md
@@ -51,6 +56,7 @@ docs/RideTemplateListResponse.md
 docs/RideTemplateRequest.md
 docs/RideTemplatesApi.md
 docs/RidesApi.md
+docs/RouteCommentsApi.md
 docs/RouteDetailDto.md
 docs/RouteDto.md
 docs/RouteListResponse.md
@@ -70,6 +76,7 @@ docs/TeamRequest.md
 docs/TeamRole.md
 docs/TeamsApi.md
 docs/TrackDto.md
+docs/TripCommentsApi.md
 docs/TripDto.md
 docs/TripListResponse.md
 docs/TripParticipationDto.md

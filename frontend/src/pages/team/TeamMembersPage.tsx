@@ -18,6 +18,7 @@ import type { PublicUserDto } from '../../hooks/useUserSearch'
 import { TeamRole } from '@/api'
 import { Pagination } from '../../components/common/Pagination'
 import { usePagination } from '../../hooks/usePagination'
+import { Modal } from '../../components/common/Modal'
 
 export function TeamMembersPage() {
   const { t } = useTranslation('teams')
@@ -110,65 +111,61 @@ export function TeamMembersPage() {
         )}
 
         {/* Add Member Modal */}
-        {showAddMember && (
-          <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
-            <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
-              <div className="px-6 py-4 border-b border-gray-200">
-                <h3 className="text-lg font-medium text-gray-900">
-                  {t('detail.members.addMember')}
-                </h3>
-              </div>
-              <div className="px-6 py-4 space-y-4">
-                <div>
-                  <label
-                    htmlFor="user-search"
-                    className="block text-sm font-medium text-gray-700 mb-2"
-                  >
-                    {t('detail.members.searchUser')}
-                  </label>
-                  <UserAutocomplete
-                    onSelect={handleAddMember}
-                    placeholder={t('detail.members.searchPlaceholder')}
-                  />
-                </div>
-                <div>
-                  <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-2">
-                    {t('detail.members.role')}
-                  </label>
-                  <select
-                    id="role"
-                    value={selectedRole}
-                    onChange={(e) => setSelectedRole(e.target.value as TeamRole)}
-                    className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-xs focus:ring-indigo-500 focus:border-indigo-500"
-                  >
-                    <option value={TeamRole.Member}>{tCommon('roles.MEMBER')}</option>
-                    <option value={TeamRole.Organizer}>{tCommon('roles.ORGANIZER')}</option>
-                    <option value={TeamRole.Admin}>{tCommon('roles.ADMIN')}</option>
-                  </select>
-                </div>
-                {addMemberMutation.error && (
-                  <div className="text-sm text-red-600">
-                    {addMemberMutation.error instanceof Error
-                      ? addMemberMutation.error.message
-                      : t('detail.members.addError')}
-                  </div>
-                )}
-              </div>
-              <div className="px-6 py-4 border-t border-gray-200 flex justify-end gap-3">
-                <button
-                  onClick={() => {
-                    setShowAddMember(false)
-                    setSelectedRole(TeamRole.Member)
-                  }}
-                  disabled={addMemberMutation.isPending}
-                  className="px-4 py-2 border border-gray-300 rounded-md shadow-xs text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
-                >
-                  {tCommon('buttons.cancel')}
-                </button>
-              </div>
+        <Modal
+          isOpen={showAddMember}
+          onClose={() => {
+            setShowAddMember(false)
+            setSelectedRole(TeamRole.Member)
+          }}
+          title={t('detail.members.addMember')}
+          size="md"
+          footer={
+            <button
+              onClick={() => {
+                setShowAddMember(false)
+                setSelectedRole(TeamRole.Member)
+              }}
+              disabled={addMemberMutation.isPending}
+              className="px-4 py-2 border border-gray-300 rounded-md shadow-xs text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+            >
+              {tCommon('buttons.cancel')}
+            </button>
+          }
+        >
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="user-search" className="block text-sm font-medium text-gray-700 mb-2">
+                {t('detail.members.searchUser')}
+              </label>
+              <UserAutocomplete
+                onSelect={handleAddMember}
+                placeholder={t('detail.members.searchPlaceholder')}
+              />
             </div>
+            <div>
+              <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-2">
+                {t('detail.members.role')}
+              </label>
+              <select
+                id="role"
+                value={selectedRole}
+                onChange={(e) => setSelectedRole(e.target.value as TeamRole)}
+                className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-xs focus:ring-indigo-500 focus:border-indigo-500"
+              >
+                <option value={TeamRole.Member}>{tCommon('roles.MEMBER')}</option>
+                <option value={TeamRole.Organizer}>{tCommon('roles.ORGANIZER')}</option>
+                <option value={TeamRole.Admin}>{tCommon('roles.ADMIN')}</option>
+              </select>
+            </div>
+            {addMemberMutation.error && (
+              <div className="text-sm text-red-600">
+                {addMemberMutation.error instanceof Error
+                  ? addMemberMutation.error.message
+                  : t('detail.members.addError')}
+              </div>
+            )}
           </div>
-        )}
+        </Modal>
       </div>
     </TeamLayout>
   )

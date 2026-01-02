@@ -23,6 +23,7 @@ interface RideGroupCardProps {
   onLeave?: () => void
   isLoading?: boolean
   onHover?: (groupId: string | null) => void
+  isHighlighted?: boolean
 }
 
 export function RideGroupCard({
@@ -35,6 +36,7 @@ export function RideGroupCard({
   onLeave,
   isLoading,
   onHover,
+  isHighlighted = false,
 }: RideGroupCardProps) {
   const { t } = useTranslation('rides')
   const [showParticipants, setShowParticipants] = useState(false)
@@ -46,96 +48,36 @@ export function RideGroupCard({
   // Fetch route details for download links
   const { data: route } = useRoute(teamSlug, effectiveRouteSlug)
 
+  const getCardClassName = () => {
+    const base = 'rounded-lg border p-4 transition-all'
+    if (isHighlighted) {
+      return `${base} border-indigo-500 bg-indigo-50 shadow-md`
+    }
+    if (isJoined) {
+      return `${base} bg-white border-indigo-500 ring-1 ring-indigo-500`
+    }
+    return `${base} bg-white border-gray-200 hover:border-gray-300`
+  }
+
   return (
     <div
-      className={`bg-white rounded-lg border p-4 ${isJoined ? 'border-indigo-500 ring-1 ring-indigo-500' : 'border-gray-200'}`}
+      className={getCardClassName()}
       onMouseEnter={() => onHover?.(group.id)}
       onMouseLeave={() => onHover?.(null)}
     >
-      <div className="flex items-start justify-between">
-        <div className="flex-1">
-          <div className="flex items-center gap-2">
-            <h4 className="text-base font-medium text-gray-900">{group.name}</h4>
-            {isJoined && (
-              <span className="inline-flex items-center px-2 py-0.5 rounded-sm text-xs font-medium bg-indigo-100 text-indigo-800">
-                {t('detail.groups.joined')}
-              </span>
-            )}
-          </div>
-          <div className="mt-2 flex items-center gap-4 text-sm text-gray-500">
-            {group.time && (
-              <span className="flex items-center">
-                <ClockIcon className="w-4 h-4 mr-1" />
-                {group.time}
-              </span>
-            )}
-            {group.averageSpeed && (
-              <span className="flex items-center">
-                <BoltIcon className="w-4 h-4 mr-1" />
-                {t('detail.groups.speed', { speed: group.averageSpeed })}
-              </span>
-            )}
-            <button
-              onClick={() => setShowParticipants(true)}
-              className="flex items-center gap-2 rounded-lg p-1 -ml-1 transition-all hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-              title={t('detail.groups.viewParticipants')}
-            >
-              {group.participants.length > 0 && (
-                <UserAvatarGroup users={group.participants} max={5} size="sm" />
-              )}
-              <span className="flex items-center text-sm text-gray-500">
-                <UsersIcon className="w-4 h-4 mr-1" />
-                {group.maxParticipants
-                  ? t('detail.groups.participants', {
-                      current: group.countParticipants,
-                      max: group.maxParticipants,
-                    })
-                  : t('detail.groups.participantsNoMax', { current: group.countParticipants })}
-              </span>
-              {group.participants.length > 5 && (
-                <span className="text-xs font-medium text-indigo-600 group-hover:text-indigo-700">
-                  {t('detail.groups.viewAll')}
-                </span>
-              )}
-            </button>
-          </div>
-
-          {/* Route actions */}
-          {effectiveRouteSlug && (
-            <div className="mt-3 flex items-center gap-2">
-              <Link
-                to={`/teams/${teamSlug}/routes/${effectiveRouteSlug}`}
-                className="inline-flex items-center px-2 py-1 text-xs font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded"
-              >
-                <MapIcon className="w-4 h-4 mr-1" />
-                {t('detail.groups.route.view')}
-              </Link>
-              {route?.media?.assets?.gpx?.url && (
-                <a
-                  href={route.media.assets.gpx.url}
-                  className="inline-flex items-center px-2 py-1 text-xs font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded"
-                  download
-                >
-                  <ArrowDownTrayIcon className="w-4 h-4 mr-1" />
-                  GPX
-                </a>
-              )}
-              {route?.media?.assets?.fit?.url && (
-                <a
-                  href={route.media.assets.fit.url}
-                  className="inline-flex items-center px-2 py-1 text-xs font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded"
-                  download
-                >
-                  <ArrowDownTrayIcon className="w-4 h-4 mr-1" />
-                  FIT
-                </a>
-              )}
-            </div>
+      {/* Header row: title + badge + button */}
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-2 min-w-0">
+          <h4 className="text-base font-medium text-gray-900 truncate">{group.name}</h4>
+          {isJoined && (
+            <span className="inline-flex items-center px-2 py-0.5 rounded-sm text-xs font-medium bg-indigo-100 text-indigo-800 shrink-0">
+              {t('detail.groups.joined')}
+            </span>
           )}
         </div>
 
         {(canJoin || isJoined) && (
-          <div className="ml-4">
+          <div className="shrink-0">
             {isJoined ? (
               <button
                 onClick={onLeave}
@@ -160,6 +102,78 @@ export function RideGroupCard({
           </div>
         )}
       </div>
+
+      {/* Details row */}
+      <div className="mt-2 flex items-center gap-4 text-sm text-gray-500">
+        {group.time && (
+          <span className="flex items-center">
+            <ClockIcon className="w-4 h-4 mr-1" />
+            {group.time}
+          </span>
+        )}
+        {group.averageSpeed && (
+          <span className="flex items-center">
+            <BoltIcon className="w-4 h-4 mr-1" />
+            {t('detail.groups.speed', { speed: group.averageSpeed })}
+          </span>
+        )}
+        <button
+          onClick={() => setShowParticipants(true)}
+          className="flex items-center gap-2 rounded-lg p-1 -ml-1 transition-all hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+          title={t('detail.groups.viewParticipants')}
+        >
+          {group.participants.length > 0 && (
+            <UserAvatarGroup users={group.participants} max={5} size="sm" />
+          )}
+          <span className="flex items-center text-sm text-gray-500">
+            <UsersIcon className="w-4 h-4 mr-1" />
+            {group.maxParticipants
+              ? t('detail.groups.participants', {
+                  current: group.countParticipants,
+                  max: group.maxParticipants,
+                })
+              : t('detail.groups.participantsNoMax', { current: group.countParticipants })}
+          </span>
+          {group.participants.length > 5 && (
+            <span className="text-xs font-medium text-indigo-600 group-hover:text-indigo-700">
+              {t('detail.groups.viewAll')}
+            </span>
+          )}
+        </button>
+      </div>
+
+      {/* Route actions */}
+      {effectiveRouteSlug && (
+        <div className="mt-3 flex items-center gap-2">
+          <Link
+            to={`/teams/${teamSlug}/routes/${effectiveRouteSlug}`}
+            className="inline-flex items-center px-2 py-1 text-xs font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded"
+          >
+            <MapIcon className="w-4 h-4 mr-1" />
+            {t('detail.groups.route.view')}
+          </Link>
+          {route?.media?.assets?.gpx?.url && (
+            <a
+              href={route.media.assets.gpx.url}
+              className="inline-flex items-center px-2 py-1 text-xs font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded"
+              download
+            >
+              <ArrowDownTrayIcon className="w-4 h-4 mr-1" />
+              GPX
+            </a>
+          )}
+          {route?.media?.assets?.fit?.url && (
+            <a
+              href={route.media.assets.fit.url}
+              className="inline-flex items-center px-2 py-1 text-xs font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded"
+              download
+            >
+              <ArrowDownTrayIcon className="w-4 h-4 mr-1" />
+              FIT
+            </a>
+          )}
+        </div>
+      )}
 
       <ParticipantListModal
         isOpen={showParticipants}

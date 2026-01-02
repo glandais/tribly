@@ -71,7 +71,7 @@ public class RideService extends TeamEntityService {
     return new RideListResponse(dtos, rides.total(), page, size);
   }
 
-  protected Ride getRide(String teamSlug, String rideSlug, @Nullable Long userId) {
+  public Ride getRide(String teamSlug, String rideSlug, @Nullable Long userId) {
     TriblyPage<Ride> rides =
         rideRepository.find(
             TeamEntityQueryBasic.builder()

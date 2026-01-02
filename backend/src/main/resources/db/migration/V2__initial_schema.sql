@@ -18,6 +18,20 @@ create table assets (
                         primary key (id)
 );
 
+create table comments (
+                          deleted boolean not null,
+                          created_at timestamp(6) with time zone not null,
+                          created_by_id bigint not null,
+                          id bigint not null,
+                          parent_id bigint,
+                          team_entity_id bigint not null,
+                          team_id bigint not null,
+                          updated_at timestamp(6) with time zone not null,
+                          version bigint,
+                          content TEXT not null,
+                          primary key (id)
+);
+
 create table gpx_tracks (
                             deleted boolean not null,
                             distance integer not null,
@@ -135,7 +149,7 @@ create table team_entities (
                                distance integer,
                                elevation_gain integer,
                                elevation_loss integer,
-                               entity_type integer not null check ((entity_type in (1,3,5,4,6,2))),
+                               entity_type integer not null check ((entity_type in (1,5,3,2,6,4))),
                                sort_order integer,
                                created_at timestamp(6) with time zone not null,
                                created_by_id bigint not null,
@@ -220,6 +234,12 @@ create table users (
                        primary key (id)
 );
 
+create index IDXryn234ylmua6os660w5avbkgy
+    on comments (team_entity_id, deleted, created_at);
+
+create index IDXg9o7ansoiy9pm6nkpb9brn44o
+    on comments (parent_id, deleted);
+
 create index IDXe5fskel3tfc9ce4a4xu3vn4f5
     on ride_groups (ride_id, deleted);
 
@@ -265,6 +285,26 @@ alter table if exists assets
 
 alter table if exists assets
     add constraint FKenrk244dfrua38w17igcj3g
+    foreign key (team_entity_id)
+    references team_entities;
+
+alter table if exists comments
+    add constraint FKakkm6qfydu7vgnfne1yo0xmed
+    foreign key (created_by_id)
+    references users;
+
+alter table if exists comments
+    add constraint FKlri30okf66phtcgbe5pok7cc0
+    foreign key (parent_id)
+    references comments;
+
+alter table if exists comments
+    add constraint FKnf3x2lk7e19sfhivdlo1p47hx
+    foreign key (team_id)
+    references teams;
+
+alter table if exists comments
+    add constraint FKfqa92uteymtldue3nchyl5q4o
     foreign key (team_entity_id)
     references team_entities;
 

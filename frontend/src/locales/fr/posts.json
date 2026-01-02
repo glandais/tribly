@@ -43,8 +43,11 @@
   },
   "list": {
     "createPost": "Créer une publication",
-    "emptyAdmin": "Aucune publication pour le moment. Créez la première !",
-    "emptyMember": "Aucune publication pour le moment.",
+    "empty": {
+      "admin": "Commencez par créer votre première publication.",
+      "member": "Aucune publication n'est prévue pour le moment.",
+      "title": "Aucune publication"
+    },
     "noResults": "Aucune publication ne correspond à votre recherche.",
     "search": {
       "label": "Rechercher des publications",

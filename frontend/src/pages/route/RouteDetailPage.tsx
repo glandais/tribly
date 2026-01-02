@@ -14,6 +14,7 @@ import { RouteMapView } from '../../components/route/RouteMapView'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import { MediaDisplay } from '../../components/common/MediaDisplay'
 import { EntityLogo } from '../../components/common/EntityLogo'
+import { CommentSection } from '../../components/comment'
 
 export function RouteDetailPage() {
   const { teamSlug, routeSlug } = useParams<{ teamSlug: string; routeSlug: string }>()
@@ -28,6 +29,7 @@ export function RouteDetailPage() {
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
+  const isMember = !!team?.role
   const canEdit = team && (team.role === 'ADMIN' || team.role === 'ORGANIZER')
 
   const handleDelete = async () => {
@@ -294,6 +296,16 @@ export function RouteDetailPage() {
           )
         )
       })()}
+
+      {/* Comments Section - only visible to team members */}
+      {isMember && (
+        <CommentSection
+          teamSlug={teamSlug!}
+          entityType="routes"
+          entitySlug={routeSlug!}
+          isOrganizer={!!canEdit}
+        />
+      )}
     </div>
   )
 }

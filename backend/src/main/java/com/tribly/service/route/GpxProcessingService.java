@@ -34,6 +34,7 @@ import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.geolatte.geom.G2D;
 import org.geolatte.geom.LineString;
 import org.jboss.logging.Logger;
@@ -63,6 +64,9 @@ public class GpxProcessingService {
   @Inject TileMapProducer tileMapProducer;
 
   @Inject AssetService assetService;
+
+  @ConfigProperty(name = "mapbox.api.key")
+  private String mapboxApiKey;
 
   public GPX parseGpx(Path path) {
     // Step 1: Parse GPX
@@ -182,7 +186,13 @@ public class GpxProcessingService {
       try {
         // Use OpenStreetMap tiles, 512x512 max size, 0.1 margin
         tileMapProducer.createTileMap(
-            thumbnailFile, gpx, "https://a.tile.openstreetmap.org/{z}/{x}/{y}.png", 0.1, 512);
+            thumbnailFile,
+            gpx,
+            "https://api.mapbox.com/styles/v1/mapbox/outdoors-v11/tiles/256/{z}/{x}/{y}?access_token="
+                + mapboxApiKey,
+            0.1,
+            512,
+            512);
         LOG.infov("Generated thumbnail to {0}", thumbnailFile);
       } catch (Exception e) {
         LOG.warnv("Thumbnail generation failed for route {0}: {1}", routeId, e);

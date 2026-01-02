@@ -76,7 +76,7 @@ public class TripService extends TeamEntityService {
     return new TripListResponse(dtos, trips.total(), page, size);
   }
 
-  protected Trip getTrip(String teamSlug, String tripSlug, @Nullable Long userId) {
+  public Trip getTrip(String teamSlug, String tripSlug, @Nullable Long userId) {
     TriblyPage<Trip> trips =
         tripRepository.find(
             TeamEntityQueryBasic.builder()

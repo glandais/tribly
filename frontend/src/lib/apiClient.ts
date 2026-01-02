@@ -13,6 +13,10 @@ import {
   PlacesApi,
   TripsApi,
   RouterApi,
+  RideCommentsApi,
+  PostCommentsApi,
+  TripCommentsApi,
+  RouteCommentsApi,
 } from '../api/api'
 import { Configuration } from '../api/configuration'
 import i18next from 'i18next'
@@ -57,6 +61,10 @@ export const configurationApi = new ConfigurationApi(apiConfiguration, '', axios
 export const placesApi = new PlacesApi(apiConfiguration, '', axiosInstance)
 export const tripsApi = new TripsApi(apiConfiguration, '', axiosInstance)
 export const routerApi = new RouterApi(apiConfiguration, '', axiosInstance)
+export const rideCommentsApi = new RideCommentsApi(apiConfiguration, '', axiosInstance)
+export const postCommentsApi = new PostCommentsApi(apiConfiguration, '', axiosInstance)
+export const tripCommentsApi = new TripCommentsApi(apiConfiguration, '', axiosInstance)
+export const routeCommentsApi = new RouteCommentsApi(apiConfiguration, '', axiosInstance)
 
 export class ApiClientError extends Error {
   constructor(

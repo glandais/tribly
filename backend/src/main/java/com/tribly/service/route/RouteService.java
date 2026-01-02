@@ -187,7 +187,7 @@ public class RouteService extends TeamEntityService {
     return RouteDetailDto.from(route, assetService);
   }
 
-  private Route getRouteEntity(String teamSlug, String routeSlug, @Nullable Long userId) {
+  public Route getRouteEntity(String teamSlug, String routeSlug, @Nullable Long userId) {
     TriblyPage<Route> routes =
         routeRepository.find(
             TeamEntityQueryBasic.builder()

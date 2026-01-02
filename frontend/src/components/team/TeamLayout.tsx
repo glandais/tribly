@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { UsersIcon, PencilIcon } from '@heroicons/react/24/outline'
 import { useLeaveTeam, useJoinTeam } from '../../hooks/useTeam'
 import { useAuth } from '../../hooks/useAuth'
+import { useFavicon } from '../../hooks/useFavicon'
 import { ConfirmDialog } from '../common/ConfirmDialog'
 import { VisibilityBadge } from '../common/card/VisibilityBadge'
 import { TeamAvatar } from './TeamAvatar'
@@ -21,6 +22,9 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
   const navigate = useNavigate()
   const { isAuthenticated } = useAuth()
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false)
+
+  // Set favicon to team logo
+  useFavicon(team.media?.assets?.logo?.url)
 
   const isMember = !!team.role
   const isAdmin = team.role === 'ADMIN'

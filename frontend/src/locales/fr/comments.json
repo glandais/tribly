@@ -1,0 +1,21 @@
+{
+  "title": "Commentaires",
+  "empty": "Aucun commentaire pour le moment. Soyez le premier a commenter !",
+  "form": {
+    "placeholder": "Ecrivez un commentaire...",
+    "replyPlaceholder": "Ecrivez une reponse...",
+    "cancel": "Annuler"
+  },
+  "actions": {
+    "reply": "Repondre",
+    "delete": "Supprimer"
+  },
+  "confirmDelete": {
+    "title": "Supprimer le commentaire",
+    "message": "Voulez-vous vraiment supprimer ce commentaire ? Cette action est irreversible."
+  },
+  "notifications": {
+    "created": "Commentaire ajoute avec succes",
+    "deleted": "Commentaire supprime avec succes"
+  }
+}

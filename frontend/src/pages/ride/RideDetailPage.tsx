@@ -1,13 +1,7 @@
 import { useState, useMemo } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import {
-  ClockIcon,
-  CalendarIcon,
-  UsersIcon,
-  PencilIcon,
-  MapPinIcon,
-} from '@heroicons/react/24/outline'
+import { CalendarIcon, UsersIcon, PencilIcon, MapPinIcon } from '@heroicons/react/24/outline'
 import { useTeam } from '../../hooks/useTeam'
 import {
   useRide,
@@ -25,6 +19,7 @@ import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import { useFormattedDate } from '../../utils/dateFormat'
 import { MediaDisplay } from '../../components/common/MediaDisplay'
 import { EntityLogo } from '../../components/common/EntityLogo'
+import { CommentSection } from '../../components/comment'
 
 const statusColors: Record<Status, string> = {
   [Status.Draft]: 'bg-gray-100 text-gray-800',
@@ -34,7 +29,7 @@ const statusColors: Record<Status, string> = {
 
 export function RideDetailPage() {
   const { t } = useTranslation('rides')
-  const { formatDate, formatDateTime, formatTime } = useFormattedDate()
+  const { formatDateTime } = useFormattedDate()
   const { teamSlug, rideSlug } = useParams<{ teamSlug: string; rideSlug: string }>()
   const { isAuthenticated, user } = useAuth()
   const [joiningGroupId, setJoiningGroupId] = useState<string | null>(null)
@@ -106,7 +101,7 @@ export function RideDetailPage() {
       : false
   const canJoinRide = isMember && ride.status === Status.Published && !hasJoinedAnyGroup
 
-  const formattedDate = formatDate(ride.dateTime)
+  const formattedDate = formatDateTime(ride.dateTime)
 
   const handlePublish = () => {
     updateMutation.mutate({ ...ride, status: Status.Published })
@@ -153,75 +148,19 @@ export function RideDetailPage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-3">
-              <EntityLogo logo={ride.media.assets.logo} alt={ride.name} size="lg" />
-              <h1 className="text-2xl font-bold text-gray-900">{ride.name}</h1>
-              <span
-                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColors[ride.status]}`}
-              >
-                {t(`status.${ride.status}`)}
-              </span>
-            </div>
-            <div className="mt-2">
-              <MediaDisplay media={ride.media} className="text-gray-600" />
-            </div>
-            {ride.status === Status.Draft && ride.publishAt && (
-              <div className="mt-2 text-sm text-amber-600 flex items-center">
-                <ClockIcon className="w-4 h-4 mr-1" />
-                {t('detail.scheduledPublish', {
-                  date: formatDateTime(ride.publishAt),
-                })}
-              </div>
-            )}
-            <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-gray-500">
-              <span className="flex items-center">
-                <CalendarIcon className="w-4 h-4 mr-1" />
-                {formattedDate}
-              </span>
-              <span className="flex items-center">
-                <ClockIcon className="w-4 h-4 mr-1" />
-                {formatTime(ride.dateTime)}
-              </span>
-              <span className="flex items-center">
-                <UsersIcon className="w-4 h-4 mr-1" />
-                {t('card.participantCount', { count: ride.participantCount })}
-              </span>
-            </div>
-            {/* Start and End Places */}
-            {(ride.startPlace || ride.endPlace) && (
-              <div className="mt-3 flex flex-wrap items-center gap-4 text-sm text-gray-600">
-                {ride.startPlace && (
-                  <span className="flex items-center">
-                    <MapPinIcon className="w-4 h-4 mr-1 text-green-600" />
-                    <span className="font-medium text-green-700">{t('detail.startPlace')}:</span>
-                    <span className="ml-1">
-                      {ride.startPlace.name}
-                      {ride.startPlace.address && (
-                        <span className="text-gray-500"> ({ride.startPlace.address})</span>
-                      )}
-                    </span>
-                  </span>
-                )}
-                {ride.endPlace && (
-                  <span className="flex items-center">
-                    <MapPinIcon className="w-4 h-4 mr-1 text-red-600" />
-                    <span className="font-medium text-red-700">{t('detail.endPlace')}:</span>
-                    <span className="ml-1">
-                      {ride.endPlace.name}
-                      {ride.endPlace.address && (
-                        <span className="text-gray-500"> ({ride.endPlace.address})</span>
-                      )}
-                    </span>
-                  </span>
-                )}
-              </div>
-            )}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-center gap-3 min-w-0">
+            <EntityLogo logo={ride.media.assets.logo} alt={ride.name} size="lg" />
+            <h1 className="text-2xl font-bold text-gray-900 truncate">{ride.name}</h1>
+            <span
+              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium shrink-0 ${statusColors[ride.status]}`}
+            >
+              {t(`status.${ride.status}`)}
+            </span>
           </div>
 
           {canEdit && (
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2 shrink-0">
               <Link
                 to={`/teams/${teamSlug}/rides/${rideSlug}/edit`}
                 className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
@@ -272,6 +211,57 @@ export function RideDetailPage() {
             </div>
           )}
         </div>
+
+        <div className="mt-4">
+          <MediaDisplay media={ride.media} className="text-gray-600" />
+        </div>
+        {ride.status === Status.Draft && ride.publishAt && (
+          <div className="mt-2 text-sm text-amber-600 flex items-center">
+            <CalendarIcon className="w-4 h-4 mr-1" />
+            {t('detail.scheduledPublish', {
+              date: formatDateTime(ride.publishAt),
+            })}
+          </div>
+        )}
+        <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-gray-500">
+          <span className="flex items-center">
+            <CalendarIcon className="w-4 h-4 mr-1" />
+            {formattedDate}
+          </span>
+          <span className="flex items-center">
+            <UsersIcon className="w-4 h-4 mr-1" />
+            {t('card.participantCount', { count: ride.participantCount })}
+          </span>
+        </div>
+        {/* Start and End Places */}
+        {(ride.startPlace || ride.endPlace) && (
+          <div className="mt-3 flex flex-wrap items-center gap-4 text-sm text-gray-600">
+            {ride.startPlace && (
+              <span className="flex items-center">
+                <MapPinIcon className="w-4 h-4 mr-1 text-green-600" />
+                <span className="font-medium text-green-700">{t('detail.startPlace')}:</span>
+                <span className="ml-1">
+                  {ride.startPlace.name}
+                  {ride.startPlace.address && (
+                    <span className="text-gray-500"> ({ride.startPlace.address})</span>
+                  )}
+                </span>
+              </span>
+            )}
+            {ride.endPlace && (
+              <span className="flex items-center">
+                <MapPinIcon className="w-4 h-4 mr-1 text-red-600" />
+                <span className="font-medium text-red-700">{t('detail.endPlace')}:</span>
+                <span className="ml-1">
+                  {ride.endPlace.name}
+                  {ride.endPlace.address && (
+                    <span className="text-gray-500"> ({ride.endPlace.address})</span>
+                  )}
+                </span>
+              </span>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Map and Groups */}
@@ -294,6 +284,7 @@ export function RideDetailPage() {
                     onJoin={() => handleJoinGroup(group.id)}
                     onLeave={() => handleLeaveGroup(group.id)}
                     onHover={setHighlightedGroupId}
+                    isHighlighted={highlightedGroupId === group.id}
                     isLoading={
                       joiningGroupId === group.id &&
                       (joinMutation.isPending || leaveMutation.isPending)
@@ -340,6 +331,18 @@ export function RideDetailPage() {
               {t('detail.notAuthenticated.signIn')}
             </Link>
           </p>
+        </div>
+      )}
+
+      {/* Comments Section - only visible to team members */}
+      {isMember && (
+        <div className="mt-6">
+          <CommentSection
+            teamSlug={teamSlug!}
+            entityType="rides"
+            entitySlug={rideSlug!}
+            isOrganizer={canEdit}
+          />
         </div>
       )}
 

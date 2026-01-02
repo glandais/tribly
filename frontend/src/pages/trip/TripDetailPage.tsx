@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { Link, useParams, Navigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
-  ClockIcon,
   CalendarIcon,
   UsersIcon,
   PencilIcon,
@@ -25,6 +24,7 @@ import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import { useFormattedDate } from '../../utils/dateFormat'
 import { MediaDisplay } from '../../components/common/MediaDisplay'
 import { EntityLogo } from '../../components/common/EntityLogo'
+import { CommentSection } from '../../components/comment'
 
 const statusColors: Record<Status, string> = {
   [Status.Draft]: 'bg-gray-100 text-gray-800',
@@ -34,7 +34,7 @@ const statusColors: Record<Status, string> = {
 
 export function TripDetailPage() {
   const { t } = useTranslation('trips')
-  const { formatDate, formatDateTime, formatTime } = useFormattedDate()
+  const { formatDateTime } = useFormattedDate()
   const { teamSlug, tripSlug } = useParams<{ teamSlug: string; tripSlug: string }>()
   const { isAuthenticated, user } = useAuth()
   const [highlightedStageId, setHighlightedStageId] = useState<string | null>(null)
@@ -84,7 +84,7 @@ export function TripDetailPage() {
     user && trip.participants ? trip.participants.some((p) => p.id === user.id) : false
   const canJoinTrip = isMember && trip.status === Status.Published && !hasJoined
 
-  const formattedDate = formatDate(trip.dateTime)
+  const formattedDate = formatDateTime(trip.dateTime)
 
   const handlePublish = () => {
     updateMutation.mutate({ ...trip, status: Status.Published })
@@ -122,49 +122,18 @@ export function TripDetailPage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-3">
-              <EntityLogo logo={trip.media.assets.logo} alt={trip.name} size="lg" />
-              <h1 className="text-2xl font-bold text-gray-900">{trip.name}</h1>
-              <span
-                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColors[trip.status]}`}
-              >
-                {t(`status.${trip.status}`)}
-              </span>
-            </div>
-            <div className="mt-2">
-              <MediaDisplay media={trip.media} className="text-gray-600" />
-            </div>
-            {trip.status === Status.Draft && trip.publishAt && (
-              <div className="mt-2 text-sm text-amber-600 flex items-center">
-                <ClockIcon className="w-4 h-4 mr-1" />
-                {t('detail.scheduledPublish', {
-                  date: formatDateTime(trip.publishAt),
-                })}
-              </div>
-            )}
-            <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-gray-500">
-              <span className="flex items-center">
-                <CalendarIcon className="w-4 h-4 mr-1" />
-                {formattedDate}
-              </span>
-              <span className="flex items-center">
-                <ClockIcon className="w-4 h-4 mr-1" />
-                {formatTime(trip.dateTime)}
-              </span>
-              <span className="flex items-center">
-                <UsersIcon className="w-4 h-4 mr-1" />
-                {t('card.participantCount', { count: trip.participantCount })}
-              </span>
-              <span className="flex items-center">
-                <RectangleStackIcon className="w-4 h-4 mr-1" />
-                {t('card.stageCount', { count: trip.stageCount })}
-              </span>
-            </div>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-center gap-3 min-w-0">
+            <EntityLogo logo={trip.media.assets.logo} alt={trip.name} size="lg" />
+            <h1 className="text-2xl font-bold text-gray-900 truncate">{trip.name}</h1>
+            <span
+              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium shrink-0 ${statusColors[trip.status]}`}
+            >
+              {t(`status.${trip.status}`)}
+            </span>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 shrink-0">
             {/* Join/Leave button for members */}
             {canJoinTrip && (
               <button
@@ -241,6 +210,32 @@ export function TripDetailPage() {
               </>
             )}
           </div>
+        </div>
+
+        <div className="mt-4">
+          <MediaDisplay media={trip.media} className="text-gray-600" />
+        </div>
+        {trip.status === Status.Draft && trip.publishAt && (
+          <div className="mt-2 text-sm text-amber-600 flex items-center">
+            <CalendarIcon className="w-4 h-4 mr-1" />
+            {t('detail.scheduledPublish', {
+              date: formatDateTime(trip.publishAt),
+            })}
+          </div>
+        )}
+        <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-gray-500">
+          <span className="flex items-center">
+            <CalendarIcon className="w-4 h-4 mr-1" />
+            {formattedDate}
+          </span>
+          <span className="flex items-center">
+            <UsersIcon className="w-4 h-4 mr-1" />
+            {t('card.participantCount', { count: trip.participantCount })}
+          </span>
+          <span className="flex items-center">
+            <RectangleStackIcon className="w-4 h-4 mr-1" />
+            {t('card.stageCount', { count: trip.stageCount })}
+          </span>
         </div>
       </div>
 
@@ -319,6 +314,18 @@ export function TripDetailPage() {
               {t('detail.notAuthenticated.signIn')}
             </Link>
           </p>
+        </div>
+      )}
+
+      {/* Comments Section - only visible to team members */}
+      {isMember && (
+        <div className="mt-6">
+          <CommentSection
+            teamSlug={teamSlug!}
+            entityType="trips"
+            entitySlug={tripSlug!}
+            isOrganizer={canEdit}
+          />
         </div>
       )}
 

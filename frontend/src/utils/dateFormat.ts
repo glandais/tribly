@@ -4,6 +4,7 @@ import { fr } from 'date-fns/locale/fr'
 import { enUS } from 'date-fns/locale/en-US'
 import type { Locale } from 'date-fns'
 import { useTranslation } from 'react-i18next'
+import i18n from '../i18n'
 
 // Locale map for quick access
 const locales: Record<string, Locale> = {
@@ -57,24 +58,7 @@ export function formatDateTime(
   if (!dateObj) return ''
 
   const locale = getLocale(language)
-  // For French, use 24-hour format; for English, use 12-hour format
-  const pattern = language === 'fr' ? "PPP 'à' HH:mm" : "PPP 'at' p"
-  return format(dateObj, pattern, { locale })
-}
-
-/**
- * Format time only: "09:00" (fr) / "9:00 AM" (en)
- */
-export function formatTime(
-  date: Date | string | null | undefined,
-  language: string = 'fr'
-): string {
-  const dateObj = toDate(date)
-  if (!dateObj) return ''
-
-  const locale = getLocale(language)
-  // For French, use 24-hour format; for English, use 12-hour format
-  const pattern = language === 'fr' ? 'HH:mm' : 'p'
+  const pattern = i18n.t('dateFormats.dateTime', { lng: language })
   return format(dateObj, pattern, { locale })
 }
 
@@ -122,7 +106,6 @@ export function useFormattedDate() {
   return {
     formatDate: (date: Date | string | null | undefined) => formatDate(date, language),
     formatDateTime: (date: Date | string | null | undefined) => formatDateTime(date, language),
-    formatTime: (date: Date | string | null | undefined) => formatTime(date, language),
     formatRelative: (date: Date | string | null | undefined) => formatRelative(date, language),
     toDateTimeLocalValue,
     fromDateTimeLocalValue,

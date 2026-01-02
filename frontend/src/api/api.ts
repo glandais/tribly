@@ -154,6 +154,58 @@ export interface ClimbDto {
 }
 
 /**
+ * Comment data
+ */
+export interface CommentDto {
+  /**
+   * Comment ID (TSID)
+   */
+  id: string
+  /**
+   * Comment content
+   */
+  content: string
+  /**
+   * Comment author
+   */
+  author: PublicUserDto
+  createdAt: string
+  /**
+   * Parent comment ID (for replies)
+   */
+  parentId?: string
+  /**
+   * Replies to this comment
+   */
+  replies: Array<CommentDto>
+}
+/**
+ * List of comments response
+ */
+export interface CommentListResponse {
+  /**
+   * List of comments (top-level only, with nested replies)
+   */
+  items: Array<CommentDto>
+  /**
+   * Total count including replies
+   */
+  total: number
+}
+/**
+ * Comment creation request
+ */
+export interface CommentRequest {
+  /**
+   * Comment content
+   */
+  content: string
+  /**
+   * Parent comment ID for replies (optional)
+   */
+  parentId?: string
+}
+/**
  * Application configuration
  */
 export interface ConfigDto {
@@ -2243,6 +2295,391 @@ export class PlacesApi extends BaseAPI {
 }
 
 /**
+ * PostCommentsApi - axios parameter creator
+ */
+export const PostCommentsApiAxiosParamCreator = function (configuration?: Configuration) {
+  return {
+    /**
+     *
+     * @summary Create post comment
+     * @param {string} entitySlug Post URL slug
+     * @param {string} slug Team URL slug
+     * @param {CommentRequest} commentRequest
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    createPostComment: async (
+      entitySlug: string,
+      slug: string,
+      commentRequest: CommentRequest,
+      options: RawAxiosRequestConfig = {}
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'entitySlug' is not null or undefined
+      assertParamExists('createPostComment', 'entitySlug', entitySlug)
+      // verify required parameter 'slug' is not null or undefined
+      assertParamExists('createPostComment', 'slug', slug)
+      // verify required parameter 'commentRequest' is not null or undefined
+      assertParamExists('createPostComment', 'commentRequest', commentRequest)
+      const localVarPath = `/api/teams/{slug}/posts/{entitySlug}/comments`
+        .replace(`{${'entitySlug'}}`, encodeURIComponent(String(entitySlug)))
+        .replace(`{${'slug'}}`, encodeURIComponent(String(slug)))
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL)
+      let baseOptions
+      if (configuration) {
+        baseOptions = configuration.baseOptions
+      }
+
+      const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options }
+      const localVarHeaderParameter = {} as any
+      const localVarQueryParameter = {} as any
+
+      localVarHeaderParameter['Content-Type'] = 'application/json'
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter)
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {}
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      }
+      localVarRequestOptions.data = serializeDataIfNeeded(
+        commentRequest,
+        localVarRequestOptions,
+        configuration
+      )
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      }
+    },
+    /**
+     *
+     * @summary Delete post comment
+     * @param {string} commentId Comment ID
+     * @param {string} entitySlug Post URL slug
+     * @param {string} slug Team URL slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    deletePostComment: async (
+      commentId: string,
+      entitySlug: string,
+      slug: string,
+      options: RawAxiosRequestConfig = {}
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'commentId' is not null or undefined
+      assertParamExists('deletePostComment', 'commentId', commentId)
+      // verify required parameter 'entitySlug' is not null or undefined
+      assertParamExists('deletePostComment', 'entitySlug', entitySlug)
+      // verify required parameter 'slug' is not null or undefined
+      assertParamExists('deletePostComment', 'slug', slug)
+      const localVarPath = `/api/teams/{slug}/posts/{entitySlug}/comments/{commentId}`
+        .replace(`{${'commentId'}}`, encodeURIComponent(String(commentId)))
+        .replace(`{${'entitySlug'}}`, encodeURIComponent(String(entitySlug)))
+        .replace(`{${'slug'}}`, encodeURIComponent(String(slug)))
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL)
+      let baseOptions
+      if (configuration) {
+        baseOptions = configuration.baseOptions
+      }
+
+      const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options }
+      const localVarHeaderParameter = {} as any
+      const localVarQueryParameter = {} as any
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter)
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {}
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      }
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      }
+    },
+    /**
+     *
+     * @summary List post comments
+     * @param {string} entitySlug Post URL slug
+     * @param {string} slug Team URL slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listPostComments: async (
+      entitySlug: string,
+      slug: string,
+      options: RawAxiosRequestConfig = {}
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'entitySlug' is not null or undefined
+      assertParamExists('listPostComments', 'entitySlug', entitySlug)
+      // verify required parameter 'slug' is not null or undefined
+      assertParamExists('listPostComments', 'slug', slug)
+      const localVarPath = `/api/teams/{slug}/posts/{entitySlug}/comments`
+        .replace(`{${'entitySlug'}}`, encodeURIComponent(String(entitySlug)))
+        .replace(`{${'slug'}}`, encodeURIComponent(String(slug)))
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL)
+      let baseOptions
+      if (configuration) {
+        baseOptions = configuration.baseOptions
+      }
+
+      const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options }
+      const localVarHeaderParameter = {} as any
+      const localVarQueryParameter = {} as any
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter)
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {}
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      }
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      }
+    },
+  }
+}
+
+/**
+ * PostCommentsApi - functional programming interface
+ */
+export const PostCommentsApiFp = function (configuration?: Configuration) {
+  const localVarAxiosParamCreator = PostCommentsApiAxiosParamCreator(configuration)
+  return {
+    /**
+     *
+     * @summary Create post comment
+     * @param {string} entitySlug Post URL slug
+     * @param {string} slug Team URL slug
+     * @param {CommentRequest} commentRequest
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async createPostComment(
+      entitySlug: string,
+      slug: string,
+      commentRequest: CommentRequest,
+      options?: RawAxiosRequestConfig
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CommentDto>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.createPostComment(
+        entitySlug,
+        slug,
+        commentRequest,
+        options
+      )
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0
+      const localVarOperationServerBasePath =
+        operationServerMap['PostCommentsApi.createPostComment']?.[localVarOperationServerIndex]?.url
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration
+        )(axios, localVarOperationServerBasePath || basePath)
+    },
+    /**
+     *
+     * @summary Delete post comment
+     * @param {string} commentId Comment ID
+     * @param {string} entitySlug Post URL slug
+     * @param {string} slug Team URL slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async deletePostComment(
+      commentId: string,
+      entitySlug: string,
+      slug: string,
+      options?: RawAxiosRequestConfig
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.deletePostComment(
+        commentId,
+        entitySlug,
+        slug,
+        options
+      )
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0
+      const localVarOperationServerBasePath =
+        operationServerMap['PostCommentsApi.deletePostComment']?.[localVarOperationServerIndex]?.url
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration
+        )(axios, localVarOperationServerBasePath || basePath)
+    },
+    /**
+     *
+     * @summary List post comments
+     * @param {string} entitySlug Post URL slug
+     * @param {string} slug Team URL slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async listPostComments(
+      entitySlug: string,
+      slug: string,
+      options?: RawAxiosRequestConfig
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CommentListResponse>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.listPostComments(
+        entitySlug,
+        slug,
+        options
+      )
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0
+      const localVarOperationServerBasePath =
+        operationServerMap['PostCommentsApi.listPostComments']?.[localVarOperationServerIndex]?.url
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration
+        )(axios, localVarOperationServerBasePath || basePath)
+    },
+  }
+}
+
+/**
+ * PostCommentsApi - factory interface
+ */
+export const PostCommentsApiFactory = function (
+  configuration?: Configuration,
+  basePath?: string,
+  axios?: AxiosInstance
+) {
+  const localVarFp = PostCommentsApiFp(configuration)
+  return {
+    /**
+     *
+     * @summary Create post comment
+     * @param {string} entitySlug Post URL slug
+     * @param {string} slug Team URL slug
+     * @param {CommentRequest} commentRequest
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    createPostComment(
+      entitySlug: string,
+      slug: string,
+      commentRequest: CommentRequest,
+      options?: RawAxiosRequestConfig
+    ): AxiosPromise<CommentDto> {
+      return localVarFp
+        .createPostComment(entitySlug, slug, commentRequest, options)
+        .then((request) => request(axios, basePath))
+    },
+    /**
+     *
+     * @summary Delete post comment
+     * @param {string} commentId Comment ID
+     * @param {string} entitySlug Post URL slug
+     * @param {string} slug Team URL slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    deletePostComment(
+      commentId: string,
+      entitySlug: string,
+      slug: string,
+      options?: RawAxiosRequestConfig
+    ): AxiosPromise<void> {
+      return localVarFp
+        .deletePostComment(commentId, entitySlug, slug, options)
+        .then((request) => request(axios, basePath))
+    },
+    /**
+     *
+     * @summary List post comments
+     * @param {string} entitySlug Post URL slug
+     * @param {string} slug Team URL slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listPostComments(
+      entitySlug: string,
+      slug: string,
+      options?: RawAxiosRequestConfig
+    ): AxiosPromise<CommentListResponse> {
+      return localVarFp
+        .listPostComments(entitySlug, slug, options)
+        .then((request) => request(axios, basePath))
+    },
+  }
+}
+
+/**
+ * PostCommentsApi - object-oriented interface
+ */
+export class PostCommentsApi extends BaseAPI {
+  /**
+   *
+   * @summary Create post comment
+   * @param {string} entitySlug Post URL slug
+   * @param {string} slug Team URL slug
+   * @param {CommentRequest} commentRequest
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   */
+  public createPostComment(
+    entitySlug: string,
+    slug: string,
+    commentRequest: CommentRequest,
+    options?: RawAxiosRequestConfig
+  ) {
+    return PostCommentsApiFp(this.configuration)
+      .createPostComment(entitySlug, slug, commentRequest, options)
+      .then((request) => request(this.axios, this.basePath))
+  }
+
+  /**
+   *
+   * @summary Delete post comment
+   * @param {string} commentId Comment ID
+   * @param {string} entitySlug Post URL slug
+   * @param {string} slug Team URL slug
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   */
+  public deletePostComment(
+    commentId: string,
+    entitySlug: string,
+    slug: string,
+    options?: RawAxiosRequestConfig
+  ) {
+    return PostCommentsApiFp(this.configuration)
+      .deletePostComment(commentId, entitySlug, slug, options)
+      .then((request) => request(this.axios, this.basePath))
+  }
+
+  /**
+   *
+   * @summary List post comments
+   * @param {string} entitySlug Post URL slug
+   * @param {string} slug Team URL slug
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   */
+  public listPostComments(entitySlug: string, slug: string, options?: RawAxiosRequestConfig) {
+    return PostCommentsApiFp(this.configuration)
+      .listPostComments(entitySlug, slug, options)
+      .then((request) => request(this.axios, this.basePath))
+  }
+}
+
+/**
  * PostsApi - axios parameter creator
  */
 export const PostsApiAxiosParamCreator = function (configuration?: Configuration) {
@@ -3230,6 +3667,391 @@ export class PublicationsApi extends BaseAPI {
   ) {
     return PublicationsApiFp(this.configuration)
       .listPublications(slug, from, page, search, size, to, options)
+      .then((request) => request(this.axios, this.basePath))
+  }
+}
+
+/**
+ * RideCommentsApi - axios parameter creator
+ */
+export const RideCommentsApiAxiosParamCreator = function (configuration?: Configuration) {
+  return {
+    /**
+     *
+     * @summary Create ride comment
+     * @param {string} entitySlug Ride URL slug
+     * @param {string} slug Team URL slug
+     * @param {CommentRequest} commentRequest
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    createRideComment: async (
+      entitySlug: string,
+      slug: string,
+      commentRequest: CommentRequest,
+      options: RawAxiosRequestConfig = {}
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'entitySlug' is not null or undefined
+      assertParamExists('createRideComment', 'entitySlug', entitySlug)
+      // verify required parameter 'slug' is not null or undefined
+      assertParamExists('createRideComment', 'slug', slug)
+      // verify required parameter 'commentRequest' is not null or undefined
+      assertParamExists('createRideComment', 'commentRequest', commentRequest)
+      const localVarPath = `/api/teams/{slug}/rides/{entitySlug}/comments`
+        .replace(`{${'entitySlug'}}`, encodeURIComponent(String(entitySlug)))
+        .replace(`{${'slug'}}`, encodeURIComponent(String(slug)))
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL)
+      let baseOptions
+      if (configuration) {
+        baseOptions = configuration.baseOptions
+      }
+
+      const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options }
+      const localVarHeaderParameter = {} as any
+      const localVarQueryParameter = {} as any
+
+      localVarHeaderParameter['Content-Type'] = 'application/json'
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter)
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {}
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      }
+      localVarRequestOptions.data = serializeDataIfNeeded(
+        commentRequest,
+        localVarRequestOptions,
+        configuration
+      )
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      }
+    },
+    /**
+     *
+     * @summary Delete ride comment
+     * @param {string} commentId Comment ID
+     * @param {string} entitySlug Ride URL slug
+     * @param {string} slug Team URL slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    deleteRideComment: async (
+      commentId: string,
+      entitySlug: string,
+      slug: string,
+      options: RawAxiosRequestConfig = {}
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'commentId' is not null or undefined
+      assertParamExists('deleteRideComment', 'commentId', commentId)
+      // verify required parameter 'entitySlug' is not null or undefined
+      assertParamExists('deleteRideComment', 'entitySlug', entitySlug)
+      // verify required parameter 'slug' is not null or undefined
+      assertParamExists('deleteRideComment', 'slug', slug)
+      const localVarPath = `/api/teams/{slug}/rides/{entitySlug}/comments/{commentId}`
+        .replace(`{${'commentId'}}`, encodeURIComponent(String(commentId)))
+        .replace(`{${'entitySlug'}}`, encodeURIComponent(String(entitySlug)))
+        .replace(`{${'slug'}}`, encodeURIComponent(String(slug)))
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL)
+      let baseOptions
+      if (configuration) {
+        baseOptions = configuration.baseOptions
+      }
+
+      const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options }
+      const localVarHeaderParameter = {} as any
+      const localVarQueryParameter = {} as any
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter)
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {}
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      }
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      }
+    },
+    /**
+     *
+     * @summary List ride comments
+     * @param {string} entitySlug Ride URL slug
+     * @param {string} slug Team URL slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listRideComments: async (
+      entitySlug: string,
+      slug: string,
+      options: RawAxiosRequestConfig = {}
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'entitySlug' is not null or undefined
+      assertParamExists('listRideComments', 'entitySlug', entitySlug)
+      // verify required parameter 'slug' is not null or undefined
+      assertParamExists('listRideComments', 'slug', slug)
+      const localVarPath = `/api/teams/{slug}/rides/{entitySlug}/comments`
+        .replace(`{${'entitySlug'}}`, encodeURIComponent(String(entitySlug)))
+        .replace(`{${'slug'}}`, encodeURIComponent(String(slug)))
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL)
+      let baseOptions
+      if (configuration) {
+        baseOptions = configuration.baseOptions
+      }
+
+      const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options }
+      const localVarHeaderParameter = {} as any
+      const localVarQueryParameter = {} as any
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter)
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {}
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      }
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      }
+    },
+  }
+}
+
+/**
+ * RideCommentsApi - functional programming interface
+ */
+export const RideCommentsApiFp = function (configuration?: Configuration) {
+  const localVarAxiosParamCreator = RideCommentsApiAxiosParamCreator(configuration)
+  return {
+    /**
+     *
+     * @summary Create ride comment
+     * @param {string} entitySlug Ride URL slug
+     * @param {string} slug Team URL slug
+     * @param {CommentRequest} commentRequest
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async createRideComment(
+      entitySlug: string,
+      slug: string,
+      commentRequest: CommentRequest,
+      options?: RawAxiosRequestConfig
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CommentDto>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.createRideComment(
+        entitySlug,
+        slug,
+        commentRequest,
+        options
+      )
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0
+      const localVarOperationServerBasePath =
+        operationServerMap['RideCommentsApi.createRideComment']?.[localVarOperationServerIndex]?.url
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration
+        )(axios, localVarOperationServerBasePath || basePath)
+    },
+    /**
+     *
+     * @summary Delete ride comment
+     * @param {string} commentId Comment ID
+     * @param {string} entitySlug Ride URL slug
+     * @param {string} slug Team URL slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async deleteRideComment(
+      commentId: string,
+      entitySlug: string,
+      slug: string,
+      options?: RawAxiosRequestConfig
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.deleteRideComment(
+        commentId,
+        entitySlug,
+        slug,
+        options
+      )
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0
+      const localVarOperationServerBasePath =
+        operationServerMap['RideCommentsApi.deleteRideComment']?.[localVarOperationServerIndex]?.url
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration
+        )(axios, localVarOperationServerBasePath || basePath)
+    },
+    /**
+     *
+     * @summary List ride comments
+     * @param {string} entitySlug Ride URL slug
+     * @param {string} slug Team URL slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async listRideComments(
+      entitySlug: string,
+      slug: string,
+      options?: RawAxiosRequestConfig
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CommentListResponse>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.listRideComments(
+        entitySlug,
+        slug,
+        options
+      )
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0
+      const localVarOperationServerBasePath =
+        operationServerMap['RideCommentsApi.listRideComments']?.[localVarOperationServerIndex]?.url
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration
+        )(axios, localVarOperationServerBasePath || basePath)
+    },
+  }
+}
+
+/**
+ * RideCommentsApi - factory interface
+ */
+export const RideCommentsApiFactory = function (
+  configuration?: Configuration,
+  basePath?: string,
+  axios?: AxiosInstance
+) {
+  const localVarFp = RideCommentsApiFp(configuration)
+  return {
+    /**
+     *
+     * @summary Create ride comment
+     * @param {string} entitySlug Ride URL slug
+     * @param {string} slug Team URL slug
+     * @param {CommentRequest} commentRequest
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    createRideComment(
+      entitySlug: string,
+      slug: string,
+      commentRequest: CommentRequest,
+      options?: RawAxiosRequestConfig
+    ): AxiosPromise<CommentDto> {
+      return localVarFp
+        .createRideComment(entitySlug, slug, commentRequest, options)
+        .then((request) => request(axios, basePath))
+    },
+    /**
+     *
+     * @summary Delete ride comment
+     * @param {string} commentId Comment ID
+     * @param {string} entitySlug Ride URL slug
+     * @param {string} slug Team URL slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    deleteRideComment(
+      commentId: string,
+      entitySlug: string,
+      slug: string,
+      options?: RawAxiosRequestConfig
+    ): AxiosPromise<void> {
+      return localVarFp
+        .deleteRideComment(commentId, entitySlug, slug, options)
+        .then((request) => request(axios, basePath))
+    },
+    /**
+     *
+     * @summary List ride comments
+     * @param {string} entitySlug Ride URL slug
+     * @param {string} slug Team URL slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listRideComments(
+      entitySlug: string,
+      slug: string,
+      options?: RawAxiosRequestConfig
+    ): AxiosPromise<CommentListResponse> {
+      return localVarFp
+        .listRideComments(entitySlug, slug, options)
+        .then((request) => request(axios, basePath))
+    },
+  }
+}
+
+/**
+ * RideCommentsApi - object-oriented interface
+ */
+export class RideCommentsApi extends BaseAPI {
+  /**
+   *
+   * @summary Create ride comment
+   * @param {string} entitySlug Ride URL slug
+   * @param {string} slug Team URL slug
+   * @param {CommentRequest} commentRequest
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   */
+  public createRideComment(
+    entitySlug: string,
+    slug: string,
+    commentRequest: CommentRequest,
+    options?: RawAxiosRequestConfig
+  ) {
+    return RideCommentsApiFp(this.configuration)
+      .createRideComment(entitySlug, slug, commentRequest, options)
+      .then((request) => request(this.axios, this.basePath))
+  }
+
+  /**
+   *
+   * @summary Delete ride comment
+   * @param {string} commentId Comment ID
+   * @param {string} entitySlug Ride URL slug
+   * @param {string} slug Team URL slug
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   */
+  public deleteRideComment(
+    commentId: string,
+    entitySlug: string,
+    slug: string,
+    options?: RawAxiosRequestConfig
+  ) {
+    return RideCommentsApiFp(this.configuration)
+      .deleteRideComment(commentId, entitySlug, slug, options)
+      .then((request) => request(this.axios, this.basePath))
+  }
+
+  /**
+   *
+   * @summary List ride comments
+   * @param {string} entitySlug Ride URL slug
+   * @param {string} slug Team URL slug
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   */
+  public listRideComments(entitySlug: string, slug: string, options?: RawAxiosRequestConfig) {
+    return RideCommentsApiFp(this.configuration)
+      .listRideComments(entitySlug, slug, options)
       .then((request) => request(this.axios, this.basePath))
   }
 }
@@ -4748,6 +5570,394 @@ export class RidesApi extends BaseAPI {
   ) {
     return RidesApiFp(this.configuration)
       .updateRide(rideSlug, slug, rideRequest, options)
+      .then((request) => request(this.axios, this.basePath))
+  }
+}
+
+/**
+ * RouteCommentsApi - axios parameter creator
+ */
+export const RouteCommentsApiAxiosParamCreator = function (configuration?: Configuration) {
+  return {
+    /**
+     *
+     * @summary Create route comment
+     * @param {string} entitySlug Route URL slug
+     * @param {string} slug Team URL slug
+     * @param {CommentRequest} commentRequest
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    createRouteComment: async (
+      entitySlug: string,
+      slug: string,
+      commentRequest: CommentRequest,
+      options: RawAxiosRequestConfig = {}
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'entitySlug' is not null or undefined
+      assertParamExists('createRouteComment', 'entitySlug', entitySlug)
+      // verify required parameter 'slug' is not null or undefined
+      assertParamExists('createRouteComment', 'slug', slug)
+      // verify required parameter 'commentRequest' is not null or undefined
+      assertParamExists('createRouteComment', 'commentRequest', commentRequest)
+      const localVarPath = `/api/teams/{slug}/routes/{entitySlug}/comments`
+        .replace(`{${'entitySlug'}}`, encodeURIComponent(String(entitySlug)))
+        .replace(`{${'slug'}}`, encodeURIComponent(String(slug)))
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL)
+      let baseOptions
+      if (configuration) {
+        baseOptions = configuration.baseOptions
+      }
+
+      const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options }
+      const localVarHeaderParameter = {} as any
+      const localVarQueryParameter = {} as any
+
+      localVarHeaderParameter['Content-Type'] = 'application/json'
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter)
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {}
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      }
+      localVarRequestOptions.data = serializeDataIfNeeded(
+        commentRequest,
+        localVarRequestOptions,
+        configuration
+      )
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      }
+    },
+    /**
+     *
+     * @summary Delete route comment
+     * @param {string} commentId Comment ID
+     * @param {string} entitySlug Route URL slug
+     * @param {string} slug Team URL slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    deleteRouteComment: async (
+      commentId: string,
+      entitySlug: string,
+      slug: string,
+      options: RawAxiosRequestConfig = {}
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'commentId' is not null or undefined
+      assertParamExists('deleteRouteComment', 'commentId', commentId)
+      // verify required parameter 'entitySlug' is not null or undefined
+      assertParamExists('deleteRouteComment', 'entitySlug', entitySlug)
+      // verify required parameter 'slug' is not null or undefined
+      assertParamExists('deleteRouteComment', 'slug', slug)
+      const localVarPath = `/api/teams/{slug}/routes/{entitySlug}/comments/{commentId}`
+        .replace(`{${'commentId'}}`, encodeURIComponent(String(commentId)))
+        .replace(`{${'entitySlug'}}`, encodeURIComponent(String(entitySlug)))
+        .replace(`{${'slug'}}`, encodeURIComponent(String(slug)))
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL)
+      let baseOptions
+      if (configuration) {
+        baseOptions = configuration.baseOptions
+      }
+
+      const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options }
+      const localVarHeaderParameter = {} as any
+      const localVarQueryParameter = {} as any
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter)
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {}
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      }
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      }
+    },
+    /**
+     *
+     * @summary List route comments
+     * @param {string} entitySlug Route URL slug
+     * @param {string} slug Team URL slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listRouteComments: async (
+      entitySlug: string,
+      slug: string,
+      options: RawAxiosRequestConfig = {}
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'entitySlug' is not null or undefined
+      assertParamExists('listRouteComments', 'entitySlug', entitySlug)
+      // verify required parameter 'slug' is not null or undefined
+      assertParamExists('listRouteComments', 'slug', slug)
+      const localVarPath = `/api/teams/{slug}/routes/{entitySlug}/comments`
+        .replace(`{${'entitySlug'}}`, encodeURIComponent(String(entitySlug)))
+        .replace(`{${'slug'}}`, encodeURIComponent(String(slug)))
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL)
+      let baseOptions
+      if (configuration) {
+        baseOptions = configuration.baseOptions
+      }
+
+      const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options }
+      const localVarHeaderParameter = {} as any
+      const localVarQueryParameter = {} as any
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter)
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {}
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      }
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      }
+    },
+  }
+}
+
+/**
+ * RouteCommentsApi - functional programming interface
+ */
+export const RouteCommentsApiFp = function (configuration?: Configuration) {
+  const localVarAxiosParamCreator = RouteCommentsApiAxiosParamCreator(configuration)
+  return {
+    /**
+     *
+     * @summary Create route comment
+     * @param {string} entitySlug Route URL slug
+     * @param {string} slug Team URL slug
+     * @param {CommentRequest} commentRequest
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async createRouteComment(
+      entitySlug: string,
+      slug: string,
+      commentRequest: CommentRequest,
+      options?: RawAxiosRequestConfig
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CommentDto>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.createRouteComment(
+        entitySlug,
+        slug,
+        commentRequest,
+        options
+      )
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0
+      const localVarOperationServerBasePath =
+        operationServerMap['RouteCommentsApi.createRouteComment']?.[localVarOperationServerIndex]
+          ?.url
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration
+        )(axios, localVarOperationServerBasePath || basePath)
+    },
+    /**
+     *
+     * @summary Delete route comment
+     * @param {string} commentId Comment ID
+     * @param {string} entitySlug Route URL slug
+     * @param {string} slug Team URL slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async deleteRouteComment(
+      commentId: string,
+      entitySlug: string,
+      slug: string,
+      options?: RawAxiosRequestConfig
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.deleteRouteComment(
+        commentId,
+        entitySlug,
+        slug,
+        options
+      )
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0
+      const localVarOperationServerBasePath =
+        operationServerMap['RouteCommentsApi.deleteRouteComment']?.[localVarOperationServerIndex]
+          ?.url
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration
+        )(axios, localVarOperationServerBasePath || basePath)
+    },
+    /**
+     *
+     * @summary List route comments
+     * @param {string} entitySlug Route URL slug
+     * @param {string} slug Team URL slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async listRouteComments(
+      entitySlug: string,
+      slug: string,
+      options?: RawAxiosRequestConfig
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CommentListResponse>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.listRouteComments(
+        entitySlug,
+        slug,
+        options
+      )
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0
+      const localVarOperationServerBasePath =
+        operationServerMap['RouteCommentsApi.listRouteComments']?.[localVarOperationServerIndex]
+          ?.url
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration
+        )(axios, localVarOperationServerBasePath || basePath)
+    },
+  }
+}
+
+/**
+ * RouteCommentsApi - factory interface
+ */
+export const RouteCommentsApiFactory = function (
+  configuration?: Configuration,
+  basePath?: string,
+  axios?: AxiosInstance
+) {
+  const localVarFp = RouteCommentsApiFp(configuration)
+  return {
+    /**
+     *
+     * @summary Create route comment
+     * @param {string} entitySlug Route URL slug
+     * @param {string} slug Team URL slug
+     * @param {CommentRequest} commentRequest
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    createRouteComment(
+      entitySlug: string,
+      slug: string,
+      commentRequest: CommentRequest,
+      options?: RawAxiosRequestConfig
+    ): AxiosPromise<CommentDto> {
+      return localVarFp
+        .createRouteComment(entitySlug, slug, commentRequest, options)
+        .then((request) => request(axios, basePath))
+    },
+    /**
+     *
+     * @summary Delete route comment
+     * @param {string} commentId Comment ID
+     * @param {string} entitySlug Route URL slug
+     * @param {string} slug Team URL slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    deleteRouteComment(
+      commentId: string,
+      entitySlug: string,
+      slug: string,
+      options?: RawAxiosRequestConfig
+    ): AxiosPromise<void> {
+      return localVarFp
+        .deleteRouteComment(commentId, entitySlug, slug, options)
+        .then((request) => request(axios, basePath))
+    },
+    /**
+     *
+     * @summary List route comments
+     * @param {string} entitySlug Route URL slug
+     * @param {string} slug Team URL slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listRouteComments(
+      entitySlug: string,
+      slug: string,
+      options?: RawAxiosRequestConfig
+    ): AxiosPromise<CommentListResponse> {
+      return localVarFp
+        .listRouteComments(entitySlug, slug, options)
+        .then((request) => request(axios, basePath))
+    },
+  }
+}
+
+/**
+ * RouteCommentsApi - object-oriented interface
+ */
+export class RouteCommentsApi extends BaseAPI {
+  /**
+   *
+   * @summary Create route comment
+   * @param {string} entitySlug Route URL slug
+   * @param {string} slug Team URL slug
+   * @param {CommentRequest} commentRequest
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   */
+  public createRouteComment(
+    entitySlug: string,
+    slug: string,
+    commentRequest: CommentRequest,
+    options?: RawAxiosRequestConfig
+  ) {
+    return RouteCommentsApiFp(this.configuration)
+      .createRouteComment(entitySlug, slug, commentRequest, options)
+      .then((request) => request(this.axios, this.basePath))
+  }
+
+  /**
+   *
+   * @summary Delete route comment
+   * @param {string} commentId Comment ID
+   * @param {string} entitySlug Route URL slug
+   * @param {string} slug Team URL slug
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   */
+  public deleteRouteComment(
+    commentId: string,
+    entitySlug: string,
+    slug: string,
+    options?: RawAxiosRequestConfig
+  ) {
+    return RouteCommentsApiFp(this.configuration)
+      .deleteRouteComment(commentId, entitySlug, slug, options)
+      .then((request) => request(this.axios, this.basePath))
+  }
+
+  /**
+   *
+   * @summary List route comments
+   * @param {string} entitySlug Route URL slug
+   * @param {string} slug Team URL slug
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   */
+  public listRouteComments(entitySlug: string, slug: string, options?: RawAxiosRequestConfig) {
+    return RouteCommentsApiFp(this.configuration)
+      .listRouteComments(entitySlug, slug, options)
       .then((request) => request(this.axios, this.basePath))
   }
 }
@@ -6764,6 +7974,391 @@ export class TeamsApi extends BaseAPI {
   public updateTeam(slug: string, teamRequest: TeamRequest, options?: RawAxiosRequestConfig) {
     return TeamsApiFp(this.configuration)
       .updateTeam(slug, teamRequest, options)
+      .then((request) => request(this.axios, this.basePath))
+  }
+}
+
+/**
+ * TripCommentsApi - axios parameter creator
+ */
+export const TripCommentsApiAxiosParamCreator = function (configuration?: Configuration) {
+  return {
+    /**
+     *
+     * @summary Create trip comment
+     * @param {string} entitySlug Trip URL slug
+     * @param {string} slug Team URL slug
+     * @param {CommentRequest} commentRequest
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    createTripComment: async (
+      entitySlug: string,
+      slug: string,
+      commentRequest: CommentRequest,
+      options: RawAxiosRequestConfig = {}
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'entitySlug' is not null or undefined
+      assertParamExists('createTripComment', 'entitySlug', entitySlug)
+      // verify required parameter 'slug' is not null or undefined
+      assertParamExists('createTripComment', 'slug', slug)
+      // verify required parameter 'commentRequest' is not null or undefined
+      assertParamExists('createTripComment', 'commentRequest', commentRequest)
+      const localVarPath = `/api/teams/{slug}/trips/{entitySlug}/comments`
+        .replace(`{${'entitySlug'}}`, encodeURIComponent(String(entitySlug)))
+        .replace(`{${'slug'}}`, encodeURIComponent(String(slug)))
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL)
+      let baseOptions
+      if (configuration) {
+        baseOptions = configuration.baseOptions
+      }
+
+      const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options }
+      const localVarHeaderParameter = {} as any
+      const localVarQueryParameter = {} as any
+
+      localVarHeaderParameter['Content-Type'] = 'application/json'
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter)
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {}
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      }
+      localVarRequestOptions.data = serializeDataIfNeeded(
+        commentRequest,
+        localVarRequestOptions,
+        configuration
+      )
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      }
+    },
+    /**
+     *
+     * @summary Delete trip comment
+     * @param {string} commentId Comment ID
+     * @param {string} entitySlug Trip URL slug
+     * @param {string} slug Team URL slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    deleteTripComment: async (
+      commentId: string,
+      entitySlug: string,
+      slug: string,
+      options: RawAxiosRequestConfig = {}
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'commentId' is not null or undefined
+      assertParamExists('deleteTripComment', 'commentId', commentId)
+      // verify required parameter 'entitySlug' is not null or undefined
+      assertParamExists('deleteTripComment', 'entitySlug', entitySlug)
+      // verify required parameter 'slug' is not null or undefined
+      assertParamExists('deleteTripComment', 'slug', slug)
+      const localVarPath = `/api/teams/{slug}/trips/{entitySlug}/comments/{commentId}`
+        .replace(`{${'commentId'}}`, encodeURIComponent(String(commentId)))
+        .replace(`{${'entitySlug'}}`, encodeURIComponent(String(entitySlug)))
+        .replace(`{${'slug'}}`, encodeURIComponent(String(slug)))
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL)
+      let baseOptions
+      if (configuration) {
+        baseOptions = configuration.baseOptions
+      }
+
+      const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options }
+      const localVarHeaderParameter = {} as any
+      const localVarQueryParameter = {} as any
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter)
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {}
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      }
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      }
+    },
+    /**
+     *
+     * @summary List trip comments
+     * @param {string} entitySlug Trip URL slug
+     * @param {string} slug Team URL slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listTripComments: async (
+      entitySlug: string,
+      slug: string,
+      options: RawAxiosRequestConfig = {}
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'entitySlug' is not null or undefined
+      assertParamExists('listTripComments', 'entitySlug', entitySlug)
+      // verify required parameter 'slug' is not null or undefined
+      assertParamExists('listTripComments', 'slug', slug)
+      const localVarPath = `/api/teams/{slug}/trips/{entitySlug}/comments`
+        .replace(`{${'entitySlug'}}`, encodeURIComponent(String(entitySlug)))
+        .replace(`{${'slug'}}`, encodeURIComponent(String(slug)))
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL)
+      let baseOptions
+      if (configuration) {
+        baseOptions = configuration.baseOptions
+      }
+
+      const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options }
+      const localVarHeaderParameter = {} as any
+      const localVarQueryParameter = {} as any
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter)
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {}
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      }
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      }
+    },
+  }
+}
+
+/**
+ * TripCommentsApi - functional programming interface
+ */
+export const TripCommentsApiFp = function (configuration?: Configuration) {
+  const localVarAxiosParamCreator = TripCommentsApiAxiosParamCreator(configuration)
+  return {
+    /**
+     *
+     * @summary Create trip comment
+     * @param {string} entitySlug Trip URL slug
+     * @param {string} slug Team URL slug
+     * @param {CommentRequest} commentRequest
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async createTripComment(
+      entitySlug: string,
+      slug: string,
+      commentRequest: CommentRequest,
+      options?: RawAxiosRequestConfig
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CommentDto>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.createTripComment(
+        entitySlug,
+        slug,
+        commentRequest,
+        options
+      )
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0
+      const localVarOperationServerBasePath =
+        operationServerMap['TripCommentsApi.createTripComment']?.[localVarOperationServerIndex]?.url
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration
+        )(axios, localVarOperationServerBasePath || basePath)
+    },
+    /**
+     *
+     * @summary Delete trip comment
+     * @param {string} commentId Comment ID
+     * @param {string} entitySlug Trip URL slug
+     * @param {string} slug Team URL slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async deleteTripComment(
+      commentId: string,
+      entitySlug: string,
+      slug: string,
+      options?: RawAxiosRequestConfig
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.deleteTripComment(
+        commentId,
+        entitySlug,
+        slug,
+        options
+      )
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0
+      const localVarOperationServerBasePath =
+        operationServerMap['TripCommentsApi.deleteTripComment']?.[localVarOperationServerIndex]?.url
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration
+        )(axios, localVarOperationServerBasePath || basePath)
+    },
+    /**
+     *
+     * @summary List trip comments
+     * @param {string} entitySlug Trip URL slug
+     * @param {string} slug Team URL slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async listTripComments(
+      entitySlug: string,
+      slug: string,
+      options?: RawAxiosRequestConfig
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<CommentListResponse>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.listTripComments(
+        entitySlug,
+        slug,
+        options
+      )
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0
+      const localVarOperationServerBasePath =
+        operationServerMap['TripCommentsApi.listTripComments']?.[localVarOperationServerIndex]?.url
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration
+        )(axios, localVarOperationServerBasePath || basePath)
+    },
+  }
+}
+
+/**
+ * TripCommentsApi - factory interface
+ */
+export const TripCommentsApiFactory = function (
+  configuration?: Configuration,
+  basePath?: string,
+  axios?: AxiosInstance
+) {
+  const localVarFp = TripCommentsApiFp(configuration)
+  return {
+    /**
+     *
+     * @summary Create trip comment
+     * @param {string} entitySlug Trip URL slug
+     * @param {string} slug Team URL slug
+     * @param {CommentRequest} commentRequest
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    createTripComment(
+      entitySlug: string,
+      slug: string,
+      commentRequest: CommentRequest,
+      options?: RawAxiosRequestConfig
+    ): AxiosPromise<CommentDto> {
+      return localVarFp
+        .createTripComment(entitySlug, slug, commentRequest, options)
+        .then((request) => request(axios, basePath))
+    },
+    /**
+     *
+     * @summary Delete trip comment
+     * @param {string} commentId Comment ID
+     * @param {string} entitySlug Trip URL slug
+     * @param {string} slug Team URL slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    deleteTripComment(
+      commentId: string,
+      entitySlug: string,
+      slug: string,
+      options?: RawAxiosRequestConfig
+    ): AxiosPromise<void> {
+      return localVarFp
+        .deleteTripComment(commentId, entitySlug, slug, options)
+        .then((request) => request(axios, basePath))
+    },
+    /**
+     *
+     * @summary List trip comments
+     * @param {string} entitySlug Trip URL slug
+     * @param {string} slug Team URL slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listTripComments(
+      entitySlug: string,
+      slug: string,
+      options?: RawAxiosRequestConfig
+    ): AxiosPromise<CommentListResponse> {
+      return localVarFp
+        .listTripComments(entitySlug, slug, options)
+        .then((request) => request(axios, basePath))
+    },
+  }
+}
+
+/**
+ * TripCommentsApi - object-oriented interface
+ */
+export class TripCommentsApi extends BaseAPI {
+  /**
+   *
+   * @summary Create trip comment
+   * @param {string} entitySlug Trip URL slug
+   * @param {string} slug Team URL slug
+   * @param {CommentRequest} commentRequest
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   */
+  public createTripComment(
+    entitySlug: string,
+    slug: string,
+    commentRequest: CommentRequest,
+    options?: RawAxiosRequestConfig
+  ) {
+    return TripCommentsApiFp(this.configuration)
+      .createTripComment(entitySlug, slug, commentRequest, options)
+      .then((request) => request(this.axios, this.basePath))
+  }
+
+  /**
+   *
+   * @summary Delete trip comment
+   * @param {string} commentId Comment ID
+   * @param {string} entitySlug Trip URL slug
+   * @param {string} slug Team URL slug
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   */
+  public deleteTripComment(
+    commentId: string,
+    entitySlug: string,
+    slug: string,
+    options?: RawAxiosRequestConfig
+  ) {
+    return TripCommentsApiFp(this.configuration)
+      .deleteTripComment(commentId, entitySlug, slug, options)
+      .then((request) => request(this.axios, this.basePath))
+  }
+
+  /**
+   *
+   * @summary List trip comments
+   * @param {string} entitySlug Trip URL slug
+   * @param {string} slug Team URL slug
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   */
+  public listTripComments(entitySlug: string, slug: string, options?: RawAxiosRequestConfig) {
+    return TripCommentsApiFp(this.configuration)
+      .listTripComments(entitySlug, slug, options)
       .then((request) => request(this.axios, this.basePath))
   }
 }

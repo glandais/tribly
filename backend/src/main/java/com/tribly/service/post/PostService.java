@@ -52,7 +52,7 @@ public class PostService extends TeamEntityService {
     return new PostListResponse(dtos, posts.total(), page, size);
   }
 
-  protected Post getPost(String teamSlug, String postSlug, @Nullable Long userId) {
+  public Post getPost(String teamSlug, String postSlug, @Nullable Long userId) {
     TriblyPage<Post> posts =
         postRepository.find(
             TeamEntityQueryBasic.builder()

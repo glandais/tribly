@@ -58,6 +58,9 @@ Class | Method | HTTP request | Description
 *PlacesApi* | [**getPlace**](docs/PlacesApi.md#getplace) | **GET** /api/teams/{slug}/places/{placeId} | Get place details
 *PlacesApi* | [**listPlaces**](docs/PlacesApi.md#listplaces) | **GET** /api/teams/{slug}/places | List places
 *PlacesApi* | [**updatePlace**](docs/PlacesApi.md#updateplace) | **PUT** /api/teams/{slug}/places/{placeId} | Update place
+*PostCommentsApi* | [**createPostComment**](docs/PostCommentsApi.md#createpostcomment) | **POST** /api/teams/{slug}/posts/{entitySlug}/comments | Create post comment
+*PostCommentsApi* | [**deletePostComment**](docs/PostCommentsApi.md#deletepostcomment) | **DELETE** /api/teams/{slug}/posts/{entitySlug}/comments/{commentId} | Delete post comment
+*PostCommentsApi* | [**listPostComments**](docs/PostCommentsApi.md#listpostcomments) | **GET** /api/teams/{slug}/posts/{entitySlug}/comments | List post comments
 *PostsApi* | [**createPost**](docs/PostsApi.md#createpost) | **POST** /api/teams/{slug}/posts | Create post
 *PostsApi* | [**deletePost**](docs/PostsApi.md#deletepost) | **DELETE** /api/teams/{slug}/posts/{postSlug} | Delete post
 *PostsApi* | [**getPost**](docs/PostsApi.md#getpost) | **GET** /api/teams/{slug}/posts/{postSlug} | Get post details
@@ -65,6 +68,9 @@ Class | Method | HTTP request | Description
 *PostsApi* | [**updatePost**](docs/PostsApi.md#updatepost) | **PUT** /api/teams/{slug}/posts/{postSlug} | Update post
 *PublicationsApi* | [**listAllPublications**](docs/PublicationsApi.md#listallpublications) | **GET** /api/publications | List all publications
 *PublicationsApi* | [**listPublications**](docs/PublicationsApi.md#listpublications) | **GET** /api/teams/{slug}/publications | List publications
+*RideCommentsApi* | [**createRideComment**](docs/RideCommentsApi.md#createridecomment) | **POST** /api/teams/{slug}/rides/{entitySlug}/comments | Create ride comment
+*RideCommentsApi* | [**deleteRideComment**](docs/RideCommentsApi.md#deleteridecomment) | **DELETE** /api/teams/{slug}/rides/{entitySlug}/comments/{commentId} | Delete ride comment
+*RideCommentsApi* | [**listRideComments**](docs/RideCommentsApi.md#listridecomments) | **GET** /api/teams/{slug}/rides/{entitySlug}/comments | List ride comments
 *RideTemplatesApi* | [**createTemplate**](docs/RideTemplatesApi.md#createtemplate) | **POST** /api/teams/{slug}/ride-templates | Create ride template
 *RideTemplatesApi* | [**deleteTemplate**](docs/RideTemplatesApi.md#deletetemplate) | **DELETE** /api/teams/{slug}/ride-templates/{templateSlug} | Delete ride template
 *RideTemplatesApi* | [**getTemplate**](docs/RideTemplatesApi.md#gettemplate) | **GET** /api/teams/{slug}/ride-templates/{templateSlug} | Get ride template
@@ -77,6 +83,9 @@ Class | Method | HTTP request | Description
 *RidesApi* | [**leaveGroup**](docs/RidesApi.md#leavegroup) | **POST** /api/teams/{slug}/rides/{rideSlug}/groups/{groupId}/leave | Leave ride group
 *RidesApi* | [**listRides**](docs/RidesApi.md#listrides) | **GET** /api/teams/{slug}/rides | List rides
 *RidesApi* | [**updateRide**](docs/RidesApi.md#updateride) | **PUT** /api/teams/{slug}/rides/{rideSlug} | Update ride
+*RouteCommentsApi* | [**createRouteComment**](docs/RouteCommentsApi.md#createroutecomment) | **POST** /api/teams/{slug}/routes/{entitySlug}/comments | Create route comment
+*RouteCommentsApi* | [**deleteRouteComment**](docs/RouteCommentsApi.md#deleteroutecomment) | **DELETE** /api/teams/{slug}/routes/{entitySlug}/comments/{commentId} | Delete route comment
+*RouteCommentsApi* | [**listRouteComments**](docs/RouteCommentsApi.md#listroutecomments) | **GET** /api/teams/{slug}/routes/{entitySlug}/comments | List route comments
 *RouterApi* | [**route**](docs/RouterApi.md#route) | **POST** /api/router | Calculate route
 *RoutesApi* | [**createRoute**](docs/RoutesApi.md#createroute) | **POST** /api/teams/{slug}/routes | Create route
 *RoutesApi* | [**deleteRoute**](docs/RoutesApi.md#deleteroute) | **DELETE** /api/teams/{slug}/routes/{routeSlug} | Delete route
@@ -94,6 +103,9 @@ Class | Method | HTTP request | Description
 *TeamsApi* | [**getTeam**](docs/TeamsApi.md#getteam) | **GET** /api/teams/{slug} | Get team by slug
 *TeamsApi* | [**listTeams**](docs/TeamsApi.md#listteams) | **GET** /api/teams | List public teams
 *TeamsApi* | [**updateTeam**](docs/TeamsApi.md#updateteam) | **PUT** /api/teams/{slug} | Update team
+*TripCommentsApi* | [**createTripComment**](docs/TripCommentsApi.md#createtripcomment) | **POST** /api/teams/{slug}/trips/{entitySlug}/comments | Create trip comment
+*TripCommentsApi* | [**deleteTripComment**](docs/TripCommentsApi.md#deletetripcomment) | **DELETE** /api/teams/{slug}/trips/{entitySlug}/comments/{commentId} | Delete trip comment
+*TripCommentsApi* | [**listTripComments**](docs/TripCommentsApi.md#listtripcomments) | **GET** /api/teams/{slug}/trips/{entitySlug}/comments | List trip comments
 *TripsApi* | [**createTrip**](docs/TripsApi.md#createtrip) | **POST** /api/teams/{slug}/trips | Create trip
 *TripsApi* | [**deleteTrip**](docs/TripsApi.md#deletetrip) | **DELETE** /api/teams/{slug}/trips/{tripSlug} | Delete trip
 *TripsApi* | [**getTrip**](docs/TripsApi.md#gettrip) | **GET** /api/teams/{slug}/trips/{tripSlug} | Get trip details
@@ -118,6 +130,9 @@ Class | Method | HTTP request | Description
  - [AssetsDto](docs/AssetsDto.md)
  - [ClimbCategory](docs/ClimbCategory.md)
  - [ClimbDto](docs/ClimbDto.md)
+ - [CommentDto](docs/CommentDto.md)
+ - [CommentListResponse](docs/CommentListResponse.md)
+ - [CommentRequest](docs/CommentRequest.md)
  - [ConfigDto](docs/ConfigDto.md)
  - [ErrorResponse](docs/ErrorResponse.md)
  - [FieldError](docs/FieldError.md)

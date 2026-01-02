@@ -20,6 +20,10 @@
     "searchPlaces": "Search places...",
     "searchUsers": "Search users..."
   },
+  "dateFormats": {
+    "dateTime": "EEEE, PPP 'at' p",
+    "time": "p"
+  },
   "buttons": {
     "back": "Back",
     "cancel": "Cancel",

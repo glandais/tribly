@@ -100,12 +100,13 @@ export function PostListPage() {
           <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
             <DocumentTextIcon className="mx-auto h-12 w-12 text-gray-400" />
             <h3 className="mt-4 text-lg font-medium text-gray-900">
-              {search
-                ? t('list.noResults')
-                : canCreate
-                  ? t('list.emptyAdmin')
-                  : t('list.emptyMember')}
+              {search ? t('list.noResults') : t('list.empty.title')}
             </h3>
+            {!search && (
+              <p className="mt-2 text-gray-500">
+                {canCreate ? t('list.empty.admin') : t('list.empty.member')}
+              </p>
+            )}
             {canCreate && !search && (
               <Link
                 to={`/teams/${teamSlug}/posts/new`}

@@ -135,6 +135,68 @@ components:
           description: "Climb category (HC, 1, 2, 3, 4)"
           type: string
           $ref: "#/components/schemas/ClimbCategory"
+    CommentDto:
+      description: Comment data
+      type: object
+      required:
+      - id
+      - content
+      - author
+      - createdAt
+      - replies
+      properties:
+        id:
+          type: string
+          description: Comment ID (TSID)
+        content:
+          type: string
+          description: Comment content
+        author:
+          description: Comment author
+          type: object
+          $ref: "#/components/schemas/PublicUserDto"
+        createdAt:
+          description: Creation timestamp
+          type: string
+          $ref: "#/components/schemas/Instant"
+        parentId:
+          type: string
+          description: Parent comment ID (for replies)
+        replies:
+          type: array
+          items:
+            $ref: "#/components/schemas/CommentDto"
+          description: Replies to this comment
+    CommentListResponse:
+      description: List of comments response
+      type: object
+      required:
+      - items
+      - total
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/CommentDto"
+          description: "List of comments (top-level only, with nested replies)"
+        total:
+          type: integer
+          format: int32
+          description: Total count including replies
+    CommentRequest:
+      description: Comment creation request
+      type: object
+      required:
+      - content
+      properties:
+        content:
+          type: string
+          description: Comment content
+          pattern: \S
+          maxLength: 5000
+        parentId:
+          type: string
+          description: Parent comment ID for replies (optional)
     ConfigDto:
       description: Application configuration
       type: object
@@ -1737,14 +1799,20 @@ tags:
   description: Application configuration endpoints
 - name: Places
   description: Place management for ride starting/ending points
+- name: Post Comments
+  description: Comment operations for posts
 - name: Posts
   description: Post management and participation operations
 - name: Publications
   description: Publication listing
+- name: Ride Comments
+  description: Comment operations for rides
 - name: Ride Templates
   description: Ride template management operations
 - name: Rides
   description: Ride management and participation operations
+- name: Route Comments
+  description: Comment operations for routes
 - name: Router
   description: Route calculation using BRouter
 - name: Routes
@@ -1753,6 +1821,8 @@ tags:
   description: Team membership management operations
 - name: Teams
   description: Team management operations
+- name: Trip Comments
+  description: Comment operations for trips
 - name: Trips
   description: Trip management and participation operations
 - name: Users
@@ -2755,6 +2825,109 @@ paths:
       security:
       - SecurityScheme:
         - user
+  /api/teams/{slug}/posts/{entitySlug}/comments:
+    get:
+      summary: List post comments
+      operationId: listPostComments
+      tags:
+      - Post Comments
+      parameters:
+      - description: Post URL slug
+        name: entitySlug
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Team URL slug
+        name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Comments retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommentListResponse"
+        "403":
+          description: Not a team member
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      summary: Create post comment
+      operationId: createPostComment
+      tags:
+      - Post Comments
+      parameters:
+      - description: Post URL slug
+        name: entitySlug
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Team URL slug
+        name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommentRequest"
+        required: true
+      responses:
+        "201":
+          description: Comment created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommentDto"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/teams/{slug}/posts/{entitySlug}/comments/{commentId}:
+    delete:
+      summary: Delete post comment
+      operationId: deletePostComment
+      tags:
+      - Post Comments
+      parameters:
+      - description: Comment ID
+        name: commentId
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Post URL slug
+        name: entitySlug
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Team URL slug
+        name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "204":
+          description: Comment deleted
+        "403":
+          description: Cannot delete
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/teams/{slug}/posts/{postSlug}:
     put:
       summary: Update post
@@ -3319,6 +3492,109 @@ paths:
       security:
       - SecurityScheme:
         - user
+  /api/teams/{slug}/rides/{entitySlug}/comments:
+    get:
+      summary: List ride comments
+      operationId: listRideComments
+      tags:
+      - Ride Comments
+      parameters:
+      - description: Ride URL slug
+        name: entitySlug
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Team URL slug
+        name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Comments retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommentListResponse"
+        "403":
+          description: Not a team member
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      summary: Create ride comment
+      operationId: createRideComment
+      tags:
+      - Ride Comments
+      parameters:
+      - description: Ride URL slug
+        name: entitySlug
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Team URL slug
+        name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommentRequest"
+        required: true
+      responses:
+        "201":
+          description: Comment created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommentDto"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/teams/{slug}/rides/{entitySlug}/comments/{commentId}:
+    delete:
+      summary: Delete ride comment
+      operationId: deleteRideComment
+      tags:
+      - Ride Comments
+      parameters:
+      - description: Comment ID
+        name: commentId
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Ride URL slug
+        name: entitySlug
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Team URL slug
+        name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "204":
+          description: Comment deleted
+        "403":
+          description: Cannot delete
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/teams/{slug}/rides/{rideSlug}:
     put:
       summary: Update ride
@@ -3664,6 +3940,109 @@ paths:
       security:
       - SecurityScheme:
         - user
+  /api/teams/{slug}/routes/{entitySlug}/comments:
+    get:
+      summary: List route comments
+      operationId: listRouteComments
+      tags:
+      - Route Comments
+      parameters:
+      - description: Route URL slug
+        name: entitySlug
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Team URL slug
+        name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Comments retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommentListResponse"
+        "403":
+          description: Not a team member
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      summary: Create route comment
+      operationId: createRouteComment
+      tags:
+      - Route Comments
+      parameters:
+      - description: Route URL slug
+        name: entitySlug
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Team URL slug
+        name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommentRequest"
+        required: true
+      responses:
+        "201":
+          description: Comment created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommentDto"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/teams/{slug}/routes/{entitySlug}/comments/{commentId}:
+    delete:
+      summary: Delete route comment
+      operationId: deleteRouteComment
+      tags:
+      - Route Comments
+      parameters:
+      - description: Comment ID
+        name: commentId
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Route URL slug
+        name: entitySlug
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Team URL slug
+        name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "204":
+          description: Comment deleted
+        "403":
+          description: Cannot delete
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/teams/{slug}/routes/{routeSlug}:
     put:
       summary: Update route
@@ -3919,6 +4298,109 @@ paths:
       security:
       - SecurityScheme:
         - user
+  /api/teams/{slug}/trips/{entitySlug}/comments:
+    get:
+      summary: List trip comments
+      operationId: listTripComments
+      tags:
+      - Trip Comments
+      parameters:
+      - description: Trip URL slug
+        name: entitySlug
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Team URL slug
+        name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Comments retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommentListResponse"
+        "403":
+          description: Not a team member
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      summary: Create trip comment
+      operationId: createTripComment
+      tags:
+      - Trip Comments
+      parameters:
+      - description: Trip URL slug
+        name: entitySlug
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Team URL slug
+        name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommentRequest"
+        required: true
+      responses:
+        "201":
+          description: Comment created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CommentDto"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/teams/{slug}/trips/{entitySlug}/comments/{commentId}:
+    delete:
+      summary: Delete trip comment
+      operationId: deleteTripComment
+      tags:
+      - Trip Comments
+      parameters:
+      - description: Comment ID
+        name: commentId
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Trip URL slug
+        name: entitySlug
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Team URL slug
+        name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "204":
+          description: Comment deleted
+        "403":
+          description: Cannot delete
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/teams/{slug}/trips/{tripSlug}:
     put:
       summary: Update trip

@@ -32,14 +32,14 @@ export function TripStageCard({
       onMouseEnter={() => onHover?.(stage.id)}
       onMouseLeave={() => onHover?.(null)}
     >
-      <div className="flex items-start justify-between mb-2">
-        <div className="flex items-center gap-2">
-          <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 text-xs font-semibold">
+      <div className="flex items-center justify-between gap-4 mb-2">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 text-xs font-semibold shrink-0">
             {index + 1}
           </span>
-          <h3 className="font-semibold text-gray-900">{stage.name}</h3>
+          <h3 className="font-semibold text-gray-900 truncate">{stage.name}</h3>
         </div>
-        <div className="flex items-center text-sm text-gray-500">
+        <div className="flex items-center text-sm text-gray-500 shrink-0">
           <CalendarIcon className="w-4 h-4 mr-1" />
           {formatDateTime(stage.dateTime)}
         </div>
@@ -47,7 +47,7 @@ export function TripStageCard({
 
       {/* Stage description */}
       {stage.media.markdown && (
-        <div className="mb-3">
+        <div className="mb-3 line-clamp-2">
           <MediaDisplay media={stage.media} className="text-sm text-gray-600" />
         </div>
       )}

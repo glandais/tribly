@@ -23,7 +23,7 @@ export function RouteCard({ route, teamSlug }: RouteCardProps) {
       <img
         src={route.media.assets.thumbnail?.url}
         alt={route.name}
-        className="w-full h-48 object-cover"
+        className="w-full aspect-square object-contain"
       />
 
       <CardContent>
@@ -66,5 +66,7 @@ interface RouteCardSkeletonProps {
 }
 
 export function RouteCardSkeleton({ count = 1 }: RouteCardSkeletonProps) {
-  return <CardSkeleton count={count} hasImage imageHeight="h-48" statCount={2} badgeCount={3} />
+  return (
+    <CardSkeleton count={count} hasImage imageHeight="aspect-square" statCount={2} badgeCount={3} />
+  )
 }
