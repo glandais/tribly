@@ -77,6 +77,7 @@ Class | Method | HTTP request | Description
 *RidesApi* | [**leaveGroup**](docs/RidesApi.md#leavegroup) | **POST** /api/teams/{slug}/rides/{rideSlug}/groups/{groupId}/leave | Leave ride group
 *RidesApi* | [**listRides**](docs/RidesApi.md#listrides) | **GET** /api/teams/{slug}/rides | List rides
 *RidesApi* | [**updateRide**](docs/RidesApi.md#updateride) | **PUT** /api/teams/{slug}/rides/{rideSlug} | Update ride
+*RouterApi* | [**route**](docs/RouterApi.md#route) | **POST** /api/router | Calculate route
 *RoutesApi* | [**createRoute**](docs/RoutesApi.md#createroute) | **POST** /api/teams/{slug}/routes | Create route
 *RoutesApi* | [**deleteRoute**](docs/RoutesApi.md#deleteroute) | **DELETE** /api/teams/{slug}/routes/{routeSlug} | Delete route
 *RoutesApi* | [**getRoute**](docs/RoutesApi.md#getroute) | **GET** /api/teams/{slug}/routes/{routeSlug} | Get route details
@@ -122,6 +123,7 @@ Class | Method | HTTP request | Description
  - [FieldError](docs/FieldError.md)
  - [GeoJsonLineString](docs/GeoJsonLineString.md)
  - [GeoJsonPoint](docs/GeoJsonPoint.md)
+ - [GeoPoint](docs/GeoPoint.md)
  - [GroupRequest](docs/GroupRequest.md)
  - [KeycloakConfig](docs/KeycloakConfig.md)
  - [MapConfig](docs/MapConfig.md)
@@ -152,6 +154,8 @@ Class | Method | HTTP request | Description
  - [RouteDto](docs/RouteDto.md)
  - [RouteListResponse](docs/RouteListResponse.md)
  - [RouteRequest](docs/RouteRequest.md)
+ - [RouterRequest](docs/RouterRequest.md)
+ - [RouterResponse](docs/RouterResponse.md)
  - [StageRequest](docs/StageRequest.md)
  - [Status](docs/Status.md)
  - [SurfaceType](docs/SurfaceType.md)

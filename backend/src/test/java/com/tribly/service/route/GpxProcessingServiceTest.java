@@ -14,11 +14,11 @@ import com.tribly.service.asset.AssetService;
 import com.tribly.service.route.response.TrackMetadata;
 import com.tribly.util.TestDataCleaner;
 import com.tribly.util.TestDataService;
+import io.github.glandais.gpx.data.GPX;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
-import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.InputStream;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
 import org.geolatte.geom.G2D;
@@ -59,9 +59,10 @@ class GpxProcessingServiceTest {
 
   @Test
   void createTracks_shouldProcessValidGpx() {
-    InputStream gpxStream = getExampleGpxStream();
+    Path gpxPath = getExampleGpxPath();
 
-    TrackMetadata result = gpxProcessingService.createTracks(user, route, gpxStream);
+    GPX gpx = gpxProcessingService.parseGpx(gpxPath);
+    TrackMetadata result = gpxProcessingService.createTracks(user, route, gpx);
 
     assertNotNull(result);
     assertTrue(result.distance() > 0);
@@ -76,9 +77,10 @@ class GpxProcessingServiceTest {
 
   @Test
   void createTracks_shouldExtractCorrectMetadata() {
-    InputStream gpxStream = getExampleGpxStream();
+    Path gpxPath = getExampleGpxPath();
 
-    TrackMetadata result = gpxProcessingService.createTracks(user, route, gpxStream);
+    GPX gpx = gpxProcessingService.parseGpx(gpxPath);
+    TrackMetadata result = gpxProcessingService.createTracks(user, route, gpx);
 
     assertNotNull(result);
     assertTrue(result.distance() > 0, "Distance should be positive");
@@ -96,9 +98,10 @@ class GpxProcessingServiceTest {
 
   @Test
   void createTracks_shouldGenerateValidGeometry() {
-    InputStream gpxStream = getExampleGpxStream();
+    Path gpxPath = getExampleGpxPath();
 
-    gpxProcessingService.createTracks(user, route, gpxStream);
+    GPX gpx = gpxProcessingService.parseGpx(gpxPath);
+    gpxProcessingService.createTracks(user, route, gpx);
 
     GpxTrack track = route.getTracks().getFirst();
     LineString<G2D> lineString = track.getGeometry();
@@ -114,9 +117,10 @@ class GpxProcessingServiceTest {
 
   @Test
   void createTracks_shouldGenerateTrackPoints() {
-    InputStream gpxStream = getExampleGpxStream();
+    Path gpxPath = getExampleGpxPath();
 
-    gpxProcessingService.createTracks(user, route, gpxStream);
+    GPX gpx = gpxProcessingService.parseGpx(gpxPath);
+    gpxProcessingService.createTracks(user, route, gpx);
 
     GpxTrack track = route.getTracks().getFirst();
     List<GpxTrack.TrackPoint> trackPoints = track.getTrackPoints();
@@ -132,9 +136,10 @@ class GpxProcessingServiceTest {
 
   @Test
   void createTracks_shouldStoreTrackMetrics() {
-    InputStream gpxStream = getExampleGpxStream();
+    Path gpxPath = getExampleGpxPath();
 
-    gpxProcessingService.createTracks(user, route, gpxStream);
+    GPX gpx = gpxProcessingService.parseGpx(gpxPath);
+    gpxProcessingService.createTracks(user, route, gpx);
 
     GpxTrack track = route.getTracks().getFirst();
     assertTrue(track.getDistance() > 0, "Track distance should be positive");
@@ -145,9 +150,10 @@ class GpxProcessingServiceTest {
 
   @Test
   void createTracks_shouldCreateFiles() {
-    InputStream gpxStream = getExampleGpxStream();
+    Path gpxPath = getExampleGpxPath();
 
-    gpxProcessingService.createTracks(user, route, gpxStream);
+    GPX gpx = gpxProcessingService.parseGpx(gpxPath);
+    gpxProcessingService.createTracks(user, route, gpx);
 
     Set<Asset> assets = route.getAssets();
     assertFalse(assets.isEmpty(), "Route should have assets");
@@ -161,9 +167,10 @@ class GpxProcessingServiceTest {
 
   @Test
   void createTracks_shouldProcessMultipleTracks() {
-    InputStream gpxStream = getTwoTracksGpxStream();
+    Path gpxPath = getTwoTracksGpxPath();
 
-    TrackMetadata result = gpxProcessingService.createTracks(user, route, gpxStream);
+    GPX gpx = gpxProcessingService.parseGpx(gpxPath);
+    TrackMetadata result = gpxProcessingService.createTracks(user, route, gpx);
 
     assertNotNull(result);
     List<GpxTrack> tracks = route.getTracks();
@@ -180,9 +187,10 @@ class GpxProcessingServiceTest {
 
   @Test
   void createTracks_shouldAggregateMetadataFromMultipleTracks() {
-    InputStream gpxStream = getTwoTracksGpxStream();
+    Path gpxPath = getTwoTracksGpxPath();
 
-    TrackMetadata result = gpxProcessingService.createTracks(user, route, gpxStream);
+    GPX gpx = gpxProcessingService.parseGpx(gpxPath);
+    TrackMetadata result = gpxProcessingService.createTracks(user, route, gpx);
 
     List<GpxTrack> tracks = route.getTracks();
     int totalDistance = tracks.stream().mapToInt(GpxTrack::getDistance).sum();
@@ -198,9 +206,10 @@ class GpxProcessingServiceTest {
 
   @Test
   void createTracks_shouldUseFirstTrackStartAndLastTrackEnd() {
-    InputStream gpxStream = getTwoTracksGpxStream();
+    Path gpxPath = getTwoTracksGpxPath();
 
-    TrackMetadata result = gpxProcessingService.createTracks(user, route, gpxStream);
+    GPX gpx = gpxProcessingService.parseGpx(gpxPath);
+    TrackMetadata result = gpxProcessingService.createTracks(user, route, gpx);
 
     List<GpxTrack> tracks = route.getTracks();
     GpxTrack firstTrack = tracks.getFirst();
@@ -221,37 +230,29 @@ class GpxProcessingServiceTest {
 
   @Test
   void createTracks_shouldThrowForEmptyGpx() {
-    String emptyGpx =
-        """
-        <?xml version="1.0" encoding="UTF-8"?>
-        <gpx version="1.1" xmlns="http://www.topografix.com/GPX/1/1">
-        </gpx>
-        """;
-    InputStream gpxStream = new ByteArrayInputStream(emptyGpx.getBytes());
+    Path gpxPath = new File("src/test/resources/empty.gpx").toPath();
 
+    GPX gpx = gpxProcessingService.parseGpx(gpxPath);
     BusinessException exception =
         assertThrows(
-            BusinessException.class,
-            () -> gpxProcessingService.createTracks(user, route, gpxStream));
+            BusinessException.class, () -> gpxProcessingService.createTracks(user, route, gpx));
 
     assertTrue(exception.getMessage().contains("processing failed"));
   }
 
   @Test
   void createTracks_shouldThrowForInvalidGpx() {
-    String invalidGpx = "not a valid gpx file";
-    InputStream gpxStream = new ByteArrayInputStream(invalidGpx.getBytes());
-
-    assertThrows(
-        BusinessException.class, () -> gpxProcessingService.createTracks(user, route, gpxStream));
+    Path gpxPath = new File("src/test/resources/invalid.gpx").toPath();
+    assertThrows(BusinessException.class, () -> gpxProcessingService.parseGpx(gpxPath));
   }
 
   // ==================== File Management ====================
 
   @Test
   void getFilteredGpxFile_shouldReturnFileIfExists() {
-    InputStream gpxStream = getExampleGpxStream();
-    gpxProcessingService.createTracks(user, route, gpxStream);
+    Path gpxPath = getExampleGpxPath();
+    GPX gpx = gpxProcessingService.parseGpx(gpxPath);
+    gpxProcessingService.createTracks(user, route, gpx);
 
     File result = gpxProcessingService.getFilteredGpxFile(route);
 
@@ -266,8 +267,9 @@ class GpxProcessingServiceTest {
 
   @Test
   void getFitFile_shouldReturnFileIfExists() {
-    InputStream gpxStream = getExampleGpxStream();
-    gpxProcessingService.createTracks(user, route, gpxStream);
+    Path gpxPath = getExampleGpxPath();
+    GPX gpx = gpxProcessingService.parseGpx(gpxPath);
+    gpxProcessingService.createTracks(user, route, gpx);
 
     File result = gpxProcessingService.getFitFile(route);
 
@@ -292,16 +294,11 @@ class GpxProcessingServiceTest {
 
   // ==================== Helper Methods ====================
 
-  private InputStream getExampleGpxStream() {
-    InputStream resourceAsStream = getClass().getClassLoader().getResourceAsStream("example.gpx");
-    assertNotNull(resourceAsStream, "example.gpx not found in test resources");
-    return resourceAsStream;
+  private Path getExampleGpxPath() {
+    return new File("src/test/resources/example.gpx").toPath();
   }
 
-  private InputStream getTwoTracksGpxStream() {
-    InputStream resourceAsStream =
-        getClass().getClassLoader().getResourceAsStream("two_tracks.gpx");
-    assertNotNull(resourceAsStream, "two_tracks.gpx not found in test resources");
-    return resourceAsStream;
+  private Path getTwoTracksGpxPath() {
+    return new File("src/test/resources/two_tracks.gpx").toPath();
   }
 }

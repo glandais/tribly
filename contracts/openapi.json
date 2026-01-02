@@ -261,6 +261,19 @@
           }
         }
       },
+      "GeoPoint" : {
+        "type" : "object",
+        "properties" : {
+          "lng" : {
+            "type" : "number",
+            "format" : "double"
+          },
+          "lat" : {
+            "type" : "number",
+            "format" : "double"
+          }
+        }
+      },
       "GroupRequest" : {
         "description" : "Ride group creation request",
         "type" : "object",
@@ -1354,6 +1367,45 @@
             "description" : "Whether the route is publicly visible",
             "type" : "string",
             "$ref" : "#/components/schemas/Visibility"
+          },
+          "points" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/GeoPoint"
+            },
+            "description" : "Points from frontend routing"
+          }
+        }
+      },
+      "RouterRequest" : {
+        "type" : "object",
+        "properties" : {
+          "from" : {
+            "$ref" : "#/components/schemas/GeoPoint"
+          },
+          "to" : {
+            "$ref" : "#/components/schemas/GeoPoint"
+          },
+          "profile" : {
+            "type" : "string"
+          }
+        }
+      },
+      "RouterResponse" : {
+        "type" : "object",
+        "required" : [ "route" ],
+        "properties" : {
+          "route" : {
+            "$ref" : "#/components/schemas/GeoJsonLineString",
+            "type" : "object"
+          },
+          "dist" : {
+            "type" : "number",
+            "format" : "double"
+          },
+          "ascend" : {
+            "type" : "number",
+            "format" : "double"
           }
         }
       },
@@ -1900,6 +1952,9 @@
     "name" : "Rides",
     "description" : "Ride management and participation operations"
   }, {
+    "name" : "Router",
+    "description" : "Route calculation using BRouter"
+  }, {
     "name" : "Routes",
     "description" : "GPX route management operations"
   }, {
@@ -1994,6 +2049,65 @@
             }
           }
         }
+      }
+    },
+    "/api/router" : {
+      "post" : {
+        "summary" : "Calculate route",
+        "description" : "Calculate a cycling route between two points using BRouter",
+        "operationId" : "route",
+        "tags" : [ "Router" ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/RouterRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Route calculated successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/RouterResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Invalid request parameters",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "503" : {
+            "description" : "BRouter service unavailable",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
       }
     },
     "/api/teams" : {

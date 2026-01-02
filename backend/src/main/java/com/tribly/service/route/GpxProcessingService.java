@@ -3,6 +3,7 @@ package com.tribly.service.route;
 import static org.geolatte.geom.builder.DSL.*;
 import static org.geolatte.geom.crs.CoordinateReferenceSystems.WGS84;
 
+import com.tribly.common.GeoPoint;
 import com.tribly.domain.asset.Asset;
 import com.tribly.domain.route.GpxTrack;
 import com.tribly.domain.route.GpxWaypoint;
@@ -15,10 +16,7 @@ import com.tribly.service.asset.response.AssetWithFile;
 import com.tribly.service.route.response.TrackMetadata;
 import io.github.glandais.gpx.climb.Climb;
 import io.github.glandais.gpx.climb.ClimbDetector;
-import io.github.glandais.gpx.data.GPX;
-import io.github.glandais.gpx.data.GPXPath;
-import io.github.glandais.gpx.data.GPXWaypoint;
-import io.github.glandais.gpx.data.Point;
+import io.github.glandais.gpx.data.*;
 import io.github.glandais.gpx.filter.GPXFilter;
 import io.github.glandais.gpx.filter.GPXPerDistance;
 import io.github.glandais.gpx.io.read.GPXFileReader;
@@ -30,8 +28,9 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import org.geolatte.geom.G2D;
@@ -64,14 +63,33 @@ public class GpxProcessingService {
 
   @Inject AssetService assetService;
 
+  public GPX parseGpx(Path path) {
+    // Step 1: Parse GPX
+    LOG.infov("Processing GPX file");
+    try (FileInputStream fis = new FileInputStream(path.toFile())) {
+      return gpxFileReader.parseGPX(fis);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  public GPX fromPoints(String name, List<GeoPoint> points) {
+    GPXPath gpxPath = new GPXPath(name, GPXPathType.TRACK);
+    points.stream().map(this::createGpxPoint).forEach(gpxPath::addPoint);
+    return new GPX(name, List.of(gpxPath), List.of());
+  }
+
+  private Point createGpxPoint(GeoPoint geoPoint) {
+    Point p = new Point();
+    p.setLon(Math.toRadians(geoPoint.lng()));
+    p.setLat(Math.toRadians(geoPoint.lat()));
+    return p;
+  }
+
   @Transactional
-  public TrackMetadata createTracks(User creator, Route route, InputStream gpxInputStream) {
+  public TrackMetadata createTracks(User creator, Route route, GPX gpx) {
     Long routeId = route.getId();
     try {
-      // Step 1: Parse GPX
-      LOG.infov("Processing GPX file");
-      GPX gpx = gpxFileReader.parseGPX(gpxInputStream);
-
       if (gpx.paths().isEmpty()) {
         throw BusinessException.validation("GPX file contains no tracks or routes");
       }

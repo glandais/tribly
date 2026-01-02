@@ -96,7 +96,8 @@ class RouteResourceTest extends AbstractResourceTest {
             "Admin Route",
             MediaDto.builder().markdown("A test route").build(),
             SurfaceType.GRAVEL,
-            Visibility.PUBLIC);
+            Visibility.PUBLIC,
+            null);
 
     given()
         .auth()
@@ -122,7 +123,8 @@ class RouteResourceTest extends AbstractResourceTest {
             "Organizer Route",
             MediaDto.builder().markdown("Route by organizer").build(),
             SurfaceType.ROAD,
-            Visibility.PUBLIC);
+            Visibility.PUBLIC,
+            null);
 
     given()
         .auth()
@@ -142,7 +144,11 @@ class RouteResourceTest extends AbstractResourceTest {
 
     RouteRequest route =
         new RouteRequest(
-            "Member Route", MediaDto.builder().build(), SurfaceType.GRAVEL, Visibility.PUBLIC);
+            "Member Route",
+            MediaDto.builder().build(),
+            SurfaceType.GRAVEL,
+            Visibility.PUBLIC,
+            null);
 
     given()
         .auth()
@@ -161,7 +167,11 @@ class RouteResourceTest extends AbstractResourceTest {
 
     RouteRequest route =
         new RouteRequest(
-            "Unauth Route", MediaDto.builder().build(), SurfaceType.GRAVEL, Visibility.PUBLIC);
+            "Unauth Route",
+            MediaDto.builder().build(),
+            SurfaceType.GRAVEL,
+            Visibility.PUBLIC,
+            null);
 
     given()
         .multiPart("route", route, MediaType.APPLICATION_JSON)
@@ -178,7 +188,11 @@ class RouteResourceTest extends AbstractResourceTest {
 
     RouteRequest route =
         new RouteRequest(
-            "NonMember Route", MediaDto.builder().build(), SurfaceType.GRAVEL, Visibility.PUBLIC);
+            "NonMember Route",
+            MediaDto.builder().build(),
+            SurfaceType.GRAVEL,
+            Visibility.PUBLIC,
+            null);
 
     given()
         .auth()
@@ -195,7 +209,11 @@ class RouteResourceTest extends AbstractResourceTest {
   void createRoute_withoutGpxFile_shouldReturn400() {
     RouteRequest route =
         new RouteRequest(
-            "No GPX Route", MediaDto.builder().build(), SurfaceType.GRAVEL, Visibility.PUBLIC);
+            "No GPX Route",
+            MediaDto.builder().build(),
+            SurfaceType.GRAVEL,
+            Visibility.PUBLIC,
+            null);
 
     given()
         .auth()
@@ -213,7 +231,7 @@ class RouteResourceTest extends AbstractResourceTest {
 
     RouteRequest route =
         new RouteRequest(
-            "Test Route", MediaDto.builder().build(), SurfaceType.GRAVEL, Visibility.PUBLIC);
+            "Test Route", MediaDto.builder().build(), SurfaceType.GRAVEL, Visibility.PUBLIC, null);
 
     given()
         .auth()
@@ -295,7 +313,8 @@ class RouteResourceTest extends AbstractResourceTest {
             "Updated Name",
             MediaDto.builder().markdown("Updated description").build(),
             SurfaceType.MTB,
-            Visibility.PUBLIC);
+            Visibility.PUBLIC,
+            null);
 
     given()
         .auth()
@@ -319,7 +338,8 @@ class RouteResourceTest extends AbstractResourceTest {
             "Updated by Organizer",
             MediaDto.builder().markdown("Organizer updated").build(),
             SurfaceType.GRAVEL,
-            Visibility.PUBLIC);
+            Visibility.PUBLIC,
+            null);
 
     given()
         .auth()
@@ -339,7 +359,11 @@ class RouteResourceTest extends AbstractResourceTest {
 
     RouteRequest route =
         new RouteRequest(
-            "Hacked by Member", MediaDto.builder().build(), SurfaceType.GRAVEL, Visibility.PUBLIC);
+            "Hacked by Member",
+            MediaDto.builder().build(),
+            SurfaceType.GRAVEL,
+            Visibility.PUBLIC,
+            null);
 
     given()
         .auth()
@@ -361,7 +385,8 @@ class RouteResourceTest extends AbstractResourceTest {
             "Unauthorized Update",
             MediaDto.builder().build(),
             SurfaceType.GRAVEL,
-            Visibility.PUBLIC);
+            Visibility.PUBLIC,
+            null);
 
     given()
         .multiPart("route", route, MediaType.APPLICATION_JSON)
@@ -381,7 +406,8 @@ class RouteResourceTest extends AbstractResourceTest {
             "Hacked by NonMember",
             MediaDto.builder().build(),
             SurfaceType.GRAVEL,
-            Visibility.PUBLIC);
+            Visibility.PUBLIC,
+            null);
 
     given()
         .auth()
@@ -402,7 +428,8 @@ class RouteResourceTest extends AbstractResourceTest {
             "Updated Route",
             MediaDto.builder().markdown("Updated with new GPX").build(),
             SurfaceType.GRAVEL,
-            Visibility.PUBLIC);
+            Visibility.PUBLIC,
+            null);
 
     File gpxFile = new File("src/test/resources/example.gpx");
 
@@ -425,7 +452,7 @@ class RouteResourceTest extends AbstractResourceTest {
   void updateRoute_nonexistent_shouldReturn404() {
     RouteRequest route =
         new RouteRequest(
-            "Nonexistent", MediaDto.builder().build(), SurfaceType.GRAVEL, Visibility.PUBLIC);
+            "Nonexistent", MediaDto.builder().build(), SurfaceType.GRAVEL, Visibility.PUBLIC, null);
 
     given()
         .auth()

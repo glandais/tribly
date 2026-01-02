@@ -4,7 +4,6 @@ import com.tribly.api.AbstractAuthenticatedResource;
 import com.tribly.dto.error.ErrorResponse;
 import com.tribly.dto.routes.request.RouteRequest;
 import com.tribly.dto.routes.response.*;
-import com.tribly.infrastructure.exception.BusinessException;
 import com.tribly.service.route.RouteService;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
@@ -14,7 +13,6 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import java.io.FileInputStream;
 import java.net.URI;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
@@ -110,14 +108,12 @@ public class RouteResource extends AbstractAuthenticatedResource {
 
     Long userId = getCurrentUserId();
 
-    // Validate GPX file
-    if (gpxFile == null || gpxFile.filePath() == null) {
-      throw BusinessException.validation("GPX file is required");
+    java.nio.file.Path gpxPath = null;
+    if (gpxFile != null) {
+      gpxPath = gpxFile.filePath();
     }
 
-    RouteDto route =
-        routeService.createRoute(
-            teamSlug, routeRequest, new FileInputStream(gpxFile.filePath().toFile()), userId);
+    RouteDto route = routeService.createRoute(teamSlug, routeRequest, gpxPath, userId);
 
     return Response.created(URI.create("/api/teams/" + teamSlug + "/routes/" + route.slug()))
         .entity(route)
@@ -197,15 +193,12 @@ public class RouteResource extends AbstractAuthenticatedResource {
 
     Long userId = getCurrentUserId();
 
-    FileInputStream fileInputStream;
+    java.nio.file.Path gpxPath = null;
     if (gpxFile != null) {
-      fileInputStream = new FileInputStream(gpxFile.filePath().toFile());
-    } else {
-      fileInputStream = null;
+      gpxPath = gpxFile.filePath();
     }
 
-    RouteDto route =
-        routeService.updateRoute(teamSlug, routeSlug, request, fileInputStream, userId);
+    RouteDto route = routeService.updateRoute(teamSlug, routeSlug, request, gpxPath, userId);
     return Response.ok(route).build();
   }
 

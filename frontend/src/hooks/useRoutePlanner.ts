@@ -13,10 +13,11 @@ interface CachedSegment {
 
 interface UseRoutePlannerReturn {
   controlPoints: ControlPoint[]
-  routeGeoJson: GeoJSON.FeatureCollection | null
+  routeGeoJson: RouteFeatureCollection | null
   isLoading: boolean
   error: string | null
   addControlPoint: (lng: number, lat: number) => void
+  insertControlPoint: (afterIndex: number, lng: number, lat: number) => ControlPoint
   updateControlPoint: (index: number, lng: number, lat: number) => void
   removeControlPoint: (index: number) => void
   clearRoute: () => void
@@ -26,54 +27,58 @@ function getSegmentKey(fromId: string, toId: string): string {
   return `${fromId}-${toId}`
 }
 
-function mergeSegments(segments: GeoJSON.FeatureCollection[]): GeoJSON.FeatureCollection {
+export interface RouteFeatureCollection extends GeoJSON.FeatureCollection {
+  properties: {
+    'track-length': number
+    'plain-ascend': number
+  }
+}
+
+function mergeSegments(segments: GeoJSON.FeatureCollection[]): RouteFeatureCollection {
   if (segments.length === 0) {
-    return { type: 'FeatureCollection', features: [] }
+    return {
+      type: 'FeatureCollection',
+      properties: { 'track-length': 0, 'plain-ascend': 0 },
+      features: [],
+    }
   }
 
-  // Merge all features and sum up properties
+  // Collect all features and compute totals
   let totalLength = 0
   let totalAscend = 0
-  const allCoordinates: number[][] = []
+  const features: GeoJSON.Feature[] = []
 
-  for (let i = 0; i < segments.length; i++) {
-    const segment = segments[i]
-    const props = segment.features[0]?.properties || {}
-
-    totalLength += (props['track-length'] as number) || 0
-    totalAscend += (props['plain-ascend'] as number) || 0
-
-    // Get coordinates from the LineString
+  for (let segmentIndex = 0; segmentIndex < segments.length; segmentIndex++) {
+    const segment = segments[segmentIndex]
     const feature = segment.features[0]
-    if (feature?.geometry?.type === 'LineString') {
-      const coords = (feature.geometry as GeoJSON.LineString).coordinates
-      // Skip first point of subsequent segments to avoid duplicates
-      const startIdx = i === 0 ? 0 : 1
-      allCoordinates.push(...coords.slice(startIdx))
+    if (feature) {
+      const props = feature.properties || {}
+      totalLength += (props['track-length'] as number) || 0
+      totalAscend += (props['plain-ascend'] as number) || 0
+      // Add segmentIndex to feature properties for hover/insert detection
+      features.push({
+        ...feature,
+        properties: {
+          ...props,
+          segmentIndex,
+        },
+      })
     }
   }
 
   return {
     type: 'FeatureCollection',
-    features: [
-      {
-        type: 'Feature',
-        properties: {
-          'track-length': totalLength,
-          'plain-ascend': totalAscend,
-        },
-        geometry: {
-          type: 'LineString',
-          coordinates: allCoordinates,
-        },
-      },
-    ],
+    properties: {
+      'track-length': totalLength,
+      'plain-ascend': totalAscend,
+    },
+    features,
   }
 }
 
 export function useRoutePlanner(): UseRoutePlannerReturn {
   const [controlPoints, setControlPoints] = useState<ControlPoint[]>([])
-  const [routeGeoJson, setRouteGeoJson] = useState<GeoJSON.FeatureCollection | null>(null)
+  const [routeGeoJson, setRouteGeoJson] = useState<RouteFeatureCollection | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -85,6 +90,17 @@ export function useRoutePlanner(): UseRoutePlannerReturn {
 
   const addControlPoint = useCallback((lng: number, lat: number) => {
     setControlPoints((prev) => [...prev, createControlPoint(lng, lat)])
+  }, [])
+
+  // Insert a new control point after the given index (returns the new point for immediate dragging)
+  const insertControlPoint = useCallback((afterIndex: number, lng: number, lat: number) => {
+    const newPoint = createControlPoint(lng, lat)
+    setControlPoints((prev) => {
+      const newPoints = [...prev]
+      newPoints.splice(afterIndex + 1, 0, newPoint)
+      return newPoints
+    })
+    return newPoint
   }, [])
 
   const updateControlPoint = useCallback((index: number, lng: number, lat: number) => {
@@ -218,6 +234,7 @@ export function useRoutePlanner(): UseRoutePlannerReturn {
     isLoading,
     error,
     addControlPoint,
+    insertControlPoint,
     updateControlPoint,
     removeControlPoint,
     clearRoute,

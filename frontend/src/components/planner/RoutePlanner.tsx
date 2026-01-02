@@ -1,4 +1,4 @@
-import { useCallback, useRef, useMemo } from 'react'
+import { useCallback, useRef, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import Map, {
   Source,
@@ -20,6 +20,60 @@ import 'maplibre-gl/dist/maplibre-gl.css'
 const DEFAULT_CENTER = { lng: -1.55, lat: 47.22 }
 const DEFAULT_ZOOM = 12
 
+// Find the closest point on a line segment to a given point
+function closestPointOnSegment(
+  px: number,
+  py: number,
+  x1: number,
+  y1: number,
+  x2: number,
+  y2: number
+): { x: number; y: number; dist: number } {
+  const dx = x2 - x1
+  const dy = y2 - y1
+  const lengthSq = dx * dx + dy * dy
+
+  if (lengthSq === 0) {
+    // Segment is a point
+    const dist = Math.sqrt((px - x1) ** 2 + (py - y1) ** 2)
+    return { x: x1, y: y1, dist }
+  }
+
+  // Project point onto line, clamping to segment
+  const t = Math.max(0, Math.min(1, ((px - x1) * dx + (py - y1) * dy) / lengthSq))
+  const closestX = x1 + t * dx
+  const closestY = y1 + t * dy
+  const dist = Math.sqrt((px - closestX) ** 2 + (py - closestY) ** 2)
+
+  return { x: closestX, y: closestY, dist }
+}
+
+// Find closest point on a LineString to a given point
+function closestPointOnLine(
+  point: { lng: number; lat: number },
+  coordinates: number[][]
+): { lng: number; lat: number } {
+  let closest = { lng: coordinates[0][0], lat: coordinates[0][1] }
+  let minDist = Infinity
+
+  for (let i = 0; i < coordinates.length - 1; i++) {
+    const result = closestPointOnSegment(
+      point.lng,
+      point.lat,
+      coordinates[i][0],
+      coordinates[i][1],
+      coordinates[i + 1][0],
+      coordinates[i + 1][1]
+    )
+    if (result.dist < minDist) {
+      minDist = result.dist
+      closest = { lng: result.x, lat: result.y }
+    }
+  }
+
+  return closest
+}
+
 export function RoutePlanner() {
   const { t } = useTranslation('planner')
   const { styleId, setStyleId, style } = useMapStyle()
@@ -31,14 +85,38 @@ export function RoutePlanner() {
     isLoading,
     error,
     addControlPoint,
+    insertControlPoint,
     updateControlPoint,
     removeControlPoint,
     clearRoute,
   } = useRoutePlanner()
 
+  // State for hover marker on route segments
+  const [hoverPoint, setHoverPoint] = useState<{
+    lng: number
+    lat: number
+    segmentIndex: number
+  } | null>(null)
+
+  // State for dragging a ghost point (before insertion)
+  const [draggingGhost, setDraggingGhost] = useState<{
+    lng: number
+    lat: number
+    segmentIndex: number
+  } | null>(null)
+
+  // Track if we're dragging an existing marker
+  const [isDraggingMarker, setIsDraggingMarker] = useState(false)
+
+  const handleMarkerDragStart = useCallback(() => {
+    setIsDraggingMarker(true)
+    setHoverPoint(null)
+  }, [])
+
   const handleMarkerDragEnd = useCallback(
     (index: number) => (event: MarkerDragEvent) => {
       updateControlPoint(index, event.lngLat.lng, event.lngLat.lat)
+      setIsDraggingMarker(false)
     },
     [updateControlPoint]
   )
@@ -53,16 +131,116 @@ export function RoutePlanner() {
 
   const handleMapClick = useCallback(
     (event: MapMouseEvent) => {
+      // Don't add point if clicking on route (handled by ghost marker)
+      if (hoverPoint) return
       addControlPoint(event.lngLat.lng, event.lngLat.lat)
     },
-    [addControlPoint]
+    [addControlPoint, hoverPoint]
   )
 
-  // Extract route stats from BRouter GeoJSON
-  const routeStats = useMemo(() => {
-    if (!routeGeoJson?.features?.[0]?.properties) return null
+  // Handle mouse move to detect hover on route segments
+  const handleMouseMove = useCallback(
+    (event: MapMouseEvent) => {
+      // If dragging a ghost point, update its position
+      if (draggingGhost) {
+        setDraggingGhost((prev) =>
+          prev ? { ...prev, lng: event.lngLat.lng, lat: event.lngLat.lat } : null
+        )
+        return
+      }
 
-    const props = routeGeoJson.features[0].properties
+      // Don't show hover while dragging an existing marker
+      if (isDraggingMarker) return
+
+      if (!mapRef.current || !routeGeoJson) return
+
+      // Check if cursor is near an existing control point (within 20px)
+      const MARKER_PROXIMITY_PX = 20
+      for (const point of controlPoints) {
+        const projected = mapRef.current.project([point.lng, point.lat])
+        const dx = projected.x - event.point.x
+        const dy = projected.y - event.point.y
+        const distance = Math.sqrt(dx * dx + dy * dy)
+        if (distance < MARKER_PROXIMITY_PX) {
+          // Too close to existing marker, don't show ghost
+          setHoverPoint(null)
+          return
+        }
+      }
+
+      // Query features near the cursor (with buffer for easier selection)
+      const ROUTE_BUFFER_PX = 15
+      const bbox: [[number, number], [number, number]] = [
+        [event.point.x - ROUTE_BUFFER_PX, event.point.y - ROUTE_BUFFER_PX],
+        [event.point.x + ROUTE_BUFFER_PX, event.point.y + ROUTE_BUFFER_PX],
+      ]
+      const features = mapRef.current.queryRenderedFeatures(bbox, {
+        layers: ['route-line'],
+      })
+
+      if (features.length > 0) {
+        const feature = features[0]
+        const segmentIndex = feature.properties?.segmentIndex as number | undefined
+        if (segmentIndex !== undefined && feature.geometry.type === 'LineString') {
+          // Snap to the closest point on the route segment
+          const coordinates = (feature.geometry as GeoJSON.LineString).coordinates
+          const snapped = closestPointOnLine(
+            { lng: event.lngLat.lng, lat: event.lngLat.lat },
+            coordinates
+          )
+          setHoverPoint({
+            lng: snapped.lng,
+            lat: snapped.lat,
+            segmentIndex,
+          })
+          return
+        }
+      }
+
+      setHoverPoint(null)
+    },
+    [routeGeoJson, draggingGhost, isDraggingMarker, controlPoints]
+  )
+
+  const handleMouseLeave = useCallback(() => {
+    setHoverPoint(null)
+    // Don't clear draggingGhost - user might drag outside momentarily
+  }, [])
+
+  // Handle map mousedown - start dragging ghost if hovering over route
+  const handleMapMouseDown = useCallback(
+    (event: MapMouseEvent) => {
+      // Only respond to left click (button 0)
+      if (event.originalEvent.button !== 0) return
+      if (!hoverPoint) return
+
+      // Prevent default map drag behavior
+      event.preventDefault()
+
+      // Start dragging the ghost
+      setDraggingGhost({
+        lng: hoverPoint.lng,
+        lat: hoverPoint.lat,
+        segmentIndex: hoverPoint.segmentIndex,
+      })
+      setHoverPoint(null)
+    },
+    [hoverPoint]
+  )
+
+  // Handle mouseup - insert the point if we were dragging
+  const handleMouseUp = useCallback(() => {
+    if (draggingGhost) {
+      insertControlPoint(draggingGhost.segmentIndex, draggingGhost.lng, draggingGhost.lat)
+      setDraggingGhost(null)
+    }
+  }, [draggingGhost, insertControlPoint])
+
+  // Extract route stats from FeatureCollection properties
+  const routeStats = useMemo(() => {
+    const props = routeGeoJson?.properties
+    if (!props) return null
+
     const distance = props['track-length'] as number | undefined
     const ascend = props['plain-ascend'] as number | undefined
 
@@ -97,7 +275,9 @@ export function RoutePlanner() {
               <span className="font-medium text-gray-900">
                 {routeStats.distance.toFixed(1)} {t('units.km')}
               </span>
-              <span className="text-green-600">+{Math.round(routeStats.ascend)} {t('units.m')}</span>
+              <span className="text-green-600">
+                +{Math.round(routeStats.ascend)} {t('units.m')}
+              </span>
             </div>
           )}
         </div>
@@ -127,7 +307,12 @@ export function RoutePlanner() {
           }}
           style={{ width: '100%', height: '100%' }}
           onClick={handleMapClick}
-          cursor="crosshair"
+          onMouseDown={handleMapMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseLeave={handleMouseLeave}
+          onMouseUp={handleMouseUp}
+          interactiveLayerIds={routeGeoJson ? ['route-line'] : []}
+          cursor={draggingGhost ? 'grabbing' : hoverPoint ? 'pointer' : 'crosshair'}
         >
           <NavigationControl position="top-left" />
           <MapStyleSwitcher
@@ -162,11 +347,12 @@ export function RoutePlanner() {
 
             return (
               <Marker
-                key={`point-${index}`}
+                key={point.id}
                 longitude={point.lng}
                 latitude={point.lat}
                 anchor="center"
                 draggable
+                onDragStart={handleMarkerDragStart}
                 onDragEnd={handleMarkerDragEnd(index)}
               >
                 <div
@@ -185,6 +371,21 @@ export function RoutePlanner() {
               </Marker>
             )
           })}
+
+          {/* Ghost marker for inserting new points on route */}
+          {(hoverPoint || draggingGhost) && (
+            <Marker
+              longitude={(draggingGhost || hoverPoint)!.lng}
+              latitude={(draggingGhost || hoverPoint)!.lat}
+              anchor="center"
+            >
+              <div
+                className={`w-5 h-5 border-2 border-white rounded-full shadow-lg transition-opacity pointer-events-none ${
+                  draggingGhost ? 'bg-indigo-600 opacity-100' : 'bg-indigo-400 opacity-70'
+                }`}
+              />
+            </Marker>
+          )}
         </Map>
 
         {/* Instructions overlay */}

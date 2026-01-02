@@ -1,5 +1,6 @@
 package com.tribly.service.route;
 
+import com.tribly.common.GeoPoint;
 import com.tribly.domain.asset.Asset;
 import com.tribly.domain.asset.repository.AssetRepository;
 import com.tribly.domain.common.TeamEntity;
@@ -17,10 +18,11 @@ import com.tribly.dto.routes.response.RouteListResponse;
 import com.tribly.infrastructure.exception.BusinessException;
 import com.tribly.service.common.TeamEntityService;
 import com.tribly.service.route.response.TrackMetadata;
+import io.github.glandais.gpx.data.GPX;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
-import java.io.InputStream;
+import java.nio.file.Path;
 import java.time.Instant;
 import java.util.List;
 import java.util.Set;
@@ -48,7 +50,8 @@ public class RouteService extends TeamEntityService {
    */
   @Transactional
   public RouteDto createRoute(
-      String teamSlug, RouteRequest request, InputStream gpxFile, Long creatorId) throws Exception {
+      String teamSlug, RouteRequest request, @Nullable Path gpxPath, Long creatorId)
+      throws Exception {
 
     Team team =
         teamRepository
@@ -63,6 +66,12 @@ public class RouteService extends TeamEntityService {
             .findActiveById(creatorId)
             .orElseThrow(() -> BusinessException.notFound("User", creatorId));
 
+    // Validate GPX file
+    List<GeoPoint> routePoints = request.points();
+    if (gpxPath == null && (routePoints == null || routePoints.isEmpty())) {
+      throw BusinessException.validation("Route points are required");
+    }
+
     String slug =
         slugService.generateSlug(
             request.name(), s -> routeRepository.existsByTeamAndSlug(team.getId(), s));
@@ -76,8 +85,15 @@ public class RouteService extends TeamEntityService {
     LOG.infov("Route '{0}' created by user {1} for team {2}", route.getName(), creatorId, teamSlug);
 
     try {
+
+      GPX gpx;
+      if (gpxPath != null) {
+        gpx = gpxProcessingService.parseGpx(gpxPath);
+      } else {
+        gpx = gpxProcessingService.fromPoints(route.getName(), routePoints);
+      }
       // Process GPX file and update route
-      TrackMetadata metadata = gpxProcessingService.createTracks(creator, route, gpxFile);
+      TrackMetadata metadata = gpxProcessingService.createTracks(creator, route, gpx);
 
       route.setDistance(metadata.distance());
       route.setElevationGain(metadata.elevationGain());
@@ -100,11 +116,7 @@ public class RouteService extends TeamEntityService {
    */
   @Transactional
   public RouteDto updateRoute(
-      String teamSlug,
-      String slug,
-      RouteRequest request,
-      @Nullable InputStream gpxFile,
-      Long userId) {
+      String teamSlug, String slug, RouteRequest request, @Nullable Path gpxPath, Long userId) {
     Route route = getRouteEntity(teamSlug, slug, userId);
 
     // Security check: must be admin or organizer to edit routes
@@ -121,9 +133,19 @@ public class RouteService extends TeamEntityService {
     route.setVisibility(request.visibility());
     route.setDateTime(Instant.now());
 
-    // If GPX file provided, update track and climbs
-    if (gpxFile != null) {
-      try {
+    try {
+      GPX gpx = null;
+      if (gpxPath != null) {
+        gpx = gpxProcessingService.parseGpx(gpxPath);
+      } else {
+        List<GeoPoint> points = request.points();
+        if (points != null && !points.isEmpty()) {
+          gpx = gpxProcessingService.fromPoints(route.getName(), points);
+        }
+      }
+
+      // If GPX file provided, update track and climbs
+      if (gpx != null) {
         // Delete old GPX files
         gpxProcessingService.deleteRouteFiles(route);
 
@@ -131,7 +153,7 @@ public class RouteService extends TeamEntityService {
         route.getWaypoints().clear();
 
         // Process GPX file and update route
-        TrackMetadata metadata = gpxProcessingService.createTracks(user, route, gpxFile);
+        TrackMetadata metadata = gpxProcessingService.createTracks(user, route, gpx);
 
         route.setDistance(metadata.distance());
         route.setElevationGain(metadata.elevationGain());
@@ -140,12 +162,11 @@ public class RouteService extends TeamEntityService {
         route.setEnd(metadata.end());
 
         LOG.infov("Route {0} GPX file updated by user {1}", slug, userId);
-
-      } catch (Exception e) {
-        LOG.errorv("GPX processing failed for route {0}, cleaning up files", route.getId());
-        gpxProcessingService.deleteRouteFiles(route);
-        throw e;
       }
+    } catch (Exception e) {
+      LOG.errorv("GPX processing failed for route {0}, cleaning up files", route.getId());
+      gpxProcessingService.deleteRouteFiles(route);
+      throw new RuntimeException(e);
     }
 
     updateMedia(route, request.media());

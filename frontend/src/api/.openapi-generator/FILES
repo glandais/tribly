@@ -19,6 +19,7 @@ docs/ErrorResponse.md
 docs/FieldError.md
 docs/GeoJsonLineString.md
 docs/GeoJsonPoint.md
+docs/GeoPoint.md
 docs/GroupRequest.md
 docs/KeycloakConfig.md
 docs/MapConfig.md
@@ -54,6 +55,9 @@ docs/RouteDetailDto.md
 docs/RouteDto.md
 docs/RouteListResponse.md
 docs/RouteRequest.md
+docs/RouterApi.md
+docs/RouterRequest.md
+docs/RouterResponse.md
 docs/RoutesApi.md
 docs/StageRequest.md
 docs/Status.md

@@ -229,6 +229,10 @@ export const GeoJsonPointTypeEnum = {
 
 export type GeoJsonPointTypeEnum = (typeof GeoJsonPointTypeEnum)[keyof typeof GeoJsonPointTypeEnum]
 
+export interface GeoPoint {
+  lng?: number
+  lat?: number
+}
 /**
  * Ride group creation request
  */
@@ -988,8 +992,22 @@ export interface RouteRequest {
    * Whether the route is publicly visible
    */
   visibility: Visibility
+  /**
+   * Points from frontend routing
+   */
+  points?: Array<GeoPoint>
 }
 
+export interface RouterRequest {
+  from?: GeoPoint
+  to?: GeoPoint
+  profile?: string
+}
+export interface RouterResponse {
+  route: GeoJsonLineString
+  dist?: number
+  ascend?: number
+}
 /**
  * Trip stage creation request
  */
@@ -4730,6 +4748,137 @@ export class RidesApi extends BaseAPI {
   ) {
     return RidesApiFp(this.configuration)
       .updateRide(rideSlug, slug, rideRequest, options)
+      .then((request) => request(this.axios, this.basePath))
+  }
+}
+
+/**
+ * RouterApi - axios parameter creator
+ */
+export const RouterApiAxiosParamCreator = function (configuration?: Configuration) {
+  return {
+    /**
+     * Calculate a cycling route between two points using BRouter
+     * @summary Calculate route
+     * @param {RouterRequest} routerRequest
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    route: async (
+      routerRequest: RouterRequest,
+      options: RawAxiosRequestConfig = {}
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'routerRequest' is not null or undefined
+      assertParamExists('route', 'routerRequest', routerRequest)
+      const localVarPath = `/api/router`
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL)
+      let baseOptions
+      if (configuration) {
+        baseOptions = configuration.baseOptions
+      }
+
+      const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options }
+      const localVarHeaderParameter = {} as any
+      const localVarQueryParameter = {} as any
+
+      // authentication SecurityScheme required
+
+      localVarHeaderParameter['Content-Type'] = 'application/json'
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter)
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {}
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      }
+      localVarRequestOptions.data = serializeDataIfNeeded(
+        routerRequest,
+        localVarRequestOptions,
+        configuration
+      )
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      }
+    },
+  }
+}
+
+/**
+ * RouterApi - functional programming interface
+ */
+export const RouterApiFp = function (configuration?: Configuration) {
+  const localVarAxiosParamCreator = RouterApiAxiosParamCreator(configuration)
+  return {
+    /**
+     * Calculate a cycling route between two points using BRouter
+     * @summary Calculate route
+     * @param {RouterRequest} routerRequest
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async route(
+      routerRequest: RouterRequest,
+      options?: RawAxiosRequestConfig
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<RouterResponse>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.route(routerRequest, options)
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0
+      const localVarOperationServerBasePath =
+        operationServerMap['RouterApi.route']?.[localVarOperationServerIndex]?.url
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration
+        )(axios, localVarOperationServerBasePath || basePath)
+    },
+  }
+}
+
+/**
+ * RouterApi - factory interface
+ */
+export const RouterApiFactory = function (
+  configuration?: Configuration,
+  basePath?: string,
+  axios?: AxiosInstance
+) {
+  const localVarFp = RouterApiFp(configuration)
+  return {
+    /**
+     * Calculate a cycling route between two points using BRouter
+     * @summary Calculate route
+     * @param {RouterRequest} routerRequest
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    route(
+      routerRequest: RouterRequest,
+      options?: RawAxiosRequestConfig
+    ): AxiosPromise<RouterResponse> {
+      return localVarFp.route(routerRequest, options).then((request) => request(axios, basePath))
+    },
+  }
+}
+
+/**
+ * RouterApi - object-oriented interface
+ */
+export class RouterApi extends BaseAPI {
+  /**
+   * Calculate a cycling route between two points using BRouter
+   * @summary Calculate route
+   * @param {RouterRequest} routerRequest
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   */
+  public route(routerRequest: RouterRequest, options?: RawAxiosRequestConfig) {
+    return RouterApiFp(this.configuration)
+      .route(routerRequest, options)
       .then((request) => request(this.axios, this.basePath))
   }
 }
