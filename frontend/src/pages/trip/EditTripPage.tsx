@@ -1,6 +1,6 @@
-import { Link, useParams, Navigate, useNavigate } from 'react-router-dom'
+import { useParams, Navigate, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { ChevronLeftIcon } from '@heroicons/react/24/outline'
+import { paths } from '../../config/paths'
 import { useTeam } from '../../hooks/useTeam'
 import { useTrip, useUpdateTrip } from '../../hooks/useTrip'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
@@ -21,18 +21,14 @@ export function EditTripPage() {
     return <LoadingPage message={t('loading')} />
   }
 
-  if (!team || !trip) {
-    return <Navigate to={`/teams/${teamSlug}/trips`} replace />
-  }
-
-  if (!team.enableTrips) {
-    return <Navigate to={`/teams/${teamSlug}`} replace />
+  if (!team || !trip || !team.enableTrips) {
+    return <Navigate to={paths.team(teamSlug!)} replace />
   }
 
   const canEdit = team.role === 'ADMIN' || team.role === 'ORGANIZER'
 
   if (!canEdit) {
-    return <Navigate to={`/teams/${teamSlug}/trips/${tripSlug}`} replace />
+    return <Navigate to={paths.trip(teamSlug!, tripSlug!)} replace />
   }
 
   const handleSubmit = async (data: TripFormData) => {
@@ -57,7 +53,7 @@ export function EditTripPage() {
       })),
     })
 
-    navigate(`/teams/${teamSlug}/trips/${tripSlug}`)
+    navigate(paths.trip(teamSlug!, tripSlug!))
   }
 
   // Prepare initial values from fetched trip data
@@ -84,14 +80,7 @@ export function EditTripPage() {
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
-        <Link
-          to={`/teams/${teamSlug}/trips/${tripSlug}`}
-          className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700"
-        >
-          <ChevronLeftIcon className="w-4 h-4 mr-1" />
-          {t('edit.backToTrip')}
-        </Link>
-        <h1 className="mt-4 text-3xl font-bold text-gray-900">{t('edit.title')}</h1>
+        <h1 className="text-3xl font-bold text-gray-900">{t('edit.title')}</h1>
         <p className="mt-1 text-gray-600">{t('edit.subtitle', { teamName: team.name })}</p>
       </div>
 
@@ -100,7 +89,7 @@ export function EditTripPage() {
         teamSlug={teamSlug!}
         initialValues={initialValues}
         onSubmit={handleSubmit}
-        onCancel={() => navigate(`/teams/${teamSlug}/trips/${tripSlug}`)}
+        onCancel={() => navigate(paths.trip(teamSlug!, tripSlug!))}
         isPending={updateMutation.isPending}
         error={updateMutation.error}
         submitButtonText={t('edit.button')}

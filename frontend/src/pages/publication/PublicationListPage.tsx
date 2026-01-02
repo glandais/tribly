@@ -28,6 +28,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { paths } from '@/config/paths'
 
 type FilterValue = 'all' | 'ride' | 'post' | 'trip'
 
@@ -71,7 +72,7 @@ export function PublicationListPage() {
   }
 
   if (!team) {
-    return <Navigate to="/teams" replace />
+    return <Navigate to={paths.teams()} replace />
   }
 
   const canCreate = team.role === 'ADMIN' || team.role === 'ORGANIZER'
@@ -86,7 +87,7 @@ export function PublicationListPage() {
           {canCreate && (
             <ButtonGroup>
               <Button asChild className="bg-indigo-600 hover:bg-indigo-700">
-                <Link to={`/teams/${teamSlug}/rides/new`}>
+                <Link to={paths.rideNew(teamSlug!)}>
                   <PlusIcon className="w-4 h-4" />
                   {tRides('list.createRide')}
                 </Link>
@@ -99,18 +100,18 @@ export function PublicationListPage() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem asChild>
-                    <Link to={`/teams/${teamSlug}/rides/new`}>{tRides('list.createRide')}</Link>
+                    <Link to={paths.rideNew(teamSlug!)}>{tRides('list.createRide')}</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link to={`/teams/${teamSlug}/posts/new`}>{tPosts('list.createPost')}</Link>
+                    <Link to={paths.postNew(teamSlug!)}>{tPosts('list.createPost')}</Link>
                   </DropdownMenuItem>
                   {team.enableTrips && (
                     <DropdownMenuItem asChild>
-                      <Link to={`/teams/${teamSlug}/trips/new`}>{tTrips('list.createTrip')}</Link>
+                      <Link to={paths.tripNew(teamSlug!)}>{tTrips('list.createTrip')}</Link>
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuItem asChild>
-                    <Link to={`/teams/${teamSlug}/routes/new`}>{tRoutes('list.createRoute')}</Link>
+                    <Link to={paths.routeNew(teamSlug!)}>{tRoutes('list.createRoute')}</Link>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

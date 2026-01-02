@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { CalendarIcon, PencilIcon } from '@heroicons/react/24/outline'
+import { CalendarIcon, PencilIcon, ChevronDownIcon } from '@heroicons/react/24/outline'
 import { useTeam } from '../../hooks/useTeam'
 import { usePost, useUpdatePost, useDeletePost } from '../../hooks/usePost'
 import { Status } from '../../hooks/usePost'
@@ -11,6 +11,16 @@ import { MediaDisplay } from '../../components/common/MediaDisplay'
 import { EntityLogo } from '../../components/common/EntityLogo'
 import { CommentSection } from '../../components/comment'
 import { useFormattedDate } from '../../utils/dateFormat'
+import { Button } from '@/components/ui/button'
+import { ButtonGroup } from '@/components/ui/button-group'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { paths } from '@/config/paths'
 
 const statusColors: Record<Status, string> = {
   [Status.Draft]: 'bg-gray-100 text-gray-800',
@@ -44,7 +54,7 @@ export function PostDetailPage() {
           <h1 className="text-2xl font-bold text-gray-900 mb-2">{t('detail.notFound.title')}</h1>
           <p className="text-gray-600 mb-6">{t('detail.notFound.message')}</p>
           <Link
-            to={`/teams/${teamSlug}/posts`}
+            to={paths.team(teamSlug!)}
             className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
           >
             {t('breadcrumb.posts')}
@@ -101,55 +111,64 @@ export function PostDetailPage() {
           </div>
 
           {canEdit && (
-            <div className="flex flex-wrap items-center gap-2 shrink-0">
-              <Link
-                to={`/teams/${teamSlug}/posts/${postSlug}/edit`}
-                className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-              >
-                <PencilIcon className="w-4 h-4 mr-1" />
-                {t('detail.actions.edit')}
-              </Link>
-              {post.status === Status.Draft && (
-                <button
-                  onClick={handlePublish}
-                  disabled={updateMutation.isPending}
-                  className="inline-flex items-center px-3 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-green-600 hover:bg-green-700 disabled:opacity-50"
-                >
-                  {updateMutation.isPending ? <LoadingSpinner size="sm" className="mr-2" /> : null}
-                  {t('detail.actions.publish')}
-                </button>
-              )}
-              {post.status === Status.Published && (
-                <>
-                  <button
-                    onClick={() => setShowUnpublishConfirm(true)}
-                    className="inline-flex items-center px-3 py-2 border border-yellow-300 rounded-md text-sm font-medium text-yellow-700 bg-white hover:bg-yellow-50"
+            <ButtonGroup>
+              <Button asChild variant="outline">
+                <Link to={paths.postEdit(teamSlug!, postSlug!)}>
+                  <PencilIcon className="w-4 h-4" />
+                  {t('detail.actions.edit')}
+                </Link>
+              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="!pl-2">
+                    <ChevronDownIcon className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  {post.status === Status.Draft && (
+                    <DropdownMenuItem
+                      onClick={handlePublish}
+                      disabled={updateMutation.isPending}
+                      className="text-green-700"
+                    >
+                      {updateMutation.isPending && <LoadingSpinner size="sm" />}
+                      {t('detail.actions.publish')}
+                    </DropdownMenuItem>
+                  )}
+                  {post.status === Status.Published && (
+                    <>
+                      <DropdownMenuItem
+                        onClick={() => setShowUnpublishConfirm(true)}
+                        className="text-yellow-700"
+                      >
+                        {t('detail.actions.unpublish')}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => setShowCancelConfirm(true)}
+                        className="text-yellow-700"
+                      >
+                        {t('detail.actions.cancel')}
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                  {post.status === Status.Cancelled && (
+                    <DropdownMenuItem
+                      onClick={() => setShowUncancelConfirm(true)}
+                      className="text-green-700"
+                    >
+                      {t('detail.actions.uncancel')}
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={() => setShowDeleteConfirm(true)}
+                    variant="destructive"
                   >
-                    {t('detail.actions.unpublish')}
-                  </button>
-                  <button
-                    onClick={() => setShowCancelConfirm(true)}
-                    className="inline-flex items-center px-3 py-2 border border-yellow-300 rounded-md text-sm font-medium text-yellow-700 bg-white hover:bg-yellow-50"
-                  >
-                    {t('detail.actions.cancel')}
-                  </button>
-                </>
-              )}
-              {post.status === Status.Cancelled && (
-                <button
-                  onClick={() => setShowUncancelConfirm(true)}
-                  className="inline-flex items-center px-3 py-2 border border-green-300 rounded-md text-sm font-medium text-green-700 bg-white hover:bg-green-50"
-                >
-                  {t('detail.actions.uncancel')}
-                </button>
-              )}
-              <button
-                onClick={() => setShowDeleteConfirm(true)}
-                className="inline-flex items-center px-3 py-2 border border-red-300 rounded-md text-sm font-medium text-red-700 bg-white hover:bg-red-50"
-              >
-                {t('detail.actions.delete')}
-              </button>
-            </div>
+                    {t('detail.actions.delete')}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </ButtonGroup>
           )}
         </div>
 

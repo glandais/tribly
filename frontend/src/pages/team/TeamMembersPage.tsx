@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useParams, Navigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { paths } from '../../config/paths'
 import { PlusIcon } from '@heroicons/react/24/outline'
 import {
   useTeam,
@@ -51,12 +52,12 @@ export function TeamMembersPage() {
   }
 
   if (!team) {
-    return <Navigate to="/teams" replace />
+    return <Navigate to={paths.teams()} replace />
   }
 
   // Only admins can see member list
   if (team.role !== 'ADMIN') {
-    return <Navigate to={`/teams/${teamSlug}/rides`} replace />
+    return <Navigate to={paths.team(teamSlug!)} replace />
   }
 
   const handleAddMember = (selectedUser: PublicUserDto) => {

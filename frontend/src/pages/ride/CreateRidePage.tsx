@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import { Link, useParams, Navigate, useNavigate } from 'react-router-dom'
+import { useParams, Navigate, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { ChevronLeftIcon, DocumentDuplicateIcon } from '@heroicons/react/24/outline'
+import { DocumentDuplicateIcon } from '@heroicons/react/24/outline'
 import { useTeam } from '../../hooks/useTeam'
 import { useCreateRide, Visibility, Status } from '../../hooks/useRide'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
@@ -11,6 +11,7 @@ import { RideTemplatePickerModal } from '../../components/ridetemplate/RideTempl
 import type { RideTemplateDto } from '../../api/api'
 import { toDateTimeLocalValue } from '../../utils/dateFormat'
 import { defaultMedia } from '@/lib/apiUtils'
+import { paths } from '@/config/paths'
 
 export function CreateRidePage() {
   const { t } = useTranslation('rides')
@@ -35,13 +36,13 @@ export function CreateRidePage() {
   }
 
   if (!team) {
-    return <Navigate to="/teams" replace />
+    return <Navigate to={paths.teams()} replace />
   }
 
   const canCreate = team.role === 'ADMIN' || team.role === 'ORGANIZER'
 
   if (!canCreate) {
-    return <Navigate to={`/teams/${teamSlug}/rides`} replace />
+    return <Navigate to={paths.team(teamSlug!)} replace />
   }
 
   // Calculate next Sunday at 8am
@@ -123,7 +124,7 @@ export function CreateRidePage() {
       },
       {
         onSuccess: () => {
-          navigate(`/teams/${teamSlug}/rides`)
+          navigate(paths.team(teamSlug!))
         },
       }
     )
@@ -133,13 +134,7 @@ export function CreateRidePage() {
     <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
         <div className="flex items-center justify-between">
-          <Link
-            to={`/teams/${teamSlug}/rides`}
-            className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700"
-          >
-            <ChevronLeftIcon className="w-4 h-4 mr-1" />
-            {t('create.backToRides')}
-          </Link>
+          <h1 className="text-3xl font-bold text-gray-900">{t('create.title')}</h1>
           <button
             type="button"
             onClick={() => setShowTemplateModal(true)}
@@ -149,7 +144,6 @@ export function CreateRidePage() {
             {t('create.loadTemplate')}
           </button>
         </div>
-        <h1 className="mt-4 text-3xl font-bold text-gray-900">{t('create.title')}</h1>
         <p className="mt-1 text-gray-600">{t('create.subtitle', { teamName: team.name })}</p>
       </div>
 
@@ -159,7 +153,7 @@ export function CreateRidePage() {
         teamSlug={teamSlug!}
         initialValues={initialValues}
         onSubmit={handleSubmit}
-        onCancel={() => navigate(`/teams/${teamSlug}/rides`)}
+        onCancel={() => navigate(paths.team(teamSlug!))}
         isPending={createMutation.isPending}
         error={createMutation.error}
         submitButtonText={t('create.button')}

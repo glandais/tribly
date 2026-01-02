@@ -10,6 +10,7 @@ import type {
   RideTemplateRequest,
   RideTemplateGroupRequest,
 } from '../api/api'
+import { paths } from '@/config/paths'
 
 // Re-export types for convenience
 export type {
@@ -73,7 +74,7 @@ export function useCreateRideTemplate(teamSlug: string | undefined) {
       })
 
       if (template) {
-        navigate(`/teams/${teamSlug}/ride-templates`)
+        navigate(paths.rideTemplates(teamSlug!))
       }
     },
   })
@@ -98,7 +99,7 @@ export function useUpdateRideTemplate(teamSlug: string | undefined, templateSlug
         duration: 4000,
       })
 
-      navigate(`/teams/${teamSlug}/ride-templates`)
+      navigate(paths.rideTemplates(teamSlug!))
     },
   })
 }

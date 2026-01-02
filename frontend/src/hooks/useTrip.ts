@@ -12,6 +12,7 @@ import type {
   StageRequest,
 } from '../api/api'
 import { Status, Visibility } from '../api/api'
+import { paths } from '@/config/paths'
 
 // Re-export types for convenience
 export type {
@@ -79,7 +80,7 @@ export function useCreateTrip(teamSlug: string | undefined) {
       })
 
       if (trip) {
-        navigate(`/teams/${teamSlug}/trips/${trip.slug}`)
+        navigate(paths.trip(teamSlug!, trip.slug))
       }
     },
   })
@@ -126,7 +127,7 @@ export function useDeleteTrip(teamSlug: string | undefined) {
         duration: 4000,
       })
 
-      navigate(`/teams/${teamSlug}/trips`)
+      navigate(paths.team(teamSlug!))
     },
   })
 }

@@ -10,6 +10,7 @@ import { VisibilityBadge } from '../common/card/VisibilityBadge'
 import { TeamAvatar } from './TeamAvatar'
 import type { TeamDetailDto } from '../../hooks/useTeam'
 import { MediaDisplay } from '../../components/common/MediaDisplay'
+import { paths } from '@/config/paths'
 
 interface TeamLayoutProps {
   team: TeamDetailDto
@@ -42,7 +43,7 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
   const handleLeave = () => {
     leaveMutation.mutate(undefined, {
       onSuccess: () => {
-        navigate('/teams')
+        navigate(paths.teams())
       },
     })
   }
@@ -50,15 +51,15 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
   const tabs = [
     {
       id: 'publications',
-      path: `/teams/${team.slug}`,
+      path: paths.team(team.slug),
       label: t('detail.tabs.publications'),
     },
-    { id: 'routes', path: `/teams/${team.slug}/routes`, label: t('detail.tabs.routes') },
+    { id: 'routes', path: paths.routes(team.slug), label: t('detail.tabs.routes') },
     ...(isOrganizer
       ? [
           {
             id: 'ride-templates',
-            path: `/teams/${team.slug}/ride-templates`,
+            path: paths.rideTemplates(team.slug),
             label: t('detail.tabs.rideTemplates'),
           },
         ]
@@ -69,7 +70,7 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
   if (isAdmin) {
     tabs.push({
       id: 'members',
-      path: `/teams/${team.slug}/members`,
+      path: paths.teamMembers(team.slug),
       label: t('detail.tabs.members'),
     })
   }
@@ -130,7 +131,7 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
 
             {isAdmin && (
               <Link
-                to={`/teams/${team.slug}/edit`}
+                to={paths.teamSettings(team.slug)}
                 className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-xs text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
               >
                 <PencilIcon className="w-4 h-4 mr-2" />

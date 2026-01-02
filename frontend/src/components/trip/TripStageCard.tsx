@@ -3,6 +3,7 @@ import { CalendarIcon, MapPinIcon } from '@heroicons/react/24/outline'
 import type { TripStageDto } from '../../hooks/useTrip'
 import { useFormattedDate } from '../../utils/dateFormat'
 import { MediaDisplay } from '../common/MediaDisplay'
+import { paths } from '@/config/paths'
 
 interface TripStageCardProps {
   stage: TripStageDto
@@ -76,7 +77,7 @@ export function TripStageCard({
       {stage.routeSlug && (
         <div className="mt-2 text-sm">
           <a
-            href={`/teams/${teamSlug}/routes/${stage.routeSlug}`}
+            href={paths.route(teamSlug, stage.routeSlug)}
             className="text-indigo-600 hover:text-indigo-700 font-medium"
           >
             {t('stage.viewRoute')}

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useParams, Navigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { paths } from '../../config/paths'
 import {
   PlusIcon,
   DocumentDuplicateIcon,
@@ -47,7 +48,7 @@ export function RideTemplateListPage() {
   }
 
   if (!team) {
-    return <Navigate to="/teams" replace />
+    return <Navigate to={paths.teams()} replace />
   }
 
   const canManage = team.role === 'ADMIN' || team.role === 'ORGANIZER'
@@ -72,7 +73,7 @@ export function RideTemplateListPage() {
           </div>
           {canManage && (
             <Link
-              to={`/teams/${teamSlug}/ride-templates/new`}
+              to={paths.rideTemplateNew(teamSlug!)}
               className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
             >
               <PlusIcon className="w-4 h-4 mr-2" />
@@ -154,7 +155,7 @@ export function RideTemplateListPage() {
                     {canManage && (
                       <div className="flex items-center gap-2 ml-4">
                         <Link
-                          to={`/teams/${teamSlug}/ride-templates/${template.slug}/edit`}
+                          to={paths.rideTemplateEdit(teamSlug!, template.slug)}
                           className="p-2 text-gray-400 hover:text-indigo-600 rounded-lg hover:bg-gray-100"
                           title={t('list.edit')}
                         >
@@ -194,7 +195,7 @@ export function RideTemplateListPage() {
             )}
             {canManage && !search && (
               <Link
-                to={`/teams/${teamSlug}/ride-templates/new`}
+                to={paths.rideTemplateNew(teamSlug!)}
                 className="mt-4 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
               >
                 {t('list.empty.createAction')}

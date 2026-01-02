@@ -1,13 +1,8 @@
 import { useState } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import {
-  MapIcon,
-  ArrowUpIcon,
-  ArrowDownIcon,
-  ArrowDownTrayIcon,
-  ChevronLeftIcon,
-} from '@heroicons/react/24/outline'
+import { paths } from '../../config/paths'
+import { MapIcon, ArrowUpIcon, ArrowDownIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline'
 import { useRoute, useDeleteRoute } from '../../hooks/useRoute'
 import { useTeam } from '../../hooks/useTeam'
 import { RouteMapView } from '../../components/route/RouteMapView'
@@ -35,7 +30,7 @@ export function RouteDetailPage() {
   const handleDelete = async () => {
     if (routeSlug) {
       await deleteRoute.mutateAsync(routeSlug)
-      navigate(`/teams/${teamSlug}/routes`)
+      navigate(paths.routes(teamSlug!))
     }
   }
 
@@ -77,13 +72,6 @@ export function RouteDetailPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-center">
           <p className="text-gray-500">{tErrors('api.notFound')}</p>
-          <Link
-            to={`/teams/${teamSlug}/routes`}
-            className="mt-4 inline-flex items-center text-sm text-gray-500 hover:text-gray-700"
-          >
-            <ChevronLeftIcon className="w-4 h-4 mr-1" />
-            {t('detail.backToList')}
-          </Link>
         </div>
       </div>
     )
@@ -93,14 +81,7 @@ export function RouteDetailPage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
       <div className="mb-6">
-        <Link
-          to={`/teams/${teamSlug}/routes`}
-          className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700"
-        >
-          <ChevronLeftIcon className="w-4 h-4 mr-1" />
-          {t('detail.backToList')}
-        </Link>
-        <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
           <div>
             <div className="flex items-center gap-3">
               <EntityLogo logo={route.media.assets.logo} alt={route.name} size="lg" />
@@ -111,7 +92,7 @@ export function RouteDetailPage() {
           {canEdit && (
             <div className="mt-4 sm:mt-0 flex gap-3">
               <Link
-                to={`/teams/${teamSlug}/routes/${routeSlug}/edit`}
+                to={paths.routeEdit(teamSlug!, routeSlug!)}
                 className="px-4 py-2 border border-gray-300 rounded-md shadow-xs text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
               >
                 {tCommon('buttons.edit')}

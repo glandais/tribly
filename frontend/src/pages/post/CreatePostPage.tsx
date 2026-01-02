@@ -1,6 +1,5 @@
-import { Link, useParams, Navigate, useNavigate } from 'react-router-dom'
+import { useParams, Navigate, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { ChevronLeftIcon } from '@heroicons/react/24/outline'
 import { useTeam } from '../../hooks/useTeam'
 import { useCreatePost, Visibility, Status } from '../../hooks/usePost'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
@@ -8,6 +7,7 @@ import { toDateTimeLocalValue } from '../../utils/dateFormat'
 import { PostEditor } from '../../components/post/PostEditor'
 import type { PostFormData } from '../../components/post/PostEditor'
 import { defaultMedia } from '@/lib/apiUtils'
+import { paths } from '@/config/paths'
 
 export function CreatePostPage() {
   const { t } = useTranslation('posts')
@@ -21,14 +21,14 @@ export function CreatePostPage() {
     return <LoadingPage message={t('loading')} />
   }
 
-  if (!team) {
-    return <Navigate to="/teams" replace />
+  if (!team || !teamSlug) {
+    return <Navigate to={paths.teams()} replace />
   }
 
   const canCreate = team.role === 'ADMIN' || team.role === 'ORGANIZER'
 
   if (!canCreate) {
-    return <Navigate to={`/teams/${teamSlug}/posts`} replace />
+    return <Navigate to={paths.team(teamSlug!)} replace />
   }
 
   // Prepare initial values for create mode
@@ -53,7 +53,7 @@ export function CreatePostPage() {
       },
       {
         onSuccess: () => {
-          navigate(`/teams/${teamSlug}/posts`)
+          navigate(paths.team(teamSlug!))
         },
       }
     )
@@ -62,14 +62,7 @@ export function CreatePostPage() {
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
-        <Link
-          to={`/teams/${teamSlug}/posts`}
-          className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700"
-        >
-          <ChevronLeftIcon className="w-4 h-4 mr-1" />
-          {t('breadcrumb.posts')}
-        </Link>
-        <h1 className="mt-4 text-3xl font-bold text-gray-900">{t('create.title')}</h1>
+        <h1 className="text-3xl font-bold text-gray-900">{t('create.title')}</h1>
       </div>
 
       <PostEditor
@@ -77,7 +70,7 @@ export function CreatePostPage() {
         teamSlug={teamSlug!}
         initialValues={initialValues}
         onSubmit={handleSubmit}
-        onCancel={() => navigate(`/teams/${teamSlug}/posts`)}
+        onCancel={() => navigate(paths.team(teamSlug!))}
         isPending={createMutation.isPending}
         error={createMutation.error}
         submitButtonText={t('create.submit')}

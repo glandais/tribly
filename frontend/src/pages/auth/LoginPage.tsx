@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useTranslation, Trans } from 'react-i18next'
 import { ArrowRightOnRectangleIcon } from '@heroicons/react/24/outline'
 import { useAuth } from '../../hooks/useAuth'
+import { paths } from '@/config/paths'
 
 export function LoginPage() {
   const { t } = useTranslation('auth')
@@ -11,7 +12,7 @@ export function LoginPage() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/')
+      navigate(paths.home())
     }
   }, [isAuthenticated, navigate])
 

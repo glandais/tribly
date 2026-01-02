@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { getKeycloak, initKeycloak } from '../config/keycloak'
 import type { UserDto } from '../api/api'
+import { paths } from '@/config/paths'
 
 export interface AuthState {
   user: UserDto | null
@@ -79,7 +80,7 @@ export const useAuthStore = create<AuthStore>()((set, get) => ({
     const keycloak = getKeycloak()
     if (keycloak) {
       keycloak.logout({
-        redirectUri: window.location.origin + '/login',
+        redirectUri: window.location.origin + paths.login(),
       })
     }
     set({ ...initialState, isInitialized: true, isLoading: false })

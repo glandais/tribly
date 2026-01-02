@@ -1,10 +1,29 @@
-import { useState, useRef } from 'react'
+import { useRef, useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
 import { useTranslation } from 'react-i18next'
 import { CameraIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import { useAuth } from '../../hooks/useAuth'
 import { LoadingSpinner } from '../../components/common/LoadingSpinner'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import { UserAvatar } from '../../components/common/UserAvatar'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
+
+const profileSchema = z.object({
+  displayName: z.string().min(1).max(100),
+})
+
+type ProfileFormValues = z.infer<typeof profileSchema>
 
 export function UserProfilePage() {
   const { t } = useTranslation('profile')
@@ -25,8 +44,14 @@ export function UserProfilePage() {
 
   const avatarInputRef = useRef<HTMLInputElement>(null)
   const [isEditing, setIsEditing] = useState(false)
-  const [displayName, setDisplayName] = useState(user?.displayName || '')
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+
+  const form = useForm<ProfileFormValues>({
+    resolver: zodResolver(profileSchema),
+    defaultValues: {
+      displayName: user?.displayName || '',
+    },
+  })
 
   if (isLoading || !user) {
     return (
@@ -36,9 +61,14 @@ export function UserProfilePage() {
     )
   }
 
-  const handleSave = () => {
+  const handleStartEditing = () => {
+    form.reset({ displayName: user.displayName || '' })
+    setIsEditing(true)
+  }
+
+  const handleSubmit = (values: ProfileFormValues) => {
     updateProfile(
-      { displayName },
+      { displayName: values.displayName },
       {
         onSuccess: () => {
           setIsEditing(false)
@@ -117,40 +147,39 @@ export function UserProfilePage() {
           <hr className="border-gray-200" />
 
           {isEditing ? (
-            <div className="space-y-4">
-              <div>
-                <label htmlFor="displayName" className="block text-sm font-medium text-gray-700">
-                  {t('form.displayName.label')}
-                </label>
-                <input
-                  type="text"
-                  id="displayName"
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-xs focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                />
-              </div>
-
-              <div className="flex gap-3 pt-4">
-                <button
-                  onClick={handleSave}
-                  disabled={isUpdatingProfile}
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50"
-                >
-                  {isUpdatingProfile ? (
-                    <LoadingSpinner size="sm" color="white" />
-                  ) : (
-                    t('actions.save')
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="displayName"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('form.displayName.label')}</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
                   )}
-                </button>
-                <button
-                  onClick={() => setIsEditing(false)}
-                  className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-                >
-                  {tCommon('buttons.cancel')}
-                </button>
-              </div>
-            </div>
+                />
+
+                <div className="flex gap-3 pt-4">
+                  <Button type="submit" disabled={isUpdatingProfile}>
+                    {isUpdatingProfile ? (
+                      <>
+                        <LoadingSpinner size="sm" color="white" className="mr-2" />
+                        {t('actions.save')}
+                      </>
+                    ) : (
+                      t('actions.save')
+                    )}
+                  </Button>
+                  <Button type="button" variant="outline" onClick={() => setIsEditing(false)}>
+                    {tCommon('buttons.cancel')}
+                  </Button>
+                </div>
+              </form>
+            </Form>
           ) : (
             <div className="space-y-4">
               <div>
@@ -163,12 +192,7 @@ export function UserProfilePage() {
               </div>
 
               <div className="pt-4">
-                <button
-                  onClick={() => setIsEditing(true)}
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
-                >
-                  {t('actions.editProfile')}
-                </button>
+                <Button onClick={handleStartEditing}>{t('actions.editProfile')}</Button>
               </div>
             </div>
           )}
@@ -178,12 +202,9 @@ export function UserProfilePage() {
           <div className="space-y-4">
             <h3 className="text-lg font-medium text-gray-900">{t('account.title')}</h3>
 
-            <button
-              onClick={logout}
-              className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-            >
+            <Button variant="outline" onClick={logout}>
               {t('account.signOut')}
-            </button>
+            </Button>
 
             <div className="pt-4 border-t border-gray-200">
               <h4 className="text-sm font-medium text-red-600">{t('account.dangerZone.title')}</h4>
@@ -191,12 +212,13 @@ export function UserProfilePage() {
                 {t('account.dangerZone.deleteDescription')}
               </p>
 
-              <button
+              <Button
+                variant="outline"
+                className="mt-4 border-red-300 text-red-700 hover:bg-red-50"
                 onClick={() => setShowDeleteConfirm(true)}
-                className="mt-4 inline-flex items-center px-4 py-2 border border-red-300 text-sm font-medium rounded-md text-red-700 bg-white hover:bg-red-50"
               >
                 {t('account.dangerZone.deleteButton')}
-              </button>
+              </Button>
             </div>
           </div>
         </div>

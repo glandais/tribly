@@ -6,6 +6,7 @@ import { useAuthStore } from '../store/authStore'
 import { useNotificationStore } from '../store/notificationStore'
 import type { TeamDetailDto, MemberDto, TeamRequest } from '../api/api'
 import { TeamRole, MinRole } from '../api/api'
+import { paths } from '@/config/paths'
 
 // Re-export types for convenience
 export type { TeamDetailDto, MemberDto }
@@ -78,7 +79,7 @@ export function useCreateTeam() {
       })
 
       if (team) {
-        navigate(`/teams/${team.slug}`)
+        navigate(paths.team(team.slug))
       }
     },
   })
@@ -106,7 +107,7 @@ export function useUpdateTeam(slug: string) {
 
       if (team) {
         queryClient.setQueryData(['team', team.slug], team)
-        navigate(`/teams/${team.slug}`)
+        navigate(paths.team(team.slug))
       }
     },
   })
@@ -132,7 +133,7 @@ export function useDeleteTeam(slug: string) {
         duration: 4000,
       })
 
-      navigate('/teams')
+      navigate(paths.teams())
     },
   })
 }

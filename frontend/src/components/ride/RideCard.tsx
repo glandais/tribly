@@ -6,6 +6,7 @@ import { Card, CardContent, CardTitle, CardDescription } from '../common/card'
 import { Badge, VisibilityBadge, Stat, StatGroup, CardSkeleton } from '../common/card'
 import { EntityLogo } from '../common/EntityLogo'
 import { useFormattedDate } from '../../utils/dateFormat'
+import { paths } from '@/config/paths'
 
 interface RideCardProps {
   ride: RideDto
@@ -30,7 +31,7 @@ export function RideCard({ ride, teamSlug, showTypeBadge = false }: RideCardProp
   const groupsIcon = <RectangleStackIcon />
 
   return (
-    <Card to={`/teams/${teamSlug}/rides/${ride.slug}`}>
+    <Card to={paths.ride(teamSlug, ride.slug)}>
       <CardContent>
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-start gap-3 flex-1 min-w-0">

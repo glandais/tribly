@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { paths } from '../../config/paths'
 import { PlusIcon, UserGroupIcon } from '@heroicons/react/24/outline'
 import { useTeams, MinRole } from '../../hooks/useTeam'
 import { useAuth } from '../../hooks/useAuth'
@@ -65,7 +66,7 @@ export function TeamListPage() {
         </div>
         {isAuthenticated && (
           <Link
-            to="/teams/new"
+            to={paths.teamsNew()}
             className="mt-4 sm:mt-0 inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-500"
           >
             <PlusIcon className="w-5 h-5 mr-2 -ml-1" aria-hidden="true" />
@@ -142,7 +143,7 @@ export function TeamListPage() {
           {isAuthenticated && (
             <div className="mt-6">
               <Link
-                to="/teams/new"
+                to={paths.teamsNew()}
                 className="inline-flex items-center px-4 py-2 border border-transparent shadow-xs text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-500"
               >
                 <PlusIcon className="w-5 h-5 mr-2 -ml-1" aria-hidden="true" />

@@ -6,6 +6,7 @@ import { Card, CardContent, CardTitle, CardDescription } from '../common/card'
 import { Badge, VisibilityBadge, Stat, StatGroup, CardSkeleton } from '../common/card'
 import { EntityLogo } from '../common/EntityLogo'
 import { useFormattedDate } from '../../utils/dateFormat'
+import { paths } from '@/config/paths'
 
 interface PostCardProps {
   post: PostDto
@@ -28,7 +29,7 @@ export function PostCard({ post, teamSlug, showTypeBadge = false }: PostCardProp
   const calendarIcon = <CalendarIcon />
 
   return (
-    <Card to={`/teams/${teamSlug}/posts/${post.slug}`}>
+    <Card to={paths.post(teamSlug, post.slug)}>
       <CardContent>
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-start gap-3 flex-1 min-w-0">

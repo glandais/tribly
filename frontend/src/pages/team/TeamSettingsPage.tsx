@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import { Link, useParams, useNavigate } from 'react-router-dom'
+import { Link, useParams, useNavigate, Navigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { ChevronLeftIcon } from '@heroicons/react/24/outline'
+import { paths } from '../../config/paths'
 import { useTeam, useDeleteTeam } from '../../hooks/useTeam'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
@@ -30,7 +30,7 @@ export function TeamSettingsPage() {
           <h1 className="text-2xl font-bold text-gray-900 mb-2">{t('settings.error.title')}</h1>
           <p className="text-gray-600 mb-6">{t('settings.error.loadFailed')}</p>
           <Link
-            to="/teams"
+            to={paths.teams()}
             className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
           >
             {t('detail.notFound.backToTeams')}
@@ -41,26 +41,11 @@ export function TeamSettingsPage() {
   }
 
   if (team.role !== 'ADMIN') {
-    return (
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="text-center py-12">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">
-            {t('settings.error.accessDenied')}
-          </h1>
-          <p className="text-gray-600 mb-6">{t('settings.error.adminRequired')}</p>
-          <Link
-            to={`/teams/${teamSlug}`}
-            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
-          >
-            {t('settings.backToTeam', { teamName: team.name })}
-          </Link>
-        </div>
-      </div>
-    )
+    return <Navigate to={paths.team(teamSlug!)} replace />
   }
 
   const handleSuccess = (updatedTeam: TeamDetailDto) => {
-    navigate(`/teams/${updatedTeam.slug}`)
+    navigate(paths.team(updatedTeam.slug))
   }
 
   const handleDelete = () => {
@@ -70,14 +55,7 @@ export function TeamSettingsPage() {
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
-        <Link
-          to={`/teams/${teamSlug}`}
-          className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700"
-        >
-          <ChevronLeftIcon className="w-4 h-4 mr-1" />
-          {t('settings.backToTeam', { teamName: team.name })}
-        </Link>
-        <h1 className="mt-4 text-3xl font-bold text-gray-900">{t('settings.title')}</h1>
+        <h1 className="text-3xl font-bold text-gray-900">{t('settings.title')}</h1>
         <p className="mt-1 text-gray-600">{t('settings.subtitle')}</p>
       </div>
 

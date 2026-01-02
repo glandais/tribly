@@ -29,6 +29,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
+import { paths } from '@/config/paths'
 
 const teamSchema = z.object({
   name: z.string().min(2).max(255),
@@ -233,7 +234,9 @@ export function TeamForm({
 
         <div className="pt-4 flex items-center justify-end gap-3">
           <Button variant="outline" asChild>
-            <Link to={create ? '/teams' : `/teams/${teamSlug}`}>{tCommon('buttons.cancel')}</Link>
+            <Link to={create ? paths.teams() : paths.team(teamSlug!)}>
+              {tCommon('buttons.cancel')}
+            </Link>
           </Button>
           <Button type="submit" disabled={mutation.isPending}>
             {mutation.isPending ? (

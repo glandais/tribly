@@ -14,6 +14,7 @@ import type {
   GeoPoint,
 } from '../api/api'
 import { SurfaceType } from '../api/api'
+import { paths } from '@/config/paths'
 
 // Re-export types for convenience
 export type {
@@ -114,7 +115,7 @@ export function useDeleteRoute(teamSlug: string) {
         duration: 4000,
       })
 
-      navigate(`/teams/${teamSlug}/routes`)
+      navigate(paths.routes(teamSlug!))
     },
   })
 }

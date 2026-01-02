@@ -12,6 +12,7 @@ import type {
   GroupRequest,
 } from '../api/api'
 import { Status, Visibility } from '../api/api'
+import { paths } from '@/config/paths'
 
 // Re-export types for convenience
 export type {
@@ -79,7 +80,7 @@ export function useCreateRide(teamSlug: string | undefined) {
       })
 
       if (ride) {
-        navigate(`/teams/${teamSlug}/rides/${ride.slug}`)
+        navigate(paths.ride(teamSlug!, ride.slug))
       }
     },
   })
@@ -126,7 +127,7 @@ export function useDeleteRide(teamSlug: string | undefined) {
         duration: 4000,
       })
 
-      navigate(`/teams/${teamSlug}/rides`)
+      navigate(paths.team(teamSlug!))
     },
   })
 }

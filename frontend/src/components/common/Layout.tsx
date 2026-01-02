@@ -7,11 +7,12 @@ import { useBreadcrumb } from '../../hooks/useBreadcrumb'
 import { Breadcrumb } from './Breadcrumb'
 import { ToastContainer } from './Toast'
 import { LanguageSwitcher } from './LanguageSwitcher'
+import { paths } from '@/config/paths'
 
 export function Layout() {
   const { t } = useTranslation('common')
   const { user, isAuthenticated, logout } = useAuth()
-  const breadcrumbItems = useBreadcrumb()
+  const { items: breadcrumbItems, showBackLink } = useBreadcrumb()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   // Close mobile menu on Escape key
@@ -45,7 +46,7 @@ export function Layout() {
               {/* Desktop navigation */}
               <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
                 <Link
-                  to="/teams"
+                  to={paths.teams()}
                   className="text-gray-700 hover:text-gray-900 inline-flex items-center px-1 pt-1 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 rounded"
                 >
                   {t('nav.teams')}
@@ -59,7 +60,7 @@ export function Layout() {
               {isAuthenticated ? (
                 <div className="flex items-center space-x-4">
                   <Link
-                    to="/profile"
+                    to={paths.profile()}
                     className="flex items-center text-sm font-medium text-gray-700 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 rounded px-2 py-1"
                     aria-label={t('nav.profile')}
                   >
@@ -124,7 +125,7 @@ export function Layout() {
               </div>
               <div className="space-y-1">
                 <Link
-                  to="/teams"
+                  to={paths.teams()}
                   className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500"
                   onClick={() => setMobileMenuOpen(false)}
                 >
@@ -136,7 +137,7 @@ export function Layout() {
                 {isAuthenticated ? (
                   <>
                     <Link
-                      to="/profile"
+                      to={paths.profile()}
                       className="flex items-center px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500"
                       onClick={() => setMobileMenuOpen(false)}
                     >
@@ -185,7 +186,7 @@ export function Layout() {
 
       <main id="main-content" className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 sm:px-0">
-          <Breadcrumb items={breadcrumbItems} />
+          <Breadcrumb items={breadcrumbItems} showBackLink={showBackLink} />
         </div>
         <Outlet />
       </main>

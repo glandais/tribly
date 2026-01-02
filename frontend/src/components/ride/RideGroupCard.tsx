@@ -12,6 +12,7 @@ import type { RideGroupDto } from '../../hooks/useRide'
 import { useRoute } from '../../hooks/useRoute'
 import { UserAvatarGroup } from '../common/UserAvatar'
 import { ParticipantListModal } from './ParticipantListModal'
+import { paths } from '@/config/paths'
 
 interface RideGroupCardProps {
   group: RideGroupDto
@@ -146,7 +147,7 @@ export function RideGroupCard({
       {effectiveRouteSlug && (
         <div className="mt-3 flex items-center gap-2">
           <Link
-            to={`/teams/${teamSlug}/routes/${effectiveRouteSlug}`}
+            to={paths.route(teamSlug, effectiveRouteSlug)}
             className="inline-flex items-center px-2 py-1 text-xs font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded"
           >
             <MapIcon className="w-4 h-4 mr-1" />

@@ -1,0 +1,78 @@
+import type { ComponentType, LazyExoticComponent } from 'react'
+
+/**
+ * Authentication requirement for a route
+ */
+export type AuthRequirement = 'public' | 'authenticated' | 'unauthenticated'
+
+/**
+ * Parameter definitions for dynamic segments
+ */
+export interface RouteParams {
+  teamSlug?: string
+  rideSlug?: string
+  postSlug?: string
+  tripSlug?: string
+  routeSlug?: string
+  templateSlug?: string
+}
+
+/**
+ * Entity types that can provide dynamic breadcrumb labels
+ */
+export type EntityType = 'team' | 'ride' | 'post' | 'trip' | 'route' | 'rideTemplate'
+
+/**
+ * Breadcrumb label configuration
+ * - Static: i18n key string (e.g., "common:nav.teams")
+ * - Dynamic: object with entity type to fetch name from
+ */
+export type BreadcrumbLabel =
+  | { type: 'static'; i18nKey: string }
+  | { type: 'dynamic'; entity: EntityType }
+
+/**
+ * Single route configuration entry
+ */
+export interface RouteConfig {
+  /** Unique identifier for this route */
+  id: string
+
+  /** URL path pattern (react-router format) */
+  path: string
+
+  /** Page component to render */
+  component: ComponentType | LazyExoticComponent<ComponentType>
+
+  /** Authentication requirement */
+  auth: AuthRequirement
+
+  /**
+   * Parent route ID for breadcrumb hierarchy
+   * Explicit parent allows custom breadcrumb chains that don't follow URL structure
+   * null = no parent (root level)
+   */
+  parentId: string | null
+
+  /**
+   * Breadcrumb label for this route
+   * undefined = route not shown in breadcrumbs
+   */
+  breadcrumb?: BreadcrumbLabel
+
+  /**
+   * Whether this route is an index route (renders at parent path)
+   */
+  index?: boolean
+
+  /**
+   * Whether to show a prominent back link to parent in breadcrumb
+   * Use for create/edit pages that need clear navigation back
+   */
+  showBackLink?: boolean
+}
+
+/**
+ * Complete route configuration
+ */
+export type RoutesConfig = RouteConfig[]

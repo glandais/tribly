@@ -1,6 +1,6 @@
-import { useParams, Link, useNavigate, Navigate } from 'react-router-dom'
+import { useParams, useNavigate, Navigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { ChevronLeftIcon } from '@heroicons/react/24/outline'
+import { paths } from '../../config/paths'
 import { SurfaceType, useRoute, useUpdateRoute } from '../../hooks/useRoute'
 import { useTeam } from '../../hooks/useTeam'
 import { Visibility } from '../../api/api'
@@ -22,13 +22,13 @@ export function EditRoutePage() {
   }
 
   if (!team) {
-    return <Navigate to="/teams" replace />
+    return <Navigate to={paths.teams()} replace />
   }
 
   const canEdit = team.role === 'ADMIN' || team.role === 'ORGANIZER'
 
   if (!canEdit) {
-    return <Navigate to={`/teams/${teamSlug}/routes`} replace />
+    return <Navigate to={paths.routes(teamSlug!)} replace />
   }
 
   if (isLoading) {
@@ -51,7 +51,7 @@ export function EditRoutePage() {
   }
 
   if (!route) {
-    return <Navigate to={`/teams/${teamSlug}/routes`} replace />
+    return <Navigate to={paths.routes(teamSlug!)} replace />
   }
 
   // Prepare initial values from fetched route data
@@ -77,20 +77,13 @@ export function EditRoutePage() {
       },
       gpxFile,
     })
-    navigate(`/teams/${teamSlug}/routes/${routeSlug}`)
+    navigate(paths.route(teamSlug!, routeSlug!))
   }
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
-        <Link
-          to={`/teams/${teamSlug}/routes/${routeSlug}`}
-          className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700"
-        >
-          <ChevronLeftIcon className="w-4 h-4 mr-1" />
-          {t('edit.backToDetail')}
-        </Link>
-        <h1 className="mt-4 text-3xl font-bold text-gray-900">{t('edit.title')}</h1>
+        <h1 className="text-3xl font-bold text-gray-900">{t('edit.title')}</h1>
         <p className="mt-2 text-gray-600">{t('edit.subtitle')}</p>
       </div>
 
@@ -100,7 +93,7 @@ export function EditRoutePage() {
         initialValues={initialValues}
         initialTrack={initialTrack}
         onSubmit={handleSubmit}
-        onCancel={() => navigate(`/teams/${teamSlug}/routes/${routeSlug}`)}
+        onCancel={() => navigate(paths.route(teamSlug!, routeSlug!))}
         isPending={updateRoute.isPending}
         error={updateRoute.error}
         submitButtonText={t('edit.submit')}

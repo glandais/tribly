@@ -4,6 +4,7 @@ import type { TeamDetailDto } from '../../hooks/useTeam'
 import { Card, CardContent, CardTitle, CardDescription } from '../common/card'
 import { Badge, VisibilityBadge, Stat, CardSkeleton } from '../common/card'
 import { TeamAvatar } from './TeamAvatar'
+import { paths } from '@/config/paths'
 
 interface TeamCardProps {
   team: TeamDetailDto
@@ -22,7 +23,7 @@ export function TeamCard({ team, showRole = false }: TeamCardProps) {
   const membersIcon = <UsersIcon />
 
   return (
-    <Card to={`/teams/${team.slug}`}>
+    <Card to={paths.team(team.slug)}>
       <CardContent>
         <div className="flex items-center gap-3 mb-2">
           <TeamAvatar team={team} size="lg" />

@@ -4,6 +4,7 @@ import type { RouteDto } from '../../api/api'
 import { Card, CardContent, CardTitle, CardDescription } from '../common/card'
 import { Badge, VisibilityBadge, Stat, StatGroup, CardSkeleton } from '../common/card'
 import { EntityLogo } from '../common/EntityLogo'
+import { paths } from '@/config/paths'
 
 interface RouteCardProps {
   route: RouteDto
@@ -18,7 +19,7 @@ export function RouteCard({ route, teamSlug }: RouteCardProps) {
   const elevationIcon = <ArrowUpIcon />
 
   return (
-    <Card to={`/teams/${teamSlug}/routes/${route.slug}`}>
+    <Card to={paths.route(teamSlug, route.slug)}>
       {/* Thumbnail */}
       <img
         src={route.media.assets.thumbnail?.url}

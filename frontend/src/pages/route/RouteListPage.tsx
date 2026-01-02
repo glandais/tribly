@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useParams, Navigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { paths } from '../../config/paths'
 import { PlusIcon, MapIcon } from '@heroicons/react/24/outline'
 import { useRoutes } from '../../hooks/useRoute'
 import { useTeam } from '../../hooks/useTeam'
@@ -39,7 +40,7 @@ export function RouteListPage() {
   }
 
   if (!team) {
-    return <Navigate to="/teams" replace />
+    return <Navigate to={paths.teams()} replace />
   }
 
   const canCreateRoute = team.role === 'ADMIN' || team.role === 'ORGANIZER'
@@ -53,7 +54,7 @@ export function RouteListPage() {
           </div>
           {canCreateRoute && (
             <Link
-              to={`/teams/${teamSlug}/routes/new`}
+              to={paths.routeNew(teamSlug!)}
               className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
             >
               <PlusIcon className="w-4 h-4 mr-2" />
@@ -104,7 +105,7 @@ export function RouteListPage() {
             {!search && <p className="mt-2 text-gray-500">{t('list.empty.description')}</p>}
             {canCreateRoute && !search && (
               <Link
-                to={`/teams/${teamSlug}/routes/new`}
+                to={paths.routeNew(teamSlug!)}
                 className="mt-4 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
               >
                 {t('list.empty.createAction')}

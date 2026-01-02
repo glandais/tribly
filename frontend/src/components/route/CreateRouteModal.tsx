@@ -46,7 +46,7 @@ export function CreateRouteModal({ isOpen, onClose, onRouteCreated, team }: Crea
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={t('createModal.title')} size="2xl">
+    <Modal isOpen={isOpen} onClose={onClose} title={t('createModal.title')} size="full">
       <RouteEditor
         team={team}
         teamSlug={team.slug}

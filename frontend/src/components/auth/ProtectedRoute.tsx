@@ -2,6 +2,7 @@ import { Navigate, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useAuth } from '../../hooks/useAuth'
 import { LoadingPage } from '../common/LoadingSpinner'
+import { paths } from '@/config/paths'
 
 interface ProtectedRouteProps {
   children: React.ReactNode
@@ -12,7 +13,7 @@ interface ProtectedRouteProps {
 export function ProtectedRoute({
   children,
   requireAuth = true,
-  redirectTo = '/login',
+  redirectTo = paths.login(),
 }: ProtectedRouteProps) {
   const { t } = useTranslation('common')
   const location = useLocation()
@@ -27,7 +28,7 @@ export function ProtectedRoute({
   }
 
   if (!requireAuth && isAuthenticated) {
-    const from = location.state?.from?.pathname || '/'
+    const from = location.state?.from?.pathname || paths.home()
     return <Navigate to={from} replace />
   }
 

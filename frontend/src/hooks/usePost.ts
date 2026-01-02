@@ -5,6 +5,7 @@ import { postsApi, unwrapResponse } from '../lib/apiClient'
 import { useNotificationStore } from '../store/notificationStore'
 import type { PostDto, PostListResponse, PostRequest } from '../api/api'
 import { Status, Visibility } from '../api/api'
+import { paths } from '@/config/paths'
 
 // Re-export types for convenience
 export type { PostDto, PostListResponse, PostRequest }
@@ -65,7 +66,7 @@ export function useCreatePost(teamSlug: string | undefined) {
       })
 
       if (post) {
-        navigate(`/teams/${teamSlug}/posts/${post.slug}`)
+        navigate(paths.post(teamSlug!, post.slug))
       }
     },
   })
@@ -112,7 +113,7 @@ export function useDeletePost(teamSlug: string | undefined) {
         duration: 4000,
       })
 
-      navigate(`/teams/${teamSlug}/posts`)
+      navigate(paths.team(teamSlug!))
     },
   })
 }
