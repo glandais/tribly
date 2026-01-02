@@ -1402,44 +1402,17 @@ components:
       type: object
       description: GPX track with track points
       required:
-      - trackPoints
+      - line
       - climbs
       properties:
-        trackPoints:
-          type: array
-          items:
-            $ref: "#/components/schemas/TrackPointDto"
-          description: List of track points
+        line:
+          $ref: "#/components/schemas/GeoJsonLineString"
+          type: object
         climbs:
           type: array
           items:
             $ref: "#/components/schemas/ClimbDto"
           description: List of climbs on the route
-    TrackPointDto:
-      type: object
-      description: GPS track point
-      required:
-      - lat
-      - lng
-      - ele
-      - dist
-      properties:
-        lat:
-          type: number
-          format: double
-          description: Latitude
-        lng:
-          type: number
-          format: double
-          description: Longitude
-        ele:
-          type: number
-          format: double
-          description: Elevation in meters
-        dist:
-          type: number
-          format: double
-          description: Distance from start in meters
     TripDto:
       allOf:
       - $ref: "#/components/schemas/PublicationDto"
@@ -1707,13 +1680,12 @@ components:
       - PUBLIC
     WaypointDto:
       type: object
+      required:
+      - geometry
       properties:
-        lon:
-          type: number
-          format: double
-        lat:
-          type: number
-          format: double
+        geometry:
+          $ref: "#/components/schemas/GeoJsonPoint"
+          type: object
         name:
           type: string
   securitySchemes:

@@ -136,6 +136,26 @@ export function RouteDetailPage() {
         isLoading={deleteRoute.isPending}
       />
 
+      {/* Download Section */}
+      <div className="bg-white rounded-lg shadow-sm p-6  mb-8">
+        <div className="flex flex-wrap gap-3">
+          <a
+            href={route.media.assets.gpx?.url}
+            className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-xs text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+          >
+            <ArrowDownTrayIcon className="w-5 h-5 mr-2 -ml-1" />
+            {t('detail.download.gpx')}
+          </a>
+          <a
+            href={route.media.assets.fit?.url}
+            className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-xs text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+          >
+            <ArrowDownTrayIcon className="w-5 h-5 mr-2 -ml-1" />
+            {t('detail.download.fit')}
+          </a>
+        </div>
+      </div>
+
       {/* Interactive Map with Elevation Chart */}
       <div className="mb-8">
         <RouteMapView route={route} />
@@ -274,27 +294,6 @@ export function RouteDetailPage() {
           )
         )
       })()}
-
-      {/* Download Section */}
-      <div className="bg-white rounded-lg shadow-sm p-6">
-        <h2 className="text-xl font-bold text-gray-900 mb-4">{t('detail.download.title')}</h2>
-        <div className="flex flex-wrap gap-3">
-          <a
-            href={route.media.assets.gpx?.url}
-            className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-xs text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-          >
-            <ArrowDownTrayIcon className="w-5 h-5 mr-2 -ml-1" />
-            {t('detail.download.gpx')}
-          </a>
-          <a
-            href={route.media.assets.fit?.url}
-            className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-xs text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-          >
-            <ArrowDownTrayIcon className="w-5 h-5 mr-2 -ml-1" />
-            {t('detail.download.fit')}
-          </a>
-        </div>
-      </div>
     </div>
   )
 }

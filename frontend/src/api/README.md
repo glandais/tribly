@@ -161,7 +161,6 @@ Class | Method | HTTP request | Description
  - [TeamRequest](docs/TeamRequest.md)
  - [TeamRole](docs/TeamRole.md)
  - [TrackDto](docs/TrackDto.md)
- - [TrackPointDto](docs/TrackPointDto.md)
  - [TripDto](docs/TripDto.md)
  - [TripListResponse](docs/TripListResponse.md)
  - [TripParticipationDto](docs/TripParticipationDto.md)

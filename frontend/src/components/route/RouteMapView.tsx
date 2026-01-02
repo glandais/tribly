@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, useMemo, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
-import Map, { Source, Layer, MapRef, MapMouseEvent } from 'react-map-gl/maplibre'
+import Map, { Source, Layer, MapRef, MapMouseEvent, NavigationControl } from 'react-map-gl/maplibre'
 import maplibregl from 'maplibre-gl'
 import { Line } from 'react-chartjs-2'
 import {
@@ -76,7 +76,7 @@ export function RouteMapView({ route }: RouteMapViewProps) {
 
   // Flatten all track points and climbs from multiple tracks
   const trackPoints = useMemo(
-    () => route.tracks.flatMap((track) => track.trackPoints) || [],
+    () => route.tracks.flatMap((track) => track.line.coordinates) || [],
     [route.tracks]
   )
   const climbs = useMemo(() => route.tracks.flatMap((track) => track.climbs), [route.tracks])
@@ -128,11 +128,11 @@ export function RouteMapView({ route }: RouteMapViewProps) {
   // Prepare chart data with climb coloring
   const chartData: ChartData<'line'> = useMemo(
     () => ({
-      labels: trackPoints.map((p) => (p.dist / 1000).toFixed(1)),
+      labels: trackPoints.map((p) => (p[3] / 1000).toFixed(1)),
       datasets: [
         {
           label: 'Elevation',
-          data: trackPoints.map((p) => p.ele),
+          data: trackPoints.map((p) => p[2]),
           fill: true,
           // backgroundColor: (context: ScriptableContext<'line'>) => {
           //   const index = context.dataIndex
@@ -183,7 +183,7 @@ export function RouteMapView({ route }: RouteMapViewProps) {
               if (items.length > 0) {
                 const index = items[0].dataIndex
                 const point = trackPoints[index]
-                return `${(point.dist / 1000).toFixed(1)} km`
+                return `${(point[3] / 1000).toFixed(1)} km`
               }
               return ''
             },
@@ -204,7 +204,7 @@ export function RouteMapView({ route }: RouteMapViewProps) {
 
               // Find if point is in a climb
               for (const climb of climbs) {
-                if (point.dist >= climb.startDistance && point.dist <= climb.endDistance) {
+                if (point[3] >= climb.startDistance && point[3] <= climb.endDistance) {
                   return [
                     '',
                     `${Math.round(climb.elevationGain)}m / ${((climb.endDistance - climb.startDistance) / 1000).toFixed(1)}km`,
@@ -302,8 +302,8 @@ export function RouteMapView({ route }: RouteMapViewProps) {
           mapLib={maplibregl}
           mapStyle={MAP_STYLE}
           initialViewState={{
-            longitude: trackPoints[0].lng,
-            latitude: trackPoints[0].lat,
+            longitude: trackPoints[0][0],
+            latitude: trackPoints[0][1],
             zoom: 11,
           }}
           style={{ width: '100%', height: '100%' }}
@@ -311,6 +311,7 @@ export function RouteMapView({ route }: RouteMapViewProps) {
           onMouseMove={handleMouseMove}
           onMouseLeave={handleMouseLeave}
         >
+          <NavigationControl position='top-left' />
           {/* Gradient-colored route line */}
           <Source id="route-segments" type="geojson" data={lineFeatures}>
             <Layer
@@ -325,30 +326,30 @@ export function RouteMapView({ route }: RouteMapViewProps) {
           </Source>
 
           {/* Start marker */}
-          <StartMarker longitude={trackPoints[0].lng} latitude={trackPoints[0].lat} />
+          <StartMarker longitude={trackPoints[0][0]} latitude={trackPoints[0][1]} />
 
           {/* End marker */}
           <EndMarker
-            longitude={trackPoints[trackPoints.length - 1].lng}
-            latitude={trackPoints[trackPoints.length - 1].lat}
+            longitude={trackPoints[trackPoints.length - 1][0]}
+            latitude={trackPoints[trackPoints.length - 1][1]}
           />
 
           {/* Waypoints */}
           {waypoints.map(
             (waypoint, index) =>
-              waypoint.lat &&
-              waypoint.lon && (
+              waypoint.geometry.coordinates[0] &&
+              waypoint.geometry.coordinates[1] && (
                 <WaypointMarker
                   key={`waypoint-${index}`}
-                  longitude={waypoint.lon}
-                  latitude={waypoint.lat}
+                  longitude={waypoint.geometry.coordinates[0]}
+                  latitude={waypoint.geometry.coordinates[1]}
                   name={waypoint.name}
                 />
               )
           )}
 
           {/* Hover marker */}
-          {hoveredPoint && <HoverMarker longitude={hoveredPoint.lng} latitude={hoveredPoint.lat} />}
+          {hoveredPoint && <HoverMarker longitude={hoveredPoint[0]} latitude={hoveredPoint[1]} />}
         </Map>
 
         {/* Elevation chart overlay */}

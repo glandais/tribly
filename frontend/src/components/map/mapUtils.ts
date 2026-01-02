@@ -1,5 +1,5 @@
 import type { LngLatBoundsLike } from 'maplibre-gl'
-import type { TrackPointDto, ClimbDto, RouteDetailDto, TrackDto } from '../../api/api'
+import type { ClimbDto, RouteDetailDto, TrackDto } from '../../api/api'
 
 // Color calculation (matching biketeam single-map.js)
 const NEUTRAL_HUE = 210
@@ -28,9 +28,9 @@ export function getColorFromGradient(gradient: number): string {
 }
 
 // Determine if a point is in a climb and get its gradient
-export function getPointClimbGradient(point: TrackPointDto, climbs: ClimbDto[]): number {
+export function getPointClimbGradient(point: number[], climbs: ClimbDto[]): number {
   for (const climb of climbs) {
-    if (point.dist >= climb.startDistance && point.dist <= climb.endDistance) {
+    if (point[3] >= climb.startDistance && point[3] <= climb.endDistance) {
       return climb.averageGradient
     }
   }
@@ -44,15 +44,12 @@ export function routeToGeoJSON(
 ): GeoJSON.FeatureCollection<GeoJSON.LineString> {
   const features: GeoJSON.Feature<GeoJSON.LineString>[] = []
   for (let i = 0; i < route.tracks.length; i++) {
-    const trackPoints = route.tracks[i].trackPoints
-    features.push({
+    const line: GeoJSON.Feature<GeoJSON.LineString> = {
       type: 'Feature',
-      geometry: {
-        type: 'LineString',
-        coordinates: trackPoints.map((p) => [p.lng, p.lat]),
-      },
-      properties: { segmentIndex: i, ...properties },
-    })
+      geometry: route.tracks[i].line,
+      properties: { trackIndex: i, ...properties, climbs: route.tracks[i].climbs },
+    }
+    features.push(line)
   }
   return {
     type: 'FeatureCollection',
@@ -62,7 +59,7 @@ export function routeToGeoJSON(
 
 // Calculate bounds from track points
 // Note: MapLibre uses [lng, lat] order (GeoJSON standard)
-export function calculateBounds(trackPoints: TrackPointDto[]): LngLatBoundsLike {
+export function calculateBounds(trackPoints: number[][]): LngLatBoundsLike {
   if (trackPoints.length === 0) {
     return [
       [-180, -90],
@@ -76,10 +73,10 @@ export function calculateBounds(trackPoints: TrackPointDto[]): LngLatBoundsLike 
     maxLat = -Infinity
 
   for (const point of trackPoints) {
-    minLng = Math.min(minLng, point.lng)
-    maxLng = Math.max(maxLng, point.lng)
-    minLat = Math.min(minLat, point.lat)
-    maxLat = Math.max(maxLat, point.lat)
+    minLng = Math.min(minLng, point[0])
+    maxLng = Math.max(maxLng, point[0])
+    minLat = Math.min(minLat, point[1])
+    maxLat = Math.max(maxLat, point[1])
   }
 
   return [
@@ -105,7 +102,7 @@ export function distance(lng1: number, lat1: number, lng2: number, lat2: number)
 
 // Find nearest point to lat/lng
 export function findNearestPoint(
-  trackPoints: TrackPointDto[],
+  trackPoints: number[][],
   lat: number,
   lng: number,
   maxDistance: number
@@ -114,7 +111,7 @@ export function findNearestPoint(
   let minDist = maxDistance
 
   for (let i = 0; i < trackPoints.length; i++) {
-    const dist = distance(lng, lat, trackPoints[i].lng, trackPoints[i].lat)
+    const dist = distance(lng, lat, trackPoints[i][0], trackPoints[i][1])
     if (dist < minDist) {
       minDist = dist
       nearestIndex = i
@@ -135,12 +132,12 @@ export function createGradientLineFeatures(
   }
 
   let currentColor = getColorFromGradient(
-    getPointClimbGradient(tracks[0].trackPoints[0], tracks[0].climbs)
+    getPointClimbGradient(tracks[0].line.coordinates[0], tracks[0].climbs)
   )
   let currentSegment: [number, number][] = []
 
   for (let j = 0; j < tracks.length; j++) {
-    const trackPoints = tracks[j].trackPoints
+    const trackPoints = tracks[j].line.coordinates
     const climbs = tracks[j].climbs
 
     for (let i = 0; i < trackPoints.length; i++) {
@@ -150,7 +147,7 @@ export function createGradientLineFeatures(
 
       if (color !== currentColor && currentSegment.length > 0) {
         // Add last point of previous segment for continuity
-        currentSegment.push([point.lng, point.lat])
+        currentSegment.push([point[0], point[1]])
 
         features.push({
           type: 'Feature',
@@ -161,10 +158,10 @@ export function createGradientLineFeatures(
           },
         })
 
-        currentSegment = [[point.lng, point.lat]]
+        currentSegment = [[point[0], point[1]]]
         currentColor = color
       } else {
-        currentSegment.push([point.lng, point.lat])
+        currentSegment.push([point[0], point[1]])
       }
     }
 

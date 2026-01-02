@@ -1,9 +1,20 @@
 package com.tribly.dto.routes.response;
 
+import static org.geolatte.geom.builder.DSL.*;
+import static org.geolatte.geom.crs.CoordinateReferenceSystems.WGS84;
+import static org.geolatte.geom.crs.CoordinateReferenceSystems.addLinearSystem;
+import static org.geolatte.geom.crs.CoordinateReferenceSystems.addVerticalSystem;
+
 import com.tribly.domain.route.GpxTrack;
+import com.tribly.dto.common.response.GeoJsonLineString;
 import com.tribly.dto.validation.ValidateSchema;
 import java.util.List;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.geolatte.geom.G3D;
+import org.geolatte.geom.G3DM;
+import org.geolatte.geom.LineString;
+import org.geolatte.geom.crs.CoordinateReferenceSystem;
+import org.geolatte.geom.crs.LinearUnit;
 
 /**
  * GPX Track DTO with track points for frontend rendering.
@@ -11,23 +22,20 @@ import org.eclipse.microprofile.openapi.annotations.media.Schema;
 @Schema(description = "GPX track with track points")
 @ValidateSchema
 public record TrackDto(
-    @Schema(description = "List of track points", required = true) List<TrackPointDto> trackPoints,
+    @Schema(implementation = GeoJsonLineString.class, required = true) LineString<G3DM> line,
     @Schema(description = "List of climbs on the route", required = true) List<ClimbDto> climbs) {
+
+  private static final CoordinateReferenceSystem<G3DM> WGS84_3DM =
+      addLinearSystem(
+          addVerticalSystem(WGS84, G3D.class, LinearUnit.METER), G3DM.class, LinearUnit.METER);
+
   public static TrackDto from(GpxTrack track) {
-    List<TrackPointDto> points =
+    G3DM[] geomPoints =
         track.getTrackPoints().stream()
-            .map(p -> new TrackPointDto(p.lat(), p.lng(), p.ele(), p.dist()))
-            .toList();
+            .map(p -> g(p.lng(), p.lat(), p.ele(), p.dist()))
+            .toArray(G3DM[]::new);
+    LineString<G3DM> line = linestring(WGS84_3DM, geomPoints);
     List<ClimbDto> routeClimbDtos = track.getClimbs().stream().map(ClimbDto::from).toList();
-
-    return new TrackDto(points, routeClimbDtos);
+    return new TrackDto(line, routeClimbDtos);
   }
-
-  @Schema(description = "GPS track point")
-  @ValidateSchema
-  public record TrackPointDto(
-      @Schema(description = "Latitude", required = true) double lat,
-      @Schema(description = "Longitude", required = true) double lng,
-      @Schema(description = "Elevation in meters", required = true) double ele,
-      @Schema(description = "Distance from start in meters", required = true) double dist) {}
 }

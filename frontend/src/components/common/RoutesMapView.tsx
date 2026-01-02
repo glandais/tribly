@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef, useMemo } from 'react'
-import Map, { Source, Layer, MapRef, MapMouseEvent } from 'react-map-gl/maplibre'
+import Map, { Source, Layer, MapRef, MapMouseEvent, NavigationControl } from 'react-map-gl/maplibre'
 import maplibregl from 'maplibre-gl'
 import { Line } from 'react-chartjs-2'
 import {
@@ -17,7 +17,7 @@ import {
 } from 'chart.js'
 import { useTranslation } from 'react-i18next'
 import { routesApi, unwrapResponse } from '../../lib/apiClient'
-import type { RouteDetailDto, TrackPointDto } from '../../api/api'
+import type { RouteDetailDto } from '../../api/api'
 import { StartMarker, EndMarker } from '../map/MapMarkers'
 import { calculateBounds, routeToGeoJSON } from '../map/mapUtils'
 import 'maplibre-gl/dist/maplibre-gl.css'
@@ -53,7 +53,7 @@ interface RouteData {
   itemName: string
   color: string
   route: RouteDetailDto
-  trackPoints: TrackPointDto[]
+  trackPoints: number[][]
   distance: number
   elevationGain: number
 }
@@ -95,7 +95,7 @@ export function RoutesMapView({
         try {
           // Fetch route details from API using the generated API client
           const routeDetail = await unwrapResponse(routesApi.getRoute(item.routeSlug, teamSlug))
-          const trackPoints = routeDetail.tracks?.flatMap((track) => track.trackPoints) || []
+          const trackPoints = routeDetail.tracks?.flatMap((track) => track.line.coordinates) || []
           if (trackPoints.length > 0) {
             routes.push({
               itemId: item.id,
@@ -210,11 +210,11 @@ export function RoutesMapView({
   // Prepare chart data from highlighted route
   const chartData: ChartData<'line'> | null = highlightedRoute
     ? {
-        labels: highlightedRoute.trackPoints.map((p) => (p.dist / 1000).toFixed(1)),
+        labels: highlightedRoute.trackPoints.map((p) => (p[3] / 1000).toFixed(1)),
         datasets: [
           {
             label: 'Elevation',
-            data: highlightedRoute.trackPoints.map((p) => p.ele),
+            data: highlightedRoute.trackPoints.map((p) => p[2]),
             fill: true,
             backgroundColor: `${highlightedRoute.color}33`,
             borderColor: highlightedRoute.color,
@@ -244,7 +244,7 @@ export function RoutesMapView({
             if (tooltipItems.length > 0 && highlightedRoute) {
               const index = tooltipItems[0].dataIndex
               const point = highlightedRoute.trackPoints[index]
-              return `${(point.dist / 1000).toFixed(1)} km`
+              return `${(point[3] / 1000).toFixed(1)} km`
             }
             return ''
           },
@@ -305,8 +305,8 @@ export function RoutesMapView({
           mapLib={maplibregl}
           mapStyle={MAP_STYLE}
           initialViewState={{
-            longitude: routesData[0].trackPoints[0].lng,
-            latitude: routesData[0].trackPoints[0].lat,
+            longitude: routesData[0].trackPoints[0][0],
+            latitude: routesData[0].trackPoints[0][1],
             zoom: 11,
           }}
           style={{ width: '100%', height: '100%' }}
@@ -317,6 +317,7 @@ export function RoutesMapView({
           onMouseLeave={handleMouseLeave}
           interactiveLayerIds={interactiveLayerIds}
         >
+                  <NavigationControl position='top-left' />
           {/* Render all routes */}
           {routeGeoJSONs.map((route) => {
             const isHighlighted = highlightedRoute?.itemId === route.itemId
@@ -343,12 +344,12 @@ export function RoutesMapView({
 
           {/* Start marker (first route's first point) */}
           <StartMarker
-            longitude={routesData[0].trackPoints[0].lng}
-            latitude={routesData[0].trackPoints[0].lat}
+            longitude={routesData[0].trackPoints[0][0]}
+            latitude={routesData[0].trackPoints[0][1]}
           />
 
           {/* End marker (last route's last point) */}
-          <EndMarker longitude={endPoint.lng} latitude={endPoint.lat} />
+          <EndMarker longitude={endPoint[0]} latitude={endPoint[1]} />
         </Map>
 
         {/* Elevation chart overlay */}

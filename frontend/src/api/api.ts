@@ -1154,35 +1154,11 @@ export type TeamRole = (typeof TeamRole)[keyof typeof TeamRole]
  * GPX track with track points
  */
 export interface TrackDto {
-  /**
-   * List of track points
-   */
-  trackPoints: Array<TrackPointDto>
+  line: GeoJsonLineString
   /**
    * List of climbs on the route
    */
   climbs: Array<ClimbDto>
-}
-/**
- * GPS track point
- */
-export interface TrackPointDto {
-  /**
-   * Latitude
-   */
-  lat: number
-  /**
-   * Longitude
-   */
-  lng: number
-  /**
-   * Elevation in meters
-   */
-  ele: number
-  /**
-   * Distance from start in meters
-   */
-  dist: number
 }
 export interface TripDto extends PublicationDto {
   /**
@@ -1393,8 +1369,7 @@ export const Visibility = {
 export type Visibility = (typeof Visibility)[keyof typeof Visibility]
 
 export interface WaypointDto {
-  lon?: number
-  lat?: number
+  geometry: GeoJsonPoint
   name?: string
 }
 
