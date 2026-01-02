@@ -76,6 +76,13 @@
       "publicTeams": "No public teams match your search.",
       "title": "No teams found"
     },
+    "filter": {
+      "admin": "Admin",
+      "all": "All",
+      "label": "Filter",
+      "member": "Member",
+      "organizer": "Organizer"
+    },
     "search": {
       "label": "Search teams",
       "placeholder": "Search teams..."
@@ -142,6 +149,13 @@
     "list": {
       "empty": "No publications yet",
       "emptyDescription": "Posts and rides will appear here once published",
+      "filter": {
+        "all": "All",
+        "label": "Type",
+        "post": "Posts",
+        "ride": "Rides",
+        "trip": "Trips"
+      },
       "noResults": "No publications found matching your search.",
       "search": {
         "label": "Search publications",

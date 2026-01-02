@@ -2,12 +2,28 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { PlusIcon, UserGroupIcon } from '@heroicons/react/24/outline'
-import { useTeams } from '../../hooks/useTeam'
+import { useTeams, MinRole } from '../../hooks/useTeam'
 import { useAuth } from '../../hooks/useAuth'
 import { usePagination } from '../../hooks/usePagination'
 import { TeamCard, TeamCardSkeleton } from '../../components/team/TeamCard'
 import { Pagination } from '../../components/common/Pagination'
 import { SearchInput } from '../../components/common/SearchInput'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+
+type FilterValue = 'all' | 'member' | 'organizer' | 'admin'
+
+const filterToMinRole: Record<FilterValue, MinRole | undefined> = {
+  all: undefined,
+  member: MinRole.Member,
+  organizer: MinRole.Organizer,
+  admin: MinRole.Admin,
+}
 
 export function TeamListPage() {
   const { t } = useTranslation('teams')
@@ -17,6 +33,7 @@ export function TeamListPage() {
 
   const [page, setPage] = useState(0)
   const pageSize = 12
+  const [filter, setFilter] = useState<FilterValue>(isAuthenticated ? 'member' : 'all')
 
   const {
     data: teamsData,
@@ -26,6 +43,7 @@ export function TeamListPage() {
     search,
     page,
     size: pageSize,
+    minRole: filterToMinRole[filter],
   })
 
   // Use usePagination only for totalPages calculation
@@ -56,17 +74,38 @@ export function TeamListPage() {
         )}
       </div>
 
-      <SearchInput
-        id="team-search"
-        value={search}
-        onChange={(value) => {
-          setSearch(value)
-          resetPage()
-        }}
-        placeholder={t('list.search.placeholder')}
-        label={t('list.search.label')}
-        className="mb-6"
-      />
+      <div className="flex flex-col sm:flex-row gap-4 mb-6">
+        <SearchInput
+          id="team-search"
+          value={search}
+          onChange={(value) => {
+            setSearch(value)
+            resetPage()
+          }}
+          placeholder={t('list.search.placeholder')}
+          label={t('list.search.label')}
+          className="flex-1"
+        />
+        {isAuthenticated && (
+          <Select
+            value={filter}
+            onValueChange={(value: FilterValue) => {
+              setFilter(value)
+              resetPage()
+            }}
+          >
+            <SelectTrigger className="w-full sm:w-40" aria-label={t('list.filter.label')}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t('list.filter.all')}</SelectItem>
+              <SelectItem value="member">{t('list.filter.member')}</SelectItem>
+              <SelectItem value="organizer">{t('list.filter.organizer')}</SelectItem>
+              <SelectItem value="admin">{t('list.filter.admin')}</SelectItem>
+            </SelectContent>
+          </Select>
+        )}
+      </div>
 
       {error && (
         <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">

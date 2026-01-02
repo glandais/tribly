@@ -3,6 +3,7 @@ package com.tribly.api.publications;
 import com.tribly.api.AbstractAuthenticatedResource;
 import com.tribly.dto.error.ErrorResponse;
 import com.tribly.dto.publications.response.PublicationListResponse;
+import com.tribly.dto.publications.response.PublicationType;
 import com.tribly.service.common.PublicationService;
 import jakarta.annotation.security.PermitAll;
 import jakarta.inject.Inject;
@@ -10,6 +11,7 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.time.Instant;
+import java.util.List;
 import java.util.Set;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
@@ -45,6 +47,7 @@ public class TeamPublicationResource extends AbstractAuthenticatedResource {
   })
   public Response listPublications(
       @Parameter(description = "Team URL slug") @PathParam("slug") String slug,
+      @Parameter(description = "Types") @QueryParam("type") @Nullable List<PublicationType> types,
       @Parameter(description = "Search by name/markdown") @QueryParam("search")
           @Nullable String search,
       @Parameter(description = "Start date filter (ISO format)") @QueryParam("from")
@@ -60,7 +63,7 @@ public class TeamPublicationResource extends AbstractAuthenticatedResource {
     Instant to = toStr != null ? Instant.parse(toStr) : null;
 
     PublicationListResponse publications =
-        publicationService.list(Set.of(slug), userId, search, from, to, page, size);
+        publicationService.list(types, Set.of(slug), userId, search, from, to, page, size);
 
     return Response.ok(publications).build();
   }

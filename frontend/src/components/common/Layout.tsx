@@ -50,14 +50,6 @@ export function Layout() {
                 >
                   {t('nav.teams')}
                 </Link>
-                {isAuthenticated && (
-                  <Link
-                    to="/myteams"
-                    className="text-gray-700 hover:text-gray-900 inline-flex items-center px-1 pt-1 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 rounded"
-                  >
-                    {t('nav.myTeams')}
-                  </Link>
-                )}
               </div>
             </div>
 
@@ -138,15 +130,6 @@ export function Layout() {
                 >
                   {t('nav.teams')}
                 </Link>
-                {isAuthenticated && (
-                  <Link
-                    to="/myteams"
-                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    {t('nav.myTeams')}
-                  </Link>
-                )}
               </div>
 
               <div className="mt-3 pt-3 border-t border-gray-200">

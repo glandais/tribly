@@ -5,36 +5,28 @@ import { teamsApi, teamMembersApi, unwrapResponse } from '../lib/apiClient'
 import { useAuthStore } from '../store/authStore'
 import { useNotificationStore } from '../store/notificationStore'
 import type { TeamDetailDto, MemberDto, TeamRequest } from '../api/api'
-import { TeamRole } from '../api/api'
+import { TeamRole, MinRole } from '../api/api'
 
 // Re-export types for convenience
 export type { TeamDetailDto, MemberDto }
-export { TeamRole }
+export { TeamRole, MinRole }
 
 interface UseTeamsOptions {
   search?: string
   page?: number
   size?: number
+  minRole?: MinRole
 }
 
 export function useTeams(options: UseTeamsOptions = {}) {
-  const { search, page = 0, size = 20 } = options
+  const { search, page = 0, size = 20, minRole } = options
 
   return useQuery({
-    queryKey: ['teams', { search, page, size }],
+    queryKey: ['teams', { search, page, size, minRole }],
     queryFn: async () => {
-      return await unwrapResponse(teamsApi.listTeams(undefined, page, search, size))
+      return await unwrapResponse(teamsApi.listTeams(minRole, page, search, size))
     },
     placeholderData: keepPreviousData,
-  })
-}
-
-export function useMyTeams() {
-  return useQuery({
-    queryKey: ['myTeams'],
-    queryFn: async () => {
-      return await unwrapResponse(teamsApi.listTeams(true, 0, undefined, 100))
-    },
   })
 }
 

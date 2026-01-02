@@ -1,6 +1,7 @@
 package com.tribly.domain.team.repository;
 
 import com.tribly.domain.common.repository.PageInterface;
+import com.tribly.service.team.request.MinRole;
 import lombok.Builder;
 import org.jspecify.annotations.Nullable;
 
@@ -10,6 +11,6 @@ public record TeamQuery(
     int size,
     @Nullable String slug,
     @Nullable Long userId,
-    @Nullable Boolean member,
+    @Nullable MinRole minRole,
     @Nullable String search)
     implements PageInterface {}

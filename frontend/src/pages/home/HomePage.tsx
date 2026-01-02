@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { NewspaperIcon, UsersIcon } from '@heroicons/react/24/outline'
-import { useAllPublications } from '../../hooks/useAllPublications'
+import { useAllPublications, PublicationType } from '../../hooks/useAllPublications'
 import { RideCard, RideCardSkeleton } from '../../components/ride/RideCard'
 import { PostCard, PostCardSkeleton } from '../../components/post/PostCard'
 import { TripCard, TripCardSkeleton } from '../../components/trip/TripCard'
@@ -9,11 +9,29 @@ import type { RideDto, PostDto, TripDto } from '../../api/api'
 import { Pagination } from '../../components/common/Pagination'
 import { usePagination } from '../../hooks/usePagination'
 import { SearchInput } from '../../components/common/SearchInput'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+
+type FilterValue = 'all' | 'ride' | 'post' | 'trip'
+
+const filterToTypes: Record<FilterValue, PublicationType[] | undefined> = {
+  all: undefined,
+  ride: [PublicationType.Ride],
+  post: [PublicationType.Post],
+  trip: [PublicationType.Trip],
+}
 
 export function HomePage() {
   const { t } = useTranslation('auth')
+  const { t: tTeams } = useTranslation('teams')
   const [page, setPage] = useState(0)
   const [search, setSearch] = useState('')
+  const [filter, setFilter] = useState<FilterValue>('all')
   const pageSize = 20
 
   const {
@@ -24,6 +42,7 @@ export function HomePage() {
     search: search || undefined,
     page,
     size: pageSize,
+    types: filterToTypes[filter],
   })
 
   const resetPage = () => setPage(0)
@@ -48,18 +67,40 @@ export function HomePage() {
         <p className="text-gray-600">{t('home.feed.subtitle')}</p>
       </div>
 
-      {/* Search Input */}
-      <SearchInput
-        id="publications-search"
-        value={search}
-        onChange={(value) => {
-          setSearch(value)
-          resetPage()
-        }}
-        placeholder={t('home.feed.search.placeholder')}
-        label={t('home.feed.search.label')}
-        className="mb-6"
-      />
+      {/* Search and Filter */}
+      <div className="flex flex-col sm:flex-row gap-4 mb-6">
+        <SearchInput
+          id="publications-search"
+          value={search}
+          onChange={(value) => {
+            setSearch(value)
+            resetPage()
+          }}
+          placeholder={t('home.feed.search.placeholder')}
+          label={t('home.feed.search.label')}
+          className="flex-1"
+        />
+        <Select
+          value={filter}
+          onValueChange={(value: FilterValue) => {
+            setFilter(value)
+            resetPage()
+          }}
+        >
+          <SelectTrigger
+            className="w-full sm:w-40"
+            aria-label={tTeams('publications.list.filter.label')}
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">{tTeams('publications.list.filter.all')}</SelectItem>
+            <SelectItem value="ride">{tTeams('publications.list.filter.ride')}</SelectItem>
+            <SelectItem value="post">{tTeams('publications.list.filter.post')}</SelectItem>
+            <SelectItem value="trip">{tTeams('publications.list.filter.trip')}</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
 
       {/* Loading State */}
       {isLoading ? (

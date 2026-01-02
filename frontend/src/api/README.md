@@ -145,6 +145,7 @@ Class | Method | HTTP request | Description
  - [MediaDto](docs/MediaDto.md)
  - [MemberDto](docs/MemberDto.md)
  - [MemberListResponse](docs/MemberListResponse.md)
+ - [MinRole](docs/MinRole.md)
  - [PlaceDetailDto](docs/PlaceDetailDto.md)
  - [PlaceListResponse](docs/PlaceListResponse.md)
  - [PlaceRequest](docs/PlaceRequest.md)

@@ -11,6 +11,7 @@ import com.tribly.dto.teams.response.TeamListResponse;
 import com.tribly.enums.TeamRole;
 import com.tribly.enums.Visibility;
 import com.tribly.infrastructure.exception.BusinessException;
+import com.tribly.service.team.request.MinRole;
 import com.tribly.util.TestDataCleaner;
 import com.tribly.util.TestDataService;
 import io.quarkus.test.junit.QuarkusTest;
@@ -104,30 +105,31 @@ class TeamServiceTest {
     dataService.createTeam(user1, "Public Team 2", "public-2", Visibility.PUBLIC);
     dataService.createTeam(user1, "Private Team", "private", Visibility.TEAM);
 
-    TeamListResponse result = teamService.listTeams(null, null, null, 0, 10);
+    TeamListResponse result = teamService.listTeams(null, MinRole.NOT_MEMBER, null, 0, 10);
 
     assertEquals(2, result.teams().size());
   }
 
   @Test
-  void listTeams_shouldFilterByMemberTrue() {
+  void listTeams_shouldFilterByMinRoleMember() {
     Team team1 = dataService.createTeam(user1, "Team 1", "team-1", Visibility.PUBLIC);
     dataService.createTeam(user1, "Team 2", "team-2", Visibility.PUBLIC);
     dataService.addUserToTeam(user1, team1, TeamRole.MEMBER);
 
-    TeamListResponse result = teamService.listTeams(user1.getId(), true, null, 0, 10);
+    TeamListResponse result = teamService.listTeams(user1.getId(), MinRole.MEMBER, null, 0, 10);
 
     assertEquals(1, result.teams().size());
     assertEquals("team-1", result.teams().getFirst().slug());
   }
 
   @Test
-  void listTeams_shouldFilterByMemberFalse() {
+  void listTeams_shouldFilterByMinRoleAdmin() {
     Team team1 = dataService.createTeam(user1, "Team 1", "team-1", Visibility.PUBLIC);
-    dataService.createTeam(user1, "Team 2", "team-2", Visibility.PUBLIC);
+    Team team2 = dataService.createTeam(user1, "Team 2", "team-2", Visibility.PUBLIC);
     dataService.addUserToTeam(user1, team1, TeamRole.MEMBER);
+    dataService.addUserToTeam(user1, team2, TeamRole.ADMIN);
 
-    TeamListResponse result = teamService.listTeams(user1.getId(), false, null, 0, 10);
+    TeamListResponse result = teamService.listTeams(user1.getId(), MinRole.ADMIN, null, 0, 10);
 
     assertEquals(1, result.teams().size());
     assertEquals("team-2", result.teams().getFirst().slug());
@@ -139,7 +141,7 @@ class TeamServiceTest {
       dataService.createTeam(user1, "Team " + i, "team-" + i, Visibility.PUBLIC);
     }
 
-    TeamListResponse result = teamService.listTeams(null, null, null, 0, 2);
+    TeamListResponse result = teamService.listTeams(null, MinRole.NOT_MEMBER, null, 0, 2);
 
     assertEquals(2, result.teams().size());
     assertEquals(5, result.total());

@@ -138,7 +138,7 @@ class TeamResourceTest extends AbstractResourceTest {
         .auth()
         .oauth2(getAccessToken(USER1))
         .when()
-        .get("/api/teams?member=true")
+        .get("/api/teams?minRole=MEMBER")
         .then()
         .statusCode(200)
         .body("teams", hasSize(greaterThanOrEqualTo(2)))

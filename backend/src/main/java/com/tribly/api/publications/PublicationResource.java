@@ -2,6 +2,7 @@ package com.tribly.api.publications;
 
 import com.tribly.api.AbstractAuthenticatedResource;
 import com.tribly.dto.publications.response.PublicationListResponse;
+import com.tribly.dto.publications.response.PublicationType;
 import com.tribly.service.common.PublicationService;
 import jakarta.annotation.security.PermitAll;
 import jakarta.inject.Inject;
@@ -9,6 +10,7 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.time.Instant;
+import java.util.List;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
@@ -38,6 +40,7 @@ public class PublicationResource extends AbstractAuthenticatedResource {
         content = @Content(schema = @Schema(implementation = PublicationListResponse.class)))
   })
   public Response listAllPublications(
+      @Parameter(description = "Types") @QueryParam("type") @Nullable List<PublicationType> types,
       @Parameter(description = "Search by name/markdown") @QueryParam("search")
           @Nullable String search,
       @Parameter(description = "Start date filter (ISO format)") @QueryParam("from")
@@ -53,7 +56,7 @@ public class PublicationResource extends AbstractAuthenticatedResource {
     Instant to = toStr != null ? Instant.parse(toStr) : null;
 
     PublicationListResponse response =
-        publicationService.list(null, userId, search, from, to, page, size);
+        publicationService.list(types, null, userId, search, from, to, page, size);
 
     return Response.ok(response).build();
   }

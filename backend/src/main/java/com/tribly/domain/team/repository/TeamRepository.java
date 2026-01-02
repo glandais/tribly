@@ -1,14 +1,19 @@
 package com.tribly.domain.team.repository;
 
 import com.tribly.domain.common.SearchClause;
+import com.tribly.domain.common.query.OrClause;
+import com.tribly.domain.common.query.SimpleClause;
 import com.tribly.domain.common.query.TriblyQuery;
 import com.tribly.domain.common.repository.BaseRepository;
 import com.tribly.domain.common.repository.TriblyPage;
 import com.tribly.domain.team.Team;
+import com.tribly.enums.TeamRole;
 import com.tribly.enums.Visibility;
+import com.tribly.service.team.request.MinRole;
 import com.tribly.service.team.response.TeamAndRole;
 import io.quarkus.hibernate.orm.panache.PanacheQuery;
 import jakarta.enterprise.context.ApplicationScoped;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -43,19 +48,28 @@ public class TeamRepository implements BaseRepository<Team> {
         SearchClause.addSearch(
             triblyQuery, Set.of("t.name", "t.teamDescription.markdown"), teamQuery.search());
     if (teamQuery.userId() != null) {
-      if (teamQuery.member() == null) {
-        triblyQuery.and(
-            "(t.visibility = :visibility OR ut.deleted = false)",
-            Map.of("visibility", Visibility.PUBLIC));
-      } else if (teamQuery.member()) {
-        triblyQuery.and("ut.deleted = false", Map.of());
+      if (teamQuery.minRole() == null || teamQuery.minRole() == MinRole.NOT_MEMBER) {
+        OrClause or = new OrClause();
+
+        or.add(
+            new SimpleClause(
+                "(t.visibility = :visibility OR ut.deleted = false)",
+                Map.of("visibility", Visibility.PUBLIC)));
+        or.add(new SimpleClause("ut.deleted = false", Map.of()));
+
+        triblyQuery.and(or);
+
       } else {
-        // Show public teams NOT joined by user
-        triblyQuery.and("visibility = :visibility", Map.of("visibility", Visibility.PUBLIC));
-        triblyQuery.and(
-            "NOT EXISTS (SELECT 1 FROM UserTeam ut2 WHERE ut2.team.id = t.id AND ut2.user.id ="
-                + " :userId AND ut2.deleted = false)",
-            Map.of());
+        List<TeamRole> roles =
+            switch (teamQuery.minRole()) {
+              case MEMBER -> List.of(TeamRole.MEMBER, TeamRole.ORGANIZER, TeamRole.ADMIN);
+              case ORGANIZER -> List.of(TeamRole.ORGANIZER, TeamRole.ADMIN);
+              case ADMIN -> List.of(TeamRole.ADMIN);
+              default ->
+                  throw new IllegalStateException("Unexpected value: " + teamQuery.minRole());
+            };
+        triblyQuery.and("ut.deleted = false", Map.of());
+        triblyQuery.and("ut.role in (:userRoles)", Map.of("userRoles", roles));
       }
     } else {
       triblyQuery.and("t.visibility = :visibility", Map.of("visibility", Visibility.PUBLIC));

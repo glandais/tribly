@@ -12,6 +12,7 @@ import com.tribly.dto.teams.response.TeamListResponse;
 import com.tribly.enums.TeamRole;
 import com.tribly.infrastructure.exception.BusinessException;
 import com.tribly.service.common.TeamEntityService;
+import com.tribly.service.team.request.MinRole;
 import com.tribly.service.team.response.TeamAndRole;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -53,16 +54,12 @@ public class TeamService extends TeamEntityService {
 
   @Transactional
   public TeamListResponse listTeams(
-      @Nullable Long userId,
-      @Nullable Boolean member,
-      @Nullable String search,
-      int page,
-      int size) {
+      @Nullable Long userId, MinRole minRole, @Nullable String search, int page, int size) {
     TriblyPage<TeamAndRole> teams =
         teamRepository.find(
             TeamQuery.builder()
                 .userId(userId)
-                .member(member)
+                .minRole(minRole)
                 .search(search)
                 .page(page)
                 .size(size)

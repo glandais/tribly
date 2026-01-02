@@ -66,6 +66,7 @@ public interface TeamEntityRepository<T extends TeamEntity, Q extends TeamEntity
 
       triblyQuery.and(visibilityFilter);
     }
+
     triblyQuery =
         triblyQuery
             .and("te.deleted = false", Map.of())

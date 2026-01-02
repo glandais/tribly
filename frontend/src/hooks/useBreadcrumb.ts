@@ -63,12 +63,6 @@ export function useBreadcrumb(): BreadcrumbItemType[] {
     return items
   }
 
-  // My teams page
-  if (location.pathname === '/myteams') {
-    items.push({ label: tCommon('nav.myTeams') })
-    return items
-  }
-
   // Profile page
   if (location.pathname.startsWith('/profile')) {
     items.push({ label: tCommon('nav.profile') })

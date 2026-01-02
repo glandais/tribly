@@ -8,6 +8,7 @@ import com.tribly.domain.team.repository.TeamRepository;
 import com.tribly.domain.user.User;
 import com.tribly.enums.TeamRole;
 import com.tribly.enums.Visibility;
+import com.tribly.service.team.request.MinRole;
 import com.tribly.service.team.response.TeamAndRole;
 import com.tribly.util.TestDataCleaner;
 import com.tribly.util.TestDataService;
@@ -134,7 +135,7 @@ class TeamRepositoryTest {
 
     dataService.addUserToTeam(user1, team1, TeamRole.MEMBER);
 
-    TeamQuery query = new TeamQuery(0, 10, null, user1.getId(), true, null);
+    TeamQuery query = new TeamQuery(0, 10, null, user1.getId(), MinRole.MEMBER, null);
     TriblyPage<TeamAndRole> result = teamRepository.find(query);
 
     assertEquals(1, result.items().size());
@@ -151,7 +152,7 @@ class TeamRepositoryTest {
 
     dataService.addUserToTeam(user1, memberTeam, TeamRole.MEMBER);
 
-    TeamQuery query = new TeamQuery(0, 10, null, user1.getId(), false, null);
+    TeamQuery query = new TeamQuery(0, 10, null, user1.getId(), MinRole.NOT_MEMBER, null);
     TriblyPage<TeamAndRole> result = teamRepository.find(query);
 
     assertEquals(1, result.items().size());

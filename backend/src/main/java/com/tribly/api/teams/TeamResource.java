@@ -6,6 +6,7 @@ import com.tribly.dto.teams.request.TeamRequest;
 import com.tribly.dto.teams.response.TeamDetailDto;
 import com.tribly.dto.teams.response.TeamListResponse;
 import com.tribly.service.team.TeamService;
+import com.tribly.service.team.request.MinRole;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
@@ -46,15 +47,16 @@ public class TeamResource extends AbstractAuthenticatedResource {
   public Response listTeams(
       @Parameter(description = "Search query to filter teams by name") @QueryParam(value = "search")
           @Nullable String search,
-      @Parameter(description = "Membership (false : public not member, true : my teams)")
-          @QueryParam(value = "member")
-          @Nullable Boolean member,
+      @Parameter(description = "Minimum role in team") @QueryParam(value = "minRole")
+          @Nullable MinRole minRole,
       @Parameter(description = "Page number (0-indexed)") @QueryParam("page") @DefaultValue("0")
           int page,
       @Parameter(description = "Page size") @QueryParam("size") @DefaultValue("20") int size) {
 
     Long userId = getCurrentUserIdOrNull();
-    TeamListResponse teams = teamService.listTeams(userId, member, search, page, size);
+    TeamListResponse teams =
+        teamService.listTeams(
+            userId, minRole == null ? MinRole.NOT_MEMBER : minRole, search, page, size);
     return Response.ok(teams).build();
   }
 

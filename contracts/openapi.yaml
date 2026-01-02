@@ -444,6 +444,13 @@ components:
           type: integer
           format: int32
           description: Page size
+    MinRole:
+      type: string
+      enum:
+      - NOT_MEMBER
+      - MEMBER
+      - ORGANIZER
+      - ADMIN
     PlaceDetailDto:
       type: object
       required:
@@ -1880,6 +1887,13 @@ paths:
         in: query
         schema:
           type: string
+      - description: Types
+        name: type
+        in: query
+        schema:
+          type: array
+          items:
+            $ref: "#/components/schemas/PublicationType"
       responses:
         "200":
           description: Publications retrieved successfully
@@ -1934,11 +1948,11 @@ paths:
       tags:
       - Teams
       parameters:
-      - description: "Membership (false : public not member, true : my teams)"
-        name: member
+      - description: Minimum role in team
+        name: minRole
         in: query
         schema:
-          type: boolean
+          $ref: "#/components/schemas/MinRole"
       - description: Page number (0-indexed)
         name: page
         in: query
@@ -3106,6 +3120,13 @@ paths:
         in: query
         schema:
           type: string
+      - description: Types
+        name: type
+        in: query
+        schema:
+          type: array
+          items:
+            $ref: "#/components/schemas/PublicationType"
       responses:
         "200":
           description: Publications retrieved successfully

@@ -8,22 +8,18 @@ import { LoginPage } from './pages/auth/LoginPage'
 import { UserProfilePage } from './pages/auth/UserProfilePage'
 import { AuthenticatedRoute, UnauthenticatedRoute } from './components/auth/ProtectedRoute'
 import { TeamListPage } from './pages/team/TeamListPage'
-import { MyTeamsPage } from './pages/team/MyTeamsPage'
 import { TeamMembersPage } from './pages/team/TeamMembersPage'
 import { CreateTeamPage } from './pages/team/CreateTeamPage'
 import { TeamSettingsPage } from './pages/team/TeamSettingsPage'
-import { RideListPage } from './pages/ride/RideListPage'
 import { RideDetailPage } from './pages/ride/RideDetailPage'
 import { CreateRidePage } from './pages/ride/CreateRidePage'
 import { EditRidePage } from './pages/ride/EditRidePage'
 import { RideTemplateListPage } from './pages/ridetemplate/RideTemplateListPage'
 import { CreateRideTemplatePage } from './pages/ridetemplate/CreateRideTemplatePage'
 import { EditRideTemplatePage } from './pages/ridetemplate/EditRideTemplatePage'
-import { TripListPage } from './pages/trip/TripListPage'
 import { TripDetailPage } from './pages/trip/TripDetailPage'
 import { CreateTripPage } from './pages/trip/CreateTripPage'
 import { EditTripPage } from './pages/trip/EditTripPage'
-import { PostListPage } from './pages/post/PostListPage'
 import { PostDetailPage } from './pages/post/PostDetailPage'
 import { CreatePostPage } from './pages/post/CreatePostPage'
 import { EditPostPage } from './pages/post/EditPostPage'
@@ -115,14 +111,6 @@ function App() {
             {/* Team routes */}
             <Route path="teams" element={<TeamListPage />} />
             <Route
-              path="myteams"
-              element={
-                <AuthenticatedRoute>
-                  <MyTeamsPage />
-                </AuthenticatedRoute>
-              }
-            />
-            <Route
               path="teams/new"
               element={
                 <AuthenticatedRoute>
@@ -149,7 +137,6 @@ function App() {
             />
 
             {/* Ride routes */}
-            <Route path="teams/:teamSlug/rides" element={<RideListPage />} />
             <Route
               path="teams/:teamSlug/rides/new"
               element={
@@ -195,7 +182,6 @@ function App() {
             />
 
             {/* Trip routes */}
-            <Route path="teams/:teamSlug/trips" element={<TripListPage />} />
             <Route
               path="teams/:teamSlug/trips/new"
               element={
@@ -215,7 +201,6 @@ function App() {
             />
 
             {/* Post routes */}
-            <Route path="teams/:teamSlug/posts" element={<PostListPage />} />
             <Route
               path="teams/:teamSlug/posts/new"
               element={

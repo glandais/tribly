@@ -78,6 +78,13 @@
       "publicTeams": "Aucune équipe publique ne correspond à votre recherche.",
       "title": "Aucune équipe trouvée"
     },
+    "filter": {
+      "admin": "Admin",
+      "all": "Toutes",
+      "label": "Filtre",
+      "member": "Membre",
+      "organizer": "Organisateur"
+    },
     "search": {
       "label": "Rechercher des équipes",
       "placeholder": "Rechercher des équipes..."
@@ -144,6 +151,13 @@
     "list": {
       "empty": "Aucune activité pour le moment",
       "emptyDescription": "Les publications et sorties apparaîtront ici une fois publiées",
+      "filter": {
+        "all": "Tous",
+        "label": "Type",
+        "post": "Publications",
+        "ride": "Sorties",
+        "trip": "Voyages"
+      },
       "noResults": "Aucune publication ne correspond à votre recherche.",
       "search": {
         "label": "Rechercher des publications",

@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { Link, useParams, Navigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { PlusIcon, NewspaperIcon } from '@heroicons/react/24/outline'
+import { PlusIcon, NewspaperIcon, ChevronDownIcon } from '@heroicons/react/24/outline'
 import { useTeam } from '../../hooks/useTeam'
-import { usePublications } from '../../hooks/usePublications'
+import { usePublications, PublicationType } from '../../hooks/usePublications'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { RideCard, RideCardSkeleton } from '../../components/ride/RideCard'
 import { PostCard, PostCardSkeleton } from '../../components/post/PostCard'
@@ -13,6 +13,30 @@ import type { RideDto, PostDto, TripDto } from '../../api/api'
 import { Pagination } from '../../components/common/Pagination'
 import { usePagination } from '../../hooks/usePagination'
 import { SearchInput } from '../../components/common/SearchInput'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Button } from '@/components/ui/button'
+import { ButtonGroup } from '@/components/ui/button-group'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+
+type FilterValue = 'all' | 'ride' | 'post' | 'trip'
+
+const filterToTypes: Record<FilterValue, PublicationType[] | undefined> = {
+  all: undefined,
+  ride: [PublicationType.Ride],
+  post: [PublicationType.Post],
+  trip: [PublicationType.Trip],
+}
 
 export function PublicationListPage() {
   const { t } = useTranslation('teams')
@@ -23,6 +47,7 @@ export function PublicationListPage() {
   const { teamSlug } = useParams<{ teamSlug: string }>()
   const [page, setPage] = useState(0)
   const [search, setSearch] = useState('')
+  const [filter, setFilter] = useState<FilterValue>('all')
   const pageSize = 20
 
   const { data: team, isLoading: isLoadingTeam } = useTeam(teamSlug)
@@ -30,6 +55,7 @@ export function PublicationListPage() {
     search: search || undefined,
     page,
     size: pageSize,
+    types: filterToTypes[filter],
   })
 
   const resetPage = () => setPage(0)
@@ -58,53 +84,76 @@ export function PublicationListPage() {
             <h2 className="text-2xl font-bold text-gray-900">{t('publications.list.title')}</h2>
           </div>
           {canCreate && (
-            <div className="flex items-center gap-2">
-              <Link
-                to={`/teams/${teamSlug}/rides/new`}
-                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
-              >
-                <PlusIcon className="w-4 h-4 mr-2" />
-                {tRides('list.createRide')}
-              </Link>
-              <Link
-                to={`/teams/${teamSlug}/posts/new`}
-                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
-              >
-                <PlusIcon className="w-4 h-4 mr-2" />
-                {tPosts('list.createPost')}
-              </Link>
-              {team.enableTrips && (
-                <Link
-                  to={`/teams/${teamSlug}/trips/new`}
-                  className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
-                >
-                  <PlusIcon className="w-4 h-4 mr-2" />
-                  {tTrips('list.createTrip')}
+            <ButtonGroup>
+              <Button asChild className="bg-indigo-600 hover:bg-indigo-700">
+                <Link to={`/teams/${teamSlug}/rides/new`}>
+                  <PlusIcon className="w-4 h-4" />
+                  {tRides('list.createRide')}
                 </Link>
-              )}
-              <Link
-                to={`/teams/${teamSlug}/routes/new`}
-                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
-              >
-                <PlusIcon className="w-4 h-4 mr-2" />
-                {tRoutes('list.createRoute')}
-              </Link>
-            </div>
+              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button className="!pl-2 bg-indigo-600 hover:bg-indigo-700">
+                    <ChevronDownIcon className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem asChild>
+                    <Link to={`/teams/${teamSlug}/rides/new`}>{tRides('list.createRide')}</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to={`/teams/${teamSlug}/posts/new`}>{tPosts('list.createPost')}</Link>
+                  </DropdownMenuItem>
+                  {team.enableTrips && (
+                    <DropdownMenuItem asChild>
+                      <Link to={`/teams/${teamSlug}/trips/new`}>{tTrips('list.createTrip')}</Link>
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuItem asChild>
+                    <Link to={`/teams/${teamSlug}/routes/new`}>{tRoutes('list.createRoute')}</Link>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </ButtonGroup>
           )}
         </div>
 
-        {/* Search Input */}
-        <SearchInput
-          id="publications-search"
-          value={search}
-          onChange={(value) => {
-            setSearch(value)
-            resetPage()
-          }}
-          placeholder={t('publications.list.search.placeholder')}
-          label={t('publications.list.search.label')}
-          className="mb-6"
-        />
+        {/* Search and Filter */}
+        <div className="flex flex-col sm:flex-row gap-4 mb-6">
+          <SearchInput
+            id="publications-search"
+            value={search}
+            onChange={(value) => {
+              setSearch(value)
+              resetPage()
+            }}
+            placeholder={t('publications.list.search.placeholder')}
+            label={t('publications.list.search.label')}
+            className="flex-1"
+          />
+          <Select
+            value={filter}
+            onValueChange={(value: FilterValue) => {
+              setFilter(value)
+              resetPage()
+            }}
+          >
+            <SelectTrigger
+              className="w-full sm:w-40"
+              aria-label={t('publications.list.filter.label')}
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{t('publications.list.filter.all')}</SelectItem>
+              <SelectItem value="ride">{t('publications.list.filter.ride')}</SelectItem>
+              <SelectItem value="post">{t('publications.list.filter.post')}</SelectItem>
+              {team?.enableTrips && (
+                <SelectItem value="trip">{t('publications.list.filter.trip')}</SelectItem>
+              )}
+            </SelectContent>
+          </Select>
+        </div>
 
         {/* Publications List */}
         {isLoadingPublications ? (

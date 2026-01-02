@@ -505,6 +505,10 @@
           }
         }
       },
+      "MinRole" : {
+        "type" : "string",
+        "enum" : [ "NOT_MEMBER", "MEMBER", "ORGANIZER", "ADMIN" ]
+      },
       "PlaceDetailDto" : {
         "type" : "object",
         "required" : [ "id", "name", "startPlace", "endPlace" ],
@@ -2120,6 +2124,16 @@
           "schema" : {
             "type" : "string"
           }
+        }, {
+          "description" : "Types",
+          "name" : "type",
+          "in" : "query",
+          "schema" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/PublicationType"
+            }
+          }
         } ],
         "responses" : {
           "200" : {
@@ -2201,11 +2215,11 @@
         "operationId" : "listTeams",
         "tags" : [ "Teams" ],
         "parameters" : [ {
-          "description" : "Membership (false : public not member, true : my teams)",
-          "name" : "member",
+          "description" : "Minimum role in team",
+          "name" : "minRole",
           "in" : "query",
           "schema" : {
-            "type" : "boolean"
+            "$ref" : "#/components/schemas/MinRole"
           }
         }, {
           "description" : "Page number (0-indexed)",
@@ -3901,6 +3915,16 @@
           "in" : "query",
           "schema" : {
             "type" : "string"
+          }
+        }, {
+          "description" : "Types",
+          "name" : "type",
+          "in" : "query",
+          "schema" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/PublicationType"
+            }
           }
         } ],
         "responses" : {

@@ -391,6 +391,16 @@ export interface MemberListResponse {
    */
   size: number
 }
+
+export const MinRole = {
+  NotMember: 'NOT_MEMBER',
+  Member: 'MEMBER',
+  Organizer: 'ORGANIZER',
+  Admin: 'ADMIN',
+} as const
+
+export type MinRole = (typeof MinRole)[keyof typeof MinRole]
+
 export interface PlaceDetailDto {
   /**
    * Place ID (TSID)
@@ -3332,6 +3342,7 @@ export const PublicationsApiAxiosParamCreator = function (configuration?: Config
      * @param {string} [search] Search by name/markdown
      * @param {number} [size] Page size
      * @param {string} [to] End date filter (ISO format)
+     * @param {Array<PublicationType>} [type] Types
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
@@ -3341,6 +3352,7 @@ export const PublicationsApiAxiosParamCreator = function (configuration?: Config
       search?: string,
       size?: number,
       to?: string,
+      type?: Array<PublicationType>,
       options: RawAxiosRequestConfig = {}
     ): Promise<RequestArgs> => {
       const localVarPath = `/api/publications`
@@ -3375,6 +3387,10 @@ export const PublicationsApiAxiosParamCreator = function (configuration?: Config
         localVarQueryParameter['to'] = to
       }
 
+      if (type) {
+        localVarQueryParameter['type'] = type
+      }
+
       setSearchParams(localVarUrlObj, localVarQueryParameter)
       let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {}
       localVarRequestOptions.headers = {
@@ -3397,6 +3413,7 @@ export const PublicationsApiAxiosParamCreator = function (configuration?: Config
      * @param {string} [search] Search by name/markdown
      * @param {number} [size] Page size
      * @param {string} [to] End date filter (ISO format)
+     * @param {Array<PublicationType>} [type] Types
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
@@ -3407,6 +3424,7 @@ export const PublicationsApiAxiosParamCreator = function (configuration?: Config
       search?: string,
       size?: number,
       to?: string,
+      type?: Array<PublicationType>,
       options: RawAxiosRequestConfig = {}
     ): Promise<RequestArgs> => {
       // verify required parameter 'slug' is not null or undefined
@@ -3446,6 +3464,10 @@ export const PublicationsApiAxiosParamCreator = function (configuration?: Config
         localVarQueryParameter['to'] = to
       }
 
+      if (type) {
+        localVarQueryParameter['type'] = type
+      }
+
       setSearchParams(localVarUrlObj, localVarQueryParameter)
       let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {}
       localVarRequestOptions.headers = {
@@ -3476,6 +3498,7 @@ export const PublicationsApiFp = function (configuration?: Configuration) {
      * @param {string} [search] Search by name/markdown
      * @param {number} [size] Page size
      * @param {string} [to] End date filter (ISO format)
+     * @param {Array<PublicationType>} [type] Types
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
@@ -3485,6 +3508,7 @@ export const PublicationsApiFp = function (configuration?: Configuration) {
       search?: string,
       size?: number,
       to?: string,
+      type?: Array<PublicationType>,
       options?: RawAxiosRequestConfig
     ): Promise<
       (axios?: AxiosInstance, basePath?: string) => AxiosPromise<PublicationListResponse>
@@ -3495,6 +3519,7 @@ export const PublicationsApiFp = function (configuration?: Configuration) {
         search,
         size,
         to,
+        type,
         options
       )
       const localVarOperationServerIndex = configuration?.serverIndex ?? 0
@@ -3518,6 +3543,7 @@ export const PublicationsApiFp = function (configuration?: Configuration) {
      * @param {string} [search] Search by name/markdown
      * @param {number} [size] Page size
      * @param {string} [to] End date filter (ISO format)
+     * @param {Array<PublicationType>} [type] Types
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
@@ -3528,6 +3554,7 @@ export const PublicationsApiFp = function (configuration?: Configuration) {
       search?: string,
       size?: number,
       to?: string,
+      type?: Array<PublicationType>,
       options?: RawAxiosRequestConfig
     ): Promise<
       (axios?: AxiosInstance, basePath?: string) => AxiosPromise<PublicationListResponse>
@@ -3539,6 +3566,7 @@ export const PublicationsApiFp = function (configuration?: Configuration) {
         search,
         size,
         to,
+        type,
         options
       )
       const localVarOperationServerIndex = configuration?.serverIndex ?? 0
@@ -3573,6 +3601,7 @@ export const PublicationsApiFactory = function (
      * @param {string} [search] Search by name/markdown
      * @param {number} [size] Page size
      * @param {string} [to] End date filter (ISO format)
+     * @param {Array<PublicationType>} [type] Types
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
@@ -3582,10 +3611,11 @@ export const PublicationsApiFactory = function (
       search?: string,
       size?: number,
       to?: string,
+      type?: Array<PublicationType>,
       options?: RawAxiosRequestConfig
     ): AxiosPromise<PublicationListResponse> {
       return localVarFp
-        .listAllPublications(from, page, search, size, to, options)
+        .listAllPublications(from, page, search, size, to, type, options)
         .then((request) => request(axios, basePath))
     },
     /**
@@ -3597,6 +3627,7 @@ export const PublicationsApiFactory = function (
      * @param {string} [search] Search by name/markdown
      * @param {number} [size] Page size
      * @param {string} [to] End date filter (ISO format)
+     * @param {Array<PublicationType>} [type] Types
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
@@ -3607,10 +3638,11 @@ export const PublicationsApiFactory = function (
       search?: string,
       size?: number,
       to?: string,
+      type?: Array<PublicationType>,
       options?: RawAxiosRequestConfig
     ): AxiosPromise<PublicationListResponse> {
       return localVarFp
-        .listPublications(slug, from, page, search, size, to, options)
+        .listPublications(slug, from, page, search, size, to, type, options)
         .then((request) => request(axios, basePath))
     },
   }
@@ -3628,6 +3660,7 @@ export class PublicationsApi extends BaseAPI {
    * @param {string} [search] Search by name/markdown
    * @param {number} [size] Page size
    * @param {string} [to] End date filter (ISO format)
+   * @param {Array<PublicationType>} [type] Types
    * @param {*} [options] Override http request option.
    * @throws {RequiredError}
    */
@@ -3637,10 +3670,11 @@ export class PublicationsApi extends BaseAPI {
     search?: string,
     size?: number,
     to?: string,
+    type?: Array<PublicationType>,
     options?: RawAxiosRequestConfig
   ) {
     return PublicationsApiFp(this.configuration)
-      .listAllPublications(from, page, search, size, to, options)
+      .listAllPublications(from, page, search, size, to, type, options)
       .then((request) => request(this.axios, this.basePath))
   }
 
@@ -3653,6 +3687,7 @@ export class PublicationsApi extends BaseAPI {
    * @param {string} [search] Search by name/markdown
    * @param {number} [size] Page size
    * @param {string} [to] End date filter (ISO format)
+   * @param {Array<PublicationType>} [type] Types
    * @param {*} [options] Override http request option.
    * @throws {RequiredError}
    */
@@ -3663,10 +3698,11 @@ export class PublicationsApi extends BaseAPI {
     search?: string,
     size?: number,
     to?: string,
+    type?: Array<PublicationType>,
     options?: RawAxiosRequestConfig
   ) {
     return PublicationsApiFp(this.configuration)
-      .listPublications(slug, from, page, search, size, to, options)
+      .listPublications(slug, from, page, search, size, to, type, options)
       .then((request) => request(this.axios, this.basePath))
   }
 }
@@ -7560,7 +7596,7 @@ export const TeamsApiAxiosParamCreator = function (configuration?: Configuration
     /**
      * Get a paginated list of public teams with optional search
      * @summary List public teams
-     * @param {boolean} [member] Membership (false : public not member, true : my teams)
+     * @param {MinRole} [minRole] Minimum role in team
      * @param {number} [page] Page number (0-indexed)
      * @param {string} [search] Search query to filter teams by name
      * @param {number} [size] Page size
@@ -7568,7 +7604,7 @@ export const TeamsApiAxiosParamCreator = function (configuration?: Configuration
      * @throws {RequiredError}
      */
     listTeams: async (
-      member?: boolean,
+      minRole?: MinRole,
       page?: number,
       search?: string,
       size?: number,
@@ -7586,8 +7622,8 @@ export const TeamsApiAxiosParamCreator = function (configuration?: Configuration
       const localVarHeaderParameter = {} as any
       const localVarQueryParameter = {} as any
 
-      if (member !== undefined) {
-        localVarQueryParameter['member'] = member
+      if (minRole !== undefined) {
+        localVarQueryParameter['minRole'] = minRole
       }
 
       if (page !== undefined) {
@@ -7750,7 +7786,7 @@ export const TeamsApiFp = function (configuration?: Configuration) {
     /**
      * Get a paginated list of public teams with optional search
      * @summary List public teams
-     * @param {boolean} [member] Membership (false : public not member, true : my teams)
+     * @param {MinRole} [minRole] Minimum role in team
      * @param {number} [page] Page number (0-indexed)
      * @param {string} [search] Search query to filter teams by name
      * @param {number} [size] Page size
@@ -7758,14 +7794,14 @@ export const TeamsApiFp = function (configuration?: Configuration) {
      * @throws {RequiredError}
      */
     async listTeams(
-      member?: boolean,
+      minRole?: MinRole,
       page?: number,
       search?: string,
       size?: number,
       options?: RawAxiosRequestConfig
     ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TeamListResponse>> {
       const localVarAxiosArgs = await localVarAxiosParamCreator.listTeams(
-        member,
+        minRole,
         page,
         search,
         size,
@@ -7860,7 +7896,7 @@ export const TeamsApiFactory = function (
     /**
      * Get a paginated list of public teams with optional search
      * @summary List public teams
-     * @param {boolean} [member] Membership (false : public not member, true : my teams)
+     * @param {MinRole} [minRole] Minimum role in team
      * @param {number} [page] Page number (0-indexed)
      * @param {string} [search] Search query to filter teams by name
      * @param {number} [size] Page size
@@ -7868,14 +7904,14 @@ export const TeamsApiFactory = function (
      * @throws {RequiredError}
      */
     listTeams(
-      member?: boolean,
+      minRole?: MinRole,
       page?: number,
       search?: string,
       size?: number,
       options?: RawAxiosRequestConfig
     ): AxiosPromise<TeamListResponse> {
       return localVarFp
-        .listTeams(member, page, search, size, options)
+        .listTeams(minRole, page, search, size, options)
         .then((request) => request(axios, basePath))
     },
     /**
@@ -7944,7 +7980,7 @@ export class TeamsApi extends BaseAPI {
   /**
    * Get a paginated list of public teams with optional search
    * @summary List public teams
-   * @param {boolean} [member] Membership (false : public not member, true : my teams)
+   * @param {MinRole} [minRole] Minimum role in team
    * @param {number} [page] Page number (0-indexed)
    * @param {string} [search] Search query to filter teams by name
    * @param {number} [size] Page size
@@ -7952,14 +7988,14 @@ export class TeamsApi extends BaseAPI {
    * @throws {RequiredError}
    */
   public listTeams(
-    member?: boolean,
+    minRole?: MinRole,
     page?: number,
     search?: string,
     size?: number,
     options?: RawAxiosRequestConfig
   ) {
     return TeamsApiFp(this.configuration)
-      .listTeams(member, page, search, size, options)
+      .listTeams(minRole, page, search, size, options)
       .then((request) => request(this.axios, this.basePath))
   }
 
