@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { NewspaperIcon, UsersIcon } from '@heroicons/react/24/outline'
+import { NewspaperIcon } from '@heroicons/react/24/outline'
 import { useAllPublications, PublicationType } from '../../hooks/useAllPublications'
-import { RideCard, RideCardSkeleton } from '../../components/ride/RideCard'
-import { PostCard, PostCardSkeleton } from '../../components/post/PostCard'
-import { TripCard, TripCardSkeleton } from '../../components/trip/TripCard'
-import type { RideDto, PostDto, TripDto } from '../../api/api'
+import {
+  PublicationCard,
+  PublicationCardSkeleton,
+} from '../../components/publication/PublicationCard'
 import { Pagination } from '../../components/common/Pagination'
 import { usePagination } from '../../hooks/usePagination'
 import { SearchInput } from '../../components/common/SearchInput'
@@ -99,16 +99,9 @@ export function HomePage() {
       {/* Loading State */}
       {isLoading ? (
         <div className="space-y-6">
-          {[...Array(6)].map((_, i) =>
-            // Alternate between ride, post, and trip skeletons for visual variety
-            i % 3 === 0 ? (
-              <RideCardSkeleton key={i} />
-            ) : i % 3 === 1 ? (
-              <PostCardSkeleton key={i} />
-            ) : (
-              <TripCardSkeleton key={i} />
-            )
-          )}
+          {[...Array(6)].map((_, i) => (
+            <PublicationCardSkeleton key={i} />
+          ))}
         </div>
       ) : isError ? (
         /* Error State */
@@ -120,34 +113,13 @@ export function HomePage() {
         /* Publications List */
         <div className="space-y-6">
           {publicationsData.publications.map((publication) => (
-            <div key={publication.id} className="space-y-1">
-              {/* Team Name Label */}
-              <div className="text-xs text-gray-500 flex items-center gap-1">
-                <UsersIcon className="h-4 w-4" />
-                {publication.team?.name || 'Unknown Team'}
-              </div>
-
-              {/* Publication Card */}
-              {publication.type === 'RIDE' ? (
-                <RideCard
-                  ride={publication as RideDto}
-                  teamSlug={publication.team?.slug || ''}
-                  showTypeBadge={true}
-                />
-              ) : publication.type === 'TRIP' ? (
-                <TripCard
-                  trip={publication as TripDto}
-                  teamSlug={publication.team?.slug || ''}
-                  showTypeBadge={true}
-                />
-              ) : (
-                <PostCard
-                  post={publication as PostDto}
-                  teamSlug={publication.team?.slug || ''}
-                  showTypeBadge={true}
-                />
-              )}
-            </div>
+            <PublicationCard
+              key={publication.id}
+              publication={publication}
+              teamSlug={publication.team?.slug || ''}
+              team={publication.team}
+              showTypeBadge={true}
+            />
           ))}
 
           <Pagination

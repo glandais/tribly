@@ -329,7 +329,7 @@ export const routesConfig: RoutesConfig = [
     component: RouteDetailPage,
     auth: 'public',
     parentId: 'routes',
-    breadcrumb: { type: 'dynamic', entity: 'route' }
+    breadcrumb: { type: 'dynamic', entity: 'route' },
   },
   {
     id: 'route-edit',

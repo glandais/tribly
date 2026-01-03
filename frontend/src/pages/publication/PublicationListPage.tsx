@@ -5,11 +5,11 @@ import { PlusIcon, NewspaperIcon, ChevronDownIcon } from '@heroicons/react/24/ou
 import { useTeam } from '../../hooks/useTeam'
 import { usePublications, PublicationType } from '../../hooks/usePublications'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
-import { RideCard, RideCardSkeleton } from '../../components/ride/RideCard'
-import { PostCard, PostCardSkeleton } from '../../components/post/PostCard'
-import { TripCard, TripCardSkeleton } from '../../components/trip/TripCard'
+import {
+  PublicationCard,
+  PublicationCardSkeleton,
+} from '../../components/publication/PublicationCard'
 import { TeamLayout } from '../../components/team/TeamLayout'
-import type { RideDto, PostDto, TripDto } from '../../api/api'
 import { Pagination } from '../../components/common/Pagination'
 import { usePagination } from '../../hooks/usePagination'
 import { SearchInput } from '../../components/common/SearchInput'
@@ -159,51 +159,21 @@ export function PublicationListPage() {
         {/* Publications List */}
         {isLoadingPublications ? (
           <div className="space-y-4">
-            {[...Array(3)].map((_, i) =>
-              // Alternate between ride, post, and trip skeletons for visual variety
-              i % 3 === 0 ? (
-                <RideCardSkeleton key={i} />
-              ) : i % 3 === 1 ? (
-                <PostCardSkeleton key={i} />
-              ) : (
-                <TripCardSkeleton key={i} />
-              )
-            )}
+            {[...Array(3)].map((_, i) => (
+              <PublicationCardSkeleton key={i} />
+            ))}
           </div>
         ) : publicationsData?.publications && publicationsData.publications.length > 0 ? (
           <>
             <div className="space-y-4">
-              {publicationsData.publications.map((publication) => {
-                // Discriminated union type narrowing based on 'type' field
-                if (publication.type === 'RIDE') {
-                  return (
-                    <RideCard
-                      key={publication.id}
-                      ride={publication as RideDto}
-                      teamSlug={teamSlug!}
-                      showTypeBadge={true}
-                    />
-                  )
-                }
-                if (publication.type === 'TRIP') {
-                  return (
-                    <TripCard
-                      key={publication.id}
-                      trip={publication as TripDto}
-                      teamSlug={teamSlug!}
-                      showTypeBadge={true}
-                    />
-                  )
-                }
-                return (
-                  <PostCard
-                    key={publication.id}
-                    post={publication as PostDto}
-                    teamSlug={teamSlug!}
-                    showTypeBadge={true}
-                  />
-                )
-              })}
+              {publicationsData.publications.map((publication) => (
+                <PublicationCard
+                  key={publication.id}
+                  publication={publication}
+                  teamSlug={teamSlug!}
+                  showTypeBadge={true}
+                />
+              ))}
             </div>
 
             <Pagination

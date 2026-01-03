@@ -71,11 +71,7 @@ function perpendicularDistance(
  * @param centerLat Center latitude for projection (undefined = calculate from points)
  * @returns Array of indices of points to keep
  */
-export function douglasPeucker(
-  points: Point[],
-  epsilon: number,
-  centerLat?: number
-): number[] {
+export function douglasPeucker(points: Point[], epsilon: number, centerLat?: number): number[] {
   if (points.length <= 2) {
     return points.map((_, i) => i)
   }

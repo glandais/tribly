@@ -43,15 +43,6 @@ export function Layout() {
               <Link to="/" className="shrink-0 flex items-center">
                 <span className="text-2xl font-bold text-indigo-600">{t('appName')}</span>
               </Link>
-              {/* Desktop navigation */}
-              <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
-                <Link
-                  to={paths.teams()}
-                  className="text-gray-700 hover:text-gray-900 inline-flex items-center px-1 pt-1 text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 rounded"
-                >
-                  {t('nav.teams')}
-                </Link>
-              </div>
             </div>
 
             {/* Desktop user menu */}
@@ -123,15 +114,6 @@ export function Layout() {
               <div className="px-3 pb-3">
                 <LanguageSwitcher />
               </div>
-              <div className="space-y-1">
-                <Link
-                  to={paths.teams()}
-                  className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-indigo-500"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  {t('nav.teams')}
-                </Link>
-              </div>
 
               <div className="mt-3 pt-3 border-t border-gray-200">
                 {isAuthenticated ? (
@@ -185,9 +167,7 @@ export function Layout() {
       </header>
 
       <main id="main-content" className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 sm:px-0">
-          <Breadcrumb items={breadcrumbItems} showBackLink={showBackLink} />
-        </div>
+        <Breadcrumb items={breadcrumbItems} showBackLink={showBackLink} />
         <Outlet />
       </main>
 
