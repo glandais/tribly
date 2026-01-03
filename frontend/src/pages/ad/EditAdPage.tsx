@@ -10,6 +10,7 @@ import { paths } from '@/config/paths'
 
 export function EditAdPage() {
   const { t } = useTranslation('ads')
+  const { t: tCommon } = useTranslation('common')
   const { teamSlug, adSlug } = useParams<{ teamSlug: string; adSlug: string }>()
   const navigate = useNavigate()
   const { data: team, isLoading: isLoadingTeam } = useTeam(teamSlug)
@@ -18,7 +19,7 @@ export function EditAdPage() {
   const updateMutation = useUpdateAd(teamSlug, adSlug!)
 
   if (isLoadingTeam || isLoadingAd) {
-    return <LoadingPage message={t('loading')} />
+    return <LoadingPage message={tCommon('loading')} />
   }
 
   if (!team || !ad) {
@@ -82,7 +83,7 @@ export function EditAdPage() {
         onCancel={() => navigate(paths.ad(teamSlug!, adSlug!))}
         isPending={updateMutation.isPending}
         error={updateMutation.error}
-        submitButtonText={t('edit.submit')}
+        submitButtonText={tCommon('actions.save')}
       />
     </div>
   )

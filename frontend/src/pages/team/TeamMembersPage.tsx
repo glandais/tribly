@@ -48,7 +48,7 @@ export function TeamMembersPage() {
   const addMemberMutation = useAddMember(teamSlug || '')
 
   if (isLoadingTeam) {
-    return <LoadingPage message={t('detail.loading')} />
+    return <LoadingPage message={tCommon('loading')} />
   }
 
   if (!team) {
@@ -129,7 +129,7 @@ export function TeamMembersPage() {
               disabled={addMemberMutation.isPending}
               className="px-4 py-2 border border-gray-300 rounded-md shadow-xs text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
             >
-              {tCommon('buttons.cancel')}
+              {tCommon('actions.cancelAction')}
             </button>
           }
         >

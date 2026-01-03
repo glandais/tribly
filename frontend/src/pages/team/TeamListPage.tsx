@@ -29,6 +29,7 @@ const filterToMinRole: Record<FilterValue, MinRole | undefined> = {
 
 export function TeamListPage() {
   const { t } = useTranslation('teams')
+  const { t: tCommon } = useTranslation('common')
   const { t: tErrors } = useTranslation('errors')
   const [search, setSearch] = useState('')
   const { isAuthenticated } = useAuth()
@@ -62,7 +63,7 @@ export function TeamListPage() {
     <HomeLayout currentTab="teams">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-6 mb-8">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">{t('list.title')}</h2>
+          <h2 className="text-2xl font-bold text-gray-900">{tCommon('teams')}</h2>
           <p className="mt-1 text-gray-700">{t('list.subtitle')}</p>
         </div>
         {isAuthenticated && (
@@ -71,7 +72,7 @@ export function TeamListPage() {
             className="mt-4 sm:mt-0 inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-500"
           >
             <PlusIcon className="w-5 h-5 mr-2 -ml-1" aria-hidden="true" />
-            {t('list.createTeam')}
+            {t('create.title')}
           </Link>
         )}
       </div>
@@ -101,9 +102,9 @@ export function TeamListPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">{t('list.filter.all')}</SelectItem>
-              <SelectItem value="member">{t('list.filter.member')}</SelectItem>
-              <SelectItem value="organizer">{t('list.filter.organizer')}</SelectItem>
-              <SelectItem value="admin">{t('list.filter.admin')}</SelectItem>
+              <SelectItem value="member">{tCommon('roles.MEMBER')}</SelectItem>
+              <SelectItem value="organizer">{tCommon('roles.ORGANIZER')}</SelectItem>
+              <SelectItem value="admin">{tCommon('roles.ADMIN')}</SelectItem>
             </SelectContent>
           </Select>
         )}
@@ -148,7 +149,7 @@ export function TeamListPage() {
                 className="inline-flex items-center px-4 py-2 border border-transparent shadow-xs text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-500"
               >
                 <PlusIcon className="w-5 h-5 mr-2 -ml-1" aria-hidden="true" />
-                {t('list.empty.createAction')}
+                {t('create.title')}
               </Link>
             </div>
           )}

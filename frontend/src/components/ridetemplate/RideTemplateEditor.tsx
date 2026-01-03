@@ -156,7 +156,7 @@ export function RideTemplateEditor({
       {/* Description (Markdown) */}
       <div>
         <label htmlFor="markdown" className="block text-sm font-medium text-gray-700">
-          {t('form.description.label')}
+          {tCommon('form.description')}
         </label>
         <div className="mt-1">
           <MarkdownEditor
@@ -174,7 +174,7 @@ export function RideTemplateEditor({
       {/* Visibility */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          {t('form.visibility.label')} <span className="text-red-500">*</span>
+          {tCommon('visibility.label')} <span className="text-red-500">*</span>
         </label>
         <div className="space-y-2">
           <label className="flex items-center">
@@ -186,7 +186,7 @@ export function RideTemplateEditor({
               onChange={() => setVisibility(Visibility.Team)}
               className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
             />
-            <span className="ml-2 text-sm text-gray-700">{t('form.visibility.team')}</span>
+            <span className="ml-2 text-sm text-gray-700">{tCommon('visibility.team')}</span>
           </label>
           <label className="flex items-center">
             <input
@@ -223,7 +223,7 @@ export function RideTemplateEditor({
               onChange={() => setStatus(Status.Draft)}
               className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
             />
-            <span className="ml-2 text-sm text-gray-700">{t('form.status.draft')}</span>
+            <span className="ml-2 text-sm text-gray-700">{tCommon('status.DRAFT')}</span>
           </label>
           <label className="flex items-center">
             <input
@@ -234,7 +234,7 @@ export function RideTemplateEditor({
               onChange={() => setStatus(Status.Published)}
               className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
             />
-            <span className="ml-2 text-sm text-gray-700">{t('form.status.published')}</span>
+            <span className="ml-2 text-sm text-gray-700">{tCommon('status.PUBLISHED')}</span>
           </label>
         </div>
       </div>
@@ -250,7 +250,7 @@ export function RideTemplateEditor({
             onClick={handleAddGroup}
             className="text-sm text-indigo-600 hover:text-indigo-700"
           >
-            {t('form.groups.add')}
+            {tCommon('groups.add')}
           </button>
         </div>
         <p className="text-sm text-gray-500 mb-3">{t('form.groups.hint')}</p>
@@ -277,9 +277,9 @@ export function RideTemplateEditor({
                   <span className="text-sm font-medium text-gray-700">
                     {group.isNew
                       ? t('form.groups.new')
-                      : group.name || `${t('form.groups.label')} ${index + 1}`}
+                      : group.name || t('form.groups.defaultName', { number: index + 1 })}
                     {group.isDeleted && (
-                      <span className="ml-2 text-red-600">{t('form.groups.willBeDeleted')}</span>
+                      <span className="ml-2 text-red-600">{tCommon('willBeDeleted')}</span>
                     )}
                   </span>
                 </div>
@@ -382,7 +382,7 @@ export function RideTemplateEditor({
           disabled={isPending}
           className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
         >
-          {tCommon('buttons.cancel')}
+          {tCommon('actions.cancelAction')}
         </button>
         <button
           type="submit"
@@ -390,7 +390,7 @@ export function RideTemplateEditor({
           className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
         >
           {isPending && <LoadingSpinner size="sm" />}
-          {submitButtonText || tCommon('buttons.save')}
+          {submitButtonText || tCommon('actions.save')}
         </button>
       </div>
     </form>

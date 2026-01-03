@@ -32,7 +32,7 @@ export function TeamAdminLayout({ team, currentTab, children }: TeamAdminLayoutP
     {
       id: 'places',
       path: paths.teamAdminPlaces(team.slug),
-      label: t('admin.tabs.places'),
+      label: t('places.title'),
     },
     {
       id: 'pages',

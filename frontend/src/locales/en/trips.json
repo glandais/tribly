@@ -1,44 +1,30 @@
 {
-  "breadcrumb": {
-    "trips": "Trips"
-  },
   "card": {
-    "participantCount_one": "{{count}} participant",
-    "participantCount_other": "{{count}} participants",
     "stageCount_one": "{{count}} stage",
     "stageCount_other": "{{count}} stages"
   },
   "create": {
-    "backToTrips": "Back to Trips",
     "button": "Create Trip",
     "error": "Failed to create trip. Please try again.",
     "form": {
-      "date": {
-        "label": "Start Date"
-      },
       "description": {
-        "label": "Description",
         "placeholder": "Describe the trip, highlights, logistics..."
       },
       "publishAt": {
-        "hint": "Set a date/time for automatic publication",
         "label": "Schedule Publication"
       },
       "route": {
-        "change": "Change",
         "clear": "Remove",
         "hint": "Optional: attach an overall GPX route for the entire trip",
         "label": "Overall Route",
-        "none": "No route selected",
         "select": "Select a route",
         "selectForStage": "Select route for stage",
         "selectForTrip": "Select route for trip"
       },
       "stages": {
         "add": "Add Stage",
-        "defaultName": "Day {{day}}",
+        "defaultName": "Stage {{number}}",
         "description": {
-          "label": "Description",
           "placeholder": "Describe this stage..."
         },
         "empty": "No stages defined. Add at least one stage.",
@@ -47,7 +33,6 @@
           "placeholder": "Search for end location..."
         },
         "hint": "Create stages for each day or segment of your trip",
-        "label": "Stages",
         "name": {
           "placeholder": "Stage name (e.g., Day 1: Mountain Pass)"
         },
@@ -55,17 +40,12 @@
         "remove": "Remove",
         "restore": "Restore",
         "route": {
-          "label": "Stage Route",
-          "none": "No route for this stage"
+          "label": "Stage Route"
         },
         "startPlace": {
           "label": "Start Location",
           "placeholder": "Search for start location..."
-        },
-        "willBeDeleted": "(will be deleted)"
-      },
-      "status": {
-        "label": "Status"
+        }
       },
       "title": {
         "label": "Trip Title",
@@ -78,13 +58,9 @@
   "detail": {
     "actions": {
       "cancel": "Cancel Trip",
-      "delete": "Delete",
-      "edit": "Edit",
       "join": "Join Trip",
       "leave": "Leave Trip",
-      "publish": "Publish",
-      "uncancel": "Restore Trip",
-      "unpublish": "Unpublish"
+      "uncancel": "Restore Trip"
     },
     "confirmations": {
       "cancel": "Are you sure you want to cancel this trip?",
@@ -115,30 +91,9 @@
     }
   },
   "edit": {
-    "backToTrip": "Back to Trip",
-    "button": "Save Changes",
     "subtitle": "Update trip details for {{teamName}}",
     "title": "Edit Trip"
   },
-  "list": {
-    "createTrip": "Create Trip",
-    "empty": {
-      "admin": "Get started by creating your first trip.",
-      "createAction": "Create a Trip",
-      "member": "No trips are scheduled at the moment.",
-      "title": "No trips yet"
-    },
-    "noResults": "No trips found matching your search.",
-    "notFound": {
-      "title": "Team Not Found"
-    },
-    "search": {
-      "label": "Search trips",
-      "placeholder": "Search by title or description..."
-    },
-    "title": "Trips"
-  },
-  "loading": "Loading trip...",
   "notifications": {
     "created": "Trip created successfully",
     "deleted": "Trip deleted successfully",
@@ -147,13 +102,6 @@
     "updated": "Trip updated successfully"
   },
   "stage": {
-    "endPlace": "End",
-    "startPlace": "Start",
     "viewRoute": "View Route"
-  },
-  "status": {
-    "CANCELLED": "Cancelled",
-    "DRAFT": "Draft",
-    "PUBLISHED": "Published"
   }
 }

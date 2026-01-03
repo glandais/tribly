@@ -7,9 +7,7 @@
     "HC": "Hors Catégorie"
   },
   "create": {
-    "backToList": "Back to routes",
     "form": {
-      "description": "Description",
       "gpxFile": "GPX File",
       "gpxFileHint": ".gpx format only, maximum size 10 MB",
       "name": "Route name",
@@ -32,11 +30,9 @@
     }
   },
   "createModal": {
-    "create": "Create",
-    "title": "Create new route"
+    "create": "Create"
   },
   "detail": {
-    "backToList": "Back to routes",
     "climbs": {
       "avgGradient": "Average gradient",
       "distance": "From {{start}} km to {{end}} km",
@@ -66,23 +62,17 @@
     }
   },
   "edit": {
-    "backToDetail": "Back to route",
-    "submit": "Save changes",
     "subtitle": "Edit route information",
     "title": "Edit route"
   },
   "list": {
-    "createRoute": "Create route",
-    "error": "Error loading routes",
     "empty": {
-      "createAction": "Create a route",
       "description": "No routes are available at the moment.",
       "title": "No routes"
     },
     "filters": {
       "clear": "Clear",
       "distance": {
-        "label": "Distance",
         "max": "Max",
         "min": "Min",
         "unit": "km"
@@ -97,8 +87,8 @@
       "hilliness": {
         "FLAT": "Flat",
         "HILLY": "Hilly",
-        "MOUNTAINOUS": "Mountainous",
-        "label": "Hilliness"
+        "label": "Hilliness",
+        "MOUNTAINOUS": "Mountainous"
       },
       "show": "Filters",
       "sort": {
@@ -113,18 +103,17 @@
       "surfaceType": {
         "label": "Surface type"
       },
-      "title": "Filters",
       "windDirection": {
         "EAST": "East",
+        "label": "Wind direction",
         "NORTH": "North",
         "NORTH_EAST": "North-East",
         "NORTH_WEST": "North-West",
+        "placeholder": "All directions",
         "SOUTH": "South",
         "SOUTH_EAST": "South-East",
         "SOUTH_WEST": "South-West",
-        "WEST": "West",
-        "label": "Wind direction",
-        "placeholder": "All directions"
+        "WEST": "West"
       }
     },
     "noResults": "No routes found matching your search.",
@@ -141,14 +130,11 @@
   },
   "picker": {
     "clearSelection": "Remove route",
-    "createNew": "Create new route",
-    "loading": "Loading routes...",
     "noResults": "No routes found",
     "search": "Search by name...",
     "title": "Select a route"
   },
   "preview": {
-    "loading": "Loading...",
     "notFound": "Route not found"
   },
   "surfaceType": {

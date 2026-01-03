@@ -12,6 +12,7 @@ import { RouteFilterPanel } from '../../components/route/RouteFilterPanel'
 
 export function AllRoutesPage() {
   const { t } = useTranslation('routes')
+  const { t: tCommon } = useTranslation('common')
   const pageSize = 20
 
   // Filter state - all in one object
@@ -89,7 +90,7 @@ export function AllRoutesPage() {
         /* Error State */
         <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
           <MapIcon className="mx-auto h-12 w-12 text-red-400" />
-          <h3 className="mt-4 text-lg font-medium text-gray-900">{t('list.error')}</h3>
+          <h3 className="mt-4 text-lg font-medium text-gray-900">{tCommon('error.loading')}</h3>
         </div>
       ) : routesData?.routes && routesData.routes.length > 0 ? (
         /* Routes Grid */

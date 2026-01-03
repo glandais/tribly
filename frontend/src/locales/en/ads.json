@@ -1,44 +1,27 @@
 {
-  "breadcrumb": {
-    "ads": "Ads"
-  },
   "adType": {
-    "SALE": "Sale",
     "RENTAL": "Rental",
+    "SALE": "Sale",
     "WANTED": "Wanted"
-  },
-  "rentalPeriod": {
-    "DAY": "Day",
-    "WEEK": "Week",
-    "MONTH": "Month"
   },
   "create": {
     "adTypeLabel": "Ad type",
     "dateTimeHint": "Publication date for the ad",
     "dateTimeLabel": "Date",
-    "descriptionLabel": "Description",
     "descriptionPlaceholder": "Describe your ad...",
-    "locationLabel": "Location",
     "locationDescriptionLabel": "Location description",
     "locationDescriptionPlaceholder": "E.g.: Paris 15th, near metro...",
-    "nameLabel": "Title",
     "namePlaceholder": "Enter the ad title",
+    "priceHint": "Leave empty if price is negotiable",
     "priceLabel": "Price",
     "pricePlaceholder": "0.00",
-    "priceHint": "Leave empty if price is negotiable",
     "rentalPeriodLabel": "Rental period",
-    "statusLabel": "Status",
     "submit": "Create Ad",
     "title": "New Ad"
   },
   "detail": {
     "actions": {
-      "cancel": "Cancel",
-      "delete": "Delete",
-      "edit": "Edit",
-      "publish": "Publish",
-      "uncancel": "Reactivate",
-      "unpublish": "Unpublish"
+      "uncancel": "Reactivate"
     },
     "confirmations": {
       "cancel": "Do you want to cancel this ad? It will no longer be visible.",
@@ -46,44 +29,39 @@
       "uncancel": "Do you want to reactivate this ad? It will be published again.",
       "unpublish": "Do you want to unpublish this ad? It will become a draft again."
     },
-    "location": "Location",
     "notFound": {
       "message": "This ad does not exist or has been deleted",
       "title": "Ad not found"
     },
-    "price": "Price",
-    "priceNegotiable": "Price negotiable",
-    "rentalPeriod": "Per {{period}}"
+    "priceNegotiable": "Price negotiable"
   },
   "edit": {
     "error": "An error occurred while updating the ad",
-    "submit": "Save Changes",
     "title": "Edit Ad"
   },
   "list": {
+    "allTypes": "All types",
     "createAd": "Create Ad",
     "empty": {
       "member": "No ads available at the moment.",
       "title": "No ads"
     },
     "filterByType": "Filter by type",
-    "allTypes": "All types",
     "noResults": "No ads found matching your search.",
     "search": {
       "label": "Search ads",
       "placeholder": "Search by title or description..."
-    },
-    "title": "Ads"
+    }
   },
-  "loading": "Loading...",
   "notifications": {
     "created": "Ad created successfully",
     "deleted": "Ad deleted successfully",
     "updated": "Ad updated successfully"
   },
-  "status": {
-    "DRAFT": "Draft",
-    "PUBLISHED": "Published",
-    "CANCELLED": "Cancelled"
+  "pricePerPeriod": "{{price}} / {{period}}",
+  "rentalPeriod": {
+    "DAY": "Day",
+    "MONTH": "Month",
+    "WEEK": "Week"
   }
 }

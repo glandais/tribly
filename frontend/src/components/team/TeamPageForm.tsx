@@ -169,7 +169,7 @@ export function TeamPageForm({
                 />
               </FormControl>
               <FormDescription>
-                {t('pages.form.content.charCount', {
+                {tCommon('form.charCount', {
                   count: media.markdown?.length || 0,
                   max: 10000,
                 })}
@@ -204,18 +204,18 @@ export function TeamPageForm({
 
         <div className="pt-4 flex items-center justify-end gap-3">
           <Button variant="outline" asChild>
-            <Link to={paths.teamAdminPages(teamSlug)}>{tCommon('buttons.cancel')}</Link>
+            <Link to={paths.teamAdminPages(teamSlug)}>{tCommon('actions.cancelAction')}</Link>
           </Button>
           <Button type="submit" disabled={mutation.isPending}>
             {mutation.isPending ? (
               <>
                 <LoadingSpinner size="sm" color="white" className="mr-2" />
-                {isCreate ? t('pages.form.creating') : t('pages.form.saving')}
+                {isCreate ? tCommon('status.creating') : tCommon('status.saving')}
               </>
             ) : isCreate ? (
               t('pages.form.create')
             ) : (
-              t('pages.form.save')
+              tCommon('actions.save')
             )}
           </Button>
         </div>

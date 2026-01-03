@@ -17,8 +17,10 @@ export function CreateTripPage() {
 
   const createMutation = useCreateTrip(teamSlug)
 
+  const { t: tCommon } = useTranslation('common')
+
   if (isLoadingTeam) {
-    return <LoadingPage message={t('loading')} />
+    return <LoadingPage message={tCommon('loading')} />
   }
 
   if (!team) {

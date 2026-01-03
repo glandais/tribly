@@ -17,7 +17,7 @@ export function RoutePreview({ routeSlug, teamSlug }: RoutePreviewProps) {
     return (
       <div className="flex items-center gap-2 text-sm text-gray-400">
         <LoadingSpinner size="sm" />
-        <span>{t('preview.loading')}</span>
+        <span>{tCommon('loading')}</span>
       </div>
     )
 

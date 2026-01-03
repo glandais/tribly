@@ -122,14 +122,14 @@ export function TeamMemberList({
                         disabled={isUpdating}
                         className="text-sm text-indigo-600 hover:text-indigo-900 disabled:opacity-50"
                       >
-                        {isUpdating ? <LoadingSpinner size="sm" /> : t('detail.members.save')}
+                        {isUpdating ? <LoadingSpinner size="sm" /> : tCommon('actions.save')}
                       </button>
                       <button
                         onClick={() => setEditingMemberId(null)}
                         disabled={isUpdating}
                         className="text-sm text-gray-600 hover:text-gray-900 disabled:opacity-50"
                       >
-                        {tCommon('buttons.cancel')}
+                        {tCommon('actions.cancelAction')}
                       </button>
                     </>
                   ) : (
@@ -137,7 +137,7 @@ export function TeamMemberList({
                       <span
                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${roleBadgeColors[member.role]}`}
                       >
-                        {tCommon(`roles.${member.role}`)}
+                        {tCommon(`roles.${member.role satisfies 'ADMIN' | 'ORGANIZER' | 'MEMBER'}`)}
                       </span>
 
                       {canEdit && (
@@ -148,7 +148,7 @@ export function TeamMemberList({
                           }}
                           className="text-sm text-gray-600 hover:text-gray-900"
                         >
-                          {t('detail.members.edit')}
+                          {tCommon('actions.edit')}
                         </button>
                       )}
 

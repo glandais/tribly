@@ -13,9 +13,9 @@ export function EditTeamPagePage() {
 
   const { data: team, isLoading: isTeamLoading } = useTeam(teamSlug)
   const { data: page, isLoading: isPageLoading } = useTeamPage(teamSlug, pageSlug)
-
+  const { t: tCommon } = useTranslation('common')
   if (isTeamLoading || isPageLoading) {
-    return <LoadingPage message={t('pages.loading')} />
+    return <LoadingPage message={tCommon('loading')} />
   }
 
   if (!team) {

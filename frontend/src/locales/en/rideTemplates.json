@@ -1,34 +1,24 @@
 {
-  "breadcrumb": {
-    "rideTemplates": "Templates"
-  },
   "confirmations": {
     "delete": "Are you sure you want to delete the template \"{{name}}\"?",
     "deleteTitle": "Delete Template"
   },
   "create": {
-    "backToTemplates": "Back to Templates",
     "button": "Create Template",
-    "loading": "Loading...",
     "subtitle": "Define a reusable template for {{teamName}}",
     "title": "Create Template"
   },
   "edit": {
-    "backToTemplates": "Back to Templates",
-    "button": "Save Changes",
-    "loading": "Loading template...",
     "subtitle": "Update template details",
     "title": "Edit Template"
   },
   "form": {
     "description": {
-      "label": "Description",
       "placeholder": "Default ride description..."
     },
     "error": "An error occurred",
     "groups": {
-      "add": "+ Add Group",
-      "defaultName": "Main Group",
+      "defaultName": "Group {{number}}",
       "empty": "No groups. Add at least one.",
       "hint": "Define default groups for this type of ride",
       "label": "Groups",
@@ -43,44 +33,32 @@
       "restore": "Restore",
       "speed": {
         "placeholder": "Speed (km/h)"
-      },
-      "willBeDeleted": "(will be deleted)"
+      }
     },
     "name": {
       "label": "Template Name",
       "placeholder": "e.g., Sunday Ride"
     },
     "status": {
-      "draft": "Draft",
-      "label": "Default Status",
-      "published": "Published"
+      "label": "Default Status"
     },
     "visibility": {
-      "label": "Visibility",
       "public": "Public",
       "publicDisabled": "private team",
       "team": "Team only"
     }
   },
   "list": {
-    "createTemplate": "Create Template",
-    "delete": "Delete",
-    "edit": "Edit",
     "empty": {
       "admin": "Create templates to speed up ride creation.",
-      "createAction": "Create Template",
       "member": "No templates have been created yet.",
       "title": "No templates yet"
     },
-    "groupCount_one": "{{count}} group",
-    "groupCount_other": "{{count}} groups",
-    "loading": "Loading templates...",
     "noResults": "No templates found",
     "search": {
       "label": "Search",
       "placeholder": "Search by name..."
     },
-    "speed": "{{speed}} km/h",
     "title": "Ride Templates"
   },
   "notifications": {
@@ -89,10 +67,6 @@
     "updated": "Template updated successfully"
   },
   "picker": {
-    "groupCount_one": "{{count}} group",
-    "groupCount_other": "{{count}} groups",
-    "loading": "Loading templates...",
-    "noResults": "No templates found",
     "search": "Search templates...",
     "title": "Choose a Template"
   }

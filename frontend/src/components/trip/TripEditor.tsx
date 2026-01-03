@@ -258,7 +258,7 @@ export function TripEditor({
           name="media"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t('create.form.description.label')}</FormLabel>
+              <FormLabel>{tCommon('form.description')}</FormLabel>
               <FormControl>
                 <MediaEditor
                   value={field.value}
@@ -267,7 +267,7 @@ export function TripEditor({
                   minHeight="150px"
                   maxHeight="300px"
                   disabled={isPending}
-                  ariaLabel={t('create.form.description.label')}
+                  ariaLabel={tCommon('form.description')}
                   teamSlug={teamSlug}
                 />
               </FormControl>
@@ -284,7 +284,7 @@ export function TripEditor({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  {t('create.form.date.label')} <span className="text-destructive">*</span>
+                  {tCommon('startPlace')} <span className="text-destructive">*</span>
                 </FormLabel>
                 <FormControl>
                   <Input type="datetime-local" {...field} />
@@ -331,7 +331,7 @@ export function TripEditor({
           name="status"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t('create.form.status.label')}</FormLabel>
+              <FormLabel>{tCommon('form.status')}</FormLabel>
               <FormControl>
                 <RadioGroup
                   value={field.value}
@@ -340,15 +340,15 @@ export function TripEditor({
                 >
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="DRAFT" id="status-draft" />
-                    <Label htmlFor="status-draft">{t('status.DRAFT')}</Label>
+                    <Label htmlFor="status-draft">{tCommon('status.DRAFT')}</Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="PUBLISHED" id="status-published" />
-                    <Label htmlFor="status-published">{t('status.PUBLISHED')}</Label>
+                    <Label htmlFor="status-published">{tCommon('status.PUBLISHED')}</Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="CANCELLED" id="status-cancelled" />
-                    <Label htmlFor="status-cancelled">{t('status.CANCELLED')}</Label>
+                    <Label htmlFor="status-cancelled">{tCommon('status.CANCELLED')}</Label>
                   </div>
                 </RadioGroup>
               </FormControl>
@@ -368,7 +368,7 @@ export function TripEditor({
                 <FormControl>
                   <Input type="datetime-local" {...field} />
                 </FormControl>
-                <FormDescription>{t('create.form.publishAt.hint')}</FormDescription>
+                <FormDescription>{tCommon('form.publishAtHint')}</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -394,7 +394,7 @@ export function TripEditor({
                       setShowRoutePickerModal(true)
                     }}
                   >
-                    {routeSlug ? t('create.form.route.change') : t('create.form.route.select')}
+                    {routeSlug ? tCommon('actions.edit') : t('create.form.route.select')}
                   </Button>
                   {routeSlug && (
                     <Button
@@ -412,9 +412,7 @@ export function TripEditor({
               {routeSlug ? (
                 <RoutePreview routeSlug={routeSlug} teamSlug={teamSlug} />
               ) : (
-                <p className="text-sm text-muted-foreground italic">
-                  {t('create.form.route.none')}
-                </p>
+                <p className="text-sm text-muted-foreground italic">{tCommon('noRouteSelected')}</p>
               )}
               <FormDescription>{t('create.form.route.hint')}</FormDescription>
               <FormMessage />
@@ -425,7 +423,7 @@ export function TripEditor({
         {/* Stages */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <Label>{t('create.form.stages.label')}</Label>
+            <Label>{t('detail.stages.title')}</Label>
             <Button
               type="button"
               variant="link"
@@ -464,11 +462,10 @@ export function TripEditor({
                       <span className="text-sm font-medium">
                         {stage.isNew
                           ? t('create.form.stages.new')
-                          : stage.name || `${t('create.form.stages.label')} ${index + 1}`}
+                          : stage.name ||
+                            t('create.form.stages.defaultName', { number: index + 1 })}
                         {stage.isDeleted && (
-                          <span className="ml-2 text-destructive">
-                            {t('create.form.stages.willBeDeleted')}
-                          </span>
+                          <span className="ml-2 text-destructive">{tCommon('willBeDeleted')}</span>
                         )}
                       </span>
                     </div>
@@ -594,7 +591,7 @@ export function TripEditor({
                         render={({ field }) => (
                           <FormItem className="mb-3">
                             <span className="text-xs font-medium text-muted-foreground">
-                              {t('create.form.stages.description.label')}
+                              {tCommon('form.description')}
                             </span>
                             <FormControl>
                               <MediaEditor
@@ -604,7 +601,7 @@ export function TripEditor({
                                 minHeight="80px"
                                 maxHeight="150px"
                                 disabled={isPending}
-                                ariaLabel={t('create.form.stages.description.label')}
+                                ariaLabel={tCommon('form.description')}
                                 teamSlug={teamSlug}
                               />
                             </FormControl>
@@ -630,7 +627,7 @@ export function TripEditor({
                               }}
                             >
                               {stage.routeSlug
-                                ? t('create.form.route.change')
+                                ? tCommon('actions.edit')
                                 : t('create.form.route.select')}
                             </Button>
                             {stage.routeSlug && (
@@ -652,7 +649,7 @@ export function TripEditor({
                           <RoutePreviewCompact routeSlug={stage.routeSlug} teamSlug={teamSlug} />
                         ) : (
                           <p className="text-xs text-muted-foreground italic">
-                            {t('create.form.stages.route.none')}
+                            {tCommon('noRouteSelected')}
                           </p>
                         )}
                       </div>
@@ -673,7 +670,7 @@ export function TripEditor({
         {/* Actions */}
         <div className="pt-4 flex items-center justify-end gap-3">
           <Button type="button" variant="outline" onClick={onCancel}>
-            {cancelButtonText || tCommon('buttons.cancel')}
+            {cancelButtonText || tCommon('actions.cancelAction')}
           </Button>
           <Button type="submit" disabled={isPending || !name?.trim() || !dateTime}>
             {isPending ? (
@@ -682,7 +679,7 @@ export function TripEditor({
                 {tCommon('status.saving')}
               </>
             ) : (
-              submitButtonText || tCommon('buttons.save')
+              submitButtonText || tCommon('actions.save')
             )}
           </Button>
         </div>

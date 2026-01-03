@@ -4,31 +4,25 @@
     "tabs": {
       "members": "Members",
       "pages": "Pages",
-      "places": "Places",
       "rideTemplates": "Ride Templates",
       "settings": "Settings"
     },
     "title": "Team management"
   },
   "create": {
-    "backToTeams": "Back to Teams",
     "button": "Create Team",
-    "creating": "Creating...",
     "error": "Failed to create team. Please try again.",
     "form": {
       "description": {
-        "charCount_one": "{{count}}/{{max}} character",
-        "charCount_other": "{{count}}/{{max}} characters",
-        "label": "Description",
         "placeholder": "Describe your team, riding style, or community..."
-      },
-      "enableTrips": {
-        "hint": "Allow organizers to create and manage multi-day trips",
-        "label": "Enable Trips"
       },
       "enableAds": {
         "hint": "Allow members to post ads (sale, rental, wanted)",
         "label": "Enable Ads"
+      },
+      "enableTrips": {
+        "hint": "Allow organizers to create and manage multi-day trips",
+        "label": "Enable Trips"
       },
       "name": {
         "label": "Team Name",
@@ -43,30 +37,27 @@
     "title": "Create a Team"
   },
   "detail": {
+    "about": {
+      "created": "Created",
+      "members": "Members",
+      "noDescription": "No description available.",
+      "title": "About the Team"
+    },
     "actions": {
       "admin": "Manage",
       "confirmLeave": "Are you sure you want to leave this team?",
-      "edit": "Edit",
       "join": "Join Team",
       "joining": "Joining...",
       "leave": "Leave Team"
     },
-    "info": {
-      "created": "Created {{date}}",
-      "memberCount_one": "{{count}} member",
-      "memberCount_other": "{{count}} members"
-    },
-    "loading": "Loading team...",
     "members": {
       "addError": "Failed to add member. Please try again.",
       "addMember": "Add Member",
       "confirmRemove": "Are you sure you want to remove this member?",
-      "edit": "Edit",
       "empty": "No members found.",
       "joined": "Joined {{date}}",
       "remove": "Remove",
       "role": "Role",
-      "save": "Save",
       "searchPlaceholder": "Search by name...",
       "searchUser": "Search for a user",
       "title": "Members",
@@ -77,52 +68,23 @@
     },
     "tabs": {
       "about": "About",
-      "ads": "Ads",
-      "members": "Members",
-      "posts": "Posts",
-      "publications": "Feed",
-      "rides": "Rides",
-      "rideTemplates": "Templates",
-      "routes": "Routes",
-      "trips": "Trips"
-    },
-    "about": {
-      "created": "Created",
-      "members": "Members",
-      "noDescription": "No description available.",
-      "title": "About the Team"
+      "routes": "Routes"
     }
   },
   "list": {
-    "createTeam": "Create Team",
     "empty": {
-      "createAction": "Create a Team",
       "publicTeams": "No public teams match your search.",
       "title": "No teams found"
     },
     "filter": {
-      "admin": "Admin",
       "all": "All",
-      "label": "Filter",
-      "member": "Member",
-      "organizer": "Organizer"
+      "label": "Filter"
     },
     "search": {
       "label": "Search teams",
       "placeholder": "Search teams..."
     },
-    "subtitle": "Browse cycling teams or create your own",
-    "title": "Teams"
-  },
-  "myTeams": {
-    "createTeam": "Create Team",
-    "empty": {
-      "createAction": "Create a Team",
-      "description": "You haven't joined any teams. Create one or join a public team.",
-      "title": "No teams yet"
-    },
-    "subtitle": "Teams you are a member of",
-    "title": "My Teams"
+    "subtitle": "Browse cycling teams or create your own"
   },
   "notifications": {
     "created": "Team created successfully",
@@ -133,41 +95,6 @@
     "placeDeleted": "Place deleted successfully",
     "placeUpdated": "Place updated successfully",
     "updated": "Team updated successfully"
-  },
-  "places": {
-    "add": "Add Place",
-    "delete": "Delete place",
-    "deleteConfirm": {
-      "confirm": "Delete",
-      "message": "Are you sure you want to delete this place? This action cannot be undone.",
-      "title": "Delete Place"
-    },
-    "edit": "Edit place",
-    "empty": "No places defined yet. Add places for ride start/end points.",
-    "endPlace": "End",
-    "form": {
-      "address": {
-        "label": "Address",
-        "placeholder": "Enter address (optional)"
-      },
-      "create": "Add Place",
-      "createTitle": "Add Place",
-      "editTitle": "Edit Place",
-      "endPlace": "Can be used as end",
-      "link": {
-        "label": "Link",
-        "placeholder": "https://maps.google.com/..."
-      },
-      "name": {
-        "label": "Name",
-        "placeholder": "Enter place name"
-      },
-      "save": "Save Changes",
-      "startPlace": "Can be used as start"
-    },
-    "startPlace": "Start",
-    "title": "Places",
-    "viewLink": "View on map"
   },
   "pages": {
     "add": "Add Page",
@@ -182,22 +109,16 @@
       "title": "Edit {{name}}"
     },
     "empty": {
-      "action": "Add Page",
       "description": "Create custom pages for FAQ, rules, or any team information.",
       "title": "No pages yet"
     },
     "form": {
       "content": {
-        "charCount_one": "{{count}}/{{max}} character",
-        "charCount_other": "{{count}}/{{max}} characters",
         "label": "Content",
         "placeholder": "Write your page content here..."
       },
       "create": "Create Page",
       "createError": "Failed to create page. Please try again.",
-      "creating": "Creating...",
-      "save": "Save Changes",
-      "saving": "Saving...",
       "title": {
         "hint": "This will appear as a tab in the team navigation",
         "label": "Page Title",
@@ -209,7 +130,6 @@
         "label": "Visibility"
       }
     },
-    "loading": "Loading page...",
     "noContent": "This page has no content yet.",
     "notifications": {
       "created": "Page created successfully",
@@ -220,6 +140,37 @@
     "subtitle_one": "{{count}} page of {{max}} maximum",
     "subtitle_other": "{{count}} pages of {{max}} maximum",
     "title": "Team Pages"
+  },
+  "places": {
+    "add": "Add Place",
+    "delete": "Delete place",
+    "deleteConfirm": {
+      "confirm": "Delete",
+      "message": "Are you sure you want to delete this place? This action cannot be undone.",
+      "title": "Delete Place"
+    },
+    "edit": "Edit place",
+    "empty": "No places defined yet. Add places for ride start/end points.",
+    "form": {
+      "address": {
+        "label": "Address",
+        "placeholder": "Enter address (optional)"
+      },
+      "create": "Add Place",
+      "editTitle": "Edit Place",
+      "endPlace": "Can be used as end",
+      "link": {
+        "label": "Link",
+        "placeholder": "https://maps.google.com/..."
+      },
+      "name": {
+        "label": "Name",
+        "placeholder": "Enter place name"
+      },
+      "startPlace": "Can be used as start"
+    },
+    "title": "Places",
+    "viewLink": "View on map"
   },
   "publications": {
     "list": {
@@ -232,7 +183,6 @@
         "ride": "Rides",
         "trip": "Trips"
       },
-      "noResults": "No publications found matching your search.",
       "search": {
         "label": "Search publications",
         "placeholder": "Search by title or description..."
@@ -241,7 +191,6 @@
     }
   },
   "settings": {
-    "backToTeam": "Back to {{teamName}}",
     "dangerZone": {
       "confirmDelete": "Yes, Delete Team",
       "deleteTeam": "Delete Team",
@@ -255,9 +204,6 @@
       "loadFailed": "Failed to load team settings. Please try again.",
       "title": "Error"
     },
-    "loading": "Loading team settings...",
-    "saveChanges": "Save Changes",
-    "saving": "Saving...",
     "subtitle": "Manage your team's profile and settings",
     "title": "Team Settings"
   }

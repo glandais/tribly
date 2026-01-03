@@ -92,7 +92,7 @@ export function RouteFilterPanel({
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {/* Distance Range */}
             <RangeInput
-              label={t('list.filters.distance.label')}
+              label={t('detail.stats.distance')}
               minValue={filters.minDistance}
               maxValue={filters.maxDistance}
               onMinChange={(v) => updateFilter('minDistance', v)}
@@ -132,7 +132,9 @@ export function RouteFilterPanel({
                       updateFilter('hilliness', filters.hilliness === value ? undefined : value)
                     }
                   >
-                    {t(`list.filters.hilliness.${value}`)}
+                    {t(
+                      `list.filters.hilliness.${value satisfies 'FLAT' | 'HILLY' | 'MOUNTAINOUS'}`
+                    )}
                   </Button>
                 ))}
               </div>
@@ -152,7 +154,7 @@ export function RouteFilterPanel({
                       onCheckedChange={() => toggleSurfaceType(type)}
                     />
                     <Label htmlFor={`surface-${type}`} className="text-sm cursor-pointer">
-                      {t(`surfaceType.${type}`)}
+                      {t(`surfaceType.${type satisfies 'ROAD' | 'GRAVEL' | 'MTB' | 'MIXED'}`)}
                     </Label>
                   </div>
                 ))}
@@ -184,7 +186,9 @@ export function RouteFilterPanel({
                   </SelectItem>
                   {Object.values(WindDirection).map((dir) => (
                     <SelectItem key={dir} value={dir}>
-                      {t(`list.filters.windDirection.${dir}`)}
+                      {t(
+                        `list.filters.windDirection.${dir satisfies 'NORTH' | 'NORTH_EAST' | 'EAST' | 'SOUTH_EAST' | 'SOUTH' | 'SOUTH_WEST' | 'WEST' | 'NORTH_WEST'}`
+                      )}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -209,7 +213,9 @@ export function RouteFilterPanel({
                   <SelectContent>
                     {Object.values(RouteSortBy).map((sort) => (
                       <SelectItem key={sort} value={sort}>
-                        {t(`list.filters.sort.${sort}`)}
+                        {t(
+                          `list.filters.sort.${sort satisfies 'DISTANCE' | 'ELEVATION_GAIN' | 'HILLINESS' | 'DATE_TIME'}`
+                        )}
                       </SelectItem>
                     ))}
                   </SelectContent>

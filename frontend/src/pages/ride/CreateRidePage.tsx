@@ -15,6 +15,7 @@ import { paths } from '@/config/paths'
 
 export function CreateRidePage() {
   const { t } = useTranslation('rides')
+  const { t: tCommon } = useTranslation('common')
   const { teamSlug } = useParams<{ teamSlug: string }>()
   const navigate = useNavigate()
   const { data: team, isLoading: isLoadingTeam } = useTeam(teamSlug)
@@ -32,7 +33,7 @@ export function CreateRidePage() {
   } | null>(null)
 
   if (isLoadingTeam) {
-    return <LoadingPage message={t('loading')} />
+    return <LoadingPage message={tCommon('loading')} />
   }
 
   if (!team) {

@@ -5,24 +5,15 @@
   "create": {
     "dateTimeHint": "Date et heure de la publication",
     "dateTimeLabel": "Date et heure",
-    "descriptionLabel": "Description",
     "descriptionPlaceholder": "Décrivez votre publication...",
-    "nameLabel": "Titre",
     "namePlaceholder": "Entrez le titre de la publication",
-    "publishAtHint": "Définissez une date/heure pour une publication automatique",
     "publishAtLabel": "Publication programmée",
-    "statusLabel": "Statut",
     "submit": "Créer la publication",
     "title": "Nouvelle publication"
   },
   "detail": {
     "actions": {
-      "cancel": "Annuler",
-      "delete": "Supprimer",
-      "edit": "Modifier",
-      "publish": "Publier",
-      "uncancel": "Réactiver",
-      "unpublish": "Dépublier"
+      "uncancel": "Réactiver"
     },
     "confirmations": {
       "cancel": "Voulez-vous annuler cette publication ? Elle ne sera plus visible.",
@@ -38,31 +29,11 @@
   },
   "edit": {
     "error": "Une erreur est survenue lors de la modification de la publication",
-    "submit": "Enregistrer les modifications",
     "title": "Modifier la publication"
   },
-  "list": {
-    "createPost": "Créer une publication",
-    "empty": {
-      "admin": "Commencez par créer votre première publication.",
-      "member": "Aucune publication n'est prévue pour le moment.",
-      "title": "Aucune publication"
-    },
-    "noResults": "Aucune publication ne correspond à votre recherche.",
-    "search": {
-      "label": "Rechercher des publications",
-      "placeholder": "Rechercher par titre ou description..."
-    },
-    "title": "Publications"
-  },
-  "loading": "Chargement...",
   "notifications": {
     "created": "Publication créée avec succès",
     "deleted": "Publication supprimée avec succès",
     "updated": "Publication mise à jour avec succès"
-  },
-  "status": {
-    "DRAFT": "Brouillon",
-    "PUBLISHED": "Publié"
   }
 }

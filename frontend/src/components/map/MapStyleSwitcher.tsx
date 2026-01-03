@@ -45,7 +45,7 @@ export function MapStyleSwitcher({
             <button
               onClick={toggleExpanded}
               className="p-1 hover:bg-gray-100 rounded"
-              aria-label={t('buttons.cancel')}
+              aria-label={t('actions.cancelAction')}
             >
               <XMarkIcon className="w-4 h-4 text-gray-500" />
             </button>

@@ -11,8 +11,7 @@
     "title": "Actions du compte"
   },
   "actions": {
-    "editProfile": "Modifier le profil",
-    "save": "Enregistrer"
+    "editProfile": "Modifier le profil"
   },
   "avatar": {
     "remove": "Supprimer l'avatar",

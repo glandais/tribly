@@ -9,12 +9,13 @@ import { MediaDisplay } from '../../components/common/MediaDisplay'
 
 export function TeamAboutPage() {
   const { t, i18n } = useTranslation('teams')
+  const { t: tCommon } = useTranslation('common')
   const { teamSlug } = useParams<{ teamSlug: string }>()
 
   const { data: team, isLoading } = useTeam(teamSlug)
 
   if (isLoading) {
-    return <LoadingPage message={t('detail.loading')} />
+    return <LoadingPage message={tCommon('loading')} />
   }
 
   if (!team) {
@@ -45,7 +46,7 @@ export function TeamAboutPage() {
                 <div>
                   <dt className="text-sm text-gray-500">{t('detail.about.members')}</dt>
                   <dd className="text-lg font-medium text-gray-900">
-                    {t('detail.info.memberCount', { count: team.memberCount })}
+                    {tCommon('memberCount', { count: team.memberCount })}
                   </dd>
                 </div>
               </div>

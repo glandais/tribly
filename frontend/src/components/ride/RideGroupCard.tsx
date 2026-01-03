@@ -40,6 +40,7 @@ export function RideGroupCard({
   isHighlighted = false,
 }: RideGroupCardProps) {
   const { t } = useTranslation('rides')
+  const { t: tCommon } = useTranslation('common')
   const [showParticipants, setShowParticipants] = useState(false)
   const isFull = group.maxParticipants && group.countParticipants >= group.maxParticipants
 
@@ -115,7 +116,7 @@ export function RideGroupCard({
         {group.averageSpeed && (
           <span className="flex items-center">
             <BoltIcon className="w-4 h-4 mr-1" />
-            {t('detail.groups.speed', { speed: group.averageSpeed })}
+            {tCommon('speed', { speed: group.averageSpeed })}
           </span>
         )}
         <button
@@ -160,7 +161,7 @@ export function RideGroupCard({
               download
             >
               <ArrowDownTrayIcon className="w-4 h-4 mr-1" />
-              GPX
+              {t('detail.groups.route.downloadGpx')}
             </a>
           )}
           {route?.media?.assets?.fit?.url && (
@@ -170,7 +171,7 @@ export function RideGroupCard({
               download
             >
               <ArrowDownTrayIcon className="w-4 h-4 mr-1" />
-              FIT
+              {t('detail.groups.route.downloadFit')}
             </a>
           )}
         </div>

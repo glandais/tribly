@@ -67,7 +67,9 @@ export function RouteCard({ route, showTeam }: RouteCardProps) {
 
         <div className="flex flex-wrap gap-2">
           {route.surfaceType && (
-            <Badge variant="green">{t(`surfaceType.${route.surfaceType}`)}</Badge>
+            <Badge variant="green">
+              {t(`surfaceType.${route.surfaceType satisfies 'ROAD' | 'GRAVEL' | 'MTB' | 'MIXED'}`)}
+            </Badge>
           )}
           <VisibilityBadge visibility={route.visibility} />
         </div>

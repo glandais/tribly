@@ -15,9 +15,9 @@ export function CreateRideTemplatePage() {
   const { data: team, isLoading: isLoadingTeam } = useTeam(teamSlug)
 
   const createMutation = useCreateRideTemplate(teamSlug)
-
+  const { t: tCommon } = useTranslation('common')
   if (isLoadingTeam) {
-    return <LoadingPage message={t('create.loading')} />
+    return <LoadingPage message={tCommon('loading')} />
   }
 
   if (!team) {

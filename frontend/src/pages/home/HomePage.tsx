@@ -30,6 +30,7 @@ const filterToTypes: Record<FilterValue, PublicationType[] | undefined> = {
 export function HomePage() {
   const { t } = useTranslation('auth')
   const { t: tTeams } = useTranslation('teams')
+  const { t: tCommon } = useTranslation('common')
   const [page, setPage] = useState(0)
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState<FilterValue>('all')
@@ -107,7 +108,7 @@ export function HomePage() {
         /* Error State */
         <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
           <NewspaperIcon className="mx-auto h-12 w-12 text-red-400" />
-          <h3 className="mt-4 text-lg font-medium text-gray-900">{t('home.feed.error')}</h3>
+          <h3 className="mt-4 text-lg font-medium text-gray-900">{tCommon('error.loading')}</h3>
         </div>
       ) : publicationsData?.publications && publicationsData.publications.length > 0 ? (
         /* Publications List */

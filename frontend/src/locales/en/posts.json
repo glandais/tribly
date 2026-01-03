@@ -5,24 +5,15 @@
   "create": {
     "dateTimeHint": "Date and time of the post",
     "dateTimeLabel": "Date and Time",
-    "descriptionLabel": "Description",
     "descriptionPlaceholder": "Describe your post...",
-    "nameLabel": "Title",
     "namePlaceholder": "Enter the post title",
-    "publishAtHint": "Set a date/time for automatic publication",
     "publishAtLabel": "Scheduled Publication",
-    "statusLabel": "Status",
     "submit": "Create Post",
     "title": "New Post"
   },
   "detail": {
     "actions": {
-      "cancel": "Cancel",
-      "delete": "Delete",
-      "edit": "Edit",
-      "publish": "Publish",
-      "uncancel": "Reactivate",
-      "unpublish": "Unpublish"
+      "uncancel": "Reactivate"
     },
     "confirmations": {
       "cancel": "Do you want to cancel this post? It will no longer be visible.",
@@ -38,31 +29,11 @@
   },
   "edit": {
     "error": "An error occurred while updating the post",
-    "submit": "Save Changes",
     "title": "Edit Post"
   },
-  "list": {
-    "createPost": "Create Post",
-    "empty": {
-      "admin": "Start by creating your first post.",
-      "member": "No posts are scheduled at the moment.",
-      "title": "No posts"
-    },
-    "noResults": "No posts found matching your search.",
-    "search": {
-      "label": "Search posts",
-      "placeholder": "Search by title or description..."
-    },
-    "title": "Posts"
-  },
-  "loading": "Loading...",
   "notifications": {
     "created": "Post created successfully",
     "deleted": "Post deleted successfully",
     "updated": "Post updated successfully"
-  },
-  "status": {
-    "DRAFT": "Draft",
-    "PUBLISHED": "Published"
   }
 }

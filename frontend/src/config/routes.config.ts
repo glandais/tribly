@@ -163,7 +163,7 @@ export const routesConfig: RoutesConfig = [
     component: TeamListPage,
     auth: 'public',
     parentId: null,
-    breadcrumb: { type: 'static', i18nKey: 'common:nav.teams' },
+    breadcrumb: { type: 'static', i18nKey: 'common:teams' },
   },
   {
     id: 'teams-new',
@@ -283,7 +283,7 @@ export const routesConfig: RoutesConfig = [
     component: EditRidePage,
     auth: 'authenticated',
     parentId: 'ride-detail',
-    breadcrumb: { type: 'static', i18nKey: 'common:buttons.edit' },
+    breadcrumb: { type: 'static', i18nKey: 'common:actions.edit' },
     showBackLink: true,
   },
 
@@ -340,7 +340,7 @@ export const routesConfig: RoutesConfig = [
     component: EditTripPage,
     auth: 'authenticated',
     parentId: 'trip-detail',
-    breadcrumb: { type: 'static', i18nKey: 'common:buttons.edit' },
+    breadcrumb: { type: 'static', i18nKey: 'common:actions.edit' },
     showBackLink: true,
   },
 
@@ -369,7 +369,7 @@ export const routesConfig: RoutesConfig = [
     component: EditPostPage,
     auth: 'authenticated',
     parentId: 'post-detail',
-    breadcrumb: { type: 'static', i18nKey: 'common:buttons.edit' },
+    breadcrumb: { type: 'static', i18nKey: 'common:actions.edit' },
     showBackLink: true,
   },
 
@@ -406,7 +406,7 @@ export const routesConfig: RoutesConfig = [
     component: EditRoutePage,
     auth: 'authenticated',
     parentId: 'route-detail',
-    breadcrumb: { type: 'static', i18nKey: 'common:buttons.edit' },
+    breadcrumb: { type: 'static', i18nKey: 'common:actions.edit' },
     showBackLink: true,
   },
 
@@ -442,7 +442,7 @@ export const routesConfig: RoutesConfig = [
     component: EditAdPage,
     auth: 'authenticated',
     parentId: 'ad-detail',
-    breadcrumb: { type: 'static', i18nKey: 'common:buttons.edit' },
+    breadcrumb: { type: 'static', i18nKey: 'common:actions.edit' },
     showBackLink: true,
   },
 ]

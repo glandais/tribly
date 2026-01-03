@@ -10,6 +10,7 @@ import { paths } from '@/config/paths'
 
 export function EditRidePage() {
   const { t } = useTranslation('rides')
+  const { t: tCommon } = useTranslation('common')
   const { teamSlug, rideSlug } = useParams<{ teamSlug: string; rideSlug: string }>()
   const navigate = useNavigate()
   const { data: team, isLoading: isLoadingTeam } = useTeam(teamSlug)
@@ -18,7 +19,7 @@ export function EditRidePage() {
   const updateMutation = useUpdateRide(teamSlug, rideSlug!)
 
   if (isLoadingTeam || isLoadingRide) {
-    return <LoadingPage message={t('loading')} />
+    return <LoadingPage message={tCommon('loading')} />
   }
 
   if (!team || !ride) {
@@ -83,7 +84,7 @@ export function EditRidePage() {
         onCancel={() => navigate(paths.ride(teamSlug!, rideSlug!))}
         isPending={updateMutation.isPending}
         error={updateMutation.error}
-        submitButtonText={t('edit.button')}
+        submitButtonText={tCommon('actions.save')}
       />
     </div>
   )

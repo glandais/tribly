@@ -8,12 +8,13 @@ import { TeamPageForm } from '../../components/team/TeamPageForm'
 
 export function CreateTeamPagePage() {
   const { t } = useTranslation('teams')
+  const { t: tCommon } = useTranslation('common')
   const { teamSlug } = useParams<{ teamSlug: string }>()
 
   const { data: team, isLoading } = useTeam(teamSlug)
 
   if (isLoading) {
-    return <LoadingPage message={t('pages.loading')} />
+    return <LoadingPage message={tCommon('loading')} />
   }
 
   if (!team) {

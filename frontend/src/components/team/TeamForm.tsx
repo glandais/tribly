@@ -177,7 +177,7 @@ export function TeamForm({
           name="media"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t('create.form.description.label')}</FormLabel>
+              <FormLabel>{tCommon('form.description')}</FormLabel>
               <FormControl>
                 <MediaEditor
                   value={field.value}
@@ -191,7 +191,7 @@ export function TeamForm({
                 />
               </FormControl>
               <FormDescription>
-                {t('create.form.description.charCount', {
+                {tCommon('form.charCount', {
                   count: media.markdown?.length || 0,
                   max: 2000,
                 })}
@@ -259,19 +259,19 @@ export function TeamForm({
         <div className="pt-4 flex items-center justify-end gap-3">
           <Button variant="outline" asChild>
             <Link to={create ? paths.teams() : paths.team(teamSlug!)}>
-              {tCommon('buttons.cancel')}
+              {tCommon('actions.cancelAction')}
             </Link>
           </Button>
           <Button type="submit" disabled={mutation.isPending}>
             {mutation.isPending ? (
               <>
                 <LoadingSpinner size="sm" color="white" className="mr-2" />
-                {create ? t('create.creating') : t('settings.saving')}
+                {create ? tCommon('status.creating') : tCommon('status.saving')}
               </>
             ) : create ? (
               t('create.button')
             ) : (
-              t('settings.saveChanges')
+              tCommon('actions.save')
             )}
           </Button>
         </div>

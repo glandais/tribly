@@ -83,6 +83,7 @@ frontend/src/
 - Logos: `TeamAvatar` (with initials fallback) vs `EntityLogo` (no fallback)
 - Never use SVG for icons, use `@heroicons`
 - Never use hard coded links, use paths.XXX(YYYslug)
+- Templated i18n keys must use type annotations: `t(\`status.\${x satisfies 'DRAFT' | 'PUBLISHED'}\`)` (validated by `pnpm i18n:lint`)
 
 **Keycloak**:
 - Users need `firstName`/`lastName` in realm or prompted for profile update

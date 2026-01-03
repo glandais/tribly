@@ -72,13 +72,13 @@ export function PlaceForm({ teamSlug, place, onClose }: PlaceFormProps) {
   const footerContent = (
     <>
       <Button type="button" variant="outline" onClick={onClose}>
-        {tCommon('buttons.cancel')}
+        {tCommon('actions.cancelAction')}
       </Button>
       <Button type="submit" form="place-form" disabled={mutation.isPending}>
         {mutation.isPending
-          ? tCommon('buttons.loading')
+          ? tCommon('loading')
           : isEditing
-            ? t('places.form.save')
+            ? tCommon('actions.save')
             : t('places.form.create')}
       </Button>
     </>
@@ -88,7 +88,7 @@ export function PlaceForm({ teamSlug, place, onClose }: PlaceFormProps) {
     <Modal
       isOpen={true}
       onClose={onClose}
-      title={isEditing ? t('places.form.editTitle') : t('places.form.createTitle')}
+      title={isEditing ? t('places.form.editTitle') : t('places.add')}
       size="md"
       footer={footerContent}
     >

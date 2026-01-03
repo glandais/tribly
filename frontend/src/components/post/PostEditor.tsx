@@ -164,7 +164,7 @@ export function PostEditor({
           render={({ field }) => (
             <FormItem>
               <FormLabel>
-                {t('create.nameLabel')} <span className="text-destructive">*</span>
+                {tCommon('form.title')} <span className="text-destructive">*</span>
               </FormLabel>
               <FormControl>
                 <Input placeholder={t('create.namePlaceholder')} {...field} />
@@ -180,7 +180,7 @@ export function PostEditor({
           name="media"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t('create.descriptionLabel')}</FormLabel>
+              <FormLabel>{tCommon('form.description')}</FormLabel>
               <FormControl>
                 <MediaEditor
                   value={field.value}
@@ -189,7 +189,7 @@ export function PostEditor({
                   minHeight="200px"
                   maxHeight="400px"
                   disabled={isPending}
-                  ariaLabel={t('create.descriptionLabel')}
+                  ariaLabel={tCommon('form.description')}
                   teamSlug={teamSlug}
                 />
               </FormControl>
@@ -234,7 +234,7 @@ export function PostEditor({
           name="status"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t('create.statusLabel')}</FormLabel>
+              <FormLabel>{tCommon('form.status')}</FormLabel>
               <FormControl>
                 <RadioGroup
                   value={field.value}
@@ -243,11 +243,11 @@ export function PostEditor({
                 >
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="DRAFT" id="status-draft" />
-                    <Label htmlFor="status-draft">{t('status.DRAFT')}</Label>
+                    <Label htmlFor="status-draft">{tCommon('status.DRAFT')}</Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="PUBLISHED" id="status-published" />
-                    <Label htmlFor="status-published">{t('status.PUBLISHED')}</Label>
+                    <Label htmlFor="status-published">{tCommon('status.PUBLISHED')}</Label>
                   </div>
                 </RadioGroup>
               </FormControl>
@@ -287,7 +287,7 @@ export function PostEditor({
                 <FormControl>
                   <Input type="datetime-local" min={toDateTimeLocalValue(new Date())} {...field} />
                 </FormControl>
-                <FormDescription>{t('create.publishAtHint')}</FormDescription>
+                <FormDescription>{tCommon('form.publishAtHint')}</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -297,16 +297,16 @@ export function PostEditor({
         {/* Actions */}
         <div className="pt-4 flex items-center justify-end gap-3">
           <Button type="button" variant="outline" onClick={onCancel}>
-            {cancelButtonText || tCommon('buttons.cancel')}
+            {cancelButtonText || tCommon('actions.cancelAction')}
           </Button>
           <Button type="submit" disabled={isPending || !name.trim()}>
             {isPending ? (
               <>
                 <LoadingSpinner size="sm" color="white" className="mr-2" />
-                {tCommon('buttons.loading')}
+                {tCommon('loading')}
               </>
             ) : (
-              submitButtonText || t('edit.submit')
+              submitButtonText || tCommon('actions.save')
             )}
           </Button>
         </div>

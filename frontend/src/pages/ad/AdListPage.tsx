@@ -24,6 +24,7 @@ const PAGE_SIZE = 20
 
 export function AdListPage() {
   const { t } = useTranslation('ads')
+  const { t: tCommon } = useTranslation('common')
   const { teamSlug } = useParams<{ teamSlug: string }>()
   const [search, setSearch] = useState('')
   const [adType, setAdType] = useState<AdType | undefined>(undefined)
@@ -42,7 +43,7 @@ export function AdListPage() {
   })
 
   if (isLoadingTeam) {
-    return <LoadingPage message={t('loading')} />
+    return <LoadingPage message={tCommon('loading')} />
   }
 
   if (!team) {
@@ -68,7 +69,7 @@ export function AdListPage() {
       <div className="py-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">{t('list.title')}</h2>
+          <h2 className="text-2xl font-bold text-gray-900">{tCommon('ads')}</h2>
           {isMember && (
             <Button asChild>
               <Link to={paths.adNew(teamSlug!)}>

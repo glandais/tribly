@@ -1,25 +1,9 @@
 {
-  "breadcrumb": {
-    "rides": "Sorties"
-  },
-  "card": {
-    "groupCount_one": "{{count}} groupe",
-    "groupCount_many": "{{count}} groupes",
-    "groupCount_other": "{{count}} groupes",
-    "participantCount_one": "{{count}} participant",
-    "participantCount_many": "{{count}} participants",
-    "participantCount_other": "{{count}} participants"
-  },
   "create": {
-    "backToRides": "Retour aux sorties",
     "button": "Créer la sortie",
     "error": "Échec de la création de la sortie. Veuillez réessayer.",
     "form": {
-      "date": {
-        "label": "Départ"
-      },
       "description": {
-        "label": "Description",
         "placeholder": "Décrivez la sortie, les points forts du parcours, les arrêts café..."
       },
       "endPlace": {
@@ -27,8 +11,7 @@
         "placeholder": "Rechercher un lieu d'arrivée..."
       },
       "groups": {
-        "add": "+ Ajouter un groupe",
-        "defaultName": "Groupe principal",
+        "defaultName": "Groupe {{number}}",
         "empty": "Aucun groupe défini. Ajoutez au moins un groupe.",
         "hint": "Créez différents groupes pour différents niveaux ou vitesses",
         "label": "Groupes",
@@ -42,24 +25,19 @@
         "remove": "Supprimer",
         "restore": "Restaurer",
         "route": {
-          "label": "Parcours du groupe",
-          "none": "Pas de parcours spécifique"
+          "label": "Parcours du groupe"
         },
         "speed": {
           "placeholder": "Vitesse (km/h)"
-        },
-        "willBeDeleted": "(sera supprimé)"
+        }
       },
       "publishAt": {
-        "hint": "Définissez une date/heure pour une publication automatique",
         "label": "Publication programmée"
       },
       "route": {
-        "change": "Changer",
         "clear": "Retirer",
         "hint": "Optionnel : associez un parcours GPX à cette sortie",
         "label": "Parcours",
-        "none": "Aucun parcours sélectionné",
         "select": "Sélectionner un parcours",
         "selectForGroup": "Sélectionner un parcours pour le groupe",
         "selectForRide": "Sélectionner un parcours pour la sortie"
@@ -67,9 +45,6 @@
       "startPlace": {
         "label": "Lieu de départ",
         "placeholder": "Rechercher un lieu de départ..."
-      },
-      "status": {
-        "label": "Statut"
       },
       "title": {
         "label": "Titre de la sortie",
@@ -83,11 +58,7 @@
   "detail": {
     "actions": {
       "cancel": "Annuler la sortie",
-      "delete": "Supprimer",
-      "edit": "Modifier",
-      "publish": "Publier",
-      "uncancel": "Restaurer la sortie",
-      "unpublish": "Dépublier"
+      "uncancel": "Restaurer la sortie"
     },
     "confirmations": {
       "cancel": "Êtes-vous sûr de vouloir annuler cette sortie ?",
@@ -95,7 +66,6 @@
       "uncancel": "Êtes-vous sûr de vouloir restaurer cette sortie ? Elle repassera en brouillon.",
       "unpublish": "Êtes-vous sûr de vouloir dépublier cette sortie ? Elle repassera en brouillon."
     },
-    "endPlace": "Arrivée",
     "groups": {
       "empty": "Aucun groupe défini pour cette sortie.",
       "full": "Complet",
@@ -105,9 +75,10 @@
       "participants": "{{current}}/{{max}} participants",
       "participantsNoMax": "{{current}} participants",
       "route": {
+        "downloadFit": "FIT",
+        "downloadGpx": "GPX",
         "view": "Voir le parcours"
       },
-      "speed": "{{speed}} km/h",
       "title": "Groupes",
       "viewAll": "Voir tout",
       "viewParticipants": "Voir tous les participants"
@@ -126,44 +97,17 @@
       "message": "La sortie que vous recherchez n'existe pas.",
       "title": "Sortie non trouvée"
     },
-    "scheduledPublish": "Publication programmée le {{date}}",
-    "startPlace": "Départ"
+    "scheduledPublish": "Publication programmée le {{date}}"
   },
   "edit": {
-    "backToRide": "Retour à la sortie",
-    "button": "Enregistrer les modifications",
     "subtitle": "Modifier les détails de la sortie pour {{teamName}}",
     "title": "Modifier la sortie"
   },
-  "list": {
-    "createRide": "Créer une sortie",
-    "empty": {
-      "admin": "Commencez par créer votre première sortie.",
-      "createAction": "Créer une sortie",
-      "member": "Aucune sortie n'est prévue pour le moment.",
-      "title": "Aucune sortie"
-    },
-    "noResults": "Aucune sortie ne correspond à votre recherche.",
-    "notFound": {
-      "title": "Équipe non trouvée"
-    },
-    "search": {
-      "label": "Rechercher des sorties",
-      "placeholder": "Rechercher par titre ou description..."
-    },
-    "title": "Sorties"
-  },
-  "loading": "Chargement...",
   "notifications": {
     "created": "Sortie créée avec succès",
     "deleted": "Sortie supprimée avec succès",
     "joined": "Inscription à la sortie confirmée",
     "left": "Désinscription de la sortie confirmée",
     "updated": "Sortie mise à jour avec succès"
-  },
-  "status": {
-    "CANCELLED": "Annulé",
-    "DRAFT": "Brouillon",
-    "PUBLISHED": "Publié"
   }
 }

@@ -5,13 +5,13 @@ import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { useTranslation } from 'react-i18next'
 
 export function TeamAdminPage() {
-  const { t } = useTranslation('teams')
+  const { t: tCommon } = useTranslation('common')
   const { teamSlug } = useParams<{ teamSlug: string }>()
 
   const { data: team, isLoading } = useTeam(teamSlug)
 
   if (isLoading) {
-    return <LoadingPage message={t('detail.loading')} />
+    return <LoadingPage message={tCommon('loading')} />
   }
 
   if (!team) {

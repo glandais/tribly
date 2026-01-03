@@ -95,7 +95,7 @@ export function RouteDetailPage() {
                 to={paths.routeEdit(teamSlug!, routeSlug!)}
                 className="px-4 py-2 border border-gray-300 rounded-md shadow-xs text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
               >
-                {tCommon('buttons.edit')}
+                {tCommon('actions.edit')}
               </Link>
               <button
                 onClick={() => setShowDeleteConfirm(true)}
@@ -194,7 +194,9 @@ export function RouteDetailPage() {
               <dt className="text-sm font-medium text-gray-500">{t('detail.info.surfaceType')}</dt>
               <dd>
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                  {t(`surfaceType.${route.surfaceType}`)}
+                  {t(
+                    `surfaceType.${route.surfaceType satisfies 'ROAD' | 'GRAVEL' | 'MTB' | 'MIXED'}`
+                  )}
                 </span>
               </dd>
             </>
@@ -202,7 +204,7 @@ export function RouteDetailPage() {
           <dt className="text-sm font-medium text-gray-500">{t('detail.info.visibility')}</dt>
           <dd>
             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-              {tCommon(`visibility.${route.visibility.toLowerCase()}`)}
+              {tCommon(`visibility.${route.visibility.toLowerCase() as 'public' | 'team'}`)}
             </span>
           </dd>
           <dt className="text-sm font-medium text-gray-500">{t('detail.info.createdAt')}</dt>

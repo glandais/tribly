@@ -1,46 +1,31 @@
 {
-  "breadcrumb": {
-    "trips": "Voyages"
-  },
   "card": {
-    "participantCount_one": "{{count}} participant",
-    "participantCount_many": "{{count}} participants",
-    "participantCount_other": "{{count}} participants",
     "stageCount_one": "{{count}} étape",
     "stageCount_many": "{{count}} étapes",
     "stageCount_other": "{{count}} étapes"
   },
   "create": {
-    "backToTrips": "Retour aux voyages",
     "button": "Créer le voyage",
     "error": "Échec de la création du voyage. Veuillez réessayer.",
     "form": {
-      "date": {
-        "label": "Date de début"
-      },
       "description": {
-        "label": "Description",
         "placeholder": "Décrivez le voyage, les points forts, la logistique..."
       },
       "publishAt": {
-        "hint": "Définir une date/heure pour la publication automatique",
         "label": "Planifier la publication"
       },
       "route": {
-        "change": "Modifier",
         "clear": "Supprimer",
         "hint": "Optionnel : associer un parcours GPX global pour tout le voyage",
         "label": "Parcours global",
-        "none": "Aucun parcours sélectionné",
         "select": "Sélectionner un parcours",
         "selectForStage": "Sélectionner le parcours de l'étape",
         "selectForTrip": "Sélectionner le parcours du voyage"
       },
       "stages": {
         "add": "Ajouter une étape",
-        "defaultName": "Jour {{day}}",
+        "defaultName": "Étape {{number}}",
         "description": {
-          "label": "Description",
           "placeholder": "Décrivez cette étape..."
         },
         "empty": "Aucune étape définie. Ajoutez au moins une étape.",
@@ -49,7 +34,6 @@
           "placeholder": "Rechercher un lieu d'arrivée..."
         },
         "hint": "Créez des étapes pour chaque jour ou segment de votre voyage",
-        "label": "Étapes",
         "name": {
           "placeholder": "Nom de l'étape (ex: Jour 1: Col de montagne)"
         },
@@ -57,17 +41,12 @@
         "remove": "Supprimer",
         "restore": "Restaurer",
         "route": {
-          "label": "Parcours de l'étape",
-          "none": "Pas de parcours pour cette étape"
+          "label": "Parcours de l'étape"
         },
         "startPlace": {
           "label": "Lieu de départ",
           "placeholder": "Rechercher un lieu de départ..."
-        },
-        "willBeDeleted": "(sera supprimée)"
-      },
-      "status": {
-        "label": "Statut"
+        }
       },
       "title": {
         "label": "Titre du voyage",
@@ -80,13 +59,9 @@
   "detail": {
     "actions": {
       "cancel": "Annuler le voyage",
-      "delete": "Supprimer",
-      "edit": "Modifier",
       "join": "Rejoindre le voyage",
       "leave": "Quitter le voyage",
-      "publish": "Publier",
-      "uncancel": "Restaurer le voyage",
-      "unpublish": "Dépublier"
+      "uncancel": "Restaurer le voyage"
     },
     "confirmations": {
       "cancel": "Êtes-vous sûr de vouloir annuler ce voyage ?",
@@ -117,30 +92,9 @@
     }
   },
   "edit": {
-    "backToTrip": "Retour au voyage",
-    "button": "Enregistrer les modifications",
     "subtitle": "Mettre à jour les détails du voyage pour {{teamName}}",
     "title": "Modifier le voyage"
   },
-  "list": {
-    "createTrip": "Créer un voyage",
-    "empty": {
-      "admin": "Commencez par créer votre premier voyage.",
-      "createAction": "Créer un voyage",
-      "member": "Aucun voyage n'est prévu pour le moment.",
-      "title": "Pas encore de voyages"
-    },
-    "noResults": "Aucun voyage trouvé correspondant à votre recherche.",
-    "notFound": {
-      "title": "Équipe introuvable"
-    },
-    "search": {
-      "label": "Rechercher des voyages",
-      "placeholder": "Rechercher par titre ou description..."
-    },
-    "title": "Voyages"
-  },
-  "loading": "Chargement...",
   "notifications": {
     "created": "Voyage créé avec succès",
     "deleted": "Voyage supprimé avec succès",
@@ -149,13 +103,6 @@
     "updated": "Voyage mis à jour avec succès"
   },
   "stage": {
-    "endPlace": "Arrivée",
-    "startPlace": "Départ",
     "viewRoute": "Voir le parcours"
-  },
-  "status": {
-    "CANCELLED": "Annulé",
-    "DRAFT": "Brouillon",
-    "PUBLISHED": "Publié"
   }
 }

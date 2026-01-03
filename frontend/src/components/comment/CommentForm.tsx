@@ -30,6 +30,7 @@ export function CommentForm({
   autoFocus = false,
 }: CommentFormProps) {
   const { t } = useTranslation('comments')
+  const { t: tCommon } = useTranslation('common')
 
   const form = useForm<CommentFormValues>({
     resolver: zodResolver(commentSchema),
@@ -70,7 +71,7 @@ export function CommentForm({
           </Button>
           {onCancel && (
             <Button type="button" variant="ghost" size="sm" onClick={onCancel} className="text-xs">
-              {t('form.cancel')}
+              {tCommon('actions.cancelAction')}
             </Button>
           )}
         </div>

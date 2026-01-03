@@ -11,6 +11,7 @@ import { TeamDetailDto } from '../../api/api'
 
 export function TeamSettingsPage() {
   const { t } = useTranslation('teams')
+  const { t: tCommon } = useTranslation('common')
   const { teamSlug } = useParams<{ teamSlug: string }>()
   const navigate = useNavigate()
 
@@ -20,7 +21,7 @@ export function TeamSettingsPage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   if (isLoading) {
-    return <LoadingPage message={t('settings.loading')} />
+    return <LoadingPage message={tCommon('loading')} />
   }
 
   if (error || !team) {

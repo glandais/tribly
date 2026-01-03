@@ -22,6 +22,7 @@ import type { RideTemplateDto } from '../../api/api'
 
 export function RideTemplateListPage() {
   const { t } = useTranslation('rideTemplates')
+  const { t: tCommon } = useTranslation('common')
   const { teamSlug } = useParams<{ teamSlug: string }>()
   const [page, setPage] = useState(0)
   const [search, setSearch] = useState('')
@@ -44,7 +45,7 @@ export function RideTemplateListPage() {
   })
 
   if (isLoadingTeam) {
-    return <LoadingPage message={t('list.loading')} />
+    return <LoadingPage message={tCommon('loading')} />
   }
 
   if (!team) {
@@ -77,7 +78,7 @@ export function RideTemplateListPage() {
               className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
             >
               <PlusIcon className="w-4 h-4 mr-2" />
-              {t('list.createTemplate')}
+              {t('create.title')}
             </Link>
           )}
         </div>
@@ -122,7 +123,7 @@ export function RideTemplateListPage() {
                       <div className="mt-3 flex items-center gap-4 text-sm text-gray-500">
                         <span className="flex items-center gap-1">
                           <UserGroupIcon className="w-4 h-4" />
-                          {t('list.groupCount', { count: template.groupCount })}
+                          {tCommon('groups.groupCount', { count: template.groupCount })}
                         </span>
                         <span
                           className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
@@ -131,7 +132,9 @@ export function RideTemplateListPage() {
                               : 'bg-gray-100 text-gray-800'
                           }`}
                         >
-                          {t(`form.visibility.${template.visibility.toLowerCase()}`)}
+                          {t(
+                            `form.visibility.${template.visibility.toLowerCase() as 'public' | 'team'}`
+                          )}
                         </span>
                       </div>
                       {template.groups && template.groups.length > 0 && (
@@ -144,7 +147,7 @@ export function RideTemplateListPage() {
                               {group.name}
                               {group.averageSpeed && (
                                 <span className="ml-1 text-indigo-400">
-                                  {t('list.speed', { speed: group.averageSpeed })}
+                                  {tCommon('speed', { speed: group.averageSpeed })}
                                 </span>
                               )}
                             </span>
@@ -157,14 +160,14 @@ export function RideTemplateListPage() {
                         <Link
                           to={paths.rideTemplateEdit(teamSlug!, template.slug)}
                           className="p-2 text-gray-400 hover:text-indigo-600 rounded-lg hover:bg-gray-100"
-                          title={t('list.edit')}
+                          title={tCommon('actions.edit')}
                         >
                           <PencilIcon className="w-5 h-5" />
                         </Link>
                         <button
                           onClick={() => handleDelete(template)}
                           className="p-2 text-gray-400 hover:text-red-600 rounded-lg hover:bg-gray-100"
-                          title={t('list.delete')}
+                          title={tCommon('actions.delete')}
                         >
                           <TrashIcon className="w-5 h-5" />
                         </button>
@@ -198,7 +201,7 @@ export function RideTemplateListPage() {
                 to={paths.rideTemplateNew(teamSlug!)}
                 className="mt-4 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
               >
-                {t('list.empty.createAction')}
+                {t('create.title')}
               </Link>
             )}
           </div>

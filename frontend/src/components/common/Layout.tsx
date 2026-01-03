@@ -58,13 +58,13 @@ export function Layout() {
                     {user?.avatarUrl ? (
                       <img
                         src={user.avatarUrl}
-                        alt={`${t('nav.profilePicture')} ${user.displayName}`}
+                        alt={t('nav.profilePicture', { name: user.displayName })}
                         className="h-8 w-8 rounded-full mr-2"
                       />
                     ) : (
                       <div
                         className="h-8 w-8 rounded-full bg-indigo-500 flex items-center justify-center mr-2"
-                        aria-label={`${t('nav.avatar')} ${user?.displayName}`}
+                        aria-label={t('nav.avatar', { name: user?.displayName })}
                       >
                         <span className="text-white text-sm font-medium">
                           {user?.displayName?.charAt(0).toUpperCase()}
@@ -126,13 +126,13 @@ export function Layout() {
                       {user?.avatarUrl ? (
                         <img
                           src={user.avatarUrl}
-                          alt={`${t('nav.profilePicture')} ${user.displayName}`}
+                          alt={t('nav.profilePicture', { name: user.displayName })}
                           className="h-8 w-8 rounded-full mr-3"
                         />
                       ) : (
                         <div
                           className="h-8 w-8 rounded-full bg-indigo-500 flex items-center justify-center mr-3"
-                          aria-label={`${t('nav.avatar')} ${user?.displayName}`}
+                          aria-label={t('nav.avatar', { name: user?.displayName })}
                         >
                           <span className="text-white text-sm font-medium">
                             {user?.displayName?.charAt(0).toUpperCase()}

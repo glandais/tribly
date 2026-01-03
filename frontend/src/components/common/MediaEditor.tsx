@@ -33,6 +33,7 @@ export function MediaEditor({
   teamSlug,
 }: MediaEditorProps) {
   const { t } = useTranslation('common')
+  const { t: tCommon } = useTranslation('common')
   const fileInputRef = useRef<HTMLInputElement>(null)
   const logoInputRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
@@ -72,7 +73,7 @@ export function MediaEditor({
 
       return { id: asset.id, fileName: asset.fileName }
     } catch {
-      setImageError(t('images.uploadError'))
+      setImageError(t('error.loading'))
       return null
     } finally {
       setImageUploading(false)
@@ -97,7 +98,7 @@ export function MediaEditor({
         },
       })
     } catch {
-      setLogoError(t('logo.uploadError'))
+      setLogoError(t('error.loading'))
     } finally {
       setLogoUploading(false)
       if (logoInputRef.current) {
@@ -135,7 +136,7 @@ export function MediaEditor({
         },
       })
     } catch {
-      setUploadError(t('attachments.uploadError'))
+      setUploadError(t('error.loading'))
     } finally {
       setUploading(false)
       // Reset the file input so the same file can be selected again
@@ -206,7 +207,7 @@ export function MediaEditor({
                 {logoUploading ? (
                   <>
                     <LoadingSpinner size="sm" />
-                    {t('logo.uploading')}
+                    {tCommon('loading')}
                   </>
                 ) : logo ? (
                   t('logo.change')
@@ -304,7 +305,7 @@ export function MediaEditor({
               {uploading ? (
                 <>
                   <LoadingSpinner size="sm" />
-                  {t('attachments.uploading')}
+                  {tCommon('loading')}
                 </>
               ) : (
                 <>

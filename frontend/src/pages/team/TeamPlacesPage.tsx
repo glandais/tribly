@@ -7,13 +7,12 @@ import { TeamAdminLayout } from '../../components/team/TeamAdminLayout'
 import { PlaceList } from '../../components/team/PlaceList'
 
 export function TeamPlacesPage() {
-  const { t } = useTranslation('teams')
+  const { t: tCommon } = useTranslation('common')
   const { teamSlug } = useParams<{ teamSlug: string }>()
 
   const { data: team, isLoading } = useTeam(teamSlug)
-
   if (isLoading) {
-    return <LoadingPage message={t('detail.loading')} />
+    return <LoadingPage message={tCommon('loading')} />
   }
 
   if (!team) {

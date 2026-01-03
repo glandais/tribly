@@ -21,6 +21,7 @@ export function TripStageCard({
   isHighlighted = false,
 }: TripStageCardProps) {
   const { t } = useTranslation('trips')
+  const { t: tCommon } = useTranslation('common')
   const { formatDateTime } = useFormattedDate()
 
   return (
@@ -59,14 +60,14 @@ export function TripStageCard({
           {stage.startPlace && (
             <span className="flex items-center">
               <MapPinIcon className="w-4 h-4 mr-1 text-green-600" />
-              <span className="font-medium text-green-700">{t('stage.startPlace')}:</span>
+              <span className="font-medium text-green-700">{tCommon('startPlace')}:</span>
               <span className="ml-1">{stage.startPlace.name}</span>
             </span>
           )}
           {stage.endPlace && (
             <span className="flex items-center">
               <MapPinIcon className="w-4 h-4 mr-1 text-red-600" />
-              <span className="font-medium text-red-700">{t('stage.endPlace')}:</span>
+              <span className="font-medium text-red-700">{tCommon('endPlace')}:</span>
               <span className="ml-1">{stage.endPlace.name}</span>
             </span>
           )}

@@ -34,8 +34,6 @@ interface PublicationCardProps {
 
 export function PublicationCard({ publication, showTeam }: PublicationCardProps) {
   const { t: tCommon } = useTranslation('common')
-  const { t: tRides } = useTranslation('rides')
-  const { t: tPosts } = useTranslation('posts')
   const { t: tTrips } = useTranslation('trips')
   const { formatDateTime } = useFormattedDate()
 
@@ -51,16 +49,9 @@ export function PublicationCard({ publication, showTeam }: PublicationCardProps)
     }
   }
 
-  // Get the status translation based on type
+  // Get the status translation - consolidated in common
   const getStatusLabel = () => {
-    switch (publication.type) {
-      case 'RIDE':
-        return tRides(`status.${publication.status}`)
-      case 'POST':
-        return tPosts(`status.${publication.status}`)
-      case 'TRIP':
-        return tTrips(`status.${publication.status}`)
-    }
+    return tCommon(`status.${publication.status satisfies 'DRAFT' | 'PUBLISHED' | 'CANCELLED'}`)
   }
 
   // Get the type translation
@@ -90,9 +81,11 @@ export function PublicationCard({ publication, showTeam }: PublicationCardProps)
           <StatGroup>
             <Stat icon={calendarIcon}>{formattedDate}</Stat>
             <Stat icon={participantsIcon}>
-              {tRides('card.participantCount', { count: ride.participantCount })}
+              {tCommon('participantCount', { count: ride.participantCount })}
             </Stat>
-            <Stat icon={groupsIcon}>{tRides('card.groupCount', { count: ride.groupCount })}</Stat>
+            <Stat icon={groupsIcon}>
+              {tCommon('groups.groupCount', { count: ride.groupCount })}
+            </Stat>
           </StatGroup>
         )
       }
@@ -102,7 +95,7 @@ export function PublicationCard({ publication, showTeam }: PublicationCardProps)
           <StatGroup>
             <Stat icon={calendarIcon}>{formattedDate}</Stat>
             <Stat icon={participantsIcon}>
-              {tTrips('card.participantCount', { count: trip.participantCount })}
+              {tCommon('participantCount', { count: trip.participantCount })}
             </Stat>
             <Stat icon={groupsIcon}>{tTrips('card.stageCount', { count: trip.stageCount })}</Stat>
           </StatGroup>

@@ -34,7 +34,7 @@ export type EntityType =
 
 /**
  * Breadcrumb label configuration
- * - Static: i18n key string (e.g., "common:nav.teams")
+ * - Static: i18n key string (e.g., "common:teams")
  * - Dynamic: object with entity type to fetch name from
  */
 export type BreadcrumbLabel =

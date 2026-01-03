@@ -12,6 +12,7 @@ import { AdType, Status, Visibility } from '../../api/api'
 
 export function CreateAdPage() {
   const { t } = useTranslation('ads')
+  const { t: tCommon } = useTranslation('common')
   const { teamSlug } = useParams<{ teamSlug: string }>()
   const navigate = useNavigate()
   const { data: team, isLoading: isLoadingTeam } = useTeam(teamSlug)
@@ -19,7 +20,7 @@ export function CreateAdPage() {
   const createMutation = useCreateAd(teamSlug)
 
   if (isLoadingTeam) {
-    return <LoadingPage message={t('loading')} />
+    return <LoadingPage message={tCommon('loading')} />
   }
 
   if (!team || !teamSlug) {

@@ -10,6 +10,7 @@ import { toDateTimeLocalValue } from '../../utils/dateFormat'
 
 export function EditTripPage() {
   const { t } = useTranslation('trips')
+  const { t: tCommon } = useTranslation('common')
   const { teamSlug, tripSlug } = useParams<{ teamSlug: string; tripSlug: string }>()
   const navigate = useNavigate()
   const { data: team, isLoading: isLoadingTeam } = useTeam(teamSlug)
@@ -18,7 +19,7 @@ export function EditTripPage() {
   const updateMutation = useUpdateTrip(teamSlug, tripSlug!)
 
   if (isLoadingTeam || isLoadingTrip) {
-    return <LoadingPage message={t('loading')} />
+    return <LoadingPage message={tCommon('loading')} />
   }
 
   if (!team || !trip || !team.enableTrips) {
@@ -92,7 +93,7 @@ export function EditTripPage() {
         onCancel={() => navigate(paths.trip(teamSlug!, tripSlug!))}
         isPending={updateMutation.isPending}
         error={updateMutation.error}
-        submitButtonText={t('edit.button')}
+        submitButtonText={tCommon('actions.save')}
       />
     </div>
   )

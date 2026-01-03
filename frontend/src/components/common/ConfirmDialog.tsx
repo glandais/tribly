@@ -52,14 +52,14 @@ export function ConfirmDialog({
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel disabled={isLoading}>
-            {cancelText || t('buttons.cancel')}
+            {cancelText || t('actions.cancelAction')}
           </AlertDialogCancel>
           <AlertDialogAction
             onClick={onConfirm}
             disabled={isLoading}
             className={cn(buttonVariants(), variantStyles[variant])}
           >
-            {isLoading ? t('buttons.loading') : confirmText || t('buttons.confirm')}
+            {isLoading ? t('loading') : confirmText || t('buttons.confirm')}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

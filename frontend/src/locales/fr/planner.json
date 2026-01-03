@@ -3,8 +3,8 @@
   "clear": "Effacer",
   "instructions": "Cliquer pour ajouter, glisser pour déplacer, clic droit pour supprimer",
   "pointCount_one": "{{count}} point",
+  "pointCount_many": "{{count}} points",
   "pointCount_other": "{{count}} points",
-  "title": "Planificateur d'itinéraire",
   "units": {
     "km": "km",
     "m": "m"

@@ -61,7 +61,7 @@ export function AssetImage({
         className={`inline-flex items-center gap-1 px-2 py-1 bg-red-50 text-red-500 text-sm rounded ${className}`}
       >
         <PhotoIcon className="w-4 h-4 shrink-0" />
-        <span>{t('images.loadError')}</span>
+        <span>{t('error.loading')}</span>
       </span>
     )
   }

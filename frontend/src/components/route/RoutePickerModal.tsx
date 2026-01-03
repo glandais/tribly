@@ -82,7 +82,7 @@ export function RoutePickerModal({
           onClick={onCreateNew}
           className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700"
         >
-          {t('picker.createNew')}
+          {t('create.title')}
         </button>
       )}
     </div>
@@ -104,7 +104,7 @@ export function RoutePickerModal({
         onClick={handleClose}
         className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
       >
-        {tCommon('buttons.cancel')}
+        {tCommon('actions.cancelAction')}
       </button>
     </>
   )
@@ -121,7 +121,7 @@ export function RoutePickerModal({
       {isLoading ? (
         <div className="flex flex-col items-center justify-center py-12">
           <LoadingSpinner />
-          <p className="mt-2 text-gray-500">{t('picker.loading')}</p>
+          <p className="mt-2 text-gray-500">{tCommon('loading')}</p>
         </div>
       ) : error ? (
         <div className="text-center py-12 text-red-600">{tCommon('error.loading')}</div>

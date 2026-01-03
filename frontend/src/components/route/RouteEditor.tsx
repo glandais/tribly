@@ -261,16 +261,16 @@ export function RouteEditor({
       {/* Description */}
       <div>
         <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
-          {t('create.form.description')}
+          {tCommon('form.description')}
         </label>
         <MediaEditor
           value={media}
           onChange={setMedia}
-          placeholder={t('create.form.description')}
+          placeholder={tCommon('form.description')}
           minHeight="150px"
           maxHeight="300px"
           disabled={isPending}
-          ariaLabel={t('create.form.description')}
+          ariaLabel={tCommon('form.description')}
           teamSlug={teamSlug}
         />
       </div>
@@ -336,7 +336,7 @@ export function RouteEditor({
             disabled={isPending}
             className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {cancelButtonText || tCommon('buttons.cancel')}
+            {cancelButtonText || tCommon('actions.cancelAction')}
           </button>
         )}
         <button

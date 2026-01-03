@@ -45,6 +45,7 @@ const statusColors: Record<Status, string> = {
 
 export function RideDetailPage() {
   const { t } = useTranslation('rides')
+  const { t: tCommon } = useTranslation('common')
   const { formatDateTime } = useFormattedDate()
   const { teamSlug, rideSlug } = useParams<{ teamSlug: string; rideSlug: string }>()
   const { isAuthenticated, user } = useAuth()
@@ -87,7 +88,7 @@ export function RideDetailPage() {
   }, [ride, t])
 
   if (isLoadingTeam || isLoadingRide) {
-    return <LoadingPage message={t('loading')} />
+    return <LoadingPage message={tCommon('loading')} />
   }
 
   if (error || !ride) {
@@ -171,7 +172,7 @@ export function RideDetailPage() {
             <span
               className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium shrink-0 ${statusColors[ride.status]}`}
             >
-              {t(`status.${ride.status}`)}
+              {tCommon(`status.${ride.status satisfies 'DRAFT' | 'PUBLISHED' | 'CANCELLED'}`)}
             </span>
           </div>
 
@@ -180,7 +181,7 @@ export function RideDetailPage() {
               <Button asChild variant="outline">
                 <Link to={paths.rideEdit(teamSlug!, rideSlug!)}>
                   <PencilIcon className="w-4 h-4" />
-                  {t('detail.actions.edit')}
+                  {tCommon('actions.edit')}
                 </Link>
               </Button>
               <DropdownMenu>
@@ -197,7 +198,7 @@ export function RideDetailPage() {
                       className="text-green-700"
                     >
                       {updateMutation.isPending && <LoadingSpinner size="sm" />}
-                      {t('detail.actions.publish')}
+                      {tCommon('actions.publish')}
                     </DropdownMenuItem>
                   )}
                   {ride.status === Status.Published && (
@@ -206,7 +207,7 @@ export function RideDetailPage() {
                         onClick={() => setShowUnpublishConfirm(true)}
                         className="text-yellow-700"
                       >
-                        {t('detail.actions.unpublish')}
+                        {tCommon('actions.unpublish')}
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => setShowCancelConfirm(true)}
@@ -229,7 +230,7 @@ export function RideDetailPage() {
                     onClick={() => setShowDeleteConfirm(true)}
                     variant="destructive"
                   >
-                    {t('detail.actions.delete')}
+                    {tCommon('actions.delete')}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -255,7 +256,7 @@ export function RideDetailPage() {
           </span>
           <span className="flex items-center">
             <UsersIcon className="w-4 h-4 mr-1" />
-            {t('card.participantCount', { count: ride.participantCount })}
+            {tCommon('participantCount', { count: ride.participantCount })}
           </span>
         </div>
         {/* Start and End Places */}
@@ -264,7 +265,7 @@ export function RideDetailPage() {
             {ride.startPlace && (
               <span className="flex items-center">
                 <MapPinIcon className="w-4 h-4 mr-1 text-green-600" />
-                <span className="font-medium text-green-700">{t('detail.startPlace')}:</span>
+                <span className="font-medium text-green-700">{tCommon('startPlace')}:</span>
                 <span className="ml-1">
                   {ride.startPlace.name}
                   {ride.startPlace.address && (
@@ -276,7 +277,7 @@ export function RideDetailPage() {
             {ride.endPlace && (
               <span className="flex items-center">
                 <MapPinIcon className="w-4 h-4 mr-1 text-red-600" />
-                <span className="font-medium text-red-700">{t('detail.endPlace')}:</span>
+                <span className="font-medium text-red-700">{tCommon('endPlace')}:</span>
                 <span className="ml-1">
                   {ride.endPlace.name}
                   {ride.endPlace.address && (
@@ -376,9 +377,9 @@ export function RideDetailPage() {
         isOpen={showUnpublishConfirm}
         onClose={() => setShowUnpublishConfirm(false)}
         onConfirm={handleUnpublish}
-        title={t('detail.actions.unpublish')}
+        title={tCommon('actions.unpublish')}
         message={t('detail.confirmations.unpublish')}
-        confirmText={t('detail.actions.unpublish')}
+        confirmText={tCommon('actions.unpublish')}
         variant="warning"
         isLoading={updateMutation.isPending}
       />
@@ -406,9 +407,9 @@ export function RideDetailPage() {
         isOpen={showDeleteConfirm}
         onClose={() => setShowDeleteConfirm(false)}
         onConfirm={handleDelete}
-        title={t('detail.actions.delete')}
+        title={tCommon('actions.delete')}
         message={t('detail.confirmations.delete')}
-        confirmText={t('detail.actions.delete')}
+        confirmText={tCommon('actions.delete')}
         variant="danger"
         isLoading={deleteMutation.isPending}
       />

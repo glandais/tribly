@@ -1,23 +1,9 @@
 {
-  "breadcrumb": {
-    "rides": "Rides"
-  },
-  "card": {
-    "groupCount_one": "{{count}} group",
-    "groupCount_other": "{{count}} groups",
-    "participantCount_one": "{{count}} participant",
-    "participantCount_other": "{{count}} participants"
-  },
   "create": {
-    "backToRides": "Back to Rides",
     "button": "Create Ride",
     "error": "Failed to create ride. Please try again.",
     "form": {
-      "date": {
-        "label": "Start"
-      },
       "description": {
-        "label": "Description",
         "placeholder": "Describe the ride, route highlights, coffee stops..."
       },
       "endPlace": {
@@ -25,8 +11,7 @@
         "placeholder": "Search for an end location..."
       },
       "groups": {
-        "add": "+ Add Group",
-        "defaultName": "Main Group",
+        "defaultName": "Group {{number}}",
         "empty": "No groups defined. Add at least one group.",
         "hint": "Create different groups for varying skill levels or speeds",
         "label": "Groups",
@@ -40,24 +25,19 @@
         "remove": "Remove",
         "restore": "Restore",
         "route": {
-          "label": "Group route",
-          "none": "No specific route"
+          "label": "Group route"
         },
         "speed": {
           "placeholder": "Speed (km/h)"
-        },
-        "willBeDeleted": "(will be deleted)"
+        }
       },
       "publishAt": {
-        "hint": "Set a date/time for automatic publication",
         "label": "Schedule Publication"
       },
       "route": {
-        "change": "Change",
         "clear": "Remove",
         "hint": "Optional: attach a GPX route to this ride",
         "label": "Route",
-        "none": "No route selected",
         "select": "Select a route",
         "selectForGroup": "Select route for group",
         "selectForRide": "Select route for ride"
@@ -65,9 +45,6 @@
       "startPlace": {
         "label": "Start Location",
         "placeholder": "Search for a start location..."
-      },
-      "status": {
-        "label": "Status"
       },
       "title": {
         "label": "Ride Title",
@@ -81,11 +58,7 @@
   "detail": {
     "actions": {
       "cancel": "Cancel Ride",
-      "delete": "Delete",
-      "edit": "Edit",
-      "publish": "Publish",
-      "uncancel": "Restore Ride",
-      "unpublish": "Unpublish"
+      "uncancel": "Restore Ride"
     },
     "confirmations": {
       "cancel": "Are you sure you want to cancel this ride?",
@@ -93,7 +66,6 @@
       "uncancel": "Are you sure you want to restore this ride? It will return to draft status.",
       "unpublish": "Are you sure you want to unpublish this ride? It will return to draft status."
     },
-    "endPlace": "End",
     "groups": {
       "empty": "No groups defined for this ride.",
       "full": "Full",
@@ -103,9 +75,10 @@
       "participants": "{{current}}/{{max}} participants",
       "participantsNoMax": "{{current}} participants",
       "route": {
+        "downloadFit": "FIT",
+        "downloadGpx": "GPX",
         "view": "View route"
       },
-      "speed": "{{speed}} km/h",
       "title": "Groups",
       "viewAll": "View all",
       "viewParticipants": "View all participants"
@@ -124,44 +97,17 @@
       "message": "The ride you're looking for doesn't exist.",
       "title": "Ride Not Found"
     },
-    "scheduledPublish": "Scheduled to publish on {{date}}",
-    "startPlace": "Start"
+    "scheduledPublish": "Scheduled to publish on {{date}}"
   },
   "edit": {
-    "backToRide": "Back to Ride",
-    "button": "Save Changes",
     "subtitle": "Update ride details for {{teamName}}",
     "title": "Edit Ride"
   },
-  "list": {
-    "createRide": "Create Ride",
-    "empty": {
-      "admin": "Get started by creating your first ride.",
-      "createAction": "Create a Ride",
-      "member": "No rides are scheduled at the moment.",
-      "title": "No rides yet"
-    },
-    "noResults": "No rides found matching your search.",
-    "notFound": {
-      "title": "Team Not Found"
-    },
-    "search": {
-      "label": "Search rides",
-      "placeholder": "Search by title or description..."
-    },
-    "title": "Rides"
-  },
-  "loading": "Loading ride...",
   "notifications": {
     "created": "Ride created successfully",
     "deleted": "Ride deleted successfully",
     "joined": "Successfully joined the ride",
     "left": "Successfully left the ride",
     "updated": "Ride updated successfully"
-  },
-  "status": {
-    "CANCELLED": "Cancelled",
-    "DRAFT": "Draft",
-    "PUBLISHED": "Published"
   }
 }

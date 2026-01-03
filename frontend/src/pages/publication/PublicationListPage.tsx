@@ -41,6 +41,7 @@ const filterToTypes: Record<FilterValue, PublicationType[] | undefined> = {
 
 export function PublicationListPage() {
   const { t } = useTranslation('teams')
+  const { t: tCommon } = useTranslation('common')
   const { t: tRides } = useTranslation('rides')
   const { t: tPosts } = useTranslation('posts')
   const { t: tRoutes } = useTranslation('routes')
@@ -89,7 +90,7 @@ export function PublicationListPage() {
               <Button asChild className="bg-indigo-600 hover:bg-indigo-700">
                 <Link to={paths.rideNew(teamSlug!)}>
                   <PlusIcon className="w-4 h-4" />
-                  {tRides('list.createRide')}
+                  {tRides('create.title')}
                 </Link>
               </Button>
               <DropdownMenu>
@@ -100,18 +101,18 @@ export function PublicationListPage() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem asChild>
-                    <Link to={paths.rideNew(teamSlug!)}>{tRides('list.createRide')}</Link>
+                    <Link to={paths.rideNew(teamSlug!)}>{tRides('create.title')}</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link to={paths.postNew(teamSlug!)}>{tPosts('list.createPost')}</Link>
+                    <Link to={paths.postNew(teamSlug!)}>{tPosts('create.title')}</Link>
                   </DropdownMenuItem>
                   {team.enableTrips && (
                     <DropdownMenuItem asChild>
-                      <Link to={paths.tripNew(teamSlug!)}>{tTrips('list.createTrip')}</Link>
+                      <Link to={paths.tripNew(teamSlug!)}>{tTrips('create.title')}</Link>
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuItem asChild>
-                    <Link to={paths.routeNew(teamSlug!)}>{tRoutes('list.createRoute')}</Link>
+                    <Link to={paths.routeNew(teamSlug!)}>{tRoutes('create.title')}</Link>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -182,7 +183,7 @@ export function PublicationListPage() {
           <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
             <NewspaperIcon className="mx-auto h-12 w-12 text-gray-400" />
             <h3 className="mt-4 text-lg font-medium text-gray-900">
-              {search ? t('publications.list.noResults') : t('publications.list.empty')}
+              {search ? tCommon('noResults') : t('publications.list.empty')}
             </h3>
             {!search && (
               <p className="mt-2 text-gray-500">{t('publications.list.emptyDescription')}</p>

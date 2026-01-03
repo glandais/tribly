@@ -81,7 +81,7 @@ export function RideTemplatePickerModal({
       onClick={handleClose}
       className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
     >
-      {tCommon('buttons.cancel')}
+      {tCommon('actions.cancelAction')}
     </button>
   )
 
@@ -97,14 +97,14 @@ export function RideTemplatePickerModal({
       {isLoading ? (
         <div className="flex flex-col items-center justify-center py-12">
           <LoadingSpinner />
-          <p className="mt-2 text-gray-500">{t('picker.loading')}</p>
+          <p className="mt-2 text-gray-500">{tCommon('loading')}</p>
         </div>
       ) : error ? (
         <div className="text-center py-12 text-red-600">{tCommon('error.loading')}</div>
       ) : templates.length === 0 ? (
         <div className="text-center py-12">
           <DocumentDuplicateIcon className="mx-auto h-12 w-12 text-gray-400" />
-          <p className="mt-2 text-gray-500">{t('picker.noResults')}</p>
+          <p className="mt-2 text-gray-500">{t('list.noResults')}</p>
         </div>
       ) : (
         <>
@@ -130,7 +130,7 @@ export function RideTemplatePickerModal({
                   </div>
                   <div className="flex items-center gap-1 ml-4 text-sm text-gray-500">
                     <UserGroupIcon className="w-4 h-4" />
-                    <span>{t('picker.groupCount', { count: template.groupCount })}</span>
+                    <span>{tCommon('groups.groupCount', { count: template.groupCount })}</span>
                   </div>
                 </div>
                 {template.groups && template.groups.length > 0 && (
@@ -143,7 +143,7 @@ export function RideTemplatePickerModal({
                         {group.name}
                         {group.averageSpeed && (
                           <span className="ml-1 text-gray-400">
-                            {t('list.speed', { speed: group.averageSpeed })}
+                            {tCommon('speed', { speed: group.averageSpeed })}
                           </span>
                         )}
                       </span>

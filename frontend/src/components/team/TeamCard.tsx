@@ -39,7 +39,9 @@ export function TeamCard({ team, showRole = false }: TeamCardProps) {
               <VisibilityBadge visibility={team.visibility} showIcon={false} />
             )}
             {showRole && team.role && (
-              <Badge variant={roleBadgeVariants[team.role]}>{t(`roles.${team.role}`)}</Badge>
+              <Badge variant={roleBadgeVariants[team.role]}>
+                {t(`roles.${team.role satisfies 'ADMIN' | 'ORGANIZER' | 'MEMBER'}`)}
+              </Badge>
             )}
           </div>
         </div>

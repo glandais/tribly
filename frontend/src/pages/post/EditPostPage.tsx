@@ -10,6 +10,7 @@ import { paths } from '@/config/paths'
 
 export function EditPostPage() {
   const { t } = useTranslation('posts')
+  const { t: tCommon } = useTranslation('common')
   const { teamSlug, postSlug } = useParams<{ teamSlug: string; postSlug: string }>()
   const navigate = useNavigate()
   const { data: team, isLoading: isLoadingTeam } = useTeam(teamSlug)
@@ -18,7 +19,7 @@ export function EditPostPage() {
   const updateMutation = useUpdatePost(teamSlug, postSlug!)
 
   if (isLoadingTeam || isLoadingPost) {
-    return <LoadingPage message={t('loading')} />
+    return <LoadingPage message={tCommon('loading')} />
   }
 
   if (!team || !post) {
@@ -69,7 +70,7 @@ export function EditPostPage() {
         onCancel={() => navigate(paths.post(teamSlug!, postSlug!))}
         isPending={updateMutation.isPending}
         error={updateMutation.error}
-        submitButtonText={t('edit.submit')}
+        submitButtonText={tCommon('actions.save')}
       />
     </div>
   )

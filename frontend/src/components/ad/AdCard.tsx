@@ -36,6 +36,7 @@ interface AdCardProps {
 
 export function AdCard({ ad, showTeam = false }: AdCardProps) {
   const { t } = useTranslation('ads')
+  const { t: tCommon } = useTranslation('common')
   const { formatDateTime } = useFormattedDate()
 
   const formattedDate = formatDateTime(ad.dateTime)
@@ -50,7 +51,10 @@ export function AdCard({ ad, showTeam = false }: AdCardProps) {
     }).format(price)
 
     if (adType === AdType.Rental && rentalPeriod) {
-      return `${formattedPrice} / ${t(`rentalPeriod.${rentalPeriod}`).toLowerCase()}`
+      const period = t(
+        `rentalPeriod.${rentalPeriod satisfies 'DAY' | 'WEEK' | 'MONTH'}`
+      ).toLowerCase()
+      return t('pricePerPeriod', { price: formattedPrice, period })
     }
     return formattedPrice
   }
@@ -81,8 +85,12 @@ export function AdCard({ ad, showTeam = false }: AdCardProps) {
             </div>
           </div>
           <div className="ml-3 flex flex-col items-end gap-1">
-            <Badge variant={adTypeBadgeVariants[ad.adType]}>{t(`adType.${ad.adType}`)}</Badge>
-            <Badge variant={statusVariants[ad.status] || 'gray'}>{t(`status.${ad.status}`)}</Badge>
+            <Badge variant={adTypeBadgeVariants[ad.adType]}>
+              {t(`adType.${ad.adType satisfies 'SALE' | 'RENTAL' | 'WANTED'}`)}
+            </Badge>
+            <Badge variant={statusVariants[ad.status] || 'gray'}>
+              {tCommon(`status.${ad.status satisfies 'DRAFT' | 'PUBLISHED' | 'CANCELLED'}`)}
+            </Badge>
             <VisibilityBadge visibility={ad.visibility} />
           </div>
         </div>

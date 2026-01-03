@@ -11,6 +11,7 @@ import type { RouteFormData } from '@/components/route/RouteEditor'
 export function EditRoutePage() {
   const { teamSlug, routeSlug } = useParams<{ teamSlug: string; routeSlug: string }>()
   const { t } = useTranslation('routes')
+  const { t: tCommon } = useTranslation('common')
   const navigate = useNavigate()
 
   const { data: team, isLoading: isLoadingTeam } = useTeam(teamSlug)
@@ -96,7 +97,7 @@ export function EditRoutePage() {
         onCancel={() => navigate(paths.route(teamSlug!, routeSlug!))}
         isPending={updateRoute.isPending}
         error={updateRoute.error}
-        submitButtonText={t('edit.submit')}
+        submitButtonText={tCommon('actions.save')}
       />
     </div>
   )

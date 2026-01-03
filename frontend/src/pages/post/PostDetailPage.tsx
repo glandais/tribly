@@ -30,6 +30,7 @@ const statusColors: Record<Status, string> = {
 
 export function PostDetailPage() {
   const { t } = useTranslation('posts')
+  const { t: tCommon } = useTranslation('common')
   const { formatDateTime } = useFormattedDate()
   const { teamSlug, postSlug } = useParams<{ teamSlug: string; postSlug: string }>()
   const [showUnpublishConfirm, setShowUnpublishConfirm] = useState(false)
@@ -44,7 +45,7 @@ export function PostDetailPage() {
   const deleteMutation = useDeletePost(teamSlug)
 
   if (isLoadingTeam || isLoadingPost) {
-    return <LoadingPage message={t('loading')} />
+    return <LoadingPage message={tCommon('loading')} />
   }
 
   if (error || !post) {
@@ -106,7 +107,7 @@ export function PostDetailPage() {
             <span
               className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium shrink-0 ${statusColors[post.status]}`}
             >
-              {t(`status.${post.status}`)}
+              {tCommon(`status.${post.status satisfies 'DRAFT' | 'PUBLISHED' | 'CANCELLED'}`)}
             </span>
           </div>
 
@@ -115,7 +116,7 @@ export function PostDetailPage() {
               <Button asChild variant="outline">
                 <Link to={paths.postEdit(teamSlug!, postSlug!)}>
                   <PencilIcon className="w-4 h-4" />
-                  {t('detail.actions.edit')}
+                  {tCommon('actions.edit')}
                 </Link>
               </Button>
               <DropdownMenu>
@@ -132,7 +133,7 @@ export function PostDetailPage() {
                       className="text-green-700"
                     >
                       {updateMutation.isPending && <LoadingSpinner size="sm" />}
-                      {t('detail.actions.publish')}
+                      {tCommon('actions.publish')}
                     </DropdownMenuItem>
                   )}
                   {post.status === Status.Published && (
@@ -141,13 +142,13 @@ export function PostDetailPage() {
                         onClick={() => setShowUnpublishConfirm(true)}
                         className="text-yellow-700"
                       >
-                        {t('detail.actions.unpublish')}
+                        {tCommon('actions.unpublish')}
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => setShowCancelConfirm(true)}
                         className="text-yellow-700"
                       >
-                        {t('detail.actions.cancel')}
+                        {tCommon('actions.cancelAction')}
                       </DropdownMenuItem>
                     </>
                   )}
@@ -164,7 +165,7 @@ export function PostDetailPage() {
                     onClick={() => setShowDeleteConfirm(true)}
                     variant="destructive"
                   >
-                    {t('detail.actions.delete')}
+                    {tCommon('actions.delete')}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -206,9 +207,9 @@ export function PostDetailPage() {
         isOpen={showUnpublishConfirm}
         onClose={() => setShowUnpublishConfirm(false)}
         onConfirm={handleUnpublish}
-        title={t('detail.actions.unpublish')}
+        title={tCommon('actions.unpublish')}
         message={t('detail.confirmations.unpublish')}
-        confirmText={t('detail.actions.unpublish')}
+        confirmText={tCommon('actions.unpublish')}
         variant="warning"
         isLoading={updateMutation.isPending}
       />
@@ -216,9 +217,9 @@ export function PostDetailPage() {
         isOpen={showCancelConfirm}
         onClose={() => setShowCancelConfirm(false)}
         onConfirm={handleCancel}
-        title={t('detail.actions.cancel')}
+        title={tCommon('actions.cancelAction')}
         message={t('detail.confirmations.cancel')}
-        confirmText={t('detail.actions.cancel')}
+        confirmText={tCommon('actions.cancelAction')}
         variant="warning"
         isLoading={updateMutation.isPending}
       />
@@ -236,9 +237,9 @@ export function PostDetailPage() {
         isOpen={showDeleteConfirm}
         onClose={() => setShowDeleteConfirm(false)}
         onConfirm={handleDelete}
-        title={t('detail.actions.delete')}
+        title={tCommon('actions.delete')}
         message={t('detail.confirmations.delete')}
-        confirmText={t('detail.actions.delete')}
+        confirmText={tCommon('actions.delete')}
         variant="danger"
         isLoading={deleteMutation.isPending}
       />

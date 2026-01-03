@@ -14,6 +14,7 @@ interface PlaceListProps {
 
 export function PlaceList({ teamSlug, canManage }: PlaceListProps) {
   const { t } = useTranslation('teams')
+  const { t: tCommon } = useTranslation('common')
   const { data: placesData, isLoading } = usePlaces(teamSlug)
   const deleteMutation = useDeletePlace(teamSlug)
 
@@ -76,12 +77,12 @@ export function PlaceList({ teamSlug, canManage }: PlaceListProps) {
                   <div className="flex space-x-2 mt-1">
                     {place.startPlace && (
                       <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                        {t('places.startPlace')}
+                        {tCommon('startPlace')}
                       </span>
                     )}
                     {place.endPlace && (
                       <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                        {t('places.endPlace')}
+                        {tCommon('endPlace')}
                       </span>
                     )}
                   </div>

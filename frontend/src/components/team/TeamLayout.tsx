@@ -19,6 +19,7 @@ interface TeamLayoutProps {
 
 export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
   const { t } = useTranslation('teams')
+  const { t: tCommon } = useTranslation('common')
   const navigate = useNavigate()
   const { isAuthenticated } = useAuth()
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false)
@@ -53,12 +54,10 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
       {
         id: 'publications',
         path: paths.team(team.slug),
-        label: t('detail.tabs.publications'),
+        label: t('publications.list.title'),
       },
       { id: 'routes', path: paths.routes(team.slug), label: t('detail.tabs.routes') },
-      ...(team.enableAds
-        ? [{ id: 'ads', path: paths.ads(team.slug), label: t('detail.tabs.ads') }]
-        : []),
+      ...(team.enableAds ? [{ id: 'ads', path: paths.ads(team.slug), label: tCommon('ads') }] : []),
       { id: 'about', path: paths.teamAbout(team.slug), label: t('detail.tabs.about') },
     ]
 
@@ -74,7 +73,7 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
     }))
 
     return [...baseTabs, ...pageTabs]
-  }, [team.slug, team.pages, team.enableAds, isMember, t])
+  }, [team.slug, team.pages, team.enableAds, isMember, t, tCommon])
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

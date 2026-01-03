@@ -82,7 +82,7 @@ export function RouteListPage() {
               className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
             >
               <PlusIcon className="w-4 h-4 mr-2" />
-              {t('list.createRoute')}
+              {t('create.title')}
             </Link>
           )}
         </div>
@@ -139,7 +139,7 @@ export function RouteListPage() {
                 to={paths.routeNew(teamSlug!)}
                 className="mt-4 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
               >
-                {t('list.empty.createAction')}
+                {t('create.title')}
               </Link>
             )}
           </div>

@@ -1,34 +1,24 @@
 {
-  "breadcrumb": {
-    "rideTemplates": "Modèles"
-  },
   "confirmations": {
     "delete": "Êtes-vous sûr de vouloir supprimer le modèle \"{{name}}\" ?",
     "deleteTitle": "Supprimer le modèle"
   },
   "create": {
-    "backToTemplates": "Retour aux modèles",
     "button": "Créer le modèle",
-    "loading": "Chargement...",
     "subtitle": "Définissez un modèle réutilisable pour {{teamName}}",
     "title": "Créer un modèle"
   },
   "edit": {
-    "backToTemplates": "Retour aux modèles",
-    "button": "Enregistrer",
-    "loading": "Chargement du modèle...",
     "subtitle": "Modifier les détails du modèle",
     "title": "Modifier le modèle"
   },
   "form": {
     "description": {
-      "label": "Description",
       "placeholder": "Description par défaut de la sortie..."
     },
     "error": "Une erreur est survenue",
     "groups": {
-      "add": "+ Ajouter un groupe",
-      "defaultName": "Groupe principal",
+      "defaultName": "Groupe {{number}}",
       "empty": "Aucun groupe. Ajoutez-en au moins un.",
       "hint": "Définissez les groupes par défaut pour ce type de sortie",
       "label": "Groupes",
@@ -43,45 +33,32 @@
       "restore": "Restaurer",
       "speed": {
         "placeholder": "Vitesse (km/h)"
-      },
-      "willBeDeleted": "(sera supprimé)"
+      }
     },
     "name": {
       "label": "Nom du modèle",
       "placeholder": "ex. Sortie du dimanche"
     },
     "status": {
-      "draft": "Brouillon",
-      "label": "Statut par défaut",
-      "published": "Publié"
+      "label": "Statut par défaut"
     },
     "visibility": {
-      "label": "Visibilité",
       "public": "Public",
       "publicDisabled": "équipe privée",
       "team": "Équipe uniquement"
     }
   },
   "list": {
-    "createTemplate": "Créer un modèle",
-    "delete": "Supprimer",
-    "edit": "Modifier",
     "empty": {
       "admin": "Créez des modèles pour accélérer la création de sorties.",
-      "createAction": "Créer un modèle",
       "member": "Aucun modèle n'a encore été créé.",
       "title": "Aucun modèle"
     },
-    "groupCount_one": "{{count}} groupe",
-    "groupCount_many": "list.groupCount",
-    "groupCount_other": "{{count}} groupes",
-    "loading": "Chargement des modèles...",
     "noResults": "Aucun modèle trouvé",
     "search": {
       "label": "Rechercher",
       "placeholder": "Rechercher par nom..."
     },
-    "speed": "{{speed}} km/h",
     "title": "Modèles de sortie"
   },
   "notifications": {
@@ -90,11 +67,6 @@
     "updated": "Modèle mis à jour avec succès"
   },
   "picker": {
-    "groupCount_one": "{{count}} groupe",
-    "groupCount_many": "picker.groupCount",
-    "groupCount_other": "{{count}} groupes",
-    "loading": "Chargement des modèles...",
-    "noResults": "Aucun modèle trouvé",
     "search": "Rechercher un modèle...",
     "title": "Choisir un modèle"
   }

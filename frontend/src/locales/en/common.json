@@ -1,18 +1,25 @@
 {
   "actions": {
-    "new": "New"
+    "cancelAction": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "publish": "Publish",
+    "save": "Save changes",
+    "unpublish": "Unpublish"
   },
+  "ads": "Ads",
   "appName": "Tribly",
   "aria": {
     "breadcrumb": "Breadcrumb",
-    "closeDialog": "Close dialog"
+    "closeDialog": "Close dialog",
+    "more": "More",
+    "moveDown": "Move down",
+    "moveUp": "Move up"
   },
   "attachments": {
     "add": "Add attachment",
     "remove": "Remove",
-    "title": "Attachments",
-    "uploadError": "Error uploading file",
-    "uploading": "Uploading..."
+    "title": "Attachments"
   },
   "autocomplete": {
     "noPlacesFound": "No places found",
@@ -20,48 +27,59 @@
     "searchPlaces": "Search places...",
     "searchUsers": "Search users..."
   },
-  "dateFormats": {
-    "dateTime": "EEEE, PPP 'at' p",
-    "time": "p"
-  },
   "buttons": {
-    "back": "Back",
-    "cancel": "Cancel",
     "confirm": "Confirm",
     "delete": "Delete",
-    "dismiss": "Dismiss",
-    "edit": "Edit",
-    "loading": "Loading...",
     "next": "Next",
-    "previous": "Previous",
-    "save": "Save"
+    "previous": "Previous"
+  },
+  "dateFormats": {
+    "dateTime": "EEEE, PPP 'at' p"
   },
   "editor": {
     "image": "Image",
+    "imageSize": {
+      "full": "Full",
+      "icon": "Icon",
+      "medium": "Medium",
+      "thumbnail": "Thumbnail"
+    },
     "placeholder": "Start writing... Use markdown for formatting"
   },
+  "endPlace": "End",
   "error": {
     "loading": "Error loading data"
   },
   "footer": {
     "copyright": "© {{year}} Tribly. All rights reserved."
   },
-  "groupOrganizer": "Group organizer",
-  "images": {
-    "loadError": "Error loading image",
-    "notFound": "Image not found",
-    "uploadError": "Error uploading image"
+  "form": {
+    "charCount_one": "{{count}}/{{max}} character",
+    "charCount_other": "{{count}}/{{max}} characters",
+    "description": "Description",
+    "latitude": "Latitude",
+    "longitude": "Longitude",
+    "publishAtHint": "Set a date/time for automatic publication",
+    "status": "Status",
+    "title": "Title"
   },
+  "groups": {
+    "add": "Add group",
+    "groupCount_one": "{{count}} group",
+    "groupCount_other": "{{count}} groups",
+    "groupOrganizer": "Group organizer"
+  },
+  "images": {
+    "notFound": "Image not found"
+  },
+  "loading": "Loading...",
   "logo": {
     "change": "Change",
     "remove": "Remove",
     "title": "Logo",
-    "upload": "Add logo",
-    "uploadError": "Error uploading logo",
-    "uploading": "Uploading..."
+    "upload": "Add logo"
   },
   "map": {
-    "loading": "Loading routes...",
     "noRoutes": "No routes available",
     "noTrackData": "No track data available for this route",
     "styles": {
@@ -72,27 +90,27 @@
   "memberCount_one": "{{count}} member",
   "memberCount_other": "{{count}} members",
   "nav": {
-    "avatar": "Avatar of",
+    "avatar": "Avatar of {{name}}",
     "closeMenu": "Close menu",
     "language": "Language",
-    "members": "Members",
-    "myTeams": "My Teams",
     "openMenu": "Open menu",
     "profile": "Profile",
-    "profilePicture": "Profile picture of",
+    "profilePicture": "Profile picture of {{name}}",
     "routes": "Routes",
-    "settings": "Settings",
     "signIn": "Sign in",
     "signOut": "Sign out",
-    "skipToContent": "Skip to main content",
-    "teams": "Teams"
+    "skipToContent": "Skip to main content"
   },
+  "noResults": "No results found matching your search.",
+  "noRouteSelected": "No route selected",
   "pagination": {
     "label": "Pagination",
     "nextPage": "Next page",
     "page": "Page {{current}} of {{total}}",
     "previousPage": "Previous page"
   },
+  "participantCount_one": "{{count}} participant",
+  "participantCount_other": "{{count}} participants",
   "publicationType": {
     "post": "Post",
     "ride": "Ride",
@@ -103,11 +121,17 @@
     "MEMBER": "Member",
     "ORGANIZER": "Organizer"
   },
+  "speed": "{{speed}} km/h",
+  "startPlace": "Start",
   "status": {
+    "CANCELLED": "Cancelled",
     "checkingAuth": "Checking authentication...",
     "creating": "Creating...",
+    "DRAFT": "Draft",
+    "PUBLISHED": "Published",
     "saving": "Saving..."
   },
+  "teams": "Teams",
   "units": {
     "km": "km",
     "m": "m"
@@ -117,5 +141,7 @@
     "label": "Visibility",
     "public": "Public",
     "team": "Team only"
-  }
+  },
+  "welcome": "Welcome to Tribly",
+  "willBeDeleted": "(will be deleted)"
 }

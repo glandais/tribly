@@ -41,6 +41,7 @@ const adTypeColors: Record<AdType, string> = {
 
 export function AdDetailPage() {
   const { t } = useTranslation('ads')
+  const { t: tCommon } = useTranslation('common')
   const { formatDateTime } = useFormattedDate()
   const { teamSlug, adSlug } = useParams<{ teamSlug: string; adSlug: string }>()
   const [showUnpublishConfirm, setShowUnpublishConfirm] = useState(false)
@@ -55,7 +56,7 @@ export function AdDetailPage() {
   const deleteMutation = useDeleteAd(teamSlug)
 
   if (isLoadingTeam || isLoadingAd) {
-    return <LoadingPage message={t('loading')} />
+    return <LoadingPage message={tCommon('loading')} />
   }
 
   if (error || !ad) {
@@ -68,7 +69,7 @@ export function AdDetailPage() {
             to={paths.ads(teamSlug!)}
             className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
           >
-            {t('breadcrumb.ads')}
+            {tCommon('ads')}
           </Link>
         </div>
       </div>
@@ -92,7 +93,7 @@ export function AdDetailPage() {
     }).format(price)
 
     if (adType === AdType.Rental && rentalPeriod) {
-      return `${formattedPrice} / ${t(`rentalPeriod.${rentalPeriod}`).toLowerCase()}`
+      return `${formattedPrice} / ${t(`rentalPeriod.${rentalPeriod satisfies 'DAY' | 'WEEK' | 'MONTH'}`).toLowerCase()}`
     }
     return formattedPrice
   }
@@ -134,12 +135,12 @@ export function AdDetailPage() {
                 <span
                   className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${adTypeColors[ad.adType]}`}
                 >
-                  {t(`adType.${ad.adType}`)}
+                  {t(`adType.${ad.adType satisfies 'SALE' | 'RENTAL' | 'WANTED'}`)}
                 </span>
                 <span
                   className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColors[ad.status]}`}
                 >
-                  {t(`status.${ad.status}`)}
+                  {tCommon(`status.${ad.status satisfies 'DRAFT' | 'PUBLISHED' | 'CANCELLED'}`)}
                 </span>
               </div>
             </div>
@@ -150,7 +151,7 @@ export function AdDetailPage() {
               <Button asChild variant="outline">
                 <Link to={paths.adEdit(teamSlug!, adSlug!)}>
                   <PencilIcon className="w-4 h-4" />
-                  {t('detail.actions.edit')}
+                  {tCommon('actions.edit')}
                 </Link>
               </Button>
               <DropdownMenu>
@@ -167,7 +168,7 @@ export function AdDetailPage() {
                       className="text-green-700"
                     >
                       {updateMutation.isPending && <LoadingSpinner size="sm" />}
-                      {t('detail.actions.publish')}
+                      {tCommon('actions.publish')}
                     </DropdownMenuItem>
                   )}
                   {ad.status === Status.Published && (
@@ -176,13 +177,13 @@ export function AdDetailPage() {
                         onClick={() => setShowUnpublishConfirm(true)}
                         className="text-yellow-700"
                       >
-                        {t('detail.actions.unpublish')}
+                        {tCommon('actions.unpublish')}
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => setShowCancelConfirm(true)}
                         className="text-yellow-700"
                       >
-                        {t('detail.actions.cancel')}
+                        {tCommon('actions.cancelAction')}
                       </DropdownMenuItem>
                     </>
                   )}
@@ -199,7 +200,7 @@ export function AdDetailPage() {
                     onClick={() => setShowDeleteConfirm(true)}
                     variant="destructive"
                   >
-                    {t('detail.actions.delete')}
+                    {tCommon('actions.delete')}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -240,9 +241,9 @@ export function AdDetailPage() {
         isOpen={showUnpublishConfirm}
         onClose={() => setShowUnpublishConfirm(false)}
         onConfirm={handleUnpublish}
-        title={t('detail.actions.unpublish')}
+        title={tCommon('actions.unpublish')}
         message={t('detail.confirmations.unpublish')}
-        confirmText={t('detail.actions.unpublish')}
+        confirmText={tCommon('actions.unpublish')}
         variant="warning"
         isLoading={updateMutation.isPending}
       />
@@ -250,9 +251,9 @@ export function AdDetailPage() {
         isOpen={showCancelConfirm}
         onClose={() => setShowCancelConfirm(false)}
         onConfirm={handleCancel}
-        title={t('detail.actions.cancel')}
+        title={tCommon('actions.cancelAction')}
         message={t('detail.confirmations.cancel')}
-        confirmText={t('detail.actions.cancel')}
+        confirmText={tCommon('actions.cancelAction')}
         variant="warning"
         isLoading={updateMutation.isPending}
       />
@@ -270,9 +271,9 @@ export function AdDetailPage() {
         isOpen={showDeleteConfirm}
         onClose={() => setShowDeleteConfirm(false)}
         onConfirm={handleDelete}
-        title={t('detail.actions.delete')}
+        title={tCommon('actions.delete')}
         message={t('detail.confirmations.delete')}
-        confirmText={t('detail.actions.delete')}
+        confirmText={tCommon('actions.delete')}
         variant="danger"
         isLoading={deleteMutation.isPending}
       />

@@ -70,7 +70,9 @@ export function ParticipantListModal({
                     {participant.displayName}
                   </p>
                   {participant.isOrganizer && (
-                    <p className="text-xs text-gray-500 mt-0.5">{t('common:groupOrganizer')}</p>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      {t('common:groups.groupOrganizer')}
+                    </p>
                   )}
                 </div>
 

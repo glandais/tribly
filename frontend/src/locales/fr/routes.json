@@ -7,14 +7,13 @@
     "HC": "Hors Catégorie"
   },
   "create": {
-    "backToList": "Retour aux parcours",
     "form": {
-      "description": "Description",
       "gpxFile": "Fichier GPX",
       "gpxFileHint": "Format .gpx uniquement, taille maximale 10 Mo",
       "name": "Nom du parcours",
       "plannerLabel": "Tracer le parcours sur la carte",
       "pointCount_one": "{{count}} point de contrôle",
+      "pointCount_many": "{{count}} points de contrôle",
       "pointCount_other": "{{count}} points de contrôle",
       "sourceMode": "Source du parcours",
       "sourceModeGpx": "Importer un fichier GPX",
@@ -23,7 +22,7 @@
     },
     "submit": "Créer le parcours",
     "subtitle": "Importez un fichier GPX ou tracez un parcours sur la carte",
-    "title": "Créer un parcours",
+    "title": "Créer un nouveau parcours",
     "validation": {
       "fileRequired": "Un fichier GPX est requis",
       "fileTooLarge": "Le fichier est trop volumineux (maximum 10 Mo)",
@@ -32,11 +31,9 @@
     }
   },
   "createModal": {
-    "create": "Créer",
-    "title": "Créer un nouveau parcours"
+    "create": "Créer"
   },
   "detail": {
-    "backToList": "Retour aux parcours",
     "climbs": {
       "avgGradient": "Pente moyenne",
       "distance": "De {{start}} km à {{end}} km",
@@ -66,23 +63,17 @@
     }
   },
   "edit": {
-    "backToDetail": "Retour au parcours",
-    "submit": "Enregistrer les modifications",
     "subtitle": "Modifier les informations du parcours",
     "title": "Modifier le parcours"
   },
   "list": {
-    "createRoute": "Créer un parcours",
-    "error": "Erreur lors du chargement des parcours",
     "empty": {
-      "createAction": "Créer un parcours",
       "description": "Aucun parcours n'est disponible pour le moment.",
       "title": "Aucun parcours"
     },
     "filters": {
       "clear": "Effacer",
       "distance": {
-        "label": "Distance",
         "max": "Max",
         "min": "Min",
         "unit": "km"
@@ -97,8 +88,8 @@
       "hilliness": {
         "FLAT": "Plat",
         "HILLY": "Vallonné",
-        "MOUNTAINOUS": "Montagneux",
-        "label": "Relief"
+        "label": "Relief",
+        "MOUNTAINOUS": "Montagneux"
       },
       "show": "Filtres",
       "sort": {
@@ -113,18 +104,17 @@
       "surfaceType": {
         "label": "Type de revêtement"
       },
-      "title": "Filtres",
       "windDirection": {
         "EAST": "Est",
+        "label": "Direction du vent",
         "NORTH": "Nord",
         "NORTH_EAST": "Nord-Est",
         "NORTH_WEST": "Nord-Ouest",
+        "placeholder": "Toutes directions",
         "SOUTH": "Sud",
         "SOUTH_EAST": "Sud-Est",
         "SOUTH_WEST": "Sud-Ouest",
-        "WEST": "Ouest",
-        "label": "Direction du vent",
-        "placeholder": "Toutes directions"
+        "WEST": "Ouest"
       }
     },
     "noResults": "Aucun parcours ne correspond à votre recherche.",
@@ -141,14 +131,11 @@
   },
   "picker": {
     "clearSelection": "Retirer le parcours",
-    "createNew": "Créer un nouveau parcours",
-    "loading": "Chargement...",
     "noResults": "Aucun parcours trouvé",
     "search": "Rechercher par nom...",
     "title": "Sélectionner un parcours"
   },
   "preview": {
-    "loading": "Chargement...",
     "notFound": "Parcours non trouvé"
   },
   "surfaceType": {

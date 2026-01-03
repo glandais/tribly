@@ -127,7 +127,9 @@ function AssetDirectiveEditor({
                   ? 'bg-cyan-500 text-white'
                   : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
               }`}
-              title={t(`editor.imageSize.${size}`)}
+              title={t(
+                `editor.imageSize.${size satisfies 'icon' | 'thumbnail' | 'medium' | 'full'}`
+              )}
             >
               {SIZE_LABELS[size]}
             </button>

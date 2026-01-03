@@ -168,14 +168,14 @@ export function UserProfilePage() {
                     {isUpdatingProfile ? (
                       <>
                         <LoadingSpinner size="sm" color="white" className="mr-2" />
-                        {t('actions.save')}
+                        {tCommon('actions.save')}
                       </>
                     ) : (
-                      t('actions.save')
+                      tCommon('actions.save')
                     )}
                   </Button>
                   <Button type="button" variant="outline" onClick={() => setIsEditing(false)}>
-                    {tCommon('buttons.cancel')}
+                    {tCommon('actions.cancelAction')}
                   </Button>
                 </div>
               </form>

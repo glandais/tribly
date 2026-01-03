@@ -45,6 +45,7 @@ const statusColors: Record<Status, string> = {
 
 export function TripDetailPage() {
   const { t } = useTranslation('trips')
+  const { t: tCommon } = useTranslation('common')
   const { formatDateTime } = useFormattedDate()
   const { teamSlug, tripSlug } = useParams<{ teamSlug: string; tripSlug: string }>()
   const { isAuthenticated, user } = useAuth()
@@ -63,7 +64,7 @@ export function TripDetailPage() {
   const leaveMutation = useLeaveTrip(teamSlug, tripSlug!)
 
   if (isLoadingTeam || isLoadingTrip) {
-    return <LoadingPage message={t('loading')} />
+    return <LoadingPage message={tCommon('loading')} />
   }
 
   if (team && !team.enableTrips) {
@@ -140,7 +141,7 @@ export function TripDetailPage() {
             <span
               className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium shrink-0 ${statusColors[trip.status]}`}
             >
-              {t(`status.${trip.status}`)}
+              {tCommon(`status.${trip.status satisfies 'DRAFT' | 'PUBLISHED' | 'CANCELLED'}`)}
             </span>
           </div>
 
@@ -172,7 +173,7 @@ export function TripDetailPage() {
                 <Button asChild variant="outline">
                   <Link to={paths.tripEdit(teamSlug!, tripSlug!)}>
                     <PencilIcon className="w-4 h-4" />
-                    {t('detail.actions.edit')}
+                    {tCommon('actions.edit')}
                   </Link>
                 </Button>
                 <DropdownMenu>
@@ -189,7 +190,7 @@ export function TripDetailPage() {
                         className="text-green-700"
                       >
                         {updateMutation.isPending && <LoadingSpinner size="sm" />}
-                        {t('detail.actions.publish')}
+                        {tCommon('actions.publish')}
                       </DropdownMenuItem>
                     )}
                     {trip.status === Status.Published && (
@@ -198,7 +199,7 @@ export function TripDetailPage() {
                           onClick={() => setShowUnpublishConfirm(true)}
                           className="text-yellow-700"
                         >
-                          {t('detail.actions.unpublish')}
+                          {tCommon('actions.unpublish')}
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => setShowCancelConfirm(true)}
@@ -221,7 +222,7 @@ export function TripDetailPage() {
                       onClick={() => setShowDeleteConfirm(true)}
                       variant="destructive"
                     >
-                      {t('detail.actions.delete')}
+                      {tCommon('actions.delete')}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -248,7 +249,7 @@ export function TripDetailPage() {
           </span>
           <span className="flex items-center">
             <UsersIcon className="w-4 h-4 mr-1" />
-            {t('card.participantCount', { count: trip.participantCount })}
+            {tCommon('participantCount', { count: trip.participantCount })}
           </span>
           <span className="flex items-center">
             <RectangleStackIcon className="w-4 h-4 mr-1" />
@@ -352,9 +353,9 @@ export function TripDetailPage() {
         isOpen={showUnpublishConfirm}
         onClose={() => setShowUnpublishConfirm(false)}
         onConfirm={handleUnpublish}
-        title={t('detail.actions.unpublish')}
+        title={tCommon('actions.unpublish')}
         message={t('detail.confirmations.unpublish')}
-        confirmText={t('detail.actions.unpublish')}
+        confirmText={tCommon('actions.unpublish')}
         variant="warning"
         isLoading={updateMutation.isPending}
       />
@@ -382,9 +383,9 @@ export function TripDetailPage() {
         isOpen={showDeleteConfirm}
         onClose={() => setShowDeleteConfirm(false)}
         onConfirm={handleDelete}
-        title={t('detail.actions.delete')}
+        title={tCommon('actions.delete')}
         message={t('detail.confirmations.delete')}
-        confirmText={t('detail.actions.delete')}
+        confirmText={tCommon('actions.delete')}
         variant="danger"
         isLoading={deleteMutation.isPending}
       />

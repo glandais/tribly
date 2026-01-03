@@ -21,6 +21,7 @@ const MAX_ADDITIONAL_PAGES = 3
 
 export function TeamPagesAdminPage() {
   const { t } = useTranslation('teams')
+  const { t: tCommon } = useTranslation('common')
   const { teamSlug } = useParams<{ teamSlug: string }>()
   const [pageToDelete, setPageToDelete] = useState<TeamPageSummaryDto | null>(null)
   const [draggedItem, setDraggedItem] = useState<TeamPageSummaryDto | null>(null)
@@ -31,7 +32,7 @@ export function TeamPagesAdminPage() {
   const reorderMutation = useReorderTeamPages(teamSlug!)
 
   if (isLoadingTeam) {
-    return <LoadingPage message={t('pages.loading')} />
+    return <LoadingPage message={tCommon('loading')} />
   }
 
   if (!team) {
@@ -141,7 +142,7 @@ export function TeamPagesAdminPage() {
                     <Link
                       to={paths.teamAdminPageEdit(teamSlug!, page.slug)}
                       className="p-2 text-gray-400 hover:text-indigo-600 rounded-lg hover:bg-gray-100"
-                      title={t('common:buttons.edit')}
+                      title={t('common:actions.edit')}
                     >
                       <PencilIcon className="w-5 h-5" />
                     </Link>
@@ -167,7 +168,7 @@ export function TeamPagesAdminPage() {
               className="mt-4 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
             >
               <PlusIcon className="w-4 h-4 mr-2" />
-              {t('pages.empty.action')}
+              {t('pages.add')}
             </Link>
           </div>
         )}

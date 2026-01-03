@@ -7,6 +7,7 @@ import { paths } from '@/config/paths'
 
 export function LoginPage() {
   const { t } = useTranslation('auth')
+  const { t: tCommon } = useTranslation('common')
   const navigate = useNavigate()
   const { isAuthenticated, login } = useAuth()
 
@@ -20,7 +21,7 @@ export function LoginPage() {
     <div className="min-h-[70vh] flex items-center justify-center">
       <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-xl shadow-lg">
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900">{t('login.title')}</h1>
+          <h1 className="text-3xl font-bold text-gray-900">{tCommon('welcome')}</h1>
           <p className="mt-2 text-gray-600">{t('login.subtitle')}</p>
         </div>
 

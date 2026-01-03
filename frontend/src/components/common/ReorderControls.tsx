@@ -1,4 +1,5 @@
 import { ChevronUpIcon, ChevronDownIcon } from '@heroicons/react/24/outline'
+import { useTranslation } from 'react-i18next'
 
 export interface ReorderControlsProps {
   /** Current item index (0-based) */
@@ -20,6 +21,7 @@ export function ReorderControls({
   showIndex = true,
   disabled = false,
 }: ReorderControlsProps) {
+  const { t } = useTranslation('common')
   const isFirst = index === 0
   const isLast = index >= total - 1
 
@@ -35,7 +37,7 @@ export function ReorderControls({
         onClick={() => onMove('up')}
         disabled={disabled || isFirst}
         className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed"
-        aria-label="Move up"
+        aria-label={t('aria.moveUp')}
       >
         <ChevronUpIcon className="w-4 h-4" />
       </button>
@@ -44,7 +46,7 @@ export function ReorderControls({
         onClick={() => onMove('down')}
         disabled={disabled || isLast}
         className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed"
-        aria-label="Move down"
+        aria-label={t('aria.moveDown')}
       >
         <ChevronDownIcon className="w-4 h-4" />
       </button>

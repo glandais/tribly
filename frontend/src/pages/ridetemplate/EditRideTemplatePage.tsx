@@ -15,9 +15,9 @@ export function EditRideTemplatePage() {
   const { data: template, isLoading: isLoadingTemplate } = useRideTemplate(teamSlug, templateSlug)
 
   const updateMutation = useUpdateRideTemplate(teamSlug, templateSlug!)
-
+  const { t: tCommon } = useTranslation('common')
   if (isLoadingTeam || isLoadingTemplate) {
-    return <LoadingPage message={t('edit.loading')} />
+    return <LoadingPage message={tCommon('loading')} />
   }
 
   if (!team) {
@@ -83,7 +83,7 @@ export function EditRideTemplatePage() {
         onCancel={() => navigate(paths.rideTemplates(teamSlug!))}
         isPending={updateMutation.isPending}
         error={updateMutation.error}
-        submitButtonText={t('edit.button')}
+        submitButtonText={tCommon('actions.save')}
       />
     </div>
   )

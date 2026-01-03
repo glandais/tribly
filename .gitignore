@@ -73,3 +73,5 @@ data/storage/*
 data/segments4/*
 !data/segments4/.gitkeep
 !data/segments4/download.sh
+
+frontend/i18n-reverse-map.json

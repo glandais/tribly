@@ -1,18 +1,25 @@
 {
   "actions": {
-    "new": "Nouveau"
+    "cancelAction": "Annuler",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "publish": "Publier",
+    "save": "Enregistrer",
+    "unpublish": "Dépublier"
   },
+  "ads": "Annonces",
   "appName": "Tribly",
   "aria": {
     "breadcrumb": "Fil d'Ariane",
-    "closeDialog": "Fermer la fenêtre"
+    "closeDialog": "Fermer la fenêtre",
+    "more": "Plus",
+    "moveDown": "Déplacer vers le bas",
+    "moveUp": "Déplacer vers le haut"
   },
   "attachments": {
     "add": "Ajouter une pièce jointe",
     "remove": "Supprimer",
-    "title": "Pièces jointes",
-    "uploadError": "Erreur lors du chargement",
-    "uploading": "Chargement..."
+    "title": "Pièces jointes"
   },
   "autocomplete": {
     "noPlacesFound": "Aucun lieu trouvé",
@@ -20,48 +27,61 @@
     "searchPlaces": "Rechercher des lieux...",
     "searchUsers": "Rechercher des utilisateurs..."
   },
-  "dateFormats": {
-    "dateTime": "EEEE PPP 'à' HH:mm",
-    "time": "HH:mm"
-  },
   "buttons": {
-    "back": "Retour",
-    "cancel": "Annuler",
     "confirm": "Confirmer",
     "delete": "Supprimer",
-    "dismiss": "Fermer",
-    "edit": "Modifier",
-    "loading": "Chargement...",
     "next": "Suivant",
-    "previous": "Précédent",
-    "save": "Enregistrer"
+    "previous": "Précédent"
+  },
+  "dateFormats": {
+    "dateTime": "EEEE PPP 'à' HH:mm"
   },
   "editor": {
     "image": "Image",
+    "imageSize": {
+      "full": "Pleine largeur",
+      "icon": "Icône",
+      "medium": "Moyen",
+      "thumbnail": "Miniature"
+    },
     "placeholder": "Commencez à écrire... Utilisez le markdown pour le formatage"
   },
+  "endPlace": "Arrivée",
   "error": {
     "loading": "Erreur lors du chargement"
   },
   "footer": {
     "copyright": "© {{year}} Tribly. Tous droits réservés."
   },
-  "groupOrganizer": "Organisateur du groupe",
-  "images": {
-    "loadError": "Erreur lors du chargement de l'image",
-    "notFound": "Image non trouvée",
-    "uploadError": "Erreur lors du chargement de l'image"
+  "form": {
+    "charCount_one": "{{count}}/{{max}} caractère",
+    "charCount_many": "{{count}}/{{max}} caractères",
+    "charCount_other": "{{count}}/{{max}} caractères",
+    "description": "Description",
+    "latitude": "Latitude",
+    "longitude": "Longitude",
+    "publishAtHint": "Définissez une date/heure pour une publication automatique",
+    "status": "Statut",
+    "title": "Titre"
   },
+  "groups": {
+    "add": "Ajouter un groupe",
+    "groupCount_one": "{{count}} groupe",
+    "groupCount_many": "{{count}} groupes",
+    "groupCount_other": "{{count}} groupes",
+    "groupOrganizer": "Organisateur du groupe"
+  },
+  "images": {
+    "notFound": "Image non trouvée"
+  },
+  "loading": "Chargement...",
   "logo": {
     "change": "Changer",
     "remove": "Supprimer",
     "title": "Logo",
-    "upload": "Ajouter un logo",
-    "uploadError": "Erreur lors du chargement du logo",
-    "uploading": "Chargement..."
+    "upload": "Ajouter un logo"
   },
   "map": {
-    "loading": "Chargement...",
     "noRoutes": "Aucun parcours disponible",
     "noTrackData": "Aucune donnée de tracé disponible pour ce parcours",
     "styles": {
@@ -73,42 +93,49 @@
   "memberCount_many": "{{count}} membres",
   "memberCount_other": "{{count}} membres",
   "nav": {
-    "avatar": "Avatar de",
+    "avatar": "Avatar de {{name}}",
     "closeMenu": "Fermer le menu",
     "language": "Langue",
-    "members": "Membres",
-    "myTeams": "Mes équipes",
     "openMenu": "Ouvrir le menu",
     "profile": "Profil",
-    "profilePicture": "Photo de profil de",
+    "profilePicture": "Photo de profil de {{name}}",
     "routes": "Parcours",
-    "settings": "Paramètres",
     "signIn": "Se connecter",
     "signOut": "Se déconnecter",
-    "skipToContent": "Aller au contenu principal",
-    "teams": "Équipes"
+    "skipToContent": "Aller au contenu principal"
   },
+  "noResults": "Aucun résultat ne correspond à votre recherche.",
+  "noRouteSelected": "Aucun parcours sélectionné",
   "pagination": {
     "label": "Pagination",
     "nextPage": "Page suivante",
     "page": "Page {{current}} sur {{total}}",
     "previousPage": "Page précédente"
   },
+  "participantCount_one": "{{count}} participant",
+  "participantCount_many": "{{count}} participants",
+  "participantCount_other": "{{count}} participants",
   "publicationType": {
     "post": "Publication",
     "ride": "Sortie",
     "trip": "Voyage"
   },
   "roles": {
-    "ADMIN": "Admin",
+    "ADMIN": "Administrateur",
     "MEMBER": "Membre",
     "ORGANIZER": "Organisateur"
   },
+  "speed": "{{speed}} km/h",
+  "startPlace": "Départ",
   "status": {
+    "CANCELLED": "Annulé",
     "checkingAuth": "Vérification de l'authentification...",
     "creating": "Création...",
+    "DRAFT": "Brouillon",
+    "PUBLISHED": "Publié",
     "saving": "Enregistrement..."
   },
+  "teams": "Équipes",
   "units": {
     "km": "km",
     "m": "m"
@@ -118,5 +145,7 @@
     "label": "Visibilité",
     "public": "Public",
     "team": "Équipe uniquement"
-  }
+  },
+  "welcome": "Bienvenue sur Tribly",
+  "willBeDeleted": "(sera supprimé)"
 }

@@ -34,6 +34,7 @@ export function CommentItem({
 }: CommentItemProps) {
   const canDelete = canDeleteComment(comment)
   const { t } = useTranslation('comments')
+  const { t: tCommon } = useTranslation('common')
   const { formatRelative } = useFormattedDate()
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
@@ -66,7 +67,7 @@ export function CommentItem({
                 className="text-sm text-red-500 hover:text-red-700 flex items-center gap-1"
               >
                 <TrashIcon className="w-4 h-4" />
-                {t('actions.delete')}
+                {tCommon('actions.delete')}
               </button>
             )}
           </div>
@@ -113,7 +114,7 @@ export function CommentItem({
         }}
         title={t('confirmDelete.title')}
         message={t('confirmDelete.message')}
-        confirmText={t('actions.delete')}
+        confirmText={tCommon('actions.delete')}
         variant="danger"
         isLoading={isDeleting}
       />
