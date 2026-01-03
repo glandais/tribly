@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { UsersIcon, PencilIcon } from '@heroicons/react/24/outline'
 import { useLeaveTeam, useJoinTeam } from '../../hooks/useTeam'
 import { useAuth } from '../../hooks/useAuth'
 import { useFavicon } from '../../hooks/useFavicon'
@@ -9,17 +8,16 @@ import { ConfirmDialog } from '../common/ConfirmDialog'
 import { VisibilityBadge } from '../common/card/VisibilityBadge'
 import { TeamAvatar } from './TeamAvatar'
 import type { TeamDetailDto } from '../../hooks/useTeam'
-import { MediaDisplay } from '../../components/common/MediaDisplay'
 import { paths } from '@/config/paths'
 
 interface TeamLayoutProps {
   team: TeamDetailDto
-  currentTab: 'publications' | 'routes' | 'members' | 'ride-templates'
+  currentTab: 'publications' | 'routes' | 'about'
   children: React.ReactNode
 }
 
 export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
-  const { t, i18n } = useTranslation('teams')
+  const { t } = useTranslation('teams')
   const navigate = useNavigate()
   const { isAuthenticated } = useAuth()
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false)
@@ -55,25 +53,8 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
       label: t('detail.tabs.publications'),
     },
     { id: 'routes', path: paths.routes(team.slug), label: t('detail.tabs.routes') },
-    ...(isOrganizer
-      ? [
-          {
-            id: 'ride-templates',
-            path: paths.rideTemplates(team.slug),
-            label: t('detail.tabs.rideTemplates'),
-          },
-        ]
-      : []),
+    { id: 'about', path: paths.teamAbout(team.slug), label: t('detail.tabs.about') },
   ]
-
-  // Only admins can see members tab
-  if (isAdmin) {
-    tabs.push({
-      id: 'members',
-      path: paths.teamMembers(team.slug),
-      label: t('detail.tabs.members'),
-    })
-  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -84,29 +65,9 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
         </div>
 
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-3">
-              <h1 className="text-3xl font-bold text-gray-900">{team.name}</h1>
-              {team.visibility === 'TEAM' && <VisibilityBadge visibility={team.visibility} />}
-            </div>
-            <MediaDisplay media={team.media} className="mt-2 text-gray-600 max-w-2xl" />
-            <div className="mt-3 flex items-center gap-4 text-sm text-gray-500">
-              <span className="flex items-center">
-                <UsersIcon className="w-4 h-4 mr-1" />
-                {t('detail.info.memberCount', { count: team.memberCount })}
-              </span>
-              {team.createdAt && (
-                <span>
-                  {t('detail.info.created', {
-                    date: new Date(team.createdAt).toLocaleDateString(i18n.language, {
-                      day: 'numeric',
-                      month: 'long',
-                      year: 'numeric',
-                    }),
-                  })}
-                </span>
-              )}
-            </div>
+          <div className="flex items-center gap-3">
+            <h1 className="text-3xl font-bold text-gray-900">{team.name}</h1>
+            {team.visibility === 'TEAM' && <VisibilityBadge visibility={team.visibility} />}
           </div>
 
           <div className="flex items-center gap-3">
@@ -129,13 +90,12 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
               </button>
             )}
 
-            {isAdmin && (
+            {isOrganizer && (
               <Link
-                to={paths.teamSettings(team.slug)}
+                to={paths.teamAdmin(team.slug)}
                 className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-xs text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
               >
-                <PencilIcon className="w-4 h-4 mr-2" />
-                {t('detail.actions.edit')}
+                {t('detail.actions.admin')}
               </Link>
             )}
           </div>

@@ -1,4 +1,14 @@
 {
+  "admin": {
+    "backToTeam": "Back to {{teamName}}",
+    "tabs": {
+      "members": "Members",
+      "places": "Places",
+      "rideTemplates": "Ride Templates",
+      "settings": "Settings"
+    },
+    "title": "Team Administration"
+  },
   "create": {
     "backToTeams": "Back to Teams",
     "button": "Create Team",
@@ -29,6 +39,7 @@
   },
   "detail": {
     "actions": {
+      "admin": "Administration",
       "confirmLeave": "Are you sure you want to leave this team?",
       "edit": "Edit",
       "join": "Join Team",
@@ -60,6 +71,7 @@
       "backToTeams": "Back to Teams"
     },
     "tabs": {
+      "about": "About",
       "members": "Members",
       "posts": "Posts",
       "publications": "Feed",
@@ -67,6 +79,12 @@
       "rideTemplates": "Templates",
       "routes": "Routes",
       "trips": "Trips"
+    },
+    "about": {
+      "created": "Created",
+      "members": "Members",
+      "noDescription": "No description available.",
+      "title": "About the Team"
     }
   },
   "list": {

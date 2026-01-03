@@ -27,6 +27,15 @@ const TeamMembersPage = lazy(() =>
 const TeamSettingsPage = lazy(() =>
   import('../pages/team/TeamSettingsPage').then((m) => ({ default: m.TeamSettingsPage }))
 )
+const TeamAdminPage = lazy(() =>
+  import('../pages/team/TeamAdminPage').then((m) => ({ default: m.TeamAdminPage }))
+)
+const TeamPlacesPage = lazy(() =>
+  import('../pages/team/TeamPlacesPage').then((m) => ({ default: m.TeamPlacesPage }))
+)
+const TeamAboutPage = lazy(() =>
+  import('../pages/team/TeamAboutPage').then((m) => ({ default: m.TeamAboutPage }))
+)
 const RideDetailPage = lazy(() =>
   import('../pages/ride/RideDetailPage').then((m) => ({ default: m.RideDetailPage }))
 )
@@ -139,21 +148,45 @@ export const routesConfig: RoutesConfig = [
     breadcrumb: { type: 'dynamic', entity: 'team' },
   },
   {
+    id: 'team-about',
+    path: paths.teamAbout(':teamSlug'),
+    component: TeamAboutPage,
+    auth: 'public',
+    parentId: 'team-detail',
+    breadcrumb: { type: 'static', i18nKey: 'teams:detail.tabs.about' },
+  },
+  // === Team Admin Routes ===
+  {
+    id: 'team-admin',
+    path: paths.teamAdmin(':teamSlug'),
+    component: TeamAdminPage,
+    auth: 'authenticated',
+    parentId: 'team-detail',
+    breadcrumb: { type: 'static', i18nKey: 'teams:admin.title' },
+  },
+  {
+    id: 'team-admin-places',
+    path: paths.teamAdminPlaces(':teamSlug'),
+    component: TeamPlacesPage,
+    auth: 'authenticated',
+    parentId: 'team-admin',
+    breadcrumb: { type: 'static', i18nKey: 'teams:admin.tabs.places' },
+  },
+  {
     id: 'team-members',
     path: paths.teamMembers(':teamSlug'),
     component: TeamMembersPage,
     auth: 'authenticated',
-    parentId: 'team-detail',
-    breadcrumb: { type: 'static', i18nKey: 'common:nav.members' },
+    parentId: 'team-admin',
+    breadcrumb: { type: 'static', i18nKey: 'teams:admin.tabs.members' },
   },
   {
     id: 'team-settings',
     path: paths.teamSettings(':teamSlug'),
     component: TeamSettingsPage,
     auth: 'authenticated',
-    parentId: 'team-detail',
-    breadcrumb: { type: 'static', i18nKey: 'common:nav.settings' },
-    showBackLink: true,
+    parentId: 'team-admin',
+    breadcrumb: { type: 'static', i18nKey: 'teams:admin.tabs.settings' },
   },
 
   // === Ride Routes ===
@@ -191,8 +224,8 @@ export const routesConfig: RoutesConfig = [
     path: paths.rideTemplates(':teamSlug'),
     component: RideTemplateListPage,
     auth: 'authenticated',
-    parentId: 'team-detail',
-    breadcrumb: { type: 'static', i18nKey: 'rideTemplates:breadcrumb.rideTemplates' },
+    parentId: 'team-admin',
+    breadcrumb: { type: 'static', i18nKey: 'teams:admin.tabs.rideTemplates' },
   },
   {
     id: 'ride-template-new',

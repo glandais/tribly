@@ -12,7 +12,7 @@ import {
 import { useTeam } from '../../hooks/useTeam'
 import { useRideTemplates, useDeleteRideTemplate } from '../../hooks/useRideTemplate'
 import { LoadingPage, LoadingSpinner } from '../../components/common/LoadingSpinner'
-import { TeamLayout } from '../../components/team/TeamLayout'
+import { TeamAdminLayout } from '../../components/team/TeamAdminLayout'
 import { Pagination } from '../../components/common/Pagination'
 import { usePagination } from '../../hooks/usePagination'
 import { SearchInput } from '../../components/common/SearchInput'
@@ -65,7 +65,7 @@ export function RideTemplateListPage() {
   }
 
   return (
-    <TeamLayout team={team} currentTab="ride-templates">
+    <TeamAdminLayout team={team} currentTab="ride-templates">
       <div className="py-6">
         <div className="flex items-center justify-between mb-6">
           <div>
@@ -216,6 +216,6 @@ export function RideTemplateListPage() {
         variant="danger"
         isLoading={deleteMutation.isPending}
       />
-    </TeamLayout>
+    </TeamAdminLayout>
   )
 }

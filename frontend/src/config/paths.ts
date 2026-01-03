@@ -11,8 +11,13 @@ export const paths = {
   teams: () => '/teams',
   teamsNew: () => '/teams/new',
   team: (teamSlug: string) => `/teams/${teamSlug}`,
-  teamMembers: (teamSlug: string) => `/teams/${teamSlug}/members`,
-  teamSettings: (teamSlug: string) => `/teams/${teamSlug}/edit`,
+  teamAbout: (teamSlug: string) => `/teams/${teamSlug}/about`,
+
+  // Team Admin
+  teamAdmin: (teamSlug: string) => `/teams/${teamSlug}/admin`,
+  teamAdminPlaces: (teamSlug: string) => `/teams/${teamSlug}/admin/places`,
+  teamMembers: (teamSlug: string) => `/teams/${teamSlug}/admin/members`,
+  teamSettings: (teamSlug: string) => `/teams/${teamSlug}/admin/settings`,
 
   // Rides
   rideNew: (teamSlug: string) => `/teams/${teamSlug}/rides/new`,
@@ -20,10 +25,10 @@ export const paths = {
   rideEdit: (teamSlug: string, rideSlug: string) => `/teams/${teamSlug}/rides/${rideSlug}/edit`,
 
   // Ride Templates
-  rideTemplates: (teamSlug: string) => `/teams/${teamSlug}/ride-templates`,
-  rideTemplateNew: (teamSlug: string) => `/teams/${teamSlug}/ride-templates/new`,
+  rideTemplates: (teamSlug: string) => `/teams/${teamSlug}/admin/ride-templates`,
+  rideTemplateNew: (teamSlug: string) => `/teams/${teamSlug}/admin/ride-templates/new`,
   rideTemplateEdit: (teamSlug: string, templateSlug: string) =>
-    `/teams/${teamSlug}/ride-templates/${templateSlug}/edit`,
+    `/teams/${teamSlug}/admin/ride-templates/${templateSlug}/edit`,
 
   // Trips
   tripNew: (teamSlug: string) => `/teams/${teamSlug}/trips/new`,

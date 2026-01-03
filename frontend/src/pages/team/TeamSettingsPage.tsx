@@ -6,7 +6,7 @@ import { useTeam, useDeleteTeam } from '../../hooks/useTeam'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import { TeamForm } from '../../components/team/TeamForm'
-import { PlaceList } from '../../components/team/PlaceList'
+import { TeamAdminLayout } from '../../components/team/TeamAdminLayout'
 import { TeamDetailDto } from '../../api/api'
 
 export function TeamSettingsPage() {
@@ -53,50 +53,47 @@ export function TeamSettingsPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">{t('settings.title')}</h1>
-        <p className="mt-1 text-gray-600">{t('settings.subtitle')}</p>
+    <TeamAdminLayout team={team} currentTab="settings">
+      <div className="py-6 max-w-2xl">
+        <div className="mb-8">
+          <h2 className="text-xl font-semibold text-gray-900">{t('settings.title')}</h2>
+          <p className="mt-1 text-gray-600">{t('settings.subtitle')}</p>
+        </div>
+
+        <TeamForm
+          teamSlug={teamSlug}
+          initialName={team.name}
+          initialMedia={team.media}
+          initialVisibility={team.visibility}
+          initialEnableTrips={team.enableTrips}
+          onSuccess={handleSuccess}
+          create={false}
+        />
+
+        {/* Danger Zone */}
+        <div className="mt-12 pt-8 border-t border-gray-200">
+          <h2 className="text-lg font-semibold text-red-600">{t('settings.dangerZone.title')}</h2>
+          <p className="mt-1 text-sm text-gray-600">{t('settings.dangerZone.description')}</p>
+
+          <button
+            onClick={() => setShowDeleteConfirm(true)}
+            className="mt-4 inline-flex items-center px-4 py-2 border border-red-300 rounded-md shadow-xs text-sm font-medium text-red-700 bg-white hover:bg-red-50 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+          >
+            {t('settings.dangerZone.deleteTeam')}
+          </button>
+        </div>
+
+        <ConfirmDialog
+          isOpen={showDeleteConfirm}
+          onClose={() => setShowDeleteConfirm(false)}
+          onConfirm={handleDelete}
+          title={t('settings.dangerZone.title')}
+          message={t('settings.dangerZone.deleteWarning', { teamName: team?.name })}
+          confirmText={t('settings.dangerZone.confirmDelete')}
+          variant="danger"
+          isLoading={deleteMutation.isPending}
+        />
       </div>
-
-      <TeamForm
-        teamSlug={teamSlug}
-        initialName={team.name}
-        initialMedia={team.media}
-        initialVisibility={team.visibility}
-        initialEnableTrips={team.enableTrips}
-        onSuccess={handleSuccess}
-        create={false}
-      />
-
-      {/* Places Management */}
-      <div className="mt-12 pt-8 border-t border-gray-200">
-        <PlaceList teamSlug={teamSlug!} canManage={true} />
-      </div>
-
-      {/* Danger Zone */}
-      <div className="mt-12 pt-8 border-t border-gray-200">
-        <h2 className="text-lg font-semibold text-red-600">{t('settings.dangerZone.title')}</h2>
-        <p className="mt-1 text-sm text-gray-600">{t('settings.dangerZone.description')}</p>
-
-        <button
-          onClick={() => setShowDeleteConfirm(true)}
-          className="mt-4 inline-flex items-center px-4 py-2 border border-red-300 rounded-md shadow-xs text-sm font-medium text-red-700 bg-white hover:bg-red-50 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-        >
-          {t('settings.dangerZone.deleteTeam')}
-        </button>
-      </div>
-
-      <ConfirmDialog
-        isOpen={showDeleteConfirm}
-        onClose={() => setShowDeleteConfirm(false)}
-        onConfirm={handleDelete}
-        title={t('settings.dangerZone.title')}
-        message={t('settings.dangerZone.deleteWarning', { teamName: team?.name })}
-        confirmText={t('settings.dangerZone.confirmDelete')}
-        variant="danger"
-        isLoading={deleteMutation.isPending}
-      />
-    </div>
+    </TeamAdminLayout>
   )
 }

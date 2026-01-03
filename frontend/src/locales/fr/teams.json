@@ -1,4 +1,14 @@
 {
+  "admin": {
+    "backToTeam": "Retour à {{teamName}}",
+    "tabs": {
+      "members": "Membres",
+      "places": "Lieux",
+      "rideTemplates": "Modèles de sortie",
+      "settings": "Paramètres"
+    },
+    "title": "Administration"
+  },
   "create": {
     "backToTeams": "Retour aux équipes",
     "button": "Créer l'équipe",
@@ -30,6 +40,7 @@
   },
   "detail": {
     "actions": {
+      "admin": "Administration",
       "confirmLeave": "Êtes-vous sûr de vouloir quitter cette équipe ?",
       "edit": "Éditer",
       "join": "Rejoindre l'équipe",
@@ -62,6 +73,7 @@
       "backToTeams": "Retour aux équipes"
     },
     "tabs": {
+      "about": "À propos",
       "members": "Membres",
       "posts": "Publications",
       "publications": "Activités",
@@ -69,6 +81,12 @@
       "rideTemplates": "Modèles",
       "routes": "Parcours",
       "trips": "Voyages"
+    },
+    "about": {
+      "created": "Création",
+      "members": "Membres",
+      "noDescription": "Aucune description disponible.",
+      "title": "À propos de l'équipe"
     }
   },
   "list": {

@@ -13,7 +13,7 @@ import {
 import { useAuth } from '../../hooks/useAuth'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { TeamMemberList, TeamMemberListSkeleton } from '../../components/team/TeamMemberList'
-import { TeamLayout } from '../../components/team/TeamLayout'
+import { TeamAdminLayout } from '../../components/team/TeamAdminLayout'
 import { UserAutocomplete } from '../../components/common/UserAutocomplete'
 import type { PublicUserDto } from '../../hooks/useUserSearch'
 import { TeamRole } from '@/api'
@@ -73,7 +73,7 @@ export function TeamMembersPage() {
   }
 
   return (
-    <TeamLayout team={team} currentTab="members">
+    <TeamAdminLayout team={team} currentTab="members">
       <div className="py-6">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-semibold text-gray-900">{t('detail.members.title')}</h2>
@@ -168,6 +168,6 @@ export function TeamMembersPage() {
           </div>
         </Modal>
       </div>
-    </TeamLayout>
+    </TeamAdminLayout>
   )
 }
