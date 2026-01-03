@@ -82,6 +82,7 @@ frontend/src/
 - `MediaEditor` needs `teamSlug` prop for uploads (hidden during team creation)
 - Logos: `TeamAvatar` (with initials fallback) vs `EntityLogo` (no fallback)
 - Never use SVG for icons, use `@heroicons`
+- Never use hard coded links, use paths.XXX(YYYslug)
 
 **Keycloak**:
 - Users need `firstName`/`lastName` in realm or prompted for profile update

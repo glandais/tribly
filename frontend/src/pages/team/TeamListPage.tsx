@@ -9,6 +9,7 @@ import { usePagination } from '../../hooks/usePagination'
 import { TeamCard, TeamCardSkeleton } from '../../components/team/TeamCard'
 import { Pagination } from '../../components/common/Pagination'
 import { SearchInput } from '../../components/common/SearchInput'
+import { HomeLayout } from '../../components/home/HomeLayout'
 import {
   Select,
   SelectContent,
@@ -58,10 +59,10 @@ export function TeamListPage() {
   const resetPage = () => setPage(0)
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
+    <HomeLayout currentTab="teams">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-6 mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">{t('list.title')}</h1>
+          <h2 className="text-2xl font-bold text-gray-900">{t('list.title')}</h2>
           <p className="mt-1 text-gray-700">{t('list.subtitle')}</p>
         </div>
         {isAuthenticated && (
@@ -153,6 +154,6 @@ export function TeamListPage() {
           )}
         </div>
       )}
-    </div>
+    </HomeLayout>
   )
 }

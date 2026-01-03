@@ -286,7 +286,7 @@ export function RouteMapView({ route }: RouteMapViewProps) {
 
   if (trackPoints.length === 0) {
     return (
-      <div className="w-full h-[500px] flex items-center justify-center bg-gray-100 rounded">
+      <div className="w-full h-[700px] flex items-center justify-center bg-gray-100 rounded">
         <div className="text-gray-500">{t('map.noTrackData')}</div>
       </div>
     )
@@ -297,7 +297,7 @@ export function RouteMapView({ route }: RouteMapViewProps) {
   return (
     <div className="border rounded overflow-hidden">
       {/* Map container */}
-      <div className="relative w-full h-[500px] z-0">
+      <div className="relative w-full h-[700px] z-0">
         <Map
           ref={mapRef}
           mapLib={maplibregl}

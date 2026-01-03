@@ -9,6 +9,7 @@ import type { RideDto, PostDto, TripDto } from '../../api/api'
 import { Pagination } from '../../components/common/Pagination'
 import { usePagination } from '../../hooks/usePagination'
 import { SearchInput } from '../../components/common/SearchInput'
+import { HomeLayout } from '../../components/home/HomeLayout'
 import {
   Select,
   SelectContent,
@@ -54,15 +55,9 @@ export function HomePage() {
   })
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Header Section */}
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">{t('home.title')}</h1>
-        <p className="text-lg text-gray-600">{t('home.subtitle')}</p>
-      </div>
-
+    <HomeLayout currentTab="feed">
       {/* Publications Section */}
-      <div className="mb-6">
+      <div className="mt-6 mb-6">
         <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('home.feed.title')}</h2>
       </div>
 
@@ -171,6 +166,6 @@ export function HomePage() {
           </h3>
         </div>
       )}
-    </div>
+    </HomeLayout>
   )
 }

@@ -100,7 +100,7 @@ export const routesConfig: RoutesConfig = [
     auth: 'public',
     parentId: null,
     index: true,
-    breadcrumb: { type: 'static', i18nKey: 'auth:home.title' },
+    breadcrumb: { type: 'static', i18nKey: 'auth:home.tabs.feed' },
   },
 
   // === Auth Routes ===
@@ -127,7 +127,7 @@ export const routesConfig: RoutesConfig = [
     path: paths.teams(),
     component: TeamListPage,
     auth: 'public',
-    parentId: 'home',
+    parentId: null,
     breadcrumb: { type: 'static', i18nKey: 'common:nav.teams' },
   },
   {
@@ -329,8 +329,7 @@ export const routesConfig: RoutesConfig = [
     component: RouteDetailPage,
     auth: 'public',
     parentId: 'routes',
-    breadcrumb: { type: 'dynamic', entity: 'route' },
-    showBackLink: true,
+    breadcrumb: { type: 'dynamic', entity: 'route' }
   },
   {
     id: 'route-edit',
