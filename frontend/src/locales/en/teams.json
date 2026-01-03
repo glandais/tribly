@@ -7,7 +7,7 @@
       "rideTemplates": "Ride Templates",
       "settings": "Settings"
     },
-    "title": "Team Administration"
+    "title": "Team management"
   },
   "create": {
     "backToTeams": "Back to Teams",
@@ -39,7 +39,7 @@
   },
   "detail": {
     "actions": {
-      "admin": "Administration",
+      "admin": "Manage",
       "confirmLeave": "Are you sure you want to leave this team?",
       "edit": "Edit",
       "join": "Join Team",

@@ -7,7 +7,7 @@
       "rideTemplates": "Modèles de sortie",
       "settings": "Paramètres"
     },
-    "title": "Administration"
+    "title": "Gestion de l'équipe"
   },
   "create": {
     "backToTeams": "Retour aux équipes",
@@ -40,7 +40,7 @@
   },
   "detail": {
     "actions": {
-      "admin": "Administration",
+      "admin": "Gérer",
       "confirmLeave": "Êtes-vous sûr de vouloir quitter cette équipe ?",
       "edit": "Éditer",
       "join": "Rejoindre l'équipe",
