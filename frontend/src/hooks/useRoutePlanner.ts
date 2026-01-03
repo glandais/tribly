@@ -28,7 +28,7 @@ interface CachedSegment {
 
 export interface UseRoutePlannerOptions {
   initialTrack?: number[][] // [lng, lat, ele, dist][] from existing route
-  epsilon?: number // Douglas-Peucker tolerance (default: 0.0005 ~50m)
+  epsilon?: number // Douglas-Peucker tolerance in meters (default: 200m)
 }
 
 interface UseRoutePlannerReturn {
@@ -133,7 +133,7 @@ function trackSliceToGeoJson(coords: number[][]): GeoJSON.FeatureCollection {
 }
 
 export function useRoutePlanner(options?: UseRoutePlannerOptions): UseRoutePlannerReturn {
-  const { initialTrack, epsilon = 0.002 } = options || {}
+  const { initialTrack, epsilon = 200 } = options || {}
 
   const [controlPoints, setControlPoints] = useState<ControlPoint[]>([])
   const [routeGeoJson, setRouteGeoJson] = useState<RouteFeatureCollection | null>(null)

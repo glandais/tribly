@@ -177,18 +177,36 @@ export function EmbeddedRoutePlanner({ onPointsChange, initialTrack }: EmbeddedR
     segmentIndex: number
   } | null>(null)
 
-  // Track if we're dragging an existing marker
-  const [isDraggingMarker, setIsDraggingMarker] = useState(false)
+  // Track which marker is being dragged and its current position
+  const [draggingMarker, setDraggingMarker] = useState<{
+    index: number
+    lng: number
+    lat: number
+  } | null>(null)
 
-  const handleMarkerDragStart = useCallback(() => {
-    setIsDraggingMarker(true)
-    setHoverPoint(null)
-  }, [])
+  const handleMarkerDragStart = useCallback(
+    (index: number) => (event: MarkerDragEvent) => {
+      setDraggingMarker({ index, lng: event.lngLat.lng, lat: event.lngLat.lat })
+      setHoverPoint(null)
+    },
+    []
+  )
+
+  const handleMarkerDrag = useCallback(
+    (index: number) => (event: MarkerDragEvent) => {
+      setDraggingMarker((prev) =>
+        prev && prev.index === index
+          ? { index, lng: event.lngLat.lng, lat: event.lngLat.lat }
+          : prev
+      )
+    },
+    []
+  )
 
   const handleMarkerDragEnd = useCallback(
     (index: number) => (event: MarkerDragEvent) => {
       updateControlPoint(index, event.lngLat.lng, event.lngLat.lat)
-      setIsDraggingMarker(false)
+      setDraggingMarker(null)
     },
     [updateControlPoint]
   )
@@ -218,7 +236,7 @@ export function EmbeddedRoutePlanner({ onPointsChange, initialTrack }: EmbeddedR
         return
       }
 
-      if (isDraggingMarker) return
+      if (draggingMarker) return
 
       if (!mapRef.current || !routeGeoJson) return
 
@@ -263,7 +281,7 @@ export function EmbeddedRoutePlanner({ onPointsChange, initialTrack }: EmbeddedR
 
       setHoverPoint(null)
     },
-    [routeGeoJson, draggingGhost, isDraggingMarker, controlPoints]
+    [routeGeoJson, draggingGhost, draggingMarker, controlPoints]
   )
 
   const handleMouseLeave = useCallback(() => {
@@ -308,6 +326,97 @@ export function EmbeddedRoutePlanner({ onPointsChange, initialTrack }: EmbeddedR
       ascend: ascend ?? 0,
     }
   }, [routeGeoJson])
+
+  // Compute connection lines when dragging
+  const dragConnectionLines = useMemo(() => {
+    // Connection lines for dragging existing marker
+    if (draggingMarker) {
+      const { index, lng, lat } = draggingMarker
+      const features: GeoJSON.Feature<GeoJSON.LineString>[] = []
+
+      // Connect to previous point
+      if (index > 0) {
+        const prev = controlPoints[index - 1]
+        features.push({
+          type: 'Feature',
+          geometry: {
+            type: 'LineString',
+            coordinates: [
+              [prev.lng, prev.lat],
+              [lng, lat],
+            ],
+          },
+          properties: {},
+        })
+      }
+
+      // Connect to next point
+      if (index < controlPoints.length - 1) {
+        const next = controlPoints[index + 1]
+        features.push({
+          type: 'Feature',
+          geometry: {
+            type: 'LineString',
+            coordinates: [
+              [lng, lat],
+              [next.lng, next.lat],
+            ],
+          },
+          properties: {},
+        })
+      }
+
+      return {
+        type: 'FeatureCollection' as const,
+        features,
+      }
+    }
+
+    // Connection lines for dragging ghost (new point being inserted)
+    if (draggingGhost) {
+      const { segmentIndex, lng, lat } = draggingGhost
+      const features: GeoJSON.Feature<GeoJSON.LineString>[] = []
+
+      // Connect to point before insertion
+      if (segmentIndex < controlPoints.length) {
+        const prev = controlPoints[segmentIndex]
+        features.push({
+          type: 'Feature',
+          geometry: {
+            type: 'LineString',
+            coordinates: [
+              [prev.lng, prev.lat],
+              [lng, lat],
+            ],
+          },
+          properties: {},
+        })
+      }
+
+      // Connect to point after insertion
+      if (segmentIndex + 1 < controlPoints.length) {
+        const next = controlPoints[segmentIndex + 1]
+        features.push({
+          type: 'Feature',
+          geometry: {
+            type: 'LineString',
+            coordinates: [
+              [lng, lat],
+              [next.lng, next.lat],
+            ],
+          },
+          properties: {},
+        })
+      }
+
+      return {
+        type: 'FeatureCollection' as const,
+        features,
+      }
+    }
+
+    return null
+  }, [draggingMarker, draggingGhost, controlPoints])
 
   return (
     <div className="flex flex-col h-full">
@@ -387,6 +496,22 @@ export function EmbeddedRoutePlanner({ onPointsChange, initialTrack }: EmbeddedR
             </Source>
           )}
 
+          {/* Drag connection lines */}
+          {dragConnectionLines && (
+            <Source id="drag-connections" type="geojson" data={dragConnectionLines}>
+              <Layer
+                id="drag-connection-line"
+                type="line"
+                paint={{
+                  'line-color': '#10B981',
+                  'line-width': 3,
+                  'line-dasharray': [4, 4],
+                  'line-opacity': 1,
+                }}
+              />
+            </Source>
+          )}
+
           {/* Control point markers */}
           {controlPoints.map((point, index) => {
             const isFirst = index === 0
@@ -396,14 +521,20 @@ export function EmbeddedRoutePlanner({ onPointsChange, initialTrack }: EmbeddedR
             if (isFirst) markerColor = 'bg-green-500'
             else if (isLast) markerColor = 'bg-red-500'
 
+            // Use dragging position if this marker is being dragged
+            const isDragging = draggingMarker?.index === index
+            const lng = isDragging ? draggingMarker.lng : point.lng
+            const lat = isDragging ? draggingMarker.lat : point.lat
+
             return (
               <Marker
                 key={point.id}
-                longitude={point.lng}
-                latitude={point.lat}
+                longitude={lng}
+                latitude={lat}
                 anchor="center"
                 draggable
-                onDragStart={handleMarkerDragStart}
+                onDragStart={handleMarkerDragStart(index)}
+                onDrag={handleMarkerDrag(index)}
                 onDragEnd={handleMarkerDragEnd(index)}
               >
                 <div
@@ -413,11 +544,6 @@ export function EmbeddedRoutePlanner({ onPointsChange, initialTrack }: EmbeddedR
                   <div
                     className={`w-6 h-6 ${markerColor} border-2 border-white rounded-full shadow-lg`}
                   />
-                  {!isFirst && !isLast && (
-                    <span className="ml-1 px-1 bg-white/90 rounded text-xs font-medium shadow-sm">
-                      {index}
-                    </span>
-                  )}
                 </div>
               </Marker>
             )
