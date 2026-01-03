@@ -17,18 +17,18 @@
     "dateTimeHint": "Date de publication de l'annonce",
     "dateTimeLabel": "Date",
     "descriptionLabel": "Description",
-    "descriptionPlaceholder": "Decrivez votre annonce...",
+    "descriptionPlaceholder": "Décrivez votre annonce...",
     "locationLabel": "Localisation",
     "locationDescriptionLabel": "Description du lieu",
-    "locationDescriptionPlaceholder": "Ex: Paris 15e, proche metro...",
+    "locationDescriptionPlaceholder": "Ex: Paris 15e, proche métro...",
     "nameLabel": "Titre",
     "namePlaceholder": "Entrez le titre de l'annonce",
     "priceLabel": "Prix",
     "pricePlaceholder": "0.00",
-    "priceHint": "Laissez vide si le prix est a negocier",
-    "rentalPeriodLabel": "Periode de location",
+    "priceHint": "Laissez vide si le prix est à négocier",
+    "rentalPeriodLabel": "Période de location",
     "statusLabel": "Statut",
-    "submit": "Creer l'annonce",
+    "submit": "Créer l'annonce",
     "title": "Nouvelle annonce"
   },
   "detail": {
@@ -37,22 +37,22 @@
       "delete": "Supprimer",
       "edit": "Modifier",
       "publish": "Publier",
-      "uncancel": "Reactiver",
-      "unpublish": "Depublier"
+      "uncancel": "Réactiver",
+      "unpublish": "Dépublier"
     },
     "confirmations": {
       "cancel": "Voulez-vous annuler cette annonce ? Elle ne sera plus visible.",
-      "delete": "Voulez-vous vraiment supprimer cette annonce ? Cette action est irreversible.",
-      "uncancel": "Voulez-vous reactiver cette annonce ? Elle sera a nouveau publiee.",
-      "unpublish": "Voulez-vous depublier cette annonce ? Elle redeviendra un brouillon."
+      "delete": "Voulez-vous vraiment supprimer cette annonce ? Cette action est irréversible.",
+      "uncancel": "Voulez-vous réactiver cette annonce ? Elle sera à nouveau publiée.",
+      "unpublish": "Voulez-vous dépublier cette annonce ? Elle redeviendra un brouillon."
     },
     "location": "Localisation",
     "notFound": {
-      "message": "Cette annonce n'existe pas ou a ete supprimee",
+      "message": "Cette annonce n'existe pas ou a été supprimée",
       "title": "Annonce introuvable"
     },
     "price": "Prix",
-    "priceNegotiable": "Prix a negocier",
+    "priceNegotiable": "Prix à négocier",
     "rentalPeriod": "Par {{period}}"
   },
   "edit": {
@@ -61,14 +61,14 @@
     "title": "Modifier l'annonce"
   },
   "list": {
-    "createAd": "Creer une annonce",
+    "createAd": "Créer une annonce",
     "empty": {
       "member": "Aucune annonce n'est disponible pour le moment.",
       "title": "Aucune annonce"
     },
     "filterByType": "Filtrer par type",
     "allTypes": "Tous les types",
-    "noResults": "Aucune annonce ne correspond a votre recherche.",
+    "noResults": "Aucune annonce ne correspond à votre recherche.",
     "search": {
       "label": "Rechercher des annonces",
       "placeholder": "Rechercher par titre ou description..."
@@ -77,13 +77,13 @@
   },
   "loading": "Chargement...",
   "notifications": {
-    "created": "Annonce creee avec succes",
-    "deleted": "Annonce supprimee avec succes",
-    "updated": "Annonce mise a jour avec succes"
+    "created": "Annonce créée avec succès",
+    "deleted": "Annonce supprimée avec succès",
+    "updated": "Annonce mise à jour avec succès"
   },
   "status": {
     "DRAFT": "Brouillon",
-    "PUBLISHED": "Publie",
-    "CANCELLED": "Annule"
+    "PUBLISHED": "Publié",
+    "CANCELLED": "Annulé"
   }
 }

@@ -149,7 +149,7 @@ create table team_entities (
                                distance integer,
                                elevation_gain integer,
                                elevation_loss integer,
-                               entity_type integer not null check ((entity_type in (1,5,3,6,2,4,7))),
+                               entity_type integer not null check ((entity_type in (3,5,1,7,2,4,6))),
                                hilliness integer,
                                is_about_page boolean,
                                latitude float(53),
@@ -183,8 +183,8 @@ create table team_entities (
                                "start" geometry(Point,4326),
                                primary key (id),
                                constraint uk_team_entity_slug unique (team_id, entity_type, slug),
-                               check (entity_type <> 6 or (sort_order is not null)),
-                               check (entity_type <> 4 or (is_about_page is not null))
+                               check (entity_type <> 4 or (is_about_page is not null)),
+                               check (entity_type <> 6 or (sort_order is not null))
 );
 
 create table teams (
@@ -246,14 +246,32 @@ create table users (
                        primary key (id)
 );
 
+create index idx_assets_team_entity_deleted
+    on assets (team_entity_id, deleted);
+
+create index idx_assets_team_deleted
+    on assets (team_id, deleted);
+
 create index IDXryn234ylmua6os660w5avbkgy
     on comments (team_entity_id, deleted, created_at);
 
 create index IDXg9o7ansoiy9pm6nkpb9brn44o
     on comments (parent_id, deleted);
 
+create index idx_gpx_tracks_route_deleted
+    on gpx_tracks (route_id, deleted);
+
+create index idx_gpx_waypoints_route_deleted
+    on gpx_waypoints (route_id, deleted);
+
+create index idx_places_team_deleted
+    on places (team_id, deleted);
+
 create index IDXe5fskel3tfc9ce4a4xu3vn4f5
     on ride_groups (ride_id, deleted);
+
+create index idx_ride_participations_user_group_deleted
+    on ride_participations (user_id, ride_group_id, deleted);
 
 create index IDXi9tkt14pnxn8jlc7a8tnijxpt
     on ride_template_groups (template_id, deleted);
@@ -284,6 +302,12 @@ create index IDXngsx2ujy92deb6wsf1bg6wd4a
 
 create index IDXo3hbo8wlcgmi4dqwrqm9jtm8f
     on teams (slug, deleted);
+
+create index idx_trip_participations_user_trip_deleted
+    on trip_participations (user_id, trip_id, deleted);
+
+create index idx_user_teams_user_team_deleted
+    on user_teams (user_id, team_id, deleted);
 
 alter table if exists assets
     add constraint FKcifafsjy81jtl602qr99flp5u
@@ -411,14 +435,14 @@ alter table if exists team_entities
     references teams;
 
 alter table if exists team_entities
-    add constraint FKjukml9fp2eipuhmugtiaf12gs
-    foreign key (place_end_id)
-    references places;
-
-alter table if exists team_entities
     add constraint FKsm0040p8exgxema0d3j4osclb
     foreign key (route_id)
     references team_entities;
+
+alter table if exists team_entities
+    add constraint FKjukml9fp2eipuhmugtiaf12gs
+    foreign key (place_end_id)
+    references places;
 
 alter table if exists team_entities
     add constraint FKm7w1a9lbh6795ida5u4n95vdv

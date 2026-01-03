@@ -9,6 +9,9 @@ CREATE INDEX idx_team_entities_name_gin_trgm ON team_entities USING GIN (name gi
 -- GIN index on description for fast partial matching
 CREATE INDEX idx_team_entities_markdown_gin_trgm ON team_entities USING GIN (markdown gin_trgm_ops);
 
+CREATE INDEX idx_ride_templates_name_gin_trgm ON ride_templates USING GIN (name gin_trgm_ops);
+CREATE INDEX idx_users_display_name_gin_trgm ON users USING GIN (display_name gin_trgm_ops);
+
 -- Note: These indexes dramatically improve LIKE '%search%' query performance
 -- from O(n) table scan to O(log n) index lookup
 
@@ -27,3 +30,6 @@ CREATE INDEX idx_team_entities_start
 CREATE INDEX idx_team_entities_end
     ON team_entities
     USING GIST ("end");
+
+-- GIST index for geometry
+CREATE INDEX idx_gpx_waypoints_geometry ON gpx_waypoints USING GIST (geometry);

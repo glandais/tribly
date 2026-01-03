@@ -3,34 +3,34 @@
     "rideTemplates": "Modèles"
   },
   "confirmations": {
-    "delete": "Etes-vous sur de vouloir supprimer le modele \"{{name}}\" ?",
-    "deleteTitle": "Supprimer le modele"
+    "delete": "Êtes-vous sûr de vouloir supprimer le modèle \"{{name}}\" ?",
+    "deleteTitle": "Supprimer le modèle"
   },
   "create": {
-    "backToTemplates": "Retour aux modeles",
-    "button": "Creer le modele",
+    "backToTemplates": "Retour aux modèles",
+    "button": "Créer le modèle",
     "loading": "Chargement...",
-    "subtitle": "Definissez un modele reutilisable pour {{teamName}}",
-    "title": "Creer un modele"
+    "subtitle": "Définissez un modèle réutilisable pour {{teamName}}",
+    "title": "Créer un modèle"
   },
   "edit": {
-    "backToTemplates": "Retour aux modeles",
+    "backToTemplates": "Retour aux modèles",
     "button": "Enregistrer",
-    "loading": "Chargement du modele...",
-    "subtitle": "Modifier les details du modele",
-    "title": "Modifier le modele"
+    "loading": "Chargement du modèle...",
+    "subtitle": "Modifier les détails du modèle",
+    "title": "Modifier le modèle"
   },
   "form": {
     "description": {
       "label": "Description",
-      "placeholder": "Description par defaut de la sortie..."
+      "placeholder": "Description par défaut de la sortie..."
     },
     "error": "Une erreur est survenue",
     "groups": {
       "add": "+ Ajouter un groupe",
       "defaultName": "Groupe principal",
       "empty": "Aucun groupe. Ajoutez-en au moins un.",
-      "hint": "Definissez les groupes par defaut pour ce type de sortie",
+      "hint": "Définissez les groupes par défaut pour ce type de sortie",
       "label": "Groupes",
       "maxParticipants": {
         "placeholder": "Max. participants"
@@ -44,22 +44,22 @@
       "speed": {
         "placeholder": "Vitesse (km/h)"
       },
-      "willBeDeleted": "(sera supprime)"
+      "willBeDeleted": "(sera supprimé)"
     },
     "name": {
-      "label": "Nom du modele",
+      "label": "Nom du modèle",
       "placeholder": "ex. Sortie du dimanche"
     },
     "status": {
       "draft": "Brouillon",
-      "label": "Statut par defaut",
-      "published": "Publie"
+      "label": "Statut par défaut",
+      "published": "Publié"
     },
     "visibility": {
-      "label": "Visibilite",
+      "label": "Visibilité",
       "public": "Public",
-      "publicDisabled": "equipe privee",
-      "team": "Equipe uniquement"
+      "publicDisabled": "équipe privée",
+      "team": "Équipe uniquement"
     }
   },
   "list": {
@@ -67,16 +67,16 @@
     "delete": "Supprimer",
     "edit": "Modifier",
     "empty": {
-      "admin": "Creez des modeles pour accelerer la creation de sorties.",
-      "createAction": "Creer un modele",
-      "member": "Aucun modele n'a encore ete cree.",
-      "title": "Aucun modele"
+      "admin": "Créez des modèles pour accélérer la création de sorties.",
+      "createAction": "Créer un modèle",
+      "member": "Aucun modèle n'a encore été créé.",
+      "title": "Aucun modèle"
     },
     "groupCount_one": "{{count}} groupe",
     "groupCount_many": "list.groupCount",
     "groupCount_other": "{{count}} groupes",
     "loading": "Chargement des modèles...",
-    "noResults": "Aucun modele trouve",
+    "noResults": "Aucun modèle trouvé",
     "search": {
       "label": "Rechercher",
       "placeholder": "Rechercher par nom..."
@@ -85,17 +85,17 @@
     "title": "Modèles de sortie"
   },
   "notifications": {
-    "created": "Modele cree avec succes",
-    "deleted": "Modele supprime avec succes",
-    "updated": "Modele mis a jour avec succes"
+    "created": "Modèle créé avec succès",
+    "deleted": "Modèle supprimé avec succès",
+    "updated": "Modèle mis à jour avec succès"
   },
   "picker": {
     "groupCount_one": "{{count}} groupe",
     "groupCount_many": "picker.groupCount",
     "groupCount_other": "{{count}} groupes",
-    "loading": "Chargement des modeles...",
-    "noResults": "Aucun modele trouve",
-    "search": "Rechercher un modele...",
-    "title": "Choisir un modele"
+    "loading": "Chargement des modèles...",
+    "noResults": "Aucun modèle trouvé",
+    "search": "Rechercher un modèle...",
+    "title": "Choisir un modèle"
   }
 }

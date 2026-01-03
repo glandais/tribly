@@ -6,6 +6,7 @@ import com.tribly.domain.user.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
@@ -19,7 +20,9 @@ import org.jspecify.annotations.Nullable;
 @Setter
 @Getter
 @Entity
-@Table(name = "places")
+@Table(
+    name = "places",
+    indexes = {@Index(name = "idx_places_team_deleted", columnList = "team_id, deleted")})
 @NoArgsConstructor
 public class Place extends BaseEntity {
 

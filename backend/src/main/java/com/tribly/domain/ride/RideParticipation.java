@@ -13,7 +13,12 @@ import lombok.Setter;
 @Entity
 @Table(
     name = "ride_participations",
-    uniqueConstraints = {@UniqueConstraint(columnNames = {"ride_group_id", "user_id"})})
+    uniqueConstraints = {@UniqueConstraint(columnNames = {"ride_group_id", "user_id"})},
+    indexes = {
+      @Index(
+          name = "idx_ride_participations_user_group_deleted",
+          columnList = "user_id, ride_group_id, deleted")
+    })
 @NoArgsConstructor
 public class RideParticipation extends BaseEntity {
 

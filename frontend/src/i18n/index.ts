@@ -108,4 +108,16 @@ i18n
     },
   })
 
+// Update HTML lang attribute when language changes
+// This ensures native browser elements (like datetime-local inputs) use the correct locale
+const updateHtmlLang = (lng: string) => {
+  document.documentElement.lang = lng
+}
+
+// Set initial lang attribute
+updateHtmlLang(i18n.language)
+
+// Listen for language changes
+i18n.on('languageChanged', updateHtmlLang)
+
 export default i18n

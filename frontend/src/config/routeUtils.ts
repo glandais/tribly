@@ -76,6 +76,12 @@ export function buildRoutePath(route: RouteConfig, params: RouteParams): string 
   if (params.templateSlug) {
     path = path.replace(':templateSlug', params.templateSlug)
   }
+  if (params.adSlug) {
+    path = path.replace(':adSlug', params.adSlug)
+  }
+  if (params.pageSlug) {
+    path = path.replace(':pageSlug', params.pageSlug)
+  }
 
   return path
 }

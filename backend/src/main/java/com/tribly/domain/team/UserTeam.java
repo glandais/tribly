@@ -14,7 +14,10 @@ import lombok.Setter;
 @Entity
 @Table(
     name = "user_teams",
-    uniqueConstraints = {@UniqueConstraint(columnNames = {"user_id", "team_id"})})
+    uniqueConstraints = {@UniqueConstraint(columnNames = {"user_id", "team_id"})},
+    indexes = {
+      @Index(name = "idx_user_teams_user_team_deleted", columnList = "user_id, team_id, deleted")
+    })
 @NoArgsConstructor
 public class UserTeam extends BaseEntity {
 

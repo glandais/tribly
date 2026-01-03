@@ -14,7 +14,12 @@ import org.jspecify.annotations.Nullable;
 @Setter
 @Getter
 @Entity
-@Table(name = "assets")
+@Table(
+    name = "assets",
+    indexes = {
+      @Index(name = "idx_assets_team_entity_deleted", columnList = "team_entity_id, deleted"),
+      @Index(name = "idx_assets_team_deleted", columnList = "team_id, deleted")
+    })
 @NoArgsConstructor
 public class Asset extends BaseEntity {
 
