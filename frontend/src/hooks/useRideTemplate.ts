@@ -1,8 +1,8 @@
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 import i18next from 'i18next'
 import { rideTemplatesApi, unwrapResponse } from '../lib/apiClient'
-import { useNotificationStore } from '../store/notificationStore'
 import type {
   RideTemplateDto,
   RideTemplateGroupDto,
@@ -67,11 +67,7 @@ export function useCreateRideTemplate(teamSlug: string | undefined) {
     onSuccess: (template) => {
       queryClient.invalidateQueries({ queryKey: ['rideTemplates', teamSlug] })
 
-      useNotificationStore.getState().addNotification({
-        type: 'success',
-        translatedMessage: i18next.t('rideTemplates:notifications.created'),
-        duration: 4000,
-      })
+      toast.success(i18next.t('rideTemplates:notifications.created'))
 
       if (template) {
         navigate(paths.rideTemplates(teamSlug!))
@@ -93,11 +89,7 @@ export function useUpdateRideTemplate(teamSlug: string | undefined, templateSlug
       queryClient.invalidateQueries({ queryKey: ['rideTemplate', teamSlug, templateSlug] })
       queryClient.invalidateQueries({ queryKey: ['rideTemplates', teamSlug] })
 
-      useNotificationStore.getState().addNotification({
-        type: 'success',
-        translatedMessage: i18next.t('rideTemplates:notifications.updated'),
-        duration: 4000,
-      })
+      toast.success(i18next.t('rideTemplates:notifications.updated'))
 
       navigate(paths.rideTemplates(teamSlug!))
     },
@@ -115,11 +107,7 @@ export function useDeleteRideTemplate(teamSlug: string | undefined) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['rideTemplates', teamSlug] })
 
-      useNotificationStore.getState().addNotification({
-        type: 'success',
-        translatedMessage: i18next.t('rideTemplates:notifications.deleted'),
-        duration: 4000,
-      })
+      toast.success(i18next.t('rideTemplates:notifications.deleted'))
     },
   })
 }

@@ -1,8 +1,8 @@
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 import i18next from 'i18next'
 import { postsApi, unwrapResponse } from '../lib/apiClient'
-import { useNotificationStore } from '../store/notificationStore'
 import type { PostDto, PostListResponse, PostRequest } from '../api/api'
 import { Status, Visibility } from '../api/api'
 import { paths } from '@/config/paths'
@@ -58,12 +58,7 @@ export function useCreatePost(teamSlug: string | undefined) {
     onSuccess: (post) => {
       queryClient.invalidateQueries({ queryKey: ['posts', teamSlug] })
 
-      // Show success notification
-      useNotificationStore.getState().addNotification({
-        type: 'success',
-        translatedMessage: i18next.t('posts:notifications.created'),
-        duration: 4000,
-      })
+      toast.success(i18next.t('posts:notifications.created'))
 
       if (post) {
         navigate(paths.post(teamSlug!, post.slug))
@@ -84,12 +79,7 @@ export function useUpdatePost(teamSlug: string | undefined, postSlug: string) {
       queryClient.invalidateQueries({ queryKey: ['post', teamSlug, postSlug] })
       queryClient.invalidateQueries({ queryKey: ['posts', teamSlug] })
 
-      // Show success notification
-      useNotificationStore.getState().addNotification({
-        type: 'success',
-        translatedMessage: i18next.t('posts:notifications.updated'),
-        duration: 4000,
-      })
+      toast.success(i18next.t('posts:notifications.updated'))
     },
   })
 }
@@ -106,12 +96,7 @@ export function useDeletePost(teamSlug: string | undefined) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['posts', teamSlug] })
 
-      // Show success notification
-      useNotificationStore.getState().addNotification({
-        type: 'success',
-        translatedMessage: i18next.t('posts:notifications.deleted'),
-        duration: 4000,
-      })
+      toast.success(i18next.t('posts:notifications.deleted'))
 
       navigate(paths.team(teamSlug!))
     },

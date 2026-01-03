@@ -1,8 +1,8 @@
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 import i18next from 'i18next'
 import { tripsApi, unwrapResponse } from '../lib/apiClient'
-import { useNotificationStore } from '../store/notificationStore'
 import type {
   TripDto,
   TripStageDto,
@@ -72,12 +72,7 @@ export function useCreateTrip(teamSlug: string | undefined) {
     onSuccess: (trip) => {
       queryClient.invalidateQueries({ queryKey: ['trips', teamSlug] })
 
-      // Show success notification
-      useNotificationStore.getState().addNotification({
-        type: 'success',
-        translatedMessage: i18next.t('trips:notifications.created'),
-        duration: 4000,
-      })
+      toast.success(i18next.t('trips:notifications.created'))
 
       if (trip) {
         navigate(paths.trip(teamSlug!, trip.slug))
@@ -98,12 +93,7 @@ export function useUpdateTrip(teamSlug: string | undefined, tripSlug: string) {
       queryClient.invalidateQueries({ queryKey: ['trip', teamSlug, tripSlug] })
       queryClient.invalidateQueries({ queryKey: ['trips', teamSlug] })
 
-      // Show success notification
-      useNotificationStore.getState().addNotification({
-        type: 'success',
-        translatedMessage: i18next.t('trips:notifications.updated'),
-        duration: 4000,
-      })
+      toast.success(i18next.t('trips:notifications.updated'))
     },
   })
 }
@@ -120,12 +110,7 @@ export function useDeleteTrip(teamSlug: string | undefined) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['trips', teamSlug] })
 
-      // Show success notification
-      useNotificationStore.getState().addNotification({
-        type: 'success',
-        translatedMessage: i18next.t('trips:notifications.deleted'),
-        duration: 4000,
-      })
+      toast.success(i18next.t('trips:notifications.deleted'))
 
       navigate(paths.team(teamSlug!))
     },
@@ -144,12 +129,7 @@ export function useJoinTrip(teamSlug: string | undefined, tripSlug: string) {
       queryClient.invalidateQueries({ queryKey: ['trip', teamSlug, tripSlug] })
       queryClient.invalidateQueries({ queryKey: ['trips', teamSlug] })
 
-      // Show success notification
-      useNotificationStore.getState().addNotification({
-        type: 'success',
-        translatedMessage: i18next.t('trips:notifications.joined'),
-        duration: 4000,
-      })
+      toast.success(i18next.t('trips:notifications.joined'))
     },
   })
 }
@@ -166,12 +146,7 @@ export function useLeaveTrip(teamSlug: string | undefined, tripSlug: string) {
       queryClient.invalidateQueries({ queryKey: ['trip', teamSlug, tripSlug] })
       queryClient.invalidateQueries({ queryKey: ['trips', teamSlug] })
 
-      // Show success notification
-      useNotificationStore.getState().addNotification({
-        type: 'success',
-        translatedMessage: i18next.t('trips:notifications.left'),
-        duration: 4000,
-      })
+      toast.success(i18next.t('trips:notifications.left'))
     },
   })
 }

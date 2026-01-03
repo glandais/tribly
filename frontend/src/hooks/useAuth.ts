@@ -1,8 +1,8 @@
 import { useCallback, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import i18next from 'i18next'
 import { useAuthStore } from '../store/authStore'
-import { useNotificationStore } from '../store/notificationStore'
 import { usersApi, unwrapResponse } from '../lib/apiClient'
 import type { UpdateUserRequest } from '../api/api'
 
@@ -48,12 +48,7 @@ export function useAuth() {
       queryClient.setQueryData(['currentUser'], updatedUser)
       setUser(updatedUser)
 
-      // Show success notification
-      useNotificationStore.getState().addNotification({
-        type: 'success',
-        translatedMessage: i18next.t('profile:notifications.updated'),
-        duration: 4000,
-      })
+      toast.success(i18next.t('profile:notifications.updated'))
     },
   })
 
@@ -62,13 +57,7 @@ export function useAuth() {
       await unwrapResponse(usersApi.deleteCurrentUser())
     },
     onSuccess: () => {
-      // Show success notification before logout
-      useNotificationStore.getState().addNotification({
-        type: 'success',
-        translatedMessage: i18next.t('profile:notifications.accountDeleted'),
-        duration: 4000,
-      })
-
+      toast.success(i18next.t('profile:notifications.accountDeleted'))
       logout()
     },
   })
@@ -80,12 +69,7 @@ export function useAuth() {
     onSuccess: (updatedUser) => {
       queryClient.setQueryData(['currentUser'], updatedUser)
       setUser(updatedUser)
-
-      useNotificationStore.getState().addNotification({
-        type: 'success',
-        translatedMessage: i18next.t('profile:notifications.avatarUpdated'),
-        duration: 4000,
-      })
+      toast.success(i18next.t('profile:notifications.avatarUpdated'))
     },
   })
 
@@ -96,12 +80,7 @@ export function useAuth() {
     onSuccess: (updatedUser) => {
       queryClient.setQueryData(['currentUser'], updatedUser)
       setUser(updatedUser)
-
-      useNotificationStore.getState().addNotification({
-        type: 'success',
-        translatedMessage: i18next.t('profile:notifications.avatarDeleted'),
-        duration: 4000,
-      })
+      toast.success(i18next.t('profile:notifications.avatarDeleted'))
     },
   })
 

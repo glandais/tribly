@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import i18next from 'i18next'
 import {
   rideCommentsApi,
@@ -7,7 +8,6 @@ import {
   routeCommentsApi,
   unwrapResponse,
 } from '../lib/apiClient'
-import { useNotificationStore } from '../store/notificationStore'
 import type { CommentDto, CommentListResponse, CommentRequest } from '../api/api'
 
 // Re-export types for convenience
@@ -64,11 +64,7 @@ export function useCreateComment(
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['comments', teamSlug, entityType, entitySlug] })
-      useNotificationStore.getState().addNotification({
-        type: 'success',
-        translatedMessage: i18next.t('comments:notifications.created'),
-        duration: 4000,
-      })
+      toast.success(i18next.t('comments:notifications.created'))
     },
   })
 }
@@ -104,11 +100,7 @@ export function useDeleteComment(
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['comments', teamSlug, entityType, entitySlug] })
-      useNotificationStore.getState().addNotification({
-        type: 'success',
-        translatedMessage: i18next.t('comments:notifications.deleted'),
-        duration: 4000,
-      })
+      toast.success(i18next.t('comments:notifications.deleted'))
     },
   })
 }

@@ -5,7 +5,7 @@ import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
 import { useAuth } from '../../hooks/useAuth'
 import { useBreadcrumb } from '../../hooks/useBreadcrumb'
 import { Breadcrumb } from './Breadcrumb'
-import { ToastContainer } from './Toast'
+import { Toaster } from '../ui/sonner'
 import { LanguageSwitcher } from './LanguageSwitcher'
 import { paths } from '@/config/paths'
 
@@ -199,7 +199,7 @@ export function Layout() {
         </div>
       </footer>
 
-      <ToastContainer />
+      <Toaster />
     </div>
   )
 }

@@ -19,9 +19,9 @@ import {
   RouteCommentsApi,
 } from '../api/api'
 import { Configuration } from '../api/configuration'
+import { toast } from 'sonner'
 import i18next from 'i18next'
 import { useAuthStore } from '../store/authStore'
-import { useNotificationStore } from '../store/notificationStore'
 import axios, { AxiosError, AxiosResponse } from 'axios'
 
 // Create custom axios instance with auth interceptor
@@ -86,13 +86,8 @@ export const unwrapResponse = <T>(promise: Promise<AxiosResponse<T>>): Promise<T
         const errorData = axiosError.response?.data as ErrorResponse
         const apiError = new ApiClientError(axiosError.status || 500, errorData)
 
-        // Show error notification (outside React context, direct store access)
-        // Use backend error message if available, otherwise use translated fallback
-        useNotificationStore.getState().addNotification({
-          type: 'error',
-          translatedMessage: errorData?.message || i18next.t('errors:api.unknown'),
-          duration: 7000,
-        })
+        // Show error notification
+        toast.error(errorData?.message || i18next.t('errors:api.unknown'))
 
         throw apiError
       }

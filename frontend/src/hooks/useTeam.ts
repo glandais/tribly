@@ -1,9 +1,9 @@
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 import i18next from 'i18next'
 import { teamsApi, teamMembersApi, unwrapResponse } from '../lib/apiClient'
 import { useAuthStore } from '../store/authStore'
-import { useNotificationStore } from '../store/notificationStore'
 import type { TeamDetailDto, MemberDto, TeamRequest } from '../api/api'
 import { TeamRole, MinRole } from '../api/api'
 import { paths } from '@/config/paths'
@@ -71,12 +71,7 @@ export function useCreateTeam() {
       queryClient.invalidateQueries({ queryKey: ['teams'] })
       queryClient.invalidateQueries({ queryKey: ['myTeams'] })
 
-      // Show success notification
-      useNotificationStore.getState().addNotification({
-        type: 'success',
-        translatedMessage: i18next.t('teams:notifications.created'),
-        duration: 4000,
-      })
+      toast.success(i18next.t('teams:notifications.created'))
 
       if (team) {
         navigate(paths.team(team.slug))
@@ -98,12 +93,7 @@ export function useUpdateTeam(slug: string) {
       queryClient.invalidateQueries({ queryKey: ['teams'] })
       queryClient.invalidateQueries({ queryKey: ['myTeams'] })
 
-      // Show success notification
-      useNotificationStore.getState().addNotification({
-        type: 'success',
-        translatedMessage: i18next.t('teams:notifications.updated'),
-        duration: 4000,
-      })
+      toast.success(i18next.t('teams:notifications.updated'))
 
       if (team) {
         queryClient.setQueryData(['team', team.slug], team)
@@ -126,12 +116,7 @@ export function useDeleteTeam(slug: string) {
       queryClient.invalidateQueries({ queryKey: ['myTeams'] })
       queryClient.removeQueries({ queryKey: ['team', slug] })
 
-      // Show success notification
-      useNotificationStore.getState().addNotification({
-        type: 'success',
-        translatedMessage: i18next.t('teams:notifications.deleted'),
-        duration: 4000,
-      })
+      toast.success(i18next.t('teams:notifications.deleted'))
 
       navigate(paths.teams())
     },
@@ -179,12 +164,7 @@ export function useAddMember(slug: string) {
       queryClient.invalidateQueries({ queryKey: ['team', slug] })
       queryClient.invalidateQueries({ queryKey: ['teamMembers', slug] })
 
-      // Show success notification
-      useNotificationStore.getState().addNotification({
-        type: 'success',
-        translatedMessage: i18next.t('teams:notifications.memberAdded'),
-        duration: 4000,
-      })
+      toast.success(i18next.t('teams:notifications.memberAdded'))
     },
   })
 }
@@ -213,12 +193,7 @@ export function useRemoveMember(slug: string) {
       queryClient.invalidateQueries({ queryKey: ['team', slug] })
       queryClient.invalidateQueries({ queryKey: ['teamMembers', slug] })
 
-      // Show success notification
-      useNotificationStore.getState().addNotification({
-        type: 'success',
-        translatedMessage: i18next.t('teams:notifications.memberRemoved'),
-        duration: 4000,
-      })
+      toast.success(i18next.t('teams:notifications.memberRemoved'))
     },
   })
 }

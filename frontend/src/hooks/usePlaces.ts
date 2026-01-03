@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import i18next from 'i18next'
 import { placesApi, unwrapResponse } from '../lib/apiClient'
-import { useNotificationStore } from '../store/notificationStore'
 import type { PlaceDetailDto, PlaceRequest } from '../api/api'
 
 // Re-export types for convenience
@@ -38,11 +38,7 @@ export function useCreatePlace(teamSlug: string) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['places', teamSlug] })
-      useNotificationStore.getState().addNotification({
-        type: 'success',
-        translatedMessage: i18next.t('teams:notifications.placeCreated'),
-        duration: 4000,
-      })
+      toast.success(i18next.t('teams:notifications.placeCreated'))
     },
   })
 }
@@ -57,11 +53,7 @@ export function useUpdatePlace(teamSlug: string, placeId: string) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['places', teamSlug] })
       queryClient.invalidateQueries({ queryKey: ['place', teamSlug, placeId] })
-      useNotificationStore.getState().addNotification({
-        type: 'success',
-        translatedMessage: i18next.t('teams:notifications.placeUpdated'),
-        duration: 4000,
-      })
+      toast.success(i18next.t('teams:notifications.placeUpdated'))
     },
   })
 }
@@ -75,11 +67,7 @@ export function useDeletePlace(teamSlug: string) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['places', teamSlug] })
-      useNotificationStore.getState().addNotification({
-        type: 'success',
-        translatedMessage: i18next.t('teams:notifications.placeDeleted'),
-        duration: 4000,
-      })
+      toast.success(i18next.t('teams:notifications.placeDeleted'))
     },
   })
 }

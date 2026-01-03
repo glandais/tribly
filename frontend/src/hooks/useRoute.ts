@@ -1,8 +1,8 @@
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 import i18next from 'i18next'
 import { routesApi, unwrapResponse } from '../lib/apiClient'
-import { useNotificationStore } from '../store/notificationStore'
 import type {
   RouteDto,
   RouteDetailDto,
@@ -64,12 +64,7 @@ export function useCreateRoute(teamSlug: string) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['routes', teamSlug] })
 
-      // Show success notification
-      useNotificationStore.getState().addNotification({
-        type: 'success',
-        translatedMessage: i18next.t('routes:notifications.created'),
-        duration: 4000,
-      })
+      toast.success(i18next.t('routes:notifications.created'))
     },
   })
 }
@@ -87,12 +82,7 @@ export function useUpdateRoute(teamSlug: string, routeSlug: string) {
       queryClient.invalidateQueries({ queryKey: ['route', teamSlug, routeSlug] })
       queryClient.invalidateQueries({ queryKey: ['routes', teamSlug] })
 
-      // Show success notification
-      useNotificationStore.getState().addNotification({
-        type: 'success',
-        translatedMessage: i18next.t('routes:notifications.updated'),
-        duration: 4000,
-      })
+      toast.success(i18next.t('routes:notifications.updated'))
     },
   })
 }
@@ -108,12 +98,7 @@ export function useDeleteRoute(teamSlug: string) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['routes', teamSlug] })
 
-      // Show success notification
-      useNotificationStore.getState().addNotification({
-        type: 'success',
-        translatedMessage: i18next.t('routes:notifications.deleted'),
-        duration: 4000,
-      })
+      toast.success(i18next.t('routes:notifications.deleted'))
 
       navigate(paths.routes(teamSlug!))
     },

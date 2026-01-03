@@ -1,8 +1,10 @@
 package com.tribly.domain.team;
 
+import com.tribly.domain.common.NotNullableDbValue;
 import com.tribly.domain.common.TeamEntity;
 import com.tribly.domain.user.User;
 import com.tribly.enums.Visibility;
+import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import java.time.Instant;
