@@ -2,12 +2,12 @@ package com.tribly.domain.route;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.tribly.domain.common.repository.TeamEntityQueryBasic;
 import com.tribly.domain.common.repository.TriblyPage;
+import com.tribly.domain.route.repository.RouteQuery;
 import com.tribly.domain.route.repository.RouteRepository;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
-import com.tribly.enums.Visibility;
+import com.tribly.enums.*;
 import com.tribly.util.TestDataCleaner;
 import com.tribly.util.TestDataService;
 import io.quarkus.test.junit.QuarkusTest;
@@ -38,7 +38,7 @@ class RouteRepositoryTest {
     dataService.createRoute(team, user, "Route 1", Visibility.PUBLIC);
     dataService.createRoute(team, user, "Route 2", Visibility.PUBLIC);
 
-    TeamEntityQueryBasic query = TeamEntityQueryBasic.builder().build();
+    RouteQuery query = RouteQuery.builder().build();
     TriblyPage<Route> result = routeRepository.find(query);
 
     assertEquals(2, result.items().size());
@@ -50,7 +50,7 @@ class RouteRepositoryTest {
     Route route1 = dataService.createRoute(team, user, "Route 1", Visibility.PUBLIC);
     dataService.createRoute(team, user, "Route 2", Visibility.PUBLIC);
 
-    TeamEntityQueryBasic query = TeamEntityQueryBasic.builder().slug(route1.getSlug()).build();
+    RouteQuery query = RouteQuery.builder().slug(route1.getSlug()).build();
     TriblyPage<Route> result = routeRepository.find(query);
 
     assertEquals(1, result.items().size());
@@ -62,7 +62,7 @@ class RouteRepositoryTest {
     dataService.createRoute(team, user, "Public Route", Visibility.PUBLIC);
     dataService.createRoute(team, user, "Team Route", Visibility.TEAM);
 
-    TeamEntityQueryBasic query = TeamEntityQueryBasic.builder().build();
+    RouteQuery query = RouteQuery.builder().build();
     TriblyPage<Route> result = routeRepository.find(query);
 
     assertEquals(1, result.items().size());
@@ -75,7 +75,7 @@ class RouteRepositoryTest {
     Route deletedRoute = dataService.createRoute(team, user, "Deleted Route", Visibility.PUBLIC);
     dataService.deleteRoute(deletedRoute);
 
-    TeamEntityQueryBasic query = TeamEntityQueryBasic.builder().build();
+    RouteQuery query = RouteQuery.builder().build();
     TriblyPage<Route> result = routeRepository.find(query);
 
     assertEquals(1, result.items().size());
@@ -87,8 +87,7 @@ class RouteRepositoryTest {
     dataService.createRoute(team, user, "Route 1", Visibility.PUBLIC);
     Team otherTeam = dataService.createTeam(user, "Other Team", "other-team", Visibility.PUBLIC);
 
-    TeamEntityQueryBasic query =
-        TeamEntityQueryBasic.builder().teamSlugs(Set.of(otherTeam.getSlug())).build();
+    RouteQuery query = RouteQuery.builder().teamSlugs(Set.of(otherTeam.getSlug())).build();
     TriblyPage<Route> result = routeRepository.find(query);
 
     assertEquals(0, result.items().size());
@@ -100,10 +99,740 @@ class RouteRepositoryTest {
       dataService.createRoute(team, user, "Route " + i, Visibility.PUBLIC);
     }
 
-    TeamEntityQueryBasic query = TeamEntityQueryBasic.builder().size(2).build();
+    RouteQuery query = RouteQuery.builder().size(2).build();
     TriblyPage<Route> result = routeRepository.find(query);
 
     assertEquals(2, result.items().size());
     assertEquals(5, result.total());
+  }
+
+  // ==================== Distance Range Filter ====================
+
+  @Test
+  void find_shouldFilterByMinDistance() {
+    dataService.createRouteWithProperties(
+        team,
+        user,
+        "Short Route",
+        Visibility.PUBLIC,
+        5000,
+        100,
+        SurfaceType.ROAD,
+        WindDirection.NORTH,
+        45.0,
+        6.0,
+        45.1,
+        6.1);
+    dataService.createRouteWithProperties(
+        team,
+        user,
+        "Long Route",
+        Visibility.PUBLIC,
+        50000,
+        500,
+        SurfaceType.ROAD,
+        WindDirection.NORTH,
+        45.0,
+        6.0,
+        45.5,
+        6.5);
+
+    RouteQuery query = RouteQuery.builder().minDistance(20000).build();
+    TriblyPage<Route> result = routeRepository.find(query);
+
+    assertEquals(1, result.items().size());
+    assertEquals("Long Route", result.items().getFirst().getName());
+  }
+
+  @Test
+  void find_shouldFilterByMaxDistance() {
+    dataService.createRouteWithProperties(
+        team,
+        user,
+        "Short Route",
+        Visibility.PUBLIC,
+        5000,
+        100,
+        SurfaceType.ROAD,
+        WindDirection.NORTH,
+        45.0,
+        6.0,
+        45.1,
+        6.1);
+    dataService.createRouteWithProperties(
+        team,
+        user,
+        "Long Route",
+        Visibility.PUBLIC,
+        50000,
+        500,
+        SurfaceType.ROAD,
+        WindDirection.NORTH,
+        45.0,
+        6.0,
+        45.5,
+        6.5);
+
+    RouteQuery query = RouteQuery.builder().maxDistance(10000).build();
+    TriblyPage<Route> result = routeRepository.find(query);
+
+    assertEquals(1, result.items().size());
+    assertEquals("Short Route", result.items().getFirst().getName());
+  }
+
+  @Test
+  void find_shouldFilterByDistanceRange() {
+    dataService.createRouteWithProperties(
+        team,
+        user,
+        "Short",
+        Visibility.PUBLIC,
+        5000,
+        100,
+        SurfaceType.ROAD,
+        WindDirection.NORTH,
+        45.0,
+        6.0,
+        45.1,
+        6.1);
+    dataService.createRouteWithProperties(
+        team,
+        user,
+        "Medium",
+        Visibility.PUBLIC,
+        30000,
+        300,
+        SurfaceType.ROAD,
+        WindDirection.NORTH,
+        45.0,
+        6.0,
+        45.3,
+        6.3);
+    dataService.createRouteWithProperties(
+        team,
+        user,
+        "Long",
+        Visibility.PUBLIC,
+        80000,
+        800,
+        SurfaceType.ROAD,
+        WindDirection.NORTH,
+        45.0,
+        6.0,
+        45.8,
+        6.8);
+
+    RouteQuery query = RouteQuery.builder().minDistance(10000).maxDistance(50000).build();
+    TriblyPage<Route> result = routeRepository.find(query);
+
+    assertEquals(1, result.items().size());
+    assertEquals("Medium", result.items().getFirst().getName());
+  }
+
+  // ==================== Elevation Gain Range Filter ====================
+
+  @Test
+  void find_shouldFilterByMinElevationGain() {
+    dataService.createRouteWithProperties(
+        team,
+        user,
+        "Flat Route",
+        Visibility.PUBLIC,
+        50000,
+        100,
+        SurfaceType.ROAD,
+        WindDirection.NORTH,
+        45.0,
+        6.0,
+        45.5,
+        6.5);
+    dataService.createRouteWithProperties(
+        team,
+        user,
+        "Hilly Route",
+        Visibility.PUBLIC,
+        50000,
+        1000,
+        SurfaceType.ROAD,
+        WindDirection.NORTH,
+        45.0,
+        6.0,
+        45.5,
+        6.5);
+
+    RouteQuery query = RouteQuery.builder().minElevationGain(500).build();
+    TriblyPage<Route> result = routeRepository.find(query);
+
+    assertEquals(1, result.items().size());
+    assertEquals("Hilly Route", result.items().getFirst().getName());
+  }
+
+  @Test
+  void find_shouldFilterByMaxElevationGain() {
+    dataService.createRouteWithProperties(
+        team,
+        user,
+        "Flat Route",
+        Visibility.PUBLIC,
+        50000,
+        100,
+        SurfaceType.ROAD,
+        WindDirection.NORTH,
+        45.0,
+        6.0,
+        45.5,
+        6.5);
+    dataService.createRouteWithProperties(
+        team,
+        user,
+        "Hilly Route",
+        Visibility.PUBLIC,
+        50000,
+        1000,
+        SurfaceType.ROAD,
+        WindDirection.NORTH,
+        45.0,
+        6.0,
+        45.5,
+        6.5);
+
+    RouteQuery query = RouteQuery.builder().maxElevationGain(500).build();
+    TriblyPage<Route> result = routeRepository.find(query);
+
+    assertEquals(1, result.items().size());
+    assertEquals("Flat Route", result.items().getFirst().getName());
+  }
+
+  // ==================== Hilliness Preset Filter ====================
+
+  @Test
+  void find_shouldFilterByHillinessFlat() {
+    // Flat: < 8 m/km -> 50km with 300m gain = 6 m/km
+    dataService.createRouteWithProperties(
+        team,
+        user,
+        "Flat Route",
+        Visibility.PUBLIC,
+        50000,
+        300,
+        SurfaceType.ROAD,
+        WindDirection.NORTH,
+        45.0,
+        6.0,
+        45.5,
+        6.5);
+    // Hilly: 8-15 m/km -> 50km with 600m gain = 12 m/km
+    dataService.createRouteWithProperties(
+        team,
+        user,
+        "Hilly Route",
+        Visibility.PUBLIC,
+        50000,
+        600,
+        SurfaceType.ROAD,
+        WindDirection.NORTH,
+        45.0,
+        6.0,
+        45.5,
+        6.5);
+
+    RouteQuery query = RouteQuery.builder().hilliness(Hilliness.FLAT).build();
+    TriblyPage<Route> result = routeRepository.find(query);
+
+    assertEquals(1, result.items().size());
+    assertEquals("Flat Route", result.items().getFirst().getName());
+  }
+
+  @Test
+  void find_shouldFilterByHillinessHilly() {
+    // Flat: 6 m/km
+    dataService.createRouteWithProperties(
+        team,
+        user,
+        "Flat Route",
+        Visibility.PUBLIC,
+        50000,
+        300,
+        SurfaceType.ROAD,
+        WindDirection.NORTH,
+        45.0,
+        6.0,
+        45.5,
+        6.5);
+    // Hilly: 12 m/km
+    dataService.createRouteWithProperties(
+        team,
+        user,
+        "Hilly Route",
+        Visibility.PUBLIC,
+        50000,
+        600,
+        SurfaceType.ROAD,
+        WindDirection.NORTH,
+        45.0,
+        6.0,
+        45.5,
+        6.5);
+    // Mountainous: 20 m/km
+    dataService.createRouteWithProperties(
+        team,
+        user,
+        "Mountain Route",
+        Visibility.PUBLIC,
+        50000,
+        1000,
+        SurfaceType.ROAD,
+        WindDirection.NORTH,
+        45.0,
+        6.0,
+        45.5,
+        6.5);
+
+    RouteQuery query = RouteQuery.builder().hilliness(Hilliness.HILLY).build();
+    TriblyPage<Route> result = routeRepository.find(query);
+
+    assertEquals(1, result.items().size());
+    assertEquals("Hilly Route", result.items().getFirst().getName());
+  }
+
+  @Test
+  void find_shouldFilterByHillinessMountainous() {
+    // Hilly: 12 m/km
+    dataService.createRouteWithProperties(
+        team,
+        user,
+        "Hilly Route",
+        Visibility.PUBLIC,
+        50000,
+        600,
+        SurfaceType.ROAD,
+        WindDirection.NORTH,
+        45.0,
+        6.0,
+        45.5,
+        6.5);
+    // Mountainous: 20 m/km
+    dataService.createRouteWithProperties(
+        team,
+        user,
+        "Mountain Route",
+        Visibility.PUBLIC,
+        50000,
+        1000,
+        SurfaceType.ROAD,
+        WindDirection.NORTH,
+        45.0,
+        6.0,
+        45.5,
+        6.5);
+
+    RouteQuery query = RouteQuery.builder().hilliness(Hilliness.MOUNTAINOUS).build();
+    TriblyPage<Route> result = routeRepository.find(query);
+
+    assertEquals(1, result.items().size());
+    assertEquals("Mountain Route", result.items().getFirst().getName());
+  }
+
+  // ==================== Surface Type Filter ====================
+
+  @Test
+  void find_shouldFilterBySurfaceType() {
+    dataService.createRouteWithProperties(
+        team,
+        user,
+        "Road Route",
+        Visibility.PUBLIC,
+        50000,
+        500,
+        SurfaceType.ROAD,
+        WindDirection.NORTH,
+        45.0,
+        6.0,
+        45.5,
+        6.5);
+    dataService.createRouteWithProperties(
+        team,
+        user,
+        "Gravel Route",
+        Visibility.PUBLIC,
+        50000,
+        500,
+        SurfaceType.GRAVEL,
+        WindDirection.NORTH,
+        45.0,
+        6.0,
+        45.5,
+        6.5);
+    dataService.createRouteWithProperties(
+        team,
+        user,
+        "MTB Route",
+        Visibility.PUBLIC,
+        50000,
+        500,
+        SurfaceType.MTB,
+        WindDirection.NORTH,
+        45.0,
+        6.0,
+        45.5,
+        6.5);
+
+    RouteQuery query = RouteQuery.builder().surfaceTypes(Set.of(SurfaceType.GRAVEL)).build();
+    TriblyPage<Route> result = routeRepository.find(query);
+
+    assertEquals(1, result.items().size());
+    assertEquals("Gravel Route", result.items().getFirst().getName());
+  }
+
+  @Test
+  void find_shouldFilterByMultipleSurfaceTypes() {
+    dataService.createRouteWithProperties(
+        team,
+        user,
+        "Road Route",
+        Visibility.PUBLIC,
+        50000,
+        500,
+        SurfaceType.ROAD,
+        WindDirection.NORTH,
+        45.0,
+        6.0,
+        45.5,
+        6.5);
+    dataService.createRouteWithProperties(
+        team,
+        user,
+        "Gravel Route",
+        Visibility.PUBLIC,
+        50000,
+        500,
+        SurfaceType.GRAVEL,
+        WindDirection.NORTH,
+        45.0,
+        6.0,
+        45.5,
+        6.5);
+    dataService.createRouteWithProperties(
+        team,
+        user,
+        "MTB Route",
+        Visibility.PUBLIC,
+        50000,
+        500,
+        SurfaceType.MTB,
+        WindDirection.NORTH,
+        45.0,
+        6.0,
+        45.5,
+        6.5);
+
+    RouteQuery query =
+        RouteQuery.builder().surfaceTypes(Set.of(SurfaceType.ROAD, SurfaceType.GRAVEL)).build();
+    TriblyPage<Route> result = routeRepository.find(query);
+
+    assertEquals(2, result.items().size());
+  }
+
+  // ==================== Wind Direction Filter ====================
+
+  @Test
+  void find_shouldFilterByWindDirection() {
+    dataService.createRouteWithProperties(
+        team,
+        user,
+        "North Route",
+        Visibility.PUBLIC,
+        50000,
+        500,
+        SurfaceType.ROAD,
+        WindDirection.NORTH,
+        45.0,
+        6.0,
+        45.5,
+        6.5);
+    dataService.createRouteWithProperties(
+        team,
+        user,
+        "South Route",
+        Visibility.PUBLIC,
+        50000,
+        500,
+        SurfaceType.ROAD,
+        WindDirection.SOUTH,
+        45.0,
+        6.0,
+        45.5,
+        6.5);
+
+    RouteQuery query = RouteQuery.builder().windDirections(Set.of(WindDirection.NORTH)).build();
+    TriblyPage<Route> result = routeRepository.find(query);
+
+    assertEquals(1, result.items().size());
+    assertEquals("North Route", result.items().getFirst().getName());
+  }
+
+  // ==================== Sorting ====================
+
+  @Test
+  void find_shouldSortByDistanceAscending() {
+    dataService.createRouteWithProperties(
+        team,
+        user,
+        "Long",
+        Visibility.PUBLIC,
+        80000,
+        500,
+        SurfaceType.ROAD,
+        WindDirection.NORTH,
+        45.0,
+        6.0,
+        45.8,
+        6.8);
+    dataService.createRouteWithProperties(
+        team,
+        user,
+        "Short",
+        Visibility.PUBLIC,
+        20000,
+        500,
+        SurfaceType.ROAD,
+        WindDirection.NORTH,
+        45.0,
+        6.0,
+        45.2,
+        6.2);
+    dataService.createRouteWithProperties(
+        team,
+        user,
+        "Medium",
+        Visibility.PUBLIC,
+        50000,
+        500,
+        SurfaceType.ROAD,
+        WindDirection.NORTH,
+        45.0,
+        6.0,
+        45.5,
+        6.5);
+
+    RouteQuery query =
+        RouteQuery.builder().sortBy(RouteSortBy.DISTANCE).sortDir(SortDirection.ASC).build();
+    TriblyPage<Route> result = routeRepository.find(query);
+
+    assertEquals(3, result.items().size());
+    assertEquals("Short", result.items().get(0).getName());
+    assertEquals("Medium", result.items().get(1).getName());
+    assertEquals("Long", result.items().get(2).getName());
+  }
+
+  @Test
+  void find_shouldSortByDistanceDescending() {
+    dataService.createRouteWithProperties(
+        team,
+        user,
+        "Long",
+        Visibility.PUBLIC,
+        80000,
+        500,
+        SurfaceType.ROAD,
+        WindDirection.NORTH,
+        45.0,
+        6.0,
+        45.8,
+        6.8);
+    dataService.createRouteWithProperties(
+        team,
+        user,
+        "Short",
+        Visibility.PUBLIC,
+        20000,
+        500,
+        SurfaceType.ROAD,
+        WindDirection.NORTH,
+        45.0,
+        6.0,
+        45.2,
+        6.2);
+    dataService.createRouteWithProperties(
+        team,
+        user,
+        "Medium",
+        Visibility.PUBLIC,
+        50000,
+        500,
+        SurfaceType.ROAD,
+        WindDirection.NORTH,
+        45.0,
+        6.0,
+        45.5,
+        6.5);
+
+    RouteQuery query =
+        RouteQuery.builder().sortBy(RouteSortBy.DISTANCE).sortDir(SortDirection.DESC).build();
+    TriblyPage<Route> result = routeRepository.find(query);
+
+    assertEquals(3, result.items().size());
+    assertEquals("Long", result.items().get(0).getName());
+    assertEquals("Medium", result.items().get(1).getName());
+    assertEquals("Short", result.items().get(2).getName());
+  }
+
+  @Test
+  void find_shouldSortByElevationGain() {
+    dataService.createRouteWithProperties(
+        team,
+        user,
+        "Flat",
+        Visibility.PUBLIC,
+        50000,
+        200,
+        SurfaceType.ROAD,
+        WindDirection.NORTH,
+        45.0,
+        6.0,
+        45.5,
+        6.5);
+    dataService.createRouteWithProperties(
+        team,
+        user,
+        "Hilly",
+        Visibility.PUBLIC,
+        50000,
+        800,
+        SurfaceType.ROAD,
+        WindDirection.NORTH,
+        45.0,
+        6.0,
+        45.5,
+        6.5);
+    dataService.createRouteWithProperties(
+        team,
+        user,
+        "Medium",
+        Visibility.PUBLIC,
+        50000,
+        500,
+        SurfaceType.ROAD,
+        WindDirection.NORTH,
+        45.0,
+        6.0,
+        45.5,
+        6.5);
+
+    RouteQuery query =
+        RouteQuery.builder().sortBy(RouteSortBy.ELEVATION_GAIN).sortDir(SortDirection.ASC).build();
+    TriblyPage<Route> result = routeRepository.find(query);
+
+    assertEquals(3, result.items().size());
+    assertEquals("Flat", result.items().get(0).getName());
+    assertEquals("Medium", result.items().get(1).getName());
+    assertEquals("Hilly", result.items().get(2).getName());
+  }
+
+  @Test
+  void find_shouldSortByHilliness() {
+    // 4 m/km
+    dataService.createRouteWithProperties(
+        team,
+        user,
+        "Flat",
+        Visibility.PUBLIC,
+        50000,
+        200,
+        SurfaceType.ROAD,
+        WindDirection.NORTH,
+        45.0,
+        6.0,
+        45.5,
+        6.5);
+    // 16 m/km
+    dataService.createRouteWithProperties(
+        team,
+        user,
+        "Hilly",
+        Visibility.PUBLIC,
+        50000,
+        800,
+        SurfaceType.ROAD,
+        WindDirection.NORTH,
+        45.0,
+        6.0,
+        45.5,
+        6.5);
+    // 10 m/km
+    dataService.createRouteWithProperties(
+        team,
+        user,
+        "Medium",
+        Visibility.PUBLIC,
+        50000,
+        500,
+        SurfaceType.ROAD,
+        WindDirection.NORTH,
+        45.0,
+        6.0,
+        45.5,
+        6.5);
+
+    RouteQuery query =
+        RouteQuery.builder().sortBy(RouteSortBy.HILLINESS).sortDir(SortDirection.ASC).build();
+    TriblyPage<Route> result = routeRepository.find(query);
+
+    assertEquals(3, result.items().size());
+    assertEquals("Flat", result.items().get(0).getName());
+    assertEquals("Medium", result.items().get(1).getName());
+    assertEquals("Hilly", result.items().get(2).getName());
+  }
+
+  // ==================== Combined Filters ====================
+
+  @Test
+  void find_shouldCombineMultipleFilters() {
+    dataService.createRouteWithProperties(
+        team,
+        user,
+        "Match",
+        Visibility.PUBLIC,
+        50000,
+        600,
+        SurfaceType.GRAVEL,
+        WindDirection.NORTH,
+        45.0,
+        6.0,
+        45.5,
+        6.5);
+    dataService.createRouteWithProperties(
+        team,
+        user,
+        "Too Short",
+        Visibility.PUBLIC,
+        10000,
+        600,
+        SurfaceType.GRAVEL,
+        WindDirection.NORTH,
+        45.0,
+        6.0,
+        45.1,
+        6.1);
+    dataService.createRouteWithProperties(
+        team,
+        user,
+        "Wrong Surface",
+        Visibility.PUBLIC,
+        50000,
+        600,
+        SurfaceType.ROAD,
+        WindDirection.NORTH,
+        45.0,
+        6.0,
+        45.5,
+        6.5);
+
+    RouteQuery query =
+        RouteQuery.builder().minDistance(30000).surfaceTypes(Set.of(SurfaceType.GRAVEL)).build();
+    TriblyPage<Route> result = routeRepository.find(query);
+
+    assertEquals(1, result.items().size());
+    assertEquals("Match", result.items().getFirst().getName());
   }
 }

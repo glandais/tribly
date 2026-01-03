@@ -90,6 +90,7 @@ Class | Method | HTTP request | Description
 *RoutesApi* | [**createRoute**](docs/RoutesApi.md#createroute) | **POST** /api/teams/{slug}/routes | Create route
 *RoutesApi* | [**deleteRoute**](docs/RoutesApi.md#deleteroute) | **DELETE** /api/teams/{slug}/routes/{routeSlug} | Delete route
 *RoutesApi* | [**getRoute**](docs/RoutesApi.md#getroute) | **GET** /api/teams/{slug}/routes/{routeSlug} | Get route details
+*RoutesApi* | [**listAllRoutes**](docs/RoutesApi.md#listallroutes) | **GET** /api/routes | List all routes
 *RoutesApi* | [**listRoutes**](docs/RoutesApi.md#listroutes) | **GET** /api/teams/{slug}/routes | List routes
 *RoutesApi* | [**updateRoute**](docs/RoutesApi.md#updateroute) | **PUT** /api/teams/{slug}/routes/{routeSlug} | Update route
 *TeamMembersApi* | [**addMember**](docs/TeamMembersApi.md#addmember) | **POST** /api/teams/{slug}/members | Add team member
@@ -140,12 +141,14 @@ Class | Method | HTTP request | Description
  - [GeoJsonPoint](docs/GeoJsonPoint.md)
  - [GeoPoint](docs/GeoPoint.md)
  - [GroupRequest](docs/GroupRequest.md)
+ - [Hilliness](docs/Hilliness.md)
  - [KeycloakConfig](docs/KeycloakConfig.md)
  - [MapConfig](docs/MapConfig.md)
  - [MediaDto](docs/MediaDto.md)
  - [MemberDto](docs/MemberDto.md)
  - [MemberListResponse](docs/MemberListResponse.md)
  - [MinRole](docs/MinRole.md)
+ - [NearType](docs/NearType.md)
  - [PlaceDetailDto](docs/PlaceDetailDto.md)
  - [PlaceListResponse](docs/PlaceListResponse.md)
  - [PlaceRequest](docs/PlaceRequest.md)
@@ -170,8 +173,10 @@ Class | Method | HTTP request | Description
  - [RouteDto](docs/RouteDto.md)
  - [RouteListResponse](docs/RouteListResponse.md)
  - [RouteRequest](docs/RouteRequest.md)
+ - [RouteSortBy](docs/RouteSortBy.md)
  - [RouterRequest](docs/RouterRequest.md)
  - [RouterResponse](docs/RouterResponse.md)
+ - [SortDirection](docs/SortDirection.md)
  - [StageRequest](docs/StageRequest.md)
  - [Status](docs/Status.md)
  - [SurfaceType](docs/SurfaceType.md)
@@ -191,6 +196,7 @@ Class | Method | HTTP request | Description
  - [UserDto](docs/UserDto.md)
  - [Visibility](docs/Visibility.md)
  - [WaypointDto](docs/WaypointDto.md)
+ - [WindDirection](docs/WindDirection.md)
 
 
 <a id="documentation-for-authorization"></a>

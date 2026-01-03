@@ -167,12 +167,7 @@ export function PublicationListPage() {
           <>
             <div className="space-y-4">
               {publicationsData.publications.map((publication) => (
-                <PublicationCard
-                  key={publication.id}
-                  publication={publication}
-                  teamSlug={teamSlug!}
-                  showTypeBadge={true}
-                />
+                <PublicationCard key={publication.id} publication={publication} showTeam={false} />
               ))}
             </div>
 

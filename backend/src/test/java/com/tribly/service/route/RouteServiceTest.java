@@ -204,7 +204,9 @@ class RouteServiceTest {
     dataService.createRoute(team, admin, "Public 2", Visibility.PUBLIC);
     dataService.createRoute(team, admin, "Team Only", Visibility.TEAM);
 
-    RouteListResponse result = routeService.getRoutes("test-team", null, 0, 10, null);
+    RouteListResponse result =
+        routeService.getRoutes(
+            "test-team", null, RouteSearchParams.builder().page(0).size(10).build());
 
     assertEquals(2, result.routes().size());
     assertTrue(result.routes().stream().allMatch(r -> r.visibility() == Visibility.PUBLIC));
@@ -215,7 +217,9 @@ class RouteServiceTest {
     dataService.createRoute(team, admin, "Public", Visibility.PUBLIC);
     dataService.createRoute(team, admin, "Team", Visibility.TEAM);
 
-    RouteListResponse result = routeService.getRoutes("test-team", member.getId(), 0, 10, null);
+    RouteListResponse result =
+        routeService.getRoutes(
+            "test-team", member.getId(), RouteSearchParams.builder().page(0).size(10).build());
 
     assertEquals(2, result.routes().size());
   }
@@ -226,7 +230,9 @@ class RouteServiceTest {
       dataService.createRoute(team, admin, "Route " + i, Visibility.PUBLIC);
     }
 
-    RouteListResponse result = routeService.getRoutes("test-team", null, 0, 3, null);
+    RouteListResponse result =
+        routeService.getRoutes(
+            "test-team", null, RouteSearchParams.builder().page(0).size(3).build());
 
     assertEquals(3, result.routes().size());
     assertEquals(5, result.total());
@@ -238,7 +244,9 @@ class RouteServiceTest {
         dataService.createTeam(admin, "Private Team", "private-team", Visibility.TEAM);
     dataService.createRoute(privateTeam, admin, "Route");
 
-    RouteListResponse routes = routeService.getRoutes("private-team", null, 0, 10, null);
+    RouteListResponse routes =
+        routeService.getRoutes(
+            "private-team", null, RouteSearchParams.builder().page(0).size(10).build());
 
     assertEquals(0, routes.routes().size());
     assertEquals(0, routes.total());

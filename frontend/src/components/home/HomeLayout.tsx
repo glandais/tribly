@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { paths } from '@/config/paths'
 
-export type HomeTab = 'feed' | 'teams'
+export type HomeTab = 'feed' | 'routes' | 'teams'
 
 interface HomeLayoutProps {
   currentTab: HomeTab
@@ -18,6 +18,11 @@ export function HomeLayout({ currentTab, children }: HomeLayoutProps) {
       id: 'feed',
       path: paths.home(),
       label: t('home.tabs.feed'),
+    },
+    {
+      id: 'routes',
+      path: paths.allRoutes(),
+      label: tCommon('nav.routes'),
     },
     {
       id: 'teams',

@@ -51,7 +51,7 @@ export function RoutePickerModal({
     data: routesResponse,
     isLoading,
     error,
-  } = useRoutes(teamSlug, page, pageSize, debouncedSearch || undefined)
+  } = useRoutes(teamSlug, { page, size: pageSize, search: debouncedSearch || undefined })
 
   // Use usePagination only for totalPages calculation
   const { totalPages } = usePagination({

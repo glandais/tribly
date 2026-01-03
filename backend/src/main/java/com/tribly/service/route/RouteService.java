@@ -4,9 +4,9 @@ import com.tribly.common.GeoPoint;
 import com.tribly.domain.asset.Asset;
 import com.tribly.domain.asset.repository.AssetRepository;
 import com.tribly.domain.common.TeamEntity;
-import com.tribly.domain.common.repository.TeamEntityQueryBasic;
 import com.tribly.domain.common.repository.TriblyPage;
 import com.tribly.domain.route.Route;
+import com.tribly.domain.route.repository.RouteQuery;
 import com.tribly.domain.route.repository.RouteRepository;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
@@ -15,6 +15,7 @@ import com.tribly.dto.routes.request.RouteRequest;
 import com.tribly.dto.routes.response.RouteDetailDto;
 import com.tribly.dto.routes.response.RouteDto;
 import com.tribly.dto.routes.response.RouteListResponse;
+import com.tribly.enums.WindDirection;
 import com.tribly.infrastructure.exception.BusinessException;
 import com.tribly.service.common.TeamEntityService;
 import com.tribly.service.route.response.TrackMetadata;
@@ -97,9 +98,11 @@ public class RouteService extends TeamEntityService {
 
       route.setDistance(metadata.distance());
       route.setElevationGain(metadata.elevationGain());
+      route.setHilliness(metadata.hilliness());
       route.setElevationLoss(metadata.elevationLoss());
       route.setStart(metadata.start());
       route.setEnd(metadata.end());
+      route.setWindDirection(getWindDirection(metadata));
 
       updateMedia(route, request.media());
       routeRepository.persist(route);
@@ -109,6 +112,14 @@ public class RouteService extends TeamEntityService {
       gpxProcessingService.deleteRouteFiles(route);
       throw e;
     }
+  }
+
+  private static WindDirection getWindDirection(TrackMetadata metadata) {
+    WindDirection windDirection = metadata.windDirection();
+    if (windDirection == null) {
+      return WindDirection.NORTH;
+    }
+    return windDirection;
   }
 
   /**
@@ -157,9 +168,11 @@ public class RouteService extends TeamEntityService {
 
         route.setDistance(metadata.distance());
         route.setElevationGain(metadata.elevationGain());
+        route.setHilliness(metadata.hilliness());
         route.setElevationLoss(metadata.elevationLoss());
         route.setStart(metadata.start());
         route.setEnd(metadata.end());
+        route.setWindDirection(getWindDirection(metadata));
 
         LOG.infov("Route {0} GPX file updated by user {1}", slug, userId);
       }
@@ -190,7 +203,7 @@ public class RouteService extends TeamEntityService {
   public Route getRouteEntity(String teamSlug, String routeSlug, @Nullable Long userId) {
     TriblyPage<Route> routes =
         routeRepository.find(
-            TeamEntityQueryBasic.builder()
+            RouteQuery.builder()
                 .userId(userId)
                 .teamSlugs(Set.of(teamSlug))
                 .slug(routeSlug)
@@ -204,22 +217,47 @@ public class RouteService extends TeamEntityService {
   }
 
   /**
-   * List routes for a team with pagination and access control.
+   * List routes for a team with pagination, filtering, and access control.
    */
   public RouteListResponse getRoutes(
-      String teamSlug, @Nullable Long userId, int page, int size, @Nullable String search) {
+      String teamSlug, @Nullable Long userId, RouteSearchParams params) {
+    return getRoutesWithTeamSlugs(Set.of(teamSlug), userId, params);
+  }
+
+  /**
+   * List all routes across all accessible teams with pagination, filtering, and access control.
+   */
+  public RouteListResponse getAllRoutes(@Nullable Long userId, RouteSearchParams params) {
+    return getRoutesWithTeamSlugs(null, userId, params);
+  }
+
+  private RouteListResponse getRoutesWithTeamSlugs(
+      @Nullable Set<String> teamSlugs, @Nullable Long userId, RouteSearchParams params) {
     TriblyPage<Route> routes =
         routeRepository.find(
-            TeamEntityQueryBasic.builder()
+            RouteQuery.builder()
                 .userId(userId)
-                .teamSlugs(Set.of(teamSlug))
-                .search(search)
-                .page(page)
-                .size(size)
+                .teamSlugs(teamSlugs)
+                .search(params.search())
+                .page(params.page())
+                .size(params.size())
+                .minDistance(params.minDistance())
+                .maxDistance(params.maxDistance())
+                .minElevationGain(params.minElevationGain())
+                .maxElevationGain(params.maxElevationGain())
+                .hilliness(params.hilliness())
+                .surfaceTypes(params.surfaceTypes())
+                .windDirections(params.windDirections())
+                .nearLat(params.nearLat())
+                .nearLon(params.nearLon())
+                .nearRadius(params.nearRadius())
+                .nearType(params.nearType())
+                .sortBy(params.sortBy())
+                .sortDir(params.sortDir())
                 .build());
     List<RouteDto> dtos =
         routes.items().stream().map(route -> RouteDto.from(route, assetService)).toList();
-    return new RouteListResponse(dtos, routes.total(), page, size);
+    return new RouteListResponse(dtos, routes.total(), params.page(), params.size());
   }
 
   /**

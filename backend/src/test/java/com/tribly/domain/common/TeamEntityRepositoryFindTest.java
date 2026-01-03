@@ -2,9 +2,9 @@ package com.tribly.domain.common;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.tribly.domain.common.repository.TeamEntityQueryBasic;
 import com.tribly.domain.common.repository.TriblyPage;
 import com.tribly.domain.route.Route;
+import com.tribly.domain.route.repository.RouteQuery;
 import com.tribly.domain.route.repository.RouteRepository;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.team.UserTeam;
@@ -67,7 +67,7 @@ class TeamEntityRepositoryFindTest {
       dataService.createRoute(
           privateTeam, privateTeamOwner, "Private Team Route", Visibility.PUBLIC);
 
-      TeamEntityQueryBasic query = TeamEntityQueryBasic.builder().build();
+      RouteQuery query = RouteQuery.builder().build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(1, result.items().size());
@@ -79,7 +79,7 @@ class TeamEntityRepositoryFindTest {
     void find_anonymousUser_shouldNotReturnTeamVisibilityEntities() {
       dataService.createRoute(publicTeam, publicTeamOwner, "Team Only Route", Visibility.TEAM);
 
-      TeamEntityQueryBasic query = TeamEntityQueryBasic.builder().build();
+      RouteQuery query = RouteQuery.builder().build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(0, result.items().size());
@@ -91,7 +91,7 @@ class TeamEntityRepositoryFindTest {
       dataService.createRoute(
           privateTeam, privateTeamOwner, "Route in Private Team", Visibility.PUBLIC);
 
-      TeamEntityQueryBasic query = TeamEntityQueryBasic.builder().build();
+      RouteQuery query = RouteQuery.builder().build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(0, result.items().size());
@@ -103,7 +103,7 @@ class TeamEntityRepositoryFindTest {
       dataService.createRoute(
           publicTeam, publicTeamOwner, "Draft Route", Visibility.PUBLIC, Status.DRAFT, null, null);
 
-      TeamEntityQueryBasic query = TeamEntityQueryBasic.builder().build();
+      RouteQuery query = RouteQuery.builder().build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(0, result.items().size());
@@ -121,7 +121,7 @@ class TeamEntityRepositoryFindTest {
           null,
           null);
 
-      TeamEntityQueryBasic query = TeamEntityQueryBasic.builder().build();
+      RouteQuery query = RouteQuery.builder().build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(1, result.items().size());
@@ -138,8 +138,7 @@ class TeamEntityRepositoryFindTest {
     void find_authenticatedMember_shouldReturnPublicEntities() {
       dataService.createRoute(publicTeam, publicTeamOwner, "Public Route", Visibility.PUBLIC);
 
-      TeamEntityQueryBasic query =
-          TeamEntityQueryBasic.builder().userId(regularUser.getId()).build();
+      RouteQuery query = RouteQuery.builder().userId(regularUser.getId()).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(1, result.items().size());
@@ -152,8 +151,7 @@ class TeamEntityRepositoryFindTest {
       dataService.addUserToTeam(regularUser, publicTeam, TeamRole.MEMBER);
       dataService.createRoute(publicTeam, publicTeamOwner, "Team Only Route", Visibility.TEAM);
 
-      TeamEntityQueryBasic query =
-          TeamEntityQueryBasic.builder().userId(regularUser.getId()).build();
+      RouteQuery query = RouteQuery.builder().userId(regularUser.getId()).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(1, result.items().size());
@@ -165,8 +163,7 @@ class TeamEntityRepositoryFindTest {
     void find_authenticatedNonMember_shouldNotReturnTeamVisibilityEntities() {
       dataService.createRoute(publicTeam, publicTeamOwner, "Team Only Route", Visibility.TEAM);
 
-      TeamEntityQueryBasic query =
-          TeamEntityQueryBasic.builder().userId(regularUser.getId()).build();
+      RouteQuery query = RouteQuery.builder().userId(regularUser.getId()).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(0, result.items().size());
@@ -179,8 +176,7 @@ class TeamEntityRepositoryFindTest {
       dataService.createRoute(
           privateTeam, privateTeamOwner, "Route in Private Team", Visibility.TEAM);
 
-      TeamEntityQueryBasic query =
-          TeamEntityQueryBasic.builder().userId(regularUser.getId()).build();
+      RouteQuery query = RouteQuery.builder().userId(regularUser.getId()).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(1, result.items().size());
@@ -194,8 +190,7 @@ class TeamEntityRepositoryFindTest {
       dataService.createRoute(
           publicTeam, publicTeamOwner, "Draft Route", Visibility.PUBLIC, Status.DRAFT, null, null);
 
-      TeamEntityQueryBasic query =
-          TeamEntityQueryBasic.builder().userId(regularUser.getId()).build();
+      RouteQuery query = RouteQuery.builder().userId(regularUser.getId()).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(0, result.items().size());
@@ -208,8 +203,7 @@ class TeamEntityRepositoryFindTest {
       dataService.createRoute(publicTeam, publicTeamOwner, "Team Only Route", Visibility.TEAM);
       dataService.deleteUserTeam(membership);
 
-      TeamEntityQueryBasic query =
-          TeamEntityQueryBasic.builder().userId(regularUser.getId()).build();
+      RouteQuery query = RouteQuery.builder().userId(regularUser.getId()).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(0, result.items().size());
@@ -227,8 +221,7 @@ class TeamEntityRepositoryFindTest {
       dataService.createRoute(
           publicTeam, publicTeamOwner, "Draft Route", Visibility.PUBLIC, Status.DRAFT, null, null);
 
-      TeamEntityQueryBasic query =
-          TeamEntityQueryBasic.builder().userId(regularUser.getId()).build();
+      RouteQuery query = RouteQuery.builder().userId(regularUser.getId()).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(1, result.items().size());
@@ -242,8 +235,7 @@ class TeamEntityRepositoryFindTest {
       dataService.createRoute(
           publicTeam, publicTeamOwner, "Draft Route", Visibility.PUBLIC, Status.DRAFT, null, null);
 
-      TeamEntityQueryBasic query =
-          TeamEntityQueryBasic.builder().userId(regularUser.getId()).build();
+      RouteQuery query = RouteQuery.builder().userId(regularUser.getId()).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(1, result.items().size());
@@ -266,8 +258,7 @@ class TeamEntityRepositoryFindTest {
           null,
           null);
 
-      TeamEntityQueryBasic query =
-          TeamEntityQueryBasic.builder().userId(regularUser.getId()).build();
+      RouteQuery query = RouteQuery.builder().userId(regularUser.getId()).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertTrue(result.items().stream().noneMatch(r -> "Draft Route".equals(r.getName())));
@@ -296,8 +287,7 @@ class TeamEntityRepositoryFindTest {
           null,
           null);
 
-      TeamEntityQueryBasic query =
-          TeamEntityQueryBasic.builder().userId(regularUser.getId()).build();
+      RouteQuery query = RouteQuery.builder().userId(regularUser.getId()).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(3, result.items().size());
@@ -315,7 +305,7 @@ class TeamEntityRepositoryFindTest {
           dataService.createRoute(publicTeam, publicTeamOwner, "Deleted Route", Visibility.PUBLIC);
       dataService.deleteRoute(route);
 
-      TeamEntityQueryBasic query = TeamEntityQueryBasic.builder().build();
+      RouteQuery query = RouteQuery.builder().build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(0, result.items().size());
@@ -329,8 +319,7 @@ class TeamEntityRepositoryFindTest {
           dataService.createRoute(publicTeam, publicTeamOwner, "Deleted Route", Visibility.PUBLIC);
       dataService.deleteRoute(route);
 
-      TeamEntityQueryBasic query =
-          TeamEntityQueryBasic.builder().userId(regularUser.getId()).build();
+      RouteQuery query = RouteQuery.builder().userId(regularUser.getId()).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(0, result.items().size());
@@ -343,7 +332,7 @@ class TeamEntityRepositoryFindTest {
           publicTeam, publicTeamOwner, "Route in Deleted Team", Visibility.PUBLIC);
       dataService.deleteTeam(publicTeam);
 
-      TeamEntityQueryBasic query = TeamEntityQueryBasic.builder().build();
+      RouteQuery query = RouteQuery.builder().build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(0, result.items().size());
@@ -364,8 +353,7 @@ class TeamEntityRepositoryFindTest {
       dataService.createRoute(
           anotherTeam, publicTeamOwner, "Another Team Route", Visibility.PUBLIC);
 
-      TeamEntityQueryBasic query =
-          TeamEntityQueryBasic.builder().teamSlugs(Set.of("public-team")).build();
+      RouteQuery query = RouteQuery.builder().teamSlugs(Set.of("public-team")).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(1, result.items().size());
@@ -385,8 +373,8 @@ class TeamEntityRepositoryFindTest {
           dataService.createTeam(publicTeamOwner, "Third Team", "third-team", Visibility.PUBLIC);
       dataService.createRoute(thirdTeam, publicTeamOwner, "Third Team Route", Visibility.PUBLIC);
 
-      TeamEntityQueryBasic query =
-          TeamEntityQueryBasic.builder().teamSlugs(Set.of("public-team", "another-team")).build();
+      RouteQuery query =
+          RouteQuery.builder().teamSlugs(Set.of("public-team", "another-team")).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(2, result.items().size());
@@ -399,8 +387,7 @@ class TeamEntityRepositoryFindTest {
     void find_shouldReturnEmptyWhenTeamSlugDoesNotMatch() {
       dataService.createRoute(publicTeam, publicTeamOwner, "Route", Visibility.PUBLIC);
 
-      TeamEntityQueryBasic query =
-          TeamEntityQueryBasic.builder().teamSlugs(Set.of("nonexistent-team")).build();
+      RouteQuery query = RouteQuery.builder().teamSlugs(Set.of("nonexistent-team")).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(0, result.items().size());
@@ -411,7 +398,7 @@ class TeamEntityRepositoryFindTest {
     void find_shouldIgnoreEmptyTeamSlugsSet() {
       dataService.createRoute(publicTeam, publicTeamOwner, "Route", Visibility.PUBLIC);
 
-      TeamEntityQueryBasic query = TeamEntityQueryBasic.builder().teamSlugs(Set.of()).build();
+      RouteQuery query = RouteQuery.builder().teamSlugs(Set.of()).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(1, result.items().size());
@@ -429,7 +416,7 @@ class TeamEntityRepositoryFindTest {
           dataService.createRoute(publicTeam, publicTeamOwner, "Route One", Visibility.PUBLIC);
       dataService.createRoute(publicTeam, publicTeamOwner, "Route Two", Visibility.PUBLIC);
 
-      TeamEntityQueryBasic query = TeamEntityQueryBasic.builder().slug(route1.getSlug()).build();
+      RouteQuery query = RouteQuery.builder().slug(route1.getSlug()).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(1, result.items().size());
@@ -441,7 +428,7 @@ class TeamEntityRepositoryFindTest {
     void find_shouldReturnEmptyWhenSlugDoesNotExist() {
       dataService.createRoute(publicTeam, publicTeamOwner, "Route", Visibility.PUBLIC);
 
-      TeamEntityQueryBasic query = TeamEntityQueryBasic.builder().slug("nonexistent-slug").build();
+      RouteQuery query = RouteQuery.builder().slug("nonexistent-slug").build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(0, result.items().size());
@@ -459,7 +446,7 @@ class TeamEntityRepositoryFindTest {
           dataService.createRoute(publicTeam, publicTeamOwner, "Route One", Visibility.PUBLIC);
       dataService.createRoute(publicTeam, publicTeamOwner, "Route Two", Visibility.PUBLIC);
 
-      TeamEntityQueryBasic query = TeamEntityQueryBasic.builder().id(route1.getId()).build();
+      RouteQuery query = RouteQuery.builder().id(route1.getId()).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(1, result.items().size());
@@ -471,7 +458,7 @@ class TeamEntityRepositoryFindTest {
     void find_shouldReturnEmptyWhenIdDoesNotExist() {
       dataService.createRoute(publicTeam, publicTeamOwner, "Route", Visibility.PUBLIC);
 
-      TeamEntityQueryBasic query = TeamEntityQueryBasic.builder().id(999999L).build();
+      RouteQuery query = RouteQuery.builder().id(999999L).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(0, result.items().size());
@@ -489,7 +476,7 @@ class TeamEntityRepositoryFindTest {
           publicTeam, publicTeamOwner, "Mountain Climb Route", Visibility.PUBLIC);
       dataService.createRoute(publicTeam, publicTeamOwner, "Flat Sprint Route", Visibility.PUBLIC);
 
-      TeamEntityQueryBasic query = TeamEntityQueryBasic.builder().search("Mountain").build();
+      RouteQuery query = RouteQuery.builder().search("Mountain").build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(1, result.items().size());
@@ -516,7 +503,7 @@ class TeamEntityRepositoryFindTest {
           null,
           "This route is flat and fast");
 
-      TeamEntityQueryBasic query = TeamEntityQueryBasic.builder().search("challenging").build();
+      RouteQuery query = RouteQuery.builder().search("challenging").build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(1, result.items().size());
@@ -528,7 +515,7 @@ class TeamEntityRepositoryFindTest {
     void find_shouldSearchCaseInsensitively() {
       dataService.createRoute(publicTeam, publicTeamOwner, "MOUNTAIN Route", Visibility.PUBLIC);
 
-      TeamEntityQueryBasic query = TeamEntityQueryBasic.builder().search("mountain").build();
+      RouteQuery query = RouteQuery.builder().search("mountain").build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(1, result.items().size());
@@ -539,7 +526,7 @@ class TeamEntityRepositoryFindTest {
     void find_shouldReturnEmptyWhenSearchDoesNotMatch() {
       dataService.createRoute(publicTeam, publicTeamOwner, "Coastal Route", Visibility.PUBLIC);
 
-      TeamEntityQueryBasic query = TeamEntityQueryBasic.builder().search("mountain").build();
+      RouteQuery query = RouteQuery.builder().search("mountain").build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(0, result.items().size());
@@ -550,7 +537,7 @@ class TeamEntityRepositoryFindTest {
     void find_shouldIgnoreNullSearch() {
       dataService.createRoute(publicTeam, publicTeamOwner, "Route", Visibility.PUBLIC);
 
-      TeamEntityQueryBasic query = TeamEntityQueryBasic.builder().search(null).build();
+      RouteQuery query = RouteQuery.builder().search(null).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(1, result.items().size());
@@ -561,7 +548,7 @@ class TeamEntityRepositoryFindTest {
     void find_shouldIgnoreEmptySearch() {
       dataService.createRoute(publicTeam, publicTeamOwner, "Route", Visibility.PUBLIC);
 
-      TeamEntityQueryBasic query = TeamEntityQueryBasic.builder().search("").build();
+      RouteQuery query = RouteQuery.builder().search("").build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(1, result.items().size());
@@ -592,8 +579,8 @@ class TeamEntityRepositoryFindTest {
           LocalDate.of(2025, 6, 1).atStartOfDay().toInstant(ZoneOffset.UTC),
           null);
 
-      TeamEntityQueryBasic query =
-          TeamEntityQueryBasic.builder()
+      RouteQuery query =
+          RouteQuery.builder()
               .from(LocalDate.of(2025, 3, 1).atStartOfDay().toInstant(ZoneOffset.UTC))
               .build();
       TriblyPage<Route> result = routeRepository.find(query);
@@ -622,8 +609,8 @@ class TeamEntityRepositoryFindTest {
           LocalDate.of(2025, 6, 1).atStartOfDay().toInstant(ZoneOffset.UTC),
           null);
 
-      TeamEntityQueryBasic query =
-          TeamEntityQueryBasic.builder()
+      RouteQuery query =
+          RouteQuery.builder()
               .to(LocalDate.of(2025, 3, 1).atStartOfDay().toInstant(ZoneOffset.UTC))
               .build();
       TriblyPage<Route> result = routeRepository.find(query);
@@ -660,8 +647,8 @@ class TeamEntityRepositoryFindTest {
           LocalDate.of(2025, 6, 15).atStartOfDay().toInstant(ZoneOffset.UTC),
           null);
 
-      TeamEntityQueryBasic query =
-          TeamEntityQueryBasic.builder()
+      RouteQuery query =
+          RouteQuery.builder()
               .from(LocalDate.of(2025, 2, 1).atStartOfDay().toInstant(ZoneOffset.UTC))
               .to(LocalDate.of(2025, 5, 1).atStartOfDay().toInstant(ZoneOffset.UTC))
               .build();
@@ -684,8 +671,7 @@ class TeamEntityRepositoryFindTest {
           exactDate,
           null);
 
-      TeamEntityQueryBasic query =
-          TeamEntityQueryBasic.builder().from(exactDate).to(exactDate).build();
+      RouteQuery query = RouteQuery.builder().from(exactDate).to(exactDate).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(1, result.items().size());
@@ -713,7 +699,7 @@ class TeamEntityRepositoryFindTest {
     @Test
     @DisplayName("Should return limited results by size")
     void find_shouldReturnLimitedResultsBySize() {
-      TeamEntityQueryBasic query = TeamEntityQueryBasic.builder().size(3).build();
+      RouteQuery query = RouteQuery.builder().size(3).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(3, result.items().size());
@@ -723,7 +709,7 @@ class TeamEntityRepositoryFindTest {
     @Test
     @DisplayName("Should return correct page")
     void find_shouldReturnCorrectPage() {
-      TeamEntityQueryBasic query = TeamEntityQueryBasic.builder().page(1).size(3).build();
+      RouteQuery query = RouteQuery.builder().page(1).size(3).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(3, result.items().size());
@@ -733,7 +719,7 @@ class TeamEntityRepositoryFindTest {
     @Test
     @DisplayName("Should return empty page when beyond results")
     void find_shouldReturnEmptyPageWhenBeyondResults() {
-      TeamEntityQueryBasic query = TeamEntityQueryBasic.builder().page(10).size(5).build();
+      RouteQuery query = RouteQuery.builder().page(10).size(5).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(0, result.items().size());
@@ -743,7 +729,7 @@ class TeamEntityRepositoryFindTest {
     @Test
     @DisplayName("Should return all results when size is larger than total")
     void find_shouldReturnAllResultsWhenSizeIsLarger() {
-      TeamEntityQueryBasic query = TeamEntityQueryBasic.builder().size(100).build();
+      RouteQuery query = RouteQuery.builder().size(100).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(10, result.items().size());
@@ -753,7 +739,7 @@ class TeamEntityRepositoryFindTest {
     @Test
     @DisplayName("Should use default pagination when not specified")
     void find_shouldUseDefaultPaginationWhenNotSpecified() {
-      TeamEntityQueryBasic query = TeamEntityQueryBasic.builder().build();
+      RouteQuery query = RouteQuery.builder().build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertTrue(result.items().size() <= 10);
@@ -774,11 +760,8 @@ class TeamEntityRepositoryFindTest {
               publicTeamOwner, "Another Team", "another-team", Visibility.PUBLIC);
       dataService.createRoute(anotherTeam, publicTeamOwner, "Mountain Trail", Visibility.PUBLIC);
 
-      TeamEntityQueryBasic query =
-          TeamEntityQueryBasic.builder()
-              .teamSlugs(Set.of("public-team"))
-              .search("Mountain")
-              .build();
+      RouteQuery query =
+          RouteQuery.builder().teamSlugs(Set.of("public-team")).search("Mountain").build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(1, result.items().size());
@@ -815,8 +798,8 @@ class TeamEntityRepositoryFindTest {
           LocalDate.of(2025, 1, 1).atStartOfDay().toInstant(ZoneOffset.UTC),
           null);
 
-      TeamEntityQueryBasic query =
-          TeamEntityQueryBasic.builder()
+      RouteQuery query =
+          RouteQuery.builder()
               .userId(regularUser.getId())
               .from(LocalDate.of(2025, 3, 1).atStartOfDay().toInstant(ZoneOffset.UTC))
               .build();
@@ -844,8 +827,8 @@ class TeamEntityRepositoryFindTest {
       dataService.createRoute(publicTeam, publicTeamOwner, "Mountain Public", Visibility.PUBLIC);
       dataService.createRoute(publicTeam, publicTeamOwner, "Coastal Adventure", Visibility.TEAM);
 
-      TeamEntityQueryBasic query =
-          TeamEntityQueryBasic.builder()
+      RouteQuery query =
+          RouteQuery.builder()
               .userId(regularUser.getId())
               .teamSlugs(Set.of("public-team"))
               .search("Mountain")
@@ -869,7 +852,7 @@ class TeamEntityRepositoryFindTest {
       dataService.createRoute(publicTeam, publicTeamOwner, "Public Route", Visibility.PUBLIC);
       dataService.createRoute(publicTeam, publicTeamOwner, "Team Route", Visibility.TEAM);
 
-      TeamEntityQueryBasic query = TeamEntityQueryBasic.builder().userId(999999L).build();
+      RouteQuery query = RouteQuery.builder().userId(999999L).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(1, result.items().size());
@@ -881,7 +864,7 @@ class TeamEntityRepositoryFindTest {
     void find_shouldHandleSpecialCharactersInSearch() {
       dataService.createRoute(publicTeam, publicTeamOwner, "Route (Test)", Visibility.PUBLIC);
 
-      TeamEntityQueryBasic query = TeamEntityQueryBasic.builder().search("(Test)").build();
+      RouteQuery query = RouteQuery.builder().search("(Test)").build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(1, result.items().size());
@@ -897,8 +880,7 @@ class TeamEntityRepositoryFindTest {
         dataService.createRoute(publicTeam, publicTeamOwner, "Coastal " + i, Visibility.PUBLIC);
       }
 
-      TeamEntityQueryBasic query =
-          TeamEntityQueryBasic.builder().search("Mountain").size(2).build();
+      RouteQuery query = RouteQuery.builder().search("Mountain").size(2).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(2, result.items().size());
@@ -917,8 +899,7 @@ class TeamEntityRepositoryFindTest {
       dataService.createRoute(team1, publicTeamOwner, "Team 1 - Public Route", Visibility.PUBLIC);
       dataService.createRoute(team2, publicTeamOwner, "Team 2 - Public Route", Visibility.PUBLIC);
 
-      TeamEntityQueryBasic query =
-          TeamEntityQueryBasic.builder().userId(regularUser.getId()).build();
+      RouteQuery query = RouteQuery.builder().userId(regularUser.getId()).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(3, result.items().size());
@@ -963,7 +944,7 @@ class TeamEntityRepositoryFindTest {
           LocalDate.of(2025, 2, 1).atStartOfDay().toInstant(ZoneOffset.UTC),
           null);
 
-      TeamEntityQueryBasic query = TeamEntityQueryBasic.builder().build();
+      RouteQuery query = RouteQuery.builder().build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(3, result.items().size());

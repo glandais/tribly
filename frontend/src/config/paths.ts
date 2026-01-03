@@ -6,6 +6,7 @@ export const paths = {
   home: () => '/',
   login: () => '/login',
   profile: () => '/profile',
+  allRoutes: () => '/routes',
 
   // Teams
   teams: () => '/teams',

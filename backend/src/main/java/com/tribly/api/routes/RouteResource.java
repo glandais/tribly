@@ -4,6 +4,8 @@ import com.tribly.api.AbstractAuthenticatedResource;
 import com.tribly.dto.error.ErrorResponse;
 import com.tribly.dto.routes.request.RouteRequest;
 import com.tribly.dto.routes.response.*;
+import com.tribly.enums.*;
+import com.tribly.service.route.RouteSearchParams;
 import com.tribly.service.route.RouteService;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
@@ -14,6 +16,7 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.net.URI;
+import java.util.Set;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
@@ -39,11 +42,13 @@ public class RouteResource extends AbstractAuthenticatedResource {
   @Inject RouteService routeService;
 
   /**
-   * List routes for a team.
+   * List routes for a team with filtering and sorting.
    */
   @GET
   @PermitAll
-  @Operation(summary = "List routes", description = "Get paginated list of routes for a team")
+  @Operation(
+      summary = "List routes",
+      description = "Get paginated list of routes for a team with optional filters and sorting")
   @APIResponses({
     @APIResponse(
         responseCode = "200",
@@ -60,11 +65,60 @@ public class RouteResource extends AbstractAuthenticatedResource {
           @Nullable String search,
       @Parameter(description = "Page number (0-indexed)") @QueryParam("page") @DefaultValue("0")
           int page,
-      @Parameter(description = "Page size") @QueryParam("size") @DefaultValue("20") int size) {
+      @Parameter(description = "Page size") @QueryParam("size") @DefaultValue("20") int size,
+      @Parameter(description = "Minimum distance in meters") @QueryParam("minDistance")
+          @Nullable Integer minDistance,
+      @Parameter(description = "Maximum distance in meters") @QueryParam("maxDistance")
+          @Nullable Integer maxDistance,
+      @Parameter(description = "Minimum elevation gain in meters") @QueryParam("minElevationGain")
+          @Nullable Integer minElevationGain,
+      @Parameter(description = "Maximum elevation gain in meters") @QueryParam("maxElevationGain")
+          @Nullable Integer maxElevationGain,
+      @Parameter(description = "Hilliness preset (FLAT, HILLY, MOUNTAINOUS)")
+          @QueryParam("hilliness")
+          @Nullable Hilliness hilliness,
+      @Parameter(description = "Filter by surface types") @QueryParam("surfaceTypes")
+          @Nullable Set<SurfaceType> surfaceTypes,
+      @Parameter(description = "Filter by wind directions") @QueryParam("windDirections")
+          @Nullable Set<WindDirection> windDirections,
+      @Parameter(description = "Latitude for proximity search") @QueryParam("nearLat")
+          @Nullable Double nearLat,
+      @Parameter(description = "Longitude for proximity search") @QueryParam("nearLon")
+          @Nullable Double nearLon,
+      @Parameter(description = "Search radius in meters (default: 25000)") @QueryParam("nearRadius")
+          @Nullable Integer nearRadius,
+      @Parameter(description = "Search near START, END, or START_OR_END (default)")
+          @QueryParam("nearType")
+          @Nullable NearType nearType,
+      @Parameter(description = "Sort by field (DISTANCE, ELEVATION_GAIN, HILLINESS, DATE_TIME)")
+          @QueryParam("sortBy")
+          @Nullable RouteSortBy sortBy,
+      @Parameter(description = "Sort direction (ASC, DESC)") @QueryParam("sortDir")
+          @Nullable SortDirection sortDir) {
 
     Long userId = getCurrentUserIdOrNull();
 
-    RouteListResponse routes = routeService.getRoutes(teamSlug, userId, page, size, search);
+    RouteSearchParams params =
+        RouteSearchParams.builder()
+            .search(search)
+            .page(page)
+            .size(size)
+            .minDistance(minDistance)
+            .maxDistance(maxDistance)
+            .minElevationGain(minElevationGain)
+            .maxElevationGain(maxElevationGain)
+            .hilliness(hilliness)
+            .surfaceTypes(surfaceTypes)
+            .windDirections(windDirections)
+            .nearLat(nearLat)
+            .nearLon(nearLon)
+            .nearRadius(nearRadius)
+            .nearType(nearType)
+            .sortBy(sortBy)
+            .sortDir(sortDir)
+            .build();
+
+    RouteListResponse routes = routeService.getRoutes(teamSlug, userId, params);
 
     return Response.ok(routes).build();
   }

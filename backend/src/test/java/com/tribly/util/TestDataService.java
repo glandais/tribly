@@ -32,6 +32,7 @@ import com.tribly.domain.trip.repository.TripStageRepository;
 import com.tribly.domain.user.User;
 import com.tribly.domain.user.repository.UserRepository;
 import com.tribly.enums.*;
+import com.tribly.enums.WindDirection;
 import com.tribly.service.common.SlugService;
 import io.github.glandais.gpx.climb.Climbs;
 import io.hypersistence.tsid.TSID;
@@ -245,6 +246,52 @@ public class TestDataService {
     if (markdown != null) {
       route.setMarkdown(markdown);
     }
+    routeRepository.persistAndFlush(route);
+    return route;
+  }
+
+  /**
+   * Create a route with specific filter-testable properties.
+   */
+  @Transactional
+  public Route createRouteWithProperties(
+      Team team,
+      User createdBy,
+      String name,
+      Visibility visibility,
+      int distance,
+      int elevationGain,
+      SurfaceType surfaceType,
+      WindDirection windDirection,
+      double startLat,
+      double startLon,
+      double endLat,
+      double endLon) {
+    List<GpxTrack.TrackPoint> trackPoints =
+        List.of(
+            new GpxTrack.TrackPoint(startLat, startLon, 500.0, 0.0),
+            new GpxTrack.TrackPoint(endLat, endLon, 510.0, (double) distance));
+    String geometry = String.format("LINESTRING(%f %f,%f %f)", startLon, startLat, endLon, endLat);
+    LineString<G2D> lineString = (LineString<G2D>) Wkt.fromWkt(geometry, WGS84);
+    GpxTrack track =
+        new GpxTrack(
+            createdBy, name, lineString, trackPoints, new Climbs(), distance, elevationGain, 0);
+
+    Route route =
+        new Route(createdBy, team, name, SlugService.slugify(name), visibility, surfaceType);
+    route.addTrack(track);
+    route.setDistance(distance);
+    route.setElevationGain(elevationGain);
+    route.setElevationLoss(0);
+    route.setHilliness(distance > 0 ? (1000 * elevationGain) / distance : 0);
+    route.setSurfaceType(surfaceType);
+    route.setWindDirection(windDirection);
+    route.setStart(
+        org.geolatte.geom.builder.DSL.point(
+            WGS84, org.geolatte.geom.builder.DSL.g(startLon, startLat)));
+    route.setEnd(
+        org.geolatte.geom.builder.DSL.point(
+            WGS84, org.geolatte.geom.builder.DSL.g(endLon, endLat)));
     routeRepository.persistAndFlush(route);
     return route;
   }

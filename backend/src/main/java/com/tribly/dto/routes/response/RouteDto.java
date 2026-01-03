@@ -2,6 +2,7 @@ package com.tribly.dto.routes.response;
 
 import com.tribly.domain.route.Route;
 import com.tribly.dto.common.response.MediaDto;
+import com.tribly.dto.publications.response.TeamPublicationDto;
 import com.tribly.dto.validation.ValidateSchema;
 import com.tribly.enums.SurfaceType;
 import com.tribly.enums.Visibility;
@@ -18,6 +19,7 @@ import org.eclipse.microprofile.openapi.annotations.media.Schema;
 public record RouteDto(
     @Schema(description = "Route ID (TSID)", required = true) String id,
     @Schema(description = "Route slug", required = true) String slug,
+    @Schema(description = "Team", required = true) TeamPublicationDto team,
     @Schema(description = "Route name", required = true) String name,
     @Schema(description = "Route description", required = true) MediaDto media,
     @Schema(description = "Distance in meters", required = true) Integer distance,
@@ -30,6 +32,7 @@ public record RouteDto(
     return new RouteDto(
         TsidUtils.toString(route.getId()),
         route.getSlug(),
+        TeamPublicationDto.from(route.getTeam()),
         route.getName(),
         MediaDto.from(route, assetService),
         route.getDistance(),

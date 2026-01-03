@@ -113,13 +113,7 @@ export function HomePage() {
         /* Publications List */
         <div className="space-y-6">
           {publicationsData.publications.map((publication) => (
-            <PublicationCard
-              key={publication.id}
-              publication={publication}
-              teamSlug={publication.team?.slug || ''}
-              team={publication.team}
-              showTypeBadge={true}
-            />
+            <PublicationCard key={publication.id} publication={publication} showTeam={true} />
           ))}
 
           <Pagination

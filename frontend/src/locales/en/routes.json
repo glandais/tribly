@@ -73,10 +73,59 @@
   },
   "list": {
     "createRoute": "Create route",
+    "error": "Error loading routes",
     "empty": {
       "createAction": "Create a route",
       "description": "No routes are available at the moment.",
       "title": "No routes"
+    },
+    "filters": {
+      "clear": "Clear",
+      "distance": {
+        "label": "Distance",
+        "max": "Max",
+        "min": "Min",
+        "unit": "km"
+      },
+      "elevationGain": {
+        "label": "Elevation gain",
+        "max": "Max",
+        "min": "Min",
+        "unit": "m"
+      },
+      "hide": "Hide filters",
+      "hilliness": {
+        "FLAT": "Flat",
+        "HILLY": "Hilly",
+        "MOUNTAINOUS": "Mountainous",
+        "label": "Hilliness"
+      },
+      "show": "Filters",
+      "sort": {
+        "ASC": "Ascending",
+        "DATE_TIME": "Date",
+        "DESC": "Descending",
+        "DISTANCE": "Distance",
+        "ELEVATION_GAIN": "Elevation gain",
+        "HILLINESS": "Hilliness",
+        "label": "Sort by"
+      },
+      "surfaceType": {
+        "label": "Surface type"
+      },
+      "title": "Filters",
+      "windDirection": {
+        "EAST": "East",
+        "NORTH": "North",
+        "NORTH_EAST": "North-East",
+        "NORTH_WEST": "North-West",
+        "SOUTH": "South",
+        "SOUTH_EAST": "South-East",
+        "SOUTH_WEST": "South-West",
+        "WEST": "West",
+        "label": "Wind direction",
+        "placeholder": "All directions"
+      }
     },
     "noResults": "No routes found matching your search.",
     "search": {

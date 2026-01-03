@@ -24,12 +24,14 @@ docs/GeoJsonLineString.md
 docs/GeoJsonPoint.md
 docs/GeoPoint.md
 docs/GroupRequest.md
+docs/Hilliness.md
 docs/KeycloakConfig.md
 docs/MapConfig.md
 docs/MediaDto.md
 docs/MemberDto.md
 docs/MemberListResponse.md
 docs/MinRole.md
+docs/NearType.md
 docs/PlaceDetailDto.md
 docs/PlaceListResponse.md
 docs/PlaceRequest.md
@@ -62,10 +64,12 @@ docs/RouteDetailDto.md
 docs/RouteDto.md
 docs/RouteListResponse.md
 docs/RouteRequest.md
+docs/RouteSortBy.md
 docs/RouterApi.md
 docs/RouterRequest.md
 docs/RouterResponse.md
 docs/RoutesApi.md
+docs/SortDirection.md
 docs/StageRequest.md
 docs/Status.md
 docs/SurfaceType.md
@@ -90,6 +94,7 @@ docs/UserDto.md
 docs/UsersApi.md
 docs/Visibility.md
 docs/WaypointDto.md
+docs/WindDirection.md
 git_push.sh
 index.ts
 package.json

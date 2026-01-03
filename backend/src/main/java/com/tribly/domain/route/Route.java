@@ -6,6 +6,7 @@ import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
 import com.tribly.enums.SurfaceType;
 import com.tribly.enums.Visibility;
+import com.tribly.enums.WindDirection;
 import jakarta.persistence.*;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -31,6 +32,10 @@ public class Route extends TeamEntity {
   @NotNullableDbValue
   private Integer elevationGain;
 
+  @Column(name = "hilliness")
+  @NotNullableDbValue
+  private Integer hilliness;
+
   @Column(name = "elevation_loss")
   @NotNullableDbValue
   private Integer elevationLoss;
@@ -47,6 +52,11 @@ public class Route extends TeamEntity {
   @Column(name = "`end`", columnDefinition = "geometry(Point,4326)")
   @NotNullableDbValue
   private Point<G2D> end;
+
+  @Enumerated(EnumType.ORDINAL)
+  @Column(name = "wind_direction", length = 20)
+  @NotNullableDbValue
+  private WindDirection windDirection;
 
   @OneToMany(mappedBy = "route", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<GpxTrack> tracks = new ArrayList<>();

@@ -311,6 +311,15 @@ export interface GroupRequest {
    */
   routeSlug?: string
 }
+
+export const Hilliness = {
+  Flat: 'FLAT',
+  Hilly: 'HILLY',
+  Mountainous: 'MOUNTAINOUS',
+} as const
+
+export type Hilliness = (typeof Hilliness)[keyof typeof Hilliness]
+
 /**
  * Keycloak configuration
  */
@@ -400,6 +409,14 @@ export const MinRole = {
 } as const
 
 export type MinRole = (typeof MinRole)[keyof typeof MinRole]
+
+export const NearType = {
+  Start: 'START',
+  End: 'END',
+  StartOrEnd: 'START_OR_END',
+} as const
+
+export type NearType = (typeof NearType)[keyof typeof NearType]
 
 export interface PlaceDetailDto {
   /**
@@ -983,6 +1000,10 @@ export interface RouteDto {
    */
   slug: string
   /**
+   * Team
+   */
+  team: TeamPublicationDto
+  /**
    * Route name
    */
   name: string
@@ -1060,6 +1081,15 @@ export interface RouteRequest {
   points?: Array<GeoPoint>
 }
 
+export const RouteSortBy = {
+  Distance: 'DISTANCE',
+  ElevationGain: 'ELEVATION_GAIN',
+  Hilliness: 'HILLINESS',
+  DateTime: 'DATE_TIME',
+} as const
+
+export type RouteSortBy = (typeof RouteSortBy)[keyof typeof RouteSortBy]
+
 export interface RouterRequest {
   from?: GeoPoint
   to?: GeoPoint
@@ -1070,6 +1100,14 @@ export interface RouterResponse {
   dist?: number
   ascend?: number
 }
+
+export const SortDirection = {
+  Asc: 'ASC',
+  Desc: 'DESC',
+} as const
+
+export type SortDirection = (typeof SortDirection)[keyof typeof SortDirection]
+
 /**
  * Trip stage creation request
  */
@@ -1452,6 +1490,19 @@ export interface WaypointDto {
   geometry: GeoJsonPoint
   name?: string
 }
+
+export const WindDirection = {
+  North: 'NORTH',
+  NorthEast: 'NORTH_EAST',
+  East: 'EAST',
+  SouthEast: 'SOUTH_EAST',
+  South: 'SOUTH',
+  SouthWest: 'SOUTH_WEST',
+  West: 'WEST',
+  NorthWest: 'NORTH_WEST',
+} as const
+
+export type WindDirection = (typeof WindDirection)[keyof typeof WindDirection]
 
 /**
  * AssetsApi - axios parameter creator
@@ -6287,20 +6338,176 @@ export const RoutesApiAxiosParamCreator = function (configuration?: Configuratio
       }
     },
     /**
-     * Get paginated list of routes for a team
-     * @summary List routes
-     * @param {string} slug Team URL slug
+     * Get paginated list of routes from all accessible teams (user\'s teams + public teams)
+     * @summary List all routes
+     * @param {Hilliness} [hilliness] Hilliness preset (FLAT, HILLY, MOUNTAINOUS)
+     * @param {number} [maxDistance] Maximum distance in meters
+     * @param {number} [maxElevationGain] Maximum elevation gain in meters
+     * @param {number} [minDistance] Minimum distance in meters
+     * @param {number} [minElevationGain] Minimum elevation gain in meters
+     * @param {number} [nearLat] Latitude for proximity search
+     * @param {number} [nearLon] Longitude for proximity search
+     * @param {number} [nearRadius] Search radius in meters (default: 25000)
+     * @param {NearType} [nearType] Search near START, END, or START_OR_END (default)
      * @param {number} [page] Page number (0-indexed)
      * @param {string} [search] Search by name/markdown
      * @param {number} [size] Page size
+     * @param {RouteSortBy} [sortBy] Sort by field (DISTANCE, ELEVATION_GAIN, HILLINESS, DATE_TIME)
+     * @param {SortDirection} [sortDir] Sort direction (ASC, DESC)
+     * @param {Set<SurfaceType>} [surfaceTypes] Filter by surface types
+     * @param {Set<WindDirection>} [windDirections] Filter by wind directions
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listAllRoutes: async (
+      hilliness?: Hilliness,
+      maxDistance?: number,
+      maxElevationGain?: number,
+      minDistance?: number,
+      minElevationGain?: number,
+      nearLat?: number,
+      nearLon?: number,
+      nearRadius?: number,
+      nearType?: NearType,
+      page?: number,
+      search?: string,
+      size?: number,
+      sortBy?: RouteSortBy,
+      sortDir?: SortDirection,
+      surfaceTypes?: Set<SurfaceType>,
+      windDirections?: Set<WindDirection>,
+      options: RawAxiosRequestConfig = {}
+    ): Promise<RequestArgs> => {
+      const localVarPath = `/api/routes`
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL)
+      let baseOptions
+      if (configuration) {
+        baseOptions = configuration.baseOptions
+      }
+
+      const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options }
+      const localVarHeaderParameter = {} as any
+      const localVarQueryParameter = {} as any
+
+      if (hilliness !== undefined) {
+        localVarQueryParameter['hilliness'] = hilliness
+      }
+
+      if (maxDistance !== undefined) {
+        localVarQueryParameter['maxDistance'] = maxDistance
+      }
+
+      if (maxElevationGain !== undefined) {
+        localVarQueryParameter['maxElevationGain'] = maxElevationGain
+      }
+
+      if (minDistance !== undefined) {
+        localVarQueryParameter['minDistance'] = minDistance
+      }
+
+      if (minElevationGain !== undefined) {
+        localVarQueryParameter['minElevationGain'] = minElevationGain
+      }
+
+      if (nearLat !== undefined) {
+        localVarQueryParameter['nearLat'] = nearLat
+      }
+
+      if (nearLon !== undefined) {
+        localVarQueryParameter['nearLon'] = nearLon
+      }
+
+      if (nearRadius !== undefined) {
+        localVarQueryParameter['nearRadius'] = nearRadius
+      }
+
+      if (nearType !== undefined) {
+        localVarQueryParameter['nearType'] = nearType
+      }
+
+      if (page !== undefined) {
+        localVarQueryParameter['page'] = page
+      }
+
+      if (search !== undefined) {
+        localVarQueryParameter['search'] = search
+      }
+
+      if (size !== undefined) {
+        localVarQueryParameter['size'] = size
+      }
+
+      if (sortBy !== undefined) {
+        localVarQueryParameter['sortBy'] = sortBy
+      }
+
+      if (sortDir !== undefined) {
+        localVarQueryParameter['sortDir'] = sortDir
+      }
+
+      if (surfaceTypes) {
+        localVarQueryParameter['surfaceTypes'] = Array.from(surfaceTypes)
+      }
+
+      if (windDirections) {
+        localVarQueryParameter['windDirections'] = Array.from(windDirections)
+      }
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter)
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {}
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      }
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      }
+    },
+    /**
+     * Get paginated list of routes for a team with optional filters and sorting
+     * @summary List routes
+     * @param {string} slug Team URL slug
+     * @param {Hilliness} [hilliness] Hilliness preset (FLAT, HILLY, MOUNTAINOUS)
+     * @param {number} [maxDistance] Maximum distance in meters
+     * @param {number} [maxElevationGain] Maximum elevation gain in meters
+     * @param {number} [minDistance] Minimum distance in meters
+     * @param {number} [minElevationGain] Minimum elevation gain in meters
+     * @param {number} [nearLat] Latitude for proximity search
+     * @param {number} [nearLon] Longitude for proximity search
+     * @param {number} [nearRadius] Search radius in meters (default: 25000)
+     * @param {NearType} [nearType] Search near START, END, or START_OR_END (default)
+     * @param {number} [page] Page number (0-indexed)
+     * @param {string} [search] Search by name/markdown
+     * @param {number} [size] Page size
+     * @param {RouteSortBy} [sortBy] Sort by field (DISTANCE, ELEVATION_GAIN, HILLINESS, DATE_TIME)
+     * @param {SortDirection} [sortDir] Sort direction (ASC, DESC)
+     * @param {Set<SurfaceType>} [surfaceTypes] Filter by surface types
+     * @param {Set<WindDirection>} [windDirections] Filter by wind directions
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     listRoutes: async (
       slug: string,
+      hilliness?: Hilliness,
+      maxDistance?: number,
+      maxElevationGain?: number,
+      minDistance?: number,
+      minElevationGain?: number,
+      nearLat?: number,
+      nearLon?: number,
+      nearRadius?: number,
+      nearType?: NearType,
       page?: number,
       search?: string,
       size?: number,
+      sortBy?: RouteSortBy,
+      sortDir?: SortDirection,
+      surfaceTypes?: Set<SurfaceType>,
+      windDirections?: Set<WindDirection>,
       options: RawAxiosRequestConfig = {}
     ): Promise<RequestArgs> => {
       // verify required parameter 'slug' is not null or undefined
@@ -6320,6 +6527,42 @@ export const RoutesApiAxiosParamCreator = function (configuration?: Configuratio
       const localVarHeaderParameter = {} as any
       const localVarQueryParameter = {} as any
 
+      if (hilliness !== undefined) {
+        localVarQueryParameter['hilliness'] = hilliness
+      }
+
+      if (maxDistance !== undefined) {
+        localVarQueryParameter['maxDistance'] = maxDistance
+      }
+
+      if (maxElevationGain !== undefined) {
+        localVarQueryParameter['maxElevationGain'] = maxElevationGain
+      }
+
+      if (minDistance !== undefined) {
+        localVarQueryParameter['minDistance'] = minDistance
+      }
+
+      if (minElevationGain !== undefined) {
+        localVarQueryParameter['minElevationGain'] = minElevationGain
+      }
+
+      if (nearLat !== undefined) {
+        localVarQueryParameter['nearLat'] = nearLat
+      }
+
+      if (nearLon !== undefined) {
+        localVarQueryParameter['nearLon'] = nearLon
+      }
+
+      if (nearRadius !== undefined) {
+        localVarQueryParameter['nearRadius'] = nearRadius
+      }
+
+      if (nearType !== undefined) {
+        localVarQueryParameter['nearType'] = nearType
+      }
+
       if (page !== undefined) {
         localVarQueryParameter['page'] = page
       }
@@ -6330,6 +6573,22 @@ export const RoutesApiAxiosParamCreator = function (configuration?: Configuratio
 
       if (size !== undefined) {
         localVarQueryParameter['size'] = size
+      }
+
+      if (sortBy !== undefined) {
+        localVarQueryParameter['sortBy'] = sortBy
+      }
+
+      if (sortDir !== undefined) {
+        localVarQueryParameter['sortDir'] = sortDir
+      }
+
+      if (surfaceTypes) {
+        localVarQueryParameter['surfaceTypes'] = Array.from(surfaceTypes)
+      }
+
+      if (windDirections) {
+        localVarQueryParameter['windDirections'] = Array.from(windDirections)
       }
 
       setSearchParams(localVarUrlObj, localVarQueryParameter)
@@ -6506,27 +6765,137 @@ export const RoutesApiFp = function (configuration?: Configuration) {
         )(axios, localVarOperationServerBasePath || basePath)
     },
     /**
-     * Get paginated list of routes for a team
-     * @summary List routes
-     * @param {string} slug Team URL slug
+     * Get paginated list of routes from all accessible teams (user\'s teams + public teams)
+     * @summary List all routes
+     * @param {Hilliness} [hilliness] Hilliness preset (FLAT, HILLY, MOUNTAINOUS)
+     * @param {number} [maxDistance] Maximum distance in meters
+     * @param {number} [maxElevationGain] Maximum elevation gain in meters
+     * @param {number} [minDistance] Minimum distance in meters
+     * @param {number} [minElevationGain] Minimum elevation gain in meters
+     * @param {number} [nearLat] Latitude for proximity search
+     * @param {number} [nearLon] Longitude for proximity search
+     * @param {number} [nearRadius] Search radius in meters (default: 25000)
+     * @param {NearType} [nearType] Search near START, END, or START_OR_END (default)
      * @param {number} [page] Page number (0-indexed)
      * @param {string} [search] Search by name/markdown
      * @param {number} [size] Page size
+     * @param {RouteSortBy} [sortBy] Sort by field (DISTANCE, ELEVATION_GAIN, HILLINESS, DATE_TIME)
+     * @param {SortDirection} [sortDir] Sort direction (ASC, DESC)
+     * @param {Set<SurfaceType>} [surfaceTypes] Filter by surface types
+     * @param {Set<WindDirection>} [windDirections] Filter by wind directions
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async listAllRoutes(
+      hilliness?: Hilliness,
+      maxDistance?: number,
+      maxElevationGain?: number,
+      minDistance?: number,
+      minElevationGain?: number,
+      nearLat?: number,
+      nearLon?: number,
+      nearRadius?: number,
+      nearType?: NearType,
+      page?: number,
+      search?: string,
+      size?: number,
+      sortBy?: RouteSortBy,
+      sortDir?: SortDirection,
+      surfaceTypes?: Set<SurfaceType>,
+      windDirections?: Set<WindDirection>,
+      options?: RawAxiosRequestConfig
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<RouteListResponse>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.listAllRoutes(
+        hilliness,
+        maxDistance,
+        maxElevationGain,
+        minDistance,
+        minElevationGain,
+        nearLat,
+        nearLon,
+        nearRadius,
+        nearType,
+        page,
+        search,
+        size,
+        sortBy,
+        sortDir,
+        surfaceTypes,
+        windDirections,
+        options
+      )
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0
+      const localVarOperationServerBasePath =
+        operationServerMap['RoutesApi.listAllRoutes']?.[localVarOperationServerIndex]?.url
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration
+        )(axios, localVarOperationServerBasePath || basePath)
+    },
+    /**
+     * Get paginated list of routes for a team with optional filters and sorting
+     * @summary List routes
+     * @param {string} slug Team URL slug
+     * @param {Hilliness} [hilliness] Hilliness preset (FLAT, HILLY, MOUNTAINOUS)
+     * @param {number} [maxDistance] Maximum distance in meters
+     * @param {number} [maxElevationGain] Maximum elevation gain in meters
+     * @param {number} [minDistance] Minimum distance in meters
+     * @param {number} [minElevationGain] Minimum elevation gain in meters
+     * @param {number} [nearLat] Latitude for proximity search
+     * @param {number} [nearLon] Longitude for proximity search
+     * @param {number} [nearRadius] Search radius in meters (default: 25000)
+     * @param {NearType} [nearType] Search near START, END, or START_OR_END (default)
+     * @param {number} [page] Page number (0-indexed)
+     * @param {string} [search] Search by name/markdown
+     * @param {number} [size] Page size
+     * @param {RouteSortBy} [sortBy] Sort by field (DISTANCE, ELEVATION_GAIN, HILLINESS, DATE_TIME)
+     * @param {SortDirection} [sortDir] Sort direction (ASC, DESC)
+     * @param {Set<SurfaceType>} [surfaceTypes] Filter by surface types
+     * @param {Set<WindDirection>} [windDirections] Filter by wind directions
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     async listRoutes(
       slug: string,
+      hilliness?: Hilliness,
+      maxDistance?: number,
+      maxElevationGain?: number,
+      minDistance?: number,
+      minElevationGain?: number,
+      nearLat?: number,
+      nearLon?: number,
+      nearRadius?: number,
+      nearType?: NearType,
       page?: number,
       search?: string,
       size?: number,
+      sortBy?: RouteSortBy,
+      sortDir?: SortDirection,
+      surfaceTypes?: Set<SurfaceType>,
+      windDirections?: Set<WindDirection>,
       options?: RawAxiosRequestConfig
     ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<RouteListResponse>> {
       const localVarAxiosArgs = await localVarAxiosParamCreator.listRoutes(
         slug,
+        hilliness,
+        maxDistance,
+        maxElevationGain,
+        minDistance,
+        minElevationGain,
+        nearLat,
+        nearLon,
+        nearRadius,
+        nearType,
         page,
         search,
         size,
+        sortBy,
+        sortDir,
+        surfaceTypes,
+        windDirections,
         options
       )
       const localVarOperationServerIndex = configuration?.serverIndex ?? 0
@@ -6642,24 +7011,132 @@ export const RoutesApiFactory = function (
         .then((request) => request(axios, basePath))
     },
     /**
-     * Get paginated list of routes for a team
-     * @summary List routes
-     * @param {string} slug Team URL slug
+     * Get paginated list of routes from all accessible teams (user\'s teams + public teams)
+     * @summary List all routes
+     * @param {Hilliness} [hilliness] Hilliness preset (FLAT, HILLY, MOUNTAINOUS)
+     * @param {number} [maxDistance] Maximum distance in meters
+     * @param {number} [maxElevationGain] Maximum elevation gain in meters
+     * @param {number} [minDistance] Minimum distance in meters
+     * @param {number} [minElevationGain] Minimum elevation gain in meters
+     * @param {number} [nearLat] Latitude for proximity search
+     * @param {number} [nearLon] Longitude for proximity search
+     * @param {number} [nearRadius] Search radius in meters (default: 25000)
+     * @param {NearType} [nearType] Search near START, END, or START_OR_END (default)
      * @param {number} [page] Page number (0-indexed)
      * @param {string} [search] Search by name/markdown
      * @param {number} [size] Page size
+     * @param {RouteSortBy} [sortBy] Sort by field (DISTANCE, ELEVATION_GAIN, HILLINESS, DATE_TIME)
+     * @param {SortDirection} [sortDir] Sort direction (ASC, DESC)
+     * @param {Set<SurfaceType>} [surfaceTypes] Filter by surface types
+     * @param {Set<WindDirection>} [windDirections] Filter by wind directions
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listAllRoutes(
+      hilliness?: Hilliness,
+      maxDistance?: number,
+      maxElevationGain?: number,
+      minDistance?: number,
+      minElevationGain?: number,
+      nearLat?: number,
+      nearLon?: number,
+      nearRadius?: number,
+      nearType?: NearType,
+      page?: number,
+      search?: string,
+      size?: number,
+      sortBy?: RouteSortBy,
+      sortDir?: SortDirection,
+      surfaceTypes?: Set<SurfaceType>,
+      windDirections?: Set<WindDirection>,
+      options?: RawAxiosRequestConfig
+    ): AxiosPromise<RouteListResponse> {
+      return localVarFp
+        .listAllRoutes(
+          hilliness,
+          maxDistance,
+          maxElevationGain,
+          minDistance,
+          minElevationGain,
+          nearLat,
+          nearLon,
+          nearRadius,
+          nearType,
+          page,
+          search,
+          size,
+          sortBy,
+          sortDir,
+          surfaceTypes,
+          windDirections,
+          options
+        )
+        .then((request) => request(axios, basePath))
+    },
+    /**
+     * Get paginated list of routes for a team with optional filters and sorting
+     * @summary List routes
+     * @param {string} slug Team URL slug
+     * @param {Hilliness} [hilliness] Hilliness preset (FLAT, HILLY, MOUNTAINOUS)
+     * @param {number} [maxDistance] Maximum distance in meters
+     * @param {number} [maxElevationGain] Maximum elevation gain in meters
+     * @param {number} [minDistance] Minimum distance in meters
+     * @param {number} [minElevationGain] Minimum elevation gain in meters
+     * @param {number} [nearLat] Latitude for proximity search
+     * @param {number} [nearLon] Longitude for proximity search
+     * @param {number} [nearRadius] Search radius in meters (default: 25000)
+     * @param {NearType} [nearType] Search near START, END, or START_OR_END (default)
+     * @param {number} [page] Page number (0-indexed)
+     * @param {string} [search] Search by name/markdown
+     * @param {number} [size] Page size
+     * @param {RouteSortBy} [sortBy] Sort by field (DISTANCE, ELEVATION_GAIN, HILLINESS, DATE_TIME)
+     * @param {SortDirection} [sortDir] Sort direction (ASC, DESC)
+     * @param {Set<SurfaceType>} [surfaceTypes] Filter by surface types
+     * @param {Set<WindDirection>} [windDirections] Filter by wind directions
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     listRoutes(
       slug: string,
+      hilliness?: Hilliness,
+      maxDistance?: number,
+      maxElevationGain?: number,
+      minDistance?: number,
+      minElevationGain?: number,
+      nearLat?: number,
+      nearLon?: number,
+      nearRadius?: number,
+      nearType?: NearType,
       page?: number,
       search?: string,
       size?: number,
+      sortBy?: RouteSortBy,
+      sortDir?: SortDirection,
+      surfaceTypes?: Set<SurfaceType>,
+      windDirections?: Set<WindDirection>,
       options?: RawAxiosRequestConfig
     ): AxiosPromise<RouteListResponse> {
       return localVarFp
-        .listRoutes(slug, page, search, size, options)
+        .listRoutes(
+          slug,
+          hilliness,
+          maxDistance,
+          maxElevationGain,
+          minDistance,
+          minElevationGain,
+          nearLat,
+          nearLon,
+          nearRadius,
+          nearType,
+          page,
+          search,
+          size,
+          sortBy,
+          sortDir,
+          surfaceTypes,
+          windDirections,
+          options
+        )
         .then((request) => request(axios, basePath))
     },
     /**
@@ -6739,24 +7216,133 @@ export class RoutesApi extends BaseAPI {
   }
 
   /**
-   * Get paginated list of routes for a team
-   * @summary List routes
-   * @param {string} slug Team URL slug
+   * Get paginated list of routes from all accessible teams (user\'s teams + public teams)
+   * @summary List all routes
+   * @param {Hilliness} [hilliness] Hilliness preset (FLAT, HILLY, MOUNTAINOUS)
+   * @param {number} [maxDistance] Maximum distance in meters
+   * @param {number} [maxElevationGain] Maximum elevation gain in meters
+   * @param {number} [minDistance] Minimum distance in meters
+   * @param {number} [minElevationGain] Minimum elevation gain in meters
+   * @param {number} [nearLat] Latitude for proximity search
+   * @param {number} [nearLon] Longitude for proximity search
+   * @param {number} [nearRadius] Search radius in meters (default: 25000)
+   * @param {NearType} [nearType] Search near START, END, or START_OR_END (default)
    * @param {number} [page] Page number (0-indexed)
    * @param {string} [search] Search by name/markdown
    * @param {number} [size] Page size
+   * @param {RouteSortBy} [sortBy] Sort by field (DISTANCE, ELEVATION_GAIN, HILLINESS, DATE_TIME)
+   * @param {SortDirection} [sortDir] Sort direction (ASC, DESC)
+   * @param {Set<SurfaceType>} [surfaceTypes] Filter by surface types
+   * @param {Set<WindDirection>} [windDirections] Filter by wind directions
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   */
+  public listAllRoutes(
+    hilliness?: Hilliness,
+    maxDistance?: number,
+    maxElevationGain?: number,
+    minDistance?: number,
+    minElevationGain?: number,
+    nearLat?: number,
+    nearLon?: number,
+    nearRadius?: number,
+    nearType?: NearType,
+    page?: number,
+    search?: string,
+    size?: number,
+    sortBy?: RouteSortBy,
+    sortDir?: SortDirection,
+    surfaceTypes?: Set<SurfaceType>,
+    windDirections?: Set<WindDirection>,
+    options?: RawAxiosRequestConfig
+  ) {
+    return RoutesApiFp(this.configuration)
+      .listAllRoutes(
+        hilliness,
+        maxDistance,
+        maxElevationGain,
+        minDistance,
+        minElevationGain,
+        nearLat,
+        nearLon,
+        nearRadius,
+        nearType,
+        page,
+        search,
+        size,
+        sortBy,
+        sortDir,
+        surfaceTypes,
+        windDirections,
+        options
+      )
+      .then((request) => request(this.axios, this.basePath))
+  }
+
+  /**
+   * Get paginated list of routes for a team with optional filters and sorting
+   * @summary List routes
+   * @param {string} slug Team URL slug
+   * @param {Hilliness} [hilliness] Hilliness preset (FLAT, HILLY, MOUNTAINOUS)
+   * @param {number} [maxDistance] Maximum distance in meters
+   * @param {number} [maxElevationGain] Maximum elevation gain in meters
+   * @param {number} [minDistance] Minimum distance in meters
+   * @param {number} [minElevationGain] Minimum elevation gain in meters
+   * @param {number} [nearLat] Latitude for proximity search
+   * @param {number} [nearLon] Longitude for proximity search
+   * @param {number} [nearRadius] Search radius in meters (default: 25000)
+   * @param {NearType} [nearType] Search near START, END, or START_OR_END (default)
+   * @param {number} [page] Page number (0-indexed)
+   * @param {string} [search] Search by name/markdown
+   * @param {number} [size] Page size
+   * @param {RouteSortBy} [sortBy] Sort by field (DISTANCE, ELEVATION_GAIN, HILLINESS, DATE_TIME)
+   * @param {SortDirection} [sortDir] Sort direction (ASC, DESC)
+   * @param {Set<SurfaceType>} [surfaceTypes] Filter by surface types
+   * @param {Set<WindDirection>} [windDirections] Filter by wind directions
    * @param {*} [options] Override http request option.
    * @throws {RequiredError}
    */
   public listRoutes(
     slug: string,
+    hilliness?: Hilliness,
+    maxDistance?: number,
+    maxElevationGain?: number,
+    minDistance?: number,
+    minElevationGain?: number,
+    nearLat?: number,
+    nearLon?: number,
+    nearRadius?: number,
+    nearType?: NearType,
     page?: number,
     search?: string,
     size?: number,
+    sortBy?: RouteSortBy,
+    sortDir?: SortDirection,
+    surfaceTypes?: Set<SurfaceType>,
+    windDirections?: Set<WindDirection>,
     options?: RawAxiosRequestConfig
   ) {
     return RoutesApiFp(this.configuration)
-      .listRoutes(slug, page, search, size, options)
+      .listRoutes(
+        slug,
+        hilliness,
+        maxDistance,
+        maxElevationGain,
+        minDistance,
+        minElevationGain,
+        nearLat,
+        nearLon,
+        nearRadius,
+        nearType,
+        page,
+        search,
+        size,
+        sortBy,
+        sortDir,
+        surfaceTypes,
+        windDirections,
+        options
+      )
       .then((request) => request(this.axios, this.basePath))
   }
 

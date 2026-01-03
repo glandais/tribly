@@ -332,6 +332,12 @@ components:
           description: Route slug for this group
       required:
       - name
+    Hilliness:
+      type: string
+      enum:
+      - FLAT
+      - HILLY
+      - MOUNTAINOUS
     Instant:
       type: string
       format: date-time
@@ -451,6 +457,12 @@ components:
       - MEMBER
       - ORGANIZER
       - ADMIN
+    NearType:
+      type: string
+      enum:
+      - START
+      - END
+      - START_OR_END
     PlaceDetailDto:
       type: object
       required:
@@ -1194,6 +1206,7 @@ components:
       required:
       - id
       - slug
+      - team
       - name
       - media
       - distance
@@ -1209,6 +1222,10 @@ components:
         slug:
           type: string
           description: Route slug
+        team:
+          description: Team
+          type: object
+          $ref: "#/components/schemas/TeamPublicationDto"
         name:
           type: string
           description: Route name
@@ -1295,6 +1312,13 @@ components:
           items:
             $ref: "#/components/schemas/GeoPoint"
           description: Points from frontend routing
+    RouteSortBy:
+      type: string
+      enum:
+      - DISTANCE
+      - ELEVATION_GAIN
+      - HILLINESS
+      - DATE_TIME
     RouterRequest:
       type: object
       properties:
@@ -1318,6 +1342,11 @@ components:
         ascend:
           type: number
           format: double
+    SortDirection:
+      type: string
+      enum:
+      - ASC
+      - DESC
     StageRequest:
       description: Trip stage creation request
       type: object
@@ -1794,6 +1823,17 @@ components:
           type: object
         name:
           type: string
+    WindDirection:
+      type: string
+      enum:
+      - NORTH
+      - NORTH_EAST
+      - EAST
+      - SOUTH_EAST
+      - SOUTH
+      - SOUTH_WEST
+      - WEST
+      - NORTH_WEST
   securitySchemes:
     SecurityScheme:
       type: openIdConnect
@@ -1940,6 +1980,119 @@ paths:
       security:
       - SecurityScheme:
         - user
+  /api/routes:
+    get:
+      summary: List all routes
+      description: Get paginated list of routes from all accessible teams (user's
+        teams + public teams)
+      operationId: listAllRoutes
+      tags:
+      - Routes
+      parameters:
+      - description: "Hilliness preset (FLAT, HILLY, MOUNTAINOUS)"
+        name: hilliness
+        in: query
+        schema:
+          $ref: "#/components/schemas/Hilliness"
+      - description: Maximum distance in meters
+        name: maxDistance
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - description: Maximum elevation gain in meters
+        name: maxElevationGain
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - description: Minimum distance in meters
+        name: minDistance
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - description: Minimum elevation gain in meters
+        name: minElevationGain
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - description: Latitude for proximity search
+        name: nearLat
+        in: query
+        schema:
+          type: number
+          format: double
+      - description: Longitude for proximity search
+        name: nearLon
+        in: query
+        schema:
+          type: number
+          format: double
+      - description: "Search radius in meters (default: 25000)"
+        name: nearRadius
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - description: "Search near START, END, or START_OR_END (default)"
+        name: nearType
+        in: query
+        schema:
+          $ref: "#/components/schemas/NearType"
+      - description: Page number (0-indexed)
+        name: page
+        in: query
+        schema:
+          type: integer
+          format: int32
+          default: 0
+      - description: Search by name/markdown
+        name: search
+        in: query
+        schema:
+          type: string
+      - description: Page size
+        name: size
+        in: query
+        schema:
+          type: integer
+          format: int32
+          default: 20
+      - description: "Sort by field (DISTANCE, ELEVATION_GAIN, HILLINESS, DATE_TIME)"
+        name: sortBy
+        in: query
+        schema:
+          $ref: "#/components/schemas/RouteSortBy"
+      - description: "Sort direction (ASC, DESC)"
+        name: sortDir
+        in: query
+        schema:
+          $ref: "#/components/schemas/SortDirection"
+      - description: Filter by surface types
+        name: surfaceTypes
+        in: query
+        schema:
+          type: array
+          uniqueItems: true
+          items:
+            $ref: "#/components/schemas/SurfaceType"
+      - description: Filter by wind directions
+        name: windDirections
+        in: query
+        schema:
+          type: array
+          uniqueItems: true
+          items:
+            $ref: "#/components/schemas/WindDirection"
+      responses:
+        "200":
+          description: Routes retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RouteListResponse"
   /api/teams:
     get:
       summary: List public teams
@@ -3856,7 +4009,8 @@ paths:
   /api/teams/{slug}/routes:
     get:
       summary: List routes
-      description: Get paginated list of routes for a team
+      description: Get paginated list of routes for a team with optional filters and
+        sorting
       operationId: listRoutes
       tags:
       - Routes
@@ -3867,6 +4021,58 @@ paths:
         required: true
         schema:
           type: string
+      - description: "Hilliness preset (FLAT, HILLY, MOUNTAINOUS)"
+        name: hilliness
+        in: query
+        schema:
+          $ref: "#/components/schemas/Hilliness"
+      - description: Maximum distance in meters
+        name: maxDistance
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - description: Maximum elevation gain in meters
+        name: maxElevationGain
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - description: Minimum distance in meters
+        name: minDistance
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - description: Minimum elevation gain in meters
+        name: minElevationGain
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - description: Latitude for proximity search
+        name: nearLat
+        in: query
+        schema:
+          type: number
+          format: double
+      - description: Longitude for proximity search
+        name: nearLon
+        in: query
+        schema:
+          type: number
+          format: double
+      - description: "Search radius in meters (default: 25000)"
+        name: nearRadius
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - description: "Search near START, END, or START_OR_END (default)"
+        name: nearType
+        in: query
+        schema:
+          $ref: "#/components/schemas/NearType"
       - description: Page number (0-indexed)
         name: page
         in: query
@@ -3886,6 +4092,32 @@ paths:
           type: integer
           format: int32
           default: 20
+      - description: "Sort by field (DISTANCE, ELEVATION_GAIN, HILLINESS, DATE_TIME)"
+        name: sortBy
+        in: query
+        schema:
+          $ref: "#/components/schemas/RouteSortBy"
+      - description: "Sort direction (ASC, DESC)"
+        name: sortDir
+        in: query
+        schema:
+          $ref: "#/components/schemas/SortDirection"
+      - description: Filter by surface types
+        name: surfaceTypes
+        in: query
+        schema:
+          type: array
+          uniqueItems: true
+          items:
+            $ref: "#/components/schemas/SurfaceType"
+      - description: Filter by wind directions
+        name: windDirections
+        in: query
+        schema:
+          type: array
+          uniqueItems: true
+          items:
+            $ref: "#/components/schemas/WindDirection"
       responses:
         "200":
           description: Routes retrieved successfully

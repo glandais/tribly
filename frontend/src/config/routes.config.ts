@@ -90,6 +90,9 @@ const CreateRoutePage = lazy(() =>
 const EditRoutePage = lazy(() =>
   import('../pages/route/EditRoutePage').then((m) => ({ default: m.EditRoutePage }))
 )
+const AllRoutesPage = lazy(() =>
+  import('../pages/route/AllRoutesPage').then((m) => ({ default: m.AllRoutesPage }))
+)
 
 export const routesConfig: RoutesConfig = [
   // === Home ===
@@ -101,6 +104,14 @@ export const routesConfig: RoutesConfig = [
     parentId: null,
     index: true,
     breadcrumb: { type: 'static', i18nKey: 'auth:home.tabs.feed' },
+  },
+  {
+    id: 'all-routes',
+    path: paths.allRoutes(),
+    component: AllRoutesPage,
+    auth: 'public',
+    parentId: null,
+    breadcrumb: { type: 'static', i18nKey: 'common:nav.routes' },
   },
 
   // === Auth Routes ===

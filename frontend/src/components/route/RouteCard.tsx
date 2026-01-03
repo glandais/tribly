@@ -1,5 +1,6 @@
+import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { MapIcon, ArrowUpIcon } from '@heroicons/react/24/outline'
+import { MapIcon, ArrowUpIcon, UsersIcon, ChevronRightIcon } from '@heroicons/react/24/outline'
 import type { RouteDto } from '../../api/api'
 import { Card, CardContent, CardTitle, CardDescription } from '../common/card'
 import { Badge, VisibilityBadge, Stat, StatGroup, CardSkeleton } from '../common/card'
@@ -8,10 +9,10 @@ import { paths } from '@/config/paths'
 
 interface RouteCardProps {
   route: RouteDto
-  teamSlug: string
+  showTeam: boolean
 }
 
-export function RouteCard({ route, teamSlug }: RouteCardProps) {
+export function RouteCard({ route, showTeam }: RouteCardProps) {
   const { t } = useTranslation('routes')
   const { t: tCommon } = useTranslation('common')
 
@@ -19,7 +20,7 @@ export function RouteCard({ route, teamSlug }: RouteCardProps) {
   const elevationIcon = <ArrowUpIcon />
 
   return (
-    <Card to={paths.route(teamSlug, route.slug)}>
+    <Card to={paths.route(route.team.slug, route.slug)}>
       {/* Thumbnail */}
       <img
         src={route.media.assets.thumbnail?.url}
@@ -28,6 +29,19 @@ export function RouteCard({ route, teamSlug }: RouteCardProps) {
       />
 
       <CardContent>
+        {/* Team header - clickable link to team page */}
+        {showTeam && (
+          <Link
+            to={paths.team(route.team.slug)}
+            onClick={(e) => e.stopPropagation()}
+            className="flex items-center gap-2 mb-3 text-sm text-gray-600 hover:text-indigo-600 transition-colors group"
+          >
+            <UsersIcon className="h-4 w-4" />
+            <span className="font-medium">{route.team.name}</span>
+            <ChevronRightIcon className="h-3 w-3 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
+          </Link>
+        )}
+
         <div className="flex items-start gap-3">
           <EntityLogo
             logo={route.media.assets.logo}

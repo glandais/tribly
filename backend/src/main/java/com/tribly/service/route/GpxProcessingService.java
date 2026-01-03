@@ -10,6 +10,7 @@ import com.tribly.domain.route.GpxWaypoint;
 import com.tribly.domain.route.Route;
 import com.tribly.domain.user.User;
 import com.tribly.enums.AssetType;
+import com.tribly.enums.WindDirection;
 import com.tribly.infrastructure.exception.BusinessException;
 import com.tribly.service.asset.AssetService;
 import com.tribly.service.asset.response.AssetWithFile;
@@ -24,6 +25,8 @@ import io.github.glandais.gpx.io.write.FitFileWriter;
 import io.github.glandais.gpx.io.write.GPXFileWriter;
 import io.github.glandais.gpx.map.TileMapProducer;
 import io.github.glandais.gpx.srtm.GPXElevationFixer;
+import io.github.glandais.gpx.util.GPXDataComputer;
+import io.github.glandais.gpx.util.Vector;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -33,7 +36,9 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Stream;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.geolatte.geom.G2D;
 import org.geolatte.geom.LineString;
@@ -50,6 +55,8 @@ public class GpxProcessingService {
   private static final Logger LOG = Logger.getLogger(GpxProcessingService.class);
 
   @Inject GPXFileReader gpxFileReader;
+
+  @Inject GPXDataComputer gpxDataComputer;
 
   @Inject GPXPerDistance gpxPerDistance;
 
@@ -166,6 +173,9 @@ public class GpxProcessingService {
         tracksMetadata.add(metadata);
       }
 
+      Vector wind = gpxDataComputer.getWind(gpx);
+      WindDirection windDirection = findDirectionFromVector(wind);
+
       // Save filtered GPX
       AssetWithFile filteredAssetFile =
           createAsset(creator, route, AssetType.ROUTE_FILTERED_GPX, "filtered.gpx");
@@ -200,17 +210,42 @@ public class GpxProcessingService {
 
       LOG.infov("GPX processing complete for route}");
 
+      int distance = tracksMetadata.stream().mapToInt(TrackMetadata::distance).sum();
+      int elevationGain = tracksMetadata.stream().mapToInt(TrackMetadata::elevationGain).sum();
       return new TrackMetadata(
-          tracksMetadata.stream().mapToInt(TrackMetadata::distance).sum(),
-          tracksMetadata.stream().mapToInt(TrackMetadata::elevationGain).sum(),
+          distance,
+          elevationGain,
+          getHilliness(distance, elevationGain),
           tracksMetadata.stream().mapToInt(TrackMetadata::elevationLoss).sum(),
           tracksMetadata.getFirst().start(),
-          tracksMetadata.getLast().end());
+          tracksMetadata.getLast().end(),
+          windDirection);
     } catch (Exception e) {
       LOG.errorv("GPX processing failed for route", e);
       throw BusinessException.conflict("GPX processing failed", e);
     }
   }
+
+  @Nullable
+  public static WindDirection findDirectionFromVector(Vector windVector) {
+    return Stream.of(WindDirection.values())
+        .map(
+            wd -> {
+              double angle = Math.toRadians(90 - wd.getAngle());
+              double x1 = Math.cos(angle);
+              double y1 = Math.sin(angle) * -1;
+              double x2 = windVector.x();
+              double y2 = windVector.y();
+              double dotProduct = (x1 * x2) + (y1 * y2);
+              return new WindScore(wd, 0.5 + (0.5 * dotProduct));
+            })
+        .sorted(Comparator.comparing(WindScore::score))
+        .map(WindScore::wd)
+        .findFirst()
+        .orElse(null);
+  }
+
+  record WindScore(WindDirection wd, double score) {}
 
   private AssetWithFile createAsset(User user, Route route, AssetType assetType, String fileName)
       throws IOException {
@@ -259,12 +294,23 @@ public class GpxProcessingService {
     Point start = points.getFirst();
     Point end = points.getLast();
 
+    int distance = (int) Math.round(path.getDist());
+    int elevationGain = (int) Math.round(path.getTotalElevation());
     return new TrackMetadata(
-        (int) Math.round(path.getDist()),
-        (int) Math.round(path.getTotalElevation()),
+        distance,
+        elevationGain,
+        getHilliness(distance, elevationGain),
         (int) Math.round(path.getTotalElevationNegative()),
         point(WGS84, g(start.getLonDeg(), start.getLatDeg())),
-        point(WGS84, g(end.getLonDeg(), end.getLatDeg())));
+        point(WGS84, g(end.getLonDeg(), end.getLatDeg())),
+        null);
+  }
+
+  private int getHilliness(int distance, int elevationGain) {
+    if (distance == 0) {
+      return 0;
+    }
+    return (1000 * elevationGain) / distance;
   }
 
   /**

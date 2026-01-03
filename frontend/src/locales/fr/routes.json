@@ -73,10 +73,59 @@
   },
   "list": {
     "createRoute": "Créer un parcours",
+    "error": "Erreur lors du chargement des parcours",
     "empty": {
       "createAction": "Créer un parcours",
       "description": "Aucun parcours n'est disponible pour le moment.",
       "title": "Aucun parcours"
+    },
+    "filters": {
+      "clear": "Effacer",
+      "distance": {
+        "label": "Distance",
+        "max": "Max",
+        "min": "Min",
+        "unit": "km"
+      },
+      "elevationGain": {
+        "label": "Dénivelé positif",
+        "max": "Max",
+        "min": "Min",
+        "unit": "m"
+      },
+      "hide": "Masquer les filtres",
+      "hilliness": {
+        "FLAT": "Plat",
+        "HILLY": "Vallonné",
+        "MOUNTAINOUS": "Montagneux",
+        "label": "Relief"
+      },
+      "show": "Filtres",
+      "sort": {
+        "ASC": "Croissant",
+        "DATE_TIME": "Date",
+        "DESC": "Décroissant",
+        "DISTANCE": "Distance",
+        "ELEVATION_GAIN": "Dénivelé",
+        "HILLINESS": "Relief",
+        "label": "Trier par"
+      },
+      "surfaceType": {
+        "label": "Type de revêtement"
+      },
+      "title": "Filtres",
+      "windDirection": {
+        "EAST": "Est",
+        "NORTH": "Nord",
+        "NORTH_EAST": "Nord-Est",
+        "NORTH_WEST": "Nord-Ouest",
+        "SOUTH": "Sud",
+        "SOUTH_EAST": "Sud-Est",
+        "SOUTH_WEST": "Sud-Ouest",
+        "WEST": "Ouest",
+        "label": "Direction du vent",
+        "placeholder": "Toutes directions"
+      }
     },
     "noResults": "Aucun parcours ne correspond à votre recherche.",
     "search": {

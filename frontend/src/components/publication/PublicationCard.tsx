@@ -11,7 +11,7 @@ import { Badge, VisibilityBadge, Stat, StatGroup, CardSkeleton } from '../common
 import { EntityLogo } from '../common/EntityLogo'
 import { useFormattedDate } from '../../utils/dateFormat'
 import { paths } from '@/config/paths'
-import type { PublicationDto, TeamPublicationDto, RideDto, TripDto } from '../../api/api'
+import type { PublicationDto, RideDto, TripDto } from '../../api/api'
 
 // Status variants for badges
 const statusVariants: Record<string, 'gray' | 'green' | 'red'> = {
@@ -29,17 +29,10 @@ const typeBadgeVariants: Record<string, 'indigo' | 'purple'> = {
 
 interface PublicationCardProps {
   publication: PublicationDto
-  teamSlug: string
-  team?: TeamPublicationDto
-  showTypeBadge?: boolean
+  showTeam: boolean
 }
 
-export function PublicationCard({
-  publication,
-  teamSlug,
-  team,
-  showTypeBadge = false,
-}: PublicationCardProps) {
+export function PublicationCard({ publication, showTeam }: PublicationCardProps) {
   const { t: tCommon } = useTranslation('common')
   const { t: tRides } = useTranslation('rides')
   const { t: tPosts } = useTranslation('posts')
@@ -50,11 +43,11 @@ export function PublicationCard({
   const getPublicationPath = () => {
     switch (publication.type) {
       case 'RIDE':
-        return paths.ride(teamSlug, publication.slug)
+        return paths.ride(publication.team.slug, publication.slug)
       case 'POST':
-        return paths.post(teamSlug, publication.slug)
+        return paths.post(publication.team.slug, publication.slug)
       case 'TRIP':
-        return paths.trip(teamSlug, publication.slug)
+        return paths.trip(publication.team.slug, publication.slug)
     }
   }
 
@@ -128,14 +121,14 @@ export function PublicationCard({
     <Card to={getPublicationPath()}>
       <CardContent>
         {/* Team header - clickable link to team page */}
-        {team && (
+        {showTeam && (
           <Link
-            to={paths.team(team.slug)}
+            to={paths.team(publication.team.slug)}
             onClick={(e) => e.stopPropagation()}
             className="flex items-center gap-2 mb-3 text-sm text-gray-600 hover:text-indigo-600 transition-colors group"
           >
             <UsersIcon className="h-4 w-4" />
-            <span className="font-medium">{team.name}</span>
+            <span className="font-medium">{publication.team.name}</span>
             <ChevronRightIcon className="h-3 w-3 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
           </Link>
         )}
@@ -155,11 +148,9 @@ export function PublicationCard({
             </div>
           </div>
           <div className="ml-3 flex flex-col items-end gap-1">
-            {showTypeBadge && (
-              <Badge variant={typeBadgeVariants[publication.type] || 'indigo'}>
-                {getTypeLabel()}
-              </Badge>
-            )}
+            <Badge variant={typeBadgeVariants[publication.type] || 'indigo'}>
+              {getTypeLabel()}
+            </Badge>
             <Badge variant={statusVariants[publication.status] || 'gray'}>{getStatusLabel()}</Badge>
             <VisibilityBadge visibility={publication.visibility} />
           </div>

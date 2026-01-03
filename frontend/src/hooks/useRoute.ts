@@ -13,7 +13,7 @@ import type {
   RouteRequest,
   GeoPoint,
 } from '../api/api'
-import { SurfaceType } from '../api/api'
+import { SurfaceType, Hilliness, RouteSortBy, SortDirection, WindDirection } from '../api/api'
 import { paths } from '@/config/paths'
 
 // Re-export types for convenience
@@ -29,16 +29,120 @@ export type {
 }
 
 // Re-export enums as values (not types)
-export { SurfaceType }
+export { SurfaceType, Hilliness, RouteSortBy, SortDirection, WindDirection }
 
-export function useRoutes(teamSlug: string | undefined, page = 0, size = 20, search?: string) {
+// Filter parameters for route listing
+export interface RouteFilters {
+  search?: string
+  minDistance?: number // in meters
+  maxDistance?: number // in meters
+  minElevationGain?: number // in meters
+  maxElevationGain?: number // in meters
+  hilliness?: (typeof Hilliness)[keyof typeof Hilliness]
+  surfaceTypes?: (typeof SurfaceType)[keyof typeof SurfaceType][]
+  windDirection?: (typeof WindDirection)[keyof typeof WindDirection]
+  sortBy?: (typeof RouteSortBy)[keyof typeof RouteSortBy]
+  sortDir?: (typeof SortDirection)[keyof typeof SortDirection]
+  page?: number
+  size?: number
+}
+
+export function useRoutes(teamSlug: string | undefined, options: RouteFilters = {}) {
+  const {
+    search,
+    minDistance,
+    maxDistance,
+    minElevationGain,
+    maxElevationGain,
+    hilliness,
+    surfaceTypes,
+    windDirection,
+    sortBy,
+    sortDir,
+    page = 0,
+    size = 20,
+  } = options
+
   return useQuery({
-    queryKey: ['routes', teamSlug, page, size, search],
+    queryKey: ['routes', teamSlug, options],
     queryFn: async () => {
       if (!teamSlug) throw new Error('Team slug is required')
-      return await unwrapResponse(routesApi.listRoutes(teamSlug, page, search, size))
+
+      // Convert arrays to Sets for API call
+      const surfaceTypesSet = surfaceTypes?.length ? new Set(surfaceTypes) : undefined
+      const windDirectionsSet = windDirection ? new Set([windDirection]) : undefined
+
+      return await unwrapResponse(
+        routesApi.listRoutes(
+          teamSlug,
+          hilliness,
+          maxDistance,
+          maxElevationGain,
+          minDistance,
+          minElevationGain,
+          undefined, // nearLat - deferred
+          undefined, // nearLon - deferred
+          undefined, // nearRadius - deferred
+          undefined, // nearType - deferred
+          page,
+          search,
+          size,
+          sortBy,
+          sortDir,
+          surfaceTypesSet,
+          windDirectionsSet
+        )
+      )
     },
     enabled: !!teamSlug,
+    placeholderData: keepPreviousData,
+  })
+}
+
+export function useAllRoutes(options: RouteFilters = {}) {
+  const {
+    search,
+    minDistance,
+    maxDistance,
+    minElevationGain,
+    maxElevationGain,
+    hilliness,
+    surfaceTypes,
+    windDirection,
+    sortBy,
+    sortDir,
+    page = 0,
+    size = 20,
+  } = options
+
+  return useQuery({
+    queryKey: ['routes', 'all', options],
+    queryFn: async () => {
+      // Convert arrays to Sets for API call
+      const surfaceTypesSet = surfaceTypes?.length ? new Set(surfaceTypes) : undefined
+      const windDirectionsSet = windDirection ? new Set([windDirection]) : undefined
+
+      return await unwrapResponse(
+        routesApi.listAllRoutes(
+          hilliness,
+          maxDistance,
+          maxElevationGain,
+          minDistance,
+          minElevationGain,
+          undefined, // nearLat - deferred
+          undefined, // nearLon - deferred
+          undefined, // nearRadius - deferred
+          undefined, // nearType - deferred
+          page,
+          search,
+          size,
+          sortBy,
+          sortDir,
+          surfaceTypesSet,
+          windDirectionsSet
+        )
+      )
+    },
     placeholderData: keepPreviousData,
   })
 }
