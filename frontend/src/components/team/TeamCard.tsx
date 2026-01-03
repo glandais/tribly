@@ -29,7 +29,7 @@ export function TeamCard({ team, showRole = false }: TeamCardProps) {
           <TeamAvatar team={team} size="lg" />
           <CardTitle>{team.name}</CardTitle>
         </div>
-        <CardDescription markdown={true} media={team.media} />
+        <CardDescription markdown={true} media={team.about} />
 
         <div className="mt-4 flex items-center justify-between">
           <Stat icon={membersIcon}>{t('memberCount', { count: team.memberCount })}</Stat>

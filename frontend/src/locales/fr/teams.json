@@ -3,6 +3,7 @@
     "backToTeam": "Retour à {{teamName}}",
     "tabs": {
       "members": "Membres",
+      "pages": "Pages",
       "places": "Lieux",
       "rideTemplates": "Modèles de sortie",
       "settings": "Paramètres"
@@ -168,6 +169,60 @@
     "startPlace": "Départ",
     "title": "Lieux",
     "viewLink": "Voir sur la carte"
+  },
+  "pages": {
+    "add": "Ajouter une page",
+    "confirmations": {
+      "delete": "Êtes-vous sûr de vouloir supprimer la page \"{{name}}\" ? Cette action est irréversible.",
+      "deleteTitle": "Supprimer la page"
+    },
+    "create": {
+      "title": "Créer une page"
+    },
+    "edit": {
+      "title": "Modifier {{name}}"
+    },
+    "empty": {
+      "action": "Ajouter une page",
+      "description": "Créez des pages personnalisées pour la FAQ, les règles ou toute information sur l'équipe.",
+      "title": "Aucune page"
+    },
+    "form": {
+      "content": {
+        "charCount_one": "{{count}}/{{max}} caractère",
+        "charCount_many": "{{count}}/{{max}} caractères",
+        "charCount_other": "{{count}}/{{max}} caractères",
+        "label": "Contenu",
+        "placeholder": "Rédigez le contenu de votre page ici..."
+      },
+      "create": "Créer la page",
+      "createError": "Échec de la création de la page. Veuillez réessayer.",
+      "creating": "Création...",
+      "save": "Enregistrer les modifications",
+      "saving": "Enregistrement...",
+      "title": {
+        "hint": "Ceci apparaîtra comme un onglet dans la navigation de l'équipe",
+        "label": "Titre de la page",
+        "placeholder": "ex: FAQ, Règlement, Équipement"
+      },
+      "updateError": "Échec de la mise à jour de la page. Veuillez réessayer.",
+      "visibility": {
+        "hint": "Les pages publiques sont visibles par tous, les pages d'équipe uniquement par les membres",
+        "label": "Visibilité"
+      }
+    },
+    "loading": "Chargement de la page...",
+    "noContent": "Cette page n'a pas encore de contenu.",
+    "notifications": {
+      "created": "Page créée avec succès",
+      "deleted": "Page supprimée avec succès",
+      "reordered": "Pages réordonnées avec succès",
+      "updated": "Page mise à jour avec succès"
+    },
+    "subtitle_one": "{{count}} page sur {{max}} maximum",
+    "subtitle_many": "{{count}} pages sur {{max}} maximum",
+    "subtitle_other": "{{count}} pages sur {{max}} maximum",
+    "title": "Pages de l'équipe"
   },
   "publications": {
     "list": {

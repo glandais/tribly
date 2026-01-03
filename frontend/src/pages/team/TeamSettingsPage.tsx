@@ -63,7 +63,7 @@ export function TeamSettingsPage() {
         <TeamForm
           teamSlug={teamSlug}
           initialName={team.name}
-          initialMedia={team.media}
+          initialMedia={team.about}
           initialVisibility={team.visibility}
           initialEnableTrips={team.enableTrips}
           initialEnableAds={team.enableAds}

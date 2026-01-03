@@ -14,9 +14,16 @@ export const paths = {
   team: (teamSlug: string) => `/teams/${teamSlug}`,
   teamAbout: (teamSlug: string) => `/teams/${teamSlug}/about`,
 
+  // Team Pages (displayed as tabs)
+  teamPage: (teamSlug: string, pageSlug: string) => `/teams/${teamSlug}/pages/${pageSlug}`,
+
   // Team Admin
   teamAdmin: (teamSlug: string) => `/teams/${teamSlug}/admin`,
   teamAdminPlaces: (teamSlug: string) => `/teams/${teamSlug}/admin/places`,
+  teamAdminPages: (teamSlug: string) => `/teams/${teamSlug}/admin/pages`,
+  teamAdminPageNew: (teamSlug: string) => `/teams/${teamSlug}/admin/pages/new`,
+  teamAdminPageEdit: (teamSlug: string, pageSlug: string) =>
+    `/teams/${teamSlug}/admin/pages/${pageSlug}/edit`,
   teamMembers: (teamSlug: string) => `/teams/${teamSlug}/admin/members`,
   teamSettings: (teamSlug: string) => `/teams/${teamSlug}/admin/settings`,
 

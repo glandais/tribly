@@ -52,6 +52,7 @@ docs/PublicationListResponse.md
 docs/PublicationType.md
 docs/PublicationsApi.md
 docs/RentalPeriod.md
+docs/ReorderPagesRequest.md
 docs/RideCommentsApi.md
 docs/RideDto.md
 docs/RideGroupDto.md
@@ -82,6 +83,10 @@ docs/SurfaceType.md
 docs/TeamDetailDto.md
 docs/TeamListResponse.md
 docs/TeamMembersApi.md
+docs/TeamPageDto.md
+docs/TeamPageRequest.md
+docs/TeamPageSummaryDto.md
+docs/TeamPagesApi.md
 docs/TeamPublicationDto.md
 docs/TeamRequest.md
 docs/TeamRole.md

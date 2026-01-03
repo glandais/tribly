@@ -16,12 +16,21 @@ export interface RouteParams {
   routeSlug?: string
   templateSlug?: string
   adSlug?: string
+  pageSlug?: string
 }
 
 /**
  * Entity types that can provide dynamic breadcrumb labels
  */
-export type EntityType = 'team' | 'ride' | 'post' | 'trip' | 'route' | 'rideTemplate' | 'ad'
+export type EntityType =
+  | 'team'
+  | 'ride'
+  | 'post'
+  | 'trip'
+  | 'route'
+  | 'rideTemplate'
+  | 'ad'
+  | 'teamPage'
 
 /**
  * Breadcrumb label configuration

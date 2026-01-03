@@ -54,7 +54,7 @@ class TeamServiceTest {
     assertNotNull(result);
     assertEquals("Test Team", result.name());
     assertEquals("test-team", result.slug());
-    assertEquals("A test team", result.media().markdown());
+    assertEquals("A test team", result.about().markdown());
     assertEquals(Visibility.PUBLIC, result.visibility());
     assertEquals(TeamRole.ADMIN, result.role());
     assertEquals(1L, result.memberCount());
@@ -185,7 +185,7 @@ class TeamServiceTest {
     TeamDetailDto result = teamService.updateTeam("original", request, user1.getId());
 
     assertEquals("Updated Name", result.name());
-    assertEquals("Updated description", result.media().markdown());
+    assertEquals("Updated description", result.about().markdown());
     assertEquals(Visibility.TEAM, result.visibility());
   }
 
@@ -222,7 +222,7 @@ class TeamServiceTest {
     TeamDetailDto result = teamService.updateTeam("original", request, user1.getId());
 
     assertEquals("New name", result.name());
-    assertEquals("Updated description", result.media().markdown());
+    assertEquals("Updated description", result.about().markdown());
   }
 
   @Test

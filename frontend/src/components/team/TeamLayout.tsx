@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useLeaveTeam, useJoinTeam } from '../../hooks/useTeam'
@@ -12,7 +12,8 @@ import { paths } from '@/config/paths'
 
 interface TeamLayoutProps {
   team: TeamDetailDto
-  currentTab: 'publications' | 'routes' | 'about'
+  /** Tab identifier: 'publications', 'routes', 'about', or a page slug for dynamic pages */
+  currentTab: string
   children: React.ReactNode
 }
 
@@ -23,7 +24,7 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false)
 
   // Set favicon to team logo
-  useFavicon(team.media?.assets?.logo?.url)
+  useFavicon(team.about?.assets?.logo?.url)
 
   const isMember = !!team.role
   const isAdmin = team.role === 'ADMIN'
@@ -46,15 +47,31 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
     })
   }
 
-  const tabs = [
-    {
-      id: 'publications',
-      path: paths.team(team.slug),
-      label: t('detail.tabs.publications'),
-    },
-    { id: 'routes', path: paths.routes(team.slug), label: t('detail.tabs.routes') },
-    { id: 'about', path: paths.teamAbout(team.slug), label: t('detail.tabs.about') },
-  ]
+  // Build tabs list with dynamic pages
+  const tabs = useMemo(() => {
+    const baseTabs = [
+      {
+        id: 'publications',
+        path: paths.team(team.slug),
+        label: t('detail.tabs.publications'),
+      },
+      { id: 'routes', path: paths.routes(team.slug), label: t('detail.tabs.routes') },
+      { id: 'about', path: paths.teamAbout(team.slug), label: t('detail.tabs.about') },
+    ]
+
+    // Add dynamic pages - filter by visibility (PUBLIC pages or member can see TEAM pages)
+    const visiblePages = (team.pages ?? []).filter(
+      (page) => page.visibility === 'PUBLIC' || isMember
+    )
+
+    const pageTabs = visiblePages.map((page) => ({
+      id: page.slug,
+      path: paths.teamPage(team.slug, page.slug),
+      label: page.title,
+    }))
+
+    return [...baseTabs, ...pageTabs]
+  }, [team.slug, team.pages, isMember, t])
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

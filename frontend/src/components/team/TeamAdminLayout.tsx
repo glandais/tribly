@@ -4,7 +4,7 @@ import { ArrowLeftIcon } from '@heroicons/react/24/outline'
 import type { TeamDetailDto } from '../../hooks/useTeam'
 import { paths } from '@/config/paths'
 
-export type AdminTab = 'ride-templates' | 'places' | 'members' | 'settings'
+export type AdminTab = 'ride-templates' | 'places' | 'pages' | 'members' | 'settings'
 
 interface TeamAdminLayoutProps {
   team: TeamDetailDto
@@ -33,6 +33,12 @@ export function TeamAdminLayout({ team, currentTab, children }: TeamAdminLayoutP
       id: 'places',
       path: paths.teamAdminPlaces(team.slug),
       label: t('admin.tabs.places'),
+    },
+    {
+      id: 'pages',
+      path: paths.teamAdminPages(team.slug),
+      label: t('admin.tabs.pages'),
+      adminOnly: true,
     },
     {
       id: 'members',

@@ -46,7 +46,7 @@ public class TeamRepository implements BaseRepository<Team> {
     }
     triblyQuery =
         SearchClause.addSearch(
-            triblyQuery, Set.of("t.name", "t.teamDescription.markdown"), teamQuery.search());
+            triblyQuery, Set.of("t.name", "t.aboutPage.markdown"), teamQuery.search());
     if (teamQuery.userId() != null) {
       if (teamQuery.minRole() == null || teamQuery.minRole() == MinRole.NOT_MEMBER) {
         OrClause or = new OrClause();

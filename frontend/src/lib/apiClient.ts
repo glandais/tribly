@@ -6,6 +6,7 @@ import {
   PublicationsApi,
   RoutesApi,
   TeamMembersApi,
+  TeamPagesApi,
   UsersApi,
   ConfigurationApi,
   ErrorResponse,
@@ -67,6 +68,7 @@ export const postCommentsApi = new PostCommentsApi(apiConfiguration, '', axiosIn
 export const tripCommentsApi = new TripCommentsApi(apiConfiguration, '', axiosInstance)
 export const routeCommentsApi = new RouteCommentsApi(apiConfiguration, '', axiosInstance)
 export const adsApi = new AdsApi(apiConfiguration, '', axiosInstance)
+export const teamPagesApi = new TeamPagesApi(apiConfiguration, '', axiosInstance)
 
 export class ApiClientError extends Error {
   constructor(

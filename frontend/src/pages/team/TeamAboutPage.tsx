@@ -29,8 +29,8 @@ export function TeamAboutPage() {
 
           {/* Description */}
           <div className="mb-6">
-            <MediaDisplay media={team.media} className="text-gray-600" />
-            {!team.media?.markdown && (
+            <MediaDisplay media={team.about} className="text-gray-600" />
+            {!team.about?.markdown && (
               <p className="text-gray-500 italic">{t('detail.about.noDescription')}</p>
             )}
           </div>

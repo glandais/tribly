@@ -58,7 +58,7 @@ function getInitials(name: string): string {
 export interface TeamAvatarProps {
   team: {
     name: string
-    media: MediaDto
+    about: MediaDto
   }
   size?: keyof typeof sizeClasses
   className?: string
@@ -69,7 +69,7 @@ export interface TeamAvatarProps {
  * Uses consistent hash-based colors for teams without logos.
  */
 export function TeamAvatar({ team, size = 'md', className = '' }: TeamAvatarProps) {
-  const logo = team.media.assets.logo
+  const logo = team.about.assets.logo
   const sizeClass = sizeClasses[size]
 
   if (logo?.url) {

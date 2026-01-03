@@ -149,8 +149,13 @@ create table team_entities (
                                distance integer,
                                elevation_gain integer,
                                elevation_loss integer,
-                               entity_type integer not null check ((entity_type in (3,1,5,6,2,4))),
+                               entity_type integer not null check ((entity_type in (1,5,3,6,2,4,7))),
                                hilliness integer,
+                               is_about_page boolean,
+                               latitude float(53),
+                               longitude float(53),
+                               page_order integer,
+                               price numeric(10,2),
                                sort_order integer,
                                wind_direction smallint check ((wind_direction between 0 and 7)),
                                created_at timestamp(6) with time zone not null,
@@ -165,9 +170,12 @@ create table team_entities (
                                trip_id bigint,
                                updated_at timestamp(6) with time zone not null,
                                version bigint,
+                               ad_type varchar(20) check ((ad_type in ('SALE','RENTAL','WANTED'))),
+                               rental_period varchar(20) check ((rental_period in ('DAY','WEEK','MONTH'))),
                                status varchar(20) not null check ((status in ('DRAFT','PUBLISHED','CANCELLED'))),
                                surface_type varchar(20) check ((surface_type in ('ROAD','GRAVEL','MTB','MIXED'))),
                                visibility varchar(20) not null check ((visibility in ('TEAM','PUBLIC'))),
+                               location_description varchar(255),
                                markdown TEXT,
                                name varchar(255) not null,
                                slug varchar(255) not null,
@@ -175,11 +183,13 @@ create table team_entities (
                                "start" geometry(Point,4326),
                                primary key (id),
                                constraint uk_team_entity_slug unique (team_id, entity_type, slug),
-                               check (entity_type <> 6 or (sort_order is not null))
+                               check (entity_type <> 6 or (sort_order is not null)),
+                               check (entity_type <> 4 or (is_about_page is not null))
 );
 
 create table teams (
                        deleted boolean not null,
+                       enable_ads boolean not null,
                        enable_trips boolean not null,
                        created_at timestamp(6) with time zone not null,
                        created_by_id bigint not null,

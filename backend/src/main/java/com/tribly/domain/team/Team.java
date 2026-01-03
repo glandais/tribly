@@ -8,12 +8,14 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
-import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.SQLRestriction;
 
 @Setter
 @Getter
@@ -44,7 +46,12 @@ public class Team extends BaseEntity {
   @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
   @JoinColumn(name = "description_id")
   @NotNullableDbValue
-  private TeamDescription teamDescription;
+  private TeamPage aboutPage;
+
+  @OneToMany(mappedBy = "team", cascade = CascadeType.ALL, orphanRemoval = true)
+  @SQLRestriction("entity_type = 4 AND is_about_page = false AND deleted = false")
+  @OrderBy("pageOrder ASC")
+  private List<TeamPage> additionalPages = new ArrayList<>();
 
   @OneToMany(mappedBy = "team", cascade = CascadeType.ALL, orphanRemoval = true)
   private Set<UserTeam> members = new HashSet<>();
@@ -60,8 +67,6 @@ public class Team extends BaseEntity {
     this.name = name;
     this.slug = slug;
     this.visibility = visibility;
-    this.teamDescription =
-        new TeamDescription(
-            creator, this, Instant.now(), "team-description", "team-description", visibility);
+    this.aboutPage = TeamPage.createAboutPage(creator, this, visibility);
   }
 }

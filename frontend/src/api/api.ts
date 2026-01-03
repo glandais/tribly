@@ -769,6 +769,15 @@ export const RentalPeriod = {
 
 export type RentalPeriod = (typeof RentalPeriod)[keyof typeof RentalPeriod]
 
+/**
+ * Request to reorder team pages
+ */
+export interface ReorderPagesRequest {
+  /**
+   * Ordered list of page IDs
+   */
+  pageIds: Array<string>
+}
 export interface RideDto extends PublicationDto {
   /**
    * Type
@@ -1323,9 +1332,13 @@ export interface TeamDetailDto {
    */
   slug: string
   /**
-   * Team description
+   * About page content
    */
-  media: MediaDto
+  about: MediaDto
+  /**
+   * Additional team pages
+   */
+  pages?: Array<TeamPageSummaryDto>
   /**
    * Whether the team is public
    */
@@ -1370,6 +1383,80 @@ export interface TeamListResponse {
    */
   size: number
 }
+/**
+ * Team page detail
+ */
+export interface TeamPageDto {
+  /**
+   * Page ID (TSID)
+   */
+  id: string
+  /**
+   * Page title
+   */
+  title: string
+  /**
+   * Page URL slug
+   */
+  slug: string
+  /**
+   * Page content
+   */
+  media: MediaDto
+  /**
+   * Visibility level
+   */
+  visibility: Visibility
+  /**
+   * Page order
+   */
+  order: number
+}
+
+/**
+ * Team page request
+ */
+export interface TeamPageRequest {
+  /**
+   * Page title
+   */
+  title: string
+  /**
+   * Page content
+   */
+  media: MediaDto
+  /**
+   * Visibility level
+   */
+  visibility: Visibility
+}
+
+/**
+ * Team page summary for listings
+ */
+export interface TeamPageSummaryDto {
+  /**
+   * Page ID (TSID)
+   */
+  id: string
+  /**
+   * Page title
+   */
+  title: string
+  /**
+   * Page URL slug
+   */
+  slug: string
+  /**
+   * Visibility level
+   */
+  visibility: Visibility
+  /**
+   * Page order
+   */
+  order: number
+}
+
 /**
  * Team information
  */
@@ -8842,6 +8929,696 @@ export class TeamMembersApi extends BaseAPI {
   ) {
     return TeamMembersApiFp(this.configuration)
       .updateMemberRole(memberId, slug, updateMemberRoleRequest, options)
+      .then((request) => request(this.axios, this.basePath))
+  }
+}
+
+/**
+ * TeamPagesApi - axios parameter creator
+ */
+export const TeamPagesApiAxiosParamCreator = function (configuration?: Configuration) {
+  return {
+    /**
+     * Create a new team page. Requires admin permissions. Maximum 3 additional pages per team.
+     * @summary Create page
+     * @param {string} slug Team URL slug
+     * @param {TeamPageRequest} teamPageRequest
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    createPage: async (
+      slug: string,
+      teamPageRequest: TeamPageRequest,
+      options: RawAxiosRequestConfig = {}
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'slug' is not null or undefined
+      assertParamExists('createPage', 'slug', slug)
+      // verify required parameter 'teamPageRequest' is not null or undefined
+      assertParamExists('createPage', 'teamPageRequest', teamPageRequest)
+      const localVarPath = `/api/teams/{slug}/pages`.replace(
+        `{${'slug'}}`,
+        encodeURIComponent(String(slug))
+      )
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL)
+      let baseOptions
+      if (configuration) {
+        baseOptions = configuration.baseOptions
+      }
+
+      const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options }
+      const localVarHeaderParameter = {} as any
+      const localVarQueryParameter = {} as any
+
+      // authentication SecurityScheme required
+
+      localVarHeaderParameter['Content-Type'] = 'application/json'
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter)
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {}
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      }
+      localVarRequestOptions.data = serializeDataIfNeeded(
+        teamPageRequest,
+        localVarRequestOptions,
+        configuration
+      )
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      }
+    },
+    /**
+     * Delete a team page. Requires admin permissions.
+     * @summary Delete page
+     * @param {string} pageSlug Page URL slug
+     * @param {string} slug Team URL slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    deletePage: async (
+      pageSlug: string,
+      slug: string,
+      options: RawAxiosRequestConfig = {}
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'pageSlug' is not null or undefined
+      assertParamExists('deletePage', 'pageSlug', pageSlug)
+      // verify required parameter 'slug' is not null or undefined
+      assertParamExists('deletePage', 'slug', slug)
+      const localVarPath = `/api/teams/{slug}/pages/{pageSlug}`
+        .replace(`{${'pageSlug'}}`, encodeURIComponent(String(pageSlug)))
+        .replace(`{${'slug'}}`, encodeURIComponent(String(slug)))
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL)
+      let baseOptions
+      if (configuration) {
+        baseOptions = configuration.baseOptions
+      }
+
+      const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options }
+      const localVarHeaderParameter = {} as any
+      const localVarQueryParameter = {} as any
+
+      // authentication SecurityScheme required
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter)
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {}
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      }
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      }
+    },
+    /**
+     * Get detailed page information
+     * @summary Get page details
+     * @param {string} pageSlug Page URL slug
+     * @param {string} slug Team URL slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getPage: async (
+      pageSlug: string,
+      slug: string,
+      options: RawAxiosRequestConfig = {}
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'pageSlug' is not null or undefined
+      assertParamExists('getPage', 'pageSlug', pageSlug)
+      // verify required parameter 'slug' is not null or undefined
+      assertParamExists('getPage', 'slug', slug)
+      const localVarPath = `/api/teams/{slug}/pages/{pageSlug}`
+        .replace(`{${'pageSlug'}}`, encodeURIComponent(String(pageSlug)))
+        .replace(`{${'slug'}}`, encodeURIComponent(String(slug)))
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL)
+      let baseOptions
+      if (configuration) {
+        baseOptions = configuration.baseOptions
+      }
+
+      const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options }
+      const localVarHeaderParameter = {} as any
+      const localVarQueryParameter = {} as any
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter)
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {}
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      }
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      }
+    },
+    /**
+     * Get list of additional pages for a team
+     * @summary List team pages
+     * @param {string} slug Team URL slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listPages: async (slug: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+      // verify required parameter 'slug' is not null or undefined
+      assertParamExists('listPages', 'slug', slug)
+      const localVarPath = `/api/teams/{slug}/pages`.replace(
+        `{${'slug'}}`,
+        encodeURIComponent(String(slug))
+      )
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL)
+      let baseOptions
+      if (configuration) {
+        baseOptions = configuration.baseOptions
+      }
+
+      const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options }
+      const localVarHeaderParameter = {} as any
+      const localVarQueryParameter = {} as any
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter)
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {}
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      }
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      }
+    },
+    /**
+     * Reorder team pages. Requires admin permissions.
+     * @summary Reorder pages
+     * @param {string} slug Team URL slug
+     * @param {ReorderPagesRequest} reorderPagesRequest
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    reorderPages: async (
+      slug: string,
+      reorderPagesRequest: ReorderPagesRequest,
+      options: RawAxiosRequestConfig = {}
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'slug' is not null or undefined
+      assertParamExists('reorderPages', 'slug', slug)
+      // verify required parameter 'reorderPagesRequest' is not null or undefined
+      assertParamExists('reorderPages', 'reorderPagesRequest', reorderPagesRequest)
+      const localVarPath = `/api/teams/{slug}/pages/reorder`.replace(
+        `{${'slug'}}`,
+        encodeURIComponent(String(slug))
+      )
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL)
+      let baseOptions
+      if (configuration) {
+        baseOptions = configuration.baseOptions
+      }
+
+      const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options }
+      const localVarHeaderParameter = {} as any
+      const localVarQueryParameter = {} as any
+
+      // authentication SecurityScheme required
+
+      localVarHeaderParameter['Content-Type'] = 'application/json'
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter)
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {}
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      }
+      localVarRequestOptions.data = serializeDataIfNeeded(
+        reorderPagesRequest,
+        localVarRequestOptions,
+        configuration
+      )
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      }
+    },
+    /**
+     * Update page information. Requires admin permissions.
+     * @summary Update page
+     * @param {string} pageSlug Page URL slug
+     * @param {string} slug Team URL slug
+     * @param {TeamPageRequest} teamPageRequest
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    updatePage: async (
+      pageSlug: string,
+      slug: string,
+      teamPageRequest: TeamPageRequest,
+      options: RawAxiosRequestConfig = {}
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'pageSlug' is not null or undefined
+      assertParamExists('updatePage', 'pageSlug', pageSlug)
+      // verify required parameter 'slug' is not null or undefined
+      assertParamExists('updatePage', 'slug', slug)
+      // verify required parameter 'teamPageRequest' is not null or undefined
+      assertParamExists('updatePage', 'teamPageRequest', teamPageRequest)
+      const localVarPath = `/api/teams/{slug}/pages/{pageSlug}`
+        .replace(`{${'pageSlug'}}`, encodeURIComponent(String(pageSlug)))
+        .replace(`{${'slug'}}`, encodeURIComponent(String(slug)))
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL)
+      let baseOptions
+      if (configuration) {
+        baseOptions = configuration.baseOptions
+      }
+
+      const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options }
+      const localVarHeaderParameter = {} as any
+      const localVarQueryParameter = {} as any
+
+      // authentication SecurityScheme required
+
+      localVarHeaderParameter['Content-Type'] = 'application/json'
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter)
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {}
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      }
+      localVarRequestOptions.data = serializeDataIfNeeded(
+        teamPageRequest,
+        localVarRequestOptions,
+        configuration
+      )
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      }
+    },
+  }
+}
+
+/**
+ * TeamPagesApi - functional programming interface
+ */
+export const TeamPagesApiFp = function (configuration?: Configuration) {
+  const localVarAxiosParamCreator = TeamPagesApiAxiosParamCreator(configuration)
+  return {
+    /**
+     * Create a new team page. Requires admin permissions. Maximum 3 additional pages per team.
+     * @summary Create page
+     * @param {string} slug Team URL slug
+     * @param {TeamPageRequest} teamPageRequest
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async createPage(
+      slug: string,
+      teamPageRequest: TeamPageRequest,
+      options?: RawAxiosRequestConfig
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TeamPageDto>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.createPage(
+        slug,
+        teamPageRequest,
+        options
+      )
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0
+      const localVarOperationServerBasePath =
+        operationServerMap['TeamPagesApi.createPage']?.[localVarOperationServerIndex]?.url
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration
+        )(axios, localVarOperationServerBasePath || basePath)
+    },
+    /**
+     * Delete a team page. Requires admin permissions.
+     * @summary Delete page
+     * @param {string} pageSlug Page URL slug
+     * @param {string} slug Team URL slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async deletePage(
+      pageSlug: string,
+      slug: string,
+      options?: RawAxiosRequestConfig
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.deletePage(pageSlug, slug, options)
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0
+      const localVarOperationServerBasePath =
+        operationServerMap['TeamPagesApi.deletePage']?.[localVarOperationServerIndex]?.url
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration
+        )(axios, localVarOperationServerBasePath || basePath)
+    },
+    /**
+     * Get detailed page information
+     * @summary Get page details
+     * @param {string} pageSlug Page URL slug
+     * @param {string} slug Team URL slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async getPage(
+      pageSlug: string,
+      slug: string,
+      options?: RawAxiosRequestConfig
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TeamPageDto>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.getPage(pageSlug, slug, options)
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0
+      const localVarOperationServerBasePath =
+        operationServerMap['TeamPagesApi.getPage']?.[localVarOperationServerIndex]?.url
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration
+        )(axios, localVarOperationServerBasePath || basePath)
+    },
+    /**
+     * Get list of additional pages for a team
+     * @summary List team pages
+     * @param {string} slug Team URL slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async listPages(
+      slug: string,
+      options?: RawAxiosRequestConfig
+    ): Promise<
+      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<TeamPageSummaryDto>>
+    > {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.listPages(slug, options)
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0
+      const localVarOperationServerBasePath =
+        operationServerMap['TeamPagesApi.listPages']?.[localVarOperationServerIndex]?.url
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration
+        )(axios, localVarOperationServerBasePath || basePath)
+    },
+    /**
+     * Reorder team pages. Requires admin permissions.
+     * @summary Reorder pages
+     * @param {string} slug Team URL slug
+     * @param {ReorderPagesRequest} reorderPagesRequest
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async reorderPages(
+      slug: string,
+      reorderPagesRequest: ReorderPagesRequest,
+      options?: RawAxiosRequestConfig
+    ): Promise<
+      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<TeamPageSummaryDto>>
+    > {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.reorderPages(
+        slug,
+        reorderPagesRequest,
+        options
+      )
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0
+      const localVarOperationServerBasePath =
+        operationServerMap['TeamPagesApi.reorderPages']?.[localVarOperationServerIndex]?.url
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration
+        )(axios, localVarOperationServerBasePath || basePath)
+    },
+    /**
+     * Update page information. Requires admin permissions.
+     * @summary Update page
+     * @param {string} pageSlug Page URL slug
+     * @param {string} slug Team URL slug
+     * @param {TeamPageRequest} teamPageRequest
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async updatePage(
+      pageSlug: string,
+      slug: string,
+      teamPageRequest: TeamPageRequest,
+      options?: RawAxiosRequestConfig
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<TeamPageDto>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.updatePage(
+        pageSlug,
+        slug,
+        teamPageRequest,
+        options
+      )
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0
+      const localVarOperationServerBasePath =
+        operationServerMap['TeamPagesApi.updatePage']?.[localVarOperationServerIndex]?.url
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration
+        )(axios, localVarOperationServerBasePath || basePath)
+    },
+  }
+}
+
+/**
+ * TeamPagesApi - factory interface
+ */
+export const TeamPagesApiFactory = function (
+  configuration?: Configuration,
+  basePath?: string,
+  axios?: AxiosInstance
+) {
+  const localVarFp = TeamPagesApiFp(configuration)
+  return {
+    /**
+     * Create a new team page. Requires admin permissions. Maximum 3 additional pages per team.
+     * @summary Create page
+     * @param {string} slug Team URL slug
+     * @param {TeamPageRequest} teamPageRequest
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    createPage(
+      slug: string,
+      teamPageRequest: TeamPageRequest,
+      options?: RawAxiosRequestConfig
+    ): AxiosPromise<TeamPageDto> {
+      return localVarFp
+        .createPage(slug, teamPageRequest, options)
+        .then((request) => request(axios, basePath))
+    },
+    /**
+     * Delete a team page. Requires admin permissions.
+     * @summary Delete page
+     * @param {string} pageSlug Page URL slug
+     * @param {string} slug Team URL slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    deletePage(
+      pageSlug: string,
+      slug: string,
+      options?: RawAxiosRequestConfig
+    ): AxiosPromise<void> {
+      return localVarFp
+        .deletePage(pageSlug, slug, options)
+        .then((request) => request(axios, basePath))
+    },
+    /**
+     * Get detailed page information
+     * @summary Get page details
+     * @param {string} pageSlug Page URL slug
+     * @param {string} slug Team URL slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getPage(
+      pageSlug: string,
+      slug: string,
+      options?: RawAxiosRequestConfig
+    ): AxiosPromise<TeamPageDto> {
+      return localVarFp.getPage(pageSlug, slug, options).then((request) => request(axios, basePath))
+    },
+    /**
+     * Get list of additional pages for a team
+     * @summary List team pages
+     * @param {string} slug Team URL slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listPages(
+      slug: string,
+      options?: RawAxiosRequestConfig
+    ): AxiosPromise<Array<TeamPageSummaryDto>> {
+      return localVarFp.listPages(slug, options).then((request) => request(axios, basePath))
+    },
+    /**
+     * Reorder team pages. Requires admin permissions.
+     * @summary Reorder pages
+     * @param {string} slug Team URL slug
+     * @param {ReorderPagesRequest} reorderPagesRequest
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    reorderPages(
+      slug: string,
+      reorderPagesRequest: ReorderPagesRequest,
+      options?: RawAxiosRequestConfig
+    ): AxiosPromise<Array<TeamPageSummaryDto>> {
+      return localVarFp
+        .reorderPages(slug, reorderPagesRequest, options)
+        .then((request) => request(axios, basePath))
+    },
+    /**
+     * Update page information. Requires admin permissions.
+     * @summary Update page
+     * @param {string} pageSlug Page URL slug
+     * @param {string} slug Team URL slug
+     * @param {TeamPageRequest} teamPageRequest
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    updatePage(
+      pageSlug: string,
+      slug: string,
+      teamPageRequest: TeamPageRequest,
+      options?: RawAxiosRequestConfig
+    ): AxiosPromise<TeamPageDto> {
+      return localVarFp
+        .updatePage(pageSlug, slug, teamPageRequest, options)
+        .then((request) => request(axios, basePath))
+    },
+  }
+}
+
+/**
+ * TeamPagesApi - object-oriented interface
+ */
+export class TeamPagesApi extends BaseAPI {
+  /**
+   * Create a new team page. Requires admin permissions. Maximum 3 additional pages per team.
+   * @summary Create page
+   * @param {string} slug Team URL slug
+   * @param {TeamPageRequest} teamPageRequest
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   */
+  public createPage(
+    slug: string,
+    teamPageRequest: TeamPageRequest,
+    options?: RawAxiosRequestConfig
+  ) {
+    return TeamPagesApiFp(this.configuration)
+      .createPage(slug, teamPageRequest, options)
+      .then((request) => request(this.axios, this.basePath))
+  }
+
+  /**
+   * Delete a team page. Requires admin permissions.
+   * @summary Delete page
+   * @param {string} pageSlug Page URL slug
+   * @param {string} slug Team URL slug
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   */
+  public deletePage(pageSlug: string, slug: string, options?: RawAxiosRequestConfig) {
+    return TeamPagesApiFp(this.configuration)
+      .deletePage(pageSlug, slug, options)
+      .then((request) => request(this.axios, this.basePath))
+  }
+
+  /**
+   * Get detailed page information
+   * @summary Get page details
+   * @param {string} pageSlug Page URL slug
+   * @param {string} slug Team URL slug
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   */
+  public getPage(pageSlug: string, slug: string, options?: RawAxiosRequestConfig) {
+    return TeamPagesApiFp(this.configuration)
+      .getPage(pageSlug, slug, options)
+      .then((request) => request(this.axios, this.basePath))
+  }
+
+  /**
+   * Get list of additional pages for a team
+   * @summary List team pages
+   * @param {string} slug Team URL slug
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   */
+  public listPages(slug: string, options?: RawAxiosRequestConfig) {
+    return TeamPagesApiFp(this.configuration)
+      .listPages(slug, options)
+      .then((request) => request(this.axios, this.basePath))
+  }
+
+  /**
+   * Reorder team pages. Requires admin permissions.
+   * @summary Reorder pages
+   * @param {string} slug Team URL slug
+   * @param {ReorderPagesRequest} reorderPagesRequest
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   */
+  public reorderPages(
+    slug: string,
+    reorderPagesRequest: ReorderPagesRequest,
+    options?: RawAxiosRequestConfig
+  ) {
+    return TeamPagesApiFp(this.configuration)
+      .reorderPages(slug, reorderPagesRequest, options)
+      .then((request) => request(this.axios, this.basePath))
+  }
+
+  /**
+   * Update page information. Requires admin permissions.
+   * @summary Update page
+   * @param {string} pageSlug Page URL slug
+   * @param {string} slug Team URL slug
+   * @param {TeamPageRequest} teamPageRequest
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   */
+  public updatePage(
+    pageSlug: string,
+    slug: string,
+    teamPageRequest: TeamPageRequest,
+    options?: RawAxiosRequestConfig
+  ) {
+    return TeamPagesApiFp(this.configuration)
+      .updatePage(pageSlug, slug, teamPageRequest, options)
       .then((request) => request(this.axios, this.basePath))
   }
 }

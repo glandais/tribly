@@ -42,7 +42,7 @@ public class TeamService extends TeamEntityService {
     team.setVisibility(request.visibility());
 
     teamRepository.persistAndFlush(team);
-    updateMedia(team.getTeamDescription(), request.media());
+    updateMedia(team.getAboutPage(), request.media());
     teamRepository.persist(team);
 
     UserTeam membership = new UserTeam(creator, creator, team, TeamRole.ADMIN);
@@ -91,7 +91,7 @@ public class TeamService extends TeamEntityService {
     team.setVisibility(request.visibility());
     team.setEnableTrips(request.enableTrips());
     team.setEnableAds(request.enableAds());
-    updateMedia(team.getTeamDescription(), request.media());
+    updateMedia(team.getAboutPage(), request.media());
 
     teamRepository.persist(team);
     LOG.infov("Team {0} updated by user {1}", team.getSlug(), userId);

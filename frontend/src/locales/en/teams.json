@@ -3,6 +3,7 @@
     "backToTeam": "Back to {{teamName}}",
     "tabs": {
       "members": "Members",
+      "pages": "Pages",
       "places": "Places",
       "rideTemplates": "Ride Templates",
       "settings": "Settings"
@@ -166,6 +167,58 @@
     "startPlace": "Start",
     "title": "Places",
     "viewLink": "View on map"
+  },
+  "pages": {
+    "add": "Add Page",
+    "confirmations": {
+      "delete": "Are you sure you want to delete the page \"{{name}}\"? This action cannot be undone.",
+      "deleteTitle": "Delete Page"
+    },
+    "create": {
+      "title": "Create Page"
+    },
+    "edit": {
+      "title": "Edit {{name}}"
+    },
+    "empty": {
+      "action": "Add Page",
+      "description": "Create custom pages for FAQ, rules, or any team information.",
+      "title": "No pages yet"
+    },
+    "form": {
+      "content": {
+        "charCount_one": "{{count}}/{{max}} character",
+        "charCount_other": "{{count}}/{{max}} characters",
+        "label": "Content",
+        "placeholder": "Write your page content here..."
+      },
+      "create": "Create Page",
+      "createError": "Failed to create page. Please try again.",
+      "creating": "Creating...",
+      "save": "Save Changes",
+      "saving": "Saving...",
+      "title": {
+        "hint": "This will appear as a tab in the team navigation",
+        "label": "Page Title",
+        "placeholder": "e.g., FAQ, Team Rules, Equipment"
+      },
+      "updateError": "Failed to update page. Please try again.",
+      "visibility": {
+        "hint": "Public pages are visible to everyone, team pages only to members",
+        "label": "Visibility"
+      }
+    },
+    "loading": "Loading page...",
+    "noContent": "This page has no content yet.",
+    "notifications": {
+      "created": "Page created successfully",
+      "deleted": "Page deleted successfully",
+      "reordered": "Pages reordered successfully",
+      "updated": "Page updated successfully"
+    },
+    "subtitle_one": "{{count}} page of {{max}} maximum",
+    "subtitle_other": "{{count}} pages of {{max}} maximum",
+    "title": "Team Pages"
   },
   "publications": {
     "list": {

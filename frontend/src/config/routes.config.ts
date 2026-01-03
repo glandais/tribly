@@ -36,6 +36,18 @@ const TeamPlacesPage = lazy(() =>
 const TeamAboutPage = lazy(() =>
   import('../pages/team/TeamAboutPage').then((m) => ({ default: m.TeamAboutPage }))
 )
+const TeamPageDetailPage = lazy(() =>
+  import('../pages/team/TeamPageDetailPage').then((m) => ({ default: m.TeamPageDetailPage }))
+)
+const TeamPagesAdminPage = lazy(() =>
+  import('../pages/team/TeamPagesAdminPage').then((m) => ({ default: m.TeamPagesAdminPage }))
+)
+const CreateTeamPagePage = lazy(() =>
+  import('../pages/team/CreateTeamPagePage').then((m) => ({ default: m.CreateTeamPagePage }))
+)
+const EditTeamPagePage = lazy(() =>
+  import('../pages/team/EditTeamPagePage').then((m) => ({ default: m.EditTeamPagePage }))
+)
 const RideDetailPage = lazy(() =>
   import('../pages/ride/RideDetailPage').then((m) => ({ default: m.RideDetailPage }))
 )
@@ -178,6 +190,14 @@ export const routesConfig: RoutesConfig = [
     parentId: 'team-detail',
     breadcrumb: { type: 'static', i18nKey: 'teams:detail.tabs.about' },
   },
+  {
+    id: 'team-page',
+    path: paths.teamPage(':teamSlug', ':pageSlug'),
+    component: TeamPageDetailPage,
+    auth: 'public',
+    parentId: 'team-detail',
+    breadcrumb: { type: 'dynamic', entity: 'teamPage' },
+  },
   // === Team Admin Routes ===
   {
     id: 'team-admin',
@@ -194,6 +214,32 @@ export const routesConfig: RoutesConfig = [
     auth: 'authenticated',
     parentId: 'team-admin',
     breadcrumb: { type: 'static', i18nKey: 'teams:admin.tabs.places' },
+  },
+  {
+    id: 'team-admin-pages',
+    path: paths.teamAdminPages(':teamSlug'),
+    component: TeamPagesAdminPage,
+    auth: 'authenticated',
+    parentId: 'team-admin',
+    breadcrumb: { type: 'static', i18nKey: 'teams:admin.tabs.pages' },
+  },
+  {
+    id: 'team-admin-page-new',
+    path: paths.teamAdminPageNew(':teamSlug'),
+    component: CreateTeamPagePage,
+    auth: 'authenticated',
+    parentId: 'team-admin-pages',
+    breadcrumb: { type: 'static', i18nKey: 'common:actions.new' },
+    showBackLink: true,
+  },
+  {
+    id: 'team-admin-page-edit',
+    path: paths.teamAdminPageEdit(':teamSlug', ':pageSlug'),
+    component: EditTeamPagePage,
+    auth: 'authenticated',
+    parentId: 'team-admin-pages',
+    breadcrumb: { type: 'dynamic', entity: 'teamPage' },
+    showBackLink: true,
   },
   {
     id: 'team-members',

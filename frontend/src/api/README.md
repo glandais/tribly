@@ -104,6 +104,12 @@ Class | Method | HTTP request | Description
 *TeamMembersApi* | [**leaveTeam**](docs/TeamMembersApi.md#leaveteam) | **POST** /api/teams/{slug}/members/leave | Leave team
 *TeamMembersApi* | [**removeMember**](docs/TeamMembersApi.md#removemember) | **DELETE** /api/teams/{slug}/members/{memberId} | Remove team member
 *TeamMembersApi* | [**updateMemberRole**](docs/TeamMembersApi.md#updatememberrole) | **PUT** /api/teams/{slug}/members/{memberId} | Update member role
+*TeamPagesApi* | [**createPage**](docs/TeamPagesApi.md#createpage) | **POST** /api/teams/{slug}/pages | Create page
+*TeamPagesApi* | [**deletePage**](docs/TeamPagesApi.md#deletepage) | **DELETE** /api/teams/{slug}/pages/{pageSlug} | Delete page
+*TeamPagesApi* | [**getPage**](docs/TeamPagesApi.md#getpage) | **GET** /api/teams/{slug}/pages/{pageSlug} | Get page details
+*TeamPagesApi* | [**listPages**](docs/TeamPagesApi.md#listpages) | **GET** /api/teams/{slug}/pages | List team pages
+*TeamPagesApi* | [**reorderPages**](docs/TeamPagesApi.md#reorderpages) | **PUT** /api/teams/{slug}/pages/reorder | Reorder pages
+*TeamPagesApi* | [**updatePage**](docs/TeamPagesApi.md#updatepage) | **PUT** /api/teams/{slug}/pages/{pageSlug} | Update page
 *TeamsApi* | [**createTeam**](docs/TeamsApi.md#createteam) | **POST** /api/teams | Create team
 *TeamsApi* | [**deleteTeam**](docs/TeamsApi.md#deleteteam) | **DELETE** /api/teams/{slug} | Delete team
 *TeamsApi* | [**getTeam**](docs/TeamsApi.md#getteam) | **GET** /api/teams/{slug} | Get team by slug
@@ -169,6 +175,7 @@ Class | Method | HTTP request | Description
  - [PublicationListResponse](docs/PublicationListResponse.md)
  - [PublicationType](docs/PublicationType.md)
  - [RentalPeriod](docs/RentalPeriod.md)
+ - [ReorderPagesRequest](docs/ReorderPagesRequest.md)
  - [RideDto](docs/RideDto.md)
  - [RideGroupDto](docs/RideGroupDto.md)
  - [RideListResponse](docs/RideListResponse.md)
@@ -192,6 +199,9 @@ Class | Method | HTTP request | Description
  - [SurfaceType](docs/SurfaceType.md)
  - [TeamDetailDto](docs/TeamDetailDto.md)
  - [TeamListResponse](docs/TeamListResponse.md)
+ - [TeamPageDto](docs/TeamPageDto.md)
+ - [TeamPageRequest](docs/TeamPageRequest.md)
+ - [TeamPageSummaryDto](docs/TeamPageSummaryDto.md)
  - [TeamPublicationDto](docs/TeamPublicationDto.md)
  - [TeamRequest](docs/TeamRequest.md)
  - [TeamRole](docs/TeamRole.md)

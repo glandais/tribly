@@ -9,7 +9,7 @@ import com.tribly.domain.post.Post;
 import com.tribly.domain.ride.Ride;
 import com.tribly.domain.route.Route;
 import com.tribly.domain.team.Team;
-import com.tribly.domain.team.TeamDescription;
+import com.tribly.domain.team.TeamPage;
 import com.tribly.domain.user.User;
 import com.tribly.enums.Status;
 import com.tribly.enums.Visibility;
@@ -52,7 +52,7 @@ class AllTeamEntityRepositoryTest {
   class Find {
 
     @Test
-    @DisplayName("Should return rides (plus TeamDescription from team creation)")
+    @DisplayName("Should return rides (plus TeamPage from team creation)")
     void find_shouldReturnRides() {
       dataService.createRide(team, user, "Test Ride", "test-ride", now);
 
@@ -60,14 +60,14 @@ class AllTeamEntityRepositoryTest {
           new TeamEntityQueryBasic(null, null, null, null, null, null, null, 0, 10);
       TriblyPage<TeamEntity> result = teamEntityRepository.find(query);
 
-      // Team creation also creates a TeamDescription
+      // Team creation also creates a TeamPage (about page)
       assertEquals(2, result.total());
       long rideCount = result.items().stream().filter(e -> e instanceof Ride).count();
       assertEquals(1, rideCount);
     }
 
     @Test
-    @DisplayName("Should return posts (plus TeamDescription from team creation)")
+    @DisplayName("Should return posts (plus TeamPage from team creation)")
     void find_shouldReturnPosts() {
       dataService.createPost(team, user, "Test Post", now);
 
@@ -75,14 +75,14 @@ class AllTeamEntityRepositoryTest {
           new TeamEntityQueryBasic(null, null, null, null, null, null, null, 0, 10);
       TriblyPage<TeamEntity> result = teamEntityRepository.find(query);
 
-      // Team creation also creates a TeamDescription
+      // Team creation also creates a TeamPage (about page)
       assertEquals(2, result.total());
       long postCount = result.items().stream().filter(e -> e instanceof Post).count();
       assertEquals(1, postCount);
     }
 
     @Test
-    @DisplayName("Should return routes (plus TeamDescription from team creation)")
+    @DisplayName("Should return routes (plus TeamPage from team creation)")
     void find_shouldReturnRoutes() {
       dataService.createRoute(team, user, "Test Route", Visibility.PUBLIC);
 
@@ -90,14 +90,14 @@ class AllTeamEntityRepositoryTest {
           new TeamEntityQueryBasic(null, null, null, null, null, null, null, 0, 10);
       TriblyPage<TeamEntity> result = teamEntityRepository.find(query);
 
-      // Team creation also creates a TeamDescription
+      // Team creation also creates a TeamPage (about page)
       assertEquals(2, result.total());
       long routeCount = result.items().stream().filter(e -> e instanceof Route).count();
       assertEquals(1, routeCount);
     }
 
     @Test
-    @DisplayName("Should return all entity types together (including TeamDescription)")
+    @DisplayName("Should return all entity types together (including TeamPage)")
     void find_shouldReturnAllEntityTypes() {
       dataService.createRide(team, user, "Test Ride", "test-ride", now);
       dataService.createPost(team, user, "Test Post", now.plus(1, ChronoUnit.HOURS));
@@ -107,14 +107,13 @@ class AllTeamEntityRepositoryTest {
           new TeamEntityQueryBasic(null, null, null, null, null, null, null, 0, 10);
       TriblyPage<TeamEntity> result = teamEntityRepository.find(query);
 
-      // 1 TeamDescription + 1 Ride + 1 Post + 1 Route = 4
+      // 1 TeamPage (about) + 1 Ride + 1 Post + 1 Route = 4
       assertEquals(4, result.total());
-      long teamDescCount =
-          result.items().stream().filter(e -> e instanceof TeamDescription).count();
+      long teamPageCount = result.items().stream().filter(e -> e instanceof TeamPage).count();
       long rideCount = result.items().stream().filter(e -> e instanceof Ride).count();
       long postCount = result.items().stream().filter(e -> e instanceof Post).count();
       long routeCount = result.items().stream().filter(e -> e instanceof Route).count();
-      assertEquals(1, teamDescCount);
+      assertEquals(1, teamPageCount);
       assertEquals(1, rideCount);
       assertEquals(1, postCount);
       assertEquals(1, routeCount);
@@ -132,7 +131,7 @@ class AllTeamEntityRepositoryTest {
           new TeamEntityQueryBasic(null, null, null, null, null, null, null, 0, 10);
       TriblyPage<TeamEntity> result = teamEntityRepository.find(query);
 
-      // 1 TeamDescription + 1 Post + 1 Route = 3 (Ride deleted)
+      // 1 TeamPage (about) + 1 Post + 1 Route = 3 (Ride deleted)
       assertEquals(3, result.total());
     }
 
@@ -146,7 +145,7 @@ class AllTeamEntityRepositoryTest {
           new TeamEntityQueryBasic(null, null, null, null, null, null, null, 0, 10);
       TriblyPage<TeamEntity> result = teamEntityRepository.find(query);
 
-      // 1 TeamDescription + 1 Published Ride = 2 (Draft not included)
+      // 1 TeamPage (about) + 1 Published Ride = 2 (Draft not included)
       assertEquals(2, result.total());
       long rideCount = result.items().stream().filter(e -> e instanceof Ride).count();
       assertEquals(1, rideCount);

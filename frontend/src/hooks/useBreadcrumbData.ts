@@ -5,6 +5,7 @@ import { useTrip } from './useTrip'
 import { useRoute } from './useRoute'
 import { useRideTemplate } from './useRideTemplate'
 import { useAd } from './useAd'
+import { useTeamPage } from './useTeamPages'
 import type { RouteParams, EntityType } from '../config/routes.types'
 
 interface EntityData {
@@ -17,7 +18,8 @@ interface EntityData {
  * Only fetches data for entities present in params
  */
 export function useBreadcrumbData(params: RouteParams): Record<EntityType, EntityData> {
-  const { teamSlug, rideSlug, postSlug, tripSlug, routeSlug, templateSlug, adSlug } = params
+  const { teamSlug, rideSlug, postSlug, tripSlug, routeSlug, templateSlug, adSlug, pageSlug } =
+    params
 
   // Fetch team - needed for all team-related breadcrumbs
   const { data: team, isLoading: isLoadingTeam } = useTeam(teamSlug)
@@ -32,6 +34,7 @@ export function useBreadcrumbData(params: RouteParams): Record<EntityType, Entit
     templateSlug
   )
   const { data: ad, isLoading: isLoadingAd } = useAd(teamSlug, adSlug)
+  const { data: teamPage, isLoading: isLoadingTeamPage } = useTeamPage(teamSlug, pageSlug)
 
   return {
     team: { name: team?.name, isLoading: isLoadingTeam },
@@ -41,5 +44,6 @@ export function useBreadcrumbData(params: RouteParams): Record<EntityType, Entit
     route: { name: route?.name, isLoading: isLoadingRoute },
     rideTemplate: { name: rideTemplate?.name, isLoading: isLoadingTemplate },
     ad: { name: ad?.name, isLoading: isLoadingAd },
+    teamPage: { name: teamPage?.title, isLoading: isLoadingTeamPage },
   }
 }
