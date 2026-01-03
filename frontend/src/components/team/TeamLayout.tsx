@@ -56,6 +56,9 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
         label: t('detail.tabs.publications'),
       },
       { id: 'routes', path: paths.routes(team.slug), label: t('detail.tabs.routes') },
+      ...(team.enableAds
+        ? [{ id: 'ads', path: paths.ads(team.slug), label: t('detail.tabs.ads') }]
+        : []),
       { id: 'about', path: paths.teamAbout(team.slug), label: t('detail.tabs.about') },
     ]
 
@@ -71,7 +74,7 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
     }))
 
     return [...baseTabs, ...pageTabs]
-  }, [team.slug, team.pages, isMember, t])
+  }, [team.slug, team.pages, team.enableAds, isMember, t])
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

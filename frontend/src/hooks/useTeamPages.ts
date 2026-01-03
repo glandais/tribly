@@ -31,7 +31,7 @@ export function useTeamPage(teamSlug: string | undefined, pageSlug: string | und
     queryFn: async () => {
       if (!teamSlug) throw new Error('Team slug is required')
       if (!pageSlug) throw new Error('Page slug is required')
-      return await unwrapResponse(teamPagesApi.getPage(teamSlug, pageSlug))
+      return await unwrapResponse(teamPagesApi.getPage(pageSlug, teamSlug))
     },
     enabled: !!teamSlug && !!pageSlug,
   })
@@ -64,7 +64,7 @@ export function useUpdateTeamPage(teamSlug: string, pageSlug: string) {
 
   return useMutation({
     mutationFn: async (data: TeamPageRequest) => {
-      return await unwrapResponse(teamPagesApi.updatePage(teamSlug, pageSlug, data))
+      return await unwrapResponse(teamPagesApi.updatePage(pageSlug, teamSlug, data))
     },
     onSuccess: (page) => {
       queryClient.invalidateQueries({ queryKey: ['teamPages', teamSlug] })
@@ -86,7 +86,7 @@ export function useDeleteTeamPage(teamSlug: string) {
 
   return useMutation({
     mutationFn: async (pageSlug: string) => {
-      await unwrapResponse(teamPagesApi.deletePage(teamSlug, pageSlug))
+      await unwrapResponse(teamPagesApi.deletePage(pageSlug, teamSlug))
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['teamPages', teamSlug] })
