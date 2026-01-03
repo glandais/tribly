@@ -2,6 +2,175 @@
 openapi: 3.1.0
 components:
   schemas:
+    AdDto:
+      description: Ad data
+      type: object
+      required:
+      - team
+      - id
+      - slug
+      - name
+      - media
+      - dateTime
+      - status
+      - visibility
+      - adType
+      - createdById
+      properties:
+        team:
+          description: Team
+          type: object
+          $ref: "#/components/schemas/TeamPublicationDto"
+        id:
+          type: string
+          description: Ad ID (TSID)
+        slug:
+          type: string
+          description: Ad URL slug
+        name:
+          type: string
+          description: Ad name
+        media:
+          description: Ad media
+          type: object
+          $ref: "#/components/schemas/MediaDto"
+        dateTime:
+          description: Ad date/time
+          type: string
+          $ref: "#/components/schemas/Instant"
+        status:
+          description: Ad status
+          type: string
+          $ref: "#/components/schemas/Status"
+        visibility:
+          description: Visibility level
+          type: string
+          $ref: "#/components/schemas/Visibility"
+        adType:
+          description: Ad type
+          type: string
+          $ref: "#/components/schemas/AdType"
+        price:
+          type: number
+          description: Price
+        rentalPeriod:
+          description: Rental period
+          type: string
+          $ref: "#/components/schemas/RentalPeriod"
+        latitude:
+          type: number
+          format: double
+          description: Latitude
+        longitude:
+          type: number
+          format: double
+          description: Longitude
+        locationDescription:
+          type: string
+          description: Location description
+        publishAt:
+          description: Publication timestamp
+          type: string
+          $ref: "#/components/schemas/Instant"
+        createdAt:
+          description: Creation timestamp
+          type: string
+          $ref: "#/components/schemas/Instant"
+        createdById:
+          type: string
+          description: Creator ID (TSID)
+    AdListResponse:
+      description: Paginated ad list response
+      type: object
+      required:
+      - ads
+      - total
+      - page
+      - size
+      properties:
+        ads:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdDto"
+          description: List of ads
+        total:
+          type: integer
+          format: int64
+          description: Total number of ads
+        page:
+          type: integer
+          format: int32
+          description: Current page number
+        size:
+          type: integer
+          format: int32
+          description: Page size
+    AdRequest:
+      description: Ad request
+      type: object
+      required:
+      - name
+      - media
+      - dateTime
+      - status
+      - visibility
+      - adType
+      properties:
+        name:
+          type: string
+          description: Ad name
+          pattern: \S
+          minLength: 3
+          maxLength: 200
+        media:
+          description: Ad description
+          type: object
+          $ref: "#/components/schemas/MediaDto"
+        dateTime:
+          description: Ad date/time
+          type: string
+          $ref: "#/components/schemas/Instant"
+        status:
+          description: Ad status
+          type: string
+          $ref: "#/components/schemas/Status"
+        visibility:
+          description: Visibility level
+          type: string
+          $ref: "#/components/schemas/Visibility"
+        adType:
+          description: Ad type
+          type: string
+          $ref: "#/components/schemas/AdType"
+        price:
+          type: number
+          description: "Price (optional, null for 'contact for price')"
+        rentalPeriod:
+          description: Rental period (required for RENTAL type)
+          type: string
+          $ref: "#/components/schemas/RentalPeriod"
+        latitude:
+          type: number
+          format: double
+          description: Latitude
+        longitude:
+          type: number
+          format: double
+          description: Longitude
+        locationDescription:
+          type: string
+          description: Location description
+          maxLength: 255
+        publishAt:
+          description: Publication timestamp (for scheduled publishing)
+          type: string
+          $ref: "#/components/schemas/Instant"
+    AdType:
+      type: string
+      enum:
+      - SALE
+      - RENTAL
+      - WANTED
     AddMemberRequest:
       description: Request to add a member to the team
       type: object
@@ -735,6 +904,12 @@ components:
       - RIDE
       - POST
       - TRIP
+    RentalPeriod:
+      type: string
+      enum:
+      - DAY
+      - WEEK
+      - MONTH
     RideDto:
       allOf:
       - $ref: "#/components/schemas/PublicationDto"
@@ -1408,6 +1583,7 @@ components:
       - media
       - visibility
       - enableTrips
+      - enableAds
       - memberCount
       - createdAt
       properties:
@@ -1433,6 +1609,9 @@ components:
         enableTrips:
           type: boolean
           description: Trips enabled
+        enableAds:
+          type: boolean
+          description: Ads enabled
         memberCount:
           type: integer
           format: int64
@@ -1503,6 +1682,7 @@ components:
       - media
       - visibility
       - enableTrips
+      - enableAds
       properties:
         name:
           type: string
@@ -1525,6 +1705,11 @@ components:
         enableTrips:
           type: boolean
           description: Trips enabled for team
+          examples:
+          - true
+        enableAds:
+          type: boolean
+          description: Ads enabled for team
           examples:
           - true
     TeamRole:
@@ -1837,9 +2022,11 @@ components:
   securitySchemes:
     SecurityScheme:
       type: openIdConnect
-      openIdConnectUrl: http://localhost:8180/realms/quarkus/.well-known/openid-configuration
+      openIdConnectUrl: http://localhost:8180/realms/tribly/.well-known/openid-configuration
       description: Authentication
 tags:
+- name: Ads
+  description: Ad management operations
 - name: Assets
   description: Assets management operations
 - name: Configuration
@@ -2284,6 +2471,255 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: Team not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - SecurityScheme:
+        - user
+  /api/teams/{slug}/ads:
+    get:
+      summary: List ads
+      description: Get paginated list of ads for a team with optional filtering
+      operationId: listAds
+      tags:
+      - Ads
+      parameters:
+      - description: Team URL slug
+        name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Filter by ad type
+        name: adType
+        in: query
+        schema:
+          $ref: "#/components/schemas/AdType"
+      - description: Start date filter (ISO format)
+        name: from
+        in: query
+        schema:
+          type: string
+      - description: Page number
+        name: page
+        in: query
+        schema:
+          type: integer
+          format: int32
+          default: 0
+      - description: Search by name/description
+        name: search
+        in: query
+        schema:
+          type: string
+      - description: Page size
+        name: size
+        in: query
+        schema:
+          type: integer
+          format: int32
+          default: 20
+      - description: End date filter (ISO format)
+        name: to
+        in: query
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Ads retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdListResponse"
+        "404":
+          description: Team not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      summary: Create ad
+      description: Create a new ad. Any team member can create ads.
+      operationId: createAd
+      tags:
+      - Ads
+      parameters:
+      - description: Team URL slug
+        name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdRequest"
+        required: true
+      responses:
+        "201":
+          description: Ad created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdDto"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: User is not a team member
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Team not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - SecurityScheme:
+        - user
+  /api/teams/{slug}/ads/{adSlug}:
+    put:
+      summary: Update ad
+      description: Update ad information. Only the creator or an admin can update.
+      operationId: updateAd
+      tags:
+      - Ads
+      parameters:
+      - description: Ad URL slug
+        name: adSlug
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Team URL slug
+        name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdRequest"
+        required: true
+      responses:
+        "200":
+          description: Ad updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdDto"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: User is not authorized to update this ad
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Team or ad not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - SecurityScheme:
+        - user
+    get:
+      summary: Get ad details
+      description: Get detailed ad information
+      operationId: getAd
+      tags:
+      - Ads
+      parameters:
+      - description: Ad URL slug
+        name: adSlug
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Team URL slug
+        name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Ad retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdDto"
+        "404":
+          description: Team or ad not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    delete:
+      summary: Delete ad
+      description: Soft delete an ad. Only the creator or an admin can delete.
+      operationId: deleteAd
+      tags:
+      - Ads
+      parameters:
+      - description: Ad URL slug
+        name: adSlug
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Team URL slug
+        name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "204":
+          description: Ad deleted successfully
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: User is not authorized to delete this ad
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Team or ad not found
           content:
             application/json:
               schema:

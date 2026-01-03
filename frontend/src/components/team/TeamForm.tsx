@@ -36,6 +36,7 @@ const teamSchema = z.object({
   media: z.custom<MediaDto>(),
   visibility: z.nativeEnum(Visibility),
   enableTrips: z.boolean(),
+  enableAds: z.boolean(),
 })
 
 type TeamFormValues = z.infer<typeof teamSchema>
@@ -47,6 +48,7 @@ interface TeamFormProps {
   initialMedia?: MediaDto
   initialVisibility?: Visibility
   initialEnableTrips?: boolean
+  initialEnableAds?: boolean
 
   // Behavior
   onSuccess: (team: TeamDetailDto) => void
@@ -60,6 +62,7 @@ export function TeamForm({
   initialMedia,
   initialVisibility = Visibility.Public,
   initialEnableTrips = true,
+  initialEnableAds = true,
   onSuccess,
   create,
 }: TeamFormProps) {
@@ -78,6 +81,7 @@ export function TeamForm({
       media: initialMedia ?? defaultMedia(),
       visibility: initialVisibility,
       enableTrips: initialEnableTrips,
+      enableAds: initialEnableAds,
     },
   })
 
@@ -97,6 +101,9 @@ export function TeamForm({
     if (initialEnableTrips !== undefined) {
       form.setValue('enableTrips', initialEnableTrips)
     }
+    if (initialEnableAds !== undefined) {
+      form.setValue('enableAds', initialEnableAds)
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     initialName,
@@ -104,6 +111,7 @@ export function TeamForm({
     initialMedia?.assets?.images?.length,
     initialVisibility,
     initialEnableTrips,
+    initialEnableAds,
   ])
 
   // Call onSuccess when mutation succeeds
@@ -227,6 +235,22 @@ export function TeamForm({
               <div className="space-y-1">
                 <FormLabel>{t('create.form.enableTrips.label')}</FormLabel>
                 <FormDescription>{t('create.form.enableTrips.hint')}</FormDescription>
+              </div>
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="enableAds"
+          render={({ field }) => (
+            <FormItem className="flex items-start space-x-3 space-y-0">
+              <FormControl>
+                <Checkbox checked={field.value} onCheckedChange={field.onChange} className="mt-1" />
+              </FormControl>
+              <div className="space-y-1">
+                <FormLabel>{t('create.form.enableAds.label')}</FormLabel>
+                <FormDescription>{t('create.form.enableAds.hint')}</FormDescription>
               </div>
             </FormItem>
           )}

@@ -46,4 +46,10 @@ export const paths = {
   routeNew: (teamSlug: string) => `/teams/${teamSlug}/routes/new`,
   route: (teamSlug: string, routeSlug: string) => `/teams/${teamSlug}/routes/${routeSlug}`,
   routeEdit: (teamSlug: string, routeSlug: string) => `/teams/${teamSlug}/routes/${routeSlug}/edit`,
+
+  // Ads
+  ads: (teamSlug: string) => `/teams/${teamSlug}/ads`,
+  adNew: (teamSlug: string) => `/teams/${teamSlug}/ads/new`,
+  ad: (teamSlug: string, adSlug: string) => `/teams/${teamSlug}/ads/${adSlug}`,
+  adEdit: (teamSlug: string, adSlug: string) => `/teams/${teamSlug}/ads/${adSlug}/edit`,
 } as const

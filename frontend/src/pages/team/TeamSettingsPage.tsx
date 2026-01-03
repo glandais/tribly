@@ -66,6 +66,7 @@ export function TeamSettingsPage() {
           initialMedia={team.media}
           initialVisibility={team.visibility}
           initialEnableTrips={team.enableTrips}
+          initialEnableAds={team.enableAds}
           onSuccess={handleSuccess}
           create={false}
         />

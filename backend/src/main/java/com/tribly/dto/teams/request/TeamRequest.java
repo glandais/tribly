@@ -18,4 +18,6 @@ public record TeamRequest(
     @Schema(description = "Team visibility", examples = "PUBLIC", required = true)
         Visibility visibility,
     @Schema(description = "Trips enabled for team", examples = "true", required = true)
-        boolean enableTrips) {}
+        boolean enableTrips,
+    @Schema(description = "Ads enabled for team", examples = "true", required = true)
+        boolean enableAds) {}

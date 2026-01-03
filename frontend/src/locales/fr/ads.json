@@ -1,0 +1,89 @@
+{
+  "breadcrumb": {
+    "ads": "Annonces"
+  },
+  "adType": {
+    "SALE": "Vente",
+    "RENTAL": "Location",
+    "WANTED": "Recherche"
+  },
+  "rentalPeriod": {
+    "DAY": "Jour",
+    "WEEK": "Semaine",
+    "MONTH": "Mois"
+  },
+  "create": {
+    "adTypeLabel": "Type d'annonce",
+    "dateTimeHint": "Date de publication de l'annonce",
+    "dateTimeLabel": "Date",
+    "descriptionLabel": "Description",
+    "descriptionPlaceholder": "Decrivez votre annonce...",
+    "locationLabel": "Localisation",
+    "locationDescriptionLabel": "Description du lieu",
+    "locationDescriptionPlaceholder": "Ex: Paris 15e, proche metro...",
+    "nameLabel": "Titre",
+    "namePlaceholder": "Entrez le titre de l'annonce",
+    "priceLabel": "Prix",
+    "pricePlaceholder": "0.00",
+    "priceHint": "Laissez vide si le prix est a negocier",
+    "rentalPeriodLabel": "Periode de location",
+    "statusLabel": "Statut",
+    "submit": "Creer l'annonce",
+    "title": "Nouvelle annonce"
+  },
+  "detail": {
+    "actions": {
+      "cancel": "Annuler",
+      "delete": "Supprimer",
+      "edit": "Modifier",
+      "publish": "Publier",
+      "uncancel": "Reactiver",
+      "unpublish": "Depublier"
+    },
+    "confirmations": {
+      "cancel": "Voulez-vous annuler cette annonce ? Elle ne sera plus visible.",
+      "delete": "Voulez-vous vraiment supprimer cette annonce ? Cette action est irreversible.",
+      "uncancel": "Voulez-vous reactiver cette annonce ? Elle sera a nouveau publiee.",
+      "unpublish": "Voulez-vous depublier cette annonce ? Elle redeviendra un brouillon."
+    },
+    "location": "Localisation",
+    "notFound": {
+      "message": "Cette annonce n'existe pas ou a ete supprimee",
+      "title": "Annonce introuvable"
+    },
+    "price": "Prix",
+    "priceNegotiable": "Prix a negocier",
+    "rentalPeriod": "Par {{period}}"
+  },
+  "edit": {
+    "error": "Une erreur est survenue lors de la modification de l'annonce",
+    "submit": "Enregistrer les modifications",
+    "title": "Modifier l'annonce"
+  },
+  "list": {
+    "createAd": "Creer une annonce",
+    "empty": {
+      "member": "Aucune annonce n'est disponible pour le moment.",
+      "title": "Aucune annonce"
+    },
+    "filterByType": "Filtrer par type",
+    "allTypes": "Tous les types",
+    "noResults": "Aucune annonce ne correspond a votre recherche.",
+    "search": {
+      "label": "Rechercher des annonces",
+      "placeholder": "Rechercher par titre ou description..."
+    },
+    "title": "Annonces"
+  },
+  "loading": "Chargement...",
+  "notifications": {
+    "created": "Annonce creee avec succes",
+    "deleted": "Annonce supprimee avec succes",
+    "updated": "Annonce mise a jour avec succes"
+  },
+  "status": {
+    "DRAFT": "Brouillon",
+    "PUBLISHED": "Publie",
+    "CANCELLED": "Annule"
+  }
+}

@@ -93,6 +93,18 @@ const EditRoutePage = lazy(() =>
 const AllRoutesPage = lazy(() =>
   import('../pages/route/AllRoutesPage').then((m) => ({ default: m.AllRoutesPage }))
 )
+const AdListPage = lazy(() =>
+  import('../pages/ad/AdListPage').then((m) => ({ default: m.AdListPage }))
+)
+const AdDetailPage = lazy(() =>
+  import('../pages/ad/AdDetailPage').then((m) => ({ default: m.AdDetailPage }))
+)
+const CreateAdPage = lazy(() =>
+  import('../pages/ad/CreateAdPage').then((m) => ({ default: m.CreateAdPage }))
+)
+const EditAdPage = lazy(() =>
+  import('../pages/ad/EditAdPage').then((m) => ({ default: m.EditAdPage }))
+)
 
 export const routesConfig: RoutesConfig = [
   // === Home ===
@@ -348,6 +360,42 @@ export const routesConfig: RoutesConfig = [
     component: EditRoutePage,
     auth: 'authenticated',
     parentId: 'route-detail',
+    breadcrumb: { type: 'static', i18nKey: 'common:buttons.edit' },
+    showBackLink: true,
+  },
+
+  // === Ad Routes ===
+  {
+    id: 'ads',
+    path: paths.ads(':teamSlug'),
+    component: AdListPage,
+    auth: 'public',
+    parentId: 'team-detail',
+    breadcrumb: { type: 'static', i18nKey: 'ads:breadcrumb.ads' },
+  },
+  {
+    id: 'ad-new',
+    path: paths.adNew(':teamSlug'),
+    component: CreateAdPage,
+    auth: 'authenticated',
+    parentId: 'ads',
+    breadcrumb: { type: 'static', i18nKey: 'ads:create.title' },
+    showBackLink: true,
+  },
+  {
+    id: 'ad-detail',
+    path: paths.ad(':teamSlug', ':adSlug'),
+    component: AdDetailPage,
+    auth: 'public',
+    parentId: 'ads',
+    breadcrumb: { type: 'dynamic', entity: 'ad' },
+  },
+  {
+    id: 'ad-edit',
+    path: paths.adEdit(':teamSlug', ':adSlug'),
+    component: EditAdPage,
+    auth: 'authenticated',
+    parentId: 'ad-detail',
     breadcrumb: { type: 'static', i18nKey: 'common:buttons.edit' },
     showBackLink: true,
   },

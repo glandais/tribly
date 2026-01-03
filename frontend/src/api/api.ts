@@ -35,6 +35,148 @@ import type { RequestArgs } from './base'
 import { BASE_PATH, COLLECTION_FORMATS, BaseAPI, RequiredError, operationServerMap } from './base'
 
 /**
+ * Ad data
+ */
+export interface AdDto {
+  /**
+   * Team
+   */
+  team: TeamPublicationDto
+  /**
+   * Ad ID (TSID)
+   */
+  id: string
+  /**
+   * Ad URL slug
+   */
+  slug: string
+  /**
+   * Ad name
+   */
+  name: string
+  /**
+   * Ad media
+   */
+  media: MediaDto
+  dateTime: string
+  /**
+   * Ad status
+   */
+  status: Status
+  /**
+   * Visibility level
+   */
+  visibility: Visibility
+  /**
+   * Ad type
+   */
+  adType: AdType
+  /**
+   * Price
+   */
+  price?: number
+  /**
+   * Rental period
+   */
+  rentalPeriod?: RentalPeriod
+  /**
+   * Latitude
+   */
+  latitude?: number
+  /**
+   * Longitude
+   */
+  longitude?: number
+  /**
+   * Location description
+   */
+  locationDescription?: string
+  publishAt?: string
+  createdAt?: string
+  /**
+   * Creator ID (TSID)
+   */
+  createdById: string
+}
+
+/**
+ * Paginated ad list response
+ */
+export interface AdListResponse {
+  /**
+   * List of ads
+   */
+  ads: Array<AdDto>
+  /**
+   * Total number of ads
+   */
+  total: number
+  /**
+   * Current page number
+   */
+  page: number
+  /**
+   * Page size
+   */
+  size: number
+}
+/**
+ * Ad request
+ */
+export interface AdRequest {
+  /**
+   * Ad name
+   */
+  name: string
+  /**
+   * Ad description
+   */
+  media: MediaDto
+  dateTime: string
+  /**
+   * Ad status
+   */
+  status: Status
+  /**
+   * Visibility level
+   */
+  visibility: Visibility
+  /**
+   * Ad type
+   */
+  adType: AdType
+  /**
+   * Price (optional, null for \'contact for price\')
+   */
+  price?: number
+  /**
+   * Rental period (required for RENTAL type)
+   */
+  rentalPeriod?: RentalPeriod
+  /**
+   * Latitude
+   */
+  latitude?: number
+  /**
+   * Longitude
+   */
+  longitude?: number
+  /**
+   * Location description
+   */
+  locationDescription?: string
+  publishAt?: string
+}
+
+export const AdType = {
+  Sale: 'SALE',
+  Rental: 'RENTAL',
+  Wanted: 'WANTED',
+} as const
+
+export type AdType = (typeof AdType)[keyof typeof AdType]
+
+/**
  * Request to add a member to the team
  */
 export interface AddMemberRequest {
@@ -619,6 +761,14 @@ export const PublicationType = {
 
 export type PublicationType = (typeof PublicationType)[keyof typeof PublicationType]
 
+export const RentalPeriod = {
+  Day: 'DAY',
+  Week: 'WEEK',
+  Month: 'MONTH',
+} as const
+
+export type RentalPeriod = (typeof RentalPeriod)[keyof typeof RentalPeriod]
+
 export interface RideDto extends PublicationDto {
   /**
    * Type
@@ -1185,6 +1335,10 @@ export interface TeamDetailDto {
    */
   enableTrips: boolean
   /**
+   * Ads enabled
+   */
+  enableAds: boolean
+  /**
    * Number of team members
    */
   memberCount: number
@@ -1258,6 +1412,10 @@ export interface TeamRequest {
    * Trips enabled for team
    */
   enableTrips: boolean
+  /**
+   * Ads enabled for team
+   */
+  enableAds: boolean
 }
 
 export const TeamRole = {
@@ -1503,6 +1661,645 @@ export const WindDirection = {
 } as const
 
 export type WindDirection = (typeof WindDirection)[keyof typeof WindDirection]
+
+/**
+ * AdsApi - axios parameter creator
+ */
+export const AdsApiAxiosParamCreator = function (configuration?: Configuration) {
+  return {
+    /**
+     * Create a new ad. Any team member can create ads.
+     * @summary Create ad
+     * @param {string} slug Team URL slug
+     * @param {AdRequest} adRequest
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    createAd: async (
+      slug: string,
+      adRequest: AdRequest,
+      options: RawAxiosRequestConfig = {}
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'slug' is not null or undefined
+      assertParamExists('createAd', 'slug', slug)
+      // verify required parameter 'adRequest' is not null or undefined
+      assertParamExists('createAd', 'adRequest', adRequest)
+      const localVarPath = `/api/teams/{slug}/ads`.replace(
+        `{${'slug'}}`,
+        encodeURIComponent(String(slug))
+      )
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL)
+      let baseOptions
+      if (configuration) {
+        baseOptions = configuration.baseOptions
+      }
+
+      const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options }
+      const localVarHeaderParameter = {} as any
+      const localVarQueryParameter = {} as any
+
+      // authentication SecurityScheme required
+
+      localVarHeaderParameter['Content-Type'] = 'application/json'
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter)
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {}
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      }
+      localVarRequestOptions.data = serializeDataIfNeeded(
+        adRequest,
+        localVarRequestOptions,
+        configuration
+      )
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      }
+    },
+    /**
+     * Soft delete an ad. Only the creator or an admin can delete.
+     * @summary Delete ad
+     * @param {string} adSlug Ad URL slug
+     * @param {string} slug Team URL slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    deleteAd: async (
+      adSlug: string,
+      slug: string,
+      options: RawAxiosRequestConfig = {}
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'adSlug' is not null or undefined
+      assertParamExists('deleteAd', 'adSlug', adSlug)
+      // verify required parameter 'slug' is not null or undefined
+      assertParamExists('deleteAd', 'slug', slug)
+      const localVarPath = `/api/teams/{slug}/ads/{adSlug}`
+        .replace(`{${'adSlug'}}`, encodeURIComponent(String(adSlug)))
+        .replace(`{${'slug'}}`, encodeURIComponent(String(slug)))
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL)
+      let baseOptions
+      if (configuration) {
+        baseOptions = configuration.baseOptions
+      }
+
+      const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options }
+      const localVarHeaderParameter = {} as any
+      const localVarQueryParameter = {} as any
+
+      // authentication SecurityScheme required
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter)
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {}
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      }
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      }
+    },
+    /**
+     * Get detailed ad information
+     * @summary Get ad details
+     * @param {string} adSlug Ad URL slug
+     * @param {string} slug Team URL slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getAd: async (
+      adSlug: string,
+      slug: string,
+      options: RawAxiosRequestConfig = {}
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'adSlug' is not null or undefined
+      assertParamExists('getAd', 'adSlug', adSlug)
+      // verify required parameter 'slug' is not null or undefined
+      assertParamExists('getAd', 'slug', slug)
+      const localVarPath = `/api/teams/{slug}/ads/{adSlug}`
+        .replace(`{${'adSlug'}}`, encodeURIComponent(String(adSlug)))
+        .replace(`{${'slug'}}`, encodeURIComponent(String(slug)))
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL)
+      let baseOptions
+      if (configuration) {
+        baseOptions = configuration.baseOptions
+      }
+
+      const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options }
+      const localVarHeaderParameter = {} as any
+      const localVarQueryParameter = {} as any
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter)
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {}
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      }
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      }
+    },
+    /**
+     * Get paginated list of ads for a team with optional filtering
+     * @summary List ads
+     * @param {string} slug Team URL slug
+     * @param {AdType} [adType] Filter by ad type
+     * @param {string} [from] Start date filter (ISO format)
+     * @param {number} [page] Page number
+     * @param {string} [search] Search by name/description
+     * @param {number} [size] Page size
+     * @param {string} [to] End date filter (ISO format)
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listAds: async (
+      slug: string,
+      adType?: AdType,
+      from?: string,
+      page?: number,
+      search?: string,
+      size?: number,
+      to?: string,
+      options: RawAxiosRequestConfig = {}
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'slug' is not null or undefined
+      assertParamExists('listAds', 'slug', slug)
+      const localVarPath = `/api/teams/{slug}/ads`.replace(
+        `{${'slug'}}`,
+        encodeURIComponent(String(slug))
+      )
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL)
+      let baseOptions
+      if (configuration) {
+        baseOptions = configuration.baseOptions
+      }
+
+      const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options }
+      const localVarHeaderParameter = {} as any
+      const localVarQueryParameter = {} as any
+
+      if (adType !== undefined) {
+        localVarQueryParameter['adType'] = adType
+      }
+
+      if (from !== undefined) {
+        localVarQueryParameter['from'] = from
+      }
+
+      if (page !== undefined) {
+        localVarQueryParameter['page'] = page
+      }
+
+      if (search !== undefined) {
+        localVarQueryParameter['search'] = search
+      }
+
+      if (size !== undefined) {
+        localVarQueryParameter['size'] = size
+      }
+
+      if (to !== undefined) {
+        localVarQueryParameter['to'] = to
+      }
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter)
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {}
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      }
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      }
+    },
+    /**
+     * Update ad information. Only the creator or an admin can update.
+     * @summary Update ad
+     * @param {string} adSlug Ad URL slug
+     * @param {string} slug Team URL slug
+     * @param {AdRequest} adRequest
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    updateAd: async (
+      adSlug: string,
+      slug: string,
+      adRequest: AdRequest,
+      options: RawAxiosRequestConfig = {}
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'adSlug' is not null or undefined
+      assertParamExists('updateAd', 'adSlug', adSlug)
+      // verify required parameter 'slug' is not null or undefined
+      assertParamExists('updateAd', 'slug', slug)
+      // verify required parameter 'adRequest' is not null or undefined
+      assertParamExists('updateAd', 'adRequest', adRequest)
+      const localVarPath = `/api/teams/{slug}/ads/{adSlug}`
+        .replace(`{${'adSlug'}}`, encodeURIComponent(String(adSlug)))
+        .replace(`{${'slug'}}`, encodeURIComponent(String(slug)))
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL)
+      let baseOptions
+      if (configuration) {
+        baseOptions = configuration.baseOptions
+      }
+
+      const localVarRequestOptions = { method: 'PUT', ...baseOptions, ...options }
+      const localVarHeaderParameter = {} as any
+      const localVarQueryParameter = {} as any
+
+      // authentication SecurityScheme required
+
+      localVarHeaderParameter['Content-Type'] = 'application/json'
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter)
+      let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {}
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      }
+      localVarRequestOptions.data = serializeDataIfNeeded(
+        adRequest,
+        localVarRequestOptions,
+        configuration
+      )
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      }
+    },
+  }
+}
+
+/**
+ * AdsApi - functional programming interface
+ */
+export const AdsApiFp = function (configuration?: Configuration) {
+  const localVarAxiosParamCreator = AdsApiAxiosParamCreator(configuration)
+  return {
+    /**
+     * Create a new ad. Any team member can create ads.
+     * @summary Create ad
+     * @param {string} slug Team URL slug
+     * @param {AdRequest} adRequest
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async createAd(
+      slug: string,
+      adRequest: AdRequest,
+      options?: RawAxiosRequestConfig
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AdDto>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.createAd(slug, adRequest, options)
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0
+      const localVarOperationServerBasePath =
+        operationServerMap['AdsApi.createAd']?.[localVarOperationServerIndex]?.url
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration
+        )(axios, localVarOperationServerBasePath || basePath)
+    },
+    /**
+     * Soft delete an ad. Only the creator or an admin can delete.
+     * @summary Delete ad
+     * @param {string} adSlug Ad URL slug
+     * @param {string} slug Team URL slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async deleteAd(
+      adSlug: string,
+      slug: string,
+      options?: RawAxiosRequestConfig
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.deleteAd(adSlug, slug, options)
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0
+      const localVarOperationServerBasePath =
+        operationServerMap['AdsApi.deleteAd']?.[localVarOperationServerIndex]?.url
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration
+        )(axios, localVarOperationServerBasePath || basePath)
+    },
+    /**
+     * Get detailed ad information
+     * @summary Get ad details
+     * @param {string} adSlug Ad URL slug
+     * @param {string} slug Team URL slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async getAd(
+      adSlug: string,
+      slug: string,
+      options?: RawAxiosRequestConfig
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AdDto>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.getAd(adSlug, slug, options)
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0
+      const localVarOperationServerBasePath =
+        operationServerMap['AdsApi.getAd']?.[localVarOperationServerIndex]?.url
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration
+        )(axios, localVarOperationServerBasePath || basePath)
+    },
+    /**
+     * Get paginated list of ads for a team with optional filtering
+     * @summary List ads
+     * @param {string} slug Team URL slug
+     * @param {AdType} [adType] Filter by ad type
+     * @param {string} [from] Start date filter (ISO format)
+     * @param {number} [page] Page number
+     * @param {string} [search] Search by name/description
+     * @param {number} [size] Page size
+     * @param {string} [to] End date filter (ISO format)
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async listAds(
+      slug: string,
+      adType?: AdType,
+      from?: string,
+      page?: number,
+      search?: string,
+      size?: number,
+      to?: string,
+      options?: RawAxiosRequestConfig
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AdListResponse>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.listAds(
+        slug,
+        adType,
+        from,
+        page,
+        search,
+        size,
+        to,
+        options
+      )
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0
+      const localVarOperationServerBasePath =
+        operationServerMap['AdsApi.listAds']?.[localVarOperationServerIndex]?.url
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration
+        )(axios, localVarOperationServerBasePath || basePath)
+    },
+    /**
+     * Update ad information. Only the creator or an admin can update.
+     * @summary Update ad
+     * @param {string} adSlug Ad URL slug
+     * @param {string} slug Team URL slug
+     * @param {AdRequest} adRequest
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async updateAd(
+      adSlug: string,
+      slug: string,
+      adRequest: AdRequest,
+      options?: RawAxiosRequestConfig
+    ): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AdDto>> {
+      const localVarAxiosArgs = await localVarAxiosParamCreator.updateAd(
+        adSlug,
+        slug,
+        adRequest,
+        options
+      )
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0
+      const localVarOperationServerBasePath =
+        operationServerMap['AdsApi.updateAd']?.[localVarOperationServerIndex]?.url
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration
+        )(axios, localVarOperationServerBasePath || basePath)
+    },
+  }
+}
+
+/**
+ * AdsApi - factory interface
+ */
+export const AdsApiFactory = function (
+  configuration?: Configuration,
+  basePath?: string,
+  axios?: AxiosInstance
+) {
+  const localVarFp = AdsApiFp(configuration)
+  return {
+    /**
+     * Create a new ad. Any team member can create ads.
+     * @summary Create ad
+     * @param {string} slug Team URL slug
+     * @param {AdRequest} adRequest
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    createAd(
+      slug: string,
+      adRequest: AdRequest,
+      options?: RawAxiosRequestConfig
+    ): AxiosPromise<AdDto> {
+      return localVarFp
+        .createAd(slug, adRequest, options)
+        .then((request) => request(axios, basePath))
+    },
+    /**
+     * Soft delete an ad. Only the creator or an admin can delete.
+     * @summary Delete ad
+     * @param {string} adSlug Ad URL slug
+     * @param {string} slug Team URL slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    deleteAd(adSlug: string, slug: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+      return localVarFp.deleteAd(adSlug, slug, options).then((request) => request(axios, basePath))
+    },
+    /**
+     * Get detailed ad information
+     * @summary Get ad details
+     * @param {string} adSlug Ad URL slug
+     * @param {string} slug Team URL slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getAd(adSlug: string, slug: string, options?: RawAxiosRequestConfig): AxiosPromise<AdDto> {
+      return localVarFp.getAd(adSlug, slug, options).then((request) => request(axios, basePath))
+    },
+    /**
+     * Get paginated list of ads for a team with optional filtering
+     * @summary List ads
+     * @param {string} slug Team URL slug
+     * @param {AdType} [adType] Filter by ad type
+     * @param {string} [from] Start date filter (ISO format)
+     * @param {number} [page] Page number
+     * @param {string} [search] Search by name/description
+     * @param {number} [size] Page size
+     * @param {string} [to] End date filter (ISO format)
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    listAds(
+      slug: string,
+      adType?: AdType,
+      from?: string,
+      page?: number,
+      search?: string,
+      size?: number,
+      to?: string,
+      options?: RawAxiosRequestConfig
+    ): AxiosPromise<AdListResponse> {
+      return localVarFp
+        .listAds(slug, adType, from, page, search, size, to, options)
+        .then((request) => request(axios, basePath))
+    },
+    /**
+     * Update ad information. Only the creator or an admin can update.
+     * @summary Update ad
+     * @param {string} adSlug Ad URL slug
+     * @param {string} slug Team URL slug
+     * @param {AdRequest} adRequest
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    updateAd(
+      adSlug: string,
+      slug: string,
+      adRequest: AdRequest,
+      options?: RawAxiosRequestConfig
+    ): AxiosPromise<AdDto> {
+      return localVarFp
+        .updateAd(adSlug, slug, adRequest, options)
+        .then((request) => request(axios, basePath))
+    },
+  }
+}
+
+/**
+ * AdsApi - object-oriented interface
+ */
+export class AdsApi extends BaseAPI {
+  /**
+   * Create a new ad. Any team member can create ads.
+   * @summary Create ad
+   * @param {string} slug Team URL slug
+   * @param {AdRequest} adRequest
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   */
+  public createAd(slug: string, adRequest: AdRequest, options?: RawAxiosRequestConfig) {
+    return AdsApiFp(this.configuration)
+      .createAd(slug, adRequest, options)
+      .then((request) => request(this.axios, this.basePath))
+  }
+
+  /**
+   * Soft delete an ad. Only the creator or an admin can delete.
+   * @summary Delete ad
+   * @param {string} adSlug Ad URL slug
+   * @param {string} slug Team URL slug
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   */
+  public deleteAd(adSlug: string, slug: string, options?: RawAxiosRequestConfig) {
+    return AdsApiFp(this.configuration)
+      .deleteAd(adSlug, slug, options)
+      .then((request) => request(this.axios, this.basePath))
+  }
+
+  /**
+   * Get detailed ad information
+   * @summary Get ad details
+   * @param {string} adSlug Ad URL slug
+   * @param {string} slug Team URL slug
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   */
+  public getAd(adSlug: string, slug: string, options?: RawAxiosRequestConfig) {
+    return AdsApiFp(this.configuration)
+      .getAd(adSlug, slug, options)
+      .then((request) => request(this.axios, this.basePath))
+  }
+
+  /**
+   * Get paginated list of ads for a team with optional filtering
+   * @summary List ads
+   * @param {string} slug Team URL slug
+   * @param {AdType} [adType] Filter by ad type
+   * @param {string} [from] Start date filter (ISO format)
+   * @param {number} [page] Page number
+   * @param {string} [search] Search by name/description
+   * @param {number} [size] Page size
+   * @param {string} [to] End date filter (ISO format)
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   */
+  public listAds(
+    slug: string,
+    adType?: AdType,
+    from?: string,
+    page?: number,
+    search?: string,
+    size?: number,
+    to?: string,
+    options?: RawAxiosRequestConfig
+  ) {
+    return AdsApiFp(this.configuration)
+      .listAds(slug, adType, from, page, search, size, to, options)
+      .then((request) => request(this.axios, this.basePath))
+  }
+
+  /**
+   * Update ad information. Only the creator or an admin can update.
+   * @summary Update ad
+   * @param {string} adSlug Ad URL slug
+   * @param {string} slug Team URL slug
+   * @param {AdRequest} adRequest
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   */
+  public updateAd(
+    adSlug: string,
+    slug: string,
+    adRequest: AdRequest,
+    options?: RawAxiosRequestConfig
+  ) {
+    return AdsApiFp(this.configuration)
+      .updateAd(adSlug, slug, adRequest, options)
+      .then((request) => request(this.axios, this.basePath))
+  }
+}
 
 /**
  * AssetsApi - axios parameter creator

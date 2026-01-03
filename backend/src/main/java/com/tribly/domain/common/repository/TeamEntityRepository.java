@@ -72,6 +72,7 @@ public interface TeamEntityRepository<T extends TeamEntity, Q extends TeamEntity
             .and("te.deleted = false", Map.of())
             .and("te.team.deleted = false", Map.of())
             .and("(TYPE(te) <> Trip OR te.team.enableTrips = true)", Map.of())
+            .and("(TYPE(te) <> Ad OR te.team.enableAds = true)", Map.of())
             .order("dateTime desc");
 
     Set<String> teamSlugs = query.teamSlugs();

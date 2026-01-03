@@ -6,7 +6,12 @@ api.ts
 base.ts
 common.ts
 configuration.ts
+docs/AdDto.md
+docs/AdListResponse.md
+docs/AdRequest.md
+docs/AdType.md
 docs/AddMemberRequest.md
+docs/AdsApi.md
 docs/AssetDimensionsDto.md
 docs/AssetDto.md
 docs/AssetsApi.md
@@ -46,6 +51,7 @@ docs/PublicationDto.md
 docs/PublicationListResponse.md
 docs/PublicationType.md
 docs/PublicationsApi.md
+docs/RentalPeriod.md
 docs/RideCommentsApi.md
 docs/RideDto.md
 docs/RideGroupDto.md

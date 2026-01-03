@@ -52,6 +52,9 @@ public class Team extends BaseEntity {
   @Column(name = "enable_trips", nullable = false)
   private boolean enableTrips = true;
 
+  @Column(name = "enable_ads", nullable = false)
+  private boolean enableAds = true;
+
   public Team(User creator, String name, String slug, Visibility visibility) {
     super(creator);
     this.name = name;

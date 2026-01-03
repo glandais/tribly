@@ -51,6 +51,11 @@ All URIs are relative to *http://localhost:8080*
 
 Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
+*AdsApi* | [**createAd**](docs/AdsApi.md#createad) | **POST** /api/teams/{slug}/ads | Create ad
+*AdsApi* | [**deleteAd**](docs/AdsApi.md#deletead) | **DELETE** /api/teams/{slug}/ads/{adSlug} | Delete ad
+*AdsApi* | [**getAd**](docs/AdsApi.md#getad) | **GET** /api/teams/{slug}/ads/{adSlug} | Get ad details
+*AdsApi* | [**listAds**](docs/AdsApi.md#listads) | **GET** /api/teams/{slug}/ads | List ads
+*AdsApi* | [**updateAd**](docs/AdsApi.md#updatead) | **PUT** /api/teams/{slug}/ads/{adSlug} | Update ad
 *AssetsApi* | [**uploadAsset**](docs/AssetsApi.md#uploadasset) | **POST** /api/teams/{slug}/assets | Create asset
 *ConfigurationApi* | [**getConfig**](docs/ConfigurationApi.md#getconfig) | **GET** /api/config | Get application configuration
 *PlacesApi* | [**createPlace**](docs/PlacesApi.md#createplace) | **POST** /api/teams/{slug}/places | Create place
@@ -125,6 +130,10 @@ Class | Method | HTTP request | Description
 
 ### Documentation For Models
 
+ - [AdDto](docs/AdDto.md)
+ - [AdListResponse](docs/AdListResponse.md)
+ - [AdRequest](docs/AdRequest.md)
+ - [AdType](docs/AdType.md)
  - [AddMemberRequest](docs/AddMemberRequest.md)
  - [AssetDimensionsDto](docs/AssetDimensionsDto.md)
  - [AssetDto](docs/AssetDto.md)
@@ -159,6 +168,7 @@ Class | Method | HTTP request | Description
  - [PublicationDto](docs/PublicationDto.md)
  - [PublicationListResponse](docs/PublicationListResponse.md)
  - [PublicationType](docs/PublicationType.md)
+ - [RentalPeriod](docs/RentalPeriod.md)
  - [RideDto](docs/RideDto.md)
  - [RideGroupDto](docs/RideGroupDto.md)
  - [RideListResponse](docs/RideListResponse.md)

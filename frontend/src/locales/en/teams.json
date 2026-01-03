@@ -25,6 +25,10 @@
         "hint": "Allow organizers to create and manage multi-day trips",
         "label": "Enable Trips"
       },
+      "enableAds": {
+        "hint": "Allow members to post ads (sale, rental, wanted)",
+        "label": "Enable Ads"
+      },
       "name": {
         "label": "Team Name",
         "placeholder": "Enter team name"

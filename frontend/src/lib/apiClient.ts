@@ -17,6 +17,7 @@ import {
   PostCommentsApi,
   TripCommentsApi,
   RouteCommentsApi,
+  AdsApi,
 } from '../api/api'
 import { Configuration } from '../api/configuration'
 import { toast } from 'sonner'
@@ -65,6 +66,7 @@ export const rideCommentsApi = new RideCommentsApi(apiConfiguration, '', axiosIn
 export const postCommentsApi = new PostCommentsApi(apiConfiguration, '', axiosInstance)
 export const tripCommentsApi = new TripCommentsApi(apiConfiguration, '', axiosInstance)
 export const routeCommentsApi = new RouteCommentsApi(apiConfiguration, '', axiosInstance)
+export const adsApi = new AdsApi(apiConfiguration, '', axiosInstance)
 
 export class ApiClientError extends Error {
   constructor(

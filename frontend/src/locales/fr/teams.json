@@ -26,6 +26,10 @@
         "hint": "Permet aux organisateurs de créer et gérer des voyages sur plusieurs jours",
         "label": "Activer les voyages"
       },
+      "enableAds": {
+        "hint": "Permet aux membres de publier des annonces (vente, location, recherche)",
+        "label": "Activer les annonces"
+      },
       "name": {
         "label": "Nom de l'équipe",
         "placeholder": "Entrez le nom de l'équipe"
