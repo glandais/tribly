@@ -81,7 +81,7 @@ export function CreateRidePage() {
         routeSlug: undefined,
         groups: [
           {
-            name: t('create.form.groups.defaultName'),
+            name: t('create.form.groups.defaultName', { number: 1 }),
             time: undefined,
             averageSpeed: undefined,
             maxParticipants: undefined,

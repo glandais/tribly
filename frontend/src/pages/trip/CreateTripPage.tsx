@@ -60,7 +60,7 @@ export function CreateTripPage() {
     routeSlug: undefined,
     stages: [
       {
-        name: t('create.form.stages.defaultName', { day: 1 }),
+        name: t('create.form.stages.defaultName', { number: 1 }),
         dateTime: tripStartDate,
         routeSlug: undefined,
         startPlace: undefined,

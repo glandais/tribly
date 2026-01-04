@@ -37,7 +37,7 @@ export function CreateRideTemplatePage() {
     status: Status.Published,
     groups: [
       {
-        name: t('form.groups.defaultName'),
+        name: t('form.groups.defaultName', { number: 1 }),
         time: undefined,
         averageSpeed: undefined,
         maxParticipants: undefined,
