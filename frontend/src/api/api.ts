@@ -424,8 +424,8 @@ export const GeoJsonPointTypeEnum = {
 export type GeoJsonPointTypeEnum = (typeof GeoJsonPointTypeEnum)[keyof typeof GeoJsonPointTypeEnum]
 
 export interface GeoPoint {
-  lng?: number
-  lat?: number
+  lng: number
+  lat: number
 }
 /**
  * Ride group creation request
@@ -1250,9 +1250,9 @@ export const RouteSortBy = {
 export type RouteSortBy = (typeof RouteSortBy)[keyof typeof RouteSortBy]
 
 export interface RouterRequest {
-  from?: GeoPoint
-  to?: GeoPoint
-  profile?: string
+  from: GeoPoint
+  to: GeoPoint
+  profile: string
 }
 export interface RouterResponse {
   route: GeoJsonLineString

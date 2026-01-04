@@ -16,6 +16,8 @@ import { useMapStyle } from '../../hooks/useMapStyle'
 import { useRoutePlanner } from '../../hooks/useRoutePlanner'
 import type { GeoPoint } from '../../api/api'
 import 'maplibre-gl/dist/maplibre-gl.css'
+import { findPreviousControlPointIndex } from '@/lib/planner'
+import { around } from 'geokdbush'
 
 // Default center (France)
 const DEFAULT_CENTER = { lng: -1.55, lat: 47.22 }
@@ -26,64 +28,13 @@ interface EmbeddedRoutePlannerProps {
   initialTrack?: number[][] // [lng, lat, ele, dist][] from existing route
 }
 
-// Find the closest point on a line segment to a given point
-function closestPointOnSegment(
-  px: number,
-  py: number,
-  x1: number,
-  y1: number,
-  x2: number,
-  y2: number
-): { x: number; y: number; dist: number } {
-  const dx = x2 - x1
-  const dy = y2 - y1
-  const lengthSq = dx * dx + dy * dy
-
-  if (lengthSq === 0) {
-    const dist = Math.sqrt((px - x1) ** 2 + (py - y1) ** 2)
-    return { x: x1, y: y1, dist }
-  }
-
-  const t = Math.max(0, Math.min(1, ((px - x1) * dx + (py - y1) * dy) / lengthSq))
-  const closestX = x1 + t * dx
-  const closestY = y1 + t * dy
-  const dist = Math.sqrt((px - closestX) ** 2 + (py - closestY) ** 2)
-
-  return { x: closestX, y: closestY, dist }
-}
-
-// Find closest point on a LineString to a given point
-function closestPointOnLine(
-  point: { lng: number; lat: number },
-  coordinates: number[][]
-): { lng: number; lat: number } {
-  let closest = { lng: coordinates[0][0], lat: coordinates[0][1] }
-  let minDist = Infinity
-
-  for (let i = 0; i < coordinates.length - 1; i++) {
-    const result = closestPointOnSegment(
-      point.lng,
-      point.lat,
-      coordinates[i][0],
-      coordinates[i][1],
-      coordinates[i + 1][0],
-      coordinates[i + 1][1]
-    )
-    if (result.dist < minDist) {
-      minDist = result.dist
-      closest = { lng: result.x, lat: result.y }
-    }
-  }
-
-  return closest
-}
-
 export function EmbeddedRoutePlanner({ onPointsChange, initialTrack }: EmbeddedRoutePlannerProps) {
   const { t } = useTranslation('planner')
   const { styleId, setStyleId, style } = useMapStyle()
   const mapRef = useRef<MapRef>(null)
 
   const {
+    route,
     controlPoints,
     routeGeoJson,
     isLoading,
@@ -92,6 +43,7 @@ export function EmbeddedRoutePlanner({ onPointsChange, initialTrack }: EmbeddedR
     insertControlPoint,
     updateControlPoint,
     removeControlPoint,
+    updateZoom,
     clearRoute,
   } = useRoutePlanner({ initialTrack })
 
@@ -141,25 +93,14 @@ export function EmbeddedRoutePlanner({ onPointsChange, initialTrack }: EmbeddedR
 
   // Notify parent when route changes - pass the complete computed path
   useEffect(() => {
-    if (!routeGeoJson || routeGeoJson.features.length === 0) {
+    if (!routeGeoJson || routeGeoJson.coordinates.length < 2) {
       onPointsChange([])
       return
     }
-
-    // Extract all coordinates from all LineString features
-    const allPoints: GeoPoint[] = []
-    for (let i = 0; i < routeGeoJson.features.length; i++) {
-      const feature = routeGeoJson.features[i]
-      if (feature.geometry.type === 'LineString') {
-        const coords = (feature.geometry as GeoJSON.LineString).coordinates
-        // Skip first point of subsequent segments to avoid duplicates at boundaries
-        const startIdx = i === 0 ? 0 : 1
-        for (let j = startIdx; j < coords.length; j++) {
-          allPoints.push({ lng: coords[j][0], lat: coords[j][1] })
-        }
-      }
-    }
-
+    const allPoints: GeoPoint[] = routeGeoJson.coordinates.map((coords) => ({
+      lng: coords[0],
+      lat: coords[0],
+    }))
     onPointsChange(allPoints)
   }, [routeGeoJson, onPointsChange])
 
@@ -167,14 +108,14 @@ export function EmbeddedRoutePlanner({ onPointsChange, initialTrack }: EmbeddedR
   const [hoverPoint, setHoverPoint] = useState<{
     lng: number
     lat: number
-    segmentIndex: number
+    idx: number
   } | null>(null)
 
   // State for dragging a ghost point (before insertion)
   const [draggingGhost, setDraggingGhost] = useState<{
     lng: number
     lat: number
-    segmentIndex: number
+    idx: number
   } | null>(null)
 
   // Track which marker is being dragged and its current position
@@ -183,6 +124,27 @@ export function EmbeddedRoutePlanner({ onPointsChange, initialTrack }: EmbeddedR
     lng: number
     lat: number
   } | null>(null)
+
+  // Track current map zoom level
+  const [currentZoom, setCurrentZoom] = useState(initialViewState.zoom)
+  useEffect(() => updateZoom(currentZoom), [currentZoom, updateZoom])
+
+  // Track Ctrl key state for direct line mode
+  const ctrlKeyRef = useRef(false)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Control') ctrlKeyRef.current = true
+    }
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.key === 'Control') ctrlKeyRef.current = false
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    window.addEventListener('keyup', handleKeyUp)
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+      window.removeEventListener('keyup', handleKeyUp)
+    }
+  }, [])
 
   const handleMarkerDragStart = useCallback(
     (index: number) => (event: MarkerDragEvent) => {
@@ -205,7 +167,11 @@ export function EmbeddedRoutePlanner({ onPointsChange, initialTrack }: EmbeddedR
 
   const handleMarkerDragEnd = useCallback(
     (index: number) => (event: MarkerDragEvent) => {
-      updateControlPoint(index, event.lngLat.lng, event.lngLat.lat)
+      updateControlPoint(
+        index,
+        { lng: event.lngLat.lng, lat: event.lngLat.lat },
+        ctrlKeyRef.current
+      )
       setDraggingMarker(null)
     },
     [updateControlPoint]
@@ -214,7 +180,7 @@ export function EmbeddedRoutePlanner({ onPointsChange, initialTrack }: EmbeddedR
   const handleMarkerRightClick = useCallback(
     (index: number) => (event: React.MouseEvent) => {
       event.preventDefault()
-      removeControlPoint(index)
+      removeControlPoint(index, ctrlKeyRef.current)
     },
     [removeControlPoint]
   )
@@ -222,7 +188,7 @@ export function EmbeddedRoutePlanner({ onPointsChange, initialTrack }: EmbeddedR
   const handleMapClick = useCallback(
     (event: MapMouseEvent) => {
       if (hoverPoint) return
-      addControlPoint(event.lngLat.lng, event.lngLat.lat)
+      addControlPoint({ lng: event.lngLat.lng, lat: event.lngLat.lat }, ctrlKeyRef.current)
     },
     [addControlPoint, hoverPoint]
   )
@@ -262,18 +228,13 @@ export function EmbeddedRoutePlanner({ onPointsChange, initialTrack }: EmbeddedR
       })
 
       if (features.length > 0) {
-        const feature = features[0]
-        const segmentIndex = feature.properties?.segmentIndex as number | undefined
-        if (segmentIndex !== undefined && feature.geometry.type === 'LineString') {
-          const coordinates = (feature.geometry as GeoJSON.LineString).coordinates
-          const snapped = closestPointOnLine(
-            { lng: event.lngLat.lng, lat: event.lngLat.lat },
-            coordinates
-          )
+        const nearestIds = around(route.index, event.lngLat.lng, event.lngLat.lat, 1, 1)
+        if (nearestIds.length === 1) {
+          const nearestId = nearestIds[0]
           setHoverPoint({
-            lng: snapped.lng,
-            lat: snapped.lat,
-            segmentIndex,
+            lng: route.points[nearestId].lng,
+            lat: route.points[nearestId].lat,
+            idx: nearestIds[0],
           })
           return
         }
@@ -281,7 +242,7 @@ export function EmbeddedRoutePlanner({ onPointsChange, initialTrack }: EmbeddedR
 
       setHoverPoint(null)
     },
-    [routeGeoJson, draggingGhost, draggingMarker, controlPoints]
+    [route, routeGeoJson, draggingGhost, draggingMarker, controlPoints]
   )
 
   const handleMouseLeave = useCallback(() => {
@@ -298,7 +259,7 @@ export function EmbeddedRoutePlanner({ onPointsChange, initialTrack }: EmbeddedR
       setDraggingGhost({
         lng: hoverPoint.lng,
         lat: hoverPoint.lat,
-        segmentIndex: hoverPoint.segmentIndex,
+        idx: hoverPoint.idx,
       })
       setHoverPoint(null)
     },
@@ -307,25 +268,19 @@ export function EmbeddedRoutePlanner({ onPointsChange, initialTrack }: EmbeddedR
 
   const handleMouseUp = useCallback(() => {
     if (draggingGhost) {
-      insertControlPoint(draggingGhost.segmentIndex, draggingGhost.lng, draggingGhost.lat)
+      insertControlPoint(
+        draggingGhost.idx,
+        { lng: draggingGhost.lng, lat: draggingGhost.lat },
+        ctrlKeyRef.current
+      )
       setDraggingGhost(null)
     }
   }, [draggingGhost, insertControlPoint])
 
-  const routeStats = useMemo(() => {
-    const props = routeGeoJson?.properties
-    if (!props) return null
-
-    const distance = props['track-length'] as number | undefined
-    const ascend = props['plain-ascend'] as number | undefined
-
-    if (distance === undefined) return null
-
-    return {
-      distance: distance / 1000,
-      ascend: ascend ?? 0,
-    }
-  }, [routeGeoJson])
+  const routeStats = {
+    distance: 0,
+    ascend: 0,
+  }
 
   // Compute connection lines when dragging
   const dragConnectionLines = useMemo(() => {
@@ -374,12 +329,14 @@ export function EmbeddedRoutePlanner({ onPointsChange, initialTrack }: EmbeddedR
 
     // Connection lines for dragging ghost (new point being inserted)
     if (draggingGhost) {
-      const { segmentIndex, lng, lat } = draggingGhost
+      const { idx, lng, lat } = draggingGhost
       const features: GeoJSON.Feature<GeoJSON.LineString>[] = []
 
+      const cpIdx = findPreviousControlPointIndex(idx, controlPoints)
+
       // Connect to point before insertion
-      if (segmentIndex < controlPoints.length) {
-        const prev = controlPoints[segmentIndex]
+      if (cpIdx < controlPoints.length) {
+        const prev = controlPoints[cpIdx]
         features.push({
           type: 'Feature',
           geometry: {
@@ -394,8 +351,8 @@ export function EmbeddedRoutePlanner({ onPointsChange, initialTrack }: EmbeddedR
       }
 
       // Connect to point after insertion
-      if (segmentIndex + 1 < controlPoints.length) {
-        const next = controlPoints[segmentIndex + 1]
+      if (cpIdx + 1 < controlPoints.length) {
+        const next = controlPoints[cpIdx + 1]
         features.push({
           type: 'Feature',
           geometry: {
@@ -473,6 +430,7 @@ export function EmbeddedRoutePlanner({ onPointsChange, initialTrack }: EmbeddedR
           onMouseUp={handleMouseUp}
           interactiveLayerIds={routeGeoJson ? ['route-line'] : []}
           cursor={draggingGhost ? 'grabbing' : hoverPoint ? 'pointer' : 'crosshair'}
+          onZoom={(e) => setCurrentZoom(e.viewState.zoom)}
         >
           <NavigationControl position="top-left" />
           <MapStyleSwitcher
@@ -516,10 +474,12 @@ export function EmbeddedRoutePlanner({ onPointsChange, initialTrack }: EmbeddedR
           {controlPoints.map((point, index) => {
             const isFirst = index === 0
             const isLast = index === controlPoints.length - 1 && controlPoints.length > 1
+            const isManual = point.manual
 
             let markerColor = 'bg-amber-500'
             if (isFirst) markerColor = 'bg-green-500'
             else if (isLast) markerColor = 'bg-red-500'
+            else if (isManual) markerColor = 'bg-blue-500'
 
             // Use dragging position if this marker is being dragged
             const isDragging = draggingMarker?.index === index

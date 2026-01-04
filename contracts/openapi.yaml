@@ -462,6 +462,9 @@ components:
             - 48.8566
     GeoPoint:
       type: object
+      required:
+      - lng
+      - lat
       properties:
         lng:
           type: number
@@ -1507,6 +1510,10 @@ components:
       - DATE_TIME
     RouterRequest:
       type: object
+      required:
+      - from
+      - to
+      - profile
       properties:
         from:
           $ref: "#/components/schemas/GeoPoint"

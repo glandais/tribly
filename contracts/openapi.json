@@ -522,6 +522,7 @@
       },
       "GeoPoint" : {
         "type" : "object",
+        "required" : [ "lng", "lat" ],
         "properties" : {
           "lng" : {
             "type" : "number",
@@ -1677,6 +1678,7 @@
       },
       "RouterRequest" : {
         "type" : "object",
+        "required" : [ "from", "to", "profile" ],
         "properties" : {
           "from" : {
             "$ref" : "#/components/schemas/GeoPoint"
