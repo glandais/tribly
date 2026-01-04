@@ -69,10 +69,10 @@ const rideSchema = z.object({
   name: z.string().min(3).max(200),
   media: z.custom<MediaDto>(),
   dateTime: z.string().min(1),
-  visibility: z.nativeEnum(Visibility),
-  status: z.nativeEnum(Status),
+  visibility: z.enum(Visibility),
+  status: z.enum(Status),
   publishAt: z.string().optional(),
-  routeSlug: z.string().nullable().optional(),
+  routeSlug: z.string().optional(),
   groups: z.array(groupSchema),
 })
 
@@ -146,7 +146,7 @@ export function RideEditor({
       visibility: initialValues.visibility,
       status: initialValues.status,
       publishAt: initialValues.publishAt || '',
-      routeSlug: initialValues.routeSlug || null,
+      routeSlug: initialValues.routeSlug || undefined,
       groups: initialValues.groups,
     },
   })
@@ -466,7 +466,7 @@ export function RideEditor({
                       variant="link"
                       size="sm"
                       className="h-auto p-0 text-destructive"
-                      onClick={() => form.setValue('routeSlug', null)}
+                      onClick={() => form.setValue('routeSlug', undefined)}
                     >
                       {t('create.form.route.clear')}
                     </Button>

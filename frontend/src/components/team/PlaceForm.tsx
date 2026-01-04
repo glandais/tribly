@@ -20,7 +20,7 @@ import {
 const placeSchema = z.object({
   name: z.string().min(1),
   address: z.string().optional(),
-  link: z.string().url().optional().or(z.literal('')),
+  link: z.url().optional(),
   startPlace: z.boolean(),
   endPlace: z.boolean(),
 })

@@ -70,10 +70,10 @@ const tripSchema = z.object({
   name: z.string().min(3).max(200),
   media: z.custom<MediaDto>(),
   dateTime: z.string().min(1),
-  visibility: z.nativeEnum(Visibility),
-  status: z.nativeEnum(Status),
+  visibility: z.enum(Visibility),
+  status: z.enum(Status),
   publishAt: z.string().optional(),
-  routeSlug: z.string().nullable().optional(),
+  routeSlug: z.string().optional(),
   stages: z.array(stageSchema),
 })
 
