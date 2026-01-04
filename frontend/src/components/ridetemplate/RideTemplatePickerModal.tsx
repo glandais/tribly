@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
+import { keepPreviousData } from '@tanstack/react-query'
 import { DocumentDuplicateIcon, UserGroupIcon } from '@heroicons/react/24/outline'
-import { useRideTemplates } from '../../hooks/useRideTemplate'
-import type { RideTemplateDto } from '../../api/api'
+import { useListTemplates } from '@/api/endpoints/ride-templates/ride-templates'
+import type { RideTemplateDto } from '@/api/dto'
 import { MarkdownDisplay } from '../common/MarkdownDisplay'
 import { LoadingSpinner } from '../common/LoadingSpinner'
 import { Pagination } from '../common/Pagination'
@@ -47,11 +48,15 @@ export function RideTemplatePickerModal({
     data: templatesResponse,
     isLoading,
     error,
-  } = useRideTemplates(teamSlug, {
-    search: debouncedSearch || undefined,
-    page,
-    size: pageSize,
-  })
+  } = useListTemplates(
+    teamSlug,
+    {
+      search: debouncedSearch || undefined,
+      page,
+      size: pageSize,
+    },
+    { query: { placeholderData: keepPreviousData } }
+  )
 
   const { totalPages } = usePagination({
     pageSize,

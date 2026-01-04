@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { paths } from '../../config/paths'
 import { PlusIcon, UserGroupIcon } from '@heroicons/react/24/outline'
-import { useTeams, MinRole } from '../../hooks/useTeam'
+import { useListTeams } from '@/api/endpoints/teams/teams'
+import { MinRole } from '@/api/dto'
 import { useAuth } from '../../hooks/useAuth'
 import { usePagination } from '../../hooks/usePagination'
 import { TeamCard, TeamCardSkeleton } from '../../components/team/TeamCard'
@@ -22,9 +23,9 @@ type FilterValue = 'all' | 'member' | 'organizer' | 'admin'
 
 const filterToMinRole: Record<FilterValue, MinRole | undefined> = {
   all: undefined,
-  member: MinRole.Member,
-  organizer: MinRole.Organizer,
-  admin: MinRole.Admin,
+  member: MinRole.MEMBER,
+  organizer: MinRole.ORGANIZER,
+  admin: MinRole.ADMIN,
 }
 
 export function TeamListPage() {
@@ -42,7 +43,7 @@ export function TeamListPage() {
     data: teamsData,
     isLoading,
     error,
-  } = useTeams({
+  } = useListTeams({
     search,
     page,
     size: pageSize,

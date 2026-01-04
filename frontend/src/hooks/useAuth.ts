@@ -1,10 +1,17 @@
 import { useCallback, useEffect } from 'react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import i18next from 'i18next'
 import { useAuthStore } from '../store/authStore'
-import { usersApi, unwrapResponse } from '../lib/apiClient'
-import type { UpdateUserRequest } from '../api/api'
+import {
+  useGetCurrentUser,
+  useUpdateCurrentUser,
+  useDeleteCurrentUser,
+  useUploadAvatar,
+  useDeleteAvatar,
+  getGetCurrentUserQueryKey,
+} from '../api/endpoints/users/users'
+import type { UpdateUserRequest } from '@/api/dto'
 
 export function useAuth() {
   const queryClient = useQueryClient()
@@ -22,14 +29,12 @@ export function useAuth() {
   } = useAuthStore()
 
   // Fetch current user from backend - this creates/syncs the user on first call
-  const { data: backendUser, refetch: refetchUser } = useQuery({
-    queryKey: ['currentUser'],
-    queryFn: async () => {
-      return await unwrapResponse(usersApi.getCurrentUser())
+  const { data: backendUser, refetch: refetchUser } = useGetCurrentUser({
+    query: {
+      enabled: isAuthenticated && isInitialized,
+      staleTime: 1000 * 60 * 5,
+      retry: 1,
     },
-    enabled: isAuthenticated && isInitialized,
-    staleTime: 1000 * 60 * 5,
-    retry: 1,
   })
 
   // Update store when backend user is fetched - store UserDto directly
@@ -40,47 +45,42 @@ export function useAuth() {
     }
   }, [backendUser, setUser, setLoading])
 
-  const updateProfileMutation = useMutation({
-    mutationFn: async (data: UpdateUserRequest) => {
-      return await unwrapResponse(usersApi.updateCurrentUser(data))
-    },
-    onSuccess: (updatedUser) => {
-      queryClient.setQueryData(['currentUser'], updatedUser)
-      setUser(updatedUser)
-
-      toast.success(i18next.t('profile:notifications.updated'))
+  const updateProfileMutation = useUpdateCurrentUser({
+    mutation: {
+      onSuccess: (updatedUser) => {
+        queryClient.setQueryData(getGetCurrentUserQueryKey(), updatedUser)
+        setUser(updatedUser)
+        toast.success(i18next.t('profile:notifications.updated'))
+      },
     },
   })
 
-  const deleteAccountMutation = useMutation({
-    mutationFn: async () => {
-      await unwrapResponse(usersApi.deleteCurrentUser())
-    },
-    onSuccess: () => {
-      toast.success(i18next.t('profile:notifications.accountDeleted'))
-      logout()
-    },
-  })
-
-  const uploadAvatarMutation = useMutation({
-    mutationFn: async (file: File) => {
-      return await unwrapResponse(usersApi.uploadAvatar(file))
-    },
-    onSuccess: (updatedUser) => {
-      queryClient.setQueryData(['currentUser'], updatedUser)
-      setUser(updatedUser)
-      toast.success(i18next.t('profile:notifications.avatarUpdated'))
+  const deleteAccountMutation = useDeleteCurrentUser({
+    mutation: {
+      onSuccess: () => {
+        toast.success(i18next.t('profile:notifications.accountDeleted'))
+        logout()
+      },
     },
   })
 
-  const deleteAvatarMutation = useMutation({
-    mutationFn: async () => {
-      return await unwrapResponse(usersApi.deleteAvatar())
+  const uploadAvatarMutation = useUploadAvatar({
+    mutation: {
+      onSuccess: (updatedUser) => {
+        queryClient.setQueryData(getGetCurrentUserQueryKey(), updatedUser)
+        setUser(updatedUser)
+        toast.success(i18next.t('profile:notifications.avatarUpdated'))
+      },
     },
-    onSuccess: (updatedUser) => {
-      queryClient.setQueryData(['currentUser'], updatedUser)
-      setUser(updatedUser)
-      toast.success(i18next.t('profile:notifications.avatarDeleted'))
+  })
+
+  const deleteAvatarMutation = useDeleteAvatar({
+    mutation: {
+      onSuccess: (updatedUser) => {
+        queryClient.setQueryData(getGetCurrentUserQueryKey(), updatedUser)
+        setUser(updatedUser)
+        toast.success(i18next.t('profile:notifications.avatarDeleted'))
+      },
     },
   })
 
@@ -88,6 +88,21 @@ export function useAuth() {
     queryClient.clear()
     storeLogout()
   }, [storeLogout, queryClient])
+
+  // Wrap mutations to maintain existing API
+  const updateProfile = useCallback(
+    (
+      data: UpdateUserRequest,
+      options?: { onSuccess?: () => void; onError?: (error: unknown) => void }
+    ) => updateProfileMutation.mutate({ data }, options),
+    [updateProfileMutation]
+  )
+
+  const uploadAvatar = useCallback(
+    (file: File, options?: { onSuccess?: () => void; onError?: (error: unknown) => void }) =>
+      uploadAvatarMutation.mutate({ data: { file } }, options),
+    [uploadAvatarMutation]
+  )
 
   return {
     user,
@@ -97,11 +112,11 @@ export function useAuth() {
     error,
     login,
     logout,
-    updateProfile: updateProfileMutation.mutate,
+    updateProfile,
     isUpdatingProfile: updateProfileMutation.isPending,
     deleteAccount: deleteAccountMutation.mutate,
     isDeletingAccount: deleteAccountMutation.isPending,
-    uploadAvatar: uploadAvatarMutation.mutate,
+    uploadAvatar,
     isUploadingAvatar: uploadAvatarMutation.isPending,
     deleteAvatar: deleteAvatarMutation.mutate,
     isDeletingAvatar: deleteAvatarMutation.isPending,

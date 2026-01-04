@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { UsersIcon } from '@heroicons/react/24/outline'
-import type { TeamDetailDto } from '../../hooks/useTeam'
+import type { TeamDetailDto } from '@/api/dto'
 import { Card, CardContent, CardTitle, CardDescription } from '../common/card'
 import { Badge, VisibilityBadge, Stat, CardSkeleton } from '../common/card'
 import { TeamAvatar } from './TeamAvatar'

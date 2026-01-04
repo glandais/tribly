@@ -1,8 +1,8 @@
 import { useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Autocomplete } from './Autocomplete'
-import { useUserSearch } from '../../hooks/useUserSearch'
-import type { PublicUserDto } from '../../hooks/useUserSearch'
+import { useSearchUsers } from '@/api/endpoints/users/users'
+import type { PublicUserDto } from '@/api/dto'
 
 interface UserAutocompleteProps {
   onSelect: (user: PublicUserDto) => void
@@ -13,20 +13,22 @@ interface UserAutocompleteProps {
 export function UserAutocomplete({ onSelect, placeholder, className = '' }: UserAutocompleteProps) {
   const { t } = useTranslation('common')
   const [query, setQuery] = useState('')
-  const [isSearching, setIsSearching] = useState(false)
 
-  const { data: users = [], isLoading } = useUserSearch(query, isSearching)
+  const shouldSearch = query.trim().length >= 2
+
+  const { data: users = [], isLoading } = useSearchUsers(
+    { q: query },
+    { query: { enabled: shouldSearch } }
+  )
 
   const handleQueryChange = useCallback((newQuery: string) => {
     setQuery(newQuery)
-    setIsSearching(newQuery.trim().length >= 2)
   }, [])
 
   const handleSelect = useCallback(
     (user: PublicUserDto) => {
       onSelect(user)
       setQuery('')
-      setIsSearching(false)
     },
     [onSelect]
   )

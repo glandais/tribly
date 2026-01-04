@@ -12,20 +12,14 @@ import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { RangeInput } from '@/components/common/RangeInput'
-import {
-  Hilliness,
-  SurfaceType,
-  WindDirection,
-  RouteSortBy,
-  SortDirection,
-  type RouteFilters,
-} from '@/hooks/useRoute'
+import { Hilliness, SurfaceType, WindDirection, RouteSortBy, SortDirection } from '@/api/dto'
+import type { ListRoutesParams } from '@/api/dto'
 
 const NONE_VALUE = '_none'
 
 interface RouteFilterPanelProps {
-  filters: RouteFilters
-  onFiltersChange: (filters: RouteFilters) => void
+  filters: ListRoutesParams
+  onFiltersChange: (filters: ListRoutesParams) => void
   isOpen: boolean
   onOpenChange: (open: boolean) => void
 }
@@ -38,14 +32,21 @@ export function RouteFilterPanel({
 }: RouteFilterPanelProps) {
   const { t } = useTranslation('routes')
 
-  const updateFilter = <K extends keyof RouteFilters>(key: K, value: RouteFilters[K]) => {
+  const updateFilter = <K extends keyof ListRoutesParams>(key: K, value: ListRoutesParams[K]) => {
     onFiltersChange({ ...filters, [key]: value, page: 0 })
   }
 
-  const toggleSurfaceType = (type: (typeof SurfaceType)[keyof typeof SurfaceType]) => {
+  const toggleSurfaceType = (type: SurfaceType) => {
     const current = filters.surfaceTypes || []
     const updated = current.includes(type) ? current.filter((t) => t !== type) : [...current, type]
     updateFilter('surfaceTypes', updated.length > 0 ? updated : undefined)
+  }
+
+  // Get the first wind direction from the array (we use single-select UI)
+  const selectedWindDirection = filters.windDirections?.[0]
+
+  const setWindDirection = (dir: WindDirection | undefined) => {
+    updateFilter('windDirections', dir ? [dir] : undefined)
   }
 
   const clearFilters = () => {
@@ -63,7 +64,7 @@ export function RouteFilterPanel({
     filters.maxElevationGain !== undefined ||
     filters.hilliness !== undefined ||
     (filters.surfaceTypes?.length ?? 0) > 0 ||
-    filters.windDirection !== undefined
+    (filters.windDirections?.length ?? 0) > 0
 
   return (
     <Collapsible open={isOpen} onOpenChange={onOpenChange}>
@@ -167,14 +168,9 @@ export function RouteFilterPanel({
                 {t('list.filters.windDirection.label')}
               </Label>
               <Select
-                value={filters.windDirection ?? NONE_VALUE}
+                value={selectedWindDirection ?? NONE_VALUE}
                 onValueChange={(value) =>
-                  updateFilter(
-                    'windDirection',
-                    value === NONE_VALUE
-                      ? undefined
-                      : (value as (typeof WindDirection)[keyof typeof WindDirection])
-                  )
+                  setWindDirection(value === NONE_VALUE ? undefined : (value as WindDirection))
                 }
               >
                 <SelectTrigger className="w-full">
@@ -202,10 +198,8 @@ export function RouteFilterPanel({
               </Label>
               <div className="flex gap-2">
                 <Select
-                  value={filters.sortBy ?? RouteSortBy.DateTime}
-                  onValueChange={(value) =>
-                    updateFilter('sortBy', value as (typeof RouteSortBy)[keyof typeof RouteSortBy])
-                  }
+                  value={filters.sortBy ?? RouteSortBy.DATE_TIME}
+                  onValueChange={(value) => updateFilter('sortBy', value as RouteSortBy)}
                 >
                   <SelectTrigger className="flex-1">
                     <SelectValue placeholder={t('list.filters.sort.DATE_TIME')} />
@@ -226,14 +220,14 @@ export function RouteFilterPanel({
                   onClick={() =>
                     updateFilter(
                       'sortDir',
-                      filters.sortDir === SortDirection.Asc ? SortDirection.Desc : SortDirection.Asc
+                      filters.sortDir === SortDirection.ASC ? SortDirection.DESC : SortDirection.ASC
                     )
                   }
                   title={t(
-                    `list.filters.sort.${filters.sortDir === SortDirection.Asc ? 'ASC' : 'DESC'}`
+                    `list.filters.sort.${filters.sortDir === SortDirection.ASC ? 'ASC' : 'DESC'}`
                   )}
                 >
-                  {filters.sortDir === SortDirection.Asc ? (
+                  {filters.sortDir === SortDirection.ASC ? (
                     <ChevronUpIcon className="w-4 h-4" />
                   ) : (
                     <ChevronDownIcon className="w-4 h-4" />

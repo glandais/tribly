@@ -1,5 +1,5 @@
 import { distance } from '@/components/map/mapUtils'
-import { routerApi, unwrapResponse } from './apiClient'
+import { route as routerRoute } from '@/api/endpoints/router/router'
 import KDBush from 'kdbush'
 
 export interface Point {
@@ -188,13 +188,11 @@ async function router(
   if (direct || distance(from.lng, from.lat, to.lng, to.lat) < 0.005) {
     return [createPoint(to.lng, to.lat)]
   }
-  const response = await unwrapResponse(
-    routerApi.route({
-      from,
-      to,
-      profile,
-    })
-  )
+  const response = await routerRoute({
+    from,
+    to,
+    profile,
+  })
   return createPoints(response.route.coordinates)
 }
 

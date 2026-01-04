@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { Link, useParams, Navigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { keepPreviousData } from '@tanstack/react-query'
 import { paths } from '../../config/paths'
 import { PlusIcon, MapIcon } from '@heroicons/react/24/outline'
-import { useRoutes, type RouteFilters } from '../../hooks/useRoute'
-import { useTeam } from '../../hooks/useTeam'
+import { useListRoutes } from '@/api/endpoints/routes/routes'
+import { useGetTeam } from '@/api/endpoints/teams/teams'
+import type { ListRoutesParams } from '@/api/dto'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { TeamLayout } from '../../components/team/TeamLayout'
 import { RouteCard, RouteCardSkeleton } from '../../components/route/RouteCard'
@@ -19,16 +21,20 @@ export function RouteListPage() {
   const pageSize = 20
 
   // Filter state - all in one object
-  const [filters, setFilters] = useState<RouteFilters>({
+  const [filters, setFilters] = useState<ListRoutesParams>({
     page: 0,
     size: pageSize,
   })
   const [filtersOpen, setFiltersOpen] = useState(false)
 
-  const { data: team, isLoading: isLoadingTeam } = useTeam(teamSlug)
-  const { data: routesData, isLoading: isLoadingRoutes } = useRoutes(teamSlug, filters)
+  const { data: team, isLoading: isLoadingTeam } = useGetTeam(teamSlug!, {
+    query: { enabled: !!teamSlug },
+  })
+  const { data: routesData, isLoading: isLoadingRoutes } = useListRoutes(teamSlug!, filters, {
+    query: { enabled: !!teamSlug, placeholderData: keepPreviousData },
+  })
 
-  const handleFiltersChange = (newFilters: RouteFilters) => {
+  const handleFiltersChange = (newFilters: ListRoutesParams) => {
     setFilters({ ...newFilters, size: pageSize })
   }
 
@@ -67,7 +73,7 @@ export function RouteListPage() {
     filters.maxElevationGain !== undefined ||
     filters.hilliness !== undefined ||
     (filters.surfaceTypes?.length ?? 0) > 0 ||
-    filters.windDirection !== undefined
+    (filters.windDirections?.length ?? 0) > 0
 
   return (
     <TeamLayout team={team} currentTab="routes">

@@ -1,7 +1,7 @@
 import { Link, Navigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { ArrowLeftIcon } from '@heroicons/react/24/outline'
-import type { TeamDetailDto } from '../../hooks/useTeam'
+import type { TeamDetailDto } from '@/api/dto'
 import { paths } from '@/config/paths'
 
 export type AdminTab = 'ride-templates' | 'places' | 'pages' | 'members' | 'settings'

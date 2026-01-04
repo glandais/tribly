@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { PaperClipIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline'
-import { MediaDto, AssetDto } from '../../api/api'
+import { MediaDto, AssetDto } from '@/api/dto'
 import { MarkdownDisplay } from './MarkdownDisplay'
 
 export interface MediaDisplayProps {

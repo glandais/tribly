@@ -1,15 +1,17 @@
 import { useState } from 'react'
 import { useParams, Navigate, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
+import i18next from 'i18next'
 import { DocumentDuplicateIcon } from '@heroicons/react/24/outline'
-import { useTeam } from '../../hooks/useTeam'
-import { useCreateRide, Visibility, Status } from '../../hooks/useRide'
+import { useGetTeam } from '@/api/endpoints/teams/teams'
+import { useCreateRide, getListRidesQueryKey } from '../../api/endpoints/rides/rides'
+import { Visibility, Status } from '@/api/dto'
+import type { RideRequest, RideTemplateDto } from '@/api/dto'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { RideEditor } from '../../components/ride/RideEditor'
-import type { RideFormData, EditableGroup } from '../../components/ride/RideEditor'
 import { RideTemplatePickerModal } from '../../components/ridetemplate/RideTemplatePickerModal'
-import type { RideTemplateDto } from '../../api/api'
-import { toDateTimeLocalValue } from '../../utils/dateFormat'
 import { defaultMedia } from '@/lib/apiUtils'
 import { paths } from '@/config/paths'
 
@@ -18,19 +20,16 @@ export function CreateRidePage() {
   const { t: tCommon } = useTranslation('common')
   const { teamSlug } = useParams<{ teamSlug: string }>()
   const navigate = useNavigate()
-  const { data: team, isLoading: isLoadingTeam } = useTeam(teamSlug)
+  const queryClient = useQueryClient()
+  const { data: team, isLoading: isLoadingTeam } = useGetTeam(teamSlug!, {
+    query: { enabled: !!teamSlug },
+  })
 
-  const createMutation = useCreateRide(teamSlug)
+  const createMutation = useCreateRide()
 
   const [showTemplateModal, setShowTemplateModal] = useState(false)
   const [editorKey, setEditorKey] = useState(0)
-  const [templateValues, setTemplateValues] = useState<{
-    name: string
-    markdown?: string
-    visibility: Visibility
-    status: Status
-    groups: EditableGroup[]
-  } | null>(null)
+  const [templateValues, setTemplateValues] = useState<RideTemplateDto | null>(null)
 
   if (isLoadingTeam) {
     return <LoadingPage message={tCommon('loading')} />
@@ -53,30 +52,27 @@ export function CreateRidePage() {
     const nextSunday = new Date(today)
     nextSunday.setDate(today.getDate() + daysUntilSunday)
     nextSunday.setHours(8, 0, 0, 0)
-    return toDateTimeLocalValue(nextSunday)
+    return nextSunday.toISOString()
   }
 
   // Prepare initial values - use template values if available
   const initialValues = templateValues
     ? {
-        name: templateValues.name,
+        ...templateValues,
         media: {
           markdown: templateValues.markdown,
           assets: defaultMedia().assets,
         },
         dateTime: getNextSunday(),
-        visibility: templateValues.visibility,
-        status: templateValues.status,
         publishAt: undefined,
         routeSlug: undefined,
-        groups: templateValues.groups,
       }
     : {
         name: '',
         media: defaultMedia(),
         dateTime: getNextSunday(),
-        visibility: team.visibility === Visibility.Team ? Visibility.Team : Visibility.Public,
-        status: Status.Draft,
+        visibility: team.visibility === Visibility.TEAM ? Visibility.TEAM : Visibility.PUBLIC,
+        status: Status.DRAFT,
         publishAt: undefined,
         routeSlug: undefined,
         groups: [
@@ -93,15 +89,9 @@ export function CreateRidePage() {
 
   const handleTemplateSelect = (template: RideTemplateDto) => {
     setTemplateValues({
-      name: template.name,
-      markdown: template.markdown || undefined,
-      visibility: template.visibility as Visibility,
-      status: template.status as Status,
+      ...template,
       groups: template.groups.map((g) => ({
-        name: g.name,
-        time: g.time,
-        averageSpeed: g.averageSpeed ?? undefined,
-        maxParticipants: g.maxParticipants ?? undefined,
+        ...g,
         routeSlug: undefined,
         isNew: true,
       })),
@@ -110,22 +100,21 @@ export function CreateRidePage() {
     setShowTemplateModal(false)
   }
 
-  const handleSubmit = (data: RideFormData) => {
+  const handleSubmit = (data: RideRequest) => {
     const filteredGroups = data.groups.filter((g) => g.name.trim())
     createMutation.mutate(
       {
-        name: data.name,
-        media: data.media,
-        dateTime: data.dateTime,
-        status: data.status,
-        visibility: data.visibility,
-        publishAt: data.publishAt,
-        routeSlug: data.routeSlug,
-        groups: filteredGroups,
+        slug: teamSlug!,
+        data: {
+          ...data,
+          groups: filteredGroups,
+        },
       },
       {
-        onSuccess: () => {
-          navigate(paths.team(teamSlug!))
+        onSuccess: (ride) => {
+          queryClient.invalidateQueries({ queryKey: getListRidesQueryKey(teamSlug!) })
+          toast.success(i18next.t('rides:notifications.created'))
+          navigate(paths.ride(teamSlug!, ride.slug))
         },
       }
     )
@@ -156,7 +145,6 @@ export function CreateRidePage() {
         onSubmit={handleSubmit}
         onCancel={() => navigate(paths.team(teamSlug!))}
         isPending={createMutation.isPending}
-        error={createMutation.error}
         submitButtonText={t('create.button')}
       />
 

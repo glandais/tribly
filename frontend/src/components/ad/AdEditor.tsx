@@ -1,15 +1,11 @@
 import { useEffect } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
 import { useTranslation } from 'react-i18next'
-import type { MediaDto, TeamDetailDto } from '../../api/api'
-import { AdType, RentalPeriod, Status, Visibility } from '../../api/api'
-import { ApiClientError } from '../../lib/apiClient'
-import { fromDateTimeLocalValue } from '../../utils/dateFormat'
+import { AdRequest, AdType, RentalPeriod, TeamDetailDto } from '@/api/dto'
+import { createAdBody } from '@/api/zod/ads/ads.zod'
 import { LoadingSpinner } from '../common/LoadingSpinner'
 import { MediaEditor } from '../common/MediaEditor'
-import { defaultMedia } from '@/lib/apiUtils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -31,48 +27,19 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 
-export interface AdFormData {
-  name: string
-  media: MediaDto
-  dateTime: string // ISO string
-  visibility: Visibility
-  status: Status
-  adType: AdType
-  price?: number
-  rentalPeriod?: RentalPeriod
-  latitude?: number
-  longitude?: number
-  locationDescription?: string
-}
-
-const adSchema = z
-  .object({
-    name: z.string().min(3).max(200),
-    media: z.custom<MediaDto>(),
-    dateTime: z.string(),
-    visibility: z.nativeEnum(Visibility),
-    status: z.nativeEnum(Status),
-    adType: z.nativeEnum(AdType),
-    price: z.number().min(0).optional(),
-    rentalPeriod: z.nativeEnum(RentalPeriod).optional(),
-    latitude: z.number().min(-90).max(90).optional(),
-    longitude: z.number().min(-180).max(180).optional(),
-    locationDescription: z.string().max(255).optional(),
-  })
-  .refine(
-    (data) => {
-      if (data.adType === AdType.Rental) {
-        return data.rentalPeriod !== undefined
-      }
-      return true
-    },
-    {
-      message: 'Rental period is required for rental ads',
-      path: ['rentalPeriod'],
+// Use generated schema with custom media type for form handling
+const adSchema = createAdBody.refine(
+  (data) => {
+    if (data.adType === AdType.RENTAL) {
+      return data.rentalPeriod !== undefined
     }
-  )
-
-type AdFormValues = z.infer<typeof adSchema>
+    return true
+  },
+  {
+    message: 'Rental period is required for rental ads',
+    path: ['rentalPeriod'],
+  }
+)
 
 interface AdEditorProps {
   // Context
@@ -80,27 +47,14 @@ interface AdEditorProps {
   teamSlug: string
 
   // Initial values (REQUIRED - each page prepares these)
-  initialValues: {
-    name: string
-    media: MediaDto
-    dateTime: string // datetime-local value
-    visibility: Visibility
-    status: Status
-    adType: AdType
-    price?: number | null
-    rentalPeriod?: RentalPeriod | null
-    latitude?: number | null
-    longitude?: number | null
-    locationDescription?: string
-  }
+  initialValues: AdRequest
 
   // Submission
-  onSubmit: (data: AdFormData) => void | Promise<void>
+  onSubmit: (data: AdRequest) => void | Promise<void>
   onCancel: () => void
 
   // State
   isPending: boolean
-  error?: Error | ApiClientError | null
 
   // UI customization
   submitButtonText?: string
@@ -114,103 +68,32 @@ export function AdEditor({
   onSubmit,
   onCancel,
   isPending,
-  error,
   submitButtonText,
   cancelButtonText,
 }: AdEditorProps) {
   const { t } = useTranslation('ads')
   const { t: tCommon } = useTranslation('common')
 
-  const form = useForm<AdFormValues>({
+  const form = useForm<AdRequest>({
     resolver: zodResolver(adSchema),
-    defaultValues: {
-      name: initialValues.name,
-      media: initialValues.media ?? defaultMedia(),
-      dateTime: initialValues.dateTime,
-      visibility: initialValues.visibility,
-      status: initialValues.status,
-      adType: initialValues.adType,
-      price: initialValues.price ?? undefined,
-      rentalPeriod: initialValues.rentalPeriod ?? undefined,
-      latitude: initialValues.latitude ?? undefined,
-      longitude: initialValues.longitude ?? undefined,
-      locationDescription: initialValues.locationDescription || '',
-    },
+    mode: 'onChange',
   })
-
-  const adType = useWatch({ control: form.control, name: 'adType' })
-  const name = useWatch({ control: form.control, name: 'name' })
 
   // Sync form values when initial props change (for edit mode)
   useEffect(() => {
-    form.setValue('name', initialValues.name)
-    if (initialValues.media?.markdown || initialValues.media?.assets?.images?.length) {
-      form.setValue('media', initialValues.media)
-    }
-    form.setValue('dateTime', initialValues.dateTime)
-    form.setValue('visibility', initialValues.visibility)
-    form.setValue('status', initialValues.status)
-    form.setValue('adType', initialValues.adType)
-    form.setValue('price', initialValues.price ?? undefined)
-    form.setValue('rentalPeriod', initialValues.rentalPeriod ?? undefined)
-    form.setValue('latitude', initialValues.latitude ?? undefined)
-    form.setValue('longitude', initialValues.longitude ?? undefined)
-    form.setValue('locationDescription', initialValues.locationDescription || '')
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    initialValues.name,
-    initialValues.media?.markdown,
-    initialValues.media?.assets?.images?.length,
-    initialValues.dateTime,
-    initialValues.visibility,
-    initialValues.status,
-    initialValues.adType,
-    initialValues.price,
-    initialValues.rentalPeriod,
-    initialValues.latitude,
-    initialValues.longitude,
-    initialValues.locationDescription,
-  ])
+    form.reset(initialValues)
+  }, [initialValues, form])
 
-  // Set server-side errors on form fields
+  const adType = useWatch({ control: form.control, name: 'adType' })
+
+  // Handle adType changes: clear rentalPeriod if not RENTAL, re-validate
   useEffect(() => {
-    if (error instanceof ApiClientError && error.error.errors) {
-      error.error.errors.forEach((err) => {
-        if (err.field && err.field in adSchema.shape) {
-          form.setError(err.field as keyof AdFormValues, { message: err.message })
-        }
-      })
-    }
-  }, [error, form])
-
-  const handleSubmit = (values: AdFormValues) => {
-    onSubmit({
-      name: values.name,
-      media: values.media,
-      dateTime: fromDateTimeLocalValue(values.dateTime).toISOString(),
-      status: values.status,
-      visibility: values.visibility,
-      adType: values.adType,
-      price: values.price ?? undefined,
-      rentalPeriod:
-        values.adType === AdType.Rental ? (values.rentalPeriod ?? undefined) : undefined,
-      latitude: values.latitude ?? undefined,
-      longitude: values.longitude ?? undefined,
-      locationDescription: values.locationDescription || undefined,
-    })
-  }
+    form.trigger('rentalPeriod')
+  }, [adType, form])
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-        {error && !(error instanceof ApiClientError && error.error.errors) && (
-          <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
-            <p className="text-destructive">
-              {error instanceof ApiClientError ? error.error.message : t('edit.error')}
-            </p>
-          </div>
-        )}
-
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         {/* Title */}
         <FormField
           control={form.control}
@@ -244,15 +127,15 @@ export function AdEditor({
                   className="flex gap-4"
                 >
                   <div className="flex items-center space-x-2">
-                    <RadioGroupItem value={AdType.Sale} id="adType-sale" />
+                    <RadioGroupItem value={AdType.SALE} id="adType-sale" />
                     <Label htmlFor="adType-sale">{t('adType.SALE')}</Label>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <RadioGroupItem value={AdType.Rental} id="adType-rental" />
+                    <RadioGroupItem value={AdType.RENTAL} id="adType-rental" />
                     <Label htmlFor="adType-rental">{t('adType.RENTAL')}</Label>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <RadioGroupItem value={AdType.Wanted} id="adType-wanted" />
+                    <RadioGroupItem value={AdType.WANTED} id="adType-wanted" />
                     <Label htmlFor="adType-wanted">{t('adType.WANTED')}</Label>
                   </div>
                 </RadioGroup>
@@ -289,7 +172,7 @@ export function AdEditor({
         />
 
         {/* Rental Period - only shown for RENTAL type */}
-        {adType === AdType.Rental && (
+        {adType === AdType.RENTAL && (
           <FormField
             control={form.control}
             name="rentalPeriod"
@@ -298,16 +181,16 @@ export function AdEditor({
                 <FormLabel>
                   {t('create.rentalPeriodLabel')} <span className="text-destructive">*</span>
                 </FormLabel>
-                <Select value={field.value ?? ''} onValueChange={field.onChange}>
+                <Select {...field} onValueChange={field.onChange}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder={t('create.rentalPeriodLabel')} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value={RentalPeriod.Day}>{t('rentalPeriod.DAY')}</SelectItem>
-                    <SelectItem value={RentalPeriod.Week}>{t('rentalPeriod.WEEK')}</SelectItem>
-                    <SelectItem value={RentalPeriod.Month}>{t('rentalPeriod.MONTH')}</SelectItem>
+                    <SelectItem value={RentalPeriod.DAY}>{t('rentalPeriod.DAY')}</SelectItem>
+                    <SelectItem value={RentalPeriod.WEEK}>{t('rentalPeriod.WEEK')}</SelectItem>
+                    <SelectItem value={RentalPeriod.MONTH}>{t('rentalPeriod.MONTH')}</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -461,28 +344,12 @@ export function AdEditor({
           )}
         />
 
-        {/* Date and Time */}
-        <FormField
-          control={form.control}
-          name="dateTime"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t('create.dateTimeLabel')}</FormLabel>
-              <FormControl>
-                <Input type="datetime-local" {...field} />
-              </FormControl>
-              <FormDescription>{t('create.dateTimeHint')}</FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
         {/* Actions */}
         <div className="pt-4 flex items-center justify-end gap-3">
           <Button type="button" variant="outline" onClick={onCancel}>
             {cancelButtonText || tCommon('actions.cancelAction')}
           </Button>
-          <Button type="submit" disabled={isPending || !name.trim()}>
+          <Button type="submit" disabled={isPending || !form.formState.isValid}>
             {isPending ? (
               <>
                 <LoadingSpinner size="sm" color="white" className="mr-2" />

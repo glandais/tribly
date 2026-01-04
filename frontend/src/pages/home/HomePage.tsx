@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { NewspaperIcon } from '@heroicons/react/24/outline'
-import { useAllPublications, PublicationType } from '../../hooks/useAllPublications'
+import { useListAllPublications } from '../../api/endpoints/publications/publications'
+import { PublicationType } from '@/api/dto'
 import {
   PublicationCard,
   PublicationCardSkeleton,
@@ -22,9 +23,9 @@ type FilterValue = 'all' | 'ride' | 'post' | 'trip'
 
 const filterToTypes: Record<FilterValue, PublicationType[] | undefined> = {
   all: undefined,
-  ride: [PublicationType.Ride],
-  post: [PublicationType.Post],
-  trip: [PublicationType.Trip],
+  ride: [PublicationType.RIDE],
+  post: [PublicationType.POST],
+  trip: [PublicationType.TRIP],
 }
 
 export function HomePage() {
@@ -40,11 +41,11 @@ export function HomePage() {
     data: publicationsData,
     isLoading,
     isError,
-  } = useAllPublications({
+  } = useListAllPublications({
     search: search || undefined,
     page,
     size: pageSize,
-    types: filterToTypes[filter],
+    type: filterToTypes[filter],
   })
 
   const resetPage = () => setPage(0)

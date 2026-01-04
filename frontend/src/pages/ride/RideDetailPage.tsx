@@ -1,6 +1,8 @@
 import { useState, useMemo } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import {
   CalendarIcon,
   UsersIcon,
@@ -8,15 +10,17 @@ import {
   MapPinIcon,
   ChevronDownIcon,
 } from '@heroicons/react/24/outline'
-import { useTeam } from '../../hooks/useTeam'
+import { useGetTeam } from '@/api/endpoints/teams/teams'
 import {
-  useRide,
+  useGetRide,
   useUpdateRide,
   useDeleteRide,
-  useJoinRide,
-  useLeaveRide,
-} from '../../hooks/useRide'
-import { Status } from '../../hooks/useRide'
+  useJoinGroup,
+  useLeaveGroup,
+  getGetRideQueryKey,
+  getListRidesQueryKey,
+} from '../../api/endpoints/rides/rides'
+import { Status } from '@/api/dto'
 import { useAuth } from '../../hooks/useAuth'
 import { LoadingPage, LoadingSpinner } from '../../components/common/LoadingSpinner'
 import { RideGroupCard } from '../../components/ride/RideGroupCard'
@@ -38,9 +42,9 @@ import {
 import { paths } from '@/config/paths'
 
 const statusColors: Record<Status, string> = {
-  [Status.Draft]: 'bg-gray-100 text-gray-800',
-  [Status.Published]: 'bg-green-100 text-green-800',
-  [Status.Cancelled]: 'bg-red-100 text-red-800',
+  [Status.DRAFT]: 'bg-gray-100 text-gray-800',
+  [Status.PUBLISHED]: 'bg-green-100 text-green-800',
+  [Status.CANCELLED]: 'bg-red-100 text-red-800',
 }
 
 export function RideDetailPage() {
@@ -56,13 +60,23 @@ export function RideDetailPage() {
   const [showUncancelConfirm, setShowUncancelConfirm] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
-  const { data: team, isLoading: isLoadingTeam } = useTeam(teamSlug)
-  const { data: ride, isLoading: isLoadingRide, error } = useRide(teamSlug, rideSlug)
+  const { data: team, isLoading: isLoadingTeam } = useGetTeam(teamSlug!, {
+    query: { enabled: !!teamSlug },
+  })
+  const {
+    data: ride,
+    isLoading: isLoadingRide,
+    error,
+  } = useGetRide(teamSlug!, rideSlug!, {
+    query: { enabled: !!teamSlug && !!rideSlug },
+  })
 
-  const updateMutation = useUpdateRide(teamSlug, rideSlug!)
-  const deleteMutation = useDeleteRide(teamSlug)
-  const joinMutation = useJoinRide(teamSlug, rideSlug!)
-  const leaveMutation = useLeaveRide(teamSlug, rideSlug!)
+  const queryClient = useQueryClient()
+  const navigate = useNavigate()
+  const updateMutation = useUpdateRide()
+  const deleteMutation = useDeleteRide()
+  const joinMutation = useJoinGroup()
+  const leaveMutation = useLeaveGroup()
 
   // Combine ride's main route with group routes for map display
   // Must be before early returns to maintain hook order
@@ -116,39 +130,88 @@ export function RideDetailPage() {
     user && ride.groups
       ? ride.groups.some((group) => group.participants.some((p) => p.id === user.id))
       : false
-  const canJoinRide = isMember && ride.status === Status.Published && !hasJoinedAnyGroup
+  const canJoinRide = isMember && ride.status === Status.PUBLISHED && !hasJoinedAnyGroup
 
   const formattedDate = formatDateTime(ride.dateTime)
 
   const handlePublish = () => {
-    updateMutation.mutate({ ...ride, status: Status.Published })
+    updateMutation.mutate(
+      { slug: teamSlug!, rideSlug: rideSlug!, data: { ...ride, status: Status.PUBLISHED } },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getGetRideQueryKey(teamSlug!, rideSlug!) })
+          queryClient.invalidateQueries({ queryKey: getListRidesQueryKey(teamSlug!) })
+          toast.success(t('notifications.published'))
+        },
+      }
+    )
   }
 
   const handleUnpublish = () => {
-    updateMutation.mutate({ ...ride, status: Status.Draft })
+    updateMutation.mutate(
+      { slug: teamSlug!, rideSlug: rideSlug!, data: { ...ride, status: Status.DRAFT } },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getGetRideQueryKey(teamSlug!, rideSlug!) })
+          queryClient.invalidateQueries({ queryKey: getListRidesQueryKey(teamSlug!) })
+          toast.success(t('notifications.unpublished'))
+        },
+      }
+    )
     setShowUnpublishConfirm(false)
   }
 
   const handleCancel = () => {
-    updateMutation.mutate({ ...ride, status: Status.Cancelled })
+    updateMutation.mutate(
+      { slug: teamSlug!, rideSlug: rideSlug!, data: { ...ride, status: Status.CANCELLED } },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getGetRideQueryKey(teamSlug!, rideSlug!) })
+          queryClient.invalidateQueries({ queryKey: getListRidesQueryKey(teamSlug!) })
+          toast.success(t('notifications.cancelled'))
+        },
+      }
+    )
     setShowCancelConfirm(false)
   }
 
   const handleUncancel = () => {
-    updateMutation.mutate({ ...ride, status: Status.Draft })
+    updateMutation.mutate(
+      { slug: teamSlug!, rideSlug: rideSlug!, data: { ...ride, status: Status.DRAFT } },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getGetRideQueryKey(teamSlug!, rideSlug!) })
+          queryClient.invalidateQueries({ queryKey: getListRidesQueryKey(teamSlug!) })
+          toast.success(t('notifications.uncancelled'))
+        },
+      }
+    )
     setShowUncancelConfirm(false)
   }
 
   const handleDelete = () => {
-    deleteMutation.mutate(rideSlug!)
+    deleteMutation.mutate(
+      { slug: teamSlug!, rideSlug: rideSlug! },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getListRidesQueryKey(teamSlug!) })
+          toast.success(t('notifications.deleted'))
+          navigate(paths.team(teamSlug!))
+        },
+      }
+    )
     setShowDeleteConfirm(false)
   }
 
   const handleJoinGroup = (groupId: string) => {
     setJoiningGroupId(groupId)
     joinMutation.mutate(
-      { groupId },
+      { slug: teamSlug!, rideSlug: rideSlug!, groupId },
       {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getGetRideQueryKey(teamSlug!, rideSlug!) })
+          toast.success(t('notifications.joined'))
+        },
         onSettled: () => setJoiningGroupId(null),
       }
     )
@@ -156,9 +219,16 @@ export function RideDetailPage() {
 
   const handleLeaveGroup = (groupId: string) => {
     setJoiningGroupId(groupId)
-    leaveMutation.mutate(groupId, {
-      onSettled: () => setJoiningGroupId(null),
-    })
+    leaveMutation.mutate(
+      { slug: teamSlug!, rideSlug: rideSlug!, groupId },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getGetRideQueryKey(teamSlug!, rideSlug!) })
+          toast.success(t('notifications.left'))
+        },
+        onSettled: () => setJoiningGroupId(null),
+      }
+    )
   }
 
   return (
@@ -191,7 +261,7 @@ export function RideDetailPage() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  {ride.status === Status.Draft && (
+                  {ride.status === Status.DRAFT && (
                     <DropdownMenuItem
                       onClick={handlePublish}
                       disabled={updateMutation.isPending}
@@ -201,7 +271,7 @@ export function RideDetailPage() {
                       {tCommon('actions.publish')}
                     </DropdownMenuItem>
                   )}
-                  {ride.status === Status.Published && (
+                  {ride.status === Status.PUBLISHED && (
                     <>
                       <DropdownMenuItem
                         onClick={() => setShowUnpublishConfirm(true)}
@@ -217,7 +287,7 @@ export function RideDetailPage() {
                       </DropdownMenuItem>
                     </>
                   )}
-                  {ride.status === Status.Cancelled && (
+                  {ride.status === Status.CANCELLED && (
                     <DropdownMenuItem
                       onClick={() => setShowUncancelConfirm(true)}
                       className="text-green-700"
@@ -241,7 +311,7 @@ export function RideDetailPage() {
         <div className="mt-4">
           <MediaDisplay media={ride.media} className="text-gray-600" />
         </div>
-        {ride.status === Status.Draft && ride.publishAt && (
+        {ride.status === Status.DRAFT && ride.publishAt && (
           <div className="mt-2 text-sm text-amber-600 flex items-center">
             <CalendarIcon className="w-4 h-4 mr-1" />
             {t('detail.scheduledPublish', {

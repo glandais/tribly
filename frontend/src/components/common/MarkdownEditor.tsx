@@ -23,7 +23,7 @@ import {
 } from '@mdxeditor/editor'
 import '@mdxeditor/editor/style.css'
 import './mdxeditor/mdxeditor.css'
-import type { AssetDto } from '../../api/api'
+import type { AssetDto } from '@/api/dto'
 import { AssetDirectiveDescriptor, AssetImagesProvider } from './mdxeditor'
 import { PhotoIcon } from '@heroicons/react/24/outline'
 import { LoadingSpinner } from './LoadingSpinner'

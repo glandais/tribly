@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { ArrowsPointingOutIcon, ArrowUpIcon } from '@heroicons/react/24/outline'
-import { useRoute } from '../../hooks/useRoute'
+import { useGetRoute } from '@/api/endpoints/routes/routes'
 import { LoadingSpinner } from '../common/LoadingSpinner'
 
 interface RoutePreviewProps {
@@ -11,7 +11,7 @@ interface RoutePreviewProps {
 export function RoutePreview({ routeSlug, teamSlug }: RoutePreviewProps) {
   const { t } = useTranslation('routes')
   const { t: tCommon } = useTranslation('common')
-  const { data: route, isLoading } = useRoute(teamSlug, routeSlug)
+  const { data: route, isLoading } = useGetRoute(teamSlug, routeSlug)
 
   if (isLoading)
     return (

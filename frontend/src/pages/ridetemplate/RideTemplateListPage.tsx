@@ -1,6 +1,9 @@
 import { useState } from 'react'
 import { Link, useParams, Navigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
+import i18next from 'i18next'
 import { paths } from '../../config/paths'
 import {
   PlusIcon,
@@ -9,8 +12,12 @@ import {
   TrashIcon,
   UserGroupIcon,
 } from '@heroicons/react/24/outline'
-import { useTeam } from '../../hooks/useTeam'
-import { useRideTemplates, useDeleteRideTemplate } from '../../hooks/useRideTemplate'
+import { useGetTeam } from '@/api/endpoints/teams/teams'
+import {
+  useListTemplates,
+  useDeleteTemplate,
+  getListTemplatesQueryKey,
+} from '@/api/endpoints/ride-templates/ride-templates'
 import { LoadingPage, LoadingSpinner } from '../../components/common/LoadingSpinner'
 import { TeamAdminLayout } from '../../components/team/TeamAdminLayout'
 import { Pagination } from '../../components/common/Pagination'
@@ -18,24 +25,27 @@ import { usePagination } from '../../hooks/usePagination'
 import { SearchInput } from '../../components/common/SearchInput'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import { MarkdownDisplay } from '../../components/common/MarkdownDisplay'
-import type { RideTemplateDto } from '../../api/api'
+import type { RideTemplateDto } from '@/api/dto'
 
 export function RideTemplateListPage() {
   const { t } = useTranslation('rideTemplates')
   const { t: tCommon } = useTranslation('common')
   const { teamSlug } = useParams<{ teamSlug: string }>()
+  const queryClient = useQueryClient()
   const [page, setPage] = useState(0)
   const [search, setSearch] = useState('')
   const [templateToDelete, setTemplateToDelete] = useState<RideTemplateDto | null>(null)
   const pageSize = 20
 
-  const { data: team, isLoading: isLoadingTeam } = useTeam(teamSlug)
-  const { data: templatesData, isLoading: isLoadingTemplates } = useRideTemplates(teamSlug, {
+  const { data: team, isLoading: isLoadingTeam } = useGetTeam(teamSlug!, {
+    query: { enabled: !!teamSlug },
+  })
+  const { data: templatesData, isLoading: isLoadingTemplates } = useListTemplates(teamSlug!, {
     search: search || undefined,
     page,
     size: pageSize,
   })
-  const deleteMutation = useDeleteRideTemplate(teamSlug)
+  const deleteMutation = useDeleteTemplate()
 
   const resetPage = () => setPage(0)
 
@@ -59,9 +69,17 @@ export function RideTemplateListPage() {
   }
 
   const confirmDelete = () => {
-    if (templateToDelete) {
-      deleteMutation.mutate(templateToDelete.slug)
-      setTemplateToDelete(null)
+    if (templateToDelete && teamSlug) {
+      deleteMutation.mutate(
+        { slug: teamSlug, templateSlug: templateToDelete.slug },
+        {
+          onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: getListTemplatesQueryKey(teamSlug) })
+            toast.success(i18next.t('rideTemplates:notifications.deleted'))
+            setTemplateToDelete(null)
+          },
+        }
+      )
     }
   }
 

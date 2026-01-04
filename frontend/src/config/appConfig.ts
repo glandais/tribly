@@ -1,4 +1,4 @@
-import { ConfigDto } from '@/api'
+import { ConfigDto } from '@/api/dto'
 
 let cachedConfig: ConfigDto | null = null
 let configPromise: Promise<ConfigDto> | null = null

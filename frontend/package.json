@@ -15,7 +15,7 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
-    "generate-api": "rm -rf src/api && openapi-generator-cli generate -i ../contracts/openapi.json -g typescript-axios -o src/api --additional-properties=supportsES6=true,npmName=@tribly/api,modelPropertyNaming=snake_case && rm -rf src/api/docs && prettier --write \"src/api/**/*.ts\" && find src/api -name '*.ts' -exec sed -i '1s|^|// @ts-nocheck\\n|' {} \\;",
+    "generate-api": "rm -rf src/api && orval --config orval.config.js && pnpm format",
     "i18n:lint": "i18next-cli lint",
     "i18n:status": "i18next-cli status",
     "i18n:extract": "i18next-cli extract"
@@ -91,6 +91,7 @@
     "i18next-cli": "^1.33.5",
     "jsdom": "^27.4.0",
     "mdast-util-directive": "^3.1.0",
+    "orval": "^7.17.2",
     "postcss": "^8.4.49",
     "prettier": "^3.4.2",
     "rollup-plugin-visualizer": "^6.0.5",

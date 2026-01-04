@@ -1,8 +1,8 @@
 import { useParams, Navigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { paths } from '../../config/paths'
-import { useTeam } from '../../hooks/useTeam'
-import { useTeamPage } from '../../hooks/useTeamPages'
+import { useGetTeam } from '@/api/endpoints/teams/teams'
+import { useGetPage } from '@/api/endpoints/team-pages/team-pages'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { TeamLayout } from '../../components/team/TeamLayout'
 import { MediaDisplay } from '../../components/common/MediaDisplay'
@@ -12,8 +12,12 @@ export function TeamPageDetailPage() {
   const { t } = useTranslation('teams')
   const { teamSlug, pageSlug } = useParams<{ teamSlug: string; pageSlug: string }>()
 
-  const { data: team, isLoading: isTeamLoading } = useTeam(teamSlug)
-  const { data: page, isLoading: isPageLoading } = useTeamPage(teamSlug, pageSlug)
+  const { data: team, isLoading: isTeamLoading } = useGetTeam(teamSlug!, {
+    query: { enabled: !!teamSlug },
+  })
+  const { data: page, isLoading: isPageLoading } = useGetPage(teamSlug!, pageSlug!, {
+    query: { enabled: !!teamSlug && !!pageSlug },
+  })
 
   const { t: tCommon } = useTranslation('common')
 

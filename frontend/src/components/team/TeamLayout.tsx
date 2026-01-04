@@ -1,13 +1,19 @@
 import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { useLeaveTeam, useJoinTeam } from '../../hooks/useTeam'
+import { useQueryClient } from '@tanstack/react-query'
+import { getGetTeamQueryKey } from '@/api/endpoints/teams/teams'
+import {
+  useLeaveTeam,
+  useJoinTeam,
+  getGetMembersQueryKey,
+} from '@/api/endpoints/team-members/team-members'
 import { useAuth } from '../../hooks/useAuth'
 import { useFavicon } from '../../hooks/useFavicon'
 import { ConfirmDialog } from '../common/ConfirmDialog'
 import { VisibilityBadge } from '../common/card/VisibilityBadge'
 import { TeamAvatar } from './TeamAvatar'
-import type { TeamDetailDto } from '../../hooks/useTeam'
+import type { TeamDetailDto } from '@/api/dto'
 import { paths } from '@/config/paths'
 
 interface TeamLayoutProps {
@@ -21,6 +27,7 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
   const { t } = useTranslation('teams')
   const { t: tCommon } = useTranslation('common')
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const { isAuthenticated } = useAuth()
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false)
 
@@ -33,19 +40,32 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
   const canJoin = isAuthenticated && !isMember && team.visibility === 'PUBLIC'
   const canLeave = isMember && !isAdmin
 
-  const joinMutation = useJoinTeam(team.slug)
-  const leaveMutation = useLeaveTeam(team.slug)
+  const joinMutation = useJoinTeam()
+  const leaveMutation = useLeaveTeam()
 
   const handleJoin = () => {
-    joinMutation.mutate()
+    joinMutation.mutate(
+      { slug: team.slug },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getGetTeamQueryKey(team.slug) })
+          queryClient.invalidateQueries({ queryKey: getGetMembersQueryKey(team.slug) })
+        },
+      }
+    )
   }
 
   const handleLeave = () => {
-    leaveMutation.mutate(undefined, {
-      onSuccess: () => {
-        navigate(paths.teams())
-      },
-    })
+    leaveMutation.mutate(
+      { slug: team.slug },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getGetTeamQueryKey(team.slug) })
+          queryClient.invalidateQueries({ queryKey: getGetMembersQueryKey(team.slug) })
+          navigate(paths.teams())
+        },
+      }
+    )
   }
 
   // Build tabs list with dynamic pages

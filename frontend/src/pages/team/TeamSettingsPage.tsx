@@ -1,22 +1,37 @@
 import { useState } from 'react'
 import { Link, useParams, useNavigate, Navigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
+import i18next from 'i18next'
 import { paths } from '../../config/paths'
-import { useTeam, useDeleteTeam } from '../../hooks/useTeam'
+import {
+  useGetTeam,
+  useDeleteTeam,
+  getListTeamsQueryKey,
+  getGetTeamQueryKey,
+} from '@/api/endpoints/teams/teams'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import { TeamForm } from '../../components/team/TeamForm'
 import { TeamAdminLayout } from '../../components/team/TeamAdminLayout'
-import { TeamDetailDto } from '../../api/api'
+import { TeamDetailDto } from '@/api/dto'
 
 export function TeamSettingsPage() {
   const { t } = useTranslation('teams')
   const { t: tCommon } = useTranslation('common')
   const { teamSlug } = useParams<{ teamSlug: string }>()
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
 
-  const { data: team, isLoading, error } = useTeam(teamSlug)
-  const deleteMutation = useDeleteTeam(teamSlug || '')
+  const {
+    data: team,
+    isLoading,
+    error,
+  } = useGetTeam(teamSlug!, {
+    query: { enabled: !!teamSlug },
+  })
+  const deleteMutation = useDeleteTeam()
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
@@ -50,7 +65,18 @@ export function TeamSettingsPage() {
   }
 
   const handleDelete = () => {
-    deleteMutation.mutate()
+    if (!teamSlug) return
+    deleteMutation.mutate(
+      { slug: teamSlug },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getListTeamsQueryKey() })
+          queryClient.removeQueries({ queryKey: getGetTeamQueryKey(teamSlug) })
+          toast.success(i18next.t('teams:notifications.deleted'))
+          navigate(paths.teams())
+        },
+      }
+    )
   }
 
   return (
@@ -63,11 +89,7 @@ export function TeamSettingsPage() {
 
         <TeamForm
           teamSlug={teamSlug}
-          initialName={team.name}
-          initialMedia={team.about}
-          initialVisibility={team.visibility}
-          initialEnableTrips={team.enableTrips}
-          initialEnableAds={team.enableAds}
+          initialValues={{ ...team, media: team.about }}
           onSuccess={handleSuccess}
           create={false}
         />

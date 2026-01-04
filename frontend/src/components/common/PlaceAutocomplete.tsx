@@ -1,13 +1,17 @@
 import { useState, useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { MapPinIcon } from '@heroicons/react/24/outline'
+import { MapPinIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import { Autocomplete } from './Autocomplete'
-import { usePlaces } from '../../hooks/usePlaces'
-import type { PlaceDetailDto } from '../../api/api'
+import { useListPlaces } from '../../api/endpoints/places/places'
+import type { PlaceDetailDto } from '@/api/dto'
+import { Button } from '@/components/ui/button'
 
 interface PlaceAutocompleteProps {
   teamSlug: string
-  onSelect: (place: PlaceDetailDto) => void
+  /** Current place ID value (controlled input) */
+  value?: string
+  /** Called when place changes (with place id or undefined when cleared) */
+  onChange: (placeId: string | undefined) => void
   /** Filter to only show places that can be used as start */
   filterStart?: boolean
   /** Filter to only show places that can be used as end */
@@ -18,7 +22,8 @@ interface PlaceAutocompleteProps {
 
 export function PlaceAutocomplete({
   teamSlug,
-  onSelect,
+  value,
+  onChange,
   filterStart,
   filterEnd,
   placeholder,
@@ -27,11 +32,19 @@ export function PlaceAutocomplete({
   const { t } = useTranslation('common')
   const [query, setQuery] = useState('')
 
-  const { data: placesData } = usePlaces(teamSlug)
+  const { data: placesData } = useListPlaces(teamSlug)
+
+  const places = placesData?.places
+
+  // Find the selected place from the value
+  const selectedPlace = useMemo(() => {
+    if (!value || !places) return undefined
+    return places.find((place) => place.id === value)
+  }, [value, places])
 
   // Filter places based on query and start/end filters
   const filteredPlaces = useMemo(() => {
-    const places = placesData?.places ?? []
+    if (!places) return []
 
     return places.filter((place) => {
       // Filter by start/end capability
@@ -46,7 +59,7 @@ export function PlaceAutocomplete({
         place.address?.toLowerCase().includes(searchLower)
       )
     })
-  }, [placesData?.places, query, filterStart, filterEnd])
+  }, [places, query, filterStart, filterEnd])
 
   const handleQueryChange = useCallback((newQuery: string) => {
     setQuery(newQuery)
@@ -54,11 +67,15 @@ export function PlaceAutocomplete({
 
   const handleSelect = useCallback(
     (place: PlaceDetailDto) => {
-      onSelect(place)
+      onChange(place.id)
       setQuery('')
     },
-    [onSelect]
+    [onChange]
   )
+
+  const handleClear = useCallback(() => {
+    onChange(undefined)
+  }, [onChange])
 
   const renderPlace = useCallback(
     (place: PlaceDetailDto) => (
@@ -72,6 +89,32 @@ export function PlaceAutocomplete({
     ),
     []
   )
+
+  // Show selected place with clear button when a value is set
+  if (selectedPlace) {
+    return (
+      <div className={`flex items-center gap-2 ${className}`}>
+        <div className="flex-1 flex items-center gap-3 px-4 py-2 border border-gray-300 rounded-md bg-white">
+          <MapPinIcon className="h-5 w-5 text-gray-400 shrink-0" />
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-medium text-gray-900 truncate">{selectedPlace.name}</p>
+            {selectedPlace.address && (
+              <p className="text-xs text-gray-500 truncate">{selectedPlace.address}</p>
+            )}
+          </div>
+        </div>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          onClick={handleClear}
+          aria-label={t('common.clear')}
+        >
+          <XMarkIcon className="size-4" />
+        </Button>
+      </div>
+    )
+  }
 
   return (
     <Autocomplete<PlaceDetailDto>

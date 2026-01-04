@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { Link, useParams, Navigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { keepPreviousData } from '@tanstack/react-query'
 import { PlusIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline'
-import { useTeam } from '../../hooks/useTeam'
-import { useAds } from '../../hooks/useAd'
+import { useGetTeam } from '@/api/endpoints/teams/teams'
+import { useListAds } from '../../api/endpoints/ads/ads'
 import { AdCard, AdCardSkeleton } from '../../components/ad'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { Pagination } from '../../components/common/Pagination'
@@ -18,7 +19,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { paths } from '@/config/paths'
-import { AdType } from '../../api/api'
+import { AdType } from '../../api/dto'
 
 const PAGE_SIZE = 20
 
@@ -30,17 +31,23 @@ export function AdListPage() {
   const [adType, setAdType] = useState<AdType | undefined>(undefined)
   const [page, setPage] = useState(0)
 
-  const { data: team, isLoading: isLoadingTeam } = useTeam(teamSlug)
+  const { data: team, isLoading: isLoadingTeam } = useGetTeam(teamSlug!, {
+    query: { enabled: !!teamSlug },
+  })
   const {
     data: adsResponse,
     isLoading: isLoadingAds,
     isFetching,
-  } = useAds(teamSlug, {
-    search: search || undefined,
-    adType,
-    page,
-    size: PAGE_SIZE,
-  })
+  } = useListAds(
+    teamSlug!,
+    {
+      search: search || undefined,
+      adType,
+      page,
+      size: PAGE_SIZE,
+    },
+    { query: { enabled: !!teamSlug, placeholderData: keepPreviousData } }
+  )
 
   if (isLoadingTeam) {
     return <LoadingPage message={tCommon('loading')} />
@@ -99,9 +106,9 @@ export function AdListPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="ALL">{t('list.allTypes')}</SelectItem>
-              <SelectItem value={AdType.Sale}>{t('adType.SALE')}</SelectItem>
-              <SelectItem value={AdType.Rental}>{t('adType.RENTAL')}</SelectItem>
-              <SelectItem value={AdType.Wanted}>{t('adType.WANTED')}</SelectItem>
+              <SelectItem value={AdType.SALE}>{t('adType.SALE')}</SelectItem>
+              <SelectItem value={AdType.RENTAL}>{t('adType.RENTAL')}</SelectItem>
+              <SelectItem value={AdType.WANTED}>{t('adType.WANTED')}</SelectItem>
             </SelectContent>
           </Select>
         </div>

@@ -8,8 +8,8 @@ import {
   MapIcon,
   ArrowDownTrayIcon,
 } from '@heroicons/react/24/outline'
-import type { RideGroupDto } from '../../hooks/useRide'
-import { useRoute } from '../../hooks/useRoute'
+import type { RideGroupDto } from '@/api/dto'
+import { useGetRoute } from '@/api/endpoints/routes/routes'
 import { UserAvatarGroup } from '../common/UserAvatar'
 import { ParticipantListModal } from './ParticipantListModal'
 import { paths } from '@/config/paths'
@@ -48,7 +48,9 @@ export function RideGroupCard({
   const effectiveRouteSlug = group.routeSlug || rideRouteSlug
 
   // Fetch route details for download links
-  const { data: route } = useRoute(teamSlug, effectiveRouteSlug)
+  const { data: route } = useGetRoute(teamSlug, effectiveRouteSlug!, {
+    query: { enabled: !!effectiveRouteSlug },
+  })
 
   const getCardClassName = () => {
     const base = 'rounded-lg border p-4 transition-all'

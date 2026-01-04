@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { ReactNode } from 'react'
 import { MarkdownDisplay } from '../MarkdownDisplay'
-import { MediaDto } from '@/api'
+import { MediaDto } from '@/api/dto'
 
 interface CardProps {
   to: string

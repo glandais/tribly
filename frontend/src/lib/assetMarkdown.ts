@@ -1,4 +1,4 @@
-import type { AssetDto } from '../api/api'
+import type { AssetDto } from '@/api/dto'
 
 /**
  * Centralized utilities for handling asset references in markdown.

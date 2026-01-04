@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { MapIcon, ArrowUpIcon, UsersIcon, ChevronRightIcon } from '@heroicons/react/24/outline'
-import type { RouteDto } from '../../api/api'
+import type { RouteDto } from '@/api/dto'
 import { Card, CardContent, CardTitle, CardDescription } from '../common/card'
 import { Badge, VisibilityBadge, Stat, StatGroup, CardSkeleton } from '../common/card'
 import { EntityLogo } from '../common/EntityLogo'

@@ -20,7 +20,7 @@ import lombok.Getter;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.jspecify.annotations.Nullable;
 
-@Schema(description = "Trip data", allOf = PublicationDto.class)
+@Schema(description = "Trip data")
 @ValidateSchema
 @Getter
 public class TripDto implements PublicationDto {

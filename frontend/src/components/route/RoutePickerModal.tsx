@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
+import { keepPreviousData } from '@tanstack/react-query'
 import { MapIcon, ArrowsPointingOutIcon, ArrowUpIcon } from '@heroicons/react/24/outline'
-import { useRoutes } from '../../hooks/useRoute'
-import type { RouteDto } from '../../api/api'
+import { useListRoutes } from '@/api/endpoints/routes/routes'
+import type { RouteDto } from '@/api/dto'
 import { MarkdownDisplay } from '../../components/common/MarkdownDisplay'
 import { LoadingSpinner } from '../common/LoadingSpinner'
 import { Pagination } from '../common/Pagination'
@@ -51,7 +52,13 @@ export function RoutePickerModal({
     data: routesResponse,
     isLoading,
     error,
-  } = useRoutes(teamSlug, { page, size: pageSize, search: debouncedSearch || undefined })
+  } = useListRoutes(
+    teamSlug,
+    { page, size: pageSize, search: debouncedSearch || undefined },
+    {
+      query: { placeholderData: keepPreviousData },
+    }
+  )
 
   // Use usePagination only for totalPages calculation
   const { totalPages } = usePagination({

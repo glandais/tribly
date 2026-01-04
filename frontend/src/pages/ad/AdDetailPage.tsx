@@ -1,6 +1,9 @@
 import { useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
+import i18next from 'i18next'
 import {
   CalendarIcon,
   PencilIcon,
@@ -8,8 +11,14 @@ import {
   MapPinIcon,
   CurrencyEuroIcon,
 } from '@heroicons/react/24/outline'
-import { useTeam } from '../../hooks/useTeam'
-import { useAd, useUpdateAd, useDeleteAd } from '../../hooks/useAd'
+import { useGetTeam } from '@/api/endpoints/teams/teams'
+import {
+  useGetAd,
+  useUpdateAd,
+  useDeleteAd,
+  getListAdsQueryKey,
+  getGetAdQueryKey,
+} from '../../api/endpoints/ads/ads'
 import { LoadingPage, LoadingSpinner } from '../../components/common/LoadingSpinner'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import { MediaDisplay } from '../../components/common/MediaDisplay'
@@ -25,18 +34,18 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { paths } from '@/config/paths'
-import { AdType, RentalPeriod, Status } from '../../api/api'
+import { AdType, RentalPeriod, Status } from '../../api/dto'
 
 const statusColors: Record<Status, string> = {
-  [Status.Draft]: 'bg-gray-100 text-gray-800',
-  [Status.Published]: 'bg-green-100 text-green-800',
-  [Status.Cancelled]: 'bg-red-100 text-red-800',
+  [Status.DRAFT]: 'bg-gray-100 text-gray-800',
+  [Status.PUBLISHED]: 'bg-green-100 text-green-800',
+  [Status.CANCELLED]: 'bg-red-100 text-red-800',
 }
 
 const adTypeColors: Record<AdType, string> = {
-  [AdType.Sale]: 'bg-indigo-100 text-indigo-800',
-  [AdType.Rental]: 'bg-purple-100 text-purple-800',
-  [AdType.Wanted]: 'bg-amber-100 text-amber-800',
+  [AdType.SALE]: 'bg-indigo-100 text-indigo-800',
+  [AdType.RENTAL]: 'bg-purple-100 text-purple-800',
+  [AdType.WANTED]: 'bg-amber-100 text-amber-800',
 }
 
 export function AdDetailPage() {
@@ -44,16 +53,24 @@ export function AdDetailPage() {
   const { t: tCommon } = useTranslation('common')
   const { formatDateTime } = useFormattedDate()
   const { teamSlug, adSlug } = useParams<{ teamSlug: string; adSlug: string }>()
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const [showUnpublishConfirm, setShowUnpublishConfirm] = useState(false)
   const [showCancelConfirm, setShowCancelConfirm] = useState(false)
   const [showUncancelConfirm, setShowUncancelConfirm] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
-  const { data: team, isLoading: isLoadingTeam } = useTeam(teamSlug)
-  const { data: ad, isLoading: isLoadingAd, error } = useAd(teamSlug, adSlug)
+  const { data: team, isLoading: isLoadingTeam } = useGetTeam(teamSlug!, {
+    query: { enabled: !!teamSlug },
+  })
+  const {
+    data: ad,
+    isLoading: isLoadingAd,
+    error,
+  } = useGetAd(teamSlug!, adSlug!, { query: { enabled: !!teamSlug && !!adSlug } })
 
-  const updateMutation = useUpdateAd(teamSlug, adSlug!)
-  const deleteMutation = useDeleteAd(teamSlug)
+  const updateMutation = useUpdateAd()
+  const deleteMutation = useDeleteAd()
 
   if (isLoadingTeam || isLoadingAd) {
     return <LoadingPage message={tCommon('loading')} />
@@ -92,34 +109,80 @@ export function AdDetailPage() {
       currency: 'EUR',
     }).format(price)
 
-    if (adType === AdType.Rental && rentalPeriod) {
+    if (adType === AdType.RENTAL && rentalPeriod) {
       return `${formattedPrice} / ${t(`rentalPeriod.${rentalPeriod satisfies 'DAY' | 'WEEK' | 'MONTH'}`).toLowerCase()}`
     }
     return formattedPrice
   }
 
+  const invalidateAds = () => {
+    queryClient.invalidateQueries({ queryKey: getListAdsQueryKey(teamSlug!) })
+    queryClient.invalidateQueries({ queryKey: getGetAdQueryKey(teamSlug!, adSlug!) })
+  }
+
   const handlePublish = () => {
-    updateMutation.mutate({ ...ad, status: Status.Published })
+    updateMutation.mutate(
+      { slug: teamSlug!, adSlug: adSlug!, data: { ...ad, status: Status.PUBLISHED } },
+      {
+        onSuccess: () => {
+          invalidateAds()
+          toast.success(i18next.t('ads:notifications.updated'))
+        },
+      }
+    )
   }
 
   const handleUnpublish = () => {
-    updateMutation.mutate({ ...ad, status: Status.Draft })
-    setShowUnpublishConfirm(false)
+    updateMutation.mutate(
+      { slug: teamSlug!, adSlug: adSlug!, data: { ...ad, status: Status.DRAFT } },
+      {
+        onSuccess: () => {
+          invalidateAds()
+          toast.success(i18next.t('ads:notifications.updated'))
+          setShowUnpublishConfirm(false)
+        },
+      }
+    )
   }
 
   const handleCancel = () => {
-    updateMutation.mutate({ ...ad, status: Status.Cancelled })
-    setShowCancelConfirm(false)
+    updateMutation.mutate(
+      { slug: teamSlug!, adSlug: adSlug!, data: { ...ad, status: Status.CANCELLED } },
+      {
+        onSuccess: () => {
+          invalidateAds()
+          toast.success(i18next.t('ads:notifications.updated'))
+          setShowCancelConfirm(false)
+        },
+      }
+    )
   }
 
   const handleUncancel = () => {
-    updateMutation.mutate({ ...ad, status: Status.Published })
-    setShowUncancelConfirm(false)
+    updateMutation.mutate(
+      { slug: teamSlug!, adSlug: adSlug!, data: { ...ad, status: Status.PUBLISHED } },
+      {
+        onSuccess: () => {
+          invalidateAds()
+          toast.success(i18next.t('ads:notifications.updated'))
+          setShowUncancelConfirm(false)
+        },
+      }
+    )
   }
 
   const handleDelete = () => {
-    deleteMutation.mutate(adSlug!)
-    setShowDeleteConfirm(false)
+    deleteMutation.mutate(
+      { slug: teamSlug!, adSlug: adSlug! },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getListAdsQueryKey(teamSlug!) })
+          toast.success(i18next.t('ads:notifications.deleted'))
+          setShowDeleteConfirm(false)
+          navigate(paths.ads(teamSlug!))
+        },
+      }
+    )
   }
 
   return (
@@ -161,7 +224,7 @@ export function AdDetailPage() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  {ad.status === Status.Draft && (
+                  {ad.status === Status.DRAFT && (
                     <DropdownMenuItem
                       onClick={handlePublish}
                       disabled={updateMutation.isPending}
@@ -171,7 +234,7 @@ export function AdDetailPage() {
                       {tCommon('actions.publish')}
                     </DropdownMenuItem>
                   )}
-                  {ad.status === Status.Published && (
+                  {ad.status === Status.PUBLISHED && (
                     <>
                       <DropdownMenuItem
                         onClick={() => setShowUnpublishConfirm(true)}
@@ -187,7 +250,7 @@ export function AdDetailPage() {
                       </DropdownMenuItem>
                     </>
                   )}
-                  {ad.status === Status.Cancelled && (
+                  {ad.status === Status.CANCELLED && (
                     <DropdownMenuItem
                       onClick={() => setShowUncancelConfirm(true)}
                       className="text-green-700"

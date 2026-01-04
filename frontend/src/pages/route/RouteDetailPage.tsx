@@ -1,10 +1,13 @@
 import { useState } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
+import i18next from 'i18next'
 import { paths } from '../../config/paths'
 import { MapIcon, ArrowUpIcon, ArrowDownIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline'
-import { useRoute, useDeleteRoute } from '../../hooks/useRoute'
-import { useTeam } from '../../hooks/useTeam'
+import { useGetRoute, useDeleteRoute, getListRoutesQueryKey } from '@/api/endpoints/routes/routes'
+import { useGetTeam } from '@/api/endpoints/teams/teams'
 import { RouteMapView } from '../../components/route/RouteMapView'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import { MediaDisplay } from '../../components/common/MediaDisplay'
@@ -17,10 +20,15 @@ export function RouteDetailPage() {
   const { t: tCommon } = useTranslation('common')
   const { t: tErrors } = useTranslation('errors')
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
 
-  const { data: team } = useTeam(teamSlug)
-  const { data: route, isLoading: routeLoading } = useRoute(teamSlug, routeSlug)
-  const deleteRoute = useDeleteRoute(teamSlug!)
+  const { data: team } = useGetTeam(teamSlug!, {
+    query: { enabled: !!teamSlug },
+  })
+  const { data: route, isLoading: routeLoading } = useGetRoute(teamSlug!, routeSlug!, {
+    query: { enabled: !!teamSlug && !!routeSlug },
+  })
+  const deleteRouteMutation = useDeleteRoute()
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
@@ -28,9 +36,17 @@ export function RouteDetailPage() {
   const canEdit = team && (team.role === 'ADMIN' || team.role === 'ORGANIZER')
 
   const handleDelete = async () => {
-    if (routeSlug) {
-      await deleteRoute.mutateAsync(routeSlug)
-      navigate(paths.routes(teamSlug!))
+    if (routeSlug && teamSlug) {
+      await deleteRouteMutation.mutateAsync(
+        { slug: teamSlug, routeSlug },
+        {
+          onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: getListRoutesQueryKey(teamSlug) })
+            toast.success(i18next.t('routes:notifications.deleted'))
+            navigate(paths.routes(teamSlug))
+          },
+        }
+      )
     }
   }
 
@@ -116,7 +132,7 @@ export function RouteDetailPage() {
         message={t('detail.deleteConfirm.message')}
         confirmText={tCommon('buttons.delete')}
         variant="danger"
-        isLoading={deleteRoute.isPending}
+        isLoading={deleteRouteMutation.isPending}
       />
 
       {/* Download Section */}

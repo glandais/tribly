@@ -1,17 +1,21 @@
 import { useParams, Navigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { paths } from '../../config/paths'
-import { useTeam } from '../../hooks/useTeam'
+import { useGetTeam } from '@/api/endpoints/teams/teams'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { TeamAdminLayout } from '../../components/team/TeamAdminLayout'
 import { TeamPageForm } from '../../components/team/TeamPageForm'
+import { defaultMedia } from '@/lib/apiUtils'
+import { Visibility } from '@/api/dto'
 
 export function CreateTeamPagePage() {
   const { t } = useTranslation('teams')
   const { t: tCommon } = useTranslation('common')
   const { teamSlug } = useParams<{ teamSlug: string }>()
 
-  const { data: team, isLoading } = useTeam(teamSlug)
+  const { data: team, isLoading } = useGetTeam(teamSlug!, {
+    query: { enabled: !!teamSlug },
+  })
 
   if (isLoading) {
     return <LoadingPage message={tCommon('loading')} />
@@ -26,6 +30,8 @@ export function CreateTeamPagePage() {
     return <Navigate to={paths.team(team.slug)} replace />
   }
 
+  const initialValues = { title: '', visibility: Visibility.TEAM, media: defaultMedia() }
+
   return (
     <TeamAdminLayout team={team} currentTab="pages">
       <div className="py-6">
@@ -35,6 +41,7 @@ export function CreateTeamPagePage() {
             <TeamPageForm
               teamSlug={team.slug}
               isCreate={true}
+              initialValues={initialValues}
               onSuccess={() => {
                 // Navigation is handled by the hook
               }}

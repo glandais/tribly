@@ -9,7 +9,7 @@ import {
 import { CommentItem } from './CommentItem'
 import { CommentForm } from './CommentForm'
 import { LoadingSpinner } from '../common/LoadingSpinner'
-import type { CommentDto } from '../../api/api'
+import type { CommentDto } from '../../api/dto'
 import { useAuth } from '../../hooks/useAuth'
 
 interface CommentSectionProps {

@@ -1,9 +1,9 @@
 import { useState, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { PaperClipIcon, XMarkIcon, PlusIcon, PhotoIcon } from '@heroicons/react/24/outline'
-import { MediaDto, AssetDto } from '../../api/api'
+import { MediaDto, AssetDto } from '@/api/dto'
 import { MarkdownEditor } from './MarkdownEditor'
-import { assetsApi, unwrapResponse } from '../../lib/apiClient'
+import { uploadAsset } from '@/api/endpoints/assets/assets'
 import { LoadingSpinner } from './LoadingSpinner'
 
 export interface MediaEditorProps {
@@ -60,7 +60,7 @@ export function MediaEditor({
     setImageError(null)
 
     try {
-      const asset = await unwrapResponse(assetsApi.uploadAsset(teamSlug, file))
+      const asset = await uploadAsset(teamSlug, { file })
 
       // Add to images array
       onChange({
@@ -88,7 +88,7 @@ export function MediaEditor({
     setLogoError(null)
 
     try {
-      const asset = await unwrapResponse(assetsApi.uploadAsset(teamSlug, file))
+      const asset = await uploadAsset(teamSlug, { file })
 
       onChange({
         ...value,
@@ -125,7 +125,7 @@ export function MediaEditor({
     setUploadError(null)
 
     try {
-      const asset = await unwrapResponse(assetsApi.uploadAsset(teamSlug, file))
+      const asset = await uploadAsset(teamSlug, { file })
 
       // Add the new attachment to the assets
       onChange({

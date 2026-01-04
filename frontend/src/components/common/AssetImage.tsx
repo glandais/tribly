@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import { PhotoIcon } from '@heroicons/react/24/outline'
 import { useTranslation } from 'react-i18next'
-import type { AssetDto } from '../../api/api'
+import type { AssetDto } from '@/api/dto'
 import {
   createImageMap,
   resolveAssetUrl,

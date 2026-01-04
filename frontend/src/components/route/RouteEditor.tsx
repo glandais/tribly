@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Visibility, SurfaceType } from '../../api/api'
-import type { MediaDto, TeamDetailDto, GeoPoint } from '../../api/api'
+import { Visibility, SurfaceType, RouteRequest } from '@/api/dto'
+import type { TeamDetailDto, GeoPoint } from '@/api/dto'
 import { LoadingSpinner } from '../common/LoadingSpinner'
 import { MediaEditor } from '../common/MediaEditor'
 import { EmbeddedRoutePlanner } from '../planner/EmbeddedRoutePlanner'
@@ -9,29 +9,16 @@ import { defaultMedia } from '@/lib/apiUtils'
 
 export type RouteSourceMode = 'gpx' | 'planner'
 
-export interface RouteFormData {
-  name: string
-  media: MediaDto
-  surfaceType: SurfaceType
-  visibility: Visibility
-  points?: GeoPoint[]
-}
-
 interface RouteEditorProps {
   // Context
   team: TeamDetailDto
   teamSlug: string
 
   // Initial values (REQUIRED - each page prepares these)
-  initialValues: {
-    name: string
-    media: MediaDto
-    surfaceType: SurfaceType
-    visibility: Visibility
-  }
+  initialValues: RouteRequest
 
   // Submission
-  onSubmit: (data: RouteFormData, gpxFile?: File) => void | Promise<void>
+  onSubmit: (data: RouteRequest, gpxFile?: File) => void | Promise<void>
   onCancel: () => void
 
   // State
@@ -74,9 +61,9 @@ export function RouteEditor({
 
   const [name, setName] = useState('')
   const [media, setMedia] = useState(defaultMedia())
-  const [surfaceType, setSurfaceType] = useState<SurfaceType>(SurfaceType.Road)
+  const [surfaceType, setSurfaceType] = useState<SurfaceType>(SurfaceType.ROAD)
   const [visibility, setVisibility] = useState<Visibility>(
-    team.visibility === Visibility.Team ? Visibility.Team : Visibility.Public
+    team.visibility === Visibility.TEAM ? Visibility.TEAM : Visibility.PUBLIC
   )
   const [gpxFile, setGpxFile] = useState<File | null>(null)
   const [plannerPoints, setPlannerPoints] = useState<GeoPoint[]>([])

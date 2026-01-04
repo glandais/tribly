@@ -1,7 +1,7 @@
 import { useParams, Navigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { paths } from '../../config/paths'
-import { useTeam } from '../../hooks/useTeam'
+import { useGetTeam } from '@/api/endpoints/teams/teams'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { TeamAdminLayout } from '../../components/team/TeamAdminLayout'
 import { PlaceList } from '../../components/team/PlaceList'
@@ -10,7 +10,9 @@ export function TeamPlacesPage() {
   const { t: tCommon } = useTranslation('common')
   const { teamSlug } = useParams<{ teamSlug: string }>()
 
-  const { data: team, isLoading } = useTeam(teamSlug)
+  const { data: team, isLoading } = useGetTeam(teamSlug!, {
+    query: { enabled: !!teamSlug },
+  })
   if (isLoading) {
     return <LoadingPage message={tCommon('loading')} />
   }

@@ -1,22 +1,27 @@
 import { useParams, Navigate, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { useTeam } from '../../hooks/useTeam'
-import { useCreatePost, Visibility, Status } from '../../hooks/usePost'
+import { useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
+import i18next from 'i18next'
+import { useGetTeam } from '@/api/endpoints/teams/teams'
+import { useCreatePost, getListPostsQueryKey } from '../../api/endpoints/posts/posts'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
-import { toDateTimeLocalValue } from '../../utils/dateFormat'
 import { PostEditor } from '../../components/post/PostEditor'
-import type { PostFormData } from '../../components/post/PostEditor'
 import { defaultMedia } from '@/lib/apiUtils'
 import { paths } from '@/config/paths'
+import { PostRequest, Visibility, Status } from '../../api/dto'
 
 export function CreatePostPage() {
   const { t } = useTranslation('posts')
   const { t: tCommon } = useTranslation('common')
   const { teamSlug } = useParams<{ teamSlug: string }>()
   const navigate = useNavigate()
-  const { data: team, isLoading: isLoadingTeam } = useTeam(teamSlug)
+  const queryClient = useQueryClient()
+  const { data: team, isLoading: isLoadingTeam } = useGetTeam(teamSlug!, {
+    query: { enabled: !!teamSlug },
+  })
 
-  const createMutation = useCreatePost(teamSlug)
+  const createMutation = useCreatePost()
 
   if (isLoadingTeam) {
     return <LoadingPage message={tCommon('loading')} />
@@ -33,28 +38,26 @@ export function CreatePostPage() {
   }
 
   // Prepare initial values for create mode
-  const initialValues = {
+  const initialValues: PostRequest = {
     name: '',
     media: defaultMedia(),
-    dateTime: toDateTimeLocalValue(new Date()),
-    visibility: team.visibility === Visibility.Team ? Visibility.Team : Visibility.Public,
-    status: Status.Draft,
+    dateTime: new Date().toISOString(),
+    visibility: team.visibility === Visibility.TEAM ? Visibility.TEAM : Visibility.PUBLIC,
+    status: Status.DRAFT,
     publishAt: undefined,
   }
 
-  const handleSubmit = (data: PostFormData) => {
+  const handleSubmit = (data: PostRequest) => {
     createMutation.mutate(
       {
-        name: data.name,
-        media: data.media,
-        dateTime: data.dateTime,
-        status: data.status,
-        visibility: data.visibility,
-        publishAt: data.publishAt,
+        slug: teamSlug!,
+        data,
       },
       {
-        onSuccess: () => {
-          navigate(paths.team(teamSlug!))
+        onSuccess: (post) => {
+          queryClient.invalidateQueries({ queryKey: getListPostsQueryKey(teamSlug!) })
+          toast.success(i18next.t('posts:notifications.created'))
+          navigate(paths.post(teamSlug!, post.slug))
         },
       }
     )
@@ -73,7 +76,6 @@ export function CreatePostPage() {
         onSubmit={handleSubmit}
         onCancel={() => navigate(paths.team(teamSlug!))}
         isPending={createMutation.isPending}
-        error={createMutation.error}
         submitButtonText={t('create.submit')}
       />
     </div>

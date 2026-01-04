@@ -1,9 +1,17 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
 import { useTranslation } from 'react-i18next'
-import { useCreatePlace, useUpdatePlace } from '../../hooks/usePlaces'
-import type { PlaceDetailDto } from '../../api/api'
+import { useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
+import i18next from 'i18next'
+import {
+  useCreatePlace,
+  useUpdatePlace,
+  getListPlacesQueryKey,
+  getGetPlaceQueryKey,
+} from '../../api/endpoints/places/places'
+import { createPlaceBody } from '../../api/zod/places/places.zod'
+import type { PlaceDetailDto, PlaceRequest } from '../../api/dto'
 import { Modal } from '../common/Modal'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -16,65 +24,76 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
+import { useEffect } from 'react'
 
-const placeSchema = z.object({
-  name: z.string().min(1),
-  address: z.string().optional(),
-  link: z.url().optional(),
-  startPlace: z.boolean(),
-  endPlace: z.boolean(),
-})
-
-type PlaceFormValues = z.infer<typeof placeSchema>
+const placeSchema = createPlaceBody
 
 interface PlaceFormProps {
   teamSlug: string
-  place?: PlaceDetailDto
+  place: PlaceDetailDto
   onClose: () => void
 }
 
 export function PlaceForm({ teamSlug, place, onClose }: PlaceFormProps) {
   const { t } = useTranslation('teams')
   const { t: tCommon } = useTranslation('common')
-  const createMutation = useCreatePlace(teamSlug)
-  const updateMutation = useUpdatePlace(teamSlug, place?.id ?? '')
+  const queryClient = useQueryClient()
+  const createMutation = useCreatePlace()
+  const updateMutation = useUpdatePlace()
 
-  const isEditing = !!place
-  const mutation = isEditing ? updateMutation : createMutation
+  const isEditing = place.id !== ''
 
-  const form = useForm<PlaceFormValues>({
+  const form = useForm<PlaceRequest>({
     resolver: zodResolver(placeSchema),
-    defaultValues: {
-      name: place?.name ?? '',
-      address: place?.address ?? '',
-      link: place?.link ?? '',
-      startPlace: place?.startPlace ?? true,
-      endPlace: place?.endPlace ?? true,
-    },
+    mode: 'onChange',
   })
 
-  const handleSubmit = (values: PlaceFormValues) => {
-    mutation.mutate(
-      {
-        name: values.name,
-        address: values.address || undefined,
-        link: values.link || undefined,
-        startPlace: values.startPlace,
-        endPlace: values.endPlace,
-        coordinates: undefined,
-      },
-      {
-        onSuccess: () => onClose(),
-      }
-    )
+  // Sync form values when initial props change (for edit mode)
+  useEffect(() => {
+    form.reset(place)
+  }, [place, form])
+
+  const handleSubmit = (values: PlaceRequest) => {
+    const data = values
+
+    if (isEditing && place) {
+      updateMutation.mutate(
+        { slug: teamSlug, placeId: place.id, data },
+        {
+          onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: getListPlacesQueryKey(teamSlug) })
+            queryClient.invalidateQueries({ queryKey: getGetPlaceQueryKey(teamSlug, place.id) })
+            toast.success(i18next.t('teams:notifications.placeUpdated'))
+            onClose()
+          },
+        }
+      )
+    } else {
+      createMutation.mutate(
+        { slug: teamSlug, data },
+        {
+          onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: getListPlacesQueryKey(teamSlug) })
+            toast.success(i18next.t('teams:notifications.placeCreated'))
+            onClose()
+          },
+        }
+      )
+    }
   }
+
+  const mutation = isEditing ? updateMutation : createMutation
 
   const footerContent = (
     <>
       <Button type="button" variant="outline" onClick={onClose}>
         {tCommon('actions.cancelAction')}
       </Button>
-      <Button type="submit" form="place-form" disabled={mutation.isPending}>
+      <Button
+        type="submit"
+        form="place-form"
+        disabled={mutation.isPending || !form.formState.isValid}
+      >
         {mutation.isPending
           ? tCommon('loading')
           : isEditing

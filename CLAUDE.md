@@ -41,7 +41,7 @@ backend/src/main/java/com/tribly/
 └── infrastructure/   # Exceptions, security, ID utils
 
 frontend/src/
-├── api/              # Generated from OpenAPI (pnpm generate-api)
+├── api/              # Generated from Orval (pnpm generate-api)
 ├── components/       # By domain (common/, team/, ride/, route/, post/)
 ├── hooks/            # React Query wrappers
 ├── pages/            # Route-level components

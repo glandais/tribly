@@ -11,7 +11,7 @@ import { Badge, VisibilityBadge, Stat, StatGroup, CardSkeleton } from '../common
 import { EntityLogo } from '../common/EntityLogo'
 import { useFormattedDate } from '../../utils/dateFormat'
 import { paths } from '@/config/paths'
-import type { PublicationDto, RideDto, TripDto } from '../../api/api'
+import type { PublicationDto, RideDto, TripDto } from '@/api/dto'
 
 // Status variants for badges
 const statusVariants: Record<string, 'gray' | 'green' | 'red'> = {

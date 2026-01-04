@@ -1,22 +1,34 @@
 import { useParams, Navigate, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
+import i18next from 'i18next'
 import { paths } from '../../config/paths'
-import { useTeam } from '../../hooks/useTeam'
-import { useTrip, useUpdateTrip } from '../../hooks/useTrip'
+import { useGetTeam } from '@/api/endpoints/teams/teams'
+import {
+  useGetTrip,
+  useUpdateTrip,
+  getGetTripQueryKey,
+  getListTripsQueryKey,
+} from '../../api/endpoints/trips/trips'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { TripEditor } from '../../components/trip/TripEditor'
-import type { TripFormData } from '../../components/trip/TripEditor'
-import { toDateTimeLocalValue } from '../../utils/dateFormat'
+import { TripRequest } from '@/api/dto'
 
 export function EditTripPage() {
   const { t } = useTranslation('trips')
   const { t: tCommon } = useTranslation('common')
   const { teamSlug, tripSlug } = useParams<{ teamSlug: string; tripSlug: string }>()
   const navigate = useNavigate()
-  const { data: team, isLoading: isLoadingTeam } = useTeam(teamSlug)
-  const { data: trip, isLoading: isLoadingTrip } = useTrip(teamSlug, tripSlug)
+  const queryClient = useQueryClient()
+  const { data: team, isLoading: isLoadingTeam } = useGetTeam(teamSlug!, {
+    query: { enabled: !!teamSlug },
+  })
+  const { data: trip, isLoading: isLoadingTrip } = useGetTrip(teamSlug!, tripSlug!, {
+    query: { enabled: !!teamSlug && !!tripSlug },
+  })
 
-  const updateMutation = useUpdateTrip(teamSlug, tripSlug!)
+  const updateMutation = useUpdateTrip()
 
   if (isLoadingTeam || isLoadingTrip) {
     return <LoadingPage message={tCommon('loading')} />
@@ -32,51 +44,26 @@ export function EditTripPage() {
     return <Navigate to={paths.trip(teamSlug!, tripSlug!)} replace />
   }
 
-  const handleSubmit = async (data: TripFormData) => {
-    const filteredStages = data.stages.filter((s) => s.name.trim())
-
-    await updateMutation.mutateAsync({
-      name: data.name,
-      media: data.media,
-      dateTime: data.dateTime,
-      status: data.status,
-      visibility: data.visibility,
-      publishAt: data.publishAt,
-      routeSlug: data.routeSlug,
-      stages: filteredStages.map((s) => ({
-        id: s.id,
-        name: s.name,
-        dateTime: s.dateTime,
-        routeSlug: s.routeSlug,
-        startPlaceId: s.startPlace?.id,
-        endPlaceId: s.endPlace?.id,
-        media: s.media,
-      })),
-    })
-
-    navigate(paths.trip(teamSlug!, tripSlug!))
+  const handleSubmit = (data: TripRequest) => {
+    updateMutation.mutate(
+      {
+        slug: teamSlug!,
+        tripSlug: tripSlug!,
+        data,
+      },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getGetTripQueryKey(teamSlug!, tripSlug!) })
+          queryClient.invalidateQueries({ queryKey: getListTripsQueryKey(teamSlug!) })
+          toast.success(i18next.t('trips:notifications.updated'))
+          navigate(paths.trip(teamSlug!, tripSlug!))
+        },
+      }
+    )
   }
 
   // Prepare initial values from fetched trip data
-  const initialValues = {
-    name: trip.name,
-    media: trip.media,
-    dateTime: toDateTimeLocalValue(trip.dateTime),
-    visibility: trip.visibility,
-    status: trip.status,
-    publishAt: trip.publishAt ? toDateTimeLocalValue(trip.publishAt) : undefined,
-    routeSlug: trip.routeSlug,
-    stages:
-      trip.stages?.map((s) => ({
-        id: s.id,
-        name: s.name,
-        dateTime: toDateTimeLocalValue(s.dateTime),
-        routeSlug: s.routeSlug,
-        startPlace: s.startPlace,
-        endPlace: s.endPlace,
-        media: s.media,
-      })) || [],
-  }
+  const initialValues = { ...trip }
 
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -92,7 +79,6 @@ export function EditTripPage() {
         onSubmit={handleSubmit}
         onCancel={() => navigate(paths.trip(teamSlug!, tripSlug!))}
         isPending={updateMutation.isPending}
-        error={updateMutation.error}
         submitButtonText={tCommon('actions.save')}
       />
     </div>

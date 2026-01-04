@@ -1,4 +1,4 @@
-import type { UserDto } from '../../api/api'
+import type { UserDto } from '@/api/dto'
 
 interface UserAvatarProps {
   user: Pick<UserDto, 'displayName' | 'avatarUrl'>

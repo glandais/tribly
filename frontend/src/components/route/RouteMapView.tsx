@@ -21,7 +21,7 @@ import {
   ScriptableContext,
   ScriptableLineSegmentContext,
 } from 'chart.js'
-import type { RouteDetailDto } from '../../api/api'
+import type { RouteDetailDto } from '@/api/dto'
 import { StartMarker, EndMarker, HoverMarker, WaypointMarker } from '../map/MapMarkers'
 import {
   NEUTRAL_COLOR,

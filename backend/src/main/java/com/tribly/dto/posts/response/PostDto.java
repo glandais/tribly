@@ -16,7 +16,7 @@ import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.jspecify.annotations.Nullable;
 
 // Response DTOs
-@Schema(description = "Post summary data", allOf = PublicationDto.class)
+@Schema(description = "Post summary data")
 @ValidateSchema
 @Getter
 public class PostDto implements PublicationDto {

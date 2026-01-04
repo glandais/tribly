@@ -1,7 +1,6 @@
 import { useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
 import { useTranslation } from 'react-i18next'
 import { CameraIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import { useAuth } from '../../hooks/useAuth'
@@ -10,6 +9,7 @@ import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import { UserAvatar } from '../../components/common/UserAvatar'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { updateCurrentUserBody } from '@/api/zod/users/users.zod'
 import {
   Form,
   FormControl,
@@ -18,12 +18,9 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
+import { UpdateUserRequest } from '@/api/dto'
 
-const profileSchema = z.object({
-  displayName: z.string().min(1).max(100),
-})
-
-type ProfileFormValues = z.infer<typeof profileSchema>
+const profileSchema = updateCurrentUserBody
 
 export function UserProfilePage() {
   const { t } = useTranslation('profile')
@@ -46,11 +43,9 @@ export function UserProfilePage() {
   const [isEditing, setIsEditing] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
-  const form = useForm<ProfileFormValues>({
+  const form = useForm<UpdateUserRequest>({
     resolver: zodResolver(profileSchema),
-    defaultValues: {
-      displayName: user?.displayName || '',
-    },
+    mode: 'onChange',
   })
 
   if (isLoading || !user) {
@@ -62,19 +57,17 @@ export function UserProfilePage() {
   }
 
   const handleStartEditing = () => {
-    form.reset({ displayName: user.displayName || '' })
+    form.reset(user)
+    form.trigger()
     setIsEditing(true)
   }
 
-  const handleSubmit = (values: ProfileFormValues) => {
-    updateProfile(
-      { displayName: values.displayName },
-      {
-        onSuccess: () => {
-          setIsEditing(false)
-        },
-      }
-    )
+  const handleSubmit = (values: UpdateUserRequest) => {
+    updateProfile(values, {
+      onSuccess: () => {
+        setIsEditing(false)
+      },
+    })
   }
 
   const handleDelete = () => {
@@ -164,7 +157,7 @@ export function UserProfilePage() {
                 />
 
                 <div className="flex gap-3 pt-4">
-                  <Button type="submit" disabled={isUpdatingProfile}>
+                  <Button type="submit" disabled={isUpdatingProfile || !form.formState.isValid}>
                     {isUpdatingProfile ? (
                       <>
                         <LoadingSpinner size="sm" color="white" className="mr-2" />

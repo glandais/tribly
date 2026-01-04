@@ -1,22 +1,34 @@
 import { useParams, Navigate, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { useTeam } from '../../hooks/useTeam'
-import { useAd, useUpdateAd } from '../../hooks/useAd'
+import { useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
+import i18next from 'i18next'
+import { useGetTeam } from '@/api/endpoints/teams/teams'
+import {
+  useGetAd,
+  useUpdateAd,
+  getListAdsQueryKey,
+  getGetAdQueryKey,
+} from '../../api/endpoints/ads/ads'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
-import { toDateTimeLocalValue } from '../../utils/dateFormat'
 import { AdEditor } from '../../components/ad/AdEditor'
-import type { AdFormData } from '../../components/ad/AdEditor'
 import { paths } from '@/config/paths'
+import { AdRequest } from '@/api/dto'
 
 export function EditAdPage() {
   const { t } = useTranslation('ads')
   const { t: tCommon } = useTranslation('common')
   const { teamSlug, adSlug } = useParams<{ teamSlug: string; adSlug: string }>()
   const navigate = useNavigate()
-  const { data: team, isLoading: isLoadingTeam } = useTeam(teamSlug)
-  const { data: ad, isLoading: isLoadingAd } = useAd(teamSlug, adSlug)
+  const queryClient = useQueryClient()
+  const { data: team, isLoading: isLoadingTeam } = useGetTeam(teamSlug!, {
+    query: { enabled: !!teamSlug },
+  })
+  const { data: ad, isLoading: isLoadingAd } = useGetAd(teamSlug!, adSlug!, {
+    query: { enabled: !!teamSlug && !!adSlug },
+  })
 
-  const updateMutation = useUpdateAd(teamSlug, adSlug!)
+  const updateMutation = useUpdateAd()
 
   if (isLoadingTeam || isLoadingAd) {
     return <LoadingPage message={tCommon('loading')} />
@@ -36,37 +48,27 @@ export function EditAdPage() {
     return <Navigate to={paths.ad(teamSlug!, adSlug!)} replace />
   }
 
-  const handleSubmit = async (data: AdFormData) => {
-    await updateMutation.mutateAsync({
-      name: data.name,
-      media: data.media,
-      dateTime: data.dateTime,
-      status: data.status,
-      visibility: data.visibility,
-      adType: data.adType,
-      price: data.price,
-      rentalPeriod: data.rentalPeriod,
-      latitude: data.latitude,
-      longitude: data.longitude,
-      locationDescription: data.locationDescription,
-    })
-
-    navigate(paths.ad(teamSlug!, adSlug!))
+  const handleSubmit = (data: AdRequest) => {
+    updateMutation.mutate(
+      {
+        slug: teamSlug!,
+        adSlug: adSlug!,
+        data,
+      },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getListAdsQueryKey(teamSlug!) })
+          queryClient.invalidateQueries({ queryKey: getGetAdQueryKey(teamSlug!, adSlug!) })
+          toast.success(i18next.t('ads:notifications.updated'))
+          navigate(paths.ad(teamSlug!, adSlug!))
+        },
+      }
+    )
   }
 
   // Prepare initial values from fetched ad data
   const initialValues = {
-    name: ad.name,
-    media: ad.media,
-    dateTime: toDateTimeLocalValue(ad.dateTime),
-    visibility: ad.visibility,
-    status: ad.status,
-    adType: ad.adType,
-    price: ad.price,
-    rentalPeriod: ad.rentalPeriod,
-    latitude: ad.latitude,
-    longitude: ad.longitude,
-    locationDescription: ad.locationDescription || '',
+    ...ad,
   }
 
   return (
@@ -82,7 +84,6 @@ export function EditAdPage() {
         onSubmit={handleSubmit}
         onCancel={() => navigate(paths.ad(teamSlug!, adSlug!))}
         isPending={updateMutation.isPending}
-        error={updateMutation.error}
         submitButtonText={tCommon('actions.save')}
       />
     </div>

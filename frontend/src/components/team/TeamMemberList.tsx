@@ -3,8 +3,8 @@ import { useTranslation } from 'react-i18next'
 import { UserAvatar } from '../common/UserAvatar'
 import { LoadingSpinner } from '../common/LoadingSpinner'
 import { ConfirmDialog } from '../common/ConfirmDialog'
-import type { MemberDto } from '../../hooks/useTeam'
-import { TeamRole } from '@/api'
+import type { MemberDto } from '@/api/dto'
+import { TeamRole } from '@/api/dto'
 import { useFormattedDate } from '../../utils/dateFormat'
 
 interface TeamMemberListProps {
@@ -36,13 +36,13 @@ export function TeamMemberList({
   const { t: tCommon } = useTranslation('common')
   const { formatDate } = useFormattedDate()
   const [editingMemberId, setEditingMemberId] = useState<string | null>(null)
-  const [selectedRole, setSelectedRole] = useState<TeamRole>(TeamRole.Member)
+  const [selectedRole, setSelectedRole] = useState<TeamRole>(TeamRole.MEMBER)
   const [showRemoveConfirm, setShowRemoveConfirm] = useState(false)
   const [memberToRemove, setMemberToRemove] = useState<string | null>(null)
 
-  const canManageMembers = currentUserRole === TeamRole.Admin
+  const canManageMembers = currentUserRole === TeamRole.ADMIN
   const canAssignOrganizers =
-    currentUserRole === TeamRole.Admin || currentUserRole === TeamRole.Organizer
+    currentUserRole === TeamRole.ADMIN || currentUserRole === TeamRole.ORGANIZER
 
   const handleRoleChange = (memberId: string) => {
     if (onUpdateRole) {

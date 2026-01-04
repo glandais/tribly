@@ -717,8 +717,6 @@ components:
             format: double
           description: "Geographic coordinates [longitude, latitude]"
     PostDto:
-      allOf:
-      - $ref: "#/components/schemas/PublicationDto"
       description: Post summary data
       type: object
       required:
@@ -925,8 +923,6 @@ components:
             type: string
           description: Ordered list of page IDs
     RideDto:
-      allOf:
-      - $ref: "#/components/schemas/PublicationDto"
       description: Ride summary data
       type: object
       required:
@@ -1838,8 +1834,6 @@ components:
             $ref: "#/components/schemas/ClimbDto"
           description: List of climbs on the route
     TripDto:
-      allOf:
-      - $ref: "#/components/schemas/PublicationDto"
       description: Trip data
       type: object
       required:
@@ -2063,6 +2057,8 @@ components:
     UpdateUserRequest:
       description: User profile update request
       type: object
+      required:
+      - displayName
       properties:
         displayName:
           type: string

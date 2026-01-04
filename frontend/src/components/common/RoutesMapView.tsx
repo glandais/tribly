@@ -16,8 +16,8 @@ import {
   TooltipItem,
 } from 'chart.js'
 import { useTranslation } from 'react-i18next'
-import { routesApi, unwrapResponse } from '../../lib/apiClient'
-import type { RouteDetailDto } from '../../api/api'
+import { getRoute } from '@/api/endpoints/routes/routes'
+import type { RouteDetailDto } from '@/api/dto'
 import { StartMarker, EndMarker } from '../map/MapMarkers'
 import { calculateBounds, routeToGeoJSON } from '../map/mapUtils'
 import { MapStyleSwitcher } from '../map/MapStyleSwitcher'
@@ -97,7 +97,7 @@ export function RoutesMapView({
 
         try {
           // Fetch route details from API using the generated API client
-          const routeDetail = await unwrapResponse(routesApi.getRoute(item.routeSlug, teamSlug))
+          const routeDetail = await getRoute(teamSlug, item.routeSlug)
           const trackPoints = routeDetail.tracks?.flatMap((track) => track.line.coordinates) || []
           if (trackPoints.length > 0) {
             routes.push({

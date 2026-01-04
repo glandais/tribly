@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { getKeycloak, initKeycloak } from '../config/keycloak'
-import type { UserDto } from '../api/api'
+import type { UserDto } from '@/api/dto'
 import { paths } from '@/config/paths'
 
 export interface AuthState {

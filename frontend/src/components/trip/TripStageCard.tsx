@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { CalendarIcon, MapPinIcon } from '@heroicons/react/24/outline'
-import type { TripStageDto } from '../../hooks/useTrip'
+import type { TripStageDto } from '@/api/dto'
 import { useFormattedDate } from '../../utils/dateFormat'
 import { MediaDisplay } from '../common/MediaDisplay'
 import { paths } from '@/config/paths'

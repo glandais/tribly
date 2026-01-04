@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { keepPreviousData } from '@tanstack/react-query'
 import { MapIcon } from '@heroicons/react/24/outline'
-import { useAllRoutes, type RouteFilters } from '../../hooks/useRoute'
-
+import { useListAllRoutes } from '@/api/endpoints/routes/routes'
+import type { ListAllRoutesParams } from '@/api/dto'
 import { RouteCard, RouteCardSkeleton } from '../../components/route/RouteCard'
 import { Pagination } from '../../components/common/Pagination'
 import { usePagination } from '../../hooks/usePagination'
@@ -16,15 +17,21 @@ export function AllRoutesPage() {
   const pageSize = 20
 
   // Filter state - all in one object
-  const [filters, setFilters] = useState<RouteFilters>({
+  const [filters, setFilters] = useState<ListAllRoutesParams>({
     page: 0,
     size: pageSize,
   })
   const [filtersOpen, setFiltersOpen] = useState(false)
 
-  const { data: routesData, isLoading, isError } = useAllRoutes(filters)
+  const {
+    data: routesData,
+    isLoading,
+    isError,
+  } = useListAllRoutes(filters, {
+    query: { placeholderData: keepPreviousData },
+  })
 
-  const handleFiltersChange = (newFilters: RouteFilters) => {
+  const handleFiltersChange = (newFilters: ListAllRoutesParams) => {
     setFilters({ ...newFilters, size: pageSize })
   }
 
@@ -54,7 +61,7 @@ export function AllRoutesPage() {
     filters.maxElevationGain !== undefined ||
     filters.hilliness !== undefined ||
     (filters.surfaceTypes?.length ?? 0) > 0 ||
-    filters.windDirection !== undefined
+    (filters.windDirections?.length ?? 0) > 0
 
   return (
     <HomeLayout currentTab="routes">

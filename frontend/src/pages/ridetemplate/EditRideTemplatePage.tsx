@@ -1,20 +1,37 @@
 import { useParams, Navigate, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
+import i18next from 'i18next'
 import { paths } from '../../config/paths'
-import { useTeam } from '../../hooks/useTeam'
-import { useRideTemplate, useUpdateRideTemplate } from '../../hooks/useRideTemplate'
+import { useGetTeam } from '@/api/endpoints/teams/teams'
+import {
+  useGetTemplate,
+  useUpdateTemplate,
+  getGetTemplateQueryKey,
+  getListTemplatesQueryKey,
+} from '@/api/endpoints/ride-templates/ride-templates'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { RideTemplateEditor } from '../../components/ridetemplate/RideTemplateEditor'
-import type { RideTemplateFormData } from '../../components/ridetemplate/RideTemplateEditor'
+import { RideTemplateRequest } from '@/api/dto'
 
 export function EditRideTemplatePage() {
   const { t } = useTranslation('rideTemplates')
   const { teamSlug, templateSlug } = useParams<{ teamSlug: string; templateSlug: string }>()
   const navigate = useNavigate()
-  const { data: team, isLoading: isLoadingTeam } = useTeam(teamSlug)
-  const { data: template, isLoading: isLoadingTemplate } = useRideTemplate(teamSlug, templateSlug)
+  const queryClient = useQueryClient()
+  const { data: team, isLoading: isLoadingTeam } = useGetTeam(teamSlug!, {
+    query: { enabled: !!teamSlug },
+  })
+  const { data: template, isLoading: isLoadingTemplate } = useGetTemplate(
+    teamSlug!,
+    templateSlug!,
+    {
+      query: { enabled: !!teamSlug && !!templateSlug },
+    }
+  )
 
-  const updateMutation = useUpdateRideTemplate(teamSlug, templateSlug!)
+  const updateMutation = useUpdateTemplate()
   const { t: tCommon } = useTranslation('common')
   if (isLoadingTeam || isLoadingTemplate) {
     return <LoadingPage message={tCommon('loading')} />
@@ -50,21 +67,24 @@ export function EditRideTemplatePage() {
     })),
   }
 
-  const handleSubmit = (data: RideTemplateFormData) => {
-    const filteredGroups = data.groups.filter((g) => !g.isDeleted && g.name.trim())
-    updateMutation.mutate({
-      name: data.name,
-      markdown: data.markdown,
-      visibility: data.visibility,
-      status: data.status,
-      groups: filteredGroups.map((g) => ({
-        id: g.id,
-        name: g.name,
-        time: g.time,
-        averageSpeed: g.averageSpeed,
-        maxParticipants: g.maxParticipants,
-      })),
-    })
+  const handleSubmit = (data: RideTemplateRequest) => {
+    updateMutation.mutate(
+      {
+        slug: teamSlug!,
+        templateSlug: templateSlug!,
+        data,
+      },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({
+            queryKey: getGetTemplateQueryKey(teamSlug!, templateSlug!),
+          })
+          queryClient.invalidateQueries({ queryKey: getListTemplatesQueryKey(teamSlug!) })
+          toast.success(i18next.t('rideTemplates:notifications.updated'))
+          navigate(paths.rideTemplates(teamSlug!))
+        },
+      }
+    )
   }
 
   return (
@@ -82,7 +102,6 @@ export function EditRideTemplatePage() {
         onSubmit={handleSubmit}
         onCancel={() => navigate(paths.rideTemplates(teamSlug!))}
         isPending={updateMutation.isPending}
-        error={updateMutation.error}
         submitButtonText={tCommon('actions.save')}
       />
     </div>

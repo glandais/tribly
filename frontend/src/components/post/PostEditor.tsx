@@ -1,15 +1,11 @@
 import { useEffect } from 'react'
 import { useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
 import { useTranslation } from 'react-i18next'
-import type { MediaDto, TeamDetailDto } from '../../api/api'
-import { ApiClientError } from '../../lib/apiClient'
-import { fromDateTimeLocalValue, toDateTimeLocalValue } from '../../utils/dateFormat'
+import type { TeamDetailDto } from '@/api/dto'
 import { LoadingSpinner } from '../common/LoadingSpinner'
 import { MediaEditor } from '../common/MediaEditor'
-import { Visibility, Status } from '../../hooks/usePost'
-import { defaultMedia } from '@/lib/apiUtils'
+import { Status, PostRequest } from '@/api/dto'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -23,26 +19,21 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
+import { createPostBody } from '@/api/zod/posts/posts.zod'
+import { InputDateTime } from '../ui/input-datetime'
 
-export interface PostFormData {
-  name: string
-  media: MediaDto
-  dateTime: string // ISO string
-  visibility: Visibility
-  status: Status
-  publishAt?: string // ISO string
-}
-
-const postSchema = z.object({
-  name: z.string().min(3).max(200),
-  media: z.custom<MediaDto>(),
-  dateTime: z.string(),
-  visibility: z.nativeEnum(Visibility),
-  status: z.nativeEnum(Status),
-  publishAt: z.string().optional(),
-})
-
-type PostFormValues = z.infer<typeof postSchema>
+const postSchema = createPostBody.refine(
+  (data) => {
+    if (data.status === Status.DRAFT && data.publishAt) {
+      return new Date(data.publishAt) > new Date()
+    }
+    return true
+  },
+  {
+    message: 'Publish date must be in the future for draft posts',
+    path: ['publishAt'],
+  }
+)
 
 interface PostEditorProps {
   // Context
@@ -50,22 +41,14 @@ interface PostEditorProps {
   teamSlug: string
 
   // Initial values (REQUIRED - each page prepares these)
-  initialValues: {
-    name: string
-    media: MediaDto
-    dateTime: string // datetime-local value
-    visibility: Visibility
-    status: Status
-    publishAt?: string // datetime-local value
-  }
+  initialValues: PostRequest
 
   // Submission
-  onSubmit: (data: PostFormData) => void | Promise<void>
+  onSubmit: (data: PostRequest) => void | Promise<void>
   onCancel: () => void
 
   // State
   isPending: boolean
-  error?: Error | ApiClientError | null
 
   // UI customization
   submitButtonText?: string
@@ -79,84 +62,31 @@ export function PostEditor({
   onSubmit,
   onCancel,
   isPending,
-  error,
   submitButtonText,
   cancelButtonText,
 }: PostEditorProps) {
   const { t } = useTranslation('posts')
   const { t: tCommon } = useTranslation('common')
 
-  const form = useForm<PostFormValues>({
+  const form = useForm<PostRequest>({
     resolver: zodResolver(postSchema),
-    defaultValues: {
-      name: initialValues.name,
-      media: initialValues.media ?? defaultMedia(),
-      dateTime: initialValues.dateTime,
-      visibility: initialValues.visibility,
-      status: initialValues.status,
-      publishAt: initialValues.publishAt || '',
-    },
+    mode: 'onChange',
   })
-
-  const status = useWatch({ control: form.control, name: 'status' })
-  const name = useWatch({ control: form.control, name: 'name' })
 
   // Sync form values when initial props change (for edit mode)
   useEffect(() => {
-    form.setValue('name', initialValues.name)
-    if (initialValues.media?.markdown || initialValues.media?.assets?.images?.length) {
-      form.setValue('media', initialValues.media)
-    }
-    form.setValue('dateTime', initialValues.dateTime)
-    form.setValue('visibility', initialValues.visibility)
-    form.setValue('status', initialValues.status)
-    form.setValue('publishAt', initialValues.publishAt || '')
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    initialValues.name,
-    initialValues.media?.markdown,
-    initialValues.media?.assets?.images?.length,
-    initialValues.dateTime,
-    initialValues.visibility,
-    initialValues.status,
-    initialValues.publishAt,
-  ])
+    form.reset(initialValues)
+  }, [initialValues, form])
 
-  // Set server-side errors on form fields
+  const status = useWatch({ control: form.control, name: 'status' })
+
   useEffect(() => {
-    if (error instanceof ApiClientError && error.error.errors) {
-      error.error.errors.forEach((err) => {
-        if (err.field && err.field in postSchema.shape) {
-          form.setError(err.field as keyof PostFormValues, { message: err.message })
-        }
-      })
-    }
-  }, [error, form])
-
-  const handleSubmit = (values: PostFormValues) => {
-    onSubmit({
-      name: values.name,
-      media: values.media,
-      dateTime: fromDateTimeLocalValue(values.dateTime).toISOString(),
-      status: values.status,
-      visibility: values.visibility,
-      publishAt: values.publishAt
-        ? fromDateTimeLocalValue(values.publishAt).toISOString()
-        : undefined,
-    })
-  }
+    form.trigger('publishAt')
+  }, [status, form])
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-        {error && !(error instanceof ApiClientError && error.error.errors) && (
-          <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
-            <p className="text-destructive">
-              {error instanceof ApiClientError ? error.error.message : t('edit.error')}
-            </p>
-          </div>
-        )}
-
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         {/* Title */}
         <FormField
           control={form.control}
@@ -257,7 +187,7 @@ export function PostEditor({
         />
 
         {/* Date and Time (shown when PUBLISHED) */}
-        {status === Status.Published && (
+        {status === Status.PUBLISHED && (
           <FormField
             control={form.control}
             name="dateTime"
@@ -267,7 +197,7 @@ export function PostEditor({
                   {t('create.dateTimeLabel')} <span className="text-destructive">*</span>
                 </FormLabel>
                 <FormControl>
-                  <Input type="datetime-local" {...field} />
+                  <InputDateTime {...field} />
                 </FormControl>
                 <FormDescription>{t('create.dateTimeHint')}</FormDescription>
                 <FormMessage />
@@ -277,7 +207,7 @@ export function PostEditor({
         )}
 
         {/* Scheduled Publication (shown when DRAFT) */}
-        {status === Status.Draft && (
+        {status === Status.DRAFT && (
           <FormField
             control={form.control}
             name="publishAt"
@@ -285,7 +215,7 @@ export function PostEditor({
               <FormItem>
                 <FormLabel>{t('create.publishAtLabel')}</FormLabel>
                 <FormControl>
-                  <Input type="datetime-local" min={toDateTimeLocalValue(new Date())} {...field} />
+                  <InputDateTime {...field} />
                 </FormControl>
                 <FormDescription>{tCommon('form.publishAtHint')}</FormDescription>
                 <FormMessage />
@@ -299,7 +229,7 @@ export function PostEditor({
           <Button type="button" variant="outline" onClick={onCancel}>
             {cancelButtonText || tCommon('actions.cancelAction')}
           </Button>
-          <Button type="submit" disabled={isPending || !name.trim()}>
+          <Button type="submit" disabled={isPending || !form.formState.isValid}>
             {isPending ? (
               <>
                 <LoadingSpinner size="sm" color="white" className="mr-2" />

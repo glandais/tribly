@@ -1,20 +1,28 @@
 import { useParams, Navigate, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { useTeam } from '../../hooks/useTeam'
-import { useCreateRideTemplate } from '../../hooks/useRideTemplate'
+import { useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
+import i18next from 'i18next'
+import { useGetTeam } from '@/api/endpoints/teams/teams'
+import {
+  useCreateTemplate,
+  getListTemplatesQueryKey,
+} from '@/api/endpoints/ride-templates/ride-templates'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { RideTemplateEditor } from '../../components/ridetemplate/RideTemplateEditor'
-import type { RideTemplateFormData } from '../../components/ridetemplate/RideTemplateEditor'
-import { Visibility, Status } from '../../api/api'
+import { Visibility, Status, RideTemplateRequest } from '@/api/dto'
 import { paths } from '@/config/paths'
 
 export function CreateRideTemplatePage() {
   const { t } = useTranslation('rideTemplates')
   const { teamSlug } = useParams<{ teamSlug: string }>()
   const navigate = useNavigate()
-  const { data: team, isLoading: isLoadingTeam } = useTeam(teamSlug)
+  const queryClient = useQueryClient()
+  const { data: team, isLoading: isLoadingTeam } = useGetTeam(teamSlug!, {
+    query: { enabled: !!teamSlug },
+  })
 
-  const createMutation = useCreateRideTemplate(teamSlug)
+  const createMutation = useCreateTemplate()
   const { t: tCommon } = useTranslation('common')
   if (isLoadingTeam) {
     return <LoadingPage message={tCommon('loading')} />
@@ -33,8 +41,8 @@ export function CreateRideTemplatePage() {
   const initialValues = {
     name: '',
     markdown: undefined,
-    visibility: team.visibility === Visibility.Team ? Visibility.Team : Visibility.Public,
-    status: Status.Published,
+    visibility: team.visibility === Visibility.TEAM ? Visibility.TEAM : Visibility.PUBLIC,
+    status: Status.PUBLISHED,
     groups: [
       {
         name: t('form.groups.defaultName', { number: 1 }),
@@ -46,21 +54,20 @@ export function CreateRideTemplatePage() {
     ],
   }
 
-  const handleSubmit = (data: RideTemplateFormData) => {
-    const filteredGroups = data.groups.filter((g) => g.name.trim())
-    createMutation.mutate({
-      name: data.name,
-      markdown: data.markdown,
-      visibility: data.visibility,
-      status: data.status,
-      groups: filteredGroups.map((g) => ({
-        id: g.id,
-        name: g.name,
-        time: g.time,
-        averageSpeed: g.averageSpeed,
-        maxParticipants: g.maxParticipants,
-      })),
-    })
+  const handleSubmit = (data: RideTemplateRequest) => {
+    createMutation.mutate(
+      {
+        slug: teamSlug!,
+        data,
+      },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getListTemplatesQueryKey(teamSlug!) })
+          toast.success(i18next.t('rideTemplates:notifications.created'))
+          navigate(paths.rideTemplates(teamSlug!))
+        },
+      }
+    )
   }
 
   return (
@@ -77,7 +84,6 @@ export function CreateRideTemplatePage() {
         onSubmit={handleSubmit}
         onCancel={() => navigate(paths.rideTemplates(teamSlug!))}
         isPending={createMutation.isPending}
-        error={createMutation.error}
         submitButtonText={t('create.button')}
       />
     </div>

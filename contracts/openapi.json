@@ -800,9 +800,6 @@
         }
       },
       "PostDto" : {
-        "allOf" : [ {
-          "$ref" : "#/components/schemas/PublicationDto"
-        } ],
         "description" : "Post summary data",
         "type" : "object",
         "required" : [ "type", "team", "id", "slug", "name", "media", "dateTime", "status", "visibility" ],
@@ -1032,9 +1029,6 @@
         }
       },
       "RideDto" : {
-        "allOf" : [ {
-          "$ref" : "#/components/schemas/PublicationDto"
-        } ],
         "description" : "Ride summary data",
         "type" : "object",
         "required" : [ "type", "team", "id", "slug", "name", "media", "dateTime", "status", "visibility", "participantCount", "groupCount", "groups" ],
@@ -2023,9 +2017,6 @@
         }
       },
       "TripDto" : {
-        "allOf" : [ {
-          "$ref" : "#/components/schemas/PublicationDto"
-        } ],
         "description" : "Trip data",
         "type" : "object",
         "required" : [ "type", "team", "id", "slug", "name", "media", "dateTime", "status", "visibility", "participantCount", "stageCount", "stages", "participants" ],
@@ -2272,6 +2263,7 @@
       "UpdateUserRequest" : {
         "description" : "User profile update request",
         "type" : "object",
+        "required" : [ "displayName" ],
         "properties" : {
           "displayName" : {
             "type" : "string",

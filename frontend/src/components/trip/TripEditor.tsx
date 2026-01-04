@@ -1,21 +1,18 @@
 import { useState, useEffect } from 'react'
 import { useForm, useFieldArray, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
 import { useTranslation } from 'react-i18next'
-import { XMarkIcon, PlusIcon } from '@heroicons/react/24/outline'
+import { PlusIcon } from '@heroicons/react/24/outline'
 import { LoadingSpinner } from '../common/LoadingSpinner'
 import { ReorderControls } from '../common/ReorderControls'
-import { ApiClientError } from '../../lib/apiClient'
 import { RoutePickerModal } from '../route/RoutePickerModal'
 import { CreateRouteModal } from '../route/CreateRouteModal'
 import { RoutePreview } from '../route/RoutePreview'
 import { RoutePreviewCompact } from '../route/RoutePreviewCompact'
 import { MediaEditor } from '../common/MediaEditor'
 import { PlaceAutocomplete } from '../common/PlaceAutocomplete'
-import { fromDateTimeLocalValue, toDateTimeLocalValue } from '../../utils/dateFormat'
-import type { MediaDto, RouteDto, TeamDetailDto, PlaceDetailDto } from '../../api/api'
-import { Visibility, Status } from '../../hooks/useTrip'
+import type { RouteDto, TeamDetailDto, TripRequest } from '@/api/dto'
+import { Status } from '@/api/dto'
 import { defaultMedia } from '@/lib/apiUtils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -30,54 +27,21 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
+import { createTripBody } from '@/api/zod/trips/trips.zod'
+import { InputDateTime } from '../ui/input-datetime'
 
-export interface EditableStage {
-  id?: string
-  name: string
-  dateTime: string // datetime-local value
-  routeSlug?: string
-  startPlace?: PlaceDetailDto
-  endPlace?: PlaceDetailDto
-  media: MediaDto
-  isNew?: boolean
-  isDeleted?: boolean
-}
-
-export interface TripFormData {
-  name: string
-  media: MediaDto
-  dateTime: string // ISO string
-  visibility: Visibility
-  status: Status
-  publishAt?: string // ISO string
-  routeSlug?: string
-  stages: EditableStage[]
-}
-
-const stageSchema = z.object({
-  id: z.string().optional(),
-  name: z.string(),
-  dateTime: z.string(),
-  routeSlug: z.string().optional(),
-  startPlace: z.custom<PlaceDetailDto>().optional(),
-  endPlace: z.custom<PlaceDetailDto>().optional(),
-  media: z.custom<MediaDto>(),
-  isNew: z.boolean().optional(),
-  isDeleted: z.boolean().optional(),
-})
-
-const tripSchema = z.object({
-  name: z.string().min(3).max(200),
-  media: z.custom<MediaDto>(),
-  dateTime: z.string().min(1),
-  visibility: z.enum(Visibility),
-  status: z.enum(Status),
-  publishAt: z.string().optional(),
-  routeSlug: z.string().optional(),
-  stages: z.array(stageSchema),
-})
-
-type TripFormValues = z.infer<typeof tripSchema>
+const tripSchema = createTripBody.refine(
+  (data) => {
+    if (data.status === Status.DRAFT && data.publishAt) {
+      return new Date(data.publishAt) > new Date()
+    }
+    return true
+  },
+  {
+    message: 'Publish date must be in the future for draft posts',
+    path: ['publishAt'],
+  }
+)
 
 interface TripEditorProps {
   // Context
@@ -85,29 +49,28 @@ interface TripEditorProps {
   teamSlug: string
 
   // Initial values (REQUIRED - each page prepares these)
-  initialValues: {
-    name: string
-    media: MediaDto
-    dateTime: string // datetime-local value
-    visibility: Visibility
-    status: Status
-    publishAt?: string // datetime-local value
-    routeSlug?: string
-    stages: EditableStage[]
-  }
+  initialValues: TripRequest
 
   // Submission
-  onSubmit: (data: TripFormData) => void | Promise<void>
+  onSubmit: (data: TripRequest) => void | Promise<void>
   onCancel: () => void
 
   // State
   isPending: boolean
-  error?: Error | ApiClientError | null
 
   // UI customization
   submitButtonText?: string
   cancelButtonText?: string
 }
+
+type Target =
+  | {
+      type: 'stage'
+      index: number
+    }
+  | {
+      type: 'trip'
+    }
 
 export function TripEditor({
   team,
@@ -116,7 +79,6 @@ export function TripEditor({
   onSubmit,
   onCancel,
   isPending,
-  error,
   submitButtonText,
   cancelButtonText,
 }: TripEditorProps) {
@@ -126,115 +88,63 @@ export function TripEditor({
   // Modal state
   const [showRoutePickerModal, setShowRoutePickerModal] = useState(false)
   const [showCreateRouteModal, setShowCreateRouteModal] = useState(false)
-  const [pickerTarget, setPickerTarget] = useState<
-    'trip' | { type: 'stage'; index: number } | null
-  >(null)
+  const [pickerTarget, setPickerTarget] = useState<Target | null>(null)
 
-  const form = useForm<TripFormValues>({
+  const form = useForm<TripRequest>({
     resolver: zodResolver(tripSchema),
-    defaultValues: {
-      name: initialValues.name,
-      media: initialValues.media,
-      dateTime: initialValues.dateTime,
-      visibility: initialValues.visibility,
-      status: initialValues.status,
-      publishAt: initialValues.publishAt || '',
-      routeSlug: initialValues.routeSlug || null,
-      stages: initialValues.stages,
-    },
+    mode: 'onChange',
   })
 
-  const { fields, append, remove, update, move } = useFieldArray({
+  // Sync form values when initial props change (for edit mode)
+  useEffect(() => {
+    form.reset(initialValues)
+  }, [initialValues, form])
+
+  const {
+    fields: stageFieldArray,
+    append,
+    remove,
+    move,
+  } = useFieldArray({
     control: form.control,
     name: 'stages',
   })
 
   const status = useWatch({ control: form.control, name: 'status' })
-  const name = useWatch({ control: form.control, name: 'name' })
   const dateTime = useWatch({ control: form.control, name: 'dateTime' })
   const stages = useWatch({ control: form.control, name: 'stages' })
   const routeSlug = useWatch({ control: form.control, name: 'routeSlug' })
 
-  // Set server-side errors on form fields
   useEffect(() => {
-    if (error instanceof ApiClientError && error.error.errors) {
-      error.error.errors.forEach((err) => {
-        if (err.field && err.field in tripSchema.shape) {
-          form.setError(err.field as keyof TripFormValues, { message: err.message })
-        }
-      })
-    }
-  }, [error, form])
-
-  const handleFormSubmit = (values: TripFormValues) => {
-    const filteredStages = values.stages.filter((s) => !s.isDeleted && s.name.trim())
-
-    onSubmit({
-      name: values.name,
-      media: values.media,
-      dateTime: fromDateTimeLocalValue(values.dateTime).toISOString(),
-      status: values.status,
-      visibility: values.visibility,
-      publishAt: values.publishAt
-        ? fromDateTimeLocalValue(values.publishAt).toISOString()
-        : undefined,
-      routeSlug: values.routeSlug || undefined,
-      stages: filteredStages.map((s) => ({
-        ...s,
-        dateTime: fromDateTimeLocalValue(s.dateTime).toISOString(),
-      })),
-    })
-  }
+    form.trigger('publishAt')
+  }, [status, form])
 
   const handleAddStage = () => {
     // Default to trip date/time for new stage
-    const activeStages = stages?.filter((s) => !s.isDeleted) || []
-    const newStageDate = new Date(fromDateTimeLocalValue(dateTime || new Date().toISOString()))
-    newStageDate.setDate(newStageDate.getDate() + activeStages.length)
+    const newStageDate = new Date(dateTime || new Date().toISOString())
+    newStageDate.setDate(newStageDate.getDate() + stages.length)
 
     append({
-      name: '',
-      dateTime: toDateTimeLocalValue(newStageDate),
-      routeSlug: undefined,
-      startPlace: undefined,
-      endPlace: undefined,
+      name: `Jour ${stages.length + 1}`,
+      dateTime: newStageDate.toISOString(),
       media: defaultMedia(),
-      isNew: true,
     })
   }
 
   const handleRemoveStage = (index: number) => {
-    const stage = fields[index]
-    if (stage.isNew) {
-      remove(index)
-    } else {
-      update(index, { ...stages[index], isDeleted: true })
-    }
-  }
-
-  const handleRestoreStage = (index: number) => {
-    update(index, { ...stages[index], isDeleted: false })
+    remove(index)
   }
 
   const handleMoveStage = (index: number, direction: 'up' | 'down') => {
     const newIndex = direction === 'up' ? index - 1 : index + 1
-    if (newIndex >= 0 && newIndex < fields.length) {
+    if (newIndex >= 0 && newIndex < stageFieldArray.length) {
       move(index, newIndex)
     }
   }
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-6">
-        {/* Form-level error */}
-        {error && !(error instanceof ApiClientError && error.error.errors) && (
-          <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
-            <p className="text-destructive">
-              {error instanceof ApiClientError ? error.error.message : t('create.error')}
-            </p>
-          </div>
-        )}
-
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         {/* Title */}
         <FormField
           control={form.control}
@@ -287,7 +197,7 @@ export function TripEditor({
                   {tCommon('startPlace')} <span className="text-destructive">*</span>
                 </FormLabel>
                 <FormControl>
-                  <Input type="datetime-local" {...field} />
+                  <InputDateTime {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -358,7 +268,7 @@ export function TripEditor({
         />
 
         {/* Scheduled Publication */}
-        {status === Status.Draft && (
+        {status === Status.DRAFT && (
           <FormField
             control={form.control}
             name="publishAt"
@@ -366,7 +276,7 @@ export function TripEditor({
               <FormItem>
                 <FormLabel>{t('create.form.publishAt.label')}</FormLabel>
                 <FormControl>
-                  <Input type="datetime-local" {...field} />
+                  <InputDateTime {...field} />
                 </FormControl>
                 <FormDescription>{tCommon('form.publishAtHint')}</FormDescription>
                 <FormMessage />
@@ -390,7 +300,7 @@ export function TripEditor({
                     size="sm"
                     className="h-auto p-0"
                     onClick={() => {
-                      setPickerTarget('trip')
+                      setPickerTarget({ type: 'trip' })
                       setShowRoutePickerModal(true)
                     }}
                   >
@@ -402,7 +312,7 @@ export function TripEditor({
                       variant="link"
                       size="sm"
                       className="h-auto p-0 text-destructive"
-                      onClick={() => form.setValue('routeSlug', null)}
+                      onClick={() => form.setValue('routeSlug', undefined)}
                     >
                       {t('create.form.route.clear')}
                     </Button>
@@ -436,229 +346,165 @@ export function TripEditor({
             </Button>
           </div>
           <div className="space-y-4">
-            {fields.map((field, index) => {
+            {stageFieldArray.map((field, index) => {
               const stage = stages?.[index]
               if (!stage) return null
 
               return (
-                <div
-                  key={field.id}
-                  className={`border rounded-lg p-4 ${
-                    stage.isDeleted
-                      ? 'border-destructive/30 bg-destructive/5'
-                      : stage.isNew
-                        ? 'border-green-200 bg-green-50'
-                        : 'border-border'
-                  }`}
-                >
+                <div key={field.id} className={`border rounded-lg p-4 border-border`}>
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
                       <ReorderControls
                         index={index}
-                        total={fields.length}
+                        total={stageFieldArray.length}
                         onMove={(dir) => handleMoveStage(index, dir)}
-                        disabled={stage.isDeleted}
                       />
                       <span className="text-sm font-medium">
-                        {stage.isNew
-                          ? t('create.form.stages.new')
-                          : stage.name ||
-                            t('create.form.stages.defaultName', { number: index + 1 })}
-                        {stage.isDeleted && (
-                          <span className="ml-2 text-destructive">{tCommon('willBeDeleted')}</span>
-                        )}
+                        {stage.name || t('create.form.stages.defaultName', { number: index + 1 })}
                       </span>
                     </div>
                     <div className="flex items-center gap-1">
-                      {stage.isDeleted ? (
-                        <Button
-                          type="button"
-                          variant="link"
-                          size="sm"
-                          className="h-auto p-0"
-                          onClick={() => handleRestoreStage(index)}
-                        >
-                          {t('create.form.stages.restore')}
-                        </Button>
-                      ) : (
-                        <Button
-                          type="button"
-                          variant="link"
-                          size="sm"
-                          className="h-auto p-0 text-destructive"
-                          onClick={() => handleRemoveStage(index)}
-                        >
-                          {t('create.form.stages.remove')}
-                        </Button>
-                      )}
+                      <Button
+                        type="button"
+                        variant="link"
+                        size="sm"
+                        className="h-auto p-0 text-destructive"
+                        onClick={() => handleRemoveStage(index)}
+                      >
+                        {t('create.form.stages.remove')}
+                      </Button>
                     </div>
                   </div>
-                  {!stage.isDeleted && (
-                    <>
-                      {/* Stage Name and DateTime */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
-                        <FormField
-                          control={form.control}
-                          name={`stages.${index}.name`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormControl>
-                                <Input
-                                  placeholder={t('create.form.stages.name.placeholder')}
-                                  {...field}
-                                />
-                              </FormControl>
-                            </FormItem>
-                          )}
-                        />
-                        <FormField
-                          control={form.control}
-                          name={`stages.${index}.dateTime`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormControl>
-                                <Input type="datetime-local" {...field} />
-                              </FormControl>
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-
-                      {/* Stage Places */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
-                        <div className="space-y-1">
-                          <span className="text-xs font-medium text-muted-foreground">
-                            {t('create.form.stages.startPlace.label')}
-                          </span>
-                          {stage.startPlace ? (
-                            <div className="flex items-center justify-between px-3 py-2 border rounded-md bg-muted">
-                              <span className="text-sm truncate">{stage.startPlace.name}</span>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                className="size-6"
-                                onClick={() =>
-                                  form.setValue(`stages.${index}.startPlace`, undefined)
-                                }
-                              >
-                                <XMarkIcon className="size-4" />
-                              </Button>
-                            </div>
-                          ) : (
-                            <PlaceAutocomplete
-                              teamSlug={teamSlug}
-                              onSelect={(place) =>
-                                form.setValue(`stages.${index}.startPlace`, place)
-                              }
-                              filterStart={true}
-                              placeholder={t('create.form.stages.startPlace.placeholder')}
+                  {/* Stage Name and DateTime */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                    <FormField
+                      control={form.control}
+                      name={`stages.${index}.name`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Input
+                              placeholder={t('create.form.stages.name.placeholder')}
+                              {...field}
                             />
-                          )}
-                        </div>
-                        <div className="space-y-1">
-                          <span className="text-xs font-medium text-muted-foreground">
-                            {t('create.form.stages.endPlace.label')}
-                          </span>
-                          {stage.endPlace ? (
-                            <div className="flex items-center justify-between px-3 py-2 border rounded-md bg-muted">
-                              <span className="text-sm truncate">{stage.endPlace.name}</span>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                className="size-6"
-                                onClick={() => form.setValue(`stages.${index}.endPlace`, undefined)}
-                              >
-                                <XMarkIcon className="size-4" />
-                              </Button>
-                            </div>
-                          ) : (
-                            <PlaceAutocomplete
-                              teamSlug={teamSlug}
-                              onSelect={(place) => form.setValue(`stages.${index}.endPlace`, place)}
-                              filterEnd={true}
-                              placeholder={t('create.form.stages.endPlace.placeholder')}
-                            />
-                          )}
-                        </div>
-                      </div>
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name={`stages.${index}.dateTime`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <InputDateTime {...field} />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
 
-                      {/* Stage Description */}
-                      <FormField
-                        control={form.control}
-                        name={`stages.${index}.media`}
-                        render={({ field }) => (
-                          <FormItem className="mb-3">
-                            <span className="text-xs font-medium text-muted-foreground">
-                              {tCommon('form.description')}
-                            </span>
-                            <FormControl>
-                              <MediaEditor
-                                value={field.value}
-                                onChange={field.onChange}
-                                placeholder={t('create.form.stages.description.placeholder')}
-                                minHeight="80px"
-                                maxHeight="150px"
-                                disabled={isPending}
-                                ariaLabel={tCommon('form.description')}
-                                teamSlug={teamSlug}
-                              />
-                            </FormControl>
-                          </FormItem>
-                        )}
+                  {/* Stage Places */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                    <div className="space-y-1">
+                      <span className="text-xs font-medium text-muted-foreground">
+                        {t('create.form.stages.startPlace.label')}
+                      </span>
+                      <PlaceAutocomplete
+                        teamSlug={teamSlug}
+                        value={stage.startPlaceId}
+                        onChange={(placeId) =>
+                          form.setValue(`stages.${index}.startPlaceId`, placeId)
+                        }
+                        filterStart={true}
+                        placeholder={t('create.form.stages.startPlace.placeholder')}
                       />
+                    </div>
+                    <div className="space-y-1">
+                      <span className="text-xs font-medium text-muted-foreground">
+                        {t('create.form.stages.endPlace.label')}
+                      </span>
+                      <PlaceAutocomplete
+                        teamSlug={teamSlug}
+                        value={stage.endPlaceId}
+                        onChange={(placeId) => form.setValue(`stages.${index}.endPlaceId`, placeId)}
+                        filterEnd={true}
+                        placeholder={t('create.form.stages.endPlace.placeholder')}
+                      />
+                    </div>
+                  </div>
 
-                      {/* Stage Route */}
-                      <div className="pt-3 border-t">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-xs font-medium text-muted-foreground">
-                            {t('create.form.stages.route.label')}
-                          </span>
-                          <div className="flex gap-2">
-                            <Button
-                              type="button"
-                              variant="link"
-                              size="sm"
-                              className="h-auto p-0 text-xs"
-                              onClick={() => {
-                                setPickerTarget({ type: 'stage', index })
-                                setShowRoutePickerModal(true)
-                              }}
-                            >
-                              {stage.routeSlug
-                                ? tCommon('actions.edit')
-                                : t('create.form.route.select')}
-                            </Button>
-                            {stage.routeSlug && (
-                              <Button
-                                type="button"
-                                variant="link"
-                                size="sm"
-                                className="h-auto p-0 text-xs text-destructive"
-                                onClick={() =>
-                                  form.setValue(`stages.${index}.routeSlug`, undefined)
-                                }
-                              >
-                                {t('create.form.route.clear')}
-                              </Button>
-                            )}
-                          </div>
-                        </div>
-                        {stage.routeSlug ? (
-                          <RoutePreviewCompact routeSlug={stage.routeSlug} teamSlug={teamSlug} />
-                        ) : (
-                          <p className="text-xs text-muted-foreground italic">
-                            {tCommon('noRouteSelected')}
-                          </p>
+                  {/* Stage Description */}
+                  <FormField
+                    control={form.control}
+                    name={`stages.${index}.media`}
+                    render={({ field }) => (
+                      <FormItem className="mb-3">
+                        <span className="text-xs font-medium text-muted-foreground">
+                          {tCommon('form.description')}
+                        </span>
+                        <FormControl>
+                          <MediaEditor
+                            value={field.value}
+                            onChange={field.onChange}
+                            placeholder={t('create.form.stages.description.placeholder')}
+                            minHeight="80px"
+                            maxHeight="150px"
+                            disabled={isPending}
+                            ariaLabel={tCommon('form.description')}
+                            teamSlug={teamSlug}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Stage Route */}
+                  <div className="pt-3 border-t">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-medium text-muted-foreground">
+                        {t('create.form.stages.route.label')}
+                      </span>
+                      <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          variant="link"
+                          size="sm"
+                          className="h-auto p-0 text-xs"
+                          onClick={() => {
+                            setPickerTarget({ type: 'stage', index })
+                            setShowRoutePickerModal(true)
+                          }}
+                        >
+                          {stage.routeSlug
+                            ? tCommon('actions.edit')
+                            : t('create.form.route.select')}
+                        </Button>
+                        {stage.routeSlug && (
+                          <Button
+                            type="button"
+                            variant="link"
+                            size="sm"
+                            className="h-auto p-0 text-xs text-destructive"
+                            onClick={() => form.setValue(`stages.${index}.routeSlug`, undefined)}
+                          >
+                            {t('create.form.route.clear')}
+                          </Button>
                         )}
                       </div>
-                    </>
-                  )}
+                    </div>
+                    {stage.routeSlug ? (
+                      <RoutePreviewCompact routeSlug={stage.routeSlug} teamSlug={teamSlug} />
+                    ) : (
+                      <p className="text-xs text-muted-foreground italic">
+                        {tCommon('noRouteSelected')}
+                      </p>
+                    )}
+                  </div>
                 </div>
               )
             })}
-            {fields.length === 0 && (
+            {stageFieldArray.length === 0 && (
               <p className="text-sm text-muted-foreground italic">
                 {t('create.form.stages.empty')}
               </p>
@@ -672,7 +518,7 @@ export function TripEditor({
           <Button type="button" variant="outline" onClick={onCancel}>
             {cancelButtonText || tCommon('actions.cancelAction')}
           </Button>
-          <Button type="submit" disabled={isPending || !name?.trim() || !dateTime}>
+          <Button type="submit" disabled={isPending || !form.formState.isValid}>
             {isPending ? (
               <>
                 <LoadingSpinner size="sm" color="white" className="mr-2" />
@@ -692,27 +538,29 @@ export function TripEditor({
             setPickerTarget(null)
           }}
           onSelect={(route: RouteDto | null) => {
-            if (pickerTarget === 'trip') {
-              form.setValue('routeSlug', route ? route.slug : null)
-            } else if (pickerTarget && typeof pickerTarget === 'object') {
-              form.setValue(
-                `stages.${pickerTarget.index}.routeSlug`,
-                route ? route.slug : undefined
-              )
+            if (pickerTarget) {
+              if (pickerTarget.type === 'trip') {
+                form.setValue('routeSlug', route ? route.slug : undefined)
+              } else if (pickerTarget.type === 'stage') {
+                form.setValue(
+                  `stages.${pickerTarget.index}.routeSlug`,
+                  route ? route.slug : undefined
+                )
+              }
             }
             setShowRoutePickerModal(false)
             setPickerTarget(null)
           }}
           teamSlug={teamSlug}
           selectedRouteSlug={
-            pickerTarget === 'trip'
+            pickerTarget && pickerTarget.type === 'trip'
               ? routeSlug
-              : pickerTarget && typeof pickerTarget === 'object'
+              : pickerTarget && pickerTarget.type === 'stage'
                 ? stages?.[pickerTarget.index]?.routeSlug
                 : null
           }
           title={
-            pickerTarget === 'trip'
+            pickerTarget && pickerTarget.type === 'trip'
               ? t('create.form.route.selectForTrip')
               : t('create.form.route.selectForStage')
           }
@@ -730,10 +578,12 @@ export function TripEditor({
             setPickerTarget(null)
           }}
           onRouteCreated={(route: RouteDto) => {
-            if (pickerTarget === 'trip') {
-              form.setValue('routeSlug', route.slug)
-            } else if (pickerTarget && typeof pickerTarget === 'object') {
-              form.setValue(`stages.${pickerTarget.index}.routeSlug`, route.slug)
+            if (pickerTarget) {
+              if (pickerTarget.type === 'trip') {
+                form.setValue('routeSlug', route.slug)
+              } else if (pickerTarget.type === 'stage') {
+                form.setValue(`stages.${pickerTarget.index}.routeSlug`, route.slug)
+              }
             }
             setShowCreateRouteModal(false)
             setPickerTarget(null)

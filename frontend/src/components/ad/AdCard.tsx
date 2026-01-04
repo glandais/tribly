@@ -12,8 +12,7 @@ import { Badge, VisibilityBadge, Stat, StatGroup, CardSkeleton } from '../common
 import { EntityLogo } from '../common/EntityLogo'
 import { useFormattedDate } from '../../utils/dateFormat'
 import { paths } from '@/config/paths'
-import type { AdDto } from '../../api/api'
-import { AdType, RentalPeriod } from '../../api/api'
+import { AdDto, AdType, RentalPeriod } from '@/api/dto'
 
 // Status variants for badges
 const statusVariants: Record<string, 'gray' | 'green' | 'red'> = {
@@ -24,9 +23,9 @@ const statusVariants: Record<string, 'gray' | 'green' | 'red'> = {
 
 // Ad type badge variants
 const adTypeBadgeVariants: Record<AdType, 'indigo' | 'purple' | 'orange'> = {
-  [AdType.Sale]: 'indigo',
-  [AdType.Rental]: 'purple',
-  [AdType.Wanted]: 'orange',
+  [AdType.SALE]: 'indigo',
+  [AdType.RENTAL]: 'purple',
+  [AdType.WANTED]: 'orange',
 }
 
 interface AdCardProps {
@@ -50,7 +49,7 @@ export function AdCard({ ad, showTeam = false }: AdCardProps) {
       currency: 'EUR',
     }).format(price)
 
-    if (adType === AdType.Rental && rentalPeriod) {
+    if (adType === AdType.RENTAL && rentalPeriod) {
       const period = t(
         `rentalPeriod.${rentalPeriod satisfies 'DAY' | 'WEEK' | 'MONTH'}`
       ).toLowerCase()

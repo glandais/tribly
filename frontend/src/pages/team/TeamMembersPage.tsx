@@ -1,22 +1,26 @@
 import { useState } from 'react'
 import { useParams, Navigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
+import i18next from 'i18next'
 import { paths } from '../../config/paths'
 import { PlusIcon } from '@heroicons/react/24/outline'
+import { useGetTeam, getGetTeamQueryKey } from '@/api/endpoints/teams/teams'
 import {
-  useTeam,
-  useTeamMembers,
+  useGetMembers,
   useUpdateMemberRole,
   useRemoveMember,
   useAddMember,
-} from '../../hooks/useTeam'
+  getGetMembersQueryKey,
+} from '@/api/endpoints/team-members/team-members'
 import { useAuth } from '../../hooks/useAuth'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { TeamMemberList, TeamMemberListSkeleton } from '../../components/team/TeamMemberList'
 import { TeamAdminLayout } from '../../components/team/TeamAdminLayout'
 import { UserAutocomplete } from '../../components/common/UserAutocomplete'
-import type { PublicUserDto } from '../../hooks/useUserSearch'
-import { TeamRole } from '@/api'
+import type { PublicUserDto } from '@/api/dto'
+import { TeamRole } from '@/api/dto'
 import { Pagination } from '../../components/common/Pagination'
 import { usePagination } from '../../hooks/usePagination'
 import { Modal } from '../../components/common/Modal'
@@ -26,16 +30,19 @@ export function TeamMembersPage() {
   const { t: tCommon } = useTranslation('common')
   const { teamSlug } = useParams<{ teamSlug: string }>()
   const { user } = useAuth()
+  const queryClient = useQueryClient()
   const [showAddMember, setShowAddMember] = useState(false)
-  const [selectedRole, setSelectedRole] = useState<TeamRole>(TeamRole.Member)
+  const [selectedRole, setSelectedRole] = useState<TeamRole>(TeamRole.MEMBER)
   const [page, setPage] = useState(0)
   const pageSize = 50
 
-  const { data: team, isLoading: isLoadingTeam } = useTeam(teamSlug)
-  const { data: membersData, isLoading: isLoadingMembers } = useTeamMembers(
-    teamSlug,
-    page,
-    pageSize
+  const { data: team, isLoading: isLoadingTeam } = useGetTeam(teamSlug!, {
+    query: { enabled: !!teamSlug },
+  })
+  const { data: membersData, isLoading: isLoadingMembers } = useGetMembers(
+    teamSlug!,
+    { page, size: pageSize },
+    { query: { enabled: !!teamSlug } }
   )
 
   // Use usePagination only for totalPages calculation
@@ -43,9 +50,9 @@ export function TeamMembersPage() {
     pageSize,
     totalItems: membersData?.total ?? 0,
   })
-  const updateRoleMutation = useUpdateMemberRole(teamSlug || '')
-  const removeMemberMutation = useRemoveMember(teamSlug || '')
-  const addMemberMutation = useAddMember(teamSlug || '')
+  const updateRoleMutation = useUpdateMemberRole()
+  const removeMemberMutation = useRemoveMember()
+  const addMemberMutation = useAddMember()
 
   if (isLoadingTeam) {
     return <LoadingPage message={tCommon('loading')} />
@@ -61,12 +68,42 @@ export function TeamMembersPage() {
   }
 
   const handleAddMember = (selectedUser: PublicUserDto) => {
+    if (!teamSlug) return
     addMemberMutation.mutate(
-      { userId: selectedUser.id, role: selectedRole },
+      { slug: teamSlug, data: { userId: selectedUser.id, role: selectedRole } },
       {
         onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getGetTeamQueryKey(teamSlug) })
+          queryClient.invalidateQueries({ queryKey: getGetMembersQueryKey(teamSlug) })
+          toast.success(i18next.t('teams:notifications.memberAdded'))
           setShowAddMember(false)
-          setSelectedRole(TeamRole.Member)
+          setSelectedRole(TeamRole.MEMBER)
+        },
+      }
+    )
+  }
+
+  const handleUpdateRole = (memberId: string, role: TeamRole) => {
+    if (!teamSlug) return
+    updateRoleMutation.mutate(
+      { slug: teamSlug, memberId, data: { role } },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getGetMembersQueryKey(teamSlug) })
+        },
+      }
+    )
+  }
+
+  const handleRemoveMember = (memberId: string) => {
+    if (!teamSlug) return
+    removeMemberMutation.mutate(
+      { slug: teamSlug, memberId },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getGetTeamQueryKey(teamSlug) })
+          queryClient.invalidateQueries({ queryKey: getGetMembersQueryKey(teamSlug) })
+          toast.success(i18next.t('teams:notifications.memberRemoved'))
         },
       }
     )
@@ -94,8 +131,8 @@ export function TeamMembersPage() {
               members={membersData.members}
               currentUserRole={team.role}
               currentUserId={user?.id ?? null}
-              onUpdateRole={(memberId, role) => updateRoleMutation.mutate({ memberId, role })}
-              onRemoveMember={(memberId) => removeMemberMutation.mutate(memberId)}
+              onUpdateRole={handleUpdateRole}
+              onRemoveMember={handleRemoveMember}
               isUpdating={updateRoleMutation.isPending}
               isRemoving={removeMemberMutation.isPending}
             />
@@ -116,7 +153,7 @@ export function TeamMembersPage() {
           isOpen={showAddMember}
           onClose={() => {
             setShowAddMember(false)
-            setSelectedRole(TeamRole.Member)
+            setSelectedRole(TeamRole.MEMBER)
           }}
           title={t('detail.members.addMember')}
           size="md"
@@ -124,7 +161,7 @@ export function TeamMembersPage() {
             <button
               onClick={() => {
                 setShowAddMember(false)
-                setSelectedRole(TeamRole.Member)
+                setSelectedRole(TeamRole.MEMBER)
               }}
               disabled={addMemberMutation.isPending}
               className="px-4 py-2 border border-gray-300 rounded-md shadow-xs text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
@@ -153,9 +190,9 @@ export function TeamMembersPage() {
                 onChange={(e) => setSelectedRole(e.target.value as TeamRole)}
                 className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-xs focus:ring-indigo-500 focus:border-indigo-500"
               >
-                <option value={TeamRole.Member}>{tCommon('roles.MEMBER')}</option>
-                <option value={TeamRole.Organizer}>{tCommon('roles.ORGANIZER')}</option>
-                <option value={TeamRole.Admin}>{tCommon('roles.ADMIN')}</option>
+                <option value={TeamRole.MEMBER}>{tCommon('roles.MEMBER')}</option>
+                <option value={TeamRole.ORGANIZER}>{tCommon('roles.ORGANIZER')}</option>
+                <option value={TeamRole.ADMIN}>{tCommon('roles.ADMIN')}</option>
               </select>
             </div>
             {addMemberMutation.error && (

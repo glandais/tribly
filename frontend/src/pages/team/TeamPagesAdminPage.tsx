@@ -1,6 +1,9 @@
 import { useState } from 'react'
 import { Link, useParams, Navigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
+import i18next from 'i18next'
 import { paths } from '../../config/paths'
 import {
   PlusIcon,
@@ -9,13 +12,18 @@ import {
   TrashIcon,
   Bars3Icon,
 } from '@heroicons/react/24/outline'
-import { useTeam } from '../../hooks/useTeam'
-import { useTeamPages, useDeleteTeamPage, useReorderTeamPages } from '../../hooks/useTeamPages'
+import { useGetTeam, getGetTeamQueryKey } from '@/api/endpoints/teams/teams'
+import {
+  useListPages,
+  useDeletePage,
+  useReorderPages,
+  getListPagesQueryKey,
+} from '@/api/endpoints/team-pages/team-pages'
 import { LoadingPage, LoadingSpinner } from '../../components/common/LoadingSpinner'
 import { TeamAdminLayout } from '../../components/team/TeamAdminLayout'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import { VisibilityBadge } from '../../components/common/card/VisibilityBadge'
-import type { TeamPageSummaryDto } from '../../api/api'
+import type { TeamPageSummaryDto } from '@/api/dto'
 
 const MAX_ADDITIONAL_PAGES = 3
 
@@ -23,13 +31,18 @@ export function TeamPagesAdminPage() {
   const { t } = useTranslation('teams')
   const { t: tCommon } = useTranslation('common')
   const { teamSlug } = useParams<{ teamSlug: string }>()
+  const queryClient = useQueryClient()
   const [pageToDelete, setPageToDelete] = useState<TeamPageSummaryDto | null>(null)
   const [draggedItem, setDraggedItem] = useState<TeamPageSummaryDto | null>(null)
 
-  const { data: team, isLoading: isLoadingTeam } = useTeam(teamSlug)
-  const { data: pages, isLoading: isLoadingPages } = useTeamPages(teamSlug)
-  const deleteMutation = useDeleteTeamPage(teamSlug!)
-  const reorderMutation = useReorderTeamPages(teamSlug!)
+  const { data: team, isLoading: isLoadingTeam } = useGetTeam(teamSlug!, {
+    query: { enabled: !!teamSlug },
+  })
+  const { data: pages, isLoading: isLoadingPages } = useListPages(teamSlug!, {
+    query: { enabled: !!teamSlug },
+  })
+  const deleteMutation = useDeletePage()
+  const reorderMutation = useReorderPages()
 
   if (isLoadingTeam) {
     return <LoadingPage message={tCommon('loading')} />
@@ -51,9 +64,18 @@ export function TeamPagesAdminPage() {
   }
 
   const confirmDelete = () => {
-    if (pageToDelete) {
-      deleteMutation.mutate(pageToDelete.slug)
-      setPageToDelete(null)
+    if (pageToDelete && teamSlug) {
+      deleteMutation.mutate(
+        { slug: teamSlug, pageSlug: pageToDelete.slug },
+        {
+          onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: getListPagesQueryKey(teamSlug) })
+            queryClient.invalidateQueries({ queryKey: getGetTeamQueryKey(teamSlug) })
+            toast.success(i18next.t('teams:pages.notifications.deleted'))
+            setPageToDelete(null)
+          },
+        }
+      )
     }
   }
 
@@ -69,7 +91,7 @@ export function TeamPagesAdminPage() {
 
   const handleDrop = (e: React.DragEvent, targetPage: TeamPageSummaryDto) => {
     e.preventDefault()
-    if (!draggedItem || !pages || draggedItem.id === targetPage.id) {
+    if (!draggedItem || !pages || draggedItem.id === targetPage.id || !teamSlug) {
       setDraggedItem(null)
       return
     }
@@ -82,7 +104,16 @@ export function TeamPagesAdminPage() {
     currentOrder.splice(draggedIndex, 1)
     currentOrder.splice(targetIndex, 0, draggedItem.id)
 
-    reorderMutation.mutate(currentOrder)
+    reorderMutation.mutate(
+      { slug: teamSlug, data: { pageIds: currentOrder } },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getListPagesQueryKey(teamSlug) })
+          queryClient.invalidateQueries({ queryKey: getGetTeamQueryKey(teamSlug) })
+          toast.success(i18next.t('teams:pages.notifications.reordered'))
+        },
+      }
+    )
     setDraggedItem(null)
   }
 

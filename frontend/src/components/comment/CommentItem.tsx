@@ -5,7 +5,7 @@ import { UserAvatar } from '../common/UserAvatar'
 import { CommentForm } from './CommentForm'
 import { ConfirmDialog } from '../common/ConfirmDialog'
 import { useFormattedDate } from '../../utils/dateFormat'
-import type { CommentDto } from '../../api/api'
+import type { CommentDto } from '@/api/dto'
 
 interface CommentItemProps {
   comment: CommentDto

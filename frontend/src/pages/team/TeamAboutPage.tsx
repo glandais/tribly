@@ -2,7 +2,7 @@ import { useParams, Navigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { UsersIcon, CalendarIcon } from '@heroicons/react/24/outline'
 import { paths } from '../../config/paths'
-import { useTeam } from '../../hooks/useTeam'
+import { useGetTeam } from '@/api/endpoints/teams/teams'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { TeamLayout } from '../../components/team/TeamLayout'
 import { MediaDisplay } from '../../components/common/MediaDisplay'
@@ -12,7 +12,9 @@ export function TeamAboutPage() {
   const { t: tCommon } = useTranslation('common')
   const { teamSlug } = useParams<{ teamSlug: string }>()
 
-  const { data: team, isLoading } = useTeam(teamSlug)
+  const { data: team, isLoading } = useGetTeam(teamSlug!, {
+    query: { enabled: !!teamSlug },
+  })
 
   if (isLoading) {
     return <LoadingPage message={tCommon('loading')} />

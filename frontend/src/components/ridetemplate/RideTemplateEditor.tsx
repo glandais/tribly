@@ -5,42 +5,16 @@ import { LoadingSpinner } from '../common/LoadingSpinner'
 import { ReorderControls } from '../common/ReorderControls'
 import { moveItem } from '../../utils/arrayUtils'
 import { MarkdownEditor } from '../common/MarkdownEditor'
-import { ApiClientError } from '../../lib/apiClient'
-import type { TeamDetailDto } from '../../api/api'
-import { Visibility, Status } from '../../api/api'
-
-export interface EditableTemplateGroup {
-  id?: string
-  name: string
-  time?: string
-  averageSpeed?: number
-  maxParticipants?: number
-  isNew?: boolean
-  isDeleted?: boolean
-}
-
-export interface RideTemplateFormData {
-  name: string
-  markdown?: string
-  visibility: Visibility
-  status: Status
-  groups: EditableTemplateGroup[]
-}
+import type { RideTemplateGroupRequest, RideTemplateRequest, TeamDetailDto } from '@/api/dto'
+import { Visibility, Status } from '@/api/dto'
 
 interface RideTemplateEditorProps {
   team: TeamDetailDto
   teamSlug: string
-  initialValues: {
-    name: string
-    markdown?: string
-    visibility: Visibility
-    status: Status
-    groups: EditableTemplateGroup[]
-  }
-  onSubmit: (data: RideTemplateFormData) => void | Promise<void>
+  initialValues: RideTemplateRequest
+  onSubmit: (data: RideTemplateRequest) => void | Promise<void>
   onCancel: () => void
   isPending: boolean
-  error?: Error | ApiClientError | null
   submitButtonText?: string
 }
 
@@ -51,7 +25,6 @@ export function RideTemplateEditor({
   onSubmit,
   onCancel,
   isPending,
-  error,
   submitButtonText,
 }: RideTemplateEditorProps) {
   const { t } = useTranslation('rideTemplates')
@@ -61,18 +34,17 @@ export function RideTemplateEditor({
   const [markdown, setMarkdown] = useState(initialValues.markdown || '')
   const [visibility, setVisibility] = useState<Visibility>(initialValues.visibility)
   const [status, setStatus] = useState<Status>(initialValues.status)
-  const [groups, setGroups] = useState<EditableTemplateGroup[]>(initialValues.groups)
+  const [groups, setGroups] = useState<RideTemplateGroupRequest[]>(initialValues.groups)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    const filteredGroups = groups.filter((g) => !g.isDeleted && g.name.trim())
 
     onSubmit({
       name,
       markdown: markdown || undefined,
       visibility,
       status,
-      groups: filteredGroups,
+      groups: groups,
     })
   }
 
@@ -84,25 +56,15 @@ export function RideTemplateEditor({
         time: undefined,
         averageSpeed: undefined,
         maxParticipants: undefined,
-        isNew: true,
       },
     ])
   }
 
   const handleRemoveGroup = (index: number) => {
-    const group = groups[index]
-    if (group.isNew) {
-      setGroups(groups.filter((_, i) => i !== index))
-    } else {
-      setGroups(groups.map((g, i) => (i === index ? { ...g, isDeleted: true } : g)))
-    }
+    setGroups(groups.filter((_, i) => i !== index))
   }
 
-  const handleRestoreGroup = (index: number) => {
-    setGroups(groups.map((g, i) => (i === index ? { ...g, isDeleted: false } : g)))
-  }
-
-  const handleUpdateGroup = (index: number, updates: Partial<EditableTemplateGroup>) => {
+  const handleUpdateGroup = (index: number, updates: Partial<RideTemplateGroupRequest>) => {
     setGroups(groups.map((g, i) => (i === index ? { ...g, ...updates } : g)))
   }
 
@@ -110,26 +72,10 @@ export function RideTemplateEditor({
     setGroups(moveItem(groups, index, direction))
   }
 
-  const getFieldError = (field: string) => {
-    if (error instanceof ApiClientError) {
-      return error.error.errors?.find((e) => e.field === field)?.message
-    }
-    return undefined
-  }
-
-  const isPrivateTeam = team.visibility !== Visibility.Public
+  const isPrivateTeam = team.visibility !== Visibility.PUBLIC
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Form-level error */}
-      {error && !(error instanceof ApiClientError && error.error.errors) && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-          <p className="text-red-700">
-            {error instanceof ApiClientError ? error.error.message : t('form.error')}
-          </p>
-        </div>
-      )}
-
       {/* Name */}
       <div>
         <label htmlFor="name" className="block text-sm font-medium text-gray-700">
@@ -143,14 +89,9 @@ export function RideTemplateEditor({
           required
           minLength={3}
           maxLength={200}
-          className={`mt-1 block w-full px-4 py-2 border rounded-lg focus:ring-indigo-500 focus:border-indigo-500 ${
-            getFieldError('name') ? 'border-red-300' : 'border-gray-300'
-          }`}
+          className={`mt-1 block w-full px-4 py-2 border rounded-lg focus:ring-indigo-500 focus:border-indigo-500 border-gray-300`}
           placeholder={t('form.name.placeholder')}
         />
-        {getFieldError('name') && (
-          <p className="mt-1 text-sm text-red-600">{getFieldError('name')}</p>
-        )}
       </div>
 
       {/* Description (Markdown) */}
@@ -182,8 +123,8 @@ export function RideTemplateEditor({
               type="radio"
               name="visibility"
               value="TEAM"
-              checked={visibility === Visibility.Team}
-              onChange={() => setVisibility(Visibility.Team)}
+              checked={visibility === Visibility.TEAM}
+              onChange={() => setVisibility(Visibility.TEAM)}
               className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
             />
             <span className="ml-2 text-sm text-gray-700">{tCommon('visibility.team')}</span>
@@ -193,8 +134,8 @@ export function RideTemplateEditor({
               type="radio"
               name="visibility"
               value="PUBLIC"
-              checked={visibility === Visibility.Public}
-              onChange={() => setVisibility(Visibility.Public)}
+              checked={visibility === Visibility.PUBLIC}
+              onChange={() => setVisibility(Visibility.PUBLIC)}
               disabled={isPrivateTeam}
               className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500 disabled:opacity-50"
             />
@@ -219,8 +160,8 @@ export function RideTemplateEditor({
               type="radio"
               name="status"
               value="DRAFT"
-              checked={status === Status.Draft}
-              onChange={() => setStatus(Status.Draft)}
+              checked={status === Status.DRAFT}
+              onChange={() => setStatus(Status.DRAFT)}
               className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
             />
             <span className="ml-2 text-sm text-gray-700">{tCommon('status.DRAFT')}</span>
@@ -230,8 +171,8 @@ export function RideTemplateEditor({
               type="radio"
               name="status"
               value="PUBLISHED"
-              checked={status === Status.Published}
-              onChange={() => setStatus(Status.Published)}
+              checked={status === Status.PUBLISHED}
+              onChange={() => setStatus(Status.PUBLISHED)}
               className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
             />
             <span className="ml-2 text-sm text-gray-700">{tCommon('status.PUBLISHED')}</span>
@@ -258,13 +199,7 @@ export function RideTemplateEditor({
           {groups.map((group, index) => (
             <div
               key={group.id || `new-${index}`}
-              className={`border rounded-lg p-4 ${
-                group.isDeleted
-                  ? 'border-red-200 bg-red-50'
-                  : group.isNew
-                    ? 'border-green-200 bg-green-50'
-                    : 'border-gray-200'
-              }`}
+              className={`border rounded-lg p-4 border-gray-200`}
             >
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
@@ -272,98 +207,80 @@ export function RideTemplateEditor({
                     index={index}
                     total={groups.length}
                     onMove={(dir) => handleMoveGroup(index, dir)}
-                    disabled={group.isDeleted}
                   />
                   <span className="text-sm font-medium text-gray-700">
-                    {group.isNew
-                      ? t('form.groups.new')
-                      : group.name || t('form.groups.defaultName', { number: index + 1 })}
-                    {group.isDeleted && (
-                      <span className="ml-2 text-red-600">{tCommon('willBeDeleted')}</span>
-                    )}
+                    {group.name || t('form.groups.defaultName', { number: index + 1 })}
                   </span>
                 </div>
-                {group.isDeleted ? (
-                  <button
-                    type="button"
-                    onClick={() => handleRestoreGroup(index)}
-                    className="text-sm text-indigo-600 hover:text-indigo-700"
-                  >
-                    {t('form.groups.restore')}
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveGroup(index)}
-                    className="text-sm text-red-600 hover:text-red-700"
-                  >
-                    {t('form.groups.remove')}
-                  </button>
-                )}
+                <button
+                  type="button"
+                  onClick={() => handleRemoveGroup(index)}
+                  className="text-sm text-red-600 hover:text-red-700"
+                >
+                  {t('form.groups.remove')}
+                </button>
               </div>
-              {!group.isDeleted && (
-                <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-                  <div>
-                    <input
-                      type="text"
-                      value={group.name}
-                      onChange={(e) => handleUpdateGroup(index, { name: e.target.value })}
-                      placeholder={t('form.groups.name.placeholder')}
-                      required
-                      className="block w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-indigo-500 focus:border-indigo-500"
-                    />
-                  </div>
-                  <div className="relative">
-                    <input
-                      type="time"
-                      value={group.time || ''}
-                      onChange={(e) =>
-                        handleUpdateGroup(index, {
-                          time: e.target.value || undefined,
-                        })
-                      }
-                      className="block w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-indigo-500 focus:border-indigo-500"
-                    />
-                    {group.time && (
-                      <button
-                        type="button"
-                        onClick={() => handleUpdateGroup(index, { time: undefined })}
-                        className="absolute right-8 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600"
-                      >
-                        <XMarkIcon className="w-4 h-4" />
-                      </button>
-                    )}
-                  </div>
-                  <div>
-                    <input
-                      type="number"
-                      value={group.averageSpeed || ''}
-                      onChange={(e) =>
-                        handleUpdateGroup(index, {
-                          averageSpeed: e.target.value ? Number(e.target.value) : undefined,
-                        })
-                      }
-                      placeholder={t('form.groups.speed.placeholder')}
-                      min={0}
-                      className="block w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-indigo-500 focus:border-indigo-500"
-                    />
-                  </div>
-                  <div>
-                    <input
-                      type="number"
-                      value={group.maxParticipants || ''}
-                      onChange={(e) =>
-                        handleUpdateGroup(index, {
-                          maxParticipants: e.target.value ? Number(e.target.value) : undefined,
-                        })
-                      }
-                      placeholder={t('form.groups.maxParticipants.placeholder')}
-                      min={1}
-                      className="block w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-indigo-500 focus:border-indigo-500"
-                    />
-                  </div>
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                <div>
+                  <input
+                    type="text"
+                    value={group.name}
+                    onChange={(e) => handleUpdateGroup(index, { name: e.target.value })}
+                    placeholder={t('form.groups.name.placeholder')}
+                    required
+                    className="block w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-indigo-500 focus:border-indigo-500"
+                  />
                 </div>
-              )}
+                <div className="relative">
+                  <input
+                    type="time"
+                    value={group.time || ''}
+                    onChange={(e) =>
+                      handleUpdateGroup(index, {
+                        time: e.target.value || undefined,
+                      })
+                    }
+                    className="block w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-indigo-500 focus:border-indigo-500"
+                  />
+                  {group.time && (
+                    <button
+                      type="button"
+                      onClick={() => handleUpdateGroup(index, { time: undefined })}
+                      className="absolute right-8 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600"
+                    >
+                      <XMarkIcon className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+                <div>
+                  <input
+                    type="number"
+                    value={group.averageSpeed || ''}
+                    onChange={(e) =>
+                      handleUpdateGroup(index, {
+                        averageSpeed: e.target.value ? Number(e.target.value) : undefined,
+                      })
+                    }
+                    placeholder={t('form.groups.speed.placeholder')}
+                    min={0}
+                    className="block w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-indigo-500 focus:border-indigo-500"
+                  />
+                </div>
+                <div>
+                  <input
+                    type="number"
+                    value={group.maxParticipants || ''}
+                    onChange={(e) =>
+                      handleUpdateGroup(index, {
+                        maxParticipants: e.target.value ? Number(e.target.value) : undefined,
+                      })
+                    }
+                    placeholder={t('form.groups.maxParticipants.placeholder')}
+                    min={1}
+                    className="block w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-indigo-500 focus:border-indigo-500"
+                  />
+                </div>
+              </div>
             </div>
           ))}
           {groups.length === 0 && (

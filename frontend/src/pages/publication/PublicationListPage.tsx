@@ -2,8 +2,9 @@ import { useState } from 'react'
 import { Link, useParams, Navigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { PlusIcon, NewspaperIcon, ChevronDownIcon } from '@heroicons/react/24/outline'
-import { useTeam } from '../../hooks/useTeam'
-import { usePublications, PublicationType } from '../../hooks/usePublications'
+import { useGetTeam } from '@/api/endpoints/teams/teams'
+import { useListPublications } from '../../api/endpoints/publications/publications'
+import { PublicationType } from '@/api/dto'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import {
   PublicationCard,
@@ -34,9 +35,9 @@ type FilterValue = 'all' | 'ride' | 'post' | 'trip'
 
 const filterToTypes: Record<FilterValue, PublicationType[] | undefined> = {
   all: undefined,
-  ride: [PublicationType.Ride],
-  post: [PublicationType.Post],
-  trip: [PublicationType.Trip],
+  ride: [PublicationType.RIDE],
+  post: [PublicationType.POST],
+  trip: [PublicationType.TRIP],
 }
 
 export function PublicationListPage() {
@@ -52,13 +53,19 @@ export function PublicationListPage() {
   const [filter, setFilter] = useState<FilterValue>('all')
   const pageSize = 20
 
-  const { data: team, isLoading: isLoadingTeam } = useTeam(teamSlug)
-  const { data: publicationsData, isLoading: isLoadingPublications } = usePublications(teamSlug, {
-    search: search || undefined,
-    page,
-    size: pageSize,
-    types: filterToTypes[filter],
+  const { data: team, isLoading: isLoadingTeam } = useGetTeam(teamSlug!, {
+    query: { enabled: !!teamSlug },
   })
+  const { data: publicationsData, isLoading: isLoadingPublications } = useListPublications(
+    teamSlug!,
+    {
+      search: search || undefined,
+      page,
+      size: pageSize,
+      type: filterToTypes[filter],
+    },
+    { query: { enabled: !!teamSlug } }
+  )
 
   const resetPage = () => setPage(0)
 

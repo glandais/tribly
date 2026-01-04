@@ -1,4 +1,4 @@
-import { MediaDto } from '../../api/api'
+import { MediaDto } from '@/api/dto'
 
 // Size configurations for the avatar
 const sizeClasses = {

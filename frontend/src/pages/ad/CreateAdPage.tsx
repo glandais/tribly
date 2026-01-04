@@ -1,23 +1,27 @@
 import { useParams, Navigate, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { useTeam } from '../../hooks/useTeam'
-import { useCreateAd } from '../../hooks/useAd'
+import { useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
+import i18next from 'i18next'
+import { useGetTeam } from '@/api/endpoints/teams/teams'
+import { useCreateAd, getListAdsQueryKey } from '../../api/endpoints/ads/ads'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
-import { toDateTimeLocalValue } from '../../utils/dateFormat'
 import { AdEditor } from '../../components/ad/AdEditor'
-import type { AdFormData } from '../../components/ad/AdEditor'
 import { defaultMedia } from '@/lib/apiUtils'
 import { paths } from '@/config/paths'
-import { AdType, Status, Visibility } from '../../api/api'
+import { AdRequest, AdType, Status, Visibility } from '../../api/dto'
 
 export function CreateAdPage() {
   const { t } = useTranslation('ads')
   const { t: tCommon } = useTranslation('common')
   const { teamSlug } = useParams<{ teamSlug: string }>()
   const navigate = useNavigate()
-  const { data: team, isLoading: isLoadingTeam } = useTeam(teamSlug)
+  const queryClient = useQueryClient()
+  const { data: team, isLoading: isLoadingTeam } = useGetTeam(teamSlug!, {
+    query: { enabled: !!teamSlug },
+  })
 
-  const createMutation = useCreateAd(teamSlug)
+  const createMutation = useCreateAd()
 
   if (isLoadingTeam) {
     return <LoadingPage message={tCommon('loading')} />
@@ -38,10 +42,10 @@ export function CreateAdPage() {
   const initialValues = {
     name: '',
     media: defaultMedia(),
-    dateTime: toDateTimeLocalValue(new Date()),
-    visibility: team.visibility === Visibility.Team ? Visibility.Team : Visibility.Public,
-    status: Status.Draft,
-    adType: AdType.Sale,
+    dateTime: new Date().toISOString(),
+    visibility: team.visibility === Visibility.TEAM ? Visibility.TEAM : Visibility.PUBLIC,
+    status: Status.DRAFT,
+    adType: AdType.SALE,
     price: undefined,
     rentalPeriod: undefined,
     latitude: undefined,
@@ -49,24 +53,17 @@ export function CreateAdPage() {
     locationDescription: '',
   }
 
-  const handleSubmit = (data: AdFormData) => {
+  const handleSubmit = (data: AdRequest) => {
     createMutation.mutate(
       {
-        name: data.name,
-        media: data.media,
-        dateTime: data.dateTime,
-        status: data.status,
-        visibility: data.visibility,
-        adType: data.adType,
-        price: data.price,
-        rentalPeriod: data.rentalPeriod,
-        latitude: data.latitude,
-        longitude: data.longitude,
-        locationDescription: data.locationDescription,
+        slug: teamSlug!,
+        data,
       },
       {
-        onSuccess: () => {
-          navigate(paths.ads(teamSlug!))
+        onSuccess: (ad) => {
+          queryClient.invalidateQueries({ queryKey: getListAdsQueryKey(teamSlug!) })
+          toast.success(i18next.t('ads:notifications.created'))
+          navigate(paths.ad(teamSlug!, ad.slug))
         },
       }
     )
@@ -85,7 +82,6 @@ export function CreateAdPage() {
         onSubmit={handleSubmit}
         onCancel={() => navigate(paths.ads(teamSlug!))}
         isPending={createMutation.isPending}
-        error={createMutation.error}
         submitButtonText={t('create.submit')}
       />
     </div>

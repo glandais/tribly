@@ -1,4 +1,4 @@
-import { MediaDto } from '@/api'
+import { MediaDto } from '@/api/dto'
 
 export const defaultMedia = (): MediaDto => {
   return {

@@ -1,6 +1,8 @@
 import { useState } from 'react'
-import { Link, useParams, Navigate } from 'react-router-dom'
+import { Link, useParams, Navigate, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
 import { paths } from '../../config/paths'
 import {
   CalendarIcon,
@@ -9,15 +11,17 @@ import {
   RectangleStackIcon,
   ChevronDownIcon,
 } from '@heroicons/react/24/outline'
-import { useTeam } from '../../hooks/useTeam'
+import { useGetTeam } from '@/api/endpoints/teams/teams'
 import {
-  useTrip,
+  useGetTrip,
   useUpdateTrip,
   useDeleteTrip,
   useJoinTrip,
   useLeaveTrip,
-} from '../../hooks/useTrip'
-import { Status } from '../../hooks/useTrip'
+  getGetTripQueryKey,
+  getListTripsQueryKey,
+} from '../../api/endpoints/trips/trips'
+import { Status } from '@/api/dto'
 import { useAuth } from '../../hooks/useAuth'
 import { LoadingPage, LoadingSpinner } from '../../components/common/LoadingSpinner'
 import { TripStageCard } from '../../components/trip/TripStageCard'
@@ -38,9 +42,9 @@ import {
 } from '@/components/ui/dropdown-menu'
 
 const statusColors: Record<Status, string> = {
-  [Status.Draft]: 'bg-gray-100 text-gray-800',
-  [Status.Published]: 'bg-green-100 text-green-800',
-  [Status.Cancelled]: 'bg-red-100 text-red-800',
+  [Status.DRAFT]: 'bg-gray-100 text-gray-800',
+  [Status.PUBLISHED]: 'bg-green-100 text-green-800',
+  [Status.CANCELLED]: 'bg-red-100 text-red-800',
 }
 
 export function TripDetailPage() {
@@ -55,13 +59,23 @@ export function TripDetailPage() {
   const [showUncancelConfirm, setShowUncancelConfirm] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
-  const { data: team, isLoading: isLoadingTeam } = useTeam(teamSlug)
-  const { data: trip, isLoading: isLoadingTrip, error } = useTrip(teamSlug, tripSlug)
+  const queryClient = useQueryClient()
+  const navigate = useNavigate()
+  const { data: team, isLoading: isLoadingTeam } = useGetTeam(teamSlug!, {
+    query: { enabled: !!teamSlug },
+  })
+  const {
+    data: trip,
+    isLoading: isLoadingTrip,
+    error,
+  } = useGetTrip(teamSlug!, tripSlug!, {
+    query: { enabled: !!teamSlug && !!tripSlug },
+  })
 
-  const updateMutation = useUpdateTrip(teamSlug, tripSlug!)
-  const deleteMutation = useDeleteTrip(teamSlug)
-  const joinMutation = useJoinTrip(teamSlug, tripSlug!)
-  const leaveMutation = useLeaveTrip(teamSlug, tripSlug!)
+  const updateMutation = useUpdateTrip()
+  const deleteMutation = useDeleteTrip()
+  const joinMutation = useJoinTrip()
+  const leaveMutation = useLeaveTrip()
 
   if (isLoadingTeam || isLoadingTrip) {
     return <LoadingPage message={tCommon('loading')} />
@@ -94,40 +108,101 @@ export function TripDetailPage() {
   const canEdit = isAdmin || isOrganizer
   const hasJoined =
     user && trip.participants ? trip.participants.some((p) => p.id === user.id) : false
-  const canJoinTrip = isMember && trip.status === Status.Published && !hasJoined
+  const canJoinTrip = isMember && trip.status === Status.PUBLISHED && !hasJoined
 
   const formattedDate = formatDateTime(trip.dateTime)
 
   const handlePublish = () => {
-    updateMutation.mutate({ ...trip, status: Status.Published })
+    updateMutation.mutate(
+      { slug: teamSlug!, tripSlug: tripSlug!, data: { ...trip, status: Status.PUBLISHED } },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getGetTripQueryKey(teamSlug!, tripSlug!) })
+          queryClient.invalidateQueries({ queryKey: getListTripsQueryKey(teamSlug!) })
+          toast.success(t('notifications.published'))
+        },
+      }
+    )
   }
 
   const handleUnpublish = () => {
-    updateMutation.mutate({ ...trip, status: Status.Draft })
+    updateMutation.mutate(
+      { slug: teamSlug!, tripSlug: tripSlug!, data: { ...trip, status: Status.DRAFT } },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getGetTripQueryKey(teamSlug!, tripSlug!) })
+          queryClient.invalidateQueries({ queryKey: getListTripsQueryKey(teamSlug!) })
+          toast.success(t('notifications.unpublished'))
+        },
+      }
+    )
     setShowUnpublishConfirm(false)
   }
 
   const handleCancel = () => {
-    updateMutation.mutate({ ...trip, status: Status.Cancelled })
+    updateMutation.mutate(
+      { slug: teamSlug!, tripSlug: tripSlug!, data: { ...trip, status: Status.CANCELLED } },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getGetTripQueryKey(teamSlug!, tripSlug!) })
+          queryClient.invalidateQueries({ queryKey: getListTripsQueryKey(teamSlug!) })
+          toast.success(t('notifications.cancelled'))
+        },
+      }
+    )
     setShowCancelConfirm(false)
   }
 
   const handleUncancel = () => {
-    updateMutation.mutate({ ...trip, status: Status.Draft })
+    updateMutation.mutate(
+      { slug: teamSlug!, tripSlug: tripSlug!, data: { ...trip, status: Status.DRAFT } },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getGetTripQueryKey(teamSlug!, tripSlug!) })
+          queryClient.invalidateQueries({ queryKey: getListTripsQueryKey(teamSlug!) })
+          toast.success(t('notifications.uncancelled'))
+        },
+      }
+    )
     setShowUncancelConfirm(false)
   }
 
   const handleDelete = () => {
-    deleteMutation.mutate(tripSlug!)
+    deleteMutation.mutate(
+      { slug: teamSlug!, tripSlug: tripSlug! },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getListTripsQueryKey(teamSlug!) })
+          toast.success(t('notifications.deleted'))
+          navigate(paths.team(teamSlug!))
+        },
+      }
+    )
     setShowDeleteConfirm(false)
   }
 
   const handleJoin = () => {
-    joinMutation.mutate()
+    joinMutation.mutate(
+      { slug: teamSlug!, tripSlug: tripSlug! },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getGetTripQueryKey(teamSlug!, tripSlug!) })
+          toast.success(t('notifications.joined'))
+        },
+      }
+    )
   }
 
   const handleLeave = () => {
-    leaveMutation.mutate()
+    leaveMutation.mutate(
+      { slug: teamSlug!, tripSlug: tripSlug! },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getGetTripQueryKey(teamSlug!, tripSlug!) })
+          toast.success(t('notifications.left'))
+        },
+      }
+    )
   }
 
   return (
@@ -183,7 +258,7 @@ export function TripDetailPage() {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    {trip.status === Status.Draft && (
+                    {trip.status === Status.DRAFT && (
                       <DropdownMenuItem
                         onClick={handlePublish}
                         disabled={updateMutation.isPending}
@@ -193,7 +268,7 @@ export function TripDetailPage() {
                         {tCommon('actions.publish')}
                       </DropdownMenuItem>
                     )}
-                    {trip.status === Status.Published && (
+                    {trip.status === Status.PUBLISHED && (
                       <>
                         <DropdownMenuItem
                           onClick={() => setShowUnpublishConfirm(true)}
@@ -209,7 +284,7 @@ export function TripDetailPage() {
                         </DropdownMenuItem>
                       </>
                     )}
-                    {trip.status === Status.Cancelled && (
+                    {trip.status === Status.CANCELLED && (
                       <DropdownMenuItem
                         onClick={() => setShowUncancelConfirm(true)}
                         className="text-green-700"
@@ -234,7 +309,7 @@ export function TripDetailPage() {
         <div className="mt-4">
           <MediaDisplay media={trip.media} className="text-gray-600" />
         </div>
-        {trip.status === Status.Draft && trip.publishAt && (
+        {trip.status === Status.DRAFT && trip.publishAt && (
           <div className="mt-2 text-sm text-amber-600 flex items-center">
             <CalendarIcon className="w-4 h-4 mr-1" />
             {t('detail.scheduledPublish', {

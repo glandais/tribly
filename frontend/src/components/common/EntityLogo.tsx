@@ -1,4 +1,4 @@
-import { AssetDto } from '../../api/api'
+import { AssetDto } from '@/api/dto'
 
 // Size configurations for the logo
 const sizeClasses = {

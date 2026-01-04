@@ -1,22 +1,34 @@
 import { useParams, Navigate, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { useTeam } from '../../hooks/useTeam'
-import { useRide, useUpdateRide } from '../../hooks/useRide'
+import { useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
+import i18next from 'i18next'
+import { useGetTeam } from '@/api/endpoints/teams/teams'
+import {
+  useGetRide,
+  useUpdateRide,
+  getListRidesQueryKey,
+  getGetRideQueryKey,
+} from '../../api/endpoints/rides/rides'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { RideEditor } from '../../components/ride/RideEditor'
-import type { RideFormData } from '../../components/ride/RideEditor'
-import { toDateTimeLocalValue } from '../../utils/dateFormat'
 import { paths } from '@/config/paths'
+import { RideRequest } from '@/api/dto'
 
 export function EditRidePage() {
   const { t } = useTranslation('rides')
   const { t: tCommon } = useTranslation('common')
   const { teamSlug, rideSlug } = useParams<{ teamSlug: string; rideSlug: string }>()
   const navigate = useNavigate()
-  const { data: team, isLoading: isLoadingTeam } = useTeam(teamSlug)
-  const { data: ride, isLoading: isLoadingRide } = useRide(teamSlug, rideSlug)
+  const queryClient = useQueryClient()
+  const { data: team, isLoading: isLoadingTeam } = useGetTeam(teamSlug!, {
+    query: { enabled: !!teamSlug },
+  })
+  const { data: ride, isLoading: isLoadingRide } = useGetRide(teamSlug!, rideSlug!, {
+    query: { enabled: !!teamSlug && !!rideSlug },
+  })
 
-  const updateMutation = useUpdateRide(teamSlug, rideSlug!)
+  const updateMutation = useUpdateRide()
 
   if (isLoadingTeam || isLoadingRide) {
     return <LoadingPage message={tCommon('loading')} />
@@ -32,42 +44,35 @@ export function EditRidePage() {
     return <Navigate to={paths.ride(teamSlug!, rideSlug!)} replace />
   }
 
-  const handleSubmit = async (data: RideFormData) => {
+  const handleSubmit = (data: RideRequest) => {
     const filteredGroups = data.groups.filter((g) => g.name.trim())
 
-    await updateMutation.mutateAsync({
-      name: data.name,
-      media: data.media,
-      dateTime: data.dateTime,
-      status: data.status,
-      visibility: data.visibility,
-      publishAt: data.publishAt,
-      routeSlug: data.routeSlug,
-      groups: filteredGroups,
-    })
-
-    navigate(paths.ride(teamSlug!, rideSlug!))
+    updateMutation.mutate(
+      {
+        slug: teamSlug!,
+        rideSlug: rideSlug!,
+        data: {
+          ...data,
+          groups: filteredGroups,
+        },
+      },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getGetRideQueryKey(teamSlug!, rideSlug!) })
+          queryClient.invalidateQueries({ queryKey: getListRidesQueryKey(teamSlug!) })
+          toast.success(i18next.t('rides:notifications.updated'))
+          navigate(paths.ride(teamSlug!, rideSlug!))
+        },
+      }
+    )
   }
 
   // Prepare initial values from fetched ride data
   const initialValues = {
-    name: ride.name,
-    media: ride.media,
-    dateTime: toDateTimeLocalValue(ride.dateTime),
-    visibility: ride.visibility,
-    status: ride.status,
-    publishAt: ride.publishAt ? toDateTimeLocalValue(ride.publishAt) : undefined,
-    routeSlug: ride.routeSlug,
-    groups:
-      ride.groups?.map((g) => ({
-        id: g.id,
-        name: g.name,
-        time: g.time,
-        averageSpeed: g.averageSpeed,
-        maxParticipants: g.maxParticipants,
-        routeSlug: g.routeSlug,
-      })) || [],
-  }
+    ...ride,
+    startPlaceId: ride.startPlace?.id,
+    endPlaceId: ride.endPlace?.id,
+  } as RideRequest
 
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -83,7 +88,6 @@ export function EditRidePage() {
         onSubmit={handleSubmit}
         onCancel={() => navigate(paths.ride(teamSlug!, rideSlug!))}
         isPending={updateMutation.isPending}
-        error={updateMutation.error}
         submitButtonText={tCommon('actions.save')}
       />
     </div>

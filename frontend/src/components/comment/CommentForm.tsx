@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { useForm, useWatch } from 'react-hook-form'
+import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { PaperAirplaneIcon } from '@heroicons/react/24/solid'
@@ -34,10 +34,9 @@ export function CommentForm({
 
   const form = useForm<CommentFormValues>({
     resolver: zodResolver(commentSchema),
+    mode: 'onChange',
     defaultValues: { content: '' },
   })
-
-  const content = useWatch({ control: form.control, name: 'content' })
 
   const handleSubmit = (values: CommentFormValues) => {
     onSubmit(values.content.trim())
@@ -66,7 +65,7 @@ export function CommentForm({
           )}
         />
         <div className="flex flex-col gap-1">
-          <Button type="submit" disabled={isLoading || !content.trim()} size="icon">
+          <Button type="submit" disabled={isLoading || !form.formState.isValid} size="icon">
             {isLoading ? <LoadingSpinner size="sm" /> : <PaperAirplaneIcon className="size-4" />}
           </Button>
           {onCancel && (

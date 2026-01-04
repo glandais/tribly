@@ -1,5 +1,5 @@
 import type { LngLatBoundsLike } from 'maplibre-gl'
-import type { ClimbDto, RouteDetailDto, TrackDto } from '../../api/api'
+import type { ClimbDto, RouteDetailDto, TrackDto } from '@/api/dto'
 
 // Color calculation (matching biketeam single-map.js)
 const NEUTRAL_HUE = 210

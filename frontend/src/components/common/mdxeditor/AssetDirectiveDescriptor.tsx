@@ -2,7 +2,7 @@ import { createContext, useContext, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { DirectiveDescriptor, DirectiveEditorProps } from '@mdxeditor/editor'
 import type { LeafDirective } from 'mdast-util-directive'
-import type { AssetDto } from '../../../api/api'
+import type { AssetDto } from '@/api/dto'
 import {
   IMAGE_SIZES,
   type ImageSize,

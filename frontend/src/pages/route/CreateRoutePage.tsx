@@ -1,36 +1,46 @@
 import { useParams, Navigate, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
+import i18next from 'i18next'
 import { paths } from '../../config/paths'
-import { useTeam } from '../../hooks/useTeam'
+import { useGetTeam } from '@/api/endpoints/teams/teams'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { RouteEditor } from '../../components/route/RouteEditor'
-import type { RouteFormData } from '../../components/route/RouteEditor'
-import { useCreateRoute, SurfaceType } from '../../hooks/useRoute'
-import { Visibility } from '../../api/api'
+import { useCreateRoute, getListRoutesQueryKey } from '@/api/endpoints/routes/routes'
+import { Visibility, SurfaceType, RouteRequest } from '@/api/dto'
 import { defaultMedia } from '@/lib/apiUtils'
 
 export function CreateRoutePage() {
   const { teamSlug } = useParams<{ teamSlug: string }>()
   const navigate = useNavigate()
   const { t } = useTranslation('routes')
+  const queryClient = useQueryClient()
 
-  const { data: team, isLoading: isLoadingTeam } = useTeam(teamSlug)
-  const createRoute = useCreateRoute(teamSlug!)
+  const { data: team, isLoading: isLoadingTeam } = useGetTeam(teamSlug!, {
+    query: { enabled: !!teamSlug },
+  })
+  const createRouteMutation = useCreateRoute()
 
-  const handleSubmit = async (data: RouteFormData, gpxFile?: File) => {
+  const handleSubmit = async (data: RouteRequest, gpxFile?: File) => {
     // Either gpxFile or points must be provided
     if (!gpxFile && (!data.points || data.points.length < 2)) return
 
-    const route = await createRoute.mutateAsync({
-      route: {
-        name: data.name,
-        media: data.media,
-        surfaceType: data.surfaceType,
-        visibility: data.visibility,
-        points: data.points,
+    const route = await createRouteMutation.mutateAsync(
+      {
+        slug: teamSlug!,
+        data: {
+          route: data,
+          gpxFile,
+        },
       },
-      gpxFile,
-    })
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getListRoutesQueryKey(teamSlug!) })
+          toast.success(i18next.t('routes:notifications.created'))
+        },
+      }
+    )
 
     navigate(paths.route(teamSlug!, route.slug))
   }
@@ -57,8 +67,8 @@ export function CreateRoutePage() {
   const initialValues = {
     name: '',
     media: defaultMedia(),
-    surfaceType: SurfaceType.Road,
-    visibility: team.visibility === Visibility.Team ? Visibility.Team : Visibility.Public,
+    surfaceType: SurfaceType.ROAD,
+    visibility: team.visibility === Visibility.TEAM ? Visibility.TEAM : Visibility.PUBLIC,
   }
 
   return (
@@ -75,8 +85,8 @@ export function CreateRoutePage() {
         isCreateMode={true}
         onSubmit={handleSubmit}
         onCancel={handleCancel}
-        isPending={createRoute.isPending}
-        error={createRoute.error}
+        isPending={createRouteMutation.isPending}
+        error={createRouteMutation.error}
         submitButtonText={t('create.submit')}
       />
     </div>

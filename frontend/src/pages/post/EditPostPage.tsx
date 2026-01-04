@@ -1,22 +1,34 @@
 import { useParams, Navigate, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { useTeam } from '../../hooks/useTeam'
-import { usePost, useUpdatePost } from '../../hooks/usePost'
+import { useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
+import i18next from 'i18next'
+import { useGetTeam } from '@/api/endpoints/teams/teams'
+import {
+  useGetPost,
+  useUpdatePost,
+  getListPostsQueryKey,
+  getGetPostQueryKey,
+} from '../../api/endpoints/posts/posts'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
-import { toDateTimeLocalValue } from '../../utils/dateFormat'
 import { PostEditor } from '../../components/post/PostEditor'
-import type { PostFormData } from '../../components/post/PostEditor'
 import { paths } from '@/config/paths'
+import { PostRequest } from '@/api/dto'
 
 export function EditPostPage() {
   const { t } = useTranslation('posts')
   const { t: tCommon } = useTranslation('common')
   const { teamSlug, postSlug } = useParams<{ teamSlug: string; postSlug: string }>()
   const navigate = useNavigate()
-  const { data: team, isLoading: isLoadingTeam } = useTeam(teamSlug)
-  const { data: post, isLoading: isLoadingPost } = usePost(teamSlug, postSlug)
+  const queryClient = useQueryClient()
+  const { data: team, isLoading: isLoadingTeam } = useGetTeam(teamSlug!, {
+    query: { enabled: !!teamSlug },
+  })
+  const { data: post, isLoading: isLoadingPost } = useGetPost(teamSlug!, postSlug!, {
+    query: { enabled: !!teamSlug && !!postSlug },
+  })
 
-  const updateMutation = useUpdatePost(teamSlug, postSlug!)
+  const updateMutation = useUpdatePost()
 
   if (isLoadingTeam || isLoadingPost) {
     return <LoadingPage message={tCommon('loading')} />
@@ -32,29 +44,26 @@ export function EditPostPage() {
     return <Navigate to={paths.post(teamSlug!, postSlug!)} replace />
   }
 
-  const handleSubmit = async (data: PostFormData) => {
-    // Update post details
-    await updateMutation.mutateAsync({
-      name: data.name,
-      media: data.media,
-      dateTime: data.dateTime,
-      status: data.status,
-      visibility: data.visibility,
-      publishAt: data.publishAt,
-    })
-
-    navigate(paths.post(teamSlug!, postSlug!))
+  const handleSubmit = (data: PostRequest) => {
+    updateMutation.mutate(
+      {
+        slug: teamSlug!,
+        postSlug: postSlug!,
+        data,
+      },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getListPostsQueryKey(teamSlug!) })
+          queryClient.invalidateQueries({ queryKey: getGetPostQueryKey(teamSlug!, postSlug!) })
+          toast.success(i18next.t('posts:notifications.updated'))
+          navigate(paths.post(teamSlug!, postSlug!))
+        },
+      }
+    )
   }
 
   // Prepare initial values from fetched post data
-  const initialValues = {
-    name: post.name,
-    media: post.media,
-    dateTime: toDateTimeLocalValue(post.dateTime),
-    visibility: post.visibility,
-    status: post.status,
-    publishAt: post.publishAt ? toDateTimeLocalValue(post.publishAt) : undefined,
-  }
+  const initialValues: PostRequest = { ...post }
 
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -69,7 +78,6 @@ export function EditPostPage() {
         onSubmit={handleSubmit}
         onCancel={() => navigate(paths.post(teamSlug!, postSlug!))}
         isPending={updateMutation.isPending}
-        error={updateMutation.error}
         submitButtonText={tCommon('actions.save')}
       />
     </div>

@@ -1,15 +1,21 @@
 import { useEffect } from 'react'
-import { Link } from 'react-router-dom'
-import { useForm, useWatch } from 'react-hook-form'
+import { Link, useNavigate } from 'react-router-dom'
+import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { z } from 'zod'
 import { useTranslation } from 'react-i18next'
-import { useCreateTeamPage, useUpdateTeamPage } from '../../hooks/useTeamPages'
+import { useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
+import i18next from 'i18next'
+import {
+  useCreatePage,
+  useUpdatePage,
+  getListPagesQueryKey,
+  getGetPageQueryKey,
+} from '@/api/endpoints/team-pages/team-pages'
+import { getGetTeamQueryKey } from '@/api/endpoints/teams/teams'
 import { LoadingSpinner } from '../common/LoadingSpinner'
-import { ApiClientError } from '../../lib/apiClient'
-import { Visibility, TeamPageDto, MediaDto } from '../../api/api'
+import { Visibility, TeamPageRequest } from '@/api/dto'
 import { MediaEditor } from '../common/MediaEditor'
-import { defaultMedia } from '@/lib/apiUtils'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -29,109 +35,79 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { paths } from '@/config/paths'
+import { createPageBody } from '@/api/zod/team-pages/team-pages.zod'
 
-const teamPageSchema = z.object({
-  title: z.string().min(2).max(100),
-  media: z.custom<MediaDto>(),
-  visibility: z.nativeEnum(Visibility),
-})
-
-type TeamPageFormValues = z.infer<typeof teamPageSchema>
+const teamPageSchema = createPageBody
 
 interface TeamPageFormProps {
   teamSlug: string
   pageSlug?: string
-  initialTitle?: string
-  initialMedia?: MediaDto
-  initialVisibility?: Visibility
-  onSuccess: (page: TeamPageDto) => void
+  initialValues: TeamPageRequest
+  onSuccess: (page: TeamPageRequest) => void
   isCreate: boolean
 }
 
 export function TeamPageForm({
   teamSlug,
   pageSlug,
-  initialTitle = '',
-  initialMedia,
-  initialVisibility = Visibility.Team,
+  initialValues,
   onSuccess,
   isCreate,
 }: TeamPageFormProps) {
   const { t } = useTranslation('teams')
   const { t: tCommon } = useTranslation('common')
+  const queryClient = useQueryClient()
+  const navigate = useNavigate()
 
-  const createMutation = useCreateTeamPage(teamSlug)
-  const updateMutation = useUpdateTeamPage(teamSlug, pageSlug || '')
+  const createMutation = useCreatePage()
+  const updateMutation = useUpdatePage()
   const mutation = isCreate ? createMutation : updateMutation
 
-  const form = useForm<TeamPageFormValues>({
+  const form = useForm<TeamPageRequest>({
     resolver: zodResolver(teamPageSchema),
-    defaultValues: {
-      title: initialTitle,
-      media: initialMedia ?? defaultMedia(),
-      visibility: initialVisibility,
-    },
+    mode: 'onChange',
   })
-
-  const media = useWatch({ control: form.control, name: 'media' })
 
   // Sync form values when initial props change (for edit mode)
   useEffect(() => {
-    if (initialTitle) {
-      form.setValue('title', initialTitle)
-    }
-    if (initialMedia?.markdown || initialMedia?.assets?.images?.length) {
-      form.setValue('media', initialMedia)
-    }
-    if (initialVisibility) {
-      form.setValue('visibility', initialVisibility)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    initialTitle,
-    initialMedia?.markdown,
-    initialMedia?.assets?.images?.length,
-    initialVisibility,
-  ])
+    form.reset(initialValues)
+  }, [initialValues, form])
 
-  // Call onSuccess when mutation succeeds
-  useEffect(() => {
-    if (mutation.isSuccess && mutation.data) {
-      onSuccess(mutation.data)
-    }
-  }, [mutation.isSuccess, mutation.data, onSuccess])
-
-  // Set server-side errors on form fields
-  useEffect(() => {
-    if (mutation.error instanceof ApiClientError && mutation.error.error.errors) {
-      mutation.error.error.errors.forEach((err) => {
-        if (err.field && err.field in teamPageSchema.shape) {
-          form.setError(err.field as keyof TeamPageFormValues, { message: err.message })
+  const handleSubmit = (values: TeamPageRequest) => {
+    if (isCreate) {
+      createMutation.mutate(
+        { slug: teamSlug, data: values },
+        {
+          onSuccess: (page) => {
+            queryClient.invalidateQueries({ queryKey: getListPagesQueryKey(teamSlug) })
+            queryClient.invalidateQueries({ queryKey: getGetTeamQueryKey(teamSlug) })
+            toast.success(i18next.t('teams:pages.notifications.created'))
+            onSuccess(page)
+            navigate(paths.teamAdminPages(teamSlug))
+          },
         }
-      })
+      )
+    } else if (pageSlug) {
+      updateMutation.mutate(
+        { slug: teamSlug, pageSlug, data: values },
+        {
+          onSuccess: (page) => {
+            queryClient.invalidateQueries({ queryKey: getListPagesQueryKey(teamSlug) })
+            queryClient.invalidateQueries({ queryKey: getGetPageQueryKey(teamSlug, pageSlug) })
+            queryClient.invalidateQueries({ queryKey: getGetTeamQueryKey(teamSlug) })
+            queryClient.setQueryData(getGetPageQueryKey(teamSlug, page.slug), page)
+            toast.success(i18next.t('teams:pages.notifications.updated'))
+            onSuccess(page)
+            navigate(paths.teamAdminPages(teamSlug))
+          },
+        }
+      )
     }
-  }, [mutation.error, form])
-
-  const handleSubmit = (values: TeamPageFormValues) => {
-    mutation.mutate(values)
   }
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-        {mutation.error &&
-          !(mutation.error instanceof ApiClientError && mutation.error.error.errors) && (
-            <div className="p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
-              <p className="text-destructive">
-                {mutation.error instanceof ApiClientError
-                  ? mutation.error.error.message
-                  : isCreate
-                    ? t('pages.form.createError')
-                    : t('pages.form.updateError')}
-              </p>
-            </div>
-          )}
-
         <FormField
           control={form.control}
           name="title"
@@ -170,7 +146,7 @@ export function TeamPageForm({
               </FormControl>
               <FormDescription>
                 {tCommon('form.charCount', {
-                  count: media.markdown?.length || 0,
+                  count: field.value.markdown?.length || 0,
                   max: 10000,
                 })}
               </FormDescription>
@@ -192,8 +168,8 @@ export function TeamPageForm({
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value={Visibility.Team}>{tCommon('visibility.team')}</SelectItem>
-                  <SelectItem value={Visibility.Public}>{tCommon('visibility.public')}</SelectItem>
+                  <SelectItem value={Visibility.TEAM}>{tCommon('visibility.team')}</SelectItem>
+                  <SelectItem value={Visibility.PUBLIC}>{tCommon('visibility.public')}</SelectItem>
                 </SelectContent>
               </Select>
               <FormDescription>{t('pages.form.visibility.hint')}</FormDescription>
@@ -206,7 +182,7 @@ export function TeamPageForm({
           <Button variant="outline" asChild>
             <Link to={paths.teamAdminPages(teamSlug)}>{tCommon('actions.cancelAction')}</Link>
           </Button>
-          <Button type="submit" disabled={mutation.isPending}>
+          <Button type="submit" disabled={mutation.isPending || !form.formState.isValid}>
             {mutation.isPending ? (
               <>
                 <LoadingSpinner size="sm" color="white" className="mr-2" />

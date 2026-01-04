@@ -1,11 +1,18 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
+import i18next from 'i18next'
 import { PencilIcon, TrashIcon, PlusIcon, MapPinIcon } from '@heroicons/react/24/outline'
-import { usePlaces, useDeletePlace } from '../../hooks/usePlaces'
+import {
+  useListPlaces,
+  useDeletePlace,
+  getListPlacesQueryKey,
+} from '../../api/endpoints/places/places'
 import { ConfirmDialog } from '../common/ConfirmDialog'
 import { LoadingSpinner } from '../common/LoadingSpinner'
 import { PlaceForm } from './PlaceForm'
-import type { PlaceDetailDto } from '../../api/api'
+import type { PlaceDetailDto } from '../../api/dto'
 
 interface PlaceListProps {
   teamSlug: string
@@ -15,8 +22,9 @@ interface PlaceListProps {
 export function PlaceList({ teamSlug, canManage }: PlaceListProps) {
   const { t } = useTranslation('teams')
   const { t: tCommon } = useTranslation('common')
-  const { data: placesData, isLoading } = usePlaces(teamSlug)
-  const deleteMutation = useDeletePlace(teamSlug)
+  const queryClient = useQueryClient()
+  const { data: placesData, isLoading } = useListPlaces(teamSlug)
+  const deleteMutation = useDeletePlace()
 
   const [editingPlace, setEditingPlace] = useState<PlaceDetailDto | null>(null)
   const [showCreateForm, setShowCreateForm] = useState(false)
@@ -33,9 +41,25 @@ export function PlaceList({ teamSlug, canManage }: PlaceListProps) {
   const places = placesData?.places ?? []
 
   const handleDelete = (placeId: string) => {
-    deleteMutation.mutate(placeId, {
-      onSuccess: () => setDeleteConfirm(null),
-    })
+    deleteMutation.mutate(
+      { slug: teamSlug, placeId },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getListPlacesQueryKey(teamSlug) })
+          toast.success(i18next.t('teams:notifications.placeDeleted'))
+          setDeleteConfirm(null)
+        },
+      }
+    )
+  }
+
+  function newPlace(): PlaceDetailDto {
+    return {
+      id: '',
+      name: '',
+      startPlace: true,
+      endPlace: true,
+    }
   }
 
   return (
@@ -112,7 +136,13 @@ export function PlaceList({ teamSlug, canManage }: PlaceListProps) {
       )}
 
       {/* Create Form Modal */}
-      {showCreateForm && <PlaceForm teamSlug={teamSlug} onClose={() => setShowCreateForm(false)} />}
+      {showCreateForm && (
+        <PlaceForm
+          teamSlug={teamSlug}
+          place={newPlace()}
+          onClose={() => setShowCreateForm(false)}
+        />
+      )}
 
       {/* Edit Form Modal */}
       {editingPlace && (

@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { useRoute } from '../../hooks/useRoute'
+import { useGetRoute } from '@/api/endpoints/routes/routes'
 import { LoadingSpinner } from '../common/LoadingSpinner'
 
 interface RoutePreviewCompactProps {
@@ -10,7 +10,7 @@ interface RoutePreviewCompactProps {
 export function RoutePreviewCompact({ routeSlug, teamSlug }: RoutePreviewCompactProps) {
   const { t } = useTranslation('routes')
   const { t: tCommon } = useTranslation('common')
-  const { data: route, isLoading } = useRoute(teamSlug, routeSlug)
+  const { data: route, isLoading } = useGetRoute(teamSlug, routeSlug)
 
   if (isLoading)
     return (

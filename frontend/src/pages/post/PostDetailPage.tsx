@@ -1,10 +1,19 @@
 import { useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
+import i18next from 'i18next'
 import { CalendarIcon, PencilIcon, ChevronDownIcon } from '@heroicons/react/24/outline'
-import { useTeam } from '../../hooks/useTeam'
-import { usePost, useUpdatePost, useDeletePost } from '../../hooks/usePost'
-import { Status } from '../../hooks/usePost'
+import { useGetTeam } from '@/api/endpoints/teams/teams'
+import {
+  useGetPost,
+  useUpdatePost,
+  useDeletePost,
+  getListPostsQueryKey,
+  getGetPostQueryKey,
+} from '../../api/endpoints/posts/posts'
+import { Status } from '../../api/dto'
 import { LoadingPage, LoadingSpinner } from '../../components/common/LoadingSpinner'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import { MediaDisplay } from '../../components/common/MediaDisplay'
@@ -23,9 +32,9 @@ import {
 import { paths } from '@/config/paths'
 
 const statusColors: Record<Status, string> = {
-  [Status.Draft]: 'bg-gray-100 text-gray-800',
-  [Status.Published]: 'bg-green-100 text-green-800',
-  [Status.Cancelled]: 'bg-red-100 text-red-800',
+  [Status.DRAFT]: 'bg-gray-100 text-gray-800',
+  [Status.PUBLISHED]: 'bg-green-100 text-green-800',
+  [Status.CANCELLED]: 'bg-red-100 text-red-800',
 }
 
 export function PostDetailPage() {
@@ -33,16 +42,24 @@ export function PostDetailPage() {
   const { t: tCommon } = useTranslation('common')
   const { formatDateTime } = useFormattedDate()
   const { teamSlug, postSlug } = useParams<{ teamSlug: string; postSlug: string }>()
+  const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const [showUnpublishConfirm, setShowUnpublishConfirm] = useState(false)
   const [showCancelConfirm, setShowCancelConfirm] = useState(false)
   const [showUncancelConfirm, setShowUncancelConfirm] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
-  const { data: team, isLoading: isLoadingTeam } = useTeam(teamSlug)
-  const { data: post, isLoading: isLoadingPost, error } = usePost(teamSlug, postSlug)
+  const { data: team, isLoading: isLoadingTeam } = useGetTeam(teamSlug!, {
+    query: { enabled: !!teamSlug },
+  })
+  const {
+    data: post,
+    isLoading: isLoadingPost,
+    error,
+  } = useGetPost(teamSlug!, postSlug!, { query: { enabled: !!teamSlug && !!postSlug } })
 
-  const updateMutation = useUpdatePost(teamSlug, postSlug!)
-  const deleteMutation = useDeletePost(teamSlug)
+  const updateMutation = useUpdatePost()
+  const deleteMutation = useDeletePost()
 
   if (isLoadingTeam || isLoadingPost) {
     return <LoadingPage message={tCommon('loading')} />
@@ -72,28 +89,74 @@ export function PostDetailPage() {
 
   const formattedDate = formatDateTime(post.dateTime)
 
+  const invalidatePosts = () => {
+    queryClient.invalidateQueries({ queryKey: getListPostsQueryKey(teamSlug!) })
+    queryClient.invalidateQueries({ queryKey: getGetPostQueryKey(teamSlug!, postSlug!) })
+  }
+
   const handlePublish = () => {
-    updateMutation.mutate({ ...post, status: Status.Published })
+    updateMutation.mutate(
+      { slug: teamSlug!, postSlug: postSlug!, data: { ...post, status: Status.PUBLISHED } },
+      {
+        onSuccess: () => {
+          invalidatePosts()
+          toast.success(i18next.t('posts:notifications.updated'))
+        },
+      }
+    )
   }
 
   const handleUnpublish = () => {
-    updateMutation.mutate({ ...post, status: Status.Draft })
-    setShowUnpublishConfirm(false)
+    updateMutation.mutate(
+      { slug: teamSlug!, postSlug: postSlug!, data: { ...post, status: Status.DRAFT } },
+      {
+        onSuccess: () => {
+          invalidatePosts()
+          toast.success(i18next.t('posts:notifications.updated'))
+          setShowUnpublishConfirm(false)
+        },
+      }
+    )
   }
 
   const handleCancel = () => {
-    updateMutation.mutate({ ...post, status: Status.Cancelled })
-    setShowCancelConfirm(false)
+    updateMutation.mutate(
+      { slug: teamSlug!, postSlug: postSlug!, data: { ...post, status: Status.CANCELLED } },
+      {
+        onSuccess: () => {
+          invalidatePosts()
+          toast.success(i18next.t('posts:notifications.updated'))
+          setShowCancelConfirm(false)
+        },
+      }
+    )
   }
 
   const handleUncancel = () => {
-    updateMutation.mutate({ ...post, status: Status.Published })
-    setShowUncancelConfirm(false)
+    updateMutation.mutate(
+      { slug: teamSlug!, postSlug: postSlug!, data: { ...post, status: Status.PUBLISHED } },
+      {
+        onSuccess: () => {
+          invalidatePosts()
+          toast.success(i18next.t('posts:notifications.updated'))
+          setShowUncancelConfirm(false)
+        },
+      }
+    )
   }
 
   const handleDelete = () => {
-    deleteMutation.mutate(postSlug!)
-    setShowDeleteConfirm(false)
+    deleteMutation.mutate(
+      { slug: teamSlug!, postSlug: postSlug! },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: getListPostsQueryKey(teamSlug!) })
+          toast.success(i18next.t('posts:notifications.deleted'))
+          setShowDeleteConfirm(false)
+          navigate(paths.team(teamSlug!))
+        },
+      }
+    )
   }
 
   return (
@@ -126,7 +189,7 @@ export function PostDetailPage() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  {post.status === Status.Draft && (
+                  {post.status === Status.DRAFT && (
                     <DropdownMenuItem
                       onClick={handlePublish}
                       disabled={updateMutation.isPending}
@@ -136,7 +199,7 @@ export function PostDetailPage() {
                       {tCommon('actions.publish')}
                     </DropdownMenuItem>
                   )}
-                  {post.status === Status.Published && (
+                  {post.status === Status.PUBLISHED && (
                     <>
                       <DropdownMenuItem
                         onClick={() => setShowUnpublishConfirm(true)}
@@ -152,7 +215,7 @@ export function PostDetailPage() {
                       </DropdownMenuItem>
                     </>
                   )}
-                  {post.status === Status.Cancelled && (
+                  {post.status === Status.CANCELLED && (
                     <DropdownMenuItem
                       onClick={() => setShowUncancelConfirm(true)}
                       className="text-green-700"
@@ -176,7 +239,7 @@ export function PostDetailPage() {
         <div className="mt-4">
           <MediaDisplay media={post.media} className="text-gray-600" />
         </div>
-        {post.status === Status.Draft && post.publishAt && (
+        {post.status === Status.DRAFT && post.publishAt && (
           <div className="mt-2 text-sm text-amber-600 flex items-center">
             <CalendarIcon className="w-4 h-4 mr-1" />
             {t('detail.scheduledPublish', {
