@@ -11,7 +11,7 @@ interface UserAutocompleteProps {
 }
 
 export function UserAutocomplete({ onSelect, placeholder, className = '' }: UserAutocompleteProps) {
-  const { t } = useTranslation('common')
+  const { t } = useTranslation()
   const [query, setQuery] = useState('')
 
   const shouldSearch = query.trim().length >= 2

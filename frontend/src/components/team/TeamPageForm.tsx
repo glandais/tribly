@@ -53,8 +53,7 @@ export function TeamPageForm({
   onSuccess,
   isCreate,
 }: TeamPageFormProps) {
-  const { t } = useTranslation('teams')
-  const { t: tCommon } = useTranslation('common')
+  const { t } = useTranslation()
   const queryClient = useQueryClient()
   const navigate = useNavigate()
 
@@ -76,7 +75,7 @@ export function TeamPageForm({
           onSuccess: (page) => {
             queryClient.invalidateQueries({ queryKey: getListPagesQueryKey(teamSlug) })
             queryClient.invalidateQueries({ queryKey: getGetTeamQueryKey(teamSlug) })
-            toast.success(i18next.t('teams:pages.notifications.created'))
+            toast.success(i18next.t('teams.pages.notifications.created'))
             onSuccess(page)
             navigate(paths.teamAdminPages(teamSlug))
           },
@@ -91,7 +90,7 @@ export function TeamPageForm({
             queryClient.invalidateQueries({ queryKey: getGetPageQueryKey(teamSlug, pageSlug) })
             queryClient.invalidateQueries({ queryKey: getGetTeamQueryKey(teamSlug) })
             queryClient.setQueryData(getGetPageQueryKey(teamSlug, page.slug), page)
-            toast.success(i18next.t('teams:pages.notifications.updated'))
+            toast.success(i18next.t('teams.pages.notifications.updated'))
             onSuccess(page)
             navigate(paths.teamAdminPages(teamSlug))
           },
@@ -109,13 +108,13 @@ export function TeamPageForm({
           render={({ field }) => (
             <FormItem>
               <FormLabel>
-                {t('pages.form.title.label')}
+                {t('teams.pages.form.title.label')}
                 <span className="text-destructive"> *</span>
               </FormLabel>
               <FormControl>
-                <Input placeholder={t('pages.form.title.placeholder')} {...field} />
+                <Input placeholder={t('teams.pages.form.title.placeholder')} {...field} />
               </FormControl>
-              <FormDescription>{t('pages.form.title.hint')}</FormDescription>
+              <FormDescription>{t('teams.pages.form.title.hint')}</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -126,21 +125,21 @@ export function TeamPageForm({
           name="media"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t('pages.form.content.label')}</FormLabel>
+              <FormLabel>{t('teams.pages.form.content.label')}</FormLabel>
               <FormControl>
                 <MediaEditor
                   value={field.value}
                   onChange={field.onChange}
-                  placeholder={t('pages.form.content.placeholder')}
+                  placeholder={t('teams.pages.form.content.placeholder')}
                   minHeight="200px"
                   maxHeight="400px"
                   disabled={mutation.isPending}
-                  ariaLabel={t('pages.form.content.placeholder')}
+                  ariaLabel={t('teams.pages.form.content.placeholder')}
                   teamSlug={teamSlug}
                 />
               </FormControl>
               <FormDescription>
-                {tCommon('form.charCount', {
+                {t('form.charCount', {
                   count: field.value.markdown.length || 0,
                   max: 10000,
                 })}
@@ -155,7 +154,7 @@ export function TeamPageForm({
           name="visibility"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t('pages.form.visibility.label')}</FormLabel>
+              <FormLabel>{t('visibility.label')}</FormLabel>
               <Select value={field.value} onValueChange={field.onChange}>
                 <FormControl>
                   <SelectTrigger className="w-full">
@@ -163,11 +162,11 @@ export function TeamPageForm({
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value={Visibility.TEAM}>{tCommon('visibility.team')}</SelectItem>
-                  <SelectItem value={Visibility.PUBLIC}>{tCommon('visibility.public')}</SelectItem>
+                  <SelectItem value={Visibility.TEAM}>{t('visibility.team')}</SelectItem>
+                  <SelectItem value={Visibility.PUBLIC}>{t('visibility.public')}</SelectItem>
                 </SelectContent>
               </Select>
-              <FormDescription>{t('pages.form.visibility.hint')}</FormDescription>
+              <FormDescription>{t('teams.pages.form.visibility.hint')}</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -175,18 +174,18 @@ export function TeamPageForm({
 
         <div className="pt-4 flex items-center justify-end gap-3">
           <Button variant="outline" asChild>
-            <Link to={paths.teamAdminPages(teamSlug)}>{tCommon('actions.cancelAction')}</Link>
+            <Link to={paths.teamAdminPages(teamSlug)}>{t('actions.cancelAction')}</Link>
           </Button>
           <Button type="submit" disabled={mutation.isPending || !form.formState.isValid}>
             {mutation.isPending ? (
               <>
                 <LoadingSpinner size="sm" color="white" className="mr-2" />
-                {isCreate ? tCommon('status.creating') : tCommon('status.saving')}
+                {isCreate ? t('status.creating') : t('status.saving')}
               </>
             ) : isCreate ? (
-              t('pages.form.create')
+              t('teams.pages.form.create')
             ) : (
-              tCommon('actions.save')
+              t('actions.save')
             )}
           </Button>
         </div>

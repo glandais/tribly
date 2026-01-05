@@ -64,7 +64,7 @@ function AssetDirectiveEditor({
   lexicalNode,
   parentEditor,
 }: DirectiveEditorProps<LeafDirective>) {
-  const { t } = useTranslation('common')
+  const { t } = useTranslation()
   const images = useAssetImages()
 
   const attributes = (mdastNode.attributes ?? {}) as AssetDirectiveAttributes

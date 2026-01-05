@@ -50,7 +50,7 @@ export function useAuth() {
       onSuccess: (updatedUser) => {
         queryClient.setQueryData(getGetCurrentUserQueryKey(), updatedUser)
         setUser(updatedUser)
-        toast.success(i18next.t('profile:notifications.updated'))
+        toast.success(i18next.t('profile.notifications.updated'))
       },
     },
   })
@@ -58,7 +58,7 @@ export function useAuth() {
   const deleteAccountMutation = useDeleteCurrentUser({
     mutation: {
       onSuccess: () => {
-        toast.success(i18next.t('profile:notifications.accountDeleted'))
+        toast.success(i18next.t('profile.notifications.accountDeleted'))
         logout()
       },
     },
@@ -69,7 +69,7 @@ export function useAuth() {
       onSuccess: (updatedUser) => {
         queryClient.setQueryData(getGetCurrentUserQueryKey(), updatedUser)
         setUser(updatedUser)
-        toast.success(i18next.t('profile:notifications.avatarUpdated'))
+        toast.success(i18next.t('profile.notifications.avatarUpdated'))
       },
     },
   })
@@ -79,7 +79,7 @@ export function useAuth() {
       onSuccess: (updatedUser) => {
         queryClient.setQueryData(getGetCurrentUserQueryKey(), updatedUser)
         setUser(updatedUser)
-        toast.success(i18next.t('profile:notifications.avatarDeleted'))
+        toast.success(i18next.t('profile.notifications.avatarDeleted'))
       },
     },
   })

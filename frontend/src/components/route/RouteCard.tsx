@@ -13,8 +13,7 @@ interface RouteCardProps {
 }
 
 export function RouteCard({ route, showTeam }: RouteCardProps) {
-  const { t } = useTranslation('routes')
-  const { t: tCommon } = useTranslation('common')
+  const { t } = useTranslation()
 
   const distanceIcon = <MapIcon />
   const elevationIcon = <ArrowUpIcon />
@@ -57,18 +56,20 @@ export function RouteCard({ route, showTeam }: RouteCardProps) {
 
         <StatGroup className="mb-3">
           <Stat icon={distanceIcon}>
-            {(route.distance / 1000).toFixed(1)} {tCommon('units.km')}
+            {(route.distance / 1000).toFixed(1)} {t('units.km')}
           </Stat>
           <Stat icon={elevationIcon}>
             {route.elevationGain}
-            {tCommon('units.m')}
+            {t('units.m')}
           </Stat>
         </StatGroup>
 
         <div className="flex flex-wrap gap-2">
           {route.surfaceType && (
             <Badge variant="green">
-              {t(`surfaceType.${route.surfaceType satisfies 'ROAD' | 'GRAVEL' | 'MTB' | 'MIXED'}`)}
+              {t(
+                `routes.surfaceType.${route.surfaceType satisfies 'ROAD' | 'GRAVEL' | 'MTB' | 'MIXED'}`
+              )}
             </Badge>
           )}
           <VisibilityBadge visibility={route.visibility} />

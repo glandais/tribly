@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { supportedLanguages, languageNames, type SupportedLanguage } from '../../i18n'
 
 export function LanguageSwitcher() {
-  const { i18n, t } = useTranslation('common')
+  const { i18n, t } = useTranslation()
 
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     i18n.changeLanguage(e.target.value)

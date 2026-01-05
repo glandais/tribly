@@ -31,7 +31,7 @@ export function AssetImage({
   altText = '',
   className = '',
 }: AssetImageProps) {
-  const { t } = useTranslation('common')
+  const { t } = useTranslation()
   const [isLoading, setIsLoading] = useState(true)
   const [hasError, setHasError] = useState(false)
 

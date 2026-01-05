@@ -11,8 +11,7 @@ import { HomeLayout } from '../../components/home/HomeLayout'
 import { RouteFilterPanel } from '../../components/route/RouteFilterPanel'
 
 export function AllRoutesPage() {
-  const { t } = useTranslation('routes')
-  const { t: tCommon } = useTranslation('common')
+  const { t } = useTranslation()
   const pageSize = 20
 
   // Filter state - all in one object
@@ -58,7 +57,7 @@ export function AllRoutesPage() {
     <HomeLayout currentTab="routes">
       {/* Routes Section */}
       <div className="mt-6 mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">{t('list.title')}</h2>
+        <h2 className="text-2xl font-bold text-gray-900">{t('routes.list.title')}</h2>
       </div>
 
       {/* Filter Panel */}
@@ -78,7 +77,7 @@ export function AllRoutesPage() {
         /* Error State */
         <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
           <MapIcon className="mx-auto h-12 w-12 text-red-400" />
-          <h3 className="mt-4 text-lg font-medium text-gray-900">{tCommon('error.loading')}</h3>
+          <h3 className="mt-4 text-lg font-medium text-gray-900">{t('error.loading')}</h3>
         </div>
       ) : routesData?.routes && routesData.routes.length > 0 ? (
         /* Routes Grid */
@@ -101,10 +100,10 @@ export function AllRoutesPage() {
         <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
           <MapIcon className="mx-auto h-12 w-12 text-gray-400" />
           <h3 className="mt-4 text-lg font-medium text-gray-900">
-            {hasFiltersOrSearch ? t('list.noResults') : t('list.empty.title')}
+            {hasFiltersOrSearch ? t('routes.list.noResults') : t('routes.list.empty.title')}
           </h3>
           {!hasFiltersOrSearch && (
-            <p className="mt-2 text-gray-500">{t('list.empty.description')}</p>
+            <p className="mt-2 text-gray-500">{t('routes.list.empty.description')}</p>
           )}
         </div>
       )}

@@ -16,7 +16,7 @@ export function Pagination({
   variant = 'default',
   className = '',
 }: PaginationProps) {
-  const { t } = useTranslation('common')
+  const { t } = useTranslation()
 
   // Don't render if only one page or less
   if (totalPages <= 1) return null

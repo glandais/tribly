@@ -34,15 +34,14 @@ interface AdCardProps {
 }
 
 export function AdCard({ ad, showTeam = false }: AdCardProps) {
-  const { t } = useTranslation('ads')
-  const { t: tCommon } = useTranslation('common')
+  const { t } = useTranslation()
   const { formatDateTime } = useFormattedDate()
 
   const formattedDate = formatDateTime(ad.createdAt)
 
   const formatPrice = (price: number | undefined, adType: AdType, rentalPeriod?: RentalPeriod) => {
     if (price === undefined || price === null) {
-      return t('detail.priceNegotiable')
+      return t('ads.detail.priceNegotiable')
     }
     const formattedPrice = new Intl.NumberFormat('fr-FR', {
       style: 'currency',
@@ -51,9 +50,9 @@ export function AdCard({ ad, showTeam = false }: AdCardProps) {
 
     if (adType === AdType.RENTAL && rentalPeriod) {
       const period = t(
-        `rentalPeriod.${rentalPeriod satisfies 'DAY' | 'WEEK' | 'MONTH'}`
+        `ads.rentalPeriod.${rentalPeriod satisfies 'DAY' | 'WEEK' | 'MONTH'}`
       ).toLowerCase()
-      return t('pricePerPeriod', { price: formattedPrice, period })
+      return t('ads.pricePerPeriod', { price: formattedPrice, period })
     }
     return formattedPrice
   }
@@ -85,10 +84,10 @@ export function AdCard({ ad, showTeam = false }: AdCardProps) {
           </div>
           <div className="ml-3 flex flex-col items-end gap-1">
             <Badge variant={adTypeBadgeVariants[ad.adType]}>
-              {t(`adType.${ad.adType satisfies 'SALE' | 'RENTAL' | 'WANTED'}`)}
+              {t(`ads.adType.${ad.adType satisfies 'SALE' | 'RENTAL' | 'WANTED'}`)}
             </Badge>
             <Badge variant={statusVariants[ad.status] || 'gray'}>
-              {tCommon(`status.${ad.status satisfies 'DRAFT' | 'PUBLISHED' | 'CANCELLED'}`)}
+              {t(`status.${ad.status satisfies 'DRAFT' | 'PUBLISHED' | 'CANCELLED'}`)}
             </Badge>
             <VisibilityBadge visibility={ad.visibility} />
           </div>

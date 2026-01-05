@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/utils'
 
 function Breadcrumb({ ...props }: React.ComponentProps<'nav'>) {
-  const { t } = useTranslation('common')
+  const { t } = useTranslation()
   return <nav aria-label={t('aria.breadcrumb')} data-slot="breadcrumb" {...props} />
 }
 
@@ -79,7 +79,7 @@ function BreadcrumbSeparator({ children, className, ...props }: React.ComponentP
 }
 
 function BreadcrumbEllipsis({ className, ...props }: React.ComponentProps<'span'>) {
-  const { t } = useTranslation('common')
+  const { t } = useTranslation()
   return (
     <span
       data-slot="breadcrumb-ellipsis"

@@ -23,8 +23,7 @@ import { UpdateUserRequest } from '@/api/dto'
 const profileSchema = updateCurrentUserBody
 
 export function UserProfilePage() {
-  const { t } = useTranslation('profile')
-  const { t: tCommon } = useTranslation('common')
+  const { t } = useTranslation()
   const {
     user,
     isLoading,
@@ -89,7 +88,7 @@ export function UserProfilePage() {
     <div className="max-w-2xl mx-auto">
       <div className="bg-white shadow-sm rounded-lg">
         <div className="px-6 py-4 border-b border-gray-200">
-          <h1 className="text-xl font-semibold text-gray-900">{t('title')}</h1>
+          <h1 className="text-xl font-semibold text-gray-900">{t('profile.title')}</h1>
         </div>
 
         <div className="p-6 space-y-6">
@@ -108,7 +107,7 @@ export function UserProfilePage() {
                   onClick={() => avatarInputRef.current?.click()}
                   disabled={isUploadingAvatar}
                   className="p-1.5 rounded-full bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm disabled:opacity-50"
-                  title={t('avatar.upload')}
+                  title={t('profile.avatar.upload')}
                 >
                   {isUploadingAvatar ? (
                     <LoadingSpinner size="sm" color="white" />
@@ -121,7 +120,7 @@ export function UserProfilePage() {
                     onClick={() => deleteAvatar()}
                     disabled={isDeletingAvatar}
                     className="p-1.5 rounded-full bg-red-600 text-white hover:bg-red-700 shadow-sm disabled:opacity-50"
-                    title={t('avatar.remove')}
+                    title={t('profile.avatar.remove')}
                   >
                     {isDeletingAvatar ? (
                       <LoadingSpinner size="sm" color="white" />
@@ -148,7 +147,7 @@ export function UserProfilePage() {
                   name="displayName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('form.displayName.label')}</FormLabel>
+                      <FormLabel>{t('profile.form.displayName.label')}</FormLabel>
                       <FormControl>
                         <Input {...field} />
                       </FormControl>
@@ -162,14 +161,14 @@ export function UserProfilePage() {
                     {isUpdatingProfile ? (
                       <>
                         <LoadingSpinner size="sm" color="white" className="mr-2" />
-                        {tCommon('actions.save')}
+                        {t('actions.save')}
                       </>
                     ) : (
-                      tCommon('actions.save')
+                      t('actions.save')
                     )}
                   </Button>
                   <Button type="button" variant="outline" onClick={() => setIsEditing(false)}>
-                    {tCommon('actions.cancelAction')}
+                    {t('actions.cancelAction')}
                   </Button>
                 </div>
               </form>
@@ -177,16 +176,20 @@ export function UserProfilePage() {
           ) : (
             <div className="space-y-4">
               <div>
-                <dt className="text-sm font-medium text-gray-500">{t('form.displayName.label')}</dt>
+                <dt className="text-sm font-medium text-gray-500">
+                  {t('profile.form.displayName.label')}
+                </dt>
                 <dd className="mt-1 text-sm text-gray-900">{user.displayName}</dd>
               </div>
               <div>
-                <dt className="text-sm font-medium text-gray-500">{t('form.email.label')}</dt>
+                <dt className="text-sm font-medium text-gray-500">
+                  {t('profile.form.email.label')}
+                </dt>
                 <dd className="mt-1 text-sm text-gray-900">{user.email}</dd>
               </div>
 
               <div className="pt-4">
-                <Button onClick={handleStartEditing}>{t('actions.editProfile')}</Button>
+                <Button onClick={handleStartEditing}>{t('profile.actions.editProfile')}</Button>
               </div>
             </div>
           )}
@@ -194,16 +197,18 @@ export function UserProfilePage() {
           <hr className="border-gray-200" />
 
           <div className="space-y-4">
-            <h3 className="text-lg font-medium text-gray-900">{t('account.title')}</h3>
+            <h3 className="text-lg font-medium text-gray-900">{t('profile.account.title')}</h3>
 
             <Button variant="outline" onClick={logout}>
-              {t('account.signOut')}
+              {t('profile.account.signOut')}
             </Button>
 
             <div className="pt-4 border-t border-gray-200">
-              <h4 className="text-sm font-medium text-red-600">{t('account.dangerZone.title')}</h4>
+              <h4 className="text-sm font-medium text-red-600">
+                {t('profile.account.dangerZone.title')}
+              </h4>
               <p className="mt-1 text-sm text-gray-500">
-                {t('account.dangerZone.deleteDescription')}
+                {t('profile.account.dangerZone.deleteDescription')}
               </p>
 
               <Button
@@ -211,7 +216,7 @@ export function UserProfilePage() {
                 className="mt-4 border-red-300 text-red-700 hover:bg-red-50"
                 onClick={() => setShowDeleteConfirm(true)}
               >
-                {t('account.dangerZone.deleteButton')}
+                {t('profile.account.dangerZone.deleteButton')}
               </Button>
             </div>
           </div>
@@ -222,9 +227,9 @@ export function UserProfilePage() {
         isOpen={showDeleteConfirm}
         onClose={() => setShowDeleteConfirm(false)}
         onConfirm={handleDelete}
-        title={t('account.dangerZone.title')}
-        message={t('account.dangerZone.confirmMessage')}
-        confirmText={t('account.dangerZone.confirmButton')}
+        title={t('profile.account.dangerZone.title')}
+        message={t('profile.account.dangerZone.confirmMessage')}
+        confirmText={t('profile.account.dangerZone.confirmButton')}
         variant="danger"
         isLoading={isDeletingAccount}
       />

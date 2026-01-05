@@ -16,8 +16,7 @@ import { TripEditor } from '../../components/trip/TripEditor'
 import { TripRequest } from '@/api/dto'
 
 export function EditTripPage() {
-  const { t } = useTranslation('trips')
-  const { t: tCommon } = useTranslation('common')
+  const { t } = useTranslation()
   const { teamSlug, tripSlug } = useParams<{ teamSlug: string; tripSlug: string }>()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
@@ -31,7 +30,7 @@ export function EditTripPage() {
   const updateMutation = useUpdateTrip()
 
   if (isLoadingTeam || isLoadingTrip) {
-    return <LoadingPage message={tCommon('loading')} />
+    return <LoadingPage message={t('loading')} />
   }
 
   if (!team || !trip || !team.enableTrips) {
@@ -55,7 +54,7 @@ export function EditTripPage() {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetTripQueryKey(teamSlug!, tripSlug!) })
           queryClient.invalidateQueries({ queryKey: getListTripsQueryKey(teamSlug!) })
-          toast.success(i18next.t('trips:notifications.updated'))
+          toast.success(i18next.t('trips.notifications.updated'))
           navigate(paths.trip(teamSlug!, tripSlug!))
         },
       }
@@ -68,8 +67,8 @@ export function EditTripPage() {
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">{t('edit.title')}</h1>
-        <p className="mt-1 text-gray-600">{t('edit.subtitle', { teamName: team.name })}</p>
+        <h1 className="text-3xl font-bold text-gray-900">{t('trips.edit.title')}</h1>
+        <p className="mt-1 text-gray-600">{t('trips.edit.subtitle', { teamName: team.name })}</p>
       </div>
 
       <TripEditor
@@ -79,7 +78,7 @@ export function EditTripPage() {
         onSubmit={handleSubmit}
         onCancel={() => navigate(paths.trip(teamSlug!, tripSlug!))}
         isPending={updateMutation.isPending}
-        submitButtonText={tCommon('actions.save')}
+        submitButtonText={t('actions.save')}
       />
     </div>
   )

@@ -7,14 +7,14 @@ import { TeamAdminLayout } from '../../components/team/TeamAdminLayout'
 import { PlaceList } from '../../components/team/PlaceList'
 
 export function TeamPlacesPage() {
-  const { t: tCommon } = useTranslation('common')
+  const { t } = useTranslation()
   const { teamSlug } = useParams<{ teamSlug: string }>()
 
   const { data: team, isLoading } = useGetTeam(teamSlug!, {
     query: { enabled: !!teamSlug },
   })
   if (isLoading) {
-    return <LoadingPage message={tCommon('loading')} />
+    return <LoadingPage message={t('loading')} />
   }
 
   if (!team) {

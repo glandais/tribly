@@ -10,8 +10,7 @@ interface HomeLayoutProps {
 }
 
 export function HomeLayout({ currentTab, children }: HomeLayoutProps) {
-  const { t } = useTranslation('auth')
-  const { t: tCommon } = useTranslation('common')
+  const { t } = useTranslation()
 
   const tabs: { id: HomeTab; path: string; label: string }[] = [
     {
@@ -22,12 +21,12 @@ export function HomeLayout({ currentTab, children }: HomeLayoutProps) {
     {
       id: 'routes',
       path: paths.allRoutes(),
-      label: tCommon('nav.routes'),
+      label: t('nav.routes'),
     },
     {
       id: 'teams',
       path: paths.teams(),
-      label: tCommon('teams'),
+      label: t('teams.title'),
     },
   ]
 
@@ -35,7 +34,7 @@ export function HomeLayout({ currentTab, children }: HomeLayoutProps) {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">{tCommon('welcome')}</h1>
+        <h1 className="text-3xl font-bold text-gray-900">{t('welcome')}</h1>
         <p className="mt-1 text-gray-600">{t('home.subtitle')}</p>
       </div>
 

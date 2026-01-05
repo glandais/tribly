@@ -69,7 +69,7 @@ interface RouteMapViewProps {
 }
 
 export function RouteMapView({ route }: RouteMapViewProps) {
-  const { t } = useTranslation('common')
+  const { t } = useTranslation()
   const { styleId, setStyleId, style } = useMapStyle()
   const [hoveredPointIndex, setHoveredPointIndex] = useState<number>(-1)
   const mapRef = useRef<MapRef>(null)

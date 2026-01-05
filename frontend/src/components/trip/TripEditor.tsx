@@ -82,8 +82,7 @@ export function TripEditor({
   submitButtonText,
   cancelButtonText,
 }: TripEditorProps) {
-  const { t } = useTranslation('trips')
-  const { t: tCommon } = useTranslation('common')
+  const { t: t } = useTranslation()
 
   // Modal state
   const [showRoutePickerModal, setShowRoutePickerModal] = useState(false)
@@ -148,10 +147,10 @@ export function TripEditor({
           render={({ field }) => (
             <FormItem>
               <FormLabel>
-                {t('create.form.title.label')} <span className="text-destructive">*</span>
+                {t('trips.create.form.title.label')} <span className="text-destructive">*</span>
               </FormLabel>
               <FormControl>
-                <Input placeholder={t('create.form.title.placeholder')} {...field} />
+                <Input placeholder={t('trips.create.form.title.placeholder')} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -164,16 +163,16 @@ export function TripEditor({
           name="media"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{tCommon('form.description')}</FormLabel>
+              <FormLabel>{t('form.description')}</FormLabel>
               <FormControl>
                 <MediaEditor
                   value={field.value}
                   onChange={field.onChange}
-                  placeholder={t('create.form.description.placeholder')}
+                  placeholder={t('trips.create.form.description.placeholder')}
                   minHeight="150px"
                   maxHeight="300px"
                   disabled={isPending}
-                  ariaLabel={tCommon('form.description')}
+                  ariaLabel={t('form.description')}
                   teamSlug={teamSlug}
                 />
               </FormControl>
@@ -190,7 +189,7 @@ export function TripEditor({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  {tCommon('startPlace')} <span className="text-destructive">*</span>
+                  {t('startPlace')} <span className="text-destructive">*</span>
                 </FormLabel>
                 <FormControl>
                   <InputDateTime {...field} />
@@ -208,7 +207,7 @@ export function TripEditor({
             name="visibility"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{tCommon('visibility.label')}</FormLabel>
+                <FormLabel>{t('visibility.label')}</FormLabel>
                 <FormControl>
                   <RadioGroup
                     value={field.value}
@@ -217,11 +216,11 @@ export function TripEditor({
                   >
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="TEAM" id="visibility-team" />
-                      <Label htmlFor="visibility-team">{tCommon('visibility.team')}</Label>
+                      <Label htmlFor="visibility-team">{t('visibility.team')}</Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="PUBLIC" id="visibility-public" />
-                      <Label htmlFor="visibility-public">{tCommon('visibility.public')}</Label>
+                      <Label htmlFor="visibility-public">{t('visibility.public')}</Label>
                     </div>
                   </RadioGroup>
                 </FormControl>
@@ -237,7 +236,7 @@ export function TripEditor({
           name="status"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{tCommon('form.status')}</FormLabel>
+              <FormLabel>{t('form.status')}</FormLabel>
               <FormControl>
                 <RadioGroup
                   value={field.value}
@@ -246,15 +245,15 @@ export function TripEditor({
                 >
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="DRAFT" id="status-draft" />
-                    <Label htmlFor="status-draft">{tCommon('status.DRAFT')}</Label>
+                    <Label htmlFor="status-draft">{t('status.DRAFT')}</Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="PUBLISHED" id="status-published" />
-                    <Label htmlFor="status-published">{tCommon('status.PUBLISHED')}</Label>
+                    <Label htmlFor="status-published">{t('status.PUBLISHED')}</Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="CANCELLED" id="status-cancelled" />
-                    <Label htmlFor="status-cancelled">{tCommon('status.CANCELLED')}</Label>
+                    <Label htmlFor="status-cancelled">{t('status.CANCELLED')}</Label>
                   </div>
                 </RadioGroup>
               </FormControl>
@@ -270,11 +269,11 @@ export function TripEditor({
             name="publishAt"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t('create.form.publishAt.label')}</FormLabel>
+                <FormLabel>{t('trips.create.form.publishAt.label')}</FormLabel>
                 <FormControl>
                   <InputDateTime {...field} />
                 </FormControl>
-                <FormDescription>{tCommon('form.publishAtHint')}</FormDescription>
+                <FormDescription>{t('form.publishAtHint')}</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -288,7 +287,7 @@ export function TripEditor({
           render={() => (
             <FormItem>
               <div className="flex items-center justify-between">
-                <FormLabel>{t('create.form.route.label')}</FormLabel>
+                <FormLabel>{t('trips.create.form.route.label')}</FormLabel>
                 <div className="flex gap-2">
                   <Button
                     type="button"
@@ -300,7 +299,7 @@ export function TripEditor({
                       setShowRoutePickerModal(true)
                     }}
                   >
-                    {routeSlug ? tCommon('actions.edit') : t('create.form.route.select')}
+                    {routeSlug ? t('actions.edit') : t('trips.create.form.route.select')}
                   </Button>
                   {routeSlug && (
                     <Button
@@ -310,7 +309,7 @@ export function TripEditor({
                       className="h-auto p-0 text-destructive"
                       onClick={() => form.setValue('routeSlug', undefined)}
                     >
-                      {t('create.form.route.clear')}
+                      {t('trips.create.form.route.clear')}
                     </Button>
                   )}
                 </div>
@@ -318,9 +317,9 @@ export function TripEditor({
               {routeSlug ? (
                 <RoutePreview routeSlug={routeSlug} teamSlug={teamSlug} />
               ) : (
-                <p className="text-sm text-muted-foreground italic">{tCommon('noRouteSelected')}</p>
+                <p className="text-sm text-muted-foreground italic">{t('noRouteSelected')}</p>
               )}
-              <FormDescription>{t('create.form.route.hint')}</FormDescription>
+              <FormDescription>{t('trips.create.form.route.hint')}</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -329,7 +328,7 @@ export function TripEditor({
         {/* Stages */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <Label>{t('detail.stages.title')}</Label>
+            <Label>{t('trips.detail.stages.title')}</Label>
             <Button
               type="button"
               variant="link"
@@ -338,7 +337,7 @@ export function TripEditor({
               onClick={handleAddStage}
             >
               <PlusIcon className="size-4 mr-1" />
-              {t('create.form.stages.add')}
+              {t('trips.create.form.stages.add')}
             </Button>
           </div>
           <div className="space-y-4">
@@ -356,7 +355,8 @@ export function TripEditor({
                         onMove={(dir) => handleMoveStage(index, dir)}
                       />
                       <span className="text-sm font-medium">
-                        {stage.name || t('create.form.stages.defaultName', { number: index + 1 })}
+                        {stage.name ||
+                          t('trips.create.form.stages.defaultName', { number: index + 1 })}
                       </span>
                     </div>
                     <div className="flex items-center gap-1">
@@ -367,7 +367,7 @@ export function TripEditor({
                         className="h-auto p-0 text-destructive"
                         onClick={() => handleRemoveStage(index)}
                       >
-                        {t('create.form.stages.remove')}
+                        {t('trips.create.form.stages.remove')}
                       </Button>
                     </div>
                   </div>
@@ -380,7 +380,7 @@ export function TripEditor({
                         <FormItem>
                           <FormControl>
                             <Input
-                              placeholder={t('create.form.stages.name.placeholder')}
+                              placeholder={t('trips.create.form.stages.name.placeholder')}
                               {...field}
                             />
                           </FormControl>
@@ -404,7 +404,7 @@ export function TripEditor({
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
                     <div className="space-y-1">
                       <span className="text-xs font-medium text-muted-foreground">
-                        {t('create.form.stages.startPlace.label')}
+                        {t('trips.create.form.stages.startPlace.label')}
                       </span>
                       <PlaceAutocomplete
                         teamSlug={teamSlug}
@@ -413,19 +413,19 @@ export function TripEditor({
                           form.setValue(`stages.${index}.startPlaceId`, placeId)
                         }
                         filterStart={true}
-                        placeholder={t('create.form.stages.startPlace.placeholder')}
+                        placeholder={t('trips.create.form.stages.startPlace.placeholder')}
                       />
                     </div>
                     <div className="space-y-1">
                       <span className="text-xs font-medium text-muted-foreground">
-                        {t('create.form.stages.endPlace.label')}
+                        {t('trips.create.form.stages.endPlace.label')}
                       </span>
                       <PlaceAutocomplete
                         teamSlug={teamSlug}
                         value={stage.endPlaceId}
                         onChange={(placeId) => form.setValue(`stages.${index}.endPlaceId`, placeId)}
                         filterEnd={true}
-                        placeholder={t('create.form.stages.endPlace.placeholder')}
+                        placeholder={t('trips.create.form.stages.endPlace.placeholder')}
                       />
                     </div>
                   </div>
@@ -437,17 +437,17 @@ export function TripEditor({
                     render={({ field }) => (
                       <FormItem className="mb-3">
                         <span className="text-xs font-medium text-muted-foreground">
-                          {tCommon('form.description')}
+                          {t('form.description')}
                         </span>
                         <FormControl>
                           <MediaEditor
                             value={field.value}
                             onChange={field.onChange}
-                            placeholder={t('create.form.stages.description.placeholder')}
+                            placeholder={t('trips.create.form.stages.description.placeholder')}
                             minHeight="80px"
                             maxHeight="150px"
                             disabled={isPending}
-                            ariaLabel={tCommon('form.description')}
+                            ariaLabel={t('form.description')}
                             teamSlug={teamSlug}
                           />
                         </FormControl>
@@ -459,7 +459,7 @@ export function TripEditor({
                   <div className="pt-3 border-t">
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-xs font-medium text-muted-foreground">
-                        {t('create.form.stages.route.label')}
+                        {t('trips.create.form.stages.route.label')}
                       </span>
                       <div className="flex gap-2">
                         <Button
@@ -473,8 +473,8 @@ export function TripEditor({
                           }}
                         >
                           {stage.routeSlug
-                            ? tCommon('actions.edit')
-                            : t('create.form.route.select')}
+                            ? t('actions.edit')
+                            : t('trips.create.form.route.select')}
                         </Button>
                         {stage.routeSlug && (
                           <Button
@@ -484,7 +484,7 @@ export function TripEditor({
                             className="h-auto p-0 text-xs text-destructive"
                             onClick={() => form.setValue(`stages.${index}.routeSlug`, undefined)}
                           >
-                            {t('create.form.route.clear')}
+                            {t('trips.create.form.route.clear')}
                           </Button>
                         )}
                       </div>
@@ -492,9 +492,7 @@ export function TripEditor({
                     {stage.routeSlug ? (
                       <RoutePreviewCompact routeSlug={stage.routeSlug} teamSlug={teamSlug} />
                     ) : (
-                      <p className="text-xs text-muted-foreground italic">
-                        {tCommon('noRouteSelected')}
-                      </p>
+                      <p className="text-xs text-muted-foreground italic">{t('noRouteSelected')}</p>
                     )}
                   </div>
                 </div>
@@ -502,26 +500,26 @@ export function TripEditor({
             })}
             {stageFieldArray.length === 0 && (
               <p className="text-sm text-muted-foreground italic">
-                {t('create.form.stages.empty')}
+                {t('trips.create.form.stages.empty')}
               </p>
             )}
           </div>
-          <p className="text-sm text-muted-foreground">{t('create.form.stages.hint')}</p>
+          <p className="text-sm text-muted-foreground">{t('trips.create.form.stages.hint')}</p>
         </div>
 
         {/* Actions */}
         <div className="pt-4 flex items-center justify-end gap-3">
           <Button type="button" variant="outline" onClick={onCancel}>
-            {cancelButtonText || tCommon('actions.cancelAction')}
+            {cancelButtonText || t('actions.cancelAction')}
           </Button>
           <Button type="submit" disabled={isPending || !form.formState.isValid}>
             {isPending ? (
               <>
                 <LoadingSpinner size="sm" color="white" className="mr-2" />
-                {tCommon('status.saving')}
+                {t('status.saving')}
               </>
             ) : (
-              submitButtonText || tCommon('actions.save')
+              submitButtonText || t('actions.save')
             )}
           </Button>
         </div>
@@ -557,8 +555,8 @@ export function TripEditor({
           }
           title={
             pickerTarget && pickerTarget.type === 'trip'
-              ? t('create.form.route.selectForTrip')
-              : t('create.form.route.selectForStage')
+              ? t('trips.create.form.route.selectForTrip')
+              : t('trips.create.form.route.selectForStage')
           }
           onCreateNew={() => {
             setShowRoutePickerModal(false)

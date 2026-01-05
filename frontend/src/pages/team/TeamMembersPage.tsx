@@ -26,8 +26,7 @@ import { usePagination } from '../../hooks/usePagination'
 import { Modal } from '../../components/common/Modal'
 
 export function TeamMembersPage() {
-  const { t } = useTranslation('teams')
-  const { t: tCommon } = useTranslation('common')
+  const { t } = useTranslation()
   const { teamSlug } = useParams<{ teamSlug: string }>()
   const { user } = useAuth()
   const queryClient = useQueryClient()
@@ -55,7 +54,7 @@ export function TeamMembersPage() {
   const addMemberMutation = useAddMember()
 
   if (isLoadingTeam) {
-    return <LoadingPage message={tCommon('loading')} />
+    return <LoadingPage message={t('loading')} />
   }
 
   if (!team) {
@@ -75,7 +74,7 @@ export function TeamMembersPage() {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetTeamQueryKey(teamSlug) })
           queryClient.invalidateQueries({ queryKey: getGetMembersQueryKey(teamSlug) })
-          toast.success(i18next.t('teams:notifications.memberAdded'))
+          toast.success(i18next.t('teams.notifications.memberAdded'))
           setShowAddMember(false)
           setSelectedRole(TeamRole.MEMBER)
         },
@@ -103,7 +102,7 @@ export function TeamMembersPage() {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetTeamQueryKey(teamSlug) })
           queryClient.invalidateQueries({ queryKey: getGetMembersQueryKey(teamSlug) })
-          toast.success(i18next.t('teams:notifications.memberRemoved'))
+          toast.success(i18next.t('teams.notifications.memberRemoved'))
         },
       }
     )
@@ -113,13 +112,13 @@ export function TeamMembersPage() {
     <TeamAdminLayout team={team} currentTab="members">
       <div className="py-6">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold text-gray-900">{t('detail.members.title')}</h2>
+          <h2 className="text-xl font-semibold text-gray-900">{t('teams.detail.members.title')}</h2>
           <button
             onClick={() => setShowAddMember(true)}
             className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
             <PlusIcon className="w-4 h-4 mr-2" />
-            {t('detail.members.addMember')}
+            {t('teams.detail.members.addMember')}
           </button>
         </div>
 
@@ -145,7 +144,7 @@ export function TeamMembersPage() {
             />
           </>
         ) : (
-          <p className="text-gray-500">{t('detail.members.empty')}</p>
+          <p className="text-gray-500">{t('teams.detail.members.empty')}</p>
         )}
 
         {/* Add Member Modal */}
@@ -155,7 +154,7 @@ export function TeamMembersPage() {
             setShowAddMember(false)
             setSelectedRole(TeamRole.MEMBER)
           }}
-          title={t('detail.members.addMember')}
+          title={t('teams.detail.members.addMember')}
           size="md"
           footer={
             <button
@@ -166,23 +165,23 @@ export function TeamMembersPage() {
               disabled={addMemberMutation.isPending}
               className="px-4 py-2 border border-gray-300 rounded-md shadow-xs text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
             >
-              {tCommon('actions.cancelAction')}
+              {t('actions.cancelAction')}
             </button>
           }
         >
           <div className="space-y-4">
             <div>
               <label htmlFor="user-search" className="block text-sm font-medium text-gray-700 mb-2">
-                {t('detail.members.searchUser')}
+                {t('teams.detail.members.searchUser')}
               </label>
               <UserAutocomplete
                 onSelect={handleAddMember}
-                placeholder={t('detail.members.searchPlaceholder')}
+                placeholder={t('teams.detail.members.searchPlaceholder')}
               />
             </div>
             <div>
               <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-2">
-                {t('detail.members.role')}
+                {t('teams.detail.members.role')}
               </label>
               <select
                 id="role"
@@ -190,16 +189,16 @@ export function TeamMembersPage() {
                 onChange={(e) => setSelectedRole(e.target.value as TeamRole)}
                 className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-xs focus:ring-indigo-500 focus:border-indigo-500"
               >
-                <option value={TeamRole.MEMBER}>{tCommon('roles.MEMBER')}</option>
-                <option value={TeamRole.ORGANIZER}>{tCommon('roles.ORGANIZER')}</option>
-                <option value={TeamRole.ADMIN}>{tCommon('roles.ADMIN')}</option>
+                <option value={TeamRole.MEMBER}>{t('roles.MEMBER')}</option>
+                <option value={TeamRole.ORGANIZER}>{t('roles.ORGANIZER')}</option>
+                <option value={TeamRole.ADMIN}>{t('roles.ADMIN')}</option>
               </select>
             </div>
             {addMemberMutation.error && (
               <div className="text-sm text-red-600">
                 {addMemberMutation.error instanceof Error
                   ? addMemberMutation.error.message
-                  : t('detail.members.addError')}
+                  : t('teams.detail.members.addError')}
               </div>
             )}
           </div>

@@ -49,8 +49,7 @@ const adTypeColors: Record<AdType, string> = {
 }
 
 export function AdDetailPage() {
-  const { t } = useTranslation('ads')
-  const { t: tCommon } = useTranslation('common')
+  const { t } = useTranslation()
   const { formatDateTime } = useFormattedDate()
   const { teamSlug, adSlug } = useParams<{ teamSlug: string; adSlug: string }>()
   const navigate = useNavigate()
@@ -71,20 +70,22 @@ export function AdDetailPage() {
   const deleteMutation = useDeleteAd()
 
   if (isLoadingTeam || isLoadingAd) {
-    return <LoadingPage message={tCommon('loading')} />
+    return <LoadingPage message={t('loading')} />
   }
 
   if (error || !ad) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-center py-12">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">{t('detail.notFound.title')}</h1>
-          <p className="text-gray-600 mb-6">{t('detail.notFound.message')}</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            {t('ads.detail.notFound.title')}
+          </h1>
+          <p className="text-gray-600 mb-6">{t('ads.detail.notFound.message')}</p>
           <Link
             to={paths.ads(teamSlug!)}
             className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
           >
-            {tCommon('ads')}
+            {t('ads.title')}
           </Link>
         </div>
       </div>
@@ -100,7 +101,7 @@ export function AdDetailPage() {
 
   const formatPrice = (price: number | undefined, adType: AdType, rentalPeriod?: RentalPeriod) => {
     if (price === undefined || price === null) {
-      return t('detail.priceNegotiable')
+      return t('ads.detail.priceNegotiable')
     }
     const formattedPrice = new Intl.NumberFormat('fr-FR', {
       style: 'currency',
@@ -108,7 +109,7 @@ export function AdDetailPage() {
     }).format(price)
 
     if (adType === AdType.RENTAL && rentalPeriod) {
-      return `${formattedPrice} / ${t(`rentalPeriod.${rentalPeriod satisfies 'DAY' | 'WEEK' | 'MONTH'}`).toLowerCase()}`
+      return `${formattedPrice} / ${t(`ads.rentalPeriod.${rentalPeriod satisfies 'DAY' | 'WEEK' | 'MONTH'}`).toLowerCase()}`
     }
     return formattedPrice
   }
@@ -124,7 +125,7 @@ export function AdDetailPage() {
       {
         onSuccess: () => {
           invalidateAds()
-          toast.success(i18next.t('ads:notifications.updated'))
+          toast.success(i18next.t('ads.notifications.updated'))
         },
       }
     )
@@ -136,7 +137,7 @@ export function AdDetailPage() {
       {
         onSuccess: () => {
           invalidateAds()
-          toast.success(i18next.t('ads:notifications.updated'))
+          toast.success(i18next.t('ads.notifications.updated'))
           setShowUnpublishConfirm(false)
         },
       }
@@ -149,7 +150,7 @@ export function AdDetailPage() {
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getListAdsQueryKey(teamSlug!) })
-          toast.success(i18next.t('ads:notifications.deleted'))
+          toast.success(i18next.t('ads.notifications.deleted'))
           setShowDeleteConfirm(false)
           navigate(paths.ads(teamSlug!))
         },
@@ -170,12 +171,12 @@ export function AdDetailPage() {
                 <span
                   className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${adTypeColors[ad.adType]}`}
                 >
-                  {t(`adType.${ad.adType satisfies 'SALE' | 'RENTAL' | 'WANTED'}`)}
+                  {t(`ads.adType.${ad.adType satisfies 'SALE' | 'RENTAL' | 'WANTED'}`)}
                 </span>
                 <span
                   className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColors[ad.status]}`}
                 >
-                  {tCommon(`status.${ad.status satisfies 'DRAFT' | 'PUBLISHED' | 'CANCELLED'}`)}
+                  {t(`status.${ad.status satisfies 'DRAFT' | 'PUBLISHED' | 'CANCELLED'}`)}
                 </span>
               </div>
             </div>
@@ -186,7 +187,7 @@ export function AdDetailPage() {
               <Button asChild variant="outline">
                 <Link to={paths.adEdit(teamSlug!, adSlug!)}>
                   <PencilIcon className="w-4 h-4" />
-                  {tCommon('actions.edit')}
+                  {t('actions.edit')}
                 </Link>
               </Button>
               <DropdownMenu>
@@ -203,7 +204,7 @@ export function AdDetailPage() {
                       className="text-green-700"
                     >
                       {updateMutation.isPending && <LoadingSpinner size="sm" />}
-                      {tCommon('actions.publish')}
+                      {t('actions.publish')}
                     </DropdownMenuItem>
                   )}
                   {ad.status === Status.PUBLISHED && (
@@ -212,7 +213,7 @@ export function AdDetailPage() {
                         onClick={() => setShowUnpublishConfirm(true)}
                         className="text-yellow-700"
                       >
-                        {tCommon('actions.unpublish')}
+                        {t('actions.unpublish')}
                       </DropdownMenuItem>
                     </>
                   )}
@@ -221,7 +222,7 @@ export function AdDetailPage() {
                     onClick={() => setShowDeleteConfirm(true)}
                     variant="destructive"
                   >
-                    {tCommon('actions.delete')}
+                    {t('actions.delete')}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -262,9 +263,9 @@ export function AdDetailPage() {
         isOpen={showUnpublishConfirm}
         onClose={() => setShowUnpublishConfirm(false)}
         onConfirm={handleUnpublish}
-        title={tCommon('actions.unpublish')}
-        message={t('detail.confirmations.unpublish')}
-        confirmText={tCommon('actions.unpublish')}
+        title={t('actions.unpublish')}
+        message={t('ads.detail.confirmations.unpublish')}
+        confirmText={t('actions.unpublish')}
         variant="warning"
         isLoading={updateMutation.isPending}
       />
@@ -272,9 +273,9 @@ export function AdDetailPage() {
         isOpen={showDeleteConfirm}
         onClose={() => setShowDeleteConfirm(false)}
         onConfirm={handleDelete}
-        title={tCommon('actions.delete')}
-        message={t('detail.confirmations.delete')}
-        confirmText={tCommon('actions.delete')}
+        title={t('actions.delete')}
+        message={t('ads.detail.confirmations.delete')}
+        confirmText={t('actions.delete')}
         variant="danger"
         isLoading={deleteMutation.isPending}
       />

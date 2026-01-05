@@ -16,7 +16,7 @@ import { RouteFilterPanel } from '../../components/route/RouteFilterPanel'
 
 export function RouteListPage() {
   const { teamSlug } = useParams<{ teamSlug: string }>()
-  const { t } = useTranslation('routes')
+  const { t } = useTranslation()
   const pageSize = 20
 
   // Filter state - all in one object
@@ -48,7 +48,7 @@ export function RouteListPage() {
   })
 
   if (isLoadingTeam) {
-    return <LoadingPage message={t('list.title')} />
+    return <LoadingPage message={t('routes.list.title')} />
   }
 
   if (!team) {
@@ -71,7 +71,7 @@ export function RouteListPage() {
       <div className="py-6">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">{t('list.title')}</h2>
+            <h2 className="text-2xl font-bold text-gray-900">{t('routes.list.title')}</h2>
           </div>
           {canCreateRoute && (
             <Link
@@ -79,7 +79,7 @@ export function RouteListPage() {
               className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
             >
               <PlusIcon className="w-4 h-4 mr-2" />
-              {t('create.title')}
+              {t('routes.create.title')}
             </Link>
           )}
         </div>
@@ -116,17 +116,17 @@ export function RouteListPage() {
           <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
             <MapIcon className="mx-auto h-12 w-12 text-gray-400" />
             <h3 className="mt-4 text-lg font-medium text-gray-900">
-              {hasFiltersOrSearch ? t('list.noResults') : t('list.empty.title')}
+              {hasFiltersOrSearch ? t('routes.list.noResults') : t('routes.list.empty.title')}
             </h3>
             {!hasFiltersOrSearch && (
-              <p className="mt-2 text-gray-500">{t('list.empty.description')}</p>
+              <p className="mt-2 text-gray-500">{t('routes.list.empty.description')}</p>
             )}
             {canCreateRoute && !hasFiltersOrSearch && (
               <Link
                 to={paths.routeNew(teamSlug!)}
                 className="mt-4 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
               >
-                {t('create.title')}
+                {t('routes.create.title')}
               </Link>
             )}
           </div>

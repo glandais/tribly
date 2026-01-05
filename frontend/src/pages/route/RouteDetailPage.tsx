@@ -16,9 +16,7 @@ import { CommentSection } from '../../components/comment'
 
 export function RouteDetailPage() {
   const { teamSlug, routeSlug } = useParams<{ teamSlug: string; routeSlug: string }>()
-  const { t } = useTranslation('routes')
-  const { t: tCommon } = useTranslation('common')
-  const { t: tErrors } = useTranslation('errors')
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
@@ -42,7 +40,7 @@ export function RouteDetailPage() {
         {
           onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: getListRoutesQueryKey(teamSlug) })
-            toast.success(i18next.t('routes:notifications.deleted'))
+            toast.success(i18next.t('routes.notifications.deleted'))
             navigate(paths.routes(teamSlug))
           },
         }
@@ -87,7 +85,7 @@ export function RouteDetailPage() {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-center">
-          <p className="text-gray-500">{tErrors('api.notFound')}</p>
+          <p className="text-gray-500">{t('errors.api.notFound')}</p>
         </div>
       </div>
     )
@@ -111,13 +109,13 @@ export function RouteDetailPage() {
                 to={paths.routeEdit(teamSlug!, routeSlug!)}
                 className="px-4 py-2 border border-gray-300 rounded-md shadow-xs text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
               >
-                {tCommon('actions.edit')}
+                {t('actions.edit')}
               </Link>
               <button
                 onClick={() => setShowDeleteConfirm(true)}
                 className="px-4 py-2 border border-red-300 rounded-md shadow-xs text-sm font-medium text-red-700 bg-white hover:bg-red-50"
               >
-                {tCommon('buttons.delete')}
+                {t('actions.delete')}
               </button>
             </div>
           )}
@@ -128,9 +126,9 @@ export function RouteDetailPage() {
         isOpen={showDeleteConfirm}
         onClose={() => setShowDeleteConfirm(false)}
         onConfirm={handleDelete}
-        title={t('detail.deleteConfirm.title')}
-        message={t('detail.deleteConfirm.message')}
-        confirmText={tCommon('buttons.delete')}
+        title={t('routes.detail.deleteConfirm.title')}
+        message={t('routes.detail.deleteConfirm.message')}
+        confirmText={t('actions.delete')}
         variant="danger"
         isLoading={deleteRouteMutation.isPending}
       />
@@ -143,14 +141,14 @@ export function RouteDetailPage() {
             className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-xs text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
           >
             <ArrowDownTrayIcon className="w-5 h-5 mr-2 -ml-1" />
-            {t('detail.download.gpx')}
+            {t('routes.detail.download.gpx')}
           </a>
           <a
             href={route.media.assets.fit?.url}
             className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-xs text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
           >
             <ArrowDownTrayIcon className="w-5 h-5 mr-2 -ml-1" />
-            {t('detail.download.fit')}
+            {t('routes.detail.download.fit')}
           </a>
         </div>
       </div>
@@ -166,9 +164,9 @@ export function RouteDetailPage() {
           <div className="flex items-center">
             <MapIcon className="h-8 w-8 text-indigo-600 mr-3" />
             <div>
-              <p className="text-sm text-gray-500">{t('detail.stats.distance')}</p>
+              <p className="text-sm text-gray-500">{t('routes.detail.stats.distance')}</p>
               <p className="text-2xl font-bold text-gray-900">
-                {(route.distance / 1000).toFixed(1)} {tCommon('units.km')}
+                {(route.distance / 1000).toFixed(1)} {t('units.km')}
               </p>
             </div>
           </div>
@@ -178,10 +176,10 @@ export function RouteDetailPage() {
           <div className="flex items-center">
             <ArrowUpIcon className="h-8 w-8 text-green-600 mr-3" />
             <div>
-              <p className="text-sm text-gray-500">{t('detail.stats.elevationGain')}</p>
+              <p className="text-sm text-gray-500">{t('routes.detail.stats.elevationGain')}</p>
               <p className="text-2xl font-bold text-gray-900">
                 {route.elevationGain}
-                {tCommon('units.m')}
+                {t('units.m')}
               </p>
             </div>
           </div>
@@ -191,10 +189,10 @@ export function RouteDetailPage() {
           <div className="flex items-center">
             <ArrowDownIcon className="h-8 w-8 text-red-600 mr-3" />
             <div>
-              <p className="text-sm text-gray-500">{t('detail.stats.elevationLoss')}</p>
+              <p className="text-sm text-gray-500">{t('routes.detail.stats.elevationLoss')}</p>
               <p className="text-2xl font-bold text-gray-900">
                 {route.elevationLoss}
-                {tCommon('units.m')}
+                {t('units.m')}
               </p>
             </div>
           </div>
@@ -203,27 +201,29 @@ export function RouteDetailPage() {
 
       {/* Route Info */}
       <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
-        <h2 className="text-xl font-bold text-gray-900 mb-4">{t('detail.info.title')}</h2>
+        <h2 className="text-xl font-bold text-gray-900 mb-4">{t('routes.detail.info.title')}</h2>
         <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {route.surfaceType && (
             <>
-              <dt className="text-sm font-medium text-gray-500">{t('detail.info.surfaceType')}</dt>
+              <dt className="text-sm font-medium text-gray-500">
+                {t('routes.detail.info.surfaceType')}
+              </dt>
               <dd>
                 <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                   {t(
-                    `surfaceType.${route.surfaceType satisfies 'ROAD' | 'GRAVEL' | 'MTB' | 'MIXED'}`
+                    `routes.surfaceType.${route.surfaceType satisfies 'ROAD' | 'GRAVEL' | 'MTB' | 'MIXED'}`
                   )}
                 </span>
               </dd>
             </>
           )}
-          <dt className="text-sm font-medium text-gray-500">{t('detail.info.visibility')}</dt>
+          <dt className="text-sm font-medium text-gray-500">{t('visibility.label')}</dt>
           <dd>
             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-              {tCommon(`visibility.${route.visibility.toLowerCase() as 'public' | 'team'}`)}
+              {t(`visibility.${route.visibility.toLowerCase() as 'public' | 'team'}`)}
             </span>
           </dd>
-          <dt className="text-sm font-medium text-gray-500">{t('detail.info.createdAt')}</dt>
+          <dt className="text-sm font-medium text-gray-500">{t('routes.detail.info.createdAt')}</dt>
           <dd className="text-sm text-gray-900">
             {new Date(route.createdAt).toLocaleDateString()}
           </dd>
@@ -237,7 +237,7 @@ export function RouteDetailPage() {
           allClimbs.length > 0 && (
             <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
               <h2 className="text-xl font-bold text-gray-900 mb-4">
-                {t('detail.climbs.title')} ({allClimbs.length})
+                {t('routes.detail.climbs.title')} ({allClimbs.length})
               </h2>
               <div className="space-y-4">
                 {allClimbs.map((climb, index) => (
@@ -248,10 +248,10 @@ export function RouteDetailPage() {
                     <div className="flex items-start justify-between mb-2">
                       <div>
                         <h3 className="font-semibold text-gray-900">
-                          {t('detail.climbs.unnamed', { number: index + 1 })}
+                          {t('routes.detail.climbs.unnamed', { number: index + 1 })}
                         </h3>
                         <p className="text-sm text-gray-600">
-                          {t('detail.climbs.distance', {
+                          {t('routes.detail.climbs.distance', {
                             start: (climb.startDistance / 1000).toFixed(1),
                             end: (climb.endDistance / 1000).toFixed(1),
                           })}
@@ -262,27 +262,31 @@ export function RouteDetailPage() {
                           className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getClimbCategoryColor(climb.category)}`}
                         >
                           {t(
-                            `climbCategory.${climb.category satisfies 'HC' | 'CAT1' | 'CAT2' | 'CAT3' | 'CAT4'}`
+                            `routes.climbCategory.${climb.category satisfies 'HC' | 'CAT1' | 'CAT2' | 'CAT3' | 'CAT4'}`
                           )}
                         </span>
                       )}
                     </div>
                     <div className="grid grid-cols-3 gap-4 text-sm">
                       <div>
-                        <span className="text-gray-500">{t('detail.climbs.gain')}: </span>
+                        <span className="text-gray-500">{t('routes.detail.climbs.gain')}: </span>
                         <span className="font-medium text-gray-900">
                           {climb.elevationGain}
-                          {tCommon('units.m')}
+                          {t('units.m')}
                         </span>
                       </div>
                       <div>
-                        <span className="text-gray-500">{t('detail.climbs.avgGradient')}: </span>
+                        <span className="text-gray-500">
+                          {t('routes.detail.climbs.avgGradient')}:{' '}
+                        </span>
                         <span className="font-medium text-gray-900">
                           {climb.averageGradient.toFixed(1)}%
                         </span>
                       </div>
                       <div>
-                        <span className="text-gray-500">{t('detail.climbs.maxGradient')}: </span>
+                        <span className="text-gray-500">
+                          {t('routes.detail.climbs.maxGradient')}:{' '}
+                        </span>
                         <span className="font-medium text-gray-900">
                           {climb.maxGradient.toFixed(1)}%
                         </span>

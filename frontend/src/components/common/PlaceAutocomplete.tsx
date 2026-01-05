@@ -29,7 +29,7 @@ export function PlaceAutocomplete({
   placeholder,
   className = '',
 }: PlaceAutocompleteProps) {
-  const { t } = useTranslation('common')
+  const { t } = useTranslation()
   const [query, setQuery] = useState('')
 
   const { data: placesData } = useListPlaces(teamSlug)
@@ -108,7 +108,7 @@ export function PlaceAutocomplete({
           variant="ghost"
           size="icon"
           onClick={handleClear}
-          aria-label={t('common.clear')}
+          aria-label={t('planner.clear')}
         >
           <XMarkIcon className="size-4" />
         </Button>

@@ -8,7 +8,6 @@ import { TeamAdminLayout } from '../../components/team/TeamAdminLayout'
 import { TeamPageForm } from '../../components/team/TeamPageForm'
 
 export function EditTeamPagePage() {
-  const { t } = useTranslation('teams')
   const { teamSlug, pageSlug } = useParams<{ teamSlug: string; pageSlug: string }>()
 
   const { data: team, isLoading: isTeamLoading } = useGetTeam(teamSlug!, {
@@ -17,9 +16,9 @@ export function EditTeamPagePage() {
   const { data: page, isLoading: isPageLoading } = useGetPage(teamSlug!, pageSlug!, {
     query: { enabled: !!teamSlug && !!pageSlug },
   })
-  const { t: tCommon } = useTranslation('common')
+  const { t } = useTranslation()
   if (isTeamLoading || isPageLoading) {
-    return <LoadingPage message={tCommon('loading')} />
+    return <LoadingPage message={t('loading')} />
   }
 
   if (!team) {
@@ -40,7 +39,7 @@ export function EditTeamPagePage() {
       <div className="py-6">
         <div className="max-w-2xl">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">
-            {t('pages.edit.title', { name: page.title })}
+            {t('teams.pages.edit.title', { name: page.title })}
           </h2>
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <TeamPageForm

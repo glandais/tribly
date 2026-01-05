@@ -9,19 +9,18 @@ interface RoutePreviewProps {
 }
 
 export function RoutePreview({ routeSlug, teamSlug }: RoutePreviewProps) {
-  const { t } = useTranslation('routes')
-  const { t: tCommon } = useTranslation('common')
+  const { t } = useTranslation()
   const { data: route, isLoading } = useGetRoute(teamSlug, routeSlug)
 
   if (isLoading)
     return (
       <div className="flex items-center gap-2 text-sm text-gray-400">
         <LoadingSpinner size="sm" />
-        <span>{tCommon('loading')}</span>
+        <span>{t('loading')}</span>
       </div>
     )
 
-  if (!route) return <div className="text-sm text-red-500">{t('preview.notFound')}</div>
+  if (!route) return <div className="text-sm text-red-500">{t('routes.preview.notFound')}</div>
 
   return (
     <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
@@ -35,12 +34,12 @@ export function RoutePreview({ routeSlug, teamSlug }: RoutePreviewProps) {
         <div className="flex gap-3 mt-1 text-xs text-gray-500">
           <span className="flex items-center gap-1">
             <ArrowsPointingOutIcon className="w-3.5 h-3.5" />
-            {(route.distance / 1000).toFixed(1)} {tCommon('units.km')}
+            {(route.distance / 1000).toFixed(1)} {t('units.km')}
           </span>
           <span className="flex items-center gap-1">
             <ArrowUpIcon className="w-3.5 h-3.5" />
             {route.elevationGain}
-            {tCommon('units.m')}
+            {t('units.m')}
           </span>
         </div>
       </div>

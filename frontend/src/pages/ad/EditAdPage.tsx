@@ -16,8 +16,7 @@ import { paths } from '@/config/paths'
 import { AdRequest } from '@/api/dto'
 
 export function EditAdPage() {
-  const { t } = useTranslation('ads')
-  const { t: tCommon } = useTranslation('common')
+  const { t } = useTranslation()
   const { teamSlug, adSlug } = useParams<{ teamSlug: string; adSlug: string }>()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
@@ -31,7 +30,7 @@ export function EditAdPage() {
   const updateMutation = useUpdateAd()
 
   if (isLoadingTeam || isLoadingAd) {
-    return <LoadingPage message={tCommon('loading')} />
+    return <LoadingPage message={t('loading')} />
   }
 
   if (!team || !ad) {
@@ -59,7 +58,7 @@ export function EditAdPage() {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getListAdsQueryKey(teamSlug!) })
           queryClient.invalidateQueries({ queryKey: getGetAdQueryKey(teamSlug!, adSlug!) })
-          toast.success(i18next.t('ads:notifications.updated'))
+          toast.success(i18next.t('ads.notifications.updated'))
           navigate(paths.ad(teamSlug!, adSlug!))
         },
       }
@@ -74,7 +73,7 @@ export function EditAdPage() {
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">{t('edit.title')}</h1>
+        <h1 className="text-3xl font-bold text-gray-900">{t('ads.edit.title')}</h1>
       </div>
 
       <AdEditor
@@ -84,7 +83,7 @@ export function EditAdPage() {
         onSubmit={handleSubmit}
         onCancel={() => navigate(paths.ad(teamSlug!, adSlug!))}
         isPending={updateMutation.isPending}
-        submitButtonText={tCommon('actions.save')}
+        submitButtonText={t('actions.save')}
       />
     </div>
   )

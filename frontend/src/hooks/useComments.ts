@@ -91,7 +91,7 @@ export function useCreateComment(
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: getQueryKey(teamSlug!, entityType, entitySlug!) })
-      toast.success(i18next.t('comments:notifications.created'))
+      toast.success(i18next.t('comments.notifications.created'))
     },
   })
 }
@@ -119,7 +119,7 @@ export function useDeleteComment(
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: getQueryKey(teamSlug!, entityType, entitySlug!) })
-      toast.success(i18next.t('comments:notifications.deleted'))
+      toast.success(i18next.t('comments.notifications.deleted'))
     },
   })
 }

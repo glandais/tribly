@@ -8,8 +8,7 @@ import { TeamLayout } from '../../components/team/TeamLayout'
 import { MediaDisplay } from '../../components/common/MediaDisplay'
 
 export function TeamAboutPage() {
-  const { t, i18n } = useTranslation('teams')
-  const { t: tCommon } = useTranslation('common')
+  const { t, i18n } = useTranslation()
   const { teamSlug } = useParams<{ teamSlug: string }>()
 
   const { data: team, isLoading } = useGetTeam(teamSlug!, {
@@ -17,7 +16,7 @@ export function TeamAboutPage() {
   })
 
   if (isLoading) {
-    return <LoadingPage message={tCommon('loading')} />
+    return <LoadingPage message={t('loading')} />
   }
 
   if (!team) {
@@ -28,13 +27,15 @@ export function TeamAboutPage() {
     <TeamLayout team={team} currentTab="about">
       <div className="py-6">
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">{t('detail.about.title')}</h2>
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">
+            {t('teams.detail.about.title')}
+          </h2>
 
           {/* Description */}
           <div className="mb-6">
             <MediaDisplay media={team.about} className="text-gray-600" />
             {!team.about?.markdown && (
-              <p className="text-gray-500 italic">{t('detail.about.noDescription')}</p>
+              <p className="text-gray-500 italic">{t('teams.detail.about.noDescription')}</p>
             )}
           </div>
 
@@ -46,9 +47,9 @@ export function TeamAboutPage() {
                   <UsersIcon className="w-5 h-5 text-gray-400" />
                 </div>
                 <div>
-                  <dt className="text-sm text-gray-500">{t('detail.about.members')}</dt>
+                  <dt className="text-sm text-gray-500">{t('teams.detail.about.members')}</dt>
                   <dd className="text-lg font-medium text-gray-900">
-                    {tCommon('memberCount', { count: team.memberCount })}
+                    {t('memberCount', { count: team.memberCount })}
                   </dd>
                 </div>
               </div>
@@ -59,7 +60,7 @@ export function TeamAboutPage() {
                     <CalendarIcon className="w-5 h-5 text-gray-400" />
                   </div>
                   <div>
-                    <dt className="text-sm text-gray-500">{t('detail.about.created')}</dt>
+                    <dt className="text-sm text-gray-500">{t('teams.detail.about.created')}</dt>
                     <dd className="text-lg font-medium text-gray-900">
                       {new Date(team.createdAt).toLocaleDateString(i18n.language, {
                         day: 'numeric',

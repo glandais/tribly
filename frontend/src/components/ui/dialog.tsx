@@ -47,7 +47,7 @@ function DialogContent({
 }: React.ComponentProps<typeof DialogPrimitive.Content> & {
   showCloseButton?: boolean
 }) {
-  const { t } = useTranslation('common')
+  const { t } = useTranslation()
   return (
     <DialogPortal data-slot="dialog-portal">
       <DialogOverlay />

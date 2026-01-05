@@ -20,8 +20,7 @@ interface PlaceListProps {
 }
 
 export function PlaceList({ teamSlug, canManage }: PlaceListProps) {
-  const { t } = useTranslation('teams')
-  const { t: tCommon } = useTranslation('common')
+  const { t } = useTranslation()
   const queryClient = useQueryClient()
   const { data: placesData, isLoading } = useListPlaces(teamSlug)
   const deleteMutation = useDeletePlace()
@@ -46,7 +45,7 @@ export function PlaceList({ teamSlug, canManage }: PlaceListProps) {
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getListPlacesQueryKey(teamSlug) })
-          toast.success(i18next.t('teams:notifications.placeDeleted'))
+          toast.success(i18next.t('teams.notifications.placeDeleted'))
           setDeleteConfirm(null)
         },
       }
@@ -101,12 +100,12 @@ export function PlaceList({ teamSlug, canManage }: PlaceListProps) {
                   <div className="flex space-x-2 mt-1">
                     {place.startPlace && (
                       <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                        {tCommon('startPlace')}
+                        {t('startPlace')}
                       </span>
                     )}
                     {place.endPlace && (
                       <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                        {tCommon('endPlace')}
+                        {t('endPlace')}
                       </span>
                     )}
                   </div>
@@ -117,7 +116,7 @@ export function PlaceList({ teamSlug, canManage }: PlaceListProps) {
                   <button
                     onClick={() => setEditingPlace(place)}
                     className="p-1 text-gray-400 hover:text-gray-600"
-                    title={t('places.edit')}
+                    title={t('actions.edit')}
                   >
                     <PencilIcon className="h-4 w-4" />
                   </button>

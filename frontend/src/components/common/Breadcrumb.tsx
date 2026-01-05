@@ -21,7 +21,7 @@ interface BreadcrumbProps {
 }
 
 export function Breadcrumb({ items, showBackLink = false }: BreadcrumbProps) {
-  const { t } = useTranslation('common')
+  const { t } = useTranslation()
 
   if (items.length === 0) {
     return null

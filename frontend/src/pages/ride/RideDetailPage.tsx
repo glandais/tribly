@@ -48,8 +48,7 @@ const statusColors: Record<Status, string> = {
 }
 
 export function RideDetailPage() {
-  const { t } = useTranslation('rides')
-  const { t: tCommon } = useTranslation('common')
+  const { t } = useTranslation()
   const { formatDateTime } = useFormattedDate()
   const { teamSlug, rideSlug } = useParams<{ teamSlug: string; rideSlug: string }>()
   const { isAuthenticated, user } = useAuth()
@@ -88,7 +87,7 @@ export function RideDetailPage() {
     if (ride.routeSlug) {
       items.push({
         id: 'ride-main-route',
-        name: t('detail.mainRoute'),
+        name: t('rides.detail.mainRoute'),
         routeSlug: ride.routeSlug,
       })
     }
@@ -102,20 +101,22 @@ export function RideDetailPage() {
   }, [ride, t])
 
   if (isLoadingTeam || isLoadingRide) {
-    return <LoadingPage message={tCommon('loading')} />
+    return <LoadingPage message={t('loading')} />
   }
 
   if (error || !ride) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-center py-12">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">{t('detail.notFound.title')}</h1>
-          <p className="text-gray-600 mb-6">{t('detail.notFound.message')}</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            {t('rides.detail.notFound.title')}
+          </h1>
+          <p className="text-gray-600 mb-6">{t('rides.detail.notFound.message')}</p>
           <Link
             to={paths.team(teamSlug!)}
             className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
           >
-            {t('detail.notFound.backToRides')}
+            {t('rides.detail.notFound.backToRides')}
           </Link>
         </div>
       </div>
@@ -141,7 +142,7 @@ export function RideDetailPage() {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetRideQueryKey(teamSlug!, rideSlug!) })
           queryClient.invalidateQueries({ queryKey: getListRidesQueryKey(teamSlug!) })
-          toast.success(t('notifications.published'))
+          toast.success(t('rides.notifications.published'))
         },
       }
     )
@@ -154,7 +155,7 @@ export function RideDetailPage() {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetRideQueryKey(teamSlug!, rideSlug!) })
           queryClient.invalidateQueries({ queryKey: getListRidesQueryKey(teamSlug!) })
-          toast.success(t('notifications.unpublished'))
+          toast.success(t('rides.notifications.unpublished'))
         },
       }
     )
@@ -168,7 +169,7 @@ export function RideDetailPage() {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetRideQueryKey(teamSlug!, rideSlug!) })
           queryClient.invalidateQueries({ queryKey: getListRidesQueryKey(teamSlug!) })
-          toast.success(t('notifications.cancelled'))
+          toast.success(t('rides.notifications.cancelled'))
         },
       }
     )
@@ -182,7 +183,7 @@ export function RideDetailPage() {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetRideQueryKey(teamSlug!, rideSlug!) })
           queryClient.invalidateQueries({ queryKey: getListRidesQueryKey(teamSlug!) })
-          toast.success(t('notifications.uncancelled'))
+          toast.success(t('rides.notifications.uncancelled'))
         },
       }
     )
@@ -195,7 +196,7 @@ export function RideDetailPage() {
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getListRidesQueryKey(teamSlug!) })
-          toast.success(t('notifications.deleted'))
+          toast.success(t('rides.notifications.deleted'))
           navigate(paths.team(teamSlug!))
         },
       }
@@ -210,7 +211,7 @@ export function RideDetailPage() {
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetRideQueryKey(teamSlug!, rideSlug!) })
-          toast.success(t('notifications.joined'))
+          toast.success(t('rides.notifications.joined'))
         },
         onSettled: () => setJoiningGroupId(null),
       }
@@ -224,7 +225,7 @@ export function RideDetailPage() {
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetRideQueryKey(teamSlug!, rideSlug!) })
-          toast.success(t('notifications.left'))
+          toast.success(t('rides.notifications.left'))
         },
         onSettled: () => setJoiningGroupId(null),
       }
@@ -242,7 +243,7 @@ export function RideDetailPage() {
             <span
               className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium shrink-0 ${statusColors[ride.status]}`}
             >
-              {tCommon(`status.${ride.status satisfies 'DRAFT' | 'PUBLISHED' | 'CANCELLED'}`)}
+              {t(`status.${ride.status satisfies 'DRAFT' | 'PUBLISHED' | 'CANCELLED'}`)}
             </span>
           </div>
 
@@ -251,7 +252,7 @@ export function RideDetailPage() {
               <Button asChild variant="outline">
                 <Link to={paths.rideEdit(teamSlug!, rideSlug!)}>
                   <PencilIcon className="w-4 h-4" />
-                  {tCommon('actions.edit')}
+                  {t('actions.edit')}
                 </Link>
               </Button>
               <DropdownMenu>
@@ -268,7 +269,7 @@ export function RideDetailPage() {
                       className="text-green-700"
                     >
                       {updateMutation.isPending && <LoadingSpinner size="sm" />}
-                      {tCommon('actions.publish')}
+                      {t('actions.publish')}
                     </DropdownMenuItem>
                   )}
                   {ride.status === Status.PUBLISHED && (
@@ -277,13 +278,13 @@ export function RideDetailPage() {
                         onClick={() => setShowUnpublishConfirm(true)}
                         className="text-yellow-700"
                       >
-                        {tCommon('actions.unpublish')}
+                        {t('actions.unpublish')}
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => setShowCancelConfirm(true)}
                         className="text-yellow-700"
                       >
-                        {t('detail.actions.cancel')}
+                        {t('rides.detail.actions.cancel')}
                       </DropdownMenuItem>
                     </>
                   )}
@@ -292,7 +293,7 @@ export function RideDetailPage() {
                       onClick={() => setShowUncancelConfirm(true)}
                       className="text-green-700"
                     >
-                      {t('detail.actions.uncancel')}
+                      {t('rides.detail.actions.uncancel')}
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuSeparator />
@@ -300,7 +301,7 @@ export function RideDetailPage() {
                     onClick={() => setShowDeleteConfirm(true)}
                     variant="destructive"
                   >
-                    {tCommon('actions.delete')}
+                    {t('actions.delete')}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -314,7 +315,7 @@ export function RideDetailPage() {
         {ride.status === Status.DRAFT && ride.publishAt && (
           <div className="mt-2 text-sm text-amber-600 flex items-center">
             <CalendarIcon className="w-4 h-4 mr-1" />
-            {t('detail.scheduledPublish', {
+            {t('rides.detail.scheduledPublish', {
               date: formatDateTime(ride.publishAt),
             })}
           </div>
@@ -326,7 +327,7 @@ export function RideDetailPage() {
           </span>
           <span className="flex items-center">
             <UsersIcon className="w-4 h-4 mr-1" />
-            {tCommon('participantCount', { count: ride.participantCount })}
+            {t('participantCount', { count: ride.participantCount })}
           </span>
         </div>
         {/* Start and End Places */}
@@ -335,7 +336,7 @@ export function RideDetailPage() {
             {ride.startPlace && (
               <span className="flex items-center">
                 <MapPinIcon className="w-4 h-4 mr-1 text-green-600" />
-                <span className="font-medium text-green-700">{tCommon('startPlace')}:</span>
+                <span className="font-medium text-green-700">{t('startPlace')}:</span>
                 <span className="ml-1">
                   {ride.startPlace.name}
                   {ride.startPlace.address && (
@@ -347,7 +348,7 @@ export function RideDetailPage() {
             {ride.endPlace && (
               <span className="flex items-center">
                 <MapPinIcon className="w-4 h-4 mr-1 text-red-600" />
-                <span className="font-medium text-red-700">{tCommon('endPlace')}:</span>
+                <span className="font-medium text-red-700">{t('endPlace')}:</span>
                 <span className="ml-1">
                   {ride.endPlace.name}
                   {ride.endPlace.address && (
@@ -364,7 +365,9 @@ export function RideDetailPage() {
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-6">
         {/* Groups list on left (takes 1 column on xl screens) */}
         <div className="xl:col-span-1 order-2 xl:order-1">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('detail.groups.title')}</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+            {t('rides.detail.groups.title')}
+          </h2>
           {ride.groups && ride.groups.length > 0 ? (
             <div className="space-y-3">
               {ride.groups.map((group) => {
@@ -390,7 +393,7 @@ export function RideDetailPage() {
               })}
             </div>
           ) : (
-            <p className="text-gray-500">{t('detail.groups.empty')}</p>
+            <p className="text-gray-500">{t('rides.detail.groups.empty')}</p>
           )}
         </div>
 
@@ -411,9 +414,9 @@ export function RideDetailPage() {
       {!isMember && isAuthenticated && (
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
           <p className="text-yellow-800">
-            {t('detail.nonMember.message')}{' '}
+            {t('rides.detail.nonMember.message')}{' '}
             <Link to={paths.team(teamSlug!)} className="font-medium underline">
-              {t('detail.nonMember.viewTeam')}
+              {t('rides.detail.nonMember.viewTeam')}
             </Link>
           </p>
         </div>
@@ -422,9 +425,9 @@ export function RideDetailPage() {
       {!isAuthenticated && (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <p className="text-blue-800">
-            {t('detail.notAuthenticated.message')}{' '}
+            {t('rides.detail.notAuthenticated.message')}{' '}
             <Link to="/login" className="font-medium underline">
-              {t('detail.notAuthenticated.signIn')}
+              {t('rides.detail.notAuthenticated.signIn')}
             </Link>
           </p>
         </div>
@@ -447,9 +450,9 @@ export function RideDetailPage() {
         isOpen={showUnpublishConfirm}
         onClose={() => setShowUnpublishConfirm(false)}
         onConfirm={handleUnpublish}
-        title={tCommon('actions.unpublish')}
-        message={t('detail.confirmations.unpublish')}
-        confirmText={tCommon('actions.unpublish')}
+        title={t('actions.unpublish')}
+        message={t('rides.detail.confirmations.unpublish')}
+        confirmText={t('actions.unpublish')}
         variant="warning"
         isLoading={updateMutation.isPending}
       />
@@ -457,9 +460,9 @@ export function RideDetailPage() {
         isOpen={showCancelConfirm}
         onClose={() => setShowCancelConfirm(false)}
         onConfirm={handleCancel}
-        title={t('detail.actions.cancel')}
-        message={t('detail.confirmations.cancel')}
-        confirmText={t('detail.actions.cancel')}
+        title={t('rides.detail.actions.cancel')}
+        message={t('rides.detail.confirmations.cancel')}
+        confirmText={t('rides.detail.actions.cancel')}
         variant="warning"
         isLoading={updateMutation.isPending}
       />
@@ -467,9 +470,9 @@ export function RideDetailPage() {
         isOpen={showUncancelConfirm}
         onClose={() => setShowUncancelConfirm(false)}
         onConfirm={handleUncancel}
-        title={t('detail.actions.uncancel')}
-        message={t('detail.confirmations.uncancel')}
-        confirmText={t('detail.actions.uncancel')}
+        title={t('rides.detail.actions.uncancel')}
+        message={t('rides.detail.confirmations.uncancel')}
+        confirmText={t('rides.detail.actions.uncancel')}
         variant="info"
         isLoading={updateMutation.isPending}
       />
@@ -477,9 +480,9 @@ export function RideDetailPage() {
         isOpen={showDeleteConfirm}
         onClose={() => setShowDeleteConfirm(false)}
         onConfirm={handleDelete}
-        title={tCommon('actions.delete')}
-        message={t('detail.confirmations.delete')}
-        confirmText={tCommon('actions.delete')}
+        title={t('actions.delete')}
+        message={t('rides.detail.confirmations.delete')}
+        confirmText={t('actions.delete')}
         variant="danger"
         isLoading={deleteMutation.isPending}
       />

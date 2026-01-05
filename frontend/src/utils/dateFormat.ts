@@ -58,7 +58,7 @@ export function formatDateTime(
   if (!dateObj) return ''
 
   const locale = getLocale(language)
-  const pattern = i18n.t('common:dateFormats.dateTime', { lng: language })
+  const pattern = i18n.t('dateFormats.dateTime', { lng: language })
   return format(dateObj, pattern, { locale })
 }
 

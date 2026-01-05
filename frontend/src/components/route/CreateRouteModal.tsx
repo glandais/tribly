@@ -17,7 +17,7 @@ interface CreateRouteModalProps {
 }
 
 export function CreateRouteModal({ isOpen, onClose, onRouteCreated, team }: CreateRouteModalProps) {
-  const { t } = useTranslation('routes')
+  const { t } = useTranslation()
   const queryClient = useQueryClient()
   const createRouteMutation = useCreateRoute()
 
@@ -46,7 +46,7 @@ export function CreateRouteModal({ isOpen, onClose, onRouteCreated, team }: Crea
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getListRoutesQueryKey(team.slug) })
-          toast.success(i18next.t('routes:notifications.created'))
+          toast.success(i18next.t('routes.notifications.created'))
         },
       }
     )
@@ -56,7 +56,7 @@ export function CreateRouteModal({ isOpen, onClose, onRouteCreated, team }: Crea
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={t('create.title')} size="full">
+    <Modal isOpen={isOpen} onClose={onClose} title={t('routes.create.title')} size="full">
       <RouteEditor
         team={team}
         teamSlug={team.slug}
@@ -66,7 +66,7 @@ export function CreateRouteModal({ isOpen, onClose, onRouteCreated, team }: Crea
         onCancel={onClose}
         isPending={createRouteMutation.isPending}
         error={createRouteMutation.error}
-        submitButtonText={t('createModal.create')}
+        submitButtonText={t('routes.create.submit')}
         showCancelButton={false}
       />
     </Modal>

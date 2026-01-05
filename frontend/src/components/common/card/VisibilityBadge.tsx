@@ -8,7 +8,7 @@ interface VisibilityBadgeProps {
 }
 
 export function VisibilityBadge({ visibility, showIcon = true }: VisibilityBadgeProps) {
-  const { t } = useTranslation('common')
+  const { t } = useTranslation()
 
   const icon =
     showIcon && visibility === 'PUBLIC' ? (

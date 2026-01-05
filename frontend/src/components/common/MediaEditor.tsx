@@ -32,8 +32,7 @@ export function MediaEditor({
   ariaLabel,
   teamSlug,
 }: MediaEditorProps) {
-  const { t } = useTranslation('common')
-  const { t: tCommon } = useTranslation('common')
+  const { t } = useTranslation()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const logoInputRef = useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = useState(false)
@@ -207,7 +206,7 @@ export function MediaEditor({
                 {logoUploading ? (
                   <>
                     <LoadingSpinner size="sm" />
-                    {tCommon('loading')}
+                    {t('loading')}
                   </>
                 ) : logo ? (
                   t('logo.change')
@@ -278,7 +277,7 @@ export function MediaEditor({
                     onClick={() => handleRemoveAttachment(attachment.id)}
                     disabled={disabled}
                     className="text-gray-400 hover:text-red-500 disabled:opacity-50 disabled:cursor-not-allowed p-1"
-                    title={t('attachments.remove')}
+                    title={t('actions.delete')}
                   >
                     <XMarkIcon className="h-4 w-4" />
                   </button>
@@ -305,7 +304,7 @@ export function MediaEditor({
               {uploading ? (
                 <>
                   <LoadingSpinner size="sm" />
-                  {tCommon('loading')}
+                  {t('loading')}
                 </>
               ) : (
                 <>

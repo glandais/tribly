@@ -29,7 +29,7 @@ interface EmbeddedRoutePlannerProps {
 }
 
 export function EmbeddedRoutePlanner({ onPointsChange, initialTrack }: EmbeddedRoutePlannerProps) {
-  const { t } = useTranslation('planner')
+  const { t } = useTranslation()
   const { styleId, setStyleId, style } = useMapStyle()
   const mapRef = useRef<MapRef>(null)
 
@@ -382,13 +382,13 @@ export function EmbeddedRoutePlanner({ onPointsChange, initialTrack }: EmbeddedR
         <div className="flex items-center gap-3">
           {controlPoints.length > 0 && (
             <span className="text-gray-500">
-              {t('pointCount', { count: controlPoints.length })}
+              {t('planner.pointCount', { count: controlPoints.length })}
             </span>
           )}
           {isLoading && (
             <span className="flex items-center text-indigo-600">
               <ArrowPathIcon className="w-4 h-4 mr-1 animate-spin" />
-              {t('calculating')}
+              {t('planner.calculating')}
             </span>
           )}
           {error && <span className="text-red-600">{error}</span>}
@@ -410,7 +410,7 @@ export function EmbeddedRoutePlanner({ onPointsChange, initialTrack }: EmbeddedR
             className="inline-flex items-center px-2 py-1 text-xs font-medium text-gray-600 hover:text-gray-900"
           >
             <TrashIcon className="w-3.5 h-3.5 mr-1" />
-            {t('clear')}
+            {t('planner.clear')}
           </button>
         )}
       </div>
@@ -528,7 +528,7 @@ export function EmbeddedRoutePlanner({ onPointsChange, initialTrack }: EmbeddedR
         {/* Instructions overlay */}
         {controlPoints.length === 0 && (
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-2 bg-white/90 rounded-lg shadow-lg">
-            <p className="text-sm text-gray-600">{t('instructions')}</p>
+            <p className="text-sm text-gray-600">{t('planner.instructions')}</p>
           </div>
         )}
       </div>

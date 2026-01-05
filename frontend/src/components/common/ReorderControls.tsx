@@ -21,7 +21,7 @@ export function ReorderControls({
   showIndex = true,
   disabled = false,
 }: ReorderControlsProps) {
-  const { t } = useTranslation('common')
+  const { t } = useTranslation()
   const isFirst = index === 0
   const isLast = index >= total - 1
 

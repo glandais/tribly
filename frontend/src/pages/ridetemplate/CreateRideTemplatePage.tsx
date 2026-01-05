@@ -14,7 +14,6 @@ import { Visibility, Status, RideTemplateRequest } from '@/api/dto'
 import { paths } from '@/config/paths'
 
 export function CreateRideTemplatePage() {
-  const { t } = useTranslation('rideTemplates')
   const { teamSlug } = useParams<{ teamSlug: string }>()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
@@ -23,9 +22,9 @@ export function CreateRideTemplatePage() {
   })
 
   const createMutation = useCreateTemplate()
-  const { t: tCommon } = useTranslation('common')
+  const { t } = useTranslation()
   if (isLoadingTeam) {
-    return <LoadingPage message={tCommon('loading')} />
+    return <LoadingPage message={t('loading')} />
   }
 
   if (!team) {
@@ -45,7 +44,7 @@ export function CreateRideTemplatePage() {
     status: Status.PUBLISHED,
     groups: [
       {
-        name: t('form.groups.defaultName', { number: 1 }),
+        name: t('rideTemplates.form.groups.defaultName', { number: 1 }),
       },
     ],
   }
@@ -60,7 +59,7 @@ export function CreateRideTemplatePage() {
         onSuccess: () => {
           navigate(paths.rideTemplates(teamSlug!))
           queryClient.invalidateQueries({ queryKey: getListTemplatesQueryKey(teamSlug!) })
-          toast.success(i18next.t('rideTemplates:notifications.created'))
+          toast.success(i18next.t('rideTemplates.notifications.created'))
         },
       }
     )
@@ -69,8 +68,10 @@ export function CreateRideTemplatePage() {
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">{t('create.title')}</h1>
-        <p className="mt-1 text-gray-600">{t('create.subtitle', { teamName: team.name })}</p>
+        <h1 className="text-3xl font-bold text-gray-900">{t('rideTemplates.create.title')}</h1>
+        <p className="mt-1 text-gray-600">
+          {t('rideTemplates.create.subtitle', { teamName: team.name })}
+        </p>
       </div>
 
       <RideTemplateEditor
@@ -80,7 +81,7 @@ export function CreateRideTemplatePage() {
         onSubmit={handleSubmit}
         onCancel={() => navigate(paths.rideTemplates(teamSlug!))}
         isPending={createMutation.isPending}
-        submitButtonText={t('create.button')}
+        submitButtonText={t('rideTemplates.create.button')}
       />
     </div>
   )

@@ -17,8 +17,7 @@ import { RouteEditor } from '@/components/route/RouteEditor'
 
 export function EditRoutePage() {
   const { teamSlug, routeSlug } = useParams<{ teamSlug: string; routeSlug: string }>()
-  const { t } = useTranslation('routes')
-  const { t: tCommon } = useTranslation('common')
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
@@ -31,7 +30,7 @@ export function EditRoutePage() {
   const updateRouteMutation = useUpdateRoute()
 
   if (isLoadingTeam) {
-    return <LoadingPage message={t('create.title')} />
+    return <LoadingPage message={t('routes.create.title')} />
   }
 
   if (!team) {
@@ -93,7 +92,7 @@ export function EditRoutePage() {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetRouteQueryKey(teamSlug!, routeSlug!) })
           queryClient.invalidateQueries({ queryKey: getListRoutesQueryKey(teamSlug!) })
-          toast.success(i18next.t('routes:notifications.updated'))
+          toast.success(i18next.t('routes.notifications.updated'))
         },
       }
     )
@@ -103,8 +102,8 @@ export function EditRoutePage() {
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">{t('edit.title')}</h1>
-        <p className="mt-2 text-gray-600">{t('edit.subtitle')}</p>
+        <h1 className="text-3xl font-bold text-gray-900">{t('routes.edit.title')}</h1>
+        <p className="mt-2 text-gray-600">{t('routes.edit.subtitle')}</p>
       </div>
 
       <RouteEditor
@@ -116,7 +115,7 @@ export function EditRoutePage() {
         onCancel={() => navigate(paths.route(teamSlug!, routeSlug!))}
         isPending={updateRouteMutation.isPending}
         error={updateRouteMutation.error}
-        submitButtonText={tCommon('actions.save')}
+        submitButtonText={t('actions.save')}
       />
     </div>
   )

@@ -28,8 +28,7 @@ import { MarkdownDisplay } from '../../components/common/MarkdownDisplay'
 import type { RideTemplateDto } from '@/api/dto'
 
 export function RideTemplateListPage() {
-  const { t } = useTranslation('rideTemplates')
-  const { t: tCommon } = useTranslation('common')
+  const { t } = useTranslation()
   const { teamSlug } = useParams<{ teamSlug: string }>()
   const queryClient = useQueryClient()
   const [page, setPage] = useState(0)
@@ -55,7 +54,7 @@ export function RideTemplateListPage() {
   })
 
   if (isLoadingTeam) {
-    return <LoadingPage message={tCommon('loading')} />
+    return <LoadingPage message={t('loading')} />
   }
 
   if (!team) {
@@ -75,7 +74,7 @@ export function RideTemplateListPage() {
         {
           onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: getListTemplatesQueryKey(teamSlug) })
-            toast.success(i18next.t('rideTemplates:notifications.deleted'))
+            toast.success(i18next.t('rideTemplates.notifications.deleted'))
             setTemplateToDelete(null)
           },
         }
@@ -88,7 +87,7 @@ export function RideTemplateListPage() {
       <div className="py-6">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">{t('list.title')}</h2>
+            <h2 className="text-2xl font-bold text-gray-900">{t('rideTemplates.list.title')}</h2>
           </div>
           {canManage && (
             <Link
@@ -96,7 +95,7 @@ export function RideTemplateListPage() {
               className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
             >
               <PlusIcon className="w-4 h-4 mr-2" />
-              {t('create.title')}
+              {t('rideTemplates.create.title')}
             </Link>
           )}
         </div>
@@ -109,8 +108,8 @@ export function RideTemplateListPage() {
             setSearch(value)
             resetPage()
           }}
-          placeholder={t('list.search.placeholder')}
-          label={t('list.search.label')}
+          placeholder={t('rideTemplates.list.search.placeholder')}
+          label={t('rideTemplates.list.search.label')}
           className="mb-6"
         />
 
@@ -141,7 +140,7 @@ export function RideTemplateListPage() {
                       <div className="mt-3 flex items-center gap-4 text-sm text-gray-500">
                         <span className="flex items-center gap-1">
                           <UserGroupIcon className="w-4 h-4" />
-                          {tCommon('groups.groupCount', { count: template.groupCount })}
+                          {t('groups.groupCount', { count: template.groupCount })}
                         </span>
                         <span
                           className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
@@ -151,7 +150,7 @@ export function RideTemplateListPage() {
                           }`}
                         >
                           {t(
-                            `form.visibility.${template.visibility.toLowerCase() as 'public' | 'team'}`
+                            `visibility.${template.visibility.toLowerCase() as 'public' | 'team'}`
                           )}
                         </span>
                       </div>
@@ -165,7 +164,7 @@ export function RideTemplateListPage() {
                               {group.name}
                               {group.averageSpeed && (
                                 <span className="ml-1 text-indigo-400">
-                                  {tCommon('speed', { speed: group.averageSpeed })}
+                                  {t('speed', { speed: group.averageSpeed })}
                                 </span>
                               )}
                             </span>
@@ -178,14 +177,14 @@ export function RideTemplateListPage() {
                         <Link
                           to={paths.rideTemplateEdit(teamSlug!, template.slug)}
                           className="p-2 text-gray-400 hover:text-indigo-600 rounded-lg hover:bg-gray-100"
-                          title={tCommon('actions.edit')}
+                          title={t('actions.edit')}
                         >
                           <PencilIcon className="w-5 h-5" />
                         </Link>
                         <button
                           onClick={() => handleDelete(template)}
                           className="p-2 text-gray-400 hover:text-red-600 rounded-lg hover:bg-gray-100"
-                          title={tCommon('actions.delete')}
+                          title={t('actions.delete')}
                         >
                           <TrashIcon className="w-5 h-5" />
                         </button>
@@ -207,11 +206,13 @@ export function RideTemplateListPage() {
           <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
             <DocumentDuplicateIcon className="mx-auto h-12 w-12 text-gray-400" />
             <h3 className="mt-4 text-lg font-medium text-gray-900">
-              {search ? t('list.noResults') : t('list.empty.title')}
+              {search ? t('rideTemplates.list.noResults') : t('rideTemplates.list.empty.title')}
             </h3>
             {!search && (
               <p className="mt-2 text-gray-500">
-                {canManage ? t('list.empty.admin') : t('list.empty.member')}
+                {canManage
+                  ? t('rideTemplates.list.empty.admin')
+                  : t('rideTemplates.list.empty.member')}
               </p>
             )}
             {canManage && !search && (
@@ -219,7 +220,7 @@ export function RideTemplateListPage() {
                 to={paths.rideTemplateNew(teamSlug!)}
                 className="mt-4 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
               >
-                {t('create.title')}
+                {t('rideTemplates.create.title')}
               </Link>
             )}
           </div>
@@ -231,9 +232,9 @@ export function RideTemplateListPage() {
         isOpen={!!templateToDelete}
         onClose={() => setTemplateToDelete(null)}
         onConfirm={confirmDelete}
-        title={t('confirmations.deleteTitle')}
-        message={t('confirmations.delete', { name: templateToDelete?.name })}
-        confirmText={t('common:buttons.delete')}
+        title={t('rideTemplates.confirmations.deleteTitle')}
+        message={t('rideTemplates.confirmations.delete', { name: templateToDelete?.name })}
+        confirmText={t('rideTemplates.buttons.delete')}
         variant="danger"
         isLoading={deleteMutation.isPending}
       />

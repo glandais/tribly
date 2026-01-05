@@ -9,8 +9,7 @@ import { defaultMedia } from '@/lib/apiUtils'
 import { Visibility } from '@/api/dto'
 
 export function CreateTeamPagePage() {
-  const { t } = useTranslation('teams')
-  const { t: tCommon } = useTranslation('common')
+  const { t } = useTranslation()
   const { teamSlug } = useParams<{ teamSlug: string }>()
 
   const { data: team, isLoading } = useGetTeam(teamSlug!, {
@@ -18,7 +17,7 @@ export function CreateTeamPagePage() {
   })
 
   if (isLoading) {
-    return <LoadingPage message={tCommon('loading')} />
+    return <LoadingPage message={t('loading')} />
   }
 
   if (!team) {
@@ -36,7 +35,7 @@ export function CreateTeamPagePage() {
     <TeamAdminLayout team={team} currentTab="pages">
       <div className="py-6">
         <div className="max-w-2xl">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">{t('pages.create.title')}</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">{t('teams.pages.create.title')}</h2>
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <TeamPageForm
               teamSlug={team.slug}

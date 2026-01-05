@@ -37,7 +37,7 @@ export const axiosMutator = <T>(
         const axiosError = error as AxiosError
         const errorData = axiosError.response?.data as ErrorResponse
         const apiError = new ApiClientError(axiosError.status || 500, errorData)
-        toast.error(errorData?.message || i18next.t('errors:api.unknown'))
+        toast.error(errorData?.message || i18next.t('errors.api.unknown'))
         throw apiError
       }
       throw error

@@ -29,8 +29,7 @@ export function CommentForm({
   placeholder,
   autoFocus = false,
 }: CommentFormProps) {
-  const { t } = useTranslation('comments')
-  const { t: tCommon } = useTranslation('common')
+  const { t } = useTranslation()
 
   const form = useForm<CommentFormValues>({
     resolver: zodResolver(commentSchema),
@@ -54,7 +53,7 @@ export function CommentForm({
               <FormControl>
                 <Textarea
                   {...field}
-                  placeholder={placeholder || t('form.placeholder')}
+                  placeholder={placeholder || t('comments.form.placeholder')}
                   autoFocus={autoFocus}
                   rows={2}
                   className="min-h-0 resize-none"
@@ -70,7 +69,7 @@ export function CommentForm({
           </Button>
           {onCancel && (
             <Button type="button" variant="ghost" size="sm" onClick={onCancel} className="text-xs">
-              {tCommon('actions.cancelAction')}
+              {t('actions.cancelAction')}
             </Button>
           )}
         </div>

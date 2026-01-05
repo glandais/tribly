@@ -41,12 +41,7 @@ const filterToType: Record<FilterValue, PublicationType | undefined> = {
 }
 
 export function PublicationListPage() {
-  const { t } = useTranslation('teams')
-  const { t: tCommon } = useTranslation('common')
-  const { t: tRides } = useTranslation('rides')
-  const { t: tPosts } = useTranslation('posts')
-  const { t: tRoutes } = useTranslation('routes')
-  const { t: tTrips } = useTranslation('trips')
+  const { t } = useTranslation()
   const { teamSlug } = useParams<{ teamSlug: string }>()
   const [page, setPage] = useState(0)
   const [search, setSearch] = useState('')
@@ -76,7 +71,7 @@ export function PublicationListPage() {
   })
 
   if (isLoadingTeam) {
-    return <LoadingPage message={t('publications.list.title')} />
+    return <LoadingPage message={t('teams.publications.list.title')} />
   }
 
   if (!team) {
@@ -90,14 +85,16 @@ export function PublicationListPage() {
       <div className="py-6">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">{t('publications.list.title')}</h2>
+            <h2 className="text-2xl font-bold text-gray-900">
+              {t('teams.publications.list.title')}
+            </h2>
           </div>
           {canCreate && (
             <ButtonGroup>
               <Button asChild className="bg-indigo-600 hover:bg-indigo-700">
                 <Link to={paths.rideNew(teamSlug!)}>
                   <PlusIcon className="w-4 h-4" />
-                  {tRides('create.title')}
+                  {t('rides.create.title')}
                 </Link>
               </Button>
               <DropdownMenu>
@@ -108,18 +105,18 @@ export function PublicationListPage() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem asChild>
-                    <Link to={paths.rideNew(teamSlug!)}>{tRides('create.title')}</Link>
+                    <Link to={paths.rideNew(teamSlug!)}>{t('rides.create.title')}</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link to={paths.postNew(teamSlug!)}>{tPosts('create.title')}</Link>
+                    <Link to={paths.postNew(teamSlug!)}>{t('posts.create.title')}</Link>
                   </DropdownMenuItem>
                   {team.enableTrips && (
                     <DropdownMenuItem asChild>
-                      <Link to={paths.tripNew(teamSlug!)}>{tTrips('create.title')}</Link>
+                      <Link to={paths.tripNew(teamSlug!)}>{t('trips.create.title')}</Link>
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuItem asChild>
-                    <Link to={paths.routeNew(teamSlug!)}>{tRoutes('create.title')}</Link>
+                    <Link to={paths.routeNew(teamSlug!)}>{t('routes.create.title')}</Link>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -136,8 +133,8 @@ export function PublicationListPage() {
               setSearch(value)
               resetPage()
             }}
-            placeholder={t('publications.list.search.placeholder')}
-            label={t('publications.list.search.label')}
+            placeholder={t('teams.publications.list.search.placeholder')}
+            label={t('teams.publications.list.search.label')}
             className="flex-1"
           />
           <Select
@@ -149,16 +146,16 @@ export function PublicationListPage() {
           >
             <SelectTrigger
               className="w-full sm:w-40"
-              aria-label={t('publications.list.filter.label')}
+              aria-label={t('teams.publications.list.filter.label')}
             >
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">{t('publications.list.filter.all')}</SelectItem>
-              <SelectItem value="ride">{t('publications.list.filter.ride')}</SelectItem>
-              <SelectItem value="post">{t('publications.list.filter.post')}</SelectItem>
+              <SelectItem value="all">{t('teams.publications.list.filter.all')}</SelectItem>
+              <SelectItem value="ride">{t('teams.publications.list.filter.ride')}</SelectItem>
+              <SelectItem value="post">{t('teams.publications.list.filter.post')}</SelectItem>
               {team?.enableTrips && (
-                <SelectItem value="trip">{t('publications.list.filter.trip')}</SelectItem>
+                <SelectItem value="trip">{t('teams.publications.list.filter.trip')}</SelectItem>
               )}
             </SelectContent>
           </Select>
@@ -190,10 +187,10 @@ export function PublicationListPage() {
           <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
             <NewspaperIcon className="mx-auto h-12 w-12 text-gray-400" />
             <h3 className="mt-4 text-lg font-medium text-gray-900">
-              {search ? tCommon('noResults') : t('publications.list.empty')}
+              {search ? t('noResults') : t('teams.publications.list.empty')}
             </h3>
             {!search && (
-              <p className="mt-2 text-gray-500">{t('publications.list.emptyDescription')}</p>
+              <p className="mt-2 text-gray-500">{t('teams.publications.list.emptyDescription')}</p>
             )}
           </div>
         )}

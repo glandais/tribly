@@ -25,7 +25,7 @@ export function CommentSection({
   entitySlug,
   isOrganizer,
 }: CommentSectionProps) {
-  const { t } = useTranslation('comments')
+  const { t } = useTranslation()
   const { user } = useAuth()
   const [replyingTo, setReplyingTo] = useState<string | null>(null)
 
@@ -61,14 +61,14 @@ export function CommentSection({
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
       <h2 className="text-lg font-semibold text-gray-900 mb-4">
-        {t('title')} ({data?.total || 0})
+        {t('comments.title')} ({data?.total || 0})
       </h2>
 
       {/* Comment form for new top-level comments */}
       <CommentForm
         onSubmit={(content) => handleSubmit(content)}
         isLoading={createMutation.isPending}
-        placeholder={t('form.placeholder')}
+        placeholder={t('comments.form.placeholder')}
       />
 
       {/* Comments list */}
@@ -88,7 +88,7 @@ export function CommentSection({
           />
         ))}
         {(!data?.items || data.items.length === 0) && (
-          <p className="text-gray-500 text-center py-4">{t('empty')}</p>
+          <p className="text-gray-500 text-center py-4">{t('comments.empty')}</p>
         )}
       </div>
     </div>

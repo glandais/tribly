@@ -14,7 +14,7 @@ export interface MediaDisplayProps {
  * Shows attachments with download links when present.
  */
 export function MediaDisplay({ media, className = '' }: MediaDisplayProps) {
-  const { t } = useTranslation('common')
+  const { t } = useTranslation()
   const attachments = media.assets.attachments
   const images = media.assets.images
 

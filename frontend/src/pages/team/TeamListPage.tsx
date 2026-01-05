@@ -29,9 +29,7 @@ const filterToMinRole: Record<FilterValue, MinRole | undefined> = {
 }
 
 export function TeamListPage() {
-  const { t } = useTranslation('teams')
-  const { t: tCommon } = useTranslation('common')
-  const { t: tErrors } = useTranslation('errors')
+  const { t } = useTranslation()
   const [search, setSearch] = useState('')
   const { isAuthenticated } = useAuth()
 
@@ -64,8 +62,8 @@ export function TeamListPage() {
     <HomeLayout currentTab="teams">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-6 mb-8">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">{tCommon('teams')}</h2>
-          <p className="mt-1 text-gray-700">{t('list.subtitle')}</p>
+          <h2 className="text-2xl font-bold text-gray-900">{t('teams.title')}</h2>
+          <p className="mt-1 text-gray-700">{t('teams.list.subtitle')}</p>
         </div>
         {isAuthenticated && (
           <Link
@@ -73,7 +71,7 @@ export function TeamListPage() {
             className="mt-4 sm:mt-0 inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-500"
           >
             <PlusIcon className="w-5 h-5 mr-2 -ml-1" aria-hidden="true" />
-            {t('create.title')}
+            {t('teams.create.title')}
           </Link>
         )}
       </div>
@@ -86,8 +84,8 @@ export function TeamListPage() {
             setSearch(value)
             resetPage()
           }}
-          placeholder={t('list.search.placeholder')}
-          label={t('list.search.label')}
+          placeholder={t('teams.list.search.placeholder')}
+          label={t('teams.list.search.label')}
           className="flex-1"
         />
         {isAuthenticated && (
@@ -98,14 +96,14 @@ export function TeamListPage() {
               resetPage()
             }}
           >
-            <SelectTrigger className="w-full sm:w-40" aria-label={t('list.filter.label')}>
+            <SelectTrigger className="w-full sm:w-40" aria-label={t('teams.list.filter.label')}>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">{t('list.filter.all')}</SelectItem>
-              <SelectItem value="member">{tCommon('roles.MEMBER')}</SelectItem>
-              <SelectItem value="organizer">{tCommon('roles.ORGANIZER')}</SelectItem>
-              <SelectItem value="admin">{tCommon('roles.ADMIN')}</SelectItem>
+              <SelectItem value="all">{t('teams.list.filter.all')}</SelectItem>
+              <SelectItem value="member">{t('roles.MEMBER')}</SelectItem>
+              <SelectItem value="organizer">{t('roles.ORGANIZER')}</SelectItem>
+              <SelectItem value="admin">{t('roles.ADMIN')}</SelectItem>
             </SelectContent>
           </Select>
         )}
@@ -114,7 +112,7 @@ export function TeamListPage() {
       {error && (
         <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
           <p className="text-red-700">
-            {error instanceof Error ? error.message : tErrors('api.failedToLoad')}
+            {error instanceof Error ? error.message : t('errors.api.failedToLoad')}
           </p>
         </div>
       )}
@@ -141,8 +139,8 @@ export function TeamListPage() {
       ) : (
         <div className="text-center py-12">
           <UserGroupIcon className="mx-auto h-12 w-12 text-gray-400" aria-hidden="true" />
-          <h3 className="mt-2 text-sm font-medium text-gray-900">{t('list.empty.title')}</h3>
-          <p className="mt-1 text-sm text-gray-700">{t('list.empty.publicTeams')}</p>
+          <h3 className="mt-2 text-sm font-medium text-gray-900">{t('teams.list.empty.title')}</h3>
+          <p className="mt-1 text-sm text-gray-700">{t('teams.list.empty.publicTeams')}</p>
           {isAuthenticated && (
             <div className="mt-6">
               <Link
@@ -150,7 +148,7 @@ export function TeamListPage() {
                 className="inline-flex items-center px-4 py-2 border border-transparent shadow-xs text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-500"
               >
                 <PlusIcon className="w-5 h-5 mr-2 -ml-1" aria-hidden="true" />
-                {t('create.title')}
+                {t('teams.create.title')}
               </Link>
             </div>
           )}

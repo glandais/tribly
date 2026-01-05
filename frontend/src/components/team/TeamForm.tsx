@@ -50,8 +50,7 @@ interface TeamFormProps {
 }
 
 export function TeamForm({ teamSlug, initialValues, onSuccess, create }: TeamFormProps) {
-  const { t } = useTranslation('teams')
-  const { t: tCommon } = useTranslation('common')
+  const { t } = useTranslation()
   const queryClient = useQueryClient()
   const navigate = useNavigate()
 
@@ -73,7 +72,7 @@ export function TeamForm({ teamSlug, initialValues, onSuccess, create }: TeamFor
         {
           onSuccess: (team) => {
             queryClient.invalidateQueries({ queryKey: getListTeamsQueryKey() })
-            toast.success(i18next.t('teams:notifications.created'))
+            toast.success(i18next.t('teams.notifications.created'))
             onSuccess(team)
             navigate(paths.team(team.slug))
           },
@@ -87,7 +86,7 @@ export function TeamForm({ teamSlug, initialValues, onSuccess, create }: TeamFor
             queryClient.invalidateQueries({ queryKey: getGetTeamQueryKey(teamSlug) })
             queryClient.invalidateQueries({ queryKey: getListTeamsQueryKey() })
             queryClient.setQueryData(getGetTeamQueryKey(team.slug), team)
-            toast.success(i18next.t('teams:notifications.updated'))
+            toast.success(i18next.t('teams.notifications.updated'))
             onSuccess(team)
             navigate(paths.team(team.slug))
           },
@@ -105,12 +104,12 @@ export function TeamForm({ teamSlug, initialValues, onSuccess, create }: TeamFor
           render={({ field }) => (
             <FormItem>
               <FormLabel>
-                {t('create.form.name.label')}
+                {t('teams.create.form.name.label')}
                 {create && <span className="text-destructive"> *</span>}
               </FormLabel>
               <FormControl>
                 <Input
-                  placeholder={create ? t('create.form.name.placeholder') : undefined}
+                  placeholder={create ? t('teams.create.form.name.placeholder') : undefined}
                   {...field}
                 />
               </FormControl>
@@ -124,21 +123,21 @@ export function TeamForm({ teamSlug, initialValues, onSuccess, create }: TeamFor
           name="media"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{tCommon('form.description')}</FormLabel>
+              <FormLabel>{t('form.description')}</FormLabel>
               <FormControl>
                 <MediaEditor
                   value={field.value}
                   onChange={field.onChange}
-                  placeholder={t('create.form.description.placeholder')}
+                  placeholder={t('teams.create.form.description.placeholder')}
                   minHeight="150px"
                   maxHeight="300px"
                   disabled={mutation.isPending}
-                  ariaLabel={t('create.form.description.placeholder')}
+                  ariaLabel={t('teams.create.form.description.placeholder')}
                   teamSlug={teamSlug}
                 />
               </FormControl>
               <FormDescription>
-                {tCommon('form.charCount', {
+                {t('form.charCount', {
                   count: field.value.markdown.length || 0,
                   max: 2000,
                 })}
@@ -153,7 +152,7 @@ export function TeamForm({ teamSlug, initialValues, onSuccess, create }: TeamFor
           name="visibility"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t('create.form.visibility.label')}</FormLabel>
+              <FormLabel>{t('teams.create.form.visibility.label')}</FormLabel>
               <Select value={field.value} onValueChange={field.onChange}>
                 <FormControl>
                   <SelectTrigger className="w-full">
@@ -161,11 +160,11 @@ export function TeamForm({ teamSlug, initialValues, onSuccess, create }: TeamFor
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value={Visibility.TEAM}>{tCommon('visibility.team')}</SelectItem>
-                  <SelectItem value={Visibility.PUBLIC}>{tCommon('visibility.public')}</SelectItem>
+                  <SelectItem value={Visibility.TEAM}>{t('visibility.team')}</SelectItem>
+                  <SelectItem value={Visibility.PUBLIC}>{t('visibility.public')}</SelectItem>
                 </SelectContent>
               </Select>
-              <FormDescription>{t('create.form.visibility.hint')}</FormDescription>
+              <FormDescription>{t('teams.create.form.visibility.hint')}</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -180,8 +179,8 @@ export function TeamForm({ teamSlug, initialValues, onSuccess, create }: TeamFor
                 <Checkbox checked={field.value} onCheckedChange={field.onChange} className="mt-1" />
               </FormControl>
               <div className="space-y-1">
-                <FormLabel>{t('create.form.enableTrips.label')}</FormLabel>
-                <FormDescription>{t('create.form.enableTrips.hint')}</FormDescription>
+                <FormLabel>{t('teams.create.form.enableTrips.label')}</FormLabel>
+                <FormDescription>{t('teams.create.form.enableTrips.hint')}</FormDescription>
               </div>
             </FormItem>
           )}
@@ -196,8 +195,8 @@ export function TeamForm({ teamSlug, initialValues, onSuccess, create }: TeamFor
                 <Checkbox checked={field.value} onCheckedChange={field.onChange} className="mt-1" />
               </FormControl>
               <div className="space-y-1">
-                <FormLabel>{t('create.form.enableAds.label')}</FormLabel>
-                <FormDescription>{t('create.form.enableAds.hint')}</FormDescription>
+                <FormLabel>{t('teams.create.form.enableAds.label')}</FormLabel>
+                <FormDescription>{t('teams.create.form.enableAds.hint')}</FormDescription>
               </div>
             </FormItem>
           )}
@@ -206,19 +205,19 @@ export function TeamForm({ teamSlug, initialValues, onSuccess, create }: TeamFor
         <div className="pt-4 flex items-center justify-end gap-3">
           <Button variant="outline" asChild>
             <Link to={create ? paths.teams() : paths.team(teamSlug!)}>
-              {tCommon('actions.cancelAction')}
+              {t('actions.cancelAction')}
             </Link>
           </Button>
           <Button type="submit" disabled={mutation.isPending || !form.formState.isValid}>
             {mutation.isPending ? (
               <>
                 <LoadingSpinner size="sm" color="white" className="mr-2" />
-                {create ? tCommon('status.creating') : tCommon('status.saving')}
+                {create ? t('status.creating') : t('status.saving')}
               </>
             ) : create ? (
-              t('create.button')
+              t('teams.create.button')
             ) : (
-              tCommon('actions.save')
+              t('actions.save')
             )}
           </Button>
         </div>

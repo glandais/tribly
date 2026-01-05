@@ -16,8 +16,7 @@ import { paths } from '@/config/paths'
 import { RideRequest } from '@/api/dto'
 
 export function EditRidePage() {
-  const { t } = useTranslation('rides')
-  const { t: tCommon } = useTranslation('common')
+  const { t } = useTranslation()
   const { teamSlug, rideSlug } = useParams<{ teamSlug: string; rideSlug: string }>()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
@@ -31,7 +30,7 @@ export function EditRidePage() {
   const updateMutation = useUpdateRide()
 
   if (isLoadingTeam || isLoadingRide) {
-    return <LoadingPage message={tCommon('loading')} />
+    return <LoadingPage message={t('loading')} />
   }
 
   if (!team || !ride) {
@@ -60,7 +59,7 @@ export function EditRidePage() {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetRideQueryKey(teamSlug!, rideSlug!) })
           queryClient.invalidateQueries({ queryKey: getListRidesQueryKey(teamSlug!) })
-          toast.success(i18next.t('rides:notifications.updated'))
+          toast.success(i18next.t('rides.notifications.updated'))
           navigate(paths.ride(teamSlug!, rideSlug!))
         },
       }
@@ -77,8 +76,8 @@ export function EditRidePage() {
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">{t('edit.title')}</h1>
-        <p className="mt-1 text-gray-600">{t('edit.subtitle', { teamName: team.name })}</p>
+        <h1 className="text-3xl font-bold text-gray-900">{t('rides.edit.title')}</h1>
+        <p className="mt-1 text-gray-600">{t('rides.edit.subtitle', { teamName: team.name })}</p>
       </div>
 
       <RideEditor
@@ -88,7 +87,7 @@ export function EditRidePage() {
         onSubmit={handleSubmit}
         onCancel={() => navigate(paths.ride(teamSlug!, rideSlug!))}
         isPending={updateMutation.isPending}
-        submitButtonText={tCommon('actions.save')}
+        submitButtonText={t('actions.save')}
       />
     </div>
   )

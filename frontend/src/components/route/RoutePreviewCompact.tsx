@@ -8,26 +8,25 @@ interface RoutePreviewCompactProps {
 }
 
 export function RoutePreviewCompact({ routeSlug, teamSlug }: RoutePreviewCompactProps) {
-  const { t } = useTranslation('routes')
-  const { t: tCommon } = useTranslation('common')
+  const { t } = useTranslation()
   const { data: route, isLoading } = useGetRoute(teamSlug, routeSlug)
 
   if (isLoading)
     return (
       <div className="flex items-center gap-1 text-xs text-gray-400">
         <LoadingSpinner size="sm" />
-        <span>{tCommon('loading')}</span>
+        <span>{t('loading')}</span>
       </div>
     )
 
-  if (!route) return <div className="text-xs text-red-500">{t('preview.notFound')}</div>
+  if (!route) return <div className="text-xs text-red-500">{t('routes.preview.notFound')}</div>
 
   return (
     <div className="text-xs text-gray-600">
       <span className="font-medium">{route.name}</span>
       <span className="ml-2">
-        ({(route.distance / 1000).toFixed(1)} {tCommon('units.km')}, {route.elevationGain}
-        {tCommon('units.m')})
+        ({(route.distance / 1000).toFixed(1)} {t('units.km')}, {route.elevationGain}
+        {t('units.m')})
       </span>
     </div>
   )

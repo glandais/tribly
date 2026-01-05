@@ -12,8 +12,7 @@ import { paths } from '@/config/paths'
 import { AdRequest, AdType, Status, Visibility } from '../../api/dto'
 
 export function CreateAdPage() {
-  const { t } = useTranslation('ads')
-  const { t: tCommon } = useTranslation('common')
+  const { t } = useTranslation()
   const { teamSlug } = useParams<{ teamSlug: string }>()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
@@ -24,7 +23,7 @@ export function CreateAdPage() {
   const createMutation = useCreateAd()
 
   if (isLoadingTeam) {
-    return <LoadingPage message={tCommon('loading')} />
+    return <LoadingPage message={t('loading')} />
   }
 
   if (!team || !teamSlug) {
@@ -62,7 +61,7 @@ export function CreateAdPage() {
       {
         onSuccess: (ad) => {
           queryClient.invalidateQueries({ queryKey: getListAdsQueryKey(teamSlug!) })
-          toast.success(i18next.t('ads:notifications.created'))
+          toast.success(i18next.t('ads.notifications.created'))
           navigate(paths.ad(teamSlug!, ad.slug))
         },
       }
@@ -72,7 +71,7 @@ export function CreateAdPage() {
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">{t('create.title')}</h1>
+        <h1 className="text-3xl font-bold text-gray-900">{t('ads.create.title')}</h1>
       </div>
 
       <AdEditor
@@ -82,7 +81,7 @@ export function CreateAdPage() {
         onSubmit={handleSubmit}
         onCancel={() => navigate(paths.ads(teamSlug!))}
         isPending={createMutation.isPending}
-        submitButtonText={t('create.submit')}
+        submitButtonText={t('ads.create.submit')}
       />
     </div>
   )

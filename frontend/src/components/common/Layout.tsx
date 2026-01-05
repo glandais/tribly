@@ -10,7 +10,7 @@ import { LanguageSwitcher } from './LanguageSwitcher'
 import { paths } from '@/config/paths'
 
 export function Layout() {
-  const { t } = useTranslation('common')
+  const { t } = useTranslation()
   const { user, isAuthenticated, logout } = useAuth()
   const { items: breadcrumbItems, showBackLink } = useBreadcrumb()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)

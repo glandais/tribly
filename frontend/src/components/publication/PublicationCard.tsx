@@ -33,8 +33,7 @@ interface PublicationCardProps {
 }
 
 export function PublicationCard({ publication, showTeam }: PublicationCardProps) {
-  const { t: tCommon } = useTranslation('common')
-  const { t: tTrips } = useTranslation('trips')
+  const { t } = useTranslation()
   const { formatDateTime } = useFormattedDate()
 
   // Get the appropriate path based on publication type
@@ -51,18 +50,18 @@ export function PublicationCard({ publication, showTeam }: PublicationCardProps)
 
   // Get the status translation - consolidated in common
   const getStatusLabel = () => {
-    return tCommon(`status.${publication.status satisfies 'DRAFT' | 'PUBLISHED' | 'CANCELLED'}`)
+    return t(`status.${publication.status satisfies 'DRAFT' | 'PUBLISHED' | 'CANCELLED'}`)
   }
 
   // Get the type translation
   const getTypeLabel = () => {
     switch (publication.type) {
       case 'RIDE':
-        return tCommon('publicationType.ride')
+        return t('publicationType.ride')
       case 'POST':
-        return tCommon('publicationType.post')
+        return t('publicationType.post')
       case 'TRIP':
-        return tCommon('publicationType.trip')
+        return t('publicationType.trip')
     }
   }
 
@@ -81,11 +80,9 @@ export function PublicationCard({ publication, showTeam }: PublicationCardProps)
           <StatGroup>
             <Stat icon={calendarIcon}>{formattedDate}</Stat>
             <Stat icon={participantsIcon}>
-              {tCommon('participantCount', { count: ride.participantCount })}
+              {t('participantCount', { count: ride.participantCount })}
             </Stat>
-            <Stat icon={groupsIcon}>
-              {tCommon('groups.groupCount', { count: ride.groupCount })}
-            </Stat>
+            <Stat icon={groupsIcon}>{t('groups.groupCount', { count: ride.groupCount })}</Stat>
           </StatGroup>
         )
       }
@@ -95,9 +92,9 @@ export function PublicationCard({ publication, showTeam }: PublicationCardProps)
           <StatGroup>
             <Stat icon={calendarIcon}>{formattedDate}</Stat>
             <Stat icon={participantsIcon}>
-              {tCommon('participantCount', { count: trip.participantCount })}
+              {t('participantCount', { count: trip.participantCount })}
             </Stat>
-            <Stat icon={groupsIcon}>{tTrips('card.stageCount', { count: trip.stageCount })}</Stat>
+            <Stat icon={groupsIcon}>{t('trips.card.stageCount', { count: trip.stageCount })}</Stat>
           </StatGroup>
         )
       }

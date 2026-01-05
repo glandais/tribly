@@ -15,7 +15,7 @@ export function ProtectedRoute({
   requireAuth = true,
   redirectTo = paths.login(),
 }: ProtectedRouteProps) {
-  const { t } = useTranslation('common')
+  const { t } = useTranslation()
   const location = useLocation()
   const { isAuthenticated, isLoading } = useAuth()
 

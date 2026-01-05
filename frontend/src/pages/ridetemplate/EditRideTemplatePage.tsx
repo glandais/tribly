@@ -16,7 +16,6 @@ import { RideTemplateEditor } from '../../components/ridetemplate/RideTemplateEd
 import { RideTemplateRequest } from '@/api/dto'
 
 export function EditRideTemplatePage() {
-  const { t } = useTranslation('rideTemplates')
   const { teamSlug, templateSlug } = useParams<{ teamSlug: string; templateSlug: string }>()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
@@ -32,9 +31,9 @@ export function EditRideTemplatePage() {
   )
 
   const updateMutation = useUpdateTemplate()
-  const { t: tCommon } = useTranslation('common')
+  const { t } = useTranslation()
   if (isLoadingTeam || isLoadingTemplate) {
-    return <LoadingPage message={tCommon('loading')} />
+    return <LoadingPage message={t('loading')} />
   }
 
   if (!team) {
@@ -67,7 +66,7 @@ export function EditRideTemplatePage() {
             queryKey: getGetTemplateQueryKey(teamSlug!, templateSlug!),
           })
           queryClient.invalidateQueries({ queryKey: getListTemplatesQueryKey(teamSlug!) })
-          toast.success(i18next.t('rideTemplates:notifications.updated'))
+          toast.success(i18next.t('rideTemplates.notifications.updated'))
         },
       }
     )
@@ -76,8 +75,8 @@ export function EditRideTemplatePage() {
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">{t('edit.title')}</h1>
-        <p className="mt-1 text-gray-600">{t('edit.subtitle')}</p>
+        <h1 className="text-3xl font-bold text-gray-900">{t('rideTemplates.edit.title')}</h1>
+        <p className="mt-1 text-gray-600">{t('rideTemplates.edit.subtitle')}</p>
       </div>
 
       <RideTemplateEditor
@@ -88,7 +87,7 @@ export function EditRideTemplatePage() {
         onSubmit={handleSubmit}
         onCancel={() => navigate(paths.rideTemplates(teamSlug!))}
         isPending={updateMutation.isPending}
-        submitButtonText={tCommon('actions.save')}
+        submitButtonText={t('actions.save')}
       />
     </div>
   )

@@ -16,8 +16,7 @@ import { defaultMedia } from '@/lib/apiUtils'
 import { paths } from '@/config/paths'
 
 export function CreateRidePage() {
-  const { t } = useTranslation('rides')
-  const { t: tCommon } = useTranslation('common')
+  const { t } = useTranslation()
   const { teamSlug } = useParams<{ teamSlug: string }>()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
@@ -32,7 +31,7 @@ export function CreateRidePage() {
   const [templateValues, setTemplateValues] = useState<RideTemplateDto | null>(null)
 
   if (isLoadingTeam) {
-    return <LoadingPage message={tCommon('loading')} />
+    return <LoadingPage message={t('loading')} />
   }
 
   if (!team) {
@@ -77,7 +76,7 @@ export function CreateRidePage() {
         routeSlug: undefined,
         groups: [
           {
-            name: t('create.form.groups.defaultName', { number: 1 }),
+            name: t('rides.create.form.groups.defaultName', { number: 1 }),
             time: undefined,
             averageSpeed: undefined,
             maxParticipants: undefined,
@@ -113,7 +112,7 @@ export function CreateRidePage() {
       {
         onSuccess: (ride) => {
           queryClient.invalidateQueries({ queryKey: getListRidesQueryKey(teamSlug!) })
-          toast.success(i18next.t('rides:notifications.created'))
+          toast.success(i18next.t('rides.notifications.created'))
           navigate(paths.ride(teamSlug!, ride.slug))
         },
       }
@@ -124,17 +123,17 @@ export function CreateRidePage() {
     <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-gray-900">{t('create.title')}</h1>
+          <h1 className="text-3xl font-bold text-gray-900">{t('rides.create.title')}</h1>
           <button
             type="button"
             onClick={() => setShowTemplateModal(true)}
             className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-indigo-600 bg-indigo-50 rounded-lg hover:bg-indigo-100"
           >
             <DocumentDuplicateIcon className="w-4 h-4 mr-1.5" />
-            {t('create.loadTemplate')}
+            {t('rides.create.loadTemplate')}
           </button>
         </div>
-        <p className="mt-1 text-gray-600">{t('create.subtitle', { teamName: team.name })}</p>
+        <p className="mt-1 text-gray-600">{t('rides.create.subtitle', { teamName: team.name })}</p>
       </div>
 
       <RideEditor
@@ -145,7 +144,7 @@ export function CreateRidePage() {
         onSubmit={handleSubmit}
         onCancel={() => navigate(paths.team(teamSlug!))}
         isPending={createMutation.isPending}
-        submitButtonText={t('create.button')}
+        submitButtonText={t('rides.create.button')}
       />
 
       <RideTemplatePickerModal

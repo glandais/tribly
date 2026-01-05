@@ -24,8 +24,7 @@ import { AdType } from '../../api/dto'
 const PAGE_SIZE = 20
 
 export function AdListPage() {
-  const { t } = useTranslation('ads')
-  const { t: tCommon } = useTranslation('common')
+  const { t } = useTranslation()
   const { teamSlug } = useParams<{ teamSlug: string }>()
   const [search, setSearch] = useState('')
   const [adType, setAdType] = useState<AdType | undefined>(undefined)
@@ -50,7 +49,7 @@ export function AdListPage() {
   )
 
   if (isLoadingTeam) {
-    return <LoadingPage message={tCommon('loading')} />
+    return <LoadingPage message={t('loading')} />
   }
 
   if (!team) {
@@ -76,12 +75,12 @@ export function AdListPage() {
       <div className="py-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-          <h2 className="text-2xl font-bold text-gray-900">{tCommon('ads')}</h2>
+          <h2 className="text-2xl font-bold text-gray-900">{t('ads.title')}</h2>
           {isMember && (
             <Button asChild>
               <Link to={paths.adNew(teamSlug!)}>
                 <PlusIcon className="h-5 w-5 mr-2" />
-                {t('list.createAd')}
+                {t('ads.list.createAd')}
               </Link>
             </Button>
           )}
@@ -93,22 +92,22 @@ export function AdListPage() {
             <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
             <Input
               type="text"
-              placeholder={t('list.search.placeholder')}
+              placeholder={t('ads.list.search.placeholder')}
               value={search}
               onChange={(e) => handleSearchChange(e.target.value)}
               className="pl-10"
-              aria-label={t('list.search.label')}
+              aria-label={t('ads.list.search.label')}
             />
           </div>
           <Select value={adType || 'ALL'} onValueChange={handleAdTypeChange}>
             <SelectTrigger className="w-full sm:w-48">
-              <SelectValue placeholder={t('list.filterByType')} />
+              <SelectValue placeholder={t('ads.list.filterByType')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="ALL">{t('list.allTypes')}</SelectItem>
-              <SelectItem value={AdType.SALE}>{t('adType.SALE')}</SelectItem>
-              <SelectItem value={AdType.RENTAL}>{t('adType.RENTAL')}</SelectItem>
-              <SelectItem value={AdType.WANTED}>{t('adType.WANTED')}</SelectItem>
+              <SelectItem value="ALL">{t('ads.list.allTypes')}</SelectItem>
+              <SelectItem value={AdType.SALE}>{t('ads.adType.SALE')}</SelectItem>
+              <SelectItem value={AdType.RENTAL}>{t('ads.adType.RENTAL')}</SelectItem>
+              <SelectItem value={AdType.WANTED}>{t('ads.adType.WANTED')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -122,9 +121,11 @@ export function AdListPage() {
           </div>
         ) : ads.length === 0 ? (
           <div className="text-center py-12">
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">{t('list.empty.title')}</h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">
+              {t('ads.list.empty.title')}
+            </h2>
             <p className="text-gray-600">
-              {search || adType ? t('list.noResults') : t('list.empty.member')}
+              {search || adType ? t('ads.list.noResults') : t('ads.list.empty.member')}
             </p>
           </div>
         ) : (

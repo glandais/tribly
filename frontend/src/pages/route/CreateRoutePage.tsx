@@ -14,7 +14,7 @@ import { defaultMedia } from '@/lib/apiUtils'
 export function CreateRoutePage() {
   const { teamSlug } = useParams<{ teamSlug: string }>()
   const navigate = useNavigate()
-  const { t } = useTranslation('routes')
+  const { t } = useTranslation()
   const queryClient = useQueryClient()
 
   const { data: team, isLoading: isLoadingTeam } = useGetTeam(teamSlug!, {
@@ -37,7 +37,7 @@ export function CreateRoutePage() {
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getListRoutesQueryKey(teamSlug!) })
-          toast.success(i18next.t('routes:notifications.created'))
+          toast.success(i18next.t('routes.notifications.created'))
         },
       }
     )
@@ -50,7 +50,7 @@ export function CreateRoutePage() {
   }
 
   if (isLoadingTeam) {
-    return <LoadingPage message={t('create.title')} />
+    return <LoadingPage message={t('routes.create.title')} />
   }
 
   if (!team) {
@@ -74,8 +74,8 @@ export function CreateRoutePage() {
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">{t('create.title')}</h1>
-        <p className="mt-2 text-gray-600">{t('create.subtitle')}</p>
+        <h1 className="text-3xl font-bold text-gray-900">{t('routes.create.title')}</h1>
+        <p className="mt-2 text-gray-600">{t('routes.create.subtitle')}</p>
       </div>
 
       <RouteEditor
@@ -87,7 +87,7 @@ export function CreateRoutePage() {
         onCancel={handleCancel}
         isPending={createRouteMutation.isPending}
         error={createRouteMutation.error}
-        submitButtonText={t('create.submit')}
+        submitButtonText={t('routes.create.submit')}
       />
     </div>
   )

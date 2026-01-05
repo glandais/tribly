@@ -13,7 +13,7 @@ interface TeamAdminLayoutProps {
 }
 
 export function TeamAdminLayout({ team, currentTab, children }: TeamAdminLayoutProps) {
-  const { t } = useTranslation('teams')
+  const { t } = useTranslation()
 
   const isAdmin = team.role === 'ADMIN'
   const isOrganizer = team.role === 'ADMIN' || team.role === 'ORGANIZER'
@@ -27,7 +27,7 @@ export function TeamAdminLayout({ team, currentTab, children }: TeamAdminLayoutP
     {
       id: 'ride-templates',
       path: paths.rideTemplates(team.slug),
-      label: t('admin.tabs.rideTemplates'),
+      label: t('teams.admin.tabs.rideTemplates'),
     },
     {
       id: 'places',
@@ -37,19 +37,19 @@ export function TeamAdminLayout({ team, currentTab, children }: TeamAdminLayoutP
     {
       id: 'pages',
       path: paths.teamAdminPages(team.slug),
-      label: t('admin.tabs.pages'),
+      label: t('teams.admin.tabs.pages'),
       adminOnly: true,
     },
     {
       id: 'members',
       path: paths.teamMembers(team.slug),
-      label: t('admin.tabs.members'),
+      label: t('teams.admin.tabs.members'),
       adminOnly: true,
     },
     {
       id: 'settings',
       path: paths.teamSettings(team.slug),
-      label: t('admin.tabs.settings'),
+      label: t('teams.admin.tabs.settings'),
       adminOnly: true,
     },
   ]
@@ -66,9 +66,9 @@ export function TeamAdminLayout({ team, currentTab, children }: TeamAdminLayoutP
           className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700"
         >
           <ArrowLeftIcon className="w-4 h-4 mr-1" />
-          {t('admin.backToTeam', { teamName: team.name })}
+          {t('teams.admin.backToTeam', { teamName: team.name })}
         </Link>
-        <h1 className="mt-2 text-2xl font-bold text-gray-900">{t('admin.title')}</h1>
+        <h1 className="mt-2 text-2xl font-bold text-gray-900">{t('teams.admin.title')}</h1>
       </div>
 
       {/* Admin Navigation */}

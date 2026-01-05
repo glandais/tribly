@@ -21,7 +21,7 @@ export function MapStyleSwitcher({
   currentStyleId,
   onStyleChange,
 }: MapStyleSwitcherProps) {
-  const { t } = useTranslation('common')
+  const { t } = useTranslation()
   const [isExpanded, setIsExpanded] = useState(false)
 
   const toggleExpanded = useCallback(() => {

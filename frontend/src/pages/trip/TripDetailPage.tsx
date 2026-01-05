@@ -48,8 +48,7 @@ const statusColors: Record<Status, string> = {
 }
 
 export function TripDetailPage() {
-  const { t } = useTranslation('trips')
-  const { t: tCommon } = useTranslation('common')
+  const { t } = useTranslation()
   const { formatDateTime } = useFormattedDate()
   const { teamSlug, tripSlug } = useParams<{ teamSlug: string; tripSlug: string }>()
   const { isAuthenticated, user } = useAuth()
@@ -78,7 +77,7 @@ export function TripDetailPage() {
   const leaveMutation = useLeaveTrip()
 
   if (isLoadingTeam || isLoadingTrip) {
-    return <LoadingPage message={tCommon('loading')} />
+    return <LoadingPage message={t('loading')} />
   }
 
   if (team && !team.enableTrips) {
@@ -89,13 +88,15 @@ export function TripDetailPage() {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-center py-12">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">{t('detail.notFound.title')}</h1>
-          <p className="text-gray-600 mb-6">{t('detail.notFound.message')}</p>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+            {t('trips.detail.notFound.title')}
+          </h1>
+          <p className="text-gray-600 mb-6">{t('trips.detail.notFound.message')}</p>
           <Link
             to={paths.team(teamSlug!)}
             className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
           >
-            {t('detail.notFound.backToTrips')}
+            {t('trips.detail.notFound.backToTrips')}
           </Link>
         </div>
       </div>
@@ -119,7 +120,7 @@ export function TripDetailPage() {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetTripQueryKey(teamSlug!, tripSlug!) })
           queryClient.invalidateQueries({ queryKey: getListTripsQueryKey(teamSlug!) })
-          toast.success(t('notifications.published'))
+          toast.success(t('trips.notifications.published'))
         },
       }
     )
@@ -132,7 +133,7 @@ export function TripDetailPage() {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetTripQueryKey(teamSlug!, tripSlug!) })
           queryClient.invalidateQueries({ queryKey: getListTripsQueryKey(teamSlug!) })
-          toast.success(t('notifications.unpublished'))
+          toast.success(t('trips.notifications.unpublished'))
         },
       }
     )
@@ -146,7 +147,7 @@ export function TripDetailPage() {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetTripQueryKey(teamSlug!, tripSlug!) })
           queryClient.invalidateQueries({ queryKey: getListTripsQueryKey(teamSlug!) })
-          toast.success(t('notifications.cancelled'))
+          toast.success(t('trips.notifications.cancelled'))
         },
       }
     )
@@ -160,7 +161,7 @@ export function TripDetailPage() {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetTripQueryKey(teamSlug!, tripSlug!) })
           queryClient.invalidateQueries({ queryKey: getListTripsQueryKey(teamSlug!) })
-          toast.success(t('notifications.uncancelled'))
+          toast.success(t('trips.notifications.uncancelled'))
         },
       }
     )
@@ -173,7 +174,7 @@ export function TripDetailPage() {
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getListTripsQueryKey(teamSlug!) })
-          toast.success(t('notifications.deleted'))
+          toast.success(t('trips.notifications.deleted'))
           navigate(paths.team(teamSlug!))
         },
       }
@@ -187,7 +188,7 @@ export function TripDetailPage() {
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetTripQueryKey(teamSlug!, tripSlug!) })
-          toast.success(t('notifications.joined'))
+          toast.success(t('trips.notifications.joined'))
         },
       }
     )
@@ -199,7 +200,7 @@ export function TripDetailPage() {
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetTripQueryKey(teamSlug!, tripSlug!) })
-          toast.success(t('notifications.left'))
+          toast.success(t('trips.notifications.left'))
         },
       }
     )
@@ -216,7 +217,7 @@ export function TripDetailPage() {
             <span
               className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium shrink-0 ${statusColors[trip.status]}`}
             >
-              {tCommon(`status.${trip.status satisfies 'DRAFT' | 'PUBLISHED' | 'CANCELLED'}`)}
+              {t(`status.${trip.status satisfies 'DRAFT' | 'PUBLISHED' | 'CANCELLED'}`)}
             </span>
           </div>
 
@@ -229,7 +230,7 @@ export function TripDetailPage() {
                 className="inline-flex items-center px-3 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50"
               >
                 {joinMutation.isPending ? <LoadingSpinner size="sm" className="mr-2" /> : null}
-                {t('detail.actions.join')}
+                {t('trips.detail.actions.join')}
               </button>
             )}
             {hasJoined && (
@@ -239,7 +240,7 @@ export function TripDetailPage() {
                 className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
               >
                 {leaveMutation.isPending ? <LoadingSpinner size="sm" className="mr-2" /> : null}
-                {t('detail.actions.leave')}
+                {t('trips.detail.actions.leave')}
               </button>
             )}
 
@@ -248,7 +249,7 @@ export function TripDetailPage() {
                 <Button asChild variant="outline">
                   <Link to={paths.tripEdit(teamSlug!, tripSlug!)}>
                     <PencilIcon className="w-4 h-4" />
-                    {tCommon('actions.edit')}
+                    {t('actions.edit')}
                   </Link>
                 </Button>
                 <DropdownMenu>
@@ -265,7 +266,7 @@ export function TripDetailPage() {
                         className="text-green-700"
                       >
                         {updateMutation.isPending && <LoadingSpinner size="sm" />}
-                        {tCommon('actions.publish')}
+                        {t('actions.publish')}
                       </DropdownMenuItem>
                     )}
                     {trip.status === Status.PUBLISHED && (
@@ -274,13 +275,13 @@ export function TripDetailPage() {
                           onClick={() => setShowUnpublishConfirm(true)}
                           className="text-yellow-700"
                         >
-                          {tCommon('actions.unpublish')}
+                          {t('actions.unpublish')}
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => setShowCancelConfirm(true)}
                           className="text-yellow-700"
                         >
-                          {t('detail.actions.cancel')}
+                          {t('trips.detail.actions.cancel')}
                         </DropdownMenuItem>
                       </>
                     )}
@@ -289,7 +290,7 @@ export function TripDetailPage() {
                         onClick={() => setShowUncancelConfirm(true)}
                         className="text-green-700"
                       >
-                        {t('detail.actions.uncancel')}
+                        {t('trips.detail.actions.uncancel')}
                       </DropdownMenuItem>
                     )}
                     <DropdownMenuSeparator />
@@ -297,7 +298,7 @@ export function TripDetailPage() {
                       onClick={() => setShowDeleteConfirm(true)}
                       variant="destructive"
                     >
-                      {tCommon('actions.delete')}
+                      {t('actions.delete')}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -312,7 +313,7 @@ export function TripDetailPage() {
         {trip.status === Status.DRAFT && trip.publishAt && (
           <div className="mt-2 text-sm text-amber-600 flex items-center">
             <CalendarIcon className="w-4 h-4 mr-1" />
-            {t('detail.scheduledPublish', {
+            {t('trips.detail.scheduledPublish', {
               date: formatDateTime(trip.publishAt),
             })}
           </div>
@@ -324,11 +325,11 @@ export function TripDetailPage() {
           </span>
           <span className="flex items-center">
             <UsersIcon className="w-4 h-4 mr-1" />
-            {tCommon('participantCount', { count: trip.participantCount })}
+            {t('participantCount', { count: trip.participantCount })}
           </span>
           <span className="flex items-center">
             <RectangleStackIcon className="w-4 h-4 mr-1" />
-            {t('card.stageCount', { count: trip.stageCount })}
+            {t('trips.card.stageCount', { count: trip.stageCount })}
           </span>
         </div>
       </div>
@@ -337,7 +338,9 @@ export function TripDetailPage() {
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-6">
         {/* Stages list on left (takes 1 column on xl screens) */}
         <div className="xl:col-span-1 order-2 xl:order-1">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('detail.stages.title')}</h2>
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+            {t('trips.detail.stages.title')}
+          </h2>
           {trip.stages && trip.stages.length > 0 ? (
             <div className="space-y-3">
               {trip.stages.map((stage, index) => (
@@ -352,7 +355,7 @@ export function TripDetailPage() {
               ))}
             </div>
           ) : (
-            <p className="text-gray-500">{t('detail.stages.empty')}</p>
+            <p className="text-gray-500">{t('trips.detail.stages.empty')}</p>
           )}
         </div>
 
@@ -373,7 +376,7 @@ export function TripDetailPage() {
       {trip.participants && trip.participants.length > 0 && (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">
-            {t('detail.participants.title')}
+            {t('trips.detail.participants.title')}
           </h2>
           <div className="flex flex-wrap gap-2">
             {trip.participants.map((participant) => (
@@ -392,9 +395,9 @@ export function TripDetailPage() {
       {!isMember && isAuthenticated && (
         <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
           <p className="text-yellow-800">
-            {t('detail.nonMember.message')}{' '}
+            {t('trips.detail.nonMember.message')}{' '}
             <Link to={paths.team(teamSlug!)} className="font-medium underline">
-              {t('detail.nonMember.viewTeam')}
+              {t('trips.detail.nonMember.viewTeam')}
             </Link>
           </p>
         </div>
@@ -403,9 +406,9 @@ export function TripDetailPage() {
       {!isAuthenticated && (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <p className="text-blue-800">
-            {t('detail.notAuthenticated.message')}{' '}
+            {t('trips.detail.notAuthenticated.message')}{' '}
             <Link to="/login" className="font-medium underline">
-              {t('detail.notAuthenticated.signIn')}
+              {t('trips.detail.notAuthenticated.signIn')}
             </Link>
           </p>
         </div>
@@ -428,9 +431,9 @@ export function TripDetailPage() {
         isOpen={showUnpublishConfirm}
         onClose={() => setShowUnpublishConfirm(false)}
         onConfirm={handleUnpublish}
-        title={tCommon('actions.unpublish')}
-        message={t('detail.confirmations.unpublish')}
-        confirmText={tCommon('actions.unpublish')}
+        title={t('actions.unpublish')}
+        message={t('trips.detail.confirmations.unpublish')}
+        confirmText={t('actions.unpublish')}
         variant="warning"
         isLoading={updateMutation.isPending}
       />
@@ -438,9 +441,9 @@ export function TripDetailPage() {
         isOpen={showCancelConfirm}
         onClose={() => setShowCancelConfirm(false)}
         onConfirm={handleCancel}
-        title={t('detail.actions.cancel')}
-        message={t('detail.confirmations.cancel')}
-        confirmText={t('detail.actions.cancel')}
+        title={t('trips.detail.actions.cancel')}
+        message={t('trips.detail.confirmations.cancel')}
+        confirmText={t('trips.detail.actions.cancel')}
         variant="warning"
         isLoading={updateMutation.isPending}
       />
@@ -448,9 +451,9 @@ export function TripDetailPage() {
         isOpen={showUncancelConfirm}
         onClose={() => setShowUncancelConfirm(false)}
         onConfirm={handleUncancel}
-        title={t('detail.actions.uncancel')}
-        message={t('detail.confirmations.uncancel')}
-        confirmText={t('detail.actions.uncancel')}
+        title={t('trips.detail.actions.uncancel')}
+        message={t('trips.detail.confirmations.uncancel')}
+        confirmText={t('trips.detail.actions.uncancel')}
         variant="info"
         isLoading={updateMutation.isPending}
       />
@@ -458,9 +461,9 @@ export function TripDetailPage() {
         isOpen={showDeleteConfirm}
         onClose={() => setShowDeleteConfirm(false)}
         onConfirm={handleDelete}
-        title={tCommon('actions.delete')}
-        message={t('detail.confirmations.delete')}
-        confirmText={tCommon('actions.delete')}
+        title={t('actions.delete')}
+        message={t('trips.detail.confirmations.delete')}
+        confirmText={t('actions.delete')}
         variant="danger"
         isLoading={deleteMutation.isPending}
       />

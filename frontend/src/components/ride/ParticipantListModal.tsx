@@ -24,13 +24,13 @@ export function ParticipantListModal({
   participants,
   groupName,
 }: ParticipantListModalProps) {
-  const { t } = useTranslation(['rides', 'common'])
+  const { t } = useTranslation()
 
   const participantCount = participants.length
 
   const headerSubtitle = (
     <p className="text-sm font-semibold text-indigo-600">
-      {t('detail.groups.participantsNoMax', { current: participantCount })}
+      {t('rides.detail.groups.participantsNoMax', { current: participantCount })}
     </p>
   )
 
@@ -42,7 +42,9 @@ export function ParticipantListModal({
         {participants.length === 0 ? (
           <div className="py-12 text-center">
             <UsersIcon className="mx-auto h-12 w-12 text-gray-300" />
-            <p className="mt-3 text-sm font-medium text-gray-500">{t('detail.groups.empty')}</p>
+            <p className="mt-3 text-sm font-medium text-gray-500">
+              {t('rides.detail.groups.empty')}
+            </p>
           </div>
         ) : (
           <ul className="space-y-2" role="list">
@@ -57,7 +59,7 @@ export function ParticipantListModal({
                   {participant.isOrganizer && (
                     <div
                       className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-indigo-600 ring-2 ring-white shadow-sm"
-                      title={t('common:roles.ORGANIZER')}
+                      title={t('roles.ORGANIZER')}
                     >
                       <ShieldCheckIcon className="h-3 w-3 text-white" />
                     </div>
@@ -70,9 +72,7 @@ export function ParticipantListModal({
                     {participant.displayName}
                   </p>
                   {participant.isOrganizer && (
-                    <p className="text-xs text-gray-500 mt-0.5">
-                      {t('common:groups.groupOrganizer')}
-                    </p>
+                    <p className="text-xs text-gray-500 mt-0.5">{t('groups.groupOrganizer')}</p>
                   )}
                 </div>
 

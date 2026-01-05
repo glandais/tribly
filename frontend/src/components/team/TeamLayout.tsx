@@ -24,8 +24,7 @@ interface TeamLayoutProps {
 }
 
 export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
-  const { t } = useTranslation('teams')
-  const { t: tCommon } = useTranslation('common')
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const { isAuthenticated } = useAuth()
@@ -74,11 +73,11 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
       {
         id: 'publications',
         path: paths.team(team.slug),
-        label: t('publications.list.title'),
+        label: t('teams.publications.list.title'),
       },
-      { id: 'routes', path: paths.routes(team.slug), label: t('detail.tabs.routes') },
-      ...(team.enableAds ? [{ id: 'ads', path: paths.ads(team.slug), label: tCommon('ads') }] : []),
-      { id: 'about', path: paths.teamAbout(team.slug), label: t('detail.tabs.about') },
+      { id: 'routes', path: paths.routes(team.slug), label: t('teams.detail.tabs.routes') },
+      ...(team.enableAds ? [{ id: 'ads', path: paths.ads(team.slug), label: t('ads.title') }] : []),
+      { id: 'about', path: paths.teamAbout(team.slug), label: t('teams.detail.tabs.about') },
     ]
 
     // Add dynamic pages - filter by visibility (PUBLIC pages or member can see TEAM pages)
@@ -93,7 +92,7 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
     }))
 
     return [...baseTabs, ...pageTabs]
-  }, [team.slug, team.pages, team.enableAds, isMember, t, tCommon])
+  }, [team.slug, team.pages, team.enableAds, isMember, t])
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -116,7 +115,9 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
                 disabled={joinMutation.isPending}
                 className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
               >
-                {joinMutation.isPending ? t('detail.actions.joining') : t('detail.actions.join')}
+                {joinMutation.isPending
+                  ? t('teams.detail.actions.joining')
+                  : t('teams.detail.actions.join')}
               </button>
             )}
 
@@ -125,7 +126,7 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
                 onClick={() => setShowLeaveConfirm(true)}
                 className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-xs text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
               >
-                {t('detail.actions.leave')}
+                {t('teams.detail.actions.leave')}
               </button>
             )}
 
@@ -134,7 +135,7 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
                 to={paths.teamAdmin(team.slug)}
                 className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-xs text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
               >
-                {t('detail.actions.admin')}
+                {t('teams.detail.actions.admin')}
               </Link>
             )}
           </div>
@@ -168,9 +169,9 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
         isOpen={showLeaveConfirm}
         onClose={() => setShowLeaveConfirm(false)}
         onConfirm={handleLeave}
-        title={t('detail.actions.leave')}
-        message={t('detail.actions.confirmLeave')}
-        confirmText={t('detail.actions.leave')}
+        title={t('teams.detail.actions.leave')}
+        message={t('teams.detail.actions.confirmLeave')}
+        confirmText={t('teams.detail.actions.leave')}
         variant="warning"
         isLoading={leaveMutation.isPending}
       />

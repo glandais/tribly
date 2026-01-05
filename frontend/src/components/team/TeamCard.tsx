@@ -18,7 +18,7 @@ const roleBadgeVariants: Record<string, 'purple' | 'blue' | 'gray'> = {
 }
 
 export function TeamCard({ team, showRole = false }: TeamCardProps) {
-  const { t } = useTranslation('common')
+  const { t } = useTranslation()
 
   const membersIcon = <UsersIcon />
 

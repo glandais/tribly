@@ -32,8 +32,7 @@ export function TeamMemberList({
   isUpdating = false,
   isRemoving = false,
 }: TeamMemberListProps) {
-  const { t } = useTranslation('teams')
-  const { t: tCommon } = useTranslation('common')
+  const { t } = useTranslation()
   const { formatDate } = useFormattedDate()
   const [editingMemberId, setEditingMemberId] = useState<string | null>(null)
   const [selectedRole, setSelectedRole] = useState<TeamRole>(TeamRole.MEMBER)
@@ -88,13 +87,13 @@ export function TeamMemberList({
                       {member.user.displayName}
                       {isCurrentUser && (
                         <span className="ml-2 text-xs text-gray-500">
-                          {t('detail.members.you')}
+                          {t('teams.detail.members.you')}
                         </span>
                       )}
                     </p>
                     <p className="text-xs text-gray-400">
-                      {t('detail.members.joined', {
-                        date: formatDate(member.joinedAt) || tCommon('unknown'),
+                      {t('teams.detail.members.joined', {
+                        date: formatDate(member.joinedAt) || t('unknown'),
                       })}
                     </p>
                   </div>
@@ -109,27 +108,25 @@ export function TeamMemberList({
                         className="text-sm border border-gray-300 rounded-md px-2 py-1 focus:ring-indigo-500 focus:border-indigo-500"
                         disabled={isUpdating}
                       >
-                        {canManageMembers && (
-                          <option value="ADMIN">{tCommon('roles.ADMIN')}</option>
-                        )}
+                        {canManageMembers && <option value="ADMIN">{t('roles.ADMIN')}</option>}
                         {canAssignOrganizers && (
-                          <option value="ORGANIZER">{tCommon('roles.ORGANIZER')}</option>
+                          <option value="ORGANIZER">{t('roles.ORGANIZER')}</option>
                         )}
-                        <option value="MEMBER">{tCommon('roles.MEMBER')}</option>
+                        <option value="MEMBER">{t('roles.MEMBER')}</option>
                       </select>
                       <button
                         onClick={() => handleRoleChange(member.user.id)}
                         disabled={isUpdating}
                         className="text-sm text-indigo-600 hover:text-indigo-900 disabled:opacity-50"
                       >
-                        {isUpdating ? <LoadingSpinner size="sm" /> : tCommon('actions.save')}
+                        {isUpdating ? <LoadingSpinner size="sm" /> : t('actions.save')}
                       </button>
                       <button
                         onClick={() => setEditingMemberId(null)}
                         disabled={isUpdating}
                         className="text-sm text-gray-600 hover:text-gray-900 disabled:opacity-50"
                       >
-                        {tCommon('actions.cancelAction')}
+                        {t('actions.cancelAction')}
                       </button>
                     </>
                   ) : (
@@ -137,7 +134,7 @@ export function TeamMemberList({
                       <span
                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${roleBadgeColors[member.role]}`}
                       >
-                        {tCommon(`roles.${member.role satisfies 'ADMIN' | 'ORGANIZER' | 'MEMBER'}`)}
+                        {t(`roles.${member.role satisfies 'ADMIN' | 'ORGANIZER' | 'MEMBER'}`)}
                       </span>
 
                       {canEdit && (
@@ -148,7 +145,7 @@ export function TeamMemberList({
                           }}
                           className="text-sm text-gray-600 hover:text-gray-900"
                         >
-                          {tCommon('actions.edit')}
+                          {t('actions.edit')}
                         </button>
                       )}
 
@@ -158,7 +155,11 @@ export function TeamMemberList({
                           disabled={isRemoving}
                           className="text-sm text-red-600 hover:text-red-900 disabled:opacity-50"
                         >
-                          {isRemoving ? <LoadingSpinner size="sm" /> : t('detail.members.remove')}
+                          {isRemoving ? (
+                            <LoadingSpinner size="sm" />
+                          ) : (
+                            t('teams.detail.members.remove')
+                          )}
                         </button>
                       )}
                     </>
@@ -177,9 +178,9 @@ export function TeamMemberList({
           setMemberToRemove(null)
         }}
         onConfirm={handleConfirmRemove}
-        title={t('detail.members.remove')}
-        message={t('detail.members.confirmRemove')}
-        confirmText={t('detail.members.remove')}
+        title={t('teams.detail.members.remove')}
+        message={t('teams.detail.members.confirmRemove')}
+        confirmText={t('teams.detail.members.remove')}
         variant="danger"
         isLoading={isRemoving}
       />

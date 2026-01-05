@@ -34,8 +34,7 @@ interface PlaceFormProps {
 }
 
 export function PlaceForm({ teamSlug, place, onClose }: PlaceFormProps) {
-  const { t } = useTranslation('teams')
-  const { t: tCommon } = useTranslation('common')
+  const { t } = useTranslation()
   const queryClient = useQueryClient()
   const createMutation = useCreatePlace()
   const updateMutation = useUpdatePlace()
@@ -58,7 +57,7 @@ export function PlaceForm({ teamSlug, place, onClose }: PlaceFormProps) {
           onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: getListPlacesQueryKey(teamSlug) })
             queryClient.invalidateQueries({ queryKey: getGetPlaceQueryKey(teamSlug, place.id) })
-            toast.success(i18next.t('teams:notifications.placeUpdated'))
+            toast.success(i18next.t('teams.notifications.placeUpdated'))
             onClose()
           },
         }
@@ -69,7 +68,7 @@ export function PlaceForm({ teamSlug, place, onClose }: PlaceFormProps) {
         {
           onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: getListPlacesQueryKey(teamSlug) })
-            toast.success(i18next.t('teams:notifications.placeCreated'))
+            toast.success(i18next.t('teams.notifications.placeCreated'))
             onClose()
           },
         }
@@ -82,7 +81,7 @@ export function PlaceForm({ teamSlug, place, onClose }: PlaceFormProps) {
   const footerContent = (
     <>
       <Button type="button" variant="outline" onClick={onClose}>
-        {tCommon('actions.cancelAction')}
+        {t('actions.cancelAction')}
       </Button>
       <Button
         type="submit"
@@ -90,9 +89,9 @@ export function PlaceForm({ teamSlug, place, onClose }: PlaceFormProps) {
         disabled={mutation.isPending || !form.formState.isValid}
       >
         {mutation.isPending
-          ? tCommon('loading')
+          ? t('loading')
           : isEditing
-            ? tCommon('actions.save')
+            ? t('actions.save')
             : t('places.form.create')}
       </Button>
     </>

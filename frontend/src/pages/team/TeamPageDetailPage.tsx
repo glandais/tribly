@@ -9,7 +9,6 @@ import { MediaDisplay } from '../../components/common/MediaDisplay'
 import { VisibilityBadge } from '../../components/common/card/VisibilityBadge'
 
 export function TeamPageDetailPage() {
-  const { t } = useTranslation('teams')
   const { teamSlug, pageSlug } = useParams<{ teamSlug: string; pageSlug: string }>()
 
   const { data: team, isLoading: isTeamLoading } = useGetTeam(teamSlug!, {
@@ -19,10 +18,10 @@ export function TeamPageDetailPage() {
     query: { enabled: !!teamSlug && !!pageSlug },
   })
 
-  const { t: tCommon } = useTranslation('common')
+  const { t } = useTranslation()
 
   if (isTeamLoading || isPageLoading) {
-    return <LoadingPage message={tCommon('loading')} />
+    return <LoadingPage message={t('loading')} />
   }
 
   if (!team) {
@@ -50,7 +49,7 @@ export function TeamPageDetailPage() {
           <div>
             <MediaDisplay media={page.media} className="text-gray-600" />
             {!page.media?.markdown && (
-              <p className="text-gray-500 italic">{t('pages.noContent')}</p>
+              <p className="text-gray-500 italic">{t('teams.pages.noContent')}</p>
             )}
           </div>
         </div>

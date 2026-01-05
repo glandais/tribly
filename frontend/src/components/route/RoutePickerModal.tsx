@@ -30,8 +30,7 @@ export function RoutePickerModal({
   title,
   onCreateNew,
 }: RoutePickerModalProps) {
-  const { t } = useTranslation('routes')
-  const { t: tCommon } = useTranslation('common')
+  const { t } = useTranslation()
   const [page, setPage] = useState(0)
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
@@ -79,7 +78,7 @@ export function RoutePickerModal({
       <SearchInput
         value={search}
         onChange={setSearch}
-        placeholder={t('picker.search')}
+        placeholder={t('routes.picker.search')}
         fullWidth
         className="flex-1"
       />
@@ -89,7 +88,7 @@ export function RoutePickerModal({
           onClick={onCreateNew}
           className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700"
         >
-          {t('create.title')}
+          {t('routes.create.title')}
         </button>
       )}
     </div>
@@ -103,7 +102,7 @@ export function RoutePickerModal({
           onClick={() => onSelect(null)}
           className="px-4 py-2 text-sm font-medium text-red-600 hover:text-red-700"
         >
-          {t('picker.clearSelection')}
+          {t('routes.picker.clearSelection')}
         </button>
       )}
       <button
@@ -111,7 +110,7 @@ export function RoutePickerModal({
         onClick={handleClose}
         className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
       >
-        {tCommon('actions.cancelAction')}
+        {t('actions.cancelAction')}
       </button>
     </>
   )
@@ -120,7 +119,7 @@ export function RoutePickerModal({
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      title={title || t('picker.title')}
+      title={title || t('routes.picker.title')}
       size="4xl"
       subheader={searchBar}
       footer={footerContent}
@@ -128,21 +127,21 @@ export function RoutePickerModal({
       {isLoading ? (
         <div className="flex flex-col items-center justify-center py-12">
           <LoadingSpinner />
-          <p className="mt-2 text-gray-500">{tCommon('loading')}</p>
+          <p className="mt-2 text-gray-500">{t('loading')}</p>
         </div>
       ) : error ? (
-        <div className="text-center py-12 text-red-600">{tCommon('error.loading')}</div>
+        <div className="text-center py-12 text-red-600">{t('error.loading')}</div>
       ) : routes.length === 0 ? (
         <div className="text-center py-12">
           <MapIcon className="mx-auto h-12 w-12 text-gray-400" />
-          <p className="mt-2 text-gray-500">{t('picker.noResults')}</p>
+          <p className="mt-2 text-gray-500">{t('routes.picker.noResults')}</p>
           {selectedRouteSlug && (
             <button
               type="button"
               onClick={() => onSelect(null)}
               className="mt-4 text-sm text-indigo-600 hover:text-indigo-700"
             >
-              {t('picker.clearSelection')}
+              {t('routes.picker.clearSelection')}
             </button>
           )}
         </div>
@@ -175,12 +174,12 @@ export function RoutePickerModal({
                 <div className="flex gap-3 mt-2 text-xs text-gray-500">
                   <span className="flex items-center gap-1">
                     <ArrowsPointingOutIcon className="w-3.5 h-3.5" />
-                    {(route.distance / 1000).toFixed(1)} {tCommon('units.km')}
+                    {(route.distance / 1000).toFixed(1)} {t('units.km')}
                   </span>
                   <span className="flex items-center gap-1">
                     <ArrowUpIcon className="w-3.5 h-3.5" />
                     {route.elevationGain}
-                    {tCommon('units.m')}
+                    {t('units.m')}
                   </span>
                 </div>
               </button>

@@ -26,8 +26,7 @@ export function RideTemplatePickerModal({
   teamSlug,
   title,
 }: RideTemplatePickerModalProps) {
-  const { t } = useTranslation('rideTemplates')
-  const { t: tCommon } = useTranslation('common')
+  const { t } = useTranslation()
   const [page, setPage] = useState(0)
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
@@ -77,7 +76,12 @@ export function RideTemplatePickerModal({
   const templates = templatesResponse?.templates || []
 
   const searchBar = (
-    <SearchInput value={search} onChange={setSearch} placeholder={t('picker.search')} fullWidth />
+    <SearchInput
+      value={search}
+      onChange={setSearch}
+      placeholder={t('rideTemplates.picker.search')}
+      fullWidth
+    />
   )
 
   const footerContent = (
@@ -86,7 +90,7 @@ export function RideTemplatePickerModal({
       onClick={handleClose}
       className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
     >
-      {tCommon('actions.cancelAction')}
+      {t('actions.cancelAction')}
     </button>
   )
 
@@ -94,7 +98,7 @@ export function RideTemplatePickerModal({
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      title={title || t('picker.title')}
+      title={title || t('rideTemplates.picker.title')}
       size="2xl"
       subheader={searchBar}
       footer={footerContent}
@@ -102,14 +106,14 @@ export function RideTemplatePickerModal({
       {isLoading ? (
         <div className="flex flex-col items-center justify-center py-12">
           <LoadingSpinner />
-          <p className="mt-2 text-gray-500">{tCommon('loading')}</p>
+          <p className="mt-2 text-gray-500">{t('loading')}</p>
         </div>
       ) : error ? (
-        <div className="text-center py-12 text-red-600">{tCommon('error.loading')}</div>
+        <div className="text-center py-12 text-red-600">{t('error.loading')}</div>
       ) : templates.length === 0 ? (
         <div className="text-center py-12">
           <DocumentDuplicateIcon className="mx-auto h-12 w-12 text-gray-400" />
-          <p className="mt-2 text-gray-500">{t('list.noResults')}</p>
+          <p className="mt-2 text-gray-500">{t('rideTemplates.list.noResults')}</p>
         </div>
       ) : (
         <>
@@ -135,7 +139,7 @@ export function RideTemplatePickerModal({
                   </div>
                   <div className="flex items-center gap-1 ml-4 text-sm text-gray-500">
                     <UserGroupIcon className="w-4 h-4" />
-                    <span>{tCommon('groups.groupCount', { count: template.groupCount })}</span>
+                    <span>{t('groups.groupCount', { count: template.groupCount })}</span>
                   </div>
                 </div>
                 {template.groups && template.groups.length > 0 && (
@@ -148,7 +152,7 @@ export function RideTemplatePickerModal({
                         {group.name}
                         {group.averageSpeed && (
                           <span className="ml-1 text-gray-400">
-                            {tCommon('speed', { speed: group.averageSpeed })}
+                            {t('speed', { speed: group.averageSpeed })}
                           </span>
                         )}
                       </span>

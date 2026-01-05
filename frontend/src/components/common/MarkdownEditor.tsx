@@ -51,7 +51,7 @@ interface AssetUploadButtonProps {
 }
 
 function AssetUploadButton({ editorRef, onImageUpload, isUploadingImage }: AssetUploadButtonProps) {
-  const { t } = useTranslation('common')
+  const { t } = useTranslation()
   const imageInputRef = useRef<HTMLInputElement>(null)
 
   const handleClick = useCallback(() => {
@@ -170,7 +170,7 @@ export function MarkdownEditor({
   isUploadingImage,
   images = [],
 }: MarkdownEditorProps) {
-  const { t } = useTranslation('common')
+  const { t } = useTranslation()
   const editorRef = useRef<MDXEditorMethods>(null)
 
   // Debounced onChange to avoid performance issues during typing

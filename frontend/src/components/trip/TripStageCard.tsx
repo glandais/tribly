@@ -20,8 +20,7 @@ export function TripStageCard({
   onHover,
   isHighlighted = false,
 }: TripStageCardProps) {
-  const { t } = useTranslation('trips')
-  const { t: tCommon } = useTranslation('common')
+  const { t } = useTranslation()
   const { formatDateTime } = useFormattedDate()
 
   return (
@@ -60,14 +59,14 @@ export function TripStageCard({
           {stage.startPlace && (
             <span className="flex items-center">
               <MapPinIcon className="w-4 h-4 mr-1 text-green-600" />
-              <span className="font-medium text-green-700">{tCommon('startPlace')}:</span>
+              <span className="font-medium text-green-700">{t('startPlace')}:</span>
               <span className="ml-1">{stage.startPlace.name}</span>
             </span>
           )}
           {stage.endPlace && (
             <span className="flex items-center">
               <MapPinIcon className="w-4 h-4 mr-1 text-red-600" />
-              <span className="font-medium text-red-700">{tCommon('endPlace')}:</span>
+              <span className="font-medium text-red-700">{t('endPlace')}:</span>
               <span className="ml-1">{stage.endPlace.name}</span>
             </span>
           )}
@@ -81,7 +80,7 @@ export function TripStageCard({
             href={paths.route(teamSlug, stage.routeSlug)}
             className="text-indigo-600 hover:text-indigo-700 font-medium"
           >
-            {t('stage.viewRoute')}
+            {t('trips.stage.viewRoute')}
           </a>
         </div>
       )}

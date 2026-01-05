@@ -29,9 +29,7 @@ const filterToType: Record<FilterValue, PublicationType | undefined> = {
 }
 
 export function HomePage() {
-  const { t } = useTranslation('auth')
-  const { t: tTeams } = useTranslation('teams')
-  const { t: tCommon } = useTranslation('common')
+  const { t } = useTranslation()
   const [page, setPage] = useState(0)
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState<FilterValue>('all')
@@ -85,15 +83,15 @@ export function HomePage() {
         >
           <SelectTrigger
             className="w-full sm:w-40"
-            aria-label={tTeams('publications.list.filter.label')}
+            aria-label={t('teams.publications.list.filter.label')}
           >
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">{tTeams('publications.list.filter.all')}</SelectItem>
-            <SelectItem value="ride">{tTeams('publications.list.filter.ride')}</SelectItem>
-            <SelectItem value="post">{tTeams('publications.list.filter.post')}</SelectItem>
-            <SelectItem value="trip">{tTeams('publications.list.filter.trip')}</SelectItem>
+            <SelectItem value="all">{t('teams.publications.list.filter.all')}</SelectItem>
+            <SelectItem value="ride">{t('teams.publications.list.filter.ride')}</SelectItem>
+            <SelectItem value="post">{t('teams.publications.list.filter.post')}</SelectItem>
+            <SelectItem value="trip">{t('teams.publications.list.filter.trip')}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -109,7 +107,7 @@ export function HomePage() {
         /* Error State */
         <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
           <NewspaperIcon className="mx-auto h-12 w-12 text-red-400" />
-          <h3 className="mt-4 text-lg font-medium text-gray-900">{tCommon('error.loading')}</h3>
+          <h3 className="mt-4 text-lg font-medium text-gray-900">{t('error.loading')}</h3>
         </div>
       ) : publicationsData?.publications && publicationsData.publications.length > 0 ? (
         /* Publications List */

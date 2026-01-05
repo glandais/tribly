@@ -65,8 +65,7 @@ export function PostEditor({
   submitButtonText,
   cancelButtonText,
 }: PostEditorProps) {
-  const { t } = useTranslation('posts')
-  const { t: tCommon } = useTranslation('common')
+  const { t: t } = useTranslation()
 
   const form = useForm<PostRequest>({
     resolver: zodResolver(postSchema),
@@ -90,10 +89,10 @@ export function PostEditor({
           render={({ field }) => (
             <FormItem>
               <FormLabel>
-                {tCommon('form.title')} <span className="text-destructive">*</span>
+                {t('form.title')} <span className="text-destructive">*</span>
               </FormLabel>
               <FormControl>
-                <Input placeholder={t('create.namePlaceholder')} {...field} />
+                <Input placeholder={t('posts.create.namePlaceholder')} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -106,16 +105,16 @@ export function PostEditor({
           name="media"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{tCommon('form.description')}</FormLabel>
+              <FormLabel>{t('form.description')}</FormLabel>
               <FormControl>
                 <MediaEditor
                   value={field.value}
                   onChange={field.onChange}
-                  placeholder={t('create.descriptionPlaceholder')}
+                  placeholder={t('posts.create.descriptionPlaceholder')}
                   minHeight="200px"
                   maxHeight="400px"
                   disabled={isPending}
-                  ariaLabel={tCommon('form.description')}
+                  ariaLabel={t('form.description')}
                   teamSlug={teamSlug}
                 />
               </FormControl>
@@ -131,7 +130,7 @@ export function PostEditor({
             name="visibility"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{tCommon('visibility.label')}</FormLabel>
+                <FormLabel>{t('visibility.label')}</FormLabel>
                 <FormControl>
                   <RadioGroup
                     value={field.value}
@@ -140,11 +139,11 @@ export function PostEditor({
                   >
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="TEAM" id="visibility-team" />
-                      <Label htmlFor="visibility-team">{tCommon('visibility.team')}</Label>
+                      <Label htmlFor="visibility-team">{t('visibility.team')}</Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="PUBLIC" id="visibility-public" />
-                      <Label htmlFor="visibility-public">{tCommon('visibility.public')}</Label>
+                      <Label htmlFor="visibility-public">{t('visibility.public')}</Label>
                     </div>
                   </RadioGroup>
                 </FormControl>
@@ -160,7 +159,7 @@ export function PostEditor({
           name="status"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{tCommon('form.status')}</FormLabel>
+              <FormLabel>{t('form.status')}</FormLabel>
               <FormControl>
                 <RadioGroup
                   value={field.value}
@@ -169,11 +168,11 @@ export function PostEditor({
                 >
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="DRAFT" id="status-draft" />
-                    <Label htmlFor="status-draft">{tCommon('status.DRAFT')}</Label>
+                    <Label htmlFor="status-draft">{t('status.DRAFT')}</Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="PUBLISHED" id="status-published" />
-                    <Label htmlFor="status-published">{tCommon('status.PUBLISHED')}</Label>
+                    <Label htmlFor="status-published">{t('status.PUBLISHED')}</Label>
                   </div>
                 </RadioGroup>
               </FormControl>
@@ -190,12 +189,12 @@ export function PostEditor({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  {t('create.dateTimeLabel')} <span className="text-destructive">*</span>
+                  {t('posts.create.dateTimeLabel')} <span className="text-destructive">*</span>
                 </FormLabel>
                 <FormControl>
                   <InputDateTime {...field} />
                 </FormControl>
-                <FormDescription>{t('create.dateTimeHint')}</FormDescription>
+                <FormDescription>{t('posts.create.dateTimeHint')}</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -209,11 +208,11 @@ export function PostEditor({
             name="publishAt"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t('create.publishAtLabel')}</FormLabel>
+                <FormLabel>{t('posts.create.publishAtLabel')}</FormLabel>
                 <FormControl>
                   <InputDateTime {...field} />
                 </FormControl>
-                <FormDescription>{tCommon('form.publishAtHint')}</FormDescription>
+                <FormDescription>{t('form.publishAtHint')}</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -223,16 +222,16 @@ export function PostEditor({
         {/* Actions */}
         <div className="pt-4 flex items-center justify-end gap-3">
           <Button type="button" variant="outline" onClick={onCancel}>
-            {cancelButtonText || tCommon('actions.cancelAction')}
+            {cancelButtonText || t('actions.cancelAction')}
           </Button>
           <Button type="submit" disabled={isPending || !form.formState.isValid}>
             {isPending ? (
               <>
                 <LoadingSpinner size="sm" color="white" className="mr-2" />
-                {tCommon('loading')}
+                {t('loading')}
               </>
             ) : (
-              submitButtonText || tCommon('actions.save')
+              submitButtonText || t('actions.save')
             )}
           </Button>
         </div>

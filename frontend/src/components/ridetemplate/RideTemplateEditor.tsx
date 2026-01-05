@@ -40,9 +40,7 @@ export function RideTemplateEditor({
   isPending,
   submitButtonText,
 }: RideTemplateEditorProps) {
-  const { t } = useTranslation('rideTemplates')
-  const { t: tCommon } = useTranslation('common')
-  const { t: tRides } = useTranslation('rides')
+  const { t } = useTranslation()
 
   const form = useForm<RideTemplateRequest>({
     resolver: zodResolver(createTemplateBody),
@@ -89,10 +87,10 @@ export function RideTemplateEditor({
           render={({ field }) => (
             <FormItem>
               <FormLabel>
-                {t('form.name.label')} <span className="text-destructive">*</span>
+                {t('rideTemplates.form.name.label')} <span className="text-destructive">*</span>
               </FormLabel>
               <FormControl>
-                <Input placeholder={t('form.name.placeholder')} {...field} />
+                <Input placeholder={t('rideTemplates.form.name.placeholder')} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -105,16 +103,16 @@ export function RideTemplateEditor({
           name="markdown"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{tCommon('form.description')}</FormLabel>
+              <FormLabel>{t('form.description')}</FormLabel>
               <FormControl>
                 <MarkdownEditor
                   value={field.value || ''}
                   onChange={field.onChange}
-                  placeholder={tCommon('form.description')}
+                  placeholder={t('form.description')}
                   minHeight="150px"
                   maxHeight="300px"
                   disabled={isPending}
-                  ariaLabel={tCommon('form.description')}
+                  ariaLabel={t('form.description')}
                 />
               </FormControl>
               <FormMessage />
@@ -129,7 +127,7 @@ export function RideTemplateEditor({
             name="visibility"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{tCommon('visibility.label')}</FormLabel>
+                <FormLabel>{t('visibility.label')}</FormLabel>
                 <FormControl>
                   <RadioGroup
                     value={field.value}
@@ -138,11 +136,11 @@ export function RideTemplateEditor({
                   >
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="TEAM" id="visibility-team" />
-                      <Label htmlFor="visibility-team">{tCommon('visibility.team')}</Label>
+                      <Label htmlFor="visibility-team">{t('visibility.team')}</Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="PUBLIC" id="visibility-public" />
-                      <Label htmlFor="visibility-public">{tCommon('visibility.public')}</Label>
+                      <Label htmlFor="visibility-public">{t('visibility.public')}</Label>
                     </div>
                   </RadioGroup>
                 </FormControl>
@@ -158,7 +156,7 @@ export function RideTemplateEditor({
           name="status"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{tCommon('form.status')}</FormLabel>
+              <FormLabel>{t('form.status')}</FormLabel>
               <FormControl>
                 <RadioGroup
                   value={field.value}
@@ -167,15 +165,15 @@ export function RideTemplateEditor({
                 >
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="DRAFT" id="status-draft" />
-                    <Label htmlFor="status-draft">{tCommon('status.DRAFT')}</Label>
+                    <Label htmlFor="status-draft">{t('status.DRAFT')}</Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="PUBLISHED" id="status-published" />
-                    <Label htmlFor="status-published">{tCommon('status.PUBLISHED')}</Label>
+                    <Label htmlFor="status-published">{t('status.PUBLISHED')}</Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="CANCELLED" id="status-cancelled" />
-                    <Label htmlFor="status-cancelled">{tCommon('status.CANCELLED')}</Label>
+                    <Label htmlFor="status-cancelled">{t('status.CANCELLED')}</Label>
                   </div>
                 </RadioGroup>
               </FormControl>
@@ -187,7 +185,7 @@ export function RideTemplateEditor({
         {/* Groups */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <Label>{tRides('create.form.groups.label')}</Label>
+            <Label>{t('rides.create.form.groups.label')}</Label>
             <Button
               type="button"
               variant="link"
@@ -195,7 +193,7 @@ export function RideTemplateEditor({
               className="h-auto p-0"
               onClick={handleAddGroup}
             >
-              {tCommon('groups.add')}
+              {t('groups.add')}
             </Button>
           </div>
           <div className="space-y-3">
@@ -214,7 +212,7 @@ export function RideTemplateEditor({
                       />
                       <span className="text-sm font-medium">
                         {group.name ||
-                          tRides('create.form.groups.defaultName', { number: index + 1 })}
+                          t('rides.create.form.groups.defaultName', { number: index + 1 })}
                       </span>
                     </div>
                     <Button
@@ -224,7 +222,7 @@ export function RideTemplateEditor({
                       className="h-auto p-0 text-destructive"
                       onClick={() => handleRemoveGroup(index)}
                     >
-                      {tRides('create.form.groups.remove')}
+                      {t('rides.create.form.groups.remove')}
                     </Button>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
@@ -235,7 +233,7 @@ export function RideTemplateEditor({
                         <FormItem>
                           <FormControl>
                             <Input
-                              placeholder={tRides('create.form.groups.name.placeholder')}
+                              placeholder={t('rides.create.form.groups.name.placeholder')}
                               {...field}
                             />
                           </FormControl>
@@ -279,7 +277,7 @@ export function RideTemplateEditor({
                           <FormControl>
                             <Input
                               type="number"
-                              placeholder={tRides('create.form.groups.speed.placeholder')}
+                              placeholder={t('rides.create.form.groups.speed.placeholder')}
                               min={0}
                               {...field}
                               value={field.value ?? ''}
@@ -299,7 +297,9 @@ export function RideTemplateEditor({
                           <FormControl>
                             <Input
                               type="number"
-                              placeholder={tRides('create.form.groups.maxParticipants.placeholder')}
+                              placeholder={t(
+                                'rides.create.form.groups.maxParticipants.placeholder'
+                              )}
                               min={1}
                               {...field}
                               value={field.value ?? ''}
@@ -317,26 +317,26 @@ export function RideTemplateEditor({
             })}
             {groupFieldArray.length === 0 && (
               <p className="text-sm text-muted-foreground italic">
-                {tRides('create.form.groups.empty')}
+                {t('rides.create.form.groups.empty')}
               </p>
             )}
           </div>
-          <p className="text-sm text-muted-foreground">{tRides('create.form.groups.hint')}</p>
+          <p className="text-sm text-muted-foreground">{t('rides.create.form.groups.hint')}</p>
         </div>
 
         {/* Actions */}
         <div className="pt-4 flex items-center justify-end gap-3">
           <Button type="button" variant="outline" onClick={onCancel} disabled={isPending}>
-            {tCommon('actions.cancelAction')}
+            {t('actions.cancelAction')}
           </Button>
           <Button type="submit" disabled={isPending || !form.formState.isValid}>
             {isPending ? (
               <>
                 <LoadingSpinner size="sm" color="white" className="mr-2" />
-                {tCommon('status.saving')}
+                {t('status.saving')}
               </>
             ) : (
-              submitButtonText || tCommon('actions.save')
+              submitButtonText || t('actions.save')
             )}
           </Button>
         </div>

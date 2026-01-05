@@ -71,8 +71,7 @@ export function AdEditor({
   submitButtonText,
   cancelButtonText,
 }: AdEditorProps) {
-  const { t } = useTranslation('ads')
-  const { t: tCommon } = useTranslation('common')
+  const { t } = useTranslation()
 
   const form = useForm<AdRequest>({
     resolver: zodResolver(adSchema),
@@ -97,10 +96,10 @@ export function AdEditor({
           render={({ field }) => (
             <FormItem>
               <FormLabel>
-                {tCommon('form.title')} <span className="text-destructive">*</span>
+                {t('form.title')} <span className="text-destructive">*</span>
               </FormLabel>
               <FormControl>
-                <Input placeholder={t('create.namePlaceholder')} {...field} />
+                <Input placeholder={t('ads.create.namePlaceholder')} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -114,7 +113,7 @@ export function AdEditor({
           render={({ field }) => (
             <FormItem>
               <FormLabel>
-                {t('create.adTypeLabel')} <span className="text-destructive">*</span>
+                {t('ads.create.adTypeLabel')} <span className="text-destructive">*</span>
               </FormLabel>
               <FormControl>
                 <RadioGroup
@@ -124,15 +123,15 @@ export function AdEditor({
                 >
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value={AdType.SALE} id="adType-sale" />
-                    <Label htmlFor="adType-sale">{t('adType.SALE')}</Label>
+                    <Label htmlFor="adType-sale">{t('ads.adType.SALE')}</Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value={AdType.RENTAL} id="adType-rental" />
-                    <Label htmlFor="adType-rental">{t('adType.RENTAL')}</Label>
+                    <Label htmlFor="adType-rental">{t('ads.adType.RENTAL')}</Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value={AdType.WANTED} id="adType-wanted" />
-                    <Label htmlFor="adType-wanted">{t('adType.WANTED')}</Label>
+                    <Label htmlFor="adType-wanted">{t('ads.adType.WANTED')}</Label>
                   </div>
                 </RadioGroup>
               </FormControl>
@@ -147,13 +146,13 @@ export function AdEditor({
           name="price"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t('create.priceLabel')}</FormLabel>
+              <FormLabel>{t('ads.create.priceLabel')}</FormLabel>
               <FormControl>
                 <Input
                   type="number"
                   step="0.01"
                   min="0"
-                  placeholder={t('create.pricePlaceholder')}
+                  placeholder={t('ads.create.pricePlaceholder')}
                   {...field}
                   value={field.value ?? ''}
                   onChange={(e) =>
@@ -161,7 +160,7 @@ export function AdEditor({
                   }
                 />
               </FormControl>
-              <FormDescription>{t('create.priceHint')}</FormDescription>
+              <FormDescription>{t('ads.create.priceHint')}</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -175,18 +174,20 @@ export function AdEditor({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  {t('create.rentalPeriodLabel')} <span className="text-destructive">*</span>
+                  {t('ads.create.rentalPeriodLabel')} <span className="text-destructive">*</span>
                 </FormLabel>
                 <Select {...field} onValueChange={field.onChange}>
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder={t('create.rentalPeriodLabel')} />
+                      <SelectValue placeholder={t('ads.create.rentalPeriodLabel')} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value={RentalPeriod.DAY}>{t('rentalPeriod.DAY')}</SelectItem>
-                    <SelectItem value={RentalPeriod.WEEK}>{t('rentalPeriod.WEEK')}</SelectItem>
-                    <SelectItem value={RentalPeriod.MONTH}>{t('rentalPeriod.MONTH')}</SelectItem>
+                    <SelectItem value={RentalPeriod.DAY}>{t('ads.rentalPeriod.DAY')}</SelectItem>
+                    <SelectItem value={RentalPeriod.WEEK}>{t('ads.rentalPeriod.WEEK')}</SelectItem>
+                    <SelectItem value={RentalPeriod.MONTH}>
+                      {t('ads.rentalPeriod.MONTH')}
+                    </SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -201,16 +202,16 @@ export function AdEditor({
           name="media"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{tCommon('form.description')}</FormLabel>
+              <FormLabel>{t('form.description')}</FormLabel>
               <FormControl>
                 <MediaEditor
                   value={field.value}
                   onChange={field.onChange}
-                  placeholder={t('create.descriptionPlaceholder')}
+                  placeholder={t('ads.create.descriptionPlaceholder')}
                   minHeight="200px"
                   maxHeight="400px"
                   disabled={isPending}
-                  ariaLabel={tCommon('form.description')}
+                  ariaLabel={t('form.description')}
                   teamSlug={teamSlug}
                 />
               </FormControl>
@@ -225,9 +226,9 @@ export function AdEditor({
           name="locationDescription"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t('create.locationDescriptionLabel')}</FormLabel>
+              <FormLabel>{t('ads.create.locationDescriptionLabel')}</FormLabel>
               <FormControl>
-                <Input placeholder={t('create.locationDescriptionPlaceholder')} {...field} />
+                <Input placeholder={t('ads.create.locationDescriptionPlaceholder')} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -241,7 +242,7 @@ export function AdEditor({
             name="visibility"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{tCommon('visibility.label')}</FormLabel>
+                <FormLabel>{t('visibility.label')}</FormLabel>
                 <FormControl>
                   <RadioGroup
                     value={field.value}
@@ -250,11 +251,11 @@ export function AdEditor({
                   >
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="TEAM" id="visibility-team" />
-                      <Label htmlFor="visibility-team">{tCommon('visibility.team')}</Label>
+                      <Label htmlFor="visibility-team">{t('visibility.team')}</Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="PUBLIC" id="visibility-public" />
-                      <Label htmlFor="visibility-public">{tCommon('visibility.public')}</Label>
+                      <Label htmlFor="visibility-public">{t('visibility.public')}</Label>
                     </div>
                   </RadioGroup>
                 </FormControl>
@@ -270,7 +271,7 @@ export function AdEditor({
           name="status"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{tCommon('form.status')}</FormLabel>
+              <FormLabel>{t('form.status')}</FormLabel>
               <FormControl>
                 <RadioGroup
                   value={field.value}
@@ -279,11 +280,11 @@ export function AdEditor({
                 >
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="DRAFT" id="status-draft" />
-                    <Label htmlFor="status-draft">{tCommon('status.DRAFT')}</Label>
+                    <Label htmlFor="status-draft">{t('status.DRAFT')}</Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="PUBLISHED" id="status-published" />
-                    <Label htmlFor="status-published">{tCommon('status.PUBLISHED')}</Label>
+                    <Label htmlFor="status-published">{t('status.PUBLISHED')}</Label>
                   </div>
                 </RadioGroup>
               </FormControl>
@@ -295,16 +296,16 @@ export function AdEditor({
         {/* Actions */}
         <div className="pt-4 flex items-center justify-end gap-3">
           <Button type="button" variant="outline" onClick={onCancel}>
-            {cancelButtonText || tCommon('actions.cancelAction')}
+            {cancelButtonText || t('actions.cancelAction')}
           </Button>
           <Button type="submit" disabled={isPending || !form.formState.isValid}>
             {isPending ? (
               <>
                 <LoadingSpinner size="sm" color="white" className="mr-2" />
-                {tCommon('loading')}
+                {t('loading')}
               </>
             ) : (
-              submitButtonText || tCommon('actions.save')
+              submitButtonText || t('actions.save')
             )}
           </Button>
         </div>

@@ -1,6 +1,7 @@
 import { lazy } from 'react'
 import type { RoutesConfig } from './routes.types'
 import { paths } from './paths'
+import { tRegister } from '@/lib/i18nUtils'
 
 // Lazy load page components for code splitting
 const HomePage = lazy(() => import('../pages/home/HomePage').then((m) => ({ default: m.HomePage })))
@@ -127,7 +128,7 @@ export const routesConfig: RoutesConfig = [
     auth: 'public',
     parentId: null,
     index: true,
-    breadcrumb: { type: 'static', i18nKey: 'auth:home.tabs.feed' },
+    breadcrumb: { type: 'static', i18nKey: tRegister('home.tabs.feed') },
   },
   {
     id: 'all-routes',
@@ -135,7 +136,7 @@ export const routesConfig: RoutesConfig = [
     component: AllRoutesPage,
     auth: 'public',
     parentId: null,
-    breadcrumb: { type: 'static', i18nKey: 'common:nav.routes' },
+    breadcrumb: { type: 'static', i18nKey: tRegister('nav.routes') },
   },
 
   // === Auth Routes ===
@@ -145,7 +146,7 @@ export const routesConfig: RoutesConfig = [
     component: LoginPage,
     auth: 'unauthenticated',
     parentId: null,
-    breadcrumb: { type: 'static', i18nKey: 'auth:login.title' },
+    breadcrumb: { type: 'static', i18nKey: tRegister('auth.login.title') },
   },
   {
     id: 'profile',
@@ -153,7 +154,7 @@ export const routesConfig: RoutesConfig = [
     component: UserProfilePage,
     auth: 'authenticated',
     parentId: null,
-    breadcrumb: { type: 'static', i18nKey: 'common:nav.profile' },
+    breadcrumb: { type: 'static', i18nKey: tRegister('nav.profile') },
   },
 
   // === Team Routes ===
@@ -163,7 +164,7 @@ export const routesConfig: RoutesConfig = [
     component: TeamListPage,
     auth: 'public',
     parentId: null,
-    breadcrumb: { type: 'static', i18nKey: 'common:teams' },
+    breadcrumb: { type: 'static', i18nKey: tRegister('teams.title') },
   },
   {
     id: 'teams-new',
@@ -171,7 +172,7 @@ export const routesConfig: RoutesConfig = [
     component: CreateTeamPage,
     auth: 'authenticated',
     parentId: 'teams',
-    breadcrumb: { type: 'static', i18nKey: 'teams:create.title' },
+    breadcrumb: { type: 'static', i18nKey: tRegister('teams.create.title') },
     showBackLink: true,
   },
   {
@@ -188,7 +189,7 @@ export const routesConfig: RoutesConfig = [
     component: TeamAboutPage,
     auth: 'public',
     parentId: 'team-detail',
-    breadcrumb: { type: 'static', i18nKey: 'teams:detail.tabs.about' },
+    breadcrumb: { type: 'static', i18nKey: tRegister('teams.detail.tabs.about') },
   },
   {
     id: 'team-page',
@@ -205,7 +206,7 @@ export const routesConfig: RoutesConfig = [
     component: TeamAdminPage,
     auth: 'authenticated',
     parentId: 'team-detail',
-    breadcrumb: { type: 'static', i18nKey: 'teams:admin.title' },
+    breadcrumb: { type: 'static', i18nKey: tRegister('teams.admin.title') },
   },
   {
     id: 'team-admin-places',
@@ -213,7 +214,7 @@ export const routesConfig: RoutesConfig = [
     component: TeamPlacesPage,
     auth: 'authenticated',
     parentId: 'team-admin',
-    breadcrumb: { type: 'static', i18nKey: 'teams:admin.tabs.places' },
+    breadcrumb: { type: 'static', i18nKey: tRegister('teams.admin.tabs.places') },
   },
   {
     id: 'team-admin-pages',
@@ -221,7 +222,7 @@ export const routesConfig: RoutesConfig = [
     component: TeamPagesAdminPage,
     auth: 'authenticated',
     parentId: 'team-admin',
-    breadcrumb: { type: 'static', i18nKey: 'teams:admin.tabs.pages' },
+    breadcrumb: { type: 'static', i18nKey: tRegister('teams.admin.tabs.pages') },
   },
   {
     id: 'team-admin-page-new',
@@ -229,7 +230,7 @@ export const routesConfig: RoutesConfig = [
     component: CreateTeamPagePage,
     auth: 'authenticated',
     parentId: 'team-admin-pages',
-    breadcrumb: { type: 'static', i18nKey: 'common:actions.new' },
+    breadcrumb: { type: 'static', i18nKey: tRegister('actions.new') },
     showBackLink: true,
   },
   {
@@ -247,7 +248,7 @@ export const routesConfig: RoutesConfig = [
     component: TeamMembersPage,
     auth: 'authenticated',
     parentId: 'team-admin',
-    breadcrumb: { type: 'static', i18nKey: 'teams:admin.tabs.members' },
+    breadcrumb: { type: 'static', i18nKey: tRegister('teams.admin.tabs.members') },
   },
   {
     id: 'team-settings',
@@ -255,7 +256,7 @@ export const routesConfig: RoutesConfig = [
     component: TeamSettingsPage,
     auth: 'authenticated',
     parentId: 'team-admin',
-    breadcrumb: { type: 'static', i18nKey: 'teams:admin.tabs.settings' },
+    breadcrumb: { type: 'static', i18nKey: tRegister('teams.admin.tabs.settings') },
   },
 
   // === Ride Routes ===
@@ -266,7 +267,7 @@ export const routesConfig: RoutesConfig = [
     component: CreateRidePage,
     auth: 'authenticated',
     parentId: 'team-detail',
-    breadcrumb: { type: 'static', i18nKey: 'rides:create.title' },
+    breadcrumb: { type: 'static', i18nKey: tRegister('rides.create.title') },
     showBackLink: true,
   },
   {
@@ -283,7 +284,7 @@ export const routesConfig: RoutesConfig = [
     component: EditRidePage,
     auth: 'authenticated',
     parentId: 'ride-detail',
-    breadcrumb: { type: 'static', i18nKey: 'common:actions.edit' },
+    breadcrumb: { type: 'static', i18nKey: tRegister('actions.edit') },
     showBackLink: true,
   },
 
@@ -294,7 +295,7 @@ export const routesConfig: RoutesConfig = [
     component: RideTemplateListPage,
     auth: 'authenticated',
     parentId: 'team-admin',
-    breadcrumb: { type: 'static', i18nKey: 'teams:admin.tabs.rideTemplates' },
+    breadcrumb: { type: 'static', i18nKey: tRegister('teams.admin.tabs.rideTemplates') },
   },
   {
     id: 'ride-template-new',
@@ -302,7 +303,7 @@ export const routesConfig: RoutesConfig = [
     component: CreateRideTemplatePage,
     auth: 'authenticated',
     parentId: 'ride-templates',
-    breadcrumb: { type: 'static', i18nKey: 'common:actions.new' },
+    breadcrumb: { type: 'static', i18nKey: tRegister('actions.new') },
     showBackLink: true,
   },
   {
@@ -323,7 +324,7 @@ export const routesConfig: RoutesConfig = [
     component: CreateTripPage,
     auth: 'authenticated',
     parentId: 'team-detail',
-    breadcrumb: { type: 'static', i18nKey: 'trips:create.title' },
+    breadcrumb: { type: 'static', i18nKey: tRegister('trips.create.title') },
     showBackLink: true,
   },
   {
@@ -340,7 +341,7 @@ export const routesConfig: RoutesConfig = [
     component: EditTripPage,
     auth: 'authenticated',
     parentId: 'trip-detail',
-    breadcrumb: { type: 'static', i18nKey: 'common:actions.edit' },
+    breadcrumb: { type: 'static', i18nKey: tRegister('actions.edit') },
     showBackLink: true,
   },
 
@@ -352,7 +353,7 @@ export const routesConfig: RoutesConfig = [
     component: CreatePostPage,
     auth: 'authenticated',
     parentId: 'team-detail',
-    breadcrumb: { type: 'static', i18nKey: 'posts:create.title' },
+    breadcrumb: { type: 'static', i18nKey: tRegister('posts.create.title') },
     showBackLink: true,
   },
   {
@@ -369,7 +370,7 @@ export const routesConfig: RoutesConfig = [
     component: EditPostPage,
     auth: 'authenticated',
     parentId: 'post-detail',
-    breadcrumb: { type: 'static', i18nKey: 'common:actions.edit' },
+    breadcrumb: { type: 'static', i18nKey: tRegister('actions.edit') },
     showBackLink: true,
   },
 
@@ -381,7 +382,7 @@ export const routesConfig: RoutesConfig = [
     component: RouteListPage,
     auth: 'public',
     parentId: 'team-detail',
-    breadcrumb: { type: 'static', i18nKey: 'common:nav.routes' },
+    breadcrumb: { type: 'static', i18nKey: tRegister('nav.routes') },
   },
   {
     id: 'route-new',
@@ -389,7 +390,7 @@ export const routesConfig: RoutesConfig = [
     component: CreateRoutePage,
     auth: 'authenticated',
     parentId: 'routes',
-    breadcrumb: { type: 'static', i18nKey: 'common:actions.new' },
+    breadcrumb: { type: 'static', i18nKey: tRegister('actions.new') },
     showBackLink: true,
   },
   {
@@ -406,7 +407,7 @@ export const routesConfig: RoutesConfig = [
     component: EditRoutePage,
     auth: 'authenticated',
     parentId: 'route-detail',
-    breadcrumb: { type: 'static', i18nKey: 'common:actions.edit' },
+    breadcrumb: { type: 'static', i18nKey: tRegister('actions.edit') },
     showBackLink: true,
   },
 
@@ -417,7 +418,7 @@ export const routesConfig: RoutesConfig = [
     component: AdListPage,
     auth: 'public',
     parentId: 'team-detail',
-    breadcrumb: { type: 'static', i18nKey: 'ads:breadcrumb.ads' },
+    breadcrumb: { type: 'static', i18nKey: tRegister('ads.title') },
   },
   {
     id: 'ad-new',
@@ -425,7 +426,7 @@ export const routesConfig: RoutesConfig = [
     component: CreateAdPage,
     auth: 'authenticated',
     parentId: 'ads',
-    breadcrumb: { type: 'static', i18nKey: 'ads:create.title' },
+    breadcrumb: { type: 'static', i18nKey: tRegister('ads.create.title') },
     showBackLink: true,
   },
   {
@@ -442,7 +443,7 @@ export const routesConfig: RoutesConfig = [
     component: EditAdPage,
     auth: 'authenticated',
     parentId: 'ad-detail',
-    breadcrumb: { type: 'static', i18nKey: 'common:actions.edit' },
+    breadcrumb: { type: 'static', i18nKey: tRegister('actions.edit') },
     showBackLink: true,
   },
 ]

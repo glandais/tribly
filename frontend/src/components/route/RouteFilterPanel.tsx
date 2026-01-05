@@ -30,7 +30,7 @@ export function RouteFilterPanel({
   isOpen,
   onOpenChange,
 }: RouteFilterPanelProps) {
-  const { t } = useTranslation('routes')
+  const { t } = useTranslation()
 
   const updateFilter = <K extends keyof ListRoutesParams>(key: K, value: ListRoutesParams[K]) => {
     onFiltersChange({ ...filters, [key]: value, page: 0 })
@@ -59,7 +59,7 @@ export function RouteFilterPanel({
         <CollapsibleTrigger asChild>
           <Button variant="outline" size="sm">
             <FunnelIcon className="w-4 h-4 mr-2" />
-            {isOpen ? t('list.filters.hide') : t('list.filters.show')}
+            {isOpen ? t('routes.list.filters.hide') : t('routes.list.filters.show')}
             {isOpen ? (
               <ChevronUpIcon className="w-4 h-4 ml-2" />
             ) : (
@@ -70,7 +70,7 @@ export function RouteFilterPanel({
         {hasActiveFilters && (
           <Button variant="ghost" size="sm" onClick={clearFilters}>
             <XMarkIcon className="w-4 h-4 mr-1" />
-            {t('list.filters.clear')}
+            {t('routes.list.filters.clear')}
           </Button>
         )}
       </div>
@@ -82,43 +82,43 @@ export function RouteFilterPanel({
             id="routes-search"
             value={filters.search ?? ''}
             onChange={(value) => updateFilter('search', value || undefined)}
-            placeholder={t('list.search.placeholder')}
-            label={t('list.search.label')}
+            placeholder={t('routes.list.search.placeholder')}
+            label={t('routes.list.search.label')}
             className="mb-4"
           />
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {/* Distance Range */}
             <RangeInput
-              label={t('detail.stats.distance')}
+              label={t('routes.detail.stats.distance')}
               minValue={filters.minDistance}
               maxValue={filters.maxDistance}
               onMinChange={(v) => updateFilter('minDistance', v)}
               onMaxChange={(v) => updateFilter('maxDistance', v)}
-              minPlaceholder={t('list.filters.distance.min')}
-              maxPlaceholder={t('list.filters.distance.max')}
-              unit={t('list.filters.distance.unit')}
+              minPlaceholder={t('routes.list.filters.distance.min')}
+              maxPlaceholder={t('routes.list.filters.distance.max')}
+              unit={t('routes.list.filters.distance.unit')}
               step={5}
               displayMultiplier={0.001} // meters to km
             />
 
             {/* Elevation Gain Range */}
             <RangeInput
-              label={t('list.filters.elevationGain.label')}
+              label={t('routes.list.filters.elevationGain.label')}
               minValue={filters.minElevationGain}
               maxValue={filters.maxElevationGain}
               onMinChange={(v) => updateFilter('minElevationGain', v)}
               onMaxChange={(v) => updateFilter('maxElevationGain', v)}
-              minPlaceholder={t('list.filters.elevationGain.min')}
-              maxPlaceholder={t('list.filters.elevationGain.max')}
-              unit={t('list.filters.elevationGain.unit')}
+              minPlaceholder={t('routes.list.filters.elevationGain.min')}
+              maxPlaceholder={t('routes.list.filters.elevationGain.max')}
+              unit={t('routes.list.filters.elevationGain.unit')}
               step={50}
             />
 
             {/* Hilliness Preset */}
             <div>
               <Label className="text-sm font-medium text-gray-700 mb-2 block">
-                {t('list.filters.hilliness.label')}
+                {t('routes.list.filters.hilliness.label')}
               </Label>
               <Select
                 value={filters.hilliness ?? NONE_VALUE}
@@ -127,16 +127,16 @@ export function RouteFilterPanel({
                 }
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder={t('list.filters.hilliness.placeholder')} />
+                  <SelectValue placeholder={t('routes.list.filters.hilliness.placeholder')} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value={NONE_VALUE}>
-                    {t('list.filters.hilliness.placeholder')}
+                    {t('routes.list.filters.hilliness.placeholder')}
                   </SelectItem>
                   {Object.values(Hilliness).map((type) => (
                     <SelectItem key={type} value={type}>
                       {t(
-                        `list.filters.hilliness.${type satisfies 'FLAT' | 'HILLY' | 'MOUNTAINOUS'}`
+                        `routes.list.filters.hilliness.${type satisfies 'FLAT' | 'HILLY' | 'MOUNTAINOUS'}`
                       )}
                     </SelectItem>
                   ))}
@@ -147,7 +147,7 @@ export function RouteFilterPanel({
             {/* Surface Type */}
             <div>
               <Label className="text-sm font-medium text-gray-700 mb-2 block">
-                {t('list.filters.surfaceType.label')}
+                {t('routes.list.filters.surfaceType.label')}
               </Label>
               <Select
                 value={filters.surfaceType ?? NONE_VALUE}
@@ -159,15 +159,17 @@ export function RouteFilterPanel({
                 }
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder={t('list.filters.surfaceType.placeholder')} />
+                  <SelectValue placeholder={t('routes.list.filters.surfaceType.placeholder')} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value={NONE_VALUE}>
-                    {t('list.filters.surfaceType.placeholder')}
+                    {t('routes.list.filters.surfaceType.placeholder')}
                   </SelectItem>
                   {Object.values(SurfaceType).map((type) => (
                     <SelectItem key={type} value={type}>
-                      {t(`surfaceType.${type satisfies 'ROAD' | 'GRAVEL' | 'MTB' | 'MIXED'}`)}
+                      {t(
+                        `routes.surfaceType.${type satisfies 'ROAD' | 'GRAVEL' | 'MTB' | 'MIXED'}`
+                      )}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -177,7 +179,7 @@ export function RouteFilterPanel({
             {/* Wind Direction */}
             <div>
               <Label className="text-sm font-medium text-gray-700 mb-2 block">
-                {t('list.filters.windDirection.label')}
+                {t('routes.list.filters.windDirection.label')}
               </Label>
               <Select
                 value={filters.windDirection ?? NONE_VALUE}
@@ -189,16 +191,16 @@ export function RouteFilterPanel({
                 }
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder={t('list.filters.windDirection.placeholder')} />
+                  <SelectValue placeholder={t('routes.list.filters.windDirection.placeholder')} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value={NONE_VALUE}>
-                    {t('list.filters.windDirection.placeholder')}
+                    {t('routes.list.filters.windDirection.placeholder')}
                   </SelectItem>
                   {Object.values(WindDirection).map((dir) => (
                     <SelectItem key={dir} value={dir}>
                       {t(
-                        `list.filters.windDirection.${dir satisfies 'NORTH' | 'NORTH_EAST' | 'EAST' | 'SOUTH_EAST' | 'SOUTH' | 'SOUTH_WEST' | 'WEST' | 'NORTH_WEST'}`
+                        `routes.list.filters.windDirection.${dir satisfies 'NORTH' | 'NORTH_EAST' | 'EAST' | 'SOUTH_EAST' | 'SOUTH' | 'SOUTH_WEST' | 'WEST' | 'NORTH_WEST'}`
                       )}
                     </SelectItem>
                   ))}
@@ -209,7 +211,7 @@ export function RouteFilterPanel({
             {/* Sort Options */}
             <div>
               <Label className="text-sm font-medium text-gray-700 mb-2 block">
-                {t('list.filters.sort.label')}
+                {t('routes.list.filters.sort.label')}
               </Label>
               <div className="flex gap-2">
                 <Select
@@ -217,13 +219,13 @@ export function RouteFilterPanel({
                   onValueChange={(value) => updateFilter('sortBy', value as RouteSortBy)}
                 >
                   <SelectTrigger className="flex-1">
-                    <SelectValue placeholder={t('list.filters.sort.DATE_TIME')} />
+                    <SelectValue placeholder={t('routes.list.filters.sort.DATE_TIME')} />
                   </SelectTrigger>
                   <SelectContent>
                     {Object.values(RouteSortBy).map((sort) => (
                       <SelectItem key={sort} value={sort}>
                         {t(
-                          `list.filters.sort.${sort satisfies 'DISTANCE' | 'ELEVATION_GAIN' | 'HILLINESS' | 'DATE_TIME'}`
+                          `routes.list.filters.sort.${sort satisfies 'DISTANCE' | 'ELEVATION_GAIN' | 'HILLINESS' | 'DATE_TIME'}`
                         )}
                       </SelectItem>
                     ))}
@@ -239,7 +241,7 @@ export function RouteFilterPanel({
                     )
                   }
                   title={t(
-                    `list.filters.sort.${filters.sortDir === SortDirection.ASC ? 'ASC' : 'DESC'}`
+                    `routes.list.filters.sort.${filters.sortDir === SortDirection.ASC ? 'ASC' : 'DESC'}`
                   )}
                 >
                   {filters.sortDir === SortDirection.ASC ? (

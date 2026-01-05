@@ -33,8 +33,7 @@ export function CommentItem({
   isReply = false,
 }: CommentItemProps) {
   const canDelete = canDeleteComment(comment)
-  const { t } = useTranslation('comments')
-  const { t: tCommon } = useTranslation('common')
+  const { t } = useTranslation()
   const { formatRelative } = useFormattedDate()
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
@@ -58,7 +57,7 @@ export function CommentItem({
                 className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1"
               >
                 <ChatBubbleLeftIcon className="w-4 h-4" />
-                {t('actions.reply')}
+                {t('comments.actions.reply')}
               </button>
             )}
             {canDelete && (
@@ -67,7 +66,7 @@ export function CommentItem({
                 className="text-sm text-red-500 hover:text-red-700 flex items-center gap-1"
               >
                 <TrashIcon className="w-4 h-4" />
-                {tCommon('actions.delete')}
+                {t('actions.delete')}
               </button>
             )}
           </div>
@@ -81,7 +80,7 @@ export function CommentItem({
             onSubmit={onReplySubmit}
             onCancel={onCancelReply}
             isLoading={isReplying}
-            placeholder={t('form.replyPlaceholder')}
+            placeholder={t('comments.form.replyPlaceholder')}
             autoFocus
           />
         </div>
@@ -112,9 +111,9 @@ export function CommentItem({
           onDeleteComment(comment.id)
           setShowDeleteConfirm(false)
         }}
-        title={t('confirmDelete.title')}
-        message={t('confirmDelete.message')}
-        confirmText={tCommon('actions.delete')}
+        title={t('comments.confirmDelete.title')}
+        message={t('comments.confirmDelete.message')}
+        confirmText={t('actions.delete')}
         variant="danger"
         isLoading={isDeleting}
       />

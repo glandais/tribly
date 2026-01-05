@@ -16,8 +16,7 @@ import { paths } from '@/config/paths'
 import { PostRequest } from '@/api/dto'
 
 export function EditPostPage() {
-  const { t } = useTranslation('posts')
-  const { t: tCommon } = useTranslation('common')
+  const { t } = useTranslation()
   const { teamSlug, postSlug } = useParams<{ teamSlug: string; postSlug: string }>()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
@@ -31,7 +30,7 @@ export function EditPostPage() {
   const updateMutation = useUpdatePost()
 
   if (isLoadingTeam || isLoadingPost) {
-    return <LoadingPage message={tCommon('loading')} />
+    return <LoadingPage message={t('loading')} />
   }
 
   if (!team || !post) {
@@ -55,7 +54,7 @@ export function EditPostPage() {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getListPostsQueryKey(teamSlug!) })
           queryClient.invalidateQueries({ queryKey: getGetPostQueryKey(teamSlug!, postSlug!) })
-          toast.success(i18next.t('posts:notifications.updated'))
+          toast.success(i18next.t('posts.notifications.updated'))
           navigate(paths.post(teamSlug!, postSlug!))
         },
       }
@@ -68,7 +67,7 @@ export function EditPostPage() {
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">{t('edit.title')}</h1>
+        <h1 className="text-3xl font-bold text-gray-900">{t('posts.edit.title')}</h1>
       </div>
 
       <PostEditor
@@ -78,7 +77,7 @@ export function EditPostPage() {
         onSubmit={handleSubmit}
         onCancel={() => navigate(paths.post(teamSlug!, postSlug!))}
         isPending={updateMutation.isPending}
-        submitButtonText={tCommon('actions.save')}
+        submitButtonText={t('actions.save')}
       />
     </div>
   )

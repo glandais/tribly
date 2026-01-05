@@ -28,8 +28,7 @@ import type { TeamPageSummaryDto } from '@/api/dto'
 const MAX_ADDITIONAL_PAGES = 3
 
 export function TeamPagesAdminPage() {
-  const { t } = useTranslation('teams')
-  const { t: tCommon } = useTranslation('common')
+  const { t } = useTranslation()
   const { teamSlug } = useParams<{ teamSlug: string }>()
   const queryClient = useQueryClient()
   const [pageToDelete, setPageToDelete] = useState<TeamPageSummaryDto | null>(null)
@@ -45,7 +44,7 @@ export function TeamPagesAdminPage() {
   const reorderMutation = useReorderPages()
 
   if (isLoadingTeam) {
-    return <LoadingPage message={tCommon('loading')} />
+    return <LoadingPage message={t('loading')} />
   }
 
   if (!team) {
@@ -71,7 +70,7 @@ export function TeamPagesAdminPage() {
           onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: getListPagesQueryKey(teamSlug) })
             queryClient.invalidateQueries({ queryKey: getGetTeamQueryKey(teamSlug) })
-            toast.success(i18next.t('teams:pages.notifications.deleted'))
+            toast.success(i18next.t('teams.pages.notifications.deleted'))
             setPageToDelete(null)
           },
         }
@@ -110,7 +109,7 @@ export function TeamPagesAdminPage() {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getListPagesQueryKey(teamSlug) })
           queryClient.invalidateQueries({ queryKey: getGetTeamQueryKey(teamSlug) })
-          toast.success(i18next.t('teams:pages.notifications.reordered'))
+          toast.success(i18next.t('teams.pages.notifications.reordered'))
         },
       }
     )
@@ -126,9 +125,9 @@ export function TeamPagesAdminPage() {
       <div className="py-6">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">{t('pages.title')}</h2>
+            <h2 className="text-2xl font-bold text-gray-900">{t('teams.pages.title')}</h2>
             <p className="mt-1 text-sm text-gray-500">
-              {t('pages.subtitle', { count: pages?.length ?? 0, max: MAX_ADDITIONAL_PAGES })}
+              {t('teams.pages.subtitle', { count: pages?.length ?? 0, max: MAX_ADDITIONAL_PAGES })}
             </p>
           </div>
           {canAddMore && (
@@ -137,7 +136,7 @@ export function TeamPagesAdminPage() {
               className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
             >
               <PlusIcon className="w-4 h-4 mr-2" />
-              {t('pages.add')}
+              {t('teams.pages.add')}
             </Link>
           )}
         </div>
@@ -173,14 +172,14 @@ export function TeamPagesAdminPage() {
                     <Link
                       to={paths.teamAdminPageEdit(teamSlug!, page.slug)}
                       className="p-2 text-gray-400 hover:text-indigo-600 rounded-lg hover:bg-gray-100"
-                      title={t('common:actions.edit')}
+                      title={t('teams.actions.edit')}
                     >
                       <PencilIcon className="w-5 h-5" />
                     </Link>
                     <button
                       onClick={() => handleDelete(page)}
                       className="p-2 text-gray-400 hover:text-red-600 rounded-lg hover:bg-gray-100"
-                      title={t('common:buttons.delete')}
+                      title={t('teams.buttons.delete')}
                     >
                       <TrashIcon className="w-5 h-5" />
                     </button>
@@ -192,14 +191,16 @@ export function TeamPagesAdminPage() {
         ) : (
           <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
             <DocumentTextIcon className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-4 text-lg font-medium text-gray-900">{t('pages.empty.title')}</h3>
-            <p className="mt-2 text-gray-500">{t('pages.empty.description')}</p>
+            <h3 className="mt-4 text-lg font-medium text-gray-900">
+              {t('teams.pages.empty.title')}
+            </h3>
+            <p className="mt-2 text-gray-500">{t('teams.pages.empty.description')}</p>
             <Link
               to={paths.teamAdminPageNew(teamSlug!)}
               className="mt-4 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
             >
               <PlusIcon className="w-4 h-4 mr-2" />
-              {t('pages.add')}
+              {t('teams.pages.add')}
             </Link>
           </div>
         )}
@@ -210,9 +211,9 @@ export function TeamPagesAdminPage() {
         isOpen={!!pageToDelete}
         onClose={() => setPageToDelete(null)}
         onConfirm={confirmDelete}
-        title={t('pages.confirmations.deleteTitle')}
-        message={t('pages.confirmations.delete', { name: pageToDelete?.title })}
-        confirmText={t('common:buttons.delete')}
+        title={t('teams.pages.confirmations.deleteTitle')}
+        message={t('teams.pages.confirmations.delete', { name: pageToDelete?.title })}
+        confirmText={t('teams.buttons.delete')}
         variant="danger"
         isLoading={deleteMutation.isPending}
       />

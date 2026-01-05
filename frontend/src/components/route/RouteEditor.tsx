@@ -73,8 +73,7 @@ export function RouteEditor({
   cancelButtonText,
   showCancelButton = true,
 }: RouteEditorProps) {
-  const { t } = useTranslation('routes')
-  const { t: tCommon } = useTranslation('common')
+  const { t } = useTranslation()
 
   const form = useForm<RouteRequest>({
     resolver: zodResolver(routeSchema),
@@ -107,13 +106,7 @@ export function RouteEditor({
       if (file) {
         // Validate file type
         if (!file.name.endsWith('.gpx')) {
-          setError(t('create.validation.invalidFileType'))
-          setGpxFile(null)
-          return
-        }
-        // Validate file size (10MB max)
-        if (file.size > 10 * 1024 * 1024) {
-          setError(t('create.validation.fileTooLarge'))
+          setError(t('routes.create.validation.invalidFileType'))
           setGpxFile(null)
           return
         }
@@ -128,11 +121,11 @@ export function RouteEditor({
     // Validate source in create mode
     if (isCreateMode) {
       if (sourceMode === 'gpx' && !gpxFile) {
-        setError(t('create.validation.fileRequired'))
+        setError(t('routes.create.validation.fileRequired'))
         return
       }
       if (sourceMode === 'planner' && plannerPoints.length < 2) {
-        setError(t('create.validation.pointsRequired'))
+        setError(t('routes.create.validation.pointsRequired'))
         return
       }
     }
@@ -162,7 +155,7 @@ export function RouteEditor({
         {canUsePlanner && (
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              {t('create.form.sourceMode')} {isCreateMode && '*'}
+              {t('routes.create.form.sourceMode')} {isCreateMode && '*'}
             </label>
             <div className="flex gap-2">
               <button
@@ -174,7 +167,7 @@ export function RouteEditor({
                     : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
                 }`}
               >
-                {t('create.form.sourceModeGpx')}
+                {t('routes.create.form.sourceModeGpx')}
               </button>
               <button
                 type="button"
@@ -185,7 +178,7 @@ export function RouteEditor({
                     : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
                 }`}
               >
-                {t('create.form.sourceModePlanner')}
+                {t('routes.create.form.sourceModePlanner')}
               </button>
             </div>
           </div>
@@ -195,7 +188,7 @@ export function RouteEditor({
         {(sourceMode === 'gpx' || !canUsePlanner) && (
           <div>
             <label htmlFor="gpxFile" className="block text-sm font-medium text-gray-700">
-              {t('create.form.gpxFile')} {isCreateMode && sourceMode === 'gpx' && '*'}
+              {t('routes.create.form.gpxFile')} {isCreateMode && sourceMode === 'gpx' && '*'}
             </label>
             <div className="mt-1">
               <input
@@ -212,7 +205,7 @@ export function RouteEditor({
                 hover:file:bg-indigo-100"
               />
             </div>
-            <p className="mt-2 text-sm text-gray-500">{t('create.form.gpxFileHint')}</p>
+            <p className="mt-2 text-sm text-gray-500">{t('routes.create.form.gpxFileHint')}</p>
           </div>
         )}
 
@@ -220,14 +213,14 @@ export function RouteEditor({
         {canUsePlanner && sourceMode === 'planner' && (
           <div className="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen">
             <label className="block text-sm font-medium text-gray-700 mb-2 px-4 sm:px-6 lg:px-8">
-              {t('create.form.plannerLabel')} {isCreateMode && '*'}
+              {t('routes.create.form.plannerLabel')} {isCreateMode && '*'}
             </label>
             <div className="h-[70vh] border-y border-gray-300 overflow-hidden">
               <EmbeddedRoutePlanner onPointsChange={setPlannerPoints} initialTrack={initialTrack} />
             </div>
             {plannerPoints.length > 0 && (
               <p className="mt-2 text-sm text-gray-500 px-4 sm:px-6 lg:px-8">
-                {t('create.form.pointCount', { count: plannerPoints.length })}
+                {t('routes.create.form.pointCount', { count: plannerPoints.length })}
               </p>
             )}
           </div>
@@ -240,10 +233,10 @@ export function RouteEditor({
           render={({ field }) => (
             <FormItem>
               <FormLabel>
-                {t('create.form.name')} <span className="text-destructive">*</span>
+                {t('routes.create.form.name')} <span className="text-destructive">*</span>
               </FormLabel>
               <FormControl>
-                <Input placeholder={t('create.form.name')} {...field} />
+                <Input placeholder={t('routes.create.form.name')} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -256,16 +249,16 @@ export function RouteEditor({
           name="media"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{tCommon('form.description')}</FormLabel>
+              <FormLabel>{t('form.description')}</FormLabel>
               <FormControl>
                 <MediaEditor
                   value={field.value}
                   onChange={field.onChange}
-                  placeholder={tCommon('form.description')}
+                  placeholder={t('form.description')}
                   minHeight="150px"
                   maxHeight="300px"
                   disabled={isPending}
-                  ariaLabel={tCommon('form.description')}
+                  ariaLabel={t('form.description')}
                   teamSlug={teamSlug}
                 />
               </FormControl>
@@ -280,7 +273,7 @@ export function RouteEditor({
           name="surfaceType"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t('create.form.surfaceType')}</FormLabel>
+              <FormLabel>{t('routes.create.form.surfaceType')}</FormLabel>
               <Select value={field.value} onValueChange={field.onChange}>
                 <FormControl>
                   <SelectTrigger className="w-full">
@@ -288,10 +281,12 @@ export function RouteEditor({
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value={SurfaceType.ROAD}>{t('surfaceType.ROAD')}</SelectItem>
-                  <SelectItem value={SurfaceType.GRAVEL}>{t('surfaceType.GRAVEL')}</SelectItem>
-                  <SelectItem value={SurfaceType.MTB}>{t('surfaceType.MTB')}</SelectItem>
-                  <SelectItem value={SurfaceType.MIXED}>{t('surfaceType.MIXED')}</SelectItem>
+                  <SelectItem value={SurfaceType.ROAD}>{t('routes.surfaceType.ROAD')}</SelectItem>
+                  <SelectItem value={SurfaceType.GRAVEL}>
+                    {t('routes.surfaceType.GRAVEL')}
+                  </SelectItem>
+                  <SelectItem value={SurfaceType.MTB}>{t('routes.surfaceType.MTB')}</SelectItem>
+                  <SelectItem value={SurfaceType.MIXED}>{t('routes.surfaceType.MIXED')}</SelectItem>
                 </SelectContent>
               </Select>
               <FormMessage />
@@ -306,7 +301,7 @@ export function RouteEditor({
             name="visibility"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{tCommon('visibility.label')}</FormLabel>
+                <FormLabel>{t('visibility.label')}</FormLabel>
                 <FormControl>
                   <RadioGroup
                     value={field.value}
@@ -315,11 +310,11 @@ export function RouteEditor({
                   >
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="TEAM" id="visibility-team" />
-                      <Label htmlFor="visibility-team">{tCommon('visibility.team')}</Label>
+                      <Label htmlFor="visibility-team">{t('visibility.team')}</Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="PUBLIC" id="visibility-public" />
-                      <Label htmlFor="visibility-public">{tCommon('visibility.public')}</Label>
+                      <Label htmlFor="visibility-public">{t('visibility.public')}</Label>
                     </div>
                   </RadioGroup>
                 </FormControl>
@@ -333,7 +328,7 @@ export function RouteEditor({
         <div className="flex justify-end gap-3">
           {showCancelButton && (
             <Button type="button" variant="outline" onClick={onCancel} disabled={isPending}>
-              {cancelButtonText || tCommon('actions.cancelAction')}
+              {cancelButtonText || t('actions.cancelAction')}
             </Button>
           )}
           <Button
@@ -348,10 +343,10 @@ export function RouteEditor({
             {isPending ? (
               <>
                 <LoadingSpinner size="sm" />
-                {tCommon('status.creating')}
+                {t('status.creating')}
               </>
             ) : (
-              submitButtonText || t('create.submit')
+              submitButtonText || t('routes.create.submit')
             )}
           </Button>
         </div>

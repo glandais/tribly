@@ -71,8 +71,7 @@ export function RoutesMapView({
   highlightedItemId,
   onItemHover,
 }: RoutesMapViewProps) {
-  const { t } = useTranslation('common')
-  const { t: tCommon } = useTranslation('common')
+  const { t } = useTranslation()
 
   const { styleId, setStyleId, style } = useMapStyle()
   const mapRef = useRef<MapRef>(null)
@@ -282,7 +281,7 @@ export function RoutesMapView({
   if (isLoading) {
     return (
       <div className="w-full h-[500px] flex items-center justify-center bg-gray-100 rounded">
-        <div className="text-gray-500">{tCommon('loading')}</div>
+        <div className="text-gray-500">{t('loading')}</div>
       </div>
     )
   }

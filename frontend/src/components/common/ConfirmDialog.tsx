@@ -35,7 +35,7 @@ export function ConfirmDialog({
   variant = 'warning',
   isLoading = false,
 }: ConfirmDialogProps) {
-  const { t } = useTranslation('common')
+  const { t } = useTranslation()
 
   const variantStyles = {
     danger: 'bg-destructive text-destructive-foreground hover:bg-destructive/90',

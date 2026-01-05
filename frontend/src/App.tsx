@@ -10,7 +10,7 @@ import { useAuth } from './hooks/useAuth'
 function App() {
   const isInitialized = useAuthStore((state) => state.isInitialized)
   const initialize = useAuthStore((state) => state.initialize)
-  const { t } = useTranslation('common')
+  const { t } = useTranslation()
 
   // Initialize Keycloak auth on mount
   useEffect(() => {

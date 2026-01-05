@@ -81,8 +81,7 @@ export function RideEditor({
   submitButtonText,
   cancelButtonText,
 }: RideEditorProps) {
-  const { t } = useTranslation('rides')
-  const { t: tCommon } = useTranslation('common')
+  const { t } = useTranslation()
 
   // Modal state
   const [showRoutePickerModal, setShowRoutePickerModal] = useState(false)
@@ -140,10 +139,10 @@ export function RideEditor({
           render={({ field }) => (
             <FormItem>
               <FormLabel>
-                {t('create.form.title.label')} <span className="text-destructive">*</span>
+                {t('rides.create.form.title.label')} <span className="text-destructive">*</span>
               </FormLabel>
               <FormControl>
-                <Input placeholder={t('create.form.title.placeholder')} {...field} />
+                <Input placeholder={t('rides.create.form.title.placeholder')} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -156,16 +155,16 @@ export function RideEditor({
           name="media"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{tCommon('form.description')}</FormLabel>
+              <FormLabel>{t('form.description')}</FormLabel>
               <FormControl>
                 <MediaEditor
                   value={field.value}
                   onChange={field.onChange}
-                  placeholder={t('create.form.description.placeholder')}
+                  placeholder={t('rides.create.form.description.placeholder')}
                   minHeight="150px"
                   maxHeight="300px"
                   disabled={isPending}
-                  ariaLabel={tCommon('form.description')}
+                  ariaLabel={t('form.description')}
                   teamSlug={teamSlug}
                 />
               </FormControl>
@@ -182,7 +181,7 @@ export function RideEditor({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  {tCommon('startPlace')} <span className="text-destructive">*</span>
+                  {t('startPlace')} <span className="text-destructive">*</span>
                 </FormLabel>
                 <FormControl>
                   <InputDateTime {...field} />
@@ -196,23 +195,23 @@ export function RideEditor({
         {/* Start and End Places */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label>{t('create.form.startPlace.label')}</Label>
+            <Label>{t('rides.create.form.startPlace.label')}</Label>
             <PlaceAutocomplete
               teamSlug={teamSlug}
               value={form.getValues('startPlaceId')}
               onChange={(placeId) => form.setValue(`startPlaceId`, placeId)}
               filterStart={true}
-              placeholder={t('create.form.startPlace.placeholder')}
+              placeholder={t('rides.create.form.startPlace.placeholder')}
             />
           </div>
           <div className="space-y-2">
-            <Label>{t('create.form.endPlace.label')}</Label>
+            <Label>{t('rides.create.form.endPlace.label')}</Label>
             <PlaceAutocomplete
               teamSlug={teamSlug}
               value={form.getValues('endPlaceId')}
               onChange={(placeId) => form.setValue(`endPlaceId`, placeId)}
               filterEnd={true}
-              placeholder={t('create.form.endPlace.placeholder')}
+              placeholder={t('rides.create.form.endPlace.placeholder')}
             />
           </div>
         </div>
@@ -224,7 +223,7 @@ export function RideEditor({
             name="visibility"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{tCommon('visibility.label')}</FormLabel>
+                <FormLabel>{t('visibility.label')}</FormLabel>
                 <FormControl>
                   <RadioGroup
                     value={field.value}
@@ -233,11 +232,11 @@ export function RideEditor({
                   >
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="TEAM" id="visibility-team" />
-                      <Label htmlFor="visibility-team">{tCommon('visibility.team')}</Label>
+                      <Label htmlFor="visibility-team">{t('visibility.team')}</Label>
                     </div>
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="PUBLIC" id="visibility-public" />
-                      <Label htmlFor="visibility-public">{tCommon('visibility.public')}</Label>
+                      <Label htmlFor="visibility-public">{t('visibility.public')}</Label>
                     </div>
                   </RadioGroup>
                 </FormControl>
@@ -253,7 +252,7 @@ export function RideEditor({
           name="status"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{tCommon('form.status')}</FormLabel>
+              <FormLabel>{t('form.status')}</FormLabel>
               <FormControl>
                 <RadioGroup
                   value={field.value}
@@ -262,15 +261,15 @@ export function RideEditor({
                 >
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="DRAFT" id="status-draft" />
-                    <Label htmlFor="status-draft">{tCommon('status.DRAFT')}</Label>
+                    <Label htmlFor="status-draft">{t('status.DRAFT')}</Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="PUBLISHED" id="status-published" />
-                    <Label htmlFor="status-published">{tCommon('status.PUBLISHED')}</Label>
+                    <Label htmlFor="status-published">{t('status.PUBLISHED')}</Label>
                   </div>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="CANCELLED" id="status-cancelled" />
-                    <Label htmlFor="status-cancelled">{tCommon('status.CANCELLED')}</Label>
+                    <Label htmlFor="status-cancelled">{t('status.CANCELLED')}</Label>
                   </div>
                 </RadioGroup>
               </FormControl>
@@ -286,11 +285,11 @@ export function RideEditor({
             name="publishAt"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t('create.form.publishAt.label')}</FormLabel>
+                <FormLabel>{t('rides.create.form.publishAt.label')}</FormLabel>
                 <FormControl>
                   <InputDateTime {...field} />
                 </FormControl>
-                <FormDescription>{tCommon('form.publishAtHint')}</FormDescription>
+                <FormDescription>{t('form.publishAtHint')}</FormDescription>
                 <FormMessage />
               </FormItem>
             )}
@@ -304,7 +303,7 @@ export function RideEditor({
           render={() => (
             <FormItem>
               <div className="flex items-center justify-between">
-                <FormLabel>{t('create.form.route.label')}</FormLabel>
+                <FormLabel>{t('rides.create.form.route.label')}</FormLabel>
                 <div className="flex gap-2">
                   <Button
                     type="button"
@@ -316,7 +315,7 @@ export function RideEditor({
                       setShowRoutePickerModal(true)
                     }}
                   >
-                    {routeSlug ? tCommon('actions.edit') : t('create.form.route.select')}
+                    {routeSlug ? t('actions.edit') : t('rides.create.form.route.select')}
                   </Button>
                   {routeSlug && (
                     <Button
@@ -326,7 +325,7 @@ export function RideEditor({
                       className="h-auto p-0 text-destructive"
                       onClick={() => form.setValue('routeSlug', undefined)}
                     >
-                      {t('create.form.route.clear')}
+                      {t('rides.create.form.route.clear')}
                     </Button>
                   )}
                 </div>
@@ -334,9 +333,9 @@ export function RideEditor({
               {routeSlug ? (
                 <RoutePreview routeSlug={routeSlug} teamSlug={teamSlug} />
               ) : (
-                <p className="text-sm text-muted-foreground italic">{tCommon('noRouteSelected')}</p>
+                <p className="text-sm text-muted-foreground italic">{t('noRouteSelected')}</p>
               )}
-              <FormDescription>{t('create.form.route.hint')}</FormDescription>
+              <FormDescription>{t('rides.create.form.route.hint')}</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -345,7 +344,7 @@ export function RideEditor({
         {/* Groups */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <Label>{t('create.form.groups.label')}</Label>
+            <Label>{t('rides.create.form.groups.label')}</Label>
             <Button
               type="button"
               variant="link"
@@ -353,7 +352,7 @@ export function RideEditor({
               className="h-auto p-0"
               onClick={handleAddGroup}
             >
-              {tCommon('groups.add')}
+              {t('groups.add')}
             </Button>
           </div>
           <div className="space-y-3">
@@ -371,7 +370,8 @@ export function RideEditor({
                         onMove={(dir) => handleMoveGroup(index, dir)}
                       />
                       <span className="text-sm font-medium">
-                        {group.name || t('create.form.groups.defaultName', { number: index + 1 })}
+                        {group.name ||
+                          t('rides.create.form.groups.defaultName', { number: index + 1 })}
                       </span>
                     </div>
                     <Button
@@ -381,7 +381,7 @@ export function RideEditor({
                       className="h-auto p-0 text-destructive"
                       onClick={() => handleRemoveGroup(index)}
                     >
-                      {t('create.form.groups.remove')}
+                      {t('rides.create.form.groups.remove')}
                     </Button>
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
@@ -392,7 +392,7 @@ export function RideEditor({
                         <FormItem>
                           <FormControl>
                             <Input
-                              placeholder={t('create.form.groups.name.placeholder')}
+                              placeholder={t('rides.create.form.groups.name.placeholder')}
                               {...field}
                             />
                           </FormControl>
@@ -436,7 +436,7 @@ export function RideEditor({
                           <FormControl>
                             <Input
                               type="number"
-                              placeholder={t('create.form.groups.speed.placeholder')}
+                              placeholder={t('rides.create.form.groups.speed.placeholder')}
                               min={0}
                               {...field}
                               value={field.value ?? ''}
@@ -456,7 +456,9 @@ export function RideEditor({
                           <FormControl>
                             <Input
                               type="number"
-                              placeholder={t('create.form.groups.maxParticipants.placeholder')}
+                              placeholder={t(
+                                'rides.create.form.groups.maxParticipants.placeholder'
+                              )}
                               min={1}
                               {...field}
                               value={field.value ?? ''}
@@ -474,7 +476,7 @@ export function RideEditor({
                   <div className="mt-3 pt-3 border-t">
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-xs font-medium text-muted-foreground">
-                        {t('create.form.groups.route.label')}
+                        {t('rides.create.form.groups.route.label')}
                       </span>
                       <div className="flex gap-2">
                         <Button
@@ -488,8 +490,8 @@ export function RideEditor({
                           }}
                         >
                           {group.routeSlug
-                            ? tCommon('actions.edit')
-                            : t('create.form.route.select')}
+                            ? t('actions.edit')
+                            : t('rides.create.form.route.select')}
                         </Button>
                         {group.routeSlug && (
                           <Button
@@ -499,7 +501,7 @@ export function RideEditor({
                             className="h-auto p-0 text-xs text-destructive"
                             onClick={() => form.setValue(`groups.${index}.routeSlug`, undefined)}
                           >
-                            {t('create.form.route.clear')}
+                            {t('rides.create.form.route.clear')}
                           </Button>
                         )}
                       </div>
@@ -507,9 +509,7 @@ export function RideEditor({
                     {group.routeSlug ? (
                       <RoutePreviewCompact routeSlug={group.routeSlug} teamSlug={teamSlug} />
                     ) : (
-                      <p className="text-xs text-muted-foreground italic">
-                        {tCommon('noRouteSelected')}
-                      </p>
+                      <p className="text-xs text-muted-foreground italic">{t('noRouteSelected')}</p>
                     )}
                   </div>
                 </div>
@@ -517,26 +517,26 @@ export function RideEditor({
             })}
             {groupFieldArray.length === 0 && (
               <p className="text-sm text-muted-foreground italic">
-                {t('create.form.groups.empty')}
+                {t('rides.create.form.groups.empty')}
               </p>
             )}
           </div>
-          <p className="text-sm text-muted-foreground">{t('create.form.groups.hint')}</p>
+          <p className="text-sm text-muted-foreground">{t('rides.create.form.groups.hint')}</p>
         </div>
 
         {/* Actions */}
         <div className="pt-4 flex items-center justify-end gap-3">
           <Button type="button" variant="outline" onClick={onCancel}>
-            {cancelButtonText || tCommon('actions.cancelAction')}
+            {cancelButtonText || t('actions.cancelAction')}
           </Button>
           <Button type="submit" disabled={isPending || !form.formState.isValid}>
             {isPending ? (
               <>
                 <LoadingSpinner size="sm" color="white" className="mr-2" />
-                {tCommon('status.saving')}
+                {t('status.saving')}
               </>
             ) : (
-              submitButtonText || tCommon('actions.save')
+              submitButtonText || t('actions.save')
             )}
           </Button>
         </div>
@@ -572,8 +572,8 @@ export function RideEditor({
           }
           title={
             pickerTarget && pickerTarget.type === 'ride'
-              ? t('create.form.route.selectForRide')
-              : t('create.form.route.selectForGroup')
+              ? t('rides.create.form.route.selectForRide')
+              : t('rides.create.form.route.selectForGroup')
           }
           onCreateNew={() => {
             setShowRoutePickerModal(false)

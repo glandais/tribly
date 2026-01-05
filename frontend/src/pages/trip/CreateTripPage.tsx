@@ -12,8 +12,7 @@ import { TripEditor } from '../../components/trip/TripEditor'
 import { defaultMedia } from '@/lib/apiUtils'
 
 export function CreateTripPage() {
-  const { t } = useTranslation('trips')
-  const { t: tCommon } = useTranslation('common')
+  const { t } = useTranslation()
   const { teamSlug } = useParams<{ teamSlug: string }>()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
@@ -24,7 +23,7 @@ export function CreateTripPage() {
   const createMutation = useCreateTrip()
 
   if (isLoadingTeam) {
-    return <LoadingPage message={tCommon('loading')} />
+    return <LoadingPage message={t('loading')} />
   }
 
   if (!team) {
@@ -64,7 +63,7 @@ export function CreateTripPage() {
     routeSlug: undefined,
     stages: [
       {
-        name: t('create.form.stages.defaultName', { number: 1 }),
+        name: t('trips.create.form.stages.defaultName', { number: 1 }),
         dateTime: tripStartDate,
         routeSlug: undefined,
         startPlace: undefined,
@@ -84,7 +83,7 @@ export function CreateTripPage() {
       {
         onSuccess: (trip) => {
           queryClient.invalidateQueries({ queryKey: getListTripsQueryKey(teamSlug!) })
-          toast.success(i18next.t('trips:notifications.created'))
+          toast.success(i18next.t('trips.notifications.created'))
           navigate(paths.trip(teamSlug!, trip.slug))
         },
       }
@@ -94,8 +93,8 @@ export function CreateTripPage() {
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">{t('create.title')}</h1>
-        <p className="mt-1 text-gray-600">{t('create.subtitle', { teamName: team.name })}</p>
+        <h1 className="text-3xl font-bold text-gray-900">{t('trips.create.title')}</h1>
+        <p className="mt-1 text-gray-600">{t('trips.create.subtitle', { teamName: team.name })}</p>
       </div>
 
       <TripEditor
@@ -105,7 +104,7 @@ export function CreateTripPage() {
         onSubmit={handleSubmit}
         onCancel={() => navigate(paths.team(teamSlug!))}
         isPending={createMutation.isPending}
-        submitButtonText={t('create.button')}
+        submitButtonText={t('trips.create.button')}
       />
     </div>
   )

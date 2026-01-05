@@ -12,8 +12,7 @@ import { paths } from '@/config/paths'
 import { PostRequest, Visibility, Status } from '../../api/dto'
 
 export function CreatePostPage() {
-  const { t } = useTranslation('posts')
-  const { t: tCommon } = useTranslation('common')
+  const { t } = useTranslation()
   const { teamSlug } = useParams<{ teamSlug: string }>()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
@@ -24,7 +23,7 @@ export function CreatePostPage() {
   const createMutation = useCreatePost()
 
   if (isLoadingTeam) {
-    return <LoadingPage message={tCommon('loading')} />
+    return <LoadingPage message={t('loading')} />
   }
 
   if (!team || !teamSlug) {
@@ -56,7 +55,7 @@ export function CreatePostPage() {
       {
         onSuccess: (post) => {
           queryClient.invalidateQueries({ queryKey: getListPostsQueryKey(teamSlug!) })
-          toast.success(i18next.t('posts:notifications.created'))
+          toast.success(i18next.t('posts.notifications.created'))
           navigate(paths.post(teamSlug!, post.slug))
         },
       }
@@ -66,7 +65,7 @@ export function CreatePostPage() {
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">{t('create.title')}</h1>
+        <h1 className="text-3xl font-bold text-gray-900">{t('posts.create.title')}</h1>
       </div>
 
       <PostEditor
@@ -76,7 +75,7 @@ export function CreatePostPage() {
         onSubmit={handleSubmit}
         onCancel={() => navigate(paths.team(teamSlug!))}
         isPending={createMutation.isPending}
-        submitButtonText={t('create.submit')}
+        submitButtonText={t('posts.create.submit')}
       />
     </div>
   )
