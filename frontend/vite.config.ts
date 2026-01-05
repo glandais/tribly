@@ -8,6 +8,7 @@ export default defineConfig({
     react(),
     visualizer({
       open: false,
+      template: 'flamegraph',
     }),
   ],
   resolve: {
@@ -22,14 +23,23 @@ export default defineConfig({
           // React core
           if (id.includes('node_modules/react/') ||
               id.includes('node_modules/react-dom/') ||
-              id.includes('node_modules/react-router') ||
-              id.includes('node_modules/@tanstack/react-query/') ||
-              id.includes('node_modules/scheduler/')) {
+              id.includes('node_modules/react-router')) {
             return 'react-vendor';
+          }
+          if (id.includes('node_modules/react') ||
+              id.includes('node_modules/tailwind-merge') ||
+              id.includes('node_modules/sonner') ||
+              id.includes('node_modules/zod') ||
+              id.includes('node_modules/@radix-ui') ||
+              id.includes('node_modules/@tanstack') ||
+              id.includes('node_modules/scheduler/')) {
+            return 'react-plus-vendor';
           }
 
           // Maps
           if (id.includes('node_modules/maplibre-gl/') ||
+              id.includes('node_modules/@versatiles') ||
+              id.includes('node_modules/@vis.gl/react-maplibre') ||
               id.includes('node_modules/react-map-gl/')) {
             return 'maplibre-vendor';
           }
@@ -48,7 +58,8 @@ export default defineConfig({
             return 'chart-vendor';
           }
 
-          if (id.includes('node_modules/@lexical') ||
+          if (id.includes('node_modules/@mdxeditor') ||
+              id.includes('node_modules/@lexical') ||
               id.includes('node_modules/lexical') ||
               id.includes('node_modules/react-markdown') ||
               id.includes('node_modules/prismjs') ||
