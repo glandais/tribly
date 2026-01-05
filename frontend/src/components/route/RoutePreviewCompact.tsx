@@ -25,8 +25,8 @@ export function RoutePreviewCompact({ routeSlug, teamSlug }: RoutePreviewCompact
     <div className="text-xs text-gray-600">
       <span className="font-medium">{route.name}</span>
       <span className="ml-2">
-        ({(route.distance / 1000).toFixed(1)} {t('units.km')}, {route.elevationGain}
-        {t('units.m')})
+        ({t('distance', { distance: (route.distance / 1000).toFixed(1) })},{' '}
+        {t('elevation', { elevation: route.elevationGain })})
       </span>
     </div>
   )

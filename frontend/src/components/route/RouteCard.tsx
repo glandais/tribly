@@ -56,11 +56,10 @@ export function RouteCard({ route, showTeam }: RouteCardProps) {
 
         <StatGroup className="mb-3">
           <Stat icon={distanceIcon}>
-            {(route.distance / 1000).toFixed(1)} {t('units.km')}
+            {t('distance', { distance: (route.distance / 1000).toFixed(1) })}
           </Stat>
           <Stat icon={elevationIcon}>
-            {route.elevationGain}
-            {t('units.m')}
+            {t('elevation', { elevation: route.elevationGain })}
           </Stat>
         </StatGroup>
 

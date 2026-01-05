@@ -166,7 +166,7 @@ export function RouteDetailPage() {
             <div>
               <p className="text-sm text-gray-500">{t('routes.detail.stats.distance')}</p>
               <p className="text-2xl font-bold text-gray-900">
-                {(route.distance / 1000).toFixed(1)} {t('units.km')}
+                {t('distance', { distance: (route.distance / 1000).toFixed(1) })}
               </p>
             </div>
           </div>
@@ -178,8 +178,7 @@ export function RouteDetailPage() {
             <div>
               <p className="text-sm text-gray-500">{t('routes.detail.stats.elevationGain')}</p>
               <p className="text-2xl font-bold text-gray-900">
-                {route.elevationGain}
-                {t('units.m')}
+                {t('elevation', { elevation: route.elevationGain })}
               </p>
             </div>
           </div>
@@ -191,8 +190,7 @@ export function RouteDetailPage() {
             <div>
               <p className="text-sm text-gray-500">{t('routes.detail.stats.elevationLoss')}</p>
               <p className="text-2xl font-bold text-gray-900">
-                {route.elevationLoss}
-                {t('units.m')}
+                {t('elevation', { elevation: route.elevationLoss })}
               </p>
             </div>
           </div>
@@ -271,8 +269,7 @@ export function RouteDetailPage() {
                       <div>
                         <span className="text-gray-500">{t('routes.detail.climbs.gain')}: </span>
                         <span className="font-medium text-gray-900">
-                          {climb.elevationGain}
-                          {t('units.m')}
+                          {t('elevation', { elevation: climb.elevationGain })}
                         </span>
                       </div>
                       <div>

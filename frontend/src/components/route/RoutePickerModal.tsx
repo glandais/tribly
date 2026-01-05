@@ -174,12 +174,11 @@ export function RoutePickerModal({
                 <div className="flex gap-3 mt-2 text-xs text-gray-500">
                   <span className="flex items-center gap-1">
                     <ArrowsPointingOutIcon className="w-3.5 h-3.5" />
-                    {(route.distance / 1000).toFixed(1)} {t('units.km')}
+                    {t('distance', { distance: (route.distance / 1000).toFixed(1) })}
                   </span>
                   <span className="flex items-center gap-1">
                     <ArrowUpIcon className="w-3.5 h-3.5" />
-                    {route.elevationGain}
-                    {t('units.m')}
+                    {t('elevation', { elevation: route.elevationGain })}
                   </span>
                 </div>
               </button>

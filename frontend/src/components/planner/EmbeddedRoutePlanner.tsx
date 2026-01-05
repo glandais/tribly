@@ -395,10 +395,10 @@ export function EmbeddedRoutePlanner({ onPointsChange, initialTrack }: EmbeddedR
           {routeStats && (
             <div className="flex items-center gap-2">
               <span className="font-medium text-gray-900">
-                {routeStats.distance.toFixed(1)} {t('units.km')}
+                {t('distance', { distance: routeStats.distance.toFixed(1) })}
               </span>
               <span className="text-green-600">
-                +{Math.round(routeStats.ascend)} {t('units.m')}
+                +{t('elevation', { elevation: Math.round(routeStats.ascend) })}
               </span>
             </div>
           )}
