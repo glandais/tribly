@@ -99,7 +99,7 @@ export function EmbeddedRoutePlanner({ onPointsChange, initialTrack }: EmbeddedR
     }
     const allPoints: GeoPoint[] = routeGeoJson.coordinates.map((coords) => ({
       lng: coords[0],
-      lat: coords[0],
+      lat: coords[1],
     }))
     onPointsChange(allPoints)
   }, [routeGeoJson, onPointsChange])
