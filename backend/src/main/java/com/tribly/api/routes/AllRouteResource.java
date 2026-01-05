@@ -10,7 +10,6 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import java.util.Set;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
@@ -63,10 +62,10 @@ public class AllRouteResource extends AbstractAuthenticatedResource {
       @Parameter(description = "Hilliness preset (FLAT, HILLY, MOUNTAINOUS)")
           @QueryParam("hilliness")
           @Nullable Hilliness hilliness,
-      @Parameter(description = "Filter by surface types") @QueryParam("surfaceTypes")
-          @Nullable Set<SurfaceType> surfaceTypes,
-      @Parameter(description = "Filter by wind directions") @QueryParam("windDirections")
-          @Nullable Set<WindDirection> windDirections,
+      @Parameter(description = "Filter by surface type") @QueryParam("surfaceType")
+          @Nullable SurfaceType surfaceType,
+      @Parameter(description = "Filter by wind direction") @QueryParam("windDirection")
+          @Nullable WindDirection windDirection,
       @Parameter(description = "Latitude for proximity search") @QueryParam("nearLat")
           @Nullable Double nearLat,
       @Parameter(description = "Longitude for proximity search") @QueryParam("nearLon")
@@ -94,8 +93,8 @@ public class AllRouteResource extends AbstractAuthenticatedResource {
             .minElevationGain(minElevationGain)
             .maxElevationGain(maxElevationGain)
             .hilliness(hilliness)
-            .surfaceTypes(surfaceTypes)
-            .windDirections(windDirections)
+            .surfaceType(surfaceType)
+            .windDirection(windDirection)
             .nearLat(nearLat)
             .nearLon(nearLon)
             .nearRadius(nearRadius)

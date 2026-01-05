@@ -7,7 +7,6 @@ import type { ListAllRoutesParams } from '@/api/dto'
 import { RouteCard, RouteCardSkeleton } from '../../components/route/RouteCard'
 import { Pagination } from '../../components/common/Pagination'
 import { usePagination } from '../../hooks/usePagination'
-import { SearchInput } from '../../components/common/SearchInput'
 import { HomeLayout } from '../../components/home/HomeLayout'
 import { RouteFilterPanel } from '../../components/route/RouteFilterPanel'
 
@@ -35,14 +34,6 @@ export function AllRoutesPage() {
     setFilters({ ...newFilters, size: pageSize })
   }
 
-  const handleSearchChange = (search: string) => {
-    setFilters((prev) => ({
-      ...prev,
-      search: search || undefined,
-      page: 0,
-    }))
-  }
-
   const handlePageChange = (page: number) => {
     setFilters((prev) => ({ ...prev, page }))
   }
@@ -60,8 +51,8 @@ export function AllRoutesPage() {
     filters.minElevationGain !== undefined ||
     filters.maxElevationGain !== undefined ||
     filters.hilliness !== undefined ||
-    (filters.surfaceTypes?.length ?? 0) > 0 ||
-    (filters.windDirections?.length ?? 0) > 0
+    filters.surfaceType !== undefined ||
+    filters.windDirection !== undefined
 
   return (
     <HomeLayout currentTab="routes">
@@ -69,16 +60,6 @@ export function AllRoutesPage() {
       <div className="mt-6 mb-6">
         <h2 className="text-2xl font-bold text-gray-900">{t('list.title')}</h2>
       </div>
-
-      {/* Search Input */}
-      <SearchInput
-        id="routes-search"
-        value={filters.search ?? ''}
-        onChange={handleSearchChange}
-        placeholder={t('list.search.placeholder')}
-        label={t('list.search.label')}
-        className="mb-4"
-      />
 
       {/* Filter Panel */}
       <RouteFilterPanel

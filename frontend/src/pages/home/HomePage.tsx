@@ -21,11 +21,11 @@ import {
 
 type FilterValue = 'all' | 'ride' | 'post' | 'trip'
 
-const filterToTypes: Record<FilterValue, PublicationType[] | undefined> = {
+const filterToType: Record<FilterValue, PublicationType | undefined> = {
   all: undefined,
-  ride: [PublicationType.RIDE],
-  post: [PublicationType.POST],
-  trip: [PublicationType.TRIP],
+  ride: PublicationType.RIDE,
+  post: PublicationType.POST,
+  trip: PublicationType.TRIP,
 }
 
 export function HomePage() {
@@ -45,7 +45,7 @@ export function HomePage() {
     search: search || undefined,
     page,
     size: pageSize,
-    type: filterToTypes[filter],
+    type: filterToType[filter],
   })
 
   const resetPage = () => setPage(0)

@@ -12,7 +12,6 @@ import { TeamLayout } from '../../components/team/TeamLayout'
 import { RouteCard, RouteCardSkeleton } from '../../components/route/RouteCard'
 import { Pagination } from '../../components/common/Pagination'
 import { usePagination } from '../../hooks/usePagination'
-import { SearchInput } from '../../components/common/SearchInput'
 import { RouteFilterPanel } from '../../components/route/RouteFilterPanel'
 
 export function RouteListPage() {
@@ -36,14 +35,6 @@ export function RouteListPage() {
 
   const handleFiltersChange = (newFilters: ListRoutesParams) => {
     setFilters({ ...newFilters, size: pageSize })
-  }
-
-  const handleSearchChange = (search: string) => {
-    setFilters((prev) => ({
-      ...prev,
-      search: search || undefined,
-      page: 0,
-    }))
   }
 
   const handlePageChange = (page: number) => {
@@ -72,8 +63,8 @@ export function RouteListPage() {
     filters.minElevationGain !== undefined ||
     filters.maxElevationGain !== undefined ||
     filters.hilliness !== undefined ||
-    (filters.surfaceTypes?.length ?? 0) > 0 ||
-    (filters.windDirections?.length ?? 0) > 0
+    filters.surfaceType !== undefined ||
+    filters.windDirection !== undefined
 
   return (
     <TeamLayout team={team} currentTab="routes">
@@ -92,16 +83,6 @@ export function RouteListPage() {
             </Link>
           )}
         </div>
-
-        {/* Search Input */}
-        <SearchInput
-          id="routes-search"
-          value={filters.search ?? ''}
-          onChange={handleSearchChange}
-          placeholder={t('list.search.placeholder')}
-          label={t('list.search.label')}
-          className="mb-4"
-        />
 
         {/* Filter Panel */}
         <RouteFilterPanel

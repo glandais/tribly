@@ -477,60 +477,11 @@ class RouteRepositoryTest {
         45.5,
         6.5);
 
-    RouteQuery query = RouteQuery.builder().surfaceTypes(Set.of(SurfaceType.GRAVEL)).build();
+    RouteQuery query = RouteQuery.builder().surfaceType(SurfaceType.GRAVEL).build();
     TriblyPage<Route> result = routeRepository.find(query);
 
     assertEquals(1, result.items().size());
     assertEquals("Gravel Route", result.items().getFirst().getName());
-  }
-
-  @Test
-  void find_shouldFilterByMultipleSurfaceTypes() {
-    dataService.createRouteWithProperties(
-        team,
-        user,
-        "Road Route",
-        Visibility.PUBLIC,
-        50000,
-        500,
-        SurfaceType.ROAD,
-        WindDirection.NORTH,
-        45.0,
-        6.0,
-        45.5,
-        6.5);
-    dataService.createRouteWithProperties(
-        team,
-        user,
-        "Gravel Route",
-        Visibility.PUBLIC,
-        50000,
-        500,
-        SurfaceType.GRAVEL,
-        WindDirection.NORTH,
-        45.0,
-        6.0,
-        45.5,
-        6.5);
-    dataService.createRouteWithProperties(
-        team,
-        user,
-        "MTB Route",
-        Visibility.PUBLIC,
-        50000,
-        500,
-        SurfaceType.MTB,
-        WindDirection.NORTH,
-        45.0,
-        6.0,
-        45.5,
-        6.5);
-
-    RouteQuery query =
-        RouteQuery.builder().surfaceTypes(Set.of(SurfaceType.ROAD, SurfaceType.GRAVEL)).build();
-    TriblyPage<Route> result = routeRepository.find(query);
-
-    assertEquals(2, result.items().size());
   }
 
   // ==================== Wind Direction Filter ====================
@@ -564,7 +515,7 @@ class RouteRepositoryTest {
         45.5,
         6.5);
 
-    RouteQuery query = RouteQuery.builder().windDirections(Set.of(WindDirection.NORTH)).build();
+    RouteQuery query = RouteQuery.builder().windDirection(WindDirection.NORTH).build();
     TriblyPage<Route> result = routeRepository.find(query);
 
     assertEquals(1, result.items().size());
@@ -829,7 +780,7 @@ class RouteRepositoryTest {
         6.5);
 
     RouteQuery query =
-        RouteQuery.builder().minDistance(30000).surfaceTypes(Set.of(SurfaceType.GRAVEL)).build();
+        RouteQuery.builder().minDistance(30000).surfaceType(SurfaceType.GRAVEL).build();
     TriblyPage<Route> result = routeRepository.find(query);
 
     assertEquals(1, result.items().size());

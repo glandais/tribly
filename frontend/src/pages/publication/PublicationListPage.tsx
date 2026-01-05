@@ -33,11 +33,11 @@ import { paths } from '@/config/paths'
 
 type FilterValue = 'all' | 'ride' | 'post' | 'trip'
 
-const filterToTypes: Record<FilterValue, PublicationType[] | undefined> = {
+const filterToType: Record<FilterValue, PublicationType | undefined> = {
   all: undefined,
-  ride: [PublicationType.RIDE],
-  post: [PublicationType.POST],
-  trip: [PublicationType.TRIP],
+  ride: PublicationType.RIDE,
+  post: PublicationType.POST,
+  trip: PublicationType.TRIP,
 }
 
 export function PublicationListPage() {
@@ -62,7 +62,7 @@ export function PublicationListPage() {
       search: search || undefined,
       page,
       size: pageSize,
-      type: filterToTypes[filter],
+      type: filterToType[filter],
     },
     { query: { enabled: !!teamSlug } }
   )

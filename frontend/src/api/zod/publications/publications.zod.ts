@@ -20,10 +20,7 @@ export const listAllPublicationsQueryParams = zod.object({
   search: zod.string().optional().describe('Search by name/markdown'),
   size: zod.number().default(listAllPublicationsQuerySizeDefault).describe('Page size'),
   to: zod.string().optional().describe('End date filter (ISO format)'),
-  type: zod
-    .array(zod.enum(['RIDE', 'POST', 'TRIP']))
-    .optional()
-    .describe('Types'),
+  type: zod.enum(['RIDE', 'POST', 'TRIP']).optional().describe('Types'),
 })
 
 export const listAllPublicationsResponse = zod
@@ -779,10 +776,7 @@ export const listPublicationsQueryParams = zod.object({
   search: zod.string().optional().describe('Search by name/markdown'),
   size: zod.number().default(listPublicationsQuerySizeDefault).describe('Page size'),
   to: zod.string().optional().describe('End date filter (ISO format)'),
-  type: zod
-    .array(zod.enum(['RIDE', 'POST', 'TRIP']))
-    .optional()
-    .describe('Types'),
+  type: zod.enum(['RIDE', 'POST', 'TRIP']).optional().describe('Type'),
 })
 
 export const listPublicationsResponse = zod

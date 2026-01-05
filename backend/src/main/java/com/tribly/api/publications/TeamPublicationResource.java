@@ -11,7 +11,6 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.time.Instant;
-import java.util.List;
 import java.util.Set;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
@@ -47,7 +46,7 @@ public class TeamPublicationResource extends AbstractAuthenticatedResource {
   })
   public Response listPublications(
       @Parameter(description = "Team URL slug") @PathParam("slug") String slug,
-      @Parameter(description = "Types") @QueryParam("type") @Nullable List<PublicationType> types,
+      @Parameter(description = "Type") @QueryParam("type") @Nullable PublicationType type,
       @Parameter(description = "Search by name/markdown") @QueryParam("search")
           @Nullable String search,
       @Parameter(description = "Start date filter (ISO format)") @QueryParam("from")
@@ -63,7 +62,7 @@ public class TeamPublicationResource extends AbstractAuthenticatedResource {
     Instant to = toStr != null ? Instant.parse(toStr) : null;
 
     PublicationListResponse publications =
-        publicationService.list(types, Set.of(slug), userId, search, from, to, page, size);
+        publicationService.list(type, Set.of(slug), userId, search, from, to, page, size);
 
     return Response.ok(publications).build();
   }

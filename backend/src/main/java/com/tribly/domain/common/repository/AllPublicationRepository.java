@@ -30,11 +30,10 @@ public class AllPublicationRepository
 
   @Override
   public TriblyQuery andSpecific(TriblyQuery triblyQuery, PublicationQuery query) {
-    if (query.types() != null && !query.types().isEmpty()) {
+    PublicationType publicationType = query.type();
+    if (publicationType != null) {
       triblyQuery =
-          triblyQuery.and(
-              "TYPE(te) IN (:types)",
-              Map.of("types", query.types().stream().map(PublicationType::getTypeName).toList()));
+          triblyQuery.and("TYPE(te) = :type", Map.of("type", publicationType.getTypeName()));
     }
     return triblyQuery;
   }

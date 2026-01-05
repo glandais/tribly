@@ -2203,9 +2203,7 @@ paths:
         name: type
         in: query
         schema:
-          type: array
-          items:
-            $ref: "#/components/schemas/PublicationType"
+          $ref: "#/components/schemas/PublicationType"
       responses:
         "200":
           description: Publications retrieved successfully
@@ -2342,22 +2340,16 @@ paths:
         in: query
         schema:
           $ref: "#/components/schemas/SortDirection"
-      - description: Filter by surface types
-        name: surfaceTypes
+      - description: Filter by surface type
+        name: surfaceType
         in: query
         schema:
-          type: array
-          uniqueItems: true
-          items:
-            $ref: "#/components/schemas/SurfaceType"
-      - description: Filter by wind directions
-        name: windDirections
+          $ref: "#/components/schemas/SurfaceType"
+      - description: Filter by wind direction
+        name: windDirection
         in: query
         schema:
-          type: array
-          uniqueItems: true
-          items:
-            $ref: "#/components/schemas/WindDirection"
+          $ref: "#/components/schemas/WindDirection"
       responses:
         "200":
           description: Routes retrieved successfully
@@ -4074,13 +4066,11 @@ paths:
         in: query
         schema:
           type: string
-      - description: Types
+      - description: Type
         name: type
         in: query
         schema:
-          type: array
-          items:
-            $ref: "#/components/schemas/PublicationType"
+          $ref: "#/components/schemas/PublicationType"
       responses:
         "200":
           description: Publications retrieved successfully
@@ -4903,22 +4893,16 @@ paths:
         in: query
         schema:
           $ref: "#/components/schemas/SortDirection"
-      - description: Filter by surface types
-        name: surfaceTypes
+      - description: Filter by surface type
+        name: surfaceType
         in: query
         schema:
-          type: array
-          uniqueItems: true
-          items:
-            $ref: "#/components/schemas/SurfaceType"
-      - description: Filter by wind directions
-        name: windDirections
+          $ref: "#/components/schemas/SurfaceType"
+      - description: Filter by wind direction
+        name: windDirection
         in: query
         schema:
-          type: array
-          uniqueItems: true
-          items:
-            $ref: "#/components/schemas/WindDirection"
+          $ref: "#/components/schemas/WindDirection"
       responses:
         "200":
           description: Routes retrieved successfully

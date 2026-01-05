@@ -38,25 +38,23 @@ export const listAllRoutesQueryParams = zod.object({
     .optional()
     .describe('Sort by field (DISTANCE, ELEVATION_GAIN, HILLINESS, DATE_TIME)'),
   sortDir: zod.enum(['ASC', 'DESC']).optional().describe('Sort direction (ASC, DESC)'),
-  surfaceTypes: zod
-    .array(zod.enum(['ROAD', 'GRAVEL', 'MTB', 'MIXED']))
+  surfaceType: zod
+    .enum(['ROAD', 'GRAVEL', 'MTB', 'MIXED'])
     .optional()
-    .describe('Filter by surface types'),
-  windDirections: zod
-    .array(
-      zod.enum([
-        'NORTH',
-        'NORTH_EAST',
-        'EAST',
-        'SOUTH_EAST',
-        'SOUTH',
-        'SOUTH_WEST',
-        'WEST',
-        'NORTH_WEST',
-      ])
-    )
+    .describe('Filter by surface type'),
+  windDirection: zod
+    .enum([
+      'NORTH',
+      'NORTH_EAST',
+      'EAST',
+      'SOUTH_EAST',
+      'SOUTH',
+      'SOUTH_WEST',
+      'WEST',
+      'NORTH_WEST',
+    ])
     .optional()
-    .describe('Filter by wind directions'),
+    .describe('Filter by wind direction'),
 })
 
 export const listAllRoutesResponse = zod
@@ -258,25 +256,23 @@ export const listRoutesQueryParams = zod.object({
     .optional()
     .describe('Sort by field (DISTANCE, ELEVATION_GAIN, HILLINESS, DATE_TIME)'),
   sortDir: zod.enum(['ASC', 'DESC']).optional().describe('Sort direction (ASC, DESC)'),
-  surfaceTypes: zod
-    .array(zod.enum(['ROAD', 'GRAVEL', 'MTB', 'MIXED']))
+  surfaceType: zod
+    .enum(['ROAD', 'GRAVEL', 'MTB', 'MIXED'])
     .optional()
-    .describe('Filter by surface types'),
-  windDirections: zod
-    .array(
-      zod.enum([
-        'NORTH',
-        'NORTH_EAST',
-        'EAST',
-        'SOUTH_EAST',
-        'SOUTH',
-        'SOUTH_WEST',
-        'WEST',
-        'NORTH_WEST',
-      ])
-    )
+    .describe('Filter by surface type'),
+  windDirection: zod
+    .enum([
+      'NORTH',
+      'NORTH_EAST',
+      'EAST',
+      'SOUTH_EAST',
+      'SOUTH',
+      'SOUTH_WEST',
+      'WEST',
+      'NORTH_WEST',
+    ])
     .optional()
-    .describe('Filter by wind directions'),
+    .describe('Filter by wind direction'),
 })
 
 export const listRoutesResponse = zod

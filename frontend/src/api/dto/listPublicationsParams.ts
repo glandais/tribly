@@ -29,7 +29,7 @@ export type ListPublicationsParams = {
    */
   to?: string
   /**
-   * Types
+   * Type
    */
-  type?: PublicationType[]
+  type?: PublicationType
 }

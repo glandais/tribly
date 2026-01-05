@@ -20,7 +20,7 @@ public class PublicationService extends TeamEntityService {
   @Inject AllPublicationRepository allPublicationRepository;
 
   public PublicationListResponse list(
-      @Nullable List<PublicationType> types,
+      @Nullable PublicationType type,
       @Nullable Set<String> teamSlugs,
       @Nullable Long userId,
       @Nullable String search,
@@ -32,7 +32,7 @@ public class PublicationService extends TeamEntityService {
         allPublicationRepository.find(
             PublicationQuery.builder()
                 .userId(userId)
-                .types(types)
+                .type(type)
                 .teamSlugs(teamSlugs)
                 .search(search)
                 .from(from)

@@ -70,11 +70,11 @@ export type ListRoutesParams = {
    */
   sortDir?: SortDirection
   /**
-   * Filter by surface types
+   * Filter by surface type
    */
-  surfaceTypes?: SurfaceType[]
+  surfaceType?: SurfaceType
   /**
-   * Filter by wind directions
+   * Filter by wind direction
    */
-  windDirections?: WindDirection[]
+  windDirection?: WindDirection
 }

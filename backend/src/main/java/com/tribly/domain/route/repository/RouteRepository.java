@@ -66,18 +66,17 @@ public class RouteRepository implements TeamEntityRepository<Route, RouteQuery> 
     }
 
     // Surface type filter
-    if (query.surfaceTypes() != null && !query.surfaceTypes().isEmpty()) {
+    if (query.surfaceType() != null) {
       triblyQuery =
           triblyQuery.and(
-              "te.surfaceType IN (:surfaceTypes)", Map.of("surfaceTypes", query.surfaceTypes()));
+              "te.surfaceType = :surfaceType", Map.of("surfaceType", query.surfaceType()));
     }
 
     // Wind direction filter
-    if (query.windDirections() != null && !query.windDirections().isEmpty()) {
+    if (query.windDirection() != null) {
       triblyQuery =
           triblyQuery.and(
-              "te.windDirection IN (:windDirections)",
-              Map.of("windDirections", query.windDirections()));
+              "te.windDirection = :windDirection", Map.of("windDirection", query.windDirection()));
     }
 
     // Geographic proximity filter

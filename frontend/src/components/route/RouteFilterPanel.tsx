@@ -9,11 +9,11 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { RangeInput } from '@/components/common/RangeInput'
 import { Hilliness, SurfaceType, WindDirection, RouteSortBy, SortDirection } from '@/api/dto'
 import type { ListRoutesParams } from '@/api/dto'
+import { SearchInput } from '../common/SearchInput'
 
 const NONE_VALUE = '_none'
 
@@ -36,19 +36,6 @@ export function RouteFilterPanel({
     onFiltersChange({ ...filters, [key]: value, page: 0 })
   }
 
-  const toggleSurfaceType = (type: SurfaceType) => {
-    const current = filters.surfaceTypes || []
-    const updated = current.includes(type) ? current.filter((t) => t !== type) : [...current, type]
-    updateFilter('surfaceTypes', updated.length > 0 ? updated : undefined)
-  }
-
-  // Get the first wind direction from the array (we use single-select UI)
-  const selectedWindDirection = filters.windDirections?.[0]
-
-  const setWindDirection = (dir: WindDirection | undefined) => {
-    updateFilter('windDirections', dir ? [dir] : undefined)
-  }
-
   const clearFilters = () => {
     onFiltersChange({
       search: filters.search,
@@ -63,8 +50,8 @@ export function RouteFilterPanel({
     filters.minElevationGain !== undefined ||
     filters.maxElevationGain !== undefined ||
     filters.hilliness !== undefined ||
-    (filters.surfaceTypes?.length ?? 0) > 0 ||
-    (filters.windDirections?.length ?? 0) > 0
+    filters.surfaceType !== undefined ||
+    filters.windDirection !== undefined
 
   return (
     <Collapsible open={isOpen} onOpenChange={onOpenChange}>
@@ -90,6 +77,17 @@ export function RouteFilterPanel({
 
       <CollapsibleContent>
         <div className="bg-gray-50 rounded-lg p-4 mb-6 border border-gray-200">
+
+                {/* Search Input */}
+                <SearchInput
+                  id="routes-search"
+                  value={filters.search ?? ''}
+                  onChange={(value) => updateFilter('search', value || undefined)}
+                  placeholder={t('list.search.placeholder')}
+                  label={t('list.search.label')}
+                  className="mb-4"
+                />
+          
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {/* Distance Range */}
             <RangeInput
@@ -123,54 +121,72 @@ export function RouteFilterPanel({
               <Label className="text-sm font-medium text-gray-700 mb-2 block">
                 {t('list.filters.hilliness.label')}
               </Label>
-              <div className="flex flex-wrap gap-2">
-                {Object.values(Hilliness).map((value) => (
-                  <Button
-                    key={value}
-                    variant={filters.hilliness === value ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() =>
-                      updateFilter('hilliness', filters.hilliness === value ? undefined : value)
-                    }
-                  >
-                    {t(
-                      `list.filters.hilliness.${value satisfies 'FLAT' | 'HILLY' | 'MOUNTAINOUS'}`
-                    )}
-                  </Button>
-                ))}
-              </div>
+              <Select
+                value={filters.hilliness ?? NONE_VALUE}
+                onValueChange={(value) =>
+                  updateFilter('hilliness', value === NONE_VALUE ? undefined : (value as Hilliness))
+                }
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder={t('list.filters.hilliness.placeholder')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={NONE_VALUE}>
+                    {t('list.filters.hilliness.placeholder')}
+                  </SelectItem>
+                  {Object.values(Hilliness).map((type) => (
+                    <SelectItem key={type} value={type}>
+                      {t(
+                        `list.filters.hilliness.${type satisfies 'FLAT' | 'HILLY' | 'MOUNTAINOUS'}`
+                      )}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
-            {/* Surface Types Multi-select */}
+            {/* Surface Type */}
             <div>
               <Label className="text-sm font-medium text-gray-700 mb-2 block">
                 {t('list.filters.surfaceType.label')}
               </Label>
-              <div className="flex flex-wrap gap-3">
-                {Object.values(SurfaceType).map((type) => (
-                  <div key={type} className="flex items-center gap-2">
-                    <Checkbox
-                      id={`surface-${type}`}
-                      checked={filters.surfaceTypes?.includes(type) ?? false}
-                      onCheckedChange={() => toggleSurfaceType(type)}
-                    />
-                    <Label htmlFor={`surface-${type}`} className="text-sm cursor-pointer">
+              <Select
+                value={filters.surfaceType ?? NONE_VALUE}
+                onValueChange={(value) =>
+                  updateFilter(
+                    'surfaceType',
+                    value === NONE_VALUE ? undefined : (value as SurfaceType)
+                  )
+                }
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder={t('list.filters.surfaceType.placeholder')} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={NONE_VALUE}>
+                    {t('list.filters.surfaceType.placeholder')}
+                  </SelectItem>
+                  {Object.values(SurfaceType).map((type) => (
+                    <SelectItem key={type} value={type}>
                       {t(`surfaceType.${type satisfies 'ROAD' | 'GRAVEL' | 'MTB' | 'MIXED'}`)}
-                    </Label>
-                  </div>
-                ))}
-              </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
-            {/* Wind Direction Single-select */}
+            {/* Wind Direction */}
             <div>
               <Label className="text-sm font-medium text-gray-700 mb-2 block">
                 {t('list.filters.windDirection.label')}
               </Label>
               <Select
-                value={selectedWindDirection ?? NONE_VALUE}
+                value={filters.windDirection ?? NONE_VALUE}
                 onValueChange={(value) =>
-                  setWindDirection(value === NONE_VALUE ? undefined : (value as WindDirection))
+                  updateFilter(
+                    'windDirection',
+                    value === NONE_VALUE ? undefined : (value as WindDirection)
+                  )
                 }
               >
                 <SelectTrigger className="w-full">

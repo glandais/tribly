@@ -31,5 +31,5 @@ export type ListAllPublicationsParams = {
   /**
    * Types
    */
-  type?: PublicationType[]
+  type?: PublicationType
 }

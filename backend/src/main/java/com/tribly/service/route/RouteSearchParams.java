@@ -1,7 +1,6 @@
 package com.tribly.service.route;
 
 import com.tribly.enums.*;
-import java.util.Set;
 import lombok.Builder;
 import org.jspecify.annotations.Nullable;
 
@@ -15,8 +14,8 @@ public record RouteSearchParams(
     @Nullable Integer minElevationGain,
     @Nullable Integer maxElevationGain,
     @Nullable Hilliness hilliness,
-    @Nullable Set<SurfaceType> surfaceTypes,
-    @Nullable Set<WindDirection> windDirections,
+    @Nullable SurfaceType surfaceType,
+    @Nullable WindDirection windDirection,
     @Nullable Double nearLat,
     @Nullable Double nearLon,
     @Nullable Integer nearRadius,
