@@ -8,11 +8,25 @@ import {
   BreadcrumbList,
   BreadcrumbPage,
   BreadcrumbSeparator,
+  BreadcrumbEllipsis,
 } from '@/components/ui/breadcrumb'
+import { Fragment } from 'react/jsx-runtime'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '../ui/dropdown-menu'
+
+export interface BreadcrumbSubItemType {
+  label: string
+  path?: string
+}
 
 export interface BreadcrumbItemType {
   label: string
   path?: string
+  subItems?: BreadcrumbSubItemType[]
 }
 
 interface BreadcrumbProps {
@@ -29,11 +43,6 @@ export function Breadcrumb({ items, showBackLink = false }: BreadcrumbProps) {
 
   // For back link: show link to previous item
   const previousItem = items.length > 1 ? items[items.length - 2] : null
-
-  // Only render if there's content to show
-  // if (!(previousItem && previousItem.path) && showBackLink) {
-  //   return null
-  // }
 
   return (
     <div className="px-4 sm:px-0">
@@ -57,18 +66,41 @@ export function Breadcrumb({ items, showBackLink = false }: BreadcrumbProps) {
             <BreadcrumbList>
               {items.map((item, index) => {
                 const isLast = index === items.length - 1
-
                 return (
-                  <BreadcrumbItem key={index}>
-                    {index > 0 && <BreadcrumbSeparator />}
-                    {item.path && !isLast ? (
-                      <BreadcrumbLink asChild>
-                        <Link to={item.path}>{item.label}</Link>
-                      </BreadcrumbLink>
-                    ) : (
-                      <BreadcrumbPage>{item.label}</BreadcrumbPage>
-                    )}
-                  </BreadcrumbItem>
+                  <Fragment key={`bc-${index}`}>
+                    <BreadcrumbItem>
+                      {item.path && !isLast ? (
+                        <BreadcrumbLink asChild>
+                          <Link to={item.path}>{item.label}</Link>
+                        </BreadcrumbLink>
+                      ) : (
+                        <BreadcrumbPage>{item.label}</BreadcrumbPage>
+                      )}
+                    </BreadcrumbItem>
+
+                    {item.subItems && item.subItems?.length > 0 ? (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger className="flex items-center gap-1">
+                          <BreadcrumbEllipsis className="size-4" />
+                          <span className="sr-only">{t('aria.more')}</span>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start">
+                          {item.subItems.map((subItem, bIndex) =>
+                            subItem.path ? (
+                              <DropdownMenuItem key={bIndex} asChild>
+                                <Link to={subItem.path}>{subItem.label}</Link>
+                              </DropdownMenuItem>
+                            ) : (
+                              <DropdownMenuItem key={bIndex} disabled>
+                                {subItem.label}
+                              </DropdownMenuItem>
+                            )
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    ) : null}
+                    {!isLast && <BreadcrumbSeparator />}
+                  </Fragment>
                 )
               })}
             </BreadcrumbList>

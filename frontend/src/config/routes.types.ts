@@ -64,6 +64,8 @@ export interface RouteConfig {
    */
   parentId: string | null
 
+  subRouteIds?: string[]
+
   /**
    * Breadcrumb label for this route
    * undefined = route not shown in breadcrumbs
