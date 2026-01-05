@@ -51,8 +51,7 @@ public class RouteService extends TeamEntityService {
    */
   @Transactional
   public RouteDto createRoute(
-      String teamSlug, RouteRequest request, @Nullable Path gpxPath, Long creatorId)
-      throws Exception {
+      String teamSlug, RouteRequest request, @Nullable Path gpxPath, Long creatorId) {
 
     Team team =
         teamRepository
@@ -66,6 +65,8 @@ public class RouteService extends TeamEntityService {
         userRepository
             .findActiveById(creatorId)
             .orElseThrow(() -> BusinessException.notFound("User", creatorId));
+
+    validateVisibility(request, team);
 
     // Validate GPX file
     List<GeoPoint> routePoints = request.points();
@@ -137,6 +138,8 @@ public class RouteService extends TeamEntityService {
         userRepository
             .findActiveById(userId)
             .orElseThrow(() -> BusinessException.notFound("User", userId));
+
+    validateVisibility(request, route.getTeam());
 
     // Update basic metadata
     route.setName(request.name());

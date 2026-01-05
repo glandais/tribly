@@ -14,7 +14,7 @@ import type { Visibility } from './visibility'
 export interface TeamPageRequest {
   /**
    * Page title
-   * @minLength 2
+   * @minLength 1
    * @maxLength 100
    * @pattern \S
    */

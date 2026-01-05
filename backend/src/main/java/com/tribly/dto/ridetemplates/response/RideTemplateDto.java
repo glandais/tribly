@@ -8,7 +8,6 @@ import com.tribly.infrastructure.id.TsidUtils;
 import java.time.Instant;
 import java.util.List;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
-import org.jspecify.annotations.Nullable;
 
 @Schema(description = "Ride template response")
 @ValidateSchema
@@ -16,7 +15,7 @@ public record RideTemplateDto(
     @Schema(description = "Template ID (TSID)", required = true) String id,
     @Schema(description = "Template slug", required = true) String slug,
     @Schema(description = "Template name", required = true) String name,
-    @Nullable @Schema(description = "Template description (markdown)") String markdown,
+    @Schema(description = "Template description (markdown)", required = true) String markdown,
     @Schema(description = "Visibility level", required = true) Visibility visibility,
     @Schema(description = "Default status", required = true) Status status,
     @Schema(description = "Creation timestamp", required = true) Instant createdAt,

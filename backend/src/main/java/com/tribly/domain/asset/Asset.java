@@ -39,10 +39,10 @@ public class Asset extends BaseEntity {
   @Column(name = "file_id", nullable = false)
   protected Long fileId;
 
-  @Column(name = "file_name", nullable = false)
+  @Column(name = "file_name", nullable = false, length = 200)
   protected String fileName;
 
-  @Column(name = "content_type", nullable = false)
+  @Column(name = "content_type", nullable = false, length = 200)
   protected String contentType;
 
   @Column(name = "width")

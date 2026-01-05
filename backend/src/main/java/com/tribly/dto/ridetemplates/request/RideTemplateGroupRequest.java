@@ -16,5 +16,6 @@ public record RideTemplateGroupRequest(
     @Schema(description = "Group name", required = true) @NotBlank @Size(min = 1, max = 200)
         String name,
     @Nullable LocalTime time,
-    @Nullable @Schema(description = "Average speed in km/h") Integer averageSpeed,
-    @Nullable @Schema(description = "Maximum participants") Integer maxParticipants) {}
+    @Nullable @Schema(description = "Average speed in km/h", examples = "25") Integer averageSpeed,
+    @Nullable @Schema(description = "Maximum participants", examples = "15")
+        Integer maxParticipants) {}

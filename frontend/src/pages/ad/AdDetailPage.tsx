@@ -56,8 +56,6 @@ export function AdDetailPage() {
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [showUnpublishConfirm, setShowUnpublishConfirm] = useState(false)
-  const [showCancelConfirm, setShowCancelConfirm] = useState(false)
-  const [showUncancelConfirm, setShowUncancelConfirm] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   const { data: team, isLoading: isLoadingTeam } = useGetTeam(teamSlug!, {
@@ -145,32 +143,6 @@ export function AdDetailPage() {
     )
   }
 
-  const handleCancel = () => {
-    updateMutation.mutate(
-      { slug: teamSlug!, adSlug: adSlug!, data: { ...ad, status: Status.CANCELLED } },
-      {
-        onSuccess: () => {
-          invalidateAds()
-          toast.success(i18next.t('ads:notifications.updated'))
-          setShowCancelConfirm(false)
-        },
-      }
-    )
-  }
-
-  const handleUncancel = () => {
-    updateMutation.mutate(
-      { slug: teamSlug!, adSlug: adSlug!, data: { ...ad, status: Status.PUBLISHED } },
-      {
-        onSuccess: () => {
-          invalidateAds()
-          toast.success(i18next.t('ads:notifications.updated'))
-          setShowUncancelConfirm(false)
-        },
-      }
-    )
-  }
-
   const handleDelete = () => {
     deleteMutation.mutate(
       { slug: teamSlug!, adSlug: adSlug! },
@@ -242,21 +214,7 @@ export function AdDetailPage() {
                       >
                         {tCommon('actions.unpublish')}
                       </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => setShowCancelConfirm(true)}
-                        className="text-yellow-700"
-                      >
-                        {tCommon('actions.cancelAction')}
-                      </DropdownMenuItem>
                     </>
-                  )}
-                  {ad.status === Status.CANCELLED && (
-                    <DropdownMenuItem
-                      onClick={() => setShowUncancelConfirm(true)}
-                      className="text-green-700"
-                    >
-                      {t('detail.actions.uncancel')}
-                    </DropdownMenuItem>
                   )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
@@ -308,26 +266,6 @@ export function AdDetailPage() {
         message={t('detail.confirmations.unpublish')}
         confirmText={tCommon('actions.unpublish')}
         variant="warning"
-        isLoading={updateMutation.isPending}
-      />
-      <ConfirmDialog
-        isOpen={showCancelConfirm}
-        onClose={() => setShowCancelConfirm(false)}
-        onConfirm={handleCancel}
-        title={tCommon('actions.cancelAction')}
-        message={t('detail.confirmations.cancel')}
-        confirmText={tCommon('actions.cancelAction')}
-        variant="warning"
-        isLoading={updateMutation.isPending}
-      />
-      <ConfirmDialog
-        isOpen={showUncancelConfirm}
-        onClose={() => setShowUncancelConfirm(false)}
-        onConfirm={handleUncancel}
-        title={t('detail.actions.uncancel')}
-        message={t('detail.confirmations.uncancel')}
-        confirmText={t('detail.actions.uncancel')}
-        variant="info"
         isLoading={updateMutation.isPending}
       />
       <ConfirmDialog

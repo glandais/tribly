@@ -30,14 +30,14 @@ public class Place extends BaseEntity {
   @JoinColumn(name = "team_id", nullable = false)
   private Team team;
 
-  @Column(name = "name", nullable = false)
+  @Column(name = "name", nullable = false, length = 250)
   private String name;
 
-  @Column(name = "address")
+  @Column(name = "address", length = 250)
   @Nullable
   private String address;
 
-  @Column(name = "link")
+  @Column(name = "link", length = 250)
   @Nullable
   private String link;
 

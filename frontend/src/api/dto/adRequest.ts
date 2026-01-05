@@ -17,7 +17,7 @@ import type { RentalPeriod } from './rentalPeriod'
 export interface AdRequest {
   /**
    * Ad name
-   * @minLength 3
+   * @minLength 1
    * @maxLength 200
    * @pattern \S
    */
@@ -36,7 +36,7 @@ export interface AdRequest {
   rentalPeriod?: RentalPeriod
   /**
    * Location description
-   * @maxLength 255
+   * @maxLength 200
    */
   locationDescription?: string
 }

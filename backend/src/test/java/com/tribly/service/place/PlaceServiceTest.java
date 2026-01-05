@@ -1,5 +1,8 @@
 package com.tribly.service.place;
 
+import static org.geolatte.geom.builder.DSL.g;
+import static org.geolatte.geom.builder.DSL.point;
+import static org.geolatte.geom.crs.CoordinateReferenceSystems.WGS84;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.tribly.domain.place.Place;
@@ -16,6 +19,8 @@ import com.tribly.util.TestDataCleaner;
 import com.tribly.util.TestDataService;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
+import org.geolatte.geom.G2D;
+import org.geolatte.geom.Point;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -149,8 +154,8 @@ class PlaceServiceTest {
 
     @Test
     void shouldCreatePlaceWithCoordinates() {
-      PlaceRequest request =
-          new PlaceRequest("Geo Place", null, null, false, true, new double[] {2.3522, 48.8566});
+      Point<G2D> point = point(WGS84, g(2.3522, 48.8566));
+      PlaceRequest request = new PlaceRequest("Geo Place", null, null, false, true, point);
 
       PlaceDetailDto result = placeService.createPlace("test-team", request, organizer.getId());
 
@@ -161,17 +166,6 @@ class PlaceServiceTest {
     @Test
     void shouldCreatePlaceWithoutCoordinates() {
       PlaceRequest request = new PlaceRequest("No Geo Place", null, null, true, true, null);
-
-      PlaceDetailDto result = placeService.createPlace("test-team", request, organizer.getId());
-
-      assertNotNull(result);
-      assertNull(result.geometry());
-    }
-
-    @Test
-    void shouldIgnoreCoordinatesWithInvalidLength() {
-      PlaceRequest request =
-          new PlaceRequest("Invalid Coords", null, null, true, true, new double[] {1.0, 2.0, 3.0});
 
       PlaceDetailDto result = placeService.createPlace("test-team", request, organizer.getId());
 
@@ -205,9 +199,9 @@ class PlaceServiceTest {
     void shouldUpdateAllFields() {
       Place place = dataService.createPlace(team, admin, "Original", true, true);
       String placeId = TsidUtils.toString(place.getId());
+      Point<G2D> point = point(WGS84, g(2.3522, 48.8566));
       PlaceRequest request =
-          new PlaceRequest(
-              "Updated", "New Address", "http://new.com", false, true, new double[] {1.0, 2.0});
+          new PlaceRequest("Updated", "New Address", "http://new.com", false, true, point);
 
       PlaceDetailDto result =
           placeService.updatePlace("test-team", placeId, request, organizer.getId());
@@ -225,8 +219,8 @@ class PlaceServiceTest {
       Place place = dataService.createPlace(team, admin, "With Geo", true, true);
       String placeId = TsidUtils.toString(place.getId());
       // First set coordinates
-      PlaceRequest withGeo =
-          new PlaceRequest("With Geo", null, null, true, true, new double[] {1.0, 2.0});
+      Point<G2D> point = point(WGS84, g(2.3522, 48.8566));
+      PlaceRequest withGeo = new PlaceRequest("With Geo", null, null, true, true, point);
       placeService.updatePlace("test-team", placeId, withGeo, organizer.getId());
 
       // Then clear them

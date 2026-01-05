@@ -116,7 +116,7 @@ components:
           type: string
           description: Ad name
           pattern: \S
-          minLength: 3
+          minLength: 1
           maxLength: 200
         media:
           description: Ad description
@@ -144,7 +144,7 @@ components:
         locationDescription:
           type: string
           description: Location description
-          maxLength: 255
+          maxLength: 200
     AdType:
       type: string
       enum:
@@ -351,16 +351,11 @@ components:
       type: object
       required:
       - keycloak
-      - map
       properties:
         keycloak:
           description: Keycloak authentication configuration
           type: object
           $ref: "#/components/schemas/KeycloakConfig"
-        map:
-          description: Map configuration
-          type: object
-          $ref: "#/components/schemas/MapConfig"
     ErrorResponse:
       description: Error response
       type: object
@@ -475,10 +470,14 @@ components:
           description: Average speed in km/h
           examples:
           - 25
+          exclusiveMinimum: 0
         maxParticipants:
           type: integer
           format: int32
           description: Maximum participants
+          examples:
+          - 10
+          exclusiveMinimum: 0
         routeSlug:
           type: string
           description: Route slug for this group
@@ -526,23 +525,11 @@ components:
       externalDocs:
         description: As defined by 'partial-time' in RFC3339
         url: https://www.rfc-editor.org/rfc/rfc3339.html#section-5.6
-    MapConfig:
-      type: object
-      description: Map configuration
-      required:
-      - tileUrl
-      - attribution
-      properties:
-        tileUrl:
-          type: string
-          description: Map tile URL template
-          examples:
-          - "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        attribution:
-          type: string
-          description: Map attribution text
     MediaDto:
       type: object
+      required:
+      - markdown
+      - assets
       properties:
         markdown:
           type: string
@@ -551,8 +538,6 @@ components:
           description: Assets
           type: object
           $ref: "#/components/schemas/AssetsDto"
-      required:
-      - assets
     MemberDto:
       description: Team member information
       type: object
@@ -672,6 +657,8 @@ components:
       type: object
       required:
       - name
+      - address
+      - link
       - startPlace
       - endPlace
       properties:
@@ -679,14 +666,20 @@ components:
           type: string
           description: Place name
           pattern: \S
-          minLength: 3
+          minLength: 1
           maxLength: 200
         address:
           type: string
           description: Address
+          pattern: \S
+          minLength: 3
+          maxLength: 200
         link:
           type: string
           description: "External link (e.g., Google Maps URL)"
+          pattern: ""
+          minLength: 3
+          maxLength: 200
         startPlace:
           type: boolean
           description: Can be used as ride start point
@@ -694,11 +687,27 @@ components:
           type: boolean
           description: Can be used as ride end point
         coordinates:
-          type: array
-          items:
-            type: number
-            format: double
           description: "Geographic coordinates [longitude, latitude]"
+          type: object
+          required:
+          - type
+          - coordinates
+          properties:
+            type:
+              type: string
+              examples:
+              - Point
+              enum:
+              - Point
+            coordinates:
+              type: array
+              items:
+                type: number
+                format: double
+              description: "Coordinates [longitude, latitude]"
+              examples:
+              - - 2.3522
+                - 48.8566
     PostDto:
       description: Post summary data
       type: object
@@ -794,7 +803,7 @@ components:
           type: string
           description: Post name
           pattern: \S
-          minLength: 3
+          minLength: 1
           maxLength: 200
         media:
           description: Post description
@@ -803,8 +812,6 @@ components:
         dateTime:
           description: Post date/time
           type: string
-          examples:
-          - 2025-06-15
           $ref: "#/components/schemas/Instant"
         status:
           description: Post status
@@ -1098,8 +1105,6 @@ components:
         dateTime:
           description: Ride date/time
           type: string
-          examples:
-          - 2025-06-15
           $ref: "#/components/schemas/Instant"
         status:
           description: Ride status
@@ -1134,6 +1139,7 @@ components:
       - id
       - slug
       - name
+      - markdown
       - visibility
       - status
       - createdAt
@@ -1225,10 +1231,14 @@ components:
           type: integer
           format: int32
           description: Average speed in km/h
+          examples:
+          - 25
         maxParticipants:
           type: integer
           format: int32
           description: Maximum participants
+          examples:
+          - 15
       required:
       - name
     RideTemplateListResponse:
@@ -1262,6 +1272,7 @@ components:
       type: object
       required:
       - name
+      - markdown
       - visibility
       - status
       - groups
@@ -1270,7 +1281,7 @@ components:
           type: string
           description: Template name
           pattern: \S
-          minLength: 3
+          minLength: 1
           maxLength: 200
         markdown:
           type: string
@@ -1463,6 +1474,9 @@ components:
         name:
           type: string
           description: Route name
+          pattern: \S
+          minLength: 3
+          maxLength: 200
         media:
           description: Media
           type: object
@@ -1487,6 +1501,15 @@ components:
       - ELEVATION_GAIN
       - HILLINESS
       - DATE_TIME
+    RouterProfile:
+      type: string
+      enum:
+      - BIKE
+      - FASTBIKE
+      - GRAVEL
+      - MTB
+      - RUN_HIKE
+      - MOTORCYCLE
     RouterRequest:
       type: object
       required:
@@ -1499,7 +1522,7 @@ components:
         to:
           $ref: "#/components/schemas/GeoPoint"
         profile:
-          type: string
+          $ref: "#/components/schemas/RouterProfile"
     RouterResponse:
       type: object
       required:
@@ -1537,8 +1560,6 @@ components:
         dateTime:
           description: Stage date/time
           type: string
-          examples:
-          - 2025-07-01
           $ref: "#/components/schemas/Instant"
         routeSlug:
           type: string
@@ -1696,7 +1717,7 @@ components:
           type: string
           description: Page title
           pattern: \S
-          minLength: 2
+          minLength: 1
           maxLength: 100
         media:
           description: Page content
@@ -1773,7 +1794,7 @@ components:
           examples:
           - Awesome Cycling Team
           pattern: \S
-          minLength: 2
+          minLength: 1
           maxLength: 200
         media:
           description: Media
@@ -1956,7 +1977,7 @@ components:
           examples:
           - Summer Alps Tour
           pattern: \S
-          minLength: 3
+          minLength: 1
           maxLength: 200
         media:
           description: Trip media
@@ -1965,8 +1986,6 @@ components:
         dateTime:
           description: Trip start date/time
           type: string
-          examples:
-          - 2025-07-01
           $ref: "#/components/schemas/Instant"
         status:
           description: Trip status

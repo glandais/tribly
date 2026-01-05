@@ -45,7 +45,7 @@ export const listPostsResponse = zod
             slug: zod.string().describe('Publication URL slug'),
             name: zod.string().describe('Publication name'),
             media: zod.object({
-              markdown: zod.string().optional().describe('Markdown'),
+              markdown: zod.string().describe('Markdown'),
               assets: zod.object({
                 logo: zod
                   .object({
@@ -198,7 +198,6 @@ export const createPostParams = zod.object({
   slug: zod.string().describe('Team URL slug'),
 })
 
-export const createPostBodyNameMin = 3
 export const createPostBodyNameMax = 200
 
 export const createPostBodyNameRegExp = new RegExp('\\S')
@@ -207,12 +206,12 @@ export const createPostBody = zod
   .object({
     name: zod
       .string()
-      .min(createPostBodyNameMin)
+      .min(1)
       .max(createPostBodyNameMax)
       .regex(createPostBodyNameRegExp)
       .describe('Post name'),
     media: zod.object({
-      markdown: zod.string().optional().describe('Markdown'),
+      markdown: zod.string().describe('Markdown'),
       assets: zod.object({
         logo: zod
           .object({
@@ -358,7 +357,6 @@ export const updatePostParams = zod.object({
   slug: zod.string().describe('Team URL slug'),
 })
 
-export const updatePostBodyNameMin = 3
 export const updatePostBodyNameMax = 200
 
 export const updatePostBodyNameRegExp = new RegExp('\\S')
@@ -367,12 +365,12 @@ export const updatePostBody = zod
   .object({
     name: zod
       .string()
-      .min(updatePostBodyNameMin)
+      .min(1)
       .max(updatePostBodyNameMax)
       .regex(updatePostBodyNameRegExp)
       .describe('Post name'),
     media: zod.object({
-      markdown: zod.string().optional().describe('Markdown'),
+      markdown: zod.string().describe('Markdown'),
       assets: zod.object({
         logo: zod
           .object({
@@ -524,7 +522,7 @@ export const updatePostResponse = zod
     slug: zod.string().describe('Publication URL slug'),
     name: zod.string().describe('Publication name'),
     media: zod.object({
-      markdown: zod.string().optional().describe('Markdown'),
+      markdown: zod.string().describe('Markdown'),
       assets: zod.object({
         logo: zod
           .object({
@@ -686,7 +684,7 @@ export const getPostResponse = zod
     slug: zod.string().describe('Publication URL slug'),
     name: zod.string().describe('Publication name'),
     media: zod.object({
-      markdown: zod.string().optional().describe('Markdown'),
+      markdown: zod.string().describe('Markdown'),
       assets: zod.object({
         logo: zod
           .object({

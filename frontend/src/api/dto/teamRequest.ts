@@ -14,7 +14,7 @@ import type { Visibility } from './visibility'
 export interface TeamRequest {
   /**
    * Team name
-   * @minLength 2
+   * @minLength 1
    * @maxLength 200
    * @pattern \S
    */

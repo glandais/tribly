@@ -75,7 +75,7 @@ export const listAllRoutesResponse = zod
               .describe('Team information'),
             name: zod.string().describe('Route name'),
             media: zod.object({
-              markdown: zod.string().optional().describe('Markdown'),
+              markdown: zod.string().describe('Markdown'),
               assets: zod.object({
                 logo: zod
                   .object({
@@ -293,7 +293,7 @@ export const listRoutesResponse = zod
               .describe('Team information'),
             name: zod.string().describe('Route name'),
             media: zod.object({
-              markdown: zod.string().optional().describe('Markdown'),
+              markdown: zod.string().describe('Markdown'),
               assets: zod.object({
                 logo: zod
                   .object({
@@ -447,12 +447,22 @@ export const createRouteParams = zod.object({
   slug: zod.string().describe('Team URL slug'),
 })
 
+export const createRouteBodyRouteNameMin = 3
+export const createRouteBodyRouteNameMax = 200
+
+export const createRouteBodyRouteNameRegExp = new RegExp('\\S')
+
 export const createRouteBody = zod.object({
   route: zod
     .object({
-      name: zod.string().describe('Route name'),
+      name: zod
+        .string()
+        .min(createRouteBodyRouteNameMin)
+        .max(createRouteBodyRouteNameMax)
+        .regex(createRouteBodyRouteNameRegExp)
+        .describe('Route name'),
       media: zod.object({
-        markdown: zod.string().optional().describe('Markdown'),
+        markdown: zod.string().describe('Markdown'),
         assets: zod.object({
           logo: zod
             .object({
@@ -608,12 +618,22 @@ export const updateRouteParams = zod.object({
   slug: zod.string().describe('Team URL slug'),
 })
 
+export const updateRouteBodyRouteNameMin = 3
+export const updateRouteBodyRouteNameMax = 200
+
+export const updateRouteBodyRouteNameRegExp = new RegExp('\\S')
+
 export const updateRouteBody = zod.object({
   route: zod
     .object({
-      name: zod.string().describe('Route name'),
+      name: zod
+        .string()
+        .min(updateRouteBodyRouteNameMin)
+        .max(updateRouteBodyRouteNameMax)
+        .regex(updateRouteBodyRouteNameRegExp)
+        .describe('Route name'),
       media: zod.object({
-        markdown: zod.string().optional().describe('Markdown'),
+        markdown: zod.string().describe('Markdown'),
         assets: zod.object({
           logo: zod
             .object({
@@ -774,7 +794,7 @@ export const updateRouteResponse = zod
       .describe('Team information'),
     name: zod.string().describe('Route name'),
     media: zod.object({
-      markdown: zod.string().optional().describe('Markdown'),
+      markdown: zod.string().describe('Markdown'),
       assets: zod.object({
         logo: zod
           .object({
@@ -928,7 +948,7 @@ export const getRouteResponse = zod
     slug: zod.string().describe('Route slug'),
     name: zod.string().describe('Route name'),
     media: zod.object({
-      markdown: zod.string().optional().describe('Markdown'),
+      markdown: zod.string().describe('Markdown'),
       assets: zod.object({
         logo: zod
           .object({

@@ -1,5 +1,6 @@
 package com.tribly.dto.rides.request;
 
+import com.tribly.dto.common.request.WithVisibility;
 import com.tribly.dto.common.response.MediaDto;
 import com.tribly.dto.validation.ValidateSchema;
 import com.tribly.enums.Status;
@@ -20,8 +21,7 @@ public record RideRequest(
         @Size(min = 3, max = 200)
         String name,
     @Schema(description = "Ride media", required = true) MediaDto media,
-    @Schema(description = "Ride date/time", examples = "2025-06-15", required = true)
-        Instant dateTime,
+    @Schema(description = "Ride date/time", required = true) Instant dateTime,
     @Schema(description = "Ride status", required = true) Status status,
     @Schema(description = "Visibility level", required = true) Visibility visibility,
     @Nullable @Schema(description = "Route slug") String routeSlug,
@@ -30,4 +30,5 @@ public record RideRequest(
     @Nullable @Schema(description = "Publication timestamp (for scheduled publishing)")
         Instant publishAt,
     @Schema(description = "Ride groups to create", required = true)
-        List<@Valid GroupRequest> groups) {}
+        List<@Valid GroupRequest> groups)
+    implements WithVisibility {}

@@ -1,6 +1,6 @@
 package com.tribly.dto.router.response;
 
-import com.tribly.dto.common.response.GeoJsonLineString;
+import com.tribly.dto.common.GeoJsonLineString;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.geolatte.geom.G3D;
 import org.geolatte.geom.LineString;

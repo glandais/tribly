@@ -71,7 +71,7 @@ export function CardDescription({
   if (markdown && media.markdown) {
     return (
       <MarkdownDisplay
-        markdown={media.markdown || ''}
+        markdown={media.markdown}
         preview={true}
         maxLength={maxLength}
         className={`text-sm text-gray-600 ${className}`}

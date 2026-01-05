@@ -238,7 +238,7 @@ export function MediaEditor({
       )}
 
       <MarkdownEditor
-        value={value.markdown || ''}
+        value={value.markdown}
         onChange={handleMarkdownChange}
         placeholder={placeholder}
         minHeight={minHeight}

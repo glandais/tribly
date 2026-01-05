@@ -1,7 +1,7 @@
 package com.tribly.dto.places.response;
 
 import com.tribly.domain.place.Place;
-import com.tribly.dto.common.response.GeoJsonPoint;
+import com.tribly.dto.common.GeoJsonPoint;
 import com.tribly.infrastructure.id.TsidUtils;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.geolatte.geom.G2D;

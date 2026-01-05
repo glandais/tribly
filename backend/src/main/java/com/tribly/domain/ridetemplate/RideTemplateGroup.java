@@ -3,8 +3,6 @@ package com.tribly.domain.ridetemplate;
 import com.tribly.domain.common.BaseEntity;
 import com.tribly.domain.user.User;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import java.time.LocalTime;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -26,9 +24,7 @@ public class RideTemplateGroup extends BaseEntity {
   @JoinColumn(name = "template_id", nullable = false)
   private RideTemplate template;
 
-  @NotBlank
-  @Size(max = 255)
-  @Column(name = "name", nullable = false)
+  @Column(name = "name", nullable = false, length = 250)
   private String name;
 
   @Nullable

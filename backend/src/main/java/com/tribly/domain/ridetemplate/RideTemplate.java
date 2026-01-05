@@ -6,15 +6,11 @@ import com.tribly.domain.user.User;
 import com.tribly.enums.Status;
 import com.tribly.enums.Visibility;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.jspecify.annotations.Nullable;
 
 @Setter
 @Getter
@@ -37,19 +33,13 @@ public class RideTemplate extends BaseEntity {
   @JoinColumn(name = "team_id", nullable = false)
   private Team team;
 
-  @NotBlank
-  @Size(max = 255)
-  @Column(name = "name", nullable = false)
+  @Column(name = "name", nullable = false, length = 250)
   private String name;
 
-  @NotBlank
-  @Size(max = 255)
-  @Pattern(regexp = "^[a-z0-9-]+$")
-  @Column(name = "slug", nullable = false)
+  @Column(name = "slug", nullable = false, length = 250)
   private String slug;
 
-  @Column(name = "markdown", columnDefinition = "TEXT")
-  @Nullable
+  @Column(name = "markdown", nullable = false, columnDefinition = "TEXT")
   private String markdown;
 
   @Enumerated(EnumType.STRING)

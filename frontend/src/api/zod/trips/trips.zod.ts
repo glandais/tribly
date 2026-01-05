@@ -45,7 +45,7 @@ export const listTripsResponse = zod
             slug: zod.string().describe('Publication URL slug'),
             name: zod.string().describe('Publication name'),
             media: zod.object({
-              markdown: zod.string().optional().describe('Markdown'),
+              markdown: zod.string().describe('Markdown'),
               assets: zod.object({
                 logo: zod
                   .object({
@@ -230,7 +230,7 @@ export const listTripsResponse = zod
                       })
                       .optional(),
                     media: zod.object({
-                      markdown: zod.string().optional().describe('Markdown'),
+                      markdown: zod.string().describe('Markdown'),
                       assets: zod.object({
                         logo: zod
                           .object({
@@ -394,7 +394,6 @@ export const createTripParams = zod.object({
   slug: zod.string().describe('Team URL slug'),
 })
 
-export const createTripBodyNameMin = 3
 export const createTripBodyNameMax = 200
 
 export const createTripBodyNameRegExp = new RegExp('\\S')
@@ -406,12 +405,12 @@ export const createTripBody = zod
   .object({
     name: zod
       .string()
-      .min(createTripBodyNameMin)
+      .min(1)
       .max(createTripBodyNameMax)
       .regex(createTripBodyNameRegExp)
       .describe('Trip name'),
     media: zod.object({
-      markdown: zod.string().optional().describe('Markdown'),
+      markdown: zod.string().describe('Markdown'),
       assets: zod.object({
         logo: zod
           .object({
@@ -562,7 +561,7 @@ export const createTripBody = zod
             startPlaceId: zod.string().optional().describe('Start place ID (TSID)'),
             endPlaceId: zod.string().optional().describe('End place ID (TSID)'),
             media: zod.object({
-              markdown: zod.string().optional().describe('Markdown'),
+              markdown: zod.string().describe('Markdown'),
               assets: zod.object({
                 logo: zod
                   .object({
@@ -708,7 +707,6 @@ export const updateTripParams = zod.object({
   tripSlug: zod.string().describe('Trip URL slug'),
 })
 
-export const updateTripBodyNameMin = 3
 export const updateTripBodyNameMax = 200
 
 export const updateTripBodyNameRegExp = new RegExp('\\S')
@@ -720,12 +718,12 @@ export const updateTripBody = zod
   .object({
     name: zod
       .string()
-      .min(updateTripBodyNameMin)
+      .min(1)
       .max(updateTripBodyNameMax)
       .regex(updateTripBodyNameRegExp)
       .describe('Trip name'),
     media: zod.object({
-      markdown: zod.string().optional().describe('Markdown'),
+      markdown: zod.string().describe('Markdown'),
       assets: zod.object({
         logo: zod
           .object({
@@ -876,7 +874,7 @@ export const updateTripBody = zod
             startPlaceId: zod.string().optional().describe('Start place ID (TSID)'),
             endPlaceId: zod.string().optional().describe('End place ID (TSID)'),
             media: zod.object({
-              markdown: zod.string().optional().describe('Markdown'),
+              markdown: zod.string().describe('Markdown'),
               assets: zod.object({
                 logo: zod
                   .object({
@@ -1028,7 +1026,7 @@ export const updateTripResponse = zod
     slug: zod.string().describe('Publication URL slug'),
     name: zod.string().describe('Publication name'),
     media: zod.object({
-      markdown: zod.string().optional().describe('Markdown'),
+      markdown: zod.string().describe('Markdown'),
       assets: zod.object({
         logo: zod
           .object({
@@ -1213,7 +1211,7 @@ export const updateTripResponse = zod
               })
               .optional(),
             media: zod.object({
-              markdown: zod.string().optional().describe('Markdown'),
+              markdown: zod.string().describe('Markdown'),
               assets: zod.object({
                 logo: zod
                   .object({
@@ -1386,7 +1384,7 @@ export const getTripResponse = zod
     slug: zod.string().describe('Publication URL slug'),
     name: zod.string().describe('Publication name'),
     media: zod.object({
-      markdown: zod.string().optional().describe('Markdown'),
+      markdown: zod.string().describe('Markdown'),
       assets: zod.object({
         logo: zod
           .object({
@@ -1571,7 +1569,7 @@ export const getTripResponse = zod
               })
               .optional(),
             media: zod.object({
-              markdown: zod.string().optional().describe('Markdown'),
+              markdown: zod.string().describe('Markdown'),
               assets: zod.object({
                 logo: zod
                   .object({

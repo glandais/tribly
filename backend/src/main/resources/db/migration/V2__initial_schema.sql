@@ -13,8 +13,8 @@ create table assets (
                         updated_at timestamp(6) with time zone not null,
                         version bigint,
                         type varchar(20) not null check ((type in ('LOGO','IMAGE','VIDEO','ATTACHMENT','ROUTE_ORIGINAL_GPX','ROUTE_FILTERED_GPX','ROUTE_FIT','ROUTE_THUMBNAIL'))),
-                        content_type varchar(255) not null,
-                        file_name varchar(255) not null,
+                        content_type varchar(200) not null,
+                        file_name varchar(200) not null,
                         primary key (id)
 );
 
@@ -43,7 +43,7 @@ create table gpx_tracks (
                             route_id bigint not null,
                             updated_at timestamp(6) with time zone not null,
                             version bigint,
-                            name varchar(255) not null,
+                            name varchar(250) not null,
                             climbs jsonb not null,
                             geometry geometry(LineString,4326) not null,
                             track_points jsonb not null,
@@ -58,7 +58,7 @@ create table gpx_waypoints (
                                route_id bigint not null,
                                updated_at timestamp(6) with time zone not null,
                                version bigint,
-                               name varchar(255) not null,
+                               name varchar(250) not null,
                                geometry geometry(Point,4326) not null,
                                primary key (id)
 );
@@ -73,9 +73,9 @@ create table places (
                         team_id bigint not null,
                         updated_at timestamp(6) with time zone not null,
                         version bigint,
-                        address varchar(255),
-                        link varchar(255),
-                        name varchar(255) not null,
+                        address varchar(250),
+                        link varchar(250),
+                        name varchar(250) not null,
                         geometry geometry(Point,4326),
                         primary key (id)
 );
@@ -93,7 +93,7 @@ create table ride_groups (
                              route_id bigint,
                              updated_at timestamp(6) with time zone not null,
                              version bigint,
-                             name varchar(255) not null,
+                             name varchar(250) not null,
                              primary key (id)
 );
 
@@ -123,7 +123,7 @@ create table ride_template_groups (
                                       template_id bigint not null,
                                       updated_at timestamp(6) with time zone not null,
                                       version bigint,
-                                      name varchar(255) not null,
+                                      name varchar(250) not null,
                                       primary key (id)
 );
 
@@ -137,9 +137,9 @@ create table ride_templates (
                                 version bigint,
                                 status varchar(20) not null check ((status in ('DRAFT','PUBLISHED','CANCELLED'))),
                                 visibility varchar(20) not null check ((visibility in ('TEAM','PUBLIC'))),
-                                markdown TEXT,
-                                name varchar(255) not null,
-                                slug varchar(255) not null,
+                                name varchar(250) not null,
+                                slug varchar(250) not null,
+                                markdown TEXT not null,
                                 primary key (id),
                                 constraint uk_ride_template_slug unique (team_id, slug)
 );
@@ -149,7 +149,7 @@ create table team_entities (
                                distance integer,
                                elevation_gain integer,
                                elevation_loss integer,
-                               entity_type integer not null check ((entity_type in (3,5,1,7,2,4,6))),
+                               entity_type integer not null check ((entity_type in (3,1,5,4,6,2,7))),
                                hilliness integer,
                                is_about_page boolean,
                                latitude float(53),
@@ -175,10 +175,10 @@ create table team_entities (
                                status varchar(20) not null check ((status in ('DRAFT','PUBLISHED','CANCELLED'))),
                                surface_type varchar(20) check ((surface_type in ('ROAD','GRAVEL','MTB','MIXED'))),
                                visibility varchar(20) not null check ((visibility in ('TEAM','PUBLIC'))),
-                               location_description varchar(255),
-                               markdown TEXT,
-                               name varchar(255) not null,
-                               slug varchar(255) not null,
+                               location_description varchar(250),
+                               name varchar(250) not null,
+                               slug varchar(250) not null,
+                               markdown TEXT not null,
                                "end" geometry(Point,4326),
                                "start" geometry(Point,4326),
                                primary key (id),
@@ -198,8 +198,8 @@ create table teams (
                        updated_at timestamp(6) with time zone not null,
                        version bigint,
                        visibility varchar(20) not null check ((visibility in ('TEAM','PUBLIC'))),
-                       name varchar(255) not null,
-                       slug varchar(255) not null unique,
+                       name varchar(250) not null,
+                       slug varchar(250) not null unique,
                        primary key (id)
 );
 
@@ -240,9 +240,9 @@ create table users (
                        last_login_at timestamp(6) with time zone,
                        updated_at timestamp(6) with time zone not null,
                        version bigint,
+                       display_name varchar(250) not null,
+                       email varchar(250) not null unique,
                        avatar_url varchar(500),
-                       display_name varchar(255) not null,
-                       email varchar(255) not null unique,
                        primary key (id)
 );
 
@@ -435,14 +435,14 @@ alter table if exists team_entities
     references teams;
 
 alter table if exists team_entities
-    add constraint FKsm0040p8exgxema0d3j4osclb
-    foreign key (route_id)
-    references team_entities;
-
-alter table if exists team_entities
     add constraint FKjukml9fp2eipuhmugtiaf12gs
     foreign key (place_end_id)
     references places;
+
+alter table if exists team_entities
+    add constraint FKsm0040p8exgxema0d3j4osclb
+    foreign key (route_id)
+    references team_entities;
 
 alter table if exists team_entities
     add constraint FKm7w1a9lbh6795ida5u4n95vdv

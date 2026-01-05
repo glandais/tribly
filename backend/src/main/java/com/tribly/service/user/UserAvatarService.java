@@ -43,7 +43,7 @@ public class UserAvatarService {
   private final Tika tika = new Tika();
 
   @Transactional
-  public String uploadAvatar(Long userId, InputStream content, String fileName) throws IOException {
+  public void uploadAvatar(Long userId, InputStream content, String fileName) throws IOException {
     User user =
         userRepository
             .findActiveById(userId)
@@ -98,8 +98,6 @@ public class UserAvatarService {
         "/api/download/public/avatars/" + TsidUtils.toString(fileId) + "/" + AVATAR_SIZE;
     user.setAvatarUrl(avatarUrl);
     userRepository.persist(user);
-
-    return avatarUrl;
   }
 
   @Transactional

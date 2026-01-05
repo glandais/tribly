@@ -9,7 +9,7 @@ import com.tribly.domain.user.User;
 import com.tribly.dto.posts.request.PostRequest;
 import com.tribly.dto.posts.response.PostDto;
 import com.tribly.dto.posts.response.PostListResponse;
-import com.tribly.enums.Visibility;
+import com.tribly.enums.Status;
 import com.tribly.infrastructure.exception.BusinessException;
 import com.tribly.service.common.TeamEntityService;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -88,20 +88,21 @@ public class PostService extends TeamEntityService {
     // Security check: must be admin or organizer to create posts
     securityService.requireOrganizer(creatorId, team.getSlug());
 
-    // Validate visibility: private teams can only have team-only posts
-    Visibility visibility = request.visibility();
-    if (team.getVisibility() != Visibility.PUBLIC && visibility == Visibility.PUBLIC) {
-      throw BusinessException.validation("Private teams can only have team-only posts");
-    }
+    validateVisibility(request, team);
 
     // Generate slug from name, ensure unique within team
     String slug =
         slugService.generateSlug(
             request.name(), s -> postRepository.existsByTeamAndSlug(team.getId(), s));
 
-    Post post = new Post(creator, team, request.dateTime(), request.name(), slug, visibility);
+    Post post =
+        new Post(creator, team, request.dateTime(), request.name(), slug, request.visibility());
     post.setStatus(request.status());
-    post.setPublishAt(request.publishAt());
+    if (request.status() == Status.DRAFT) {
+      post.setPublishAt(request.publishAt());
+    } else {
+      post.setPublishAt(null);
+    }
 
     postRepository.persistAndFlush(post);
 
@@ -120,18 +121,18 @@ public class PostService extends TeamEntityService {
     // Security check: must be admin or creator (if organizer) to edit
     securityService.requireOrganizer(userId, teamSlug);
 
-    // Validate visibility: private teams can only have team-only posts
-    Team team = post.getTeam();
-    if (team.getVisibility() != Visibility.PUBLIC && request.visibility() == Visibility.PUBLIC) {
-      throw BusinessException.validation("Private teams can only have team-only posts");
-    }
+    validateVisibility(request, post.getTeam());
+
     post.setVisibility(request.visibility());
 
     post.setName(request.name());
     post.setDateTime(request.dateTime());
     post.setStatus(request.status());
-    // publishAt can be explicitly set to null to remove scheduled publishing
-    post.setPublishAt(request.publishAt());
+    if (request.status() == Status.DRAFT) {
+      post.setPublishAt(request.publishAt());
+    } else {
+      post.setPublishAt(null);
+    }
 
     updateMedia(post, request.media());
 

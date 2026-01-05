@@ -1,4 +1,4 @@
-package com.tribly.dto.common.response;
+package com.tribly.dto.common;
 
 import com.tribly.dto.validation.ValidateSchema;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;

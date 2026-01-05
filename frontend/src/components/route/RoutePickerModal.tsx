@@ -167,7 +167,7 @@ export function RoutePickerModal({
                 />
                 <h3 className="font-medium text-gray-900 truncate">{route.name}</h3>
                 <MarkdownDisplay
-                  markdown={route.media.markdown || ''}
+                  markdown={route.media.markdown}
                   preview={true}
                   maxLength={120}
                   className="mt-1 text-sm text-gray-500"

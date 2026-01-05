@@ -18,23 +18,8 @@ class ConfigServiceTest {
 
     assertNotNull(config);
     assertNotNull(config.keycloak());
-    assertNotNull(config.map());
-  }
-
-  @Test
-  void getConfig_shouldContainKeycloakConfig() {
-    ConfigDto config = configService.getConfig();
-
     assertNotNull(config.keycloak().url());
     assertNotNull(config.keycloak().realm());
     assertNotNull(config.keycloak().clientId());
-  }
-
-  @Test
-  void getConfig_shouldContainMapConfig() {
-    ConfigDto config = configService.getConfig();
-
-    assertNotNull(config.map().tileUrl());
-    assertNotNull(config.map().attribution());
   }
 }

@@ -20,7 +20,7 @@ export const routeBody = zod.object({
     lng: zod.number(),
     lat: zod.number(),
   }),
-  profile: zod.string(),
+  profile: zod.enum(['BIKE', 'FASTBIKE', 'GRAVEL', 'MTB', 'RUN_HIKE', 'MOTORCYCLE']),
 })
 
 export const routeResponse = zod.object({

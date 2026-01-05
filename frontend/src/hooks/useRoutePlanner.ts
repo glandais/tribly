@@ -11,6 +11,7 @@ import {
   Route,
   RoutePoint,
 } from '@/lib/planner'
+import { RouterProfile } from '@/api/dto'
 
 export interface UseRoutePlannerOptions {
   initialTrack?: number[][] // [lng, lat, ele, dist][] from existing route
@@ -32,6 +33,7 @@ interface UseRoutePlannerReturn {
 
 export function useRoutePlanner(options?: UseRoutePlannerOptions): UseRoutePlannerReturn {
   const { initialTrack } = options || {}
+  const routerProfile = RouterProfile.FASTBIKE
 
   const [route, setRoute] = useState<Route>(
     initialTrack ? createRoute(initialTrack) : computeRoute([])
@@ -75,9 +77,9 @@ export function useRoutePlanner(options?: UseRoutePlannerOptions): UseRoutePlann
 
   const addControlPoint = useCallback(
     (p: Point, direct = false) => {
-      executeRouteOperation((route) => add(route, p, 'fastbike', direct))
+      executeRouteOperation((route) => add(route, p, routerProfile, direct))
     },
-    [executeRouteOperation]
+    [executeRouteOperation, routerProfile]
   )
 
   // Insert a new control point after the given index (returns the new point for immediate dragging)
@@ -86,27 +88,27 @@ export function useRoutePlanner(options?: UseRoutePlannerOptions): UseRoutePlann
       const cpIdx = findPreviousControlPointIndex(idx, controlPoints)
       const start = controlPoints[cpIdx]
       const end = controlPoints[cpIdx + 1]
-      executeRouteOperation((route) => insert(route, start, p, end, 'fastbike', direct))
+      executeRouteOperation((route) => insert(route, start, p, end, routerProfile, direct))
     },
-    [executeRouteOperation, controlPoints]
+    [executeRouteOperation, controlPoints, routerProfile]
   )
 
   const updateControlPoint = useCallback(
     (index: number, p: Point, direct = false) => {
       const start = index === 0 ? undefined : controlPoints[index - 1]
       const end = index === controlPoints.length - 1 ? undefined : controlPoints[index + 1]
-      executeRouteOperation((route) => insert(route, start, p, end, 'fastbike', direct))
+      executeRouteOperation((route) => insert(route, start, p, end, routerProfile, direct))
     },
-    [executeRouteOperation, controlPoints]
+    [executeRouteOperation, controlPoints, routerProfile]
   )
 
   const removeControlPoint = useCallback(
     (index: number, direct = false) => {
       const start = index === 0 ? undefined : controlPoints[index - 1]
       const end = index === controlPoints.length - 1 ? undefined : controlPoints[index + 1]
-      executeRouteOperation((route) => remove(route, start, end, 'fastbike', direct))
+      executeRouteOperation((route) => remove(route, start, end, routerProfile, direct))
     },
-    [executeRouteOperation, controlPoints]
+    [executeRouteOperation, controlPoints, routerProfile]
   )
 
   const clearRoute = useCallback(() => {

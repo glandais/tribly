@@ -121,7 +121,7 @@
             "type" : "string",
             "description" : "Ad name",
             "pattern" : "\\S",
-            "minLength" : 3,
+            "minLength" : 1,
             "maxLength" : 200
           },
           "media" : {
@@ -156,7 +156,7 @@
           "locationDescription" : {
             "type" : "string",
             "description" : "Location description",
-            "maxLength" : 255
+            "maxLength" : 200
           }
         }
       },
@@ -391,17 +391,12 @@
       "ConfigDto" : {
         "description" : "Application configuration",
         "type" : "object",
-        "required" : [ "keycloak", "map" ],
+        "required" : [ "keycloak" ],
         "properties" : {
           "keycloak" : {
             "description" : "Keycloak authentication configuration",
             "type" : "object",
             "$ref" : "#/components/schemas/KeycloakConfig"
-          },
-          "map" : {
-            "description" : "Map configuration",
-            "type" : "object",
-            "$ref" : "#/components/schemas/MapConfig"
           }
         }
       },
@@ -532,12 +527,15 @@
             "type" : "integer",
             "format" : "int32",
             "description" : "Average speed in km/h",
-            "examples" : [ 25 ]
+            "examples" : [ 25 ],
+            "exclusiveMinimum" : 0
           },
           "maxParticipants" : {
             "type" : "integer",
             "format" : "int32",
-            "description" : "Maximum participants"
+            "description" : "Maximum participants",
+            "examples" : [ 10 ],
+            "exclusiveMinimum" : 0
           },
           "routeSlug" : {
             "type" : "string",
@@ -586,24 +584,9 @@
           "url" : "https://www.rfc-editor.org/rfc/rfc3339.html#section-5.6"
         }
       },
-      "MapConfig" : {
-        "type" : "object",
-        "description" : "Map configuration",
-        "required" : [ "tileUrl", "attribution" ],
-        "properties" : {
-          "tileUrl" : {
-            "type" : "string",
-            "description" : "Map tile URL template",
-            "examples" : [ "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" ]
-          },
-          "attribution" : {
-            "type" : "string",
-            "description" : "Map attribution text"
-          }
-        }
-      },
       "MediaDto" : {
         "type" : "object",
+        "required" : [ "markdown", "assets" ],
         "properties" : {
           "markdown" : {
             "type" : "string",
@@ -614,8 +597,7 @@
             "type" : "object",
             "$ref" : "#/components/schemas/AssetsDto"
           }
-        },
-        "required" : [ "assets" ]
+        }
       },
       "MemberDto" : {
         "description" : "Team member information",
@@ -742,22 +724,28 @@
       "PlaceRequest" : {
         "description" : "Place create/update request",
         "type" : "object",
-        "required" : [ "name", "startPlace", "endPlace" ],
+        "required" : [ "name", "address", "link", "startPlace", "endPlace" ],
         "properties" : {
           "name" : {
             "type" : "string",
             "description" : "Place name",
             "pattern" : "\\S",
-            "minLength" : 3,
+            "minLength" : 1,
             "maxLength" : 200
           },
           "address" : {
             "type" : "string",
-            "description" : "Address"
+            "description" : "Address",
+            "pattern" : "\\S",
+            "minLength" : 3,
+            "maxLength" : 200
           },
           "link" : {
             "type" : "string",
-            "description" : "External link (e.g., Google Maps URL)"
+            "description" : "External link (e.g., Google Maps URL)",
+            "pattern" : "",
+            "minLength" : 3,
+            "maxLength" : 200
           },
           "startPlace" : {
             "type" : "boolean",
@@ -768,12 +756,25 @@
             "description" : "Can be used as ride end point"
           },
           "coordinates" : {
-            "type" : "array",
-            "items" : {
-              "type" : "number",
-              "format" : "double"
-            },
-            "description" : "Geographic coordinates [longitude, latitude]"
+            "description" : "Geographic coordinates [longitude, latitude]",
+            "type" : "object",
+            "required" : [ "type", "coordinates" ],
+            "properties" : {
+              "type" : {
+                "type" : "string",
+                "examples" : [ "Point" ],
+                "enum" : [ "Point" ]
+              },
+              "coordinates" : {
+                "type" : "array",
+                "items" : {
+                  "type" : "number",
+                  "format" : "double"
+                },
+                "description" : "Coordinates [longitude, latitude]",
+                "examples" : [ [ 2.3522, 48.8566 ] ]
+              }
+            }
           }
         }
       },
@@ -874,7 +875,7 @@
             "type" : "string",
             "description" : "Post name",
             "pattern" : "\\S",
-            "minLength" : 3,
+            "minLength" : 1,
             "maxLength" : 200
           },
           "media" : {
@@ -885,7 +886,6 @@
           "dateTime" : {
             "description" : "Post date/time",
             "type" : "string",
-            "examples" : [ "2025-06-15" ],
             "$ref" : "#/components/schemas/Instant"
           },
           "status" : {
@@ -1215,7 +1215,6 @@
           "dateTime" : {
             "description" : "Ride date/time",
             "type" : "string",
-            "examples" : [ "2025-06-15" ],
             "$ref" : "#/components/schemas/Instant"
           },
           "status" : {
@@ -1257,7 +1256,7 @@
       "RideTemplateDto" : {
         "description" : "Ride template response",
         "type" : "object",
-        "required" : [ "id", "slug", "name", "visibility", "status", "createdAt", "updatedAt", "groupCount", "groups" ],
+        "required" : [ "id", "slug", "name", "markdown", "visibility", "status", "createdAt", "updatedAt", "groupCount", "groups" ],
         "properties" : {
           "id" : {
             "type" : "string",
@@ -1363,12 +1362,14 @@
           "averageSpeed" : {
             "type" : "integer",
             "format" : "int32",
-            "description" : "Average speed in km/h"
+            "description" : "Average speed in km/h",
+            "examples" : [ 25 ]
           },
           "maxParticipants" : {
             "type" : "integer",
             "format" : "int32",
-            "description" : "Maximum participants"
+            "description" : "Maximum participants",
+            "examples" : [ 15 ]
           }
         },
         "required" : [ "name" ]
@@ -1405,13 +1406,13 @@
       "RideTemplateRequest" : {
         "description" : "Ride template request",
         "type" : "object",
-        "required" : [ "name", "visibility", "status", "groups" ],
+        "required" : [ "name", "markdown", "visibility", "status", "groups" ],
         "properties" : {
           "name" : {
             "type" : "string",
             "description" : "Template name",
             "pattern" : "\\S",
-            "minLength" : 3,
+            "minLength" : 1,
             "maxLength" : 200
           },
           "markdown" : {
@@ -1618,7 +1619,10 @@
         "properties" : {
           "name" : {
             "type" : "string",
-            "description" : "Route name"
+            "description" : "Route name",
+            "pattern" : "\\S",
+            "minLength" : 3,
+            "maxLength" : 200
           },
           "media" : {
             "description" : "Media",
@@ -1648,6 +1652,10 @@
         "type" : "string",
         "enum" : [ "DISTANCE", "ELEVATION_GAIN", "HILLINESS", "DATE_TIME" ]
       },
+      "RouterProfile" : {
+        "type" : "string",
+        "enum" : [ "BIKE", "FASTBIKE", "GRAVEL", "MTB", "RUN_HIKE", "MOTORCYCLE" ]
+      },
       "RouterRequest" : {
         "type" : "object",
         "required" : [ "from", "to", "profile" ],
@@ -1659,7 +1667,7 @@
             "$ref" : "#/components/schemas/GeoPoint"
           },
           "profile" : {
-            "type" : "string"
+            "$ref" : "#/components/schemas/RouterProfile"
           }
         }
       },
@@ -1704,7 +1712,6 @@
           "dateTime" : {
             "description" : "Stage date/time",
             "type" : "string",
-            "examples" : [ "2025-07-01" ],
             "$ref" : "#/components/schemas/Instant"
           },
           "routeSlug" : {
@@ -1867,7 +1874,7 @@
             "type" : "string",
             "description" : "Page title",
             "pattern" : "\\S",
-            "minLength" : 2,
+            "minLength" : 1,
             "maxLength" : 100
           },
           "media" : {
@@ -1946,7 +1953,7 @@
             "description" : "Team name",
             "examples" : [ "Awesome Cycling Team" ],
             "pattern" : "\\S",
-            "minLength" : 2,
+            "minLength" : 1,
             "maxLength" : 200
           },
           "media" : {
@@ -2140,7 +2147,7 @@
             "description" : "Trip name",
             "examples" : [ "Summer Alps Tour" ],
             "pattern" : "\\S",
-            "minLength" : 3,
+            "minLength" : 1,
             "maxLength" : 200
           },
           "media" : {
@@ -2151,7 +2158,6 @@
           "dateTime" : {
             "description" : "Trip start date/time",
             "type" : "string",
-            "examples" : [ "2025-07-01" ],
             "$ref" : "#/components/schemas/Instant"
           },
           "status" : {

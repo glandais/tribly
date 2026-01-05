@@ -270,7 +270,7 @@ public class TestDataService {
     List<GpxTrack.TrackPoint> trackPoints =
         List.of(
             new GpxTrack.TrackPoint(startLat, startLon, 500.0, 0.0),
-            new GpxTrack.TrackPoint(endLat, endLon, 510.0, (double) distance));
+            new GpxTrack.TrackPoint(endLat, endLon, 510.0, distance));
     String geometry = String.format("LINESTRING(%f %f,%f %f)", startLon, startLat, endLon, endLat);
     LineString<G2D> lineString = (LineString<G2D>) Wkt.fromWkt(geometry, WGS84);
     GpxTrack track =

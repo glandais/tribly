@@ -7,5 +7,4 @@ import org.eclipse.microprofile.openapi.annotations.media.Schema;
 @ValidateSchema
 public record ConfigDto(
     @Schema(description = "Keycloak authentication configuration", required = true)
-        KeycloakConfig keycloak,
-    @Schema(description = "Map configuration", required = true) MapConfig map) {}
+        KeycloakConfig keycloak) {}

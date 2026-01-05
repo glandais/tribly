@@ -4,8 +4,6 @@ import com.tribly.domain.common.BaseEntity;
 import com.tribly.domain.route.Route;
 import com.tribly.domain.user.User;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,9 +27,7 @@ public class RideGroup extends BaseEntity {
   @JoinColumn(name = "ride_id", nullable = false)
   private Ride ride;
 
-  @NotBlank
-  @Size(max = 255)
-  @Column(name = "name", nullable = false)
+  @Column(name = "name", nullable = false, length = 250)
   private String name;
 
   @Nullable

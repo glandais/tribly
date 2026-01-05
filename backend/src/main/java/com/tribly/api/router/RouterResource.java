@@ -11,7 +11,6 @@ import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import java.io.IOException;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
@@ -46,7 +45,7 @@ public class RouterResource {
         description = "BRouter service unavailable",
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
-  public Response route(@Valid RouterRequest request) throws IOException, InterruptedException {
+  public Response route(@Valid RouterRequest request) {
     RouterResponse resp = bRouterService.getRoute(request);
     return Response.ok(resp).build();
   }

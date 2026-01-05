@@ -113,11 +113,9 @@ public class TripService extends TeamEntityService {
     securityService.requireOrganizer(creatorId, team.getSlug());
     requireTripEnabled(team);
 
-    // Validate visibility: private teams can only have team-only trips
+    validateVisibility(request, team);
+
     Visibility visibility = request.visibility();
-    if (team.getVisibility() != Visibility.PUBLIC && visibility == Visibility.PUBLIC) {
-      throw BusinessException.validation("Private teams can only have team-only trips");
-    }
 
     // Generate slug from name, ensure unique within team
     String slug =
@@ -129,7 +127,11 @@ public class TripService extends TeamEntityService {
     Trip trip = new Trip(creator, team, request.dateTime(), request.name(), slug, visibility);
     trip.setRoute(route);
     trip.setStatus(request.status());
-    trip.setPublishAt(request.publishAt());
+    if (request.status() == Status.DRAFT) {
+      trip.setPublishAt(request.publishAt());
+    } else {
+      trip.setPublishAt(null);
+    }
 
     tripRepository.persistAndFlush(trip);
 
@@ -218,9 +220,8 @@ public class TripService extends TeamEntityService {
 
     // Validate visibility: private teams can only have team-only trips
     Team team = trip.getTeam();
-    if (team.getVisibility() != Visibility.PUBLIC && request.visibility() == Visibility.PUBLIC) {
-      throw BusinessException.validation("Private teams can only have team-only trips");
-    }
+
+    validateVisibility(request, team);
     trip.setVisibility(request.visibility());
 
     trip.setName(request.name());
@@ -228,8 +229,11 @@ public class TripService extends TeamEntityService {
     trip.setStatus(request.status());
     Route route = getRoute(request.routeSlug(), trip.getTeam(), trip.getVisibility());
     trip.setRoute(route);
-    // publishAt can be explicitly set to null to remove scheduled publishing
-    trip.setPublishAt(request.publishAt());
+    if (request.status() == Status.DRAFT) {
+      trip.setPublishAt(request.publishAt());
+    } else {
+      trip.setPublishAt(null);
+    }
 
     updateMedia(trip, request.media());
 

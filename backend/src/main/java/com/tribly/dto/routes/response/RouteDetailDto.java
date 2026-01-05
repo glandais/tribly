@@ -1,7 +1,7 @@
 package com.tribly.dto.routes.response;
 
 import com.tribly.domain.route.Route;
-import com.tribly.dto.common.response.GeoJsonPoint;
+import com.tribly.dto.common.GeoJsonPoint;
 import com.tribly.dto.common.response.MediaDto;
 import com.tribly.dto.users.response.PublicUserDto;
 import com.tribly.dto.validation.ValidateSchema;

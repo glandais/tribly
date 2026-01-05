@@ -9,7 +9,7 @@ import org.jspecify.annotations.Nullable;
 
 public abstract class MultipleClause implements Clause {
 
-  List<Clause> clauses = new ArrayList<>();
+  final List<Clause> clauses = new ArrayList<>();
 
   abstract String getJoiner();
 

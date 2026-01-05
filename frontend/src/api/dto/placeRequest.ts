@@ -5,6 +5,7 @@
  * API for Tribly Cycling Team Management Platform
  * OpenAPI spec version: 1.0.0
  */
+import type { PlaceRequestCoordinates } from './placeRequestCoordinates'
 
 /**
  * Place create/update request
@@ -12,19 +13,28 @@
 export interface PlaceRequest {
   /**
    * Place name
-   * @minLength 3
+   * @minLength 1
    * @maxLength 200
    * @pattern \S
    */
   name: string
-  /** Address */
-  address?: string
-  /** External link (e.g., Google Maps URL) */
-  link?: string
+  /**
+   * Address
+   * @minLength 3
+   * @maxLength 200
+   * @pattern \S
+   */
+  address: string
+  /**
+   * External link (e.g., Google Maps URL)
+   * @minLength 3
+   * @maxLength 200
+   */
+  link: string
   /** Can be used as ride start point */
   startPlace: boolean
   /** Can be used as ride end point */
   endPlace: boolean
   /** Geographic coordinates [longitude, latitude] */
-  coordinates?: number[]
+  coordinates?: PlaceRequestCoordinates
 }

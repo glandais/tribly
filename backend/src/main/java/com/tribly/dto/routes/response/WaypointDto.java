@@ -1,7 +1,7 @@
 package com.tribly.dto.routes.response;
 
 import com.tribly.domain.route.GpxWaypoint;
-import com.tribly.dto.common.response.GeoJsonPoint;
+import com.tribly.dto.common.GeoJsonPoint;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.geolatte.geom.G2D;
 import org.geolatte.geom.Point;

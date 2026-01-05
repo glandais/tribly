@@ -3,8 +3,6 @@ package com.tribly.domain.route;
 import com.tribly.domain.common.BaseEntity;
 import com.tribly.domain.user.User;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -24,9 +22,7 @@ public class GpxWaypoint extends BaseEntity {
   @JoinColumn(name = "route_id", nullable = false)
   private Route route;
 
-  @NotBlank
-  @Size(max = 255)
-  @Column(name = "name", nullable = false)
+  @Column(name = "name", nullable = false, length = 250)
   protected String name;
 
   @Column(name = "geometry", columnDefinition = "geometry(Point,4326)", nullable = false)

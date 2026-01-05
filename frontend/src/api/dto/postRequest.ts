@@ -16,7 +16,7 @@ import type { Visibility } from './visibility'
 export interface PostRequest {
   /**
    * Post name
-   * @minLength 3
+   * @minLength 1
    * @maxLength 200
    * @pattern \S
    */

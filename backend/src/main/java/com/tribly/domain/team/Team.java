@@ -5,9 +5,6 @@ import com.tribly.domain.common.NotNullableDbValue;
 import com.tribly.domain.user.User;
 import com.tribly.enums.Visibility;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -26,17 +23,10 @@ import org.hibernate.annotations.SQLRestriction;
 @NoArgsConstructor
 public class Team extends BaseEntity {
 
-  @NotBlank
-  @Size(max = 255)
-  @Column(name = "name", nullable = false)
+  @Column(name = "name", nullable = false, length = 250)
   private String name;
 
-  @NotBlank
-  @Size(max = 255)
-  @Pattern(
-      regexp = "^[a-z0-9-]+$",
-      message = "Slug must contain only lowercase letters, numbers, and hyphens")
-  @Column(name = "slug", nullable = false, unique = true)
+  @Column(name = "slug", nullable = false, unique = true, length = 250)
   private String slug;
 
   @Enumerated(EnumType.STRING)

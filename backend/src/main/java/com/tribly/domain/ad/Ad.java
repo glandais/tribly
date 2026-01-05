@@ -11,7 +11,6 @@ import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
 import java.time.Instant;
 import lombok.Getter;
@@ -47,8 +46,7 @@ public class Ad extends TeamEntity {
   @Nullable
   private Double longitude;
 
-  @Column(name = "location_description")
-  @Size(max = 255)
+  @Column(name = "location_description", length = 250)
   @Nullable
   private String locationDescription;
 

@@ -6,4 +6,4 @@ import org.eclipse.microprofile.openapi.annotations.media.Schema;
 public record RouterRequest(
     @Schema(required = true) GeoPoint from,
     @Schema(required = true) GeoPoint to,
-    @Schema(required = true) String profile) {}
+    @Schema(required = true) RouterProfile profile) {}

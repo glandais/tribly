@@ -17,7 +17,7 @@ import type { StageRequest } from './stageRequest'
 export interface TripRequest {
   /**
    * Trip name
-   * @minLength 3
+   * @minLength 1
    * @maxLength 200
    * @pattern \S
    */

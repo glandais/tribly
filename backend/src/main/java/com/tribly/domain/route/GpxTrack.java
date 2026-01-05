@@ -6,8 +6,6 @@ import com.tribly.domain.user.User;
 import io.github.glandais.gpx.climb.Climb;
 import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import java.util.List;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -33,9 +31,7 @@ public class GpxTrack extends BaseEntity {
   @JoinColumn(name = "route_id", nullable = false)
   private Route route;
 
-  @NotBlank
-  @Size(max = 255)
-  @Column(name = "name", nullable = false)
+  @Column(name = "name", nullable = false, length = 250)
   protected String name;
 
   @Column(name = "geometry", columnDefinition = "geometry(LineString,4326)", nullable = false)

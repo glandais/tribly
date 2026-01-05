@@ -34,7 +34,6 @@ export const createPageParams = zod.object({
   slug: zod.string().describe('Team URL slug'),
 })
 
-export const createPageBodyTitleMin = 2
 export const createPageBodyTitleMax = 100
 
 export const createPageBodyTitleRegExp = new RegExp('\\S')
@@ -43,12 +42,12 @@ export const createPageBody = zod
   .object({
     title: zod
       .string()
-      .min(createPageBodyTitleMin)
+      .min(1)
       .max(createPageBodyTitleMax)
       .regex(createPageBodyTitleRegExp)
       .describe('Page title'),
     media: zod.object({
-      markdown: zod.string().optional().describe('Markdown'),
+      markdown: zod.string().describe('Markdown'),
       assets: zod.object({
         logo: zod
           .object({
@@ -216,7 +215,6 @@ export const updatePageParams = zod.object({
   slug: zod.string().describe('Team URL slug'),
 })
 
-export const updatePageBodyTitleMin = 2
 export const updatePageBodyTitleMax = 100
 
 export const updatePageBodyTitleRegExp = new RegExp('\\S')
@@ -225,12 +223,12 @@ export const updatePageBody = zod
   .object({
     title: zod
       .string()
-      .min(updatePageBodyTitleMin)
+      .min(1)
       .max(updatePageBodyTitleMax)
       .regex(updatePageBodyTitleRegExp)
       .describe('Page title'),
     media: zod.object({
-      markdown: zod.string().optional().describe('Markdown'),
+      markdown: zod.string().describe('Markdown'),
       assets: zod.object({
         logo: zod
           .object({
@@ -370,7 +368,7 @@ export const updatePageResponse = zod
     title: zod.string().describe('Page title'),
     slug: zod.string().describe('Page URL slug'),
     media: zod.object({
-      markdown: zod.string().optional().describe('Markdown'),
+      markdown: zod.string().describe('Markdown'),
       assets: zod.object({
         logo: zod
           .object({
@@ -520,7 +518,7 @@ export const getPageResponse = zod
     title: zod.string().describe('Page title'),
     slug: zod.string().describe('Page URL slug'),
     media: zod.object({
-      markdown: zod.string().optional().describe('Markdown'),
+      markdown: zod.string().describe('Markdown'),
       assets: zod.object({
         logo: zod
           .object({

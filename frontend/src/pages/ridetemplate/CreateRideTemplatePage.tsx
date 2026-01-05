@@ -40,16 +40,12 @@ export function CreateRideTemplatePage() {
 
   const initialValues = {
     name: '',
-    markdown: undefined,
+    markdown: '',
     visibility: team.visibility === Visibility.TEAM ? Visibility.TEAM : Visibility.PUBLIC,
     status: Status.PUBLISHED,
     groups: [
       {
         name: t('form.groups.defaultName', { number: 1 }),
-        time: undefined,
-        averageSpeed: undefined,
-        maxParticipants: undefined,
-        isNew: true,
       },
     ],
   }

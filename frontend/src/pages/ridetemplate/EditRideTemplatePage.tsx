@@ -51,21 +51,7 @@ export function EditRideTemplatePage() {
     return <Navigate to={paths.rideTemplates(teamSlug!)} replace />
   }
 
-  const initialValues = {
-    name: template.name,
-    markdown: template.markdown || undefined,
-    visibility: template.visibility,
-    status: template.status,
-    groups: template.groups.map((g) => ({
-      id: g.id,
-      name: g.name,
-      time: g.time,
-      averageSpeed: g.averageSpeed,
-      maxParticipants: g.maxParticipants,
-      isNew: false,
-      isDeleted: false,
-    })),
-  }
+  const initialValues = { ...template }
 
   const handleSubmit = (data: RideTemplateRequest) => {
     updateMutation.mutate(

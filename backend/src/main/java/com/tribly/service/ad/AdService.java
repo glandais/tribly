@@ -11,7 +11,7 @@ import com.tribly.dto.ads.request.AdRequest;
 import com.tribly.dto.ads.response.AdDto;
 import com.tribly.dto.ads.response.AdListResponse;
 import com.tribly.enums.AdType;
-import com.tribly.enums.Visibility;
+import com.tribly.enums.Status;
 import com.tribly.infrastructure.exception.BusinessException;
 import com.tribly.service.common.TeamEntityService;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -91,16 +91,7 @@ public class AdService extends TeamEntityService {
     // Security check: any team member can create ads
     securityService.requireMembership(creatorId, team.getSlug());
 
-    // Validate visibility: private teams can only have team-only ads
-    Visibility visibility = request.visibility();
-    if (team.getVisibility() != Visibility.PUBLIC && visibility == Visibility.PUBLIC) {
-      throw BusinessException.validation("Private teams can only have team-only ads");
-    }
-
-    // Validate rental period for rental ads
-    if (request.adType() == AdType.RENTAL && request.rentalPeriod() == null) {
-      throw BusinessException.validation("Rental period is required for rental ads");
-    }
+    verifyAd(request, team);
 
     // Generate slug from name, ensure unique within team
     String slug =
@@ -108,12 +99,16 @@ public class AdService extends TeamEntityService {
             request.name(), s -> adRepository.existsByTeamAndSlug(team.getId(), s));
 
     Ad ad =
-        new Ad(creator, team, Instant.now(), request.name(), slug, visibility, request.adType());
-    ad.setStatus(request.status());
-    ad.setPublishAt(null);
-    ad.setPrice(request.price());
-    ad.setRentalPeriod(request.rentalPeriod());
-    ad.setLocationDescription(request.locationDescription());
+        new Ad(
+            creator,
+            team,
+            Instant.now(),
+            request.name(),
+            slug,
+            request.visibility(),
+            request.adType());
+
+    setProperties(request, ad);
 
     adRepository.persistAndFlush(ad);
 
@@ -134,22 +129,9 @@ public class AdService extends TeamEntityService {
 
     // Validate visibility: private teams can only have team-only ads
     Team team = ad.getTeam();
-    if (team.getVisibility() != Visibility.PUBLIC && request.visibility() == Visibility.PUBLIC) {
-      throw BusinessException.validation("Private teams can only have team-only ads");
-    }
+    verifyAd(request, team);
 
-    // Validate rental period for rental ads
-    if (request.adType() == AdType.RENTAL && request.rentalPeriod() == null) {
-      throw BusinessException.validation("Rental period is required for rental ads");
-    }
-
-    ad.setVisibility(request.visibility());
-    ad.setName(request.name());
-    ad.setStatus(request.status());
-    ad.setAdType(request.adType());
-    ad.setPrice(request.price());
-    ad.setRentalPeriod(request.rentalPeriod());
-    ad.setLocationDescription(request.locationDescription());
+    setProperties(request, ad);
 
     updateMedia(ad, request.media());
 
@@ -177,5 +159,33 @@ public class AdService extends TeamEntityService {
     if (!isCreator && !membership.isAdmin()) {
       throw BusinessException.forbidden("Only the creator or an admin can edit this ad");
     }
+  }
+
+  private void verifyAd(AdRequest request, Team team) {
+    validateVisibility(request, team);
+
+    // Validate rental period for rental ads
+    if (request.adType() == AdType.RENTAL && request.rentalPeriod() == null) {
+      throw BusinessException.validation("Rental period is required for rental ads");
+    }
+
+    if (request.status() == Status.CANCELLED) {
+      throw BusinessException.validation("Ad can't be cancelled");
+    }
+  }
+
+  private void setProperties(AdRequest request, Ad ad) {
+    ad.setVisibility(request.visibility());
+    ad.setName(request.name());
+    ad.setStatus(request.status());
+    ad.setPublishAt(null);
+    ad.setAdType(request.adType());
+    ad.setPrice(request.price());
+    if (request.adType() == AdType.RENTAL) {
+      ad.setRentalPeriod(request.rentalPeriod());
+    } else {
+      ad.setRentalPeriod(null);
+    }
+    ad.setLocationDescription(request.locationDescription());
   }
 }

@@ -20,11 +20,5 @@ export const getConfigResponse = zod
         clientId: zod.string().describe('Keycloak client ID'),
       })
       .describe('Keycloak configuration'),
-    map: zod
-      .object({
-        tileUrl: zod.string().describe('Map tile URL template'),
-        attribution: zod.string().describe('Map attribution text'),
-      })
-      .describe('Map configuration'),
   })
   .describe('Application configuration')

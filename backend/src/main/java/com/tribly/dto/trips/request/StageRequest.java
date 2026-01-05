@@ -18,8 +18,7 @@ public record StageRequest(
         @NotBlank
         @Size(min = 1, max = 200)
         String name,
-    @Schema(description = "Stage date/time", examples = "2025-07-01", required = true)
-        Instant dateTime,
+    @Schema(description = "Stage date/time", required = true) Instant dateTime,
     @Nullable @Schema(description = "Route slug for this stage") String routeSlug,
     @Nullable @Schema(description = "Start place ID (TSID)") String startPlaceId,
     @Nullable @Schema(description = "End place ID (TSID)") String endPlaceId,

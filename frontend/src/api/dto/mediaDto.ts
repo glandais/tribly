@@ -9,7 +9,7 @@ import type { AssetsDto } from './assetsDto'
 
 export interface MediaDto {
   /** Markdown */
-  markdown?: string
+  markdown: string
   /** Assets */
   assets: AssetsDto
 }

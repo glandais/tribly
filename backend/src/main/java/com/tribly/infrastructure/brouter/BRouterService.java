@@ -23,7 +23,8 @@ public class BRouterService {
             + routerRequest.to().lng()
             + ","
             + routerRequest.to().lat();
-    RouterResult geojson = bRouterClient.route(lonlats, routerRequest.profile(), 0, "geojson");
+    RouterResult geojson =
+        bRouterClient.route(lonlats, routerRequest.profile().getProfileName(), 0, "geojson");
     List<ResultFeature> features = geojson.features();
     if (features.isEmpty()) {
       throw BusinessException.conflict("No features found");

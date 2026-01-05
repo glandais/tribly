@@ -14,7 +14,12 @@ import type { GeoPoint } from './geoPoint'
  * Route update request
  */
 export interface RouteRequest {
-  /** Route name */
+  /**
+   * Route name
+   * @minLength 3
+   * @maxLength 200
+   * @pattern \S
+   */
   name: string
   /** Media */
   media: MediaDto

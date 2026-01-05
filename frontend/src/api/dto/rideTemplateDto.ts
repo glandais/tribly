@@ -21,7 +21,7 @@ export interface RideTemplateDto {
   /** Template name */
   name: string
   /** Template description (markdown) */
-  markdown?: string
+  markdown: string
   /** Visibility level */
   visibility: Visibility
   /** Default status */

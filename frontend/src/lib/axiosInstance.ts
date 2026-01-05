@@ -7,13 +7,14 @@ import { ApiClientError } from './apiError'
 
 export const AXIOS_INSTANCE = Axios.create()
 
-// Auth interceptor
+// Auth and language interceptor
 AXIOS_INSTANCE.interceptors.request.use(
   (config) => {
     const token = useAuthStore.getState().getToken()
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
+    config.headers['Accept-Language'] = i18next.language
     return config
   },
   (error) => Promise.reject(error)

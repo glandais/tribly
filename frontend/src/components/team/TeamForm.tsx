@@ -139,7 +139,7 @@ export function TeamForm({ teamSlug, initialValues, onSuccess, create }: TeamFor
               </FormControl>
               <FormDescription>
                 {tCommon('form.charCount', {
-                  count: field.value.markdown?.length || 0,
+                  count: field.value.markdown.length || 0,
                   max: 2000,
                 })}
               </FormDescription>

@@ -45,7 +45,7 @@ export const listRidesResponse = zod
             slug: zod.string().describe('Publication URL slug'),
             name: zod.string().describe('Publication name'),
             media: zod.object({
-              markdown: zod.string().optional().describe('Markdown'),
+              markdown: zod.string().describe('Markdown'),
               assets: zod.object({
                 logo: zod
                   .object({
@@ -283,7 +283,7 @@ export const createRideBody = zod
       .regex(createRideBodyNameRegExp)
       .describe('Ride name'),
     media: zod.object({
-      markdown: zod.string().optional().describe('Markdown'),
+      markdown: zod.string().describe('Markdown'),
       assets: zod.object({
         logo: zod
           .object({
@@ -468,7 +468,7 @@ export const updateRideBody = zod
       .regex(updateRideBodyNameRegExp)
       .describe('Ride name'),
     media: zod.object({
-      markdown: zod.string().optional().describe('Markdown'),
+      markdown: zod.string().describe('Markdown'),
       assets: zod.object({
         logo: zod
           .object({
@@ -642,7 +642,7 @@ export const updateRideResponse = zod
     slug: zod.string().describe('Publication URL slug'),
     name: zod.string().describe('Publication name'),
     media: zod.object({
-      markdown: zod.string().optional().describe('Markdown'),
+      markdown: zod.string().describe('Markdown'),
       assets: zod.object({
         logo: zod
           .object({
@@ -868,7 +868,7 @@ export const getRideResponse = zod
     slug: zod.string().describe('Publication URL slug'),
     name: zod.string().describe('Publication name'),
     media: zod.object({
-      markdown: zod.string().optional().describe('Markdown'),
+      markdown: zod.string().describe('Markdown'),
       assets: zod.object({
         logo: zod
           .object({

@@ -34,7 +34,7 @@ export const listTeamsResponse = zod
             name: zod.string().describe('Team name'),
             slug: zod.string().describe('Team URL slug'),
             about: zod.object({
-              markdown: zod.string().optional().describe('Markdown'),
+              markdown: zod.string().describe('Markdown'),
               assets: zod.object({
                 logo: zod
                   .object({
@@ -198,7 +198,6 @@ export const listTeamsResponse = zod
  * Create a new team. The current user will be set as the team owner.
  * @summary Create team
  */
-export const createTeamBodyNameMin = 2
 export const createTeamBodyNameMax = 200
 
 export const createTeamBodyNameRegExp = new RegExp('\\S')
@@ -207,12 +206,12 @@ export const createTeamBody = zod
   .object({
     name: zod
       .string()
-      .min(createTeamBodyNameMin)
+      .min(1)
       .max(createTeamBodyNameMax)
       .regex(createTeamBodyNameRegExp)
       .describe('Team name'),
     media: zod.object({
-      markdown: zod.string().optional().describe('Markdown'),
+      markdown: zod.string().describe('Markdown'),
       assets: zod.object({
         logo: zod
           .object({
@@ -356,7 +355,6 @@ export const updateTeamParams = zod.object({
   slug: zod.string().describe('Team URL slug'),
 })
 
-export const updateTeamBodyNameMin = 2
 export const updateTeamBodyNameMax = 200
 
 export const updateTeamBodyNameRegExp = new RegExp('\\S')
@@ -365,12 +363,12 @@ export const updateTeamBody = zod
   .object({
     name: zod
       .string()
-      .min(updateTeamBodyNameMin)
+      .min(1)
       .max(updateTeamBodyNameMax)
       .regex(updateTeamBodyNameRegExp)
       .describe('Team name'),
     media: zod.object({
-      markdown: zod.string().optional().describe('Markdown'),
+      markdown: zod.string().describe('Markdown'),
       assets: zod.object({
         logo: zod
           .object({
@@ -512,7 +510,7 @@ export const updateTeamResponse = zod
     name: zod.string().describe('Team name'),
     slug: zod.string().describe('Team URL slug'),
     about: zod.object({
-      markdown: zod.string().optional().describe('Markdown'),
+      markdown: zod.string().describe('Markdown'),
       assets: zod.object({
         logo: zod
           .object({
@@ -679,7 +677,7 @@ export const getTeamResponse = zod
     name: zod.string().describe('Team name'),
     slug: zod.string().describe('Team URL slug'),
     about: zod.object({
-      markdown: zod.string().optional().describe('Markdown'),
+      markdown: zod.string().describe('Markdown'),
       assets: zod.object({
         logo: zod
           .object({

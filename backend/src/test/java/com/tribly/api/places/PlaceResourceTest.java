@@ -1,12 +1,17 @@
 package com.tribly.api.places;
 
 import static io.restassured.RestAssured.given;
+import static org.geolatte.geom.builder.DSL.g;
+import static org.geolatte.geom.builder.DSL.point;
+import static org.geolatte.geom.crs.CoordinateReferenceSystems.WGS84;
 import static org.hamcrest.Matchers.*;
 
 import com.tribly.api.AbstractResourceTest;
 import com.tribly.dto.places.request.PlaceRequest;
 import com.tribly.infrastructure.id.TsidUtils;
 import io.quarkus.test.junit.QuarkusTest;
+import org.geolatte.geom.G2D;
+import org.geolatte.geom.Point;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -169,9 +174,9 @@ class PlaceResourceTest extends AbstractResourceTest {
 
   @Test
   void createPlace_withCoordinates_shouldSucceed() {
-    double[] coords = new double[] {2.3522, 48.8566}; // Paris [lon, lat]
+    Point<G2D> point = point(WGS84, g(2.3522, 48.8566));
     PlaceRequest request =
-        new PlaceRequest("Paris Place", "Paris, France", null, true, true, coords);
+        new PlaceRequest("Paris Place", "Paris, France", null, true, true, point);
 
     given()
         .auth()

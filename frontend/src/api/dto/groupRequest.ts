@@ -21,9 +21,13 @@ export interface GroupRequest {
    */
   name: string
   time?: LocalTime
-  /** Average speed in km/h */
+  /**
+   * Average speed in km/h
+   */
   averageSpeed?: number
-  /** Maximum participants */
+  /**
+   * Maximum participants
+   */
   maxParticipants?: number
   /** Route slug for this group */
   routeSlug?: string

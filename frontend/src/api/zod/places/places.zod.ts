@@ -58,25 +58,42 @@ export const createPlaceParams = zod.object({
   slug: zod.string().describe('Team URL slug'),
 })
 
-export const createPlaceBodyNameMin = 3
 export const createPlaceBodyNameMax = 200
 
 export const createPlaceBodyNameRegExp = new RegExp('\\S')
+export const createPlaceBodyAddressMin = 3
+export const createPlaceBodyAddressMax = 200
+
+export const createPlaceBodyAddressRegExp = new RegExp('\\S')
+export const createPlaceBodyLinkMin = 3
+export const createPlaceBodyLinkMax = 200
 
 export const createPlaceBody = zod
   .object({
     name: zod
       .string()
-      .min(createPlaceBodyNameMin)
+      .min(1)
       .max(createPlaceBodyNameMax)
       .regex(createPlaceBodyNameRegExp)
       .describe('Place name'),
-    address: zod.string().optional().describe('Address'),
-    link: zod.string().optional().describe('External link (e.g., Google Maps URL)'),
+    address: zod
+      .string()
+      .min(createPlaceBodyAddressMin)
+      .max(createPlaceBodyAddressMax)
+      .regex(createPlaceBodyAddressRegExp)
+      .describe('Address'),
+    link: zod
+      .string()
+      .min(createPlaceBodyLinkMin)
+      .max(createPlaceBodyLinkMax)
+      .describe('External link (e.g., Google Maps URL)'),
     startPlace: zod.boolean().describe('Can be used as ride start point'),
     endPlace: zod.boolean().describe('Can be used as ride end point'),
     coordinates: zod
-      .array(zod.number())
+      .object({
+        type: zod.enum(['Point']),
+        coordinates: zod.array(zod.number()).describe('Coordinates [longitude, latitude]'),
+      })
       .optional()
       .describe('Geographic coordinates [longitude, latitude]'),
   })
@@ -91,25 +108,42 @@ export const updatePlaceParams = zod.object({
   slug: zod.string().describe('Team URL slug'),
 })
 
-export const updatePlaceBodyNameMin = 3
 export const updatePlaceBodyNameMax = 200
 
 export const updatePlaceBodyNameRegExp = new RegExp('\\S')
+export const updatePlaceBodyAddressMin = 3
+export const updatePlaceBodyAddressMax = 200
+
+export const updatePlaceBodyAddressRegExp = new RegExp('\\S')
+export const updatePlaceBodyLinkMin = 3
+export const updatePlaceBodyLinkMax = 200
 
 export const updatePlaceBody = zod
   .object({
     name: zod
       .string()
-      .min(updatePlaceBodyNameMin)
+      .min(1)
       .max(updatePlaceBodyNameMax)
       .regex(updatePlaceBodyNameRegExp)
       .describe('Place name'),
-    address: zod.string().optional().describe('Address'),
-    link: zod.string().optional().describe('External link (e.g., Google Maps URL)'),
+    address: zod
+      .string()
+      .min(updatePlaceBodyAddressMin)
+      .max(updatePlaceBodyAddressMax)
+      .regex(updatePlaceBodyAddressRegExp)
+      .describe('Address'),
+    link: zod
+      .string()
+      .min(updatePlaceBodyLinkMin)
+      .max(updatePlaceBodyLinkMax)
+      .describe('External link (e.g., Google Maps URL)'),
     startPlace: zod.boolean().describe('Can be used as ride start point'),
     endPlace: zod.boolean().describe('Can be used as ride end point'),
     coordinates: zod
-      .array(zod.number())
+      .object({
+        type: zod.enum(['Point']),
+        coordinates: zod.array(zod.number()).describe('Coordinates [longitude, latitude]'),
+      })
       .optional()
       .describe('Geographic coordinates [longitude, latitude]'),
   })

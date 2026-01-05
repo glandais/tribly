@@ -44,7 +44,7 @@ export const listAllPublicationsResponse = zod
                 slug: zod.string().describe('Publication URL slug'),
                 name: zod.string().describe('Publication name'),
                 media: zod.object({
-                  markdown: zod.string().optional().describe('Markdown'),
+                  markdown: zod.string().describe('Markdown'),
                   assets: zod.object({
                     logo: zod
                       .object({
@@ -264,7 +264,7 @@ export const listAllPublicationsResponse = zod
                 slug: zod.string().describe('Publication URL slug'),
                 name: zod.string().describe('Publication name'),
                 media: zod.object({
-                  markdown: zod.string().optional().describe('Markdown'),
+                  markdown: zod.string().describe('Markdown'),
                   assets: zod.object({
                     logo: zod
                       .object({
@@ -416,7 +416,7 @@ export const listAllPublicationsResponse = zod
                 slug: zod.string().describe('Publication URL slug'),
                 name: zod.string().describe('Publication name'),
                 media: zod.object({
-                  markdown: zod.string().optional().describe('Markdown'),
+                  markdown: zod.string().describe('Markdown'),
                   assets: zod.object({
                     logo: zod
                       .object({
@@ -601,7 +601,7 @@ export const listAllPublicationsResponse = zod
                           })
                           .optional(),
                         media: zod.object({
-                          markdown: zod.string().optional().describe('Markdown'),
+                          markdown: zod.string().describe('Markdown'),
                           assets: zod.object({
                             logo: zod
                               .object({
@@ -800,7 +800,7 @@ export const listPublicationsResponse = zod
                 slug: zod.string().describe('Publication URL slug'),
                 name: zod.string().describe('Publication name'),
                 media: zod.object({
-                  markdown: zod.string().optional().describe('Markdown'),
+                  markdown: zod.string().describe('Markdown'),
                   assets: zod.object({
                     logo: zod
                       .object({
@@ -1020,7 +1020,7 @@ export const listPublicationsResponse = zod
                 slug: zod.string().describe('Publication URL slug'),
                 name: zod.string().describe('Publication name'),
                 media: zod.object({
-                  markdown: zod.string().optional().describe('Markdown'),
+                  markdown: zod.string().describe('Markdown'),
                   assets: zod.object({
                     logo: zod
                       .object({
@@ -1172,7 +1172,7 @@ export const listPublicationsResponse = zod
                 slug: zod.string().describe('Publication URL slug'),
                 name: zod.string().describe('Publication name'),
                 media: zod.object({
-                  markdown: zod.string().optional().describe('Markdown'),
+                  markdown: zod.string().describe('Markdown'),
                   assets: zod.object({
                     logo: zod
                       .object({
@@ -1357,7 +1357,7 @@ export const listPublicationsResponse = zod
                           })
                           .optional(),
                         media: zod.object({
-                          markdown: zod.string().optional().describe('Markdown'),
+                          markdown: zod.string().describe('Markdown'),
                           assets: zod.object({
                             logo: zod
                               .object({

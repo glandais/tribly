@@ -6,7 +6,6 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { KeycloakConfig } from './keycloakConfig'
-import type { MapConfig } from './mapConfig'
 
 /**
  * Application configuration
@@ -14,6 +13,4 @@ import type { MapConfig } from './mapConfig'
 export interface ConfigDto {
   /** Keycloak authentication configuration */
   keycloak: KeycloakConfig
-  /** Map configuration */
-  map: MapConfig
 }

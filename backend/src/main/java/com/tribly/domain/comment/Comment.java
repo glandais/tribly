@@ -5,8 +5,6 @@ import com.tribly.domain.common.TeamEntity;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -37,8 +35,6 @@ public class Comment extends BaseEntity {
   @Nullable
   private Comment parent;
 
-  @NotBlank
-  @Size(max = 5000)
   @Column(name = "content", nullable = false, columnDefinition = "TEXT")
   private String content;
 

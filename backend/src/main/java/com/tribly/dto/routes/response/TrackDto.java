@@ -6,7 +6,7 @@ import static org.geolatte.geom.crs.CoordinateReferenceSystems.addLinearSystem;
 import static org.geolatte.geom.crs.CoordinateReferenceSystems.addVerticalSystem;
 
 import com.tribly.domain.route.GpxTrack;
-import com.tribly.dto.common.response.GeoJsonLineString;
+import com.tribly.dto.common.GeoJsonLineString;
 import com.tribly.dto.validation.ValidateSchema;
 import java.util.List;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;

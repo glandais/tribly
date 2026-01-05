@@ -4,9 +4,6 @@ import com.tribly.domain.common.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import java.time.Instant;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,14 +17,10 @@ import org.jspecify.annotations.Nullable;
 @NoArgsConstructor
 public class User extends BaseEntity {
 
-  @NotBlank
-  @Email
-  @Column(name = "email", nullable = false, unique = true)
+  @Column(name = "email", nullable = false, unique = true, length = 250)
   private String email;
 
-  @NotBlank
-  @Size(max = 255)
-  @Column(name = "display_name", nullable = false)
+  @Column(name = "display_name", nullable = false, length = 250)
   private String displayName;
 
   @Column(name = "avatar_url", length = 500)

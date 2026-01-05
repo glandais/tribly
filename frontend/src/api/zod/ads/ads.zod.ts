@@ -45,7 +45,7 @@ export const listAdsResponse = zod
             slug: zod.string().describe('Ad URL slug'),
             name: zod.string().describe('Ad name'),
             media: zod.object({
-              markdown: zod.string().optional().describe('Markdown'),
+              markdown: zod.string().describe('Markdown'),
               assets: zod.object({
                 logo: zod
                   .object({
@@ -204,22 +204,21 @@ export const createAdParams = zod.object({
   slug: zod.string().describe('Team URL slug'),
 })
 
-export const createAdBodyNameMin = 3
 export const createAdBodyNameMax = 200
 
 export const createAdBodyNameRegExp = new RegExp('\\S')
-export const createAdBodyLocationDescriptionMax = 255
+export const createAdBodyLocationDescriptionMax = 200
 
 export const createAdBody = zod
   .object({
     name: zod
       .string()
-      .min(createAdBodyNameMin)
+      .min(1)
       .max(createAdBodyNameMax)
       .regex(createAdBodyNameRegExp)
       .describe('Ad name'),
     media: zod.object({
-      markdown: zod.string().optional().describe('Markdown'),
+      markdown: zod.string().describe('Markdown'),
       assets: zod.object({
         logo: zod
           .object({
@@ -371,22 +370,21 @@ export const updateAdParams = zod.object({
   slug: zod.string().describe('Team URL slug'),
 })
 
-export const updateAdBodyNameMin = 3
 export const updateAdBodyNameMax = 200
 
 export const updateAdBodyNameRegExp = new RegExp('\\S')
-export const updateAdBodyLocationDescriptionMax = 255
+export const updateAdBodyLocationDescriptionMax = 200
 
 export const updateAdBody = zod
   .object({
     name: zod
       .string()
-      .min(updateAdBodyNameMin)
+      .min(1)
       .max(updateAdBodyNameMax)
       .regex(updateAdBodyNameRegExp)
       .describe('Ad name'),
     media: zod.object({
-      markdown: zod.string().optional().describe('Markdown'),
+      markdown: zod.string().describe('Markdown'),
       assets: zod.object({
         logo: zod
           .object({
@@ -543,7 +541,7 @@ export const updateAdResponse = zod
     slug: zod.string().describe('Ad URL slug'),
     name: zod.string().describe('Ad name'),
     media: zod.object({
-      markdown: zod.string().optional().describe('Markdown'),
+      markdown: zod.string().describe('Markdown'),
       assets: zod.object({
         logo: zod
           .object({
@@ -710,7 +708,7 @@ export const getAdResponse = zod
     slug: zod.string().describe('Ad URL slug'),
     name: zod.string().describe('Ad name'),
     media: zod.object({
-      markdown: zod.string().optional().describe('Markdown'),
+      markdown: zod.string().describe('Markdown'),
       assets: zod.object({
         logo: zod
           .object({

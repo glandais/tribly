@@ -241,8 +241,7 @@ public class RouteResource extends AbstractAuthenticatedResource {
       @Parameter(description = "Team URL slug") @PathParam("slug") String teamSlug,
       @Parameter(description = "Route slug") @PathParam("routeSlug") String routeSlug,
       @RestForm("route") @PartType(MediaType.APPLICATION_JSON) @Valid @NotNull RouteRequest request,
-      @RestForm("gpxFile") @Nullable FileUpload gpxFile)
-      throws Exception {
+      @RestForm("gpxFile") @Nullable FileUpload gpxFile) {
 
     Long userId = getCurrentUserId();
 

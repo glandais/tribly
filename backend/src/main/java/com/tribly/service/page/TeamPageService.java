@@ -83,11 +83,7 @@ public class TeamPageService extends TeamEntityService {
           "Maximum number of additional pages (" + MAX_ADDITIONAL_PAGES + ") reached");
     }
 
-    // Validate visibility: private teams can only have team-only pages
-    Visibility visibility = request.visibility();
-    if (team.getVisibility() != Visibility.PUBLIC && visibility == Visibility.PUBLIC) {
-      throw BusinessException.validation("Private teams can only have team-only pages");
-    }
+    validateVisibility(request, team);
 
     // Generate slug from title
     String slug =
@@ -97,7 +93,8 @@ public class TeamPageService extends TeamEntityService {
     int order = teamPageRepository.getNextPageOrder(team.getId());
 
     TeamPage page =
-        TeamPage.createAdditionalPage(creator, team, request.title(), slug, visibility, order);
+        TeamPage.createAdditionalPage(
+            creator, team, request.title(), slug, request.visibility(), order);
 
     teamPageRepository.persistAndFlush(page);
 
@@ -130,10 +127,7 @@ public class TeamPageService extends TeamEntityService {
       throw BusinessException.validation("About page must be edited through team settings");
     }
 
-    // Validate visibility: private teams can only have team-only pages
-    if (team.getVisibility() != Visibility.PUBLIC && request.visibility() == Visibility.PUBLIC) {
-      throw BusinessException.validation("Private teams can only have team-only pages");
-    }
+    validateVisibility(request, team);
 
     page.setName(request.title());
     page.setVisibility(request.visibility());

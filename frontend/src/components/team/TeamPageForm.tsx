@@ -141,7 +141,7 @@ export function TeamPageForm({
               </FormControl>
               <FormDescription>
                 {tCommon('form.charCount', {
-                  count: field.value.markdown?.length || 0,
+                  count: field.value.markdown.length || 0,
                   max: 10000,
                 })}
               </FormDescription>

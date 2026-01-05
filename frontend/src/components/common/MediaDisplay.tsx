@@ -20,7 +20,7 @@ export function MediaDisplay({ media, className = '' }: MediaDisplayProps) {
 
   return (
     <div className={className}>
-      <MarkdownDisplay markdown={media.markdown || ''} preview={false} images={images} />
+      <MarkdownDisplay markdown={media.markdown} preview={false} images={images} />
 
       {/* Attachments section */}
       {attachments.length > 0 && (

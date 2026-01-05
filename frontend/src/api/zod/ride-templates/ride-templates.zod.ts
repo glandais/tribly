@@ -33,7 +33,7 @@ export const listTemplatesResponse = zod
             id: zod.string().describe('Template ID (TSID)'),
             slug: zod.string().describe('Template slug'),
             name: zod.string().describe('Template name'),
-            markdown: zod.string().optional().describe('Template description (markdown)'),
+            markdown: zod.string().describe('Template description (markdown)'),
             visibility: zod.enum(['TEAM', 'PUBLIC']),
             status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']),
             createdAt: zod.iso.datetime({}),
@@ -71,7 +71,6 @@ export const createTemplateParams = zod.object({
   slug: zod.string().describe('Team URL slug'),
 })
 
-export const createTemplateBodyNameMin = 3
 export const createTemplateBodyNameMax = 200
 
 export const createTemplateBodyNameRegExp = new RegExp('\\S')
@@ -83,11 +82,11 @@ export const createTemplateBody = zod
   .object({
     name: zod
       .string()
-      .min(createTemplateBodyNameMin)
+      .min(1)
       .max(createTemplateBodyNameMax)
       .regex(createTemplateBodyNameRegExp)
       .describe('Template name'),
-    markdown: zod.string().optional().describe('Template description (markdown)'),
+    markdown: zod.string().describe('Template description (markdown)'),
     visibility: zod.enum(['TEAM', 'PUBLIC']),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']),
     groups: zod
@@ -120,7 +119,6 @@ export const updateTemplateParams = zod.object({
   templateSlug: zod.string().describe('Template URL slug'),
 })
 
-export const updateTemplateBodyNameMin = 3
 export const updateTemplateBodyNameMax = 200
 
 export const updateTemplateBodyNameRegExp = new RegExp('\\S')
@@ -132,11 +130,11 @@ export const updateTemplateBody = zod
   .object({
     name: zod
       .string()
-      .min(updateTemplateBodyNameMin)
+      .min(1)
       .max(updateTemplateBodyNameMax)
       .regex(updateTemplateBodyNameRegExp)
       .describe('Template name'),
-    markdown: zod.string().optional().describe('Template description (markdown)'),
+    markdown: zod.string().describe('Template description (markdown)'),
     visibility: zod.enum(['TEAM', 'PUBLIC']),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']),
     groups: zod
@@ -165,7 +163,7 @@ export const updateTemplateResponse = zod
     id: zod.string().describe('Template ID (TSID)'),
     slug: zod.string().describe('Template slug'),
     name: zod.string().describe('Template name'),
-    markdown: zod.string().optional().describe('Template description (markdown)'),
+    markdown: zod.string().describe('Template description (markdown)'),
     visibility: zod.enum(['TEAM', 'PUBLIC']),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']),
     createdAt: zod.iso.datetime({}),
@@ -202,7 +200,7 @@ export const getTemplateResponse = zod
     id: zod.string().describe('Template ID (TSID)'),
     slug: zod.string().describe('Template slug'),
     name: zod.string().describe('Template name'),
-    markdown: zod.string().optional().describe('Template description (markdown)'),
+    markdown: zod.string().describe('Template description (markdown)'),
     visibility: zod.enum(['TEAM', 'PUBLIC']),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']),
     createdAt: zod.iso.datetime({}),

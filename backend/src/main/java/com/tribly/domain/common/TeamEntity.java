@@ -6,9 +6,6 @@ import com.tribly.domain.user.User;
 import com.tribly.enums.Status;
 import com.tribly.enums.Visibility;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
@@ -56,22 +53,14 @@ public abstract class TeamEntity extends BaseEntity {
   @Column(name = "publish_at")
   protected Instant publishAt;
 
-  @NotBlank
-  @Size(max = 255)
-  @Column(name = "name", nullable = false)
+  @Column(name = "name", nullable = false, length = 250)
   protected String name;
 
-  @NotBlank
-  @Size(max = 255)
-  @Pattern(
-      regexp = "^[a-z0-9-]+$",
-      message = "Slug must contain only lowercase letters, numbers, and hyphens")
-  @Column(name = "slug", nullable = false)
+  @Column(name = "slug", nullable = false, length = 250)
   protected String slug;
 
-  @Column(name = "markdown", columnDefinition = "TEXT")
-  @Nullable
-  protected String markdown;
+  @Column(name = "markdown", nullable = false, columnDefinition = "TEXT")
+  protected String markdown = "";
 
   @Enumerated(EnumType.STRING)
   @Column(name = "visibility", nullable = false, length = 20)

@@ -15,13 +15,13 @@ import type { RideTemplateGroupRequest } from './rideTemplateGroupRequest'
 export interface RideTemplateRequest {
   /**
    * Template name
-   * @minLength 3
+   * @minLength 1
    * @maxLength 200
    * @pattern \S
    */
   name: string
   /** Template description (markdown) */
-  markdown?: string
+  markdown: string
   /** Visibility level */
   visibility: Visibility
   /** Default status for rides created from this template */

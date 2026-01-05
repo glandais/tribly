@@ -1,6 +1,7 @@
 import { distance } from '@/components/map/mapUtils'
 import { route as routerRoute } from '@/api/endpoints/router/router'
 import KDBush from 'kdbush'
+import { RouterProfile } from '@/api/dto'
 
 export interface Point {
   lng: number
@@ -81,7 +82,12 @@ export function findPreviousControlPointIndex(idx: number, controlPoints: RouteP
 }
 
 // add points between route end and p
-export async function add(route: Route, p: Point, profile: string, direct = false): Promise<Route> {
+export async function add(
+  route: Route,
+  p: Point,
+  profile: RouterProfile,
+  direct = false
+): Promise<Route> {
   if (route.points.length === 0) {
     const point = createPoint(p.lng, p.lat)
     point.manual = true
@@ -106,7 +112,7 @@ export async function insert(
   startPoint: RoutePoint | undefined,
   p: Point,
   endPoint: RoutePoint | undefined,
-  profile: string,
+  profile: RouterProfile,
   direct = false
 ): Promise<Route> {
   const startIdx = startPoint ? route.points.findIndex((pt) => pt.idx === startPoint.idx) : -1
@@ -139,7 +145,7 @@ export async function remove(
   route: Route,
   startPoint: RoutePoint | undefined,
   endPoint: RoutePoint | undefined,
-  profile: string,
+  profile: RouterProfile,
   direct = false
 ): Promise<Route> {
   // Removing first point: just keep from endPoint onwards
@@ -182,7 +188,7 @@ export function geojson(route: Route): GeoJSON.LineString {
 async function router(
   from: Point,
   to: Point,
-  profile: string,
+  profile: RouterProfile,
   direct: boolean
 ): Promise<RoutePoint[]> {
   if (direct || distance(from.lng, from.lat, to.lng, to.lat) < 0.005) {

@@ -107,28 +107,28 @@ public class RideService extends TeamEntityService {
     // Security check: must be admin or organizer to create rides
     securityService.requireOrganizer(creatorId, team.getSlug());
 
-    // Validate visibility: private teams can only have team-only rides
-    Visibility visibility = request.visibility();
-    if (team.getVisibility() != Visibility.PUBLIC && visibility == Visibility.PUBLIC) {
-      throw BusinessException.validation("Private teams can only have team-only rides");
-    }
+    validateVisibility(request, team);
 
     // Generate slug from name, ensure unique within team
     String slug =
         slugService.generateSlug(
             request.name(), s -> rideRepository.existsByTeamAndSlug(team.getId(), s));
 
-    Route route = getRoute(request.routeSlug(), team, visibility);
+    Route route = getRoute(request.routeSlug(), team, request.visibility());
     Place startPlace = getPlace(request.startPlaceId(), team);
     Place endPlace = getPlace(request.endPlaceId(), team);
 
-    Ride ride = new Ride(creator, team, request.dateTime(), request.name(), slug, visibility);
+    Ride ride =
+        new Ride(creator, team, request.dateTime(), request.name(), slug, request.visibility());
     ride.setRoute(route);
     ride.setStart(startPlace);
     ride.setEnd(endPlace);
     ride.setStatus(request.status());
-    ride.setPublishAt(request.publishAt());
-
+    if (request.status() == Status.DRAFT) {
+      ride.setPublishAt(request.publishAt());
+    } else {
+      ride.setPublishAt(null);
+    }
     rideRepository.persistAndFlush(ride);
 
     updateMedia(ride, request.media());
@@ -199,11 +199,8 @@ public class RideService extends TeamEntityService {
             .findActiveById(userId)
             .orElseThrow(() -> BusinessException.notFound("User", userId));
 
-    // Validate visibility: private teams can only have team-only rides
     Team team = ride.getTeam();
-    if (team.getVisibility() != Visibility.PUBLIC && request.visibility() == Visibility.PUBLIC) {
-      throw BusinessException.validation("Private teams can only have team-only rides");
-    }
+    validateVisibility(request, team);
     ride.setVisibility(request.visibility());
 
     ride.setName(request.name());
@@ -215,9 +212,11 @@ public class RideService extends TeamEntityService {
     Place endPlace = getPlace(request.endPlaceId(), team);
     ride.setStart(startPlace);
     ride.setEnd(endPlace);
-    // publishAt can be explicitly set to null to remove scheduled publishing
-    ride.setPublishAt(request.publishAt());
-
+    if (request.status() == Status.DRAFT) {
+      ride.setPublishAt(request.publishAt());
+    } else {
+      ride.setPublishAt(null);
+    }
     updateMedia(ride, request.media());
 
     Map<Long, RideGroup> existingGroups =
