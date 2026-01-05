@@ -6,6 +6,7 @@ import { AdRequest, AdType, RentalPeriod, TeamDetailDto } from '@/api/dto'
 import { createAdBody } from '@/api/zod/ads/ads.zod'
 import { LoadingSpinner } from '../common/LoadingSpinner'
 import { MediaEditor } from '../common/MediaEditor'
+import { SlugEditor } from '../common/SlugEditor'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -59,6 +60,11 @@ interface AdEditorProps {
   // UI customization
   submitButtonText?: string
   cancelButtonText?: string
+
+  // Slug editing (only for edit mode)
+  currentSlug?: string
+  onSlugChange?: (newSlug: string) => Promise<void>
+  canEditSlug?: boolean
 }
 
 export function AdEditor({
@@ -70,6 +76,9 @@ export function AdEditor({
   isPending,
   submitButtonText,
   cancelButtonText,
+  currentSlug,
+  onSlugChange,
+  canEditSlug = false,
 }: AdEditorProps) {
   const { t } = useTranslation()
 
@@ -105,6 +114,16 @@ export function AdEditor({
             </FormItem>
           )}
         />
+
+        {/* Slug Editor (only in edit mode) */}
+        {currentSlug && onSlugChange && (
+          <SlugEditor
+            currentSlug={currentSlug}
+            baseUrl={`/teams/${teamSlug}/ads/`}
+            onSlugChange={onSlugChange}
+            disabled={!canEditSlug}
+          />
+        )}
 
         {/* Ad Type */}
         <FormField

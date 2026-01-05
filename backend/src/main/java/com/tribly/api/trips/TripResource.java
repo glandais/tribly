@@ -1,11 +1,13 @@
 package com.tribly.api.trips;
 
 import com.tribly.api.AbstractAuthenticatedResource;
+import com.tribly.dto.common.request.SlugChangeRequest;
 import com.tribly.dto.error.ErrorResponse;
 import com.tribly.dto.trips.request.TripRequest;
 import com.tribly.dto.trips.response.TripDto;
 import com.tribly.dto.trips.response.TripListResponse;
 import com.tribly.dto.trips.response.TripParticipationDto;
+import com.tribly.infrastructure.exception.NewSlugException;
 import com.tribly.service.trip.TripService;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
@@ -118,17 +120,23 @@ public class TripResource extends AbstractAuthenticatedResource {
         responseCode = "200",
         description = "Trip retrieved successfully",
         content = @Content(schema = @Schema(implementation = TripDto.class))),
+    @APIResponse(responseCode = "302", description = "Slug has changed, redirect to new URL"),
     @APIResponse(
         responseCode = "404",
         description = "Team or trip not found",
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
   public Response getTrip(
-      @Parameter(description = "Team URL slug") @PathParam("slug") String slug,
+      @Parameter(description = "Team URL slug") @PathParam("slug") String teamSlug,
       @Parameter(description = "Trip URL slug") @PathParam("tripSlug") String tripSlug) {
     Long userId = getCurrentUserIdOrNull();
-    TripDto trip = tripService.getTripDetail(slug, tripSlug, userId);
-    return Response.ok(trip).build();
+    try {
+      TripDto trip = tripService.getTripDetail(teamSlug, tripSlug, userId);
+      return Response.ok(trip).build();
+    } catch (NewSlugException e) {
+      String newUrl = "/api/teams/" + e.getTeamSlug() + "/trips/" + e.getNewSlug();
+      return Response.status(302).header("Location", newUrl).build();
+    }
   }
 
   @PUT
@@ -267,5 +275,47 @@ public class TripResource extends AbstractAuthenticatedResource {
     tripService.leaveTrip(slug, tripSlug, userId);
 
     return Response.noContent().build();
+  }
+
+  @PATCH
+  @Path("/{tripSlug}/slug")
+  @RolesAllowed("user")
+  @Operation(
+      operationId = "changeTripSlug",
+      summary = "Change trip slug",
+      description = "Change trip URL slug. Requires organizer permissions.")
+  @APIResponses({
+    @APIResponse(
+        responseCode = "200",
+        description = "Slug changed successfully",
+        content = @Content(schema = @Schema(implementation = TripDto.class))),
+    @APIResponse(
+        responseCode = "400",
+        description = "Invalid slug format",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "401",
+        description = "Unauthorized",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "403",
+        description = "User is not authorized to change this trip's slug",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "404",
+        description = "Team or trip not found",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "409",
+        description = "Slug already in use",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  })
+  public Response changeSlug(
+      @Parameter(description = "Team URL slug") @PathParam("slug") String teamSlug,
+      @Parameter(description = "Current trip URL slug") @PathParam("tripSlug") String currentSlug,
+      @Valid SlugChangeRequest request) {
+    Long userId = getCurrentUserId();
+    TripDto trip = tripService.updateSlug(teamSlug, currentSlug, request.slug(), userId);
+    return Response.ok(trip).build();
   }
 }

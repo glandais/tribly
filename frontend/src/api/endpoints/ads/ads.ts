@@ -21,7 +21,14 @@ import type {
   UseQueryResult,
 } from '@tanstack/react-query'
 
-import type { AdDto, AdListResponse, AdRequest, ErrorResponse, ListAdsParams } from '../../dto'
+import type {
+  AdDto,
+  AdListResponse,
+  AdRequest,
+  ErrorResponse,
+  ListAdsParams,
+  SlugChangeRequest,
+} from '../../dto'
 
 import { axiosMutator } from '../../../lib/axiosInstance'
 import type { ErrorType, BodyType } from '../../../lib/axiosInstance'
@@ -348,7 +355,7 @@ export const getGetAdQueryKey = (slug?: string, adSlug?: string) => {
 
 export const getGetAdQueryOptions = <
   TData = Awaited<ReturnType<typeof getAd>>,
-  TError = ErrorType<ErrorResponse>,
+  TError = ErrorType<void | ErrorResponse>,
 >(
   slug: string,
   adSlug: string,
@@ -372,11 +379,11 @@ export const getGetAdQueryOptions = <
 }
 
 export type GetAdQueryResult = NonNullable<Awaited<ReturnType<typeof getAd>>>
-export type GetAdQueryError = ErrorType<ErrorResponse>
+export type GetAdQueryError = ErrorType<void | ErrorResponse>
 
 export function useGetAd<
   TData = Awaited<ReturnType<typeof getAd>>,
-  TError = ErrorType<ErrorResponse>,
+  TError = ErrorType<void | ErrorResponse>,
 >(
   slug: string,
   adSlug: string,
@@ -396,7 +403,7 @@ export function useGetAd<
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetAd<
   TData = Awaited<ReturnType<typeof getAd>>,
-  TError = ErrorType<ErrorResponse>,
+  TError = ErrorType<void | ErrorResponse>,
 >(
   slug: string,
   adSlug: string,
@@ -416,7 +423,7 @@ export function useGetAd<
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetAd<
   TData = Awaited<ReturnType<typeof getAd>>,
-  TError = ErrorType<ErrorResponse>,
+  TError = ErrorType<void | ErrorResponse>,
 >(
   slug: string,
   adSlug: string,
@@ -432,7 +439,7 @@ export function useGetAd<
 
 export function useGetAd<
   TData = Awaited<ReturnType<typeof getAd>>,
-  TError = ErrorType<ErrorResponse>,
+  TError = ErrorType<void | ErrorResponse>,
 >(
   slug: string,
   adSlug: string,
@@ -526,6 +533,91 @@ export const useDeleteAd = <TError = ErrorType<ErrorResponse>, TContext = unknow
   TContext
 > => {
   const mutationOptions = getDeleteAdMutationOptions(options)
+
+  return useMutation(mutationOptions, queryClient)
+}
+/**
+ * Change ad URL slug. Requires admin permissions.
+ * @summary Change ad slug
+ */
+export const changeAdSlug = (
+  slug: string,
+  adSlug: string,
+  slugChangeRequest: BodyType<SlugChangeRequest>,
+  options?: SecondParameter<typeof axiosMutator>
+) => {
+  return axiosMutator<AdDto>(
+    {
+      url: `/api/teams/${slug}/ads/${adSlug}/slug`,
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      data: slugChangeRequest,
+    },
+    options
+  )
+}
+
+export const getChangeAdSlugMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof changeAdSlug>>,
+    TError,
+    { slug: string; adSlug: string; data: BodyType<SlugChangeRequest> },
+    TContext
+  >
+  request?: SecondParameter<typeof axiosMutator>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof changeAdSlug>>,
+  TError,
+  { slug: string; adSlug: string; data: BodyType<SlugChangeRequest> },
+  TContext
+> => {
+  const mutationKey = ['changeAdSlug']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof changeAdSlug>>,
+    { slug: string; adSlug: string; data: BodyType<SlugChangeRequest> }
+  > = (props) => {
+    const { slug, adSlug, data } = props ?? {}
+
+    return changeAdSlug(slug, adSlug, data, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type ChangeAdSlugMutationResult = NonNullable<Awaited<ReturnType<typeof changeAdSlug>>>
+export type ChangeAdSlugMutationBody = BodyType<SlugChangeRequest>
+export type ChangeAdSlugMutationError = ErrorType<ErrorResponse>
+
+/**
+ * @summary Change ad slug
+ */
+export const useChangeAdSlug = <TError = ErrorType<ErrorResponse>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof changeAdSlug>>,
+      TError,
+      { slug: string; adSlug: string; data: BodyType<SlugChangeRequest> },
+      TContext
+    >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof changeAdSlug>>,
+  TError,
+  { slug: string; adSlug: string; data: BodyType<SlugChangeRequest> },
+  TContext
+> => {
+  const mutationOptions = getChangeAdSlugMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }

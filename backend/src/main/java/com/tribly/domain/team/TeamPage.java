@@ -1,5 +1,6 @@
 package com.tribly.domain.team;
 
+import com.tribly.domain.common.NotNullableDbValue;
 import com.tribly.domain.common.TeamEntity;
 import com.tribly.domain.user.User;
 import com.tribly.enums.Visibility;
@@ -24,6 +25,7 @@ public class TeamPage extends TeamEntity {
   private Integer pageOrder;
 
   @Column(name = "is_about_page")
+  @NotNullableDbValue
   private boolean aboutPage = false;
 
   private TeamPage(

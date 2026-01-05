@@ -29,7 +29,7 @@ public class TripCommentResource extends AbstractCommentResource {
 
   @Override
   protected TeamEntity getTeamEntity(String teamSlug, String entitySlug, Long userId) {
-    return tripService.getTrip(teamSlug, entitySlug, userId);
+    return tripService.get(teamSlug, entitySlug, userId, false);
   }
 
   @Override

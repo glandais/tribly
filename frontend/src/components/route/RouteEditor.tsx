@@ -4,6 +4,7 @@ import { RouteRequest, SurfaceType } from '@/api/dto'
 import type { TeamDetailDto, GeoPoint } from '@/api/dto'
 import { LoadingSpinner } from '../common/LoadingSpinner'
 import { MediaEditor } from '../common/MediaEditor'
+import { SlugEditor } from '../common/SlugEditor'
 import { EmbeddedRoutePlanner } from '../planner/EmbeddedRoutePlanner'
 import { createRouteBody } from '@/api/zod/routes/routes.zod'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -57,6 +58,11 @@ interface RouteEditorProps {
   submitButtonText?: string
   cancelButtonText?: string
   showCancelButton?: boolean
+
+  // Slug editing (only for edit mode)
+  currentSlug?: string
+  onSlugChange?: (newSlug: string) => Promise<void>
+  canEditSlug?: boolean
 }
 
 export function RouteEditor({
@@ -72,6 +78,9 @@ export function RouteEditor({
   submitButtonText,
   cancelButtonText,
   showCancelButton = true,
+  currentSlug,
+  onSlugChange,
+  canEditSlug = false,
 }: RouteEditorProps) {
   const { t } = useTranslation()
 
@@ -242,6 +251,16 @@ export function RouteEditor({
             </FormItem>
           )}
         />
+
+        {/* Slug Editor (only in edit mode) */}
+        {currentSlug && onSlugChange && (
+          <SlugEditor
+            currentSlug={currentSlug}
+            baseUrl={`/teams/${teamSlug}/routes/`}
+            onSlugChange={onSlugChange}
+            disabled={!canEditSlug}
+          />
+        )}
 
         {/* Description */}
         <FormField

@@ -1,10 +1,12 @@
 package com.tribly.api.teams;
 
 import com.tribly.api.AbstractAuthenticatedResource;
+import com.tribly.dto.common.request.SlugChangeRequest;
 import com.tribly.dto.error.ErrorResponse;
 import com.tribly.dto.teams.request.TeamRequest;
 import com.tribly.dto.teams.response.TeamDetailDto;
 import com.tribly.dto.teams.response.TeamListResponse;
+import com.tribly.infrastructure.exception.NewSlugException;
 import com.tribly.service.team.TeamService;
 import com.tribly.service.team.request.MinRole;
 import jakarta.annotation.security.PermitAll;
@@ -71,6 +73,7 @@ public class TeamResource extends AbstractAuthenticatedResource {
         responseCode = "200",
         description = "Team retrieved successfully",
         content = @Content(schema = @Schema(implementation = TeamDetailDto.class))),
+    @APIResponse(responseCode = "302", description = "Slug has changed, redirect to new URL"),
     @APIResponse(
         responseCode = "404",
         description = "Team not found",
@@ -83,8 +86,13 @@ public class TeamResource extends AbstractAuthenticatedResource {
   public Response getTeam(
       @Parameter(description = "Team URL slug") @PathParam("slug") String slug) {
     Long userId = getCurrentUserIdOrNull();
-    TeamDetailDto teamDetailDto = teamService.getTeam(slug, userId);
-    return Response.ok(teamDetailDto).build();
+    try {
+      TeamDetailDto teamDetailDto = teamService.getTeamDetailDto(slug, userId);
+      return Response.ok(teamDetailDto).build();
+    } catch (NewSlugException e) {
+      String newUrl = "/api/teams/" + e.getNewSlug();
+      return Response.status(302).header("Location", newUrl).build();
+    }
   }
 
   @POST
@@ -150,6 +158,47 @@ public class TeamResource extends AbstractAuthenticatedResource {
 
     TeamDetailDto teamDetailDto = teamService.updateTeam(slug, request, userId);
 
+    return Response.ok(teamDetailDto).build();
+  }
+
+  @PATCH
+  @Path("/{slug}/slug")
+  @RolesAllowed("user")
+  @Operation(
+      operationId = "changeTeamSlug",
+      summary = "Change team slug",
+      description = "Change team URL slug. Requires ADMIN role.")
+  @APIResponses({
+    @APIResponse(
+        responseCode = "200",
+        description = "Slug changed successfully",
+        content = @Content(schema = @Schema(implementation = TeamDetailDto.class))),
+    @APIResponse(
+        responseCode = "400",
+        description = "Invalid slug format",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "401",
+        description = "Unauthorized",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "403",
+        description = "User is not a team admin",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "404",
+        description = "Team not found",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "409",
+        description = "Slug already in use",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  })
+  public Response changeSlug(
+      @Parameter(description = "Current team URL slug") @PathParam("slug") String currentSlug,
+      @Valid SlugChangeRequest request) {
+    Long userId = getCurrentUserId();
+    TeamDetailDto teamDetailDto = teamService.updateSlug(currentSlug, request.slug(), userId);
     return Response.ok(teamDetailDto).build();
   }
 

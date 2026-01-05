@@ -28,6 +28,7 @@ import type {
   RideListResponse,
   RideParticipationDto,
   RideRequest,
+  SlugChangeRequest,
 } from '../../dto'
 
 import { axiosMutator } from '../../../lib/axiosInstance'
@@ -355,7 +356,7 @@ export const getGetRideQueryKey = (slug?: string, rideSlug?: string) => {
 
 export const getGetRideQueryOptions = <
   TData = Awaited<ReturnType<typeof getRide>>,
-  TError = ErrorType<ErrorResponse>,
+  TError = ErrorType<void | ErrorResponse>,
 >(
   slug: string,
   rideSlug: string,
@@ -379,11 +380,11 @@ export const getGetRideQueryOptions = <
 }
 
 export type GetRideQueryResult = NonNullable<Awaited<ReturnType<typeof getRide>>>
-export type GetRideQueryError = ErrorType<ErrorResponse>
+export type GetRideQueryError = ErrorType<void | ErrorResponse>
 
 export function useGetRide<
   TData = Awaited<ReturnType<typeof getRide>>,
-  TError = ErrorType<ErrorResponse>,
+  TError = ErrorType<void | ErrorResponse>,
 >(
   slug: string,
   rideSlug: string,
@@ -403,7 +404,7 @@ export function useGetRide<
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetRide<
   TData = Awaited<ReturnType<typeof getRide>>,
-  TError = ErrorType<ErrorResponse>,
+  TError = ErrorType<void | ErrorResponse>,
 >(
   slug: string,
   rideSlug: string,
@@ -423,7 +424,7 @@ export function useGetRide<
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetRide<
   TData = Awaited<ReturnType<typeof getRide>>,
-  TError = ErrorType<ErrorResponse>,
+  TError = ErrorType<void | ErrorResponse>,
 >(
   slug: string,
   rideSlug: string,
@@ -439,7 +440,7 @@ export function useGetRide<
 
 export function useGetRide<
   TData = Awaited<ReturnType<typeof getRide>>,
-  TError = ErrorType<ErrorResponse>,
+  TError = ErrorType<void | ErrorResponse>,
 >(
   slug: string,
   rideSlug: string,
@@ -698,6 +699,91 @@ export const useLeaveGroup = <TError = ErrorType<ErrorResponse | void>, TContext
   TContext
 > => {
   const mutationOptions = getLeaveGroupMutationOptions(options)
+
+  return useMutation(mutationOptions, queryClient)
+}
+/**
+ * Change ride URL slug. Requires organizer permissions.
+ * @summary Change ride slug
+ */
+export const changeRideSlug = (
+  slug: string,
+  rideSlug: string,
+  slugChangeRequest: BodyType<SlugChangeRequest>,
+  options?: SecondParameter<typeof axiosMutator>
+) => {
+  return axiosMutator<RideDto>(
+    {
+      url: `/api/teams/${slug}/rides/${rideSlug}/slug`,
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      data: slugChangeRequest,
+    },
+    options
+  )
+}
+
+export const getChangeRideSlugMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof changeRideSlug>>,
+    TError,
+    { slug: string; rideSlug: string; data: BodyType<SlugChangeRequest> },
+    TContext
+  >
+  request?: SecondParameter<typeof axiosMutator>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof changeRideSlug>>,
+  TError,
+  { slug: string; rideSlug: string; data: BodyType<SlugChangeRequest> },
+  TContext
+> => {
+  const mutationKey = ['changeRideSlug']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof changeRideSlug>>,
+    { slug: string; rideSlug: string; data: BodyType<SlugChangeRequest> }
+  > = (props) => {
+    const { slug, rideSlug, data } = props ?? {}
+
+    return changeRideSlug(slug, rideSlug, data, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type ChangeRideSlugMutationResult = NonNullable<Awaited<ReturnType<typeof changeRideSlug>>>
+export type ChangeRideSlugMutationBody = BodyType<SlugChangeRequest>
+export type ChangeRideSlugMutationError = ErrorType<ErrorResponse>
+
+/**
+ * @summary Change ride slug
+ */
+export const useChangeRideSlug = <TError = ErrorType<ErrorResponse>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof changeRideSlug>>,
+      TError,
+      { slug: string; rideSlug: string; data: BodyType<SlugChangeRequest> },
+      TContext
+    >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof changeRideSlug>>,
+  TError,
+  { slug: string; rideSlug: string; data: BodyType<SlugChangeRequest> },
+  TContext
+> => {
+  const mutationOptions = getChangeRideSlugMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }

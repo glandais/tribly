@@ -1,9 +1,11 @@
 package com.tribly.api.rides;
 
 import com.tribly.api.AbstractAuthenticatedResource;
+import com.tribly.dto.common.request.SlugChangeRequest;
 import com.tribly.dto.error.ErrorResponse;
 import com.tribly.dto.rides.request.*;
 import com.tribly.dto.rides.response.*;
+import com.tribly.infrastructure.exception.NewSlugException;
 import com.tribly.infrastructure.id.TsidUtils;
 import com.tribly.service.ride.RideService;
 import jakarta.annotation.security.PermitAll;
@@ -117,17 +119,23 @@ public class RideResource extends AbstractAuthenticatedResource {
         responseCode = "200",
         description = "Ride retrieved successfully",
         content = @Content(schema = @Schema(implementation = RideDto.class))),
+    @APIResponse(responseCode = "302", description = "Slug has changed, redirect to new URL"),
     @APIResponse(
         responseCode = "404",
         description = "Team or ride not found",
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
   public Response getRide(
-      @Parameter(description = "Team URL slug") @PathParam("slug") String slug,
+      @Parameter(description = "Team URL slug") @PathParam("slug") String teamSlug,
       @Parameter(description = "Ride URL slug") @PathParam("rideSlug") String rideSlug) {
     Long userId = getCurrentUserIdOrNull();
-    RideDto ride = rideService.getRideDetail(slug, rideSlug, userId);
-    return Response.ok(ride).build();
+    try {
+      RideDto ride = rideService.getRideDetail(teamSlug, rideSlug, userId);
+      return Response.ok(ride).build();
+    } catch (NewSlugException e) {
+      String newUrl = "/api/teams/" + e.getTeamSlug() + "/rides/" + e.getNewSlug();
+      return Response.status(302).header("Location", newUrl).build();
+    }
   }
 
   @PUT
@@ -198,6 +206,48 @@ public class RideResource extends AbstractAuthenticatedResource {
     Long userId = getCurrentUserId();
     rideService.deleteRide(slug, rideSlug, userId);
     return Response.noContent().build();
+  }
+
+  @PATCH
+  @Path("/{rideSlug}/slug")
+  @RolesAllowed("user")
+  @Operation(
+      operationId = "changeRideSlug",
+      summary = "Change ride slug",
+      description = "Change ride URL slug. Requires organizer permissions.")
+  @APIResponses({
+    @APIResponse(
+        responseCode = "200",
+        description = "Slug changed successfully",
+        content = @Content(schema = @Schema(implementation = RideDto.class))),
+    @APIResponse(
+        responseCode = "400",
+        description = "Invalid slug format",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "401",
+        description = "Unauthorized",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "403",
+        description = "User is not authorized to change this ride's slug",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "404",
+        description = "Team or ride not found",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "409",
+        description = "Slug already in use",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  })
+  public Response changeSlug(
+      @Parameter(description = "Team URL slug") @PathParam("slug") String teamSlug,
+      @Parameter(description = "Current ride URL slug") @PathParam("rideSlug") String currentSlug,
+      @Valid SlugChangeRequest request) {
+    Long userId = getCurrentUserId();
+    RideDto ride = rideService.updateSlug(teamSlug, currentSlug, request.slug(), userId);
+    return Response.ok(ride).build();
   }
 
   @POST

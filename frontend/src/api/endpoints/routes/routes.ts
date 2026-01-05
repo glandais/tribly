@@ -29,6 +29,7 @@ import type {
   RouteDetailDto,
   RouteDto,
   RouteListResponse,
+  SlugChangeRequest,
   UpdateRouteBody,
 } from '../../dto'
 
@@ -494,7 +495,7 @@ export const getGetRouteQueryKey = (slug?: string, routeSlug?: string) => {
 
 export const getGetRouteQueryOptions = <
   TData = Awaited<ReturnType<typeof getRoute>>,
-  TError = ErrorType<ErrorResponse>,
+  TError = ErrorType<void | ErrorResponse>,
 >(
   slug: string,
   routeSlug: string,
@@ -518,11 +519,11 @@ export const getGetRouteQueryOptions = <
 }
 
 export type GetRouteQueryResult = NonNullable<Awaited<ReturnType<typeof getRoute>>>
-export type GetRouteQueryError = ErrorType<ErrorResponse>
+export type GetRouteQueryError = ErrorType<void | ErrorResponse>
 
 export function useGetRoute<
   TData = Awaited<ReturnType<typeof getRoute>>,
-  TError = ErrorType<ErrorResponse>,
+  TError = ErrorType<void | ErrorResponse>,
 >(
   slug: string,
   routeSlug: string,
@@ -542,7 +543,7 @@ export function useGetRoute<
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetRoute<
   TData = Awaited<ReturnType<typeof getRoute>>,
-  TError = ErrorType<ErrorResponse>,
+  TError = ErrorType<void | ErrorResponse>,
 >(
   slug: string,
   routeSlug: string,
@@ -562,7 +563,7 @@ export function useGetRoute<
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetRoute<
   TData = Awaited<ReturnType<typeof getRoute>>,
-  TError = ErrorType<ErrorResponse>,
+  TError = ErrorType<void | ErrorResponse>,
 >(
   slug: string,
   routeSlug: string,
@@ -578,7 +579,7 @@ export function useGetRoute<
 
 export function useGetRoute<
   TData = Awaited<ReturnType<typeof getRoute>>,
-  TError = ErrorType<ErrorResponse>,
+  TError = ErrorType<void | ErrorResponse>,
 >(
   slug: string,
   routeSlug: string,
@@ -675,6 +676,91 @@ export const useDeleteRoute = <TError = ErrorType<ErrorResponse>, TContext = unk
   TContext
 > => {
   const mutationOptions = getDeleteRouteMutationOptions(options)
+
+  return useMutation(mutationOptions, queryClient)
+}
+/**
+ * Change route URL slug. Requires organizer permissions.
+ * @summary Change route slug
+ */
+export const changeRouteSlug = (
+  slug: string,
+  routeSlug: string,
+  slugChangeRequest: BodyType<SlugChangeRequest>,
+  options?: SecondParameter<typeof axiosMutator>
+) => {
+  return axiosMutator<RouteDto>(
+    {
+      url: `/api/teams/${slug}/routes/${routeSlug}/slug`,
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      data: slugChangeRequest,
+    },
+    options
+  )
+}
+
+export const getChangeRouteSlugMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof changeRouteSlug>>,
+    TError,
+    { slug: string; routeSlug: string; data: BodyType<SlugChangeRequest> },
+    TContext
+  >
+  request?: SecondParameter<typeof axiosMutator>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof changeRouteSlug>>,
+  TError,
+  { slug: string; routeSlug: string; data: BodyType<SlugChangeRequest> },
+  TContext
+> => {
+  const mutationKey = ['changeRouteSlug']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof changeRouteSlug>>,
+    { slug: string; routeSlug: string; data: BodyType<SlugChangeRequest> }
+  > = (props) => {
+    const { slug, routeSlug, data } = props ?? {}
+
+    return changeRouteSlug(slug, routeSlug, data, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type ChangeRouteSlugMutationResult = NonNullable<Awaited<ReturnType<typeof changeRouteSlug>>>
+export type ChangeRouteSlugMutationBody = BodyType<SlugChangeRequest>
+export type ChangeRouteSlugMutationError = ErrorType<ErrorResponse>
+
+/**
+ * @summary Change route slug
+ */
+export const useChangeRouteSlug = <TError = ErrorType<ErrorResponse>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof changeRouteSlug>>,
+      TError,
+      { slug: string; routeSlug: string; data: BodyType<SlugChangeRequest> },
+      TContext
+    >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof changeRouteSlug>>,
+  TError,
+  { slug: string; routeSlug: string; data: BodyType<SlugChangeRequest> },
+  TContext
+> => {
+  const mutationOptions = getChangeRouteSlugMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }

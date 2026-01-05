@@ -837,3 +837,184 @@ export const getTeamResponse = zod
 export const deleteTeamParams = zod.object({
   slug: zod.string().describe('Team URL slug'),
 })
+
+/**
+ * Change team URL slug. Requires ADMIN role.
+ * @summary Change team slug
+ */
+export const changeTeamSlugParams = zod.object({
+  slug: zod.string().describe('Current team URL slug'),
+})
+
+export const changeTeamSlugBodySlugMax = 200
+
+export const changeTeamSlugBodySlugRegExp = new RegExp('^[a-z0-9]+(-[a-z0-9]+)*$')
+
+export const changeTeamSlugBody = zod
+  .object({
+    slug: zod
+      .string()
+      .max(changeTeamSlugBodySlugMax)
+      .regex(changeTeamSlugBodySlugRegExp)
+      .describe('New slug (lowercase letters, numbers, and hyphens only)'),
+  })
+  .describe('Slug change request')
+
+export const changeTeamSlugResponse = zod
+  .object({
+    id: zod.string().describe('Team ID (TSID)'),
+    name: zod.string().describe('Team name'),
+    slug: zod.string().describe('Team URL slug'),
+    about: zod.object({
+      markdown: zod.string().describe('Markdown'),
+      assets: zod.object({
+        logo: zod
+          .object({
+            id: zod.string().describe('ID (TSID)'),
+            fileName: zod.string().describe('Filename'),
+            contentType: zod.string().describe('Content-Type'),
+            url: zod.string().describe('url'),
+            imageUrl: zod.string().optional().describe('image template url'),
+            imageDimensions: zod
+              .object({
+                width: zod.number().optional(),
+                height: zod.number().optional(),
+              })
+              .optional(),
+          })
+          .optional(),
+        images: zod
+          .array(
+            zod.object({
+              id: zod.string().describe('ID (TSID)'),
+              fileName: zod.string().describe('Filename'),
+              contentType: zod.string().describe('Content-Type'),
+              url: zod.string().describe('url'),
+              imageUrl: zod.string().optional().describe('image template url'),
+              imageDimensions: zod
+                .object({
+                  width: zod.number().optional(),
+                  height: zod.number().optional(),
+                })
+                .optional(),
+            })
+          )
+          .describe('Images'),
+        videos: zod
+          .array(
+            zod.object({
+              id: zod.string().describe('ID (TSID)'),
+              fileName: zod.string().describe('Filename'),
+              contentType: zod.string().describe('Content-Type'),
+              url: zod.string().describe('url'),
+              imageUrl: zod.string().optional().describe('image template url'),
+              imageDimensions: zod
+                .object({
+                  width: zod.number().optional(),
+                  height: zod.number().optional(),
+                })
+                .optional(),
+            })
+          )
+          .describe('Videos'),
+        attachments: zod
+          .array(
+            zod.object({
+              id: zod.string().describe('ID (TSID)'),
+              fileName: zod.string().describe('Filename'),
+              contentType: zod.string().describe('Content-Type'),
+              url: zod.string().describe('url'),
+              imageUrl: zod.string().optional().describe('image template url'),
+              imageDimensions: zod
+                .object({
+                  width: zod.number().optional(),
+                  height: zod.number().optional(),
+                })
+                .optional(),
+            })
+          )
+          .describe('Attachments'),
+        originalGpx: zod
+          .object({
+            id: zod.string().describe('ID (TSID)'),
+            fileName: zod.string().describe('Filename'),
+            contentType: zod.string().describe('Content-Type'),
+            url: zod.string().describe('url'),
+            imageUrl: zod.string().optional().describe('image template url'),
+            imageDimensions: zod
+              .object({
+                width: zod.number().optional(),
+                height: zod.number().optional(),
+              })
+              .optional(),
+          })
+          .optional(),
+        gpx: zod
+          .object({
+            id: zod.string().describe('ID (TSID)'),
+            fileName: zod.string().describe('Filename'),
+            contentType: zod.string().describe('Content-Type'),
+            url: zod.string().describe('url'),
+            imageUrl: zod.string().optional().describe('image template url'),
+            imageDimensions: zod
+              .object({
+                width: zod.number().optional(),
+                height: zod.number().optional(),
+              })
+              .optional(),
+          })
+          .optional(),
+        fit: zod
+          .object({
+            id: zod.string().describe('ID (TSID)'),
+            fileName: zod.string().describe('Filename'),
+            contentType: zod.string().describe('Content-Type'),
+            url: zod.string().describe('url'),
+            imageUrl: zod.string().optional().describe('image template url'),
+            imageDimensions: zod
+              .object({
+                width: zod.number().optional(),
+                height: zod.number().optional(),
+              })
+              .optional(),
+          })
+          .optional(),
+        thumbnail: zod
+          .object({
+            id: zod.string().describe('ID (TSID)'),
+            fileName: zod.string().describe('Filename'),
+            contentType: zod.string().describe('Content-Type'),
+            url: zod.string().describe('url'),
+            imageUrl: zod.string().optional().describe('image template url'),
+            imageDimensions: zod
+              .object({
+                width: zod.number().optional(),
+                height: zod.number().optional(),
+              })
+              .optional(),
+          })
+          .optional(),
+      }),
+    }),
+    pages: zod
+      .array(
+        zod
+          .object({
+            id: zod.string().describe('Page ID (TSID)'),
+            title: zod.string().describe('Page title'),
+            slug: zod.string().describe('Page URL slug'),
+            visibility: zod.enum(['TEAM', 'PUBLIC']),
+            order: zod.number().describe('Page order'),
+          })
+          .describe('Team page summary for listings')
+      )
+      .optional()
+      .describe('Additional team pages'),
+    visibility: zod.enum(['TEAM', 'PUBLIC']),
+    enableTrips: zod.boolean().describe('Trips enabled'),
+    enableAds: zod.boolean().describe('Ads enabled'),
+    memberCount: zod.number().describe('Number of team members'),
+    role: zod.enum(['ADMIN', 'ORGANIZER', 'MEMBER']).optional(),
+    createdAt: zod.iso.datetime({}),
+  })
+  .describe('Detailed team information')

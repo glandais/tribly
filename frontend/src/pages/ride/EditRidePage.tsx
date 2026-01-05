@@ -7,6 +7,7 @@ import { useGetTeam } from '@/api/endpoints/teams/teams'
 import {
   useGetRide,
   useUpdateRide,
+  useChangeRideSlug,
   getListRidesQueryKey,
   getGetRideQueryKey,
 } from '../../api/endpoints/rides/rides'
@@ -28,6 +29,7 @@ export function EditRidePage() {
   })
 
   const updateMutation = useUpdateRide()
+  const changeSlugMutation = useChangeRideSlug()
 
   if (isLoadingTeam || isLoadingRide) {
     return <LoadingPage message={t('loading')} />
@@ -66,6 +68,19 @@ export function EditRidePage() {
     )
   }
 
+  const handleSlugChange = async (newSlug: string) => {
+    await changeSlugMutation.mutateAsync(
+      { slug: teamSlug!, rideSlug: rideSlug!, data: { slug: newSlug } },
+      {
+        onSuccess: (updatedRide) => {
+          queryClient.invalidateQueries({ queryKey: getListRidesQueryKey(teamSlug!) })
+          queryClient.invalidateQueries({ queryKey: getGetRideQueryKey(teamSlug!, rideSlug!) })
+          navigate(paths.rideEdit(teamSlug!, updatedRide.slug), { replace: true })
+        },
+      }
+    )
+  }
+
   // Prepare initial values from fetched ride data
   const initialValues = {
     ...ride,
@@ -88,6 +103,9 @@ export function EditRidePage() {
         onCancel={() => navigate(paths.ride(teamSlug!, rideSlug!))}
         isPending={updateMutation.isPending}
         submitButtonText={t('actions.save')}
+        currentSlug={rideSlug!}
+        onSlugChange={handleSlugChange}
+        canEditSlug={canEdit}
       />
     </div>
   )

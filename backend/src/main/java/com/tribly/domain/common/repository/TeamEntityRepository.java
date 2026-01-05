@@ -3,6 +3,7 @@ package com.tribly.domain.common.repository;
 import com.tribly.domain.common.SearchClause;
 import com.tribly.domain.common.TeamEntity;
 import com.tribly.domain.common.query.*;
+import com.tribly.enums.EntityType;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.time.Instant;
 import java.util.Map;
@@ -22,7 +23,7 @@ public interface TeamEntityRepository<T extends TeamEntity, Q extends TeamEntity
         .firstResultOptional();
   }
 
-  String getTypeName();
+  EntityType getEntityType();
 
   /**
    * Find publications across multiple teams with proper visibility filtering.
@@ -37,7 +38,8 @@ public interface TeamEntityRepository<T extends TeamEntity, Q extends TeamEntity
     publicEntity.add(new SimpleClause("te.status IN ('PUBLISHED', 'CANCELLED')", Map.of()));
 
     if (query.userId() == null) {
-      triblyQuery = new TriblyQuery("select te from " + getTypeName() + " te where");
+      triblyQuery =
+          new TriblyQuery("select te from " + getEntityType().getTypeName() + " te where");
 
       // Anonymous user: only public publications from public teams
       triblyQuery = triblyQuery.and(publicEntity);
@@ -45,7 +47,7 @@ public interface TeamEntityRepository<T extends TeamEntity, Q extends TeamEntity
       triblyQuery =
           new TriblyQuery(
                   "select te from "
-                      + getTypeName()
+                      + getEntityType().getTypeName()
                       + " te left join UserTeam ut on ut.team.id = te.team.id and ut.user.id ="
                       + " :userId and ut.deleted = false where")
               .addParam("userId", query.userId());

@@ -8,6 +8,7 @@ import { useGetTeam } from '@/api/endpoints/teams/teams'
 import {
   useGetTrip,
   useUpdateTrip,
+  useChangeTripSlug,
   getGetTripQueryKey,
   getListTripsQueryKey,
 } from '../../api/endpoints/trips/trips'
@@ -28,6 +29,7 @@ export function EditTripPage() {
   })
 
   const updateMutation = useUpdateTrip()
+  const changeSlugMutation = useChangeTripSlug()
 
   if (isLoadingTeam || isLoadingTrip) {
     return <LoadingPage message={t('loading')} />
@@ -61,6 +63,19 @@ export function EditTripPage() {
     )
   }
 
+  const handleSlugChange = async (newSlug: string) => {
+    await changeSlugMutation.mutateAsync(
+      { slug: teamSlug!, tripSlug: tripSlug!, data: { slug: newSlug } },
+      {
+        onSuccess: (updatedTrip) => {
+          queryClient.invalidateQueries({ queryKey: getListTripsQueryKey(teamSlug!) })
+          queryClient.invalidateQueries({ queryKey: getGetTripQueryKey(teamSlug!, tripSlug!) })
+          navigate(paths.tripEdit(teamSlug!, updatedTrip.slug), { replace: true })
+        },
+      }
+    )
+  }
+
   // Prepare initial values from fetched trip data
   const initialValues = { ...trip }
 
@@ -79,6 +94,9 @@ export function EditTripPage() {
         onCancel={() => navigate(paths.trip(teamSlug!, tripSlug!))}
         isPending={updateMutation.isPending}
         submitButtonText={t('actions.save')}
+        currentSlug={tripSlug!}
+        onSlugChange={handleSlugChange}
+        canEditSlug={canEdit}
       />
     </div>
   )

@@ -1,10 +1,12 @@
 package com.tribly.api.posts;
 
 import com.tribly.api.AbstractAuthenticatedResource;
+import com.tribly.dto.common.request.SlugChangeRequest;
 import com.tribly.dto.error.ErrorResponse;
 import com.tribly.dto.posts.request.PostRequest;
 import com.tribly.dto.posts.response.PostDto;
 import com.tribly.dto.posts.response.PostListResponse;
+import com.tribly.infrastructure.exception.NewSlugException;
 import com.tribly.service.post.PostService;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
@@ -117,17 +119,23 @@ public class PostResource extends AbstractAuthenticatedResource {
         responseCode = "200",
         description = "Post retrieved successfully",
         content = @Content(schema = @Schema(implementation = PostDto.class))),
+    @APIResponse(responseCode = "302", description = "Slug has changed, redirect to new URL"),
     @APIResponse(
         responseCode = "404",
         description = "Team or post not found",
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
   public Response getPost(
-      @Parameter(description = "Team URL slug") @PathParam("slug") String slug,
+      @Parameter(description = "Team URL slug") @PathParam("slug") String teamSlug,
       @Parameter(description = "Post URL slug") @PathParam("postSlug") String postSlug) {
     Long userId = getCurrentUserIdOrNull();
-    PostDto post = postService.getPostDetail(slug, postSlug, userId);
-    return Response.ok(post).build();
+    try {
+      PostDto post = postService.getPostDetail(teamSlug, postSlug, userId);
+      return Response.ok(post).build();
+    } catch (NewSlugException e) {
+      String newUrl = "/api/teams/" + e.getTeamSlug() + "/posts/" + e.getNewSlug();
+      return Response.status(302).header("Location", newUrl).build();
+    }
   }
 
   @PUT
@@ -198,5 +206,35 @@ public class PostResource extends AbstractAuthenticatedResource {
     Long userId = getCurrentUserId();
     postService.deletePost(slug, postSlug, userId);
     return Response.noContent().build();
+  }
+
+  @PATCH
+  @Path("/{postSlug}/slug")
+  @RolesAllowed("user")
+  @Operation(
+      operationId = "changePostSlug",
+      summary = "Change post slug",
+      description = "Change post URL slug. Requires organizer permissions.")
+  @APIResponses({
+    @APIResponse(
+        responseCode = "200",
+        description = "Slug changed successfully",
+        content = @Content(schema = @Schema(implementation = PostDto.class))),
+    @APIResponse(
+        responseCode = "400",
+        description = "Invalid slug format",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "409",
+        description = "Slug already in use",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  })
+  public Response changeSlug(
+      @Parameter(description = "Team URL slug") @PathParam("slug") String teamSlug,
+      @Parameter(description = "Current post URL slug") @PathParam("postSlug") String currentSlug,
+      @Valid SlugChangeRequest request) {
+    Long userId = getCurrentUserId();
+    PostDto post = postService.updateSlug(teamSlug, currentSlug, request.slug(), userId);
+    return Response.ok(post).build();
   }
 }

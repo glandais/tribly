@@ -58,9 +58,7 @@ export function RouteCard({ route, showTeam }: RouteCardProps) {
           <Stat icon={distanceIcon}>
             {t('distance', { distance: (route.distance / 1000).toFixed(1) })}
           </Stat>
-          <Stat icon={elevationIcon}>
-            {t('elevation', { elevation: route.elevationGain })}
-          </Stat>
+          <Stat icon={elevationIcon}>{t('elevation', { elevation: route.elevationGain })}</Stat>
         </StatGroup>
 
         <div className="flex flex-wrap gap-2">

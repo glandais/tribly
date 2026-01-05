@@ -12,6 +12,7 @@ import {
   getGetTeamQueryKey,
 } from '@/api/endpoints/teams/teams'
 import { LoadingSpinner } from '../common/LoadingSpinner'
+import { SlugEditor } from '../common/SlugEditor'
 import { Visibility, TeamDetailDto, TeamRequest } from '@/api/dto'
 import { MediaEditor } from '../common/MediaEditor'
 import { Button } from '@/components/ui/button'
@@ -47,9 +48,18 @@ interface TeamFormProps {
   onSuccess: (team: TeamDetailDto) => void
 
   create: boolean
+
+  // Slug editing (only for edit mode)
+  onSlugChange?: (newSlug: string) => Promise<void>
 }
 
-export function TeamForm({ teamSlug, initialValues, onSuccess, create }: TeamFormProps) {
+export function TeamForm({
+  teamSlug,
+  initialValues,
+  onSuccess,
+  create,
+  onSlugChange,
+}: TeamFormProps) {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
   const navigate = useNavigate()
@@ -117,6 +127,11 @@ export function TeamForm({ teamSlug, initialValues, onSuccess, create }: TeamFor
             </FormItem>
           )}
         />
+
+        {/* Slug Editor (only in edit mode) */}
+        {!create && teamSlug && onSlugChange && (
+          <SlugEditor currentSlug={teamSlug} baseUrl="/teams/" onSlugChange={onSlugChange} />
+        )}
 
         <FormField
           control={form.control}

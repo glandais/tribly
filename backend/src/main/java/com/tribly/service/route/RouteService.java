@@ -15,6 +15,7 @@ import com.tribly.dto.routes.request.RouteRequest;
 import com.tribly.dto.routes.response.RouteDetailDto;
 import com.tribly.dto.routes.response.RouteDto;
 import com.tribly.dto.routes.response.RouteListResponse;
+import com.tribly.enums.EntityType;
 import com.tribly.enums.WindDirection;
 import com.tribly.infrastructure.exception.BusinessException;
 import com.tribly.service.common.TeamEntityService;
@@ -26,6 +27,7 @@ import jakarta.transaction.Transactional;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import org.jboss.logging.Logger;
 import org.jspecify.annotations.Nullable;
@@ -35,7 +37,7 @@ import org.jspecify.annotations.Nullable;
  * Handles CRUD operations, GPX processing orchestration, and security checks.
  */
 @ApplicationScoped
-public class RouteService extends TeamEntityService {
+public class RouteService extends TeamEntityService<Route> {
 
   private static final Logger LOG = Logger.getLogger(RouteService.class);
 
@@ -44,6 +46,33 @@ public class RouteService extends TeamEntityService {
   @Inject GpxProcessingService gpxProcessingService;
 
   @Inject AssetRepository assetRepository;
+
+  @Override
+  protected EntityType getEntityType() {
+    return EntityType.ROUTE;
+  }
+
+  @Override
+  protected Optional<Route> findByIdOptional(Long entityId) {
+    return routeRepository.findByIdOptional(entityId);
+  }
+
+  @Override
+  protected Route getWithoutRedirect(String teamSlug, String entitySlug, @Nullable Long userId) {
+    TriblyPage<Route> routes =
+        routeRepository.find(
+            RouteQuery.builder()
+                .userId(userId)
+                .teamSlugs(Set.of(teamSlug))
+                .slug(entitySlug)
+                .size(1)
+                .build());
+    if (routes.items().isEmpty()) {
+      throw BusinessException.notFound("Route", entitySlug);
+    } else {
+      return routes.items().getFirst();
+    }
+  }
 
   /**
    * Create a new route with GPX upload.
@@ -74,9 +103,7 @@ public class RouteService extends TeamEntityService {
       throw BusinessException.validation("Route points are required");
     }
 
-    String slug =
-        slugService.generateSlug(
-            request.name(), s -> routeRepository.existsByTeamAndSlug(team.getId(), s));
+    String slug = slugService.generateSlug(request.name(), team.getId(), routeRepository);
 
     // Create route entity
     Route route =
@@ -129,7 +156,7 @@ public class RouteService extends TeamEntityService {
   @Transactional
   public RouteDto updateRoute(
       String teamSlug, String slug, RouteRequest request, @Nullable Path gpxPath, Long userId) {
-    Route route = getRouteEntity(teamSlug, slug, userId);
+    Route route = get(teamSlug, slug, userId, false);
 
     // Security check: must be admin or organizer to edit routes
     securityService.requireOrganizer(userId, teamSlug);
@@ -191,32 +218,9 @@ public class RouteService extends TeamEntityService {
     return RouteDto.from(route, assetService);
   }
 
-  /**
-   * Get a route by ID with access control.
-   */
-  public RouteDto getRoute(String teamSlug, String slug, @Nullable Long userId) {
-    return RouteDto.from(getRouteEntity(teamSlug, slug, userId), assetService);
-  }
-
   public RouteDetailDto getRouteDetail(String teamSlug, String slug, @Nullable Long userId) {
-    Route route = getRouteEntity(teamSlug, slug, userId);
+    Route route = get(teamSlug, slug, userId, true);
     return RouteDetailDto.from(route, assetService);
-  }
-
-  public Route getRouteEntity(String teamSlug, String routeSlug, @Nullable Long userId) {
-    TriblyPage<Route> routes =
-        routeRepository.find(
-            RouteQuery.builder()
-                .userId(userId)
-                .teamSlugs(Set.of(teamSlug))
-                .slug(routeSlug)
-                .size(1)
-                .build());
-    if (routes.items().isEmpty()) {
-      throw BusinessException.notFound("Route", routeSlug);
-    } else {
-      return routes.items().getFirst();
-    }
   }
 
   /**
@@ -268,7 +272,7 @@ public class RouteService extends TeamEntityService {
    */
   @Transactional
   public void deleteRoute(String teamSlug, String slug, Long userId) {
-    Route route = getRouteEntity(teamSlug, slug, userId);
+    Route route = get(teamSlug, slug, userId, false);
 
     // Security check: must be admin or organizer to delete routes
     securityService.requireOrganizer(userId, teamSlug);
@@ -294,5 +298,33 @@ public class RouteService extends TeamEntityService {
       }
       assetRepository.persist(asset);
     }
+  }
+
+  @Transactional
+  public RouteDto updateSlug(String teamSlug, String currentSlug, String newSlug, Long userId) {
+    Route route = get(teamSlug, currentSlug, userId, false);
+
+    securityService.requireOrganizer(userId, teamSlug);
+
+    if (!slugService.isValidSlug(newSlug)) {
+      throw BusinessException.validation("Invalid slug format");
+    }
+
+    if (currentSlug.equals(newSlug)) {
+      return RouteDto.from(route, assetService);
+    }
+
+    if (routeRepository.existsByTeamAndSlug(route.getTeam().getId(), newSlug)) {
+      throw BusinessException.conflict("Slug already in use", "SLUG_TAKEN");
+    }
+
+    slugService.clearEntityRedirect(route.getTeam().getId(), EntityType.ROUTE, newSlug);
+    slugService.createEntityRedirect(route, currentSlug);
+
+    route.setSlug(newSlug);
+    routeRepository.persist(route);
+
+    LOG.infov("Route slug changed from {0} to {1} by user {2}", currentSlug, newSlug, userId);
+    return RouteDto.from(route, assetService);
   }
 }

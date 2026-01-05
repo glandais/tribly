@@ -1,10 +1,12 @@
 package com.tribly.api.routes;
 
 import com.tribly.api.AbstractAuthenticatedResource;
+import com.tribly.dto.common.request.SlugChangeRequest;
 import com.tribly.dto.error.ErrorResponse;
 import com.tribly.dto.routes.request.RouteRequest;
 import com.tribly.dto.routes.response.*;
 import com.tribly.enums.*;
+import com.tribly.infrastructure.exception.NewSlugException;
 import com.tribly.service.route.RouteSearchParams;
 import com.tribly.service.route.RouteService;
 import jakarta.annotation.security.PermitAll;
@@ -187,6 +189,7 @@ public class RouteResource extends AbstractAuthenticatedResource {
         responseCode = "200",
         description = "Route retrieved successfully",
         content = @Content(schema = @Schema(implementation = RouteDetailDto.class))),
+    @APIResponse(responseCode = "302", description = "Slug has changed, redirect to new URL"),
     @APIResponse(
         responseCode = "404",
         description = "Team or route not found",
@@ -198,9 +201,13 @@ public class RouteResource extends AbstractAuthenticatedResource {
 
     Long userId = getCurrentUserIdOrNull();
 
-    RouteDetailDto route = routeService.getRouteDetail(teamSlug, routeSlug, userId);
-
-    return Response.ok(route).build();
+    try {
+      RouteDetailDto route = routeService.getRouteDetail(teamSlug, routeSlug, userId);
+      return Response.ok(route).build();
+    } catch (NewSlugException e) {
+      String newUrl = "/api/teams/" + e.getTeamSlug() + "/routes/" + e.getNewSlug();
+      return Response.status(302).header("Location", newUrl).build();
+    }
   }
 
   /**
@@ -286,5 +293,47 @@ public class RouteResource extends AbstractAuthenticatedResource {
 
     routeService.deleteRoute(teamSlug, routeSlug, userId);
     return Response.noContent().build();
+  }
+
+  @PATCH
+  @Path("/{routeSlug}/slug")
+  @RolesAllowed("user")
+  @Operation(
+      operationId = "changeRouteSlug",
+      summary = "Change route slug",
+      description = "Change route URL slug. Requires organizer permissions.")
+  @APIResponses({
+    @APIResponse(
+        responseCode = "200",
+        description = "Slug changed successfully",
+        content = @Content(schema = @Schema(implementation = RouteDto.class))),
+    @APIResponse(
+        responseCode = "400",
+        description = "Invalid slug format",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "401",
+        description = "Unauthorized",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "403",
+        description = "User is not authorized to change this route's slug",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "404",
+        description = "Team or route not found",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "409",
+        description = "Slug already in use",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  })
+  public Response changeSlug(
+      @Parameter(description = "Team URL slug") @PathParam("slug") String teamSlug,
+      @Parameter(description = "Current route URL slug") @PathParam("routeSlug") String currentSlug,
+      @Valid SlugChangeRequest request) {
+    Long userId = getCurrentUserId();
+    RouteDto route = routeService.updateSlug(teamSlug, currentSlug, request.slug(), userId);
+    return Response.ok(route).build();
   }
 }

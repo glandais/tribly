@@ -8,11 +8,13 @@ import i18next from 'i18next'
 import {
   useCreatePage,
   useUpdatePage,
+  useChangePageSlug,
   getListPagesQueryKey,
   getGetPageQueryKey,
 } from '@/api/endpoints/team-pages/team-pages'
 import { getGetTeamQueryKey } from '@/api/endpoints/teams/teams'
 import { LoadingSpinner } from '../common/LoadingSpinner'
+import { SlugEditor } from '../common/SlugEditor'
 import { Visibility, TeamPageRequest } from '@/api/dto'
 import { MediaEditor } from '../common/MediaEditor'
 import { Button } from '@/components/ui/button'
@@ -59,6 +61,7 @@ export function TeamPageForm({
 
   const createMutation = useCreatePage()
   const updateMutation = useUpdatePage()
+  const changeSlugMutation = useChangePageSlug()
   const mutation = isCreate ? createMutation : updateMutation
 
   const form = useForm<TeamPageRequest>({
@@ -99,6 +102,22 @@ export function TeamPageForm({
     }
   }
 
+  const handleSlugChange = async (newSlug: string) => {
+    if (!pageSlug) return
+    await changeSlugMutation.mutateAsync(
+      { slug: teamSlug, pageSlug, data: { slug: newSlug } },
+      {
+        onSuccess: (updatedPage) => {
+          queryClient.invalidateQueries({ queryKey: getListPagesQueryKey(teamSlug) })
+          queryClient.invalidateQueries({ queryKey: getGetPageQueryKey(teamSlug, pageSlug) })
+          queryClient.invalidateQueries({ queryKey: getGetTeamQueryKey(teamSlug) })
+          // Navigate to the new slug URL
+          navigate(paths.teamAdminPageEdit(teamSlug, updatedPage.slug), { replace: true })
+        },
+      }
+    )
+  }
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
@@ -119,6 +138,15 @@ export function TeamPageForm({
             </FormItem>
           )}
         />
+
+        {/* Slug Editor (only in edit mode) */}
+        {!isCreate && pageSlug && (
+          <SlugEditor
+            currentSlug={pageSlug}
+            baseUrl={`/teams/${teamSlug}/pages/`}
+            onSlugChange={handleSlugChange}
+          />
+        )}
 
         <FormField
           control={form.control}

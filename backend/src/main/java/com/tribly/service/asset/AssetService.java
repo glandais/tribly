@@ -7,7 +7,7 @@ import com.tribly.domain.common.repository.AllTeamEntityRepository;
 import com.tribly.domain.common.repository.TeamEntityQueryBasic;
 import com.tribly.domain.common.repository.TriblyPage;
 import com.tribly.domain.team.Team;
-import com.tribly.domain.team.repository.TeamRepository;
+import com.tribly.domain.team.UserTeam;
 import com.tribly.domain.user.User;
 import com.tribly.domain.user.repository.UserRepository;
 import com.tribly.dto.common.response.AssetDimensionsDto;
@@ -54,8 +54,6 @@ public class AssetService {
 
   @Inject UserRepository userRepository;
 
-  @Inject TeamRepository teamRepository;
-
   @Inject AllTeamEntityRepository allTeamEntityRepository;
 
   @Inject TeamSecurityService securityService;
@@ -69,13 +67,8 @@ public class AssetService {
 
   public AssetDto createAsset(
       String teamSlug, Long userId, InputStream inputStream, String fileName) throws IOException {
-    Team team =
-        teamRepository
-            .findBySlug(teamSlug)
-            .orElseThrow(() -> BusinessException.notFound("Team", teamSlug));
-
     // Security check: reuse ride permissions (admins & organizers can create routes)
-    securityService.requireOrganizer(userId, team.getSlug());
+    UserTeam userTeam = securityService.requireOrganizer(userId, teamSlug);
 
     User creator =
         userRepository
@@ -83,7 +76,7 @@ public class AssetService {
             .orElseThrow(() -> BusinessException.notFound("User", userId));
 
     AssetWithFile assetFile =
-        addAssetStream(creator, team, AssetType.IMAGE, null, inputStream, fileName);
+        addAssetStream(creator, userTeam.getTeam(), AssetType.IMAGE, null, inputStream, fileName);
     return map(assetFile.asset());
   }
 

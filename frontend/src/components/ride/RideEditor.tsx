@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useTranslation } from 'react-i18next'
 import { XMarkIcon } from '@heroicons/react/24/outline'
 import { LoadingSpinner } from '../common/LoadingSpinner'
+import { SlugEditor } from '../common/SlugEditor'
 import { ReorderControls } from '../common/ReorderControls'
 import { RoutePickerModal } from '../route/RoutePickerModal'
 import { CreateRouteModal } from '../route/CreateRouteModal'
@@ -69,6 +70,11 @@ interface RideEditorProps {
   // UI customization
   submitButtonText?: string
   cancelButtonText?: string
+
+  // Slug editing (only for edit mode)
+  currentSlug?: string
+  onSlugChange?: (newSlug: string) => Promise<void>
+  canEditSlug?: boolean
 }
 
 export function RideEditor({
@@ -80,6 +86,9 @@ export function RideEditor({
   isPending,
   submitButtonText,
   cancelButtonText,
+  currentSlug,
+  onSlugChange,
+  canEditSlug = false,
 }: RideEditorProps) {
   const { t } = useTranslation()
 
@@ -148,6 +157,16 @@ export function RideEditor({
             </FormItem>
           )}
         />
+
+        {/* Slug Editor (only in edit mode) */}
+        {currentSlug && onSlugChange && (
+          <SlugEditor
+            currentSlug={currentSlug}
+            baseUrl={`/teams/${teamSlug}/rides/`}
+            onSlugChange={onSlugChange}
+            disabled={!canEditSlug}
+          />
+        )}
 
         {/* Description */}
         <FormField

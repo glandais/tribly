@@ -7,6 +7,7 @@ import static org.geolatte.geom.crs.CoordinateReferenceSystems.WGS84;
 import com.tribly.domain.common.query.TriblyQuery;
 import com.tribly.domain.common.repository.TeamEntityRepository;
 import com.tribly.domain.route.Route;
+import com.tribly.enums.EntityType;
 import com.tribly.enums.NearType;
 import com.tribly.enums.SortDirection;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -19,8 +20,8 @@ public class RouteRepository implements TeamEntityRepository<Route, RouteQuery> 
   private static final int DEFAULT_NEAR_RADIUS = 25000;
 
   @Override
-  public String getTypeName() {
-    return "Route";
+  public EntityType getEntityType() {
+    return EntityType.ROUTE;
   }
 
   @Override

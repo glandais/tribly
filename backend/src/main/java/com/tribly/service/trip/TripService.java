@@ -19,6 +19,7 @@ import com.tribly.dto.trips.request.TripRequest;
 import com.tribly.dto.trips.response.TripDto;
 import com.tribly.dto.trips.response.TripListResponse;
 import com.tribly.dto.trips.response.TripParticipationDto;
+import com.tribly.enums.EntityType;
 import com.tribly.enums.Status;
 import com.tribly.enums.Visibility;
 import com.tribly.infrastructure.exception.BusinessException;
@@ -38,7 +39,7 @@ import org.jboss.logging.Logger;
 import org.jspecify.annotations.Nullable;
 
 @ApplicationScoped
-public class TripService extends TeamEntityService {
+public class TripService extends TeamEntityService<Trip> {
 
   private static final Logger LOG = Logger.getLogger(TripService.class);
 
@@ -51,6 +52,16 @@ public class TripService extends TeamEntityService {
   @Inject RouteRepository routeRepository;
 
   @Inject PlaceRepository placeRepository;
+
+  @Override
+  protected EntityType getEntityType() {
+    return EntityType.TRIP;
+  }
+
+  @Override
+  protected Optional<Trip> findByIdOptional(Long entityId) {
+    return tripRepository.findByIdOptional(entityId);
+  }
 
   public TripListResponse listTrips(
       String teamSlug,
@@ -76,7 +87,8 @@ public class TripService extends TeamEntityService {
     return new TripListResponse(dtos, trips.total(), page, size);
   }
 
-  public Trip getTrip(String teamSlug, String tripSlug, @Nullable Long userId) {
+  @Override
+  public Trip getWithoutRedirect(String teamSlug, String tripSlug, @Nullable Long userId) {
     TriblyPage<Trip> trips =
         tripRepository.find(
             TeamEntityQueryBasic.builder()
@@ -94,7 +106,7 @@ public class TripService extends TeamEntityService {
   }
 
   public TripDto getTripDetail(String teamSlug, String tripSlug, @Nullable Long userId) {
-    return TripDto.from(getTrip(teamSlug, tripSlug, userId), true, assetService);
+    return TripDto.from(get(teamSlug, tripSlug, userId, true), true, assetService);
   }
 
   @Transactional
@@ -118,9 +130,7 @@ public class TripService extends TeamEntityService {
     Visibility visibility = request.visibility();
 
     // Generate slug from name, ensure unique within team
-    String slug =
-        slugService.generateSlug(
-            request.name(), s -> tripRepository.existsByTeamAndSlug(team.getId(), s));
+    String slug = slugService.generateSlug(request.name(), team.getId(), tripRepository);
 
     Route route = getRoute(request.routeSlug(), team, visibility);
 
@@ -207,7 +217,7 @@ public class TripService extends TeamEntityService {
 
   @Transactional
   public TripDto updateTrip(String teamSlug, String tripSlug, TripRequest request, Long userId) {
-    Trip trip = getTrip(teamSlug, tripSlug, userId);
+    Trip trip = get(teamSlug, tripSlug, userId, false);
 
     // Security check: must be admin or creator (if organizer) to edit
     securityService.requireOrganizer(userId, teamSlug);
@@ -270,7 +280,7 @@ public class TripService extends TeamEntityService {
 
   @Transactional
   public void deleteTrip(String teamSlug, String tripSlug, Long userId) {
-    Trip trip = getTrip(teamSlug, tripSlug, userId);
+    Trip trip = get(teamSlug, tripSlug, userId, false);
 
     // Security check: must be admin or creator (if organizer) to delete
     securityService.requireOrganizer(userId, teamSlug);
@@ -283,7 +293,7 @@ public class TripService extends TeamEntityService {
 
   @Transactional
   public TripParticipationDto joinTrip(String teamSlug, String tripSlug, Long userId) {
-    Trip trip = getTrip(teamSlug, tripSlug, userId);
+    Trip trip = get(teamSlug, tripSlug, userId, false);
 
     if (trip.getStatus() != Status.PUBLISHED) {
       throw BusinessException.validation("Can only join published trips");
@@ -325,7 +335,7 @@ public class TripService extends TeamEntityService {
 
   @Transactional
   public void leaveTrip(String teamSlug, String tripSlug, Long userId) {
-    Trip trip = getTrip(teamSlug, tripSlug, userId);
+    Trip trip = get(teamSlug, tripSlug, userId, false);
     requireTripEnabled(trip.getTeam());
 
     TripParticipation participation =
@@ -337,5 +347,33 @@ public class TripService extends TeamEntityService {
     participationRepository.persist(participation);
 
     LOG.infov("User {0} left trip {1}", userId, tripSlug);
+  }
+
+  @Transactional
+  public TripDto updateSlug(String teamSlug, String currentSlug, String newSlug, Long userId) {
+    Trip trip = get(teamSlug, currentSlug, userId, false);
+
+    securityService.requireOrganizer(userId, teamSlug);
+
+    if (!slugService.isValidSlug(newSlug)) {
+      throw BusinessException.validation("Invalid slug format");
+    }
+
+    if (currentSlug.equals(newSlug)) {
+      return TripDto.from(trip, true, assetService);
+    }
+
+    if (tripRepository.existsByTeamAndSlug(trip.getTeam().getId(), newSlug)) {
+      throw BusinessException.conflict("Slug already in use", "SLUG_TAKEN");
+    }
+
+    slugService.clearEntityRedirect(trip.getTeam().getId(), EntityType.TRIP, newSlug);
+    slugService.createEntityRedirect(trip, currentSlug);
+
+    trip.setSlug(newSlug);
+    tripRepository.persist(trip);
+
+    LOG.infov("Trip slug changed from {0} to {1} by user {2}", currentSlug, newSlug, userId);
+    return TripDto.from(trip, true, assetService);
   }
 }

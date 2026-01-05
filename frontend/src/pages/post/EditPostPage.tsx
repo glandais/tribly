@@ -7,6 +7,7 @@ import { useGetTeam } from '@/api/endpoints/teams/teams'
 import {
   useGetPost,
   useUpdatePost,
+  useChangePostSlug,
   getListPostsQueryKey,
   getGetPostQueryKey,
 } from '../../api/endpoints/posts/posts'
@@ -28,6 +29,7 @@ export function EditPostPage() {
   })
 
   const updateMutation = useUpdatePost()
+  const changeSlugMutation = useChangePostSlug()
 
   if (isLoadingTeam || isLoadingPost) {
     return <LoadingPage message={t('loading')} />
@@ -61,6 +63,19 @@ export function EditPostPage() {
     )
   }
 
+  const handleSlugChange = async (newSlug: string) => {
+    await changeSlugMutation.mutateAsync(
+      { slug: teamSlug!, postSlug: postSlug!, data: { slug: newSlug } },
+      {
+        onSuccess: (updatedPost) => {
+          queryClient.invalidateQueries({ queryKey: getListPostsQueryKey(teamSlug!) })
+          queryClient.invalidateQueries({ queryKey: getGetPostQueryKey(teamSlug!, postSlug!) })
+          navigate(paths.postEdit(teamSlug!, updatedPost.slug), { replace: true })
+        },
+      }
+    )
+  }
+
   // Prepare initial values from fetched post data
   const initialValues: PostRequest = { ...post }
 
@@ -78,6 +93,9 @@ export function EditPostPage() {
         onCancel={() => navigate(paths.post(teamSlug!, postSlug!))}
         isPending={updateMutation.isPending}
         submitButtonText={t('actions.save')}
+        currentSlug={postSlug!}
+        onSlugChange={handleSlugChange}
+        canEditSlug={canEdit}
       />
     </div>
   )

@@ -3,6 +3,7 @@ package com.tribly.domain.common.repository;
 import com.tribly.domain.common.Publication;
 import com.tribly.domain.common.query.TriblyQuery;
 import com.tribly.dto.publications.response.PublicationType;
+import com.tribly.enums.EntityType;
 import com.tribly.enums.Status;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.time.Instant;
@@ -13,8 +14,8 @@ import java.util.Map;
 public class AllPublicationRepository
     implements TeamEntityRepository<Publication, PublicationQuery> {
   @Override
-  public String getTypeName() {
-    return "Publication";
+  public EntityType getEntityType() {
+    return EntityType.PUBLICATION;
   }
 
   /**

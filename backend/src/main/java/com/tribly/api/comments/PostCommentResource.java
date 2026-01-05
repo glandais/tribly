@@ -29,7 +29,7 @@ public class PostCommentResource extends AbstractCommentResource {
 
   @Override
   protected TeamEntity getTeamEntity(String teamSlug, String entitySlug, Long userId) {
-    return postService.getPost(teamSlug, entitySlug, userId);
+    return postService.get(teamSlug, entitySlug, userId, false);
   }
 
   @Override

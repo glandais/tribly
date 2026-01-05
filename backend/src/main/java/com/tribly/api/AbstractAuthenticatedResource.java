@@ -41,10 +41,8 @@ public abstract class AbstractAuthenticatedResource {
 
     Long userId = identity.getAttribute("userId");
     if (userId == null) {
-      throw new BusinessException(
-          "User profile not synchronized. Please call /api/users/me first.",
-          BusinessException.ErrorType.FORBIDDEN,
-          "USER_NOT_SYNCED");
+      throw BusinessException.forbidden(
+          "User profile not synchronized. Please call /api/users/me first.", "USER_NOT_SYNCED");
     }
     return userId;
   }

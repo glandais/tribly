@@ -6,9 +6,8 @@ import com.tribly.domain.ridetemplate.RideTemplateGroup;
 import com.tribly.domain.ridetemplate.repository.RideTemplateGroupRepository;
 import com.tribly.domain.ridetemplate.repository.RideTemplateRepository;
 import com.tribly.domain.team.Team;
-import com.tribly.domain.team.repository.TeamRepository;
+import com.tribly.domain.team.UserTeam;
 import com.tribly.domain.user.User;
-import com.tribly.domain.user.repository.UserRepository;
 import com.tribly.dto.ridetemplates.request.RideTemplateGroupRequest;
 import com.tribly.dto.ridetemplates.request.RideTemplateRequest;
 import com.tribly.dto.ridetemplates.response.RideTemplateDto;
@@ -36,10 +35,6 @@ public class RideTemplateService {
 
   @Inject RideTemplateGroupRepository groupRepository;
 
-  @Inject TeamRepository teamRepository;
-
-  @Inject UserRepository userRepository;
-
   @Inject TeamSecurityService securityService;
 
   @Inject SlugService slugService;
@@ -47,15 +42,10 @@ public class RideTemplateService {
   public RideTemplateListResponse listTemplates(
       String teamSlug, Long userId, @Nullable String search, int page, int size) {
     // Any team member can list templates
-    securityService.requireOrganizer(userId, teamSlug);
-
-    Team team =
-        teamRepository
-            .findBySlug(teamSlug)
-            .orElseThrow(() -> BusinessException.notFound("Team", teamSlug));
+    UserTeam userTeam = securityService.requireOrganizer(userId, teamSlug);
 
     TriblyPage<RideTemplate> templates =
-        templateRepository.findByTeam(team.getId(), search, page, size);
+        templateRepository.findByTeam(userTeam.getTeam().getId(), search, page, size);
     var dtos = templates.items().stream().map(RideTemplateDto::from).toList();
     return new RideTemplateListResponse(dtos, templates.total(), page, size);
   }
@@ -75,18 +65,10 @@ public class RideTemplateService {
   @Transactional
   public RideTemplateDto createTemplate(
       String teamSlug, RideTemplateRequest request, Long creatorId) {
-    Team team =
-        teamRepository
-            .findBySlug(teamSlug)
-            .orElseThrow(() -> BusinessException.notFound("Team", teamSlug));
-
-    User creator =
-        userRepository
-            .findActiveById(creatorId)
-            .orElseThrow(() -> BusinessException.notFound("User", creatorId));
-
     // Security check: must be admin or organizer to create templates
-    securityService.requireOrganizer(creatorId, team.getSlug());
+    UserTeam userTeam = securityService.requireOrganizer(creatorId, teamSlug);
+    Team team = userTeam.getTeam();
+    User creator = userTeam.getUser();
 
     // Validate visibility: private teams can only have team-only templates
     Visibility visibility = request.visibility();
@@ -95,9 +77,10 @@ public class RideTemplateService {
     }
 
     // Generate slug from name, ensure unique within team
+    Long teamId = team.getId();
     String slug =
         slugService.generateSlug(
-            request.name(), s -> templateRepository.existsByTeamAndSlug(team.getId(), s));
+            request.name(), s -> templateRepository.existsByTeamAndSlug(teamId, s));
 
     RideTemplate template = new RideTemplate(creator, team, request.name(), slug);
     template.setMarkdown(request.markdown());
@@ -137,12 +120,7 @@ public class RideTemplateService {
             .orElseThrow(() -> BusinessException.notFound("Template", templateSlug));
 
     // Security check: must be admin or organizer to update templates
-    securityService.requireOrganizer(userId, teamSlug);
-
-    User user =
-        userRepository
-            .findActiveById(userId)
-            .orElseThrow(() -> BusinessException.notFound("User", userId));
+    UserTeam userTeam = securityService.requireOrganizer(userId, teamSlug);
 
     // Validate visibility: private teams can only have team-only templates
     Team team = template.getTeam();
@@ -169,7 +147,7 @@ public class RideTemplateService {
     for (RideTemplateGroupRequest groupRequest : request.groups()) {
       Long groupId = TsidUtils.toLongNullable(groupRequest.id());
       if (groupId == null) {
-        createTemplateGroup(user, template, groupRequest, sortOrder);
+        createTemplateGroup(userTeam.getUser(), template, groupRequest, sortOrder);
       } else {
         RideTemplateGroup existingGroup = existingGroups.remove(groupId);
         if (existingGroup != null) {

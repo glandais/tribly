@@ -30,7 +30,7 @@ public class Ad extends TeamEntity {
   private BigDecimal price;
 
   @Enumerated(EnumType.STRING)
-  @Column(name = "ad_type", length = 20)
+  @Column(name = "ad_type", length = 20, nullable = false)
   private AdType adType;
 
   @Enumerated(EnumType.STRING)

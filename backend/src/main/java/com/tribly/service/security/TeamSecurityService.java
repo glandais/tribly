@@ -106,13 +106,15 @@ public class TeamSecurityService {
    *
    * @param userId   the user ID
    * @param teamSlug the team slug
+   * @return
    * @throws BusinessException with FORBIDDEN
    */
-  public void requireOrganizer(@Nullable Long userId, String teamSlug) {
+  public UserTeam requireOrganizer(@Nullable Long userId, String teamSlug) {
     UserTeam membership = requireMembership(userId, teamSlug);
     if (!membership.isOrganizer()) {
       throw BusinessException.forbidden("Not organizer");
     }
+    return membership;
   }
 
   // ==================== Team Visibility Checks ====================

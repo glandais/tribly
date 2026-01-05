@@ -24,6 +24,7 @@ import type {
 import type {
   ErrorResponse,
   ListTripsParams,
+  SlugChangeRequest,
   TripDto,
   TripListResponse,
   TripParticipationDto,
@@ -355,7 +356,7 @@ export const getGetTripQueryKey = (slug?: string, tripSlug?: string) => {
 
 export const getGetTripQueryOptions = <
   TData = Awaited<ReturnType<typeof getTrip>>,
-  TError = ErrorType<ErrorResponse>,
+  TError = ErrorType<void | ErrorResponse>,
 >(
   slug: string,
   tripSlug: string,
@@ -379,11 +380,11 @@ export const getGetTripQueryOptions = <
 }
 
 export type GetTripQueryResult = NonNullable<Awaited<ReturnType<typeof getTrip>>>
-export type GetTripQueryError = ErrorType<ErrorResponse>
+export type GetTripQueryError = ErrorType<void | ErrorResponse>
 
 export function useGetTrip<
   TData = Awaited<ReturnType<typeof getTrip>>,
-  TError = ErrorType<ErrorResponse>,
+  TError = ErrorType<void | ErrorResponse>,
 >(
   slug: string,
   tripSlug: string,
@@ -403,7 +404,7 @@ export function useGetTrip<
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetTrip<
   TData = Awaited<ReturnType<typeof getTrip>>,
-  TError = ErrorType<ErrorResponse>,
+  TError = ErrorType<void | ErrorResponse>,
 >(
   slug: string,
   tripSlug: string,
@@ -423,7 +424,7 @@ export function useGetTrip<
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetTrip<
   TData = Awaited<ReturnType<typeof getTrip>>,
-  TError = ErrorType<ErrorResponse>,
+  TError = ErrorType<void | ErrorResponse>,
 >(
   slug: string,
   tripSlug: string,
@@ -439,7 +440,7 @@ export function useGetTrip<
 
 export function useGetTrip<
   TData = Awaited<ReturnType<typeof getTrip>>,
-  TError = ErrorType<ErrorResponse>,
+  TError = ErrorType<void | ErrorResponse>,
 >(
   slug: string,
   tripSlug: string,
@@ -696,6 +697,91 @@ export const useLeaveTrip = <TError = ErrorType<ErrorResponse | void>, TContext 
   TContext
 > => {
   const mutationOptions = getLeaveTripMutationOptions(options)
+
+  return useMutation(mutationOptions, queryClient)
+}
+/**
+ * Change trip URL slug. Requires organizer permissions.
+ * @summary Change trip slug
+ */
+export const changeTripSlug = (
+  slug: string,
+  tripSlug: string,
+  slugChangeRequest: BodyType<SlugChangeRequest>,
+  options?: SecondParameter<typeof axiosMutator>
+) => {
+  return axiosMutator<TripDto>(
+    {
+      url: `/api/teams/${slug}/trips/${tripSlug}/slug`,
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      data: slugChangeRequest,
+    },
+    options
+  )
+}
+
+export const getChangeTripSlugMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof changeTripSlug>>,
+    TError,
+    { slug: string; tripSlug: string; data: BodyType<SlugChangeRequest> },
+    TContext
+  >
+  request?: SecondParameter<typeof axiosMutator>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof changeTripSlug>>,
+  TError,
+  { slug: string; tripSlug: string; data: BodyType<SlugChangeRequest> },
+  TContext
+> => {
+  const mutationKey = ['changeTripSlug']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof changeTripSlug>>,
+    { slug: string; tripSlug: string; data: BodyType<SlugChangeRequest> }
+  > = (props) => {
+    const { slug, tripSlug, data } = props ?? {}
+
+    return changeTripSlug(slug, tripSlug, data, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type ChangeTripSlugMutationResult = NonNullable<Awaited<ReturnType<typeof changeTripSlug>>>
+export type ChangeTripSlugMutationBody = BodyType<SlugChangeRequest>
+export type ChangeTripSlugMutationError = ErrorType<ErrorResponse>
+
+/**
+ * @summary Change trip slug
+ */
+export const useChangeTripSlug = <TError = ErrorType<ErrorResponse>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof changeTripSlug>>,
+      TError,
+      { slug: string; tripSlug: string; data: BodyType<SlugChangeRequest> },
+      TContext
+    >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof changeTripSlug>>,
+  TError,
+  { slug: string; tripSlug: string; data: BodyType<SlugChangeRequest> },
+  TContext
+> => {
+  const mutationOptions = getChangeTripSlugMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }

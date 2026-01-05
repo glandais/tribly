@@ -7,6 +7,7 @@ import { useGetTeam } from '@/api/endpoints/teams/teams'
 import {
   useGetAd,
   useUpdateAd,
+  useChangeAdSlug,
   getListAdsQueryKey,
   getGetAdQueryKey,
 } from '../../api/endpoints/ads/ads'
@@ -28,6 +29,7 @@ export function EditAdPage() {
   })
 
   const updateMutation = useUpdateAd()
+  const changeSlugMutation = useChangeAdSlug()
 
   if (isLoadingTeam || isLoadingAd) {
     return <LoadingPage message={t('loading')} />
@@ -65,6 +67,20 @@ export function EditAdPage() {
     )
   }
 
+  const handleSlugChange = async (newSlug: string) => {
+    await changeSlugMutation.mutateAsync(
+      { slug: teamSlug!, adSlug: adSlug!, data: { slug: newSlug } },
+      {
+        onSuccess: (updatedAd) => {
+          queryClient.invalidateQueries({ queryKey: getListAdsQueryKey(teamSlug!) })
+          queryClient.invalidateQueries({ queryKey: getGetAdQueryKey(teamSlug!, adSlug!) })
+          // Navigate to the new slug URL
+          navigate(paths.adEdit(teamSlug!, updatedAd.slug), { replace: true })
+        },
+      }
+    )
+  }
+
   // Prepare initial values from fetched ad data
   const initialValues = {
     ...ad,
@@ -84,6 +100,9 @@ export function EditAdPage() {
         onCancel={() => navigate(paths.ad(teamSlug!, adSlug!))}
         isPending={updateMutation.isPending}
         submitButtonText={t('actions.save')}
+        currentSlug={adSlug!}
+        onSlugChange={handleSlugChange}
+        canEditSlug={isAdmin}
       />
     </div>
   )

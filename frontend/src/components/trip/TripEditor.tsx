@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useTranslation } from 'react-i18next'
 import { PlusIcon } from '@heroicons/react/24/outline'
 import { LoadingSpinner } from '../common/LoadingSpinner'
+import { SlugEditor } from '../common/SlugEditor'
 import { ReorderControls } from '../common/ReorderControls'
 import { RoutePickerModal } from '../route/RoutePickerModal'
 import { CreateRouteModal } from '../route/CreateRouteModal'
@@ -61,6 +62,11 @@ interface TripEditorProps {
   // UI customization
   submitButtonText?: string
   cancelButtonText?: string
+
+  // Slug editing (only for edit mode)
+  currentSlug?: string
+  onSlugChange?: (newSlug: string) => Promise<void>
+  canEditSlug?: boolean
 }
 
 type Target =
@@ -81,6 +87,9 @@ export function TripEditor({
   isPending,
   submitButtonText,
   cancelButtonText,
+  currentSlug,
+  onSlugChange,
+  canEditSlug = false,
 }: TripEditorProps) {
   const { t: t } = useTranslation()
 
@@ -156,6 +165,16 @@ export function TripEditor({
             </FormItem>
           )}
         />
+
+        {/* Slug Editor (only in edit mode) */}
+        {currentSlug && onSlugChange && (
+          <SlugEditor
+            currentSlug={currentSlug}
+            baseUrl={`/teams/${teamSlug}/trips/`}
+            onSlugChange={onSlugChange}
+            disabled={!canEditSlug}
+          />
+        )}
 
         {/* Description */}
         <FormField

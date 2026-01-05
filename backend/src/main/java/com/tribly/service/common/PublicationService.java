@@ -7,17 +7,39 @@ import com.tribly.domain.common.repository.TriblyPage;
 import com.tribly.dto.publications.response.PublicationDto;
 import com.tribly.dto.publications.response.PublicationListResponse;
 import com.tribly.dto.publications.response.PublicationType;
+import com.tribly.enums.EntityType;
+import com.tribly.infrastructure.exception.BusinessException;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import org.jspecify.annotations.Nullable;
 
 @ApplicationScoped
-public class PublicationService extends TeamEntityService {
+public class PublicationService extends TeamEntityService<Publication> {
 
   @Inject AllPublicationRepository allPublicationRepository;
+
+  @Override
+  protected EntityType getEntityType() {
+    // not redirectable at this level
+    return EntityType.POST;
+  }
+
+  @Override
+  protected Optional<Publication> findByIdOptional(Long entityId) {
+    return Optional.empty();
+  }
+
+  @Override
+  @Nullable
+  protected Publication getWithoutRedirect(
+      String teamSlug, String entitySlug, @Nullable Long userId) {
+    // not redirectable at this level
+    throw BusinessException.notFound("Not found");
+  }
 
   public PublicationListResponse list(
       @Nullable PublicationType type,

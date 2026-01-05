@@ -8,6 +8,7 @@ import { paths } from '../../config/paths'
 import {
   useGetTeam,
   useDeleteTeam,
+  useChangeTeamSlug,
   getListTeamsQueryKey,
   getGetTeamQueryKey,
 } from '@/api/endpoints/teams/teams'
@@ -31,6 +32,7 @@ export function TeamSettingsPage() {
     query: { enabled: !!teamSlug },
   })
   const deleteMutation = useDeleteTeam()
+  const changeSlugMutation = useChangeTeamSlug()
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
@@ -63,6 +65,19 @@ export function TeamSettingsPage() {
     navigate(paths.team(updatedTeam.slug))
   }
 
+  const handleSlugChange = async (newSlug: string) => {
+    await changeSlugMutation.mutateAsync(
+      { slug: teamSlug!, data: { slug: newSlug } },
+      {
+        onSuccess: (updatedTeam) => {
+          queryClient.invalidateQueries({ queryKey: getListTeamsQueryKey() })
+          queryClient.invalidateQueries({ queryKey: getGetTeamQueryKey(teamSlug!) })
+          navigate(paths.teamSettings(updatedTeam.slug), { replace: true })
+        },
+      }
+    )
+  }
+
   const handleDelete = () => {
     if (!teamSlug) return
     deleteMutation.mutate(
@@ -91,6 +106,7 @@ export function TeamSettingsPage() {
           initialValues={{ ...team, media: team.about }}
           onSuccess={handleSuccess}
           create={false}
+          onSlugChange={handleSlugChange}
         />
 
         {/* Danger Zone */}

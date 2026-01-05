@@ -1537,6 +1537,19 @@ components:
         ascend:
           type: number
           format: double
+    SlugChangeRequest:
+      description: Slug change request
+      type: object
+      required:
+      - slug
+      properties:
+        slug:
+          type: string
+          description: "New slug (lowercase letters, numbers, and hyphens only)"
+          examples:
+          - my-new-slug
+          pattern: "^[a-z0-9]+(-[a-z0-9]+)*$"
+          maxLength: 200
     SortDirection:
       type: string
       enum:
@@ -2525,6 +2538,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/TeamDetailDto"
+        "302":
+          description: "Slug has changed, redirect to new URL"
         "404":
           description: Team not found
           content:
@@ -2774,6 +2789,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AdDto"
+        "302":
+          description: "Slug has changed, redirect to new URL"
         "404":
           description: Team or ad not found
           content:
@@ -2816,6 +2833,72 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: Team or ad not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - SecurityScheme:
+        - user
+  /api/teams/{slug}/ads/{adSlug}/slug:
+    patch:
+      summary: Change ad slug
+      description: Change ad URL slug. Requires admin permissions.
+      operationId: changeAdSlug
+      tags:
+      - Ads
+      parameters:
+      - description: Current ad URL slug
+        name: adSlug
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Team URL slug
+        name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SlugChangeRequest"
+        required: true
+      responses:
+        "200":
+          description: Slug changed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdDto"
+        "400":
+          description: Invalid slug format
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: User is not authorized to change this ad's slug
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Team or ad not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Slug already in use
           content:
             application/json:
               schema:
@@ -3397,6 +3480,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/TeamPageDto"
+        "302":
+          description: "Slug has changed, redirect to new URL"
         "403":
           description: User is not authorized to view this page
           content:
@@ -3445,6 +3530,72 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: Team or page not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - SecurityScheme:
+        - user
+  /api/teams/{slug}/pages/{pageSlug}/slug:
+    patch:
+      summary: Change page slug
+      description: Change page URL slug. Requires admin permissions.
+      operationId: changePageSlug
+      tags:
+      - Team Pages
+      parameters:
+      - description: Current page URL slug
+        name: pageSlug
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Team URL slug
+        name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SlugChangeRequest"
+        required: true
+      responses:
+        "200":
+          description: Slug changed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TeamPageDto"
+        "400":
+          description: Invalid slug format
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: User is not a team admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Team or page not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Slug already in use
           content:
             application/json:
               schema:
@@ -3993,6 +4144,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/PostDto"
+        "302":
+          description: "Slug has changed, redirect to new URL"
         "404":
           description: Team or post not found
           content:
@@ -4039,6 +4192,58 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - SecurityScheme:
+        - user
+  /api/teams/{slug}/posts/{postSlug}/slug:
+    patch:
+      summary: Change post slug
+      description: Change post URL slug. Requires organizer permissions.
+      operationId: changePostSlug
+      tags:
+      - Posts
+      parameters:
+      - description: Current post URL slug
+        name: postSlug
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Team URL slug
+        name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SlugChangeRequest"
+        required: true
+      responses:
+        "200":
+          description: Slug changed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PostDto"
+        "400":
+          description: Invalid slug format
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Slug already in use
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
       security:
       - SecurityScheme:
         - user
@@ -4665,6 +4870,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/RideDto"
+        "302":
+          description: "Slug has changed, redirect to new URL"
         "404":
           description: Team or ride not found
           content:
@@ -4813,6 +5020,72 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         "403":
           description: Not Allowed
+      security:
+      - SecurityScheme:
+        - user
+  /api/teams/{slug}/rides/{rideSlug}/slug:
+    patch:
+      summary: Change ride slug
+      description: Change ride URL slug. Requires organizer permissions.
+      operationId: changeRideSlug
+      tags:
+      - Rides
+      parameters:
+      - description: Current ride URL slug
+        name: rideSlug
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Team URL slug
+        name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SlugChangeRequest"
+        required: true
+      responses:
+        "200":
+          description: Slug changed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RideDto"
+        "400":
+          description: Invalid slug format
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: User is not authorized to change this ride's slug
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Team or ride not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Slug already in use
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
       security:
       - SecurityScheme:
         - user
@@ -5197,6 +5470,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/RouteDetailDto"
+        "302":
+          description: "Slug has changed, redirect to new URL"
         "404":
           description: Team or route not found
           content:
@@ -5239,6 +5514,132 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: Team or route not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - SecurityScheme:
+        - user
+  /api/teams/{slug}/routes/{routeSlug}/slug:
+    patch:
+      summary: Change route slug
+      description: Change route URL slug. Requires organizer permissions.
+      operationId: changeRouteSlug
+      tags:
+      - Routes
+      parameters:
+      - description: Current route URL slug
+        name: routeSlug
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Team URL slug
+        name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SlugChangeRequest"
+        required: true
+      responses:
+        "200":
+          description: Slug changed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RouteDto"
+        "400":
+          description: Invalid slug format
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: User is not authorized to change this route's slug
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Team or route not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Slug already in use
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - SecurityScheme:
+        - user
+  /api/teams/{slug}/slug:
+    patch:
+      summary: Change team slug
+      description: Change team URL slug. Requires ADMIN role.
+      operationId: changeTeamSlug
+      tags:
+      - Teams
+      parameters:
+      - description: Current team URL slug
+        name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SlugChangeRequest"
+        required: true
+      responses:
+        "200":
+          description: Slug changed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TeamDetailDto"
+        "400":
+          description: Invalid slug format
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: User is not a team admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Team not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Slug already in use
           content:
             application/json:
               schema:
@@ -5544,6 +5945,8 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/TripDto"
+        "302":
+          description: "Slug has changed, redirect to new URL"
         "404":
           description: Team or trip not found
           content:
@@ -5680,6 +6083,72 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         "403":
           description: Not Allowed
+      security:
+      - SecurityScheme:
+        - user
+  /api/teams/{slug}/trips/{tripSlug}/slug:
+    patch:
+      summary: Change trip slug
+      description: Change trip URL slug. Requires organizer permissions.
+      operationId: changeTripSlug
+      tags:
+      - Trips
+      parameters:
+      - description: Team URL slug
+        name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Current trip URL slug
+        name: tripSlug
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SlugChangeRequest"
+        required: true
+      responses:
+        "200":
+          description: Slug changed successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TripDto"
+        "400":
+          description: Invalid slug format
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: User is not authorized to change this trip's slug
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Team or trip not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Slug already in use
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
       security:
       - SecurityScheme:
         - user

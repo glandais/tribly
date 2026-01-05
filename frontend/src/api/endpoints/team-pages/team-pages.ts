@@ -24,6 +24,7 @@ import type {
 import type {
   ErrorResponse,
   ReorderPagesRequest,
+  SlugChangeRequest,
   TeamPageDto,
   TeamPageRequest,
   TeamPageSummaryDto,
@@ -432,7 +433,7 @@ export const getGetPageQueryKey = (slug?: string, pageSlug?: string) => {
 
 export const getGetPageQueryOptions = <
   TData = Awaited<ReturnType<typeof getPage>>,
-  TError = ErrorType<ErrorResponse>,
+  TError = ErrorType<void | ErrorResponse>,
 >(
   slug: string,
   pageSlug: string,
@@ -456,11 +457,11 @@ export const getGetPageQueryOptions = <
 }
 
 export type GetPageQueryResult = NonNullable<Awaited<ReturnType<typeof getPage>>>
-export type GetPageQueryError = ErrorType<ErrorResponse>
+export type GetPageQueryError = ErrorType<void | ErrorResponse>
 
 export function useGetPage<
   TData = Awaited<ReturnType<typeof getPage>>,
-  TError = ErrorType<ErrorResponse>,
+  TError = ErrorType<void | ErrorResponse>,
 >(
   slug: string,
   pageSlug: string,
@@ -480,7 +481,7 @@ export function useGetPage<
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetPage<
   TData = Awaited<ReturnType<typeof getPage>>,
-  TError = ErrorType<ErrorResponse>,
+  TError = ErrorType<void | ErrorResponse>,
 >(
   slug: string,
   pageSlug: string,
@@ -500,7 +501,7 @@ export function useGetPage<
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetPage<
   TData = Awaited<ReturnType<typeof getPage>>,
-  TError = ErrorType<ErrorResponse>,
+  TError = ErrorType<void | ErrorResponse>,
 >(
   slug: string,
   pageSlug: string,
@@ -516,7 +517,7 @@ export function useGetPage<
 
 export function useGetPage<
   TData = Awaited<ReturnType<typeof getPage>>,
-  TError = ErrorType<ErrorResponse>,
+  TError = ErrorType<void | ErrorResponse>,
 >(
   slug: string,
   pageSlug: string,
@@ -613,6 +614,91 @@ export const useDeletePage = <TError = ErrorType<ErrorResponse>, TContext = unkn
   TContext
 > => {
   const mutationOptions = getDeletePageMutationOptions(options)
+
+  return useMutation(mutationOptions, queryClient)
+}
+/**
+ * Change page URL slug. Requires admin permissions.
+ * @summary Change page slug
+ */
+export const changePageSlug = (
+  slug: string,
+  pageSlug: string,
+  slugChangeRequest: BodyType<SlugChangeRequest>,
+  options?: SecondParameter<typeof axiosMutator>
+) => {
+  return axiosMutator<TeamPageDto>(
+    {
+      url: `/api/teams/${slug}/pages/${pageSlug}/slug`,
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      data: slugChangeRequest,
+    },
+    options
+  )
+}
+
+export const getChangePageSlugMutationOptions = <
+  TError = ErrorType<ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof changePageSlug>>,
+    TError,
+    { slug: string; pageSlug: string; data: BodyType<SlugChangeRequest> },
+    TContext
+  >
+  request?: SecondParameter<typeof axiosMutator>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof changePageSlug>>,
+  TError,
+  { slug: string; pageSlug: string; data: BodyType<SlugChangeRequest> },
+  TContext
+> => {
+  const mutationKey = ['changePageSlug']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof changePageSlug>>,
+    { slug: string; pageSlug: string; data: BodyType<SlugChangeRequest> }
+  > = (props) => {
+    const { slug, pageSlug, data } = props ?? {}
+
+    return changePageSlug(slug, pageSlug, data, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type ChangePageSlugMutationResult = NonNullable<Awaited<ReturnType<typeof changePageSlug>>>
+export type ChangePageSlugMutationBody = BodyType<SlugChangeRequest>
+export type ChangePageSlugMutationError = ErrorType<ErrorResponse>
+
+/**
+ * @summary Change page slug
+ */
+export const useChangePageSlug = <TError = ErrorType<ErrorResponse>, TContext = unknown>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof changePageSlug>>,
+      TError,
+      { slug: string; pageSlug: string; data: BodyType<SlugChangeRequest> },
+      TContext
+    >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof changePageSlug>>,
+  TError,
+  { slug: string; pageSlug: string; data: BodyType<SlugChangeRequest> },
+  TContext
+> => {
+  const mutationOptions = getChangePageSlugMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }

@@ -154,7 +154,7 @@ class TeamServiceTest {
   void getTeam_shouldReturnTeam() {
     dataService.createTeam(user1, "Test Team", "test-team", Visibility.PUBLIC);
 
-    TeamDetailDto result = teamService.getTeam("test-team", null);
+    TeamDetailDto result = teamService.getTeamDetailDto("test-team", null);
 
     assertEquals("Test Team", result.name());
     assertEquals("test-team", result.slug());
@@ -163,7 +163,8 @@ class TeamServiceTest {
   @Test
   void getTeam_shouldThrowWhenNotFound() {
     BusinessException exception =
-        assertThrows(BusinessException.class, () -> teamService.getTeam("nonexistent", null));
+        assertThrows(
+            BusinessException.class, () -> teamService.getTeamDetailDto("nonexistent", null));
 
     assertTrue(exception.getMessage().contains("Team"));
   }
@@ -245,7 +246,7 @@ class TeamServiceTest {
 
     teamService.deleteTeam("test-team", user1.getId());
 
-    assertThrows(BusinessException.class, () -> teamService.getTeam("test-team", null));
+    assertThrows(BusinessException.class, () -> teamService.getTeamDetailDto("test-team", null));
   }
 
   @Test

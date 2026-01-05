@@ -29,7 +29,7 @@ public class RideCommentResource extends AbstractCommentResource {
 
   @Override
   protected TeamEntity getTeamEntity(String teamSlug, String entitySlug, Long userId) {
-    return rideService.getRide(teamSlug, entitySlug, userId);
+    return rideService.get(teamSlug, entitySlug, userId, false);
   }
 
   @Override

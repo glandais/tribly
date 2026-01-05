@@ -30,6 +30,7 @@ public class CommentService {
   @Inject UserRepository userRepository;
   @Inject TeamSecurityService securityService;
 
+  @Transactional
   public CommentListResponse listComments(String teamSlug, Long teamEntityId, Long userId) {
     // Verify team membership
     securityService.requireMembership(userId, teamSlug);

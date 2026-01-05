@@ -1,0 +1,109 @@
+- [ ] Change slug
+    - A user can change item slug if he has edit rights
+    - Old slugs still redirect to new slugs
+    - Old slugs can be reused, removing redirection
+- [ ] Use markdown to mark an asset in markdown
+    - No need to maintain compatibility, database reset
+- [ ] Use image asset endpoint in markdown diplay
+- [ ] Allow to add any image in markdown (heic, ...)
+- [ ] Allow drag/drop image in markdown
+- [ ] Multi GPX upload
+    - One route per GPX
+    - Name set to file name
+- [ ] Team location
+    - Used to init route planner
+    - Geocoder/autocomplete for input
+- [ ] Add PUBLIC_UNLISTED to Vibility
+    - SQL level filtering : members see PUBLIC_UNLISTED
+- [ ] Schedule orphan asset deletion
+    - assets created since more than 24h but without team entity
+    - image asset with a team entity but not referenced in markdown
+- [ ] Versatile notification system
+    - Events
+    - Team/user preferences
+    - Dispatchers (webhook, email, website notification, ...)
+- [ ] On a ride/trip is completed, mark is as "Terminated". Status is still PUBLISHED, just a UI thing
+- [ ] Responsive website
+- [ ] SEO/robots.txt/llms.txt
+- [ ] Allow the user to select a unit system (metric or imperial)
+    - Backend is not modified for computations, everything stays in metric
+- [ ] Allow user to select router profile
+    - Find Brouter used by gpx.studio, declared in RouterProfile Java enum
+    - Configure brouter in docker compose to use profiles
+- [ ] A team can have its own domain name
+    - It has its own Keycloak Realm
+    - Quarkus Keycloak OIDC configuration depends of the domain name, with a default one
+    - Database/assets are multi domain
+    - Filters are applied at SQL level (team.domainName = HTTP domain name or team.domainName is null)
+- [ ] Garmin upload
+    - One click route upload to Garmin Connect
+- [ ] Hammerhead Karoo upload
+    - One click route upload to Garmin Connect
+- [ ] Garmin application
+    - Download route for current ride
+    - Public app
+    - Dedicated app for team with own domain
+    - Authentication ?
+- [ ] Hammerhead Karoo application
+    - Download route for current ride
+    - Public app
+    - Dedicated app for team with own domain
+    - Authentication ?
+- [ ] Mobile application
+    - iOS/Android
+    - Public app
+    - Dedicated app for team with own domain
+- [ ] User dedicated team
+    - Very own team
+    - Not created automaticaly
+- [ ] Tags en Ride, Post, Trip, Route, Ad
+    - Tag set per type
+    - Search filters
+- [ ] Trip stats
+    - save in DB
+- [ ] Trip stage alternative routes
+    - not counted in stats
+- [ ] User favorite routes
+    - add to filter
+    - dedicated tab on home page
+- [ ] All trips
+    - like all routes
+    - search filters
+- [ ] Pagination / infinite scrolling
+- [ ] Places : flacky for the moment (fetch 50 items)
+- [ ] System Administration (Platform Admins)
+    - View and manage all users
+    - Promote/demote system administrators
+    - View and manage all teams
+    - Delete teams
+    - Recover deleted items
+    - Manage system images
+    - Configure legal pages/terms
+- [ ] Share URL - Social + Strava
+- [ ] Custom Cycling map style for Maplibre
+- [ ] Route basket
+    - Add routes to basket
+    - Display all routes on a map
+- [ ] Team/global route heatmap
+- [ ] Weather for ride/trip
+- [ ] Dark mode
+- [ ] Calendar view (rides, trips)
+    - or sync URL to export to user calendar
+- [ ] Card CTA (modify, publish, delete, add to calendar, ...)
+    - Like in detail view
+- [ ] Team/global dashboard
+    - Summary
+        - XXX Drafts -> link
+        - YYY To auto publish -> link
+        - ...
+    - What's Next
+        - Ride/Trip cards with route maps
+    - Activiy
+        - Latest publications/routes
+- [ ] Global full text search
+    - Priority to my teams
+    - Then public items
+- [ ] Appealing cards (icons, ...)
+- [ ] Trip view
+    - Review design
+    - Progress indicator (display today stage)

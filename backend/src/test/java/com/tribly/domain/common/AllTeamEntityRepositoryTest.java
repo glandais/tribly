@@ -179,7 +179,7 @@ class AllTeamEntityRepositoryTest {
     @Test
     @DisplayName("Should return TeamEntity as type name")
     void getTypeName_shouldReturnTeamEntity() {
-      assertEquals("TeamEntity", teamEntityRepository.getTypeName());
+      assertEquals("TeamEntity", teamEntityRepository.getEntityType().getTypeName());
     }
   }
 }

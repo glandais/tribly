@@ -17,6 +17,7 @@ import com.tribly.domain.user.User;
 import com.tribly.dto.rides.request.GroupRequest;
 import com.tribly.dto.rides.request.RideRequest;
 import com.tribly.dto.rides.response.*;
+import com.tribly.enums.EntityType;
 import com.tribly.enums.Status;
 import com.tribly.enums.Visibility;
 import com.tribly.infrastructure.exception.BusinessException;
@@ -33,7 +34,7 @@ import org.jboss.logging.Logger;
 import org.jspecify.annotations.Nullable;
 
 @ApplicationScoped
-public class RideService extends TeamEntityService {
+public class RideService extends TeamEntityService<Ride> {
 
   private static final Logger LOG = Logger.getLogger(RideService.class);
 
@@ -46,6 +47,34 @@ public class RideService extends TeamEntityService {
   @Inject RouteRepository routeRepository;
 
   @Inject PlaceRepository placeRepository;
+
+  @Override
+  protected EntityType getEntityType() {
+    return EntityType.RIDE;
+  }
+
+  @Override
+  protected Optional<Ride> findByIdOptional(Long entityId) {
+    return rideRepository.findByIdOptional(entityId);
+  }
+
+  @Override
+  public Ride getWithoutRedirect(String teamSlug, String rideSlug, @Nullable Long userId) {
+    TriblyPage<Ride> rides =
+        rideRepository.find(
+            TeamEntityQueryBasic.builder()
+                .userId(userId)
+                .teamSlugs(Set.of(teamSlug))
+                .slug(rideSlug)
+                .page(0)
+                .size(1)
+                .build());
+    if (rides.items().isEmpty()) {
+      throw BusinessException.notFound("Ride", rideSlug);
+    } else {
+      return rides.items().getFirst();
+    }
+  }
 
   public RideListResponse listRides(
       String teamSlug,
@@ -71,25 +100,8 @@ public class RideService extends TeamEntityService {
     return new RideListResponse(dtos, rides.total(), page, size);
   }
 
-  public Ride getRide(String teamSlug, String rideSlug, @Nullable Long userId) {
-    TriblyPage<Ride> rides =
-        rideRepository.find(
-            TeamEntityQueryBasic.builder()
-                .userId(userId)
-                .teamSlugs(Set.of(teamSlug))
-                .slug(rideSlug)
-                .page(0)
-                .size(1)
-                .build());
-    if (rides.items().isEmpty()) {
-      throw BusinessException.notFound("Ride", rideSlug);
-    } else {
-      return rides.items().getFirst();
-    }
-  }
-
   public RideDto getRideDetail(String teamSlug, String rideSlug, @Nullable Long userId) {
-    return RideDto.from(getRide(teamSlug, rideSlug, userId), true, assetService);
+    return RideDto.from(get(teamSlug, rideSlug, userId, true), true, assetService);
   }
 
   @Transactional
@@ -110,9 +122,7 @@ public class RideService extends TeamEntityService {
     validateVisibility(request, team);
 
     // Generate slug from name, ensure unique within team
-    String slug =
-        slugService.generateSlug(
-            request.name(), s -> rideRepository.existsByTeamAndSlug(team.getId(), s));
+    String slug = slugService.generateSlug(request.name(), team.getId(), rideRepository);
 
     Route route = getRoute(request.routeSlug(), team, request.visibility());
     Place startPlace = getPlace(request.startPlaceId(), team);
@@ -189,7 +199,7 @@ public class RideService extends TeamEntityService {
 
   @Transactional
   public RideDto updateRide(String teamSlug, String rideSlug, RideRequest request, Long userId) {
-    Ride ride = getRide(teamSlug, rideSlug, userId);
+    Ride ride = get(teamSlug, rideSlug, userId, false);
 
     // Security check: must be admin or creator (if organizer) to edit
     securityService.requireOrganizer(userId, teamSlug);
@@ -250,7 +260,7 @@ public class RideService extends TeamEntityService {
 
   @Transactional
   public void deleteRide(String teamSlug, String rideSlug, Long userId) {
-    Ride ride = getRide(teamSlug, rideSlug, userId);
+    Ride ride = get(teamSlug, rideSlug, userId, false);
 
     // Security check: must be admin or creator (if organizer) to delete
     securityService.requireOrganizer(userId, teamSlug);
@@ -263,7 +273,7 @@ public class RideService extends TeamEntityService {
   @Transactional
   public RideParticipationDto joinGroup(
       String teamSlug, String rideSlug, Long groupId, Long userId) {
-    Ride ride = getRide(teamSlug, rideSlug, userId);
+    Ride ride = get(teamSlug, rideSlug, userId, false);
 
     if (ride.getStatus() != Status.PUBLISHED) {
       throw BusinessException.validation("Can only join published rides");
@@ -330,5 +340,40 @@ public class RideService extends TeamEntityService {
     participationRepository.persist(participation);
 
     LOG.infov("User {0} left group {1} in ride {2}", userId, groupId, rideSlug);
+  }
+
+  @Transactional
+  public RideDto updateSlug(String teamSlug, String currentSlug, String newSlug, Long userId) {
+    Ride ride = get(teamSlug, currentSlug, userId, false);
+
+    securityService.requireOrganizer(userId, teamSlug);
+
+    // Validate new slug format
+    if (!slugService.isValidSlug(newSlug)) {
+      throw BusinessException.validation("Invalid slug format");
+    }
+
+    // No change needed
+    if (currentSlug.equals(newSlug)) {
+      return RideDto.from(ride, true, assetService);
+    }
+
+    // Check if new slug is already taken (by a non-deleted ride in this team)
+    if (rideRepository.existsByTeamAndSlug(ride.getTeam().getId(), newSlug)) {
+      throw BusinessException.conflict("Slug already in use", "SLUG_TAKEN");
+    }
+
+    // Clear any existing redirect TO this new slug (reuse scenario)
+    slugService.clearEntityRedirect(ride.getTeam().getId(), EntityType.RIDE, newSlug);
+
+    // Create redirect from old slug to this ride
+    slugService.createEntityRedirect(ride, currentSlug);
+
+    // Update the slug
+    ride.setSlug(newSlug);
+    rideRepository.persist(ride);
+
+    LOG.infov("Ride slug changed from {0} to {1} by user {2}", currentSlug, newSlug, userId);
+    return RideDto.from(ride, true, assetService);
   }
 }

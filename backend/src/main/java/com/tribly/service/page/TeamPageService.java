@@ -8,6 +8,7 @@ import com.tribly.dto.pages.request.ReorderPagesRequest;
 import com.tribly.dto.pages.request.TeamPageRequest;
 import com.tribly.dto.pages.response.TeamPageDto;
 import com.tribly.dto.pages.response.TeamPageSummaryDto;
+import com.tribly.enums.EntityType;
 import com.tribly.enums.Visibility;
 import com.tribly.infrastructure.exception.BusinessException;
 import com.tribly.infrastructure.id.TsidUtils;
@@ -16,16 +17,38 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import java.util.List;
+import java.util.Optional;
 import org.jboss.logging.Logger;
 import org.jspecify.annotations.Nullable;
 
 @ApplicationScoped
-public class TeamPageService extends TeamEntityService {
+public class TeamPageService extends TeamEntityService<TeamPage> {
 
   private static final Logger LOG = Logger.getLogger(TeamPageService.class);
   private static final int MAX_ADDITIONAL_PAGES = 3;
 
   @Inject TeamPageRepository teamPageRepository;
+
+  @Override
+  protected EntityType getEntityType() {
+    return EntityType.TEAM_PAGE;
+  }
+
+  @Override
+  protected Optional<TeamPage> findByIdOptional(Long entityId) {
+    return teamPageRepository.findByIdOptional(entityId);
+  }
+
+  @Override
+  protected TeamPage getWithoutRedirect(String teamSlug, String entitySlug, @Nullable Long userId) {
+    Team team =
+        teamRepository
+            .findBySlug(teamSlug)
+            .orElseThrow(() -> BusinessException.notFound("Team", teamSlug));
+    return teamPageRepository
+        .findByTeamAndSlug(team.getId(), entitySlug)
+        .orElseThrow(() -> BusinessException.notFound("Page", entitySlug));
+  }
 
   public List<TeamPageSummaryDto> listPages(String teamSlug, @Nullable Long userId) {
     Team team =
@@ -42,18 +65,10 @@ public class TeamPageService extends TeamEntityService {
   }
 
   public TeamPageDto getPage(String teamSlug, String pageSlug, @Nullable Long userId) {
-    Team team =
-        teamRepository
-            .findBySlug(teamSlug)
-            .orElseThrow(() -> BusinessException.notFound("Team", teamSlug));
-
-    TeamPage page =
-        teamPageRepository
-            .findByTeamAndSlug(team.getId(), pageSlug)
-            .orElseThrow(() -> BusinessException.notFound("Page", pageSlug));
+    TeamPage page = get(teamSlug, pageSlug, userId, true);
 
     // Check visibility
-    boolean isMember = userId != null && securityService.isMember(userId, team);
+    boolean isMember = userId != null && securityService.isMember(userId, page.getTeam());
     if (!canViewPage(page, isMember)) {
       throw BusinessException.forbidden("You don't have permission to view this page");
     }
@@ -86,9 +101,7 @@ public class TeamPageService extends TeamEntityService {
     validateVisibility(request, team);
 
     // Generate slug from title
-    String slug =
-        slugService.generateSlug(
-            request.title(), s -> teamPageRepository.existsByTeamAndSlug(team.getId(), s));
+    String slug = slugService.generateSlug(request.title(), team.getId(), teamPageRepository);
 
     int order = teamPageRepository.getNextPageOrder(team.getId());
 
@@ -197,5 +210,46 @@ public class TeamPageService extends TeamEntityService {
       return isMember;
     }
     return true;
+  }
+
+  @Transactional
+  public TeamPageDto updateSlug(String teamSlug, String currentSlug, String newSlug, Long userId) {
+    Team team =
+        teamRepository
+            .findBySlug(teamSlug)
+            .orElseThrow(() -> BusinessException.notFound("Team", teamSlug));
+
+    TeamPage page =
+        teamPageRepository
+            .findByTeamAndSlug(team.getId(), currentSlug)
+            .orElseThrow(() -> BusinessException.notFound("Page", currentSlug));
+
+    securityService.requireAdmin(userId, teamSlug);
+
+    // Don't allow changing slug of the about page
+    if (page.isAboutPage()) {
+      throw BusinessException.validation("Cannot change the about page slug");
+    }
+
+    if (!slugService.isValidSlug(newSlug)) {
+      throw BusinessException.validation("Invalid slug format");
+    }
+
+    if (currentSlug.equals(newSlug)) {
+      return TeamPageDto.from(page, assetService);
+    }
+
+    if (teamPageRepository.existsByTeamAndSlug(team.getId(), newSlug)) {
+      throw BusinessException.conflict("Slug already in use", "SLUG_TAKEN");
+    }
+
+    slugService.clearEntityRedirect(team.getId(), EntityType.TEAM_PAGE, newSlug);
+    slugService.createEntityRedirect(page, currentSlug);
+
+    page.setSlug(newSlug);
+    teamPageRepository.persist(page);
+
+    LOG.infov("Page slug changed from {0} to {1} by user {2}", currentSlug, newSlug, userId);
+    return TeamPageDto.from(page, assetService);
   }
 }

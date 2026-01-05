@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import type { TeamDetailDto } from '@/api/dto'
 import { LoadingSpinner } from '../common/LoadingSpinner'
 import { MediaEditor } from '../common/MediaEditor'
+import { SlugEditor } from '../common/SlugEditor'
 import { Status, PostRequest } from '@/api/dto'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -53,6 +54,11 @@ interface PostEditorProps {
   // UI customization
   submitButtonText?: string
   cancelButtonText?: string
+
+  // Slug editing (only for edit mode)
+  currentSlug?: string
+  onSlugChange?: (newSlug: string) => Promise<void>
+  canEditSlug?: boolean
 }
 
 export function PostEditor({
@@ -64,6 +70,9 @@ export function PostEditor({
   isPending,
   submitButtonText,
   cancelButtonText,
+  currentSlug,
+  onSlugChange,
+  canEditSlug = false,
 }: PostEditorProps) {
   const { t: t } = useTranslation()
 
@@ -98,6 +107,16 @@ export function PostEditor({
             </FormItem>
           )}
         />
+
+        {/* Slug Editor (only in edit mode) */}
+        {currentSlug && onSlugChange && (
+          <SlugEditor
+            currentSlug={currentSlug}
+            baseUrl={`/teams/${teamSlug}/posts/`}
+            onSlugChange={onSlugChange}
+            disabled={!canEditSlug}
+          />
+        )}
 
         {/* Description */}
         <FormField

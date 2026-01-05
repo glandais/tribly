@@ -4,9 +4,7 @@ import com.tribly.domain.common.repository.TriblyPage;
 import com.tribly.domain.place.Place;
 import com.tribly.domain.place.repository.PlaceRepository;
 import com.tribly.domain.team.Team;
-import com.tribly.domain.team.repository.TeamRepository;
-import com.tribly.domain.user.User;
-import com.tribly.domain.user.repository.UserRepository;
+import com.tribly.domain.team.UserTeam;
 import com.tribly.dto.places.request.PlaceRequest;
 import com.tribly.dto.places.response.PlaceDetailDto;
 import com.tribly.dto.places.response.PlaceListResponse;
@@ -27,19 +25,10 @@ public class PlaceService {
 
   @Inject PlaceRepository placeRepository;
 
-  @Inject TeamRepository teamRepository;
-
-  @Inject UserRepository userRepository;
-
   @Inject TeamSecurityService securityService;
 
   public PlaceListResponse listPlaces(String teamSlug, int page, int size, Long userId) {
-    Team team =
-        teamRepository
-            .findBySlug(teamSlug)
-            .orElseThrow(() -> BusinessException.notFound("Team", teamSlug));
-
-    securityService.requireOrganizer(userId, team.getSlug());
+    Team team = securityService.requireOrganizer(userId, teamSlug).getTeam();
 
     TriblyPage<Place> places = placeRepository.findByTeam(team.getId(), page, size);
     List<PlaceDetailDto> dtos = places.items().stream().map(PlaceDetailDto::from).toList();
@@ -48,12 +37,7 @@ public class PlaceService {
   }
 
   public PlaceDetailDto getPlace(String teamSlug, String placeId, @Nullable Long userId) {
-    Team team =
-        teamRepository
-            .findBySlug(teamSlug)
-            .orElseThrow(() -> BusinessException.notFound("Team", teamSlug));
-
-    securityService.requireOrganizer(userId, team.getSlug());
+    Team team = securityService.requireOrganizer(userId, teamSlug).getTeam();
 
     Place place =
         placeRepository
@@ -65,21 +49,16 @@ public class PlaceService {
 
   @Transactional
   public PlaceDetailDto createPlace(String teamSlug, PlaceRequest request, Long creatorId) {
-    Team team =
-        teamRepository
-            .findBySlug(teamSlug)
-            .orElseThrow(() -> BusinessException.notFound("Team", teamSlug));
-
     // Security check: must be admin or organizer
-    securityService.requireOrganizer(creatorId, team.getSlug());
-
-    User creator =
-        userRepository
-            .findActiveById(creatorId)
-            .orElseThrow(() -> BusinessException.notFound("User", creatorId));
+    UserTeam userTeam = securityService.requireOrganizer(creatorId, teamSlug);
 
     Place place =
-        new Place(creator, team, request.name(), request.startPlace(), request.endPlace());
+        new Place(
+            userTeam.getUser(),
+            userTeam.getTeam(),
+            request.name(),
+            request.startPlace(),
+            request.endPlace());
     updatePlaceFromRequest(place, request);
 
     placeRepository.persistAndFlush(place);
@@ -91,13 +70,8 @@ public class PlaceService {
   @Transactional
   public PlaceDetailDto updatePlace(
       String teamSlug, String placeId, PlaceRequest request, Long userId) {
-    Team team =
-        teamRepository
-            .findBySlug(teamSlug)
-            .orElseThrow(() -> BusinessException.notFound("Team", teamSlug));
-
     // Security check: must be admin or organizer
-    securityService.requireOrganizer(userId, team.getSlug());
+    Team team = securityService.requireOrganizer(userId, teamSlug).getTeam();
 
     Place place =
         placeRepository
@@ -113,13 +87,8 @@ public class PlaceService {
 
   @Transactional
   public void deletePlace(String teamSlug, String placeId, Long userId) {
-    Team team =
-        teamRepository
-            .findBySlug(teamSlug)
-            .orElseThrow(() -> BusinessException.notFound("Team", teamSlug));
-
     // Security check: must be admin or organizer
-    securityService.requireOrganizer(userId, team.getSlug());
+    Team team = securityService.requireOrganizer(userId, teamSlug).getTeam();
 
     Place place =
         placeRepository

@@ -11,6 +11,7 @@ import com.tribly.dto.ads.request.AdRequest;
 import com.tribly.dto.ads.response.AdDto;
 import com.tribly.dto.ads.response.AdListResponse;
 import com.tribly.enums.AdType;
+import com.tribly.enums.EntityType;
 import com.tribly.enums.Status;
 import com.tribly.infrastructure.exception.BusinessException;
 import com.tribly.service.common.TeamEntityService;
@@ -19,16 +20,45 @@ import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import org.jboss.logging.Logger;
 import org.jspecify.annotations.Nullable;
 
 @ApplicationScoped
-public class AdService extends TeamEntityService {
+public class AdService extends TeamEntityService<Ad> {
 
   private static final Logger LOG = Logger.getLogger(AdService.class);
 
   @Inject AdRepository adRepository;
+
+  @Override
+  protected EntityType getEntityType() {
+    return EntityType.AD;
+  }
+
+  @Override
+  protected Optional<Ad> findByIdOptional(Long entityId) {
+    return adRepository.findByIdOptional(entityId);
+  }
+
+  @Override
+  protected Ad getWithoutRedirect(String teamSlug, String adSlug, @Nullable Long userId) {
+    TriblyPage<Ad> ads =
+        adRepository.find(
+            AdQuery.builder()
+                .userId(userId)
+                .teamSlugs(Set.of(teamSlug))
+                .slug(adSlug)
+                .page(0)
+                .size(1)
+                .build());
+    if (ads.items().isEmpty()) {
+      throw BusinessException.notFound("Ad", adSlug);
+    } else {
+      return ads.items().getFirst();
+    }
+  }
 
   public AdListResponse listAds(
       String teamSlug,
@@ -55,25 +85,9 @@ public class AdService extends TeamEntityService {
     return new AdListResponse(dtos, ads.total(), page, size);
   }
 
-  public Ad getAd(String teamSlug, String adSlug, @Nullable Long userId) {
-    TriblyPage<Ad> ads =
-        adRepository.find(
-            AdQuery.builder()
-                .userId(userId)
-                .teamSlugs(Set.of(teamSlug))
-                .slug(adSlug)
-                .page(0)
-                .size(1)
-                .build());
-    if (ads.items().isEmpty()) {
-      throw BusinessException.notFound("Ad", adSlug);
-    } else {
-      return ads.items().getFirst();
-    }
-  }
-
   public AdDto getAdDetail(String teamSlug, String adSlug, @Nullable Long userId) {
-    return AdDto.from(getAd(teamSlug, adSlug, userId), assetService);
+    Ad ad = get(teamSlug, adSlug, userId, true);
+    return AdDto.from(ad, assetService);
   }
 
   @Transactional
@@ -94,9 +108,7 @@ public class AdService extends TeamEntityService {
     verifyAd(request, team);
 
     // Generate slug from name, ensure unique within team
-    String slug =
-        slugService.generateSlug(
-            request.name(), s -> adRepository.existsByTeamAndSlug(team.getId(), s));
+    String slug = slugService.generateSlug(request.name(), team.getId(), adRepository);
 
     Ad ad =
         new Ad(
@@ -122,7 +134,7 @@ public class AdService extends TeamEntityService {
 
   @Transactional
   public AdDto updateAd(String teamSlug, String adSlug, AdRequest request, Long userId) {
-    Ad ad = getAd(teamSlug, adSlug, userId);
+    Ad ad = get(teamSlug, adSlug, userId, false);
 
     // Security check: only creator or admin can edit
     requireEditPermission(userId, teamSlug, ad);
@@ -143,7 +155,7 @@ public class AdService extends TeamEntityService {
 
   @Transactional
   public void deleteAd(String teamSlug, String adSlug, Long userId) {
-    Ad ad = getAd(teamSlug, adSlug, userId);
+    Ad ad = get(teamSlug, adSlug, userId, false);
 
     // Security check: only creator or admin can delete
     requireEditPermission(userId, teamSlug, ad);
@@ -187,5 +199,33 @@ public class AdService extends TeamEntityService {
       ad.setRentalPeriod(null);
     }
     ad.setLocationDescription(request.locationDescription());
+  }
+
+  @Transactional
+  public AdDto updateSlug(String teamSlug, String currentSlug, String newSlug, Long userId) {
+    Ad ad = get(teamSlug, currentSlug, userId, false);
+
+    securityService.requireAdmin(userId, teamSlug);
+
+    if (!slugService.isValidSlug(newSlug)) {
+      throw BusinessException.validation("Invalid slug format");
+    }
+
+    if (currentSlug.equals(newSlug)) {
+      return AdDto.from(ad, assetService);
+    }
+
+    if (adRepository.existsByTeamAndSlug(ad.getTeam().getId(), newSlug)) {
+      throw BusinessException.conflict("Slug already in use", "SLUG_TAKEN");
+    }
+
+    slugService.clearEntityRedirect(ad.getTeam().getId(), EntityType.AD, newSlug);
+    slugService.createEntityRedirect(ad, currentSlug);
+
+    ad.setSlug(newSlug);
+    adRepository.persist(ad);
+
+    LOG.infov("Ad slug changed from {0} to {1} by user {2}", currentSlug, newSlug, userId);
+    return AdDto.from(ad, assetService);
   }
 }

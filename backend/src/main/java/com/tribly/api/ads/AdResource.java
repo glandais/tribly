@@ -4,8 +4,10 @@ import com.tribly.api.AbstractAuthenticatedResource;
 import com.tribly.dto.ads.request.AdRequest;
 import com.tribly.dto.ads.response.AdDto;
 import com.tribly.dto.ads.response.AdListResponse;
+import com.tribly.dto.common.request.SlugChangeRequest;
 import com.tribly.dto.error.ErrorResponse;
 import com.tribly.enums.AdType;
+import com.tribly.infrastructure.exception.NewSlugException;
 import com.tribly.service.ad.AdService;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
@@ -119,17 +121,23 @@ public class AdResource extends AbstractAuthenticatedResource {
         responseCode = "200",
         description = "Ad retrieved successfully",
         content = @Content(schema = @Schema(implementation = AdDto.class))),
+    @APIResponse(responseCode = "302", description = "Slug has changed, redirect to new URL"),
     @APIResponse(
         responseCode = "404",
         description = "Team or ad not found",
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
   public Response getAd(
-      @Parameter(description = "Team URL slug") @PathParam("slug") String slug,
+      @Parameter(description = "Team URL slug") @PathParam("slug") String teamSlug,
       @Parameter(description = "Ad URL slug") @PathParam("adSlug") String adSlug) {
     Long userId = getCurrentUserIdOrNull();
-    AdDto ad = adService.getAdDetail(slug, adSlug, userId);
-    return Response.ok(ad).build();
+    try {
+      AdDto ad = adService.getAdDetail(teamSlug, adSlug, userId);
+      return Response.ok(ad).build();
+    } catch (NewSlugException e) {
+      String newUrl = "/api/teams/" + e.getTeamSlug() + "/ads/" + e.getNewSlug();
+      return Response.status(302).header("Location", newUrl).build();
+    }
   }
 
   @PUT
@@ -200,5 +208,47 @@ public class AdResource extends AbstractAuthenticatedResource {
     Long userId = getCurrentUserId();
     adService.deleteAd(slug, adSlug, userId);
     return Response.noContent().build();
+  }
+
+  @PATCH
+  @Path("/{adSlug}/slug")
+  @RolesAllowed("user")
+  @Operation(
+      operationId = "changeAdSlug",
+      summary = "Change ad slug",
+      description = "Change ad URL slug. Requires admin permissions.")
+  @APIResponses({
+    @APIResponse(
+        responseCode = "200",
+        description = "Slug changed successfully",
+        content = @Content(schema = @Schema(implementation = AdDto.class))),
+    @APIResponse(
+        responseCode = "400",
+        description = "Invalid slug format",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "401",
+        description = "Unauthorized",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "403",
+        description = "User is not authorized to change this ad's slug",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "404",
+        description = "Team or ad not found",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "409",
+        description = "Slug already in use",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  })
+  public Response changeSlug(
+      @Parameter(description = "Team URL slug") @PathParam("slug") String teamSlug,
+      @Parameter(description = "Current ad URL slug") @PathParam("adSlug") String currentSlug,
+      @Valid SlugChangeRequest request) {
+    Long userId = getCurrentUserId();
+    AdDto ad = adService.updateSlug(teamSlug, currentSlug, request.slug(), userId);
+    return Response.ok(ad).build();
   }
 }

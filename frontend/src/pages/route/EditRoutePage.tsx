@@ -7,6 +7,7 @@ import { paths } from '../../config/paths'
 import {
   useGetRoute,
   useUpdateRoute,
+  useChangeRouteSlug,
   getGetRouteQueryKey,
   getListRoutesQueryKey,
 } from '@/api/endpoints/routes/routes'
@@ -28,6 +29,7 @@ export function EditRoutePage() {
     query: { enabled: !!teamSlug && !!routeSlug },
   })
   const updateRouteMutation = useUpdateRoute()
+  const changeSlugMutation = useChangeRouteSlug()
 
   if (isLoadingTeam) {
     return <LoadingPage message={t('routes.create.title')} />
@@ -99,6 +101,19 @@ export function EditRoutePage() {
     navigate(paths.route(teamSlug!, routeSlug!))
   }
 
+  const handleSlugChange = async (newSlug: string) => {
+    await changeSlugMutation.mutateAsync(
+      { slug: teamSlug!, routeSlug: routeSlug!, data: { slug: newSlug } },
+      {
+        onSuccess: (updatedRoute) => {
+          queryClient.invalidateQueries({ queryKey: getListRoutesQueryKey(teamSlug!) })
+          queryClient.invalidateQueries({ queryKey: getGetRouteQueryKey(teamSlug!, routeSlug!) })
+          navigate(paths.routeEdit(teamSlug!, updatedRoute.slug), { replace: true })
+        },
+      }
+    )
+  }
+
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
@@ -116,6 +131,9 @@ export function EditRoutePage() {
         isPending={updateRouteMutation.isPending}
         error={updateRouteMutation.error}
         submitButtonText={t('actions.save')}
+        currentSlug={routeSlug!}
+        onSlugChange={handleSlugChange}
+        canEditSlug={canEdit}
       />
     </div>
   )

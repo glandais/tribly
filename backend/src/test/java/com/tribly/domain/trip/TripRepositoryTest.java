@@ -196,7 +196,7 @@ class TripRepositoryTest {
     @Test
     @DisplayName("Should return Trip as type name")
     void getTypeName_shouldReturnTrip() {
-      assertEquals("Trip", tripRepository.getTypeName());
+      assertEquals("Trip", tripRepository.getEntityType().getTypeName());
     }
   }
 

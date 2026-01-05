@@ -1,11 +1,13 @@
 package com.tribly.api.pages;
 
 import com.tribly.api.AbstractAuthenticatedResource;
+import com.tribly.dto.common.request.SlugChangeRequest;
 import com.tribly.dto.error.ErrorResponse;
 import com.tribly.dto.pages.request.ReorderPagesRequest;
 import com.tribly.dto.pages.request.TeamPageRequest;
 import com.tribly.dto.pages.response.TeamPageDto;
 import com.tribly.dto.pages.response.TeamPageSummaryDto;
+import com.tribly.infrastructure.exception.NewSlugException;
 import com.tribly.service.page.TeamPageService;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
@@ -61,6 +63,7 @@ public class TeamPageResource extends AbstractAuthenticatedResource {
         responseCode = "200",
         description = "Page retrieved successfully",
         content = @Content(schema = @Schema(implementation = TeamPageDto.class))),
+    @APIResponse(responseCode = "302", description = "Slug has changed, redirect to new URL"),
     @APIResponse(
         responseCode = "403",
         description = "User is not authorized to view this page",
@@ -71,11 +74,16 @@ public class TeamPageResource extends AbstractAuthenticatedResource {
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
   public Response getPage(
-      @Parameter(description = "Team URL slug") @PathParam("slug") String slug,
+      @Parameter(description = "Team URL slug") @PathParam("slug") String teamSlug,
       @Parameter(description = "Page URL slug") @PathParam("pageSlug") String pageSlug) {
     Long userId = getCurrentUserIdOrNull();
-    TeamPageDto page = teamPageService.getPage(slug, pageSlug, userId);
-    return Response.ok(page).build();
+    try {
+      TeamPageDto page = teamPageService.getPage(teamSlug, pageSlug, userId);
+      return Response.ok(page).build();
+    } catch (NewSlugException e) {
+      String newUrl = "/api/teams/" + e.getTeamSlug() + "/pages/" + e.getNewSlug();
+      return Response.status(302).header("Location", newUrl).build();
+    }
   }
 
   @POST
@@ -217,5 +225,47 @@ public class TeamPageResource extends AbstractAuthenticatedResource {
     Long userId = getCurrentUserId();
     List<TeamPageSummaryDto> pages = teamPageService.reorderPages(slug, request, userId);
     return Response.ok(pages).build();
+  }
+
+  @PATCH
+  @Path("/{pageSlug}/slug")
+  @RolesAllowed("user")
+  @Operation(
+      operationId = "changePageSlug",
+      summary = "Change page slug",
+      description = "Change page URL slug. Requires admin permissions.")
+  @APIResponses({
+    @APIResponse(
+        responseCode = "200",
+        description = "Slug changed successfully",
+        content = @Content(schema = @Schema(implementation = TeamPageDto.class))),
+    @APIResponse(
+        responseCode = "400",
+        description = "Invalid slug format",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "401",
+        description = "Unauthorized",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "403",
+        description = "User is not a team admin",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "404",
+        description = "Team or page not found",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "409",
+        description = "Slug already in use",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  })
+  public Response changeSlug(
+      @Parameter(description = "Team URL slug") @PathParam("slug") String teamSlug,
+      @Parameter(description = "Current page URL slug") @PathParam("pageSlug") String currentSlug,
+      @Valid SlugChangeRequest request) {
+    Long userId = getCurrentUserId();
+    TeamPageDto page = teamPageService.updateSlug(teamSlug, currentSlug, request.slug(), userId);
+    return Response.ok(page).build();
   }
 }

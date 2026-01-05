@@ -33,25 +33,27 @@ public class BusinessException extends RuntimeException {
     CONFLICT,
     FORBIDDEN,
     VALIDATION,
-    BUSINESS_RULE
+    BUSINESS_RULE,
+    NEW_SLUG
   }
 
   public static BusinessException notFound(String message) {
-    return new BusinessException(message, ErrorType.NOT_FOUND);
+    return new NotFoundException(message);
   }
 
   public static BusinessException notFound(String entity, Long id) {
-    return new BusinessException(
-        String.format("%s with id %d not found", entity, id),
-        ErrorType.NOT_FOUND,
-        entity.toUpperCase() + "_NOT_FOUND");
+    return new NotFoundException(
+        String.format("%s with id %d not found", entity, id), entity.toUpperCase() + "_NOT_FOUND");
   }
 
   public static BusinessException notFound(String entity, String id) {
-    return new BusinessException(
+    return new NotFoundException(
         String.format("%s with id '%s' not found", entity, id),
-        ErrorType.NOT_FOUND,
         entity.toUpperCase() + "_NOT_FOUND");
+  }
+
+  public static BusinessException newSlug(String oldSlug, String teamSlug, String newSlug) {
+    return new NewSlugException(oldSlug, teamSlug, newSlug);
   }
 
   public static BusinessException conflict(String message) {
@@ -68,6 +70,10 @@ public class BusinessException extends RuntimeException {
 
   public static BusinessException forbidden(String message) {
     return new BusinessException(message, ErrorType.FORBIDDEN);
+  }
+
+  public static BusinessException forbidden(String message, String errorCode) {
+    return new BusinessException(message, ErrorType.FORBIDDEN, errorCode);
   }
 
   public static BusinessException validation(String message) {
