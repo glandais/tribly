@@ -1,12 +1,25 @@
-import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { XMarkIcon } from '@heroicons/react/24/outline'
 import { LoadingSpinner } from '../common/LoadingSpinner'
 import { ReorderControls } from '../common/ReorderControls'
-import { moveItem } from '../../utils/arrayUtils'
 import { MarkdownEditor } from '../common/MarkdownEditor'
-import type { RideTemplateGroupRequest, RideTemplateRequest, TeamDetailDto } from '@/api/dto'
-import { Visibility, Status } from '@/api/dto'
+import type { RideTemplateRequest, TeamDetailDto } from '@/api/dto'
+import { createTemplateBody } from '@/api/zod/ride-templates/ride-templates.zod'
+import { useFieldArray, useForm, useWatch } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { Input } from '@/components/ui/input'
+
+import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
 
 interface RideTemplateEditorProps {
   team: TeamDetailDto
@@ -29,287 +42,305 @@ export function RideTemplateEditor({
 }: RideTemplateEditorProps) {
   const { t } = useTranslation('rideTemplates')
   const { t: tCommon } = useTranslation('common')
+  const { t: tRides } = useTranslation('rides')
 
-  const [name, setName] = useState(initialValues.name)
-  const [markdown, setMarkdown] = useState(initialValues.markdown || '')
-  const [visibility, setVisibility] = useState<Visibility>(initialValues.visibility)
-  const [status, setStatus] = useState<Status>(initialValues.status)
-  const [groups, setGroups] = useState<RideTemplateGroupRequest[]>(initialValues.groups)
+  const form = useForm<RideTemplateRequest>({
+    resolver: zodResolver(createTemplateBody),
+    mode: 'onChange',
+    defaultValues: initialValues,
+  })
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+  const groups = useWatch({ control: form.control, name: 'groups' })
 
-    onSubmit({
-      name,
-      markdown: markdown || undefined,
-      visibility,
-      status,
-      groups: groups,
+  const {
+    fields: groupFieldArray,
+    append,
+    remove,
+    move,
+  } = useFieldArray({
+    control: form.control,
+    name: 'groups',
+  })
+
+  const handleAddGroup = () => {
+    append({
+      name: `Groupe ${groups.length + 1}`,
     })
   }
 
-  const handleAddGroup = () => {
-    setGroups([
-      ...groups,
-      {
-        name: '',
-        time: undefined,
-        averageSpeed: undefined,
-        maxParticipants: undefined,
-      },
-    ])
-  }
-
   const handleRemoveGroup = (index: number) => {
-    setGroups(groups.filter((_, i) => i !== index))
-  }
-
-  const handleUpdateGroup = (index: number, updates: Partial<RideTemplateGroupRequest>) => {
-    setGroups(groups.map((g, i) => (i === index ? { ...g, ...updates } : g)))
+    remove(index)
   }
 
   const handleMoveGroup = (index: number, direction: 'up' | 'down') => {
-    setGroups(moveItem(groups, index, direction))
+    const newIndex = direction === 'up' ? index - 1 : index + 1
+    if (newIndex >= 0 && newIndex < groupFieldArray.length) {
+      move(index, newIndex)
+    }
   }
 
-  const isPrivateTeam = team.visibility !== Visibility.PUBLIC
-
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Name */}
-      <div>
-        <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-          {t('form.name.label')} <span className="text-red-500">*</span>
-        </label>
-        <input
-          type="text"
-          id="name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-          minLength={3}
-          maxLength={200}
-          className={`mt-1 block w-full px-4 py-2 border rounded-lg focus:ring-indigo-500 focus:border-indigo-500 border-gray-300`}
-          placeholder={t('form.name.placeholder')}
-        />
-      </div>
-
-      {/* Description (Markdown) */}
-      <div>
-        <label htmlFor="markdown" className="block text-sm font-medium text-gray-700">
-          {tCommon('form.description')}
-        </label>
-        <div className="mt-1">
-          <MarkdownEditor
-            value={markdown}
-            onChange={setMarkdown}
-            placeholder={t('form.description.placeholder')}
-            minHeight="150px"
-            maxHeight="300px"
-            disabled={isPending}
-            ariaLabel={t('form.description.placeholder')}
-          />
-        </div>
-      </div>
-
-      {/* Visibility */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          {tCommon('visibility.label')} <span className="text-red-500">*</span>
-        </label>
-        <div className="space-y-2">
-          <label className="flex items-center">
-            <input
-              type="radio"
-              name="visibility"
-              value="TEAM"
-              checked={visibility === Visibility.TEAM}
-              onChange={() => setVisibility(Visibility.TEAM)}
-              className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
-            />
-            <span className="ml-2 text-sm text-gray-700">{tCommon('visibility.team')}</span>
-          </label>
-          <label className="flex items-center">
-            <input
-              type="radio"
-              name="visibility"
-              value="PUBLIC"
-              checked={visibility === Visibility.PUBLIC}
-              onChange={() => setVisibility(Visibility.PUBLIC)}
-              disabled={isPrivateTeam}
-              className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500 disabled:opacity-50"
-            />
-            <span className={`ml-2 text-sm ${isPrivateTeam ? 'text-gray-400' : 'text-gray-700'}`}>
-              {t('form.visibility.public')}
-              {isPrivateTeam && (
-                <span className="ml-1 text-xs">({t('form.visibility.publicDisabled')})</span>
-              )}
-            </span>
-          </label>
-        </div>
-      </div>
-
-      {/* Status */}
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          {t('form.status.label')} <span className="text-red-500">*</span>
-        </label>
-        <div className="space-y-2">
-          <label className="flex items-center">
-            <input
-              type="radio"
-              name="status"
-              value="DRAFT"
-              checked={status === Status.DRAFT}
-              onChange={() => setStatus(Status.DRAFT)}
-              className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
-            />
-            <span className="ml-2 text-sm text-gray-700">{tCommon('status.DRAFT')}</span>
-          </label>
-          <label className="flex items-center">
-            <input
-              type="radio"
-              name="status"
-              value="PUBLISHED"
-              checked={status === Status.PUBLISHED}
-              onChange={() => setStatus(Status.PUBLISHED)}
-              className="h-4 w-4 text-indigo-600 border-gray-300 focus:ring-indigo-500"
-            />
-            <span className="ml-2 text-sm text-gray-700">{tCommon('status.PUBLISHED')}</span>
-          </label>
-        </div>
-      </div>
-
-      {/* Groups */}
-      <div>
-        <div className="flex items-center justify-between mb-2">
-          <label className="block text-sm font-medium text-gray-700">
-            {t('form.groups.label')}
-          </label>
-          <button
-            type="button"
-            onClick={handleAddGroup}
-            className="text-sm text-indigo-600 hover:text-indigo-700"
-          >
-            {tCommon('groups.add')}
-          </button>
-        </div>
-        <p className="text-sm text-gray-500 mb-3">{t('form.groups.hint')}</p>
-        <div className="space-y-3">
-          {groups.map((group, index) => (
-            <div
-              key={group.id || `new-${index}`}
-              className={`border rounded-lg p-4 border-gray-200`}
-            >
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <ReorderControls
-                    index={index}
-                    total={groups.length}
-                    onMove={(dir) => handleMoveGroup(index, dir)}
-                  />
-                  <span className="text-sm font-medium text-gray-700">
-                    {group.name || t('form.groups.defaultName', { number: index + 1 })}
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => handleRemoveGroup(index)}
-                  className="text-sm text-red-600 hover:text-red-700"
-                >
-                  {t('form.groups.remove')}
-                </button>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-                <div>
-                  <input
-                    type="text"
-                    value={group.name}
-                    onChange={(e) => handleUpdateGroup(index, { name: e.target.value })}
-                    placeholder={t('form.groups.name.placeholder')}
-                    required
-                    className="block w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-indigo-500 focus:border-indigo-500"
-                  />
-                </div>
-                <div className="relative">
-                  <input
-                    type="time"
-                    value={group.time || ''}
-                    onChange={(e) =>
-                      handleUpdateGroup(index, {
-                        time: e.target.value || undefined,
-                      })
-                    }
-                    className="block w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-indigo-500 focus:border-indigo-500"
-                  />
-                  {group.time && (
-                    <button
-                      type="button"
-                      onClick={() => handleUpdateGroup(index, { time: undefined })}
-                      className="absolute right-8 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600"
-                    >
-                      <XMarkIcon className="w-4 h-4" />
-                    </button>
-                  )}
-                </div>
-                <div>
-                  <input
-                    type="number"
-                    value={group.averageSpeed || ''}
-                    onChange={(e) =>
-                      handleUpdateGroup(index, {
-                        averageSpeed: e.target.value ? Number(e.target.value) : undefined,
-                      })
-                    }
-                    placeholder={t('form.groups.speed.placeholder')}
-                    min={0}
-                    className="block w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-indigo-500 focus:border-indigo-500"
-                  />
-                </div>
-                <div>
-                  <input
-                    type="number"
-                    value={group.maxParticipants || ''}
-                    onChange={(e) =>
-                      handleUpdateGroup(index, {
-                        maxParticipants: e.target.value ? Number(e.target.value) : undefined,
-                      })
-                    }
-                    placeholder={t('form.groups.maxParticipants.placeholder')}
-                    min={1}
-                    className="block w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-indigo-500 focus:border-indigo-500"
-                  />
-                </div>
-              </div>
-            </div>
-          ))}
-          {groups.length === 0 && (
-            <p className="text-sm text-gray-500 italic text-center py-4">
-              {t('form.groups.empty')}
-            </p>
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        {/* Name */}
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>
+                {t('form.name.label')} <span className="text-destructive">*</span>
+              </FormLabel>
+              <FormControl>
+                <Input placeholder={t('form.name.placeholder')} {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
           )}
-        </div>
-      </div>
+        />
 
-      {/* Submit / Cancel */}
-      <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
-        <button
-          type="button"
-          onClick={onCancel}
-          disabled={isPending}
-          className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50"
-        >
-          {tCommon('actions.cancelAction')}
-        </button>
-        <button
-          type="submit"
-          disabled={isPending || !name.trim()}
-          className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-        >
-          {isPending && <LoadingSpinner size="sm" />}
-          {submitButtonText || tCommon('actions.save')}
-        </button>
-      </div>
-    </form>
+        {/* Description */}
+        <FormField
+          control={form.control}
+          name="markdown"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{tCommon('form.description')}</FormLabel>
+              <FormControl>
+                <MarkdownEditor
+                  value={field.value || ''}
+                  onChange={field.onChange}
+                  placeholder={tCommon('form.description')}
+                  minHeight="150px"
+                  maxHeight="300px"
+                  disabled={isPending}
+                  ariaLabel={tCommon('form.description')}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Visibility */}
+        {team.visibility !== 'TEAM' && (
+          <FormField
+            control={form.control}
+            name="visibility"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{tCommon('visibility.label')}</FormLabel>
+                <FormControl>
+                  <RadioGroup
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    className="space-y-2"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="TEAM" id="visibility-team" />
+                      <Label htmlFor="visibility-team">{tCommon('visibility.team')}</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="PUBLIC" id="visibility-public" />
+                      <Label htmlFor="visibility-public">{tCommon('visibility.public')}</Label>
+                    </div>
+                  </RadioGroup>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
+
+        {/* Status */}
+        <FormField
+          control={form.control}
+          name="status"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{tCommon('form.status')}</FormLabel>
+              <FormControl>
+                <RadioGroup
+                  value={field.value}
+                  onValueChange={field.onChange}
+                  className="space-y-2"
+                >
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="DRAFT" id="status-draft" />
+                    <Label htmlFor="status-draft">{tCommon('status.DRAFT')}</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="PUBLISHED" id="status-published" />
+                    <Label htmlFor="status-published">{tCommon('status.PUBLISHED')}</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="CANCELLED" id="status-cancelled" />
+                    <Label htmlFor="status-cancelled">{tCommon('status.CANCELLED')}</Label>
+                  </div>
+                </RadioGroup>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Groups */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <Label>{tRides('create.form.groups.label')}</Label>
+            <Button
+              type="button"
+              variant="link"
+              size="sm"
+              className="h-auto p-0"
+              onClick={handleAddGroup}
+            >
+              {tCommon('groups.add')}
+            </Button>
+          </div>
+          <div className="space-y-3">
+            {groupFieldArray.map((field, index) => {
+              const group = groups?.[index]
+              if (!group) return null
+
+              return (
+                <div key={field.id} className={`border rounded-lg p-4 border-border`}>
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <ReorderControls
+                        index={index}
+                        total={groupFieldArray.length}
+                        onMove={(dir) => handleMoveGroup(index, dir)}
+                      />
+                      <span className="text-sm font-medium">
+                        {group.name ||
+                          tRides('create.form.groups.defaultName', { number: index + 1 })}
+                      </span>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="link"
+                      size="sm"
+                      className="h-auto p-0 text-destructive"
+                      onClick={() => handleRemoveGroup(index)}
+                    >
+                      {tRides('create.form.groups.remove')}
+                    </Button>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                    <FormField
+                      control={form.control}
+                      name={`groups.${index}.name`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Input
+                              placeholder={tRides('create.form.groups.name.placeholder')}
+                              {...field}
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                    <div className="relative">
+                      <FormField
+                        control={form.control}
+                        name={`groups.${index}.time`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <Input
+                                type="time"
+                                {...field}
+                                value={field.value || ''}
+                                onChange={(e) => field.onChange(e.target.value || undefined)}
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                      {group.time && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="absolute right-8 top-1/2 -translate-y-1/2 size-6"
+                          onClick={() => form.setValue(`groups.${index}.time`, undefined)}
+                        >
+                          <XMarkIcon className="size-4" />
+                        </Button>
+                      )}
+                    </div>
+                    <FormField
+                      control={form.control}
+                      name={`groups.${index}.averageSpeed`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              placeholder={tRides('create.form.groups.speed.placeholder')}
+                              min={0}
+                              {...field}
+                              value={field.value ?? ''}
+                              onChange={(e) =>
+                                field.onChange(e.target.value ? Number(e.target.value) : undefined)
+                              }
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name={`groups.${index}.maxParticipants`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              placeholder={tRides('create.form.groups.maxParticipants.placeholder')}
+                              min={1}
+                              {...field}
+                              value={field.value ?? ''}
+                              onChange={(e) =>
+                                field.onChange(e.target.value ? Number(e.target.value) : undefined)
+                              }
+                            />
+                          </FormControl>
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
+              )
+            })}
+            {groupFieldArray.length === 0 && (
+              <p className="text-sm text-muted-foreground italic">
+                {tRides('create.form.groups.empty')}
+              </p>
+            )}
+          </div>
+          <p className="text-sm text-muted-foreground">{tRides('create.form.groups.hint')}</p>
+        </div>
+
+        {/* Actions */}
+        <div className="pt-4 flex items-center justify-end gap-3">
+          <Button type="button" variant="outline" onClick={onCancel} disabled={isPending}>
+            {tCommon('actions.cancelAction')}
+          </Button>
+          <Button type="submit" disabled={isPending || !form.formState.isValid}>
+            {isPending ? (
+              <>
+                <LoadingSpinner size="sm" color="white" className="mr-2" />
+                {tCommon('status.saving')}
+              </>
+            ) : (
+              submitButtonText || tCommon('actions.save')
+            )}
+          </Button>
+        </div>
+      </form>
+    </Form>
   )
 }

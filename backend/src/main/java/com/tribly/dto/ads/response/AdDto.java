@@ -12,72 +12,28 @@ import com.tribly.infrastructure.id.TsidUtils;
 import com.tribly.service.asset.AssetService;
 import java.math.BigDecimal;
 import java.time.Instant;
-import lombok.Getter;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.jspecify.annotations.Nullable;
 
 @Schema(description = "Ad data")
 @ValidateSchema
-@Getter
-public class AdDto {
-
-  @Schema(description = "Team", required = true)
-  final TeamPublicationDto team;
-
-  @Schema(description = "Ad ID (TSID)", required = true)
-  final String id;
-
-  @Schema(description = "Ad URL slug", required = true)
-  final String slug;
-
-  @Schema(description = "Ad name", required = true)
-  final String name;
-
-  @Schema(description = "Ad media", required = true)
-  final MediaDto media;
-
-  @Schema(description = "Ad date/time", required = true)
-  final Instant dateTime;
-
-  @Schema(description = "Ad status", required = true)
-  final Status status;
-
-  @Schema(description = "Visibility level", required = true)
-  final Visibility visibility;
-
-  @Schema(description = "Ad type", required = true)
-  final AdType adType;
-
-  @Nullable
-  @Schema(description = "Price")
-  final BigDecimal price;
-
-  @Nullable
-  @Schema(description = "Rental period")
-  final RentalPeriod rentalPeriod;
-
-  @Nullable
-  @Schema(description = "Latitude")
-  final Double latitude;
-
-  @Nullable
-  @Schema(description = "Longitude")
-  final Double longitude;
-
-  @Nullable
-  @Schema(description = "Location description")
-  final String locationDescription;
-
-  @Nullable
-  @Schema(description = "Publication timestamp")
-  final Instant publishAt;
-
-  @Nullable
-  @Schema(description = "Creation timestamp")
-  final Instant createdAt;
-
-  @Schema(description = "Creator ID (TSID)", required = true)
-  final String createdById;
+public record AdDto(
+    @Schema(description = "Team", required = true) TeamPublicationDto team,
+    @Schema(description = "Ad ID (TSID)", required = true) String id,
+    @Schema(description = "Ad URL slug", required = true) String slug,
+    @Schema(description = "Ad name", required = true) String name,
+    @Schema(description = "Ad media", required = true) MediaDto media,
+    @Schema(description = "Ad status", required = true) Status status,
+    @Schema(description = "Visibility level", required = true) Visibility visibility,
+    @Schema(description = "Ad type", required = true) AdType adType,
+    @Schema(description = "Price") @Nullable BigDecimal price,
+    @Schema(description = "Rental period") @Nullable RentalPeriod rentalPeriod,
+    @Schema(description = "Latitude") @Nullable Double latitude,
+    @Schema(description = "Longitude") @Nullable Double longitude,
+    @Schema(description = "Location description") @Nullable String locationDescription,
+    @Schema(description = "Creation timestamp", required = true) Instant createdAt,
+    @Schema(description = "Creation timestamp", required = true) Instant updatedAt,
+    @Schema(description = "Creator ID (TSID)", required = true) String createdById) {
 
   public AdDto(
       TeamPublicationDto team,
@@ -85,7 +41,6 @@ public class AdDto {
       String slug,
       String name,
       MediaDto media,
-      Instant dateTime,
       Status status,
       Visibility visibility,
       AdType adType,
@@ -94,15 +49,14 @@ public class AdDto {
       @Nullable Double latitude,
       @Nullable Double longitude,
       @Nullable String locationDescription,
-      @Nullable Instant publishAt,
-      @Nullable Instant createdAt,
+      Instant createdAt,
+      Instant updatedAt,
       String createdById) {
     this.team = team;
     this.id = id;
     this.slug = slug;
     this.name = name;
     this.media = media;
-    this.dateTime = dateTime;
     this.status = status;
     this.visibility = visibility;
     this.adType = adType;
@@ -111,8 +65,8 @@ public class AdDto {
     this.latitude = latitude;
     this.longitude = longitude;
     this.locationDescription = locationDescription;
-    this.publishAt = publishAt;
     this.createdAt = createdAt;
+    this.updatedAt = updatedAt;
     this.createdById = createdById;
   }
 
@@ -123,7 +77,6 @@ public class AdDto {
         ad.getSlug(),
         ad.getName(),
         MediaDto.from(ad, assetService),
-        ad.getDateTime(),
         ad.getStatus(),
         ad.getVisibility(),
         ad.getAdType(),
@@ -132,8 +85,8 @@ public class AdDto {
         ad.getLatitude(),
         ad.getLongitude(),
         ad.getLocationDescription(),
-        ad.getPublishAt(),
         ad.getCreatedAt(),
+        ad.getUpdatedAt(),
         TsidUtils.toString(ad.getCreatedBy().getId()));
   }
 }

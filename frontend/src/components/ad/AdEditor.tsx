@@ -77,12 +77,8 @@ export function AdEditor({
   const form = useForm<AdRequest>({
     resolver: zodResolver(adSchema),
     mode: 'onChange',
+    defaultValues: initialValues,
   })
-
-  // Sync form values when initial props change (for edit mode)
-  useEffect(() => {
-    form.reset(initialValues)
-  }, [initialValues, form])
 
   const adType = useWatch({ control: form.control, name: 'adType' })
 
@@ -237,54 +233,6 @@ export function AdEditor({
             </FormItem>
           )}
         />
-
-        {/* Coordinates (optional) */}
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="latitude"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{tCommon('form.latitude')}</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    step="any"
-                    placeholder="48.8566"
-                    {...field}
-                    value={field.value ?? ''}
-                    onChange={(e) =>
-                      field.onChange(e.target.value ? Number(e.target.value) : undefined)
-                    }
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="longitude"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{tCommon('form.longitude')}</FormLabel>
-                <FormControl>
-                  <Input
-                    type="number"
-                    step="any"
-                    placeholder="2.3522"
-                    {...field}
-                    value={field.value ?? ''}
-                    onChange={(e) =>
-                      field.onChange(e.target.value ? Number(e.target.value) : undefined)
-                    }
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
 
         {/* Visibility */}
         {team.visibility !== 'TEAM' && (

@@ -10,7 +10,12 @@
  * Place create/update request
  */
 export interface PlaceRequest {
-  /** Place name */
+  /**
+   * Place name
+   * @minLength 3
+   * @maxLength 200
+   * @pattern \S
+   */
   name: string
   /** Address */
   address?: string

@@ -6,7 +6,6 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { MediaDto } from './mediaDto'
-import type { Instant } from './instant'
 import type { Status } from './status'
 import type { Visibility } from './visibility'
 import type { AdType } from './adType'
@@ -25,8 +24,6 @@ export interface AdRequest {
   name: string
   /** Ad description */
   media: MediaDto
-  /** Ad date/time */
-  dateTime: Instant
   /** Ad status */
   status: Status
   /** Visibility level */
@@ -37,15 +34,9 @@ export interface AdRequest {
   price?: number
   /** Rental period (required for RENTAL type) */
   rentalPeriod?: RentalPeriod
-  /** Latitude */
-  latitude?: number
-  /** Longitude */
-  longitude?: number
   /**
    * Location description
    * @maxLength 255
    */
   locationDescription?: string
-  /** Publication timestamp (for scheduled publishing) */
-  publishAt?: Instant
 }

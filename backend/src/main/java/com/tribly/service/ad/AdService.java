@@ -108,14 +108,11 @@ public class AdService extends TeamEntityService {
             request.name(), s -> adRepository.existsByTeamAndSlug(team.getId(), s));
 
     Ad ad =
-        new Ad(
-            creator, team, request.dateTime(), request.name(), slug, visibility, request.adType());
+        new Ad(creator, team, Instant.now(), request.name(), slug, visibility, request.adType());
     ad.setStatus(request.status());
-    ad.setPublishAt(request.publishAt());
+    ad.setPublishAt(null);
     ad.setPrice(request.price());
     ad.setRentalPeriod(request.rentalPeriod());
-    ad.setLatitude(request.latitude());
-    ad.setLongitude(request.longitude());
     ad.setLocationDescription(request.locationDescription());
 
     adRepository.persistAndFlush(ad);
@@ -148,14 +145,10 @@ public class AdService extends TeamEntityService {
 
     ad.setVisibility(request.visibility());
     ad.setName(request.name());
-    ad.setDateTime(request.dateTime());
     ad.setStatus(request.status());
-    ad.setPublishAt(request.publishAt());
     ad.setAdType(request.adType());
     ad.setPrice(request.price());
     ad.setRentalPeriod(request.rentalPeriod());
-    ad.setLatitude(request.latitude());
-    ad.setLongitude(request.longitude());
     ad.setLocationDescription(request.locationDescription());
 
     updateMedia(ad, request.media());

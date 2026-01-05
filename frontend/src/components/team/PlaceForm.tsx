@@ -24,7 +24,6 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
-import { useEffect } from 'react'
 
 const placeSchema = createPlaceBody
 
@@ -46,12 +45,8 @@ export function PlaceForm({ teamSlug, place, onClose }: PlaceFormProps) {
   const form = useForm<PlaceRequest>({
     resolver: zodResolver(placeSchema),
     mode: 'onChange',
+    defaultValues: place,
   })
-
-  // Sync form values when initial props change (for edit mode)
-  useEffect(() => {
-    form.reset(place)
-  }, [place, form])
 
   const handleSubmit = (values: PlaceRequest) => {
     const data = values

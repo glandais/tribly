@@ -105,7 +105,7 @@ public class AdResource extends AbstractAuthenticatedResource {
 
     AdDto ad = adService.createAd(slug, request, userId);
 
-    return Response.created(URI.create("/api/teams/" + slug + "/ads/" + ad.getSlug()))
+    return Response.created(URI.create("/api/teams/" + slug + "/ads/" + ad.slug()))
         .entity(ad)
         .build();
   }

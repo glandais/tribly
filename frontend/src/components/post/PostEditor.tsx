@@ -71,12 +71,8 @@ export function PostEditor({
   const form = useForm<PostRequest>({
     resolver: zodResolver(postSchema),
     mode: 'onChange',
+    defaultValues: initialValues,
   })
-
-  // Sync form values when initial props change (for edit mode)
-  useEffect(() => {
-    form.reset(initialValues)
-  }, [initialValues, form])
 
   const status = useWatch({ control: form.control, name: 'status' })
 

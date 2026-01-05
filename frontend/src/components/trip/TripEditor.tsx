@@ -93,12 +93,8 @@ export function TripEditor({
   const form = useForm<TripRequest>({
     resolver: zodResolver(tripSchema),
     mode: 'onChange',
+    defaultValues: initialValues,
   })
-
-  // Sync form values when initial props change (for edit mode)
-  useEffect(() => {
-    form.reset(initialValues)
-  }, [initialValues, form])
 
   const {
     fields: stageFieldArray,

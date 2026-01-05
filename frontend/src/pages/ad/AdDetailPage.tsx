@@ -98,7 +98,7 @@ export function AdDetailPage() {
   // For now, backend handles authorization, frontend shows edit for all members
   const canEdit = isAdmin || !!team?.role
 
-  const formattedDate = formatDateTime(ad.dateTime)
+  const formattedDate = formatDateTime(ad.createdAt)
 
   const formatPrice = (price: number | undefined, adType: AdType, rentalPeriod?: RentalPeriod) => {
     if (price === undefined || price === null) {

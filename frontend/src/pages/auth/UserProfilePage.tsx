@@ -46,6 +46,7 @@ export function UserProfilePage() {
   const form = useForm<UpdateUserRequest>({
     resolver: zodResolver(profileSchema),
     mode: 'onChange',
+    defaultValues: user || { displayName: '' },
   })
 
   if (isLoading || !user) {

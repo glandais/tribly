@@ -175,7 +175,6 @@ export const listAdsResponse = zod
                   .optional(),
               }),
             }),
-            dateTime: zod.iso.datetime({}),
             status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']),
             visibility: zod.enum(['TEAM', 'PUBLIC']),
             adType: zod.enum(['SALE', 'RENTAL', 'WANTED']),
@@ -184,8 +183,8 @@ export const listAdsResponse = zod
             latitude: zod.number().optional().describe('Latitude'),
             longitude: zod.number().optional().describe('Longitude'),
             locationDescription: zod.string().optional().describe('Location description'),
-            publishAt: zod.iso.datetime({}).optional(),
-            createdAt: zod.iso.datetime({}).optional(),
+            createdAt: zod.iso.datetime({}),
+            updatedAt: zod.iso.datetime({}),
             createdById: zod.string().describe('Creator ID (TSID)'),
           })
           .describe('Ad data')
@@ -350,20 +349,16 @@ export const createAdBody = zod
           .optional(),
       }),
     }),
-    dateTime: zod.iso.datetime({}),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']),
     visibility: zod.enum(['TEAM', 'PUBLIC']),
     adType: zod.enum(['SALE', 'RENTAL', 'WANTED']),
     price: zod.number().optional().describe("Price (optional, null for 'contact for price')"),
     rentalPeriod: zod.enum(['DAY', 'WEEK', 'MONTH']).optional(),
-    latitude: zod.number().optional().describe('Latitude'),
-    longitude: zod.number().optional().describe('Longitude'),
     locationDescription: zod
       .string()
       .max(createAdBodyLocationDescriptionMax)
       .optional()
       .describe('Location description'),
-    publishAt: zod.iso.datetime({}).optional(),
   })
   .describe('Ad request')
 
@@ -521,20 +516,16 @@ export const updateAdBody = zod
           .optional(),
       }),
     }),
-    dateTime: zod.iso.datetime({}),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']),
     visibility: zod.enum(['TEAM', 'PUBLIC']),
     adType: zod.enum(['SALE', 'RENTAL', 'WANTED']),
     price: zod.number().optional().describe("Price (optional, null for 'contact for price')"),
     rentalPeriod: zod.enum(['DAY', 'WEEK', 'MONTH']).optional(),
-    latitude: zod.number().optional().describe('Latitude'),
-    longitude: zod.number().optional().describe('Longitude'),
     locationDescription: zod
       .string()
       .max(updateAdBodyLocationDescriptionMax)
       .optional()
       .describe('Location description'),
-    publishAt: zod.iso.datetime({}).optional(),
   })
   .describe('Ad request')
 
@@ -682,7 +673,6 @@ export const updateAdResponse = zod
           .optional(),
       }),
     }),
-    dateTime: zod.iso.datetime({}),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']),
     visibility: zod.enum(['TEAM', 'PUBLIC']),
     adType: zod.enum(['SALE', 'RENTAL', 'WANTED']),
@@ -691,8 +681,8 @@ export const updateAdResponse = zod
     latitude: zod.number().optional().describe('Latitude'),
     longitude: zod.number().optional().describe('Longitude'),
     locationDescription: zod.string().optional().describe('Location description'),
-    publishAt: zod.iso.datetime({}).optional(),
-    createdAt: zod.iso.datetime({}).optional(),
+    createdAt: zod.iso.datetime({}),
+    updatedAt: zod.iso.datetime({}),
     createdById: zod.string().describe('Creator ID (TSID)'),
   })
   .describe('Ad data')
@@ -850,7 +840,6 @@ export const getAdResponse = zod
           .optional(),
       }),
     }),
-    dateTime: zod.iso.datetime({}),
     status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']),
     visibility: zod.enum(['TEAM', 'PUBLIC']),
     adType: zod.enum(['SALE', 'RENTAL', 'WANTED']),
@@ -859,8 +848,8 @@ export const getAdResponse = zod
     latitude: zod.number().optional().describe('Latitude'),
     longitude: zod.number().optional().describe('Longitude'),
     locationDescription: zod.string().optional().describe('Location description'),
-    publishAt: zod.iso.datetime({}).optional(),
-    createdAt: zod.iso.datetime({}).optional(),
+    createdAt: zod.iso.datetime({}),
+    updatedAt: zod.iso.datetime({}),
     createdById: zod.string().describe('Creator ID (TSID)'),
   })
   .describe('Ad data')

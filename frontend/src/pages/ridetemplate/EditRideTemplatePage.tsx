@@ -76,12 +76,12 @@ export function EditRideTemplatePage() {
       },
       {
         onSuccess: () => {
+          navigate(paths.rideTemplates(teamSlug!))
           queryClient.invalidateQueries({
             queryKey: getGetTemplateQueryKey(teamSlug!, templateSlug!),
           })
           queryClient.invalidateQueries({ queryKey: getListTemplatesQueryKey(teamSlug!) })
           toast.success(i18next.t('rideTemplates:notifications.updated'))
-          navigate(paths.rideTemplates(teamSlug!))
         },
       }
     )

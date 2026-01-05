@@ -1,4 +1,3 @@
-import { useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -64,12 +63,8 @@ export function TeamForm({ teamSlug, initialValues, onSuccess, create }: TeamFor
   const form = useForm<TeamRequest>({
     resolver: zodResolver(teamSchema),
     mode: 'onChange',
+    defaultValues: initialValues,
   })
-
-  // Sync form values when initial props change (for edit mode)
-  useEffect(() => {
-    form.reset(initialValues)
-  }, [initialValues, form])
 
   const handleSubmit = (values: TeamRequest) => {
     if (create) {

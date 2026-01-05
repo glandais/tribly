@@ -58,9 +58,19 @@ export const createPlaceParams = zod.object({
   slug: zod.string().describe('Team URL slug'),
 })
 
+export const createPlaceBodyNameMin = 3
+export const createPlaceBodyNameMax = 200
+
+export const createPlaceBodyNameRegExp = new RegExp('\\S')
+
 export const createPlaceBody = zod
   .object({
-    name: zod.string().describe('Place name'),
+    name: zod
+      .string()
+      .min(createPlaceBodyNameMin)
+      .max(createPlaceBodyNameMax)
+      .regex(createPlaceBodyNameRegExp)
+      .describe('Place name'),
     address: zod.string().optional().describe('Address'),
     link: zod.string().optional().describe('External link (e.g., Google Maps URL)'),
     startPlace: zod.boolean().describe('Can be used as ride start point'),
@@ -81,9 +91,19 @@ export const updatePlaceParams = zod.object({
   slug: zod.string().describe('Team URL slug'),
 })
 
+export const updatePlaceBodyNameMin = 3
+export const updatePlaceBodyNameMax = 200
+
+export const updatePlaceBodyNameRegExp = new RegExp('\\S')
+
 export const updatePlaceBody = zod
   .object({
-    name: zod.string().describe('Place name'),
+    name: zod
+      .string()
+      .min(updatePlaceBodyNameMin)
+      .max(updatePlaceBodyNameMax)
+      .regex(updatePlaceBodyNameRegExp)
+      .describe('Place name'),
     address: zod.string().optional().describe('Address'),
     link: zod.string().optional().describe('External link (e.g., Google Maps URL)'),
     startPlace: zod.boolean().describe('Can be used as ride start point'),

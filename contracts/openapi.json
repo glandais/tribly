@@ -5,7 +5,7 @@
       "AdDto" : {
         "description" : "Ad data",
         "type" : "object",
-        "required" : [ "team", "id", "slug", "name", "media", "dateTime", "status", "visibility", "adType", "createdById" ],
+        "required" : [ "team", "id", "slug", "name", "media", "status", "visibility", "adType", "createdAt", "updatedAt", "createdById" ],
         "properties" : {
           "team" : {
             "description" : "Team",
@@ -28,11 +28,6 @@
             "description" : "Ad media",
             "type" : "object",
             "$ref" : "#/components/schemas/MediaDto"
-          },
-          "dateTime" : {
-            "description" : "Ad date/time",
-            "type" : "string",
-            "$ref" : "#/components/schemas/Instant"
           },
           "status" : {
             "description" : "Ad status",
@@ -72,12 +67,12 @@
             "type" : "string",
             "description" : "Location description"
           },
-          "publishAt" : {
-            "description" : "Publication timestamp",
+          "createdAt" : {
+            "description" : "Creation timestamp",
             "type" : "string",
             "$ref" : "#/components/schemas/Instant"
           },
-          "createdAt" : {
+          "updatedAt" : {
             "description" : "Creation timestamp",
             "type" : "string",
             "$ref" : "#/components/schemas/Instant"
@@ -120,7 +115,7 @@
       "AdRequest" : {
         "description" : "Ad request",
         "type" : "object",
-        "required" : [ "name", "media", "dateTime", "status", "visibility", "adType" ],
+        "required" : [ "name", "media", "status", "visibility", "adType" ],
         "properties" : {
           "name" : {
             "type" : "string",
@@ -133,11 +128,6 @@
             "description" : "Ad description",
             "type" : "object",
             "$ref" : "#/components/schemas/MediaDto"
-          },
-          "dateTime" : {
-            "description" : "Ad date/time",
-            "type" : "string",
-            "$ref" : "#/components/schemas/Instant"
           },
           "status" : {
             "description" : "Ad status",
@@ -163,25 +153,10 @@
             "type" : "string",
             "$ref" : "#/components/schemas/RentalPeriod"
           },
-          "latitude" : {
-            "type" : "number",
-            "format" : "double",
-            "description" : "Latitude"
-          },
-          "longitude" : {
-            "type" : "number",
-            "format" : "double",
-            "description" : "Longitude"
-          },
           "locationDescription" : {
             "type" : "string",
             "description" : "Location description",
             "maxLength" : 255
-          },
-          "publishAt" : {
-            "description" : "Publication timestamp (for scheduled publishing)",
-            "type" : "string",
-            "$ref" : "#/components/schemas/Instant"
           }
         }
       },
@@ -771,7 +746,10 @@
         "properties" : {
           "name" : {
             "type" : "string",
-            "description" : "Place name"
+            "description" : "Place name",
+            "pattern" : "\\S",
+            "minLength" : 3,
+            "maxLength" : 200
           },
           "address" : {
             "type" : "string",

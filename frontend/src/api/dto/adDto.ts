@@ -7,11 +7,11 @@
  */
 import type { TeamPublicationDto } from './teamPublicationDto'
 import type { MediaDto } from './mediaDto'
-import type { Instant } from './instant'
 import type { Status } from './status'
 import type { Visibility } from './visibility'
 import type { AdType } from './adType'
 import type { RentalPeriod } from './rentalPeriod'
+import type { Instant } from './instant'
 
 /**
  * Ad data
@@ -27,8 +27,6 @@ export interface AdDto {
   name: string
   /** Ad media */
   media: MediaDto
-  /** Ad date/time */
-  dateTime: Instant
   /** Ad status */
   status: Status
   /** Visibility level */
@@ -45,10 +43,10 @@ export interface AdDto {
   longitude?: number
   /** Location description */
   locationDescription?: string
-  /** Publication timestamp */
-  publishAt?: Instant
   /** Creation timestamp */
-  createdAt?: Instant
+  createdAt: Instant
+  /** Creation timestamp */
+  updatedAt: Instant
   /** Creator ID (TSID) */
   createdById: string
 }

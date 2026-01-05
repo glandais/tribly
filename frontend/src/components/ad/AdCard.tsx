@@ -38,7 +38,7 @@ export function AdCard({ ad, showTeam = false }: AdCardProps) {
   const { t: tCommon } = useTranslation('common')
   const { formatDateTime } = useFormattedDate()
 
-  const formattedDate = formatDateTime(ad.dateTime)
+  const formattedDate = formatDateTime(ad.createdAt)
 
   const formatPrice = (price: number | undefined, adType: AdType, rentalPeriod?: RentalPeriod) => {
     if (price === undefined || price === null) {

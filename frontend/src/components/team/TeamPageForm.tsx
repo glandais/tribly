@@ -1,4 +1,3 @@
-import { useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -66,12 +65,8 @@ export function TeamPageForm({
   const form = useForm<TeamPageRequest>({
     resolver: zodResolver(teamPageSchema),
     mode: 'onChange',
+    defaultValues: initialValues,
   })
-
-  // Sync form values when initial props change (for edit mode)
-  useEffect(() => {
-    form.reset(initialValues)
-  }, [initialValues, form])
 
   const handleSubmit = (values: TeamPageRequest) => {
     if (isCreate) {
