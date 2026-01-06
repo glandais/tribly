@@ -31,9 +31,9 @@ public class CommentService {
   @Inject TeamSecurityService securityService;
 
   @Transactional
-  public CommentListResponse listComments(String teamSlug, Long teamEntityId, Long userId) {
+  public CommentListResponse listComments(Team team, Long teamEntityId, User user) {
     // Verify team membership
-    securityService.requireMembership(userId, teamSlug);
+    securityService.requireMembership(user, team);
 
     List<Comment> allComments = commentRepository.findByTeamEntityId(teamEntityId);
 
@@ -60,16 +60,11 @@ public class CommentService {
   }
 
   @Transactional
-  public CommentDto createComment(
-      String teamSlug, TeamEntity teamEntity, CommentRequest request, Long userId) {
-    // Verify team membership
-    securityService.requireMembership(userId, teamSlug);
-
+  public CommentDto createComment(TeamEntity teamEntity, CommentRequest request, User author) {
     Team team = teamEntity.getTeam();
-    User author =
-        userRepository
-            .findActiveById(userId)
-            .orElseThrow(() -> BusinessException.notFound("User", userId));
+
+    // Verify team membership
+    securityService.requireMembership(author, team);
 
     Comment parent = null;
     if (request.parentId() != null) {
@@ -97,21 +92,21 @@ public class CommentService {
 
     commentRepository.persistAndFlush(comment);
 
-    LOG.infov("Comment created by user {0} on entity {1}", userId, teamEntity.getId());
+    LOG.infov("Comment created by user {0} on entity {1}", author.getId(), teamEntity.getId());
 
     return CommentDto.from(comment, List.of());
   }
 
   @Transactional
-  public void deleteComment(String teamSlug, Long commentId, Long userId) {
+  public void deleteComment(Team team, Long commentId, User user) {
     Comment comment =
         commentRepository
             .findByIdNotDeleted(commentId)
             .orElseThrow(() -> BusinessException.notFound("Comment", commentId));
 
     // Check authorization: author can delete own, organizer/admin can delete any
-    UserTeam membership = securityService.requireMembership(userId, teamSlug);
-    boolean isAuthor = comment.getCreatedBy().getId().equals(userId);
+    UserTeam membership = securityService.requireMembership(user, team);
+    boolean isAuthor = comment.getCreatedBy().getId().equals(user.getId());
     boolean isOrganizerOrAdmin = membership.isOrganizer();
 
     if (!isAuthor && !isOrganizerOrAdmin) {
@@ -127,6 +122,6 @@ public class CommentService {
 
     LOG.infov(
         "Comment {0} deleted by user {1} (cascade deleted {2} replies)",
-        commentId, userId, deletedReplies);
+        commentId, user.getId(), deletedReplies);
   }
 }

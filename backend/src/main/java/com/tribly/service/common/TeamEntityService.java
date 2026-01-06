@@ -1,11 +1,9 @@
 package com.tribly.service.common;
 
-import com.tribly.domain.common.BaseEntity;
 import com.tribly.domain.common.TeamEntity;
 import com.tribly.domain.common.TeamEntitySlugRedirect;
 import com.tribly.domain.team.Team;
-import com.tribly.domain.team.repository.TeamRepository;
-import com.tribly.domain.user.repository.UserRepository;
+import com.tribly.domain.user.User;
 import com.tribly.dto.common.request.WithVisibility;
 import com.tribly.dto.common.response.MediaDto;
 import com.tribly.enums.EntityType;
@@ -21,10 +19,6 @@ import org.jspecify.annotations.Nullable;
 public abstract class TeamEntityService<T extends TeamEntity> {
 
   @Inject protected TeamSecurityService securityService;
-
-  @Inject protected TeamRepository teamRepository;
-
-  @Inject protected UserRepository userRepository;
 
   @Inject protected AssetService assetService;
 
@@ -43,34 +37,24 @@ public abstract class TeamEntityService<T extends TeamEntity> {
     }
   }
 
-  protected abstract T getWithoutRedirect(
-      String teamSlug, String entitySlug, @Nullable Long userId);
+  protected abstract T getBySlug(Team team, String entitySlug, @Nullable User user);
 
   protected abstract EntityType getEntityType();
 
   protected abstract Optional<T> findByIdOptional(Long entityId);
 
-  public final T get(
-      String teamSlug, String entitySlug, @Nullable Long userId, boolean throwRedirect) {
+  public final T get(Team team, String entitySlug, @Nullable User user) {
     try {
-      return getWithoutRedirect(teamSlug, entitySlug, userId);
+      return getBySlug(team, entitySlug, user);
     } catch (NotFoundException e) {
       // Check for redirect if not found
-      Long teamId = teamRepository.findBySlug(teamSlug).map(BaseEntity::getId).orElse(null);
-      if (teamId != null) {
-        Optional<TeamEntitySlugRedirect> redirect =
-            slugService.resolveEntityRedirect(teamId, getEntityType(), entitySlug);
-        if (redirect.isPresent()) {
-          String newSlug = getNewSlug(redirect.get());
-          if (newSlug != null) {
-            // recheck ad access
-            T entity = getWithoutRedirect(teamSlug, newSlug, userId);
-            if (throwRedirect) {
-              throw BusinessException.newSlug(entitySlug, entity.getTeam().getSlug(), entity.getSlug());
-            } else {
-              return entity;
-            }
-          }
+      Optional<TeamEntitySlugRedirect> redirect =
+          slugService.resolveEntityRedirect(team.getId(), getEntityType(), entitySlug);
+      if (redirect.isPresent()) {
+        String newSlug = getNewSlug(redirect.get());
+        if (newSlug != null) {
+          // recheck ad access
+          return getBySlug(team, newSlug, user);
         }
       }
       throw e;

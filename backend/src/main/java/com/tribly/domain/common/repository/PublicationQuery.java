@@ -10,7 +10,7 @@ import org.jspecify.annotations.Nullable;
 public record PublicationQuery(
     @Nullable PublicationType type,
     @Nullable Long userId,
-    @Nullable Set<String> teamSlugs,
+    @Nullable Set<Long> teamIds,
     @Nullable Long id,
     @Nullable String slug,
     @Nullable String search,

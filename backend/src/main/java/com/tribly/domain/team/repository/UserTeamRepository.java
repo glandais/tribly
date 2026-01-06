@@ -12,32 +12,32 @@ import java.util.Optional;
 @ApplicationScoped
 public class UserTeamRepository implements BaseRepository<UserTeam> {
 
-  public Optional<UserTeam> findByUserAndTeamIncludingDeleted(Long userId, String teamSlug) {
-    return find("user.id = ?1 and team.slug = ?2", userId, teamSlug).firstResultOptional();
+  public Optional<UserTeam> findByUserAndTeamIncludingDeleted(Long userId, Long teamId) {
+    return find("user.id = ?1 and team.id = ?2", userId, teamId).firstResultOptional();
   }
 
-  public TriblyPage<UserTeam> findByTeam(String slug, int page, int size) {
+  public TriblyPage<UserTeam> findByTeam(Long teamId, int page, int size) {
     TriblyQuery triblyQuery =
         new TriblyQuery()
-            .and("team.slug = :slug", Map.of("slug", slug))
+            .and("team.id = :teamId", Map.of("teamId", teamId))
             .and("deleted = false", Map.of());
     return getPage(triblyQuery, page, size);
   }
 
-  public long countAdminsByTeam(String slug) {
-    return count("team.slug = ?1 and role = ?2 and deleted = false", slug, TeamRole.ADMIN);
+  public long countAdminsByTeam(Long teamId) {
+    return count("team.id = ?1 and role = ?2 and deleted = false", teamId, TeamRole.ADMIN);
   }
 
-  public Optional<UserTeam> findByUserAndTeam(Long userId, String teamSlug) {
+  public Optional<UserTeam> findByUserAndTeam(Long userId, Long teamId) {
     return getEntityManager()
         .createQuery(
             "SELECT ut FROM UserTeam ut "
                 + "JOIN ut.team t "
-                + "WHERE ut.user.id = :userId AND t.slug = :teamSlug "
+                + "WHERE ut.user.id = :userId AND t.id = :teamId "
                 + "AND ut.deleted = false AND t.deleted = false",
             UserTeam.class)
         .setParameter("userId", userId)
-        .setParameter("teamSlug", teamSlug)
+        .setParameter("teamId", teamId)
         .getResultStream()
         .findFirst();
   }

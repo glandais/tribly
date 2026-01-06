@@ -1,6 +1,8 @@
 package com.tribly.api.publications;
 
 import com.tribly.api.AbstractAuthenticatedResource;
+import com.tribly.domain.team.Team;
+import com.tribly.domain.user.User;
 import com.tribly.dto.error.ErrorResponse;
 import com.tribly.dto.publications.response.PublicationListResponse;
 import com.tribly.dto.publications.response.PublicationType;
@@ -56,13 +58,14 @@ public class TeamPublicationResource extends AbstractAuthenticatedResource {
       @Parameter(description = "Page number") @QueryParam("page") @DefaultValue("0") int page,
       @Parameter(description = "Page size") @QueryParam("size") @DefaultValue("20") int size) {
 
-    Long userId = getCurrentUserIdOrNull();
+    User user = getCurrentUserOrNull();
+    Team team = teamService.getTeam(slug);
 
     Instant from = fromStr != null ? Instant.parse(fromStr) : null;
     Instant to = toStr != null ? Instant.parse(toStr) : null;
 
     PublicationListResponse publications =
-        publicationService.list(type, Set.of(slug), userId, search, from, to, page, size);
+        publicationService.list(type, Set.of(team.getId()), user, search, from, to, page, size);
 
     return Response.ok(publications).build();
   }

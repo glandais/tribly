@@ -33,61 +33,44 @@ public class TeamMembershipService {
 
   @Inject TeamSecurityService securityService;
 
-  public MemberListResponse getTeamMembers(String slug, Long userId, int page, int size) {
+  public MemberListResponse getTeamMembers(Team team, User user, int page, int size) {
     // Security check: only team admins can view member list
-    securityService.requireAdmin(userId, slug);
-    TriblyPage<UserTeam> members = userTeamRepository.findByTeam(slug, page, size);
+    securityService.requireAdmin(user, team);
+    TriblyPage<UserTeam> members = userTeamRepository.findByTeam(team.getId(), page, size);
     List<MemberDto> dtos = members.items().stream().map(MemberDto::from).toList();
     return new MemberListResponse(dtos, members.total(), page, size);
   }
 
   @Transactional
-  public MemberDto joinTeam(String teamSlug, Long userId) {
-    TeamAndRole teamAndRole =
-        teamRepository
-            .findOne(teamSlug, userId)
-            .orElseThrow(() -> BusinessException.notFound("Team", teamSlug));
-
-    User user =
-        userRepository
-            .findActiveById(userId)
-            .orElseThrow(() -> BusinessException.notFound("User", userId));
-
+  public MemberDto joinTeam(Team team, User user) {
     // Security checks
-    securityService.requirePublicTeamForJoin(teamAndRole.team());
+    securityService.requirePublicTeamForJoin(team);
 
-    return doAddMember(user, teamAndRole, TeamRole.MEMBER, user);
+    return doAddMember(user, team, TeamRole.MEMBER, user);
   }
 
   @Transactional
-  public MemberDto addMember(String teamSlug, Long targetUserId, TeamRole role, Long actingUserId) {
+  public MemberDto addMember(Team team, Long targetUserId, TeamRole role, User actingUser) {
     TeamAndRole teamAndRole =
         teamRepository
-            .findOne(teamSlug, actingUserId)
-            .orElseThrow(() -> BusinessException.notFound("Team", teamSlug));
+            .findOne(team.getId(), actingUser.getId())
+            .orElseThrow(() -> BusinessException.notFound("TeamAndRole"));
 
     // Security checks
-    securityService.requireAdmin(actingUserId, teamAndRole.team().getSlug());
+    securityService.requireAdmin(actingUser, team);
 
-    User actingUser =
-        userRepository
-            .findActiveById(actingUserId)
-            .orElseThrow(() -> BusinessException.notFound("User", actingUserId));
     User targetUser =
         userRepository
             .findActiveById(targetUserId)
             .orElseThrow(() -> BusinessException.notFound("User", targetUserId));
 
-    return doAddMember(actingUser, teamAndRole, role, targetUser);
+    return doAddMember(actingUser, team, role, targetUser);
   }
 
-  private MemberDto doAddMember(User creator, TeamAndRole teamAndRole, TeamRole role, User user) {
-    Long userId = user.getId();
-    String teamSlug = teamAndRole.team().getSlug();
-
+  private MemberDto doAddMember(User creator, Team team, TeamRole role, User user) {
     // Check for existing membership (including soft-deleted)
     Optional<UserTeam> existingMembership =
-        userTeamRepository.findByUserAndTeamIncludingDeleted(userId, teamSlug);
+        userTeamRepository.findByUserAndTeamIncludingDeleted(user.getId(), team.getId());
 
     if (existingMembership.isPresent()) {
       UserTeam membership = existingMembership.get();
@@ -99,60 +82,65 @@ public class TeamMembershipService {
       membership.setRole(role);
       membership.setJoinedAt(Instant.now());
       userTeamRepository.persist(membership);
-      LOG.infov("User {0} rejoined team {1}", userId, teamSlug);
+      LOG.infov("User {0} rejoined team {1}", user.getId(), team.getId());
       return MemberDto.from(membership);
     }
 
     // Create new membership
-    UserTeam membership = new UserTeam(creator, user, teamAndRole.team(), role);
+    UserTeam membership = new UserTeam(creator, user, team, role);
     userTeamRepository.persist(membership);
 
-    LOG.infov("User {0} joined team {1}", userId, teamSlug);
+    LOG.infov("User {0} joined team {1}", user.getId(), team.getId());
     return MemberDto.from(membership);
   }
 
   @Transactional
   public MemberDto updateMemberRole(
-      String teamSlug, Long targetUserId, TeamRole newRole, Long actingUserId) {
+      Team team, Long targetUserId, TeamRole newRole, User actingUser) {
     // Security checks
-    securityService.requireAdmin(actingUserId, teamSlug);
+    securityService.requireAdmin(actingUser, team);
 
     UserTeam targetMembership =
         userTeamRepository
-            .findByUserAndTeam(targetUserId, teamSlug)
+            .findByUserAndTeam(targetUserId, team.getId())
             .orElseThrow(() -> BusinessException.notFound("Membership not found"));
 
-    securityService.requireNotLastAdminDemotion(teamSlug, targetMembership, newRole);
+    securityService.requireNotLastAdminDemotion(team, targetMembership, newRole);
 
     targetMembership.setRole(newRole);
     userTeamRepository.persist(targetMembership);
 
     LOG.infov(
         "User {0} role updated to {1} in team {2} by user {3}",
-        targetUserId, newRole, teamSlug, actingUserId);
+        targetUserId, newRole, team.getId(), actingUser);
     return MemberDto.from(targetMembership);
   }
 
   @Transactional
-  public void removeMember(String teamSlug, Long targetUserId, Long actingUserId) {
+  public void removeMember(Team team, Long targetUserId, User actingUser) {
+    User targetUser =
+        userRepository
+            .findActiveById(targetUserId)
+            .orElseThrow(() -> BusinessException.notFound("User", targetUserId));
     // Security checks
-    securityService.requireCanRemoveMember(actingUserId, targetUserId, teamSlug);
+    securityService.requireCanRemoveMember(actingUser, targetUser, team);
 
     UserTeam targetMembership =
         userTeamRepository
-            .findByUserAndTeam(targetUserId, teamSlug)
+            .findByUserAndTeam(targetUser.getId(), team.getId())
             .orElseThrow(() -> BusinessException.notFound("Membership not found"));
 
-    securityService.requireNotLastAdmin(teamSlug, targetMembership);
+    securityService.requireNotLastAdmin(team, targetMembership);
 
     targetMembership.setDeleted(true);
     userTeamRepository.persist(targetMembership);
 
-    LOG.infov("User {0} removed from team {1} by user {2}", targetUserId, teamSlug, actingUserId);
+    LOG.infov(
+        "User {0} removed from team {1} by user {2}", targetUser.getId(), team.getId(), actingUser);
   }
 
   @Transactional
-  public void leaveTeam(String teamSlug, Long userId) {
-    removeMember(teamSlug, userId, userId);
+  public void leaveTeam(Team team, User user) {
+    removeMember(team, user.getId(), user);
   }
 }

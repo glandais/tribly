@@ -8,7 +8,7 @@ import org.jspecify.annotations.Nullable;
 @Builder
 public record TeamEntityQueryBasic(
     @Nullable Long userId,
-    @Nullable Set<String> teamSlugs,
+    @Nullable Set<Long> teamIds,
     @Nullable Long id,
     @Nullable String slug,
     @Nullable String search,

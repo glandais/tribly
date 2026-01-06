@@ -1,6 +1,8 @@
 package com.tribly.api.ridetemplates;
 
 import com.tribly.api.AbstractAuthenticatedResource;
+import com.tribly.domain.team.Team;
+import com.tribly.domain.user.User;
 import com.tribly.dto.error.ErrorResponse;
 import com.tribly.dto.ridetemplates.request.RideTemplateRequest;
 import com.tribly.dto.ridetemplates.response.RideTemplateDto;
@@ -59,9 +61,10 @@ public class RideTemplateResource extends AbstractAuthenticatedResource {
       @Parameter(description = "Page number") @QueryParam("page") @DefaultValue("0") int page,
       @Parameter(description = "Page size") @QueryParam("size") @DefaultValue("20") int size) {
 
-    Long userId = getCurrentUserId();
+    User user = getCurrentUser();
+    Team team = teamService.getTeam(slug);
     RideTemplateListResponse templates =
-        templateService.listTemplates(slug, userId, search, page, size);
+        templateService.listTemplates(team, user, search, page, size);
     return Response.ok(templates).build();
   }
 
@@ -91,8 +94,9 @@ public class RideTemplateResource extends AbstractAuthenticatedResource {
       @Parameter(description = "Template URL slug") @PathParam("templateSlug")
           String templateSlug) {
 
-    Long userId = getCurrentUserId();
-    RideTemplateDto template = templateService.getTemplate(slug, templateSlug, userId);
+    User user = getCurrentUser();
+    Team team = teamService.getTeam(slug);
+    RideTemplateDto template = templateService.getTemplate(team, templateSlug, user);
     return Response.ok(template).build();
   }
 
@@ -126,10 +130,13 @@ public class RideTemplateResource extends AbstractAuthenticatedResource {
       @Parameter(description = "Team URL slug") @PathParam("slug") String slug,
       @Valid RideTemplateRequest request) {
 
-    Long userId = getCurrentUserId();
-    RideTemplateDto template = templateService.createTemplate(slug, request, userId);
+    User user = getCurrentUser();
+    Team team = teamService.getTeam(slug);
+    RideTemplateDto template = templateService.createTemplate(team, request, user);
 
-    return Response.created(URI.create("/api/teams/" + slug + "/ride-templates/" + template.slug()))
+    return Response.created(
+            URI.create(
+                "/api/teams/" + template.team().slug() + "/ride-templates/" + template.slug()))
         .entity(template)
         .build();
   }
@@ -166,9 +173,10 @@ public class RideTemplateResource extends AbstractAuthenticatedResource {
       @Parameter(description = "Template URL slug") @PathParam("templateSlug") String templateSlug,
       @Valid RideTemplateRequest request) {
 
-    Long userId = getCurrentUserId();
+    User user = getCurrentUser();
+    Team team = teamService.getTeam(slug);
     RideTemplateDto updatedTemplate =
-        templateService.updateTemplate(slug, templateSlug, request, userId);
+        templateService.updateTemplate(team, templateSlug, request, user);
     return Response.ok(updatedTemplate).build();
   }
 
@@ -197,8 +205,9 @@ public class RideTemplateResource extends AbstractAuthenticatedResource {
       @Parameter(description = "Template URL slug") @PathParam("templateSlug")
           String templateSlug) {
 
-    Long userId = getCurrentUserId();
-    templateService.deleteTemplate(slug, templateSlug, userId);
+    User user = getCurrentUser();
+    Team team = teamService.getTeam(slug);
+    templateService.deleteTemplate(team, templateSlug, user);
     return Response.noContent().build();
   }
 }

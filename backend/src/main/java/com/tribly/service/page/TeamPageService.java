@@ -40,23 +40,21 @@ public class TeamPageService extends TeamEntityService<TeamPage> {
   }
 
   @Override
-  protected TeamPage getWithoutRedirect(String teamSlug, String entitySlug, @Nullable Long userId) {
-    Team team =
-        teamRepository
-            .findBySlug(teamSlug)
-            .orElseThrow(() -> BusinessException.notFound("Team", teamSlug));
-    return teamPageRepository
-        .findByTeamAndSlug(team.getId(), entitySlug)
-        .orElseThrow(() -> BusinessException.notFound("Page", entitySlug));
+  protected TeamPage getBySlug(Team team, String entitySlug, @Nullable User user) {
+    // FIXME Query with security filter
+    TeamPage page =
+        teamPageRepository
+            .findByTeamAndSlug(team.getId(), entitySlug)
+            .orElseThrow(() -> BusinessException.notFound("Page", entitySlug));
+    boolean isMember = securityService.isMember(user, team);
+    if (!canViewPage(page, isMember)) {
+      throw BusinessException.forbidden("Page");
+    }
+    return page;
   }
 
-  public List<TeamPageSummaryDto> listPages(String teamSlug, @Nullable Long userId) {
-    Team team =
-        teamRepository
-            .findBySlug(teamSlug)
-            .orElseThrow(() -> BusinessException.notFound("Team", teamSlug));
-
-    boolean isMember = userId != null && securityService.isMember(userId, team);
+  public List<TeamPageSummaryDto> listPages(Team team, @Nullable User user) {
+    boolean isMember = securityService.isMember(user, team);
 
     return team.getAdditionalPages().stream()
         .filter(page -> canViewPage(page, isMember))
@@ -64,11 +62,11 @@ public class TeamPageService extends TeamEntityService<TeamPage> {
         .toList();
   }
 
-  public TeamPageDto getPage(String teamSlug, String pageSlug, @Nullable Long userId) {
-    TeamPage page = get(teamSlug, pageSlug, userId, true);
+  public TeamPageDto getPage(Team team, String pageSlug, @Nullable User user) {
+    TeamPage page = get(team, pageSlug, user);
 
     // Check visibility
-    boolean isMember = userId != null && securityService.isMember(userId, page.getTeam());
+    boolean isMember = securityService.isMember(user, page.getTeam());
     if (!canViewPage(page, isMember)) {
       throw BusinessException.forbidden("You don't have permission to view this page");
     }
@@ -77,19 +75,9 @@ public class TeamPageService extends TeamEntityService<TeamPage> {
   }
 
   @Transactional
-  public TeamPageDto createPage(String teamSlug, TeamPageRequest request, Long userId) {
-    Team team =
-        teamRepository
-            .findBySlug(teamSlug)
-            .orElseThrow(() -> BusinessException.notFound("Team", teamSlug));
-
-    User creator =
-        userRepository
-            .findActiveById(userId)
-            .orElseThrow(() -> BusinessException.notFound("User", userId));
-
+  public TeamPageDto createPage(Team team, TeamPageRequest request, User creator) {
     // Security check: must be admin to create pages
-    securityService.requireAdmin(userId, teamSlug);
+    securityService.requireAdmin(creator, team);
 
     // Check max pages limit
     long currentCount = teamPageRepository.countAdditionalPages(team.getId());
@@ -115,25 +103,21 @@ public class TeamPageService extends TeamEntityService<TeamPage> {
 
     teamPageRepository.persist(page);
 
-    LOG.infov("Page '{0}' created by user {1} for team {2}", page.getName(), userId, teamSlug);
+    LOG.infov(
+        "Page '{0}' created by user {1} for team {2}",
+        page.getName(), creator.getId(), team.getSlug());
     return TeamPageDto.from(page, assetService);
   }
 
   @Transactional
-  public TeamPageDto updatePage(
-      String teamSlug, String pageSlug, TeamPageRequest request, Long userId) {
-    Team team =
-        teamRepository
-            .findBySlug(teamSlug)
-            .orElseThrow(() -> BusinessException.notFound("Team", teamSlug));
+  public TeamPageDto updatePage(Team team, String pageSlug, TeamPageRequest request, User user) {
+    // Security check: must be admin to update pages
+    securityService.requireAdmin(user, team);
 
     TeamPage page =
         teamPageRepository
             .findByTeamAndSlug(team.getId(), pageSlug)
             .orElseThrow(() -> BusinessException.notFound("Page", pageSlug));
-
-    // Security check: must be admin to update pages
-    securityService.requireAdmin(userId, teamSlug);
 
     // Don't allow editing the about page through this endpoint
     if (page.isAboutPage()) {
@@ -149,24 +133,19 @@ public class TeamPageService extends TeamEntityService<TeamPage> {
 
     teamPageRepository.persist(page);
 
-    LOG.infov("Page {0} updated by user {1}", pageSlug, userId);
+    LOG.infov("Page {0} updated by user {1}", pageSlug, user.getId());
     return TeamPageDto.from(page, assetService);
   }
 
   @Transactional
-  public void deletePage(String teamSlug, String pageSlug, Long userId) {
-    Team team =
-        teamRepository
-            .findBySlug(teamSlug)
-            .orElseThrow(() -> BusinessException.notFound("Team", teamSlug));
+  public void deletePage(Team team, String pageSlug, User user) {
+    // Security check: must be admin to delete pages
+    securityService.requireAdmin(user, team);
 
     TeamPage page =
         teamPageRepository
             .findByTeamAndSlug(team.getId(), pageSlug)
             .orElseThrow(() -> BusinessException.notFound("Page", pageSlug));
-
-    // Security check: must be admin to delete pages
-    securityService.requireAdmin(userId, teamSlug);
 
     // Don't allow deleting the about page
     if (page.isAboutPage()) {
@@ -175,19 +154,14 @@ public class TeamPageService extends TeamEntityService<TeamPage> {
 
     page.setDeleted(true);
     teamPageRepository.persist(page);
-    LOG.infov("Page {0} deleted by user {1}", pageSlug, userId);
+    LOG.infov("Page {0} deleted by user {1}", pageSlug, user.getId());
   }
 
   @Transactional
-  public List<TeamPageSummaryDto> reorderPages(
-      String teamSlug, ReorderPagesRequest request, Long userId) {
-    Team team =
-        teamRepository
-            .findBySlug(teamSlug)
-            .orElseThrow(() -> BusinessException.notFound("Team", teamSlug));
+  public List<TeamPageSummaryDto> reorderPages(Team team, ReorderPagesRequest request, User user) {
 
     // Security check: must be admin to reorder pages
-    securityService.requireAdmin(userId, teamSlug);
+    securityService.requireAdmin(user, team);
 
     List<String> pageIds = request.pageIds();
     for (int i = 0; i < pageIds.size(); i++) {
@@ -200,8 +174,8 @@ public class TeamPageService extends TeamEntityService<TeamPage> {
       teamPageRepository.persist(page);
     }
 
-    LOG.infov("Pages reordered by user {0} for team {1}", userId, teamSlug);
-    return listPages(teamSlug, userId);
+    LOG.infov("Pages reordered by user {0} for team {1}", user.getId(), team.getSlug());
+    return listPages(team, user);
   }
 
   private boolean canViewPage(TeamPage page, boolean isMember) {
@@ -213,18 +187,14 @@ public class TeamPageService extends TeamEntityService<TeamPage> {
   }
 
   @Transactional
-  public TeamPageDto updateSlug(String teamSlug, String currentSlug, String newSlug, Long userId) {
-    Team team =
-        teamRepository
-            .findBySlug(teamSlug)
-            .orElseThrow(() -> BusinessException.notFound("Team", teamSlug));
+  public TeamPageDto updateSlug(Team team, String slugParam, String newSlug, User user) {
+    securityService.requireAdmin(user, team);
 
     TeamPage page =
         teamPageRepository
-            .findByTeamAndSlug(team.getId(), currentSlug)
-            .orElseThrow(() -> BusinessException.notFound("Page", currentSlug));
-
-    securityService.requireAdmin(userId, teamSlug);
+            .findByTeamAndSlug(team.getId(), slugParam)
+            .orElseThrow(() -> BusinessException.notFound("Page", slugParam));
+    String currentSlug = page.getSlug();
 
     // Don't allow changing slug of the about page
     if (page.isAboutPage()) {
@@ -249,7 +219,7 @@ public class TeamPageService extends TeamEntityService<TeamPage> {
     page.setSlug(newSlug);
     teamPageRepository.persist(page);
 
-    LOG.infov("Page slug changed from {0} to {1} by user {2}", currentSlug, newSlug, userId);
+    LOG.infov("Page slug changed from {0} to {1} by user {2}", currentSlug, newSlug, user.getId());
     return TeamPageDto.from(page, assetService);
   }
 }

@@ -1,11 +1,15 @@
 package com.tribly.api;
 
+import com.tribly.domain.user.User;
+import com.tribly.domain.user.repository.UserRepository;
 import com.tribly.infrastructure.exception.BusinessException;
+import com.tribly.service.team.TeamService;
 import com.tribly.service.user.UserService;
 import io.quarkus.security.identity.CurrentIdentityAssociation;
 import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.NotAuthorizedException;
+import java.util.Optional;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -15,12 +19,16 @@ import org.jspecify.annotations.Nullable;
  * race condition (related to Quarkus bug #44990) where the augmented identity might not
  * be fully propagated to {@code @PermitAll} endpoints.
  *
- * <p>Usage: Extend this class and use {@link #getCurrentUserId()} or
- * {@link #getCurrentUserIdOrNull()} to get the authenticated user's ID.
+ * <p>Usage: Extend this class and use {@link #getCurrentUser()} or
+ * {@link #getCurrentUserOrNull()} to get the authenticated user's ID.
  */
 public abstract class AbstractAuthenticatedResource {
 
+  @Inject protected TeamService teamService;
+
   @Inject protected UserService userService;
+
+  @Inject protected UserRepository userRepository;
 
   @Inject protected CurrentIdentityAssociation currentIdentityAssociation;
 
@@ -31,7 +39,7 @@ public abstract class AbstractAuthenticatedResource {
    * @throws NotAuthorizedException if no valid authentication is present
    * @throws BusinessException with USER_NOT_SYNCED if authenticated but user not synced
    */
-  protected Long getCurrentUserId() {
+  protected User getCurrentUser() {
     SecurityIdentity identity =
         currentIdentityAssociation.getDeferredIdentity().await().indefinitely();
 
@@ -39,12 +47,16 @@ public abstract class AbstractAuthenticatedResource {
       throw new NotAuthorizedException("No valid token");
     }
 
+    return getUser(identity).orElseThrow(() -> BusinessException.forbidden(""));
+  }
+
+  private Optional<User> getUser(SecurityIdentity identity) {
     Long userId = identity.getAttribute("userId");
     if (userId == null) {
       throw BusinessException.forbidden(
           "User profile not synchronized. Please call /api/users/me first.", "USER_NOT_SYNCED");
     }
-    return userId;
+    return userRepository.findActiveById(userId);
   }
 
   /**
@@ -57,12 +69,12 @@ public abstract class AbstractAuthenticatedResource {
    * @return the user ID, or null if anonymous or not synced
    */
   @Nullable
-  protected Long getCurrentUserIdOrNull() {
+  protected User getCurrentUserOrNull() {
     SecurityIdentity identity =
         currentIdentityAssociation.getDeferredIdentity().await().indefinitely();
     if (identity.isAnonymous()) {
       return null;
     }
-    return identity.getAttribute("userId");
+    return getUser(identity).orElse(null);
   }
 }

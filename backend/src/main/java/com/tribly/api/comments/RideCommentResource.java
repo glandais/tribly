@@ -1,6 +1,8 @@
 package com.tribly.api.comments;
 
 import com.tribly.domain.common.TeamEntity;
+import com.tribly.domain.team.Team;
+import com.tribly.domain.user.User;
 import com.tribly.dto.comments.request.CommentRequest;
 import com.tribly.dto.comments.response.CommentDto;
 import com.tribly.dto.comments.response.CommentListResponse;
@@ -28,8 +30,8 @@ public class RideCommentResource extends AbstractCommentResource {
   @Inject RideService rideService;
 
   @Override
-  protected TeamEntity getTeamEntity(String teamSlug, String entitySlug, Long userId) {
-    return rideService.get(teamSlug, entitySlug, userId, false);
+  protected TeamEntity getTeamEntity(Team team, String entitySlug, User user) {
+    return rideService.get(team, entitySlug, user);
   }
 
   @Override

@@ -472,7 +472,7 @@ class AssetServiceTest {
       // Non-member should not be able to access
       assertThrows(
           BusinessException.class,
-          () -> assetService.getImage(assetId, nonMember.getId(), 200, "image/jpeg"));
+          () -> assetService.getImage(assetId, nonMember, 200, "image/jpeg"));
     }
   }
 

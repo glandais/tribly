@@ -1,6 +1,7 @@
 package com.tribly.api.assets;
 
 import com.tribly.api.AbstractAuthenticatedResource;
+import com.tribly.domain.user.User;
 import com.tribly.service.asset.AssetService;
 import com.tribly.service.asset.response.DownloadableAsset;
 import jakarta.annotation.security.PermitAll;
@@ -22,8 +23,8 @@ public class AbstractDownloadAssetResource extends AbstractAuthenticatedResource
   @Operation(hidden = true)
   public Response downloadAsset(
       @PathParam("assetId") String assetId, @PathParam("fileName") String fileName) {
-    Long userId = getCurrentUserIdOrNull();
-    DownloadableAsset downloadableAsset = assetService.getDownloadableAsset(assetId, userId);
+    User user = getCurrentUserOrNull();
+    DownloadableAsset downloadableAsset = assetService.getDownloadableAsset(assetId, user);
 
     return Response.ok(downloadableAsset.file())
         .type(downloadableAsset.contentType())
@@ -39,7 +40,7 @@ public class AbstractDownloadAssetResource extends AbstractAuthenticatedResource
       @HeaderParam("Accept") String accept,
       @PathParam("assetId") String assetId,
       @PathParam("size") int size) {
-    Long userId = getCurrentUserIdOrNull();
-    return assetService.getImage(assetId, userId, size, accept);
+    User user = getCurrentUserOrNull();
+    return assetService.getImage(assetId, user, size, accept);
   }
 }

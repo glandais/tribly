@@ -1,11 +1,12 @@
 package com.tribly.api.rides;
 
 import com.tribly.api.AbstractAuthenticatedResource;
+import com.tribly.domain.team.Team;
+import com.tribly.domain.user.User;
 import com.tribly.dto.common.request.SlugChangeRequest;
 import com.tribly.dto.error.ErrorResponse;
 import com.tribly.dto.rides.request.*;
 import com.tribly.dto.rides.response.*;
-import com.tribly.infrastructure.exception.NewSlugException;
 import com.tribly.infrastructure.id.TsidUtils;
 import com.tribly.service.ride.RideService;
 import jakarta.annotation.security.PermitAll;
@@ -61,12 +62,13 @@ public class RideResource extends AbstractAuthenticatedResource {
       @Parameter(description = "Page number") @QueryParam("page") @DefaultValue("0") int page,
       @Parameter(description = "Page size") @QueryParam("size") @DefaultValue("20") int size) {
 
-    Long userId = getCurrentUserIdOrNull();
+    User user = getCurrentUserOrNull();
+    Team team = teamService.getTeam(slug);
 
     Instant from = fromStr != null ? Instant.parse(fromStr) : null;
     Instant to = toStr != null ? Instant.parse(toStr) : null;
 
-    RideListResponse rides = rideService.listRides(slug, userId, search, from, to, page, size);
+    RideListResponse rides = rideService.listRides(team, user, search, from, to, page, size);
 
     return Response.ok(rides).build();
   }
@@ -99,11 +101,13 @@ public class RideResource extends AbstractAuthenticatedResource {
   public Response createRide(
       @Parameter(description = "Team URL slug") @PathParam("slug") String slug,
       @Valid RideRequest request) {
-    Long userId = getCurrentUserId();
+    User user = getCurrentUser();
+    Team team = teamService.getTeam(slug);
 
-    RideDto ride = rideService.createRide(slug, request, userId);
+    RideDto ride = rideService.createRide(team, request, user);
 
-    return Response.created(URI.create("/api/teams/" + slug + "/rides/" + ride.getSlug()))
+    return Response.created(
+            URI.create("/api/teams/" + ride.getTeam().slug() + "/rides/" + ride.getSlug()))
         .entity(ride)
         .build();
   }
@@ -119,7 +123,6 @@ public class RideResource extends AbstractAuthenticatedResource {
         responseCode = "200",
         description = "Ride retrieved successfully",
         content = @Content(schema = @Schema(implementation = RideDto.class))),
-    @APIResponse(responseCode = "302", description = "Slug has changed, redirect to new URL"),
     @APIResponse(
         responseCode = "404",
         description = "Team or ride not found",
@@ -128,14 +131,10 @@ public class RideResource extends AbstractAuthenticatedResource {
   public Response getRide(
       @Parameter(description = "Team URL slug") @PathParam("slug") String teamSlug,
       @Parameter(description = "Ride URL slug") @PathParam("rideSlug") String rideSlug) {
-    Long userId = getCurrentUserIdOrNull();
-    try {
-      RideDto ride = rideService.getRideDetail(teamSlug, rideSlug, userId);
-      return Response.ok(ride).build();
-    } catch (NewSlugException e) {
-      String newUrl = "/api/teams/" + e.getTeamSlug() + "/rides/" + e.getNewSlug();
-      return Response.status(302).header("Location", newUrl).build();
-    }
+    User user = getCurrentUserOrNull();
+    Team team = teamService.getTeam(teamSlug);
+    RideDto ride = rideService.getRideDetail(team, rideSlug, user);
+    return Response.ok(ride).build();
   }
 
   @PUT
@@ -172,9 +171,10 @@ public class RideResource extends AbstractAuthenticatedResource {
       @Parameter(description = "Ride URL slug") @PathParam("rideSlug") String rideSlug,
       @Valid RideRequest request) {
 
-    Long userId = getCurrentUserId();
+    User user = getCurrentUser();
+    Team team = teamService.getTeam(slug);
 
-    RideDto updatedRide = rideService.updateRide(slug, rideSlug, request, userId);
+    RideDto updatedRide = rideService.updateRide(team, rideSlug, request, user);
 
     return Response.ok(updatedRide).build();
   }
@@ -203,8 +203,9 @@ public class RideResource extends AbstractAuthenticatedResource {
   public Response deleteRide(
       @Parameter(description = "Team URL slug") @PathParam("slug") String slug,
       @Parameter(description = "Ride URL slug") @PathParam("rideSlug") String rideSlug) {
-    Long userId = getCurrentUserId();
-    rideService.deleteRide(slug, rideSlug, userId);
+    User user = getCurrentUser();
+    Team team = teamService.getTeam(slug);
+    rideService.deleteRide(team, rideSlug, user);
     return Response.noContent().build();
   }
 
@@ -245,8 +246,9 @@ public class RideResource extends AbstractAuthenticatedResource {
       @Parameter(description = "Team URL slug") @PathParam("slug") String teamSlug,
       @Parameter(description = "Current ride URL slug") @PathParam("rideSlug") String currentSlug,
       @Valid SlugChangeRequest request) {
-    Long userId = getCurrentUserId();
-    RideDto ride = rideService.updateSlug(teamSlug, currentSlug, request.slug(), userId);
+    User user = getCurrentUser();
+    Team team = teamService.getTeam(teamSlug);
+    RideDto ride = rideService.updateSlug(team, currentSlug, request.slug(), user);
     return Response.ok(ride).build();
   }
 
@@ -277,10 +279,11 @@ public class RideResource extends AbstractAuthenticatedResource {
       @Parameter(description = "Ride URL slug") @PathParam("rideSlug") String rideSlug,
       @Parameter(description = "Group ID (TSID)") @PathParam("groupId") String groupId) {
 
-    Long userId = getCurrentUserId();
+    User user = getCurrentUser();
+    Team team = teamService.getTeam(slug);
 
     RideParticipationDto participation =
-        rideService.joinGroup(slug, rideSlug, TsidUtils.toLong(groupId), userId);
+        rideService.joinGroup(team, rideSlug, TsidUtils.toLong(groupId), user);
 
     return Response.created(
             URI.create(
@@ -316,9 +319,10 @@ public class RideResource extends AbstractAuthenticatedResource {
       @Parameter(description = "Ride URL slug") @PathParam("rideSlug") String rideSlug,
       @Parameter(description = "Group ID (TSID)") @PathParam("groupId") String groupId) {
 
-    Long userId = getCurrentUserId();
+    User user = getCurrentUser();
+    Team team = teamService.getTeam(slug);
 
-    rideService.leaveGroup(slug, rideSlug, TsidUtils.toLong(groupId), userId);
+    rideService.leaveGroup(team, rideSlug, TsidUtils.toLong(groupId), user);
 
     return Response.noContent().build();
   }

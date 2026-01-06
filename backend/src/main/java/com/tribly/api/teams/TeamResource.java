@@ -1,12 +1,13 @@
 package com.tribly.api.teams;
 
 import com.tribly.api.AbstractAuthenticatedResource;
+import com.tribly.domain.team.Team;
+import com.tribly.domain.user.User;
 import com.tribly.dto.common.request.SlugChangeRequest;
 import com.tribly.dto.error.ErrorResponse;
 import com.tribly.dto.teams.request.TeamRequest;
 import com.tribly.dto.teams.response.TeamDetailDto;
 import com.tribly.dto.teams.response.TeamListResponse;
-import com.tribly.infrastructure.exception.NewSlugException;
 import com.tribly.service.team.TeamService;
 import com.tribly.service.team.request.MinRole;
 import jakarta.annotation.security.PermitAll;
@@ -55,10 +56,10 @@ public class TeamResource extends AbstractAuthenticatedResource {
           int page,
       @Parameter(description = "Page size") @QueryParam("size") @DefaultValue("20") int size) {
 
-    Long userId = getCurrentUserIdOrNull();
+    User user = getCurrentUserOrNull();
     TeamListResponse teams =
         teamService.listTeams(
-            userId, minRole == null ? MinRole.NOT_MEMBER : minRole, search, page, size);
+            user, minRole == null ? MinRole.NOT_MEMBER : minRole, search, page, size);
     return Response.ok(teams).build();
   }
 
@@ -73,7 +74,6 @@ public class TeamResource extends AbstractAuthenticatedResource {
         responseCode = "200",
         description = "Team retrieved successfully",
         content = @Content(schema = @Schema(implementation = TeamDetailDto.class))),
-    @APIResponse(responseCode = "302", description = "Slug has changed, redirect to new URL"),
     @APIResponse(
         responseCode = "404",
         description = "Team not found",
@@ -85,14 +85,10 @@ public class TeamResource extends AbstractAuthenticatedResource {
   })
   public Response getTeam(
       @Parameter(description = "Team URL slug") @PathParam("slug") String slug) {
-    Long userId = getCurrentUserIdOrNull();
-    try {
-      TeamDetailDto teamDetailDto = teamService.getTeamDetailDto(slug, userId);
-      return Response.ok(teamDetailDto).build();
-    } catch (NewSlugException e) {
-      String newUrl = "/api/teams/" + e.getNewSlug();
-      return Response.status(302).header("Location", newUrl).build();
-    }
+    User user = getCurrentUserOrNull();
+    Team team = teamService.getTeam(slug);
+    TeamDetailDto teamDetailDto = teamService.getTeamDetailDto(team, user);
+    return Response.ok(teamDetailDto).build();
   }
 
   @POST
@@ -115,9 +111,9 @@ public class TeamResource extends AbstractAuthenticatedResource {
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
   public Response createTeam(@Valid TeamRequest request) {
-    Long userId = getCurrentUserId();
+    User user = getCurrentUser();
 
-    TeamDetailDto teamDetailDto = teamService.createTeam(request, userId);
+    TeamDetailDto teamDetailDto = teamService.createTeam(request, user);
 
     return Response.created(URI.create("/api/teams/" + teamDetailDto.slug()))
         .entity(teamDetailDto)
@@ -154,9 +150,10 @@ public class TeamResource extends AbstractAuthenticatedResource {
   public Response updateTeam(
       @Parameter(description = "Team URL slug") @PathParam("slug") String slug,
       @Valid TeamRequest request) {
-    Long userId = getCurrentUserId();
+    User user = getCurrentUser();
+    Team team = teamService.getTeam(slug);
 
-    TeamDetailDto teamDetailDto = teamService.updateTeam(slug, request, userId);
+    TeamDetailDto teamDetailDto = teamService.updateTeam(team, request, user);
 
     return Response.ok(teamDetailDto).build();
   }
@@ -197,8 +194,9 @@ public class TeamResource extends AbstractAuthenticatedResource {
   public Response changeSlug(
       @Parameter(description = "Current team URL slug") @PathParam("slug") String currentSlug,
       @Valid SlugChangeRequest request) {
-    Long userId = getCurrentUserId();
-    TeamDetailDto teamDetailDto = teamService.updateSlug(currentSlug, request.slug(), userId);
+    User user = getCurrentUser();
+    Team team = teamService.getTeam(currentSlug);
+    TeamDetailDto teamDetailDto = teamService.updateSlug(team, request.slug(), user);
     return Response.ok(teamDetailDto).build();
   }
 
@@ -223,8 +221,9 @@ public class TeamResource extends AbstractAuthenticatedResource {
   })
   public Response deleteTeam(
       @Parameter(description = "Team URL slug") @PathParam("slug") String slug) {
-    Long userId = getCurrentUserId();
-    teamService.deleteTeam(slug, userId);
+    User user = getCurrentUser();
+    Team team = teamService.getTeam(slug);
+    teamService.deleteTeam(team, user);
     return Response.noContent().build();
   }
 }

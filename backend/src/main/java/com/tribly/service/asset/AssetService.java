@@ -65,15 +65,10 @@ public class AssetService {
 
   private final Tika tika = new Tika();
 
-  public AssetDto createAsset(
-      String teamSlug, Long userId, InputStream inputStream, String fileName) throws IOException {
+  public AssetDto createAsset(Team team, User creator, InputStream inputStream, String fileName)
+      throws IOException {
     // Security check: reuse ride permissions (admins & organizers can create routes)
-    UserTeam userTeam = securityService.requireOrganizer(userId, teamSlug);
-
-    User creator =
-        userRepository
-            .findActiveById(userId)
-            .orElseThrow(() -> BusinessException.notFound("User", userId));
+    UserTeam userTeam = securityService.requireOrganizer(creator, team);
 
     AssetWithFile assetFile =
         addAssetStream(creator, userTeam.getTeam(), AssetType.IMAGE, null, inputStream, fileName);
@@ -145,14 +140,14 @@ public class AssetService {
     return TsidUtils.toString(team.getId()) + "/" + subPath + "/" + idString;
   }
 
-  public DownloadableAsset getDownloadableAsset(String assetId, @Nullable Long userId) {
-    Asset asset = getAsset(TsidUtils.toLong(assetId), userId);
+  public DownloadableAsset getDownloadableAsset(String assetId, @Nullable User user) {
+    Asset asset = getAsset(TsidUtils.toLong(assetId), user);
     File file = getAssetFile(asset);
     return new DownloadableAsset(file, asset.getContentType());
   }
 
-  public Response getImage(String assetId, @Nullable Long userId, int size, String accept) {
-    Asset asset = getAsset(TsidUtils.toLong(assetId), userId);
+  public Response getImage(String assetId, @Nullable User user, int size, String accept) {
+    Asset asset = getAsset(TsidUtils.toLong(assetId), user);
     String relativeAssetFile = getRelativeAssetFile(asset.getTeam(), asset.getFileId());
     return Response.fromResponse(imgProxyService.getPhoto(accept, relativeAssetFile, size, size))
         .build();
@@ -207,25 +202,25 @@ public class AssetService {
         .orElseThrow(() -> BusinessException.notFound("Asset", id));
   }
 
-  public Asset getAsset(Long id, @Nullable Long userId) {
+  public Asset getAsset(Long id, @Nullable User user) {
     Asset asset =
         assetRepository
             .findByIdOptional(id)
             .orElseThrow(() -> BusinessException.notFound("Asset", id));
     if (asset.getTeamEntity() == null) {
       if (asset.getTeam().getVisibility() == Visibility.TEAM) {
-        securityService.requireOrganizer(userId, asset.getTeam().getSlug());
+        securityService.requireOrganizer(user, asset.getTeam());
       }
     } else {
       TriblyPage<TeamEntity> page =
           allTeamEntityRepository.find(
               TeamEntityQueryBasic.builder()
-                  .userId(userId)
+                  .userId(user == null ? null : user.getId())
                   .id(asset.getTeamEntity().getId())
                   .size(1)
                   .build());
       if (page.total() == 0) {
-        throw BusinessException.forbidden("");
+        throw BusinessException.notFound("Asset", id);
       }
     }
     return asset;

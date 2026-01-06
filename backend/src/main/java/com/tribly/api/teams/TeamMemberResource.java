@@ -1,6 +1,8 @@
 package com.tribly.api.teams;
 
 import com.tribly.api.AbstractAuthenticatedResource;
+import com.tribly.domain.team.Team;
+import com.tribly.domain.user.User;
 import com.tribly.dto.error.ErrorResponse;
 import com.tribly.dto.teams.request.AddMemberRequest;
 import com.tribly.dto.teams.request.UpdateMemberRoleRequest;
@@ -55,9 +57,10 @@ public class TeamMemberResource extends AbstractAuthenticatedResource {
       @Parameter(description = "Page number") @QueryParam("page") @DefaultValue("0") int page,
       @Parameter(description = "Page size") @QueryParam("size") @DefaultValue("50") int size) {
 
-    Long userId = getCurrentUserId();
+    User user = getCurrentUser();
+    Team team = teamService.getTeam(slug);
 
-    MemberListResponse members = membershipService.getTeamMembers(slug, userId, page, size);
+    MemberListResponse members = membershipService.getTeamMembers(team, user, page, size);
     return Response.ok(members).build();
   }
 
@@ -84,10 +87,12 @@ public class TeamMemberResource extends AbstractAuthenticatedResource {
   })
   public Response joinTeam(
       @Parameter(description = "Team URL slug") @PathParam("slug") String slug) {
-    Long userId = getCurrentUserId();
+    User user = getCurrentUser();
+    Team team = teamService.getTeam(slug);
 
-    MemberDto membership = membershipService.joinTeam(slug, userId);
-    return Response.created(URI.create("/api/teams/" + slug + "/members/" + userId))
+    MemberDto membership = membershipService.joinTeam(team, user);
+    return Response.created(
+            URI.create("/api/teams/" + membership.team().slug() + "/members/" + user.getId()))
         .entity(membership)
         .build();
   }
@@ -112,9 +117,10 @@ public class TeamMemberResource extends AbstractAuthenticatedResource {
   })
   public Response leaveTeam(
       @Parameter(description = "Team URL slug") @PathParam("slug") String slug) {
-    Long userId = getCurrentUserId();
+    User user = getCurrentUser();
+    Team team = teamService.getTeam(slug);
 
-    membershipService.leaveTeam(slug, userId);
+    membershipService.leaveTeam(team, user);
     return Response.noContent().build();
   }
 
@@ -147,13 +153,15 @@ public class TeamMemberResource extends AbstractAuthenticatedResource {
   public Response addMember(
       @Parameter(description = "Team URL slug") @PathParam("slug") String slug,
       @Valid AddMemberRequest request) {
-    Long actingUserId = getCurrentUserId();
+    User actingUser = getCurrentUser();
+    Team team = teamService.getTeam(slug);
 
     TeamRole role = request.role() != null ? request.role() : TeamRole.MEMBER;
     Long targetUserId = TsidUtils.toLong(request.userId());
-    MemberDto membership = membershipService.addMember(slug, targetUserId, role, actingUserId);
+    MemberDto membership = membershipService.addMember(team, targetUserId, role, actingUser);
 
-    return Response.created(URI.create("/api/teams/" + slug + "/members/" + request.userId()))
+    return Response.created(
+            URI.create("/api/teams/" + membership.team().slug() + "/members/" + request.userId()))
         .entity(membership)
         .build();
   }
@@ -191,11 +199,12 @@ public class TeamMemberResource extends AbstractAuthenticatedResource {
       @Parameter(description = "Member user ID (TSID)") @PathParam("memberId") String memberId,
       @Valid UpdateMemberRoleRequest request) {
 
-    Long actingUserId = getCurrentUserId();
+    User actingUser = getCurrentUser();
+    Team team = teamService.getTeam(slug);
 
     MemberDto membership =
         membershipService.updateMemberRole(
-            slug, TsidUtils.toLong(memberId), request.role(), actingUserId);
+            team, TsidUtils.toLong(memberId), request.role(), actingUser);
     return Response.ok(membership).build();
   }
 
@@ -223,9 +232,10 @@ public class TeamMemberResource extends AbstractAuthenticatedResource {
       @Parameter(description = "Team URL slug") @PathParam("slug") String slug,
       @Parameter(description = "Member user ID (TSID)") @PathParam("memberId") String memberId) {
 
-    Long actingUserId = getCurrentUserId();
+    User actingUser = getCurrentUser();
+    Team team = teamService.getTeam(slug);
 
-    membershipService.removeMember(slug, TsidUtils.toLong(memberId), actingUserId);
+    membershipService.removeMember(team, TsidUtils.toLong(memberId), actingUser);
     return Response.noContent().build();
   }
 }

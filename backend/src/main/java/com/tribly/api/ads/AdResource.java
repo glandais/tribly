@@ -1,13 +1,14 @@
 package com.tribly.api.ads;
 
 import com.tribly.api.AbstractAuthenticatedResource;
+import com.tribly.domain.team.Team;
+import com.tribly.domain.user.User;
 import com.tribly.dto.ads.request.AdRequest;
 import com.tribly.dto.ads.response.AdDto;
 import com.tribly.dto.ads.response.AdListResponse;
 import com.tribly.dto.common.request.SlugChangeRequest;
 import com.tribly.dto.error.ErrorResponse;
 import com.tribly.enums.AdType;
-import com.tribly.infrastructure.exception.NewSlugException;
 import com.tribly.service.ad.AdService;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
@@ -63,12 +64,13 @@ public class AdResource extends AbstractAuthenticatedResource {
       @Parameter(description = "Page number") @QueryParam("page") @DefaultValue("0") int page,
       @Parameter(description = "Page size") @QueryParam("size") @DefaultValue("20") int size) {
 
-    Long userId = getCurrentUserIdOrNull();
+    User user = getCurrentUserOrNull();
 
     Instant from = fromStr != null ? Instant.parse(fromStr) : null;
     Instant to = toStr != null ? Instant.parse(toStr) : null;
 
-    AdListResponse ads = adService.listAds(slug, userId, search, adType, from, to, page, size);
+    Team team = teamService.getTeam(slug);
+    AdListResponse ads = adService.listAds(team, user, search, adType, from, to, page, size);
 
     return Response.ok(ads).build();
   }
@@ -103,11 +105,12 @@ public class AdResource extends AbstractAuthenticatedResource {
   public Response createAd(
       @Parameter(description = "Team URL slug") @PathParam("slug") String slug,
       @Valid AdRequest request) {
-    Long userId = getCurrentUserId();
+    User user = getCurrentUser();
 
-    AdDto ad = adService.createAd(slug, request, userId);
+    Team team = teamService.getTeam(slug);
+    AdDto ad = adService.createAd(team, request, user);
 
-    return Response.created(URI.create("/api/teams/" + slug + "/ads/" + ad.slug()))
+    return Response.created(URI.create("/api/teams/" + ad.team().slug() + "/ads/" + ad.slug()))
         .entity(ad)
         .build();
   }
@@ -121,7 +124,6 @@ public class AdResource extends AbstractAuthenticatedResource {
         responseCode = "200",
         description = "Ad retrieved successfully",
         content = @Content(schema = @Schema(implementation = AdDto.class))),
-    @APIResponse(responseCode = "302", description = "Slug has changed, redirect to new URL"),
     @APIResponse(
         responseCode = "404",
         description = "Team or ad not found",
@@ -130,14 +132,10 @@ public class AdResource extends AbstractAuthenticatedResource {
   public Response getAd(
       @Parameter(description = "Team URL slug") @PathParam("slug") String teamSlug,
       @Parameter(description = "Ad URL slug") @PathParam("adSlug") String adSlug) {
-    Long userId = getCurrentUserIdOrNull();
-    try {
-      AdDto ad = adService.getAdDetail(teamSlug, adSlug, userId);
-      return Response.ok(ad).build();
-    } catch (NewSlugException e) {
-      String newUrl = "/api/teams/" + e.getTeamSlug() + "/ads/" + e.getNewSlug();
-      return Response.status(302).header("Location", newUrl).build();
-    }
+    User user = getCurrentUserOrNull();
+    Team team = teamService.getTeam(teamSlug);
+    AdDto ad = adService.getAdDetail(team, adSlug, user);
+    return Response.ok(ad).build();
   }
 
   @PUT
@@ -174,9 +172,10 @@ public class AdResource extends AbstractAuthenticatedResource {
       @Parameter(description = "Ad URL slug") @PathParam("adSlug") String adSlug,
       @Valid AdRequest request) {
 
-    Long userId = getCurrentUserId();
+    User user = getCurrentUser();
 
-    AdDto updatedAd = adService.updateAd(slug, adSlug, request, userId);
+    Team team = teamService.getTeam(slug);
+    AdDto updatedAd = adService.updateAd(team, adSlug, request, user);
 
     return Response.ok(updatedAd).build();
   }
@@ -205,8 +204,9 @@ public class AdResource extends AbstractAuthenticatedResource {
   public Response deleteAd(
       @Parameter(description = "Team URL slug") @PathParam("slug") String slug,
       @Parameter(description = "Ad URL slug") @PathParam("adSlug") String adSlug) {
-    Long userId = getCurrentUserId();
-    adService.deleteAd(slug, adSlug, userId);
+    User user = getCurrentUser();
+    Team team = teamService.getTeam(slug);
+    adService.deleteAd(team, adSlug, user);
     return Response.noContent().build();
   }
 
@@ -247,8 +247,9 @@ public class AdResource extends AbstractAuthenticatedResource {
       @Parameter(description = "Team URL slug") @PathParam("slug") String teamSlug,
       @Parameter(description = "Current ad URL slug") @PathParam("adSlug") String currentSlug,
       @Valid SlugChangeRequest request) {
-    Long userId = getCurrentUserId();
-    AdDto ad = adService.updateSlug(teamSlug, currentSlug, request.slug(), userId);
+    User user = getCurrentUser();
+    Team team = teamService.getTeam(teamSlug);
+    AdDto ad = adService.updateSlug(team, currentSlug, request.slug(), user);
     return Response.ok(ad).build();
   }
 }

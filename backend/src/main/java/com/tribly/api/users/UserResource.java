@@ -1,6 +1,7 @@
 package com.tribly.api.users;
 
 import com.tribly.api.AbstractAuthenticatedResource;
+import com.tribly.domain.user.User;
 import com.tribly.dto.error.ErrorResponse;
 import com.tribly.dto.users.request.UpdateUserRequest;
 import com.tribly.dto.users.response.PublicUserDto;
@@ -63,10 +64,10 @@ public class UserResource extends AbstractAuthenticatedResource {
         description = "Unauthorized",
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
-  public Response getCurrentUser() {
-    Long userId = getCurrentUserIdOrNull();
+  public Response getMe() {
+    User user = getCurrentUserOrNull();
     JsonWebToken jwt = (JsonWebToken) securityIdentity.getPrincipal();
-    UserDto userDto = userSyncService.syncUser(userId, jwt);
+    UserDto userDto = userSyncService.syncUser(user, jwt);
     return Response.ok(userDto).build();
   }
 
@@ -87,10 +88,10 @@ public class UserResource extends AbstractAuthenticatedResource {
         description = "Unauthorized",
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
-  public Response updateCurrentUser(@Valid UpdateUserRequest request) {
-    Long userId = getCurrentUserId();
-    UserDto user = userService.updateUser(userId, request.displayName());
-    return Response.ok(user).build();
+  public Response updateMe(@Valid UpdateUserRequest request) {
+    User user = this.getCurrentUser();
+    UserDto userDto = userService.updateUser(user, request.displayName());
+    return Response.ok(userDto).build();
   }
 
   @POST
@@ -115,17 +116,16 @@ public class UserResource extends AbstractAuthenticatedResource {
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
   public Response uploadAvatar(@RestForm("file") @Nullable FileUpload fileUpload) throws Exception {
-    Long userId = getCurrentUserId();
-
     if (fileUpload == null || fileUpload.filePath() == null) {
       throw BusinessException.validation("File is required");
     }
 
+    User user = this.getCurrentUser();
     userAvatarService.uploadAvatar(
-        userId, new FileInputStream(fileUpload.filePath().toFile()), fileUpload.fileName());
+        user, new FileInputStream(fileUpload.filePath().toFile()), fileUpload.fileName());
 
-    UserDto user = userService.getUserDto(userId);
-    return Response.ok(user).build();
+    UserDto userDto = userService.getUserDto(user.getId());
+    return Response.ok(userDto).build();
   }
 
   @DELETE
@@ -142,10 +142,10 @@ public class UserResource extends AbstractAuthenticatedResource {
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
   public Response deleteAvatar() {
-    Long userId = getCurrentUserId();
-    userAvatarService.deleteAvatar(userId);
-    UserDto user = userService.getUserDto(userId);
-    return Response.ok(user).build();
+    User user = this.getCurrentUser();
+    userAvatarService.deleteAvatar(user);
+    UserDto userDto = userService.getUserDto(user.getId());
+    return Response.ok(userDto).build();
   }
 
   @GET
@@ -208,10 +208,10 @@ public class UserResource extends AbstractAuthenticatedResource {
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
   public Response deleteCurrentUser() {
-    Long userId = getCurrentUserId();
-    userService.deleteUser(userId);
+    User user = getCurrentUser();
+    userService.deleteUser(user);
 
-    LOG.infov("User {0} deleted their account", userId);
+    LOG.infov("User {0} deleted their account", user.getId());
     return Response.noContent().build();
   }
 }

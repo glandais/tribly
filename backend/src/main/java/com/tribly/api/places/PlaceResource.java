@@ -1,6 +1,8 @@
 package com.tribly.api.places;
 
 import com.tribly.api.AbstractAuthenticatedResource;
+import com.tribly.domain.team.Team;
+import com.tribly.domain.user.User;
 import com.tribly.dto.error.ErrorResponse;
 import com.tribly.dto.places.request.PlaceRequest;
 import com.tribly.dto.places.response.PlaceDetailDto;
@@ -46,8 +48,9 @@ public class PlaceResource extends AbstractAuthenticatedResource {
       @Parameter(description = "Page number") @QueryParam("page") @DefaultValue("0") int page,
       @Parameter(description = "Page size") @QueryParam("size") @DefaultValue("50") int size) {
 
-    Long userId = getCurrentUserId();
-    PlaceListResponse places = placeService.listPlaces(slug, page, size, userId);
+    User user = getCurrentUser();
+    Team team = teamService.getTeam(slug);
+    PlaceListResponse places = placeService.listPlaces(team, page, size, user);
     return Response.ok(places).build();
   }
 
@@ -69,8 +72,10 @@ public class PlaceResource extends AbstractAuthenticatedResource {
       @Parameter(description = "Team URL slug") @PathParam("slug") String slug,
       @Parameter(description = "Place ID (TSID)") @PathParam("placeId") String placeId) {
 
-    Long userId = getCurrentUserIdOrNull();
-    PlaceDetailDto place = placeService.getPlace(slug, placeId, userId);
+    User user = getCurrentUser();
+    Team team = teamService.getTeam(slug);
+
+    PlaceDetailDto place = placeService.getPlace(team, placeId, user);
     return Response.ok(place).build();
   }
 
@@ -103,8 +108,10 @@ public class PlaceResource extends AbstractAuthenticatedResource {
       @Parameter(description = "Team URL slug") @PathParam("slug") String slug,
       @Valid PlaceRequest request) {
 
-    Long userId = getCurrentUserId();
-    PlaceDetailDto place = placeService.createPlace(slug, request, userId);
+    User user = getCurrentUser();
+    Team team = teamService.getTeam(slug);
+
+    PlaceDetailDto place = placeService.createPlace(team, request, user);
     return Response.status(Response.Status.CREATED).entity(place).build();
   }
 
@@ -139,8 +146,10 @@ public class PlaceResource extends AbstractAuthenticatedResource {
       @Parameter(description = "Place ID (TSID)") @PathParam("placeId") String placeId,
       @Valid PlaceRequest request) {
 
-    Long userId = getCurrentUserId();
-    PlaceDetailDto place = placeService.updatePlace(slug, placeId, request, userId);
+    User user = getCurrentUser();
+    Team team = teamService.getTeam(slug);
+
+    PlaceDetailDto place = placeService.updatePlace(team, placeId, request, user);
     return Response.ok(place).build();
   }
 
@@ -167,8 +176,10 @@ public class PlaceResource extends AbstractAuthenticatedResource {
       @Parameter(description = "Team URL slug") @PathParam("slug") String slug,
       @Parameter(description = "Place ID (TSID)") @PathParam("placeId") String placeId) {
 
-    Long userId = getCurrentUserId();
-    placeService.deletePlace(slug, placeId, userId);
+    User user = getCurrentUser();
+    Team team = teamService.getTeam(slug);
+
+    placeService.deletePlace(team, placeId, user);
     return Response.noContent().build();
   }
 }

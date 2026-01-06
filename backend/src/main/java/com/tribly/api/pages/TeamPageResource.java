@@ -1,13 +1,14 @@
 package com.tribly.api.pages;
 
 import com.tribly.api.AbstractAuthenticatedResource;
+import com.tribly.domain.team.Team;
+import com.tribly.domain.user.User;
 import com.tribly.dto.common.request.SlugChangeRequest;
 import com.tribly.dto.error.ErrorResponse;
 import com.tribly.dto.pages.request.ReorderPagesRequest;
 import com.tribly.dto.pages.request.TeamPageRequest;
 import com.tribly.dto.pages.response.TeamPageDto;
 import com.tribly.dto.pages.response.TeamPageSummaryDto;
-import com.tribly.infrastructure.exception.NewSlugException;
 import com.tribly.service.page.TeamPageService;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
@@ -49,8 +50,9 @@ public class TeamPageResource extends AbstractAuthenticatedResource {
   })
   public Response listPages(
       @Parameter(description = "Team URL slug") @PathParam("slug") String slug) {
-    Long userId = getCurrentUserIdOrNull();
-    List<TeamPageSummaryDto> pages = teamPageService.listPages(slug, userId);
+    User user = getCurrentUserOrNull();
+    Team team = teamService.getTeam(slug);
+    List<TeamPageSummaryDto> pages = teamPageService.listPages(team, user);
     return Response.ok(pages).build();
   }
 
@@ -63,7 +65,6 @@ public class TeamPageResource extends AbstractAuthenticatedResource {
         responseCode = "200",
         description = "Page retrieved successfully",
         content = @Content(schema = @Schema(implementation = TeamPageDto.class))),
-    @APIResponse(responseCode = "302", description = "Slug has changed, redirect to new URL"),
     @APIResponse(
         responseCode = "403",
         description = "User is not authorized to view this page",
@@ -76,14 +77,10 @@ public class TeamPageResource extends AbstractAuthenticatedResource {
   public Response getPage(
       @Parameter(description = "Team URL slug") @PathParam("slug") String teamSlug,
       @Parameter(description = "Page URL slug") @PathParam("pageSlug") String pageSlug) {
-    Long userId = getCurrentUserIdOrNull();
-    try {
-      TeamPageDto page = teamPageService.getPage(teamSlug, pageSlug, userId);
-      return Response.ok(page).build();
-    } catch (NewSlugException e) {
-      String newUrl = "/api/teams/" + e.getTeamSlug() + "/pages/" + e.getNewSlug();
-      return Response.status(302).header("Location", newUrl).build();
-    }
+    User user = getCurrentUserOrNull();
+    Team team = teamService.getTeam(teamSlug);
+    TeamPageDto page = teamPageService.getPage(team, pageSlug, user);
+    return Response.ok(page).build();
   }
 
   @POST
@@ -118,9 +115,11 @@ public class TeamPageResource extends AbstractAuthenticatedResource {
   public Response createPage(
       @Parameter(description = "Team URL slug") @PathParam("slug") String slug,
       @Valid TeamPageRequest request) {
-    Long userId = getCurrentUserId();
-    TeamPageDto page = teamPageService.createPage(slug, request, userId);
-    return Response.created(URI.create("/api/teams/" + slug + "/pages/" + page.slug()))
+    User user = getCurrentUser();
+    Team team = teamService.getTeam(slug);
+    TeamPageDto page = teamPageService.createPage(team, request, user);
+    return Response.created(
+            URI.create("/api/teams/" + page.team().slug() + "/pages/" + page.slug()))
         .entity(page)
         .build();
   }
@@ -157,8 +156,9 @@ public class TeamPageResource extends AbstractAuthenticatedResource {
       @Parameter(description = "Team URL slug") @PathParam("slug") String slug,
       @Parameter(description = "Page URL slug") @PathParam("pageSlug") String pageSlug,
       @Valid TeamPageRequest request) {
-    Long userId = getCurrentUserId();
-    TeamPageDto updatedPage = teamPageService.updatePage(slug, pageSlug, request, userId);
+    User user = getCurrentUser();
+    Team team = teamService.getTeam(slug);
+    TeamPageDto updatedPage = teamPageService.updatePage(team, pageSlug, request, user);
     return Response.ok(updatedPage).build();
   }
 
@@ -186,8 +186,9 @@ public class TeamPageResource extends AbstractAuthenticatedResource {
   public Response deletePage(
       @Parameter(description = "Team URL slug") @PathParam("slug") String slug,
       @Parameter(description = "Page URL slug") @PathParam("pageSlug") String pageSlug) {
-    Long userId = getCurrentUserId();
-    teamPageService.deletePage(slug, pageSlug, userId);
+    User user = getCurrentUser();
+    Team team = teamService.getTeam(slug);
+    teamPageService.deletePage(team, pageSlug, user);
     return Response.noContent().build();
   }
 
@@ -222,8 +223,9 @@ public class TeamPageResource extends AbstractAuthenticatedResource {
   public Response reorderPages(
       @Parameter(description = "Team URL slug") @PathParam("slug") String slug,
       @Valid ReorderPagesRequest request) {
-    Long userId = getCurrentUserId();
-    List<TeamPageSummaryDto> pages = teamPageService.reorderPages(slug, request, userId);
+    User user = getCurrentUser();
+    Team team = teamService.getTeam(slug);
+    List<TeamPageSummaryDto> pages = teamPageService.reorderPages(team, request, user);
     return Response.ok(pages).build();
   }
 
@@ -264,8 +266,9 @@ public class TeamPageResource extends AbstractAuthenticatedResource {
       @Parameter(description = "Team URL slug") @PathParam("slug") String teamSlug,
       @Parameter(description = "Current page URL slug") @PathParam("pageSlug") String currentSlug,
       @Valid SlugChangeRequest request) {
-    Long userId = getCurrentUserId();
-    TeamPageDto page = teamPageService.updateSlug(teamSlug, currentSlug, request.slug(), userId);
+    User user = getCurrentUser();
+    Team team = teamService.getTeam(teamSlug);
+    TeamPageDto page = teamPageService.updateSlug(team, currentSlug, request.slug(), user);
     return Response.ok(page).build();
   }
 }

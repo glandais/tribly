@@ -4,7 +4,7 @@ import com.tribly.domain.common.repository.TriblyPage;
 import com.tribly.domain.place.Place;
 import com.tribly.domain.place.repository.PlaceRepository;
 import com.tribly.domain.team.Team;
-import com.tribly.domain.team.UserTeam;
+import com.tribly.domain.user.User;
 import com.tribly.dto.places.request.PlaceRequest;
 import com.tribly.dto.places.response.PlaceDetailDto;
 import com.tribly.dto.places.response.PlaceListResponse;
@@ -27,8 +27,8 @@ public class PlaceService {
 
   @Inject TeamSecurityService securityService;
 
-  public PlaceListResponse listPlaces(String teamSlug, int page, int size, Long userId) {
-    Team team = securityService.requireOrganizer(userId, teamSlug).getTeam();
+  public PlaceListResponse listPlaces(Team team, int page, int size, User user) {
+    securityService.requireOrganizer(user, team);
 
     TriblyPage<Place> places = placeRepository.findByTeam(team.getId(), page, size);
     List<PlaceDetailDto> dtos = places.items().stream().map(PlaceDetailDto::from).toList();
@@ -36,8 +36,8 @@ public class PlaceService {
     return new PlaceListResponse(dtos, places.total(), page, size);
   }
 
-  public PlaceDetailDto getPlace(String teamSlug, String placeId, @Nullable Long userId) {
-    Team team = securityService.requireOrganizer(userId, teamSlug).getTeam();
+  public PlaceDetailDto getPlace(Team team, String placeId, @Nullable User user) {
+    securityService.requireOrganizer(user, team);
 
     Place place =
         placeRepository
@@ -48,30 +48,26 @@ public class PlaceService {
   }
 
   @Transactional
-  public PlaceDetailDto createPlace(String teamSlug, PlaceRequest request, Long creatorId) {
+  public PlaceDetailDto createPlace(Team team, PlaceRequest request, User creator) {
     // Security check: must be admin or organizer
-    UserTeam userTeam = securityService.requireOrganizer(creatorId, teamSlug);
+    securityService.requireOrganizer(creator, team);
 
     Place place =
-        new Place(
-            userTeam.getUser(),
-            userTeam.getTeam(),
-            request.name(),
-            request.startPlace(),
-            request.endPlace());
+        new Place(creator, team, request.name(), request.startPlace(), request.endPlace());
     updatePlaceFromRequest(place, request);
 
     placeRepository.persistAndFlush(place);
-    LOG.infov("Place '{0}' created by user {1} for team {2}", place.getName(), creatorId, teamSlug);
+    LOG.infov(
+        "Place '{0}' created by user {1} for team {2}",
+        place.getName(), creator.getId(), team.getSlug());
 
     return PlaceDetailDto.from(place);
   }
 
   @Transactional
-  public PlaceDetailDto updatePlace(
-      String teamSlug, String placeId, PlaceRequest request, Long userId) {
+  public PlaceDetailDto updatePlace(Team team, String placeId, PlaceRequest request, User user) {
     // Security check: must be admin or organizer
-    Team team = securityService.requireOrganizer(userId, teamSlug).getTeam();
+    securityService.requireOrganizer(user, team);
 
     Place place =
         placeRepository
@@ -81,14 +77,14 @@ public class PlaceService {
     updatePlaceFromRequest(place, request);
     placeRepository.persist(place);
 
-    LOG.infov("Place {0} updated by user {1}", placeId, userId);
+    LOG.infov("Place {0} updated by user {1}", placeId, user.getId());
     return PlaceDetailDto.from(place);
   }
 
   @Transactional
-  public void deletePlace(String teamSlug, String placeId, Long userId) {
+  public void deletePlace(Team team, String placeId, User user) {
     // Security check: must be admin or organizer
-    Team team = securityService.requireOrganizer(userId, teamSlug).getTeam();
+    securityService.requireOrganizer(user, team);
 
     Place place =
         placeRepository
@@ -97,7 +93,7 @@ public class PlaceService {
 
     place.setDeleted(true);
     placeRepository.persist(place);
-    LOG.infov("Place {0} deleted by user {1}", placeId, userId);
+    LOG.infov("Place {0} deleted by user {1}", placeId, user.getId());
   }
 
   private void updatePlaceFromRequest(Place place, PlaceRequest request) {

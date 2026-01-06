@@ -9,14 +9,12 @@ import com.tribly.domain.team.repository.TeamQuery;
 import com.tribly.domain.team.repository.TeamRepository;
 import com.tribly.domain.team.repository.UserTeamRepository;
 import com.tribly.domain.user.User;
-import com.tribly.domain.user.repository.UserRepository;
 import com.tribly.dto.common.response.MediaDto;
 import com.tribly.dto.teams.request.TeamRequest;
 import com.tribly.dto.teams.response.TeamDetailDto;
 import com.tribly.dto.teams.response.TeamListResponse;
 import com.tribly.enums.TeamRole;
 import com.tribly.infrastructure.exception.BusinessException;
-import com.tribly.infrastructure.exception.NotFoundException;
 import com.tribly.service.asset.AssetService;
 import com.tribly.service.common.SlugService;
 import com.tribly.service.security.TeamSecurityService;
@@ -41,41 +39,30 @@ public class TeamService {
 
   @Inject protected TeamRepository teamRepository;
 
-  @Inject protected UserRepository userRepository;
-
   @Inject protected AssetService assetService;
 
   @Inject protected SlugService slugService;
 
-  protected TeamAndRole getTeam(String slug, @Nullable Long userId, boolean throwRedirect) {
-    try {
-      return teamRepository
-          .findOne(slug, userId)
-          .orElseThrow(() -> BusinessException.notFound("Team", slug));
-    } catch (NotFoundException e) {
-      Optional<TeamSlugRedirect> redirect = slugService.resolveTeamRedirect(slug);
-      if (redirect.isPresent()) {
-        String newSlug = redirect.get().getTeam().getSlug();
-        Optional<TeamAndRole> newOne = teamRepository.findOne(newSlug, userId);
-        if (newOne.isPresent()) {
-          if (throwRedirect) {
-            throw BusinessException.newSlug(slug, newSlug, newSlug);
-          } else {
-            return newOne.get();
-          }
-        }
-      }
-      throw e;
+  public Team getTeam(String teamSlug) {
+    Optional<Team> optionalTeam = teamRepository.findBySlug(teamSlug);
+    if (optionalTeam.isPresent()) {
+      return optionalTeam.get();
     }
+    Optional<TeamSlugRedirect> redirect = slugService.resolveTeamRedirect(teamSlug);
+    if (redirect.isPresent()) {
+      return redirect.get().getTeam();
+    }
+    throw BusinessException.notFound("Team", "teamSlug");
+  }
+
+  protected TeamAndRole getTeam(Long id, @Nullable User user) {
+    return teamRepository
+        .findOne(id, user == null ? null : user.getId())
+        .orElseThrow(() -> BusinessException.notFound("Team", id));
   }
 
   @Transactional
-  public TeamDetailDto createTeam(TeamRequest request, Long creatorId) {
-    User creator =
-        userRepository
-            .findActiveById(creatorId)
-            .orElseThrow(() -> BusinessException.notFound("User", creatorId));
-
+  public TeamDetailDto createTeam(TeamRequest request, User creator) {
     String slug = slugService.generateSlug(request.name(), teamRepository::existsBySlug);
     slugService.clearTeamRedirect(slug);
 
@@ -89,17 +76,17 @@ public class TeamService {
     UserTeam membership = new UserTeam(creator, creator, team, TeamRole.ADMIN);
     userTeamRepository.persist(membership);
 
-    LOG.infov("Team {0} created by user {1}", team.getSlug(), creatorId);
+    LOG.infov("Team {0} created by user {1}", team.getSlug(), creator.getId());
     return TeamDetailDto.from(new TeamAndRole(team, TeamRole.ADMIN, 1L), assetService);
   }
 
   @Transactional
   public TeamListResponse listTeams(
-      @Nullable Long userId, MinRole minRole, @Nullable String search, int page, int size) {
+      @Nullable User user, MinRole minRole, @Nullable String search, int page, int size) {
     TriblyPage<TeamAndRole> teams =
         teamRepository.find(
             TeamQuery.builder()
-                .userId(userId)
+                .userId(user == null ? null : user.getId())
                 .minRole(minRole)
                 .search(search)
                 .page(page)
@@ -112,16 +99,15 @@ public class TeamService {
     return new TeamListResponse(dtos, teams.total(), page, size);
   }
 
-  public TeamDetailDto getTeamDetailDto(String slug, @Nullable Long userId) {
-    TeamAndRole teamAndRole = getTeam(slug, userId, true);
+  public TeamDetailDto getTeamDetailDto(Team team, @Nullable User user) {
+    TeamAndRole teamAndRole = getTeam(team.getId(), user);
     return TeamDetailDto.from(teamAndRole, assetService);
   }
 
   @Transactional
-  public TeamDetailDto updateTeam(String teamSlug, TeamRequest request, Long userId) {
-    Team team = getTeam(teamSlug, userId, false).team();
-
-    securityService.requireAdmin(userId, teamSlug);
+  public TeamDetailDto updateTeam(Team teamParam, TeamRequest request, User user) {
+    Team team = getTeam(teamParam.getId(), user).team();
+    securityService.requireAdmin(user, team);
 
     team.setName(request.name());
     team.setVisibility(request.visibility());
@@ -130,33 +116,27 @@ public class TeamService {
     updateMedia(team.getAboutPage(), request.media());
 
     teamRepository.persist(team);
-    LOG.infov("Team {0} updated by user {1}", team.getSlug(), userId);
-    return getTeamDetailDto(team.getSlug(), userId);
+    LOG.infov("Team {0} updated by user {1}", team.getSlug(), user.getId());
+    return getTeamDetailDto(team, user);
   }
 
   @Transactional
-  public void deleteTeam(String teamSlug, Long userId) {
-    Team team = getTeam(teamSlug, userId, false).team();
+  public void deleteTeam(Team teamParam, User user) {
+    Team team = getTeam(teamParam.getId(), user).team();
 
-    securityService.requireAdmin(userId, teamSlug);
+    securityService.requireAdmin(user, team);
 
     team.setDeleted(true);
     teamRepository.persist(team);
-    LOG.infov("Team {0} deleted by user {1}", team.getSlug(), userId);
-  }
-
-  public Optional<TeamRole> getUserRole(Long userId, String teamSlug) {
-    Optional<UserTeam> userTeam = userTeamRepository.findByUserAndTeam(userId, teamSlug);
-    LOG.infov(
-        "getUserRole: userId={0}, teamSlug={1}, found={2}", userId, teamSlug, userTeam.isPresent());
-    return userTeam.map(UserTeam::getRole);
+    LOG.infov("Team {0} deleted by user {1}", team.getSlug(), user.getId());
   }
 
   @Transactional
-  public TeamDetailDto updateSlug(String currentSlug, String newSlug, Long userId) {
-    Team team = getTeam(currentSlug, userId, false).team();
+  public TeamDetailDto updateSlug(Team teamParam, String newSlug, User user) {
+    Team team = getTeam(teamParam.getId(), user).team();
+    String currentSlug = team.getSlug();
 
-    securityService.requireAdmin(userId, currentSlug);
+    securityService.requireAdmin(user, team);
 
     // Validate new slug format
     if (!slugService.isValidSlug(newSlug)) {
@@ -165,7 +145,7 @@ public class TeamService {
 
     // No change needed
     if (currentSlug.equals(newSlug)) {
-      return getTeamDetailDto(currentSlug, userId);
+      return getTeamDetailDto(team, user);
     }
 
     // Check if new slug is already taken (by a non-deleted team)
@@ -183,8 +163,8 @@ public class TeamService {
     team.setSlug(newSlug);
     teamRepository.persist(team);
 
-    LOG.infov("Team slug changed from {0} to {1} by user {2}", currentSlug, newSlug, userId);
-    return getTeamDetailDto(newSlug, userId);
+    LOG.infov("Team slug changed from {0} to {1} by user {2}", currentSlug, newSlug, user.getId());
+    return getTeamDetailDto(team, user);
   }
 
   protected void updateMedia(TeamEntity teamEntity, MediaDto mediaDto) {

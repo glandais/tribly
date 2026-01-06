@@ -9,7 +9,7 @@ import org.jspecify.annotations.Nullable;
 public record TeamQuery(
     int page,
     int size,
-    @Nullable String slug,
+    @Nullable Long id,
     @Nullable Long userId,
     @Nullable MinRole minRole,
     @Nullable String search)

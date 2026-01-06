@@ -5,7 +5,6 @@ import com.tribly.domain.common.repository.TriblyPage;
 import com.tribly.domain.place.Place;
 import com.tribly.domain.place.repository.PlaceRepository;
 import com.tribly.domain.route.Route;
-import com.tribly.domain.route.repository.RouteRepository;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.trip.Trip;
 import com.tribly.domain.trip.TripParticipation;
@@ -25,6 +24,7 @@ import com.tribly.enums.Visibility;
 import com.tribly.infrastructure.exception.BusinessException;
 import com.tribly.infrastructure.id.TsidUtils;
 import com.tribly.service.common.TeamEntityService;
+import com.tribly.service.route.RouteService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -49,7 +49,7 @@ public class TripService extends TeamEntityService<Trip> {
 
   @Inject TripParticipationRepository participationRepository;
 
-  @Inject RouteRepository routeRepository;
+  @Inject RouteService routeService;
 
   @Inject PlaceRepository placeRepository;
 
@@ -64,8 +64,8 @@ public class TripService extends TeamEntityService<Trip> {
   }
 
   public TripListResponse listTrips(
-      String teamSlug,
-      @Nullable Long userId,
+      Team team,
+      @Nullable User user,
       @Nullable String search,
       @Nullable Instant from,
       @Nullable Instant to,
@@ -74,8 +74,8 @@ public class TripService extends TeamEntityService<Trip> {
     TriblyPage<Trip> trips =
         tripRepository.find(
             TeamEntityQueryBasic.builder()
-                .userId(userId)
-                .teamSlugs(Set.of(teamSlug))
+                .userId(user == null ? null : user.getId())
+                .teamIds(Set.of(team.getId()))
                 .search(search)
                 .from(from)
                 .to(to)
@@ -88,12 +88,12 @@ public class TripService extends TeamEntityService<Trip> {
   }
 
   @Override
-  public Trip getWithoutRedirect(String teamSlug, String tripSlug, @Nullable Long userId) {
+  public Trip getBySlug(Team team, String tripSlug, @Nullable User user) {
     TriblyPage<Trip> trips =
         tripRepository.find(
             TeamEntityQueryBasic.builder()
-                .userId(userId)
-                .teamSlugs(Set.of(teamSlug))
+                .userId(user == null ? null : user.getId())
+                .teamIds(Set.of(team.getId()))
                 .slug(tripSlug)
                 .page(0)
                 .size(1)
@@ -105,24 +105,14 @@ public class TripService extends TeamEntityService<Trip> {
     }
   }
 
-  public TripDto getTripDetail(String teamSlug, String tripSlug, @Nullable Long userId) {
-    return TripDto.from(get(teamSlug, tripSlug, userId, true), true, assetService);
+  public TripDto getTripDetail(Team team, String tripSlug, @Nullable User user) {
+    return TripDto.from(get(team, tripSlug, user), true, assetService);
   }
 
   @Transactional
-  public TripDto createTrip(String teamSlug, TripRequest request, Long creatorId) {
-    Team team =
-        teamRepository
-            .findBySlug(teamSlug)
-            .orElseThrow(() -> BusinessException.notFound("Team", teamSlug));
-
-    User creator =
-        userRepository
-            .findActiveById(creatorId)
-            .orElseThrow(() -> BusinessException.notFound("User", creatorId));
-
+  public TripDto createTrip(Team team, TripRequest request, User creator) {
     // Security check: must be admin or organizer to create trips
-    securityService.requireOrganizer(creatorId, team.getSlug());
+    securityService.requireOrganizer(creator, team);
     requireTripEnabled(team);
 
     validateVisibility(request, team);
@@ -132,7 +122,7 @@ public class TripService extends TeamEntityService<Trip> {
     // Generate slug from name, ensure unique within team
     String slug = slugService.generateSlug(request.name(), team.getId(), tripRepository);
 
-    Route route = getRoute(request.routeSlug(), team, visibility);
+    Route route = getRoute(request.routeSlug(), team, visibility, creator);
 
     Trip trip = new Trip(creator, team, request.dateTime(), request.name(), slug, visibility);
     trip.setRoute(route);
@@ -154,7 +144,7 @@ public class TripService extends TeamEntityService<Trip> {
       sortOrder++;
     }
 
-    LOG.infov("Trip '{0}' created by user {1} for team {2}", trip.getName(), creatorId, teamSlug);
+    LOG.infov("Trip '{0}' created by user {1} for team {2}", trip.getName(), creator.getId(), team);
     return TripDto.from(trip, true, assetService);
   }
 
@@ -166,7 +156,7 @@ public class TripService extends TeamEntityService<Trip> {
 
   private void createTripStage(User user, Trip trip, StageRequest stageRequest, int sortOrder) {
     TripStage stage = new TripStage(user, trip, stageRequest.name());
-    setStageProperties(trip, stage, stageRequest, sortOrder);
+    setStageProperties(trip, stage, stageRequest, sortOrder, user);
     trip.addStage(stage);
     tripStageRepository.persistAndFlush(stage);
     updateMedia(stage, stageRequest.media());
@@ -174,11 +164,12 @@ public class TripService extends TeamEntityService<Trip> {
   }
 
   private void setStageProperties(
-      Trip trip, TripStage stage, StageRequest stageRequest, int sortOrder) {
+      Trip trip, TripStage stage, StageRequest stageRequest, int sortOrder, User user) {
     stage.setTrip(trip);
     stage.setName(stageRequest.name());
     stage.setDateTime(stageRequest.dateTime());
-    Route stageRoute = getRoute(stageRequest.routeSlug(), trip.getTeam(), trip.getVisibility());
+    Route stageRoute =
+        getRoute(stageRequest.routeSlug(), trip.getTeam(), trip.getVisibility(), user);
     stage.setRoute(stageRoute);
     Place startPlace = getPlace(stageRequest.startPlaceId(), trip.getTeam());
     Place endPlace = getPlace(stageRequest.endPlaceId(), trip.getTeam());
@@ -190,13 +181,11 @@ public class TripService extends TeamEntityService<Trip> {
     stage.setStatus(trip.getStatus());
   }
 
-  private @Nullable Route getRoute(@Nullable String routeSlug, Team team, Visibility visibility) {
+  private @Nullable Route getRoute(
+      @Nullable String routeSlug, Team team, Visibility visibility, User user) {
     Route route = null;
     if (routeSlug != null) {
-      route =
-          routeRepository
-              .findByTeamAndSlug(team.getId(), routeSlug)
-              .orElseThrow(() -> BusinessException.notFound("Route not found"));
+      route = routeService.get(team, routeSlug, user);
       if (visibility == Visibility.PUBLIC && route.getVisibility() != Visibility.PUBLIC) {
         throw BusinessException.businessRule(
             "Can't use private route on public trip", "PUBLIC_TRIP_PRIVATE_ROUTE");
@@ -216,28 +205,21 @@ public class TripService extends TeamEntityService<Trip> {
   }
 
   @Transactional
-  public TripDto updateTrip(String teamSlug, String tripSlug, TripRequest request, Long userId) {
-    Trip trip = get(teamSlug, tripSlug, userId, false);
+  public TripDto updateTrip(Team team, String tripSlug, TripRequest request, User user) {
+    Trip trip = get(team, tripSlug, user);
 
     // Security check: must be admin or creator (if organizer) to edit
-    securityService.requireOrganizer(userId, teamSlug);
+    securityService.requireOrganizer(user, team);
     requireTripEnabled(trip.getTeam());
 
-    User user =
-        userRepository
-            .findActiveById(userId)
-            .orElseThrow(() -> BusinessException.notFound("User", userId));
-
     // Validate visibility: private teams can only have team-only trips
-    Team team = trip.getTeam();
-
     validateVisibility(request, team);
     trip.setVisibility(request.visibility());
 
     trip.setName(request.name());
     trip.setDateTime(request.dateTime());
     trip.setStatus(request.status());
-    Route route = getRoute(request.routeSlug(), trip.getTeam(), trip.getVisibility());
+    Route route = getRoute(request.routeSlug(), trip.getTeam(), trip.getVisibility(), user);
     trip.setRoute(route);
     if (request.status() == Status.DRAFT) {
       trip.setPublishAt(request.publishAt());
@@ -262,7 +244,7 @@ public class TripService extends TeamEntityService<Trip> {
         TripStage existingStage = existingStages.remove(stageId);
         if (existingStage != null) {
           existingStage.setDeleted(false);
-          setStageProperties(trip, existingStage, stageRequest, sortOrder);
+          setStageProperties(trip, existingStage, stageRequest, sortOrder, user);
           updateMedia(existingStage, stageRequest.media());
           // No persist needed - entity is already managed and will be updated on flush
         } else {
@@ -274,42 +256,37 @@ public class TripService extends TeamEntityService<Trip> {
 
     tripRepository.persist(trip);
 
-    LOG.infov("Trip {0} updated by user {1}", tripSlug, userId);
+    LOG.infov("Trip {0} updated by user {1}", tripSlug, user.getId());
     return TripDto.from(trip, true, assetService);
   }
 
   @Transactional
-  public void deleteTrip(String teamSlug, String tripSlug, Long userId) {
-    Trip trip = get(teamSlug, tripSlug, userId, false);
+  public void deleteTrip(Team team, String tripSlug, User user) {
+    Trip trip = get(team, tripSlug, user);
 
     // Security check: must be admin or creator (if organizer) to delete
-    securityService.requireOrganizer(userId, teamSlug);
+    securityService.requireOrganizer(user, team);
     requireTripEnabled(trip.getTeam());
 
     trip.setDeleted(true);
     tripRepository.persist(trip);
-    LOG.infov("Trip {0} deleted by user {1}", tripSlug, userId);
+    LOG.infov("Trip {0} deleted by user {1}", tripSlug, user);
   }
 
   @Transactional
-  public TripParticipationDto joinTrip(String teamSlug, String tripSlug, Long userId) {
-    Trip trip = get(teamSlug, tripSlug, userId, false);
+  public TripParticipationDto joinTrip(Team team, String tripSlug, User user) {
+    Trip trip = get(team, tripSlug, user);
 
     if (trip.getStatus() != Status.PUBLISHED) {
       throw BusinessException.validation("Can only join published trips");
     }
 
-    User user =
-        userRepository
-            .findActiveById(userId)
-            .orElseThrow(() -> BusinessException.notFound("User", userId));
-
     // Security check: must be a team member to join trips
-    securityService.requireMembership(userId, teamSlug);
+    securityService.requireMembership(user, team);
     requireTripEnabled(trip.getTeam());
 
     Optional<TripParticipation> existingParticipation =
-        participationRepository.findByUserAndTripIncludingDeleted(userId, trip.getId());
+        participationRepository.findByUserAndTripIncludingDeleted(user.getId(), trip.getId());
 
     if (existingParticipation.isPresent()) {
       TripParticipation tripParticipation = existingParticipation.get();
@@ -320,7 +297,7 @@ public class TripService extends TeamEntityService<Trip> {
       // Restore soft-deleted participation
       tripParticipation.setDeleted(false);
       participationRepository.persist(tripParticipation);
-      LOG.infov("User {0} joined trip {1}", userId, trip.getId());
+      LOG.infov("User {0} joined trip {1}", user.getId(), trip.getId());
       return TripParticipationDto.from(tripParticipation);
     }
 
@@ -329,31 +306,32 @@ public class TripService extends TeamEntityService<Trip> {
     trip.addParticipation(participation);
     participationRepository.persist(participation);
 
-    LOG.infov("User {0} joined trip {1}", userId, trip.getId());
+    LOG.infov("User {0} joined trip {1}", user.getId(), trip.getId());
     return TripParticipationDto.from(participation);
   }
 
   @Transactional
-  public void leaveTrip(String teamSlug, String tripSlug, Long userId) {
-    Trip trip = get(teamSlug, tripSlug, userId, false);
+  public void leaveTrip(Team team, String tripSlug, User user) {
+    Trip trip = get(team, tripSlug, user);
     requireTripEnabled(trip.getTeam());
 
     TripParticipation participation =
         participationRepository
-            .findByUserAndTrip(userId, trip.getId())
+            .findByUserAndTrip(user.getId(), trip.getId())
             .orElseThrow(() -> BusinessException.notFound("You are not registered for this trip"));
 
     participation.setDeleted(true);
     participationRepository.persist(participation);
 
-    LOG.infov("User {0} left trip {1}", userId, tripSlug);
+    LOG.infov("User {0} left trip {1}", user.getId(), tripSlug);
   }
 
   @Transactional
-  public TripDto updateSlug(String teamSlug, String currentSlug, String newSlug, Long userId) {
-    Trip trip = get(teamSlug, currentSlug, userId, false);
+  public TripDto updateSlug(Team team, String slugParam, String newSlug, User user) {
+    Trip trip = get(team, slugParam, user);
+    String currentSlug = trip.getSlug();
 
-    securityService.requireOrganizer(userId, teamSlug);
+    securityService.requireOrganizer(user, team);
 
     if (!slugService.isValidSlug(newSlug)) {
       throw BusinessException.validation("Invalid slug format");
@@ -373,7 +351,7 @@ public class TripService extends TeamEntityService<Trip> {
     trip.setSlug(newSlug);
     tripRepository.persist(trip);
 
-    LOG.infov("Trip slug changed from {0} to {1} by user {2}", currentSlug, newSlug, userId);
+    LOG.infov("Trip slug changed from {0} to {1} by user {2}", currentSlug, newSlug, user.getId());
     return TripDto.from(trip, true, assetService);
   }
 }

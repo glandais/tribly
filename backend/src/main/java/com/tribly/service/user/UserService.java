@@ -37,8 +37,8 @@ public class UserService {
   }
 
   @Transactional
-  public UserDto updateUser(Long userId, @Nullable String displayName) {
-    User user = getUserEntity(userId);
+  public UserDto updateUser(User userParam, @Nullable String displayName) {
+    User user = getUserEntity(userParam.getId());
 
     if (displayName != null) {
       user.setDisplayName(displayName);
@@ -49,8 +49,8 @@ public class UserService {
   }
 
   @Transactional
-  public void deleteUser(Long userId) {
-    User user = getUserEntity(userId);
+  public void deleteUser(User loggedUser) {
+    User user = getUserEntity(loggedUser.getId());
     user.setDeleted(true);
     userRepository.persist(user);
   }

@@ -46,14 +46,10 @@ public class BusinessException extends RuntimeException {
         String.format("%s with id %d not found", entity, id), entity.toUpperCase() + "_NOT_FOUND");
   }
 
-  public static BusinessException notFound(String entity, String id) {
+  public static BusinessException notFound(String entity, String slug) {
     return new NotFoundException(
-        String.format("%s with id '%s' not found", entity, id),
+        String.format("%s with slug '%s' not found", entity, slug),
         entity.toUpperCase() + "_NOT_FOUND");
-  }
-
-  public static BusinessException newSlug(String oldSlug, String teamSlug, String newSlug) {
-    return new NewSlugException(oldSlug, teamSlug, newSlug);
   }
 
   public static BusinessException conflict(String message) {

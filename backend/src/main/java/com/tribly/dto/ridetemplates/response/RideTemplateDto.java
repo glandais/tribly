@@ -1,6 +1,7 @@
 package com.tribly.dto.ridetemplates.response;
 
 import com.tribly.domain.ridetemplate.RideTemplate;
+import com.tribly.dto.publications.response.TeamPublicationDto;
 import com.tribly.dto.validation.ValidateSchema;
 import com.tribly.enums.Status;
 import com.tribly.enums.Visibility;
@@ -12,6 +13,7 @@ import org.eclipse.microprofile.openapi.annotations.media.Schema;
 @Schema(description = "Ride template response")
 @ValidateSchema
 public record RideTemplateDto(
+    @Schema(description = "Team", required = true) TeamPublicationDto team,
     @Schema(description = "Template ID (TSID)", required = true) String id,
     @Schema(description = "Template slug", required = true) String slug,
     @Schema(description = "Template name", required = true) String name,
@@ -31,6 +33,7 @@ public record RideTemplateDto(
             .toList();
 
     return new RideTemplateDto(
+        TeamPublicationDto.from(template.getTeam()),
         TsidUtils.toString(template.getId()),
         template.getSlug(),
         template.getName(),

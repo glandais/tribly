@@ -2,6 +2,7 @@ package com.tribly.dto.teams.response;
 
 import com.tribly.domain.team.UserTeam;
 import com.tribly.domain.user.User;
+import com.tribly.dto.publications.response.TeamPublicationDto;
 import com.tribly.dto.users.response.PublicUserDto;
 import com.tribly.dto.validation.ValidateSchema;
 import com.tribly.enums.TeamRole;
@@ -13,6 +14,7 @@ import org.jspecify.annotations.Nullable;
 @Schema(description = "Team member information")
 @ValidateSchema
 public record MemberDto(
+    @Schema(description = "Team", required = true) TeamPublicationDto team,
     @Schema(description = "Membership ID (TSID)", required = true) String id,
     @Schema(description = "User", required = true) PublicUserDto user,
     @Schema(description = "Member role", required = true) TeamRole role,
@@ -20,6 +22,7 @@ public record MemberDto(
   public static MemberDto from(UserTeam userTeam) {
     User user = userTeam.getUser();
     return new MemberDto(
+        TeamPublicationDto.from(userTeam.getTeam()),
         TsidUtils.toString(userTeam.getId()),
         PublicUserDto.from(userTeam.getUser()),
         userTeam.getRole(),

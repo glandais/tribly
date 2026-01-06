@@ -40,35 +40,32 @@ public class RideTemplateService {
   @Inject SlugService slugService;
 
   public RideTemplateListResponse listTemplates(
-      String teamSlug, Long userId, @Nullable String search, int page, int size) {
+      Team team, User user, @Nullable String search, int page, int size) {
     // Any team member can list templates
-    UserTeam userTeam = securityService.requireOrganizer(userId, teamSlug);
+    securityService.requireOrganizer(user, team);
 
     TriblyPage<RideTemplate> templates =
-        templateRepository.findByTeam(userTeam.getTeam().getId(), search, page, size);
+        templateRepository.findByTeam(team.getId(), search, page, size);
     var dtos = templates.items().stream().map(RideTemplateDto::from).toList();
     return new RideTemplateListResponse(dtos, templates.total(), page, size);
   }
 
-  public RideTemplateDto getTemplate(String teamSlug, String templateSlug, Long userId) {
+  public RideTemplateDto getTemplate(Team team, String templateSlug, User user) {
     // Any team member can view templates
-    securityService.requireOrganizer(userId, teamSlug);
+    securityService.requireOrganizer(user, team);
 
     RideTemplate template =
         templateRepository
-            .findByTeamSlugAndTemplateSlug(teamSlug, templateSlug)
+            .findByTeamAndSlug(team.getId(), templateSlug)
             .orElseThrow(() -> BusinessException.notFound("Template", templateSlug));
 
     return RideTemplateDto.from(template);
   }
 
   @Transactional
-  public RideTemplateDto createTemplate(
-      String teamSlug, RideTemplateRequest request, Long creatorId) {
+  public RideTemplateDto createTemplate(Team team, RideTemplateRequest request, User creator) {
     // Security check: must be admin or organizer to create templates
-    UserTeam userTeam = securityService.requireOrganizer(creatorId, teamSlug);
-    Team team = userTeam.getTeam();
-    User creator = userTeam.getUser();
+    securityService.requireOrganizer(creator, team);
 
     // Validate visibility: private teams can only have team-only templates
     Visibility visibility = request.visibility();
@@ -96,7 +93,8 @@ public class RideTemplateService {
     }
 
     LOG.infov(
-        "Template '{0}' created by user {1} for team {2}", template.getName(), creatorId, teamSlug);
+        "Template '{0}' created by user {1} for team {2}",
+        template.getName(), creator.getId(), team);
     return RideTemplateDto.from(template);
   }
 
@@ -113,17 +111,16 @@ public class RideTemplateService {
 
   @Transactional
   public RideTemplateDto updateTemplate(
-      String teamSlug, String templateSlug, RideTemplateRequest request, Long userId) {
+      Team team, String templateSlug, RideTemplateRequest request, User user) {
     RideTemplate template =
         templateRepository
-            .findByTeamSlugAndTemplateSlug(teamSlug, templateSlug)
+            .findByTeamAndSlug(team.getId(), templateSlug)
             .orElseThrow(() -> BusinessException.notFound("Template", templateSlug));
 
     // Security check: must be admin or organizer to update templates
-    UserTeam userTeam = securityService.requireOrganizer(userId, teamSlug);
+    UserTeam userTeam = securityService.requireOrganizer(user, team);
 
     // Validate visibility: private teams can only have team-only templates
-    Team team = template.getTeam();
     if (team.getVisibility() != Visibility.PUBLIC && request.visibility() == Visibility.PUBLIC) {
       throw BusinessException.validation("Private teams can only have team-only templates");
     }
@@ -166,22 +163,22 @@ public class RideTemplateService {
 
     templateRepository.persist(template);
 
-    LOG.infov("Template {0} updated by user {1}", templateSlug, userId);
+    LOG.infov("Template {0} updated by user {1}", templateSlug, user);
     return RideTemplateDto.from(template);
   }
 
   @Transactional
-  public void deleteTemplate(String teamSlug, String templateSlug, Long userId) {
+  public void deleteTemplate(Team team, String templateSlug, User user) {
     RideTemplate template =
         templateRepository
-            .findByTeamSlugAndTemplateSlug(teamSlug, templateSlug)
+            .findByTeamAndSlug(team.getId(), templateSlug)
             .orElseThrow(() -> BusinessException.notFound("Template", templateSlug));
 
     // Security check: must be admin or organizer to delete templates
-    securityService.requireOrganizer(userId, teamSlug);
+    securityService.requireOrganizer(user, team);
 
     template.setDeleted(true);
     templateRepository.persist(template);
-    LOG.infov("Template {0} deleted by user {1}", templateSlug, userId);
+    LOG.infov("Template {0} deleted by user {1}", templateSlug, user);
   }
 }

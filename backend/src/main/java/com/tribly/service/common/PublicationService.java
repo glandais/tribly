@@ -4,6 +4,8 @@ import com.tribly.domain.common.Publication;
 import com.tribly.domain.common.repository.AllPublicationRepository;
 import com.tribly.domain.common.repository.PublicationQuery;
 import com.tribly.domain.common.repository.TriblyPage;
+import com.tribly.domain.team.Team;
+import com.tribly.domain.user.User;
 import com.tribly.dto.publications.response.PublicationDto;
 import com.tribly.dto.publications.response.PublicationListResponse;
 import com.tribly.dto.publications.response.PublicationType;
@@ -35,16 +37,15 @@ public class PublicationService extends TeamEntityService<Publication> {
 
   @Override
   @Nullable
-  protected Publication getWithoutRedirect(
-      String teamSlug, String entitySlug, @Nullable Long userId) {
+  protected Publication getBySlug(Team team, String entitySlug, @Nullable User user) {
     // not redirectable at this level
     throw BusinessException.notFound("Not found");
   }
 
   public PublicationListResponse list(
       @Nullable PublicationType type,
-      @Nullable Set<String> teamSlugs,
-      @Nullable Long userId,
+      @Nullable Set<Long> teamIds,
+      @Nullable User user,
       @Nullable String search,
       @Nullable Instant from,
       @Nullable Instant to,
@@ -53,9 +54,9 @@ public class PublicationService extends TeamEntityService<Publication> {
     TriblyPage<Publication> publications =
         allPublicationRepository.find(
             PublicationQuery.builder()
-                .userId(userId)
+                .userId(user == null ? null : user.getId())
                 .type(type)
-                .teamSlugs(teamSlugs)
+                .teamIds(teamIds)
                 .search(search)
                 .from(from)
                 .to(to)

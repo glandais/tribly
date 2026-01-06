@@ -3,6 +3,7 @@ package com.tribly.service.security;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.team.UserTeam;
 import com.tribly.domain.team.repository.UserTeamRepository;
+import com.tribly.domain.user.User;
 import com.tribly.enums.TeamRole;
 import com.tribly.enums.Visibility;
 import com.tribly.infrastructure.exception.BusinessException;
@@ -39,23 +40,23 @@ public class TeamSecurityService {
   /**
    * Checks if a user is a member of a team.
    *
-   * @param userId the user ID
+   * @param user the user
    * @param team   the team
    * @return true if the user is a member
    */
-  public boolean isMember(@Nullable Long userId, Team team) {
-    if (userId == null) {
+  public boolean isMember(@Nullable User user, Team team) {
+    if (user == null) {
       return false;
     }
-    return userTeamRepository.findByUserAndTeam(userId, team.getSlug()).isPresent();
+    return userTeamRepository.findByUserAndTeam(user.getId(), team.getId()).isPresent();
   }
 
-  public boolean canSeeDrafts(@Nullable Long userId, Team team) {
-    if (userId == null) {
+  public boolean canSeeDrafts(@Nullable User user, Team team) {
+    if (user == null) {
       return false;
     }
     return userTeamRepository
-        .findByUserAndTeam(userId, team.getSlug())
+        .findByUserAndTeam(user.getId(), team.getId())
         .map(UserTeam::isOrganizer)
         .orElse(false);
   }
@@ -63,17 +64,17 @@ public class TeamSecurityService {
   /**
    * Requires the user to be a member of the team.
    *
-   * @param userId   the user ID
-   * @param teamSlug the team slug
+   * @param user   the user
+   * @param team the team
    * @return the membership
    * @throws BusinessException with FORBIDDEN if not a member
    */
-  public UserTeam requireMembership(@Nullable Long userId, String teamSlug) {
-    if (userId == null) {
+  public UserTeam requireMembership(@Nullable User user, Team team) {
+    if (user == null) {
       throw BusinessException.forbidden("You are not a member of this team");
     }
     return userTeamRepository
-        .findByUserAndTeam(userId, teamSlug)
+        .findByUserAndTeam(user.getId(), team.getId())
         .orElseThrow(() -> BusinessException.forbidden("You are not a member of this team"));
   }
 
@@ -82,12 +83,12 @@ public class TeamSecurityService {
   /**
    * Requires the user to be an admin of the team.
    *
-   * @param userId the user ID
-   * @param slug   the team slug
+   * @param user the user
+   * @param team   the team
    * @throws BusinessException with FORBIDDEN if not an admin
    */
-  public void requireAdmin(Long userId, String slug) {
-    UserTeam membership = requireMembership(userId, slug);
+  public void requireAdmin(User user, Team team) {
+    UserTeam membership = requireMembership(user, team);
     if (!membership.isAdmin()) {
       throw BusinessException.forbidden("Only admins can perform this action");
     }
@@ -104,13 +105,13 @@ public class TeamSecurityService {
    *   <li>Members cannot edit rides</li>
    * </ul>
    *
-   * @param userId   the user ID
-   * @param teamSlug the team slug
+   * @param user   the user
+   * @param team the team
    * @return
    * @throws BusinessException with FORBIDDEN
    */
-  public UserTeam requireOrganizer(@Nullable Long userId, String teamSlug) {
-    UserTeam membership = requireMembership(userId, teamSlug);
+  public UserTeam requireOrganizer(@Nullable User user, Team team) {
+    UserTeam membership = requireMembership(user, team);
     if (!membership.isOrganizer()) {
       throw BusinessException.forbidden("Not organizer");
     }
@@ -136,13 +137,13 @@ public class TeamSecurityService {
   /**
    * Checks that removing a user won't leave the team without an admin.
    *
-   * @param teamSlug         the team slug
+   * @param team         the team
    * @param targetMembership the membership being removed or demoted
    * @throws BusinessException with BUSINESS_RULE if this would remove the last admin
    */
-  public void requireNotLastAdmin(String teamSlug, UserTeam targetMembership) {
+  public void requireNotLastAdmin(Team team, UserTeam targetMembership) {
     if (targetMembership.getRole() == TeamRole.ADMIN) {
-      long adminCount = userTeamRepository.countAdminsByTeam(teamSlug);
+      long adminCount = userTeamRepository.countAdminsByTeam(team.getId());
       if (adminCount <= 1) {
         throw BusinessException.businessRule("Cannot remove the last admin", "LAST_ADMIN");
       }
@@ -152,15 +153,14 @@ public class TeamSecurityService {
   /**
    * Checks that demoting a user won't leave the team without an admin.
    *
-   * @param teamSlug         the team slug
+   * @param team         the team
    * @param targetMembership the membership being demoted
    * @param newRole          the new role
    * @throws BusinessException with BUSINESS_RULE if this would remove the last admin
    */
-  public void requireNotLastAdminDemotion(
-      String teamSlug, UserTeam targetMembership, TeamRole newRole) {
+  public void requireNotLastAdminDemotion(Team team, UserTeam targetMembership, TeamRole newRole) {
     if (targetMembership.getRole() == TeamRole.ADMIN && newRole != TeamRole.ADMIN) {
-      requireNotLastAdmin(teamSlug, targetMembership);
+      requireNotLastAdmin(team, targetMembership);
     }
   }
 
@@ -169,20 +169,20 @@ public class TeamSecurityService {
   /**
    * Checks if a user can remove a member (self or with admin rights).
    *
-   * @param actorId  the user performing the action
-   * @param targetId the user being removed
-   * @param teamSlug the team slug
+   * @param actor  the user performing the action
+   * @param target the user being removed
+   * @param team the team
    * @throws BusinessException with FORBIDDEN if not allowed
    */
-  public void requireCanRemoveMember(Long actorId, Long targetId, String teamSlug) {
-    boolean isSelfRemoval = targetId.equals(actorId);
+  public void requireCanRemoveMember(User actor, User target, Team team) {
+    boolean isSelfRemoval = target.getId().equals(actor.getId());
     if (isSelfRemoval) {
       // Users can always remove themselves (leave the team)
-      requireMembership(actorId, teamSlug);
+      requireMembership(actor, team);
       return;
     }
 
     // Non-self removal requires admin rights
-    requireAdmin(actorId, teamSlug);
+    requireAdmin(actor, team);
   }
 }

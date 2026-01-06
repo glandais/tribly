@@ -9,7 +9,7 @@ public interface TeamEntityQueryInterface extends PageInterface {
 
   @Nullable Long userId();
 
-  @Nullable Set<String> teamSlugs();
+  @Nullable Set<Long> teamIds();
 
   @Nullable String slug();
 

@@ -58,12 +58,12 @@ public class RouteService extends TeamEntityService<Route> {
   }
 
   @Override
-  protected Route getWithoutRedirect(String teamSlug, String entitySlug, @Nullable Long userId) {
+  protected Route getBySlug(Team team, String entitySlug, @Nullable User user) {
     TriblyPage<Route> routes =
         routeRepository.find(
             RouteQuery.builder()
-                .userId(userId)
-                .teamSlugs(Set.of(teamSlug))
+                .userId(user == null ? null : user.getId())
+                .teamIds(Set.of(team.getId()))
                 .slug(entitySlug)
                 .size(1)
                 .build());
@@ -80,20 +80,9 @@ public class RouteService extends TeamEntityService<Route> {
    */
   @Transactional
   public RouteDto createRoute(
-      String teamSlug, RouteRequest request, @Nullable Path gpxPath, Long creatorId) {
-
-    Team team =
-        teamRepository
-            .findBySlug(teamSlug)
-            .orElseThrow(() -> BusinessException.notFound("Team", teamSlug));
-
+      Team team, RouteRequest request, @Nullable Path gpxPath, User creator) {
     // Security check: reuse ride permissions (admins & organizers can create routes)
-    securityService.requireOrganizer(creatorId, team.getSlug());
-
-    User creator =
-        userRepository
-            .findActiveById(creatorId)
-            .orElseThrow(() -> BusinessException.notFound("User", creatorId));
+    securityService.requireOrganizer(creator, team);
 
     validateVisibility(request, team);
 
@@ -111,7 +100,8 @@ public class RouteService extends TeamEntityService<Route> {
 
     // Persist to get ID for file storage
     routeRepository.persistAndFlush(route);
-    LOG.infov("Route '{0}' created by user {1} for team {2}", route.getName(), creatorId, teamSlug);
+    LOG.infov(
+        "Route '{0}' created by user {1} for team {2}", route.getName(), creator.getId(), team);
 
     try {
 
@@ -155,16 +145,11 @@ public class RouteService extends TeamEntityService<Route> {
    */
   @Transactional
   public RouteDto updateRoute(
-      String teamSlug, String slug, RouteRequest request, @Nullable Path gpxPath, Long userId) {
-    Route route = get(teamSlug, slug, userId, false);
+      Team team, String slug, RouteRequest request, @Nullable Path gpxPath, User user) {
+    Route route = get(team, slug, user);
 
     // Security check: must be admin or organizer to edit routes
-    securityService.requireOrganizer(userId, teamSlug);
-
-    User user =
-        userRepository
-            .findActiveById(userId)
-            .orElseThrow(() -> BusinessException.notFound("User", userId));
+    securityService.requireOrganizer(user, team);
 
     validateVisibility(request, route.getTeam());
 
@@ -204,7 +189,7 @@ public class RouteService extends TeamEntityService<Route> {
         route.setEnd(metadata.end());
         route.setWindDirection(getWindDirection(metadata));
 
-        LOG.infov("Route {0} GPX file updated by user {1}", slug, userId);
+        LOG.infov("Route {0} GPX file updated by user {1}", slug, user);
       }
     } catch (Exception e) {
       LOG.errorv("GPX processing failed for route {0}, cleaning up files", route.getId());
@@ -214,37 +199,36 @@ public class RouteService extends TeamEntityService<Route> {
 
     updateMedia(route, request.media());
     routeRepository.persist(route);
-    LOG.infov("Route {0} updated by user {1}", slug, userId);
+    LOG.infov("Route {0} updated by user {1}", slug, user);
     return RouteDto.from(route, assetService);
   }
 
-  public RouteDetailDto getRouteDetail(String teamSlug, String slug, @Nullable Long userId) {
-    Route route = get(teamSlug, slug, userId, true);
+  public RouteDetailDto getRouteDetail(Team team, String slug, @Nullable User user) {
+    Route route = get(team, slug, user);
     return RouteDetailDto.from(route, assetService);
   }
 
   /**
    * List routes for a team with pagination, filtering, and access control.
    */
-  public RouteListResponse getRoutes(
-      String teamSlug, @Nullable Long userId, RouteSearchParams params) {
-    return getRoutesWithTeamSlugs(Set.of(teamSlug), userId, params);
+  public RouteListResponse getRoutes(Team team, @Nullable User user, RouteSearchParams params) {
+    return getRoutesWithTeamIds(Set.of(team.getId()), user, params);
   }
 
   /**
    * List all routes across all accessible teams with pagination, filtering, and access control.
    */
-  public RouteListResponse getAllRoutes(@Nullable Long userId, RouteSearchParams params) {
-    return getRoutesWithTeamSlugs(null, userId, params);
+  public RouteListResponse getAllRoutes(@Nullable User user, RouteSearchParams params) {
+    return getRoutesWithTeamIds(null, user, params);
   }
 
-  private RouteListResponse getRoutesWithTeamSlugs(
-      @Nullable Set<String> teamSlugs, @Nullable Long userId, RouteSearchParams params) {
+  private RouteListResponse getRoutesWithTeamIds(
+      @Nullable Set<Long> teamIds, @Nullable User user, RouteSearchParams params) {
     TriblyPage<Route> routes =
         routeRepository.find(
             RouteQuery.builder()
-                .userId(userId)
-                .teamSlugs(teamSlugs)
+                .userId(user == null ? null : user.getId())
+                .teamIds(teamIds)
                 .search(params.search())
                 .page(params.page())
                 .size(params.size())
@@ -271,11 +255,11 @@ public class RouteService extends TeamEntityService<Route> {
    * Delete route (soft delete) and cleanup files.
    */
   @Transactional
-  public void deleteRoute(String teamSlug, String slug, Long userId) {
-    Route route = get(teamSlug, slug, userId, false);
+  public void deleteRoute(Team team, String slug, User user) {
+    Route route = get(team, slug, user);
 
     // Security check: must be admin or organizer to delete routes
-    securityService.requireOrganizer(userId, teamSlug);
+    securityService.requireOrganizer(user, team);
 
     route.setDeleted(true);
     routeRepository.persist(route);
@@ -283,7 +267,7 @@ public class RouteService extends TeamEntityService<Route> {
     // Delete associated files
     gpxProcessingService.deleteRouteFiles(route);
 
-    LOG.infov("Route {0} deleted by user {1}", slug, userId);
+    LOG.infov("Route {0} deleted by user {1}", slug, user);
   }
 
   @Override
@@ -301,10 +285,11 @@ public class RouteService extends TeamEntityService<Route> {
   }
 
   @Transactional
-  public RouteDto updateSlug(String teamSlug, String currentSlug, String newSlug, Long userId) {
-    Route route = get(teamSlug, currentSlug, userId, false);
+  public RouteDto updateSlug(Team team, String slugParam, String newSlug, User user) {
+    Route route = get(team, slugParam, user);
+    String currentSlug = route.getSlug();
 
-    securityService.requireOrganizer(userId, teamSlug);
+    securityService.requireOrganizer(user, team);
 
     if (!slugService.isValidSlug(newSlug)) {
       throw BusinessException.validation("Invalid slug format");
@@ -324,7 +309,7 @@ public class RouteService extends TeamEntityService<Route> {
     route.setSlug(newSlug);
     routeRepository.persist(route);
 
-    LOG.infov("Route slug changed from {0} to {1} by user {2}", currentSlug, newSlug, userId);
+    LOG.infov("Route slug changed from {0} to {1} by user {2}", currentSlug, newSlug, user);
     return RouteDto.from(route, assetService);
   }
 }

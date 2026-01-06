@@ -17,12 +17,6 @@ public class RideTemplateRepository implements BaseRepository<RideTemplate> {
         .firstResultOptional();
   }
 
-  public Optional<RideTemplate> findByTeamSlugAndTemplateSlug(
-      String teamSlug, String templateSlug) {
-    return find("team.slug = ?1 AND slug = ?2 AND deleted = false", teamSlug, templateSlug)
-        .firstResultOptional();
-  }
-
   public boolean existsByTeamAndSlug(Long teamId, String slug) {
     return count("team.id = ?1 AND slug = ?2", teamId, slug) > 0;
   }

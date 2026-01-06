@@ -2,6 +2,7 @@ package com.tribly.dto.pages.response;
 
 import com.tribly.domain.team.TeamPage;
 import com.tribly.dto.common.response.MediaDto;
+import com.tribly.dto.publications.response.TeamPublicationDto;
 import com.tribly.dto.validation.ValidateSchema;
 import com.tribly.enums.Visibility;
 import com.tribly.infrastructure.id.TsidUtils;
@@ -11,6 +12,7 @@ import org.eclipse.microprofile.openapi.annotations.media.Schema;
 @Schema(description = "Team page detail")
 @ValidateSchema
 public record TeamPageDto(
+    @Schema(description = "Team", required = true) TeamPublicationDto team,
     @Schema(description = "Page ID (TSID)", required = true) String id,
     @Schema(description = "Page title", required = true) String title,
     @Schema(description = "Page URL slug", required = true) String slug,
@@ -20,6 +22,7 @@ public record TeamPageDto(
 
   public static TeamPageDto from(TeamPage page, AssetService assetService) {
     return new TeamPageDto(
+        TeamPublicationDto.from(page.getTeam()),
         TsidUtils.toString(page.getId()),
         page.getName(),
         page.getSlug(),

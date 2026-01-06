@@ -1,6 +1,8 @@
 package com.tribly.api.assets;
 
 import com.tribly.api.AbstractAuthenticatedResource;
+import com.tribly.domain.team.Team;
+import com.tribly.domain.user.User;
 import com.tribly.dto.common.response.AssetDto;
 import com.tribly.dto.error.ErrorResponse;
 import com.tribly.infrastructure.exception.BusinessException;
@@ -63,7 +65,7 @@ public class AssetResource extends AbstractAuthenticatedResource {
       @RestForm("file") @Nullable FileUpload fileUpload)
       throws Exception {
 
-    Long userId = getCurrentUserId();
+    User user = getCurrentUser();
 
     // Validate file
     if (fileUpload == null || fileUpload.filePath() == null) {
@@ -71,9 +73,10 @@ public class AssetResource extends AbstractAuthenticatedResource {
     }
     String fileName = fileUpload.fileName();
 
+    Team team = teamService.getTeam(teamSlug);
     AssetDto assetDto =
         assetService.createAsset(
-            teamSlug, userId, new FileInputStream(fileUpload.filePath().toFile()), fileName);
+            team, user, new FileInputStream(fileUpload.filePath().toFile()), fileName);
 
     return Response.status(Response.Status.CREATED).entity(assetDto).build();
   }

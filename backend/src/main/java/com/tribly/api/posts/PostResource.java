@@ -1,12 +1,13 @@
 package com.tribly.api.posts;
 
 import com.tribly.api.AbstractAuthenticatedResource;
+import com.tribly.domain.team.Team;
+import com.tribly.domain.user.User;
 import com.tribly.dto.common.request.SlugChangeRequest;
 import com.tribly.dto.error.ErrorResponse;
 import com.tribly.dto.posts.request.PostRequest;
 import com.tribly.dto.posts.response.PostDto;
 import com.tribly.dto.posts.response.PostListResponse;
-import com.tribly.infrastructure.exception.NewSlugException;
 import com.tribly.service.post.PostService;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
@@ -61,12 +62,13 @@ public class PostResource extends AbstractAuthenticatedResource {
       @Parameter(description = "Page number") @QueryParam("page") @DefaultValue("0") int page,
       @Parameter(description = "Page size") @QueryParam("size") @DefaultValue("20") int size) {
 
-    Long userId = getCurrentUserIdOrNull();
+    User user = getCurrentUserOrNull();
+    Team team = teamService.getTeam(slug);
 
     Instant from = fromStr != null ? Instant.parse(fromStr) : null;
     Instant to = toStr != null ? Instant.parse(toStr) : null;
 
-    PostListResponse posts = postService.listPosts(slug, userId, search, from, to, page, size);
+    PostListResponse posts = postService.listPosts(team, user, search, from, to, page, size);
 
     return Response.ok(posts).build();
   }
@@ -99,11 +101,13 @@ public class PostResource extends AbstractAuthenticatedResource {
   public Response createPost(
       @Parameter(description = "Team URL slug") @PathParam("slug") String slug,
       @Valid PostRequest request) {
-    Long userId = getCurrentUserId();
+    User user = getCurrentUser();
+    Team team = teamService.getTeam(slug);
 
-    PostDto post = postService.createPost(slug, request, userId);
+    PostDto post = postService.createPost(team, request, user);
 
-    return Response.created(URI.create("/api/teams/" + slug + "/posts/" + post.getSlug()))
+    return Response.created(
+            URI.create("/api/teams/" + post.getTeam().slug() + "/posts/" + post.getSlug()))
         .entity(post)
         .build();
   }
@@ -119,7 +123,6 @@ public class PostResource extends AbstractAuthenticatedResource {
         responseCode = "200",
         description = "Post retrieved successfully",
         content = @Content(schema = @Schema(implementation = PostDto.class))),
-    @APIResponse(responseCode = "302", description = "Slug has changed, redirect to new URL"),
     @APIResponse(
         responseCode = "404",
         description = "Team or post not found",
@@ -128,14 +131,10 @@ public class PostResource extends AbstractAuthenticatedResource {
   public Response getPost(
       @Parameter(description = "Team URL slug") @PathParam("slug") String teamSlug,
       @Parameter(description = "Post URL slug") @PathParam("postSlug") String postSlug) {
-    Long userId = getCurrentUserIdOrNull();
-    try {
-      PostDto post = postService.getPostDetail(teamSlug, postSlug, userId);
-      return Response.ok(post).build();
-    } catch (NewSlugException e) {
-      String newUrl = "/api/teams/" + e.getTeamSlug() + "/posts/" + e.getNewSlug();
-      return Response.status(302).header("Location", newUrl).build();
-    }
+    Team team = teamService.getTeam(teamSlug);
+    User user = getCurrentUserOrNull();
+    PostDto post = postService.getPostDetail(team, postSlug, user);
+    return Response.ok(post).build();
   }
 
   @PUT
@@ -172,9 +171,10 @@ public class PostResource extends AbstractAuthenticatedResource {
       @Parameter(description = "Post URL slug") @PathParam("postSlug") String postSlug,
       @Valid PostRequest request) {
 
-    Long userId = getCurrentUserId();
+    User user = getCurrentUser();
+    Team team = teamService.getTeam(slug);
 
-    PostDto updatedPost = postService.updatePost(slug, postSlug, request, userId);
+    PostDto updatedPost = postService.updatePost(team, postSlug, request, user);
 
     return Response.ok(updatedPost).build();
   }
@@ -203,8 +203,9 @@ public class PostResource extends AbstractAuthenticatedResource {
   public Response deletePost(
       @Parameter(description = "Team URL slug") @PathParam("slug") String slug,
       @Parameter(description = "Post URL slug") @PathParam("postSlug") String postSlug) {
-    Long userId = getCurrentUserId();
-    postService.deletePost(slug, postSlug, userId);
+    User user = getCurrentUser();
+    Team team = teamService.getTeam(slug);
+    postService.deletePost(team, postSlug, user);
     return Response.noContent().build();
   }
 
@@ -233,8 +234,9 @@ public class PostResource extends AbstractAuthenticatedResource {
       @Parameter(description = "Team URL slug") @PathParam("slug") String teamSlug,
       @Parameter(description = "Current post URL slug") @PathParam("postSlug") String currentSlug,
       @Valid SlugChangeRequest request) {
-    Long userId = getCurrentUserId();
-    PostDto post = postService.updateSlug(teamSlug, currentSlug, request.slug(), userId);
+    User user = getCurrentUser();
+    Team team = teamService.getTeam(teamSlug);
+    PostDto post = postService.updateSlug(team, currentSlug, request.slug(), user);
     return Response.ok(post).build();
   }
 }

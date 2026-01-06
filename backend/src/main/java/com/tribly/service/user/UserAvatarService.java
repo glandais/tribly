@@ -43,12 +43,7 @@ public class UserAvatarService {
   private final Tika tika = new Tika();
 
   @Transactional
-  public void uploadAvatar(Long userId, InputStream content, String fileName) throws IOException {
-    User user =
-        userRepository
-            .findActiveById(userId)
-            .orElseThrow(() -> BusinessException.notFound("User", userId));
-
+  public void uploadAvatar(User user, InputStream content, String fileName) throws IOException {
     // Validate content type
     long tempFileId = TSID.Factory.getTsid().toLong();
     File tempFile = getAvatarFile(tempFileId);
@@ -101,11 +96,11 @@ public class UserAvatarService {
   }
 
   @Transactional
-  public void deleteAvatar(Long userId) {
+  public void deleteAvatar(User userParam) {
     User user =
         userRepository
-            .findActiveById(userId)
-            .orElseThrow(() -> BusinessException.notFound("User", userId));
+            .findActiveById(userParam.getId())
+            .orElseThrow(() -> BusinessException.notFound("User", userParam.getId()));
 
     String avatarUrl = user.getAvatarUrl();
     if (avatarUrl != null) {

@@ -43,12 +43,12 @@ public class AdService extends TeamEntityService<Ad> {
   }
 
   @Override
-  protected Ad getWithoutRedirect(String teamSlug, String adSlug, @Nullable Long userId) {
+  protected Ad getBySlug(Team team, String adSlug, @Nullable User user) {
     TriblyPage<Ad> ads =
         adRepository.find(
             AdQuery.builder()
-                .userId(userId)
-                .teamSlugs(Set.of(teamSlug))
+                .userId(user == null ? null : user.getId())
+                .teamIds(Set.of(team.getId()))
                 .slug(adSlug)
                 .page(0)
                 .size(1)
@@ -61,8 +61,8 @@ public class AdService extends TeamEntityService<Ad> {
   }
 
   public AdListResponse listAds(
-      String teamSlug,
-      @Nullable Long userId,
+      Team team,
+      @Nullable User user,
       @Nullable String search,
       @Nullable AdType adType,
       @Nullable Instant from,
@@ -72,8 +72,8 @@ public class AdService extends TeamEntityService<Ad> {
     TriblyPage<Ad> ads =
         adRepository.find(
             AdQuery.builder()
-                .userId(userId)
-                .teamSlugs(Set.of(teamSlug))
+                .userId(user == null ? null : user.getId())
+                .teamIds(Set.of(team.getId()))
                 .search(search)
                 .adType(adType)
                 .from(from)
@@ -85,25 +85,14 @@ public class AdService extends TeamEntityService<Ad> {
     return new AdListResponse(dtos, ads.total(), page, size);
   }
 
-  public AdDto getAdDetail(String teamSlug, String adSlug, @Nullable Long userId) {
-    Ad ad = get(teamSlug, adSlug, userId, true);
-    return AdDto.from(ad, assetService);
+  public AdDto getAdDetail(Team team, String adSlug, @Nullable User user) {
+    return AdDto.from(get(team, adSlug, user), assetService);
   }
 
   @Transactional
-  public AdDto createAd(String teamSlug, AdRequest request, Long creatorId) {
-    Team team =
-        teamRepository
-            .findBySlug(teamSlug)
-            .orElseThrow(() -> BusinessException.notFound("Team", teamSlug));
-
-    User creator =
-        userRepository
-            .findActiveById(creatorId)
-            .orElseThrow(() -> BusinessException.notFound("User", creatorId));
-
+  public AdDto createAd(Team team, AdRequest request, User creator) {
     // Security check: any team member can create ads
-    securityService.requireMembership(creatorId, team.getSlug());
+    securityService.requireMembership(creator, team);
 
     verifyAd(request, team);
 
@@ -128,19 +117,19 @@ public class AdService extends TeamEntityService<Ad> {
 
     adRepository.persist(ad);
 
-    LOG.infov("Ad '{0}' created by user {1} for team {2}", ad.getName(), creatorId, teamSlug);
+    LOG.infov(
+        "Ad '{0}' created by user {1} for team {2}", ad.getName(), creator.getId(), team.getSlug());
     return AdDto.from(ad, assetService);
   }
 
   @Transactional
-  public AdDto updateAd(String teamSlug, String adSlug, AdRequest request, Long userId) {
-    Ad ad = get(teamSlug, adSlug, userId, false);
+  public AdDto updateAd(Team team, String adSlug, AdRequest request, User user) {
+    Ad ad = get(team, adSlug, user);
 
     // Security check: only creator or admin can edit
-    requireEditPermission(userId, teamSlug, ad);
+    requireEditPermission(user, team, ad);
 
     // Validate visibility: private teams can only have team-only ads
-    Team team = ad.getTeam();
     verifyAd(request, team);
 
     setProperties(request, ad);
@@ -149,25 +138,25 @@ public class AdService extends TeamEntityService<Ad> {
 
     adRepository.persist(ad);
 
-    LOG.infov("Ad {0} updated by user {1}", adSlug, userId);
+    LOG.infov("Ad {0} updated by user {1}", adSlug, user.getId());
     return AdDto.from(ad, assetService);
   }
 
   @Transactional
-  public void deleteAd(String teamSlug, String adSlug, Long userId) {
-    Ad ad = get(teamSlug, adSlug, userId, false);
+  public void deleteAd(Team team, String adSlug, User user) {
+    Ad ad = get(team, adSlug, user);
 
     // Security check: only creator or admin can delete
-    requireEditPermission(userId, teamSlug, ad);
+    requireEditPermission(user, team, ad);
 
     ad.setDeleted(true);
     adRepository.persist(ad);
-    LOG.infov("Ad {0} deleted by user {1}", adSlug, userId);
+    LOG.infov("Ad {0} deleted by user {1}", adSlug, user.getId());
   }
 
-  private void requireEditPermission(Long userId, String teamSlug, Ad ad) {
-    UserTeam membership = securityService.requireMembership(userId, teamSlug);
-    boolean isCreator = ad.getCreatedBy().getId().equals(userId);
+  private void requireEditPermission(User user, Team team, Ad ad) {
+    UserTeam membership = securityService.requireMembership(user, team);
+    boolean isCreator = ad.getCreatedBy().getId().equals(user.getId());
     if (!isCreator && !membership.isAdmin()) {
       throw BusinessException.forbidden("Only the creator or an admin can edit this ad");
     }
@@ -202,10 +191,11 @@ public class AdService extends TeamEntityService<Ad> {
   }
 
   @Transactional
-  public AdDto updateSlug(String teamSlug, String currentSlug, String newSlug, Long userId) {
-    Ad ad = get(teamSlug, currentSlug, userId, false);
+  public AdDto updateSlug(Team team, String slugParam, String newSlug, User user) {
+    Ad ad = get(team, slugParam, user);
+    String currentSlug = ad.getSlug();
 
-    securityService.requireAdmin(userId, teamSlug);
+    securityService.requireAdmin(user, team);
 
     if (!slugService.isValidSlug(newSlug)) {
       throw BusinessException.validation("Invalid slug format");
@@ -225,7 +215,7 @@ public class AdService extends TeamEntityService<Ad> {
     ad.setSlug(newSlug);
     adRepository.persist(ad);
 
-    LOG.infov("Ad slug changed from {0} to {1} by user {2}", currentSlug, newSlug, userId);
+    LOG.infov("Ad slug changed from {0} to {1} by user {2}", currentSlug, newSlug, user.getId());
     return AdDto.from(ad, assetService);
   }
 }

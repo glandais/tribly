@@ -2,6 +2,8 @@ package com.tribly.api.comments;
 
 import com.tribly.api.AbstractAuthenticatedResource;
 import com.tribly.domain.common.TeamEntity;
+import com.tribly.domain.team.Team;
+import com.tribly.domain.user.User;
 import com.tribly.dto.comments.request.CommentRequest;
 import com.tribly.dto.comments.response.CommentDto;
 import com.tribly.dto.comments.response.CommentListResponse;
@@ -22,23 +24,25 @@ public abstract class AbstractCommentResource extends AbstractAuthenticatedResou
 
   @Inject CommentService commentService;
 
-  protected abstract TeamEntity getTeamEntity(String teamSlug, String entitySlug, Long userId);
+  protected abstract TeamEntity getTeamEntity(Team team, String entitySlug, User user);
 
   protected abstract String getEntityType();
 
   @RolesAllowed("user")
   public Response listComments(String teamSlug, String entitySlug) {
-    Long userId = getCurrentUserId();
-    TeamEntity entity = getTeamEntity(teamSlug, entitySlug, userId);
-    CommentListResponse response = commentService.listComments(teamSlug, entity.getId(), userId);
+    Team team = teamService.getTeam(teamSlug);
+    User user = getCurrentUser();
+    TeamEntity entity = getTeamEntity(team, entitySlug, user);
+    CommentListResponse response = commentService.listComments(team, entity.getId(), user);
     return Response.ok(response).build();
   }
 
   @RolesAllowed("user")
   public Response createComment(String teamSlug, String entitySlug, @Valid CommentRequest request) {
-    Long userId = getCurrentUserId();
-    TeamEntity entity = getTeamEntity(teamSlug, entitySlug, userId);
-    CommentDto comment = commentService.createComment(teamSlug, entity, request, userId);
+    Team team = teamService.getTeam(teamSlug);
+    User user = getCurrentUser();
+    TeamEntity entity = getTeamEntity(team, entitySlug, user);
+    CommentDto comment = commentService.createComment(entity, request, user);
     return Response.created(
             URI.create(
                 "/api/teams/"
@@ -55,8 +59,9 @@ public abstract class AbstractCommentResource extends AbstractAuthenticatedResou
 
   @RolesAllowed("user")
   public Response deleteComment(String teamSlug, String commentId) {
-    Long userId = getCurrentUserId();
-    commentService.deleteComment(teamSlug, TsidUtils.toLong(commentId), userId);
+    Team team = teamService.getTeam(teamSlug);
+    User user = getCurrentUser();
+    commentService.deleteComment(team, TsidUtils.toLong(commentId), user);
     return Response.noContent().build();
   }
 }

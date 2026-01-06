@@ -1,6 +1,7 @@
 package com.tribly.api.routes;
 
 import com.tribly.api.AbstractAuthenticatedResource;
+import com.tribly.domain.user.User;
 import com.tribly.dto.routes.response.RouteListResponse;
 import com.tribly.enums.*;
 import com.tribly.service.route.RouteSearchParams;
@@ -81,7 +82,7 @@ public class AllRouteResource extends AbstractAuthenticatedResource {
       @Parameter(description = "Sort direction (ASC, DESC)") @QueryParam("sortDir")
           @Nullable SortDirection sortDir) {
 
-    Long userId = getCurrentUserIdOrNull();
+    User user = getCurrentUserOrNull();
 
     RouteSearchParams params =
         RouteSearchParams.builder()
@@ -103,7 +104,7 @@ public class AllRouteResource extends AbstractAuthenticatedResource {
             .sortDir(sortDir)
             .build();
 
-    RouteListResponse routes = routeService.getAllRoutes(userId, params);
+    RouteListResponse routes = routeService.getAllRoutes(user, params);
 
     return Response.ok(routes).build();
   }

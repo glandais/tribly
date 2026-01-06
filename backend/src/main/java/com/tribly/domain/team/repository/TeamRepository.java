@@ -41,8 +41,8 @@ public class TeamRepository implements BaseRepository<Team> {
             .and("t.deleted = false", Map.of())
             .order("name asc");
     triblyQuery.addParam("userId", teamQuery.userId());
-    if (teamQuery.slug() != null) {
-      triblyQuery.and("t.slug = :slug", Map.of("slug", teamQuery.slug()));
+    if (teamQuery.id() != null) {
+      triblyQuery.and("t.id = :id", Map.of("id", teamQuery.id()));
     }
     triblyQuery =
         SearchClause.addSearch(
@@ -81,9 +81,9 @@ public class TeamRepository implements BaseRepository<Team> {
     return getPage(panacheQuery, teamQuery.page(), teamQuery.size());
   }
 
-  public Optional<TeamAndRole> findOne(String slug, @Nullable Long userId) {
+  public Optional<TeamAndRole> findOne(Long id, @Nullable Long userId) {
     TriblyPage<TeamAndRole> page =
-        find(TeamQuery.builder().userId(userId).slug(slug).page(0).size(1).build());
+        find(TeamQuery.builder().userId(userId).id(id).page(0).size(1).build());
     if (page.items().isEmpty()) {
       return Optional.empty();
     } else {

@@ -1,6 +1,7 @@
 package com.tribly.api.publications;
 
 import com.tribly.api.AbstractAuthenticatedResource;
+import com.tribly.domain.user.User;
 import com.tribly.dto.publications.response.PublicationListResponse;
 import com.tribly.dto.publications.response.PublicationType;
 import com.tribly.service.common.PublicationService;
@@ -49,13 +50,13 @@ public class PublicationResource extends AbstractAuthenticatedResource {
       @Parameter(description = "Page number") @QueryParam("page") @DefaultValue("0") int page,
       @Parameter(description = "Page size") @QueryParam("size") @DefaultValue("20") int size) {
 
-    Long userId = getCurrentUserIdOrNull();
+    User user = getCurrentUserOrNull();
 
     Instant from = fromStr != null ? Instant.parse(fromStr) : null;
     Instant to = toStr != null ? Instant.parse(toStr) : null;
 
     PublicationListResponse response =
-        publicationService.list(type, null, userId, search, from, to, page, size);
+        publicationService.list(type, null, user, search, from, to, page, size);
 
     return Response.ok(response).build();
   }

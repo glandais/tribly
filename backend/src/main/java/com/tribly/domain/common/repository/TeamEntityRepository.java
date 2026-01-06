@@ -77,9 +77,9 @@ public interface TeamEntityRepository<T extends TeamEntity, Q extends TeamEntity
             .and("(TYPE(te) <> Ad OR te.team.enableAds = true)", Map.of())
             .order("dateTime desc");
 
-    Set<String> teamSlugs = query.teamSlugs();
-    if (teamSlugs != null && !teamSlugs.isEmpty()) {
-      triblyQuery = triblyQuery.and("te.team.slug IN (:teamSlugs)", Map.of("teamSlugs", teamSlugs));
+    Set<Long> teamIds = query.teamIds();
+    if (teamIds != null && !teamIds.isEmpty()) {
+      triblyQuery = triblyQuery.and("te.team.id IN (:teamIds)", Map.of("teamIds", teamIds));
     }
     String slug = query.slug();
     if (slug != null) {
