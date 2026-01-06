@@ -5,6 +5,7 @@
  * API for Tribly Cycling Team Management Platform
  * OpenAPI spec version: 1.0.0
  */
+import type { TeamPublicationDto } from './teamPublicationDto'
 import type { MediaDto } from './mediaDto'
 import type { Visibility } from './visibility'
 
@@ -12,6 +13,8 @@ import type { Visibility } from './visibility'
  * Team page detail
  */
 export interface TeamPageDto {
+  /** Team */
+  team: TeamPublicationDto
   /** Page ID (TSID) */
   id: string
   /** Page title */

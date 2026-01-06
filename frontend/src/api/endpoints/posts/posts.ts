@@ -355,7 +355,7 @@ export const getGetPostQueryKey = (slug?: string, postSlug?: string) => {
 
 export const getGetPostQueryOptions = <
   TData = Awaited<ReturnType<typeof getPost>>,
-  TError = ErrorType<void | ErrorResponse>,
+  TError = ErrorType<ErrorResponse>,
 >(
   slug: string,
   postSlug: string,
@@ -379,11 +379,11 @@ export const getGetPostQueryOptions = <
 }
 
 export type GetPostQueryResult = NonNullable<Awaited<ReturnType<typeof getPost>>>
-export type GetPostQueryError = ErrorType<void | ErrorResponse>
+export type GetPostQueryError = ErrorType<ErrorResponse>
 
 export function useGetPost<
   TData = Awaited<ReturnType<typeof getPost>>,
-  TError = ErrorType<void | ErrorResponse>,
+  TError = ErrorType<ErrorResponse>,
 >(
   slug: string,
   postSlug: string,
@@ -403,7 +403,7 @@ export function useGetPost<
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetPost<
   TData = Awaited<ReturnType<typeof getPost>>,
-  TError = ErrorType<void | ErrorResponse>,
+  TError = ErrorType<ErrorResponse>,
 >(
   slug: string,
   postSlug: string,
@@ -423,7 +423,7 @@ export function useGetPost<
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetPost<
   TData = Awaited<ReturnType<typeof getPost>>,
-  TError = ErrorType<void | ErrorResponse>,
+  TError = ErrorType<ErrorResponse>,
 >(
   slug: string,
   postSlug: string,
@@ -439,7 +439,7 @@ export function useGetPost<
 
 export function useGetPost<
   TData = Awaited<ReturnType<typeof getPost>>,
-  TError = ErrorType<void | ErrorResponse>,
+  TError = ErrorType<ErrorResponse>,
 >(
   slug: string,
   postSlug: string,

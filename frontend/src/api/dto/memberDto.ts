@@ -5,6 +5,7 @@
  * API for Tribly Cycling Team Management Platform
  * OpenAPI spec version: 1.0.0
  */
+import type { TeamPublicationDto } from './teamPublicationDto'
 import type { PublicUserDto } from './publicUserDto'
 import type { TeamRole } from './teamRole'
 import type { Instant } from './instant'
@@ -13,6 +14,8 @@ import type { Instant } from './instant'
  * Team member information
  */
 export interface MemberDto {
+  /** Team */
+  team: TeamPublicationDto
   /** Membership ID (TSID) */
   id: string
   /** User */

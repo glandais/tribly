@@ -64,7 +64,6 @@ export const createPlaceBodyNameRegExp = new RegExp('\\S')
 export const createPlaceBodyAddressMin = 3
 export const createPlaceBodyAddressMax = 200
 
-export const createPlaceBodyAddressRegExp = new RegExp('\\S')
 export const createPlaceBodyLinkMin = 3
 export const createPlaceBodyLinkMax = 200
 
@@ -80,12 +79,13 @@ export const createPlaceBody = zod
       .string()
       .min(createPlaceBodyAddressMin)
       .max(createPlaceBodyAddressMax)
-      .regex(createPlaceBodyAddressRegExp)
+      .optional()
       .describe('Address'),
     link: zod
       .string()
       .min(createPlaceBodyLinkMin)
       .max(createPlaceBodyLinkMax)
+      .optional()
       .describe('External link (e.g., Google Maps URL)'),
     startPlace: zod.boolean().describe('Can be used as ride start point'),
     endPlace: zod.boolean().describe('Can be used as ride end point'),
@@ -114,7 +114,6 @@ export const updatePlaceBodyNameRegExp = new RegExp('\\S')
 export const updatePlaceBodyAddressMin = 3
 export const updatePlaceBodyAddressMax = 200
 
-export const updatePlaceBodyAddressRegExp = new RegExp('\\S')
 export const updatePlaceBodyLinkMin = 3
 export const updatePlaceBodyLinkMax = 200
 
@@ -130,12 +129,13 @@ export const updatePlaceBody = zod
       .string()
       .min(updatePlaceBodyAddressMin)
       .max(updatePlaceBodyAddressMax)
-      .regex(updatePlaceBodyAddressRegExp)
+      .optional()
       .describe('Address'),
     link: zod
       .string()
       .min(updatePlaceBodyLinkMin)
       .max(updatePlaceBodyLinkMax)
+      .optional()
       .describe('External link (e.g., Google Maps URL)'),
     startPlace: zod.boolean().describe('Can be used as ride start point'),
     endPlace: zod.boolean().describe('Can be used as ride end point'),

@@ -22,15 +22,14 @@ export interface PlaceRequest {
    * Address
    * @minLength 3
    * @maxLength 200
-   * @pattern \S
    */
-  address: string
+  address?: string
   /**
    * External link (e.g., Google Maps URL)
    * @minLength 3
    * @maxLength 200
    */
-  link: string
+  link?: string
   /** Can be used as ride start point */
   startPlace: boolean
   /** Can be used as ride end point */

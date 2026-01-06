@@ -355,7 +355,7 @@ export const getGetAdQueryKey = (slug?: string, adSlug?: string) => {
 
 export const getGetAdQueryOptions = <
   TData = Awaited<ReturnType<typeof getAd>>,
-  TError = ErrorType<void | ErrorResponse>,
+  TError = ErrorType<ErrorResponse>,
 >(
   slug: string,
   adSlug: string,
@@ -379,11 +379,11 @@ export const getGetAdQueryOptions = <
 }
 
 export type GetAdQueryResult = NonNullable<Awaited<ReturnType<typeof getAd>>>
-export type GetAdQueryError = ErrorType<void | ErrorResponse>
+export type GetAdQueryError = ErrorType<ErrorResponse>
 
 export function useGetAd<
   TData = Awaited<ReturnType<typeof getAd>>,
-  TError = ErrorType<void | ErrorResponse>,
+  TError = ErrorType<ErrorResponse>,
 >(
   slug: string,
   adSlug: string,
@@ -403,7 +403,7 @@ export function useGetAd<
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetAd<
   TData = Awaited<ReturnType<typeof getAd>>,
-  TError = ErrorType<void | ErrorResponse>,
+  TError = ErrorType<ErrorResponse>,
 >(
   slug: string,
   adSlug: string,
@@ -423,7 +423,7 @@ export function useGetAd<
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetAd<
   TData = Awaited<ReturnType<typeof getAd>>,
-  TError = ErrorType<void | ErrorResponse>,
+  TError = ErrorType<ErrorResponse>,
 >(
   slug: string,
   adSlug: string,
@@ -439,7 +439,7 @@ export function useGetAd<
 
 export function useGetAd<
   TData = Awaited<ReturnType<typeof getAd>>,
-  TError = ErrorType<void | ErrorResponse>,
+  TError = ErrorType<ErrorResponse>,
 >(
   slug: string,
   adSlug: string,

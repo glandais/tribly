@@ -5,6 +5,7 @@
  * API for Tribly Cycling Team Management Platform
  * OpenAPI spec version: 1.0.0
  */
+import type { TeamPublicationDto } from './teamPublicationDto'
 import type { Visibility } from './visibility'
 import type { Status } from './status'
 import type { Instant } from './instant'
@@ -14,6 +15,8 @@ import type { RideTemplateGroupDto } from './rideTemplateGroupDto'
  * Ride template response
  */
 export interface RideTemplateDto {
+  /** Team */
+  team: TeamPublicationDto
   /** Template ID (TSID) */
   id: string
   /** Template slug */

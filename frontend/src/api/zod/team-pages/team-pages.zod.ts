@@ -364,6 +364,14 @@ export const updatePageBody = zod
 
 export const updatePageResponse = zod
   .object({
+    team: zod
+      .object({
+        id: zod.string().describe('Team ID (TSID)'),
+        name: zod.string().describe('Team name'),
+        slug: zod.string().describe('Team URL slug'),
+        visibility: zod.enum(['TEAM', 'PUBLIC']),
+      })
+      .describe('Team information'),
     id: zod.string().describe('Page ID (TSID)'),
     title: zod.string().describe('Page title'),
     slug: zod.string().describe('Page URL slug'),
@@ -514,6 +522,14 @@ export const getPageParams = zod.object({
 
 export const getPageResponse = zod
   .object({
+    team: zod
+      .object({
+        id: zod.string().describe('Team ID (TSID)'),
+        name: zod.string().describe('Team name'),
+        slug: zod.string().describe('Team URL slug'),
+        visibility: zod.enum(['TEAM', 'PUBLIC']),
+      })
+      .describe('Team information'),
     id: zod.string().describe('Page ID (TSID)'),
     title: zod.string().describe('Page title'),
     slug: zod.string().describe('Page URL slug'),
@@ -687,6 +703,14 @@ export const changePageSlugBody = zod
 
 export const changePageSlugResponse = zod
   .object({
+    team: zod
+      .object({
+        id: zod.string().describe('Team ID (TSID)'),
+        name: zod.string().describe('Team name'),
+        slug: zod.string().describe('Team URL slug'),
+        visibility: zod.enum(['TEAM', 'PUBLIC']),
+      })
+      .describe('Team information'),
     id: zod.string().describe('Page ID (TSID)'),
     title: zod.string().describe('Page title'),
     slug: zod.string().describe('Page URL slug'),

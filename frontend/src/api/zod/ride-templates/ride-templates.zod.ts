@@ -30,6 +30,14 @@ export const listTemplatesResponse = zod
       .array(
         zod
           .object({
+            team: zod
+              .object({
+                id: zod.string().describe('Team ID (TSID)'),
+                name: zod.string().describe('Team name'),
+                slug: zod.string().describe('Team URL slug'),
+                visibility: zod.enum(['TEAM', 'PUBLIC']),
+              })
+              .describe('Team information'),
             id: zod.string().describe('Template ID (TSID)'),
             slug: zod.string().describe('Template slug'),
             name: zod.string().describe('Template name'),
@@ -160,6 +168,14 @@ export const updateTemplateBody = zod
 
 export const updateTemplateResponse = zod
   .object({
+    team: zod
+      .object({
+        id: zod.string().describe('Team ID (TSID)'),
+        name: zod.string().describe('Team name'),
+        slug: zod.string().describe('Team URL slug'),
+        visibility: zod.enum(['TEAM', 'PUBLIC']),
+      })
+      .describe('Team information'),
     id: zod.string().describe('Template ID (TSID)'),
     slug: zod.string().describe('Template slug'),
     name: zod.string().describe('Template name'),
@@ -197,6 +213,14 @@ export const getTemplateParams = zod.object({
 
 export const getTemplateResponse = zod
   .object({
+    team: zod
+      .object({
+        id: zod.string().describe('Team ID (TSID)'),
+        name: zod.string().describe('Team name'),
+        slug: zod.string().describe('Team URL slug'),
+        visibility: zod.enum(['TEAM', 'PUBLIC']),
+      })
+      .describe('Team information'),
     id: zod.string().describe('Template ID (TSID)'),
     slug: zod.string().describe('Template slug'),
     name: zod.string().describe('Template name'),

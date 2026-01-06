@@ -11,19 +11,15 @@ import * as zod from 'zod'
  * Update the current user's profile
  * @summary Update current user
  */
-export const updateCurrentUserBodyDisplayNameMax = 200
+export const updateMeBodyDisplayNameMax = 200
 
-export const updateCurrentUserBody = zod
+export const updateMeBody = zod
   .object({
-    displayName: zod
-      .string()
-      .min(1)
-      .max(updateCurrentUserBodyDisplayNameMax)
-      .describe('User display name'),
+    displayName: zod.string().min(1).max(updateMeBodyDisplayNameMax).describe('User display name'),
   })
   .describe('User profile update request')
 
-export const updateCurrentUserResponse = zod
+export const updateMeResponse = zod
   .object({
     id: zod.string().describe('User ID (TSID)'),
     email: zod.string().describe('User email address'),
@@ -37,7 +33,7 @@ export const updateCurrentUserResponse = zod
  * Get the current authenticated user's profile. Creates the user if first call after login.
  * @summary Get current user
  */
-export const getCurrentUserResponse = zod
+export const getMeResponse = zod
   .object({
     id: zod.string().describe('User ID (TSID)'),
     email: zod.string().describe('User email address'),

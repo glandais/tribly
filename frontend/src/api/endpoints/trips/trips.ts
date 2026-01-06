@@ -356,7 +356,7 @@ export const getGetTripQueryKey = (slug?: string, tripSlug?: string) => {
 
 export const getGetTripQueryOptions = <
   TData = Awaited<ReturnType<typeof getTrip>>,
-  TError = ErrorType<void | ErrorResponse>,
+  TError = ErrorType<ErrorResponse>,
 >(
   slug: string,
   tripSlug: string,
@@ -380,11 +380,11 @@ export const getGetTripQueryOptions = <
 }
 
 export type GetTripQueryResult = NonNullable<Awaited<ReturnType<typeof getTrip>>>
-export type GetTripQueryError = ErrorType<void | ErrorResponse>
+export type GetTripQueryError = ErrorType<ErrorResponse>
 
 export function useGetTrip<
   TData = Awaited<ReturnType<typeof getTrip>>,
-  TError = ErrorType<void | ErrorResponse>,
+  TError = ErrorType<ErrorResponse>,
 >(
   slug: string,
   tripSlug: string,
@@ -404,7 +404,7 @@ export function useGetTrip<
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetTrip<
   TData = Awaited<ReturnType<typeof getTrip>>,
-  TError = ErrorType<void | ErrorResponse>,
+  TError = ErrorType<ErrorResponse>,
 >(
   slug: string,
   tripSlug: string,
@@ -424,7 +424,7 @@ export function useGetTrip<
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetTrip<
   TData = Awaited<ReturnType<typeof getTrip>>,
-  TError = ErrorType<void | ErrorResponse>,
+  TError = ErrorType<ErrorResponse>,
 >(
   slug: string,
   tripSlug: string,
@@ -440,7 +440,7 @@ export function useGetTrip<
 
 export function useGetTrip<
   TData = Awaited<ReturnType<typeof getTrip>>,
-  TError = ErrorType<void | ErrorResponse>,
+  TError = ErrorType<ErrorResponse>,
 >(
   slug: string,
   tripSlug: string,

@@ -343,7 +343,7 @@ export const getGetTeamQueryKey = (slug?: string) => {
 
 export const getGetTeamQueryOptions = <
   TData = Awaited<ReturnType<typeof getTeam>>,
-  TError = ErrorType<void | ErrorResponse>,
+  TError = ErrorType<ErrorResponse>,
 >(
   slug: string,
   options?: {
@@ -366,11 +366,11 @@ export const getGetTeamQueryOptions = <
 }
 
 export type GetTeamQueryResult = NonNullable<Awaited<ReturnType<typeof getTeam>>>
-export type GetTeamQueryError = ErrorType<void | ErrorResponse>
+export type GetTeamQueryError = ErrorType<ErrorResponse>
 
 export function useGetTeam<
   TData = Awaited<ReturnType<typeof getTeam>>,
-  TError = ErrorType<void | ErrorResponse>,
+  TError = ErrorType<ErrorResponse>,
 >(
   slug: string,
   options: {
@@ -389,7 +389,7 @@ export function useGetTeam<
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetTeam<
   TData = Awaited<ReturnType<typeof getTeam>>,
-  TError = ErrorType<void | ErrorResponse>,
+  TError = ErrorType<ErrorResponse>,
 >(
   slug: string,
   options?: {
@@ -408,7 +408,7 @@ export function useGetTeam<
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetTeam<
   TData = Awaited<ReturnType<typeof getTeam>>,
-  TError = ErrorType<void | ErrorResponse>,
+  TError = ErrorType<ErrorResponse>,
 >(
   slug: string,
   options?: {
@@ -423,7 +423,7 @@ export function useGetTeam<
 
 export function useGetTeam<
   TData = Awaited<ReturnType<typeof getTeam>>,
-  TError = ErrorType<void | ErrorResponse>,
+  TError = ErrorType<ErrorResponse>,
 >(
   slug: string,
   options?: {

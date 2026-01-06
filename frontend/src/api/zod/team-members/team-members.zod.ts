@@ -29,6 +29,14 @@ export const getMembersResponse = zod
       .array(
         zod
           .object({
+            team: zod
+              .object({
+                id: zod.string().describe('Team ID (TSID)'),
+                name: zod.string().describe('Team name'),
+                slug: zod.string().describe('Team URL slug'),
+                visibility: zod.enum(['TEAM', 'PUBLIC']),
+              })
+              .describe('Team information'),
             id: zod.string().describe('Membership ID (TSID)'),
             user: zod
               .object({
@@ -97,6 +105,14 @@ export const updateMemberRoleBody = zod
 
 export const updateMemberRoleResponse = zod
   .object({
+    team: zod
+      .object({
+        id: zod.string().describe('Team ID (TSID)'),
+        name: zod.string().describe('Team name'),
+        slug: zod.string().describe('Team URL slug'),
+        visibility: zod.enum(['TEAM', 'PUBLIC']),
+      })
+      .describe('Team information'),
     id: zod.string().describe('Membership ID (TSID)'),
     user: zod
       .object({
