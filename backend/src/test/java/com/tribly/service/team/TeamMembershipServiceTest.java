@@ -47,7 +47,7 @@ class TeamMembershipServiceTest {
     dataService.addUserToTeam(user1, team, TeamRole.MEMBER);
     dataService.addUserToTeam(user2, team, TeamRole.ORGANIZER);
 
-    MemberListResponse result = membershipService.getTeamMembers("test-team", admin.getId(), 0, 10);
+    MemberListResponse result = membershipService.getTeamMembers(team, admin, 0, 10);
 
     assertEquals(3, result.members().size()); // admin + user1 + user2
   }
@@ -57,8 +57,7 @@ class TeamMembershipServiceTest {
     dataService.addUserToTeam(user1, team, TeamRole.MEMBER);
 
     assertThrows(
-        BusinessException.class,
-        () -> membershipService.getTeamMembers("test-team", user1.getId(), 0, 10));
+        BusinessException.class, () -> membershipService.getTeamMembers(team, user1, 0, 10));
   }
 
   @Test
@@ -68,7 +67,7 @@ class TeamMembershipServiceTest {
       dataService.addUserToTeam(user, team, TeamRole.MEMBER);
     }
 
-    MemberListResponse result = membershipService.getTeamMembers("test-team", admin.getId(), 0, 3);
+    MemberListResponse result = membershipService.getTeamMembers(team, admin, 0, 3);
 
     assertEquals(3, result.members().size());
     assertEquals(6, result.total()); // admin + 5 users
@@ -78,7 +77,7 @@ class TeamMembershipServiceTest {
 
   @Test
   void joinTeam_shouldJoinPublicTeam() {
-    MemberDto result = membershipService.joinTeam("test-team", user1.getId());
+    MemberDto result = membershipService.joinTeam(team, user1);
 
     assertNotNull(result);
     assertEquals(user1.getId(), TsidUtils.toLong(result.user().id()));
@@ -90,8 +89,7 @@ class TeamMembershipServiceTest {
     dataService.addUserToTeam(user1, team, TeamRole.MEMBER);
 
     BusinessException exception =
-        assertThrows(
-            BusinessException.class, () -> membershipService.joinTeam("test-team", user1.getId()));
+        assertThrows(BusinessException.class, () -> membershipService.joinTeam(team, user1));
 
     assertTrue(exception.getMessage().contains("already a member"));
   }
@@ -101,7 +99,7 @@ class TeamMembershipServiceTest {
     UserTeam membership = dataService.addUserToTeam(user1, team, TeamRole.MEMBER);
     dataService.deleteUserTeam(membership);
 
-    MemberDto result = membershipService.joinTeam("test-team", user1.getId());
+    MemberDto result = membershipService.joinTeam(team, user1);
 
     assertEquals(membership.getId(), TsidUtils.toLong(result.id()));
     assertEquals(TeamRole.MEMBER, result.role());
@@ -111,8 +109,7 @@ class TeamMembershipServiceTest {
 
   @Test
   void addMember_shouldAddMemberAsAdmin() {
-    MemberDto result =
-        membershipService.addMember("test-team", user1.getId(), TeamRole.ORGANIZER, admin.getId());
+    MemberDto result = membershipService.addMember(team, user1.getId(), TeamRole.ORGANIZER, admin);
 
     assertNotNull(result);
     assertEquals(user1.getId(), TsidUtils.toLong(result.user().id()));
@@ -125,9 +122,7 @@ class TeamMembershipServiceTest {
 
     assertThrows(
         BusinessException.class,
-        () ->
-            membershipService.addMember(
-                "test-team", user2.getId(), TeamRole.MEMBER, user1.getId()));
+        () -> membershipService.addMember(team, user2.getId(), TeamRole.MEMBER, user1));
   }
 
   @Test
@@ -137,9 +132,7 @@ class TeamMembershipServiceTest {
     BusinessException exception =
         assertThrows(
             BusinessException.class,
-            () ->
-                membershipService.addMember(
-                    "test-team", user1.getId(), TeamRole.ORGANIZER, admin.getId()));
+            () -> membershipService.addMember(team, user1.getId(), TeamRole.ORGANIZER, admin));
 
     assertTrue(exception.getMessage().contains("already a member"));
   }
@@ -149,8 +142,7 @@ class TeamMembershipServiceTest {
     UserTeam membership = dataService.addUserToTeam(user1, team, TeamRole.MEMBER);
     dataService.deleteUserTeam(membership);
 
-    MemberDto result =
-        membershipService.addMember("test-team", user1.getId(), TeamRole.ORGANIZER, admin.getId());
+    MemberDto result = membershipService.addMember(team, user1.getId(), TeamRole.ORGANIZER, admin);
 
     assertEquals(membership.getId(), TsidUtils.toLong(result.id()));
     assertEquals(TeamRole.ORGANIZER, result.role());
@@ -163,8 +155,7 @@ class TeamMembershipServiceTest {
     UserTeam membership = dataService.addUserToTeam(user1, team, TeamRole.MEMBER);
 
     MemberDto result =
-        membershipService.updateMemberRole(
-            "test-team", user1.getId(), TeamRole.ORGANIZER, admin.getId());
+        membershipService.updateMemberRole(team, user1.getId(), TeamRole.ORGANIZER, admin);
 
     assertEquals(membership.getId(), TsidUtils.toLong(result.id()));
     assertEquals(TeamRole.ORGANIZER, result.role());
@@ -177,9 +168,7 @@ class TeamMembershipServiceTest {
 
     assertThrows(
         BusinessException.class,
-        () ->
-            membershipService.updateMemberRole(
-                "test-team", user2.getId(), TeamRole.ORGANIZER, user1.getId()));
+        () -> membershipService.updateMemberRole(team, user2.getId(), TeamRole.ORGANIZER, user1));
   }
 
   @Test
@@ -187,9 +176,7 @@ class TeamMembershipServiceTest {
     BusinessException exception =
         assertThrows(
             BusinessException.class,
-            () ->
-                membershipService.updateMemberRole(
-                    "test-team", admin.getId(), TeamRole.MEMBER, admin.getId()));
+            () -> membershipService.updateMemberRole(team, admin.getId(), TeamRole.MEMBER, admin));
 
     assertTrue(exception.getMessage().contains("last admin"));
   }
@@ -200,8 +187,7 @@ class TeamMembershipServiceTest {
     dataService.addUserToTeam(admin2, team, TeamRole.ADMIN);
 
     MemberDto result =
-        membershipService.updateMemberRole(
-            "test-team", admin.getId(), TeamRole.MEMBER, admin2.getId());
+        membershipService.updateMemberRole(team, admin.getId(), TeamRole.MEMBER, admin2);
 
     assertEquals(TeamRole.MEMBER, result.role());
   }
@@ -212,13 +198,12 @@ class TeamMembershipServiceTest {
   void removeMember_shouldRemoveMemberAsAdmin() {
     dataService.addUserToTeam(user1, team, TeamRole.MEMBER);
 
-    membershipService.removeMember("test-team", user1.getId(), admin.getId());
+    membershipService.removeMember(team, user1.getId(), admin);
 
     // Verify soft deletion by trying to get team - should not see it
     BusinessException exception =
         assertThrows(
-            BusinessException.class,
-            () -> membershipService.getTeamMembers("test-team", user1.getId(), 0, 10));
+            BusinessException.class, () -> membershipService.getTeamMembers(team, user1, 0, 10));
     assertTrue(
         exception.getMessage().contains("not a member")
             || exception.getMessage().contains("admin"));
@@ -228,13 +213,12 @@ class TeamMembershipServiceTest {
   void removeMember_shouldAllowSelfRemoval() {
     dataService.addUserToTeam(user1, team, TeamRole.MEMBER);
 
-    membershipService.removeMember("test-team", user1.getId(), user1.getId());
+    membershipService.removeMember(team, user1.getId(), user1);
 
     // Verify soft deletion
     BusinessException exception =
         assertThrows(
-            BusinessException.class,
-            () -> membershipService.getTeamMembers("test-team", user1.getId(), 0, 10));
+            BusinessException.class, () -> membershipService.getTeamMembers(team, user1, 0, 10));
     assertTrue(
         exception.getMessage().contains("not a member")
             || exception.getMessage().contains("admin"));
@@ -245,7 +229,7 @@ class TeamMembershipServiceTest {
     BusinessException exception =
         assertThrows(
             BusinessException.class,
-            () -> membershipService.removeMember("test-team", admin.getId(), admin.getId()));
+            () -> membershipService.removeMember(team, admin.getId(), admin));
 
     assertTrue(exception.getMessage().contains("last admin"));
   }
@@ -255,13 +239,12 @@ class TeamMembershipServiceTest {
     User admin2 = dataService.createUser("admin2@example.com", "Admin Two");
     dataService.addUserToTeam(admin2, team, TeamRole.ADMIN);
 
-    membershipService.removeMember("test-team", admin.getId(), admin2.getId());
+    membershipService.removeMember(team, admin.getId(), admin2);
 
     // Verify soft deletion
     BusinessException exception =
         assertThrows(
-            BusinessException.class,
-            () -> membershipService.getTeamMembers("test-team", admin.getId(), 0, 10));
+            BusinessException.class, () -> membershipService.getTeamMembers(team, admin, 0, 10));
     assertTrue(
         exception.getMessage().contains("not a member")
             || exception.getMessage().contains("admin"));
@@ -273,8 +256,7 @@ class TeamMembershipServiceTest {
     dataService.addUserToTeam(user2, team, TeamRole.MEMBER);
 
     assertThrows(
-        BusinessException.class,
-        () -> membershipService.removeMember("test-team", user2.getId(), user1.getId()));
+        BusinessException.class, () -> membershipService.removeMember(team, user2.getId(), user1));
   }
 
   // ==================== Leave Team ====================
@@ -283,13 +265,12 @@ class TeamMembershipServiceTest {
   void leaveTeam_shouldRemoveSelf() {
     dataService.addUserToTeam(user1, team, TeamRole.MEMBER);
 
-    membershipService.leaveTeam("test-team", user1.getId());
+    membershipService.leaveTeam(team, user1);
 
     // Verify soft deletion
     BusinessException exception =
         assertThrows(
-            BusinessException.class,
-            () -> membershipService.getTeamMembers("test-team", user1.getId(), 0, 10));
+            BusinessException.class, () -> membershipService.getTeamMembers(team, user1, 0, 10));
     assertTrue(
         exception.getMessage().contains("not a member")
             || exception.getMessage().contains("admin"));
@@ -298,8 +279,7 @@ class TeamMembershipServiceTest {
   @Test
   void leaveTeam_shouldPreventLastAdminLeaving() {
     BusinessException exception =
-        assertThrows(
-            BusinessException.class, () -> membershipService.leaveTeam("test-team", admin.getId()));
+        assertThrows(BusinessException.class, () -> membershipService.leaveTeam(team, admin));
 
     assertTrue(exception.getMessage().contains("last admin"));
   }

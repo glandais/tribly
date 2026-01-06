@@ -53,7 +53,6 @@ class UserSyncServiceTest {
   void syncUser_shouldNotUpdateDisplayNameForExistingUser() {
     // Given: an existing user in the database with a specific display name
     User existingUser = dataService.createUser("existing@example.com", "Original Name");
-    Long userId = existingUser.getId();
 
     // And: a JWT with a different display name
     JsonWebToken jwt = mock(JsonWebToken.class);
@@ -62,13 +61,13 @@ class UserSyncServiceTest {
     when(jwt.getClaim("family_name")).thenReturn("User");
 
     // When: syncUser is called for the existing user
-    UserDto result = userSyncService.syncUser(userId, jwt);
+    UserDto result = userSyncService.syncUser(existingUser.getId(), jwt);
 
     // Then: the display name should NOT be updated from JWT
     assertEquals("Original Name", result.displayName());
 
     // Verify in database
-    User refreshedUser = userRepository.findById(userId);
+    User refreshedUser = userRepository.findById(existingUser.getId());
     assertEquals("Original Name", refreshedUser.getDisplayName());
   }
 

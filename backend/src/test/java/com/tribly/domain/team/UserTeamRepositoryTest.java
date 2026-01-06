@@ -41,7 +41,7 @@ class UserTeamRepositoryTest {
     dataService.addUserToTeam(user1, team, TeamRole.MEMBER);
 
     Optional<UserTeam> result =
-        userTeamRepository.findByUserAndTeamIncludingDeleted(user1.getId(), "test-team");
+        userTeamRepository.findByUserAndTeamIncludingDeleted(user1.getId(), team.getId());
 
     assertTrue(result.isPresent());
     assertEquals(user1.getId(), result.get().getUser().getId());
@@ -52,7 +52,7 @@ class UserTeamRepositoryTest {
   @Test
   void findByUserAndTeamIncludingDeleted_shouldReturnEmptyWhenNotExists() {
     Optional<UserTeam> result =
-        userTeamRepository.findByUserAndTeamIncludingDeleted(user1.getId(), "test-team");
+        userTeamRepository.findByUserAndTeamIncludingDeleted(user1.getId(), team.getId());
 
     assertTrue(result.isEmpty());
   }
@@ -63,7 +63,7 @@ class UserTeamRepositoryTest {
     dataService.deleteUserTeam(userTeam);
 
     Optional<UserTeam> result =
-        userTeamRepository.findByUserAndTeamIncludingDeleted(user1.getId(), "test-team");
+        userTeamRepository.findByUserAndTeamIncludingDeleted(user1.getId(), team.getId());
 
     assertTrue(result.isPresent());
     assertTrue(result.get().isDeleted());
@@ -75,7 +75,7 @@ class UserTeamRepositoryTest {
     dataService.addUserToTeam(user2, team, TeamRole.MEMBER);
     dataService.addUserToTeam(user3, team, TeamRole.MEMBER);
 
-    TriblyPage<UserTeam> result = userTeamRepository.findByTeam("test-team", 0, 10);
+    TriblyPage<UserTeam> result = userTeamRepository.findByTeam(team.getId(), 0, 10);
 
     assertEquals(3, result.items().size());
     assertEquals(3, result.total());
@@ -87,7 +87,7 @@ class UserTeamRepositoryTest {
     dataService.addUserToTeam(user2, team, TeamRole.MEMBER);
     dataService.addUserToTeam(user3, team, TeamRole.MEMBER);
 
-    TriblyPage<UserTeam> result = userTeamRepository.findByTeam("test-team", 0, 2);
+    TriblyPage<UserTeam> result = userTeamRepository.findByTeam(team.getId(), 0, 2);
 
     assertEquals(2, result.items().size());
     assertEquals(3, result.total());
@@ -99,7 +99,7 @@ class UserTeamRepositoryTest {
     UserTeam deletedMembership = dataService.addUserToTeam(user2, team, TeamRole.MEMBER);
     dataService.deleteUserTeam(deletedMembership);
 
-    TriblyPage<UserTeam> result = userTeamRepository.findByTeam("test-team", 0, 10);
+    TriblyPage<UserTeam> result = userTeamRepository.findByTeam(team.getId(), 0, 10);
 
     assertEquals(1, result.items().size());
     assertEquals(user1.getId(), result.items().getFirst().getUser().getId());
@@ -107,7 +107,7 @@ class UserTeamRepositoryTest {
 
   @Test
   void findByTeam_shouldReturnEmptyForNonexistentTeam() {
-    TriblyPage<UserTeam> result = userTeamRepository.findByTeam("nonexistent-team", 0, 10);
+    TriblyPage<UserTeam> result = userTeamRepository.findByTeam(-1L, 0, 10);
 
     assertEquals(0, result.items().size());
   }
@@ -118,7 +118,7 @@ class UserTeamRepositoryTest {
     dataService.addUserToTeam(user2, team, TeamRole.ADMIN);
     dataService.addUserToTeam(user3, team, TeamRole.MEMBER);
 
-    long count = userTeamRepository.countAdminsByTeam("test-team");
+    long count = userTeamRepository.countAdminsByTeam(team.getId());
 
     assertEquals(2, count);
   }
@@ -129,7 +129,7 @@ class UserTeamRepositoryTest {
     UserTeam deletedAdmin = dataService.addUserToTeam(user2, team, TeamRole.ADMIN);
     dataService.deleteUserTeam(deletedAdmin);
 
-    long count = userTeamRepository.countAdminsByTeam("test-team");
+    long count = userTeamRepository.countAdminsByTeam(team.getId());
 
     assertEquals(1, count);
   }
@@ -139,7 +139,7 @@ class UserTeamRepositoryTest {
     dataService.addUserToTeam(user1, team, TeamRole.MEMBER);
     dataService.addUserToTeam(user2, team, TeamRole.ORGANIZER);
 
-    long count = userTeamRepository.countAdminsByTeam("test-team");
+    long count = userTeamRepository.countAdminsByTeam(team.getId());
 
     assertEquals(0, count);
   }
@@ -148,7 +148,7 @@ class UserTeamRepositoryTest {
   void findByUserAndTeam_shouldReturnMembershipWhenExists() {
     dataService.addUserToTeam(user1, team, TeamRole.MEMBER);
 
-    Optional<UserTeam> result = userTeamRepository.findByUserAndTeam(user1.getId(), "test-team");
+    Optional<UserTeam> result = userTeamRepository.findByUserAndTeam(user1.getId(), team.getId());
 
     assertTrue(result.isPresent());
     assertEquals(user1.getId(), result.get().getUser().getId());
@@ -157,7 +157,7 @@ class UserTeamRepositoryTest {
 
   @Test
   void findByUserAndTeam_shouldReturnEmptyWhenNotExists() {
-    Optional<UserTeam> result = userTeamRepository.findByUserAndTeam(user1.getId(), "test-team");
+    Optional<UserTeam> result = userTeamRepository.findByUserAndTeam(user1.getId(), team.getId());
 
     assertTrue(result.isEmpty());
   }
@@ -167,7 +167,7 @@ class UserTeamRepositoryTest {
     UserTeam userTeam = dataService.addUserToTeam(user1, team, TeamRole.MEMBER);
     dataService.deleteUserTeam(userTeam);
 
-    Optional<UserTeam> result = userTeamRepository.findByUserAndTeam(user1.getId(), "test-team");
+    Optional<UserTeam> result = userTeamRepository.findByUserAndTeam(user1.getId(), team.getId());
 
     assertTrue(result.isEmpty());
   }
@@ -177,7 +177,7 @@ class UserTeamRepositoryTest {
     dataService.addUserToTeam(user1, team, TeamRole.MEMBER);
     dataService.deleteTeam(team);
 
-    Optional<UserTeam> result = userTeamRepository.findByUserAndTeam(user1.getId(), "test-team");
+    Optional<UserTeam> result = userTeamRepository.findByUserAndTeam(user1.getId(), team.getId());
 
     assertTrue(result.isEmpty());
   }
@@ -188,9 +188,10 @@ class UserTeamRepositoryTest {
     dataService.addUserToTeam(user2, team, TeamRole.ORGANIZER);
     dataService.addUserToTeam(user3, team, TeamRole.MEMBER);
 
-    Optional<UserTeam> admin = userTeamRepository.findByUserAndTeam(user1.getId(), "test-team");
-    Optional<UserTeam> organizer = userTeamRepository.findByUserAndTeam(user2.getId(), "test-team");
-    Optional<UserTeam> member = userTeamRepository.findByUserAndTeam(user3.getId(), "test-team");
+    Optional<UserTeam> admin = userTeamRepository.findByUserAndTeam(user1.getId(), team.getId());
+    Optional<UserTeam> organizer =
+        userTeamRepository.findByUserAndTeam(user2.getId(), team.getId());
+    Optional<UserTeam> member = userTeamRepository.findByUserAndTeam(user3.getId(), team.getId());
 
     assertTrue(admin.isPresent());
     assertEquals(TeamRole.ADMIN, admin.get().getRole());

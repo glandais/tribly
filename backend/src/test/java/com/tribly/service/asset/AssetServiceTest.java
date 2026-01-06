@@ -84,8 +84,7 @@ class AssetServiceTest {
       InputStream content =
           new ByteArrayInputStream("test content".getBytes(StandardCharsets.UTF_8));
 
-      AssetDto result =
-          assetService.createAsset("test-team", organizer.getId(), content, "test.txt");
+      AssetDto result = assetService.createAsset(team, organizer, content, "test.txt");
 
       assertNotNull(result);
       assertNotNull(result.id());
@@ -99,16 +98,7 @@ class AssetServiceTest {
 
       assertThrows(
           BusinessException.class,
-          () -> assetService.createAsset("test-team", member.getId(), content, "test.txt"));
-    }
-
-    @Test
-    void shouldThrowForNonexistentTeam() {
-      InputStream content = new ByteArrayInputStream("test".getBytes());
-
-      assertThrows(
-          BusinessException.class,
-          () -> assetService.createAsset("nonexistent", admin.getId(), content, "test.txt"));
+          () -> assetService.createAsset(team, member, content, "test.txt"));
     }
   }
 
@@ -229,12 +219,11 @@ class AssetServiceTest {
       Asset asset = dataService.createAsset(privateTeam, admin, AssetType.IMAGE, "test.png");
 
       // Organizer of private team can access
-      Asset result = assetService.getAsset(asset.getId(), admin.getId());
+      Asset result = assetService.getAsset(asset.getId(), admin);
       assertNotNull(result);
 
       // Non-member cannot access
-      assertThrows(
-          BusinessException.class, () -> assetService.getAsset(asset.getId(), nonMember.getId()));
+      assertThrows(BusinessException.class, () -> assetService.getAsset(asset.getId(), nonMember));
     }
 
     @Test
@@ -258,8 +247,7 @@ class AssetServiceTest {
       dataService.updateAsset(asset);
 
       // Non-member cannot access team-visibility post asset
-      assertThrows(
-          BusinessException.class, () -> assetService.getAsset(asset.getId(), nonMember.getId()));
+      assertThrows(BusinessException.class, () -> assetService.getAsset(asset.getId(), nonMember));
     }
   }
 

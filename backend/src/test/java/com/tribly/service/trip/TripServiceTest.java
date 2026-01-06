@@ -63,7 +63,7 @@ class TripServiceTest {
       dataService.createTrip(
           team, admin, "Team Trip", Instant.now(), Visibility.TEAM, Status.PUBLISHED, null);
 
-      TripListResponse result = tripService.listTrips("test-team", null, null, null, null, 0, 10);
+      TripListResponse result = tripService.listTrips(team, null, null, null, null, 0, 10);
 
       assertEquals(1, result.trips().size());
       assertEquals("Public Trip", result.trips().getFirst().getName());
@@ -76,8 +76,7 @@ class TripServiceTest {
       dataService.createTrip(
           team, admin, "Team Trip", Instant.now(), Visibility.TEAM, Status.PUBLISHED, null);
 
-      TripListResponse result =
-          tripService.listTrips("test-team", member.getId(), null, null, null, 0, 10);
+      TripListResponse result = tripService.listTrips(team, member, null, null, null, 0, 10);
 
       assertEquals(2, result.trips().size());
     }
@@ -87,8 +86,7 @@ class TripServiceTest {
       dataService.createTrip(
           team, admin, "Draft Trip", Instant.now(), Visibility.PUBLIC, Status.DRAFT, null);
 
-      TripListResponse result =
-          tripService.listTrips("test-team", organizer.getId(), null, null, null, 0, 10);
+      TripListResponse result = tripService.listTrips(team, organizer, null, null, null, 0, 10);
 
       assertEquals(1, result.trips().size());
       assertEquals(Status.DRAFT, result.trips().getFirst().getStatus());
@@ -99,8 +97,7 @@ class TripServiceTest {
       dataService.createTrip(
           team, admin, "Draft Trip", Instant.now(), Visibility.PUBLIC, Status.DRAFT, null);
 
-      TripListResponse result =
-          tripService.listTrips("test-team", member.getId(), null, null, null, 0, 10);
+      TripListResponse result = tripService.listTrips(team, member, null, null, null, 0, 10);
 
       assertEquals(0, result.trips().size());
     }
@@ -114,8 +111,7 @@ class TripServiceTest {
       dataService.createTrip(team, admin, "Tomorrow Trip", tomorrow);
       dataService.createTrip(team, admin, "Next Week Trip", nextWeek);
 
-      TripListResponse result =
-          tripService.listTrips("test-team", null, null, today, tomorrow, 0, 10);
+      TripListResponse result = tripService.listTrips(team, null, null, today, tomorrow, 0, 10);
 
       assertEquals(2, result.trips().size());
     }
@@ -126,7 +122,7 @@ class TripServiceTest {
         dataService.createTrip(team, admin, "Trip " + i, Instant.now());
       }
 
-      TripListResponse result = tripService.listTrips("test-team", null, null, null, null, 0, 3);
+      TripListResponse result = tripService.listTrips(team, null, null, null, null, 0, 3);
 
       assertEquals(3, result.trips().size());
       assertEquals(5, result.total());
@@ -142,7 +138,7 @@ class TripServiceTest {
     void shouldReturnTrip() {
       Trip trip = dataService.createTrip(team, admin, "Test Trip", Instant.now());
 
-      TripDto result = tripService.getTripDetail("test-team", trip.getSlug(), null);
+      TripDto result = tripService.getTripDetail(team, trip.getSlug(), null);
 
       assertEquals("Test Trip", result.getName());
       assertEquals(trip.getSlug(), result.getSlug());
@@ -151,8 +147,7 @@ class TripServiceTest {
     @Test
     void shouldThrowForNonexistent() {
       assertThrows(
-          BusinessException.class,
-          () -> tripService.getTripDetail("test-team", "nonexistent", null));
+          BusinessException.class, () -> tripService.getTripDetail(team, "nonexistent", null));
     }
 
     @Test
@@ -161,7 +156,7 @@ class TripServiceTest {
           dataService.createTrip(
               team, admin, "Draft Trip", Instant.now(), Visibility.PUBLIC, Status.DRAFT, null);
 
-      TripDto result = tripService.getTripDetail("test-team", trip.getSlug(), organizer.getId());
+      TripDto result = tripService.getTripDetail(team, trip.getSlug(), organizer);
 
       assertEquals(Status.DRAFT, result.getStatus());
     }
@@ -173,8 +168,7 @@ class TripServiceTest {
               team, admin, "Draft Trip", Instant.now(), Visibility.PUBLIC, Status.DRAFT, null);
 
       assertThrows(
-          BusinessException.class,
-          () -> tripService.getTripDetail("test-team", trip.getSlug(), member.getId()));
+          BusinessException.class, () -> tripService.getTripDetail(team, trip.getSlug(), member));
     }
 
     @Test
@@ -183,7 +177,7 @@ class TripServiceTest {
       dataService.createTripStage(admin, trip, "Stage 1", 0);
       dataService.createTripStage(admin, trip, "Stage 2", 1);
 
-      TripDto result = tripService.getTripDetail("test-team", trip.getSlug(), organizer.getId());
+      TripDto result = tripService.getTripDetail(team, trip.getSlug(), organizer);
 
       assertEquals(2, result.getStages().size());
       assertEquals(2, result.getStageCount());
@@ -208,7 +202,7 @@ class TripServiceTest {
               null,
               List.of());
 
-      TripDto result = tripService.createTrip("test-team", request, organizer.getId());
+      TripDto result = tripService.createTrip(team, request, organizer);
 
       assertNotNull(result);
       assertEquals("Summer Tour", result.getName());
@@ -230,7 +224,7 @@ class TripServiceTest {
               null,
               List.of());
 
-      TripDto result = tripService.createTrip("test-team", request, organizer.getId());
+      TripDto result = tripService.createTrip(team, request, organizer);
 
       assertNotEquals("test-trip", result.getSlug());
       assertTrue(result.getSlug().startsWith("test-trip-"));
@@ -251,7 +245,7 @@ class TripServiceTest {
               null,
               List.of());
 
-      TripDto result = tripService.createTrip("test-team", request, organizer.getId());
+      TripDto result = tripService.createTrip(team, request, organizer);
 
       assertNotNull(result);
       assertEquals(route.getSlug(), result.getRouteSlug());
@@ -283,7 +277,7 @@ class TripServiceTest {
               null,
               List.of(stage1, stage2));
 
-      TripDto result = tripService.createTrip("test-team", request, organizer.getId());
+      TripDto result = tripService.createTrip(team, request, organizer);
 
       assertEquals(2, result.getStages().size());
       assertEquals("Stage 1", result.getStages().get(0).name());
@@ -303,9 +297,7 @@ class TripServiceTest {
               null,
               List.of());
 
-      assertThrows(
-          BusinessException.class,
-          () -> tripService.createTrip("test-team", request, member.getId()));
+      assertThrows(BusinessException.class, () -> tripService.createTrip(team, request, member));
     }
 
     @Test
@@ -328,9 +320,9 @@ class TripServiceTest {
       BusinessException exception =
           assertThrows(
               BusinessException.class,
-              () -> tripService.createTrip("private-team", request, organizer.getId()));
+              () -> tripService.createTrip(privateTeam, request, organizer));
 
-      assertTrue(exception.getMessage().contains("Private teams can only have team-only trips"));
+      assertTrue(exception.getMessage().contains("Private teams can only have team-only items"));
     }
 
     @Test
@@ -350,9 +342,7 @@ class TripServiceTest {
               null,
               List.of());
 
-      assertThrows(
-          BusinessException.class,
-          () -> tripService.createTrip("test-team", request, organizer.getId()));
+      assertThrows(BusinessException.class, () -> tripService.createTrip(team, request, organizer));
     }
 
     @Test
@@ -372,8 +362,7 @@ class TripServiceTest {
 
       BusinessException exception =
           assertThrows(
-              BusinessException.class,
-              () -> tripService.createTrip("test-team", request, organizer.getId()));
+              BusinessException.class, () -> tripService.createTrip(team, request, organizer));
 
       assertTrue(exception.getMessage().contains("private route"));
     }
@@ -393,7 +382,7 @@ class TripServiceTest {
               null,
               List.of());
 
-      TripDto result = tripService.createTrip("test-team", request, organizer.getId());
+      TripDto result = tripService.createTrip(team, request, organizer);
 
       assertNotNull(result);
       assertEquals(teamRoute.getSlug(), result.getRouteSlug());
@@ -412,9 +401,7 @@ class TripServiceTest {
               null,
               List.of());
 
-      assertThrows(
-          BusinessException.class,
-          () -> tripService.createTrip("test-team", request, organizer.getId()));
+      assertThrows(BusinessException.class, () -> tripService.createTrip(team, request, organizer));
     }
 
     @Test
@@ -434,7 +421,7 @@ class TripServiceTest {
               null,
               List.of());
 
-      TripDto result = tripService.createTrip("private-team", request, organizer.getId());
+      TripDto result = tripService.createTrip(privateTeam, request, organizer);
 
       assertNotNull(result);
       assertEquals(Visibility.TEAM, result.getVisibility());
@@ -465,7 +452,7 @@ class TripServiceTest {
               null,
               List.of(stage));
 
-      TripDto result = tripService.createTrip("test-team", request, organizer.getId());
+      TripDto result = tripService.createTrip(team, request, organizer);
 
       assertNotNull(result);
       assertEquals(1, result.getStages().size());
@@ -496,9 +483,7 @@ class TripServiceTest {
               null,
               List.of(stage));
 
-      assertThrows(
-          BusinessException.class,
-          () -> tripService.createTrip("test-team", request, organizer.getId()));
+      assertThrows(BusinessException.class, () -> tripService.createTrip(team, request, organizer));
     }
 
     @Test
@@ -522,9 +507,7 @@ class TripServiceTest {
               null,
               List.of(stage));
 
-      assertThrows(
-          BusinessException.class,
-          () -> tripService.createTrip("test-team", request, organizer.getId()));
+      assertThrows(BusinessException.class, () -> tripService.createTrip(team, request, organizer));
     }
 
     @Test
@@ -551,9 +534,7 @@ class TripServiceTest {
               null,
               List.of(stage));
 
-      assertThrows(
-          BusinessException.class,
-          () -> tripService.createTrip("test-team", request, organizer.getId()));
+      assertThrows(BusinessException.class, () -> tripService.createTrip(team, request, organizer));
     }
   }
 
@@ -577,8 +558,7 @@ class TripServiceTest {
               null,
               List.of());
 
-      TripDto result =
-          tripService.updateTrip("test-team", trip.getSlug(), request, organizer.getId());
+      TripDto result = tripService.updateTrip(team, trip.getSlug(), request, organizer);
 
       assertEquals("Updated Title", result.getName());
       assertEquals(Status.CANCELLED, result.getStatus());
@@ -601,8 +581,7 @@ class TripServiceTest {
               null,
               List.of());
 
-      TripDto result =
-          tripService.updateTrip("test-team", trip.getSlug(), request, organizer.getId());
+      TripDto result = tripService.updateTrip(team, trip.getSlug(), request, organizer);
 
       assertEquals(route.getSlug(), result.getRouteSlug());
     }
@@ -624,8 +603,7 @@ class TripServiceTest {
               null,
               List.of());
 
-      TripDto result =
-          tripService.updateTrip("test-team", trip.getSlug(), request, organizer.getId());
+      TripDto result = tripService.updateTrip(team, trip.getSlug(), request, organizer);
 
       assertNull(result.getRouteSlug());
     }
@@ -650,7 +628,7 @@ class TripServiceTest {
 
       assertThrows(
           BusinessException.class,
-          () -> tripService.updateTrip("test-team", trip.getSlug(), request, organizer.getId()));
+          () -> tripService.updateTrip(team, trip.getSlug(), request, organizer));
     }
 
     @Test
@@ -672,8 +650,7 @@ class TripServiceTest {
       BusinessException exception =
           assertThrows(
               BusinessException.class,
-              () ->
-                  tripService.updateTrip("test-team", trip.getSlug(), request, organizer.getId()));
+              () -> tripService.updateTrip(team, trip.getSlug(), request, organizer));
 
       assertTrue(exception.getMessage().contains("private route"));
     }
@@ -696,8 +673,7 @@ class TripServiceTest {
               null,
               List.of());
 
-      TripDto result =
-          tripService.updateTrip("test-team", trip.getSlug(), request, organizer.getId());
+      TripDto result = tripService.updateTrip(team, trip.getSlug(), request, organizer);
 
       assertNotNull(result);
       assertEquals(teamRoute.getSlug(), result.getRouteSlug());
@@ -720,7 +696,7 @@ class TripServiceTest {
 
       assertThrows(
           BusinessException.class,
-          () -> tripService.updateTrip("test-team", trip.getSlug(), request, member.getId()));
+          () -> tripService.updateTrip(team, trip.getSlug(), request, member));
     }
 
     @Test
@@ -752,11 +728,9 @@ class TripServiceTest {
       BusinessException exception =
           assertThrows(
               BusinessException.class,
-              () ->
-                  tripService.updateTrip(
-                      "private-team", trip.getSlug(), request, organizer.getId()));
+              () -> tripService.updateTrip(privateTeam, trip.getSlug(), request, organizer));
 
-      assertTrue(exception.getMessage().contains("Private teams can only have team-only trips"));
+      assertTrue(exception.getMessage().contains("Private teams can only have team-only items"));
     }
 
     @Test
@@ -785,8 +759,7 @@ class TripServiceTest {
               null,
               List.of());
 
-      TripDto result =
-          tripService.updateTrip("private-team", trip.getSlug(), request, organizer.getId());
+      TripDto result = tripService.updateTrip(privateTeam, trip.getSlug(), request, organizer);
 
       assertNotNull(result);
       assertEquals("Updated Team Trip", result.getName());
@@ -816,8 +789,7 @@ class TripServiceTest {
               null,
               List.of(newStage));
 
-      TripDto result =
-          tripService.updateTrip("test-team", trip.getSlug(), request, organizer.getId());
+      TripDto result = tripService.updateTrip(team, trip.getSlug(), request, organizer);
 
       assertEquals(1, result.getStages().size());
       assertEquals("New Stage", result.getStages().get(0).name());
@@ -848,8 +820,7 @@ class TripServiceTest {
               null,
               List.of(updatedStage));
 
-      TripDto result =
-          tripService.updateTrip("test-team", trip.getSlug(), request, organizer.getId());
+      TripDto result = tripService.updateTrip(team, trip.getSlug(), request, organizer);
 
       assertEquals(1, result.getStages().size());
       assertEquals("Updated Stage", result.getStages().get(0).name());
@@ -872,8 +843,7 @@ class TripServiceTest {
               null,
               List.of());
 
-      TripDto result =
-          tripService.updateTrip("test-team", trip.getSlug(), request, organizer.getId());
+      TripDto result = tripService.updateTrip(team, trip.getSlug(), request, organizer);
 
       assertEquals(0, result.getStages().size());
     }
@@ -904,8 +874,7 @@ class TripServiceTest {
               null,
               List.of(stage));
 
-      TripDto result =
-          tripService.updateTrip("test-team", trip.getSlug(), request, organizer.getId());
+      TripDto result = tripService.updateTrip(team, trip.getSlug(), request, organizer);
 
       assertEquals(1, result.getStages().size());
       assertNotNull(result.getStages().get(0).startPlace());
@@ -939,7 +908,7 @@ class TripServiceTest {
 
       assertThrows(
           BusinessException.class,
-          () -> tripService.updateTrip("test-team", trip.getSlug(), request, organizer.getId()));
+          () -> tripService.updateTrip(team, trip.getSlug(), request, organizer));
     }
 
     @Test
@@ -967,7 +936,7 @@ class TripServiceTest {
 
       assertThrows(
           BusinessException.class,
-          () -> tripService.updateTrip("test-team", trip.getSlug(), request, organizer.getId()));
+          () -> tripService.updateTrip(team, trip.getSlug(), request, organizer));
     }
 
     @Test
@@ -997,7 +966,7 @@ class TripServiceTest {
 
       assertThrows(
           BusinessException.class,
-          () -> tripService.updateTrip("test-team", trip.getSlug(), request, organizer.getId()));
+          () -> tripService.updateTrip(team, trip.getSlug(), request, organizer));
     }
 
     @Test
@@ -1031,8 +1000,7 @@ class TripServiceTest {
               null,
               List.of(stage));
 
-      TripDto result =
-          tripService.updateTrip("test-team", trip.getSlug(), request, organizer.getId());
+      TripDto result = tripService.updateTrip(team, trip.getSlug(), request, organizer);
 
       assertEquals(1, result.getStages().size());
       assertNull(result.getStages().get(0).startPlace());
@@ -1065,8 +1033,7 @@ class TripServiceTest {
       BusinessException exception =
           assertThrows(
               BusinessException.class,
-              () ->
-                  tripService.updateTrip("test-team", trip.getSlug(), request, organizer.getId()));
+              () -> tripService.updateTrip(team, trip.getSlug(), request, organizer));
 
       assertTrue(exception.getMessage().contains("Stage"));
     }
@@ -1081,11 +1048,11 @@ class TripServiceTest {
     void shouldSoftDelete() {
       Trip trip = dataService.createTrip(team, admin, "Test Trip", Instant.now());
 
-      tripService.deleteTrip("test-team", trip.getSlug(), organizer.getId());
+      tripService.deleteTrip(team, trip.getSlug(), organizer);
 
       assertThrows(
           BusinessException.class,
-          () -> tripService.getTripDetail("test-team", trip.getSlug(), organizer.getId()));
+          () -> tripService.getTripDetail(team, trip.getSlug(), organizer));
     }
 
     @Test
@@ -1093,8 +1060,7 @@ class TripServiceTest {
       Trip trip = dataService.createTrip(team, admin, "Test Trip", Instant.now());
 
       assertThrows(
-          BusinessException.class,
-          () -> tripService.deleteTrip("test-team", trip.getSlug(), member.getId()));
+          BusinessException.class, () -> tripService.deleteTrip(team, trip.getSlug(), member));
     }
   }
 
@@ -1109,8 +1075,7 @@ class TripServiceTest {
           dataService.createTrip(
               team, admin, "Test Trip", Instant.now(), Visibility.PUBLIC, Status.PUBLISHED, null);
 
-      TripParticipationDto result =
-          tripService.joinTrip("test-team", trip.getSlug(), member.getId());
+      TripParticipationDto result = tripService.joinTrip(team, trip.getSlug(), member);
 
       assertNotNull(result);
       assertEquals(member.getId(), TsidUtils.toLong(result.userId()));
@@ -1124,8 +1089,7 @@ class TripServiceTest {
 
       BusinessException exception =
           assertThrows(
-              BusinessException.class,
-              () -> tripService.joinTrip("test-team", trip.getSlug(), member.getId()));
+              BusinessException.class, () -> tripService.joinTrip(team, trip.getSlug(), member));
 
       // Member can't see draft trips, so they get "not found"
       assertTrue(exception.getMessage().contains("not found"));
@@ -1139,8 +1103,7 @@ class TripServiceTest {
 
       BusinessException exception =
           assertThrows(
-              BusinessException.class,
-              () -> tripService.joinTrip("test-team", trip.getSlug(), organizer.getId()));
+              BusinessException.class, () -> tripService.joinTrip(team, trip.getSlug(), organizer));
 
       // Organizer can see draft trips, so they get explicit validation message
       assertTrue(exception.getMessage().contains("Can only join published trips"));
@@ -1155,8 +1118,7 @@ class TripServiceTest {
 
       BusinessException exception =
           assertThrows(
-              BusinessException.class,
-              () -> tripService.joinTrip("test-team", trip.getSlug(), member.getId()));
+              BusinessException.class, () -> tripService.joinTrip(team, trip.getSlug(), member));
 
       assertTrue(exception.getMessage().contains("already"));
     }
@@ -1166,11 +1128,10 @@ class TripServiceTest {
       Trip trip =
           dataService.createTrip(
               team, admin, "Test Trip", Instant.now(), Visibility.PUBLIC, Status.PUBLISHED, null);
-      tripService.joinTrip("test-team", trip.getSlug(), member.getId());
-      tripService.leaveTrip("test-team", trip.getSlug(), member.getId());
+      tripService.joinTrip(team, trip.getSlug(), member);
+      tripService.leaveTrip(team, trip.getSlug(), member);
 
-      TripParticipationDto result =
-          tripService.joinTrip("test-team", trip.getSlug(), member.getId());
+      TripParticipationDto result = tripService.joinTrip(team, trip.getSlug(), member);
 
       assertNotNull(result);
       assertEquals(member.getId(), TsidUtils.toLong(result.userId()));
@@ -1187,13 +1148,12 @@ class TripServiceTest {
       Trip trip =
           dataService.createTrip(
               team, admin, "Test Trip", Instant.now(), Visibility.PUBLIC, Status.PUBLISHED, null);
-      tripService.joinTrip("test-team", trip.getSlug(), member.getId());
+      tripService.joinTrip(team, trip.getSlug(), member);
 
-      tripService.leaveTrip("test-team", trip.getSlug(), member.getId());
+      tripService.leaveTrip(team, trip.getSlug(), member);
 
       // Member can rejoin after leaving
-      TripParticipationDto newParticipation =
-          tripService.joinTrip("test-team", trip.getSlug(), member.getId());
+      TripParticipationDto newParticipation = tripService.joinTrip(team, trip.getSlug(), member);
       assertNotNull(newParticipation);
     }
 
@@ -1204,8 +1164,7 @@ class TripServiceTest {
               team, admin, "Test Trip", Instant.now(), Visibility.PUBLIC, Status.PUBLISHED, null);
 
       assertThrows(
-          BusinessException.class,
-          () -> tripService.leaveTrip("test-team", trip.getSlug(), member.getId()));
+          BusinessException.class, () -> tripService.leaveTrip(team, trip.getSlug(), member));
     }
   }
 
@@ -1235,8 +1194,7 @@ class TripServiceTest {
 
       BusinessException exception =
           assertThrows(
-              BusinessException.class,
-              () -> tripService.createTrip("test-team", request, organizer.getId()));
+              BusinessException.class, () -> tripService.createTrip(team, request, organizer));
 
       assertTrue(exception.getMessage().contains("disabled"));
     }
@@ -1266,8 +1224,7 @@ class TripServiceTest {
       BusinessException exception =
           assertThrows(
               BusinessException.class,
-              () ->
-                  tripService.updateTrip("test-team", trip.getSlug(), request, organizer.getId()));
+              () -> tripService.updateTrip(team, trip.getSlug(), request, organizer));
 
       assertTrue(exception.getMessage().contains("not found"));
     }
@@ -1286,7 +1243,7 @@ class TripServiceTest {
       BusinessException exception =
           assertThrows(
               BusinessException.class,
-              () -> tripService.deleteTrip("test-team", trip.getSlug(), organizer.getId()));
+              () -> tripService.deleteTrip(team, trip.getSlug(), organizer));
 
       assertTrue(exception.getMessage().contains("not found"));
     }
@@ -1306,8 +1263,7 @@ class TripServiceTest {
 
       BusinessException exception =
           assertThrows(
-              BusinessException.class,
-              () -> tripService.joinTrip("test-team", trip.getSlug(), member.getId()));
+              BusinessException.class, () -> tripService.joinTrip(team, trip.getSlug(), member));
 
       assertTrue(exception.getMessage().contains("not found"));
     }
@@ -1320,7 +1276,7 @@ class TripServiceTest {
       Trip trip =
           dataService.createTrip(
               team, admin, "Test Trip", Instant.now(), Visibility.PUBLIC, Status.PUBLISHED, null);
-      tripService.joinTrip("test-team", trip.getSlug(), member.getId());
+      tripService.joinTrip(team, trip.getSlug(), member);
 
       // Disable trips
       team.setEnableTrips(false);
@@ -1328,8 +1284,7 @@ class TripServiceTest {
 
       BusinessException exception =
           assertThrows(
-              BusinessException.class,
-              () -> tripService.leaveTrip("test-team", trip.getSlug(), member.getId()));
+              BusinessException.class, () -> tripService.leaveTrip(team, trip.getSlug(), member));
 
       assertTrue(exception.getMessage().contains("not found"));
     }

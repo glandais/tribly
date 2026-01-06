@@ -13,7 +13,9 @@ import org.hibernate.annotations.CreationTimestamp;
 @Setter
 @Getter
 @Entity
-@Table(name = "team_slug_redirects")
+@Table(
+    name = "team_slug_redirects",
+    indexes = {@Index(columnList = "old_slug")})
 @NoArgsConstructor
 public class TeamSlugRedirect {
 

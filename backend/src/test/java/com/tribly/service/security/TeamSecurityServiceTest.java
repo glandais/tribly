@@ -42,14 +42,14 @@ class TeamSecurityServiceTest {
   void isMember_shouldReturnTrueForMember() {
     dataService.addUserToTeam(user1, team, TeamRole.MEMBER);
 
-    boolean result = teamSecurityService.isMember(user1.getId(), team);
+    boolean result = teamSecurityService.isMember(user1, team);
 
     assertTrue(result);
   }
 
   @Test
   void isMember_shouldReturnFalseForNonMember() {
-    boolean result = teamSecurityService.isMember(user1.getId(), team);
+    boolean result = teamSecurityService.isMember(user1, team);
 
     assertFalse(result);
   }
@@ -65,7 +65,7 @@ class TeamSecurityServiceTest {
   void canSeeDrafts_shouldReturnTrueForOrganizer() {
     dataService.addUserToTeam(user1, team, TeamRole.ORGANIZER);
 
-    boolean result = teamSecurityService.canSeeDrafts(user1.getId(), team);
+    boolean result = teamSecurityService.canSeeDrafts(user1, team);
 
     assertTrue(result);
   }
@@ -74,7 +74,7 @@ class TeamSecurityServiceTest {
   void canSeeDrafts_shouldReturnTrueForAdmin() {
     dataService.addUserToTeam(user1, team, TeamRole.ADMIN);
 
-    boolean result = teamSecurityService.canSeeDrafts(user1.getId(), team);
+    boolean result = teamSecurityService.canSeeDrafts(user1, team);
 
     assertTrue(result);
   }
@@ -83,7 +83,7 @@ class TeamSecurityServiceTest {
   void canSeeDrafts_shouldReturnFalseForMember() {
     dataService.addUserToTeam(user1, team, TeamRole.MEMBER);
 
-    boolean result = teamSecurityService.canSeeDrafts(user1.getId(), team);
+    boolean result = teamSecurityService.canSeeDrafts(user1, team);
 
     assertFalse(result);
   }
@@ -99,7 +99,7 @@ class TeamSecurityServiceTest {
   void requireMembership_shouldReturnMembershipForMember() {
     UserTeam membership = dataService.addUserToTeam(user1, team, TeamRole.MEMBER);
 
-    UserTeam result = teamSecurityService.requireMembership(user1.getId(), "test-team");
+    UserTeam result = teamSecurityService.requireMembership(user1, team);
 
     assertEquals(membership.getId(), result.getId());
     assertEquals(TeamRole.MEMBER, result.getRole());
@@ -109,8 +109,7 @@ class TeamSecurityServiceTest {
   void requireMembership_shouldThrowForNonMember() {
     BusinessException exception =
         assertThrows(
-            BusinessException.class,
-            () -> teamSecurityService.requireMembership(user1.getId(), "test-team"));
+            BusinessException.class, () -> teamSecurityService.requireMembership(user1, team));
 
     assertEquals("You are not a member of this team", exception.getMessage());
   }
@@ -119,8 +118,7 @@ class TeamSecurityServiceTest {
   void requireMembership_shouldThrowForNullUserId() {
     BusinessException exception =
         assertThrows(
-            BusinessException.class,
-            () -> teamSecurityService.requireMembership(null, "test-team"));
+            BusinessException.class, () -> teamSecurityService.requireMembership(null, team));
 
     assertEquals("You are not a member of this team", exception.getMessage());
   }
@@ -131,7 +129,7 @@ class TeamSecurityServiceTest {
   void requireAdmin_shouldSucceedForAdmin() {
     dataService.addUserToTeam(user1, team, TeamRole.ADMIN);
 
-    assertDoesNotThrow(() -> teamSecurityService.requireAdmin(user1.getId(), "test-team"));
+    assertDoesNotThrow(() -> teamSecurityService.requireAdmin(user1, team));
   }
 
   @Test
@@ -139,9 +137,7 @@ class TeamSecurityServiceTest {
     dataService.addUserToTeam(user1, team, TeamRole.ORGANIZER);
 
     BusinessException exception =
-        assertThrows(
-            BusinessException.class,
-            () -> teamSecurityService.requireAdmin(user1.getId(), "test-team"));
+        assertThrows(BusinessException.class, () -> teamSecurityService.requireAdmin(user1, team));
 
     assertEquals("Only admins can perform this action", exception.getMessage());
   }
@@ -151,9 +147,7 @@ class TeamSecurityServiceTest {
     dataService.addUserToTeam(user1, team, TeamRole.MEMBER);
 
     BusinessException exception =
-        assertThrows(
-            BusinessException.class,
-            () -> teamSecurityService.requireAdmin(user1.getId(), "test-team"));
+        assertThrows(BusinessException.class, () -> teamSecurityService.requireAdmin(user1, team));
 
     assertEquals("Only admins can perform this action", exception.getMessage());
   }
@@ -162,14 +156,14 @@ class TeamSecurityServiceTest {
   void requireOrganizer_shouldSucceedForOrganizer() {
     dataService.addUserToTeam(user1, team, TeamRole.ORGANIZER);
 
-    assertDoesNotThrow(() -> teamSecurityService.requireOrganizer(user1.getId(), "test-team"));
+    assertDoesNotThrow(() -> teamSecurityService.requireOrganizer(user1, team));
   }
 
   @Test
   void requireOrganizer_shouldSucceedForAdmin() {
     dataService.addUserToTeam(user1, team, TeamRole.ADMIN);
 
-    assertDoesNotThrow(() -> teamSecurityService.requireOrganizer(user1.getId(), "test-team"));
+    assertDoesNotThrow(() -> teamSecurityService.requireOrganizer(user1, team));
   }
 
   @Test
@@ -178,8 +172,7 @@ class TeamSecurityServiceTest {
 
     BusinessException exception =
         assertThrows(
-            BusinessException.class,
-            () -> teamSecurityService.requireOrganizer(user1.getId(), "test-team"));
+            BusinessException.class, () -> teamSecurityService.requireOrganizer(user1, team));
 
     assertEquals("Not organizer", exception.getMessage());
   }
@@ -213,7 +206,7 @@ class TeamSecurityServiceTest {
     dataService.addUserToTeam(user1, team, TeamRole.ADMIN);
     UserTeam admin2 = dataService.addUserToTeam(user2, team, TeamRole.ADMIN);
 
-    assertDoesNotThrow(() -> teamSecurityService.requireNotLastAdmin("test-team", admin2));
+    assertDoesNotThrow(() -> teamSecurityService.requireNotLastAdmin(team, admin2));
   }
 
   @Test
@@ -221,7 +214,7 @@ class TeamSecurityServiceTest {
     dataService.addUserToTeam(user1, team, TeamRole.ADMIN);
     UserTeam member = dataService.addUserToTeam(user2, team, TeamRole.MEMBER);
 
-    assertDoesNotThrow(() -> teamSecurityService.requireNotLastAdmin("test-team", member));
+    assertDoesNotThrow(() -> teamSecurityService.requireNotLastAdmin(team, member));
   }
 
   @Test
@@ -231,7 +224,7 @@ class TeamSecurityServiceTest {
     BusinessException exception =
         assertThrows(
             BusinessException.class,
-            () -> teamSecurityService.requireNotLastAdmin("test-team", lastAdmin));
+            () -> teamSecurityService.requireNotLastAdmin(team, lastAdmin));
 
     assertEquals("Cannot remove the last admin", exception.getMessage());
   }
@@ -242,9 +235,7 @@ class TeamSecurityServiceTest {
     UserTeam admin2 = dataService.addUserToTeam(user2, team, TeamRole.ADMIN);
 
     assertDoesNotThrow(
-        () ->
-            teamSecurityService.requireNotLastAdminDemotion(
-                "test-team", admin2, TeamRole.ORGANIZER));
+        () -> teamSecurityService.requireNotLastAdminDemotion(team, admin2, TeamRole.ORGANIZER));
   }
 
   @Test
@@ -252,9 +243,7 @@ class TeamSecurityServiceTest {
     UserTeam organizer = dataService.addUserToTeam(user1, team, TeamRole.ORGANIZER);
 
     assertDoesNotThrow(
-        () ->
-            teamSecurityService.requireNotLastAdminDemotion(
-                "test-team", organizer, TeamRole.MEMBER));
+        () -> teamSecurityService.requireNotLastAdminDemotion(team, organizer, TeamRole.MEMBER));
   }
 
   @Test
@@ -262,7 +251,7 @@ class TeamSecurityServiceTest {
     UserTeam admin = dataService.addUserToTeam(user1, team, TeamRole.ADMIN);
 
     assertDoesNotThrow(
-        () -> teamSecurityService.requireNotLastAdminDemotion("test-team", admin, TeamRole.ADMIN));
+        () -> teamSecurityService.requireNotLastAdminDemotion(team, admin, TeamRole.ADMIN));
   }
 
   @Test
@@ -274,7 +263,7 @@ class TeamSecurityServiceTest {
             BusinessException.class,
             () ->
                 teamSecurityService.requireNotLastAdminDemotion(
-                    "test-team", lastAdmin, TeamRole.ORGANIZER));
+                    team, lastAdmin, TeamRole.ORGANIZER));
 
     assertEquals("Cannot remove the last admin", exception.getMessage());
   }
@@ -285,9 +274,7 @@ class TeamSecurityServiceTest {
   void requireCanRemoveMember_shouldSucceedForSelfRemoval() {
     dataService.addUserToTeam(user1, team, TeamRole.MEMBER);
 
-    assertDoesNotThrow(
-        () ->
-            teamSecurityService.requireCanRemoveMember(user1.getId(), user1.getId(), "test-team"));
+    assertDoesNotThrow(() -> teamSecurityService.requireCanRemoveMember(user1, user1, team));
   }
 
   @Test
@@ -295,9 +282,7 @@ class TeamSecurityServiceTest {
     dataService.addUserToTeam(user1, team, TeamRole.ADMIN);
     dataService.addUserToTeam(user2, team, TeamRole.MEMBER);
 
-    assertDoesNotThrow(
-        () ->
-            teamSecurityService.requireCanRemoveMember(user1.getId(), user2.getId(), "test-team"));
+    assertDoesNotThrow(() -> teamSecurityService.requireCanRemoveMember(user1, user2, team));
   }
 
   @Test
@@ -308,9 +293,7 @@ class TeamSecurityServiceTest {
     BusinessException exception =
         assertThrows(
             BusinessException.class,
-            () ->
-                teamSecurityService.requireCanRemoveMember(
-                    user1.getId(), user2.getId(), "test-team"));
+            () -> teamSecurityService.requireCanRemoveMember(user1, user2, team));
 
     assertEquals("Only admins can perform this action", exception.getMessage());
   }
@@ -323,9 +306,7 @@ class TeamSecurityServiceTest {
     BusinessException exception =
         assertThrows(
             BusinessException.class,
-            () ->
-                teamSecurityService.requireCanRemoveMember(
-                    user1.getId(), user2.getId(), "test-team"));
+            () -> teamSecurityService.requireCanRemoveMember(user1, user2, team));
 
     assertEquals("Only admins can perform this action", exception.getMessage());
   }

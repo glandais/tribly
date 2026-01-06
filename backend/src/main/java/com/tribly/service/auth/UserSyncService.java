@@ -20,14 +20,14 @@ public class UserSyncService {
   @Inject UserRepository userRepository;
 
   @Transactional
-  public UserDto syncUser(@Nullable User user, JsonWebToken jwt) {
-    if (user == null) {
+  public UserDto syncUser(@Nullable Long userId, JsonWebToken jwt) {
+    if (userId == null) {
       String email = jwt.getClaim("email");
       // User not synced yet - extract from JWT and sync
       String displayName = extractDisplayName(jwt);
       return createUser(email, displayName);
     } else {
-      return updateUser(user.getId());
+      return updateUser(userId);
     }
   }
 

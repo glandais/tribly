@@ -92,60 +92,6 @@ class RideTemplateRepositoryTest {
   }
 
   @Nested
-  @DisplayName("findByTeamSlugAndTemplateSlug")
-  class FindByTeamSlugAndTemplateSlug {
-
-    @Test
-    @DisplayName("Should return template when team slug and template slug match")
-    void findByTeamSlugAndTemplateSlug_shouldReturnTemplateWhenMatches() {
-      RideTemplate template =
-          dataService.createRideTemplate(team, user, "Evening Ride", "evening-ride");
-
-      Optional<RideTemplate> result =
-          templateRepository.findByTeamSlugAndTemplateSlug("test-team", "evening-ride");
-
-      assertTrue(result.isPresent());
-      assertEquals(template.getId(), result.get().getId());
-      assertEquals("Evening Ride", result.get().getName());
-    }
-
-    @Test
-    @DisplayName("Should return empty when team slug doesn't exist")
-    void findByTeamSlugAndTemplateSlug_shouldReturnEmptyWhenTeamSlugNotExists() {
-      dataService.createRideTemplate(team, user, "Evening Ride", "evening-ride");
-
-      Optional<RideTemplate> result =
-          templateRepository.findByTeamSlugAndTemplateSlug("nonexistent-team", "evening-ride");
-
-      assertTrue(result.isEmpty());
-    }
-
-    @Test
-    @DisplayName("Should return empty when template slug doesn't exist")
-    void findByTeamSlugAndTemplateSlug_shouldReturnEmptyWhenTemplateSlugNotExists() {
-      dataService.createRideTemplate(team, user, "Evening Ride", "evening-ride");
-
-      Optional<RideTemplate> result =
-          templateRepository.findByTeamSlugAndTemplateSlug("test-team", "nonexistent-slug");
-
-      assertTrue(result.isEmpty());
-    }
-
-    @Test
-    @DisplayName("Should return empty when template is deleted")
-    void findByTeamSlugAndTemplateSlug_shouldReturnEmptyWhenDeleted() {
-      RideTemplate template =
-          dataService.createRideTemplate(team, user, "Evening Ride", "evening-ride");
-      dataService.deleteRideTemplate(template);
-
-      Optional<RideTemplate> result =
-          templateRepository.findByTeamSlugAndTemplateSlug("test-team", "evening-ride");
-
-      assertTrue(result.isEmpty());
-    }
-  }
-
-  @Nested
   @DisplayName("existsByTeamAndSlug")
   class ExistsByTeamAndSlug {
 

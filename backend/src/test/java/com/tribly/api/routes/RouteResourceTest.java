@@ -63,13 +63,13 @@ class RouteResourceTest extends AbstractResourceTest {
   }
 
   @Test
-  void listRoutes_toNonexistentTeam_shouldReturn200() {
+  void listRoutes_toNonexistentTeam_shouldReturn404() {
     given()
         .when()
         .get("/api/teams/nonexistent-team/routes")
         .then()
         // empty list
-        .statusCode(200);
+        .statusCode(404);
   }
 
   @Test

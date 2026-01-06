@@ -102,13 +102,13 @@ class TripResourceTest extends AbstractResourceTest {
   }
 
   @Test
-  void listTrips_toNonexistentTeam_shouldReturn200() {
+  void listTrips_toNonexistentTeam_shouldReturn404() {
     given()
         .when()
         .get("/api/teams/nonexistent-team/trips")
         .then()
         // empty list
-        .statusCode(200);
+        .statusCode(404);
   }
 
   @Test
@@ -267,7 +267,7 @@ class TripResourceTest extends AbstractResourceTest {
             "Scheduled Trip",
             MediaDto.builder().markdown("Scheduled content").build(),
             Instant.now().plus(30, ChronoUnit.DAYS),
-            Status.PUBLISHED,
+            Status.DRAFT,
             Visibility.PUBLIC,
             null,
             Instant.now().plus(7, ChronoUnit.DAYS),

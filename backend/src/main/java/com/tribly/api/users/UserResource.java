@@ -65,9 +65,9 @@ public class UserResource extends AbstractAuthenticatedResource {
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
   public Response getMe() {
-    User user = getCurrentUserOrNull();
+    Long userId = getUserId();
     JsonWebToken jwt = (JsonWebToken) securityIdentity.getPrincipal();
-    UserDto userDto = userSyncService.syncUser(user, jwt);
+    UserDto userDto = userSyncService.syncUser(userId, jwt);
     return Response.ok(userDto).build();
   }
 

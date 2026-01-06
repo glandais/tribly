@@ -1,5 +1,6 @@
 package com.tribly.dto.common.response;
 
+import java.util.ArrayList;
 import java.util.List;
 import lombok.Builder;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
@@ -14,4 +15,13 @@ public record AssetsDto(
     @Nullable @Schema(description = "Original GPX") AssetDto originalGpx,
     @Nullable @Schema(description = "GPX") AssetDto gpx,
     @Nullable @Schema(description = "FIT") AssetDto fit,
-    @Nullable @Schema(description = "Thumbnail") AssetDto thumbnail) {}
+    @Nullable @Schema(description = "Thumbnail") AssetDto thumbnail) {
+
+  public static class AssetsDtoBuilder {
+    AssetsDtoBuilder() {
+      images = new ArrayList<>();
+      videos = new ArrayList<>();
+      attachments = new ArrayList<>();
+    }
+  }
+}

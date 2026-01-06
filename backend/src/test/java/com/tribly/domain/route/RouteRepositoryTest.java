@@ -87,7 +87,7 @@ class RouteRepositoryTest {
     dataService.createRoute(team, user, "Route 1", Visibility.PUBLIC);
     Team otherTeam = dataService.createTeam(user, "Other Team", "other-team", Visibility.PUBLIC);
 
-    RouteQuery query = RouteQuery.builder().teamSlugs(Set.of(otherTeam.getSlug())).build();
+    RouteQuery query = RouteQuery.builder().teamIds(Set.of(otherTeam.getId())).build();
     TriblyPage<Route> result = routeRepository.find(query);
 
     assertEquals(0, result.items().size());

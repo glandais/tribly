@@ -91,15 +91,13 @@ class TeamResourceTest extends AbstractResourceTest {
                 Visibility.PUBLIC,
                 true,
                 true),
-            user1.getId());
+            user1);
 
     assertNotNull(team.id());
     assertEquals("Test Cyclists", team.name());
     assertTrue(team.slug().startsWith("test-cyclists"));
     assertSame(Visibility.PUBLIC, team.visibility());
-
-    TeamRole role = teamService.getUserRole(user1.getId(), team.slug()).orElse(null);
-    assertEquals(TeamRole.ADMIN, role);
+    assertEquals(TeamRole.ADMIN, team.role());
   }
 
   @Test
@@ -168,7 +166,7 @@ class TeamResourceTest extends AbstractResourceTest {
         .when()
         .post("/api/teams/" + team2Slug + "/members/join")
         .then()
-        .statusCode(404);
+        .statusCode(403);
   }
 
   @Test
@@ -191,7 +189,7 @@ class TeamResourceTest extends AbstractResourceTest {
         .then()
         .statusCode(200)
         .body("name", equalTo("Updated Name"))
-        .body("media.markdown", equalTo("New description"));
+        .body("about.markdown", equalTo("New description"));
   }
 
   @Test

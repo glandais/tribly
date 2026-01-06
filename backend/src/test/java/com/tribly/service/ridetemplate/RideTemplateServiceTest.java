@@ -59,8 +59,7 @@ class RideTemplateServiceTest {
       dataService.createRideTemplate(team, admin, "Template 1", "template-1");
       dataService.createRideTemplate(team, admin, "Template 2", "template-2");
 
-      RideTemplateListResponse result =
-          templateService.listTemplates("test-team", organizer.getId(), null, 0, 10);
+      RideTemplateListResponse result = templateService.listTemplates(team, organizer, null, 0, 10);
 
       assertEquals(2, result.templates().size());
       assertEquals(2, result.total());
@@ -72,8 +71,7 @@ class RideTemplateServiceTest {
         dataService.createRideTemplate(team, admin, "Template " + i, "template-" + i);
       }
 
-      RideTemplateListResponse result =
-          templateService.listTemplates("test-team", organizer.getId(), null, 0, 3);
+      RideTemplateListResponse result = templateService.listTemplates(team, organizer, null, 0, 3);
 
       assertEquals(3, result.templates().size());
       assertEquals(5, result.total());
@@ -86,7 +84,7 @@ class RideTemplateServiceTest {
       dataService.createRideTemplate(team, admin, "Weekend Trip", "weekend-trip");
 
       RideTemplateListResponse result =
-          templateService.listTemplates("test-team", organizer.getId(), "ride", 0, 10);
+          templateService.listTemplates(team, organizer, "ride", 0, 10);
 
       assertEquals(2, result.templates().size());
     }
@@ -94,15 +92,7 @@ class RideTemplateServiceTest {
     @Test
     void shouldThrowForMember() {
       assertThrows(
-          BusinessException.class,
-          () -> templateService.listTemplates("test-team", member.getId(), null, 0, 10));
-    }
-
-    @Test
-    void shouldThrowForNonexistentTeam() {
-      assertThrows(
-          BusinessException.class,
-          () -> templateService.listTemplates("nonexistent", admin.getId(), null, 0, 10));
+          BusinessException.class, () -> templateService.listTemplates(team, member, null, 0, 10));
     }
 
     @Test
@@ -112,8 +102,7 @@ class RideTemplateServiceTest {
           dataService.createRideTemplate(team, admin, "Deleted Template", "deleted-template");
       dataService.deleteRideTemplate(deletedTemplate);
 
-      RideTemplateListResponse result =
-          templateService.listTemplates("test-team", organizer.getId(), null, 0, 10);
+      RideTemplateListResponse result = templateService.listTemplates(team, organizer, null, 0, 10);
 
       assertEquals(1, result.templates().size());
       assertEquals("Active Template", result.templates().getFirst().name());
@@ -127,8 +116,7 @@ class RideTemplateServiceTest {
     void shouldReturnTemplateForOrganizer() {
       dataService.createRideTemplate(team, admin, "Test Template", "test-template");
 
-      RideTemplateDto result =
-          templateService.getTemplate("test-team", "test-template", organizer.getId());
+      RideTemplateDto result = templateService.getTemplate(team, "test-template", organizer);
 
       assertNotNull(result);
       assertEquals("Test Template", result.name());
@@ -139,7 +127,7 @@ class RideTemplateServiceTest {
     void shouldThrowForNonexistentTemplate() {
       assertThrows(
           BusinessException.class,
-          () -> templateService.getTemplate("test-team", "nonexistent", organizer.getId()));
+          () -> templateService.getTemplate(team, "nonexistent", organizer));
     }
 
     @Test
@@ -148,7 +136,7 @@ class RideTemplateServiceTest {
 
       assertThrows(
           BusinessException.class,
-          () -> templateService.getTemplate("test-team", "test-template", member.getId()));
+          () -> templateService.getTemplate(team, "test-template", member));
     }
   }
 
@@ -165,8 +153,7 @@ class RideTemplateServiceTest {
               Status.PUBLISHED,
               List.of());
 
-      RideTemplateDto result =
-          templateService.createTemplate("test-team", request, organizer.getId());
+      RideTemplateDto result = templateService.createTemplate(team, request, organizer);
 
       assertNotNull(result);
       assertEquals("New Template", result.name());
@@ -181,7 +168,7 @@ class RideTemplateServiceTest {
       RideTemplateRequest request =
           new RideTemplateRequest(
               "Template with Groups",
-              null,
+              "markdown",
               Visibility.TEAM,
               Status.PUBLISHED,
               List.of(
@@ -196,8 +183,7 @@ class RideTemplateServiceTest {
                       .maxParticipants(15)
                       .build()));
 
-      RideTemplateDto result =
-          templateService.createTemplate("test-team", request, organizer.getId());
+      RideTemplateDto result = templateService.createTemplate(team, request, organizer);
 
       assertNotNull(result);
       assertEquals(2, result.groups().size());
@@ -213,10 +199,9 @@ class RideTemplateServiceTest {
 
       RideTemplateRequest request =
           new RideTemplateRequest(
-              "Test Template", null, Visibility.TEAM, Status.PUBLISHED, List.of());
+              "Test Template", "markdown", Visibility.TEAM, Status.PUBLISHED, List.of());
 
-      RideTemplateDto result =
-          templateService.createTemplate("test-team", request, organizer.getId());
+      RideTemplateDto result = templateService.createTemplate(team, request, organizer);
 
       assertNotNull(result);
       assertNotEquals("test-template", result.slug());
@@ -227,10 +212,9 @@ class RideTemplateServiceTest {
     void shouldCreatePublicTemplateOnPublicTeam() {
       RideTemplateRequest request =
           new RideTemplateRequest(
-              "Public Template", null, Visibility.PUBLIC, Status.PUBLISHED, List.of());
+              "Public Template", "markdown", Visibility.PUBLIC, Status.PUBLISHED, List.of());
 
-      RideTemplateDto result =
-          templateService.createTemplate("test-team", request, organizer.getId());
+      RideTemplateDto result = templateService.createTemplate(team, request, organizer);
 
       assertNotNull(result);
       assertEquals(Visibility.PUBLIC, result.visibility());
@@ -240,21 +224,20 @@ class RideTemplateServiceTest {
     void shouldThrowForPublicTemplateOnPrivateTeam() {
       RideTemplateRequest request =
           new RideTemplateRequest(
-              "Public Template", null, Visibility.PUBLIC, Status.PUBLISHED, List.of());
+              "Public Template", "markdown", Visibility.PUBLIC, Status.PUBLISHED, List.of());
 
       assertThrows(
           BusinessException.class,
-          () -> templateService.createTemplate("private-team", request, organizer.getId()));
+          () -> templateService.createTemplate(privateTeam, request, organizer));
     }
 
     @Test
     void shouldAllowTeamVisibilityOnPrivateTeam() {
       RideTemplateRequest request =
           new RideTemplateRequest(
-              "Team Template", null, Visibility.TEAM, Status.PUBLISHED, List.of());
+              "Team Template", "markdown", Visibility.TEAM, Status.PUBLISHED, List.of());
 
-      RideTemplateDto result =
-          templateService.createTemplate("private-team", request, organizer.getId());
+      RideTemplateDto result = templateService.createTemplate(privateTeam, request, organizer);
 
       assertNotNull(result);
       assertEquals(Visibility.TEAM, result.visibility());
@@ -263,21 +246,11 @@ class RideTemplateServiceTest {
     @Test
     void shouldThrowForMember() {
       RideTemplateRequest request =
-          new RideTemplateRequest("Template", null, Visibility.TEAM, Status.PUBLISHED, List.of());
+          new RideTemplateRequest(
+              "Template", "markdown", Visibility.TEAM, Status.PUBLISHED, List.of());
 
       assertThrows(
-          BusinessException.class,
-          () -> templateService.createTemplate("test-team", request, member.getId()));
-    }
-
-    @Test
-    void shouldThrowForNonexistentTeam() {
-      RideTemplateRequest request =
-          new RideTemplateRequest("Template", null, Visibility.TEAM, Status.PUBLISHED, List.of());
-
-      assertThrows(
-          BusinessException.class,
-          () -> templateService.createTemplate("nonexistent", request, admin.getId()));
+          BusinessException.class, () -> templateService.createTemplate(team, request, member));
     }
   }
 
@@ -294,7 +267,7 @@ class RideTemplateServiceTest {
               "Updated Name", "New description", Visibility.PUBLIC, Status.PUBLISHED, List.of());
 
       RideTemplateDto result =
-          templateService.updateTemplate("test-team", "original-slug", request, organizer.getId());
+          templateService.updateTemplate(team, "original-slug", request, organizer);
 
       assertEquals("Updated Name", result.name());
       assertEquals("New description", result.markdown());
@@ -309,7 +282,7 @@ class RideTemplateServiceTest {
       RideTemplateRequest request =
           new RideTemplateRequest(
               "Template",
-              null,
+              "markdown",
               Visibility.TEAM,
               Status.PUBLISHED,
               List.of(
@@ -320,7 +293,7 @@ class RideTemplateServiceTest {
                       .build()));
 
       RideTemplateDto result =
-          templateService.updateTemplate("test-team", "template-slug", request, organizer.getId());
+          templateService.updateTemplate(team, "template-slug", request, organizer);
 
       assertEquals(1, result.groups().size());
       assertEquals("New Group", result.groups().getFirst().name());
@@ -337,7 +310,7 @@ class RideTemplateServiceTest {
       RideTemplateRequest request =
           new RideTemplateRequest(
               "Template",
-              null,
+              "Template",
               Visibility.TEAM,
               Status.PUBLISHED,
               List.of(
@@ -349,7 +322,7 @@ class RideTemplateServiceTest {
                       .build()));
 
       RideTemplateDto result =
-          templateService.updateTemplate("test-team", "template-slug", request, organizer.getId());
+          templateService.updateTemplate(team, "template-slug", request, organizer);
 
       assertEquals(1, result.groups().size());
       assertEquals("Updated Group", result.groups().getFirst().name());
@@ -364,10 +337,11 @@ class RideTemplateServiceTest {
       dataService.createRideTemplateGroup(admin, template, "Group to Remove", 25, 20);
 
       RideTemplateRequest request =
-          new RideTemplateRequest("Template", null, Visibility.TEAM, Status.PUBLISHED, List.of());
+          new RideTemplateRequest(
+              "Template", "markdown", Visibility.TEAM, Status.PUBLISHED, List.of());
 
       RideTemplateDto result =
-          templateService.updateTemplate("test-team", "template-slug", request, organizer.getId());
+          templateService.updateTemplate(team, "template-slug", request, organizer);
 
       assertEquals(0, result.groups().size());
     }
@@ -379,7 +353,7 @@ class RideTemplateServiceTest {
       RideTemplateRequest request =
           new RideTemplateRequest(
               "Template",
-              null,
+              "markdown",
               Visibility.TEAM,
               Status.PUBLISHED,
               List.of(
@@ -390,9 +364,7 @@ class RideTemplateServiceTest {
 
       assertThrows(
           BusinessException.class,
-          () ->
-              templateService.updateTemplate(
-                  "test-team", "template-slug", request, organizer.getId()));
+          () -> templateService.updateTemplate(team, "template-slug", request, organizer));
     }
 
     @Test
@@ -406,38 +378,36 @@ class RideTemplateServiceTest {
           Status.PUBLISHED);
 
       RideTemplateRequest request =
-          new RideTemplateRequest("Template", null, Visibility.PUBLIC, Status.PUBLISHED, List.of());
+          new RideTemplateRequest(
+              "Template", "markdown", Visibility.PUBLIC, Status.PUBLISHED, List.of());
 
       assertThrows(
           BusinessException.class,
           () ->
-              templateService.updateTemplate(
-                  "private-team", "private-template", request, organizer.getId()));
+              templateService.updateTemplate(privateTeam, "private-template", request, organizer));
     }
 
     @Test
     void shouldThrowForNonexistentTemplate() {
       RideTemplateRequest request =
-          new RideTemplateRequest("Template", null, Visibility.TEAM, Status.PUBLISHED, List.of());
+          new RideTemplateRequest(
+              "Template", "markdown", Visibility.TEAM, Status.PUBLISHED, List.of());
 
       assertThrows(
           BusinessException.class,
-          () ->
-              templateService.updateTemplate(
-                  "test-team", "nonexistent", request, organizer.getId()));
+          () -> templateService.updateTemplate(team, "nonexistent", request, organizer));
     }
 
     @Test
     void shouldThrowForMember() {
       dataService.createRideTemplate(team, admin, "Template", "template-slug");
       RideTemplateRequest request =
-          new RideTemplateRequest("Updated", null, Visibility.TEAM, Status.PUBLISHED, List.of());
+          new RideTemplateRequest(
+              "Updated", "markdown", Visibility.TEAM, Status.PUBLISHED, List.of());
 
       assertThrows(
           BusinessException.class,
-          () ->
-              templateService.updateTemplate(
-                  "test-team", "template-slug", request, member.getId()));
+          () -> templateService.updateTemplate(team, "template-slug", request, member));
     }
   }
 
@@ -448,18 +418,17 @@ class RideTemplateServiceTest {
     void shouldSoftDeleteTemplate() {
       dataService.createRideTemplate(team, admin, "To Delete", "to-delete");
 
-      templateService.deleteTemplate("test-team", "to-delete", organizer.getId());
+      templateService.deleteTemplate(team, "to-delete", organizer);
 
       assertThrows(
-          BusinessException.class,
-          () -> templateService.getTemplate("test-team", "to-delete", organizer.getId()));
+          BusinessException.class, () -> templateService.getTemplate(team, "to-delete", organizer));
     }
 
     @Test
     void shouldThrowForNonexistentTemplate() {
       assertThrows(
           BusinessException.class,
-          () -> templateService.deleteTemplate("test-team", "nonexistent", organizer.getId()));
+          () -> templateService.deleteTemplate(team, "nonexistent", organizer));
     }
 
     @Test
@@ -468,7 +437,7 @@ class RideTemplateServiceTest {
 
       assertThrows(
           BusinessException.class,
-          () -> templateService.deleteTemplate("test-team", "template-slug", member.getId()));
+          () -> templateService.deleteTemplate(team, "template-slug", member));
     }
   }
 }

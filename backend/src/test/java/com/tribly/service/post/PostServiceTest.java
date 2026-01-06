@@ -61,7 +61,7 @@ class PostServiceTest {
       dataService.createPost(publicTeam, admin, "Public Post", now, Visibility.PUBLIC);
       dataService.createPost(publicTeam, admin, "Team Post", now, Visibility.TEAM);
 
-      PostListResponse result = postService.listPosts("public-team", null, null, null, null, 0, 10);
+      PostListResponse result = postService.listPosts(publicTeam, null, null, null, null, 0, 10);
 
       assertEquals(1, result.posts().size());
       assertEquals("Public Post", result.posts().getFirst().getName());
@@ -73,8 +73,7 @@ class PostServiceTest {
       dataService.createPost(publicTeam, admin, "Public Post", now, Visibility.PUBLIC);
       dataService.createPost(publicTeam, admin, "Team Post", now, Visibility.TEAM);
 
-      PostListResponse result =
-          postService.listPosts("public-team", member.getId(), null, null, null, 0, 10);
+      PostListResponse result = postService.listPosts(publicTeam, member, null, null, null, 0, 10);
 
       assertEquals(2, result.posts().size());
     }
@@ -86,7 +85,7 @@ class PostServiceTest {
       dataService.createPost(publicTeam, admin, "Weekly News", now, Visibility.PUBLIC);
 
       PostListResponse result =
-          postService.listPosts("public-team", null, "Important", null, null, 0, 10);
+          postService.listPosts(publicTeam, null, "Important", null, null, 0, 10);
 
       assertEquals(1, result.posts().size());
       assertEquals("Important Update", result.posts().getFirst().getName());
@@ -101,7 +100,7 @@ class PostServiceTest {
 
       PostListResponse result =
           postService.listPosts(
-              "public-team",
+              publicTeam,
               null,
               null,
               now.minus(1, ChronoUnit.DAYS),
@@ -121,7 +120,7 @@ class PostServiceTest {
             publicTeam, admin, "Post " + i, now.plus(i, ChronoUnit.HOURS), Visibility.PUBLIC);
       }
 
-      PostListResponse result = postService.listPosts("public-team", null, null, null, null, 0, 3);
+      PostListResponse result = postService.listPosts(publicTeam, null, null, null, null, 0, 3);
 
       assertEquals(3, result.posts().size());
       assertEquals(5, result.total());
@@ -135,7 +134,7 @@ class PostServiceTest {
           dataService.createPost(publicTeam, admin, "Deleted Post", now, Visibility.PUBLIC);
       dataService.deletePost(deletedPost);
 
-      PostListResponse result = postService.listPosts("public-team", null, null, null, null, 0, 10);
+      PostListResponse result = postService.listPosts(publicTeam, null, null, null, null, 0, 10);
 
       assertEquals(1, result.posts().size());
     }
@@ -147,8 +146,7 @@ class PostServiceTest {
           publicTeam, admin, "Published Post", now, Visibility.PUBLIC, Status.PUBLISHED);
       dataService.createPost(publicTeam, admin, "Draft Post", now, Visibility.PUBLIC, Status.DRAFT);
 
-      PostListResponse result =
-          postService.listPosts("public-team", member.getId(), null, null, null, 0, 10);
+      PostListResponse result = postService.listPosts(publicTeam, member, null, null, null, 0, 10);
 
       assertEquals(1, result.posts().size());
       assertEquals("Published Post", result.posts().getFirst().getName());
@@ -163,7 +161,7 @@ class PostServiceTest {
       Post post =
           dataService.createPost(publicTeam, admin, "Test Post", Instant.now(), Visibility.PUBLIC);
 
-      PostDto result = postService.getPostDetail("public-team", post.getSlug(), member.getId());
+      PostDto result = postService.getPostDetail(publicTeam, post.getSlug(), member);
 
       assertNotNull(result);
       assertEquals("Test Post", result.getName());
@@ -175,7 +173,7 @@ class PostServiceTest {
           dataService.createPost(
               publicTeam, admin, "Public Post", Instant.now(), Visibility.PUBLIC);
 
-      PostDto result = postService.getPostDetail("public-team", post.getSlug(), null);
+      PostDto result = postService.getPostDetail(publicTeam, post.getSlug(), null);
 
       assertNotNull(result);
     }
@@ -187,14 +185,14 @@ class PostServiceTest {
 
       assertThrows(
           BusinessException.class,
-          () -> postService.getPostDetail("public-team", post.getSlug(), null));
+          () -> postService.getPostDetail(publicTeam, post.getSlug(), null));
     }
 
     @Test
     void shouldThrowForNonexistentPost() {
       assertThrows(
           BusinessException.class,
-          () -> postService.getPostDetail("public-team", "nonexistent", admin.getId()));
+          () -> postService.getPostDetail(publicTeam, "nonexistent", admin));
     }
   }
 
@@ -213,7 +211,7 @@ class PostServiceTest {
               Visibility.PUBLIC,
               null);
 
-      PostDto result = postService.createPost("public-team", request, organizer.getId());
+      PostDto result = postService.createPost(publicTeam, request, organizer);
 
       assertNotNull(result);
       assertEquals("New Post", result.getName());
@@ -233,7 +231,7 @@ class PostServiceTest {
               Visibility.PUBLIC,
               null);
 
-      PostDto result = postService.createPost("public-team", request, organizer.getId());
+      PostDto result = postService.createPost(publicTeam, request, organizer);
 
       assertEquals(Status.DRAFT, result.getStatus());
     }
@@ -251,7 +249,7 @@ class PostServiceTest {
               Visibility.PUBLIC,
               publishAt);
 
-      PostDto result = postService.createPost("public-team", request, organizer.getId());
+      PostDto result = postService.createPost(publicTeam, request, organizer);
 
       assertEquals(publishAt, result.getPublishAt());
     }
@@ -268,24 +266,7 @@ class PostServiceTest {
               null);
 
       assertThrows(
-          BusinessException.class,
-          () -> postService.createPost("public-team", request, member.getId()));
-    }
-
-    @Test
-    void shouldThrowForNonexistentTeam() {
-      PostRequest request =
-          new PostRequest(
-              "Post",
-              MediaDto.builder().build(),
-              Instant.now(),
-              Status.PUBLISHED,
-              Visibility.PUBLIC,
-              null);
-
-      assertThrows(
-          BusinessException.class,
-          () -> postService.createPost("nonexistent", request, admin.getId()));
+          BusinessException.class, () -> postService.createPost(publicTeam, request, member));
     }
 
     @Test
@@ -300,8 +281,7 @@ class PostServiceTest {
               null);
 
       assertThrows(
-          BusinessException.class,
-          () -> postService.createPost("private-team", request, admin.getId()));
+          BusinessException.class, () -> postService.createPost(privateTeam, request, admin));
     }
 
     @Test
@@ -315,7 +295,7 @@ class PostServiceTest {
               Visibility.TEAM,
               null);
 
-      PostDto result = postService.createPost("private-team", request, admin.getId());
+      PostDto result = postService.createPost(privateTeam, request, admin);
 
       assertNotNull(result);
       assertEquals(Visibility.TEAM, result.getVisibility());
@@ -341,8 +321,8 @@ class PostServiceTest {
               Visibility.PUBLIC,
               null);
 
-      PostDto result1 = postService.createPost("public-team", request1, organizer.getId());
-      PostDto result2 = postService.createPost("public-team", request2, organizer.getId());
+      PostDto result1 = postService.createPost(publicTeam, request1, organizer);
+      PostDto result2 = postService.createPost(publicTeam, request2, organizer);
 
       assertNotEquals(result1.getSlug(), result2.getSlug());
     }
@@ -365,8 +345,7 @@ class PostServiceTest {
               Visibility.TEAM,
               null);
 
-      PostDto result =
-          postService.updatePost("public-team", post.getSlug(), request, organizer.getId());
+      PostDto result = postService.updatePost(publicTeam, post.getSlug(), request, organizer);
 
       assertEquals("Updated", result.getName());
       assertEquals(Visibility.TEAM, result.getVisibility());
@@ -386,8 +365,7 @@ class PostServiceTest {
               Visibility.PUBLIC,
               null);
 
-      PostDto result =
-          postService.updatePost("public-team", post.getSlug(), request, organizer.getId());
+      PostDto result = postService.updatePost(publicTeam, post.getSlug(), request, organizer);
 
       assertNull(result.getPublishAt());
     }
@@ -407,7 +385,7 @@ class PostServiceTest {
 
       assertThrows(
           BusinessException.class,
-          () -> postService.updatePost("public-team", post.getSlug(), request, member.getId()));
+          () -> postService.updatePost(publicTeam, post.getSlug(), request, member));
     }
 
     @Test
@@ -425,7 +403,7 @@ class PostServiceTest {
 
       assertThrows(
           BusinessException.class,
-          () -> postService.updatePost("private-team", post.getSlug(), request, admin.getId()));
+          () -> postService.updatePost(privateTeam, post.getSlug(), request, admin));
     }
 
     @Test
@@ -441,8 +419,7 @@ class PostServiceTest {
               Visibility.TEAM,
               null);
 
-      PostDto result =
-          postService.updatePost("private-team", post.getSlug(), request, admin.getId());
+      PostDto result = postService.updatePost(privateTeam, post.getSlug(), request, admin);
 
       assertNotNull(result);
       assertEquals("Updated Title", result.getName());
@@ -463,7 +440,7 @@ class PostServiceTest {
 
       assertThrows(
           BusinessException.class,
-          () -> postService.updatePost("public-team", "nonexistent", request, admin.getId()));
+          () -> postService.updatePost(publicTeam, "nonexistent", request, admin));
     }
   }
 
@@ -475,11 +452,11 @@ class PostServiceTest {
       Post post =
           dataService.createPost(publicTeam, admin, "To Delete", Instant.now(), Visibility.PUBLIC);
 
-      postService.deletePost("public-team", post.getSlug(), organizer.getId());
+      postService.deletePost(publicTeam, post.getSlug(), organizer);
 
       assertThrows(
           BusinessException.class,
-          () -> postService.getPostDetail("public-team", post.getSlug(), admin.getId()));
+          () -> postService.getPostDetail(publicTeam, post.getSlug(), admin));
     }
 
     @Test
@@ -489,14 +466,13 @@ class PostServiceTest {
 
       assertThrows(
           BusinessException.class,
-          () -> postService.deletePost("public-team", post.getSlug(), member.getId()));
+          () -> postService.deletePost(publicTeam, post.getSlug(), member));
     }
 
     @Test
     void shouldThrowForNonexistentPost() {
       assertThrows(
-          BusinessException.class,
-          () -> postService.deletePost("public-team", "nonexistent", admin.getId()));
+          BusinessException.class, () -> postService.deletePost(publicTeam, "nonexistent", admin));
     }
   }
 }

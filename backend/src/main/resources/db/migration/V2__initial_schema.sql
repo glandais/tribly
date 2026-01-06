@@ -149,7 +149,7 @@ create table team_entities (
                                distance integer,
                                elevation_gain integer,
                                elevation_loss integer,
-                               entity_type integer not null check ((entity_type in (3,1,5,4,6,2,7))),
+                               entity_type integer not null check ((entity_type in (5,3,1,2,7,4,6))),
                                hilliness integer,
                                is_about_page boolean,
                                latitude float(53),
@@ -185,6 +185,25 @@ create table team_entities (
                                constraint uk_team_entity_slug unique (team_id, entity_type, slug),
                                check (entity_type <> 4 or (is_about_page is not null)),
                                check (entity_type <> 6 or (sort_order is not null))
+);
+
+create table team_entity_slug_redirects (
+                                            entity_type integer not null,
+                                            created_at timestamp(6) with time zone not null,
+                                            entity_id bigint not null,
+                                            id bigint not null,
+                                            team_id bigint not null,
+                                            old_slug varchar(250) not null,
+                                            primary key (id),
+                                            constraint uk_team_entity_slug_redirect unique (team_id, entity_type, old_slug)
+);
+
+create table team_slug_redirects (
+                                     created_at timestamp(6) with time zone not null,
+                                     id bigint not null,
+                                     team_id bigint not null,
+                                     old_slug varchar(250) not null unique,
+                                     primary key (id)
 );
 
 create table teams (
@@ -299,6 +318,12 @@ create index IDXtgtejwmqna5rvtlr0ho3kgl6m
 
 create index IDXngsx2ujy92deb6wsf1bg6wd4a
     on team_entities (entity_type, deleted, team_id, slug);
+
+create index IDX5oe6yl8r7hjupqhat0s8d067i
+    on team_entity_slug_redirects (team_id, entity_type, old_slug);
+
+create index IDXrlonsx13n7g24ealhxutql822
+    on team_slug_redirects (old_slug);
 
 create index IDXo3hbo8wlcgmi4dqwrqm9jtm8f
     on teams (slug, deleted);
@@ -435,14 +460,14 @@ alter table if exists team_entities
     references teams;
 
 alter table if exists team_entities
-    add constraint FKjukml9fp2eipuhmugtiaf12gs
-    foreign key (place_end_id)
-    references places;
-
-alter table if exists team_entities
     add constraint FKsm0040p8exgxema0d3j4osclb
     foreign key (route_id)
     references team_entities;
+
+alter table if exists team_entities
+    add constraint FKjukml9fp2eipuhmugtiaf12gs
+    foreign key (place_end_id)
+    references places;
 
 alter table if exists team_entities
     add constraint FKm7w1a9lbh6795ida5u4n95vdv
@@ -453,6 +478,16 @@ alter table if exists team_entities
     add constraint FKsv6ybr332iwjj0ya7947jv2kx
     foreign key (trip_id)
     references team_entities;
+
+alter table if exists team_entity_slug_redirects
+    add constraint FK715o085hm6iwl5jlrwm09s65h
+    foreign key (team_id)
+    references teams;
+
+alter table if exists team_slug_redirects
+    add constraint FK8pbak6v0xjje6u9i8s6er3jtd
+    foreign key (team_id)
+    references teams;
 
 alter table if exists teams
     add constraint FKcq9jk9qh4ox827y0d161rabce

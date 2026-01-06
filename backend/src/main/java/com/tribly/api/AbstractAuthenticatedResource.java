@@ -40,18 +40,21 @@ public abstract class AbstractAuthenticatedResource {
    * @throws BusinessException with USER_NOT_SYNCED if authenticated but user not synced
    */
   protected User getCurrentUser() {
+    Long userId = getUserId();
+    return getUser(userId).orElseThrow(() -> BusinessException.forbidden(""));
+  }
+
+  protected Long getUserId() {
     SecurityIdentity identity =
         currentIdentityAssociation.getDeferredIdentity().await().indefinitely();
 
     if (identity.isAnonymous()) {
       throw new NotAuthorizedException("No valid token");
     }
-
-    return getUser(identity).orElseThrow(() -> BusinessException.forbidden(""));
+    return identity.getAttribute("userId");
   }
 
-  private Optional<User> getUser(SecurityIdentity identity) {
-    Long userId = identity.getAttribute("userId");
+  private Optional<User> getUser(@Nullable Long userId) {
     if (userId == null) {
       throw BusinessException.forbidden(
           "User profile not synchronized. Please call /api/users/me first.", "USER_NOT_SYNCED");
@@ -75,6 +78,7 @@ public abstract class AbstractAuthenticatedResource {
     if (identity.isAnonymous()) {
       return null;
     }
-    return getUser(identity).orElse(null);
+    Long userId = identity.getAttribute("userId");
+    return getUser(userId).orElse(null);
   }
 }

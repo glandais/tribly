@@ -79,10 +79,9 @@ public class RideTemplateService {
         slugService.generateSlug(
             request.name(), s -> templateRepository.existsByTeamAndSlug(teamId, s));
 
-    RideTemplate template = new RideTemplate(creator, team, request.name(), slug);
-    template.setMarkdown(request.markdown());
-    template.setVisibility(visibility);
-    template.setStatus(request.status());
+    RideTemplate template =
+        new RideTemplate(
+            creator, team, request.name(), slug, request.markdown(), visibility, request.status());
 
     templateRepository.persistAndFlush(template);
 

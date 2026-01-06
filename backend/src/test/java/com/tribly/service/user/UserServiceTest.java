@@ -99,7 +99,7 @@ class UserServiceTest {
     void shouldUpdateDisplayName() {
       User user = dataService.createUser("test@example.com", "Original Name");
 
-      UserDto result = userService.updateUser(user.getId(), "Updated Name");
+      UserDto result = userService.updateUser(user, "Updated Name");
 
       assertEquals("Updated Name", result.displayName());
     }
@@ -108,14 +108,9 @@ class UserServiceTest {
     void shouldPreserveDisplayNameWhenNull() {
       User user = dataService.createUser("test@example.com", "Original Name");
 
-      UserDto result = userService.updateUser(user.getId(), null);
+      UserDto result = userService.updateUser(user, null);
 
       assertEquals("Original Name", result.displayName());
-    }
-
-    @Test
-    void shouldThrowForNonexistentUser() {
-      assertThrows(BusinessException.class, () -> userService.updateUser(999999L, "New Name"));
     }
 
     @Test
@@ -123,7 +118,7 @@ class UserServiceTest {
       User user = dataService.createUser("deleted@example.com", "Deleted User");
       dataService.deleteUser(user);
 
-      assertThrows(BusinessException.class, () -> userService.updateUser(user.getId(), "New Name"));
+      assertThrows(BusinessException.class, () -> userService.updateUser(user, "New Name"));
     }
   }
 
@@ -136,14 +131,9 @@ class UserServiceTest {
     void shouldSoftDeleteUser() {
       User user = dataService.createUser("test@example.com", "Test User");
 
-      userService.deleteUser(user.getId());
+      userService.deleteUser(user);
 
       assertThrows(BusinessException.class, () -> userService.getUserDto(user.getId()));
-    }
-
-    @Test
-    void shouldThrowForNonexistentUser() {
-      assertThrows(BusinessException.class, () -> userService.deleteUser(999999L));
     }
 
     @Test
@@ -151,7 +141,7 @@ class UserServiceTest {
       User user = dataService.createUser("deleted@example.com", "Deleted User");
       dataService.deleteUser(user);
 
-      assertThrows(BusinessException.class, () -> userService.deleteUser(user.getId()));
+      assertThrows(BusinessException.class, () -> userService.deleteUser(user));
     }
   }
 

@@ -53,19 +53,25 @@ public class RideTemplate extends BaseEntity {
   @OneToMany(mappedBy = "template", cascade = CascadeType.ALL, orphanRemoval = true)
   private List<RideTemplateGroup> groups = new ArrayList<>();
 
-  public RideTemplate(User creator, Team team, String name, String slug) {
+  public RideTemplate(
+      User creator,
+      Team team,
+      String name,
+      String slug,
+      String markdown,
+      Visibility visibility,
+      Status status) {
     super(creator);
     this.team = team;
     this.name = name;
     this.slug = slug;
+    this.markdown = markdown;
+    this.visibility = visibility;
+    this.status = status;
   }
 
   public void addGroup(RideTemplateGroup group) {
     groups.add(group);
     group.setTemplate(this);
-  }
-
-  public int getGroupCount() {
-    return (int) groups.stream().filter(g -> !g.isDeleted()).count();
   }
 }

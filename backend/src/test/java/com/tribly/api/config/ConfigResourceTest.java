@@ -30,13 +30,6 @@ class ConfigResourceTest extends AbstractResourceTest {
         .body("keycloak", is(notNullValue()))
         .body("keycloak.url", equalTo("http://localhost:8180"))
         .body("keycloak.realm", equalTo("quarkus"))
-        .body("keycloak.clientId", equalTo("tribly-frontend"))
-        .body("map", is(notNullValue()))
-        .body("map.tileUrl", equalTo("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"))
-        .body(
-            "map.attribution",
-            equalTo(
-                "&copy; <a href=\"https://www.openstreetmap.org/copyright\">OpenStreetMap</a>"
-                    + " contributors"));
+        .body("keycloak.clientId", equalTo("tribly-frontend"));
   }
 }

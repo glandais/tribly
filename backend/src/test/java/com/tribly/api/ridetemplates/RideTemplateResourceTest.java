@@ -98,14 +98,14 @@ class RideTemplateResourceTest extends AbstractResourceTest {
   }
 
   @Test
-  void listTemplates_toNonexistentTeam_shouldReturn403() {
+  void listTemplates_toNonexistentTeam_shouldReturn404() {
     given()
         .auth()
         .oauth2(getAccessToken(USER1))
         .when()
         .get("/api/teams/nonexistent-team/ride-templates")
         .then()
-        .statusCode(403);
+        .statusCode(404);
   }
 
   @Test
@@ -239,8 +239,7 @@ class RideTemplateResourceTest extends AbstractResourceTest {
   @Test
   void createTemplate_withEmptyGroups_shouldSucceed() {
     RideTemplateRequest request =
-        new RideTemplateRequest(
-            "No Groups Template", null, Visibility.TEAM, Status.DRAFT, List.of());
+        new RideTemplateRequest("No Groups Template", "", Visibility.TEAM, Status.DRAFT, List.of());
 
     given()
         .auth()
@@ -443,7 +442,7 @@ class RideTemplateResourceTest extends AbstractResourceTest {
 
     RideTemplateRequest updateRequest =
         new RideTemplateRequest(
-            "Updated by Organizer", null, Visibility.TEAM, Status.PUBLISHED, List.of());
+            "Updated by Organizer", "", Visibility.TEAM, Status.PUBLISHED, List.of());
 
     given()
         .auth()
@@ -476,7 +475,7 @@ class RideTemplateResourceTest extends AbstractResourceTest {
 
     RideTemplateRequest updateRequest =
         new RideTemplateRequest(
-            "Hacked by Member", null, Visibility.TEAM, Status.PUBLISHED, List.of());
+            "Hacked by Member", "", Visibility.TEAM, Status.PUBLISHED, List.of());
 
     given()
         .auth()
@@ -492,7 +491,7 @@ class RideTemplateResourceTest extends AbstractResourceTest {
   @Test
   void updateTemplate_nonexistent_shouldReturn404() {
     RideTemplateRequest updateRequest =
-        new RideTemplateRequest("Nonexistent", null, Visibility.TEAM, Status.PUBLISHED, List.of());
+        new RideTemplateRequest("Nonexistent", "", Visibility.TEAM, Status.PUBLISHED, List.of());
 
     given()
         .auth()

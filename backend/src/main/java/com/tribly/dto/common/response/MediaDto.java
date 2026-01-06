@@ -9,6 +9,14 @@ import org.eclipse.microprofile.openapi.annotations.media.Schema;
 public record MediaDto(
     @Schema(description = "Markdown", required = true) String markdown,
     @Schema(description = "Assets", required = true) AssetsDto assets) {
+
+  public static class MediaDtoBuilder {
+    MediaDtoBuilder() {
+      markdown = "";
+      assets = AssetsDto.builder().build();
+    }
+  }
+
   public static MediaDto from(TeamEntity teamEntity, AssetService assetService) {
     AssetsDto assets = assetService.getAssetsDto(teamEntity);
     return new MediaDto(teamEntity.getMarkdown(), assets);

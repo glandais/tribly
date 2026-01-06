@@ -218,13 +218,13 @@ class PublicationResourceTest extends AbstractResourceTest {
   }
 
   @Test
-  void listTeamPublications_toNonexistentTeam_shouldReturn200() {
+  void listTeamPublications_toNonexistentTeam_shouldReturn404() {
     given()
         .when()
         .get("/api/teams/nonexistent-team/publications")
         .then()
         // empty list
-        .statusCode(200);
+        .statusCode(404);
   }
 
   @Test

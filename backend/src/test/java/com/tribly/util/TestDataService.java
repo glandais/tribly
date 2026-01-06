@@ -505,17 +505,13 @@ public class TestDataService {
 
   @Transactional
   public RideTemplate createRideTemplate(Team team, User createdBy, String name, String slug) {
-    RideTemplate template = new RideTemplate(createdBy, team, name, slug);
-    rideTemplateRepository.persistAndFlush(template);
-    return template;
+    return createRideTemplate(team, createdBy, name, slug, Visibility.PUBLIC, Status.PUBLISHED);
   }
 
   @Transactional
   public RideTemplate createRideTemplate(
       Team team, User createdBy, String name, String slug, Visibility visibility, Status status) {
-    RideTemplate template = new RideTemplate(createdBy, team, name, slug);
-    template.setVisibility(visibility);
-    template.setStatus(status);
+    RideTemplate template = new RideTemplate(createdBy, team, name, slug, name, visibility, status);
     rideTemplateRepository.persistAndFlush(template);
     return template;
   }

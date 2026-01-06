@@ -63,7 +63,7 @@ class RideServiceTest {
     dataService.createRide(
         team, admin, "Team Ride", "team-ride", Instant.now(), Visibility.TEAM, Status.PUBLISHED);
 
-    RideListResponse result = rideService.listRides("test-team", null, null, null, null, 0, 10);
+    RideListResponse result = rideService.listRides(team, null, null, null, null, 0, 10);
 
     assertEquals(1, result.rides().size());
     assertEquals("Public Ride", result.rides().getFirst().getName());
@@ -82,8 +82,7 @@ class RideServiceTest {
     dataService.createRide(
         team, admin, "Team Ride", "team-ride", Instant.now(), Visibility.TEAM, Status.PUBLISHED);
 
-    RideListResponse result =
-        rideService.listRides("test-team", member.getId(), null, null, null, 0, 10);
+    RideListResponse result = rideService.listRides(team, member, null, null, null, 0, 10);
 
     assertEquals(2, result.rides().size());
   }
@@ -97,8 +96,7 @@ class RideServiceTest {
     dataService.createRide(team, admin, "Tomorrow Ride", "tomorrow", tomorrow);
     dataService.createRide(team, admin, "Next Week", "next-week", nextWeek);
 
-    RideListResponse result =
-        rideService.listRides("test-team", null, null, today, tomorrow, 0, 10);
+    RideListResponse result = rideService.listRides(team, null, null, today, tomorrow, 0, 10);
 
     assertEquals(2, result.rides().size());
   }
@@ -107,8 +105,7 @@ class RideServiceTest {
   void listRides_shouldShowDraftsToOrganizers() {
     dataService.createRide(team, admin, "Draft", "draft", Instant.now(), Status.DRAFT);
 
-    RideListResponse result =
-        rideService.listRides("test-team", organizer.getId(), null, null, null, 0, 10);
+    RideListResponse result = rideService.listRides(team, organizer, null, null, null, 0, 10);
 
     assertEquals(1, result.rides().size());
     assertEquals(Status.DRAFT, result.rides().getFirst().getStatus());
@@ -118,8 +115,7 @@ class RideServiceTest {
   void listRides_shouldHideDraftsFromMembers() {
     dataService.createRide(team, admin, "Draft", "draft", Instant.now(), Status.DRAFT);
 
-    RideListResponse result =
-        rideService.listRides("test-team", member.getId(), null, null, null, 0, 10);
+    RideListResponse result = rideService.listRides(team, member, null, null, null, 0, 10);
 
     assertEquals(0, result.rides().size());
   }
@@ -137,7 +133,7 @@ class RideServiceTest {
         Visibility.PUBLIC,
         Status.PUBLISHED);
 
-    RideListResponse result = rideService.listRides("test-team", null, null, null, null, 0, 10);
+    RideListResponse result = rideService.listRides(team, null, null, null, null, 0, 10);
 
     assertEquals(1, result.rides().size());
     assertEquals("Published Ride", result.rides().getFirst().getName());
@@ -148,7 +144,7 @@ class RideServiceTest {
     dataService.createRide(
         team, admin, "Draft Ride", "draft-ride", Instant.now(), Visibility.PUBLIC, Status.DRAFT);
 
-    RideListResponse result = rideService.listRides("test-team", null, null, null, null, 0, 10);
+    RideListResponse result = rideService.listRides(team, null, null, null, null, 0, 10);
 
     assertEquals(0, result.rides().size());
   }
@@ -166,8 +162,7 @@ class RideServiceTest {
         Visibility.PUBLIC,
         Status.PUBLISHED);
 
-    RideListResponse result =
-        rideService.listRides("test-team", organizer.getId(), null, null, null, 0, 10);
+    RideListResponse result = rideService.listRides(team, organizer, null, null, null, 0, 10);
 
     assertEquals(2, result.rides().size());
   }
@@ -185,7 +180,7 @@ class RideServiceTest {
         Visibility.PUBLIC,
         Status.PUBLISHED);
 
-    RideListResponse result = rideService.listRides("test-team", null, null, null, null, 0, 10);
+    RideListResponse result = rideService.listRides(team, null, null, null, null, 0, 10);
 
     assertEquals(1, result.rides().size());
     assertEquals("Published Ride", result.rides().getFirst().getName());
@@ -207,7 +202,7 @@ class RideServiceTest {
         Visibility.TEAM,
         Status.PUBLISHED);
 
-    RideListResponse result = rideService.listRides("private-team", null, null, null, null, 0, 10);
+    RideListResponse result = rideService.listRides(privateTeam, null, null, null, null, 0, 10);
     assertEquals(0, result.rides().size());
   }
 
@@ -217,7 +212,7 @@ class RideServiceTest {
   void getRideBySlug_shouldReturnRide() {
     dataService.createRide(team, admin, "Test Ride", "test-ride", Instant.now());
 
-    RideDto result = rideService.getRideDetail("test-team", "test-ride", null);
+    RideDto result = rideService.getRideDetail(team, "test-ride", null);
 
     assertEquals("Test Ride", result.getName());
     assertEquals("test-ride", result.getSlug());
@@ -226,14 +221,14 @@ class RideServiceTest {
   @Test
   void getRideBySlug_shouldThrowForNonexistent() {
     assertThrows(
-        BusinessException.class, () -> rideService.getRideDetail("test-team", "nonexistent", null));
+        BusinessException.class, () -> rideService.getRideDetail(team, "nonexistent", null));
   }
 
   @Test
   void getRideBySlug_shouldShowDraftToOrganizer() {
     dataService.createRide(team, admin, "Draft", "draft", Instant.now(), Status.DRAFT);
 
-    RideDto result = rideService.getRideDetail("test-team", "draft", organizer.getId());
+    RideDto result = rideService.getRideDetail(team, "draft", organizer);
 
     assertEquals(Status.DRAFT, result.getStatus());
   }
@@ -242,9 +237,7 @@ class RideServiceTest {
   void getRideBySlug_shouldHideDraftFromMember() {
     dataService.createRide(team, admin, "Draft", "draft", Instant.now(), Status.DRAFT);
 
-    assertThrows(
-        BusinessException.class,
-        () -> rideService.getRideDetail("test-team", "draft", member.getId()));
+    assertThrows(BusinessException.class, () -> rideService.getRideDetail(team, "draft", member));
   }
 
   // ==================== Create Ride ====================
@@ -264,7 +257,7 @@ class RideServiceTest {
             null,
             List.of());
 
-    RideDto result = rideService.createRide("test-team", request, organizer.getId());
+    RideDto result = rideService.createRide(team, request, organizer);
 
     assertNotNull(result);
     assertEquals("Sunday Ride", result.getName());
@@ -288,7 +281,7 @@ class RideServiceTest {
             null,
             List.of());
 
-    RideDto result = rideService.createRide("test-team", request, organizer.getId());
+    RideDto result = rideService.createRide(team, request, organizer);
 
     assertNotEquals("test-ride", result.getSlug());
     assertTrue(result.getSlug().startsWith("test-ride-"));
@@ -311,7 +304,7 @@ class RideServiceTest {
             null,
             List.of(group1, group2));
 
-    RideDto result = rideService.createRide("test-team", request, organizer.getId());
+    RideDto result = rideService.createRide(team, request, organizer);
 
     assertEquals("Group Ride", result.getName());
     List<RideGroupDto> groups = result.getGroups();
@@ -333,9 +326,7 @@ class RideServiceTest {
             null,
             List.of());
 
-    assertThrows(
-        BusinessException.class,
-        () -> rideService.createRide("test-team", request, member.getId()));
+    assertThrows(BusinessException.class, () -> rideService.createRide(team, request, member));
   }
 
   @Test
@@ -359,10 +350,9 @@ class RideServiceTest {
 
     BusinessException exception =
         assertThrows(
-            BusinessException.class,
-            () -> rideService.createRide("private-team", request, organizer.getId()));
+            BusinessException.class, () -> rideService.createRide(privateTeam, request, organizer));
 
-    assertTrue(exception.getMessage().contains("Private teams can only have team-only rides"));
+    assertTrue(exception.getMessage().contains("Private teams can only have team-only items"));
   }
 
   @Test
@@ -384,7 +374,7 @@ class RideServiceTest {
             null,
             List.of());
 
-    RideDto result = rideService.createRide("private-team", request, organizer.getId());
+    RideDto result = rideService.createRide(privateTeam, request, organizer);
 
     assertNotNull(result);
     assertEquals("Team Ride", result.getName());
@@ -408,7 +398,7 @@ class RideServiceTest {
             null,
             List.of());
 
-    RideDto result = rideService.createRide("test-team", request, organizer.getId());
+    RideDto result = rideService.createRide(team, request, organizer);
 
     assertNotNull(result);
     assertNotNull(result.getRouteSlug());
@@ -430,9 +420,7 @@ class RideServiceTest {
             null,
             List.of());
 
-    assertThrows(
-        BusinessException.class,
-        () -> rideService.createRide("test-team", request, organizer.getId()));
+    assertThrows(BusinessException.class, () -> rideService.createRide(team, request, organizer));
   }
 
   @Test
@@ -454,9 +442,7 @@ class RideServiceTest {
             null,
             List.of());
 
-    assertThrows(
-        BusinessException.class,
-        () -> rideService.createRide("test-team", request, organizer.getId()));
+    assertThrows(BusinessException.class, () -> rideService.createRide(team, request, organizer));
   }
 
   @Test
@@ -478,8 +464,7 @@ class RideServiceTest {
 
     BusinessException exception =
         assertThrows(
-            BusinessException.class,
-            () -> rideService.createRide("test-team", request, organizer.getId()));
+            BusinessException.class, () -> rideService.createRide(team, request, organizer));
 
     assertTrue(exception.getMessage().contains("private route"));
   }
@@ -501,7 +486,7 @@ class RideServiceTest {
             null,
             List.of());
 
-    RideDto result = rideService.createRide("test-team", request, organizer.getId());
+    RideDto result = rideService.createRide(team, request, organizer);
 
     assertNotNull(result);
     assertEquals(teamRoute.getSlug(), result.getRouteSlug());
@@ -527,7 +512,7 @@ class RideServiceTest {
             null,
             List.of());
 
-    RideDto result = rideService.createRide("test-team", request, organizer.getId());
+    RideDto result = rideService.createRide(team, request, organizer);
 
     assertNotNull(result);
     assertNotNull(result.getStartPlace());
@@ -551,9 +536,7 @@ class RideServiceTest {
             null,
             List.of());
 
-    assertThrows(
-        BusinessException.class,
-        () -> rideService.createRide("test-team", request, organizer.getId()));
+    assertThrows(BusinessException.class, () -> rideService.createRide(team, request, organizer));
   }
 
   @Test
@@ -571,9 +554,7 @@ class RideServiceTest {
             null,
             List.of());
 
-    assertThrows(
-        BusinessException.class,
-        () -> rideService.createRide("test-team", request, organizer.getId()));
+    assertThrows(BusinessException.class, () -> rideService.createRide(team, request, organizer));
   }
 
   @Test
@@ -595,9 +576,7 @@ class RideServiceTest {
             null,
             List.of());
 
-    assertThrows(
-        BusinessException.class,
-        () -> rideService.createRide("test-team", request, organizer.getId()));
+    assertThrows(BusinessException.class, () -> rideService.createRide(team, request, organizer));
   }
 
   // ==================== Update Ride ====================
@@ -618,7 +597,7 @@ class RideServiceTest {
             null,
             List.of());
 
-    RideDto result = rideService.updateRide("test-team", "original", request, organizer.getId());
+    RideDto result = rideService.updateRide(team, "original", request, organizer);
 
     assertEquals("Updated Title", result.getName());
     assertEquals("Updated description", result.getMedia().markdown());
@@ -642,7 +621,7 @@ class RideServiceTest {
             null,
             List.of());
 
-    RideDto result = rideService.updateRide("test-team", "original", request, organizer.getId());
+    RideDto result = rideService.updateRide(team, "original", request, organizer);
 
     assertEquals("New Title", result.getName());
     assertEquals(Status.PUBLISHED, result.getStatus());
@@ -671,8 +650,7 @@ class RideServiceTest {
             null,
             List.of());
 
-    RideDto result =
-        rideService.updateRide("test-team", "published-ride", request, organizer.getId());
+    RideDto result = rideService.updateRide(team, "published-ride", request, organizer);
 
     assertEquals("Updated Title", result.getName());
     assertEquals(Status.PUBLISHED, result.getStatus());
@@ -695,8 +673,7 @@ class RideServiceTest {
             List.of());
 
     assertThrows(
-        BusinessException.class,
-        () -> rideService.updateRide("test-team", "test", request, member.getId()));
+        BusinessException.class, () -> rideService.updateRide(team, "test", request, member));
   }
 
   @Test
@@ -729,9 +706,9 @@ class RideServiceTest {
     BusinessException exception =
         assertThrows(
             BusinessException.class,
-            () -> rideService.updateRide("private-team", "team-ride", request, organizer.getId()));
+            () -> rideService.updateRide(privateTeam, "team-ride", request, organizer));
 
-    assertTrue(exception.getMessage().contains("Private teams can only have team-only rides"));
+    assertTrue(exception.getMessage().contains("Private teams can only have team-only items"));
   }
 
   @Test
@@ -761,8 +738,7 @@ class RideServiceTest {
             null,
             List.of());
 
-    RideDto result =
-        rideService.updateRide("private-team", "team-ride", request, organizer.getId());
+    RideDto result = rideService.updateRide(privateTeam, "team-ride", request, organizer);
 
     assertEquals("Updated Title", result.getName());
     assertEquals(Visibility.TEAM, result.getVisibility());
@@ -786,7 +762,7 @@ class RideServiceTest {
             null,
             List.of(newGroup));
 
-    RideDto result = rideService.updateRide("test-team", "test-ride", request, organizer.getId());
+    RideDto result = rideService.updateRide(team, "test-ride", request, organizer);
 
     assertEquals(1, result.getGroups().size());
     assertEquals("New Group", result.getGroups().getFirst().name());
@@ -813,7 +789,7 @@ class RideServiceTest {
             null,
             List.of(updatedGroup));
 
-    RideDto result = rideService.updateRide("test-team", "test-ride", request, organizer.getId());
+    RideDto result = rideService.updateRide(team, "test-ride", request, organizer);
 
     assertEquals(1, result.getGroups().size());
     assertEquals("Updated Group", result.getGroups().getFirst().name());
@@ -840,7 +816,7 @@ class RideServiceTest {
             null,
             List.of());
 
-    RideDto result = rideService.updateRide("test-team", "test-ride", request, organizer.getId());
+    RideDto result = rideService.updateRide(team, "test-ride", request, organizer);
 
     assertEquals(0, result.getGroups().size());
   }
@@ -869,7 +845,7 @@ class RideServiceTest {
             null,
             List.of(reorderedGroup1, reorderedGroup2));
 
-    RideDto result = rideService.updateRide("test-team", "test-ride", request, organizer.getId());
+    RideDto result = rideService.updateRide(team, "test-ride", request, organizer);
 
     assertEquals(2, result.getGroups().size());
     assertEquals("Group B", result.getGroups().get(0).name());
@@ -898,7 +874,7 @@ class RideServiceTest {
             null,
             List.of(keepExisting, addNew));
 
-    RideDto result = rideService.updateRide("test-team", "test-ride", request, organizer.getId());
+    RideDto result = rideService.updateRide(team, "test-ride", request, organizer);
 
     assertEquals(2, result.getGroups().size());
     assertEquals("Existing Group", result.getGroups().get(0).name());
@@ -927,7 +903,7 @@ class RideServiceTest {
     BusinessException exception =
         assertThrows(
             BusinessException.class,
-            () -> rideService.updateRide("test-team", "test-ride", request, organizer.getId()));
+            () -> rideService.updateRide(team, "test-ride", request, organizer));
 
     assertTrue(exception.getMessage().contains("Group"));
   }
@@ -953,7 +929,7 @@ class RideServiceTest {
             null,
             List.of());
 
-    RideDto result = rideService.updateRide("test-team", "test-ride", request, organizer.getId());
+    RideDto result = rideService.updateRide(team, "test-ride", request, organizer);
 
     assertNotNull(result.getStartPlace());
     assertNotNull(result.getEndPlace());
@@ -980,7 +956,7 @@ class RideServiceTest {
 
     assertThrows(
         BusinessException.class,
-        () -> rideService.updateRide("test-team", "test-ride", request, organizer.getId()));
+        () -> rideService.updateRide(team, "test-ride", request, organizer));
   }
 
   @Test
@@ -1002,7 +978,7 @@ class RideServiceTest {
 
     assertThrows(
         BusinessException.class,
-        () -> rideService.updateRide("test-team", "test-ride", request, organizer.getId()));
+        () -> rideService.updateRide(team, "test-ride", request, organizer));
   }
 
   @Test
@@ -1027,7 +1003,7 @@ class RideServiceTest {
 
     assertThrows(
         BusinessException.class,
-        () -> rideService.updateRide("test-team", "test-ride", request, organizer.getId()));
+        () -> rideService.updateRide(team, "test-ride", request, organizer));
   }
 
   @Test
@@ -1051,7 +1027,7 @@ class RideServiceTest {
             null,
             List.of());
 
-    RideDto result = rideService.updateRide("test-team", "test-ride", request, organizer.getId());
+    RideDto result = rideService.updateRide(team, "test-ride", request, organizer);
 
     assertNull(result.getStartPlace());
     assertNull(result.getEndPlace());
@@ -1075,7 +1051,7 @@ class RideServiceTest {
             null,
             List.of());
 
-    RideDto result = rideService.updateRide("test-team", "test-ride", request, organizer.getId());
+    RideDto result = rideService.updateRide(team, "test-ride", request, organizer);
 
     assertNotNull(result.getRouteSlug());
     assertEquals(route.getSlug(), result.getRouteSlug());
@@ -1100,7 +1076,7 @@ class RideServiceTest {
 
     assertThrows(
         BusinessException.class,
-        () -> rideService.updateRide("test-team", "test-ride", request, organizer.getId()));
+        () -> rideService.updateRide(team, "test-ride", request, organizer));
   }
 
   @Test
@@ -1125,7 +1101,7 @@ class RideServiceTest {
 
     assertThrows(
         BusinessException.class,
-        () -> rideService.updateRide("test-team", "test-ride", request, organizer.getId()));
+        () -> rideService.updateRide(team, "test-ride", request, organizer));
   }
 
   @Test
@@ -1149,7 +1125,7 @@ class RideServiceTest {
     BusinessException exception =
         assertThrows(
             BusinessException.class,
-            () -> rideService.updateRide("test-team", "test-ride", request, organizer.getId()));
+            () -> rideService.updateRide(team, "test-ride", request, organizer));
 
     assertTrue(exception.getMessage().contains("private route"));
   }
@@ -1174,7 +1150,7 @@ class RideServiceTest {
             null,
             List.of());
 
-    RideDto result = rideService.updateRide("test-team", "team-ride", request, organizer.getId());
+    RideDto result = rideService.updateRide(team, "team-ride", request, organizer);
 
     assertNotNull(result);
     assertEquals(teamRoute.getSlug(), result.getRouteSlug());
@@ -1199,7 +1175,7 @@ class RideServiceTest {
             null,
             List.of());
 
-    RideDto result = rideService.updateRide("test-team", "test-ride", request, organizer.getId());
+    RideDto result = rideService.updateRide(team, "test-ride", request, organizer);
 
     assertNull(result.getRouteSlug());
   }
@@ -1210,19 +1186,16 @@ class RideServiceTest {
   void deleteRide_shouldSoftDelete() {
     dataService.createRide(team, admin, "Test", "test", Instant.now());
 
-    rideService.deleteRide("test-team", "test", organizer.getId());
+    rideService.deleteRide(team, "test", organizer);
 
-    assertThrows(
-        BusinessException.class,
-        () -> rideService.getRideDetail("test-team", "test", organizer.getId()));
+    assertThrows(BusinessException.class, () -> rideService.getRideDetail(team, "test", organizer));
   }
 
   @Test
   void deleteRide_shouldThrowForNonOrganizer() {
     dataService.createRide(team, admin, "Test", "test", Instant.now());
 
-    assertThrows(
-        BusinessException.class, () -> rideService.deleteRide("test-team", "test", member.getId()));
+    assertThrows(BusinessException.class, () -> rideService.deleteRide(team, "test", member));
   }
 
   // ==================== List Groups ====================
@@ -1233,7 +1206,7 @@ class RideServiceTest {
     dataService.createRideGroup(admin, ride, "Group 1", 2);
     dataService.createRideGroup(admin, ride, "Group 2", 1);
 
-    RideDto rideDto = rideService.getRideDetail(team.getSlug(), ride.getSlug(), admin.getId());
+    RideDto rideDto = rideService.getRideDetail(team, ride.getSlug(), admin);
     List<RideGroupDto> groups = rideDto.getGroups();
 
     assertEquals(2, groups.size());
@@ -1245,7 +1218,7 @@ class RideServiceTest {
   void listGroups_shouldReturnEmptyForNoGroups() {
     Ride ride = dataService.createRide(team, admin, "Test", "test", Instant.now());
 
-    RideDto rideDto = rideService.getRideDetail(team.getSlug(), ride.getSlug(), admin.getId());
+    RideDto rideDto = rideService.getRideDetail(team, ride.getSlug(), admin);
 
     assertEquals(0, rideDto.getGroups().size());
     assertEquals(0, rideDto.getGroupCount());
@@ -1259,8 +1232,7 @@ class RideServiceTest {
         dataService.createRide(team, admin, "Test", "test", Instant.now(), Status.PUBLISHED);
     RideGroup group = dataService.createRideGroup(admin, ride, "Group");
 
-    RideParticipationDto result =
-        rideService.joinGroup("test-team", "test", group.getId(), member.getId());
+    RideParticipationDto result = rideService.joinGroup(team, "test", group.getId(), member);
 
     assertNotNull(result);
     assertEquals(member.getId(), TsidUtils.toLong(result.userId()));
@@ -1274,8 +1246,7 @@ class RideServiceTest {
     RideGroup group = dataService.createRideGroup(admin, ride, "Group");
 
     assertThrows(
-        BusinessException.class,
-        () -> rideService.joinGroup("test-team", "draft", group.getId(), member.getId()));
+        BusinessException.class, () -> rideService.joinGroup(team, "draft", group.getId(), member));
   }
 
   @Test
@@ -1288,7 +1259,7 @@ class RideServiceTest {
     BusinessException exception =
         assertThrows(
             BusinessException.class,
-            () -> rideService.joinGroup("test-team", "draft", group.getId(), organizer.getId()));
+            () -> rideService.joinGroup(team, "draft", group.getId(), organizer));
 
     assertTrue(exception.getMessage().contains("published"));
   }
@@ -1302,7 +1273,7 @@ class RideServiceTest {
     BusinessException exception =
         assertThrows(
             BusinessException.class,
-            () -> rideService.joinGroup("test-team", "test", group.getId(), member.getId()));
+            () -> rideService.joinGroup(team, "test", group.getId(), member));
 
     assertTrue(exception.getMessage().contains("already"));
   }
@@ -1316,7 +1287,7 @@ class RideServiceTest {
     BusinessException exception =
         assertThrows(
             BusinessException.class,
-            () -> rideService.joinGroup("test-team", "test", group.getId(), member.getId()));
+            () -> rideService.joinGroup(team, "test", group.getId(), member));
 
     assertTrue(
         exception.getMessage().contains("full") || exception.getMessage().contains("capacity"));
@@ -1330,11 +1301,11 @@ class RideServiceTest {
     RideGroup group = dataService.createRideGroup(admin, ride, "Group");
     dataService.createParticipation(group, member);
 
-    rideService.leaveGroup("test-team", "test", group.getId(), member.getId());
+    rideService.leaveGroup(team, "test", group.getId(), member);
 
     // Member can now rejoin (participation was soft-deleted)
     RideParticipationDto newParticipation =
-        rideService.joinGroup("test-team", "test", group.getId(), member.getId());
+        rideService.joinGroup(team, "test", group.getId(), member);
     assertNotNull(newParticipation);
   }
 
@@ -1346,7 +1317,7 @@ class RideServiceTest {
     BusinessException exception =
         assertThrows(
             BusinessException.class,
-            () -> rideService.leaveGroup("test-team", "test", group.getId(), member.getId()));
+            () -> rideService.leaveGroup(team, "test", group.getId(), member));
 
     assertTrue(
         exception.getMessage().contains("not") || exception.getMessage().contains("participation"));

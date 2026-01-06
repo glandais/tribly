@@ -76,7 +76,7 @@ class RouteServiceTest {
             Visibility.PUBLIC,
             List.of());
 
-    createdRoute = routeService.createRoute("test-team", request, gpxPath, organizer.getId());
+    createdRoute = routeService.createRoute(team, request, gpxPath, organizer);
 
     assertNotNull(createdRoute);
     assertEquals("Test Route", createdRoute.name());
@@ -103,20 +103,7 @@ class RouteServiceTest {
             "Test", MediaDto.builder().build(), SurfaceType.GRAVEL, Visibility.PUBLIC, List.of());
 
     assertThrows(
-        BusinessException.class,
-        () -> routeService.createRoute("test-team", request, gpxPath, member.getId()));
-  }
-
-  @Test
-  void createRoute_shouldThrowForNonexistentTeam() {
-    Path gpxPath = getExampleGpxPath();
-    RouteRequest request =
-        new RouteRequest(
-            "Test", MediaDto.builder().build(), SurfaceType.GRAVEL, Visibility.PUBLIC, List.of());
-
-    assertThrows(
-        BusinessException.class,
-        () -> routeService.createRoute("nonexistent", request, gpxPath, admin.getId()));
+        BusinessException.class, () -> routeService.createRoute(team, request, gpxPath, member));
   }
 
   // ==================== Get Route ====================
@@ -125,8 +112,7 @@ class RouteServiceTest {
   void getRoute_shouldReturnRouteForMember() {
     Route route = dataService.createRoute(team, admin, "Public Route", Visibility.PUBLIC);
 
-    RouteDetailDto result =
-        routeService.getRouteDetail("test-team", route.getSlug(), member.getId());
+    RouteDetailDto result = routeService.getRouteDetail(team, route.getSlug(), member);
 
     assertNotNull(result);
     assertEquals("Public Route", result.name());
@@ -136,7 +122,7 @@ class RouteServiceTest {
   void getRoute_shouldReturnRouteForNonMemberIfPublic() {
     Route route = dataService.createRoute(team, admin, "Public Route", Visibility.PUBLIC);
 
-    RouteDetailDto result = routeService.getRouteDetail("test-team", route.getSlug(), null);
+    RouteDetailDto result = routeService.getRouteDetail(team, route.getSlug(), null);
 
     assertNotNull(result);
     assertEquals("Public Route", result.name());
@@ -147,15 +133,13 @@ class RouteServiceTest {
     Route route = dataService.createRoute(team, admin, "Team Route", Visibility.TEAM);
 
     assertThrows(
-        BusinessException.class,
-        () -> routeService.getRouteDetail("test-team", route.getSlug(), null));
+        BusinessException.class, () -> routeService.getRouteDetail(team, route.getSlug(), null));
   }
 
   @Test
   void getRoute_shouldThrowForNonexistentRoute() {
     assertThrows(
-        BusinessException.class,
-        () -> routeService.getRouteDetail("test-team", "missing", admin.getId()));
+        BusinessException.class, () -> routeService.getRouteDetail(team, "missing", admin));
   }
 
   // ==================== Get Route Detail ====================
@@ -164,8 +148,7 @@ class RouteServiceTest {
   void getRouteDetail_shouldReturnRouteWithTrackForMember() {
     Route route = dataService.createRoute(team, admin, "Detailed Route", Visibility.PUBLIC);
 
-    RouteDetailDto result =
-        routeService.getRouteDetail("test-team", route.getSlug(), member.getId());
+    RouteDetailDto result = routeService.getRouteDetail(team, route.getSlug(), member);
 
     assertNotNull(result);
     assertEquals("Detailed Route", result.name());
@@ -176,7 +159,7 @@ class RouteServiceTest {
   void getRouteDetail_shouldReturnRouteForNonMemberIfPublic() {
     Route route = dataService.createRoute(team, admin, "Public Route Detail", Visibility.PUBLIC);
 
-    RouteDetailDto result = routeService.getRouteDetail("test-team", route.getSlug(), null);
+    RouteDetailDto result = routeService.getRouteDetail(team, route.getSlug(), null);
 
     assertNotNull(result);
     assertEquals("Public Route Detail", result.name());
@@ -187,15 +170,13 @@ class RouteServiceTest {
     Route route = dataService.createRoute(team, admin, "Team Route Detail", Visibility.TEAM);
 
     assertThrows(
-        BusinessException.class,
-        () -> routeService.getRouteDetail("test-team", route.getSlug(), null));
+        BusinessException.class, () -> routeService.getRouteDetail(team, route.getSlug(), null));
   }
 
   @Test
   void getRouteDetail_shouldThrowForNonexistentRoute() {
     assertThrows(
-        BusinessException.class,
-        () -> routeService.getRouteDetail("test-team", "missing", admin.getId()));
+        BusinessException.class, () -> routeService.getRouteDetail(team, "missing", admin));
   }
 
   // ==================== List Routes ====================
@@ -207,8 +188,7 @@ class RouteServiceTest {
     dataService.createRoute(team, admin, "Team Only", Visibility.TEAM);
 
     RouteListResponse result =
-        routeService.getRoutes(
-            "test-team", null, RouteSearchParams.builder().page(0).size(10).build());
+        routeService.getRoutes(team, null, RouteSearchParams.builder().page(0).size(10).build());
 
     assertEquals(2, result.routes().size());
     assertTrue(result.routes().stream().allMatch(r -> r.visibility() == Visibility.PUBLIC));
@@ -220,8 +200,7 @@ class RouteServiceTest {
     dataService.createRoute(team, admin, "Team", Visibility.TEAM);
 
     RouteListResponse result =
-        routeService.getRoutes(
-            "test-team", member.getId(), RouteSearchParams.builder().page(0).size(10).build());
+        routeService.getRoutes(team, member, RouteSearchParams.builder().page(0).size(10).build());
 
     assertEquals(2, result.routes().size());
   }
@@ -233,8 +212,7 @@ class RouteServiceTest {
     }
 
     RouteListResponse result =
-        routeService.getRoutes(
-            "test-team", null, RouteSearchParams.builder().page(0).size(3).build());
+        routeService.getRoutes(team, null, RouteSearchParams.builder().page(0).size(3).build());
 
     assertEquals(3, result.routes().size());
     assertEquals(5, result.total());
@@ -248,7 +226,7 @@ class RouteServiceTest {
 
     RouteListResponse routes =
         routeService.getRoutes(
-            "private-team", null, RouteSearchParams.builder().page(0).size(10).build());
+            privateTeam, null, RouteSearchParams.builder().page(0).size(10).build());
 
     assertEquals(0, routes.routes().size());
     assertEquals(0, routes.total());
@@ -267,8 +245,7 @@ class RouteServiceTest {
             Visibility.TEAM,
             List.of());
 
-    RouteDto result =
-        routeService.updateRoute("test-team", route.getSlug(), request, null, organizer.getId());
+    RouteDto result = routeService.updateRoute(team, route.getSlug(), request, null, organizer);
 
     assertEquals("Updated Name", result.name());
     assertEquals("Updated description", result.media().markdown());
@@ -283,8 +260,7 @@ class RouteServiceTest {
         new RouteRequest(
             "New Name", MediaDto.builder().build(), SurfaceType.ROAD, Visibility.TEAM, List.of());
 
-    RouteDto result =
-        routeService.updateRoute("test-team", route.getSlug(), request, null, organizer.getId());
+    RouteDto result = routeService.updateRoute(team, route.getSlug(), request, null, organizer);
 
     assertEquals("New Name", result.name());
   }
@@ -300,8 +276,7 @@ class RouteServiceTest {
             Visibility.PUBLIC,
             List.of());
 
-    RouteDto result =
-        routeService.updateRoute("test-team", route.getSlug(), request, null, organizer.getId());
+    RouteDto result = routeService.updateRoute(team, route.getSlug(), request, null, organizer);
 
     assertEquals("New name 2", result.name());
     assertEquals("New description", result.media().markdown());
@@ -316,8 +291,7 @@ class RouteServiceTest {
 
     assertThrows(
         BusinessException.class,
-        () ->
-            routeService.updateRoute("test-team", route.getSlug(), request, null, member.getId()));
+        () -> routeService.updateRoute(team, route.getSlug(), request, null, member));
   }
 
   @Test
@@ -332,8 +306,7 @@ class RouteServiceTest {
             Visibility.PUBLIC,
             List.of());
 
-    createdRoute =
-        routeService.createRoute("test-team", createRequest, initialGpx, organizer.getId());
+    createdRoute = routeService.createRoute(team, createRequest, initialGpx, organizer);
 
     int originalDistance = createdRoute.distance();
 
@@ -348,8 +321,7 @@ class RouteServiceTest {
             List.of());
 
     RouteDto updated =
-        routeService.updateRoute(
-            "test-team", createdRoute.slug(), updateRequest, newGpx, organizer.getId());
+        routeService.updateRoute(team, createdRoute.slug(), updateRequest, newGpx, organizer);
 
     assertEquals("Updated Route", updated.name());
     assertEquals("Updated", updated.media().markdown());
@@ -367,14 +339,13 @@ class RouteServiceTest {
         new RouteRequest(
             "To Delete", MediaDto.builder().build(), null, Visibility.PUBLIC, List.of());
 
-    createdRoute = routeService.createRoute("test-team", request, gpxPath, admin.getId());
+    createdRoute = routeService.createRoute(team, request, gpxPath, admin);
     String routeSlug = getCreatedRouteSlug();
 
-    routeService.deleteRoute("test-team", routeSlug, admin.getId());
+    routeService.deleteRoute(team, routeSlug, admin);
 
     assertThrows(
-        BusinessException.class,
-        () -> routeService.getRouteDetail("test-team", routeSlug, admin.getId()));
+        BusinessException.class, () -> routeService.getRouteDetail(team, routeSlug, admin));
 
     // Cleanup handled by gpxProcessingService.deleteRouteFiles
     createdRoute = null; // Prevent double cleanup in @AfterEach
@@ -385,7 +356,6 @@ class RouteServiceTest {
     Route route = dataService.createRoute(team, admin, "Test");
 
     assertThrows(
-        BusinessException.class,
-        () -> routeService.deleteRoute("test-team", route.getSlug(), member.getId()));
+        BusinessException.class, () -> routeService.deleteRoute(team, route.getSlug(), member));
   }
 }

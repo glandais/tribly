@@ -602,8 +602,13 @@
       "MemberDto" : {
         "description" : "Team member information",
         "type" : "object",
-        "required" : [ "id", "user", "role" ],
+        "required" : [ "team", "id", "user", "role" ],
         "properties" : {
+          "team" : {
+            "description" : "Team",
+            "type" : "object",
+            "$ref" : "#/components/schemas/TeamPublicationDto"
+          },
           "id" : {
             "type" : "string",
             "description" : "Membership ID (TSID)"
@@ -724,7 +729,7 @@
       "PlaceRequest" : {
         "description" : "Place create/update request",
         "type" : "object",
-        "required" : [ "name", "address", "link", "startPlace", "endPlace" ],
+        "required" : [ "name", "startPlace", "endPlace" ],
         "properties" : {
           "name" : {
             "type" : "string",
@@ -736,7 +741,6 @@
           "address" : {
             "type" : "string",
             "description" : "Address",
-            "pattern" : "\\S",
             "minLength" : 3,
             "maxLength" : 200
           },
@@ -1256,8 +1260,13 @@
       "RideTemplateDto" : {
         "description" : "Ride template response",
         "type" : "object",
-        "required" : [ "id", "slug", "name", "markdown", "visibility", "status", "createdAt", "updatedAt", "groupCount", "groups" ],
+        "required" : [ "team", "id", "slug", "name", "markdown", "visibility", "status", "createdAt", "updatedAt", "groupCount", "groups" ],
         "properties" : {
+          "team" : {
+            "description" : "Team",
+            "type" : "object",
+            "$ref" : "#/components/schemas/TeamPublicationDto"
+          },
           "id" : {
             "type" : "string",
             "description" : "Template ID (TSID)"
@@ -1848,8 +1857,13 @@
       "TeamPageDto" : {
         "description" : "Team page detail",
         "type" : "object",
-        "required" : [ "id", "title", "slug", "media", "visibility", "order" ],
+        "required" : [ "team", "id", "title", "slug", "media", "visibility", "order" ],
         "properties" : {
+          "team" : {
+            "description" : "Team",
+            "type" : "object",
+            "$ref" : "#/components/schemas/TeamPublicationDto"
+          },
           "id" : {
             "type" : "string",
             "description" : "Page ID (TSID)"
@@ -2326,7 +2340,7 @@
     "securitySchemes" : {
       "SecurityScheme" : {
         "type" : "openIdConnect",
-        "openIdConnectUrl" : "http://localhost:8180/realms/quarkus/.well-known/openid-configuration",
+        "openIdConnectUrl" : "http://localhost:8180/realms/tribly/.well-known/openid-configuration",
         "description" : "Authentication"
       }
     }
@@ -2893,9 +2907,6 @@
               }
             }
           },
-          "302" : {
-            "description" : "Slug has changed, redirect to new URL"
-          },
           "404" : {
             "description" : "Team not found",
             "content" : {
@@ -3258,9 +3269,6 @@
                 }
               }
             }
-          },
-          "302" : {
-            "description" : "Slug has changed, redirect to new URL"
           },
           "404" : {
             "description" : "Team or ad not found",
@@ -4279,9 +4287,6 @@
               }
             }
           },
-          "302" : {
-            "description" : "Slug has changed, redirect to new URL"
-          },
           "403" : {
             "description" : "User is not authorized to view this page",
             "content" : {
@@ -5243,9 +5248,6 @@
                 }
               }
             }
-          },
-          "302" : {
-            "description" : "Slug has changed, redirect to new URL"
           },
           "404" : {
             "description" : "Team or post not found",
@@ -6295,9 +6297,6 @@
               }
             }
           },
-          "302" : {
-            "description" : "Slug has changed, redirect to new URL"
-          },
           "404" : {
             "description" : "Team or ride not found",
             "content" : {
@@ -7156,9 +7155,6 @@
               }
             }
           },
-          "302" : {
-            "description" : "Slug has changed, redirect to new URL"
-          },
           "404" : {
             "description" : "Team or route not found",
             "content" : {
@@ -7852,9 +7848,6 @@
               }
             }
           },
-          "302" : {
-            "description" : "Slug has changed, redirect to new URL"
-          },
           "404" : {
             "description" : "Team or trip not found",
             "content" : {
@@ -8162,7 +8155,7 @@
       "put" : {
         "summary" : "Update current user",
         "description" : "Update the current user's profile",
-        "operationId" : "updateCurrentUser",
+        "operationId" : "updateMe",
         "tags" : [ "Users" ],
         "requestBody" : {
           "content" : {
@@ -8216,7 +8209,7 @@
       "get" : {
         "summary" : "Get current user",
         "description" : "Get the current authenticated user's profile. Creates the user if first call after login.",
-        "operationId" : "getCurrentUser",
+        "operationId" : "getMe",
         "tags" : [ "Users" ],
         "responses" : {
           "200" : {

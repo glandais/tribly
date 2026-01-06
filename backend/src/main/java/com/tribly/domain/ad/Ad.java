@@ -1,5 +1,6 @@
 package com.tribly.domain.ad;
 
+import com.tribly.domain.common.NotNullableDbValue;
 import com.tribly.domain.common.TeamEntity;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
@@ -30,7 +31,8 @@ public class Ad extends TeamEntity {
   private BigDecimal price;
 
   @Enumerated(EnumType.STRING)
-  @Column(name = "ad_type", length = 20, nullable = false)
+  @Column(name = "ad_type", length = 20)
+  @NotNullableDbValue
   private AdType adType;
 
   @Enumerated(EnumType.STRING)

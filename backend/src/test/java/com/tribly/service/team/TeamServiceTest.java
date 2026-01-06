@@ -16,7 +16,6 @@ import com.tribly.util.TestDataCleaner;
 import com.tribly.util.TestDataService;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
-import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -49,7 +48,7 @@ class TeamServiceTest {
             true,
             true);
 
-    TeamDetailDto result = teamService.createTeam(request, user1.getId());
+    TeamDetailDto result = teamService.createTeam(request, user1);
 
     assertNotNull(result);
     assertEquals("Test Team", result.name());
@@ -65,11 +64,9 @@ class TeamServiceTest {
     TeamRequest request =
         new TeamRequest("My Team", MediaDto.builder().build(), Visibility.PUBLIC, true, true);
 
-    TeamDetailDto result = teamService.createTeam(request, user1.getId());
+    TeamDetailDto result = teamService.createTeam(request, user1);
 
-    Optional<TeamRole> role = teamService.getUserRole(user1.getId(), result.slug());
-    assertTrue(role.isPresent());
-    assertEquals(TeamRole.ADMIN, role.get());
+    assertEquals(TeamRole.ADMIN, result.role());
   }
 
   @Test
@@ -79,23 +76,12 @@ class TeamServiceTest {
     TeamRequest request2 =
         new TeamRequest("Test Team", MediaDto.builder().build(), Visibility.PUBLIC, true, true);
 
-    TeamDetailDto team1 = teamService.createTeam(request1, user1.getId());
-    TeamDetailDto team2 = teamService.createTeam(request2, user2.getId());
+    TeamDetailDto team1 = teamService.createTeam(request1, user1);
+    TeamDetailDto team2 = teamService.createTeam(request2, user2);
 
     assertEquals("test-team", team1.slug());
     assertNotEquals("test-team", team2.slug());
     assertTrue(team2.slug().startsWith("test-team-"));
-  }
-
-  @Test
-  void createTeam_shouldThrowWhenUserNotFound() {
-    TeamRequest request =
-        new TeamRequest("Test Team", MediaDto.builder().build(), Visibility.PUBLIC, true, true);
-
-    BusinessException exception =
-        assertThrows(BusinessException.class, () -> teamService.createTeam(request, 999999L));
-
-    assertTrue(exception.getMessage().contains("User"));
   }
 
   // ==================== List Teams ====================
@@ -117,7 +103,7 @@ class TeamServiceTest {
     dataService.createTeam(user1, "Team 2", "team-2", Visibility.PUBLIC);
     dataService.addUserToTeam(user1, team1, TeamRole.MEMBER);
 
-    TeamListResponse result = teamService.listTeams(user1.getId(), MinRole.MEMBER, null, 0, 10);
+    TeamListResponse result = teamService.listTeams(user1, MinRole.MEMBER, null, 0, 10);
 
     assertEquals(1, result.teams().size());
     assertEquals("team-1", result.teams().getFirst().slug());
@@ -130,7 +116,7 @@ class TeamServiceTest {
     dataService.addUserToTeam(user1, team1, TeamRole.MEMBER);
     dataService.addUserToTeam(user1, team2, TeamRole.ADMIN);
 
-    TeamListResponse result = teamService.listTeams(user1.getId(), MinRole.ADMIN, null, 0, 10);
+    TeamListResponse result = teamService.listTeams(user1, MinRole.ADMIN, null, 0, 10);
 
     assertEquals(1, result.teams().size());
     assertEquals("team-2", result.teams().getFirst().slug());
@@ -152,21 +138,12 @@ class TeamServiceTest {
 
   @Test
   void getTeam_shouldReturnTeam() {
-    dataService.createTeam(user1, "Test Team", "test-team", Visibility.PUBLIC);
+    Team team = dataService.createTeam(user1, "Test Team", "test-team", Visibility.PUBLIC);
 
-    TeamDetailDto result = teamService.getTeamDetailDto("test-team", null);
+    TeamDetailDto result = teamService.getTeamDetailDto(team, null);
 
     assertEquals("Test Team", result.name());
     assertEquals("test-team", result.slug());
-  }
-
-  @Test
-  void getTeam_shouldThrowWhenNotFound() {
-    BusinessException exception =
-        assertThrows(
-            BusinessException.class, () -> teamService.getTeamDetailDto("nonexistent", null));
-
-    assertTrue(exception.getMessage().contains("Team"));
   }
 
   // ==================== Update Team ====================
@@ -183,7 +160,7 @@ class TeamServiceTest {
             true,
             true);
 
-    TeamDetailDto result = teamService.updateTeam("original", request, user1.getId());
+    TeamDetailDto result = teamService.updateTeam(team, request, user1);
 
     assertEquals("Updated Name", result.name());
     assertEquals("Updated description", result.about().markdown());
@@ -202,7 +179,7 @@ class TeamServiceTest {
             true,
             true);
 
-    TeamDetailDto result = teamService.updateTeam("original", request, user1.getId());
+    TeamDetailDto result = teamService.updateTeam(team, request, user1);
 
     assertEquals("New Name", result.name());
     assertEquals(Visibility.PUBLIC, result.visibility());
@@ -220,7 +197,7 @@ class TeamServiceTest {
             true,
             true);
 
-    TeamDetailDto result = teamService.updateTeam("original", request, user1.getId());
+    TeamDetailDto result = teamService.updateTeam(team, request, user1);
 
     assertEquals("New name", result.name());
     assertEquals("Updated description", result.about().markdown());
@@ -233,8 +210,7 @@ class TeamServiceTest {
     TeamRequest request =
         new TeamRequest("New Name", MediaDto.builder().build(), Visibility.PUBLIC, true, true);
 
-    assertThrows(
-        BusinessException.class, () -> teamService.updateTeam("test-team", request, user1.getId()));
+    assertThrows(BusinessException.class, () -> teamService.updateTeam(team, request, user1));
   }
 
   // ==================== Delete Team ====================
@@ -244,9 +220,9 @@ class TeamServiceTest {
     Team team = dataService.createTeam(user1, "Test Team", "test-team", Visibility.PUBLIC);
     dataService.addUserToTeam(user1, team, TeamRole.ADMIN);
 
-    teamService.deleteTeam("test-team", user1.getId());
+    teamService.deleteTeam(team, user1);
 
-    assertThrows(BusinessException.class, () -> teamService.getTeamDetailDto("test-team", null));
+    assertThrows(BusinessException.class, () -> teamService.getTeamDetailDto(team, null));
   }
 
   @Test
@@ -254,28 +230,6 @@ class TeamServiceTest {
     Team team = dataService.createTeam(user1, "Test Team", "test-team", Visibility.PUBLIC);
     dataService.addUserToTeam(user1, team, TeamRole.MEMBER);
 
-    assertThrows(BusinessException.class, () -> teamService.deleteTeam("test-team", user1.getId()));
-  }
-
-  // ==================== Get User Role ====================
-
-  @Test
-  void getUserRole_shouldReturnRoleForMember() {
-    Team team = dataService.createTeam(user1, "Test Team", "test-team", Visibility.PUBLIC);
-    dataService.addUserToTeam(user1, team, TeamRole.ORGANIZER);
-
-    Optional<TeamRole> result = teamService.getUserRole(user1.getId(), "test-team");
-
-    assertTrue(result.isPresent());
-    assertEquals(TeamRole.ORGANIZER, result.get());
-  }
-
-  @Test
-  void getUserRole_shouldReturnEmptyForNonMember() {
-    dataService.createTeam(user1, "Test Team", "test-team", Visibility.PUBLIC);
-
-    Optional<TeamRole> result = teamService.getUserRole(user1.getId(), "test-team");
-
-    assertTrue(result.isEmpty());
+    assertThrows(BusinessException.class, () -> teamService.deleteTeam(team, user1));
   }
 }

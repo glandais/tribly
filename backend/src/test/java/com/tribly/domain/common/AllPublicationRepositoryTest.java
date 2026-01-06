@@ -273,7 +273,7 @@ class AllPublicationRepositoryTest {
         dataService.createPost(team, user, "Post " + i, now.plus(i, ChronoUnit.HOURS));
       }
 
-      PublicationQuery query = PublicationQuery.builder().page(0).size(10).build();
+      PublicationQuery query = PublicationQuery.builder().page(0).size(2).build();
       TriblyPage<Publication> result = publicationRepository.find(query);
 
       assertEquals(2, result.items().size());

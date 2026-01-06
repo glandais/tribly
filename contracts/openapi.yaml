@@ -542,10 +542,15 @@ components:
       description: Team member information
       type: object
       required:
+      - team
       - id
       - user
       - role
       properties:
+        team:
+          description: Team
+          type: object
+          $ref: "#/components/schemas/TeamPublicationDto"
         id:
           type: string
           description: Membership ID (TSID)
@@ -657,8 +662,6 @@ components:
       type: object
       required:
       - name
-      - address
-      - link
       - startPlace
       - endPlace
       properties:
@@ -671,7 +674,6 @@ components:
         address:
           type: string
           description: Address
-          pattern: \S
           minLength: 3
           maxLength: 200
         link:
@@ -1136,6 +1138,7 @@ components:
       description: Ride template response
       type: object
       required:
+      - team
       - id
       - slug
       - name
@@ -1147,6 +1150,10 @@ components:
       - groupCount
       - groups
       properties:
+        team:
+          description: Team
+          type: object
+          $ref: "#/components/schemas/TeamPublicationDto"
         id:
           type: string
           description: Template ID (TSID)
@@ -1690,6 +1697,7 @@ components:
       description: Team page detail
       type: object
       required:
+      - team
       - id
       - title
       - slug
@@ -1697,6 +1705,10 @@ components:
       - visibility
       - order
       properties:
+        team:
+          description: Team
+          type: object
+          $ref: "#/components/schemas/TeamPublicationDto"
         id:
           type: string
           description: Page ID (TSID)
@@ -2137,7 +2149,7 @@ components:
   securitySchemes:
     SecurityScheme:
       type: openIdConnect
-      openIdConnectUrl: http://localhost:8180/realms/quarkus/.well-known/openid-configuration
+      openIdConnectUrl: http://localhost:8180/realms/tribly/.well-known/openid-configuration
       description: Authentication
 tags:
 - name: Ads
@@ -2538,8 +2550,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/TeamDetailDto"
-        "302":
-          description: "Slug has changed, redirect to new URL"
         "404":
           description: Team not found
           content:
@@ -2789,8 +2799,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AdDto"
-        "302":
-          description: "Slug has changed, redirect to new URL"
         "404":
           description: Team or ad not found
           content:
@@ -3480,8 +3488,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/TeamPageDto"
-        "302":
-          description: "Slug has changed, redirect to new URL"
         "403":
           description: User is not authorized to view this page
           content:
@@ -4144,8 +4150,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/PostDto"
-        "302":
-          description: "Slug has changed, redirect to new URL"
         "404":
           description: Team or post not found
           content:
@@ -4870,8 +4874,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/RideDto"
-        "302":
-          description: "Slug has changed, redirect to new URL"
         "404":
           description: Team or ride not found
           content:
@@ -5470,8 +5472,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/RouteDetailDto"
-        "302":
-          description: "Slug has changed, redirect to new URL"
         "404":
           description: Team or route not found
           content:
@@ -5945,8 +5945,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/TripDto"
-        "302":
-          description: "Slug has changed, redirect to new URL"
         "404":
           description: Team or trip not found
           content:
@@ -6156,7 +6154,7 @@ paths:
     put:
       summary: Update current user
       description: Update the current user's profile
-      operationId: updateCurrentUser
+      operationId: updateMe
       tags:
       - Users
       requestBody:
@@ -6193,7 +6191,7 @@ paths:
       summary: Get current user
       description: Get the current authenticated user's profile. Creates the user
         if first call after login.
-      operationId: getCurrentUser
+      operationId: getMe
       tags:
       - Users
       responses:

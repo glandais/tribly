@@ -6,10 +6,13 @@ import static org.geolatte.geom.builder.DSL.point;
 import static org.geolatte.geom.crs.CoordinateReferenceSystems.WGS84;
 import static org.hamcrest.Matchers.*;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tribly.api.AbstractResourceTest;
 import com.tribly.dto.places.request.PlaceRequest;
 import com.tribly.infrastructure.id.TsidUtils;
 import io.quarkus.test.junit.QuarkusTest;
+import jakarta.inject.Inject;
 import org.geolatte.geom.G2D;
 import org.geolatte.geom.Point;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,6 +20,8 @@ import org.junit.jupiter.api.Test;
 
 @QuarkusTest
 class PlaceResourceTest extends AbstractResourceTest {
+
+  @Inject ObjectMapper objectMapper;
 
   @Override
   @BeforeEach
@@ -173,16 +178,18 @@ class PlaceResourceTest extends AbstractResourceTest {
   }
 
   @Test
-  void createPlace_withCoordinates_shouldSucceed() {
+  void createPlace_withCoordinates_shouldSucceed() throws JsonProcessingException {
     Point<G2D> point = point(WGS84, g(2.3522, 48.8566));
     PlaceRequest request =
         new PlaceRequest("Paris Place", "Paris, France", null, true, true, point);
+
+    String json = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(request);
 
     given()
         .auth()
         .oauth2(getAccessToken(USER1))
         .contentType("application/json")
-        .body(request)
+        .body(json)
         .when()
         .post("/api/teams/" + team1Slug + "/places")
         .then()

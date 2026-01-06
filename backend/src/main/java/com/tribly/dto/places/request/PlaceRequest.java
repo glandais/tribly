@@ -15,11 +15,8 @@ import org.jspecify.annotations.Nullable;
 public record PlaceRequest(
     @Schema(description = "Place name", required = true) @NotBlank @Size(min = 1, max = 200)
         String name,
-    @Schema(description = "Address") @NotBlank @Size(min = 3, max = 200) @Nullable String address,
-    @Schema(description = "External link (e.g., Google Maps URL)")
-        @NotBlank
-        @Size(min = 3, max = 200)
-        @URL
+    @Schema(description = "Address") @Size(min = 3, max = 200) @Nullable String address,
+    @Schema(description = "External link (e.g., Google Maps URL)") @Size(min = 3, max = 200) @URL
         @Nullable String link,
     @Schema(description = "Can be used as ride start point", required = true) boolean startPlace,
     @Schema(description = "Can be used as ride end point", required = true) boolean endPlace,

@@ -353,7 +353,7 @@ class TeamEntityRepositoryFindTest {
       dataService.createRoute(
           anotherTeam, publicTeamOwner, "Another Team Route", Visibility.PUBLIC);
 
-      RouteQuery query = RouteQuery.builder().teamSlugs(Set.of("public-team")).build();
+      RouteQuery query = RouteQuery.builder().teamIds(Set.of(publicTeam.getId())).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(1, result.items().size());
@@ -374,7 +374,7 @@ class TeamEntityRepositoryFindTest {
       dataService.createRoute(thirdTeam, publicTeamOwner, "Third Team Route", Visibility.PUBLIC);
 
       RouteQuery query =
-          RouteQuery.builder().teamSlugs(Set.of("public-team", "another-team")).build();
+          RouteQuery.builder().teamIds(Set.of(publicTeam.getId(), anotherTeam.getId())).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(2, result.items().size());
@@ -387,7 +387,7 @@ class TeamEntityRepositoryFindTest {
     void find_shouldReturnEmptyWhenTeamSlugDoesNotMatch() {
       dataService.createRoute(publicTeam, publicTeamOwner, "Route", Visibility.PUBLIC);
 
-      RouteQuery query = RouteQuery.builder().teamSlugs(Set.of("nonexistent-team")).build();
+      RouteQuery query = RouteQuery.builder().teamIds(Set.of(-1L)).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(0, result.items().size());
@@ -398,7 +398,7 @@ class TeamEntityRepositoryFindTest {
     void find_shouldIgnoreEmptyTeamSlugsSet() {
       dataService.createRoute(publicTeam, publicTeamOwner, "Route", Visibility.PUBLIC);
 
-      RouteQuery query = RouteQuery.builder().teamSlugs(Set.of()).build();
+      RouteQuery query = RouteQuery.builder().teamIds(Set.of()).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(1, result.items().size());
@@ -761,7 +761,7 @@ class TeamEntityRepositoryFindTest {
       dataService.createRoute(anotherTeam, publicTeamOwner, "Mountain Trail", Visibility.PUBLIC);
 
       RouteQuery query =
-          RouteQuery.builder().teamSlugs(Set.of("public-team")).search("Mountain").build();
+          RouteQuery.builder().teamIds(Set.of(publicTeam.getId())).search("Mountain").build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(1, result.items().size());
@@ -830,7 +830,7 @@ class TeamEntityRepositoryFindTest {
       RouteQuery query =
           RouteQuery.builder()
               .userId(regularUser.getId())
-              .teamSlugs(Set.of("public-team"))
+              .teamIds(Set.of(publicTeam.getId()))
               .search("Mountain")
               .from(LocalDate.of(2025, 6, 1).atStartOfDay().toInstant(ZoneOffset.UTC))
               .to(LocalDate.of(2025, 7, 1).atStartOfDay().toInstant(ZoneOffset.UTC))

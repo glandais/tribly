@@ -57,7 +57,7 @@ class PlaceServiceTest {
       dataService.createPlace(team, admin, "Place 1");
       dataService.createPlace(team, admin, "Place 2");
 
-      PlaceListResponse result = placeService.listPlaces("test-team", 0, 10, organizer.getId());
+      PlaceListResponse result = placeService.listPlaces(team, 0, 10, organizer);
 
       assertEquals(2, result.places().size());
       assertEquals(2, result.total());
@@ -69,7 +69,7 @@ class PlaceServiceTest {
         dataService.createPlace(team, admin, "Place " + i);
       }
 
-      PlaceListResponse result = placeService.listPlaces("test-team", 0, 3, organizer.getId());
+      PlaceListResponse result = placeService.listPlaces(team, 0, 3, organizer);
 
       assertEquals(3, result.places().size());
       assertEquals(5, result.total());
@@ -77,16 +77,7 @@ class PlaceServiceTest {
 
     @Test
     void shouldThrowForMember() {
-      assertThrows(
-          BusinessException.class,
-          () -> placeService.listPlaces("test-team", 0, 10, member.getId()));
-    }
-
-    @Test
-    void shouldThrowForNonexistentTeam() {
-      assertThrows(
-          BusinessException.class,
-          () -> placeService.listPlaces("nonexistent", 0, 10, admin.getId()));
+      assertThrows(BusinessException.class, () -> placeService.listPlaces(team, 0, 10, member));
     }
 
     @Test
@@ -95,7 +86,7 @@ class PlaceServiceTest {
       Place deletedPlace = dataService.createPlace(team, admin, "Deleted Place");
       dataService.deletePlace(deletedPlace);
 
-      PlaceListResponse result = placeService.listPlaces("test-team", 0, 10, organizer.getId());
+      PlaceListResponse result = placeService.listPlaces(team, 0, 10, organizer);
 
       assertEquals(1, result.places().size());
       assertEquals("Active Place", result.places().getFirst().name());
@@ -110,7 +101,7 @@ class PlaceServiceTest {
       Place place = dataService.createPlace(team, admin, "Test Place");
       String placeId = TsidUtils.toString(place.getId());
 
-      PlaceDetailDto result = placeService.getPlace("test-team", placeId, organizer.getId());
+      PlaceDetailDto result = placeService.getPlace(team, placeId, organizer);
 
       assertNotNull(result);
       assertEquals("Test Place", result.name());
@@ -120,7 +111,7 @@ class PlaceServiceTest {
     void shouldThrowForNonexistentPlace() {
       assertThrows(
           BusinessException.class,
-          () -> placeService.getPlace("test-team", TsidUtils.toString(9999L), organizer.getId()));
+          () -> placeService.getPlace(team, TsidUtils.toString(9999L), organizer));
     }
 
     @Test
@@ -128,9 +119,7 @@ class PlaceServiceTest {
       Place place = dataService.createPlace(team, admin, "Test Place");
       String placeId = TsidUtils.toString(place.getId());
 
-      assertThrows(
-          BusinessException.class,
-          () -> placeService.getPlace("test-team", placeId, member.getId()));
+      assertThrows(BusinessException.class, () -> placeService.getPlace(team, placeId, member));
     }
   }
 
@@ -142,7 +131,7 @@ class PlaceServiceTest {
       PlaceRequest request =
           new PlaceRequest("New Place", "123 Main St", "http://example.com", true, false, null);
 
-      PlaceDetailDto result = placeService.createPlace("test-team", request, organizer.getId());
+      PlaceDetailDto result = placeService.createPlace(team, request, organizer);
 
       assertNotNull(result);
       assertEquals("New Place", result.name());
@@ -157,7 +146,7 @@ class PlaceServiceTest {
       Point<G2D> point = point(WGS84, g(2.3522, 48.8566));
       PlaceRequest request = new PlaceRequest("Geo Place", null, null, false, true, point);
 
-      PlaceDetailDto result = placeService.createPlace("test-team", request, organizer.getId());
+      PlaceDetailDto result = placeService.createPlace(team, request, organizer);
 
       assertNotNull(result);
       assertNotNull(result.geometry());
@@ -167,7 +156,7 @@ class PlaceServiceTest {
     void shouldCreatePlaceWithoutCoordinates() {
       PlaceRequest request = new PlaceRequest("No Geo Place", null, null, true, true, null);
 
-      PlaceDetailDto result = placeService.createPlace("test-team", request, organizer.getId());
+      PlaceDetailDto result = placeService.createPlace(team, request, organizer);
 
       assertNotNull(result);
       assertNull(result.geometry());
@@ -177,18 +166,7 @@ class PlaceServiceTest {
     void shouldThrowForMember() {
       PlaceRequest request = new PlaceRequest("Place", null, null, true, true, null);
 
-      assertThrows(
-          BusinessException.class,
-          () -> placeService.createPlace("test-team", request, member.getId()));
-    }
-
-    @Test
-    void shouldThrowForNonexistentTeam() {
-      PlaceRequest request = new PlaceRequest("Place", null, null, true, true, null);
-
-      assertThrows(
-          BusinessException.class,
-          () -> placeService.createPlace("nonexistent", request, admin.getId()));
+      assertThrows(BusinessException.class, () -> placeService.createPlace(team, request, member));
     }
   }
 
@@ -203,8 +181,7 @@ class PlaceServiceTest {
       PlaceRequest request =
           new PlaceRequest("Updated", "New Address", "http://new.com", false, true, point);
 
-      PlaceDetailDto result =
-          placeService.updatePlace("test-team", placeId, request, organizer.getId());
+      PlaceDetailDto result = placeService.updatePlace(team, placeId, request, organizer);
 
       assertEquals("Updated", result.name());
       assertEquals("New Address", result.address());
@@ -221,12 +198,11 @@ class PlaceServiceTest {
       // First set coordinates
       Point<G2D> point = point(WGS84, g(2.3522, 48.8566));
       PlaceRequest withGeo = new PlaceRequest("With Geo", null, null, true, true, point);
-      placeService.updatePlace("test-team", placeId, withGeo, organizer.getId());
+      placeService.updatePlace(team, placeId, withGeo, organizer);
 
       // Then clear them
       PlaceRequest noGeo = new PlaceRequest("No Geo", null, null, true, true, null);
-      PlaceDetailDto result =
-          placeService.updatePlace("test-team", placeId, noGeo, organizer.getId());
+      PlaceDetailDto result = placeService.updatePlace(team, placeId, noGeo, organizer);
 
       assertNull(result.geometry());
     }
@@ -237,9 +213,7 @@ class PlaceServiceTest {
 
       assertThrows(
           BusinessException.class,
-          () ->
-              placeService.updatePlace(
-                  "test-team", TsidUtils.toString(9999L), request, organizer.getId()));
+          () -> placeService.updatePlace(team, TsidUtils.toString(9999L), request, organizer));
     }
 
     @Test
@@ -249,8 +223,7 @@ class PlaceServiceTest {
       PlaceRequest request = new PlaceRequest("Updated", null, null, true, true, null);
 
       assertThrows(
-          BusinessException.class,
-          () -> placeService.updatePlace("test-team", placeId, request, member.getId()));
+          BusinessException.class, () -> placeService.updatePlace(team, placeId, request, member));
     }
   }
 
@@ -262,19 +235,16 @@ class PlaceServiceTest {
       Place place = dataService.createPlace(team, admin, "To Delete");
       String placeId = TsidUtils.toString(place.getId());
 
-      placeService.deletePlace("test-team", placeId, organizer.getId());
+      placeService.deletePlace(team, placeId, organizer);
 
-      assertThrows(
-          BusinessException.class,
-          () -> placeService.getPlace("test-team", placeId, organizer.getId()));
+      assertThrows(BusinessException.class, () -> placeService.getPlace(team, placeId, organizer));
     }
 
     @Test
     void shouldThrowForNonexistentPlace() {
       assertThrows(
           BusinessException.class,
-          () ->
-              placeService.deletePlace("test-team", TsidUtils.toString(9999L), organizer.getId()));
+          () -> placeService.deletePlace(team, TsidUtils.toString(9999L), organizer));
     }
 
     @Test
@@ -282,9 +252,7 @@ class PlaceServiceTest {
       Place place = dataService.createPlace(team, admin, "Test");
       String placeId = TsidUtils.toString(place.getId());
 
-      assertThrows(
-          BusinessException.class,
-          () -> placeService.deletePlace("test-team", placeId, member.getId()));
+      assertThrows(BusinessException.class, () -> placeService.deletePlace(team, placeId, member));
     }
   }
 }

@@ -85,13 +85,13 @@ class PostResourceTest extends AbstractResourceTest {
   }
 
   @Test
-  void listPosts_toNonexistentTeam_shouldReturn200() {
+  void listPosts_toNonexistentTeam_shouldReturn404() {
     given()
         .when()
         .get("/api/teams/nonexistent-team/posts")
         .then()
         // empty list
-        .statusCode(200);
+        .statusCode(404);
   }
 
   @Test
@@ -209,7 +209,7 @@ class PostResourceTest extends AbstractResourceTest {
             "Scheduled Post",
             MediaDto.builder().markdown("Scheduled content").build(),
             Instant.now().plus(14, ChronoUnit.DAYS),
-            Status.PUBLISHED,
+            Status.DRAFT,
             Visibility.PUBLIC,
             Instant.now().plus(7, ChronoUnit.DAYS));
 
