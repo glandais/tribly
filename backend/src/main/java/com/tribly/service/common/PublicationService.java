@@ -9,37 +9,42 @@ import com.tribly.domain.user.User;
 import com.tribly.dto.publications.response.PublicationDto;
 import com.tribly.dto.publications.response.PublicationListResponse;
 import com.tribly.dto.publications.response.PublicationType;
-import com.tribly.enums.EntityType;
-import com.tribly.infrastructure.exception.BusinessException;
+import com.tribly.enums.ActionType;
+import com.tribly.infrastructure.exception.ForbiddenException;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import org.jspecify.annotations.Nullable;
 
 @ApplicationScoped
-public class PublicationService extends TeamEntityService<Publication> {
+public class PublicationService
+    extends TeamEntityService<Publication, AllPublicationRepository, PublicationDto> {
 
   @Inject AllPublicationRepository allPublicationRepository;
 
   @Override
-  protected EntityType getEntityType() {
-    // not redirectable at this level
-    return EntityType.POST;
+  protected AllPublicationRepository getRepository() {
+    return allPublicationRepository;
   }
 
   @Override
-  protected Optional<Publication> findByIdOptional(Long entityId) {
-    return Optional.empty();
+  protected PublicationDto toDto(Publication entity) {
+    return PublicationDto.from(entity, assetService);
+  }
+
+  @Override
+  protected boolean hasRights(
+      ActionType action, Team team, @Nullable User user, @Nullable Publication entity) {
+    return false;
   }
 
   @Override
   @Nullable
   protected Publication getBySlug(Team team, String entitySlug, @Nullable User user) {
     // not redirectable at this level
-    throw BusinessException.notFound("Not found");
+    throw new ForbiddenException();
   }
 
   public PublicationListResponse list(

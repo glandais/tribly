@@ -181,6 +181,10 @@
           }
         }
       },
+      "AllEntityType" : {
+        "type" : "string",
+        "enum" : [ "TEAM", "USER", "USER_TEAM", "RIDE_TEMPLATE", "RIDE_TEMPLATE_GROUP", "PLACE", "COMMENT", "ASSET", "TRIP", "TRIP_STAGE", "ROUTE", "RIDE", "RIDE_GROUP", "AD", "POST", "TEAM_PAGE" ]
+      },
       "AssetDimensionsDto" : {
         "type" : "object",
         "properties" : {
@@ -400,52 +404,81 @@
           }
         }
       },
+      "ErrorCode" : {
+        "type" : "string",
+        "enum" : [ "BAD_REQUEST", "NOT_FOUND", "UNAUTHORIZED", "FORBIDDEN", "INTERNAL_ERROR", "UNKNOWN", "VALIDATION", "BUSINESS_RULE", "LAST_ADMIN", "ALREADY_REGISTERED", "NOT_REGISTERED", "INVALID_SLUG", "SLUG_TAKEN", "USER_NOT_SYNCED", "GROUP_FULL", "INVALID_VISIBILITY", "PUBLIC_TRIP_PRIVATE_ROUTE", "GPX_FAILURE", "FILE_REQUIRED", "TOO_MANY_TEAM_PAGES", "GPX_EMPTY", "INVALID_FORMAT", "RENTAL_PERIOD_MISSING", "STATUS_INVALID", "PUBLIC_RIDE_PRIVATE_ROUTE" ]
+      },
+      "ErrorDetails" : {
+        "oneOf" : [ {
+          "$ref" : "#/components/schemas/ErrorValidationDetails"
+        }, {
+          "$ref" : "#/components/schemas/NotFoundDetails"
+        } ],
+        "description" : "Error details",
+        "discriminator" : {
+          "propertyName" : "type",
+          "mapping" : {
+            "VALIDATION" : "#/components/schemas/ErrorValidationDetails",
+            "NOT_FOUND" : "#/components/schemas/NotFoundDetails"
+          }
+        },
+        "type" : "object",
+        "properties" : {
+          "type" : {
+            "$ref" : "#/components/schemas/ErrorCode"
+          }
+        }
+      },
       "ErrorResponse" : {
         "description" : "Error response",
         "type" : "object",
-        "required" : [ "code", "message", "path", "timestamp" ],
+        "required" : [ "code" ],
         "properties" : {
           "code" : {
+            "description" : "Error code",
             "type" : "string",
-            "description" : "Error code"
+            "$ref" : "#/components/schemas/ErrorCode"
           },
-          "message" : {
+          "errorDetails" : {
+            "description" : "Additional details",
+            "type" : "object",
+            "$ref" : "#/components/schemas/ErrorDetails"
+          }
+        }
+      },
+      "ErrorValidationDetails" : {
+        "type" : "object",
+        "required" : [ "type", "fieldErrors" ],
+        "properties" : {
+          "type" : {
+            "description" : "Type",
             "type" : "string",
-            "description" : "Error message"
+            "$ref" : "#/components/schemas/ErrorCode"
           },
-          "path" : {
-            "type" : "string",
-            "description" : "Request path"
-          },
-          "timestamp" : {
-            "description" : "Timestamp",
-            "type" : "string",
-            "$ref" : "#/components/schemas/Instant"
-          },
-          "errors" : {
+          "fieldErrors" : {
             "type" : "array",
             "items" : {
               "$ref" : "#/components/schemas/FieldError"
             },
-            "description" : "Field validation errors"
-          },
-          "details" : {
-            "type" : "object",
-            "additionalProperties" : { },
-            "description" : "Additional details"
+            "description" : "Field Errors"
           }
         }
       },
       "FieldError" : {
         "type" : "object",
+        "required" : [ "field", "message", "rejectedValue" ],
         "properties" : {
           "field" : {
-            "type" : "string"
+            "type" : "string",
+            "description" : "Field"
           },
           "message" : {
-            "type" : "string"
+            "type" : "string",
+            "description" : "Message"
           },
-          "rejectedValue" : { }
+          "rejectedValue" : {
+            "description" : "Rejected value"
+          }
         }
       },
       "GeoJsonLineString" : {
@@ -666,6 +699,31 @@
       "NearType" : {
         "type" : "string",
         "enum" : [ "START", "END", "START_OR_END" ]
+      },
+      "NotFoundDetails" : {
+        "type" : "object",
+        "required" : [ "type", "entityType", "searchedBy", "id" ],
+        "properties" : {
+          "type" : {
+            "description" : "Type",
+            "type" : "string",
+            "$ref" : "#/components/schemas/ErrorCode"
+          },
+          "entityType" : {
+            "description" : "Entity type",
+            "type" : "string",
+            "$ref" : "#/components/schemas/AllEntityType"
+          },
+          "searchedBy" : {
+            "description" : "Search type",
+            "type" : "string",
+            "$ref" : "#/components/schemas/SearchedBy"
+          },
+          "id" : {
+            "type" : "string",
+            "description" : "id/slug"
+          }
+        }
       },
       "PlaceDetailDto" : {
         "type" : "object",
@@ -1450,7 +1508,7 @@
       "RouteDetailDto" : {
         "description" : "Detailed route information",
         "type" : "object",
-        "required" : [ "id", "slug", "name", "media", "distance", "elevationGain", "elevationLoss", "surfaceType", "visibility", "createdBy", "createdAt", "updatedAt", "tracks", "waypoints" ],
+        "required" : [ "id", "slug", "team", "name", "media", "distance", "elevationGain", "elevationLoss", "surfaceType", "visibility", "createdBy", "createdAt", "updatedAt", "tracks", "waypoints" ],
         "properties" : {
           "id" : {
             "type" : "string",
@@ -1459,6 +1517,11 @@
           "slug" : {
             "type" : "string",
             "description" : "Route slug"
+          },
+          "team" : {
+            "description" : "Team",
+            "type" : "object",
+            "$ref" : "#/components/schemas/TeamPublicationDto"
           },
           "name" : {
             "type" : "string",
@@ -1697,6 +1760,10 @@
             "format" : "double"
           }
         }
+      },
+      "SearchedBy" : {
+        "type" : "string",
+        "enum" : [ "ID", "SLUG" ]
       },
       "SlugChangeRequest" : {
         "description" : "Slug change request",
@@ -7268,7 +7335,7 @@
             "content" : {
               "application/json" : {
                 "schema" : {
-                  "$ref" : "#/components/schemas/RouteDto"
+                  "$ref" : "#/components/schemas/RouteDetailDto"
                 }
               }
             }

@@ -12,7 +12,7 @@ import com.tribly.dto.ridetemplates.response.RideTemplateListResponse;
 import com.tribly.enums.Status;
 import com.tribly.enums.TeamRole;
 import com.tribly.enums.Visibility;
-import com.tribly.infrastructure.exception.BusinessException;
+import com.tribly.infrastructure.exception.TriblyException;
 import com.tribly.infrastructure.id.TsidUtils;
 import com.tribly.util.TestDataCleaner;
 import com.tribly.util.TestDataService;
@@ -92,7 +92,7 @@ class RideTemplateServiceTest {
     @Test
     void shouldThrowForMember() {
       assertThrows(
-          BusinessException.class, () -> templateService.listTemplates(team, member, null, 0, 10));
+          TriblyException.class, () -> templateService.listTemplates(team, member, null, 0, 10));
     }
 
     @Test
@@ -126,8 +126,7 @@ class RideTemplateServiceTest {
     @Test
     void shouldThrowForNonexistentTemplate() {
       assertThrows(
-          BusinessException.class,
-          () -> templateService.getTemplate(team, "nonexistent", organizer));
+          TriblyException.class, () -> templateService.getTemplate(team, "nonexistent", organizer));
     }
 
     @Test
@@ -135,8 +134,7 @@ class RideTemplateServiceTest {
       dataService.createRideTemplate(team, admin, "Test Template", "test-template");
 
       assertThrows(
-          BusinessException.class,
-          () -> templateService.getTemplate(team, "test-template", member));
+          TriblyException.class, () -> templateService.getTemplate(team, "test-template", member));
     }
   }
 
@@ -227,7 +225,7 @@ class RideTemplateServiceTest {
               "Public Template", "markdown", Visibility.PUBLIC, Status.PUBLISHED, List.of());
 
       assertThrows(
-          BusinessException.class,
+          TriblyException.class,
           () -> templateService.createTemplate(privateTeam, request, organizer));
     }
 
@@ -250,7 +248,7 @@ class RideTemplateServiceTest {
               "Template", "markdown", Visibility.TEAM, Status.PUBLISHED, List.of());
 
       assertThrows(
-          BusinessException.class, () -> templateService.createTemplate(team, request, member));
+          TriblyException.class, () -> templateService.createTemplate(team, request, member));
     }
   }
 
@@ -363,7 +361,7 @@ class RideTemplateServiceTest {
                       .build()));
 
       assertThrows(
-          BusinessException.class,
+          TriblyException.class,
           () -> templateService.updateTemplate(team, "template-slug", request, organizer));
     }
 
@@ -382,7 +380,7 @@ class RideTemplateServiceTest {
               "Template", "markdown", Visibility.PUBLIC, Status.PUBLISHED, List.of());
 
       assertThrows(
-          BusinessException.class,
+          TriblyException.class,
           () ->
               templateService.updateTemplate(privateTeam, "private-template", request, organizer));
     }
@@ -394,7 +392,7 @@ class RideTemplateServiceTest {
               "Template", "markdown", Visibility.TEAM, Status.PUBLISHED, List.of());
 
       assertThrows(
-          BusinessException.class,
+          TriblyException.class,
           () -> templateService.updateTemplate(team, "nonexistent", request, organizer));
     }
 
@@ -406,7 +404,7 @@ class RideTemplateServiceTest {
               "Updated", "markdown", Visibility.TEAM, Status.PUBLISHED, List.of());
 
       assertThrows(
-          BusinessException.class,
+          TriblyException.class,
           () -> templateService.updateTemplate(team, "template-slug", request, member));
     }
   }
@@ -421,13 +419,13 @@ class RideTemplateServiceTest {
       templateService.deleteTemplate(team, "to-delete", organizer);
 
       assertThrows(
-          BusinessException.class, () -> templateService.getTemplate(team, "to-delete", organizer));
+          TriblyException.class, () -> templateService.getTemplate(team, "to-delete", organizer));
     }
 
     @Test
     void shouldThrowForNonexistentTemplate() {
       assertThrows(
-          BusinessException.class,
+          TriblyException.class,
           () -> templateService.deleteTemplate(team, "nonexistent", organizer));
     }
 
@@ -436,7 +434,7 @@ class RideTemplateServiceTest {
       dataService.createRideTemplate(team, admin, "Template", "template-slug");
 
       assertThrows(
-          BusinessException.class,
+          TriblyException.class,
           () -> templateService.deleteTemplate(team, "template-slug", member));
     }
   }

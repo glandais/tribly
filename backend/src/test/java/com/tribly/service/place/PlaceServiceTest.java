@@ -13,7 +13,7 @@ import com.tribly.dto.places.response.PlaceDetailDto;
 import com.tribly.dto.places.response.PlaceListResponse;
 import com.tribly.enums.TeamRole;
 import com.tribly.enums.Visibility;
-import com.tribly.infrastructure.exception.BusinessException;
+import com.tribly.infrastructure.exception.TriblyException;
 import com.tribly.infrastructure.id.TsidUtils;
 import com.tribly.util.TestDataCleaner;
 import com.tribly.util.TestDataService;
@@ -77,7 +77,7 @@ class PlaceServiceTest {
 
     @Test
     void shouldThrowForMember() {
-      assertThrows(BusinessException.class, () -> placeService.listPlaces(team, 0, 10, member));
+      assertThrows(TriblyException.class, () -> placeService.listPlaces(team, 0, 10, member));
     }
 
     @Test
@@ -110,7 +110,7 @@ class PlaceServiceTest {
     @Test
     void shouldThrowForNonexistentPlace() {
       assertThrows(
-          BusinessException.class,
+          TriblyException.class,
           () -> placeService.getPlace(team, TsidUtils.toString(9999L), organizer));
     }
 
@@ -119,7 +119,7 @@ class PlaceServiceTest {
       Place place = dataService.createPlace(team, admin, "Test Place");
       String placeId = TsidUtils.toString(place.getId());
 
-      assertThrows(BusinessException.class, () -> placeService.getPlace(team, placeId, member));
+      assertThrows(TriblyException.class, () -> placeService.getPlace(team, placeId, member));
     }
   }
 
@@ -166,7 +166,7 @@ class PlaceServiceTest {
     void shouldThrowForMember() {
       PlaceRequest request = new PlaceRequest("Place", null, null, true, true, null);
 
-      assertThrows(BusinessException.class, () -> placeService.createPlace(team, request, member));
+      assertThrows(TriblyException.class, () -> placeService.createPlace(team, request, member));
     }
   }
 
@@ -212,7 +212,7 @@ class PlaceServiceTest {
       PlaceRequest request = new PlaceRequest("Place", null, null, true, true, null);
 
       assertThrows(
-          BusinessException.class,
+          TriblyException.class,
           () -> placeService.updatePlace(team, TsidUtils.toString(9999L), request, organizer));
     }
 
@@ -223,7 +223,7 @@ class PlaceServiceTest {
       PlaceRequest request = new PlaceRequest("Updated", null, null, true, true, null);
 
       assertThrows(
-          BusinessException.class, () -> placeService.updatePlace(team, placeId, request, member));
+          TriblyException.class, () -> placeService.updatePlace(team, placeId, request, member));
     }
   }
 
@@ -237,13 +237,13 @@ class PlaceServiceTest {
 
       placeService.deletePlace(team, placeId, organizer);
 
-      assertThrows(BusinessException.class, () -> placeService.getPlace(team, placeId, organizer));
+      assertThrows(TriblyException.class, () -> placeService.getPlace(team, placeId, organizer));
     }
 
     @Test
     void shouldThrowForNonexistentPlace() {
       assertThrows(
-          BusinessException.class,
+          TriblyException.class,
           () -> placeService.deletePlace(team, TsidUtils.toString(9999L), organizer));
     }
 
@@ -252,7 +252,7 @@ class PlaceServiceTest {
       Place place = dataService.createPlace(team, admin, "Test");
       String placeId = TsidUtils.toString(place.getId());
 
-      assertThrows(BusinessException.class, () -> placeService.deletePlace(team, placeId, member));
+      assertThrows(TriblyException.class, () -> placeService.deletePlace(team, placeId, member));
     }
   }
 }

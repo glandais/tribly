@@ -13,9 +13,11 @@ import com.tribly.domain.user.repository.UserRepository;
 import com.tribly.dto.common.response.AssetDimensionsDto;
 import com.tribly.dto.common.response.AssetDto;
 import com.tribly.dto.common.response.AssetsDto;
+import com.tribly.enums.AllEntityType;
 import com.tribly.enums.AssetType;
 import com.tribly.enums.Visibility;
-import com.tribly.infrastructure.exception.BusinessException;
+import com.tribly.infrastructure.exception.ForbiddenException;
+import com.tribly.infrastructure.exception.NotFoundException;
 import com.tribly.infrastructure.id.TsidUtils;
 import com.tribly.infrastructure.imgproxy.ImgProxyService;
 import com.tribly.service.asset.response.AssetWithFile;
@@ -68,7 +70,10 @@ public class AssetService {
   public AssetDto createAsset(Team team, User creator, InputStream inputStream, String fileName)
       throws IOException {
     // Security check: reuse ride permissions (admins & organizers can create routes)
-    UserTeam userTeam = securityService.requireOrganizer(creator, team);
+    UserTeam userTeam = securityService.getOrganizer(creator, team);
+    if (userTeam == null) {
+      throw new ForbiddenException();
+    }
 
     AssetWithFile assetFile =
         addAssetStream(creator, userTeam.getTeam(), AssetType.IMAGE, null, inputStream, fileName);
@@ -199,17 +204,20 @@ public class AssetService {
   public Asset getAsset(Long id) {
     return assetRepository
         .findByIdOptional(id)
-        .orElseThrow(() -> BusinessException.notFound("Asset", id));
+        .orElseThrow(() -> new NotFoundException(AllEntityType.ASSET, id));
   }
 
   public Asset getAsset(Long id, @Nullable User user) {
     Asset asset =
         assetRepository
             .findByIdOptional(id)
-            .orElseThrow(() -> BusinessException.notFound("Asset", id));
+            .orElseThrow(() -> new NotFoundException(AllEntityType.ASSET, id));
     if (asset.getTeamEntity() == null) {
       if (asset.getTeam().getVisibility() == Visibility.TEAM) {
-        securityService.requireOrganizer(user, asset.getTeam());
+        UserTeam organizer = securityService.getOrganizer(user, asset.getTeam());
+        if (organizer != null) {
+          throw new ForbiddenException();
+        }
       }
     } else {
       TriblyPage<TeamEntity> page =
@@ -220,7 +228,7 @@ public class AssetService {
                   .size(1)
                   .build());
       if (page.total() == 0) {
-        throw BusinessException.notFound("Asset", id);
+        throw new NotFoundException(AllEntityType.ASSET, id);
       }
     }
     return asset;
@@ -231,7 +239,7 @@ public class AssetService {
     Asset asset =
         assetRepository
             .findByIdOptional(id)
-            .orElseThrow(() -> BusinessException.notFound("Asset", id));
+            .orElseThrow(() -> new NotFoundException(AllEntityType.ASSET, id));
     File file = getAssetFile(asset);
     if (file.exists()) {
       file.delete();

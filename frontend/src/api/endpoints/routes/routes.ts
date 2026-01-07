@@ -689,7 +689,7 @@ export const changeRouteSlug = (
   slugChangeRequest: BodyType<SlugChangeRequest>,
   options?: SecondParameter<typeof axiosMutator>
 ) => {
-  return axiosMutator<RouteDto>(
+  return axiosMutator<RouteDetailDto>(
     {
       url: `/api/teams/${slug}/routes/${routeSlug}/slug`,
       method: 'PATCH',

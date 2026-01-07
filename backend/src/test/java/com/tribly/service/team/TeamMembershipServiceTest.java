@@ -9,7 +9,7 @@ import com.tribly.dto.teams.response.MemberDto;
 import com.tribly.dto.teams.response.MemberListResponse;
 import com.tribly.enums.TeamRole;
 import com.tribly.enums.Visibility;
-import com.tribly.infrastructure.exception.BusinessException;
+import com.tribly.infrastructure.exception.TriblyException;
 import com.tribly.infrastructure.id.TsidUtils;
 import com.tribly.util.TestDataCleaner;
 import com.tribly.util.TestDataService;
@@ -56,8 +56,7 @@ class TeamMembershipServiceTest {
   void getTeamMembers_shouldThrowForNonAdmin() {
     dataService.addUserToTeam(user1, team, TeamRole.MEMBER);
 
-    assertThrows(
-        BusinessException.class, () -> membershipService.getTeamMembers(team, user1, 0, 10));
+    assertThrows(TriblyException.class, () -> membershipService.getTeamMembers(team, user1, 0, 10));
   }
 
   @Test
@@ -88,8 +87,8 @@ class TeamMembershipServiceTest {
   void joinTeam_shouldThrowWhenAlreadyMember() {
     dataService.addUserToTeam(user1, team, TeamRole.MEMBER);
 
-    BusinessException exception =
-        assertThrows(BusinessException.class, () -> membershipService.joinTeam(team, user1));
+    TriblyException exception =
+        assertThrows(TriblyException.class, () -> membershipService.joinTeam(team, user1));
 
     assertTrue(exception.getMessage().contains("already a member"));
   }
@@ -121,7 +120,7 @@ class TeamMembershipServiceTest {
     dataService.addUserToTeam(user1, team, TeamRole.MEMBER);
 
     assertThrows(
-        BusinessException.class,
+        TriblyException.class,
         () -> membershipService.addMember(team, user2.getId(), TeamRole.MEMBER, user1));
   }
 
@@ -129,9 +128,9 @@ class TeamMembershipServiceTest {
   void addMember_shouldThrowWhenAlreadyMember() {
     dataService.addUserToTeam(user1, team, TeamRole.MEMBER);
 
-    BusinessException exception =
+    TriblyException exception =
         assertThrows(
-            BusinessException.class,
+            TriblyException.class,
             () -> membershipService.addMember(team, user1.getId(), TeamRole.ORGANIZER, admin));
 
     assertTrue(exception.getMessage().contains("already a member"));
@@ -167,15 +166,15 @@ class TeamMembershipServiceTest {
     dataService.addUserToTeam(user2, team, TeamRole.MEMBER);
 
     assertThrows(
-        BusinessException.class,
+        TriblyException.class,
         () -> membershipService.updateMemberRole(team, user2.getId(), TeamRole.ORGANIZER, user1));
   }
 
   @Test
   void updateMemberRole_shouldPreventDemotingLastAdmin() {
-    BusinessException exception =
+    TriblyException exception =
         assertThrows(
-            BusinessException.class,
+            TriblyException.class,
             () -> membershipService.updateMemberRole(team, admin.getId(), TeamRole.MEMBER, admin));
 
     assertTrue(exception.getMessage().contains("last admin"));
@@ -201,9 +200,9 @@ class TeamMembershipServiceTest {
     membershipService.removeMember(team, user1.getId(), admin);
 
     // Verify soft deletion by trying to get team - should not see it
-    BusinessException exception =
+    TriblyException exception =
         assertThrows(
-            BusinessException.class, () -> membershipService.getTeamMembers(team, user1, 0, 10));
+            TriblyException.class, () -> membershipService.getTeamMembers(team, user1, 0, 10));
     assertTrue(
         exception.getMessage().contains("not a member")
             || exception.getMessage().contains("admin"));
@@ -216,9 +215,9 @@ class TeamMembershipServiceTest {
     membershipService.removeMember(team, user1.getId(), user1);
 
     // Verify soft deletion
-    BusinessException exception =
+    TriblyException exception =
         assertThrows(
-            BusinessException.class, () -> membershipService.getTeamMembers(team, user1, 0, 10));
+            TriblyException.class, () -> membershipService.getTeamMembers(team, user1, 0, 10));
     assertTrue(
         exception.getMessage().contains("not a member")
             || exception.getMessage().contains("admin"));
@@ -226,9 +225,9 @@ class TeamMembershipServiceTest {
 
   @Test
   void removeMember_shouldPreventRemovingLastAdmin() {
-    BusinessException exception =
+    TriblyException exception =
         assertThrows(
-            BusinessException.class,
+            TriblyException.class,
             () -> membershipService.removeMember(team, admin.getId(), admin));
 
     assertTrue(exception.getMessage().contains("last admin"));
@@ -242,9 +241,9 @@ class TeamMembershipServiceTest {
     membershipService.removeMember(team, admin.getId(), admin2);
 
     // Verify soft deletion
-    BusinessException exception =
+    TriblyException exception =
         assertThrows(
-            BusinessException.class, () -> membershipService.getTeamMembers(team, admin, 0, 10));
+            TriblyException.class, () -> membershipService.getTeamMembers(team, admin, 0, 10));
     assertTrue(
         exception.getMessage().contains("not a member")
             || exception.getMessage().contains("admin"));
@@ -256,7 +255,7 @@ class TeamMembershipServiceTest {
     dataService.addUserToTeam(user2, team, TeamRole.MEMBER);
 
     assertThrows(
-        BusinessException.class, () -> membershipService.removeMember(team, user2.getId(), user1));
+        TriblyException.class, () -> membershipService.removeMember(team, user2.getId(), user1));
   }
 
   // ==================== Leave Team ====================
@@ -268,9 +267,9 @@ class TeamMembershipServiceTest {
     membershipService.leaveTeam(team, user1);
 
     // Verify soft deletion
-    BusinessException exception =
+    TriblyException exception =
         assertThrows(
-            BusinessException.class, () -> membershipService.getTeamMembers(team, user1, 0, 10));
+            TriblyException.class, () -> membershipService.getTeamMembers(team, user1, 0, 10));
     assertTrue(
         exception.getMessage().contains("not a member")
             || exception.getMessage().contains("admin"));
@@ -278,9 +277,119 @@ class TeamMembershipServiceTest {
 
   @Test
   void leaveTeam_shouldPreventLastAdminLeaving() {
-    BusinessException exception =
-        assertThrows(BusinessException.class, () -> membershipService.leaveTeam(team, admin));
+    TriblyException exception =
+        assertThrows(TriblyException.class, () -> membershipService.leaveTeam(team, admin));
 
     assertTrue(exception.getMessage().contains("last admin"));
+  }
+
+  // ==================== Business Rule Checks ====================
+
+  @Test
+  void requireNotLastAdmin_shouldSucceedWhenMultipleAdmins() {
+    dataService.addUserToTeam(user1, team, TeamRole.ADMIN);
+    UserTeam admin2 = dataService.addUserToTeam(user2, team, TeamRole.ADMIN);
+
+    assertDoesNotThrow(() -> membershipService.requireNotLastAdmin(team, admin2));
+  }
+
+  @Test
+  void requireNotLastAdmin_shouldSucceedForNonAdminRole() {
+    dataService.addUserToTeam(user1, team, TeamRole.ADMIN);
+    UserTeam member = dataService.addUserToTeam(user2, team, TeamRole.MEMBER);
+
+    assertDoesNotThrow(() -> membershipService.requireNotLastAdmin(team, member));
+  }
+
+  @Test
+  void requireNotLastAdmin_shouldThrowWhenLastAdmin() {
+    UserTeam lastAdmin = dataService.addUserToTeam(user1, team, TeamRole.ADMIN);
+
+    TriblyException exception =
+        assertThrows(
+            TriblyException.class, () -> membershipService.requireNotLastAdmin(team, lastAdmin));
+
+    assertEquals("Cannot remove the last admin", exception.getMessage());
+  }
+
+  @Test
+  void requireNotLastAdminDemotion_shouldSucceedWhenMultipleAdmins() {
+    dataService.addUserToTeam(user1, team, TeamRole.ADMIN);
+    UserTeam admin2 = dataService.addUserToTeam(user2, team, TeamRole.ADMIN);
+
+    assertDoesNotThrow(
+        () -> membershipService.requireNotLastAdminDemotion(team, admin2, TeamRole.ORGANIZER));
+  }
+
+  @Test
+  void requireNotLastAdminDemotion_shouldSucceedWhenNotDemotingFromAdmin() {
+    UserTeam organizer = dataService.addUserToTeam(user1, team, TeamRole.ORGANIZER);
+
+    assertDoesNotThrow(
+        () -> membershipService.requireNotLastAdminDemotion(team, organizer, TeamRole.MEMBER));
+  }
+
+  @Test
+  void requireNotLastAdminDemotion_shouldSucceedWhenPromotingToAdmin() {
+    UserTeam admin = dataService.addUserToTeam(user1, team, TeamRole.ADMIN);
+
+    assertDoesNotThrow(
+        () -> membershipService.requireNotLastAdminDemotion(team, admin, TeamRole.ADMIN));
+  }
+
+  @Test
+  void requireNotLastAdminDemotion_shouldThrowWhenDemotingLastAdmin() {
+    UserTeam lastAdmin = dataService.addUserToTeam(user1, team, TeamRole.ADMIN);
+
+    TriblyException exception =
+        assertThrows(
+            TriblyException.class,
+            () ->
+                membershipService.requireNotLastAdminDemotion(team, lastAdmin, TeamRole.ORGANIZER));
+
+    assertEquals("Cannot remove the last admin", exception.getMessage());
+  }
+
+  // ==================== Self-Action Checks ====================
+
+  @Test
+  void requireCanRemoveMember_shouldSucceedForSelfRemoval() {
+    dataService.addUserToTeam(user1, team, TeamRole.MEMBER);
+
+    assertDoesNotThrow(() -> membershipService.requireCanRemoveMember(user1, user1, team));
+  }
+
+  @Test
+  void requireCanRemoveMember_shouldSucceedForAdminRemovingOthers() {
+    dataService.addUserToTeam(user1, team, TeamRole.ADMIN);
+    dataService.addUserToTeam(user2, team, TeamRole.MEMBER);
+
+    assertDoesNotThrow(() -> membershipService.requireCanRemoveMember(user1, user2, team));
+  }
+
+  @Test
+  void requireCanRemoveMember_shouldThrowForNonAdminRemovingOthers() {
+    dataService.addUserToTeam(user1, team, TeamRole.MEMBER);
+    dataService.addUserToTeam(user2, team, TeamRole.MEMBER);
+
+    TriblyException exception =
+        assertThrows(
+            TriblyException.class,
+            () -> membershipService.requireCanRemoveMember(user1, user2, team));
+
+    assertEquals("Only admins can perform this action", exception.getMessage());
+  }
+
+  @Test
+  void requireCanRemoveMember_shouldThrowForOrganizerRemovingOthers() {
+    dataService.addUserToTeam(user1, team, TeamRole.ORGANIZER);
+    dataService.addUserToTeam(user2, team, TeamRole.MEMBER);
+
+    TriblyException exception =
+        assertThrows(
+            TriblyException.class,
+            () -> membershipService.requireCanRemoveMember(user1, user2, team));
+
+    assertEquals("Only admins can perform this action", exception.getMessage());
   }
 }

@@ -79,7 +79,7 @@ public class TeamPageResource extends AbstractAuthenticatedResource {
       @Parameter(description = "Page URL slug") @PathParam("pageSlug") String pageSlug) {
     User user = getCurrentUserOrNull();
     Team team = teamService.getTeam(teamSlug);
-    TeamPageDto page = teamPageService.getPage(team, pageSlug, user);
+    TeamPageDto page = teamPageService.getDto(team, pageSlug, user);
     return Response.ok(page).build();
   }
 

@@ -133,7 +133,7 @@ public class RideResource extends AbstractAuthenticatedResource {
       @Parameter(description = "Ride URL slug") @PathParam("rideSlug") String rideSlug) {
     User user = getCurrentUserOrNull();
     Team team = teamService.getTeam(teamSlug);
-    RideDto ride = rideService.getRideDetail(team, rideSlug, user);
+    RideDto ride = rideService.getDto(team, rideSlug, user);
     return Response.ok(ride).build();
   }
 

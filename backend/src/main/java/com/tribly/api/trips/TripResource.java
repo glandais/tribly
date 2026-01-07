@@ -134,7 +134,7 @@ public class TripResource extends AbstractAuthenticatedResource {
       @Parameter(description = "Trip URL slug") @PathParam("tripSlug") String tripSlug) {
     User user = getCurrentUserOrNull();
     Team team = teamService.getTeam(teamSlug);
-    TripDto trip = tripService.getTripDetail(team, tripSlug, user);
+    TripDto trip = tripService.getDto(team, tripSlug, user);
     return Response.ok(trip).build();
   }
 

@@ -10,36 +10,60 @@ import com.tribly.domain.user.User;
 import com.tribly.dto.ads.request.AdRequest;
 import com.tribly.dto.ads.response.AdDto;
 import com.tribly.dto.ads.response.AdListResponse;
+import com.tribly.dto.error.ErrorCode;
+import com.tribly.enums.ActionType;
 import com.tribly.enums.AdType;
-import com.tribly.enums.EntityType;
+import com.tribly.enums.AllEntityType;
 import com.tribly.enums.Status;
 import com.tribly.infrastructure.exception.BusinessException;
+import com.tribly.infrastructure.exception.NotFoundException;
 import com.tribly.service.common.TeamEntityService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import org.jboss.logging.Logger;
 import org.jspecify.annotations.Nullable;
 
 @ApplicationScoped
-public class AdService extends TeamEntityService<Ad> {
+public class AdService extends TeamEntityService<Ad, AdRepository, AdDto> {
 
   private static final Logger LOG = Logger.getLogger(AdService.class);
 
   @Inject AdRepository adRepository;
 
   @Override
-  protected EntityType getEntityType() {
-    return EntityType.AD;
+  protected AdRepository getRepository() {
+    return adRepository;
   }
 
   @Override
-  protected Optional<Ad> findByIdOptional(Long entityId) {
-    return adRepository.findByIdOptional(entityId);
+  protected AdDto toDto(Ad entity) {
+    return AdDto.from(entity, assetService);
+  }
+
+  @Override
+  protected boolean hasRights(
+      ActionType action, Team team, @Nullable User user, @Nullable Ad entity) {
+    return switch (action) {
+      case CREATE -> securityService.getMembership(user, team) != null && team.isEnableTrips();
+      // SQL
+      case READ -> true;
+      case JOIN -> false;
+      case UPDATE, DELETE -> {
+        if (entity == null || user == null || !team.isEnableTrips()) {
+          yield false;
+        }
+        UserTeam membership = securityService.getMembership(user, team);
+        if (membership == null) {
+          yield false;
+        }
+        boolean isCreator = entity.getCreatedBy().getId().equals(user.getId());
+        yield isCreator || membership.isAdmin();
+      }
+    };
   }
 
   @Override
@@ -54,7 +78,7 @@ public class AdService extends TeamEntityService<Ad> {
                 .size(1)
                 .build());
     if (ads.items().isEmpty()) {
-      throw BusinessException.notFound("Ad", adSlug);
+      throw new NotFoundException(AllEntityType.AD, adSlug);
     } else {
       return ads.items().getFirst();
     }
@@ -85,14 +109,10 @@ public class AdService extends TeamEntityService<Ad> {
     return new AdListResponse(dtos, ads.total(), page, size);
   }
 
-  public AdDto getAdDetail(Team team, String adSlug, @Nullable User user) {
-    return AdDto.from(get(team, adSlug, user), assetService);
-  }
-
   @Transactional
   public AdDto createAd(Team team, AdRequest request, User creator) {
     // Security check: any team member can create ads
-    securityService.requireMembership(creator, team);
+    checkRights(ActionType.CREATE, team, creator, null);
 
     verifyAd(request, team);
 
@@ -124,10 +144,7 @@ public class AdService extends TeamEntityService<Ad> {
 
   @Transactional
   public AdDto updateAd(Team team, String adSlug, AdRequest request, User user) {
-    Ad ad = get(team, adSlug, user);
-
-    // Security check: only creator or admin can edit
-    requireEditPermission(user, team, ad);
+    Ad ad = get(ActionType.UPDATE, team, adSlug, user);
 
     // Validate visibility: private teams can only have team-only ads
     verifyAd(request, team);
@@ -144,22 +161,11 @@ public class AdService extends TeamEntityService<Ad> {
 
   @Transactional
   public void deleteAd(Team team, String adSlug, User user) {
-    Ad ad = get(team, adSlug, user);
-
-    // Security check: only creator or admin can delete
-    requireEditPermission(user, team, ad);
+    Ad ad = get(ActionType.DELETE, team, adSlug, user);
 
     ad.setDeleted(true);
     adRepository.persist(ad);
     LOG.infov("Ad {0} deleted by user {1}", adSlug, user.getId());
-  }
-
-  private void requireEditPermission(User user, Team team, Ad ad) {
-    UserTeam membership = securityService.requireMembership(user, team);
-    boolean isCreator = ad.getCreatedBy().getId().equals(user.getId());
-    if (!isCreator && !membership.isAdmin()) {
-      throw BusinessException.forbidden("Only the creator or an admin can edit this ad");
-    }
   }
 
   private void verifyAd(AdRequest request, Team team) {
@@ -167,11 +173,11 @@ public class AdService extends TeamEntityService<Ad> {
 
     // Validate rental period for rental ads
     if (request.adType() == AdType.RENTAL && request.rentalPeriod() == null) {
-      throw BusinessException.validation("Rental period is required for rental ads");
+      throw new BusinessException(ErrorCode.RENTAL_PERIOD_MISSING);
     }
 
     if (request.status() == Status.CANCELLED) {
-      throw BusinessException.validation("Ad can't be cancelled");
+      throw new BusinessException(ErrorCode.STATUS_INVALID);
     }
   }
 
@@ -188,34 +194,5 @@ public class AdService extends TeamEntityService<Ad> {
       ad.setRentalPeriod(null);
     }
     ad.setLocationDescription(request.locationDescription());
-  }
-
-  @Transactional
-  public AdDto updateSlug(Team team, String slugParam, String newSlug, User user) {
-    Ad ad = get(team, slugParam, user);
-    String currentSlug = ad.getSlug();
-
-    securityService.requireAdmin(user, team);
-
-    if (!slugService.isValidSlug(newSlug)) {
-      throw BusinessException.validation("Invalid slug format");
-    }
-
-    if (currentSlug.equals(newSlug)) {
-      return AdDto.from(ad, assetService);
-    }
-
-    if (adRepository.existsByTeamAndSlug(ad.getTeam().getId(), newSlug)) {
-      throw BusinessException.conflict("Slug already in use", "SLUG_TAKEN");
-    }
-
-    slugService.clearEntityRedirect(ad.getTeam().getId(), EntityType.AD, newSlug);
-    slugService.createEntityRedirect(ad, currentSlug);
-
-    ad.setSlug(newSlug);
-    adRepository.persist(ad);
-
-    LOG.infov("Ad slug changed from {0} to {1} by user {2}", currentSlug, newSlug, user.getId());
-    return AdDto.from(ad, assetService);
   }
 }

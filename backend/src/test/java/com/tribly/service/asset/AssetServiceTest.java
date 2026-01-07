@@ -11,7 +11,7 @@ import com.tribly.dto.common.response.AssetsDto;
 import com.tribly.enums.AssetType;
 import com.tribly.enums.TeamRole;
 import com.tribly.enums.Visibility;
-import com.tribly.infrastructure.exception.BusinessException;
+import com.tribly.infrastructure.exception.TriblyException;
 import com.tribly.infrastructure.id.TsidUtils;
 import com.tribly.service.asset.response.AssetWithFile;
 import com.tribly.service.asset.response.DownloadableAsset;
@@ -97,8 +97,7 @@ class AssetServiceTest {
       InputStream content = new ByteArrayInputStream("test".getBytes());
 
       assertThrows(
-          BusinessException.class,
-          () -> assetService.createAsset(team, member, content, "test.txt"));
+          TriblyException.class, () -> assetService.createAsset(team, member, content, "test.txt"));
     }
   }
 
@@ -198,7 +197,7 @@ class AssetServiceTest {
 
     @Test
     void shouldThrowForNonexistentAsset() {
-      assertThrows(BusinessException.class, () -> assetService.getAsset(999999L));
+      assertThrows(TriblyException.class, () -> assetService.getAsset(999999L));
     }
   }
 
@@ -223,7 +222,7 @@ class AssetServiceTest {
       assertNotNull(result);
 
       // Non-member cannot access
-      assertThrows(BusinessException.class, () -> assetService.getAsset(asset.getId(), nonMember));
+      assertThrows(TriblyException.class, () -> assetService.getAsset(asset.getId(), nonMember));
     }
 
     @Test
@@ -247,7 +246,7 @@ class AssetServiceTest {
       dataService.updateAsset(asset);
 
       // Non-member cannot access team-visibility post asset
-      assertThrows(BusinessException.class, () -> assetService.getAsset(asset.getId(), nonMember));
+      assertThrows(TriblyException.class, () -> assetService.getAsset(asset.getId(), nonMember));
     }
   }
 
@@ -276,7 +275,7 @@ class AssetServiceTest {
 
     @Test
     void shouldThrowForNonexistentAsset() {
-      assertThrows(BusinessException.class, () -> assetService.deleteAsset(999999L));
+      assertThrows(TriblyException.class, () -> assetService.deleteAsset(999999L));
     }
   }
 
@@ -444,7 +443,7 @@ class AssetServiceTest {
       // Use a valid TSID format that doesn't exist
       String nonexistentId = TsidUtils.toString(999999999L);
       assertThrows(
-          BusinessException.class,
+          TriblyException.class,
           () -> assetService.getImage(nonexistentId, null, 200, "image/jpeg"));
     }
 
@@ -459,7 +458,7 @@ class AssetServiceTest {
 
       // Non-member should not be able to access
       assertThrows(
-          BusinessException.class,
+          TriblyException.class,
           () -> assetService.getImage(assetId, nonMember, 200, "image/jpeg"));
     }
   }

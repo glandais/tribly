@@ -3,6 +3,7 @@ package com.tribly.dto.routes.response;
 import com.tribly.domain.route.Route;
 import com.tribly.dto.common.GeoJsonPoint;
 import com.tribly.dto.common.response.MediaDto;
+import com.tribly.dto.publications.response.TeamPublicationDto;
 import com.tribly.dto.users.response.PublicUserDto;
 import com.tribly.dto.validation.ValidateSchema;
 import com.tribly.enums.SurfaceType;
@@ -23,6 +24,7 @@ import org.geolatte.geom.Point;
 public record RouteDetailDto(
     @Schema(description = "Route ID (TSID)", required = true) String id,
     @Schema(description = "Route slug", required = true) String slug,
+    @Schema(description = "Team", required = true) TeamPublicationDto team,
     @Schema(description = "Route name", required = true) String name,
     @Schema(description = "Media", required = true) MediaDto media,
     @Schema(description = "Distance in meters", required = true) Integer distance,
@@ -41,6 +43,7 @@ public record RouteDetailDto(
     return new RouteDetailDto(
         TsidUtils.toString(route.getId()),
         route.getSlug(),
+        TeamPublicationDto.from(route.getTeam()),
         route.getName(),
         MediaDto.from(route, assetService),
         route.getDistance(),

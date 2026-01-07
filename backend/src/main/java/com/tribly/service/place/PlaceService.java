@@ -8,7 +8,8 @@ import com.tribly.domain.user.User;
 import com.tribly.dto.places.request.PlaceRequest;
 import com.tribly.dto.places.response.PlaceDetailDto;
 import com.tribly.dto.places.response.PlaceListResponse;
-import com.tribly.infrastructure.exception.BusinessException;
+import com.tribly.enums.AllEntityType;
+import com.tribly.infrastructure.exception.NotFoundException;
 import com.tribly.infrastructure.id.TsidUtils;
 import com.tribly.service.security.TeamSecurityService;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -42,7 +43,7 @@ public class PlaceService {
     Place place =
         placeRepository
             .findByIdAndTeam(TsidUtils.toLong(placeId), team.getId())
-            .orElseThrow(() -> BusinessException.notFound("Place", placeId));
+            .orElseThrow(() -> new NotFoundException(AllEntityType.PLACE, placeId));
 
     return PlaceDetailDto.from(place);
   }
@@ -72,7 +73,7 @@ public class PlaceService {
     Place place =
         placeRepository
             .findByIdAndTeam(TsidUtils.toLong(placeId), team.getId())
-            .orElseThrow(() -> BusinessException.notFound("Place", placeId));
+            .orElseThrow(() -> new NotFoundException(AllEntityType.PLACE, placeId));
 
     updatePlaceFromRequest(place, request);
     placeRepository.persist(place);
@@ -89,7 +90,7 @@ public class PlaceService {
     Place place =
         placeRepository
             .findByIdAndTeam(TsidUtils.toLong(placeId), team.getId())
-            .orElseThrow(() -> BusinessException.notFound("Place", placeId));
+            .orElseThrow(() -> new NotFoundException(AllEntityType.PLACE, placeId));
 
     place.setDeleted(true);
     placeRepository.persist(place);

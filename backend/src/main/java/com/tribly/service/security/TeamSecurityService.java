@@ -4,9 +4,9 @@ import com.tribly.domain.team.Team;
 import com.tribly.domain.team.UserTeam;
 import com.tribly.domain.team.repository.UserTeamRepository;
 import com.tribly.domain.user.User;
-import com.tribly.enums.TeamRole;
 import com.tribly.enums.Visibility;
-import com.tribly.infrastructure.exception.BusinessException;
+import com.tribly.infrastructure.exception.ForbiddenException;
+import com.tribly.infrastructure.exception.TriblyException;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.jspecify.annotations.Nullable;
@@ -67,15 +67,14 @@ public class TeamSecurityService {
    * @param user   the user
    * @param team the team
    * @return the membership
-   * @throws BusinessException with FORBIDDEN if not a member
+   * @throws TriblyException with FORBIDDEN if not a member
    */
-  public UserTeam requireMembership(@Nullable User user, Team team) {
+  @Nullable
+  public UserTeam getMembership(@Nullable User user, Team team) {
     if (user == null) {
-      throw BusinessException.forbidden("You are not a member of this team");
+      return null;
     }
-    return userTeamRepository
-        .findByUserAndTeam(user.getId(), team.getId())
-        .orElseThrow(() -> BusinessException.forbidden("You are not a member of this team"));
+    return userTeamRepository.findByUserAndTeam(user.getId(), team.getId()).orElse(null);
   }
 
   // ==================== Role-Based Checks ====================
@@ -85,13 +84,15 @@ public class TeamSecurityService {
    *
    * @param user the user
    * @param team   the team
-   * @throws BusinessException with FORBIDDEN if not an admin
+   * @throws TriblyException with FORBIDDEN if not an admin
    */
-  public void requireAdmin(User user, Team team) {
-    UserTeam membership = requireMembership(user, team);
-    if (!membership.isAdmin()) {
-      throw BusinessException.forbidden("Only admins can perform this action");
+  @Nullable
+  public UserTeam getAdmin(@Nullable User user, Team team) {
+    UserTeam membership = getMembership(user, team);
+    if (membership == null || !membership.isAdmin()) {
+      return null;
     }
+    return membership;
   }
 
   // ==================== Ride Permission Checks ====================
@@ -108,12 +109,13 @@ public class TeamSecurityService {
    * @param user   the user
    * @param team the team
    * @return
-   * @throws BusinessException with FORBIDDEN
+   * @throws TriblyException with FORBIDDEN
    */
-  public UserTeam requireOrganizer(@Nullable User user, Team team) {
-    UserTeam membership = requireMembership(user, team);
-    if (!membership.isOrganizer()) {
-      throw BusinessException.forbidden("Not organizer");
+  @Nullable
+  public UserTeam getOrganizer(@Nullable User user, Team team) {
+    UserTeam membership = getMembership(user, team);
+    if (membership == null || !membership.isOrganizer()) {
+      return null;
     }
     return membership;
   }
@@ -124,65 +126,38 @@ public class TeamSecurityService {
    * Requires the team to be public for self-join operations.
    *
    * @param team the team to join
-   * @throws BusinessException with FORBIDDEN if the team is private
+   * @throws TriblyException with FORBIDDEN if the team is private
    */
   public void requirePublicTeamForJoin(Team team) {
     if (team.getVisibility() != Visibility.PUBLIC) {
-      throw BusinessException.forbidden("This team is private. You need an invitation to join.");
+      throw new ForbiddenException();
     }
   }
 
-  // ==================== Business Rule Checks ====================
-
-  /**
-   * Checks that removing a user won't leave the team without an admin.
-   *
-   * @param team         the team
-   * @param targetMembership the membership being removed or demoted
-   * @throws BusinessException with BUSINESS_RULE if this would remove the last admin
-   */
-  public void requireNotLastAdmin(Team team, UserTeam targetMembership) {
-    if (targetMembership.getRole() == TeamRole.ADMIN) {
-      long adminCount = userTeamRepository.countAdminsByTeam(team.getId());
-      if (adminCount <= 1) {
-        throw BusinessException.businessRule("Cannot remove the last admin", "LAST_ADMIN");
-      }
+  @Deprecated
+  public UserTeam requireMembership(@Nullable User user, Team team) {
+    UserTeam membership = getMembership(user, team);
+    if (membership == null) {
+      throw new ForbiddenException();
     }
+    return membership;
   }
 
-  /**
-   * Checks that demoting a user won't leave the team without an admin.
-   *
-   * @param team         the team
-   * @param targetMembership the membership being demoted
-   * @param newRole          the new role
-   * @throws BusinessException with BUSINESS_RULE if this would remove the last admin
-   */
-  public void requireNotLastAdminDemotion(Team team, UserTeam targetMembership, TeamRole newRole) {
-    if (targetMembership.getRole() == TeamRole.ADMIN && newRole != TeamRole.ADMIN) {
-      requireNotLastAdmin(team, targetMembership);
+  @Deprecated
+  public UserTeam requireOrganizer(@Nullable User user, Team team) {
+    UserTeam membership = getOrganizer(user, team);
+    if (membership == null) {
+      throw new ForbiddenException();
     }
+    return membership;
   }
 
-  // ==================== Self-Action Checks ====================
-
-  /**
-   * Checks if a user can remove a member (self or with admin rights).
-   *
-   * @param actor  the user performing the action
-   * @param target the user being removed
-   * @param team the team
-   * @throws BusinessException with FORBIDDEN if not allowed
-   */
-  public void requireCanRemoveMember(User actor, User target, Team team) {
-    boolean isSelfRemoval = target.getId().equals(actor.getId());
-    if (isSelfRemoval) {
-      // Users can always remove themselves (leave the team)
-      requireMembership(actor, team);
-      return;
+  @Deprecated
+  public UserTeam requireAdmin(@Nullable User user, Team team) {
+    UserTeam membership = getAdmin(user, team);
+    if (membership == null) {
+      throw new ForbiddenException();
     }
-
-    // Non-self removal requires admin rights
-    requireAdmin(actor, team);
+    return membership;
   }
 }

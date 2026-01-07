@@ -2,7 +2,10 @@ package com.tribly.api;
 
 import com.tribly.domain.user.User;
 import com.tribly.domain.user.repository.UserRepository;
+import com.tribly.dto.error.ErrorCode;
 import com.tribly.infrastructure.exception.BusinessException;
+import com.tribly.infrastructure.exception.ForbiddenException;
+import com.tribly.infrastructure.exception.TriblyException;
 import com.tribly.service.team.TeamService;
 import com.tribly.service.user.UserService;
 import io.quarkus.security.identity.CurrentIdentityAssociation;
@@ -37,11 +40,11 @@ public abstract class AbstractAuthenticatedResource {
    *
    * @return the user ID
    * @throws NotAuthorizedException if no valid authentication is present
-   * @throws BusinessException with USER_NOT_SYNCED if authenticated but user not synced
+   * @throws TriblyException with USER_NOT_SYNCED if authenticated but user not synced
    */
   protected User getCurrentUser() {
     Long userId = getUserId();
-    return getUser(userId).orElseThrow(() -> BusinessException.forbidden(""));
+    return getUser(userId).orElseThrow(ForbiddenException::new);
   }
 
   protected Long getUserId() {
@@ -56,8 +59,7 @@ public abstract class AbstractAuthenticatedResource {
 
   private Optional<User> getUser(@Nullable Long userId) {
     if (userId == null) {
-      throw BusinessException.forbidden(
-          "User profile not synchronized. Please call /api/users/me first.", "USER_NOT_SYNCED");
+      throw new BusinessException(ErrorCode.USER_NOT_SYNCED);
     }
     return userRepository.findActiveById(userId);
   }

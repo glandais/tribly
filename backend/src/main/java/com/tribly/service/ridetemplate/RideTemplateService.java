@@ -8,12 +8,15 @@ import com.tribly.domain.ridetemplate.repository.RideTemplateRepository;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.team.UserTeam;
 import com.tribly.domain.user.User;
+import com.tribly.dto.error.ErrorCode;
 import com.tribly.dto.ridetemplates.request.RideTemplateGroupRequest;
 import com.tribly.dto.ridetemplates.request.RideTemplateRequest;
 import com.tribly.dto.ridetemplates.response.RideTemplateDto;
 import com.tribly.dto.ridetemplates.response.RideTemplateListResponse;
+import com.tribly.enums.AllEntityType;
 import com.tribly.enums.Visibility;
 import com.tribly.infrastructure.exception.BusinessException;
+import com.tribly.infrastructure.exception.NotFoundException;
 import com.tribly.infrastructure.id.TsidUtils;
 import com.tribly.service.common.SlugService;
 import com.tribly.service.security.TeamSecurityService;
@@ -57,7 +60,7 @@ public class RideTemplateService {
     RideTemplate template =
         templateRepository
             .findByTeamAndSlug(team.getId(), templateSlug)
-            .orElseThrow(() -> BusinessException.notFound("Template", templateSlug));
+            .orElseThrow(() -> new NotFoundException(AllEntityType.RIDE_TEMPLATE, templateSlug));
 
     return RideTemplateDto.from(template);
   }
@@ -70,7 +73,7 @@ public class RideTemplateService {
     // Validate visibility: private teams can only have team-only templates
     Visibility visibility = request.visibility();
     if (team.getVisibility() != Visibility.PUBLIC && visibility == Visibility.PUBLIC) {
-      throw BusinessException.validation("Private teams can only have team-only templates");
+      throw new BusinessException(ErrorCode.INVALID_VISIBILITY);
     }
 
     // Generate slug from name, ensure unique within team
@@ -114,14 +117,14 @@ public class RideTemplateService {
     RideTemplate template =
         templateRepository
             .findByTeamAndSlug(team.getId(), templateSlug)
-            .orElseThrow(() -> BusinessException.notFound("Template", templateSlug));
+            .orElseThrow(() -> new NotFoundException(AllEntityType.RIDE_TEMPLATE, templateSlug));
 
     // Security check: must be admin or organizer to update templates
     UserTeam userTeam = securityService.requireOrganizer(user, team);
 
     // Validate visibility: private teams can only have team-only templates
     if (team.getVisibility() != Visibility.PUBLIC && request.visibility() == Visibility.PUBLIC) {
-      throw BusinessException.validation("Private teams can only have team-only templates");
+      throw new BusinessException(ErrorCode.INVALID_VISIBILITY);
     }
 
     template.setName(request.name());
@@ -154,7 +157,7 @@ public class RideTemplateService {
           existingGroup.setMaxParticipants(groupRequest.maxParticipants());
           existingGroup.setSortOrder(sortOrder);
         } else {
-          throw BusinessException.notFound("Group", groupRequest.id());
+          throw new NotFoundException(AllEntityType.RIDE_TEMPLATE_GROUP, groupRequest.id());
         }
       }
       sortOrder++;
@@ -171,7 +174,7 @@ public class RideTemplateService {
     RideTemplate template =
         templateRepository
             .findByTeamAndSlug(team.getId(), templateSlug)
-            .orElseThrow(() -> BusinessException.notFound("Template", templateSlug));
+            .orElseThrow(() -> new NotFoundException(AllEntityType.RIDE_TEMPLATE, templateSlug));
 
     // Security check: must be admin or organizer to delete templates
     securityService.requireOrganizer(user, team);

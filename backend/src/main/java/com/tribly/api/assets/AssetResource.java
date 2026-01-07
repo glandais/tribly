@@ -4,6 +4,7 @@ import com.tribly.api.AbstractAuthenticatedResource;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
 import com.tribly.dto.common.response.AssetDto;
+import com.tribly.dto.error.ErrorCode;
 import com.tribly.dto.error.ErrorResponse;
 import com.tribly.infrastructure.exception.BusinessException;
 import com.tribly.service.asset.AssetService;
@@ -69,7 +70,7 @@ public class AssetResource extends AbstractAuthenticatedResource {
 
     // Validate file
     if (fileUpload == null || fileUpload.filePath() == null) {
-      throw BusinessException.validation("File is required");
+      throw new BusinessException(ErrorCode.FILE_REQUIRED);
     }
     String fileName = fileUpload.fileName();
 

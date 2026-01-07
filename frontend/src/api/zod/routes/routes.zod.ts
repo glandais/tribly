@@ -946,6 +946,14 @@ export const getRouteResponse = zod
   .object({
     id: zod.string().describe('Route ID (TSID)'),
     slug: zod.string().describe('Route slug'),
+    team: zod
+      .object({
+        id: zod.string().describe('Team ID (TSID)'),
+        name: zod.string().describe('Team name'),
+        slug: zod.string().describe('Team URL slug'),
+        visibility: zod.enum(['TEAM', 'PUBLIC']),
+      })
+      .describe('Team information'),
     name: zod.string().describe('Route name'),
     media: zod.object({
       markdown: zod.string().describe('Markdown'),
@@ -1333,6 +1341,71 @@ export const changeRouteSlugResponse = zod
     elevationLoss: zod.number().describe('Total elevation loss in meters'),
     surfaceType: zod.enum(['ROAD', 'GRAVEL', 'MTB', 'MIXED']),
     visibility: zod.enum(['TEAM', 'PUBLIC']),
+    start: zod
+      .object({
+        type: zod.enum(['Point']),
+        coordinates: zod.array(zod.number()).describe('Coordinates [longitude, latitude]'),
+      })
+      .optional()
+      .describe('GeoJSON Point geometry'),
+    end: zod
+      .object({
+        type: zod.enum(['Point']),
+        coordinates: zod.array(zod.number()).describe('Coordinates [longitude, latitude]'),
+      })
+      .optional()
+      .describe('GeoJSON Point geometry'),
+    createdBy: zod
+      .object({
+        id: zod.string().describe('User ID (TSID)'),
+        displayName: zod.string().describe('User display name'),
+        avatarUrl: zod.string().optional().describe('User avatar URL'),
+      })
+      .describe('Public user information (limited fields)'),
     createdAt: zod.iso.datetime({}),
+    updatedAt: zod.iso.datetime({}),
+    tracks: zod
+      .array(
+        zod
+          .object({
+            line: zod.object({
+              type: zod.enum(['LineString']),
+              coordinates: zod
+                .array(zod.array(zod.number()))
+                .describe('Array of [lon, lat] coordinates'),
+            }),
+            climbs: zod
+              .array(
+                zod
+                  .object({
+                    startDistance: zod
+                      .number()
+                      .describe('Start distance from route start in meters'),
+                    endDistance: zod.number().describe('End distance from route start in meters'),
+                    elevationGain: zod.number().describe('Elevation gain in meters'),
+                    averageGradient: zod.number().describe('Average gradient percentage'),
+                    maxGradient: zod.number().describe('Maximum gradient percentage'),
+                    category: zod.enum(['HC', 'CAT1', 'CAT2', 'CAT3', 'CAT4']).optional(),
+                  })
+                  .describe('Climb segment information')
+              )
+              .describe('List of climbs on the route'),
+          })
+          .describe('GPX track with track points')
+      )
+      .describe('Tracks'),
+    waypoints: zod
+      .array(
+        zod.object({
+          geometry: zod
+            .object({
+              type: zod.enum(['Point']),
+              coordinates: zod.array(zod.number()).describe('Coordinates [longitude, latitude]'),
+            })
+            .describe('GeoJSON Point geometry'),
+          name: zod.string().optional(),
+        })
+      )
+      .describe('Waypoints'),
   })
-  .describe('Route summary data')
+  .describe('Detailed route information')

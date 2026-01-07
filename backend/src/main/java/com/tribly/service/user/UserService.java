@@ -4,7 +4,8 @@ import com.tribly.domain.user.User;
 import com.tribly.domain.user.repository.UserRepository;
 import com.tribly.dto.users.response.PublicUserDto;
 import com.tribly.dto.users.response.UserDto;
-import com.tribly.infrastructure.exception.BusinessException;
+import com.tribly.enums.AllEntityType;
+import com.tribly.infrastructure.exception.NotFoundException;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -28,7 +29,7 @@ public class UserService {
   private User getUserEntity(Long userId) {
     return userRepository
         .findActiveById(userId)
-        .orElseThrow(() -> BusinessException.notFound("User", userId));
+        .orElseThrow(() -> new NotFoundException(AllEntityType.USER, userId));
   }
 
   public List<PublicUserDto> searchByDisplayName(String query, int limit) {

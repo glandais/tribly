@@ -13,7 +13,7 @@ import com.tribly.dto.rides.response.*;
 import com.tribly.enums.Status;
 import com.tribly.enums.TeamRole;
 import com.tribly.enums.Visibility;
-import com.tribly.infrastructure.exception.BusinessException;
+import com.tribly.infrastructure.exception.TriblyException;
 import com.tribly.infrastructure.id.TsidUtils;
 import com.tribly.util.TestDataCleaner;
 import com.tribly.util.TestDataService;
@@ -212,7 +212,7 @@ class RideServiceTest {
   void getRideBySlug_shouldReturnRide() {
     dataService.createRide(team, admin, "Test Ride", "test-ride", Instant.now());
 
-    RideDto result = rideService.getRideDetail(team, "test-ride", null);
+    RideDto result = rideService.getDto(team, "test-ride", null);
 
     assertEquals("Test Ride", result.getName());
     assertEquals("test-ride", result.getSlug());
@@ -220,15 +220,14 @@ class RideServiceTest {
 
   @Test
   void getRideBySlug_shouldThrowForNonexistent() {
-    assertThrows(
-        BusinessException.class, () -> rideService.getRideDetail(team, "nonexistent", null));
+    assertThrows(TriblyException.class, () -> rideService.getDto(team, "nonexistent", null));
   }
 
   @Test
   void getRideBySlug_shouldShowDraftToOrganizer() {
     dataService.createRide(team, admin, "Draft", "draft", Instant.now(), Status.DRAFT);
 
-    RideDto result = rideService.getRideDetail(team, "draft", organizer);
+    RideDto result = rideService.getDto(team, "draft", organizer);
 
     assertEquals(Status.DRAFT, result.getStatus());
   }
@@ -237,7 +236,7 @@ class RideServiceTest {
   void getRideBySlug_shouldHideDraftFromMember() {
     dataService.createRide(team, admin, "Draft", "draft", Instant.now(), Status.DRAFT);
 
-    assertThrows(BusinessException.class, () -> rideService.getRideDetail(team, "draft", member));
+    assertThrows(TriblyException.class, () -> rideService.getDto(team, "draft", member));
   }
 
   // ==================== Create Ride ====================
@@ -326,7 +325,7 @@ class RideServiceTest {
             null,
             List.of());
 
-    assertThrows(BusinessException.class, () -> rideService.createRide(team, request, member));
+    assertThrows(TriblyException.class, () -> rideService.createRide(team, request, member));
   }
 
   @Test
@@ -348,9 +347,9 @@ class RideServiceTest {
             null,
             List.of());
 
-    BusinessException exception =
+    TriblyException exception =
         assertThrows(
-            BusinessException.class, () -> rideService.createRide(privateTeam, request, organizer));
+            TriblyException.class, () -> rideService.createRide(privateTeam, request, organizer));
 
     assertTrue(exception.getMessage().contains("Private teams can only have team-only items"));
   }
@@ -420,7 +419,7 @@ class RideServiceTest {
             null,
             List.of());
 
-    assertThrows(BusinessException.class, () -> rideService.createRide(team, request, organizer));
+    assertThrows(TriblyException.class, () -> rideService.createRide(team, request, organizer));
   }
 
   @Test
@@ -442,7 +441,7 @@ class RideServiceTest {
             null,
             List.of());
 
-    assertThrows(BusinessException.class, () -> rideService.createRide(team, request, organizer));
+    assertThrows(TriblyException.class, () -> rideService.createRide(team, request, organizer));
   }
 
   @Test
@@ -462,9 +461,8 @@ class RideServiceTest {
             null,
             List.of());
 
-    BusinessException exception =
-        assertThrows(
-            BusinessException.class, () -> rideService.createRide(team, request, organizer));
+    TriblyException exception =
+        assertThrows(TriblyException.class, () -> rideService.createRide(team, request, organizer));
 
     assertTrue(exception.getMessage().contains("private route"));
   }
@@ -536,7 +534,7 @@ class RideServiceTest {
             null,
             List.of());
 
-    assertThrows(BusinessException.class, () -> rideService.createRide(team, request, organizer));
+    assertThrows(TriblyException.class, () -> rideService.createRide(team, request, organizer));
   }
 
   @Test
@@ -554,7 +552,7 @@ class RideServiceTest {
             null,
             List.of());
 
-    assertThrows(BusinessException.class, () -> rideService.createRide(team, request, organizer));
+    assertThrows(TriblyException.class, () -> rideService.createRide(team, request, organizer));
   }
 
   @Test
@@ -576,7 +574,7 @@ class RideServiceTest {
             null,
             List.of());
 
-    assertThrows(BusinessException.class, () -> rideService.createRide(team, request, organizer));
+    assertThrows(TriblyException.class, () -> rideService.createRide(team, request, organizer));
   }
 
   // ==================== Update Ride ====================
@@ -673,7 +671,7 @@ class RideServiceTest {
             List.of());
 
     assertThrows(
-        BusinessException.class, () -> rideService.updateRide(team, "test", request, member));
+        TriblyException.class, () -> rideService.updateRide(team, "test", request, member));
   }
 
   @Test
@@ -703,9 +701,9 @@ class RideServiceTest {
             null,
             List.of());
 
-    BusinessException exception =
+    TriblyException exception =
         assertThrows(
-            BusinessException.class,
+            TriblyException.class,
             () -> rideService.updateRide(privateTeam, "team-ride", request, organizer));
 
     assertTrue(exception.getMessage().contains("Private teams can only have team-only items"));
@@ -900,9 +898,9 @@ class RideServiceTest {
             null,
             List.of(invalidGroup));
 
-    BusinessException exception =
+    TriblyException exception =
         assertThrows(
-            BusinessException.class,
+            TriblyException.class,
             () -> rideService.updateRide(team, "test-ride", request, organizer));
 
     assertTrue(exception.getMessage().contains("Group"));
@@ -955,8 +953,7 @@ class RideServiceTest {
             List.of());
 
     assertThrows(
-        BusinessException.class,
-        () -> rideService.updateRide(team, "test-ride", request, organizer));
+        TriblyException.class, () -> rideService.updateRide(team, "test-ride", request, organizer));
   }
 
   @Test
@@ -977,8 +974,7 @@ class RideServiceTest {
             List.of());
 
     assertThrows(
-        BusinessException.class,
-        () -> rideService.updateRide(team, "test-ride", request, organizer));
+        TriblyException.class, () -> rideService.updateRide(team, "test-ride", request, organizer));
   }
 
   @Test
@@ -1002,8 +998,7 @@ class RideServiceTest {
             List.of());
 
     assertThrows(
-        BusinessException.class,
-        () -> rideService.updateRide(team, "test-ride", request, organizer));
+        TriblyException.class, () -> rideService.updateRide(team, "test-ride", request, organizer));
   }
 
   @Test
@@ -1075,8 +1070,7 @@ class RideServiceTest {
             List.of());
 
     assertThrows(
-        BusinessException.class,
-        () -> rideService.updateRide(team, "test-ride", request, organizer));
+        TriblyException.class, () -> rideService.updateRide(team, "test-ride", request, organizer));
   }
 
   @Test
@@ -1100,8 +1094,7 @@ class RideServiceTest {
             List.of());
 
     assertThrows(
-        BusinessException.class,
-        () -> rideService.updateRide(team, "test-ride", request, organizer));
+        TriblyException.class, () -> rideService.updateRide(team, "test-ride", request, organizer));
   }
 
   @Test
@@ -1122,9 +1115,9 @@ class RideServiceTest {
             null,
             List.of());
 
-    BusinessException exception =
+    TriblyException exception =
         assertThrows(
-            BusinessException.class,
+            TriblyException.class,
             () -> rideService.updateRide(team, "test-ride", request, organizer));
 
     assertTrue(exception.getMessage().contains("private route"));
@@ -1188,14 +1181,14 @@ class RideServiceTest {
 
     rideService.deleteRide(team, "test", organizer);
 
-    assertThrows(BusinessException.class, () -> rideService.getRideDetail(team, "test", organizer));
+    assertThrows(TriblyException.class, () -> rideService.getDto(team, "test", organizer));
   }
 
   @Test
   void deleteRide_shouldThrowForNonOrganizer() {
     dataService.createRide(team, admin, "Test", "test", Instant.now());
 
-    assertThrows(BusinessException.class, () -> rideService.deleteRide(team, "test", member));
+    assertThrows(TriblyException.class, () -> rideService.deleteRide(team, "test", member));
   }
 
   // ==================== List Groups ====================
@@ -1206,7 +1199,7 @@ class RideServiceTest {
     dataService.createRideGroup(admin, ride, "Group 1", 2);
     dataService.createRideGroup(admin, ride, "Group 2", 1);
 
-    RideDto rideDto = rideService.getRideDetail(team, ride.getSlug(), admin);
+    RideDto rideDto = rideService.getDto(team, ride.getSlug(), admin);
     List<RideGroupDto> groups = rideDto.getGroups();
 
     assertEquals(2, groups.size());
@@ -1218,7 +1211,7 @@ class RideServiceTest {
   void listGroups_shouldReturnEmptyForNoGroups() {
     Ride ride = dataService.createRide(team, admin, "Test", "test", Instant.now());
 
-    RideDto rideDto = rideService.getRideDetail(team, ride.getSlug(), admin);
+    RideDto rideDto = rideService.getDto(team, ride.getSlug(), admin);
 
     assertEquals(0, rideDto.getGroups().size());
     assertEquals(0, rideDto.getGroupCount());
@@ -1246,7 +1239,7 @@ class RideServiceTest {
     RideGroup group = dataService.createRideGroup(admin, ride, "Group");
 
     assertThrows(
-        BusinessException.class, () -> rideService.joinGroup(team, "draft", group.getId(), member));
+        TriblyException.class, () -> rideService.joinGroup(team, "draft", group.getId(), member));
   }
 
   @Test
@@ -1256,9 +1249,9 @@ class RideServiceTest {
             team, admin, "Draft", "draft", Instant.now(), Visibility.PUBLIC, Status.DRAFT);
     RideGroup group = dataService.createRideGroup(admin, ride, "Group");
 
-    BusinessException exception =
+    TriblyException exception =
         assertThrows(
-            BusinessException.class,
+            TriblyException.class,
             () -> rideService.joinGroup(team, "draft", group.getId(), organizer));
 
     assertTrue(exception.getMessage().contains("published"));
@@ -1270,9 +1263,9 @@ class RideServiceTest {
     RideGroup group = dataService.createRideGroup(admin, ride, "Group");
     dataService.createParticipation(group, member);
 
-    BusinessException exception =
+    TriblyException exception =
         assertThrows(
-            BusinessException.class,
+            TriblyException.class,
             () -> rideService.joinGroup(team, "test", group.getId(), member));
 
     assertTrue(exception.getMessage().contains("already"));
@@ -1284,9 +1277,9 @@ class RideServiceTest {
     RideGroup group = dataService.createRideGroupWithMaxParticipants(admin, ride, "Group", 1);
     dataService.createParticipation(group, organizer);
 
-    BusinessException exception =
+    TriblyException exception =
         assertThrows(
-            BusinessException.class,
+            TriblyException.class,
             () -> rideService.joinGroup(team, "test", group.getId(), member));
 
     assertTrue(
@@ -1314,9 +1307,9 @@ class RideServiceTest {
     Ride ride = dataService.createRide(team, admin, "Test", "test", Instant.now());
     RideGroup group = dataService.createRideGroup(admin, ride, "Group");
 
-    BusinessException exception =
+    TriblyException exception =
         assertThrows(
-            BusinessException.class,
+            TriblyException.class,
             () -> rideService.leaveGroup(team, "test", group.getId(), member));
 
     assertTrue(

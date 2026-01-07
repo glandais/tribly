@@ -205,7 +205,7 @@ public class RouteResource extends AbstractAuthenticatedResource {
     User user = getCurrentUserOrNull();
     Team team = teamService.getTeam(teamSlug);
 
-    RouteDetailDto route = routeService.getRouteDetail(team, routeSlug, user);
+    RouteDetailDto route = routeService.getDto(team, routeSlug, user);
     return Response.ok(route).build();
   }
 
@@ -307,7 +307,7 @@ public class RouteResource extends AbstractAuthenticatedResource {
     @APIResponse(
         responseCode = "200",
         description = "Slug changed successfully",
-        content = @Content(schema = @Schema(implementation = RouteDto.class))),
+        content = @Content(schema = @Schema(implementation = RouteDetailDto.class))),
     @APIResponse(
         responseCode = "400",
         description = "Invalid slug format",
@@ -335,7 +335,7 @@ public class RouteResource extends AbstractAuthenticatedResource {
       @Valid SlugChangeRequest request) {
     User user = getCurrentUser();
     Team team = teamService.getTeam(teamSlug);
-    RouteDto route = routeService.updateSlug(team, currentSlug, request.slug(), user);
+    RouteDetailDto route = routeService.updateSlug(team, currentSlug, request.slug(), user);
     return Response.ok(route).build();
   }
 }

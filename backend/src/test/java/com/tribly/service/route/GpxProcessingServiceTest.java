@@ -9,7 +9,7 @@ import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
 import com.tribly.enums.TeamRole;
 import com.tribly.enums.Visibility;
-import com.tribly.infrastructure.exception.BusinessException;
+import com.tribly.infrastructure.exception.TriblyException;
 import com.tribly.service.asset.AssetService;
 import com.tribly.service.route.response.TrackMetadata;
 import com.tribly.util.TestDataCleaner;
@@ -233,9 +233,9 @@ class GpxProcessingServiceTest {
     Path gpxPath = new File("src/test/resources/empty.gpx").toPath();
 
     GPX gpx = gpxProcessingService.parseGpx(gpxPath);
-    BusinessException exception =
+    TriblyException exception =
         assertThrows(
-            BusinessException.class, () -> gpxProcessingService.createTracks(user, route, gpx));
+            TriblyException.class, () -> gpxProcessingService.createTracks(user, route, gpx));
 
     assertTrue(exception.getMessage().contains("processing failed"));
   }
@@ -243,7 +243,7 @@ class GpxProcessingServiceTest {
   @Test
   void createTracks_shouldThrowForInvalidGpx() {
     Path gpxPath = new File("src/test/resources/invalid.gpx").toPath();
-    assertThrows(BusinessException.class, () -> gpxProcessingService.parseGpx(gpxPath));
+    assertThrows(TriblyException.class, () -> gpxProcessingService.parseGpx(gpxPath));
   }
 
   // ==================== File Management ====================
@@ -262,7 +262,7 @@ class GpxProcessingServiceTest {
 
   @Test
   void getFilteredGpxFile_shouldThrowIfNotExists() {
-    assertThrows(BusinessException.class, () -> gpxProcessingService.getFilteredGpxFile(route));
+    assertThrows(TriblyException.class, () -> gpxProcessingService.getFilteredGpxFile(route));
   }
 
   @Test
@@ -279,12 +279,12 @@ class GpxProcessingServiceTest {
 
   @Test
   void getFitFile_shouldThrowIfNotExists() {
-    assertThrows(BusinessException.class, () -> gpxProcessingService.getFitFile(route));
+    assertThrows(TriblyException.class, () -> gpxProcessingService.getFitFile(route));
   }
 
   @Test
   void getThumbnailFile_shouldThrowIfNotExists() {
-    assertThrows(BusinessException.class, () -> gpxProcessingService.getThumbnailFile(route));
+    assertThrows(TriblyException.class, () -> gpxProcessingService.getThumbnailFile(route));
   }
 
   @Test

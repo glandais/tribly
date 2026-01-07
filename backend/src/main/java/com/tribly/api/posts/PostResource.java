@@ -133,7 +133,7 @@ public class PostResource extends AbstractAuthenticatedResource {
       @Parameter(description = "Post URL slug") @PathParam("postSlug") String postSlug) {
     Team team = teamService.getTeam(teamSlug);
     User user = getCurrentUserOrNull();
-    PostDto post = postService.getPostDetail(team, postSlug, user);
+    PostDto post = postService.getDto(team, postSlug, user);
     return Response.ok(post).build();
   }
 

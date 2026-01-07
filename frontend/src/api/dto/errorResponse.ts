@@ -5,24 +5,15 @@
  * API for Tribly Cycling Team Management Platform
  * OpenAPI spec version: 1.0.0
  */
-import type { Instant } from './instant'
-import type { FieldError } from './fieldError'
-import type { ErrorResponseDetails } from './errorResponseDetails'
+import type { ErrorCode } from './errorCode'
+import type { ErrorDetails } from './errorDetails'
 
 /**
  * Error response
  */
 export interface ErrorResponse {
   /** Error code */
-  code: string
-  /** Error message */
-  message: string
-  /** Request path */
-  path: string
-  /** Timestamp */
-  timestamp: Instant
-  /** Field validation errors */
-  errors?: FieldError[]
+  code: ErrorCode
   /** Additional details */
-  details?: ErrorResponseDetails
+  errorDetails?: ErrorDetails
 }

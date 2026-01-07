@@ -6,12 +6,13 @@ import com.tribly.domain.team.repository.TeamRepository;
 import com.tribly.domain.team.repository.UserTeamRepository;
 import com.tribly.domain.user.User;
 import com.tribly.domain.user.repository.UserRepository;
+import com.tribly.dto.error.ErrorCode;
 import com.tribly.dto.teams.response.MemberDto;
 import com.tribly.dto.teams.response.MemberListResponse;
+import com.tribly.enums.AllEntityType;
 import com.tribly.enums.TeamRole;
-import com.tribly.infrastructure.exception.BusinessException;
+import com.tribly.infrastructure.exception.*;
 import com.tribly.service.security.TeamSecurityService;
-import com.tribly.service.team.response.TeamAndRole;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -51,18 +52,13 @@ public class TeamMembershipService {
 
   @Transactional
   public MemberDto addMember(Team team, Long targetUserId, TeamRole role, User actingUser) {
-    TeamAndRole teamAndRole =
-        teamRepository
-            .findOne(team.getId(), actingUser.getId())
-            .orElseThrow(() -> BusinessException.notFound("TeamAndRole"));
-
     // Security checks
     securityService.requireAdmin(actingUser, team);
 
     User targetUser =
         userRepository
             .findActiveById(targetUserId)
-            .orElseThrow(() -> BusinessException.notFound("User", targetUserId));
+            .orElseThrow(() -> new NotFoundException(AllEntityType.USER, targetUserId));
 
     return doAddMember(actingUser, team, role, targetUser);
   }
@@ -75,7 +71,7 @@ public class TeamMembershipService {
     if (existingMembership.isPresent()) {
       UserTeam membership = existingMembership.get();
       if (!membership.isDeleted()) {
-        throw BusinessException.conflict("User is already a member of this team");
+        throw new ConflictException(ErrorCode.ALREADY_REGISTERED);
       }
       // Restore soft-deleted membership
       membership.setDeleted(false);
@@ -103,9 +99,9 @@ public class TeamMembershipService {
     UserTeam targetMembership =
         userTeamRepository
             .findByUserAndTeam(targetUserId, team.getId())
-            .orElseThrow(() -> BusinessException.notFound("Membership not found"));
+            .orElseThrow(() -> new NotFoundException(AllEntityType.USER_TEAM, targetUserId));
 
-    securityService.requireNotLastAdminDemotion(team, targetMembership, newRole);
+    requireNotLastAdminDemotion(team, targetMembership, newRole);
 
     targetMembership.setRole(newRole);
     userTeamRepository.persist(targetMembership);
@@ -121,22 +117,51 @@ public class TeamMembershipService {
     User targetUser =
         userRepository
             .findActiveById(targetUserId)
-            .orElseThrow(() -> BusinessException.notFound("User", targetUserId));
+            .orElseThrow(() -> new NotFoundException(AllEntityType.USER, targetUserId));
     // Security checks
-    securityService.requireCanRemoveMember(actingUser, targetUser, team);
+    requireCanRemoveMember(actingUser, targetUser, team);
 
     UserTeam targetMembership =
         userTeamRepository
             .findByUserAndTeam(targetUser.getId(), team.getId())
-            .orElseThrow(() -> BusinessException.notFound("Membership not found"));
+            .orElseThrow(() -> new NotFoundException(AllEntityType.USER_TEAM, targetUserId));
 
-    securityService.requireNotLastAdmin(team, targetMembership);
+    requireNotLastAdmin(team, targetMembership);
 
     targetMembership.setDeleted(true);
     userTeamRepository.persist(targetMembership);
 
     LOG.infov(
         "User {0} removed from team {1} by user {2}", targetUser.getId(), team.getId(), actingUser);
+  }
+
+  void requireCanRemoveMember(User actor, User target, Team team) {
+    boolean isSelfRemoval = target.getId().equals(actor.getId());
+    if (isSelfRemoval) {
+      // Users can always remove themselves (leave the team)
+      if (securityService.getMembership(actor, team) == null) {
+        throw new ForbiddenException();
+      }
+    }
+    // Non-self removal requires admin rights
+    if (securityService.getAdmin(target, team) == null) {
+      throw new ForbiddenException();
+    }
+  }
+
+  void requireNotLastAdmin(Team team, UserTeam targetMembership) {
+    if (targetMembership.getRole() == TeamRole.ADMIN) {
+      long adminCount = userTeamRepository.countAdminsByTeam(team.getId());
+      if (adminCount <= 1) {
+        throw new BusinessException(ErrorCode.LAST_ADMIN);
+      }
+    }
+  }
+
+  void requireNotLastAdminDemotion(Team team, UserTeam targetMembership, TeamRole newRole) {
+    if (targetMembership.getRole() == TeamRole.ADMIN && newRole != TeamRole.ADMIN) {
+      requireNotLastAdmin(team, targetMembership);
+    }
   }
 
   @Transactional

@@ -2,6 +2,7 @@ package com.tribly.api.users;
 
 import com.tribly.api.AbstractAuthenticatedResource;
 import com.tribly.domain.user.User;
+import com.tribly.dto.error.ErrorCode;
 import com.tribly.dto.error.ErrorResponse;
 import com.tribly.dto.users.request.UpdateUserRequest;
 import com.tribly.dto.users.response.PublicUserDto;
@@ -117,7 +118,7 @@ public class UserResource extends AbstractAuthenticatedResource {
   })
   public Response uploadAvatar(@RestForm("file") @Nullable FileUpload fileUpload) throws Exception {
     if (fileUpload == null || fileUpload.filePath() == null) {
-      throw BusinessException.validation("File is required");
+      throw new BusinessException(ErrorCode.FILE_REQUIRED);
     }
 
     User user = this.getCurrentUser();

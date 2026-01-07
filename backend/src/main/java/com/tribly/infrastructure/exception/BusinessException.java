@@ -1,82 +1,27 @@
 package com.tribly.infrastructure.exception;
 
-import lombok.Getter;
+import com.tribly.dto.error.ErrorCode;
+import com.tribly.dto.error.ErrorDetails;
+import jakarta.ws.rs.core.Response;
 import org.jspecify.annotations.Nullable;
 
-@Getter
-public class BusinessException extends RuntimeException {
-
-  private final ErrorType errorType;
-  private final String errorCode;
+public class BusinessException extends TriblyException {
 
   public BusinessException(
-      String message, ErrorType errorType, String errorCode, @Nullable Throwable cause) {
-    super(message, cause);
-    this.errorType = errorType;
-    this.errorCode = errorCode;
+      ErrorCode errorCode, @Nullable ErrorDetails errorDetails, @Nullable Throwable cause) {
+    super(errorCode, errorDetails, cause);
   }
 
-  public BusinessException(String message, ErrorType errorType, String errorCode) {
-    this(message, errorType, errorCode, null);
+  public BusinessException(ErrorCode errorCode, @Nullable Throwable cause) {
+    this(errorCode, null, cause);
   }
 
-  public BusinessException(String message, ErrorType errorType, @Nullable Throwable cause) {
-    this(message, errorType, errorType.name(), cause);
+  public BusinessException(ErrorCode errorCode) {
+    this(errorCode, null, null);
   }
 
-  public BusinessException(String message, ErrorType errorType) {
-    this(message, errorType, errorType.name(), null);
-  }
-
-  public enum ErrorType {
-    NOT_FOUND,
-    CONFLICT,
-    FORBIDDEN,
-    VALIDATION,
-    BUSINESS_RULE,
-    NEW_SLUG
-  }
-
-  public static BusinessException notFound(String message) {
-    return new NotFoundException(message);
-  }
-
-  public static BusinessException notFound(String entity, Long id) {
-    return new NotFoundException(
-        String.format("%s with id %d not found", entity, id), entity.toUpperCase() + "_NOT_FOUND");
-  }
-
-  public static BusinessException notFound(String entity, String slug) {
-    return new NotFoundException(
-        String.format("%s with slug '%s' not found", entity, slug),
-        entity.toUpperCase() + "_NOT_FOUND");
-  }
-
-  public static BusinessException conflict(String message) {
-    return new BusinessException(message, ErrorType.CONFLICT);
-  }
-
-  public static BusinessException conflict(String message, Throwable cause) {
-    return new BusinessException(message, ErrorType.CONFLICT, cause);
-  }
-
-  public static BusinessException conflict(String message, String errorCode) {
-    return new BusinessException(message, ErrorType.CONFLICT, errorCode);
-  }
-
-  public static BusinessException forbidden(String message) {
-    return new BusinessException(message, ErrorType.FORBIDDEN);
-  }
-
-  public static BusinessException forbidden(String message, String errorCode) {
-    return new BusinessException(message, ErrorType.FORBIDDEN, errorCode);
-  }
-
-  public static BusinessException validation(String message) {
-    return new BusinessException(message, ErrorType.VALIDATION);
-  }
-
-  public static BusinessException businessRule(String message, String errorCode) {
-    return new BusinessException(message, ErrorType.BUSINESS_RULE, errorCode);
+  @Override
+  public Response.Status getStatus() {
+    return Response.Status.BAD_REQUEST;
   }
 }

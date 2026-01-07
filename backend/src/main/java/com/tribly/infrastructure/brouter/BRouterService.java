@@ -1,5 +1,6 @@
 package com.tribly.infrastructure.brouter;
 
+import com.tribly.dto.error.ErrorCode;
 import com.tribly.dto.router.request.RouterRequest;
 import com.tribly.dto.router.response.RouterResponse;
 import com.tribly.infrastructure.exception.BusinessException;
@@ -27,7 +28,7 @@ public class BRouterService {
         bRouterClient.route(lonlats, routerRequest.profile().getProfileName(), 0, "geojson");
     List<ResultFeature> features = geojson.features();
     if (features.isEmpty()) {
-      throw BusinessException.conflict("No features found");
+      throw new BusinessException(ErrorCode.UNKNOWN);
     }
     ResultFeature feature = features.getFirst();
     Map<String, Object> properties = feature.properties();

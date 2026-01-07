@@ -134,7 +134,7 @@ public class AdResource extends AbstractAuthenticatedResource {
       @Parameter(description = "Ad URL slug") @PathParam("adSlug") String adSlug) {
     User user = getCurrentUserOrNull();
     Team team = teamService.getTeam(teamSlug);
-    AdDto ad = adService.getAdDetail(team, adSlug, user);
+    AdDto ad = adService.getDto(team, adSlug, user);
     return Response.ok(ad).build();
   }
 

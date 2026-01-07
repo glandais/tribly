@@ -1,52 +1,40 @@
 package com.tribly.dto.error;
 
 import com.tribly.dto.validation.ValidateSchema;
-import java.time.Instant;
 import java.util.List;
-import java.util.Map;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.jspecify.annotations.Nullable;
 
 @Schema(description = "Error response")
 @ValidateSchema
 public record ErrorResponse(
-    @Schema(description = "Error code", required = true) String code,
-    @Schema(description = "Error message", required = true) String message,
-    @Schema(description = "Request path", required = true) String path,
-    @Schema(description = "Timestamp", required = true) Instant timestamp,
-    @Nullable @Schema(description = "Field validation errors") List<FieldError> errors,
-    @Nullable @Schema(description = "Additional details") Map<String, Object> details) {
-  public ErrorResponse(String code, String message, String path) {
-    this(code, message, path, Instant.now(), null, null);
+    @Schema(description = "Error code", required = true) ErrorCode code,
+    @Nullable @Schema(description = "Additional details") ErrorDetails errorDetails) {
+  public ErrorResponse(ErrorCode code) {
+    this(code, null);
   }
 
-  public ErrorResponse(String code, String message, String path, List<FieldError> errors) {
-    this(code, message, path, Instant.now(), errors, null);
+  public static ErrorResponse notFound() {
+    return new ErrorResponse(ErrorCode.NOT_FOUND);
   }
 
-  public record FieldError(String field, String message, Object rejectedValue) {}
-
-  public static ErrorResponse notFound(String path, String message) {
-    return new ErrorResponse("NOT_FOUND", message, path);
+  public static ErrorResponse validation(List<FieldError> errors) {
+    return new ErrorResponse(ErrorCode.VALIDATION, new ErrorValidationDetails(errors));
   }
 
-  public static ErrorResponse badRequest(String path, String message) {
-    return new ErrorResponse("BAD_REQUEST", message, path);
+  public static ErrorResponse badRequest() {
+    return new ErrorResponse(ErrorCode.BAD_REQUEST);
   }
 
-  public static ErrorResponse badRequest(String path, String message, List<FieldError> errors) {
-    return new ErrorResponse("BAD_REQUEST", message, path, errors);
+  public static ErrorResponse unauthorized() {
+    return new ErrorResponse(ErrorCode.UNAUTHORIZED);
   }
 
-  public static ErrorResponse unauthorized(String path, String message) {
-    return new ErrorResponse("UNAUTHORIZED", message, path);
+  public static ErrorResponse forbidden() {
+    return new ErrorResponse(ErrorCode.FORBIDDEN);
   }
 
-  public static ErrorResponse forbidden(String path, String message) {
-    return new ErrorResponse("FORBIDDEN", message, path);
-  }
-
-  public static ErrorResponse internal(String path, String message) {
-    return new ErrorResponse("INTERNAL_ERROR", message, path);
+  public static ErrorResponse internal() {
+    return new ErrorResponse(ErrorCode.INTERNAL_ERROR);
   }
 }

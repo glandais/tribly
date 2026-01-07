@@ -9,35 +9,46 @@ import com.tribly.domain.user.User;
 import com.tribly.dto.posts.request.PostRequest;
 import com.tribly.dto.posts.response.PostDto;
 import com.tribly.dto.posts.response.PostListResponse;
-import com.tribly.enums.EntityType;
+import com.tribly.enums.ActionType;
+import com.tribly.enums.AllEntityType;
 import com.tribly.enums.Status;
-import com.tribly.infrastructure.exception.BusinessException;
+import com.tribly.infrastructure.exception.NotFoundException;
 import com.tribly.service.common.TeamEntityService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import org.jboss.logging.Logger;
 import org.jspecify.annotations.Nullable;
 
 @ApplicationScoped
-public class PostService extends TeamEntityService<Post> {
+public class PostService extends TeamEntityService<Post, PostRepository, PostDto> {
 
   private static final Logger LOG = Logger.getLogger(PostService.class);
 
   @Inject PostRepository postRepository;
 
   @Override
-  protected EntityType getEntityType() {
-    return EntityType.POST;
+  protected PostRepository getRepository() {
+    return postRepository;
   }
 
   @Override
-  protected Optional<Post> findByIdOptional(Long entityId) {
-    return postRepository.findByIdOptional(entityId);
+  protected PostDto toDto(Post entity) {
+    return PostDto.from(entity, assetService);
+  }
+
+  @Override
+  protected boolean hasRights(
+      ActionType action, Team team, @Nullable User user, @Nullable Post entity) {
+    return switch (action) {
+      case CREATE, UPDATE, DELETE -> securityService.getOrganizer(user, team) != null;
+      // SQL
+      case READ -> true;
+      case JOIN -> false;
+    };
   }
 
   @Override
@@ -52,7 +63,7 @@ public class PostService extends TeamEntityService<Post> {
                 .size(1)
                 .build());
     if (posts.items().isEmpty()) {
-      throw BusinessException.notFound("Post", postSlug);
+      throw new NotFoundException(AllEntityType.POST, postSlug);
     } else {
       return posts.items().getFirst();
     }
@@ -82,14 +93,9 @@ public class PostService extends TeamEntityService<Post> {
     return new PostListResponse(dtos, posts.total(), page, size);
   }
 
-  public PostDto getPostDetail(Team team, String postSlug, @Nullable User user) {
-    return PostDto.from(get(team, postSlug, user), assetService);
-  }
-
   @Transactional
   public PostDto createPost(Team team, PostRequest request, User creator) {
-    // Security check: must be admin or organizer to create posts
-    securityService.requireOrganizer(creator, team);
+    checkRights(ActionType.CREATE, team, creator, null);
 
     validateVisibility(request, team);
 
@@ -119,10 +125,7 @@ public class PostService extends TeamEntityService<Post> {
 
   @Transactional
   public PostDto updatePost(Team team, String postSlug, PostRequest request, User user) {
-    Post post = get(team, postSlug, user);
-
-    // Security check: must be admin or creator (if organizer) to edit
-    securityService.requireOrganizer(user, team);
+    Post post = get(ActionType.UPDATE, team, postSlug, user);
 
     validateVisibility(request, post.getTeam());
 
@@ -147,42 +150,10 @@ public class PostService extends TeamEntityService<Post> {
 
   @Transactional
   public void deletePost(Team team, String postSlug, User user) {
-    Post post = get(team, postSlug, user);
-
-    // Security check: must be admin or creator (if organizer) to delete
-    securityService.requireOrganizer(user, team);
+    Post post = get(ActionType.DELETE, team, postSlug, user);
 
     post.setDeleted(true);
     postRepository.persist(post);
     LOG.infov("Post {0} deleted by user {1}", postSlug, user.getId());
-  }
-
-  @Transactional
-  public PostDto updateSlug(Team team, String slugParam, String newSlug, User user) {
-    Post post = get(team, slugParam, user);
-    String currentSlug = post.getSlug();
-
-    securityService.requireOrganizer(user, team);
-
-    if (!slugService.isValidSlug(newSlug)) {
-      throw BusinessException.validation("Invalid slug format");
-    }
-
-    if (currentSlug.equals(newSlug)) {
-      return PostDto.from(post, assetService);
-    }
-
-    if (postRepository.existsByTeamAndSlug(post.getTeam().getId(), newSlug)) {
-      throw BusinessException.conflict("Slug already in use", "SLUG_TAKEN");
-    }
-
-    slugService.clearEntityRedirect(post.getTeam().getId(), EntityType.POST, newSlug);
-    slugService.createEntityRedirect(post, currentSlug);
-
-    post.setSlug(newSlug);
-    postRepository.persist(post);
-
-    LOG.infov("Post slug changed from {0} to {1} by user {2}", currentSlug, newSlug, user.getId());
-    return PostDto.from(post, assetService);
   }
 }

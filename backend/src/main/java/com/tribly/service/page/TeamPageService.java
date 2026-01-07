@@ -4,13 +4,17 @@ import com.tribly.domain.team.Team;
 import com.tribly.domain.team.TeamPage;
 import com.tribly.domain.team.repository.TeamPageRepository;
 import com.tribly.domain.user.User;
+import com.tribly.dto.error.ErrorCode;
 import com.tribly.dto.pages.request.ReorderPagesRequest;
 import com.tribly.dto.pages.request.TeamPageRequest;
 import com.tribly.dto.pages.response.TeamPageDto;
 import com.tribly.dto.pages.response.TeamPageSummaryDto;
-import com.tribly.enums.EntityType;
+import com.tribly.enums.ActionType;
+import com.tribly.enums.AllEntityType;
 import com.tribly.enums.Visibility;
 import com.tribly.infrastructure.exception.BusinessException;
+import com.tribly.infrastructure.exception.ForbiddenException;
+import com.tribly.infrastructure.exception.NotFoundException;
 import com.tribly.infrastructure.id.TsidUtils;
 import com.tribly.service.common.TeamEntityService;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -22,7 +26,7 @@ import org.jboss.logging.Logger;
 import org.jspecify.annotations.Nullable;
 
 @ApplicationScoped
-public class TeamPageService extends TeamEntityService<TeamPage> {
+public class TeamPageService extends TeamEntityService<TeamPage, TeamPageRepository, TeamPageDto> {
 
   private static final Logger LOG = Logger.getLogger(TeamPageService.class);
   private static final int MAX_ADDITIONAL_PAGES = 3;
@@ -30,13 +34,13 @@ public class TeamPageService extends TeamEntityService<TeamPage> {
   @Inject TeamPageRepository teamPageRepository;
 
   @Override
-  protected EntityType getEntityType() {
-    return EntityType.TEAM_PAGE;
+  protected TeamPageRepository getRepository() {
+    return teamPageRepository;
   }
 
   @Override
-  protected Optional<TeamPage> findByIdOptional(Long entityId) {
-    return teamPageRepository.findByIdOptional(entityId);
+  protected TeamPageDto toDto(TeamPage entity) {
+    return TeamPageDto.from(entity, assetService);
   }
 
   @Override
@@ -45,12 +49,20 @@ public class TeamPageService extends TeamEntityService<TeamPage> {
     TeamPage page =
         teamPageRepository
             .findByTeamAndSlug(team.getId(), entitySlug)
-            .orElseThrow(() -> BusinessException.notFound("Page", entitySlug));
+            .orElseThrow(() -> new NotFoundException(AllEntityType.TEAM_PAGE, entitySlug));
     boolean isMember = securityService.isMember(user, team);
     if (!canViewPage(page, isMember)) {
-      throw BusinessException.forbidden("Page");
+      throw new ForbiddenException();
     }
     return page;
+  }
+
+  private boolean canViewPage(TeamPage page, boolean isMember) {
+    // Team-only pages require membership
+    if (page.getVisibility() == Visibility.TEAM) {
+      return isMember;
+    }
+    return true;
   }
 
   public List<TeamPageSummaryDto> listPages(Team team, @Nullable User user) {
@@ -62,28 +74,33 @@ public class TeamPageService extends TeamEntityService<TeamPage> {
         .toList();
   }
 
-  public TeamPageDto getPage(Team team, String pageSlug, @Nullable User user) {
-    TeamPage page = get(team, pageSlug, user);
-
-    // Check visibility
-    boolean isMember = securityService.isMember(user, page.getTeam());
-    if (!canViewPage(page, isMember)) {
-      throw BusinessException.forbidden("You don't have permission to view this page");
-    }
-
-    return TeamPageDto.from(page, assetService);
+  @Override
+  protected boolean hasRights(
+      ActionType action, Team team, @Nullable User user, @Nullable TeamPage entity) {
+    return switch (action) {
+      case CREATE, UPDATE, DELETE -> securityService.getAdmin(user, team) != null;
+      case JOIN -> false;
+      case READ -> {
+        if (entity == null) {
+          yield false;
+        }
+        boolean isMember = securityService.isMember(user, team);
+        if (entity.getVisibility() == Visibility.TEAM) {
+          yield isMember;
+        }
+        yield true;
+      }
+    };
   }
 
   @Transactional
   public TeamPageDto createPage(Team team, TeamPageRequest request, User creator) {
-    // Security check: must be admin to create pages
-    securityService.requireAdmin(creator, team);
+    hasRights(ActionType.CREATE, team, creator, null);
 
     // Check max pages limit
     long currentCount = teamPageRepository.countAdditionalPages(team.getId());
     if (currentCount >= MAX_ADDITIONAL_PAGES) {
-      throw BusinessException.validation(
-          "Maximum number of additional pages (" + MAX_ADDITIONAL_PAGES + ") reached");
+      throw new BusinessException(ErrorCode.TOO_MANY_TEAM_PAGES);
     }
 
     validateVisibility(request, team);
@@ -111,17 +128,11 @@ public class TeamPageService extends TeamEntityService<TeamPage> {
 
   @Transactional
   public TeamPageDto updatePage(Team team, String pageSlug, TeamPageRequest request, User user) {
-    // Security check: must be admin to update pages
-    securityService.requireAdmin(user, team);
-
-    TeamPage page =
-        teamPageRepository
-            .findByTeamAndSlug(team.getId(), pageSlug)
-            .orElseThrow(() -> BusinessException.notFound("Page", pageSlug));
+    TeamPage page = get(ActionType.UPDATE, team, pageSlug, user);
 
     // Don't allow editing the about page through this endpoint
     if (page.isAboutPage()) {
-      throw BusinessException.validation("About page must be edited through team settings");
+      throw new ForbiddenException();
     }
 
     validateVisibility(request, team);
@@ -139,17 +150,11 @@ public class TeamPageService extends TeamEntityService<TeamPage> {
 
   @Transactional
   public void deletePage(Team team, String pageSlug, User user) {
-    // Security check: must be admin to delete pages
-    securityService.requireAdmin(user, team);
-
-    TeamPage page =
-        teamPageRepository
-            .findByTeamAndSlug(team.getId(), pageSlug)
-            .orElseThrow(() -> BusinessException.notFound("Page", pageSlug));
+    TeamPage page = get(ActionType.DELETE, team, pageSlug, user);
 
     // Don't allow deleting the about page
     if (page.isAboutPage()) {
-      throw BusinessException.validation("Cannot delete the about page");
+      throw new ForbiddenException();
     }
 
     page.setDeleted(true);
@@ -159,67 +164,25 @@ public class TeamPageService extends TeamEntityService<TeamPage> {
 
   @Transactional
   public List<TeamPageSummaryDto> reorderPages(Team team, ReorderPagesRequest request, User user) {
-
-    // Security check: must be admin to reorder pages
-    securityService.requireAdmin(user, team);
+    hasRights(ActionType.CREATE, team, user, null);
 
     List<String> pageIds = request.pageIds();
     for (int i = 0; i < pageIds.size(); i++) {
       Long pageId = TsidUtils.toLong(pageIds.get(i));
-      TeamPage page = teamPageRepository.findById(pageId);
-      if (page == null || !page.getTeam().getId().equals(team.getId()) || page.isAboutPage()) {
-        throw BusinessException.validation("Invalid page ID: " + pageIds.get(i));
+      Optional<TeamPage> pageOptional = teamPageRepository.findByIdOptional(pageId);
+      if (pageOptional.isPresent()) {
+        TeamPage page = pageOptional.get();
+        if (!page.getTeam().getId().equals(team.getId()) || page.isAboutPage()) {
+          throw new BusinessException(ErrorCode.UNKNOWN);
+        }
+        page.setPageOrder(i);
+        teamPageRepository.persist(page);
+      } else {
+        throw new NotFoundException(AllEntityType.TEAM_PAGE, pageId);
       }
-      page.setPageOrder(i);
-      teamPageRepository.persist(page);
     }
 
     LOG.infov("Pages reordered by user {0} for team {1}", user.getId(), team.getSlug());
     return listPages(team, user);
-  }
-
-  private boolean canViewPage(TeamPage page, boolean isMember) {
-    // Team-only pages require membership
-    if (page.getVisibility() == Visibility.TEAM) {
-      return isMember;
-    }
-    return true;
-  }
-
-  @Transactional
-  public TeamPageDto updateSlug(Team team, String slugParam, String newSlug, User user) {
-    securityService.requireAdmin(user, team);
-
-    TeamPage page =
-        teamPageRepository
-            .findByTeamAndSlug(team.getId(), slugParam)
-            .orElseThrow(() -> BusinessException.notFound("Page", slugParam));
-    String currentSlug = page.getSlug();
-
-    // Don't allow changing slug of the about page
-    if (page.isAboutPage()) {
-      throw BusinessException.validation("Cannot change the about page slug");
-    }
-
-    if (!slugService.isValidSlug(newSlug)) {
-      throw BusinessException.validation("Invalid slug format");
-    }
-
-    if (currentSlug.equals(newSlug)) {
-      return TeamPageDto.from(page, assetService);
-    }
-
-    if (teamPageRepository.existsByTeamAndSlug(team.getId(), newSlug)) {
-      throw BusinessException.conflict("Slug already in use", "SLUG_TAKEN");
-    }
-
-    slugService.clearEntityRedirect(team.getId(), EntityType.TEAM_PAGE, newSlug);
-    slugService.createEntityRedirect(page, currentSlug);
-
-    page.setSlug(newSlug);
-    teamPageRepository.persist(page);
-
-    LOG.infov("Page slug changed from {0} to {1} by user {2}", currentSlug, newSlug, user.getId());
-    return TeamPageDto.from(page, assetService);
   }
 }

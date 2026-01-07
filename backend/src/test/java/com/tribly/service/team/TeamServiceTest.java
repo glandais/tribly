@@ -10,7 +10,7 @@ import com.tribly.dto.teams.response.TeamDetailDto;
 import com.tribly.dto.teams.response.TeamListResponse;
 import com.tribly.enums.TeamRole;
 import com.tribly.enums.Visibility;
-import com.tribly.infrastructure.exception.BusinessException;
+import com.tribly.infrastructure.exception.TriblyException;
 import com.tribly.service.team.request.MinRole;
 import com.tribly.util.TestDataCleaner;
 import com.tribly.util.TestDataService;
@@ -210,7 +210,7 @@ class TeamServiceTest {
     TeamRequest request =
         new TeamRequest("New Name", MediaDto.builder().build(), Visibility.PUBLIC, true, true);
 
-    assertThrows(BusinessException.class, () -> teamService.updateTeam(team, request, user1));
+    assertThrows(TriblyException.class, () -> teamService.updateTeam(team, request, user1));
   }
 
   // ==================== Delete Team ====================
@@ -222,7 +222,7 @@ class TeamServiceTest {
 
     teamService.deleteTeam(team, user1);
 
-    assertThrows(BusinessException.class, () -> teamService.getTeamDetailDto(team, null));
+    assertThrows(TriblyException.class, () -> teamService.getTeamDetailDto(team, null));
   }
 
   @Test
@@ -230,6 +230,6 @@ class TeamServiceTest {
     Team team = dataService.createTeam(user1, "Test Team", "test-team", Visibility.PUBLIC);
     dataService.addUserToTeam(user1, team, TeamRole.MEMBER);
 
-    assertThrows(BusinessException.class, () -> teamService.deleteTeam(team, user1));
+    assertThrows(TriblyException.class, () -> teamService.deleteTeam(team, user1));
   }
 }

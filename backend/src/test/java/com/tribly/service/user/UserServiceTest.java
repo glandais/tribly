@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import com.tribly.domain.user.User;
 import com.tribly.dto.users.response.PublicUserDto;
 import com.tribly.dto.users.response.UserDto;
-import com.tribly.infrastructure.exception.BusinessException;
+import com.tribly.infrastructure.exception.TriblyException;
 import com.tribly.infrastructure.id.TsidUtils;
 import com.tribly.util.TestDataCleaner;
 import com.tribly.util.TestDataService;
@@ -46,7 +46,7 @@ class UserServiceTest {
 
     @Test
     void shouldThrowForNonexistentUser() {
-      assertThrows(BusinessException.class, () -> userService.getPublicUserDto(999999L));
+      assertThrows(TriblyException.class, () -> userService.getPublicUserDto(999999L));
     }
 
     @Test
@@ -54,7 +54,7 @@ class UserServiceTest {
       User user = dataService.createUser("deleted@example.com", "Deleted User");
       dataService.deleteUser(user);
 
-      assertThrows(BusinessException.class, () -> userService.getPublicUserDto(user.getId()));
+      assertThrows(TriblyException.class, () -> userService.getPublicUserDto(user.getId()));
     }
   }
 
@@ -78,7 +78,7 @@ class UserServiceTest {
 
     @Test
     void shouldThrowForNonexistentUser() {
-      assertThrows(BusinessException.class, () -> userService.getUserDto(999999L));
+      assertThrows(TriblyException.class, () -> userService.getUserDto(999999L));
     }
 
     @Test
@@ -86,7 +86,7 @@ class UserServiceTest {
       User user = dataService.createUser("deleted@example.com", "Deleted User");
       dataService.deleteUser(user);
 
-      assertThrows(BusinessException.class, () -> userService.getUserDto(user.getId()));
+      assertThrows(TriblyException.class, () -> userService.getUserDto(user.getId()));
     }
   }
 
@@ -118,7 +118,7 @@ class UserServiceTest {
       User user = dataService.createUser("deleted@example.com", "Deleted User");
       dataService.deleteUser(user);
 
-      assertThrows(BusinessException.class, () -> userService.updateUser(user, "New Name"));
+      assertThrows(TriblyException.class, () -> userService.updateUser(user, "New Name"));
     }
   }
 
@@ -133,7 +133,7 @@ class UserServiceTest {
 
       userService.deleteUser(user);
 
-      assertThrows(BusinessException.class, () -> userService.getUserDto(user.getId()));
+      assertThrows(TriblyException.class, () -> userService.getUserDto(user.getId()));
     }
 
     @Test
@@ -141,7 +141,7 @@ class UserServiceTest {
       User user = dataService.createUser("deleted@example.com", "Deleted User");
       dataService.deleteUser(user);
 
-      assertThrows(BusinessException.class, () -> userService.deleteUser(user));
+      assertThrows(TriblyException.class, () -> userService.deleteUser(user));
     }
   }
 

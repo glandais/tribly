@@ -7,7 +7,10 @@
  */
 
 export interface FieldError {
-  field?: string
-  message?: string
-  rejectedValue?: unknown
+  /** Field */
+  field: string
+  /** Message */
+  message: string
+  /** Rejected value */
+  rejectedValue: unknown
 }

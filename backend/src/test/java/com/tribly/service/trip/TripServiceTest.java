@@ -15,7 +15,7 @@ import com.tribly.dto.trips.response.TripParticipationDto;
 import com.tribly.enums.Status;
 import com.tribly.enums.TeamRole;
 import com.tribly.enums.Visibility;
-import com.tribly.infrastructure.exception.BusinessException;
+import com.tribly.infrastructure.exception.TriblyException;
 import com.tribly.infrastructure.id.TsidUtils;
 import com.tribly.util.TestDataCleaner;
 import com.tribly.util.TestDataService;
@@ -138,7 +138,7 @@ class TripServiceTest {
     void shouldReturnTrip() {
       Trip trip = dataService.createTrip(team, admin, "Test Trip", Instant.now());
 
-      TripDto result = tripService.getTripDetail(team, trip.getSlug(), null);
+      TripDto result = tripService.getDto(team, trip.getSlug(), null);
 
       assertEquals("Test Trip", result.getName());
       assertEquals(trip.getSlug(), result.getSlug());
@@ -146,8 +146,7 @@ class TripServiceTest {
 
     @Test
     void shouldThrowForNonexistent() {
-      assertThrows(
-          BusinessException.class, () -> tripService.getTripDetail(team, "nonexistent", null));
+      assertThrows(TriblyException.class, () -> tripService.getDto(team, "nonexistent", null));
     }
 
     @Test
@@ -156,7 +155,7 @@ class TripServiceTest {
           dataService.createTrip(
               team, admin, "Draft Trip", Instant.now(), Visibility.PUBLIC, Status.DRAFT, null);
 
-      TripDto result = tripService.getTripDetail(team, trip.getSlug(), organizer);
+      TripDto result = tripService.getDto(team, trip.getSlug(), organizer);
 
       assertEquals(Status.DRAFT, result.getStatus());
     }
@@ -167,8 +166,7 @@ class TripServiceTest {
           dataService.createTrip(
               team, admin, "Draft Trip", Instant.now(), Visibility.PUBLIC, Status.DRAFT, null);
 
-      assertThrows(
-          BusinessException.class, () -> tripService.getTripDetail(team, trip.getSlug(), member));
+      assertThrows(TriblyException.class, () -> tripService.getDto(team, trip.getSlug(), member));
     }
 
     @Test
@@ -177,7 +175,7 @@ class TripServiceTest {
       dataService.createTripStage(admin, trip, "Stage 1", 0);
       dataService.createTripStage(admin, trip, "Stage 2", 1);
 
-      TripDto result = tripService.getTripDetail(team, trip.getSlug(), organizer);
+      TripDto result = tripService.getDto(team, trip.getSlug(), organizer);
 
       assertEquals(2, result.getStages().size());
       assertEquals(2, result.getStageCount());
@@ -297,7 +295,7 @@ class TripServiceTest {
               null,
               List.of());
 
-      assertThrows(BusinessException.class, () -> tripService.createTrip(team, request, member));
+      assertThrows(TriblyException.class, () -> tripService.createTrip(team, request, member));
     }
 
     @Test
@@ -317,10 +315,9 @@ class TripServiceTest {
               null,
               List.of());
 
-      BusinessException exception =
+      TriblyException exception =
           assertThrows(
-              BusinessException.class,
-              () -> tripService.createTrip(privateTeam, request, organizer));
+              TriblyException.class, () -> tripService.createTrip(privateTeam, request, organizer));
 
       assertTrue(exception.getMessage().contains("Private teams can only have team-only items"));
     }
@@ -342,7 +339,7 @@ class TripServiceTest {
               null,
               List.of());
 
-      assertThrows(BusinessException.class, () -> tripService.createTrip(team, request, organizer));
+      assertThrows(TriblyException.class, () -> tripService.createTrip(team, request, organizer));
     }
 
     @Test
@@ -360,9 +357,9 @@ class TripServiceTest {
               null,
               List.of());
 
-      BusinessException exception =
+      TriblyException exception =
           assertThrows(
-              BusinessException.class, () -> tripService.createTrip(team, request, organizer));
+              TriblyException.class, () -> tripService.createTrip(team, request, organizer));
 
       assertTrue(exception.getMessage().contains("private route"));
     }
@@ -401,7 +398,7 @@ class TripServiceTest {
               null,
               List.of());
 
-      assertThrows(BusinessException.class, () -> tripService.createTrip(team, request, organizer));
+      assertThrows(TriblyException.class, () -> tripService.createTrip(team, request, organizer));
     }
 
     @Test
@@ -483,7 +480,7 @@ class TripServiceTest {
               null,
               List.of(stage));
 
-      assertThrows(BusinessException.class, () -> tripService.createTrip(team, request, organizer));
+      assertThrows(TriblyException.class, () -> tripService.createTrip(team, request, organizer));
     }
 
     @Test
@@ -507,7 +504,7 @@ class TripServiceTest {
               null,
               List.of(stage));
 
-      assertThrows(BusinessException.class, () -> tripService.createTrip(team, request, organizer));
+      assertThrows(TriblyException.class, () -> tripService.createTrip(team, request, organizer));
     }
 
     @Test
@@ -534,7 +531,7 @@ class TripServiceTest {
               null,
               List.of(stage));
 
-      assertThrows(BusinessException.class, () -> tripService.createTrip(team, request, organizer));
+      assertThrows(TriblyException.class, () -> tripService.createTrip(team, request, organizer));
     }
   }
 
@@ -627,7 +624,7 @@ class TripServiceTest {
               List.of());
 
       assertThrows(
-          BusinessException.class,
+          TriblyException.class,
           () -> tripService.updateTrip(team, trip.getSlug(), request, organizer));
     }
 
@@ -647,9 +644,9 @@ class TripServiceTest {
               null,
               List.of());
 
-      BusinessException exception =
+      TriblyException exception =
           assertThrows(
-              BusinessException.class,
+              TriblyException.class,
               () -> tripService.updateTrip(team, trip.getSlug(), request, organizer));
 
       assertTrue(exception.getMessage().contains("private route"));
@@ -695,7 +692,7 @@ class TripServiceTest {
               List.of());
 
       assertThrows(
-          BusinessException.class,
+          TriblyException.class,
           () -> tripService.updateTrip(team, trip.getSlug(), request, member));
     }
 
@@ -725,9 +722,9 @@ class TripServiceTest {
               null,
               List.of());
 
-      BusinessException exception =
+      TriblyException exception =
           assertThrows(
-              BusinessException.class,
+              TriblyException.class,
               () -> tripService.updateTrip(privateTeam, trip.getSlug(), request, organizer));
 
       assertTrue(exception.getMessage().contains("Private teams can only have team-only items"));
@@ -907,7 +904,7 @@ class TripServiceTest {
               List.of(stage));
 
       assertThrows(
-          BusinessException.class,
+          TriblyException.class,
           () -> tripService.updateTrip(team, trip.getSlug(), request, organizer));
     }
 
@@ -935,7 +932,7 @@ class TripServiceTest {
               List.of(stage));
 
       assertThrows(
-          BusinessException.class,
+          TriblyException.class,
           () -> tripService.updateTrip(team, trip.getSlug(), request, organizer));
     }
 
@@ -965,7 +962,7 @@ class TripServiceTest {
               List.of(stage));
 
       assertThrows(
-          BusinessException.class,
+          TriblyException.class,
           () -> tripService.updateTrip(team, trip.getSlug(), request, organizer));
     }
 
@@ -1030,9 +1027,9 @@ class TripServiceTest {
               null,
               List.of(stage));
 
-      BusinessException exception =
+      TriblyException exception =
           assertThrows(
-              BusinessException.class,
+              TriblyException.class,
               () -> tripService.updateTrip(team, trip.getSlug(), request, organizer));
 
       assertTrue(exception.getMessage().contains("Stage"));
@@ -1051,8 +1048,7 @@ class TripServiceTest {
       tripService.deleteTrip(team, trip.getSlug(), organizer);
 
       assertThrows(
-          BusinessException.class,
-          () -> tripService.getTripDetail(team, trip.getSlug(), organizer));
+          TriblyException.class, () -> tripService.getDto(team, trip.getSlug(), organizer));
     }
 
     @Test
@@ -1060,7 +1056,7 @@ class TripServiceTest {
       Trip trip = dataService.createTrip(team, admin, "Test Trip", Instant.now());
 
       assertThrows(
-          BusinessException.class, () -> tripService.deleteTrip(team, trip.getSlug(), member));
+          TriblyException.class, () -> tripService.deleteTrip(team, trip.getSlug(), member));
     }
   }
 
@@ -1087,9 +1083,9 @@ class TripServiceTest {
           dataService.createTrip(
               team, admin, "Draft Trip", Instant.now(), Visibility.PUBLIC, Status.DRAFT, null);
 
-      BusinessException exception =
+      TriblyException exception =
           assertThrows(
-              BusinessException.class, () -> tripService.joinTrip(team, trip.getSlug(), member));
+              TriblyException.class, () -> tripService.joinTrip(team, trip.getSlug(), member));
 
       // Member can't see draft trips, so they get "not found"
       assertTrue(exception.getMessage().contains("not found"));
@@ -1101,9 +1097,9 @@ class TripServiceTest {
           dataService.createTrip(
               team, admin, "Draft Trip", Instant.now(), Visibility.PUBLIC, Status.DRAFT, null);
 
-      BusinessException exception =
+      TriblyException exception =
           assertThrows(
-              BusinessException.class, () -> tripService.joinTrip(team, trip.getSlug(), organizer));
+              TriblyException.class, () -> tripService.joinTrip(team, trip.getSlug(), organizer));
 
       // Organizer can see draft trips, so they get explicit validation message
       assertTrue(exception.getMessage().contains("Can only join published trips"));
@@ -1116,9 +1112,9 @@ class TripServiceTest {
               team, admin, "Test Trip", Instant.now(), Visibility.PUBLIC, Status.PUBLISHED, null);
       dataService.createTripParticipation(trip, member);
 
-      BusinessException exception =
+      TriblyException exception =
           assertThrows(
-              BusinessException.class, () -> tripService.joinTrip(team, trip.getSlug(), member));
+              TriblyException.class, () -> tripService.joinTrip(team, trip.getSlug(), member));
 
       assertTrue(exception.getMessage().contains("already"));
     }
@@ -1164,7 +1160,7 @@ class TripServiceTest {
               team, admin, "Test Trip", Instant.now(), Visibility.PUBLIC, Status.PUBLISHED, null);
 
       assertThrows(
-          BusinessException.class, () -> tripService.leaveTrip(team, trip.getSlug(), member));
+          TriblyException.class, () -> tripService.leaveTrip(team, trip.getSlug(), member));
     }
   }
 
@@ -1192,9 +1188,9 @@ class TripServiceTest {
               null,
               List.of());
 
-      BusinessException exception =
+      TriblyException exception =
           assertThrows(
-              BusinessException.class, () -> tripService.createTrip(team, request, organizer));
+              TriblyException.class, () -> tripService.createTrip(team, request, organizer));
 
       assertTrue(exception.getMessage().contains("disabled"));
     }
@@ -1221,9 +1217,9 @@ class TripServiceTest {
               null,
               List.of());
 
-      BusinessException exception =
+      TriblyException exception =
           assertThrows(
-              BusinessException.class,
+              TriblyException.class,
               () -> tripService.updateTrip(team, trip.getSlug(), request, organizer));
 
       assertTrue(exception.getMessage().contains("not found"));
@@ -1240,10 +1236,9 @@ class TripServiceTest {
       team.setEnableTrips(false);
       team = dataService.updateTeam(team);
 
-      BusinessException exception =
+      TriblyException exception =
           assertThrows(
-              BusinessException.class,
-              () -> tripService.deleteTrip(team, trip.getSlug(), organizer));
+              TriblyException.class, () -> tripService.deleteTrip(team, trip.getSlug(), organizer));
 
       assertTrue(exception.getMessage().contains("not found"));
     }
@@ -1261,9 +1256,9 @@ class TripServiceTest {
       team.setEnableTrips(false);
       team = dataService.updateTeam(team);
 
-      BusinessException exception =
+      TriblyException exception =
           assertThrows(
-              BusinessException.class, () -> tripService.joinTrip(team, trip.getSlug(), member));
+              TriblyException.class, () -> tripService.joinTrip(team, trip.getSlug(), member));
 
       assertTrue(exception.getMessage().contains("not found"));
     }
@@ -1282,9 +1277,9 @@ class TripServiceTest {
       team.setEnableTrips(false);
       team = dataService.updateTeam(team);
 
-      BusinessException exception =
+      TriblyException exception =
           assertThrows(
-              BusinessException.class, () -> tripService.leaveTrip(team, trip.getSlug(), member));
+              TriblyException.class, () -> tripService.leaveTrip(team, trip.getSlug(), member));
 
       assertTrue(exception.getMessage().contains("not found"));
     }

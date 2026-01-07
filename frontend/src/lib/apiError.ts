@@ -5,7 +5,7 @@ export class ApiClientError extends Error {
     public status: number,
     public error: ErrorResponse
   ) {
-    super(error?.message || 'API Client Error')
+    super(error.code)
     this.name = 'ApiClientError'
   }
 }

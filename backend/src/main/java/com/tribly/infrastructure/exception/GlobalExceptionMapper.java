@@ -1,6 +1,8 @@
 package com.tribly.infrastructure.exception;
 
+import com.tribly.dto.error.ErrorCode;
 import com.tribly.dto.error.ErrorResponse;
+import com.tribly.dto.error.FieldError;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
@@ -27,103 +29,87 @@ public class GlobalExceptionMapper implements ExceptionMapper<Throwable> {
 
   @Override
   public Response toResponse(Throwable exception) {
-    String path = uriInfo != null ? uriInfo.getPath() : "unknown";
-
+    LOG.error("Error", exception);
     switch (exception) {
       case NotFoundException ignored -> {
-        return notFound(path, exception.getMessage());
+        return notFound();
       }
       case EntityNotFoundException ignored -> {
-        return notFound(path, exception.getMessage());
+        return notFound();
       }
       case NotAuthorizedException ignored -> {
-        return unauthorized(path);
+        return unauthorized();
       }
       case ForbiddenException ignored -> {
-        return forbidden(path, exception.getMessage());
+        return forbidden();
       }
       case ConstraintViolationException cve -> {
-        return validationError(path, cve);
+        return validationError(cve);
       }
       case IllegalArgumentException ignored -> {
-        return badRequest(path, exception.getMessage());
+        return badRequest();
       }
-      case BusinessException be -> {
-        return businessError(path, be);
+      case TriblyException be -> {
+        return triblyError(be);
       }
       case WebApplicationException wae -> {
         Response originalResponse = wae.getResponse();
         return Response.status(originalResponse.getStatus())
-            .entity(new ErrorResponse("HTTP_ERROR", exception.getMessage(), path))
+            .entity(new ErrorResponse(ErrorCode.UNKNOWN))
             .build();
       }
       default -> {}
     }
-
-    LOG.error("Unhandled exception", exception);
-    return internal(path);
+    return internal();
   }
 
-  private Response notFound(String path, @Nullable String message) {
-    return Response.status(Response.Status.NOT_FOUND)
-        .entity(ErrorResponse.notFound(path, message != null ? message : "Resource not found"))
-        .build();
+  private Response notFound() {
+    return Response.status(Response.Status.NOT_FOUND).entity(ErrorResponse.notFound()).build();
   }
 
-  private Response unauthorized(String path) {
+  private Response unauthorized() {
     return Response.status(Response.Status.UNAUTHORIZED)
-        .entity(ErrorResponse.unauthorized(path, "Authentication required"))
+        .entity(ErrorResponse.unauthorized())
         .build();
   }
 
-  private Response forbidden(String path, @Nullable String message) {
-    return Response.status(Response.Status.FORBIDDEN)
-        .entity(ErrorResponse.forbidden(path, message != null ? message : "Access denied"))
-        .build();
+  private Response forbidden() {
+    return Response.status(Response.Status.FORBIDDEN).entity(ErrorResponse.forbidden()).build();
   }
 
-  private Response badRequest(String path, @Nullable String message) {
-    return Response.status(Response.Status.BAD_REQUEST)
-        .entity(ErrorResponse.badRequest(path, message != null ? message : "Invalid request"))
-        .build();
+  private Response badRequest() {
+    return Response.status(Response.Status.BAD_REQUEST).entity(ErrorResponse.badRequest()).build();
   }
 
-  private Response validationError(String path, ConstraintViolationException cve) {
-    List<ErrorResponse.FieldError> fieldErrors =
+  private Response validationError(ConstraintViolationException cve) {
+    List<FieldError> fieldErrors =
         cve.getConstraintViolations().stream().map(this::toFieldError).collect(Collectors.toList());
 
     return Response.status(Response.Status.BAD_REQUEST)
-        .entity(ErrorResponse.badRequest(path, "Validation failed", fieldErrors))
+        .entity(ErrorResponse.validation(fieldErrors))
         .build();
   }
 
-  private ErrorResponse.FieldError toFieldError(ConstraintViolation<?> violation) {
+  private FieldError toFieldError(ConstraintViolation<?> violation) {
     String propertyPath = violation.getPropertyPath().toString();
     String field =
         propertyPath.contains(".")
             ? propertyPath.substring(propertyPath.lastIndexOf('.') + 1)
             : propertyPath;
 
-    return new ErrorResponse.FieldError(field, violation.getMessage(), violation.getInvalidValue());
+    return new FieldError(field, violation.getMessage(), violation.getInvalidValue());
   }
 
-  private Response businessError(String path, BusinessException be) {
-    Response.Status status =
-        switch (be.getErrorType()) {
-          case NOT_FOUND -> Response.Status.NOT_FOUND;
-          case CONFLICT -> Response.Status.CONFLICT;
-          case FORBIDDEN -> Response.Status.FORBIDDEN;
-          default -> Response.Status.BAD_REQUEST;
-        };
-
+  private Response triblyError(TriblyException be) {
+    Response.Status status = be.getStatus();
     return Response.status(status)
-        .entity(new ErrorResponse(be.getErrorCode(), be.getMessage(), path))
+        .entity(new ErrorResponse(be.getErrorCode(), be.getErrorDetails()))
         .build();
   }
 
-  private Response internal(String path) {
+  private Response internal() {
     return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-        .entity(ErrorResponse.internal(path, "An unexpected error occurred"))
+        .entity(ErrorResponse.internal())
         .build();
   }
 }

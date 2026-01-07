@@ -5,6 +5,7 @@
  * API for Tribly Cycling Team Management Platform
  * OpenAPI spec version: 1.0.0
  */
+import type { TeamPublicationDto } from './teamPublicationDto'
 import type { MediaDto } from './mediaDto'
 import type { SurfaceType } from './surfaceType'
 import type { Visibility } from './visibility'
@@ -22,6 +23,8 @@ export interface RouteDetailDto {
   id: string
   /** Route slug */
   slug: string
+  /** Team */
+  team: TeamPublicationDto
   /** Route name */
   name: string
   /** Media */

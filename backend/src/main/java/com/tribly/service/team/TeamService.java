@@ -1,5 +1,8 @@
 package com.tribly.service.team;
 
+import static com.tribly.dto.error.ErrorCode.INVALID_SLUG;
+import static com.tribly.dto.error.ErrorCode.SLUG_TAKEN;
+
 import com.tribly.domain.common.TeamEntity;
 import com.tribly.domain.common.repository.TriblyPage;
 import com.tribly.domain.team.Team;
@@ -13,8 +16,9 @@ import com.tribly.dto.common.response.MediaDto;
 import com.tribly.dto.teams.request.TeamRequest;
 import com.tribly.dto.teams.response.TeamDetailDto;
 import com.tribly.dto.teams.response.TeamListResponse;
+import com.tribly.enums.AllEntityType;
 import com.tribly.enums.TeamRole;
-import com.tribly.infrastructure.exception.BusinessException;
+import com.tribly.infrastructure.exception.*;
 import com.tribly.service.asset.AssetService;
 import com.tribly.service.common.SlugService;
 import com.tribly.service.security.TeamSecurityService;
@@ -52,13 +56,13 @@ public class TeamService {
     if (redirect.isPresent()) {
       return redirect.get().getTeam();
     }
-    throw BusinessException.notFound("Team", "teamSlug");
+    throw new NotFoundException(AllEntityType.TEAM, teamSlug);
   }
 
   protected TeamAndRole getTeam(Long id, @Nullable User user) {
     return teamRepository
         .findOne(id, user == null ? null : user.getId())
-        .orElseThrow(() -> BusinessException.notFound("Team", id));
+        .orElseThrow(() -> new NotFoundException(AllEntityType.TEAM, id));
   }
 
   @Transactional
@@ -140,7 +144,7 @@ public class TeamService {
 
     // Validate new slug format
     if (!slugService.isValidSlug(newSlug)) {
-      throw BusinessException.validation("Invalid slug format");
+      throw new BusinessException(INVALID_SLUG);
     }
 
     // No change needed
@@ -150,7 +154,7 @@ public class TeamService {
 
     // Check if new slug is already taken (by a non-deleted team)
     if (teamRepository.existsBySlug(newSlug)) {
-      throw BusinessException.conflict("Slug already in use", "SLUG_TAKEN");
+      throw new ConflictException(SLUG_TAKEN);
     }
 
     // Clear any existing redirect TO this new slug (reuse scenario)

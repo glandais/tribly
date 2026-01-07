@@ -7,6 +7,7 @@ import com.tribly.dto.comments.request.CommentRequest;
 import com.tribly.dto.comments.response.CommentDto;
 import com.tribly.dto.comments.response.CommentListResponse;
 import com.tribly.dto.error.ErrorResponse;
+import com.tribly.enums.ActionType;
 import com.tribly.service.route.RouteService;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.DELETE;
@@ -31,7 +32,7 @@ public class RouteCommentResource extends AbstractCommentResource {
 
   @Override
   protected TeamEntity getTeamEntity(Team team, String entitySlug, User user) {
-    return routeService.get(team, entitySlug, user);
+    return routeService.get(ActionType.READ, team, entitySlug, user);
   }
 
   @Override

@@ -11,13 +11,16 @@ import com.tribly.domain.route.repository.RouteRepository;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
 import com.tribly.dto.common.response.MediaDto;
+import com.tribly.dto.error.ErrorCode;
 import com.tribly.dto.routes.request.RouteRequest;
 import com.tribly.dto.routes.response.RouteDetailDto;
 import com.tribly.dto.routes.response.RouteDto;
 import com.tribly.dto.routes.response.RouteListResponse;
-import com.tribly.enums.EntityType;
+import com.tribly.enums.ActionType;
+import com.tribly.enums.AllEntityType;
 import com.tribly.enums.WindDirection;
 import com.tribly.infrastructure.exception.BusinessException;
+import com.tribly.infrastructure.exception.NotFoundException;
 import com.tribly.service.common.TeamEntityService;
 import com.tribly.service.route.response.TrackMetadata;
 import io.github.glandais.gpx.data.GPX;
@@ -27,7 +30,6 @@ import jakarta.transaction.Transactional;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import org.jboss.logging.Logger;
 import org.jspecify.annotations.Nullable;
@@ -37,7 +39,7 @@ import org.jspecify.annotations.Nullable;
  * Handles CRUD operations, GPX processing orchestration, and security checks.
  */
 @ApplicationScoped
-public class RouteService extends TeamEntityService<Route> {
+public class RouteService extends TeamEntityService<Route, RouteRepository, RouteDetailDto> {
 
   private static final Logger LOG = Logger.getLogger(RouteService.class);
 
@@ -48,13 +50,24 @@ public class RouteService extends TeamEntityService<Route> {
   @Inject AssetRepository assetRepository;
 
   @Override
-  protected EntityType getEntityType() {
-    return EntityType.ROUTE;
+  protected RouteRepository getRepository() {
+    return routeRepository;
   }
 
   @Override
-  protected Optional<Route> findByIdOptional(Long entityId) {
-    return routeRepository.findByIdOptional(entityId);
+  protected RouteDetailDto toDto(Route entity) {
+    return RouteDetailDto.from(entity, assetService);
+  }
+
+  @Override
+  protected boolean hasRights(
+      ActionType action, Team team, @Nullable User user, @Nullable Route entity) {
+    return switch (action) {
+      case CREATE, UPDATE, DELETE -> securityService.getOrganizer(user, team) != null;
+      // SQL
+      case READ -> true;
+      case JOIN -> false;
+    };
   }
 
   @Override
@@ -68,7 +81,7 @@ public class RouteService extends TeamEntityService<Route> {
                 .size(1)
                 .build());
     if (routes.items().isEmpty()) {
-      throw BusinessException.notFound("Route", entitySlug);
+      throw new NotFoundException(AllEntityType.ROUTE, entitySlug);
     } else {
       return routes.items().getFirst();
     }
@@ -81,15 +94,14 @@ public class RouteService extends TeamEntityService<Route> {
   @Transactional
   public RouteDto createRoute(
       Team team, RouteRequest request, @Nullable Path gpxPath, User creator) {
-    // Security check: reuse ride permissions (admins & organizers can create routes)
-    securityService.requireOrganizer(creator, team);
+    checkRights(ActionType.CREATE, team, creator, null);
 
     validateVisibility(request, team);
 
     // Validate GPX file
     List<GeoPoint> routePoints = request.points();
     if (gpxPath == null && (routePoints == null || routePoints.isEmpty())) {
-      throw BusinessException.validation("Route points are required");
+      throw new BusinessException(ErrorCode.GPX_EMPTY);
     }
 
     String slug = slugService.generateSlug(request.name(), team.getId(), routeRepository);
@@ -146,10 +158,7 @@ public class RouteService extends TeamEntityService<Route> {
   @Transactional
   public RouteDto updateRoute(
       Team team, String slug, RouteRequest request, @Nullable Path gpxPath, User user) {
-    Route route = get(team, slug, user);
-
-    // Security check: must be admin or organizer to edit routes
-    securityService.requireOrganizer(user, team);
+    Route route = get(ActionType.UPDATE, team, slug, user);
 
     validateVisibility(request, route.getTeam());
 
@@ -203,11 +212,6 @@ public class RouteService extends TeamEntityService<Route> {
     return RouteDto.from(route, assetService);
   }
 
-  public RouteDetailDto getRouteDetail(Team team, String slug, @Nullable User user) {
-    Route route = get(team, slug, user);
-    return RouteDetailDto.from(route, assetService);
-  }
-
   /**
    * List routes for a team with pagination, filtering, and access control.
    */
@@ -256,10 +260,7 @@ public class RouteService extends TeamEntityService<Route> {
    */
   @Transactional
   public void deleteRoute(Team team, String slug, User user) {
-    Route route = get(team, slug, user);
-
-    // Security check: must be admin or organizer to delete routes
-    securityService.requireOrganizer(user, team);
+    Route route = get(ActionType.DELETE, team, slug, user);
 
     route.setDeleted(true);
     routeRepository.persist(route);
@@ -282,34 +283,5 @@ public class RouteService extends TeamEntityService<Route> {
       }
       assetRepository.persist(asset);
     }
-  }
-
-  @Transactional
-  public RouteDto updateSlug(Team team, String slugParam, String newSlug, User user) {
-    Route route = get(team, slugParam, user);
-    String currentSlug = route.getSlug();
-
-    securityService.requireOrganizer(user, team);
-
-    if (!slugService.isValidSlug(newSlug)) {
-      throw BusinessException.validation("Invalid slug format");
-    }
-
-    if (currentSlug.equals(newSlug)) {
-      return RouteDto.from(route, assetService);
-    }
-
-    if (routeRepository.existsByTeamAndSlug(route.getTeam().getId(), newSlug)) {
-      throw BusinessException.conflict("Slug already in use", "SLUG_TAKEN");
-    }
-
-    slugService.clearEntityRedirect(route.getTeam().getId(), EntityType.ROUTE, newSlug);
-    slugService.createEntityRedirect(route, currentSlug);
-
-    route.setSlug(newSlug);
-    routeRepository.persist(route);
-
-    LOG.infov("Route slug changed from {0} to {1} by user {2}", currentSlug, newSlug, user);
-    return RouteDto.from(route, assetService);
   }
 }

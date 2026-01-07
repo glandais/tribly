@@ -10,7 +10,11 @@ import com.tribly.domain.user.repository.UserRepository;
 import com.tribly.dto.comments.request.CommentRequest;
 import com.tribly.dto.comments.response.CommentDto;
 import com.tribly.dto.comments.response.CommentListResponse;
+import com.tribly.dto.error.ErrorCode;
+import com.tribly.enums.AllEntityType;
 import com.tribly.infrastructure.exception.BusinessException;
+import com.tribly.infrastructure.exception.ForbiddenException;
+import com.tribly.infrastructure.exception.NotFoundException;
 import com.tribly.infrastructure.id.TsidUtils;
 import com.tribly.service.security.TeamSecurityService;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -72,16 +76,16 @@ public class CommentService {
       parent =
           commentRepository
               .findByIdNotDeleted(parentId)
-              .orElseThrow(() -> BusinessException.notFound("Comment", request.parentId()));
+              .orElseThrow(() -> new NotFoundException(AllEntityType.COMMENT, request.parentId()));
 
       // Enforce 1-level threading
       if (parent.getParent() != null) {
-        throw BusinessException.validation("Replies cannot have replies");
+        throw new BusinessException(ErrorCode.UNKNOWN);
       }
 
       // Ensure parent belongs to same entity
       if (!parent.getTeamEntity().getId().equals(teamEntity.getId())) {
-        throw BusinessException.validation("Parent comment belongs to different entity");
+        throw new BusinessException(ErrorCode.UNKNOWN);
       }
     }
 
@@ -102,7 +106,7 @@ public class CommentService {
     Comment comment =
         commentRepository
             .findByIdNotDeleted(commentId)
-            .orElseThrow(() -> BusinessException.notFound("Comment", commentId));
+            .orElseThrow(() -> new NotFoundException(AllEntityType.COMMENT, commentId));
 
     // Check authorization: author can delete own, organizer/admin can delete any
     UserTeam membership = securityService.requireMembership(user, team);
@@ -110,7 +114,7 @@ public class CommentService {
     boolean isOrganizerOrAdmin = membership.isOrganizer();
 
     if (!isAuthor && !isOrganizerOrAdmin) {
-      throw BusinessException.forbidden("You cannot delete this comment");
+      throw new ForbiddenException();
     }
 
     // Soft delete the comment

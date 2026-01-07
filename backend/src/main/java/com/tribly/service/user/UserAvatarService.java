@@ -2,7 +2,10 @@ package com.tribly.service.user;
 
 import com.tribly.domain.user.User;
 import com.tribly.domain.user.repository.UserRepository;
+import com.tribly.dto.error.ErrorCode;
+import com.tribly.enums.AllEntityType;
 import com.tribly.infrastructure.exception.BusinessException;
+import com.tribly.infrastructure.exception.NotFoundException;
 import com.tribly.infrastructure.id.TsidUtils;
 import com.tribly.infrastructure.imgproxy.ImgProxyService;
 import io.hypersistence.tsid.TSID;
@@ -58,7 +61,7 @@ public class UserAvatarService {
     String contentType = getContentType(tempFile, fileName);
     if (!contentType.startsWith("image/")) {
       tempFile.delete();
-      throw BusinessException.validation("File must be an image");
+      throw new BusinessException(ErrorCode.INVALID_FORMAT);
     }
 
     // Generate final file ID and resize
@@ -75,7 +78,7 @@ public class UserAvatarService {
       }
     } catch (Exception e) {
       tempFile.delete();
-      throw BusinessException.validation("Failed to process image");
+      throw new BusinessException(ErrorCode.INVALID_FORMAT);
     }
 
     // Delete temp file
@@ -100,7 +103,7 @@ public class UserAvatarService {
     User user =
         userRepository
             .findActiveById(userParam.getId())
-            .orElseThrow(() -> BusinessException.notFound("User", userParam.getId()));
+            .orElseThrow(() -> new NotFoundException(AllEntityType.USER, userParam.getId()));
 
     String avatarUrl = user.getAvatarUrl();
     if (avatarUrl != null) {
@@ -118,7 +121,7 @@ public class UserAvatarService {
     // Verify file exists
     File avatarFile = getAvatarFile(fileIdLong);
     if (!avatarFile.exists()) {
-      throw BusinessException.notFound("Avatar", fileId);
+      throw new BusinessException(ErrorCode.UNKNOWN);
     }
 
     String relativePath = getRelativeAvatarPath(fileIdLong);

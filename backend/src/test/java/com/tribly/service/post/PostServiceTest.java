@@ -12,7 +12,7 @@ import com.tribly.dto.posts.response.PostListResponse;
 import com.tribly.enums.Status;
 import com.tribly.enums.TeamRole;
 import com.tribly.enums.Visibility;
-import com.tribly.infrastructure.exception.BusinessException;
+import com.tribly.infrastructure.exception.TriblyException;
 import com.tribly.util.TestDataCleaner;
 import com.tribly.util.TestDataService;
 import io.quarkus.test.junit.QuarkusTest;
@@ -161,7 +161,7 @@ class PostServiceTest {
       Post post =
           dataService.createPost(publicTeam, admin, "Test Post", Instant.now(), Visibility.PUBLIC);
 
-      PostDto result = postService.getPostDetail(publicTeam, post.getSlug(), member);
+      PostDto result = postService.getDto(publicTeam, post.getSlug(), member);
 
       assertNotNull(result);
       assertEquals("Test Post", result.getName());
@@ -173,7 +173,7 @@ class PostServiceTest {
           dataService.createPost(
               publicTeam, admin, "Public Post", Instant.now(), Visibility.PUBLIC);
 
-      PostDto result = postService.getPostDetail(publicTeam, post.getSlug(), null);
+      PostDto result = postService.getDto(publicTeam, post.getSlug(), null);
 
       assertNotNull(result);
     }
@@ -184,15 +184,13 @@ class PostServiceTest {
           dataService.createPost(publicTeam, admin, "Team Post", Instant.now(), Visibility.TEAM);
 
       assertThrows(
-          BusinessException.class,
-          () -> postService.getPostDetail(publicTeam, post.getSlug(), null));
+          TriblyException.class, () -> postService.getDto(publicTeam, post.getSlug(), null));
     }
 
     @Test
     void shouldThrowForNonexistentPost() {
       assertThrows(
-          BusinessException.class,
-          () -> postService.getPostDetail(publicTeam, "nonexistent", admin));
+          TriblyException.class, () -> postService.getDto(publicTeam, "nonexistent", admin));
     }
   }
 
@@ -266,7 +264,7 @@ class PostServiceTest {
               null);
 
       assertThrows(
-          BusinessException.class, () -> postService.createPost(publicTeam, request, member));
+          TriblyException.class, () -> postService.createPost(publicTeam, request, member));
     }
 
     @Test
@@ -281,7 +279,7 @@ class PostServiceTest {
               null);
 
       assertThrows(
-          BusinessException.class, () -> postService.createPost(privateTeam, request, admin));
+          TriblyException.class, () -> postService.createPost(privateTeam, request, admin));
     }
 
     @Test
@@ -384,7 +382,7 @@ class PostServiceTest {
               null);
 
       assertThrows(
-          BusinessException.class,
+          TriblyException.class,
           () -> postService.updatePost(publicTeam, post.getSlug(), request, member));
     }
 
@@ -402,7 +400,7 @@ class PostServiceTest {
               null);
 
       assertThrows(
-          BusinessException.class,
+          TriblyException.class,
           () -> postService.updatePost(privateTeam, post.getSlug(), request, admin));
     }
 
@@ -439,7 +437,7 @@ class PostServiceTest {
               null);
 
       assertThrows(
-          BusinessException.class,
+          TriblyException.class,
           () -> postService.updatePost(publicTeam, "nonexistent", request, admin));
     }
   }
@@ -455,8 +453,7 @@ class PostServiceTest {
       postService.deletePost(publicTeam, post.getSlug(), organizer);
 
       assertThrows(
-          BusinessException.class,
-          () -> postService.getPostDetail(publicTeam, post.getSlug(), admin));
+          TriblyException.class, () -> postService.getDto(publicTeam, post.getSlug(), admin));
     }
 
     @Test
@@ -465,14 +462,13 @@ class PostServiceTest {
           dataService.createPost(publicTeam, admin, "Test", Instant.now(), Visibility.PUBLIC);
 
       assertThrows(
-          BusinessException.class,
-          () -> postService.deletePost(publicTeam, post.getSlug(), member));
+          TriblyException.class, () -> postService.deletePost(publicTeam, post.getSlug(), member));
     }
 
     @Test
     void shouldThrowForNonexistentPost() {
       assertThrows(
-          BusinessException.class, () -> postService.deletePost(publicTeam, "nonexistent", admin));
+          TriblyException.class, () -> postService.deletePost(publicTeam, "nonexistent", admin));
     }
   }
 }

@@ -9,9 +9,12 @@ import com.tribly.domain.route.GpxTrack;
 import com.tribly.domain.route.GpxWaypoint;
 import com.tribly.domain.route.Route;
 import com.tribly.domain.user.User;
+import com.tribly.dto.error.ErrorCode;
+import com.tribly.enums.AllEntityType;
 import com.tribly.enums.AssetType;
 import com.tribly.enums.WindDirection;
 import com.tribly.infrastructure.exception.BusinessException;
+import com.tribly.infrastructure.exception.NotFoundException;
 import com.tribly.service.asset.AssetService;
 import com.tribly.service.asset.response.AssetWithFile;
 import com.tribly.service.route.response.TrackMetadata;
@@ -82,7 +85,7 @@ public class GpxProcessingService {
       return gpxFileReader.parseGPX(fis);
     } catch (Exception e) {
       LOG.errorv("Failed to parse GPX file", e);
-      throw BusinessException.conflict("GPX parsing failed", e);
+      throw new BusinessException(ErrorCode.GPX_FAILURE, e);
     }
   }
 
@@ -107,7 +110,7 @@ public class GpxProcessingService {
     Long routeId = route.getId();
     try {
       if (gpx.paths().isEmpty()) {
-        throw BusinessException.validation("GPX file contains no tracks or routes");
+        throw new BusinessException(ErrorCode.GPX_EMPTY);
       }
 
       // Save original GPX (parsed, before filtering)
@@ -222,7 +225,7 @@ public class GpxProcessingService {
           windDirection);
     } catch (Exception e) {
       LOG.errorv("GPX processing failed for route", e);
-      throw BusinessException.conflict("GPX processing failed", e);
+      throw new BusinessException(ErrorCode.GPX_FAILURE, e);
     }
   }
 
@@ -346,7 +349,7 @@ public class GpxProcessingService {
     if (matching != null) {
       return assetService.getAssetFile(matching);
     } else {
-      throw BusinessException.notFound("Asset not found for route " + route.getId());
+      throw new NotFoundException(AllEntityType.ASSET, "forRoute-" + route.getId());
     }
   }
 

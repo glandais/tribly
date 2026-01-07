@@ -13,7 +13,7 @@ import com.tribly.dto.routes.response.RouteListResponse;
 import com.tribly.enums.SurfaceType;
 import com.tribly.enums.TeamRole;
 import com.tribly.enums.Visibility;
-import com.tribly.infrastructure.exception.BusinessException;
+import com.tribly.infrastructure.exception.TriblyException;
 import com.tribly.util.TestDataCleaner;
 import com.tribly.util.TestDataService;
 import io.quarkus.test.junit.QuarkusTest;
@@ -103,7 +103,7 @@ class RouteServiceTest {
             "Test", MediaDto.builder().build(), SurfaceType.GRAVEL, Visibility.PUBLIC, List.of());
 
     assertThrows(
-        BusinessException.class, () -> routeService.createRoute(team, request, gpxPath, member));
+        TriblyException.class, () -> routeService.createRoute(team, request, gpxPath, member));
   }
 
   // ==================== Get Route ====================
@@ -112,7 +112,7 @@ class RouteServiceTest {
   void getRoute_shouldReturnRouteForMember() {
     Route route = dataService.createRoute(team, admin, "Public Route", Visibility.PUBLIC);
 
-    RouteDetailDto result = routeService.getRouteDetail(team, route.getSlug(), member);
+    RouteDetailDto result = routeService.getDto(team, route.getSlug(), member);
 
     assertNotNull(result);
     assertEquals("Public Route", result.name());
@@ -122,7 +122,7 @@ class RouteServiceTest {
   void getRoute_shouldReturnRouteForNonMemberIfPublic() {
     Route route = dataService.createRoute(team, admin, "Public Route", Visibility.PUBLIC);
 
-    RouteDetailDto result = routeService.getRouteDetail(team, route.getSlug(), null);
+    RouteDetailDto result = routeService.getDto(team, route.getSlug(), null);
 
     assertNotNull(result);
     assertEquals("Public Route", result.name());
@@ -132,14 +132,12 @@ class RouteServiceTest {
   void getRoute_shouldHideTeamRouteFromNonMembers() {
     Route route = dataService.createRoute(team, admin, "Team Route", Visibility.TEAM);
 
-    assertThrows(
-        BusinessException.class, () -> routeService.getRouteDetail(team, route.getSlug(), null));
+    assertThrows(TriblyException.class, () -> routeService.getDto(team, route.getSlug(), null));
   }
 
   @Test
   void getRoute_shouldThrowForNonexistentRoute() {
-    assertThrows(
-        BusinessException.class, () -> routeService.getRouteDetail(team, "missing", admin));
+    assertThrows(TriblyException.class, () -> routeService.getDto(team, "missing", admin));
   }
 
   // ==================== Get Route Detail ====================
@@ -148,7 +146,7 @@ class RouteServiceTest {
   void getRouteDetail_shouldReturnRouteWithTrackForMember() {
     Route route = dataService.createRoute(team, admin, "Detailed Route", Visibility.PUBLIC);
 
-    RouteDetailDto result = routeService.getRouteDetail(team, route.getSlug(), member);
+    RouteDetailDto result = routeService.getDto(team, route.getSlug(), member);
 
     assertNotNull(result);
     assertEquals("Detailed Route", result.name());
@@ -159,7 +157,7 @@ class RouteServiceTest {
   void getRouteDetail_shouldReturnRouteForNonMemberIfPublic() {
     Route route = dataService.createRoute(team, admin, "Public Route Detail", Visibility.PUBLIC);
 
-    RouteDetailDto result = routeService.getRouteDetail(team, route.getSlug(), null);
+    RouteDetailDto result = routeService.getDto(team, route.getSlug(), null);
 
     assertNotNull(result);
     assertEquals("Public Route Detail", result.name());
@@ -169,14 +167,12 @@ class RouteServiceTest {
   void getRouteDetail_shouldHideTeamRouteFromNonMembers() {
     Route route = dataService.createRoute(team, admin, "Team Route Detail", Visibility.TEAM);
 
-    assertThrows(
-        BusinessException.class, () -> routeService.getRouteDetail(team, route.getSlug(), null));
+    assertThrows(TriblyException.class, () -> routeService.getDto(team, route.getSlug(), null));
   }
 
   @Test
   void getRouteDetail_shouldThrowForNonexistentRoute() {
-    assertThrows(
-        BusinessException.class, () -> routeService.getRouteDetail(team, "missing", admin));
+    assertThrows(TriblyException.class, () -> routeService.getDto(team, "missing", admin));
   }
 
   // ==================== List Routes ====================
@@ -290,7 +286,7 @@ class RouteServiceTest {
         new RouteRequest("New", MediaDto.builder().build(), null, null, List.of());
 
     assertThrows(
-        BusinessException.class,
+        TriblyException.class,
         () -> routeService.updateRoute(team, route.getSlug(), request, null, member));
   }
 
@@ -344,8 +340,7 @@ class RouteServiceTest {
 
     routeService.deleteRoute(team, routeSlug, admin);
 
-    assertThrows(
-        BusinessException.class, () -> routeService.getRouteDetail(team, routeSlug, admin));
+    assertThrows(TriblyException.class, () -> routeService.getDto(team, routeSlug, admin));
 
     // Cleanup handled by gpxProcessingService.deleteRouteFiles
     createdRoute = null; // Prevent double cleanup in @AfterEach
@@ -356,6 +351,6 @@ class RouteServiceTest {
     Route route = dataService.createRoute(team, admin, "Test");
 
     assertThrows(
-        BusinessException.class, () -> routeService.deleteRoute(team, route.getSlug(), member));
+        TriblyException.class, () -> routeService.deleteRoute(team, route.getSlug(), member));
   }
 }
