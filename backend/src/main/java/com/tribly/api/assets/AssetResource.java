@@ -1,12 +1,9 @@
 package com.tribly.api.assets;
 
-import com.tribly.api.AbstractAuthenticatedResource;
-import com.tribly.domain.team.Team;
-import com.tribly.domain.user.User;
-import com.tribly.dto.common.response.AssetDto;
+import com.tribly.common.exception.BusinessException;
+import com.tribly.dto.common.asset.AssetDto;
 import com.tribly.dto.error.ErrorCode;
 import com.tribly.dto.error.ErrorResponse;
-import com.tribly.infrastructure.exception.BusinessException;
 import com.tribly.service.asset.AssetService;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
@@ -25,10 +22,11 @@ import org.jboss.resteasy.reactive.RestForm;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
 import org.jspecify.annotations.Nullable;
 
-@Path("/api/teams/{slug}/assets")
+@Path("/api/teams/{teamSlug}/assets")
 @Produces(MediaType.APPLICATION_JSON)
 @Tag(name = "Assets", description = "Assets management operations")
-public class AssetResource extends AbstractAuthenticatedResource {
+@RolesAllowed("user")
+public class AssetResource {
   @Inject AssetService assetService;
 
   /**
@@ -37,7 +35,6 @@ public class AssetResource extends AbstractAuthenticatedResource {
    */
   @POST
   @Consumes(MediaType.MULTIPART_FORM_DATA)
-  @RolesAllowed("user")
   @Operation(summary = "Create asset")
   @APIResponses({
     @APIResponse(
@@ -62,11 +59,9 @@ public class AssetResource extends AbstractAuthenticatedResource {
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
   public Response uploadAsset(
-      @Parameter(description = "Team URL slug") @PathParam("slug") String teamSlug,
+      @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug,
       @RestForm("file") @Nullable FileUpload fileUpload)
       throws Exception {
-
-    User user = getCurrentUser();
 
     // Validate file
     if (fileUpload == null || fileUpload.filePath() == null) {
@@ -74,10 +69,9 @@ public class AssetResource extends AbstractAuthenticatedResource {
     }
     String fileName = fileUpload.fileName();
 
-    Team team = teamService.getTeam(teamSlug);
     AssetDto assetDto =
         assetService.createAsset(
-            team, user, new FileInputStream(fileUpload.filePath().toFile()), fileName);
+            teamSlug, new FileInputStream(fileUpload.filePath().toFile()), fileName);
 
     return Response.status(Response.Status.CREATED).entity(assetDto).build();
   }

@@ -1,45 +1,64 @@
 package com.tribly.service.comment;
 
+import com.tribly.common.TsidUtils;
+import com.tribly.common.exception.BusinessException;
 import com.tribly.domain.comment.Comment;
-import com.tribly.domain.comment.repository.CommentRepository;
 import com.tribly.domain.common.TeamEntity;
 import com.tribly.domain.team.Team;
-import com.tribly.domain.team.UserTeam;
 import com.tribly.domain.user.User;
-import com.tribly.domain.user.repository.UserRepository;
 import com.tribly.dto.comments.request.CommentRequest;
 import com.tribly.dto.comments.response.CommentDto;
 import com.tribly.dto.comments.response.CommentListResponse;
 import com.tribly.dto.error.ErrorCode;
-import com.tribly.enums.AllEntityType;
-import com.tribly.infrastructure.exception.BusinessException;
-import com.tribly.infrastructure.exception.ForbiddenException;
+import com.tribly.enums.ActionType;
+import com.tribly.enums.EntityType;
 import com.tribly.infrastructure.exception.NotFoundException;
-import com.tribly.infrastructure.id.TsidUtils;
-import com.tribly.service.security.TeamSecurityService;
+import com.tribly.repository.comment.CommentRepository;
+import com.tribly.service.post.PostService;
+import com.tribly.service.ride.RideService;
+import com.tribly.service.route.RouteService;
+import com.tribly.service.security.TriblyQueryContext;
+import com.tribly.service.security.annotation.CheckAccess;
+import com.tribly.service.team.TeamService;
+import com.tribly.service.trip.TripService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import org.jboss.logging.Logger;
 
 @ApplicationScoped
 public class CommentService {
 
-  private static final Logger LOG = Logger.getLogger(CommentService.class);
-
   @Inject CommentRepository commentRepository;
-  @Inject UserRepository userRepository;
-  @Inject TeamSecurityService securityService;
+
+  @Inject TriblyQueryContext triblyQueryContext;
+  @Inject TeamService teamService;
+  @Inject PostService postService;
+  @Inject RouteService routeService;
+  @Inject RideService rideService;
+  @Inject TripService tripService;
+
+  TeamEntity getTeamEntity(Team team, String slug, EntityType entityType) {
+    if (entityType == EntityType.POST) {
+      return postService.findBySlug(team, slug);
+    } else if (entityType == EntityType.RIDE) {
+      return rideService.findBySlug(team, slug);
+    } else if (entityType == EntityType.ROUTE) {
+      return routeService.findBySlug(team, slug);
+    } else if (entityType == EntityType.TRIP) {
+      return tripService.findBySlug(team, slug);
+    }
+    throw new NotFoundException(entityType, slug);
+  }
 
   @Transactional
-  public CommentListResponse listComments(Team team, Long teamEntityId, User user) {
-    // Verify team membership
-    securityService.requireMembership(user, team);
-
-    List<Comment> allComments = commentRepository.findByTeamEntityId(teamEntityId);
+  @CheckAccess(entityType = EntityType.COMMENT, action = ActionType.LIST)
+  public CommentListResponse listComments(String teamSlug, String slug, EntityType entityType) {
+    Team team = teamService.getTeam(teamSlug);
+    TeamEntity teamEntity = getTeamEntity(team, slug, entityType);
+    List<Comment> allComments = commentRepository.findByTeamEntityId(teamEntity.getId());
 
     // Organize into parent comments and replies
     Map<Long, List<Comment>> repliesByParentId =
@@ -64,19 +83,20 @@ public class CommentService {
   }
 
   @Transactional
-  public CommentDto createComment(TeamEntity teamEntity, CommentRequest request, User author) {
-    Team team = teamEntity.getTeam();
-
-    // Verify team membership
-    securityService.requireMembership(author, team);
+  @CheckAccess(entityType = EntityType.COMMENT, action = ActionType.CREATE)
+  public CommentDto createComment(
+      String teamSlug, String slug, EntityType entityType, CommentRequest request) {
+    Team team = teamService.getTeam(teamSlug);
+    TeamEntity teamEntity = getTeamEntity(team, slug, entityType);
+    User creator = triblyQueryContext.getUser();
 
     Comment parent = null;
     if (request.parentId() != null) {
       Long parentId = TsidUtils.toLong(request.parentId());
       parent =
           commentRepository
-              .findByIdNotDeleted(parentId)
-              .orElseThrow(() -> new NotFoundException(AllEntityType.COMMENT, request.parentId()));
+              .findByTeamIdAndId(team.getId(), parentId)
+              .orElseThrow(() -> new NotFoundException(EntityType.COMMENT, request.parentId()));
 
       // Enforce 1-level threading
       if (parent.getParent() != null) {
@@ -91,41 +111,28 @@ public class CommentService {
 
     Comment comment =
         parent != null
-            ? new Comment(author, team, teamEntity, parent, request.content())
-            : new Comment(author, team, teamEntity, request.content());
+            ? new Comment(creator, teamEntity, parent, request.content())
+            : new Comment(creator, teamEntity, request.content());
 
     commentRepository.persistAndFlush(comment);
-
-    LOG.infov("Comment created by user {0} on entity {1}", author.getId(), teamEntity.getId());
 
     return CommentDto.from(comment, List.of());
   }
 
   @Transactional
-  public void deleteComment(Team team, Long commentId, User user) {
+  @CheckAccess(entityType = EntityType.COMMENT, action = ActionType.DELETE)
+  // params used by CommentAccessChecker
+  public void deleteComment(String teamSlug, String slug, EntityType entityType, Long commentId) {
+    Team team = teamService.getTeam(teamSlug);
     Comment comment =
         commentRepository
-            .findByIdNotDeleted(commentId)
-            .orElseThrow(() -> new NotFoundException(AllEntityType.COMMENT, commentId));
-
-    // Check authorization: author can delete own, organizer/admin can delete any
-    UserTeam membership = securityService.requireMembership(user, team);
-    boolean isAuthor = comment.getCreatedBy().getId().equals(user.getId());
-    boolean isOrganizerOrAdmin = membership.isOrganizer();
-
-    if (!isAuthor && !isOrganizerOrAdmin) {
-      throw new ForbiddenException();
-    }
-
+            .findByTeamIdAndId(team.getId(), commentId)
+            .orElseThrow(() -> new NotFoundException(EntityType.COMMENT, commentId));
     // Soft delete the comment
     comment.setDeleted(true);
     commentRepository.persist(comment);
 
     // Cascade soft delete to replies
-    int deletedReplies = commentRepository.softDeleteReplies(commentId);
-
-    LOG.infov(
-        "Comment {0} deleted by user {1} (cascade deleted {2} replies)",
-        commentId, user.getId(), deletedReplies);
+    commentRepository.softDeleteReplies(commentId);
   }
 }

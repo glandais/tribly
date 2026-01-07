@@ -4,12 +4,12 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
 import com.tribly.api.AbstractResourceTest;
+import com.tribly.common.TsidUtils;
 import com.tribly.domain.route.Route;
-import com.tribly.dto.common.response.MediaDto;
+import com.tribly.dto.common.asset.MediaDto;
 import com.tribly.dto.routes.request.RouteRequest;
 import com.tribly.enums.SurfaceType;
 import com.tribly.enums.Visibility;
-import com.tribly.infrastructure.id.TsidUtils;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.ws.rs.core.MediaType;
 import java.io.File;

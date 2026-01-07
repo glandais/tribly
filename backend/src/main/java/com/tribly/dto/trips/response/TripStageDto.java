@@ -1,10 +1,10 @@
 package com.tribly.dto.trips.response;
 
+import com.tribly.common.TsidUtils;
 import com.tribly.domain.trip.TripStage;
-import com.tribly.dto.common.response.MediaDto;
+import com.tribly.dto.common.asset.MediaDto;
 import com.tribly.dto.places.response.PlaceDetailDto;
 import com.tribly.dto.validation.ValidateSchema;
-import com.tribly.infrastructure.id.TsidUtils;
 import com.tribly.service.asset.AssetService;
 import java.time.Instant;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;

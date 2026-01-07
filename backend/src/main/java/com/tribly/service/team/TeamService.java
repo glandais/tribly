@@ -3,49 +3,51 @@ package com.tribly.service.team;
 import static com.tribly.dto.error.ErrorCode.INVALID_SLUG;
 import static com.tribly.dto.error.ErrorCode.SLUG_TAKEN;
 
+import com.tribly.common.exception.BusinessException;
+import com.tribly.common.exception.ConflictException;
 import com.tribly.domain.common.TeamEntity;
-import com.tribly.domain.common.repository.TriblyPage;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.team.TeamSlugRedirect;
 import com.tribly.domain.team.UserTeam;
-import com.tribly.domain.team.repository.TeamQuery;
-import com.tribly.domain.team.repository.TeamRepository;
-import com.tribly.domain.team.repository.UserTeamRepository;
 import com.tribly.domain.user.User;
-import com.tribly.dto.common.response.MediaDto;
+import com.tribly.dto.common.asset.MediaDto;
 import com.tribly.dto.teams.request.TeamRequest;
 import com.tribly.dto.teams.response.TeamDetailDto;
 import com.tribly.dto.teams.response.TeamListResponse;
-import com.tribly.enums.AllEntityType;
+import com.tribly.enums.ActionType;
+import com.tribly.enums.EntityType;
 import com.tribly.enums.TeamRole;
 import com.tribly.infrastructure.exception.*;
+import com.tribly.repository.common.TriblyPage;
+import com.tribly.repository.team.TeamQuery;
+import com.tribly.repository.team.TeamRepository;
+import com.tribly.repository.team.UserTeamRepository;
 import com.tribly.service.asset.AssetService;
 import com.tribly.service.common.SlugService;
-import com.tribly.service.security.TeamSecurityService;
+import com.tribly.service.security.TriblyQueryContext;
+import com.tribly.service.security.annotation.CheckAccess;
 import com.tribly.service.team.request.MinRole;
 import com.tribly.service.team.response.TeamAndRole;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Optional;
-import org.jboss.logging.Logger;
 import org.jspecify.annotations.Nullable;
 
 @ApplicationScoped
 public class TeamService {
 
-  private static final Logger LOG = Logger.getLogger(TeamService.class);
-
   @Inject UserTeamRepository userTeamRepository;
-
-  @Inject protected TeamSecurityService securityService;
 
   @Inject protected TeamRepository teamRepository;
 
   @Inject protected AssetService assetService;
 
   @Inject protected SlugService slugService;
+
+  @Inject TriblyQueryContext triblyContext;
 
   public Team getTeam(String teamSlug) {
     Optional<Team> optionalTeam = teamRepository.findBySlug(teamSlug);
@@ -56,17 +58,19 @@ public class TeamService {
     if (redirect.isPresent()) {
       return redirect.get().getTeam();
     }
-    throw new NotFoundException(AllEntityType.TEAM, teamSlug);
+    throw new NotFoundException(EntityType.TEAM, teamSlug);
   }
 
-  protected TeamAndRole getTeam(Long id, @Nullable User user) {
+  protected TeamAndRole getTeamAndRole(Long id) {
     return teamRepository
-        .findOne(id, user == null ? null : user.getId())
-        .orElseThrow(() -> new NotFoundException(AllEntityType.TEAM, id));
+        .findOne(id, triblyContext.getUserIdNullable())
+        .orElseThrow(() -> new NotFoundException(EntityType.TEAM, id));
   }
 
   @Transactional
-  public TeamDetailDto createTeam(TeamRequest request, User creator) {
+  @CheckAccess(entityType = EntityType.TEAM, action = ActionType.CREATE)
+  public TeamDetailDto createTeam(TeamRequest request) {
+    User creator = triblyContext.getUser();
     String slug = slugService.generateSlug(request.name(), teamRepository::existsBySlug);
     slugService.clearTeamRedirect(slug);
 
@@ -80,17 +84,16 @@ public class TeamService {
     UserTeam membership = new UserTeam(creator, creator, team, TeamRole.ADMIN);
     userTeamRepository.persist(membership);
 
-    LOG.infov("Team {0} created by user {1}", team.getSlug(), creator.getId());
     return TeamDetailDto.from(new TeamAndRole(team, TeamRole.ADMIN, 1L), assetService);
   }
 
   @Transactional
-  public TeamListResponse listTeams(
-      @Nullable User user, MinRole minRole, @Nullable String search, int page, int size) {
+  @CheckAccess(entityType = EntityType.TEAM, action = ActionType.LIST)
+  public TeamListResponse listTeams(MinRole minRole, @Nullable String search, int page, int size) {
     TriblyPage<TeamAndRole> teams =
         teamRepository.find(
             TeamQuery.builder()
-                .userId(user == null ? null : user.getId())
+                .userId(triblyContext.getUserIdNullable())
                 .minRole(minRole)
                 .search(search)
                 .page(page)
@@ -103,15 +106,17 @@ public class TeamService {
     return new TeamListResponse(dtos, teams.total(), page, size);
   }
 
-  public TeamDetailDto getTeamDetailDto(Team team, @Nullable User user) {
-    TeamAndRole teamAndRole = getTeam(team.getId(), user);
+  @CheckAccess(entityType = EntityType.TEAM, action = ActionType.READ)
+  public TeamDetailDto getTeamDetailDto(String teamSlug) {
+    Team team = getTeam(teamSlug);
+    TeamAndRole teamAndRole = getTeamAndRole(team.getId());
     return TeamDetailDto.from(teamAndRole, assetService);
   }
 
   @Transactional
-  public TeamDetailDto updateTeam(Team teamParam, TeamRequest request, User user) {
-    Team team = getTeam(teamParam.getId(), user).team();
-    securityService.requireAdmin(user, team);
+  @CheckAccess(entityType = EntityType.TEAM, action = ActionType.UPDATE)
+  public TeamDetailDto updateTeam(String teamSlug, TeamRequest request) {
+    Team team = getTeam(teamSlug);
 
     team.setName(request.name());
     team.setVisibility(request.visibility());
@@ -120,28 +125,22 @@ public class TeamService {
     updateMedia(team.getAboutPage(), request.media());
 
     teamRepository.persist(team);
-    LOG.infov("Team {0} updated by user {1}", team.getSlug(), user.getId());
-    return getTeamDetailDto(team, user);
+    return getTeamDetailDto(teamSlug);
   }
 
   @Transactional
-  public void deleteTeam(Team teamParam, User user) {
-    Team team = getTeam(teamParam.getId(), user).team();
-
-    securityService.requireAdmin(user, team);
-
+  @CheckAccess(entityType = EntityType.TEAM, action = ActionType.DELETE)
+  public void deleteTeam(String teamSlug) {
+    Team team = getTeam(teamSlug);
     team.setDeleted(true);
     teamRepository.persist(team);
-    LOG.infov("Team {0} deleted by user {1}", team.getSlug(), user.getId());
   }
 
   @Transactional
-  public TeamDetailDto updateSlug(Team teamParam, String newSlug, User user) {
-    Team team = getTeam(teamParam.getId(), user).team();
+  @CheckAccess(entityType = EntityType.TEAM, action = ActionType.UPDATE)
+  public TeamDetailDto updateSlug(String teamSlug, String newSlug) {
+    Team team = getTeam(teamSlug);
     String currentSlug = team.getSlug();
-
-    securityService.requireAdmin(user, team);
-
     // Validate new slug format
     if (!slugService.isValidSlug(newSlug)) {
       throw new BusinessException(INVALID_SLUG);
@@ -149,7 +148,7 @@ public class TeamService {
 
     // No change needed
     if (currentSlug.equals(newSlug)) {
-      return getTeamDetailDto(team, user);
+      return getTeamDetailDto(teamSlug);
     }
 
     // Check if new slug is already taken (by a non-deleted team)
@@ -167,13 +166,12 @@ public class TeamService {
     team.setSlug(newSlug);
     teamRepository.persist(team);
 
-    LOG.infov("Team slug changed from {0} to {1} by user {2}", currentSlug, newSlug, user.getId());
-    return getTeamDetailDto(team, user);
+    return getTeamDetailDto(teamSlug);
   }
 
-  protected void updateMedia(TeamEntity teamEntity, MediaDto mediaDto) {
+  protected void updateMedia(TeamEntity teamEntity, @Valid MediaDto mediaRequest) {
     // FIXME MediaService
-    teamEntity.setMarkdown(mediaDto.markdown());
-    assetService.updateAssets(teamEntity, mediaDto.assets());
+    teamEntity.setMarkdown(mediaRequest.markdown());
+    assetService.updateAssets(teamEntity, mediaRequest.assets());
   }
 }

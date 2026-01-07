@@ -39,7 +39,7 @@ export function RouteDetailPage() {
   const handleDelete = async () => {
     if (routeSlug && teamSlug) {
       await deleteRouteMutation.mutateAsync(
-        { slug: teamSlug, routeSlug },
+        { teamSlug: teamSlug, routeSlug },
         {
           onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: getListRoutesQueryKey(teamSlug) })

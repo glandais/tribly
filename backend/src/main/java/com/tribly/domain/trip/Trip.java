@@ -4,6 +4,7 @@ import com.tribly.domain.common.Publication;
 import com.tribly.domain.route.Route;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
+import com.tribly.enums.EntityType;
 import com.tribly.enums.Visibility;
 import jakarta.persistence.*;
 import java.time.Instant;
@@ -58,5 +59,10 @@ public class Trip extends Publication {
 
   public int getStageCount() {
     return (int) stages.stream().filter(s -> !s.isDeleted()).count();
+  }
+
+  @Override
+  public EntityType getEntityType() {
+    return EntityType.TRIP;
   }
 }

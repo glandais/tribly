@@ -12,7 +12,7 @@ import * as zod from 'zod'
  * @summary Get team members
  */
 export const getMembersParams = zod.object({
-  slug: zod.string().describe('Team URL slug'),
+  teamSlug: zod.string().describe('Team URL slug'),
 })
 
 export const getMembersQueryPageDefault = 0
@@ -45,7 +45,7 @@ export const getMembersResponse = zod
                 avatarUrl: zod.string().optional().describe('User avatar URL'),
               })
               .describe('Public user information (limited fields)'),
-            role: zod.enum(['ADMIN', 'ORGANIZER', 'MEMBER']),
+            role: zod.enum(['MEMBER', 'ORGANIZER', 'ADMIN']),
             joinedAt: zod.iso.datetime({}).optional(),
           })
           .describe('Team member information')
@@ -62,13 +62,13 @@ export const getMembersResponse = zod
  * @summary Add team member
  */
 export const addMemberParams = zod.object({
-  slug: zod.string().describe('Team URL slug'),
+  teamSlug: zod.string().describe('Team URL slug'),
 })
 
 export const addMemberBody = zod
   .object({
     userId: zod.string().describe('User ID (TSID) to add'),
-    role: zod.enum(['ADMIN', 'ORGANIZER', 'MEMBER']).optional(),
+    role: zod.enum(['MEMBER', 'ORGANIZER', 'ADMIN']).optional(),
   })
   .describe('Request to add a member to the team')
 
@@ -77,7 +77,7 @@ export const addMemberBody = zod
  * @summary Join team
  */
 export const joinTeamParams = zod.object({
-  slug: zod.string().describe('Team URL slug'),
+  teamSlug: zod.string().describe('Team URL slug'),
 })
 
 /**
@@ -85,7 +85,7 @@ export const joinTeamParams = zod.object({
  * @summary Leave team
  */
 export const leaveTeamParams = zod.object({
-  slug: zod.string().describe('Team URL slug'),
+  teamSlug: zod.string().describe('Team URL slug'),
 })
 
 /**
@@ -94,12 +94,12 @@ export const leaveTeamParams = zod.object({
  */
 export const updateMemberRoleParams = zod.object({
   memberId: zod.string().describe('Member user ID (TSID)'),
-  slug: zod.string().describe('Team URL slug'),
+  teamSlug: zod.string().describe('Team URL slug'),
 })
 
 export const updateMemberRoleBody = zod
   .object({
-    role: zod.enum(['ADMIN', 'ORGANIZER', 'MEMBER']),
+    role: zod.enum(['MEMBER', 'ORGANIZER', 'ADMIN']),
   })
   .describe("Request to update a member's role")
 
@@ -121,7 +121,7 @@ export const updateMemberRoleResponse = zod
         avatarUrl: zod.string().optional().describe('User avatar URL'),
       })
       .describe('Public user information (limited fields)'),
-    role: zod.enum(['ADMIN', 'ORGANIZER', 'MEMBER']),
+    role: zod.enum(['MEMBER', 'ORGANIZER', 'ADMIN']),
     joinedAt: zod.iso.datetime({}).optional(),
   })
   .describe('Team member information')
@@ -132,5 +132,5 @@ export const updateMemberRoleResponse = zod
  */
 export const removeMemberParams = zod.object({
   memberId: zod.string().describe('Member user ID (TSID)'),
-  slug: zod.string().describe('Team URL slug'),
+  teamSlug: zod.string().describe('Team URL slug'),
 })

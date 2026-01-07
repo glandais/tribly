@@ -2,15 +2,16 @@ package com.tribly.service.team;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.tribly.common.exception.TriblyException;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
-import com.tribly.dto.common.response.MediaDto;
+import com.tribly.dto.common.asset.MediaDto;
 import com.tribly.dto.teams.request.TeamRequest;
 import com.tribly.dto.teams.response.TeamDetailDto;
 import com.tribly.dto.teams.response.TeamListResponse;
 import com.tribly.enums.TeamRole;
 import com.tribly.enums.Visibility;
-import com.tribly.infrastructure.exception.TriblyException;
+import com.tribly.service.security.TriblyQueryContext;
 import com.tribly.service.team.request.MinRole;
 import com.tribly.util.TestDataCleaner;
 import com.tribly.util.TestDataService;
@@ -25,6 +26,7 @@ class TeamServiceTest {
   @Inject TeamService teamService;
   @Inject TestDataService dataService;
   @Inject TestDataCleaner dataCleaner;
+  @Inject TriblyQueryContext queryContext;
 
   private User user1;
   private User user2;
@@ -48,7 +50,8 @@ class TeamServiceTest {
             true,
             true);
 
-    TeamDetailDto result = teamService.createTeam(request, user1);
+    queryContext.setContext(user1);
+    TeamDetailDto result = teamService.createTeam(request);
 
     assertNotNull(result);
     assertEquals("Test Team", result.name());
@@ -64,7 +67,8 @@ class TeamServiceTest {
     TeamRequest request =
         new TeamRequest("My Team", MediaDto.builder().build(), Visibility.PUBLIC, true, true);
 
-    TeamDetailDto result = teamService.createTeam(request, user1);
+    queryContext.setContext(user1);
+    TeamDetailDto result = teamService.createTeam(request);
 
     assertEquals(TeamRole.ADMIN, result.role());
   }
@@ -76,8 +80,10 @@ class TeamServiceTest {
     TeamRequest request2 =
         new TeamRequest("Test Team", MediaDto.builder().build(), Visibility.PUBLIC, true, true);
 
-    TeamDetailDto team1 = teamService.createTeam(request1, user1);
-    TeamDetailDto team2 = teamService.createTeam(request2, user2);
+    queryContext.setContext(user1);
+    TeamDetailDto team1 = teamService.createTeam(request1);
+    queryContext.setContext(user2);
+    TeamDetailDto team2 = teamService.createTeam(request2);
 
     assertEquals("test-team", team1.slug());
     assertNotEquals("test-team", team2.slug());
@@ -92,18 +98,20 @@ class TeamServiceTest {
     dataService.createTeam(user1, "Public Team 2", "public-2", Visibility.PUBLIC);
     dataService.createTeam(user1, "Private Team", "private", Visibility.TEAM);
 
-    TeamListResponse result = teamService.listTeams(null, MinRole.NOT_MEMBER, null, 0, 10);
+    queryContext.setContext(null);
+    TeamListResponse result = teamService.listTeams(MinRole.NOT_MEMBER, null, 0, 10);
 
     assertEquals(2, result.teams().size());
   }
 
   @Test
   void listTeams_shouldFilterByMinRoleMember() {
-    Team team1 = dataService.createTeam(user1, "Team 1", "team-1", Visibility.PUBLIC);
-    dataService.createTeam(user1, "Team 2", "team-2", Visibility.PUBLIC);
+    Team team1 = dataService.createTeam(user2, "Team 1", "team-1", Visibility.PUBLIC);
+    dataService.createTeam(user2, "Team 2", "team-2", Visibility.PUBLIC);
     dataService.addUserToTeam(user1, team1, TeamRole.MEMBER);
 
-    TeamListResponse result = teamService.listTeams(user1, MinRole.MEMBER, null, 0, 10);
+    queryContext.setContext(user1);
+    TeamListResponse result = teamService.listTeams(MinRole.MEMBER, null, 0, 10);
 
     assertEquals(1, result.teams().size());
     assertEquals("team-1", result.teams().getFirst().slug());
@@ -111,12 +119,12 @@ class TeamServiceTest {
 
   @Test
   void listTeams_shouldFilterByMinRoleAdmin() {
-    Team team1 = dataService.createTeam(user1, "Team 1", "team-1", Visibility.PUBLIC);
+    Team team1 = dataService.createTeam(user2, "Team 1", "team-1", Visibility.PUBLIC);
     Team team2 = dataService.createTeam(user1, "Team 2", "team-2", Visibility.PUBLIC);
     dataService.addUserToTeam(user1, team1, TeamRole.MEMBER);
-    dataService.addUserToTeam(user1, team2, TeamRole.ADMIN);
 
-    TeamListResponse result = teamService.listTeams(user1, MinRole.ADMIN, null, 0, 10);
+    queryContext.setContext(user1);
+    TeamListResponse result = teamService.listTeams(MinRole.ADMIN, null, 0, 10);
 
     assertEquals(1, result.teams().size());
     assertEquals("team-2", result.teams().getFirst().slug());
@@ -128,7 +136,8 @@ class TeamServiceTest {
       dataService.createTeam(user1, "Team " + i, "team-" + i, Visibility.PUBLIC);
     }
 
-    TeamListResponse result = teamService.listTeams(null, MinRole.NOT_MEMBER, null, 0, 2);
+    queryContext.setContext(null);
+    TeamListResponse result = teamService.listTeams(MinRole.NOT_MEMBER, null, 0, 2);
 
     assertEquals(2, result.teams().size());
     assertEquals(5, result.total());
@@ -140,7 +149,8 @@ class TeamServiceTest {
   void getTeam_shouldReturnTeam() {
     Team team = dataService.createTeam(user1, "Test Team", "test-team", Visibility.PUBLIC);
 
-    TeamDetailDto result = teamService.getTeamDetailDto(team, null);
+    queryContext.setContext(null);
+    TeamDetailDto result = teamService.getTeamDetailDto(team.getSlug());
 
     assertEquals("Test Team", result.name());
     assertEquals("test-team", result.slug());
@@ -151,7 +161,6 @@ class TeamServiceTest {
   @Test
   void updateTeam_shouldUpdateAllFields() {
     Team team = dataService.createTeam(user1, "Original", "original", Visibility.PUBLIC);
-    dataService.addUserToTeam(user1, team, TeamRole.ADMIN);
     TeamRequest request =
         new TeamRequest(
             "Updated Name",
@@ -160,7 +169,8 @@ class TeamServiceTest {
             true,
             true);
 
-    TeamDetailDto result = teamService.updateTeam(team, request, user1);
+    queryContext.setContext(user1);
+    TeamDetailDto result = teamService.updateTeam(team.getSlug(), request);
 
     assertEquals("Updated Name", result.name());
     assertEquals("Updated description", result.about().markdown());
@@ -170,7 +180,6 @@ class TeamServiceTest {
   @Test
   void updateTeam_shouldUpdatePartialFields() {
     Team team = dataService.createTeam(user1, "Original", "original", Visibility.PUBLIC);
-    dataService.addUserToTeam(user1, team, TeamRole.ADMIN);
     TeamRequest request =
         new TeamRequest(
             "New Name",
@@ -179,7 +188,8 @@ class TeamServiceTest {
             true,
             true);
 
-    TeamDetailDto result = teamService.updateTeam(team, request, user1);
+    queryContext.setContext(user1);
+    TeamDetailDto result = teamService.updateTeam(team.getSlug(), request);
 
     assertEquals("New Name", result.name());
     assertEquals(Visibility.PUBLIC, result.visibility());
@@ -188,7 +198,6 @@ class TeamServiceTest {
   @Test
   void updateTeam_shouldPreserveNameWhenNull() {
     Team team = dataService.createTeam(user1, "Original Name", "original", Visibility.PUBLIC);
-    dataService.addUserToTeam(user1, team, TeamRole.ADMIN);
     TeamRequest request =
         new TeamRequest(
             "New name",
@@ -197,7 +206,8 @@ class TeamServiceTest {
             true,
             true);
 
-    TeamDetailDto result = teamService.updateTeam(team, request, user1);
+    queryContext.setContext(user1);
+    TeamDetailDto result = teamService.updateTeam(team.getSlug(), request);
 
     assertEquals("New name", result.name());
     assertEquals("Updated description", result.about().markdown());
@@ -205,12 +215,13 @@ class TeamServiceTest {
 
   @Test
   void updateTeam_shouldThrowForNonAdmin() {
-    Team team = dataService.createTeam(user1, "Test Team", "test-team", Visibility.PUBLIC);
+    Team team = dataService.createTeam(user2, "Test Team", "test-team", Visibility.PUBLIC);
     dataService.addUserToTeam(user1, team, TeamRole.MEMBER);
     TeamRequest request =
         new TeamRequest("New Name", MediaDto.builder().build(), Visibility.PUBLIC, true, true);
 
-    assertThrows(TriblyException.class, () -> teamService.updateTeam(team, request, user1));
+    queryContext.setContext(user1);
+    assertThrows(TriblyException.class, () -> teamService.updateTeam(team.getSlug(), request));
   }
 
   // ==================== Delete Team ====================
@@ -218,18 +229,20 @@ class TeamServiceTest {
   @Test
   void deleteTeam_shouldSoftDeleteTeam() {
     Team team = dataService.createTeam(user1, "Test Team", "test-team", Visibility.PUBLIC);
-    dataService.addUserToTeam(user1, team, TeamRole.ADMIN);
 
-    teamService.deleteTeam(team, user1);
+    queryContext.setContext(user1);
+    teamService.deleteTeam(team.getSlug());
 
-    assertThrows(TriblyException.class, () -> teamService.getTeamDetailDto(team, null));
+    queryContext.setContext(null);
+    assertThrows(TriblyException.class, () -> teamService.getTeamDetailDto(team.getSlug()));
   }
 
   @Test
   void deleteTeam_shouldThrowForNonAdmin() {
-    Team team = dataService.createTeam(user1, "Test Team", "test-team", Visibility.PUBLIC);
+    Team team = dataService.createTeam(user2, "Test Team", "test-team", Visibility.PUBLIC);
     dataService.addUserToTeam(user1, team, TeamRole.MEMBER);
 
-    assertThrows(TriblyException.class, () -> teamService.deleteTeam(team, user1));
+    queryContext.setContext(user1);
+    assertThrows(TriblyException.class, () -> teamService.deleteTeam(team.getSlug()));
   }
 }

@@ -181,10 +181,6 @@
           }
         }
       },
-      "AllEntityType" : {
-        "type" : "string",
-        "enum" : [ "TEAM", "USER", "USER_TEAM", "RIDE_TEMPLATE", "RIDE_TEMPLATE_GROUP", "PLACE", "COMMENT", "ASSET", "TRIP", "TRIP_STAGE", "ROUTE", "RIDE", "RIDE_GROUP", "AD", "POST", "TEAM_PAGE" ]
-      },
       "AssetDimensionsDto" : {
         "type" : "object",
         "properties" : {
@@ -403,6 +399,10 @@
             "$ref" : "#/components/schemas/KeycloakConfig"
           }
         }
+      },
+      "EntityType" : {
+        "type" : "string",
+        "enum" : [ "TEAM", "USER", "USER_TEAM", "RIDE_TEMPLATE", "RIDE_TEMPLATE_GROUP", "PLACE", "COMMENT", "ASSET", "TRIP", "TRIP_STAGE", "ROUTE", "RIDE", "RIDE_GROUP", "AD", "POST", "TEAM_PAGE", "PUBLICATION", "ANY" ]
       },
       "ErrorCode" : {
         "type" : "string",
@@ -712,7 +712,7 @@
           "entityType" : {
             "description" : "Entity type",
             "type" : "string",
-            "$ref" : "#/components/schemas/AllEntityType"
+            "$ref" : "#/components/schemas/EntityType"
           },
           "searchedBy" : {
             "description" : "Search type",
@@ -2076,7 +2076,7 @@
       },
       "TeamRole" : {
         "type" : "string",
-        "enum" : [ "ADMIN", "ORGANIZER", "MEMBER" ]
+        "enum" : [ "MEMBER", "ORGANIZER", "ADMIN" ]
       },
       "TrackDto" : {
         "type" : "object",
@@ -2407,7 +2407,7 @@
     "securitySchemes" : {
       "SecurityScheme" : {
         "type" : "openIdConnect",
-        "openIdConnectUrl" : "http://localhost:8180/realms/tribly/.well-known/openid-configuration",
+        "openIdConnectUrl" : "http://localhost:8180/realms/quarkus/.well-known/openid-configuration",
         "description" : "Authentication"
       }
     }
@@ -2868,7 +2868,7 @@
         } ]
       }
     },
-    "/api/teams/{slug}" : {
+    "/api/teams/{teamSlug}" : {
       "put" : {
         "summary" : "Update team",
         "description" : "Update team information. Requires ADMIN role.",
@@ -2876,7 +2876,7 @@
         "tags" : [ "Teams" ],
         "parameters" : [ {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -2956,7 +2956,7 @@
         "tags" : [ "Teams" ],
         "parameters" : [ {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -3003,7 +3003,7 @@
         "tags" : [ "Teams" ],
         "parameters" : [ {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -3050,7 +3050,7 @@
         } ]
       }
     },
-    "/api/teams/{slug}/ads" : {
+    "/api/teams/{teamSlug}/ads" : {
       "get" : {
         "summary" : "List ads",
         "description" : "Get paginated list of ads for a team with optional filtering",
@@ -3058,7 +3058,7 @@
         "tags" : [ "Ads" ],
         "parameters" : [ {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -3131,8 +3131,17 @@
                 }
               }
             }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
           }
-        }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
       },
       "post" : {
         "summary" : "Create ad",
@@ -3141,7 +3150,7 @@
         "tags" : [ "Ads" ],
         "parameters" : [ {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -3215,7 +3224,7 @@
         } ]
       }
     },
-    "/api/teams/{slug}/ads/{adSlug}" : {
+    "/api/teams/{teamSlug}/ads/{slug}" : {
       "put" : {
         "summary" : "Update ad",
         "description" : "Update ad information. Only the creator or an admin can update.",
@@ -3223,7 +3232,7 @@
         "tags" : [ "Ads" ],
         "parameters" : [ {
           "description" : "Ad URL slug",
-          "name" : "adSlug",
+          "name" : "slug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -3231,7 +3240,7 @@
           }
         }, {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -3311,7 +3320,7 @@
         "tags" : [ "Ads" ],
         "parameters" : [ {
           "description" : "Ad URL slug",
-          "name" : "adSlug",
+          "name" : "slug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -3319,7 +3328,7 @@
           }
         }, {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -3346,8 +3355,17 @@
                 }
               }
             }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
           }
-        }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
       },
       "delete" : {
         "summary" : "Delete ad",
@@ -3356,7 +3374,7 @@
         "tags" : [ "Ads" ],
         "parameters" : [ {
           "description" : "Ad URL slug",
-          "name" : "adSlug",
+          "name" : "slug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -3364,7 +3382,7 @@
           }
         }, {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -3411,7 +3429,7 @@
         } ]
       }
     },
-    "/api/teams/{slug}/ads/{adSlug}/slug" : {
+    "/api/teams/{teamSlug}/ads/{slug}/slug" : {
       "patch" : {
         "summary" : "Change ad slug",
         "description" : "Change ad URL slug. Requires admin permissions.",
@@ -3419,7 +3437,7 @@
         "tags" : [ "Ads" ],
         "parameters" : [ {
           "description" : "Current ad URL slug",
-          "name" : "adSlug",
+          "name" : "slug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -3427,7 +3445,7 @@
           }
         }, {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -3511,14 +3529,14 @@
         } ]
       }
     },
-    "/api/teams/{slug}/assets" : {
+    "/api/teams/{teamSlug}/assets" : {
       "post" : {
         "summary" : "Create asset",
         "operationId" : "uploadAsset",
         "tags" : [ "Assets" ],
         "parameters" : [ {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -3598,7 +3616,7 @@
         } ]
       }
     },
-    "/api/teams/{slug}/members" : {
+    "/api/teams/{teamSlug}/members" : {
       "get" : {
         "summary" : "Get team members",
         "description" : "Get paginated list of team members",
@@ -3606,7 +3624,7 @@
         "tags" : [ "Team Members" ],
         "parameters" : [ {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -3677,7 +3695,7 @@
         "tags" : [ "Team Members" ],
         "parameters" : [ {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -3751,7 +3769,7 @@
         } ]
       }
     },
-    "/api/teams/{slug}/members/join" : {
+    "/api/teams/{teamSlug}/members/join" : {
       "post" : {
         "summary" : "Join team",
         "description" : "Request to join a team",
@@ -3759,7 +3777,7 @@
         "tags" : [ "Team Members" ],
         "parameters" : [ {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -3816,7 +3834,7 @@
         } ]
       }
     },
-    "/api/teams/{slug}/members/leave" : {
+    "/api/teams/{teamSlug}/members/leave" : {
       "post" : {
         "summary" : "Leave team",
         "description" : "Leave a team",
@@ -3824,7 +3842,7 @@
         "tags" : [ "Team Members" ],
         "parameters" : [ {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -3874,7 +3892,7 @@
         } ]
       }
     },
-    "/api/teams/{slug}/members/{memberId}" : {
+    "/api/teams/{teamSlug}/members/{memberId}" : {
       "put" : {
         "summary" : "Update member role",
         "description" : "Update a team member's role. Requires ADMIN role.",
@@ -3890,7 +3908,7 @@
           }
         }, {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -3978,7 +3996,7 @@
           }
         }, {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -4025,7 +4043,7 @@
         } ]
       }
     },
-    "/api/teams/{slug}/pages" : {
+    "/api/teams/{teamSlug}/pages" : {
       "get" : {
         "summary" : "List team pages",
         "description" : "Get list of additional pages for a team",
@@ -4033,7 +4051,7 @@
         "tags" : [ "Team Pages" ],
         "parameters" : [ {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -4073,7 +4091,7 @@
         "tags" : [ "Team Pages" ],
         "parameters" : [ {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -4147,7 +4165,7 @@
         } ]
       }
     },
-    "/api/teams/{slug}/pages/reorder" : {
+    "/api/teams/{teamSlug}/pages/reorder" : {
       "put" : {
         "summary" : "Reorder pages",
         "description" : "Reorder team pages. Requires admin permissions.",
@@ -4155,7 +4173,7 @@
         "tags" : [ "Team Pages" ],
         "parameters" : [ {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -4232,7 +4250,7 @@
         } ]
       }
     },
-    "/api/teams/{slug}/pages/{pageSlug}" : {
+    "/api/teams/{teamSlug}/pages/{pageSlug}" : {
       "put" : {
         "summary" : "Update page",
         "description" : "Update page information. Requires admin permissions.",
@@ -4248,7 +4266,7 @@
           }
         }, {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -4336,7 +4354,7 @@
           }
         }, {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -4391,7 +4409,7 @@
           }
         }, {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -4438,7 +4456,7 @@
         } ]
       }
     },
-    "/api/teams/{slug}/pages/{pageSlug}/slug" : {
+    "/api/teams/{teamSlug}/pages/{pageSlug}/slug" : {
       "patch" : {
         "summary" : "Change page slug",
         "description" : "Change page URL slug. Requires admin permissions.",
@@ -4454,7 +4472,7 @@
           }
         }, {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -4538,7 +4556,7 @@
         } ]
       }
     },
-    "/api/teams/{slug}/places" : {
+    "/api/teams/{teamSlug}/places" : {
       "get" : {
         "summary" : "List places",
         "description" : "Get all places for a team",
@@ -4546,7 +4564,7 @@
         "tags" : [ "Places" ],
         "parameters" : [ {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -4610,7 +4628,7 @@
         "tags" : [ "Places" ],
         "parameters" : [ {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -4684,7 +4702,7 @@
         } ]
       }
     },
-    "/api/teams/{slug}/places/{placeId}" : {
+    "/api/teams/{teamSlug}/places/{placeId}" : {
       "put" : {
         "summary" : "Update place",
         "description" : "Update an existing place",
@@ -4700,7 +4718,7 @@
           }
         }, {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -4788,7 +4806,7 @@
           }
         }, {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -4842,7 +4860,7 @@
           }
         }, {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -4889,83 +4907,7 @@
         } ]
       }
     },
-    "/api/teams/{slug}/posts" : {
-      "get" : {
-        "summary" : "List posts",
-        "description" : "Get paginated list of posts for a team with optional filtering",
-        "operationId" : "listPosts",
-        "tags" : [ "Posts" ],
-        "parameters" : [ {
-          "description" : "Team URL slug",
-          "name" : "slug",
-          "in" : "path",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "description" : "Start date filter (ISO format)",
-          "name" : "from",
-          "in" : "query",
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "description" : "Page number",
-          "name" : "page",
-          "in" : "query",
-          "schema" : {
-            "type" : "integer",
-            "format" : "int32",
-            "default" : 0
-          }
-        }, {
-          "description" : "Search by name/description",
-          "name" : "search",
-          "in" : "query",
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "description" : "Page size",
-          "name" : "size",
-          "in" : "query",
-          "schema" : {
-            "type" : "integer",
-            "format" : "int32",
-            "default" : 20
-          }
-        }, {
-          "description" : "End date filter (ISO format)",
-          "name" : "to",
-          "in" : "query",
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "Posts retrieved successfully",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/PostListResponse"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Team not found",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          }
-        }
-      },
+    "/api/teams/{teamSlug}/posts" : {
       "post" : {
         "summary" : "Create post",
         "description" : "Create a new post with optional groups",
@@ -4973,7 +4915,7 @@
         "tags" : [ "Posts" ],
         "parameters" : [ {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -5047,7 +4989,7 @@
         } ]
       }
     },
-    "/api/teams/{slug}/posts/{entitySlug}/comments" : {
+    "/api/teams/{teamSlug}/posts/{entitySlug}/comments" : {
       "get" : {
         "summary" : "List post comments",
         "operationId" : "listPostComments",
@@ -5062,7 +5004,7 @@
           }
         }, {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -5089,8 +5031,14 @@
                 }
               }
             }
+          },
+          "401" : {
+            "description" : "Not Authorized"
           }
-        }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
       },
       "post" : {
         "summary" : "Create post comment",
@@ -5106,7 +5054,7 @@
           }
         }, {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -5143,11 +5091,20 @@
                 }
               }
             }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
           }
-        }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
       }
     },
-    "/api/teams/{slug}/posts/{entitySlug}/comments/{commentId}" : {
+    "/api/teams/{teamSlug}/posts/{entitySlug}/comments/{commentId}" : {
       "delete" : {
         "summary" : "Delete post comment",
         "operationId" : "deletePostComment",
@@ -5170,7 +5127,7 @@
           }
         }, {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -5190,11 +5147,17 @@
                 }
               }
             }
+          },
+          "401" : {
+            "description" : "Not Authorized"
           }
-        }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
       }
     },
-    "/api/teams/{slug}/posts/{postSlug}" : {
+    "/api/teams/{teamSlug}/posts/{postSlug}" : {
       "put" : {
         "summary" : "Update post",
         "description" : "Update post information. Requires organizer permissions.",
@@ -5210,7 +5173,7 @@
           }
         }, {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -5298,7 +5261,7 @@
           }
         }, {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -5343,7 +5306,7 @@
           }
         }, {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -5390,7 +5353,7 @@
         } ]
       }
     },
-    "/api/teams/{slug}/posts/{postSlug}/slug" : {
+    "/api/teams/{teamSlug}/posts/{postSlug}/slug" : {
       "patch" : {
         "summary" : "Change post slug",
         "description" : "Change post URL slug. Requires organizer permissions.",
@@ -5406,7 +5369,7 @@
           }
         }, {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -5466,7 +5429,7 @@
         } ]
       }
     },
-    "/api/teams/{slug}/publications" : {
+    "/api/teams/{teamSlug}/publications" : {
       "get" : {
         "summary" : "List publications",
         "description" : "Get paginated list of publications for a team with optional filtering",
@@ -5474,7 +5437,7 @@
         "tags" : [ "Publications" ],
         "parameters" : [ {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -5551,7 +5514,7 @@
         }
       }
     },
-    "/api/teams/{slug}/ride-templates" : {
+    "/api/teams/{teamSlug}/ride-templates" : {
       "get" : {
         "summary" : "List ride templates",
         "description" : "Get paginated list of ride templates for a team",
@@ -5559,7 +5522,7 @@
         "tags" : [ "Ride Templates" ],
         "parameters" : [ {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -5644,7 +5607,7 @@
         "tags" : [ "Ride Templates" ],
         "parameters" : [ {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -5718,7 +5681,7 @@
         } ]
       }
     },
-    "/api/teams/{slug}/ride-templates/{templateSlug}" : {
+    "/api/teams/{teamSlug}/ride-templates/{templateSlug}" : {
       "put" : {
         "summary" : "Update ride template",
         "description" : "Update ride template information. Requires organizer permissions.",
@@ -5726,7 +5689,7 @@
         "tags" : [ "Ride Templates" ],
         "parameters" : [ {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -5814,7 +5777,7 @@
         "tags" : [ "Ride Templates" ],
         "parameters" : [ {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -5882,7 +5845,7 @@
         "tags" : [ "Ride Templates" ],
         "parameters" : [ {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -5937,83 +5900,7 @@
         } ]
       }
     },
-    "/api/teams/{slug}/rides" : {
-      "get" : {
-        "summary" : "List rides",
-        "description" : "Get paginated list of rides for a team with optional filtering",
-        "operationId" : "listRides",
-        "tags" : [ "Rides" ],
-        "parameters" : [ {
-          "description" : "Team URL slug",
-          "name" : "slug",
-          "in" : "path",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "description" : "Start date filter (ISO format)",
-          "name" : "from",
-          "in" : "query",
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "description" : "Page number",
-          "name" : "page",
-          "in" : "query",
-          "schema" : {
-            "type" : "integer",
-            "format" : "int32",
-            "default" : 0
-          }
-        }, {
-          "description" : "Search by name/markdown",
-          "name" : "search",
-          "in" : "query",
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "description" : "Page size",
-          "name" : "size",
-          "in" : "query",
-          "schema" : {
-            "type" : "integer",
-            "format" : "int32",
-            "default" : 20
-          }
-        }, {
-          "description" : "End date filter (ISO format)",
-          "name" : "to",
-          "in" : "query",
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "Rides retrieved successfully",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/RideListResponse"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Team not found",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          }
-        }
-      },
+    "/api/teams/{teamSlug}/rides" : {
       "post" : {
         "summary" : "Create ride",
         "description" : "Create a new ride with optional groups",
@@ -6021,7 +5908,7 @@
         "tags" : [ "Rides" ],
         "parameters" : [ {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -6095,7 +5982,7 @@
         } ]
       }
     },
-    "/api/teams/{slug}/rides/{entitySlug}/comments" : {
+    "/api/teams/{teamSlug}/rides/{entitySlug}/comments" : {
       "get" : {
         "summary" : "List ride comments",
         "operationId" : "listRideComments",
@@ -6110,7 +5997,7 @@
           }
         }, {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -6137,8 +6024,14 @@
                 }
               }
             }
+          },
+          "401" : {
+            "description" : "Not Authorized"
           }
-        }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
       },
       "post" : {
         "summary" : "Create ride comment",
@@ -6154,7 +6047,7 @@
           }
         }, {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -6191,11 +6084,20 @@
                 }
               }
             }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
           }
-        }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
       }
     },
-    "/api/teams/{slug}/rides/{entitySlug}/comments/{commentId}" : {
+    "/api/teams/{teamSlug}/rides/{entitySlug}/comments/{commentId}" : {
       "delete" : {
         "summary" : "Delete ride comment",
         "operationId" : "deleteRideComment",
@@ -6218,7 +6120,7 @@
           }
         }, {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -6238,11 +6140,17 @@
                 }
               }
             }
+          },
+          "401" : {
+            "description" : "Not Authorized"
           }
-        }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
       }
     },
-    "/api/teams/{slug}/rides/{rideSlug}" : {
+    "/api/teams/{teamSlug}/rides/{rideSlug}" : {
       "put" : {
         "summary" : "Update ride",
         "description" : "Update ride information. Requires organizer permissions.",
@@ -6258,7 +6166,7 @@
           }
         }, {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -6346,7 +6254,7 @@
           }
         }, {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -6391,7 +6299,7 @@
           }
         }, {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -6438,7 +6346,7 @@
         } ]
       }
     },
-    "/api/teams/{slug}/rides/{rideSlug}/groups/{groupId}/join" : {
+    "/api/teams/{teamSlug}/rides/{rideSlug}/groups/{groupId}/join" : {
       "post" : {
         "summary" : "Join ride group",
         "description" : "Join a ride group",
@@ -6462,7 +6370,7 @@
           }
         }, {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -6519,7 +6427,7 @@
         } ]
       }
     },
-    "/api/teams/{slug}/rides/{rideSlug}/groups/{groupId}/leave" : {
+    "/api/teams/{teamSlug}/rides/{rideSlug}/groups/{groupId}/leave" : {
       "post" : {
         "summary" : "Leave ride group",
         "description" : "Leave a ride group",
@@ -6543,7 +6451,7 @@
           }
         }, {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -6583,7 +6491,7 @@
         } ]
       }
     },
-    "/api/teams/{slug}/rides/{rideSlug}/slug" : {
+    "/api/teams/{teamSlug}/rides/{rideSlug}/slug" : {
       "patch" : {
         "summary" : "Change ride slug",
         "description" : "Change ride URL slug. Requires organizer permissions.",
@@ -6599,7 +6507,7 @@
           }
         }, {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -6683,7 +6591,7 @@
         } ]
       }
     },
-    "/api/teams/{slug}/routes" : {
+    "/api/teams/{teamSlug}/routes" : {
       "get" : {
         "summary" : "List routes",
         "description" : "Get paginated list of routes for a team with optional filters and sorting",
@@ -6691,7 +6599,7 @@
         "tags" : [ "Routes" ],
         "parameters" : [ {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -6851,7 +6759,7 @@
         "tags" : [ "Routes" ],
         "parameters" : [ {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -6939,7 +6847,7 @@
         } ]
       }
     },
-    "/api/teams/{slug}/routes/{entitySlug}/comments" : {
+    "/api/teams/{teamSlug}/routes/{entitySlug}/comments" : {
       "get" : {
         "summary" : "List route comments",
         "operationId" : "listRouteComments",
@@ -6954,7 +6862,7 @@
           }
         }, {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -6981,8 +6889,14 @@
                 }
               }
             }
+          },
+          "401" : {
+            "description" : "Not Authorized"
           }
-        }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
       },
       "post" : {
         "summary" : "Create route comment",
@@ -6998,7 +6912,7 @@
           }
         }, {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -7035,11 +6949,20 @@
                 }
               }
             }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
           }
-        }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
       }
     },
-    "/api/teams/{slug}/routes/{entitySlug}/comments/{commentId}" : {
+    "/api/teams/{teamSlug}/routes/{entitySlug}/comments/{commentId}" : {
       "delete" : {
         "summary" : "Delete route comment",
         "operationId" : "deleteRouteComment",
@@ -7062,7 +6985,7 @@
           }
         }, {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -7082,11 +7005,17 @@
                 }
               }
             }
+          },
+          "401" : {
+            "description" : "Not Authorized"
           }
-        }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
       }
     },
-    "/api/teams/{slug}/routes/{routeSlug}" : {
+    "/api/teams/{teamSlug}/routes/{routeSlug}" : {
       "put" : {
         "summary" : "Update route",
         "description" : "Update route metadata (name, markdown, etc.) and optionally replace the GPX file. If a new GPX file is provided, the old track data and climbs will be replaced.",
@@ -7102,7 +7031,7 @@
           }
         }, {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -7204,7 +7133,7 @@
           }
         }, {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -7249,7 +7178,7 @@
           }
         }, {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -7296,7 +7225,7 @@
         } ]
       }
     },
-    "/api/teams/{slug}/routes/{routeSlug}/slug" : {
+    "/api/teams/{teamSlug}/routes/{routeSlug}/slug" : {
       "patch" : {
         "summary" : "Change route slug",
         "description" : "Change route URL slug. Requires organizer permissions.",
@@ -7312,7 +7241,7 @@
           }
         }, {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -7396,7 +7325,7 @@
         } ]
       }
     },
-    "/api/teams/{slug}/slug" : {
+    "/api/teams/{teamSlug}/slug" : {
       "patch" : {
         "summary" : "Change team slug",
         "description" : "Change team URL slug. Requires ADMIN role.",
@@ -7404,7 +7333,7 @@
         "tags" : [ "Teams" ],
         "parameters" : [ {
           "description" : "Current team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -7488,83 +7417,7 @@
         } ]
       }
     },
-    "/api/teams/{slug}/trips" : {
-      "get" : {
-        "summary" : "List trips",
-        "description" : "Get paginated list of trips for a team with optional filtering",
-        "operationId" : "listTrips",
-        "tags" : [ "Trips" ],
-        "parameters" : [ {
-          "description" : "Team URL slug",
-          "name" : "slug",
-          "in" : "path",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "description" : "Start date filter (ISO format)",
-          "name" : "from",
-          "in" : "query",
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "description" : "Page number",
-          "name" : "page",
-          "in" : "query",
-          "schema" : {
-            "type" : "integer",
-            "format" : "int32",
-            "default" : 0
-          }
-        }, {
-          "description" : "Search by name/markdown",
-          "name" : "search",
-          "in" : "query",
-          "schema" : {
-            "type" : "string"
-          }
-        }, {
-          "description" : "Page size",
-          "name" : "size",
-          "in" : "query",
-          "schema" : {
-            "type" : "integer",
-            "format" : "int32",
-            "default" : 20
-          }
-        }, {
-          "description" : "End date filter (ISO format)",
-          "name" : "to",
-          "in" : "query",
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "Trips retrieved successfully",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/TripListResponse"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "Team not found",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          }
-        }
-      },
+    "/api/teams/{teamSlug}/trips" : {
       "post" : {
         "summary" : "Create trip",
         "description" : "Create a new trip with optional stages",
@@ -7572,7 +7425,7 @@
         "tags" : [ "Trips" ],
         "parameters" : [ {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -7646,7 +7499,7 @@
         } ]
       }
     },
-    "/api/teams/{slug}/trips/{entitySlug}/comments" : {
+    "/api/teams/{teamSlug}/trips/{entitySlug}/comments" : {
       "get" : {
         "summary" : "List trip comments",
         "operationId" : "listTripComments",
@@ -7661,7 +7514,7 @@
           }
         }, {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -7688,8 +7541,14 @@
                 }
               }
             }
+          },
+          "401" : {
+            "description" : "Not Authorized"
           }
-        }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
       },
       "post" : {
         "summary" : "Create trip comment",
@@ -7705,7 +7564,7 @@
           }
         }, {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -7742,11 +7601,20 @@
                 }
               }
             }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
           }
-        }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
       }
     },
-    "/api/teams/{slug}/trips/{entitySlug}/comments/{commentId}" : {
+    "/api/teams/{teamSlug}/trips/{entitySlug}/comments/{commentId}" : {
       "delete" : {
         "summary" : "Delete trip comment",
         "operationId" : "deleteTripComment",
@@ -7769,7 +7637,7 @@
           }
         }, {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -7789,11 +7657,17 @@
                 }
               }
             }
+          },
+          "401" : {
+            "description" : "Not Authorized"
           }
-        }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
       }
     },
-    "/api/teams/{slug}/trips/{tripSlug}" : {
+    "/api/teams/{teamSlug}/trips/{tripSlug}" : {
       "put" : {
         "summary" : "Update trip",
         "description" : "Update trip information. Requires organizer permissions.",
@@ -7801,7 +7675,7 @@
         "tags" : [ "Trips" ],
         "parameters" : [ {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -7889,7 +7763,7 @@
         "tags" : [ "Trips" ],
         "parameters" : [ {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -7934,7 +7808,7 @@
         "tags" : [ "Trips" ],
         "parameters" : [ {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -7989,7 +7863,7 @@
         } ]
       }
     },
-    "/api/teams/{slug}/trips/{tripSlug}/join" : {
+    "/api/teams/{teamSlug}/trips/{tripSlug}/join" : {
       "post" : {
         "summary" : "Join trip",
         "description" : "Join a trip as a participant",
@@ -7997,7 +7871,7 @@
         "tags" : [ "Trips" ],
         "parameters" : [ {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -8062,7 +7936,7 @@
         } ]
       }
     },
-    "/api/teams/{slug}/trips/{tripSlug}/leave" : {
+    "/api/teams/{teamSlug}/trips/{tripSlug}/leave" : {
       "post" : {
         "summary" : "Leave trip",
         "description" : "Leave a trip as a participant",
@@ -8070,7 +7944,7 @@
         "tags" : [ "Trips" ],
         "parameters" : [ {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -8118,7 +7992,7 @@
         } ]
       }
     },
-    "/api/teams/{slug}/trips/{tripSlug}/slug" : {
+    "/api/teams/{teamSlug}/trips/{tripSlug}/slug" : {
       "patch" : {
         "summary" : "Change trip slug",
         "description" : "Change trip URL slug. Requires organizer permissions.",
@@ -8126,7 +8000,7 @@
         "tags" : [ "Trips" ],
         "parameters" : [ {
           "description" : "Team URL slug",
-          "name" : "slug",
+          "name" : "teamSlug",
           "in" : "path",
           "required" : true,
           "schema" : {
@@ -8470,61 +8344,6 @@
           },
           "401" : {
             "description" : "Unauthorized",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "403" : {
-            "description" : "Not Allowed"
-          }
-        },
-        "security" : [ {
-          "SecurityScheme" : [ "user" ]
-        } ]
-      }
-    },
-    "/api/users/{id}" : {
-      "get" : {
-        "summary" : "Get user by ID",
-        "description" : "Get public user information by ID",
-        "operationId" : "getUserById",
-        "tags" : [ "Users" ],
-        "parameters" : [ {
-          "description" : "User ID (TSID)",
-          "name" : "id",
-          "in" : "path",
-          "required" : true,
-          "schema" : {
-            "type" : "string"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "User retrieved successfully",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/PublicUserDto"
-                }
-              }
-            }
-          },
-          "401" : {
-            "description" : "Unauthorized",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/ErrorResponse"
-                }
-              }
-            }
-          },
-          "404" : {
-            "description" : "User not found",
             "content" : {
               "application/json" : {
                 "schema" : {

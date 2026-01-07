@@ -3,6 +3,7 @@ package com.tribly.domain.common;
 import com.tribly.domain.asset.Asset;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
+import com.tribly.enums.EntityType;
 import com.tribly.enums.Status;
 import com.tribly.enums.Visibility;
 import jakarta.persistence.*;
@@ -83,4 +84,6 @@ public abstract class TeamEntity extends BaseEntity {
     this.slug = slug;
     this.visibility = visibility;
   }
+
+  public abstract EntityType getEntityType();
 }

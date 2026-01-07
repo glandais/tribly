@@ -764,7 +764,7 @@ export const listAllPublicationsResponse = zod
  * @summary List publications
  */
 export const listPublicationsParams = zod.object({
-  slug: zod.string().describe('Team URL slug'),
+  teamSlug: zod.string().describe('Team URL slug'),
 })
 
 export const listPublicationsQueryPageDefault = 0

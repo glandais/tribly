@@ -338,14 +338,14 @@ class RideTemplateResourceTest extends AbstractResourceTest {
   }
 
   @Test
-  void getTemplate_nonexistent_shouldReturn404() {
+  void getTemplate_nonexistent_shouldReturn403() {
     given()
         .auth()
         .oauth2(getAccessToken(USER1))
         .when()
         .get("/api/teams/" + team1Slug + "/ride-templates/nonexistent-slug")
         .then()
-        .statusCode(404);
+        .statusCode(403);
   }
 
   @Test
@@ -489,7 +489,7 @@ class RideTemplateResourceTest extends AbstractResourceTest {
   }
 
   @Test
-  void updateTemplate_nonexistent_shouldReturn404() {
+  void updateTemplate_nonexistent_shouldReturn403() {
     RideTemplateRequest updateRequest =
         new RideTemplateRequest("Nonexistent", "", Visibility.TEAM, Status.PUBLISHED, List.of());
 
@@ -501,7 +501,7 @@ class RideTemplateResourceTest extends AbstractResourceTest {
         .when()
         .put("/api/teams/" + team1Slug + "/ride-templates/nonexistent-slug")
         .then()
-        .statusCode(404);
+        .statusCode(403);
   }
 
   // ==================== Delete Template Tests ====================
@@ -531,14 +531,14 @@ class RideTemplateResourceTest extends AbstractResourceTest {
         .then()
         .statusCode(204);
 
-    // Verify template is no longer accessible
+    // Verify template is no longer accessible (403 for security by obscurity)
     given()
         .auth()
         .oauth2(getAccessToken(USER1))
         .when()
         .get("/api/teams/" + team1Slug + "/ride-templates/" + templateSlug)
         .then()
-        .statusCode(404);
+        .statusCode(403);
   }
 
   @Test
@@ -620,13 +620,13 @@ class RideTemplateResourceTest extends AbstractResourceTest {
   }
 
   @Test
-  void deleteTemplate_nonexistent_shouldReturn404() {
+  void deleteTemplate_nonexistent_shouldReturn403() {
     given()
         .auth()
         .oauth2(getAccessToken(USER1))
         .when()
         .delete("/api/teams/" + team1Slug + "/ride-templates/nonexistent-slug")
         .then()
-        .statusCode(404);
+        .statusCode(403);
   }
 }

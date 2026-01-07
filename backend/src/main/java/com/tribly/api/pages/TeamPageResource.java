@@ -1,8 +1,5 @@
 package com.tribly.api.pages;
 
-import com.tribly.api.AbstractAuthenticatedResource;
-import com.tribly.domain.team.Team;
-import com.tribly.domain.user.User;
 import com.tribly.dto.common.request.SlugChangeRequest;
 import com.tribly.dto.error.ErrorResponse;
 import com.tribly.dto.pages.request.ReorderPagesRequest;
@@ -17,7 +14,6 @@ import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import java.net.URI;
 import java.util.List;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
@@ -27,11 +23,11 @@ import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
-@Path("/api/teams/{slug}/pages")
+@Path("/api/teams/{teamSlug}/pages")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Tag(name = "Team Pages", description = "Team page management operations")
-public class TeamPageResource extends AbstractAuthenticatedResource {
+public class TeamPageResource {
 
   @Inject TeamPageService teamPageService;
 
@@ -49,10 +45,9 @@ public class TeamPageResource extends AbstractAuthenticatedResource {
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
   public Response listPages(
-      @Parameter(description = "Team URL slug") @PathParam("slug") String slug) {
-    User user = getCurrentUserOrNull();
-    Team team = teamService.getTeam(slug);
-    List<TeamPageSummaryDto> pages = teamPageService.listPages(team, user);
+      @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug) {
+
+    List<TeamPageSummaryDto> pages = teamPageService.listPages(teamSlug);
     return Response.ok(pages).build();
   }
 
@@ -75,16 +70,14 @@ public class TeamPageResource extends AbstractAuthenticatedResource {
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
   public Response getPage(
-      @Parameter(description = "Team URL slug") @PathParam("slug") String teamSlug,
+      @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug,
       @Parameter(description = "Page URL slug") @PathParam("pageSlug") String pageSlug) {
-    User user = getCurrentUserOrNull();
-    Team team = teamService.getTeam(teamSlug);
-    TeamPageDto page = teamPageService.getDto(team, pageSlug, user);
+
+    TeamPageDto page = teamPageService.getDto(teamSlug, pageSlug);
     return Response.ok(page).build();
   }
 
   @POST
-  @RolesAllowed("user")
   @Operation(
       summary = "Create page",
       description =
@@ -112,21 +105,17 @@ public class TeamPageResource extends AbstractAuthenticatedResource {
         description = "Team not found",
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
+  @RolesAllowed("user")
   public Response createPage(
-      @Parameter(description = "Team URL slug") @PathParam("slug") String slug,
+      @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug,
       @Valid TeamPageRequest request) {
-    User user = getCurrentUser();
-    Team team = teamService.getTeam(slug);
-    TeamPageDto page = teamPageService.createPage(team, request, user);
-    return Response.created(
-            URI.create("/api/teams/" + page.team().slug() + "/pages/" + page.slug()))
-        .entity(page)
-        .build();
+
+    TeamPageDto page = teamPageService.createPage(teamSlug, request);
+    return Response.status(Response.Status.CREATED).entity(page).build();
   }
 
   @PUT
   @Path("/{pageSlug}")
-  @RolesAllowed("user")
   @Operation(
       summary = "Update page",
       description = "Update page information. Requires admin permissions.")
@@ -152,19 +141,18 @@ public class TeamPageResource extends AbstractAuthenticatedResource {
         description = "Team or page not found",
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
+  @RolesAllowed("user")
   public Response updatePage(
-      @Parameter(description = "Team URL slug") @PathParam("slug") String slug,
+      @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug,
       @Parameter(description = "Page URL slug") @PathParam("pageSlug") String pageSlug,
       @Valid TeamPageRequest request) {
-    User user = getCurrentUser();
-    Team team = teamService.getTeam(slug);
-    TeamPageDto updatedPage = teamPageService.updatePage(team, pageSlug, request, user);
+
+    TeamPageDto updatedPage = teamPageService.updatePage(teamSlug, pageSlug, request);
     return Response.ok(updatedPage).build();
   }
 
   @DELETE
   @Path("/{pageSlug}")
-  @RolesAllowed("user")
   @Operation(
       summary = "Delete page",
       description = "Delete a team page. Requires admin permissions.")
@@ -183,18 +171,17 @@ public class TeamPageResource extends AbstractAuthenticatedResource {
         description = "Team or page not found",
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
+  @RolesAllowed("user")
   public Response deletePage(
-      @Parameter(description = "Team URL slug") @PathParam("slug") String slug,
+      @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug,
       @Parameter(description = "Page URL slug") @PathParam("pageSlug") String pageSlug) {
-    User user = getCurrentUser();
-    Team team = teamService.getTeam(slug);
-    teamPageService.deletePage(team, pageSlug, user);
+
+    teamPageService.deletePage(teamSlug, pageSlug);
     return Response.noContent().build();
   }
 
   @PUT
   @Path("/reorder")
-  @RolesAllowed("user")
   @Operation(
       summary = "Reorder pages",
       description = "Reorder team pages. Requires admin permissions.")
@@ -220,18 +207,17 @@ public class TeamPageResource extends AbstractAuthenticatedResource {
         description = "Team not found",
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
+  @RolesAllowed("user")
   public Response reorderPages(
-      @Parameter(description = "Team URL slug") @PathParam("slug") String slug,
+      @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug,
       @Valid ReorderPagesRequest request) {
-    User user = getCurrentUser();
-    Team team = teamService.getTeam(slug);
-    List<TeamPageSummaryDto> pages = teamPageService.reorderPages(team, request, user);
+
+    List<TeamPageSummaryDto> pages = teamPageService.reorderPages(teamSlug, request);
     return Response.ok(pages).build();
   }
 
   @PATCH
   @Path("/{pageSlug}/slug")
-  @RolesAllowed("user")
   @Operation(
       operationId = "changePageSlug",
       summary = "Change page slug",
@@ -262,13 +248,13 @@ public class TeamPageResource extends AbstractAuthenticatedResource {
         description = "Slug already in use",
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
+  @RolesAllowed("user")
   public Response changeSlug(
-      @Parameter(description = "Team URL slug") @PathParam("slug") String teamSlug,
+      @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug,
       @Parameter(description = "Current page URL slug") @PathParam("pageSlug") String currentSlug,
       @Valid SlugChangeRequest request) {
-    User user = getCurrentUser();
-    Team team = teamService.getTeam(teamSlug);
-    TeamPageDto page = teamPageService.updateSlug(team, currentSlug, request.slug(), user);
+
+    TeamPageDto page = teamPageService.updateSlug(teamSlug, currentSlug, request.slug());
     return Response.ok(page).build();
   }
 }

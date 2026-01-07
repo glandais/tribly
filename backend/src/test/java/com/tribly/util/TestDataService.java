@@ -2,37 +2,47 @@ package com.tribly.util;
 
 import static org.geolatte.geom.crs.CoordinateReferenceSystems.WGS84;
 
+import com.tribly.domain.ad.Ad;
 import com.tribly.domain.asset.Asset;
-import com.tribly.domain.asset.repository.AssetRepository;
+import com.tribly.domain.comment.Comment;
+import com.tribly.domain.common.TeamEntity;
+import com.tribly.domain.common.TeamEntitySlugRedirect;
 import com.tribly.domain.place.Place;
-import com.tribly.domain.place.repository.PlaceRepository;
 import com.tribly.domain.post.Post;
-import com.tribly.domain.post.repository.PostRepository;
 import com.tribly.domain.ride.*;
-import com.tribly.domain.ride.repository.RideGroupRepository;
-import com.tribly.domain.ride.repository.RideParticipationRepository;
-import com.tribly.domain.ride.repository.RideRepository;
 import com.tribly.domain.ridetemplate.RideTemplate;
 import com.tribly.domain.ridetemplate.RideTemplateGroup;
-import com.tribly.domain.ridetemplate.repository.RideTemplateGroupRepository;
-import com.tribly.domain.ridetemplate.repository.RideTemplateRepository;
 import com.tribly.domain.route.GpxTrack;
 import com.tribly.domain.route.Route;
-import com.tribly.domain.route.repository.RouteRepository;
 import com.tribly.domain.team.Team;
+import com.tribly.domain.team.TeamPage;
+import com.tribly.domain.team.TeamSlugRedirect;
 import com.tribly.domain.team.UserTeam;
-import com.tribly.domain.team.repository.TeamRepository;
-import com.tribly.domain.team.repository.UserTeamRepository;
 import com.tribly.domain.trip.Trip;
 import com.tribly.domain.trip.TripParticipation;
 import com.tribly.domain.trip.TripStage;
-import com.tribly.domain.trip.repository.TripParticipationRepository;
-import com.tribly.domain.trip.repository.TripRepository;
-import com.tribly.domain.trip.repository.TripStageRepository;
 import com.tribly.domain.user.User;
-import com.tribly.domain.user.repository.UserRepository;
 import com.tribly.enums.*;
-import com.tribly.enums.WindDirection;
+import com.tribly.repository.ad.AdRepository;
+import com.tribly.repository.asset.AssetRepository;
+import com.tribly.repository.comment.CommentRepository;
+import com.tribly.repository.common.TeamEntitySlugRedirectRepository;
+import com.tribly.repository.place.PlaceRepository;
+import com.tribly.repository.post.PostRepository;
+import com.tribly.repository.ride.RideGroupRepository;
+import com.tribly.repository.ride.RideParticipationRepository;
+import com.tribly.repository.ride.RideRepository;
+import com.tribly.repository.ridetemplate.RideTemplateGroupRepository;
+import com.tribly.repository.ridetemplate.RideTemplateRepository;
+import com.tribly.repository.route.RouteRepository;
+import com.tribly.repository.team.TeamPageRepository;
+import com.tribly.repository.team.TeamRepository;
+import com.tribly.repository.team.TeamSlugRedirectRepository;
+import com.tribly.repository.team.UserTeamRepository;
+import com.tribly.repository.trip.TripParticipationRepository;
+import com.tribly.repository.trip.TripRepository;
+import com.tribly.repository.trip.TripStageRepository;
+import com.tribly.repository.user.UserRepository;
 import com.tribly.service.common.SlugService;
 import io.github.glandais.gpx.climb.Climbs;
 import io.hypersistence.tsid.TSID;
@@ -75,6 +85,7 @@ public class TestDataService {
   public Team createTeam(User user, String name, String slug, Visibility visibility) {
     Team team = new Team(user, name, slug, visibility);
     teamRepository.persistAndFlush(team);
+    addUserToTeam(user, team, TeamRole.ADMIN);
     return team;
   }
 
@@ -548,5 +559,97 @@ public class TestDataService {
   public void deleteRideTemplateGroup(RideTemplateGroup group) {
     group.setDeleted(true);
     rideTemplateGroupRepository.getEntityManager().merge(group);
+  }
+
+  @Inject AdRepository adRepository;
+
+  @Transactional
+  public Ad createAd(Team team, User createdBy, String name, AdType adType) {
+    return createAd(team, createdBy, name, Instant.now(), Visibility.PUBLIC, adType);
+  }
+
+  @Transactional
+  public Ad createAd(
+      Team team,
+      User createdBy,
+      String name,
+      Instant dateTime,
+      Visibility visibility,
+      AdType adType) {
+    Ad ad = new Ad(createdBy, team, dateTime, name, SlugService.slugify(name), visibility, adType);
+    adRepository.persistAndFlush(ad);
+    return ad;
+  }
+
+  @Transactional
+  public void deleteAd(Ad ad) {
+    ad.setDeleted(true);
+    adRepository.getEntityManager().merge(ad);
+  }
+
+  @Inject CommentRepository commentRepository;
+
+  @Transactional
+  public Comment createComment(User createdBy, TeamEntity teamEntity, String content) {
+    Comment comment = new Comment(createdBy, teamEntity, content);
+    commentRepository.persistAndFlush(comment);
+    return comment;
+  }
+
+  @Transactional
+  public Comment createReply(
+      User createdBy, TeamEntity teamEntity, Comment parent, String content) {
+    Comment reply = new Comment(createdBy, teamEntity, parent, content);
+    commentRepository.persistAndFlush(reply);
+    return reply;
+  }
+
+  @Transactional
+  public void deleteComment(Comment comment) {
+    comment.setDeleted(true);
+    commentRepository.getEntityManager().merge(comment);
+  }
+
+  @Inject TeamPageRepository teamPageRepository;
+
+  @Transactional
+  public TeamPage createAdditionalPage(Team team, User createdBy, String name, int order) {
+    return createAdditionalPage(team, createdBy, name, order, Visibility.PUBLIC);
+  }
+
+  @Transactional
+  public TeamPage createAdditionalPage(
+      Team team, User createdBy, String name, int order, Visibility visibility) {
+    TeamPage page =
+        TeamPage.createAdditionalPage(
+            createdBy, team, name, SlugService.slugify(name), visibility, order);
+    teamPageRepository.persistAndFlush(page);
+    return page;
+  }
+
+  @Transactional
+  public void deleteTeamPage(TeamPage page) {
+    page.setDeleted(true);
+    teamPageRepository.getEntityManager().merge(page);
+  }
+
+  @Inject TeamSlugRedirectRepository teamSlugRedirectRepository;
+
+  @Transactional
+  public TeamSlugRedirect createTeamSlugRedirect(String oldSlug, Team team) {
+    TeamSlugRedirect redirect = new TeamSlugRedirect(oldSlug, team);
+    teamSlugRedirectRepository.persistAndFlush(redirect);
+    return redirect;
+  }
+
+  @Inject TeamEntitySlugRedirectRepository teamEntitySlugRedirectRepository;
+
+  @Transactional
+  public TeamEntitySlugRedirect createTeamEntitySlugRedirect(
+      String oldSlug, Team team, Integer entityType, Long entityId) {
+    TeamEntitySlugRedirect redirect =
+        new TeamEntitySlugRedirect(oldSlug, team, entityType, entityId);
+    teamEntitySlugRedirectRepository.persistAndFlush(redirect);
+    return redirect;
   }
 }

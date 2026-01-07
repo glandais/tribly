@@ -2,6 +2,8 @@ package com.tribly.service.team;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.tribly.common.TsidUtils;
+import com.tribly.common.exception.TriblyException;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.team.UserTeam;
 import com.tribly.domain.user.User;
@@ -9,8 +11,8 @@ import com.tribly.dto.teams.response.MemberDto;
 import com.tribly.dto.teams.response.MemberListResponse;
 import com.tribly.enums.TeamRole;
 import com.tribly.enums.Visibility;
-import com.tribly.infrastructure.exception.TriblyException;
-import com.tribly.infrastructure.id.TsidUtils;
+import com.tribly.service.ad.AdService;
+import com.tribly.service.security.TriblyQueryContext;
 import com.tribly.util.TestDataCleaner;
 import com.tribly.util.TestDataService;
 import io.quarkus.test.junit.QuarkusTest;
@@ -24,6 +26,8 @@ class TeamMembershipServiceTest {
   @Inject TeamMembershipService membershipService;
   @Inject TestDataService dataService;
   @Inject TestDataCleaner dataCleaner;
+  @Inject TriblyQueryContext queryContext;
+  @Inject AdService adService;
 
   private Team team;
   private User admin;
@@ -37,7 +41,6 @@ class TeamMembershipServiceTest {
     team = dataService.createTeam(admin, "Test Team", "test-team", Visibility.PUBLIC);
     user1 = dataService.createUser("user1@example.com", "User One");
     user2 = dataService.createUser("user2@example.com", "User Two");
-    dataService.addUserToTeam(admin, team, TeamRole.ADMIN);
   }
 
   // ==================== Get Team Members ====================
@@ -47,7 +50,8 @@ class TeamMembershipServiceTest {
     dataService.addUserToTeam(user1, team, TeamRole.MEMBER);
     dataService.addUserToTeam(user2, team, TeamRole.ORGANIZER);
 
-    MemberListResponse result = membershipService.getTeamMembers(team, admin, 0, 10);
+    queryContext.setContext(admin);
+    MemberListResponse result = membershipService.getTeamMembers(team.getSlug(), 0, 10);
 
     assertEquals(3, result.members().size()); // admin + user1 + user2
   }
@@ -56,7 +60,9 @@ class TeamMembershipServiceTest {
   void getTeamMembers_shouldThrowForNonAdmin() {
     dataService.addUserToTeam(user1, team, TeamRole.MEMBER);
 
-    assertThrows(TriblyException.class, () -> membershipService.getTeamMembers(team, user1, 0, 10));
+    queryContext.setContext(user1);
+    assertThrows(
+        TriblyException.class, () -> membershipService.getTeamMembers(team.getSlug(), 0, 10));
   }
 
   @Test
@@ -66,7 +72,8 @@ class TeamMembershipServiceTest {
       dataService.addUserToTeam(user, team, TeamRole.MEMBER);
     }
 
-    MemberListResponse result = membershipService.getTeamMembers(team, admin, 0, 3);
+    queryContext.setContext(admin);
+    MemberListResponse result = membershipService.getTeamMembers(team.getSlug(), 0, 3);
 
     assertEquals(3, result.members().size());
     assertEquals(6, result.total()); // admin + 5 users
@@ -76,7 +83,8 @@ class TeamMembershipServiceTest {
 
   @Test
   void joinTeam_shouldJoinPublicTeam() {
-    MemberDto result = membershipService.joinTeam(team, user1);
+    queryContext.setContext(user1);
+    MemberDto result = membershipService.joinTeam(team.getSlug());
 
     assertNotNull(result);
     assertEquals(user1.getId(), TsidUtils.toLong(result.user().id()));
@@ -87,10 +95,11 @@ class TeamMembershipServiceTest {
   void joinTeam_shouldThrowWhenAlreadyMember() {
     dataService.addUserToTeam(user1, team, TeamRole.MEMBER);
 
+    queryContext.setContext(user1);
     TriblyException exception =
-        assertThrows(TriblyException.class, () -> membershipService.joinTeam(team, user1));
+        assertThrows(TriblyException.class, () -> membershipService.joinTeam(team.getSlug()));
 
-    assertTrue(exception.getMessage().contains("already a member"));
+    assertEquals("ALREADY_REGISTERED", exception.getMessage());
   }
 
   @Test
@@ -98,7 +107,8 @@ class TeamMembershipServiceTest {
     UserTeam membership = dataService.addUserToTeam(user1, team, TeamRole.MEMBER);
     dataService.deleteUserTeam(membership);
 
-    MemberDto result = membershipService.joinTeam(team, user1);
+    queryContext.setContext(user1);
+    MemberDto result = membershipService.joinTeam(team.getSlug());
 
     assertEquals(membership.getId(), TsidUtils.toLong(result.id()));
     assertEquals(TeamRole.MEMBER, result.role());
@@ -108,7 +118,9 @@ class TeamMembershipServiceTest {
 
   @Test
   void addMember_shouldAddMemberAsAdmin() {
-    MemberDto result = membershipService.addMember(team, user1.getId(), TeamRole.ORGANIZER, admin);
+    queryContext.setContext(admin);
+    MemberDto result =
+        membershipService.addMember(team.getSlug(), user1.getId(), TeamRole.ORGANIZER);
 
     assertNotNull(result);
     assertEquals(user1.getId(), TsidUtils.toLong(result.user().id()));
@@ -119,21 +131,23 @@ class TeamMembershipServiceTest {
   void addMember_shouldThrowForNonAdmin() {
     dataService.addUserToTeam(user1, team, TeamRole.MEMBER);
 
+    queryContext.setContext(user1);
     assertThrows(
         TriblyException.class,
-        () -> membershipService.addMember(team, user2.getId(), TeamRole.MEMBER, user1));
+        () -> membershipService.addMember(team.getSlug(), user2.getId(), TeamRole.MEMBER));
   }
 
   @Test
   void addMember_shouldThrowWhenAlreadyMember() {
     dataService.addUserToTeam(user1, team, TeamRole.MEMBER);
 
+    queryContext.setContext(admin);
     TriblyException exception =
         assertThrows(
             TriblyException.class,
-            () -> membershipService.addMember(team, user1.getId(), TeamRole.ORGANIZER, admin));
+            () -> membershipService.addMember(team.getSlug(), user1.getId(), TeamRole.ORGANIZER));
 
-    assertTrue(exception.getMessage().contains("already a member"));
+    assertEquals("ALREADY_REGISTERED", exception.getMessage());
   }
 
   @Test
@@ -141,7 +155,9 @@ class TeamMembershipServiceTest {
     UserTeam membership = dataService.addUserToTeam(user1, team, TeamRole.MEMBER);
     dataService.deleteUserTeam(membership);
 
-    MemberDto result = membershipService.addMember(team, user1.getId(), TeamRole.ORGANIZER, admin);
+    queryContext.setContext(admin);
+    MemberDto result =
+        membershipService.addMember(team.getSlug(), user1.getId(), TeamRole.ORGANIZER);
 
     assertEquals(membership.getId(), TsidUtils.toLong(result.id()));
     assertEquals(TeamRole.ORGANIZER, result.role());
@@ -153,8 +169,9 @@ class TeamMembershipServiceTest {
   void updateMemberRole_shouldUpdateRole() {
     UserTeam membership = dataService.addUserToTeam(user1, team, TeamRole.MEMBER);
 
+    queryContext.setContext(admin);
     MemberDto result =
-        membershipService.updateMemberRole(team, user1.getId(), TeamRole.ORGANIZER, admin);
+        membershipService.updateMemberRole(team.getSlug(), user1.getId(), TeamRole.ORGANIZER);
 
     assertEquals(membership.getId(), TsidUtils.toLong(result.id()));
     assertEquals(TeamRole.ORGANIZER, result.role());
@@ -165,19 +182,23 @@ class TeamMembershipServiceTest {
     dataService.addUserToTeam(user1, team, TeamRole.MEMBER);
     dataService.addUserToTeam(user2, team, TeamRole.MEMBER);
 
+    queryContext.setContext(user1);
     assertThrows(
         TriblyException.class,
-        () -> membershipService.updateMemberRole(team, user2.getId(), TeamRole.ORGANIZER, user1));
+        () ->
+            membershipService.updateMemberRole(team.getSlug(), user2.getId(), TeamRole.ORGANIZER));
   }
 
   @Test
   void updateMemberRole_shouldPreventDemotingLastAdmin() {
+    queryContext.setContext(admin);
     TriblyException exception =
         assertThrows(
             TriblyException.class,
-            () -> membershipService.updateMemberRole(team, admin.getId(), TeamRole.MEMBER, admin));
+            () ->
+                membershipService.updateMemberRole(team.getSlug(), admin.getId(), TeamRole.MEMBER));
 
-    assertTrue(exception.getMessage().contains("last admin"));
+    assertEquals("LAST_ADMIN", exception.getMessage());
   }
 
   @Test
@@ -185,8 +206,9 @@ class TeamMembershipServiceTest {
     User admin2 = dataService.createUser("admin2@example.com", "Admin Two");
     dataService.addUserToTeam(admin2, team, TeamRole.ADMIN);
 
+    queryContext.setContext(admin2);
     MemberDto result =
-        membershipService.updateMemberRole(team, admin.getId(), TeamRole.MEMBER, admin2);
+        membershipService.updateMemberRole(team.getSlug(), admin.getId(), TeamRole.MEMBER);
 
     assertEquals(TeamRole.MEMBER, result.role());
   }
@@ -197,40 +219,43 @@ class TeamMembershipServiceTest {
   void removeMember_shouldRemoveMemberAsAdmin() {
     dataService.addUserToTeam(user1, team, TeamRole.MEMBER);
 
-    membershipService.removeMember(team, user1.getId(), admin);
+    queryContext.setContext(admin);
+    membershipService.removeMember(team.getSlug(), user1.getId());
 
+    queryContext.setContext(user1);
     // Verify soft deletion by trying to get team - should not see it
     TriblyException exception =
         assertThrows(
-            TriblyException.class, () -> membershipService.getTeamMembers(team, user1, 0, 10));
-    assertTrue(
-        exception.getMessage().contains("not a member")
-            || exception.getMessage().contains("admin"));
+            TriblyException.class,
+            () -> adService.listAds(team.getSlug(), null, null, null, null, 0, 10));
+    assertEquals("FORBIDDEN", exception.getMessage());
   }
 
   @Test
   void removeMember_shouldAllowSelfRemoval() {
     dataService.addUserToTeam(user1, team, TeamRole.MEMBER);
 
-    membershipService.removeMember(team, user1.getId(), user1);
+    queryContext.setContext(admin);
+    membershipService.removeMember(team.getSlug(), user1.getId());
 
+    queryContext.setContext(user1);
     // Verify soft deletion
     TriblyException exception =
         assertThrows(
-            TriblyException.class, () -> membershipService.getTeamMembers(team, user1, 0, 10));
-    assertTrue(
-        exception.getMessage().contains("not a member")
-            || exception.getMessage().contains("admin"));
+            TriblyException.class,
+            () -> adService.listAds(team.getSlug(), null, null, null, null, 0, 10));
+    assertEquals("FORBIDDEN", exception.getMessage());
   }
 
   @Test
   void removeMember_shouldPreventRemovingLastAdmin() {
+    queryContext.setContext(admin);
     TriblyException exception =
         assertThrows(
             TriblyException.class,
-            () -> membershipService.removeMember(team, admin.getId(), admin));
+            () -> membershipService.removeMember(team.getSlug(), admin.getId()));
 
-    assertTrue(exception.getMessage().contains("last admin"));
+    assertEquals("LAST_ADMIN", exception.getMessage());
   }
 
   @Test
@@ -238,15 +263,16 @@ class TeamMembershipServiceTest {
     User admin2 = dataService.createUser("admin2@example.com", "Admin Two");
     dataService.addUserToTeam(admin2, team, TeamRole.ADMIN);
 
-    membershipService.removeMember(team, admin.getId(), admin2);
+    queryContext.setContext(admin2);
+    membershipService.removeMember(team.getSlug(), admin.getId());
 
+    queryContext.setContext(admin);
     // Verify soft deletion
     TriblyException exception =
         assertThrows(
-            TriblyException.class, () -> membershipService.getTeamMembers(team, admin, 0, 10));
-    assertTrue(
-        exception.getMessage().contains("not a member")
-            || exception.getMessage().contains("admin"));
+            TriblyException.class,
+            () -> adService.listAds(team.getSlug(), null, null, null, null, 0, 10));
+    assertEquals("FORBIDDEN", exception.getMessage());
   }
 
   @Test
@@ -254,8 +280,9 @@ class TeamMembershipServiceTest {
     dataService.addUserToTeam(user1, team, TeamRole.MEMBER);
     dataService.addUserToTeam(user2, team, TeamRole.MEMBER);
 
+    queryContext.setContext(user1);
     assertThrows(
-        TriblyException.class, () -> membershipService.removeMember(team, user2.getId(), user1));
+        TriblyException.class, () -> membershipService.removeMember(team.getSlug(), user2.getId()));
   }
 
   // ==================== Leave Team ====================
@@ -264,23 +291,25 @@ class TeamMembershipServiceTest {
   void leaveTeam_shouldRemoveSelf() {
     dataService.addUserToTeam(user1, team, TeamRole.MEMBER);
 
-    membershipService.leaveTeam(team, user1);
+    queryContext.setContext(user1);
+    membershipService.leaveTeam(team.getSlug());
 
+    queryContext.setContext(user1);
     // Verify soft deletion
     TriblyException exception =
         assertThrows(
-            TriblyException.class, () -> membershipService.getTeamMembers(team, user1, 0, 10));
-    assertTrue(
-        exception.getMessage().contains("not a member")
-            || exception.getMessage().contains("admin"));
+            TriblyException.class,
+            () -> adService.listAds(team.getSlug(), null, null, null, null, 0, 10));
+    assertEquals("FORBIDDEN", exception.getMessage());
   }
 
   @Test
   void leaveTeam_shouldPreventLastAdminLeaving() {
+    queryContext.setContext(admin);
     TriblyException exception =
-        assertThrows(TriblyException.class, () -> membershipService.leaveTeam(team, admin));
+        assertThrows(TriblyException.class, () -> membershipService.leaveTeam(team.getSlug()));
 
-    assertTrue(exception.getMessage().contains("last admin"));
+    assertEquals("LAST_ADMIN", exception.getMessage());
   }
 
   // ==================== Business Rule Checks ====================
@@ -304,12 +333,15 @@ class TeamMembershipServiceTest {
   @Test
   void requireNotLastAdmin_shouldThrowWhenLastAdmin() {
     UserTeam lastAdmin = dataService.addUserToTeam(user1, team, TeamRole.ADMIN);
+    queryContext.setContext(user1);
+    membershipService.removeMember(team.getSlug(), admin.getId());
 
     TriblyException exception =
         assertThrows(
-            TriblyException.class, () -> membershipService.requireNotLastAdmin(team, lastAdmin));
+            TriblyException.class,
+            () -> membershipService.requireNotLastAdmin(this.team, lastAdmin));
 
-    assertEquals("Cannot remove the last admin", exception.getMessage());
+    assertEquals("LAST_ADMIN", exception.getMessage());
   }
 
   @Test
@@ -340,6 +372,8 @@ class TeamMembershipServiceTest {
   @Test
   void requireNotLastAdminDemotion_shouldThrowWhenDemotingLastAdmin() {
     UserTeam lastAdmin = dataService.addUserToTeam(user1, team, TeamRole.ADMIN);
+    queryContext.setContext(user1);
+    membershipService.removeMember(team.getSlug(), admin.getId());
 
     TriblyException exception =
         assertThrows(
@@ -347,7 +381,7 @@ class TeamMembershipServiceTest {
             () ->
                 membershipService.requireNotLastAdminDemotion(team, lastAdmin, TeamRole.ORGANIZER));
 
-    assertEquals("Cannot remove the last admin", exception.getMessage());
+    assertEquals("LAST_ADMIN", exception.getMessage());
   }
 
   // ==================== Self-Action Checks ====================
@@ -356,7 +390,8 @@ class TeamMembershipServiceTest {
   void requireCanRemoveMember_shouldSucceedForSelfRemoval() {
     dataService.addUserToTeam(user1, team, TeamRole.MEMBER);
 
-    assertDoesNotThrow(() -> membershipService.requireCanRemoveMember(user1, user1, team));
+    assertDoesNotThrow(
+        () -> membershipService.requireCanRemoveMember(user1, TeamRole.MEMBER, user1));
   }
 
   @Test
@@ -364,7 +399,8 @@ class TeamMembershipServiceTest {
     dataService.addUserToTeam(user1, team, TeamRole.ADMIN);
     dataService.addUserToTeam(user2, team, TeamRole.MEMBER);
 
-    assertDoesNotThrow(() -> membershipService.requireCanRemoveMember(user1, user2, team));
+    assertDoesNotThrow(
+        () -> membershipService.requireCanRemoveMember(user1, TeamRole.ADMIN, user2));
   }
 
   @Test
@@ -375,9 +411,9 @@ class TeamMembershipServiceTest {
     TriblyException exception =
         assertThrows(
             TriblyException.class,
-            () -> membershipService.requireCanRemoveMember(user1, user2, team));
+            () -> membershipService.requireCanRemoveMember(user1, TeamRole.MEMBER, user2));
 
-    assertEquals("Only admins can perform this action", exception.getMessage());
+    assertEquals("FORBIDDEN", exception.getMessage());
   }
 
   @Test
@@ -388,8 +424,8 @@ class TeamMembershipServiceTest {
     TriblyException exception =
         assertThrows(
             TriblyException.class,
-            () -> membershipService.requireCanRemoveMember(user1, user2, team));
+            () -> membershipService.requireCanRemoveMember(user1, TeamRole.ORGANIZER, user2));
 
-    assertEquals("Only admins can perform this action", exception.getMessage());
+    assertEquals("FORBIDDEN", exception.getMessage());
   }
 }

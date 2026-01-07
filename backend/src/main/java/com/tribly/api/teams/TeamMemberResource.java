@@ -1,15 +1,12 @@
 package com.tribly.api.teams;
 
-import com.tribly.api.AbstractAuthenticatedResource;
-import com.tribly.domain.team.Team;
-import com.tribly.domain.user.User;
+import com.tribly.common.TsidUtils;
 import com.tribly.dto.error.ErrorResponse;
 import com.tribly.dto.teams.request.AddMemberRequest;
 import com.tribly.dto.teams.request.UpdateMemberRoleRequest;
 import com.tribly.dto.teams.response.MemberDto;
 import com.tribly.dto.teams.response.MemberListResponse;
 import com.tribly.enums.TeamRole;
-import com.tribly.infrastructure.id.TsidUtils;
 import com.tribly.service.team.TeamMembershipService;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
@@ -18,7 +15,6 @@ import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import java.net.URI;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
@@ -27,12 +23,11 @@ import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
-@Path("/api/teams/{slug}/members")
+@Path("/api/teams/{teamSlug}/members")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-@RolesAllowed("user")
 @Tag(name = "Team Members", description = "Team membership management operations")
-public class TeamMemberResource extends AbstractAuthenticatedResource {
+public class TeamMemberResource {
 
   @Inject TeamMembershipService membershipService;
 
@@ -52,15 +47,13 @@ public class TeamMemberResource extends AbstractAuthenticatedResource {
         description = "Team not found",
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
+  @RolesAllowed("user")
   public Response getMembers(
-      @Parameter(description = "Team URL slug") @PathParam("slug") String slug,
+      @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug,
       @Parameter(description = "Page number") @QueryParam("page") @DefaultValue("0") int page,
       @Parameter(description = "Page size") @QueryParam("size") @DefaultValue("50") int size) {
 
-    User user = getCurrentUser();
-    Team team = teamService.getTeam(slug);
-
-    MemberListResponse members = membershipService.getTeamMembers(team, user, page, size);
+    MemberListResponse members = membershipService.getTeamMembers(teamSlug, page, size);
     return Response.ok(members).build();
   }
 
@@ -85,16 +78,12 @@ public class TeamMemberResource extends AbstractAuthenticatedResource {
         description = "Team not found",
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
+  @RolesAllowed("user")
   public Response joinTeam(
-      @Parameter(description = "Team URL slug") @PathParam("slug") String slug) {
-    User user = getCurrentUser();
-    Team team = teamService.getTeam(slug);
+      @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug) {
 
-    MemberDto membership = membershipService.joinTeam(team, user);
-    return Response.created(
-            URI.create("/api/teams/" + membership.team().slug() + "/members/" + user.getId()))
-        .entity(membership)
-        .build();
+    MemberDto membership = membershipService.joinTeam(teamSlug);
+    return Response.status(Response.Status.CREATED).entity(membership).build();
   }
 
   @POST
@@ -115,12 +104,11 @@ public class TeamMemberResource extends AbstractAuthenticatedResource {
         description = "Team not found or user is not a member",
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
+  @RolesAllowed("user")
   public Response leaveTeam(
-      @Parameter(description = "Team URL slug") @PathParam("slug") String slug) {
-    User user = getCurrentUser();
-    Team team = teamService.getTeam(slug);
+      @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug) {
 
-    membershipService.leaveTeam(team, user);
+    membershipService.leaveTeam(teamSlug);
     return Response.noContent().build();
   }
 
@@ -150,20 +138,15 @@ public class TeamMemberResource extends AbstractAuthenticatedResource {
         description = "Team or user not found",
         content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
   })
+  @RolesAllowed("user")
   public Response addMember(
-      @Parameter(description = "Team URL slug") @PathParam("slug") String slug,
+      @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug,
       @Valid AddMemberRequest request) {
-    User actingUser = getCurrentUser();
-    Team team = teamService.getTeam(slug);
-
     TeamRole role = request.role() != null ? request.role() : TeamRole.MEMBER;
     Long targetUserId = TsidUtils.toLong(request.userId());
-    MemberDto membership = membershipService.addMember(team, targetUserId, role, actingUser);
+    MemberDto membership = membershipService.addMember(teamSlug, targetUserId, role);
 
-    return Response.created(
-            URI.create("/api/teams/" + membership.team().slug() + "/members/" + request.userId()))
-        .entity(membership)
-        .build();
+    return Response.status(Response.Status.CREATED).entity(membership).build();
   }
 
   @PUT
@@ -194,17 +177,13 @@ public class TeamMemberResource extends AbstractAuthenticatedResource {
         description = "Team or member not found",
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
+  @RolesAllowed("user")
   public Response updateMemberRole(
-      @Parameter(description = "Team URL slug") @PathParam("slug") String slug,
+      @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug,
       @Parameter(description = "Member user ID (TSID)") @PathParam("memberId") String memberId,
       @Valid UpdateMemberRoleRequest request) {
-
-    User actingUser = getCurrentUser();
-    Team team = teamService.getTeam(slug);
-
     MemberDto membership =
-        membershipService.updateMemberRole(
-            team, TsidUtils.toLong(memberId), request.role(), actingUser);
+        membershipService.updateMemberRole(teamSlug, TsidUtils.toLong(memberId), request.role());
     return Response.ok(membership).build();
   }
 
@@ -228,14 +207,11 @@ public class TeamMemberResource extends AbstractAuthenticatedResource {
         description = "Team or member not found",
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
+  @RolesAllowed("user")
   public Response removeMember(
-      @Parameter(description = "Team URL slug") @PathParam("slug") String slug,
+      @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug,
       @Parameter(description = "Member user ID (TSID)") @PathParam("memberId") String memberId) {
-
-    User actingUser = getCurrentUser();
-    Team team = teamService.getTeam(slug);
-
-    membershipService.removeMember(team, TsidUtils.toLong(memberId), actingUser);
+    membershipService.removeMember(teamSlug, TsidUtils.toLong(memberId));
     return Response.noContent().build();
   }
 }

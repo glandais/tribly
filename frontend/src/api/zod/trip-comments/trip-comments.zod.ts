@@ -12,7 +12,7 @@ import * as zod from 'zod'
  */
 export const listTripCommentsParams = zod.object({
   entitySlug: zod.string().describe('Trip URL slug'),
-  slug: zod.string().describe('Team URL slug'),
+  teamSlug: zod.string().describe('Team URL slug'),
 })
 
 export const listTripCommentsResponse = zod
@@ -46,7 +46,7 @@ export const listTripCommentsResponse = zod
  */
 export const createTripCommentParams = zod.object({
   entitySlug: zod.string().describe('Trip URL slug'),
-  slug: zod.string().describe('Team URL slug'),
+  teamSlug: zod.string().describe('Team URL slug'),
 })
 
 export const createTripCommentBodyContentMax = 5000
@@ -70,5 +70,5 @@ export const createTripCommentBody = zod
 export const deleteTripCommentParams = zod.object({
   commentId: zod.string().describe('Comment ID'),
   entitySlug: zod.string().describe('Trip URL slug'),
-  slug: zod.string().describe('Team URL slug'),
+  teamSlug: zod.string().describe('Team URL slug'),
 })

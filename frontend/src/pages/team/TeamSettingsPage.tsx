@@ -70,7 +70,7 @@ export function TeamSettingsPage() {
 
   const handleSlugChange = async (newSlug: string) => {
     await changeSlugMutation.mutateAsync(
-      { slug: teamSlug!, data: { slug: newSlug } },
+      { teamSlug: teamSlug!, data: { slug: newSlug } },
       {
         onSuccess: (updatedTeam) => {
           queryClient.invalidateQueries({ queryKey: getListTeamsQueryKey() })
@@ -84,7 +84,7 @@ export function TeamSettingsPage() {
   const handleDelete = () => {
     if (!teamSlug) return
     deleteMutation.mutate(
-      { slug: teamSlug },
+      { teamSlug },
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getListTeamsQueryKey() })

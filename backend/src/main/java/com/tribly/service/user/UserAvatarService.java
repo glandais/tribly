@@ -1,13 +1,14 @@
 package com.tribly.service.user;
 
+import com.tribly.common.TsidUtils;
+import com.tribly.common.exception.BusinessException;
 import com.tribly.domain.user.User;
-import com.tribly.domain.user.repository.UserRepository;
 import com.tribly.dto.error.ErrorCode;
-import com.tribly.enums.AllEntityType;
-import com.tribly.infrastructure.exception.BusinessException;
-import com.tribly.infrastructure.exception.NotFoundException;
-import com.tribly.infrastructure.id.TsidUtils;
 import com.tribly.infrastructure.imgproxy.ImgProxyService;
+import com.tribly.repository.user.UserRepository;
+import com.tribly.service.security.TriblyQueryContext;
+import com.tribly.service.security.annotation.Logged;
+import com.tribly.service.security.annotation.Public;
 import io.hypersistence.tsid.TSID;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -40,13 +41,18 @@ public class UserAvatarService {
 
   @Inject ImgProxyService imgProxyService;
 
+  @Inject TriblyQueryContext triblyContext;
+
   @ConfigProperty(name = "storage.path")
   String storagePath = "/tmp";
 
   private final Tika tika = new Tika();
 
+  @Logged
   @Transactional
-  public void uploadAvatar(User user, InputStream content, String fileName) throws IOException {
+  public void uploadAvatar(InputStream content, String fileName) throws IOException {
+    User user = triblyContext.getUser();
+
     // Validate content type
     long tempFileId = TSID.Factory.getTsid().toLong();
     File tempFile = getAvatarFile(tempFileId);
@@ -98,12 +104,10 @@ public class UserAvatarService {
     userRepository.persist(user);
   }
 
+  @Logged
   @Transactional
-  public void deleteAvatar(User userParam) {
-    User user =
-        userRepository
-            .findActiveById(userParam.getId())
-            .orElseThrow(() -> new NotFoundException(AllEntityType.USER, userParam.getId()));
+  public void deleteAvatar() {
+    User user = triblyContext.getUser();
 
     String avatarUrl = user.getAvatarUrl();
     if (avatarUrl != null) {
@@ -113,6 +117,7 @@ public class UserAvatarService {
     }
   }
 
+  @Public
   public Response getAvatar(String fileId, int size, String accept) {
     // Limit size to AVATAR_SIZE (avatars are stored at 256x256)
     int effectiveSize = Math.min(size, AVATAR_SIZE);

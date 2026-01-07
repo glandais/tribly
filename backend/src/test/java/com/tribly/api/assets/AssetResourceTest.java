@@ -5,9 +5,18 @@ import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.notNullValue;
 
 import com.tribly.api.AbstractResourceTest;
-import com.tribly.infrastructure.id.TsidUtils;
+import com.tribly.common.TsidUtils;
+import com.tribly.dto.common.asset.AssetDto;
+import com.tribly.dto.common.asset.AssetsDto;
+import com.tribly.dto.common.asset.MediaDto;
+import com.tribly.dto.posts.request.PostRequest;
+import com.tribly.enums.Status;
+import com.tribly.enums.Visibility;
 import io.quarkus.test.junit.QuarkusTest;
 import java.io.File;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -18,6 +27,33 @@ class AssetResourceTest extends AbstractResourceTest {
   @BeforeEach
   public void setUp() {
     super.setUp();
+  }
+
+  private PostRequest createPostRequest(String name, AssetDto assetDto) {
+    return new PostRequest(
+        name,
+        MediaDto.builder()
+            .markdown("Post content")
+            .assets(AssetsDto.builder().attachments(List.of(assetDto)).build())
+            .build(),
+        Instant.now().plus(7, ChronoUnit.DAYS),
+        Status.PUBLISHED,
+        Visibility.PUBLIC,
+        null);
+  }
+
+  private String createTestPost(String name, AssetDto assetDto) {
+    return given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .contentType("application/json")
+        .body(createPostRequest(name, assetDto))
+        .when()
+        .post("/api/teams/" + team1Slug + "/posts")
+        .then()
+        .statusCode(201)
+        .extract()
+        .path("slug");
   }
 
   // ==================== Upload Tests ====================
@@ -35,7 +71,7 @@ class AssetResourceTest extends AbstractResourceTest {
         .then()
         .statusCode(201)
         .body("id", notNullValue())
-        .body("url", containsString("/api/download/public/assets/"));
+        .body("url", containsString("/api/download/public/assets/" + team1Slug + "/"));
   }
 
   @Test
@@ -51,11 +87,11 @@ class AssetResourceTest extends AbstractResourceTest {
         .then()
         .statusCode(201)
         .body("id", notNullValue())
-        .body("url", containsString("/api/download/public/assets/"));
+        .body("url", containsString("/api/download/public/assets/" + team1Slug + "/"));
   }
 
   @Test
-  void uploadAsset_asMember_shouldBeDenied() {
+  void uploadAsset_asMember_shouldSucceed() {
     File gpxFile = new File("src/test/resources/example.gpx");
 
     given()
@@ -65,7 +101,9 @@ class AssetResourceTest extends AbstractResourceTest {
         .when()
         .post("/api/teams/" + team1Slug + "/assets")
         .then()
-        .statusCode(403);
+        .statusCode(201)
+        .body("id", notNullValue())
+        .body("url", containsString("/api/download/public/assets/" + team1Slug + "/"));
   }
 
   @Test
@@ -134,17 +172,18 @@ class AssetResourceTest extends AbstractResourceTest {
         .then()
         .statusCode(201)
         .body("id", notNullValue())
-        .body("url", containsString("/api/download/team/assets/"));
+        .body("url", containsString("/api/download/team/assets/" + team2Slug + "/"));
   }
 
   // ==================== Download Public Asset Tests (team1 - PUBLIC) ====================
+  // Note: Public team assets are accessible by everyone via the public endpoint
 
   @Test
   void downloadPublicAsset_withoutAuth_shouldSucceed() {
     File gpxFile = new File("src/test/resources/example.gpx");
 
     // Upload asset to public team
-    String assetUrl =
+    AssetDto assetDto =
         given()
             .auth()
             .oauth2(getAccessToken(USER1))
@@ -154,10 +193,15 @@ class AssetResourceTest extends AbstractResourceTest {
             .then()
             .statusCode(201)
             .extract()
-            .path("url");
+            .as(AssetDto.class);
 
-    // Download without auth should work for public assets
-    given().when().get(assetUrl).then().statusCode(200);
+    // add asset to post
+    createTestPost("post1", assetDto);
+
+    String assetUrl = assetDto.url();
+
+    // Download without auth should work for public team assets
+    given().when().get(assetUrl).then().statusCode(200).contentType("application/gpx+xml");
   }
 
   @Test
@@ -165,7 +209,7 @@ class AssetResourceTest extends AbstractResourceTest {
     File gpxFile = new File("src/test/resources/example.gpx");
 
     // Upload asset to public team
-    String assetUrl =
+    AssetDto assetDto =
         given()
             .auth()
             .oauth2(getAccessToken(USER1))
@@ -175,7 +219,12 @@ class AssetResourceTest extends AbstractResourceTest {
             .then()
             .statusCode(201)
             .extract()
-            .path("url");
+            .as(AssetDto.class);
+
+    // add asset to post
+    createTestPost("post1", assetDto);
+
+    String assetUrl = assetDto.url();
 
     // Download as member should work
     given().auth().oauth2(getAccessToken(USER3)).when().get(assetUrl).then().statusCode(200);
@@ -186,7 +235,7 @@ class AssetResourceTest extends AbstractResourceTest {
     File gpxFile = new File("src/test/resources/example.gpx");
 
     // Upload asset to public team
-    String assetUrl =
+    AssetDto assetDto =
         given()
             .auth()
             .oauth2(getAccessToken(USER1))
@@ -196,9 +245,13 @@ class AssetResourceTest extends AbstractResourceTest {
             .then()
             .statusCode(201)
             .extract()
-            .path("url");
+            .as(AssetDto.class);
 
-    // Download as non-member should work for public assets
+    // add asset to post
+    createTestPost("post1", assetDto);
+
+    String assetUrl = assetDto.url();
+    // Download as non-member should work for public team assets
     given().auth().oauth2(getAccessToken(USER4)).when().get(assetUrl).then().statusCode(200);
   }
 
@@ -263,7 +316,7 @@ class AssetResourceTest extends AbstractResourceTest {
   }
 
   @Test
-  void downloadTeamAsset_asMember_shouldSucceed() {
+  void downloadTeamAsset_asMember_shouldBeDenied() {
     File gpxFile = new File("src/test/resources/example.gpx");
 
     // Upload asset to private team
@@ -279,7 +332,7 @@ class AssetResourceTest extends AbstractResourceTest {
             .extract()
             .path("url");
 
-    // Download as member (not organizer) should be denied
+    // Download as member (not organizer) should be denied for orphan assets
     given()
         .redirects()
         .follow(false)
@@ -292,7 +345,7 @@ class AssetResourceTest extends AbstractResourceTest {
   }
 
   @Test
-  void downloadTeamAsset_asNonMember_shouldReturn404() {
+  void downloadTeamAsset_asNonMember_shouldBeDenied() {
     File gpxFile = new File("src/test/resources/example.gpx");
 
     // Upload asset to private team
@@ -308,16 +361,19 @@ class AssetResourceTest extends AbstractResourceTest {
             .extract()
             .path("url");
 
+    // Download as non-member should be denied
     given().auth().oauth2(getAccessToken(USER4)).when().get(assetUrl).then().statusCode(403);
   }
 
   @Test
-  void downloadAsset_nonexistent_shouldReturn404() {
+  void downloadAsset_nonexistent_shouldReturn403() {
+    // Nonexistent assets return 403 to not leak information
     given()
         .when()
-        .get("/api/download/public/assets/" + TsidUtils.toString(1L) + "/file.gpx")
+        .get(
+            "/api/download/public/assets/" + team1Slug + "/" + TsidUtils.toString(1L) + "/file.gpx")
         .then()
-        .statusCode(404);
+        .statusCode(403);
   }
 
   // ==================== Image Upload Tests ====================
@@ -338,7 +394,7 @@ class AssetResourceTest extends AbstractResourceTest {
         .body("fileName", notNullValue())
         .body("contentType", containsString("image/"))
         .body("url", containsString("/api/download/public/assets/"))
-        .body("imageUrl", containsString("/api/download/public/images/"))
+        .body("imageUrl", containsString("/api/download/public/images/" + team1Slug + "/"))
         .body("imageUrl", containsString("/{size}"));
   }
 
@@ -388,17 +444,18 @@ class AssetResourceTest extends AbstractResourceTest {
         .post("/api/teams/" + team2Slug + "/assets")
         .then()
         .statusCode(201)
-        .body("imageUrl", containsString("/api/download/team/images/"));
+        .body("imageUrl", containsString("/api/download/team/images/" + team2Slug + "/"));
   }
 
   // ==================== Download Image Tests (resized via imgproxy) ====================
+  // Note: Public team images are accessible by everyone via the public endpoint
 
   @Test
   void downloadPublicImage_withoutAuth_shouldSucceed() {
     File imageFile = new File("src/test/resources/image.png");
 
     // Upload image to public team
-    String imageUrl =
+    AssetDto assetDto =
         given()
             .auth()
             .oauth2(getAccessToken(USER1))
@@ -408,12 +465,17 @@ class AssetResourceTest extends AbstractResourceTest {
             .then()
             .statusCode(201)
             .extract()
-            .path("imageUrl");
+            .as(AssetDto.class);
+
+    // add asset to post
+    createTestPost("post1", assetDto);
+
+    String imageUrl = assetDto.imageUrl();
 
     // Replace {size} placeholder with actual size
     String resizedUrl = imageUrl.replace("{size}", "200");
 
-    // Download without auth should work for public images
+    // Download without auth should work for public team images
     given()
         .header("Accept", "image/jpeg")
         .when()
@@ -428,7 +490,7 @@ class AssetResourceTest extends AbstractResourceTest {
     File imageFile = new File("src/test/resources/image.png");
 
     // Upload image to public team
-    String imageUrl =
+    AssetDto assetDto =
         given()
             .auth()
             .oauth2(getAccessToken(USER1))
@@ -438,8 +500,12 @@ class AssetResourceTest extends AbstractResourceTest {
             .then()
             .statusCode(201)
             .extract()
-            .path("imageUrl");
+            .as(AssetDto.class);
 
+    // add asset to post
+    createTestPost("post1", assetDto);
+
+    String imageUrl = assetDto.imageUrl();
     // Test different sizes
     for (int size : new int[] {100, 200, 400, 800}) {
       String resizedUrl = imageUrl.replace("{size}", String.valueOf(size));
@@ -548,12 +614,13 @@ class AssetResourceTest extends AbstractResourceTest {
   }
 
   @Test
-  void downloadImage_nonexistent_shouldReturn404() {
+  void downloadImage_nonexistent_shouldReturn403() {
+    // Nonexistent assets return 403 to not leak information
     given()
         .header("Accept", "image/jpeg")
         .when()
-        .get("/api/download/public/images/" + TsidUtils.toString(1L) + "/200")
+        .get("/api/download/public/images/" + team1Slug + "/" + TsidUtils.toString(1L) + "/200")
         .then()
-        .statusCode(404);
+        .statusCode(403);
   }
 }

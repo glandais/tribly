@@ -12,7 +12,7 @@ import * as zod from 'zod'
  * @summary List places
  */
 export const listPlacesParams = zod.object({
-  slug: zod.string().describe('Team URL slug'),
+  teamSlug: zod.string().describe('Team URL slug'),
 })
 
 export const listPlacesQueryPageDefault = 0
@@ -55,7 +55,7 @@ export const listPlacesResponse = zod
  * @summary Create place
  */
 export const createPlaceParams = zod.object({
-  slug: zod.string().describe('Team URL slug'),
+  teamSlug: zod.string().describe('Team URL slug'),
 })
 
 export const createPlaceBodyNameMax = 200
@@ -105,7 +105,7 @@ export const createPlaceBody = zod
  */
 export const updatePlaceParams = zod.object({
   placeId: zod.string().describe('Place ID (TSID)'),
-  slug: zod.string().describe('Team URL slug'),
+  teamSlug: zod.string().describe('Team URL slug'),
 })
 
 export const updatePlaceBodyNameMax = 200
@@ -171,7 +171,7 @@ export const updatePlaceResponse = zod.object({
  */
 export const getPlaceParams = zod.object({
   placeId: zod.string().describe('Place ID (TSID)'),
-  slug: zod.string().describe('Team URL slug'),
+  teamSlug: zod.string().describe('Team URL slug'),
 })
 
 export const getPlaceResponse = zod.object({
@@ -196,5 +196,5 @@ export const getPlaceResponse = zod.object({
  */
 export const deletePlaceParams = zod.object({
   placeId: zod.string().describe('Place ID (TSID)'),
-  slug: zod.string().describe('Team URL slug'),
+  teamSlug: zod.string().describe('Team URL slug'),
 })

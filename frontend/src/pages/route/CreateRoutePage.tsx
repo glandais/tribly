@@ -31,7 +31,7 @@ export function CreateRoutePage() {
 
     const route = await createRouteMutation.mutateAsync(
       {
-        slug: teamSlug!,
+        teamSlug: teamSlug!,
         data: {
           route: data,
           gpxFile,

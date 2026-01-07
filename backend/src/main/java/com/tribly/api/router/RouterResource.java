@@ -3,8 +3,7 @@ package com.tribly.api.router;
 import com.tribly.dto.error.ErrorResponse;
 import com.tribly.dto.router.request.RouterRequest;
 import com.tribly.dto.router.response.RouterResponse;
-import com.tribly.infrastructure.brouter.BRouterService;
-import jakarta.annotation.security.PermitAll;
+import com.tribly.service.brouter.BRouterService;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
@@ -20,14 +19,13 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
 @Path("/api/router")
 @Produces(MediaType.APPLICATION_JSON)
-@PermitAll
+@RolesAllowed("user")
 @Tag(name = "Router", description = "Route calculation using BRouter")
 public class RouterResource {
 
   @Inject BRouterService bRouterService;
 
   @POST
-  @RolesAllowed("user")
   @Operation(
       summary = "Calculate route",
       description = "Calculate a cycling route between two points using BRouter")

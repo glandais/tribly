@@ -4,6 +4,8 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaField;
+import com.tngtech.archunit.core.domain.JavaMethod;
+import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.domain.JavaPackage;
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.junit.AnalyzeClasses;
@@ -14,6 +16,9 @@ import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
 import com.tribly.domain.common.NotNullableDbValue;
 import com.tribly.dto.validation.ValidateSchema;
+import com.tribly.service.security.annotation.CheckAccess;
+import com.tribly.service.security.annotation.Logged;
+import com.tribly.service.security.annotation.Public;
 import jakarta.persistence.*;
 import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Field;
@@ -63,6 +68,81 @@ class ArchitectureTest {
           .should()
           .beAnnotatedWith(ValidateSchema.class)
           .because("all @Schema annotated types must have @ValidateSchema for validation");
+
+  @ArchTest
+  static final ArchRule api_calls_to_service_must_have_check_access =
+      classes()
+          .that()
+          .resideInAPackage("com.tribly.api..")
+          .should(onlyCallServiceMethodsWithCheckAccess())
+          .because(
+              "all API calls to service methods must go through @CheckAccess annotated methods");
+
+  @ArchTest
+  static final ArchRule api_layer_should_only_access_allowed_packages =
+      classes()
+          .that()
+          .resideInAPackage("com.tribly.api..")
+          .should()
+          .onlyDependOnClassesThat()
+          .resideInAnyPackage(
+              "com.tribly.api..",
+              "com.tribly.common..",
+              "com.tribly.dto..",
+              "com.tribly.service..",
+              "com.tribly.enums..",
+              "java..",
+              "jakarta..",
+              "org.eclipse.microprofile..",
+              "org.jboss.resteasy.reactive..",
+              "org.jspecify..")
+          .because(
+              "API layer should only access common, dto, service and enums packages, not domain or"
+                  + " infrastructure");
+
+  private static ArchCondition<JavaClass> onlyCallServiceMethodsWithCheckAccess() {
+    return new ArchCondition<>("only call service methods annotated with @CheckAccess") {
+      @Override
+      public void check(JavaClass apiClass, ConditionEvents events) {
+        for (JavaMethodCall call : apiClass.getMethodCallsFromSelf()) {
+          JavaClass targetClass = call.getTargetOwner();
+          String targetPackage = targetClass.getPackageName();
+
+          // Only check calls to com.tribly.service..
+          if (!targetPackage.startsWith("com.tribly.service.")) {
+            continue;
+          }
+
+          // Get the resolved target method
+          Optional<JavaMethod> resolvedMethod = call.getTarget().resolveMember();
+          if (resolvedMethod.isEmpty()) {
+            continue;
+          }
+
+          JavaMethod targetMethod = resolvedMethod.get();
+
+          // Check if method or its declaring class has @CheckAccess
+          boolean hasCheckAccess =
+              targetMethod.isAnnotatedWith(CheckAccess.class)
+                  || targetMethod.isAnnotatedWith(Logged.class)
+                  || targetMethod.isAnnotatedWith(Public.class);
+
+          if (!hasCheckAccess) {
+            String message =
+                String.format(
+                    "Method %s.%s() in API class %s calls service method %s.%s() which is not"
+                        + " annotated with @CheckAccess/@Logged/@Public",
+                    call.getOriginOwner().getSimpleName(),
+                    call.getOrigin().getName(),
+                    apiClass.getSimpleName(),
+                    targetClass.getSimpleName(),
+                    targetMethod.getName());
+            events.add(SimpleConditionEvent.violated(apiClass, message));
+          }
+        }
+      }
+    };
+  }
 
   private static ArchCondition<JavaClass> haveNoArgsConstructor() {
     return new ArchCondition<>("have a no-args constructor") {

@@ -3,6 +3,7 @@ package com.tribly.domain.post;
 import com.tribly.domain.common.Publication;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
+import com.tribly.enums.EntityType;
 import com.tribly.enums.Visibility;
 import jakarta.persistence.*;
 import java.time.Instant;
@@ -25,5 +26,10 @@ public class Post extends Publication {
       String slug,
       Visibility visibility) {
     super(createdBy, team, dateTime, name, slug, visibility);
+  }
+
+  @Override
+  public EntityType getEntityType() {
+    return EntityType.POST;
   }
 }

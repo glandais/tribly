@@ -1,10 +1,9 @@
 package com.tribly.service.ridetemplate;
 
-import com.tribly.domain.common.repository.TriblyPage;
+import com.tribly.common.TsidUtils;
+import com.tribly.common.exception.BusinessException;
 import com.tribly.domain.ridetemplate.RideTemplate;
 import com.tribly.domain.ridetemplate.RideTemplateGroup;
-import com.tribly.domain.ridetemplate.repository.RideTemplateGroupRepository;
-import com.tribly.domain.ridetemplate.repository.RideTemplateRepository;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
 import com.tribly.dto.error.ErrorCode;
@@ -12,63 +11,64 @@ import com.tribly.dto.ridetemplates.request.RideTemplateGroupRequest;
 import com.tribly.dto.ridetemplates.request.RideTemplateRequest;
 import com.tribly.dto.ridetemplates.response.RideTemplateDto;
 import com.tribly.dto.ridetemplates.response.RideTemplateListResponse;
-import com.tribly.enums.AllEntityType;
+import com.tribly.enums.ActionType;
+import com.tribly.enums.EntityType;
 import com.tribly.enums.Visibility;
-import com.tribly.infrastructure.exception.BusinessException;
 import com.tribly.infrastructure.exception.NotFoundException;
-import com.tribly.infrastructure.id.TsidUtils;
+import com.tribly.repository.common.TriblyPage;
+import com.tribly.repository.ridetemplate.RideTemplateGroupRepository;
+import com.tribly.repository.ridetemplate.RideTemplateRepository;
 import com.tribly.service.common.SlugService;
-import com.tribly.service.security.TeamSecurityService;
+import com.tribly.service.security.TriblyQueryContext;
+import com.tribly.service.security.annotation.CheckAccess;
+import com.tribly.service.team.TeamService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import org.jboss.logging.Logger;
 import org.jspecify.annotations.Nullable;
 
 @ApplicationScoped
 public class RideTemplateService {
 
-  private static final Logger LOG = Logger.getLogger(RideTemplateService.class);
-
   @Inject RideTemplateRepository templateRepository;
 
   @Inject RideTemplateGroupRepository groupRepository;
 
-  @Inject TeamSecurityService securityService;
-
   @Inject SlugService slugService;
 
-  public RideTemplateListResponse listTemplates(
-      Team team, User user, @Nullable String search, int page, int size) {
-    // Any team member can list templates
-    securityService.requireOrganizer(user, team);
+  @Inject TriblyQueryContext triblyContext;
 
+  @Inject TeamService teamService;
+
+  @CheckAccess(entityType = EntityType.RIDE_TEMPLATE, action = ActionType.LIST)
+  public RideTemplateListResponse listTemplates(
+      String teamSlug, @Nullable String search, int page, int size) {
+    Team team = teamService.getTeam(teamSlug);
     TriblyPage<RideTemplate> templates =
         templateRepository.findByTeam(team.getId(), search, page, size);
     var dtos = templates.items().stream().map(RideTemplateDto::from).toList();
     return new RideTemplateListResponse(dtos, templates.total(), page, size);
   }
 
-  public RideTemplateDto getTemplate(Team team, String templateSlug, User user) {
-    // Any team member can view templates
-    securityService.requireOrganizer(user, team);
-
+  @CheckAccess(entityType = EntityType.RIDE_TEMPLATE, action = ActionType.READ)
+  public RideTemplateDto getTemplate(String teamSlug, String templateSlug) {
+    Team team = teamService.getTeam(teamSlug);
     RideTemplate template =
         templateRepository
             .findByTeamAndSlug(team.getId(), templateSlug)
-            .orElseThrow(() -> new NotFoundException(AllEntityType.RIDE_TEMPLATE, templateSlug));
+            .orElseThrow(() -> new NotFoundException(EntityType.RIDE_TEMPLATE, templateSlug));
 
     return RideTemplateDto.from(template);
   }
 
   @Transactional
-  public RideTemplateDto createTemplate(Team team, RideTemplateRequest request, User creator) {
-    // Security check: must be admin or organizer to create templates
-    securityService.requireOrganizer(creator, team);
-
+  @CheckAccess(entityType = EntityType.RIDE_TEMPLATE, action = ActionType.CREATE)
+  public RideTemplateDto createTemplate(String teamSlug, RideTemplateRequest request) {
+    Team team = teamService.getTeam(teamSlug);
+    User creator = triblyContext.getUser();
     // Validate visibility: private teams can only have team-only templates
     Visibility visibility = request.visibility();
     if (team.getVisibility() != Visibility.PUBLIC && visibility == Visibility.PUBLIC) {
@@ -93,9 +93,6 @@ public class RideTemplateService {
       sortOrder++;
     }
 
-    LOG.infov(
-        "Template '{0}' created by user {1} for team {2}",
-        template.getName(), creator.getId(), team);
     return RideTemplateDto.from(template);
   }
 
@@ -111,15 +108,15 @@ public class RideTemplateService {
   }
 
   @Transactional
+  @CheckAccess(entityType = EntityType.RIDE_TEMPLATE, action = ActionType.UPDATE)
   public RideTemplateDto updateTemplate(
-      Team team, String templateSlug, RideTemplateRequest request, User user) {
+      String teamSlug, String templateSlug, RideTemplateRequest request) {
+    Team team = teamService.getTeam(teamSlug);
+    User user = triblyContext.getUser();
     RideTemplate template =
         templateRepository
             .findByTeamAndSlug(team.getId(), templateSlug)
-            .orElseThrow(() -> new NotFoundException(AllEntityType.RIDE_TEMPLATE, templateSlug));
-
-    // Security check: must be admin or organizer to update templates
-    securityService.requireOrganizer(user, team);
+            .orElseThrow(() -> new NotFoundException(EntityType.RIDE_TEMPLATE, templateSlug));
 
     // Validate visibility: private teams can only have team-only templates
     if (team.getVisibility() != Visibility.PUBLIC && request.visibility() == Visibility.PUBLIC) {
@@ -156,7 +153,7 @@ public class RideTemplateService {
           existingGroup.setMaxParticipants(groupRequest.maxParticipants());
           existingGroup.setSortOrder(sortOrder);
         } else {
-          throw new NotFoundException(AllEntityType.RIDE_TEMPLATE_GROUP, groupRequest.id());
+          throw new NotFoundException(EntityType.RIDE_TEMPLATE_GROUP, groupRequest.id());
         }
       }
       sortOrder++;
@@ -164,22 +161,18 @@ public class RideTemplateService {
 
     templateRepository.persist(template);
 
-    LOG.infov("Template {0} updated by user {1}", templateSlug, user);
     return RideTemplateDto.from(template);
   }
 
   @Transactional
-  public void deleteTemplate(Team team, String templateSlug, User user) {
+  @CheckAccess(entityType = EntityType.RIDE_TEMPLATE, action = ActionType.DELETE)
+  public void deleteTemplate(String teamSlug, String templateSlug) {
+    Team team = teamService.getTeam(teamSlug);
     RideTemplate template =
         templateRepository
             .findByTeamAndSlug(team.getId(), templateSlug)
-            .orElseThrow(() -> new NotFoundException(AllEntityType.RIDE_TEMPLATE, templateSlug));
-
-    // Security check: must be admin or organizer to delete templates
-    securityService.requireOrganizer(user, team);
-
+            .orElseThrow(() -> new NotFoundException(EntityType.RIDE_TEMPLATE, templateSlug));
     template.setDeleted(true);
     templateRepository.persist(template);
-    LOG.infov("Template {0} deleted by user {1}", templateSlug, user);
   }
 }

@@ -1,6 +1,6 @@
 package com.tribly.dto.error;
 
-import com.tribly.enums.AllEntityType;
+import com.tribly.enums.EntityType;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
@@ -12,7 +12,7 @@ public class NotFoundDetails implements ErrorDetails {
   final ErrorCode type = ErrorCode.NOT_FOUND;
 
   @Schema(description = "Entity type", required = true)
-  final AllEntityType entityType;
+  final EntityType entityType;
 
   @Schema(description = "Search type", required = true)
   final SearchedBy searchedBy;

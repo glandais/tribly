@@ -11,7 +11,7 @@ import * as zod from 'zod'
  * @summary Create asset
  */
 export const uploadAssetParams = zod.object({
-  slug: zod.string().describe('Team URL slug'),
+  teamSlug: zod.string().describe('Team URL slug'),
 })
 
 export const uploadAssetBody = zod.object({

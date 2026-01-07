@@ -1,11 +1,11 @@
 package com.tribly.dto.pages.response;
 
+import com.tribly.common.TsidUtils;
 import com.tribly.domain.team.TeamPage;
-import com.tribly.dto.common.response.MediaDto;
+import com.tribly.dto.common.asset.MediaDto;
 import com.tribly.dto.publications.response.TeamPublicationDto;
 import com.tribly.dto.validation.ValidateSchema;
 import com.tribly.enums.Visibility;
-import com.tribly.infrastructure.id.TsidUtils;
 import com.tribly.service.asset.AssetService;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 

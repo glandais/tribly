@@ -1,13 +1,9 @@
 package com.tribly.api.trips;
 
-import com.tribly.api.AbstractAuthenticatedResource;
-import com.tribly.domain.team.Team;
-import com.tribly.domain.user.User;
 import com.tribly.dto.common.request.SlugChangeRequest;
 import com.tribly.dto.error.ErrorResponse;
 import com.tribly.dto.trips.request.TripRequest;
 import com.tribly.dto.trips.response.TripDto;
-import com.tribly.dto.trips.response.TripListResponse;
 import com.tribly.dto.trips.response.TripParticipationDto;
 import com.tribly.service.trip.TripService;
 import jakarta.annotation.security.PermitAll;
@@ -18,8 +14,6 @@ import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import java.net.URI;
-import java.time.Instant;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
@@ -27,55 +21,16 @@ import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
-import org.jspecify.annotations.Nullable;
 
-@Path("/api/teams/{slug}/trips")
+@Path("/api/teams/{teamSlug}/trips")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Tag(name = "Trips", description = "Trip management and participation operations")
-public class TripResource extends AbstractAuthenticatedResource {
+public class TripResource {
 
   @Inject TripService tripService;
 
-  @GET
-  @PermitAll
-  @Operation(
-      summary = "List trips",
-      description = "Get paginated list of trips for a team with optional filtering")
-  @APIResponses({
-    @APIResponse(
-        responseCode = "200",
-        description = "Trips retrieved successfully",
-        content = @Content(schema = @Schema(implementation = TripListResponse.class))),
-    @APIResponse(
-        responseCode = "404",
-        description = "Team not found",
-        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
-  })
-  public Response listTrips(
-      @Parameter(description = "Team URL slug") @PathParam("slug") String slug,
-      @Parameter(description = "Search by name/markdown") @QueryParam("search")
-          @Nullable String search,
-      @Parameter(description = "Start date filter (ISO format)") @QueryParam("from")
-          @Nullable String fromStr,
-      @Parameter(description = "End date filter (ISO format)") @QueryParam("to")
-          @Nullable String toStr,
-      @Parameter(description = "Page number") @QueryParam("page") @DefaultValue("0") int page,
-      @Parameter(description = "Page size") @QueryParam("size") @DefaultValue("20") int size) {
-
-    User user = getCurrentUserOrNull();
-    Team team = teamService.getTeam(slug);
-
-    Instant from = fromStr != null ? Instant.parse(fromStr) : null;
-    Instant to = toStr != null ? Instant.parse(toStr) : null;
-
-    TripListResponse trips = tripService.listTrips(team, user, search, from, to, page, size);
-
-    return Response.ok(trips).build();
-  }
-
   @POST
-  @RolesAllowed("user")
   @Operation(summary = "Create trip", description = "Create a new trip with optional stages")
   @APIResponses({
     @APIResponse(
@@ -99,18 +54,14 @@ public class TripResource extends AbstractAuthenticatedResource {
         description = "Team not found",
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
+  @RolesAllowed("user")
   public Response createTrip(
-      @Parameter(description = "Team URL slug") @PathParam("slug") String slug,
+      @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug,
       @Valid TripRequest request) {
-    User user = getCurrentUser();
-    Team team = teamService.getTeam(slug);
 
-    TripDto trip = tripService.createTrip(team, request, user);
+    TripDto trip = tripService.createTrip(teamSlug, request);
 
-    return Response.created(
-            URI.create("/api/teams/" + trip.getTeam().slug() + "/trips/" + trip.getSlug()))
-        .entity(trip)
-        .build();
+    return Response.status(Response.Status.CREATED).entity(trip).build();
   }
 
   @GET
@@ -130,18 +81,16 @@ public class TripResource extends AbstractAuthenticatedResource {
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
   public Response getTrip(
-      @Parameter(description = "Team URL slug") @PathParam("slug") String teamSlug,
+      @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug,
       @Parameter(description = "Trip URL slug") @PathParam("tripSlug") String tripSlug) {
-    User user = getCurrentUserOrNull();
-    Team team = teamService.getTeam(teamSlug);
-    TripDto trip = tripService.getDto(team, tripSlug, user);
+
+    TripDto trip = tripService.getDto(teamSlug, tripSlug);
     return Response.ok(trip).build();
   }
 
   @PUT
   @Path("/{tripSlug}")
   @Transactional
-  @RolesAllowed("user")
   @Operation(
       summary = "Update trip",
       description = "Update trip information. Requires organizer permissions.")
@@ -167,22 +116,19 @@ public class TripResource extends AbstractAuthenticatedResource {
         description = "Team or trip not found",
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
+  @RolesAllowed("user")
   public Response updateTrip(
-      @Parameter(description = "Team URL slug") @PathParam("slug") String slug,
+      @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug,
       @Parameter(description = "Trip URL slug") @PathParam("tripSlug") String tripSlug,
       @Valid TripRequest request) {
 
-    User user = getCurrentUser();
-    Team team = teamService.getTeam(slug);
-
-    TripDto updatedTrip = tripService.updateTrip(team, tripSlug, request, user);
+    TripDto updatedTrip = tripService.updateTrip(teamSlug, tripSlug, request);
 
     return Response.ok(updatedTrip).build();
   }
 
   @DELETE
   @Path("/{tripSlug}")
-  @RolesAllowed("user")
   @Operation(
       summary = "Delete trip",
       description = "Soft delete a trip. Requires organizer permissions.")
@@ -201,18 +147,17 @@ public class TripResource extends AbstractAuthenticatedResource {
         description = "Team or trip not found",
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
+  @RolesAllowed("user")
   public Response deleteTrip(
-      @Parameter(description = "Team URL slug") @PathParam("slug") String slug,
+      @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug,
       @Parameter(description = "Trip URL slug") @PathParam("tripSlug") String tripSlug) {
-    User user = getCurrentUser();
-    Team team = teamService.getTeam(slug);
-    tripService.deleteTrip(team, tripSlug, user);
+
+    tripService.deleteTrip(teamSlug, tripSlug);
     return Response.noContent().build();
   }
 
   @POST
   @Path("/{tripSlug}/join")
-  @RolesAllowed("user")
   @Operation(summary = "Join trip", description = "Join a trip as a participant")
   @APIResponses({
     @APIResponse(
@@ -232,30 +177,18 @@ public class TripResource extends AbstractAuthenticatedResource {
         description = "Team or trip not found",
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
+  @RolesAllowed("user")
   public Response joinTrip(
-      @Parameter(description = "Team URL slug") @PathParam("slug") String slug,
+      @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug,
       @Parameter(description = "Trip URL slug") @PathParam("tripSlug") String tripSlug) {
 
-    User user = getCurrentUser();
-    Team team = teamService.getTeam(slug);
+    TripParticipationDto participation = tripService.joinTrip(teamSlug, tripSlug);
 
-    TripParticipationDto participation = tripService.joinTrip(team, tripSlug, user);
-
-    return Response.created(
-            URI.create(
-                "/api/teams/"
-                    + slug
-                    + "/trips/"
-                    + tripSlug
-                    + "/participants/"
-                    + participation.id()))
-        .entity(participation)
-        .build();
+    return Response.status(Response.Status.CREATED).entity(participation).build();
   }
 
   @POST
   @Path("/{tripSlug}/leave")
-  @RolesAllowed("user")
   @Operation(summary = "Leave trip", description = "Leave a trip as a participant")
   @APIResponses({
     @APIResponse(responseCode = "204", description = "Successfully left trip"),
@@ -268,21 +201,18 @@ public class TripResource extends AbstractAuthenticatedResource {
         description = "Team, trip, or participation not found",
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
+  @RolesAllowed("user")
   public Response leaveTrip(
-      @Parameter(description = "Team URL slug") @PathParam("slug") String slug,
+      @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug,
       @Parameter(description = "Trip URL slug") @PathParam("tripSlug") String tripSlug) {
 
-    User user = getCurrentUser();
-    Team team = teamService.getTeam(slug);
-
-    tripService.leaveTrip(team, tripSlug, user);
+    tripService.leaveTrip(teamSlug, tripSlug);
 
     return Response.noContent().build();
   }
 
   @PATCH
   @Path("/{tripSlug}/slug")
-  @RolesAllowed("user")
   @Operation(
       operationId = "changeTripSlug",
       summary = "Change trip slug",
@@ -313,13 +243,13 @@ public class TripResource extends AbstractAuthenticatedResource {
         description = "Slug already in use",
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
+  @RolesAllowed("user")
   public Response changeSlug(
-      @Parameter(description = "Team URL slug") @PathParam("slug") String teamSlug,
+      @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug,
       @Parameter(description = "Current trip URL slug") @PathParam("tripSlug") String currentSlug,
       @Valid SlugChangeRequest request) {
-    User user = getCurrentUser();
-    Team team = teamService.getTeam(teamSlug);
-    TripDto trip = tripService.updateSlug(team, currentSlug, request.slug(), user);
+
+    TripDto trip = tripService.updateSlug(teamSlug, currentSlug, request.slug());
     return Response.ok(trip).build();
   }
 }

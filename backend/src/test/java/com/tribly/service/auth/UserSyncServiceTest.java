@@ -4,10 +4,13 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import com.tribly.domain.user.User;
-import com.tribly.domain.user.repository.UserRepository;
 import com.tribly.dto.users.response.UserDto;
+import com.tribly.repository.user.UserRepository;
+import com.tribly.service.user.UserSyncService;
 import com.tribly.util.TestDataCleaner;
 import com.tribly.util.TestDataService;
+import io.quarkus.security.identity.SecurityIdentity;
+import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import org.eclipse.microprofile.jwt.JsonWebToken;
@@ -22,6 +25,9 @@ class UserSyncServiceTest {
   @Inject TestDataCleaner dataCleaner;
   @Inject TestDataService dataService;
 
+  @InjectMock JsonWebToken jwt;
+  @InjectMock SecurityIdentity securityIdentity;
+
   @BeforeEach
   void setUp() {
     dataCleaner.cleanAll();
@@ -30,12 +36,14 @@ class UserSyncServiceTest {
   @Test
   void syncUser_shouldCreateUserWhenNotInDatabase() {
     // Given: a JWT for a user that doesn't exist in the database
-    JsonWebToken jwt = mock(JsonWebToken.class);
     when(jwt.getClaim("email")).thenReturn("newuser@example.com");
     when(jwt.getClaim("name")).thenReturn("New User");
 
+    when(securityIdentity.isAnonymous()).thenReturn(false);
+    when(securityIdentity.getPrincipal()).thenReturn(jwt);
+
     // When: syncUser is called with null userId (user not yet synced)
-    UserDto result = userSyncService.syncUser(null, jwt);
+    UserDto result = userSyncService.syncUser();
 
     // Then: a new user should be created
     assertNotNull(result);
@@ -55,13 +63,16 @@ class UserSyncServiceTest {
     User existingUser = dataService.createUser("existing@example.com", "Original Name");
 
     // And: a JWT with a different display name
-    JsonWebToken jwt = mock(JsonWebToken.class);
+    when(jwt.getClaim("email")).thenReturn("existing@example.com");
     when(jwt.getClaim("name")).thenReturn("JWT Name");
     when(jwt.getClaim("given_name")).thenReturn("JWT");
     when(jwt.getClaim("family_name")).thenReturn("User");
 
+    when(securityIdentity.isAnonymous()).thenReturn(false);
+    when(securityIdentity.getPrincipal()).thenReturn(jwt);
+
     // When: syncUser is called for the existing user
-    UserDto result = userSyncService.syncUser(existingUser.getId(), jwt);
+    UserDto result = userSyncService.syncUser();
 
     // Then: the display name should NOT be updated from JWT
     assertEquals("Original Name", result.displayName());
@@ -74,14 +85,16 @@ class UserSyncServiceTest {
   @Test
   void syncUser_shouldUseGivenAndFamilyNameWhenNameNotPresent() {
     // Given: a JWT without "name" but with given_name and family_name
-    JsonWebToken jwt = mock(JsonWebToken.class);
     when(jwt.getClaim("email")).thenReturn("parts@example.com");
     when(jwt.getClaim("name")).thenReturn(null);
     when(jwt.getClaim("given_name")).thenReturn("John");
     when(jwt.getClaim("family_name")).thenReturn("Doe");
 
+    when(securityIdentity.isAnonymous()).thenReturn(false);
+    when(securityIdentity.getPrincipal()).thenReturn(jwt);
+
     // When: syncUser is called
-    UserDto result = userSyncService.syncUser(null, jwt);
+    UserDto result = userSyncService.syncUser();
 
     // Then: display name should be constructed from given_name + family_name
     assertEquals("John Doe", result.displayName());
@@ -90,15 +103,17 @@ class UserSyncServiceTest {
   @Test
   void syncUser_shouldUsePreferredUsernameAsFallback() {
     // Given: a JWT with only preferred_username
-    JsonWebToken jwt = mock(JsonWebToken.class);
     when(jwt.getClaim("email")).thenReturn("fallback@example.com");
     when(jwt.getClaim("name")).thenReturn(null);
     when(jwt.getClaim("given_name")).thenReturn(null);
     when(jwt.getClaim("family_name")).thenReturn(null);
     when(jwt.getClaim("preferred_username")).thenReturn("johndoe");
 
+    when(securityIdentity.isAnonymous()).thenReturn(false);
+    when(securityIdentity.getPrincipal()).thenReturn(jwt);
+
     // When: syncUser is called
-    UserDto result = userSyncService.syncUser(null, jwt);
+    UserDto result = userSyncService.syncUser();
 
     // Then: display name should use preferred_username
     assertEquals("johndoe", result.displayName());

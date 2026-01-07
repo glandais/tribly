@@ -164,26 +164,26 @@ export function useListAllRoutes<
  * @summary List routes
  */
 export const listRoutes = (
-  slug: string,
+  teamSlug: string,
   params?: ListRoutesParams,
   options?: SecondParameter<typeof axiosMutator>,
   signal?: AbortSignal
 ) => {
   return axiosMutator<RouteListResponse>(
-    { url: `/api/teams/${slug}/routes`, method: 'GET', params, signal },
+    { url: `/api/teams/${teamSlug}/routes`, method: 'GET', params, signal },
     options
   )
 }
 
-export const getListRoutesQueryKey = (slug?: string, params?: ListRoutesParams) => {
-  return [`/api/teams/${slug}/routes`, ...(params ? [params] : [])] as const
+export const getListRoutesQueryKey = (teamSlug?: string, params?: ListRoutesParams) => {
+  return [`/api/teams/${teamSlug}/routes`, ...(params ? [params] : [])] as const
 }
 
 export const getListRoutesQueryOptions = <
   TData = Awaited<ReturnType<typeof listRoutes>>,
   TError = ErrorType<ErrorResponse>,
 >(
-  slug: string,
+  teamSlug: string,
   params?: ListRoutesParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listRoutes>>, TError, TData>>
@@ -192,12 +192,12 @@ export const getListRoutesQueryOptions = <
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
-  const queryKey = queryOptions?.queryKey ?? getListRoutesQueryKey(slug, params)
+  const queryKey = queryOptions?.queryKey ?? getListRoutesQueryKey(teamSlug, params)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof listRoutes>>> = ({ signal }) =>
-    listRoutes(slug, params, requestOptions, signal)
+    listRoutes(teamSlug, params, requestOptions, signal)
 
-  return { queryKey, queryFn, enabled: !!slug, ...queryOptions } as UseQueryOptions<
+  return { queryKey, queryFn, enabled: !!teamSlug, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof listRoutes>>,
     TError,
     TData
@@ -211,7 +211,7 @@ export function useListRoutes<
   TData = Awaited<ReturnType<typeof listRoutes>>,
   TError = ErrorType<ErrorResponse>,
 >(
-  slug: string,
+  teamSlug: string,
   params: undefined | ListRoutesParams,
   options: {
     query: Partial<UseQueryOptions<Awaited<ReturnType<typeof listRoutes>>, TError, TData>> &
@@ -231,7 +231,7 @@ export function useListRoutes<
   TData = Awaited<ReturnType<typeof listRoutes>>,
   TError = ErrorType<ErrorResponse>,
 >(
-  slug: string,
+  teamSlug: string,
   params?: ListRoutesParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listRoutes>>, TError, TData>> &
@@ -251,7 +251,7 @@ export function useListRoutes<
   TData = Awaited<ReturnType<typeof listRoutes>>,
   TError = ErrorType<ErrorResponse>,
 >(
-  slug: string,
+  teamSlug: string,
   params?: ListRoutesParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listRoutes>>, TError, TData>>
@@ -267,7 +267,7 @@ export function useListRoutes<
   TData = Awaited<ReturnType<typeof listRoutes>>,
   TError = ErrorType<ErrorResponse>,
 >(
-  slug: string,
+  teamSlug: string,
   params?: ListRoutesParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listRoutes>>, TError, TData>>
@@ -275,7 +275,7 @@ export function useListRoutes<
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getListRoutesQueryOptions(slug, params, options)
+  const queryOptions = getListRoutesQueryOptions(teamSlug, params, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
     queryKey: DataTag<QueryKey, TData, TError>
@@ -291,7 +291,7 @@ export function useListRoutes<
  * @summary Create route
  */
 export const createRoute = (
-  slug: string,
+  teamSlug: string,
   createRouteBody: BodyType<CreateRouteBody>,
   options?: SecondParameter<typeof axiosMutator>,
   signal?: AbortSignal
@@ -306,7 +306,7 @@ export const createRoute = (
 
   return axiosMutator<RouteDto>(
     {
-      url: `/api/teams/${slug}/routes`,
+      url: `/api/teams/${teamSlug}/routes`,
       method: 'POST',
       headers: { 'Content-Type': 'multipart/form-data' },
       data: formData,
@@ -323,14 +323,14 @@ export const getCreateRouteMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof createRoute>>,
     TError,
-    { slug: string; data: BodyType<CreateRouteBody> },
+    { teamSlug: string; data: BodyType<CreateRouteBody> },
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof createRoute>>,
   TError,
-  { slug: string; data: BodyType<CreateRouteBody> },
+  { teamSlug: string; data: BodyType<CreateRouteBody> },
   TContext
 > => {
   const mutationKey = ['createRoute']
@@ -342,11 +342,11 @@ export const getCreateRouteMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof createRoute>>,
-    { slug: string; data: BodyType<CreateRouteBody> }
+    { teamSlug: string; data: BodyType<CreateRouteBody> }
   > = (props) => {
-    const { slug, data } = props ?? {}
+    const { teamSlug, data } = props ?? {}
 
-    return createRoute(slug, data, requestOptions)
+    return createRoute(teamSlug, data, requestOptions)
   }
 
   return { mutationFn, ...mutationOptions }
@@ -364,7 +364,7 @@ export const useCreateRoute = <TError = ErrorType<ErrorResponse>, TContext = unk
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof createRoute>>,
       TError,
-      { slug: string; data: BodyType<CreateRouteBody> },
+      { teamSlug: string; data: BodyType<CreateRouteBody> },
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -373,7 +373,7 @@ export const useCreateRoute = <TError = ErrorType<ErrorResponse>, TContext = unk
 ): UseMutationResult<
   Awaited<ReturnType<typeof createRoute>>,
   TError,
-  { slug: string; data: BodyType<CreateRouteBody> },
+  { teamSlug: string; data: BodyType<CreateRouteBody> },
   TContext
 > => {
   const mutationOptions = getCreateRouteMutationOptions(options)
@@ -385,7 +385,7 @@ export const useCreateRoute = <TError = ErrorType<ErrorResponse>, TContext = unk
  * @summary Update route
  */
 export const updateRoute = (
-  slug: string,
+  teamSlug: string,
   routeSlug: string,
   updateRouteBody: BodyType<UpdateRouteBody>,
   options?: SecondParameter<typeof axiosMutator>
@@ -400,7 +400,7 @@ export const updateRoute = (
 
   return axiosMutator<RouteDto>(
     {
-      url: `/api/teams/${slug}/routes/${routeSlug}`,
+      url: `/api/teams/${teamSlug}/routes/${routeSlug}`,
       method: 'PUT',
       headers: { 'Content-Type': 'multipart/form-data' },
       data: formData,
@@ -416,14 +416,14 @@ export const getUpdateRouteMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof updateRoute>>,
     TError,
-    { slug: string; routeSlug: string; data: BodyType<UpdateRouteBody> },
+    { teamSlug: string; routeSlug: string; data: BodyType<UpdateRouteBody> },
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof updateRoute>>,
   TError,
-  { slug: string; routeSlug: string; data: BodyType<UpdateRouteBody> },
+  { teamSlug: string; routeSlug: string; data: BodyType<UpdateRouteBody> },
   TContext
 > => {
   const mutationKey = ['updateRoute']
@@ -435,11 +435,11 @@ export const getUpdateRouteMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof updateRoute>>,
-    { slug: string; routeSlug: string; data: BodyType<UpdateRouteBody> }
+    { teamSlug: string; routeSlug: string; data: BodyType<UpdateRouteBody> }
   > = (props) => {
-    const { slug, routeSlug, data } = props ?? {}
+    const { teamSlug, routeSlug, data } = props ?? {}
 
-    return updateRoute(slug, routeSlug, data, requestOptions)
+    return updateRoute(teamSlug, routeSlug, data, requestOptions)
   }
 
   return { mutationFn, ...mutationOptions }
@@ -457,7 +457,7 @@ export const useUpdateRoute = <TError = ErrorType<ErrorResponse>, TContext = unk
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof updateRoute>>,
       TError,
-      { slug: string; routeSlug: string; data: BodyType<UpdateRouteBody> },
+      { teamSlug: string; routeSlug: string; data: BodyType<UpdateRouteBody> },
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -466,7 +466,7 @@ export const useUpdateRoute = <TError = ErrorType<ErrorResponse>, TContext = unk
 ): UseMutationResult<
   Awaited<ReturnType<typeof updateRoute>>,
   TError,
-  { slug: string; routeSlug: string; data: BodyType<UpdateRouteBody> },
+  { teamSlug: string; routeSlug: string; data: BodyType<UpdateRouteBody> },
   TContext
 > => {
   const mutationOptions = getUpdateRouteMutationOptions(options)
@@ -478,26 +478,26 @@ export const useUpdateRoute = <TError = ErrorType<ErrorResponse>, TContext = unk
  * @summary Get route details
  */
 export const getRoute = (
-  slug: string,
+  teamSlug: string,
   routeSlug: string,
   options?: SecondParameter<typeof axiosMutator>,
   signal?: AbortSignal
 ) => {
   return axiosMutator<RouteDetailDto>(
-    { url: `/api/teams/${slug}/routes/${routeSlug}`, method: 'GET', signal },
+    { url: `/api/teams/${teamSlug}/routes/${routeSlug}`, method: 'GET', signal },
     options
   )
 }
 
-export const getGetRouteQueryKey = (slug?: string, routeSlug?: string) => {
-  return [`/api/teams/${slug}/routes/${routeSlug}`] as const
+export const getGetRouteQueryKey = (teamSlug?: string, routeSlug?: string) => {
+  return [`/api/teams/${teamSlug}/routes/${routeSlug}`] as const
 }
 
 export const getGetRouteQueryOptions = <
   TData = Awaited<ReturnType<typeof getRoute>>,
   TError = ErrorType<ErrorResponse>,
 >(
-  slug: string,
+  teamSlug: string,
   routeSlug: string,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getRoute>>, TError, TData>>
@@ -506,16 +506,19 @@ export const getGetRouteQueryOptions = <
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
-  const queryKey = queryOptions?.queryKey ?? getGetRouteQueryKey(slug, routeSlug)
+  const queryKey = queryOptions?.queryKey ?? getGetRouteQueryKey(teamSlug, routeSlug)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof getRoute>>> = ({ signal }) =>
-    getRoute(slug, routeSlug, requestOptions, signal)
+    getRoute(teamSlug, routeSlug, requestOptions, signal)
 
-  return { queryKey, queryFn, enabled: !!(slug && routeSlug), ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof getRoute>>,
-    TError,
-    TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!(teamSlug && routeSlug),
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof getRoute>>, TError, TData> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
 }
 
 export type GetRouteQueryResult = NonNullable<Awaited<ReturnType<typeof getRoute>>>
@@ -525,7 +528,7 @@ export function useGetRoute<
   TData = Awaited<ReturnType<typeof getRoute>>,
   TError = ErrorType<ErrorResponse>,
 >(
-  slug: string,
+  teamSlug: string,
   routeSlug: string,
   options: {
     query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getRoute>>, TError, TData>> &
@@ -545,7 +548,7 @@ export function useGetRoute<
   TData = Awaited<ReturnType<typeof getRoute>>,
   TError = ErrorType<ErrorResponse>,
 >(
-  slug: string,
+  teamSlug: string,
   routeSlug: string,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getRoute>>, TError, TData>> &
@@ -565,7 +568,7 @@ export function useGetRoute<
   TData = Awaited<ReturnType<typeof getRoute>>,
   TError = ErrorType<ErrorResponse>,
 >(
-  slug: string,
+  teamSlug: string,
   routeSlug: string,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getRoute>>, TError, TData>>
@@ -581,7 +584,7 @@ export function useGetRoute<
   TData = Awaited<ReturnType<typeof getRoute>>,
   TError = ErrorType<ErrorResponse>,
 >(
-  slug: string,
+  teamSlug: string,
   routeSlug: string,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getRoute>>, TError, TData>>
@@ -589,7 +592,7 @@ export function useGetRoute<
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getGetRouteQueryOptions(slug, routeSlug, options)
+  const queryOptions = getGetRouteQueryOptions(teamSlug, routeSlug, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
     queryKey: DataTag<QueryKey, TData, TError>
@@ -605,12 +608,12 @@ export function useGetRoute<
  * @summary Delete route
  */
 export const deleteRoute = (
-  slug: string,
+  teamSlug: string,
   routeSlug: string,
   options?: SecondParameter<typeof axiosMutator>
 ) => {
   return axiosMutator<void>(
-    { url: `/api/teams/${slug}/routes/${routeSlug}`, method: 'DELETE' },
+    { url: `/api/teams/${teamSlug}/routes/${routeSlug}`, method: 'DELETE' },
     options
   )
 }
@@ -622,14 +625,14 @@ export const getDeleteRouteMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof deleteRoute>>,
     TError,
-    { slug: string; routeSlug: string },
+    { teamSlug: string; routeSlug: string },
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof deleteRoute>>,
   TError,
-  { slug: string; routeSlug: string },
+  { teamSlug: string; routeSlug: string },
   TContext
 > => {
   const mutationKey = ['deleteRoute']
@@ -641,11 +644,11 @@ export const getDeleteRouteMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof deleteRoute>>,
-    { slug: string; routeSlug: string }
+    { teamSlug: string; routeSlug: string }
   > = (props) => {
-    const { slug, routeSlug } = props ?? {}
+    const { teamSlug, routeSlug } = props ?? {}
 
-    return deleteRoute(slug, routeSlug, requestOptions)
+    return deleteRoute(teamSlug, routeSlug, requestOptions)
   }
 
   return { mutationFn, ...mutationOptions }
@@ -663,7 +666,7 @@ export const useDeleteRoute = <TError = ErrorType<ErrorResponse>, TContext = unk
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof deleteRoute>>,
       TError,
-      { slug: string; routeSlug: string },
+      { teamSlug: string; routeSlug: string },
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -672,7 +675,7 @@ export const useDeleteRoute = <TError = ErrorType<ErrorResponse>, TContext = unk
 ): UseMutationResult<
   Awaited<ReturnType<typeof deleteRoute>>,
   TError,
-  { slug: string; routeSlug: string },
+  { teamSlug: string; routeSlug: string },
   TContext
 > => {
   const mutationOptions = getDeleteRouteMutationOptions(options)
@@ -684,14 +687,14 @@ export const useDeleteRoute = <TError = ErrorType<ErrorResponse>, TContext = unk
  * @summary Change route slug
  */
 export const changeRouteSlug = (
-  slug: string,
+  teamSlug: string,
   routeSlug: string,
   slugChangeRequest: BodyType<SlugChangeRequest>,
   options?: SecondParameter<typeof axiosMutator>
 ) => {
   return axiosMutator<RouteDetailDto>(
     {
-      url: `/api/teams/${slug}/routes/${routeSlug}/slug`,
+      url: `/api/teams/${teamSlug}/routes/${routeSlug}/slug`,
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       data: slugChangeRequest,
@@ -707,14 +710,14 @@ export const getChangeRouteSlugMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof changeRouteSlug>>,
     TError,
-    { slug: string; routeSlug: string; data: BodyType<SlugChangeRequest> },
+    { teamSlug: string; routeSlug: string; data: BodyType<SlugChangeRequest> },
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof changeRouteSlug>>,
   TError,
-  { slug: string; routeSlug: string; data: BodyType<SlugChangeRequest> },
+  { teamSlug: string; routeSlug: string; data: BodyType<SlugChangeRequest> },
   TContext
 > => {
   const mutationKey = ['changeRouteSlug']
@@ -726,11 +729,11 @@ export const getChangeRouteSlugMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof changeRouteSlug>>,
-    { slug: string; routeSlug: string; data: BodyType<SlugChangeRequest> }
+    { teamSlug: string; routeSlug: string; data: BodyType<SlugChangeRequest> }
   > = (props) => {
-    const { slug, routeSlug, data } = props ?? {}
+    const { teamSlug, routeSlug, data } = props ?? {}
 
-    return changeRouteSlug(slug, routeSlug, data, requestOptions)
+    return changeRouteSlug(teamSlug, routeSlug, data, requestOptions)
   }
 
   return { mutationFn, ...mutationOptions }
@@ -748,7 +751,7 @@ export const useChangeRouteSlug = <TError = ErrorType<ErrorResponse>, TContext =
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof changeRouteSlug>>,
       TError,
-      { slug: string; routeSlug: string; data: BodyType<SlugChangeRequest> },
+      { teamSlug: string; routeSlug: string; data: BodyType<SlugChangeRequest> },
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -757,7 +760,7 @@ export const useChangeRouteSlug = <TError = ErrorType<ErrorResponse>, TContext =
 ): UseMutationResult<
   Awaited<ReturnType<typeof changeRouteSlug>>,
   TError,
-  { slug: string; routeSlug: string; data: BodyType<SlugChangeRequest> },
+  { teamSlug: string; routeSlug: string; data: BodyType<SlugChangeRequest> },
   TContext
 > => {
   const mutationOptions = getChangeRouteSlugMutationOptions(options)

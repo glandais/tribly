@@ -6,9 +6,9 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.tribly.api.AbstractResourceTest;
+import com.tribly.common.TsidUtils;
 import com.tribly.domain.user.User;
-import com.tribly.domain.user.repository.UserRepository;
-import com.tribly.infrastructure.id.TsidUtils;
+import com.tribly.repository.user.UserRepository;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import java.util.Optional;
@@ -66,37 +66,6 @@ class UserResourceTest extends AbstractResourceTest {
         .put("/api/users/me")
         .then()
         .statusCode(401);
-  }
-
-  @Test
-  void getUserById_shouldReturnPublicProfile() {
-    given()
-        .auth()
-        .oauth2(getAccessToken(USER1))
-        .when()
-        .get("/api/users/" + TsidUtils.toString(user1.getId()))
-        .then()
-        .statusCode(200)
-        .body("id", equalTo(TsidUtils.toString(user1.getId())))
-        .body("displayName", equalTo("Test User 1"))
-        // Public profile should not include email
-        .body("$", not(hasKey("email")));
-  }
-
-  @Test
-  void getUserById_withNonexistentId_shouldReturn404() {
-    given()
-        .auth()
-        .oauth2(getAccessToken(USER1))
-        .when()
-        .get("/api/users/" + TsidUtils.toString(999999L))
-        .then()
-        .statusCode(404);
-  }
-
-  @Test
-  void getUserById_withoutAuth_shouldReturn401() {
-    given().when().get("/api/users/" + user1.getId()).then().statusCode(401);
   }
 
   @Test

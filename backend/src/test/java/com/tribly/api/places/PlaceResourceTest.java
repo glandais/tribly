@@ -9,8 +9,8 @@ import static org.hamcrest.Matchers.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tribly.api.AbstractResourceTest;
+import com.tribly.common.TsidUtils;
 import com.tribly.dto.places.request.PlaceRequest;
-import com.tribly.infrastructure.id.TsidUtils;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import org.geolatte.geom.G2D;
@@ -299,14 +299,14 @@ class PlaceResourceTest extends AbstractResourceTest {
   }
 
   @Test
-  void getPlace_nonexistent_shouldReturn404() {
+  void getPlace_nonexistent_shouldReturn403() {
     given()
         .auth()
         .oauth2(getAccessToken(USER1))
         .when()
         .get("/api/teams/" + team1Slug + "/places/" + TsidUtils.toString(1L))
         .then()
-        .statusCode(404);
+        .statusCode(403);
   }
 
   // ==================== Update Place Tests ====================
@@ -414,7 +414,7 @@ class PlaceResourceTest extends AbstractResourceTest {
   }
 
   @Test
-  void updatePlace_nonexistent_shouldReturn404() {
+  void updatePlace_nonexistent_shouldReturn403() {
     PlaceRequest updateRequest = new PlaceRequest("Nonexistent", null, null, true, false, null);
 
     given()
@@ -425,7 +425,7 @@ class PlaceResourceTest extends AbstractResourceTest {
         .when()
         .put("/api/teams/" + team1Slug + "/places/" + TsidUtils.toString(1L))
         .then()
-        .statusCode(404);
+        .statusCode(403);
   }
 
   // ==================== Delete Place Tests ====================
@@ -455,14 +455,14 @@ class PlaceResourceTest extends AbstractResourceTest {
         .then()
         .statusCode(204);
 
-    // Verify place is no longer accessible
+    // Verify place is no longer accessible (403 for security by obscurity)
     given()
         .auth()
         .oauth2(getAccessToken(USER1))
         .when()
         .get("/api/teams/" + team1Slug + "/places/" + placeId)
         .then()
-        .statusCode(404);
+        .statusCode(403);
   }
 
   @Test
@@ -547,13 +547,13 @@ class PlaceResourceTest extends AbstractResourceTest {
   }
 
   @Test
-  void deletePlace_nonexistent_shouldReturn404() {
+  void deletePlace_nonexistent_shouldReturn403() {
     given()
         .auth()
         .oauth2(getAccessToken(USER1))
         .when()
         .delete("/api/teams/" + team1Slug + "/places/" + TsidUtils.toString(1L))
         .then()
-        .statusCode(404);
+        .statusCode(403);
   }
 }

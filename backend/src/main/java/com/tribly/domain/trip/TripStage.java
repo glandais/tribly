@@ -6,6 +6,7 @@ import com.tribly.domain.place.Place;
 import com.tribly.domain.route.Route;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
+import com.tribly.enums.EntityType;
 import com.tribly.enums.Visibility;
 import jakarta.persistence.*;
 import java.time.Instant;
@@ -70,5 +71,10 @@ public class TripStage extends TeamEntity {
         "stage-" + System.currentTimeMillis(),
         trip.getVisibility());
     this.trip = trip;
+  }
+
+  @Override
+  public EntityType getEntityType() {
+    return EntityType.TRIP_STAGE;
   }
 }

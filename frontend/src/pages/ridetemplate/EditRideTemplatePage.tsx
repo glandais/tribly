@@ -59,7 +59,7 @@ export function EditRideTemplatePage() {
   const handleSubmit = (data: RideTemplateRequest) => {
     updateMutation.mutate(
       {
-        slug: teamSlug!,
+        teamSlug: teamSlug!,
         templateSlug: templateSlug!,
         data,
       },

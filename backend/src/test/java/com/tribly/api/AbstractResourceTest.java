@@ -51,13 +51,11 @@ public abstract class AbstractResourceTest {
 
     // Create test team with organizer
     team1 = dataService.createTeam(user1, "Team 1", "team-1", Visibility.PUBLIC);
-    dataService.addUserToTeam(user1, team1, TeamRole.ADMIN);
     dataService.addUserToTeam(user2, team1, TeamRole.ORGANIZER);
     dataService.addUserToTeam(user3, team1, TeamRole.MEMBER);
     team1Slug = team1.getSlug();
 
     team2 = dataService.createTeam(user1, "Team 2", "team-2", Visibility.TEAM);
-    dataService.addUserToTeam(user1, team2, TeamRole.ADMIN);
     dataService.addUserToTeam(user2, team2, TeamRole.ORGANIZER);
     dataService.addUserToTeam(user3, team2, TeamRole.MEMBER);
     team2Slug = team2.getSlug();

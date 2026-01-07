@@ -37,7 +37,7 @@ export function CreateRouteModal({ isOpen, onClose, onRouteCreated, team }: Crea
 
     const route = await createRouteMutation.mutateAsync(
       {
-        slug: team.slug,
+        teamSlug: team.slug,
         data: {
           route: data,
           gpxFile,

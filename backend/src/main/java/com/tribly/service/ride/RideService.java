@@ -3,16 +3,13 @@ package com.tribly.service.ride;
 import static com.tribly.dto.error.ErrorCode.ALREADY_REGISTERED;
 import static com.tribly.dto.error.ErrorCode.NOT_REGISTERED;
 
-import com.tribly.domain.common.repository.TeamEntityQueryBasic;
-import com.tribly.domain.common.repository.TriblyPage;
+import com.tribly.common.TsidUtils;
+import com.tribly.common.exception.BusinessException;
+import com.tribly.common.exception.ConflictException;
 import com.tribly.domain.place.Place;
-import com.tribly.domain.place.repository.PlaceRepository;
 import com.tribly.domain.ride.Ride;
 import com.tribly.domain.ride.RideGroup;
 import com.tribly.domain.ride.RideParticipation;
-import com.tribly.domain.ride.repository.RideGroupRepository;
-import com.tribly.domain.ride.repository.RideParticipationRepository;
-import com.tribly.domain.ride.repository.RideRepository;
 import com.tribly.domain.route.Route;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
@@ -21,29 +18,27 @@ import com.tribly.dto.rides.request.GroupRequest;
 import com.tribly.dto.rides.request.RideRequest;
 import com.tribly.dto.rides.response.*;
 import com.tribly.enums.ActionType;
-import com.tribly.enums.AllEntityType;
+import com.tribly.enums.EntityType;
 import com.tribly.enums.Status;
 import com.tribly.enums.Visibility;
-import com.tribly.infrastructure.exception.BusinessException;
-import com.tribly.infrastructure.exception.ConflictException;
 import com.tribly.infrastructure.exception.NotFoundException;
-import com.tribly.infrastructure.id.TsidUtils;
+import com.tribly.repository.place.PlaceRepository;
+import com.tribly.repository.ride.RideGroupRepository;
+import com.tribly.repository.ride.RideParticipationRepository;
+import com.tribly.repository.ride.RideRepository;
 import com.tribly.service.common.TeamEntityService;
 import com.tribly.service.route.RouteService;
+import com.tribly.service.security.annotation.CheckAccess;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
-import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import org.jboss.logging.Logger;
 import org.jspecify.annotations.Nullable;
 
 @ApplicationScoped
 public class RideService extends TeamEntityService<Ride, RideRepository, RideDto> {
-
-  private static final Logger LOG = Logger.getLogger(RideService.class);
 
   @Inject RideRepository rideRepository;
 
@@ -66,71 +61,27 @@ public class RideService extends TeamEntityService<Ride, RideRepository, RideDto
   }
 
   @Override
-  protected boolean hasRights(
-      ActionType action, Team team, @Nullable User user, @Nullable Ride entity) {
-    return switch (action) {
-      case CREATE, UPDATE, DELETE -> securityService.getOrganizer(user, team) != null;
-      // SQL
-      case READ -> true;
-      case JOIN ->
-          securityService.getMembership(user, team) != null
-              && entity != null
-              && entity.getStatus() == Status.PUBLISHED;
-    };
+  public Ride findBySlug(Team team, String entitySlug) {
+    return super.findBySlug(team, entitySlug);
   }
 
-  @Override
-  public Ride getBySlug(Team team, String rideSlug, @Nullable User user) {
-    TriblyPage<Ride> rides =
-        rideRepository.find(
-            TeamEntityQueryBasic.builder()
-                .userId(user == null ? null : user.getId())
-                .teamIds(Set.of(team.getId()))
-                .slug(rideSlug)
-                .page(0)
-                .size(1)
-                .build());
-    if (rides.items().isEmpty()) {
-      throw new NotFoundException(AllEntityType.RIDE, rideSlug);
-    } else {
-      return rides.items().getFirst();
-    }
-  }
-
-  public RideListResponse listRides(
-      Team team,
-      @Nullable User user,
-      @Nullable String search,
-      @Nullable Instant from,
-      @Nullable Instant to,
-      int page,
-      int size) {
-    TriblyPage<Ride> rides =
-        rideRepository.find(
-            TeamEntityQueryBasic.builder()
-                .userId(user == null ? null : user.getId())
-                .teamIds(Set.of(team.getId()))
-                .search(search)
-                .from(from)
-                .to(to)
-                .page(page)
-                .size(size)
-                .build());
-    List<RideDto> dtos =
-        rides.items().stream().map(r -> RideDto.from(r, false, assetService)).toList();
-    return new RideListResponse(dtos, rides.total(), page, size);
+  @CheckAccess(entityType = EntityType.RIDE, action = ActionType.READ)
+  public RideDto getDto(String teamSlug, String entitySlug) {
+    Team team = teamService.getTeam(teamSlug);
+    return super.getDto(team, entitySlug);
   }
 
   @Transactional
-  public RideDto createRide(Team team, RideRequest request, User creator) {
-    checkRights(ActionType.CREATE, team, creator, null);
-
-    validateVisibility(request, team);
+  @CheckAccess(entityType = EntityType.RIDE, action = ActionType.CREATE)
+  public RideDto createRide(String teamSlug, RideRequest request) {
+    Team team = teamService.getTeam(teamSlug);
+    User creator = triblyContext.getUser();
+    validateVisibility(team, request);
 
     // Generate slug from name, ensure unique within team
     String slug = slugService.generateSlug(request.name(), team.getId(), rideRepository);
 
-    Route route = getRoute(request.routeSlug(), team, request.visibility(), creator);
+    Route route = getRoute(teamSlug, request.routeSlug(), request.visibility());
     Place startPlace = getPlace(request.startPlaceId(), team);
     Place endPlace = getPlace(request.endPlaceId(), team);
 
@@ -152,30 +103,32 @@ public class RideService extends TeamEntityService<Ride, RideRepository, RideDto
 
     int sortOrder = 0;
     for (GroupRequest groupRequest : request.groups()) {
-      createRideGroup(creator, ride, groupRequest, sortOrder);
+      createRideGroup(teamSlug, creator, ride, groupRequest, sortOrder);
       sortOrder++;
     }
 
-    LOG.infov(
-        "Ride '{0}' created by user {1} for team {2}",
-        ride.getName(), creator.getId(), team.getSlug());
     return RideDto.from(ride, true, assetService);
   }
 
-  private void createRideGroup(User user, Ride ride, GroupRequest groupRequest, int sortOrder) {
+  private void createRideGroup(
+      String teamSlug, User user, Ride ride, GroupRequest groupRequest, int sortOrder) {
     RideGroup group = new RideGroup(user, ride, groupRequest.name());
-    setProperties(ride, group, groupRequest, sortOrder, user);
+    setProperties(teamSlug, ride, group, groupRequest, sortOrder, user);
     ride.addGroup(group);
     rideGroupRepository.persist(group);
   }
 
   private void setProperties(
-      Ride ride, RideGroup group, GroupRequest groupRequest, int sortOrder, User user) {
+      String teamSlug,
+      Ride ride,
+      RideGroup group,
+      GroupRequest groupRequest,
+      int sortOrder,
+      User user) {
     group.setRide(ride);
     group.setName(groupRequest.name());
     group.setTime(groupRequest.time());
-    Route groupRoute =
-        getRoute(groupRequest.routeSlug(), ride.getTeam(), ride.getVisibility(), user);
+    Route groupRoute = getRoute(teamSlug, groupRequest.routeSlug(), ride.getVisibility());
     group.setAverageSpeed(groupRequest.averageSpeed());
     group.setMaxParticipants(groupRequest.maxParticipants());
     group.setSortOrder(sortOrder);
@@ -183,10 +136,10 @@ public class RideService extends TeamEntityService<Ride, RideRepository, RideDto
   }
 
   private @Nullable Route getRoute(
-      @Nullable String routeSlug, Team team, Visibility visibility, User user) {
+      String teamSlug, @Nullable String routeSlug, Visibility visibility) {
     Route route = null;
     if (routeSlug != null) {
-      route = routeService.get(ActionType.READ, team, routeSlug, user);
+      route = routeService.get(teamSlug, routeSlug);
       if (visibility == Visibility.PUBLIC && route.getVisibility() != Visibility.PUBLIC) {
         throw new BusinessException(ErrorCode.PUBLIC_RIDE_PRIVATE_ROUTE);
       }
@@ -201,20 +154,23 @@ public class RideService extends TeamEntityService<Ride, RideRepository, RideDto
     Long id = TsidUtils.toLong(placeId);
     return placeRepository
         .findByIdAndTeam(id, team.getId())
-        .orElseThrow(() -> new NotFoundException(AllEntityType.PLACE, placeId));
+        .orElseThrow(() -> new NotFoundException(EntityType.PLACE, placeId));
   }
 
   @Transactional
-  public RideDto updateRide(Team team, String rideSlug, RideRequest request, User user) {
-    Ride ride = get(ActionType.UPDATE, team, rideSlug, user);
+  @CheckAccess(entityType = EntityType.RIDE, action = ActionType.UPDATE)
+  public RideDto updateRide(String teamSlug, String rideSlug, RideRequest request) {
+    Team team = teamService.getTeam(teamSlug);
+    Ride ride = findBySlug(team, rideSlug);
+    User user = triblyContext.getUser();
 
-    validateVisibility(request, team);
+    validateVisibility(team, request);
     ride.setVisibility(request.visibility());
 
     ride.setName(request.name());
     ride.setDateTime(request.dateTime());
     ride.setStatus(request.status());
-    Route route = getRoute(request.routeSlug(), ride.getTeam(), request.visibility(), user);
+    Route route = getRoute(teamSlug, request.routeSlug(), request.visibility());
     ride.setRoute(route);
     Place startPlace = getPlace(request.startPlaceId(), team);
     Place endPlace = getPlace(request.endPlaceId(), team);
@@ -237,14 +193,14 @@ public class RideService extends TeamEntityService<Ride, RideRepository, RideDto
     for (GroupRequest groupRequest : request.groups()) {
       Long groupId = TsidUtils.toLongNullable(groupRequest.id());
       if (groupId == null) {
-        createRideGroup(user, ride, groupRequest, sortOrder);
+        createRideGroup(teamSlug, user, ride, groupRequest, sortOrder);
       } else {
         RideGroup existingRideGroup = existingGroups.remove(groupId);
         if (existingRideGroup != null) {
           existingRideGroup.setDeleted(false);
-          setProperties(ride, existingRideGroup, groupRequest, sortOrder, user);
+          setProperties(teamSlug, ride, existingRideGroup, groupRequest, sortOrder, user);
         } else {
-          throw new NotFoundException(AllEntityType.RIDE_GROUP, groupRequest.id());
+          throw new NotFoundException(EntityType.RIDE_GROUP, groupRequest.id());
         }
       }
       sortOrder++;
@@ -252,30 +208,40 @@ public class RideService extends TeamEntityService<Ride, RideRepository, RideDto
 
     rideRepository.persist(ride);
 
-    LOG.infov("Ride {0} updated by user {1}", rideSlug, user.getId());
     return RideDto.from(ride, true, assetService);
   }
 
   @Transactional
-  public void deleteRide(Team team, String rideSlug, User user) {
-    Ride ride = get(ActionType.DELETE, team, rideSlug, user);
-
-    ride.setDeleted(true);
-    rideRepository.persist(ride);
-    LOG.infov("Ride {0} deleted by user {1}", rideSlug, user.getId());
+  @CheckAccess(entityType = EntityType.RIDE, action = ActionType.UPDATE)
+  public RideDto updateSlug(String teamSlug, String slug, String newSlug) {
+    Team team = teamService.getTeam(teamSlug);
+    return super.updateSlug(team, slug, newSlug);
   }
 
   @Transactional
-  public RideParticipationDto joinGroup(Team team, String rideSlug, Long groupId, User user) {
-    Ride ride = get(ActionType.JOIN, team, rideSlug, user);
+  @CheckAccess(entityType = EntityType.RIDE, action = ActionType.DELETE)
+  public void deleteRide(String teamSlug, String rideSlug) {
+    Team team = teamService.getTeam(teamSlug);
+    Ride ride = findBySlug(team, rideSlug);
+
+    ride.setDeleted(true);
+    rideRepository.persist(ride);
+  }
+
+  @Transactional
+  @CheckAccess(entityType = EntityType.RIDE, action = ActionType.JOIN)
+  public RideParticipationDto joinGroup(String teamSlug, String rideSlug, Long groupId) {
+    Team team = teamService.getTeam(teamSlug);
+    Ride ride = findBySlug(team, rideSlug);
 
     RideGroup group =
         rideGroupRepository
             .findByIdAndRide(groupId, ride.getId())
-            .orElseThrow(() -> new NotFoundException(AllEntityType.RIDE_GROUP, groupId));
+            .orElseThrow(() -> new NotFoundException(EntityType.RIDE_GROUP, groupId));
 
     Optional<RideParticipation> existingParticipation =
-        participationRepository.findByUserAndRideIncludingDeleted(user.getId(), ride.getId());
+        participationRepository.findByUserAndRideIncludingDeleted(
+            triblyContext.getUserId(), ride.getId());
 
     if (existingParticipation.isPresent()) {
       RideParticipation rideParticipation = existingParticipation.get();
@@ -287,18 +253,16 @@ public class RideService extends TeamEntityService<Ride, RideRepository, RideDto
       rideParticipation.setRideGroup(group);
       rideParticipation.setDeleted(false);
       participationRepository.persist(rideParticipation);
-      LOG.infov("User {0} joined group {1} in ride {2}", user.getId(), groupId, ride.getId());
       return RideParticipationDto.from(rideParticipation);
     }
 
     checkCapacity(group);
 
-    RideParticipation participation = new RideParticipation(group, user);
+    RideParticipation participation = new RideParticipation(group, triblyContext.getUser());
 
     group.addParticipation(participation);
     participationRepository.persist(participation);
 
-    LOG.infov("User {0} joined group {1} in ride {2}", user.getId(), groupId, ride.getId());
     return RideParticipationDto.from(participation);
   }
 
@@ -309,17 +273,14 @@ public class RideService extends TeamEntityService<Ride, RideRepository, RideDto
   }
 
   @Transactional
-  public void leaveGroup(Team team, String rideSlug, Long groupId, User user) {
-    get(ActionType.READ, team, rideSlug, user);
-
+  @CheckAccess(entityType = EntityType.RIDE, action = ActionType.LEAVE)
+  public void leaveGroup(String teamSlug, String rideSlug, Long groupId) {
     RideParticipation participation =
         participationRepository
-            .findByUserAndGroup(user.getId(), groupId)
+            .findByUserAndGroup(triblyContext.getUserId(), groupId)
             .orElseThrow(() -> new BusinessException(NOT_REGISTERED));
 
     participation.setDeleted(true);
     participationRepository.persist(participation);
-
-    LOG.infov("User {0} left group {1} in ride {2}", user.getId(), groupId, rideSlug);
   }
 }

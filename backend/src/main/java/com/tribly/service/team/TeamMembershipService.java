@@ -1,69 +1,76 @@
 package com.tribly.service.team;
 
-import com.tribly.domain.common.repository.TriblyPage;
+import com.tribly.common.exception.BusinessException;
+import com.tribly.common.exception.ConflictException;
+import com.tribly.common.exception.ForbiddenException;
 import com.tribly.domain.team.*;
-import com.tribly.domain.team.repository.TeamRepository;
-import com.tribly.domain.team.repository.UserTeamRepository;
 import com.tribly.domain.user.User;
-import com.tribly.domain.user.repository.UserRepository;
 import com.tribly.dto.error.ErrorCode;
 import com.tribly.dto.teams.response.MemberDto;
 import com.tribly.dto.teams.response.MemberListResponse;
-import com.tribly.enums.AllEntityType;
+import com.tribly.enums.ActionType;
+import com.tribly.enums.EntityType;
 import com.tribly.enums.TeamRole;
+import com.tribly.enums.Visibility;
 import com.tribly.infrastructure.exception.*;
-import com.tribly.service.security.TeamSecurityService;
+import com.tribly.repository.common.TriblyPage;
+import com.tribly.repository.team.UserTeamRepository;
+import com.tribly.repository.user.UserRepository;
+import com.tribly.service.security.Context;
+import com.tribly.service.security.TriblyQueryContext;
+import com.tribly.service.security.annotation.CheckAccess;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
-import org.jboss.logging.Logger;
 
 @ApplicationScoped
 public class TeamMembershipService {
-
-  private static final Logger LOG = Logger.getLogger(TeamMembershipService.class);
-
-  @Inject TeamRepository teamRepository;
 
   @Inject UserTeamRepository userTeamRepository;
 
   @Inject UserRepository userRepository;
 
-  @Inject TeamSecurityService securityService;
+  @Inject TriblyQueryContext triblyContext;
 
-  public MemberListResponse getTeamMembers(Team team, User user, int page, int size) {
-    // Security check: only team admins can view member list
-    securityService.requireAdmin(user, team);
+  @Inject TeamService teamService;
+
+  @CheckAccess(entityType = EntityType.USER_TEAM, action = ActionType.LIST)
+  public MemberListResponse getTeamMembers(String teamSlug, int page, int size) {
+    Team team = teamService.getTeam(teamSlug);
     TriblyPage<UserTeam> members = userTeamRepository.findByTeam(team.getId(), page, size);
     List<MemberDto> dtos = members.items().stream().map(MemberDto::from).toList();
     return new MemberListResponse(dtos, members.total(), page, size);
   }
 
   @Transactional
-  public MemberDto joinTeam(Team team, User user) {
+  @CheckAccess(entityType = EntityType.USER_TEAM, action = ActionType.JOIN)
+  public MemberDto joinTeam(String teamSlug) {
+    Team team = teamService.getTeam(teamSlug);
     // Security checks
-    securityService.requirePublicTeamForJoin(team);
+    if (team.getVisibility() != Visibility.PUBLIC) {
+      throw new ForbiddenException();
+    }
 
-    return doAddMember(user, team, TeamRole.MEMBER, user);
+    return doAddMember(team, TeamRole.MEMBER, triblyContext.getUser());
   }
 
   @Transactional
-  public MemberDto addMember(Team team, Long targetUserId, TeamRole role, User actingUser) {
-    // Security checks
-    securityService.requireAdmin(actingUser, team);
-
+  @CheckAccess(entityType = EntityType.USER_TEAM, action = ActionType.CREATE)
+  public MemberDto addMember(String teamSlug, Long targetUserId, TeamRole role) {
+    Team team = teamService.getTeam(teamSlug);
     User targetUser =
         userRepository
             .findActiveById(targetUserId)
-            .orElseThrow(() -> new NotFoundException(AllEntityType.USER, targetUserId));
+            .orElseThrow(() -> new NotFoundException(EntityType.USER, targetUserId));
 
-    return doAddMember(actingUser, team, role, targetUser);
+    return doAddMember(team, role, targetUser);
   }
 
-  private MemberDto doAddMember(User creator, Team team, TeamRole role, User user) {
+  private MemberDto doAddMember(Team team, TeamRole role, User user) {
+    User creator = triblyContext.getUser();
     // Check for existing membership (including soft-deleted)
     Optional<UserTeam> existingMembership =
         userTeamRepository.findByUserAndTeamIncludingDeleted(user.getId(), team.getId());
@@ -78,7 +85,6 @@ public class TeamMembershipService {
       membership.setRole(role);
       membership.setJoinedAt(Instant.now());
       userTeamRepository.persist(membership);
-      LOG.infov("User {0} rejoined team {1}", user.getId(), team.getId());
       return MemberDto.from(membership);
     }
 
@@ -86,65 +92,63 @@ public class TeamMembershipService {
     UserTeam membership = new UserTeam(creator, user, team, role);
     userTeamRepository.persist(membership);
 
-    LOG.infov("User {0} joined team {1}", user.getId(), team.getId());
     return MemberDto.from(membership);
   }
 
   @Transactional
-  public MemberDto updateMemberRole(
-      Team team, Long targetUserId, TeamRole newRole, User actingUser) {
-    // Security checks
-    securityService.requireAdmin(actingUser, team);
-
+  @CheckAccess(entityType = EntityType.USER_TEAM, action = ActionType.UPDATE)
+  public MemberDto updateMemberRole(String teamSlug, Long targetUserId, TeamRole newRole) {
+    Team team = teamService.getTeam(teamSlug);
     UserTeam targetMembership =
         userTeamRepository
             .findByUserAndTeam(targetUserId, team.getId())
-            .orElseThrow(() -> new NotFoundException(AllEntityType.USER_TEAM, targetUserId));
+            .orElseThrow(() -> new NotFoundException(EntityType.USER_TEAM, targetUserId));
 
     requireNotLastAdminDemotion(team, targetMembership, newRole);
 
     targetMembership.setRole(newRole);
     userTeamRepository.persist(targetMembership);
 
-    LOG.infov(
-        "User {0} role updated to {1} in team {2} by user {3}",
-        targetUserId, newRole, team.getId(), actingUser);
     return MemberDto.from(targetMembership);
   }
 
   @Transactional
-  public void removeMember(Team team, Long targetUserId, User actingUser) {
+  @CheckAccess(entityType = EntityType.USER_TEAM, action = ActionType.DELETE)
+  public void removeMember(String teamSlug, Long targetUserId) {
+    Team team = teamService.getTeam(teamSlug);
+    doRemoveMember(team, targetUserId);
+  }
+
+  private void doRemoveMember(Team team, Long targetUserId) {
+    Context context = triblyContext.getContext(team);
+    User actingUser = context.user();
+    TeamRole teamRole = context.teamRole();
     User targetUser =
         userRepository
             .findActiveById(targetUserId)
-            .orElseThrow(() -> new NotFoundException(AllEntityType.USER, targetUserId));
+            .orElseThrow(() -> new NotFoundException(EntityType.USER, targetUserId));
     // Security checks
-    requireCanRemoveMember(actingUser, targetUser, team);
+    requireCanRemoveMember(actingUser, teamRole, targetUser);
 
     UserTeam targetMembership =
         userTeamRepository
             .findByUserAndTeam(targetUser.getId(), team.getId())
-            .orElseThrow(() -> new NotFoundException(AllEntityType.USER_TEAM, targetUserId));
+            .orElseThrow(() -> new NotFoundException(EntityType.USER_TEAM, targetUserId));
 
     requireNotLastAdmin(team, targetMembership);
 
     targetMembership.setDeleted(true);
     userTeamRepository.persist(targetMembership);
-
-    LOG.infov(
-        "User {0} removed from team {1} by user {2}", targetUser.getId(), team.getId(), actingUser);
   }
 
-  void requireCanRemoveMember(User actor, User target, Team team) {
+  void requireCanRemoveMember(User actor, TeamRole teamRole, User target) {
     boolean isSelfRemoval = target.getId().equals(actor.getId());
     if (isSelfRemoval) {
       // Users can always remove themselves (leave the team)
-      if (securityService.getMembership(actor, team) == null) {
-        throw new ForbiddenException();
-      }
+      return;
     }
     // Non-self removal requires admin rights
-    if (securityService.getAdmin(target, team) == null) {
+    if (teamRole == null || !teamRole.isAdmin()) {
       throw new ForbiddenException();
     }
   }
@@ -165,7 +169,9 @@ public class TeamMembershipService {
   }
 
   @Transactional
-  public void leaveTeam(Team team, User user) {
-    removeMember(team, user.getId(), user);
+  @CheckAccess(entityType = EntityType.USER_TEAM, action = ActionType.LEAVE)
+  public void leaveTeam(String teamSlug) {
+    Team team = teamService.getTeam(teamSlug);
+    doRemoveMember(team, triblyContext.getUserId());
   }
 }

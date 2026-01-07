@@ -1,9 +1,10 @@
 package com.tribly.dto.rides.response;
 
+import com.tribly.common.TsidUtils;
 import com.tribly.domain.place.Place;
 import com.tribly.domain.ride.Ride;
 import com.tribly.domain.ride.RideGroup;
-import com.tribly.dto.common.response.MediaDto;
+import com.tribly.dto.common.asset.MediaDto;
 import com.tribly.dto.places.response.PlaceDetailDto;
 import com.tribly.dto.publications.response.PublicationDto;
 import com.tribly.dto.publications.response.PublicationType;
@@ -11,7 +12,6 @@ import com.tribly.dto.publications.response.TeamPublicationDto;
 import com.tribly.dto.validation.ValidateSchema;
 import com.tribly.enums.Status;
 import com.tribly.enums.Visibility;
-import com.tribly.infrastructure.id.TsidUtils;
 import com.tribly.service.asset.AssetService;
 import java.time.Instant;
 import java.util.Comparator;

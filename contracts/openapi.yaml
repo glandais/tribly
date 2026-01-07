@@ -166,25 +166,6 @@ components:
           description: Role to assign (defaults to MEMBER)
           type: string
           $ref: "#/components/schemas/TeamRole"
-    AllEntityType:
-      type: string
-      enum:
-      - TEAM
-      - USER
-      - USER_TEAM
-      - RIDE_TEMPLATE
-      - RIDE_TEMPLATE_GROUP
-      - PLACE
-      - COMMENT
-      - ASSET
-      - TRIP
-      - TRIP_STAGE
-      - ROUTE
-      - RIDE
-      - RIDE_GROUP
-      - AD
-      - POST
-      - TEAM_PAGE
     AssetDimensionsDto:
       type: object
       properties:
@@ -375,6 +356,27 @@ components:
           description: Keycloak authentication configuration
           type: object
           $ref: "#/components/schemas/KeycloakConfig"
+    EntityType:
+      type: string
+      enum:
+      - TEAM
+      - USER
+      - USER_TEAM
+      - RIDE_TEMPLATE
+      - RIDE_TEMPLATE_GROUP
+      - PLACE
+      - COMMENT
+      - ASSET
+      - TRIP
+      - TRIP_STAGE
+      - ROUTE
+      - RIDE
+      - RIDE_GROUP
+      - AD
+      - POST
+      - TEAM_PAGE
+      - PUBLICATION
+      - ANY
     ErrorCode:
       type: string
       enum:
@@ -686,7 +688,7 @@ components:
         entityType:
           description: Entity type
           type: string
-          $ref: "#/components/schemas/AllEntityType"
+          $ref: "#/components/schemas/EntityType"
         searchedBy:
           description: Search type
           type: string
@@ -1943,9 +1945,9 @@ components:
     TeamRole:
       type: string
       enum:
-      - ADMIN
-      - ORGANIZER
       - MEMBER
+      - ORGANIZER
+      - ADMIN
     TrackDto:
       type: object
       description: GPX track with track points
@@ -2248,7 +2250,7 @@ components:
   securitySchemes:
     SecurityScheme:
       type: openIdConnect
-      openIdConnectUrl: http://localhost:8180/realms/tribly/.well-known/openid-configuration
+      openIdConnectUrl: http://localhost:8180/realms/quarkus/.well-known/openid-configuration
       description: Authentication
 tags:
 - name: Ads
@@ -2575,7 +2577,7 @@ paths:
       security:
       - SecurityScheme:
         - user
-  /api/teams/{slug}:
+  /api/teams/{teamSlug}:
     put:
       summary: Update team
       description: Update team information. Requires ADMIN role.
@@ -2584,7 +2586,7 @@ paths:
       - Teams
       parameters:
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -2637,7 +2639,7 @@ paths:
       - Teams
       parameters:
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -2669,7 +2671,7 @@ paths:
       - Teams
       parameters:
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -2698,7 +2700,7 @@ paths:
       security:
       - SecurityScheme:
         - user
-  /api/teams/{slug}/ads:
+  /api/teams/{teamSlug}/ads:
     get:
       summary: List ads
       description: Get paginated list of ads for a team with optional filtering
@@ -2707,7 +2709,7 @@ paths:
       - Ads
       parameters:
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -2759,6 +2761,13 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme:
+        - user
     post:
       summary: Create ad
       description: Create a new ad. Any team member can create ads.
@@ -2767,7 +2776,7 @@ paths:
       - Ads
       parameters:
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -2812,7 +2821,7 @@ paths:
       security:
       - SecurityScheme:
         - user
-  /api/teams/{slug}/ads/{adSlug}:
+  /api/teams/{teamSlug}/ads/{slug}:
     put:
       summary: Update ad
       description: Update ad information. Only the creator or an admin can update.
@@ -2821,13 +2830,13 @@ paths:
       - Ads
       parameters:
       - description: Ad URL slug
-        name: adSlug
+        name: slug
         in: path
         required: true
         schema:
           type: string
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -2880,13 +2889,13 @@ paths:
       - Ads
       parameters:
       - description: Ad URL slug
-        name: adSlug
+        name: slug
         in: path
         required: true
         schema:
           type: string
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -2904,6 +2913,13 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme:
+        - user
     delete:
       summary: Delete ad
       description: Soft delete an ad. Only the creator or an admin can delete.
@@ -2912,13 +2928,13 @@ paths:
       - Ads
       parameters:
       - description: Ad URL slug
-        name: adSlug
+        name: slug
         in: path
         required: true
         schema:
           type: string
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -2947,7 +2963,7 @@ paths:
       security:
       - SecurityScheme:
         - user
-  /api/teams/{slug}/ads/{adSlug}/slug:
+  /api/teams/{teamSlug}/ads/{slug}/slug:
     patch:
       summary: Change ad slug
       description: Change ad URL slug. Requires admin permissions.
@@ -2956,13 +2972,13 @@ paths:
       - Ads
       parameters:
       - description: Current ad URL slug
-        name: adSlug
+        name: slug
         in: path
         required: true
         schema:
           type: string
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -3013,7 +3029,7 @@ paths:
       security:
       - SecurityScheme:
         - user
-  /api/teams/{slug}/assets:
+  /api/teams/{teamSlug}/assets:
     post:
       summary: Create asset
       operationId: uploadAsset
@@ -3021,7 +3037,7 @@ paths:
       - Assets
       parameters:
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -3070,7 +3086,7 @@ paths:
       security:
       - SecurityScheme:
         - user
-  /api/teams/{slug}/members:
+  /api/teams/{teamSlug}/members:
     get:
       summary: Get team members
       description: Get paginated list of team members
@@ -3079,7 +3095,7 @@ paths:
       - Team Members
       parameters:
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -3130,7 +3146,7 @@ paths:
       - Team Members
       parameters:
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -3175,7 +3191,7 @@ paths:
       security:
       - SecurityScheme:
         - user
-  /api/teams/{slug}/members/join:
+  /api/teams/{teamSlug}/members/join:
     post:
       summary: Join team
       description: Request to join a team
@@ -3184,7 +3200,7 @@ paths:
       - Team Members
       parameters:
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -3219,7 +3235,7 @@ paths:
       security:
       - SecurityScheme:
         - user
-  /api/teams/{slug}/members/leave:
+  /api/teams/{teamSlug}/members/leave:
     post:
       summary: Leave team
       description: Leave a team
@@ -3228,7 +3244,7 @@ paths:
       - Team Members
       parameters:
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -3259,7 +3275,7 @@ paths:
       security:
       - SecurityScheme:
         - user
-  /api/teams/{slug}/members/{memberId}:
+  /api/teams/{teamSlug}/members/{memberId}:
     put:
       summary: Update member role
       description: Update a team member's role. Requires ADMIN role.
@@ -3274,7 +3290,7 @@ paths:
         schema:
           type: string
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -3333,7 +3349,7 @@ paths:
         schema:
           type: string
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -3362,7 +3378,7 @@ paths:
       security:
       - SecurityScheme:
         - user
-  /api/teams/{slug}/pages:
+  /api/teams/{teamSlug}/pages:
     get:
       summary: List team pages
       description: Get list of additional pages for a team
@@ -3371,7 +3387,7 @@ paths:
       - Team Pages
       parameters:
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -3400,7 +3416,7 @@ paths:
       - Team Pages
       parameters:
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -3445,7 +3461,7 @@ paths:
       security:
       - SecurityScheme:
         - user
-  /api/teams/{slug}/pages/reorder:
+  /api/teams/{teamSlug}/pages/reorder:
     put:
       summary: Reorder pages
       description: Reorder team pages. Requires admin permissions.
@@ -3454,7 +3470,7 @@ paths:
       - Team Pages
       parameters:
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -3501,7 +3517,7 @@ paths:
       security:
       - SecurityScheme:
         - user
-  /api/teams/{slug}/pages/{pageSlug}:
+  /api/teams/{teamSlug}/pages/{pageSlug}:
     put:
       summary: Update page
       description: Update page information. Requires admin permissions.
@@ -3516,7 +3532,7 @@ paths:
         schema:
           type: string
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -3575,7 +3591,7 @@ paths:
         schema:
           type: string
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -3613,7 +3629,7 @@ paths:
         schema:
           type: string
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -3642,7 +3658,7 @@ paths:
       security:
       - SecurityScheme:
         - user
-  /api/teams/{slug}/pages/{pageSlug}/slug:
+  /api/teams/{teamSlug}/pages/{pageSlug}/slug:
     patch:
       summary: Change page slug
       description: Change page URL slug. Requires admin permissions.
@@ -3657,7 +3673,7 @@ paths:
         schema:
           type: string
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -3708,7 +3724,7 @@ paths:
       security:
       - SecurityScheme:
         - user
-  /api/teams/{slug}/places:
+  /api/teams/{teamSlug}/places:
     get:
       summary: List places
       description: Get all places for a team
@@ -3717,7 +3733,7 @@ paths:
       - Places
       parameters:
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -3764,7 +3780,7 @@ paths:
       - Places
       parameters:
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -3809,7 +3825,7 @@ paths:
       security:
       - SecurityScheme:
         - user
-  /api/teams/{slug}/places/{placeId}:
+  /api/teams/{teamSlug}/places/{placeId}:
     put:
       summary: Update place
       description: Update an existing place
@@ -3824,7 +3840,7 @@ paths:
         schema:
           type: string
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -3883,7 +3899,7 @@ paths:
         schema:
           type: string
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -3922,7 +3938,7 @@ paths:
         schema:
           type: string
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -3951,62 +3967,7 @@ paths:
       security:
       - SecurityScheme:
         - user
-  /api/teams/{slug}/posts:
-    get:
-      summary: List posts
-      description: Get paginated list of posts for a team with optional filtering
-      operationId: listPosts
-      tags:
-      - Posts
-      parameters:
-      - description: Team URL slug
-        name: slug
-        in: path
-        required: true
-        schema:
-          type: string
-      - description: Start date filter (ISO format)
-        name: from
-        in: query
-        schema:
-          type: string
-      - description: Page number
-        name: page
-        in: query
-        schema:
-          type: integer
-          format: int32
-          default: 0
-      - description: Search by name/description
-        name: search
-        in: query
-        schema:
-          type: string
-      - description: Page size
-        name: size
-        in: query
-        schema:
-          type: integer
-          format: int32
-          default: 20
-      - description: End date filter (ISO format)
-        name: to
-        in: query
-        schema:
-          type: string
-      responses:
-        "200":
-          description: Posts retrieved successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PostListResponse"
-        "404":
-          description: Team not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
+  /api/teams/{teamSlug}/posts:
     post:
       summary: Create post
       description: Create a new post with optional groups
@@ -4015,7 +3976,7 @@ paths:
       - Posts
       parameters:
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -4060,7 +4021,7 @@ paths:
       security:
       - SecurityScheme:
         - user
-  /api/teams/{slug}/posts/{entitySlug}/comments:
+  /api/teams/{teamSlug}/posts/{entitySlug}/comments:
     get:
       summary: List post comments
       operationId: listPostComments
@@ -4074,7 +4035,7 @@ paths:
         schema:
           type: string
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -4092,6 +4053,11 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not Authorized
+      security:
+      - SecurityScheme:
+        - user
     post:
       summary: Create post comment
       operationId: createPostComment
@@ -4105,7 +4071,7 @@ paths:
         schema:
           type: string
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -4129,7 +4095,14 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-  /api/teams/{slug}/posts/{entitySlug}/comments/{commentId}:
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme:
+        - user
+  /api/teams/{teamSlug}/posts/{entitySlug}/comments/{commentId}:
     delete:
       summary: Delete post comment
       operationId: deletePostComment
@@ -4149,7 +4122,7 @@ paths:
         schema:
           type: string
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -4163,7 +4136,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-  /api/teams/{slug}/posts/{postSlug}:
+        "401":
+          description: Not Authorized
+      security:
+      - SecurityScheme:
+        - user
+  /api/teams/{teamSlug}/posts/{postSlug}:
     put:
       summary: Update post
       description: Update post information. Requires organizer permissions.
@@ -4178,7 +4156,7 @@ paths:
         schema:
           type: string
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -4237,7 +4215,7 @@ paths:
         schema:
           type: string
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -4269,7 +4247,7 @@ paths:
         schema:
           type: string
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -4298,7 +4276,7 @@ paths:
       security:
       - SecurityScheme:
         - user
-  /api/teams/{slug}/posts/{postSlug}/slug:
+  /api/teams/{teamSlug}/posts/{postSlug}/slug:
     patch:
       summary: Change post slug
       description: Change post URL slug. Requires organizer permissions.
@@ -4313,7 +4291,7 @@ paths:
         schema:
           type: string
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -4350,7 +4328,7 @@ paths:
       security:
       - SecurityScheme:
         - user
-  /api/teams/{slug}/publications:
+  /api/teams/{teamSlug}/publications:
     get:
       summary: List publications
       description: Get paginated list of publications for a team with optional filtering
@@ -4359,7 +4337,7 @@ paths:
       - Publications
       parameters:
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -4411,7 +4389,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-  /api/teams/{slug}/ride-templates:
+  /api/teams/{teamSlug}/ride-templates:
     get:
       summary: List ride templates
       description: Get paginated list of ride templates for a team
@@ -4420,7 +4398,7 @@ paths:
       - Ride Templates
       parameters:
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -4480,7 +4458,7 @@ paths:
       - Ride Templates
       parameters:
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -4525,7 +4503,7 @@ paths:
       security:
       - SecurityScheme:
         - user
-  /api/teams/{slug}/ride-templates/{templateSlug}:
+  /api/teams/{teamSlug}/ride-templates/{templateSlug}:
     put:
       summary: Update ride template
       description: Update ride template information. Requires organizer permissions.
@@ -4534,7 +4512,7 @@ paths:
       - Ride Templates
       parameters:
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -4593,7 +4571,7 @@ paths:
       - Ride Templates
       parameters:
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -4640,7 +4618,7 @@ paths:
       - Ride Templates
       parameters:
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -4675,62 +4653,7 @@ paths:
       security:
       - SecurityScheme:
         - user
-  /api/teams/{slug}/rides:
-    get:
-      summary: List rides
-      description: Get paginated list of rides for a team with optional filtering
-      operationId: listRides
-      tags:
-      - Rides
-      parameters:
-      - description: Team URL slug
-        name: slug
-        in: path
-        required: true
-        schema:
-          type: string
-      - description: Start date filter (ISO format)
-        name: from
-        in: query
-        schema:
-          type: string
-      - description: Page number
-        name: page
-        in: query
-        schema:
-          type: integer
-          format: int32
-          default: 0
-      - description: Search by name/markdown
-        name: search
-        in: query
-        schema:
-          type: string
-      - description: Page size
-        name: size
-        in: query
-        schema:
-          type: integer
-          format: int32
-          default: 20
-      - description: End date filter (ISO format)
-        name: to
-        in: query
-        schema:
-          type: string
-      responses:
-        "200":
-          description: Rides retrieved successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/RideListResponse"
-        "404":
-          description: Team not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
+  /api/teams/{teamSlug}/rides:
     post:
       summary: Create ride
       description: Create a new ride with optional groups
@@ -4739,7 +4662,7 @@ paths:
       - Rides
       parameters:
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -4784,7 +4707,7 @@ paths:
       security:
       - SecurityScheme:
         - user
-  /api/teams/{slug}/rides/{entitySlug}/comments:
+  /api/teams/{teamSlug}/rides/{entitySlug}/comments:
     get:
       summary: List ride comments
       operationId: listRideComments
@@ -4798,7 +4721,7 @@ paths:
         schema:
           type: string
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -4816,6 +4739,11 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not Authorized
+      security:
+      - SecurityScheme:
+        - user
     post:
       summary: Create ride comment
       operationId: createRideComment
@@ -4829,7 +4757,7 @@ paths:
         schema:
           type: string
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -4853,7 +4781,14 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-  /api/teams/{slug}/rides/{entitySlug}/comments/{commentId}:
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme:
+        - user
+  /api/teams/{teamSlug}/rides/{entitySlug}/comments/{commentId}:
     delete:
       summary: Delete ride comment
       operationId: deleteRideComment
@@ -4873,7 +4808,7 @@ paths:
         schema:
           type: string
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -4887,7 +4822,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-  /api/teams/{slug}/rides/{rideSlug}:
+        "401":
+          description: Not Authorized
+      security:
+      - SecurityScheme:
+        - user
+  /api/teams/{teamSlug}/rides/{rideSlug}:
     put:
       summary: Update ride
       description: Update ride information. Requires organizer permissions.
@@ -4902,7 +4842,7 @@ paths:
         schema:
           type: string
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -4961,7 +4901,7 @@ paths:
         schema:
           type: string
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -4993,7 +4933,7 @@ paths:
         schema:
           type: string
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -5022,7 +4962,7 @@ paths:
       security:
       - SecurityScheme:
         - user
-  /api/teams/{slug}/rides/{rideSlug}/groups/{groupId}/join:
+  /api/teams/{teamSlug}/rides/{rideSlug}/groups/{groupId}/join:
     post:
       summary: Join ride group
       description: Join a ride group
@@ -5043,7 +4983,7 @@ paths:
         schema:
           type: string
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -5078,7 +5018,7 @@ paths:
       security:
       - SecurityScheme:
         - user
-  /api/teams/{slug}/rides/{rideSlug}/groups/{groupId}/leave:
+  /api/teams/{teamSlug}/rides/{rideSlug}/groups/{groupId}/leave:
     post:
       summary: Leave ride group
       description: Leave a ride group
@@ -5099,7 +5039,7 @@ paths:
         schema:
           type: string
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -5124,7 +5064,7 @@ paths:
       security:
       - SecurityScheme:
         - user
-  /api/teams/{slug}/rides/{rideSlug}/slug:
+  /api/teams/{teamSlug}/rides/{rideSlug}/slug:
     patch:
       summary: Change ride slug
       description: Change ride URL slug. Requires organizer permissions.
@@ -5139,7 +5079,7 @@ paths:
         schema:
           type: string
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -5190,7 +5130,7 @@ paths:
       security:
       - SecurityScheme:
         - user
-  /api/teams/{slug}/routes:
+  /api/teams/{teamSlug}/routes:
     get:
       summary: List routes
       description: Get paginated list of routes for a team with optional filters and
@@ -5200,7 +5140,7 @@ paths:
       - Routes
       parameters:
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -5317,7 +5257,7 @@ paths:
       - Routes
       parameters:
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -5371,7 +5311,7 @@ paths:
       security:
       - SecurityScheme:
         - user
-  /api/teams/{slug}/routes/{entitySlug}/comments:
+  /api/teams/{teamSlug}/routes/{entitySlug}/comments:
     get:
       summary: List route comments
       operationId: listRouteComments
@@ -5385,7 +5325,7 @@ paths:
         schema:
           type: string
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -5403,6 +5343,11 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not Authorized
+      security:
+      - SecurityScheme:
+        - user
     post:
       summary: Create route comment
       operationId: createRouteComment
@@ -5416,7 +5361,7 @@ paths:
         schema:
           type: string
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -5440,7 +5385,14 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-  /api/teams/{slug}/routes/{entitySlug}/comments/{commentId}:
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme:
+        - user
+  /api/teams/{teamSlug}/routes/{entitySlug}/comments/{commentId}:
     delete:
       summary: Delete route comment
       operationId: deleteRouteComment
@@ -5460,7 +5412,7 @@ paths:
         schema:
           type: string
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -5474,7 +5426,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-  /api/teams/{slug}/routes/{routeSlug}:
+        "401":
+          description: Not Authorized
+      security:
+      - SecurityScheme:
+        - user
+  /api/teams/{teamSlug}/routes/{routeSlug}:
     put:
       summary: Update route
       description: "Update route metadata (name, markdown, etc.) and optionally replace\
@@ -5491,7 +5448,7 @@ paths:
         schema:
           type: string
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -5559,7 +5516,7 @@ paths:
         schema:
           type: string
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -5591,7 +5548,7 @@ paths:
         schema:
           type: string
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -5620,7 +5577,7 @@ paths:
       security:
       - SecurityScheme:
         - user
-  /api/teams/{slug}/routes/{routeSlug}/slug:
+  /api/teams/{teamSlug}/routes/{routeSlug}/slug:
     patch:
       summary: Change route slug
       description: Change route URL slug. Requires organizer permissions.
@@ -5635,7 +5592,7 @@ paths:
         schema:
           type: string
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -5686,7 +5643,7 @@ paths:
       security:
       - SecurityScheme:
         - user
-  /api/teams/{slug}/slug:
+  /api/teams/{teamSlug}/slug:
     patch:
       summary: Change team slug
       description: Change team URL slug. Requires ADMIN role.
@@ -5695,7 +5652,7 @@ paths:
       - Teams
       parameters:
       - description: Current team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -5746,62 +5703,7 @@ paths:
       security:
       - SecurityScheme:
         - user
-  /api/teams/{slug}/trips:
-    get:
-      summary: List trips
-      description: Get paginated list of trips for a team with optional filtering
-      operationId: listTrips
-      tags:
-      - Trips
-      parameters:
-      - description: Team URL slug
-        name: slug
-        in: path
-        required: true
-        schema:
-          type: string
-      - description: Start date filter (ISO format)
-        name: from
-        in: query
-        schema:
-          type: string
-      - description: Page number
-        name: page
-        in: query
-        schema:
-          type: integer
-          format: int32
-          default: 0
-      - description: Search by name/markdown
-        name: search
-        in: query
-        schema:
-          type: string
-      - description: Page size
-        name: size
-        in: query
-        schema:
-          type: integer
-          format: int32
-          default: 20
-      - description: End date filter (ISO format)
-        name: to
-        in: query
-        schema:
-          type: string
-      responses:
-        "200":
-          description: Trips retrieved successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/TripListResponse"
-        "404":
-          description: Team not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
+  /api/teams/{teamSlug}/trips:
     post:
       summary: Create trip
       description: Create a new trip with optional stages
@@ -5810,7 +5712,7 @@ paths:
       - Trips
       parameters:
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -5855,7 +5757,7 @@ paths:
       security:
       - SecurityScheme:
         - user
-  /api/teams/{slug}/trips/{entitySlug}/comments:
+  /api/teams/{teamSlug}/trips/{entitySlug}/comments:
     get:
       summary: List trip comments
       operationId: listTripComments
@@ -5869,7 +5771,7 @@ paths:
         schema:
           type: string
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -5887,6 +5789,11 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not Authorized
+      security:
+      - SecurityScheme:
+        - user
     post:
       summary: Create trip comment
       operationId: createTripComment
@@ -5900,7 +5807,7 @@ paths:
         schema:
           type: string
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -5924,7 +5831,14 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-  /api/teams/{slug}/trips/{entitySlug}/comments/{commentId}:
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme:
+        - user
+  /api/teams/{teamSlug}/trips/{entitySlug}/comments/{commentId}:
     delete:
       summary: Delete trip comment
       operationId: deleteTripComment
@@ -5944,7 +5858,7 @@ paths:
         schema:
           type: string
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -5958,7 +5872,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-  /api/teams/{slug}/trips/{tripSlug}:
+        "401":
+          description: Not Authorized
+      security:
+      - SecurityScheme:
+        - user
+  /api/teams/{teamSlug}/trips/{tripSlug}:
     put:
       summary: Update trip
       description: Update trip information. Requires organizer permissions.
@@ -5967,7 +5886,7 @@ paths:
       - Trips
       parameters:
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -6026,7 +5945,7 @@ paths:
       - Trips
       parameters:
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -6058,7 +5977,7 @@ paths:
       - Trips
       parameters:
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -6093,7 +6012,7 @@ paths:
       security:
       - SecurityScheme:
         - user
-  /api/teams/{slug}/trips/{tripSlug}/join:
+  /api/teams/{teamSlug}/trips/{tripSlug}/join:
     post:
       summary: Join trip
       description: Join a trip as a participant
@@ -6102,7 +6021,7 @@ paths:
       - Trips
       parameters:
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -6143,7 +6062,7 @@ paths:
       security:
       - SecurityScheme:
         - user
-  /api/teams/{slug}/trips/{tripSlug}/leave:
+  /api/teams/{teamSlug}/trips/{tripSlug}/leave:
     post:
       summary: Leave trip
       description: Leave a trip as a participant
@@ -6152,7 +6071,7 @@ paths:
       - Trips
       parameters:
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -6183,7 +6102,7 @@ paths:
       security:
       - SecurityScheme:
         - user
-  /api/teams/{slug}/trips/{tripSlug}/slug:
+  /api/teams/{teamSlug}/trips/{tripSlug}/slug:
     patch:
       summary: Change trip slug
       description: Change trip URL slug. Requires organizer permissions.
@@ -6192,7 +6111,7 @@ paths:
       - Trips
       parameters:
       - description: Team URL slug
-        name: slug
+        name: teamSlug
         in: path
         required: true
         schema:
@@ -6428,44 +6347,6 @@ paths:
                   $ref: "#/components/schemas/PublicUserDto"
         "401":
           description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "403":
-          description: Not Allowed
-      security:
-      - SecurityScheme:
-        - user
-  /api/users/{id}:
-    get:
-      summary: Get user by ID
-      description: Get public user information by ID
-      operationId: getUserById
-      tags:
-      - Users
-      parameters:
-      - description: User ID (TSID)
-        name: id
-        in: path
-        required: true
-        schema:
-          type: string
-      responses:
-        "200":
-          description: User retrieved successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/PublicUserDto"
-        "401":
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "404":
-          description: User not found
           content:
             application/json:
               schema:

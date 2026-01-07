@@ -6,7 +6,8 @@ import { toast } from 'sonner'
 import i18next from 'i18next'
 import { paths } from '../../config/paths'
 import { useGetTeam } from '@/api/endpoints/teams/teams'
-import { useCreateTrip, getListTripsQueryKey } from '../../api/endpoints/trips/trips'
+import { useCreateTrip } from '../../api/endpoints/trips/trips'
+import { getListPublicationsQueryKey } from '../../api/endpoints/publications/publications'
 import { Visibility, Status, TripRequest } from '@/api/dto'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { TripEditor } from '../../components/trip/TripEditor'
@@ -80,12 +81,12 @@ export function CreateTripPage() {
   const handleSubmit = (data: TripRequest) => {
     createMutation.mutate(
       {
-        slug: teamSlug!,
+        teamSlug: teamSlug!,
         data,
       },
       {
         onSuccess: (trip) => {
-          queryClient.invalidateQueries({ queryKey: getListTripsQueryKey(teamSlug!) })
+          queryClient.invalidateQueries({ queryKey: getListPublicationsQueryKey(teamSlug!) })
           toast.success(i18next.t('trips.notifications.created'))
           navigate(paths.trip(teamSlug!, trip.slug))
         },

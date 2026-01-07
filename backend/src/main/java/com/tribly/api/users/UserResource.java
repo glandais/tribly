@@ -1,17 +1,14 @@
 package com.tribly.api.users;
 
-import com.tribly.api.AbstractAuthenticatedResource;
-import com.tribly.domain.user.User;
+import com.tribly.common.exception.BusinessException;
 import com.tribly.dto.error.ErrorCode;
 import com.tribly.dto.error.ErrorResponse;
 import com.tribly.dto.users.request.UpdateUserRequest;
 import com.tribly.dto.users.response.PublicUserDto;
 import com.tribly.dto.users.response.UserDto;
-import com.tribly.infrastructure.exception.BusinessException;
-import com.tribly.infrastructure.id.TsidUtils;
-import com.tribly.service.auth.UserSyncService;
 import com.tribly.service.user.UserAvatarService;
-import io.quarkus.security.identity.SecurityIdentity;
+import com.tribly.service.user.UserService;
+import com.tribly.service.user.UserSyncService;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
@@ -20,7 +17,6 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.io.FileInputStream;
 import java.util.List;
-import org.eclipse.microprofile.jwt.JsonWebToken;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
@@ -28,7 +24,6 @@ import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
-import org.jboss.logging.Logger;
 import org.jboss.resteasy.reactive.RestForm;
 import org.jboss.resteasy.reactive.multipart.FileUpload;
 import org.jspecify.annotations.Nullable;
@@ -38,11 +33,9 @@ import org.jspecify.annotations.Nullable;
 @Consumes(MediaType.APPLICATION_JSON)
 @RolesAllowed("user")
 @Tag(name = "Users", description = "User profile management operations")
-public class UserResource extends AbstractAuthenticatedResource {
+public class UserResource {
 
-  private static final Logger LOG = Logger.getLogger(UserResource.class);
-
-  @Inject SecurityIdentity securityIdentity;
+  @Inject UserService userService;
 
   @Inject UserSyncService userSyncService;
 
@@ -66,9 +59,7 @@ public class UserResource extends AbstractAuthenticatedResource {
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
   public Response getMe() {
-    Long userId = getUserId();
-    JsonWebToken jwt = (JsonWebToken) securityIdentity.getPrincipal();
-    UserDto userDto = userSyncService.syncUser(userId, jwt);
+    UserDto userDto = userSyncService.syncUser();
     return Response.ok(userDto).build();
   }
 
@@ -90,8 +81,7 @@ public class UserResource extends AbstractAuthenticatedResource {
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
   public Response updateMe(@Valid UpdateUserRequest request) {
-    User user = this.getCurrentUser();
-    UserDto userDto = userService.updateUser(user, request.displayName());
+    UserDto userDto = userService.updateUser(request.displayName());
     return Response.ok(userDto).build();
   }
 
@@ -121,11 +111,10 @@ public class UserResource extends AbstractAuthenticatedResource {
       throw new BusinessException(ErrorCode.FILE_REQUIRED);
     }
 
-    User user = this.getCurrentUser();
     userAvatarService.uploadAvatar(
-        user, new FileInputStream(fileUpload.filePath().toFile()), fileUpload.fileName());
+        new FileInputStream(fileUpload.filePath().toFile()), fileUpload.fileName());
 
-    UserDto userDto = userService.getUserDto(user.getId());
+    UserDto userDto = userService.getUserDto();
     return Response.ok(userDto).build();
   }
 
@@ -143,34 +132,9 @@ public class UserResource extends AbstractAuthenticatedResource {
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
   public Response deleteAvatar() {
-    User user = this.getCurrentUser();
-    userAvatarService.deleteAvatar(user);
-    UserDto userDto = userService.getUserDto(user.getId());
+    userAvatarService.deleteAvatar();
+    UserDto userDto = userService.getUserDto();
     return Response.ok(userDto).build();
-  }
-
-  @GET
-  @Path("/{id}")
-  @Operation(summary = "Get user by ID", description = "Get public user information by ID")
-  @APIResponses({
-    @APIResponse(
-        responseCode = "200",
-        description = "User retrieved successfully",
-        content = @Content(schema = @Schema(implementation = PublicUserDto.class))),
-    @APIResponse(
-        responseCode = "401",
-        description = "Unauthorized",
-        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
-    @APIResponse(
-        responseCode = "404",
-        description = "User not found",
-        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
-  })
-  public Response getUserById(
-      @Parameter(description = "User ID (TSID)") @PathParam("id") String id) {
-    Long userId = TsidUtils.toLong(id);
-    PublicUserDto user = userService.getPublicUserDto(userId);
-    return Response.ok(user).build();
   }
 
   @GET
@@ -209,10 +173,9 @@ public class UserResource extends AbstractAuthenticatedResource {
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
   public Response deleteCurrentUser() {
-    User user = getCurrentUser();
-    userService.deleteUser(user);
 
-    LOG.infov("User {0} deleted their account", user.getId());
+    userService.deleteUser();
+
     return Response.noContent().build();
   }
 }

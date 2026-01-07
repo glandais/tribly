@@ -58,7 +58,7 @@ export function CreateAdPage() {
   const handleSubmit = (data: AdRequest) => {
     createMutation.mutate(
       {
-        slug: teamSlug!,
+        teamSlug: teamSlug!,
         data,
       },
       {

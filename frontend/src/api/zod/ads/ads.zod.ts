@@ -12,7 +12,7 @@ import * as zod from 'zod'
  * @summary List ads
  */
 export const listAdsParams = zod.object({
-  slug: zod.string().describe('Team URL slug'),
+  teamSlug: zod.string().describe('Team URL slug'),
 })
 
 export const listAdsQueryPageDefault = 0
@@ -201,7 +201,7 @@ export const listAdsResponse = zod
  * @summary Create ad
  */
 export const createAdParams = zod.object({
-  slug: zod.string().describe('Team URL slug'),
+  teamSlug: zod.string().describe('Team URL slug'),
 })
 
 export const createAdBodyNameMax = 200
@@ -366,8 +366,8 @@ export const createAdBody = zod
  * @summary Update ad
  */
 export const updateAdParams = zod.object({
-  adSlug: zod.string().describe('Ad URL slug'),
-  slug: zod.string().describe('Team URL slug'),
+  slug: zod.string().describe('Ad URL slug'),
+  teamSlug: zod.string().describe('Team URL slug'),
 })
 
 export const updateAdBodyNameMax = 200
@@ -690,8 +690,8 @@ export const updateAdResponse = zod
  * @summary Get ad details
  */
 export const getAdParams = zod.object({
-  adSlug: zod.string().describe('Ad URL slug'),
-  slug: zod.string().describe('Team URL slug'),
+  slug: zod.string().describe('Ad URL slug'),
+  teamSlug: zod.string().describe('Team URL slug'),
 })
 
 export const getAdResponse = zod
@@ -857,8 +857,8 @@ export const getAdResponse = zod
  * @summary Delete ad
  */
 export const deleteAdParams = zod.object({
-  adSlug: zod.string().describe('Ad URL slug'),
-  slug: zod.string().describe('Team URL slug'),
+  slug: zod.string().describe('Ad URL slug'),
+  teamSlug: zod.string().describe('Team URL slug'),
 })
 
 /**
@@ -866,8 +866,8 @@ export const deleteAdParams = zod.object({
  * @summary Change ad slug
  */
 export const changeAdSlugParams = zod.object({
-  adSlug: zod.string().describe('Current ad URL slug'),
-  slug: zod.string().describe('Team URL slug'),
+  slug: zod.string().describe('Current ad URL slug'),
+  teamSlug: zod.string().describe('Team URL slug'),
 })
 
 export const changeAdSlugBodySlugMax = 200

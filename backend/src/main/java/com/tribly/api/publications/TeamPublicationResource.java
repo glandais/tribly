@@ -1,8 +1,5 @@
 package com.tribly.api.publications;
 
-import com.tribly.api.AbstractAuthenticatedResource;
-import com.tribly.domain.team.Team;
-import com.tribly.domain.user.User;
 import com.tribly.dto.error.ErrorResponse;
 import com.tribly.dto.publications.response.PublicationListResponse;
 import com.tribly.dto.publications.response.PublicationType;
@@ -13,7 +10,6 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.time.Instant;
-import java.util.Set;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
@@ -23,11 +19,11 @@ import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import org.jspecify.annotations.Nullable;
 
-@Path("/api/teams/{slug}/publications")
+@Path("/api/teams/{teamSlug}/publications")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Tag(name = "Publications", description = "Publication listing")
-public class TeamPublicationResource extends AbstractAuthenticatedResource {
+public class TeamPublicationResource {
 
   @Inject PublicationService publicationService;
 
@@ -47,7 +43,7 @@ public class TeamPublicationResource extends AbstractAuthenticatedResource {
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
   public Response listPublications(
-      @Parameter(description = "Team URL slug") @PathParam("slug") String slug,
+      @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug,
       @Parameter(description = "Type") @QueryParam("type") @Nullable PublicationType type,
       @Parameter(description = "Search by name/markdown") @QueryParam("search")
           @Nullable String search,
@@ -58,14 +54,11 @@ public class TeamPublicationResource extends AbstractAuthenticatedResource {
       @Parameter(description = "Page number") @QueryParam("page") @DefaultValue("0") int page,
       @Parameter(description = "Page size") @QueryParam("size") @DefaultValue("20") int size) {
 
-    User user = getCurrentUserOrNull();
-    Team team = teamService.getTeam(slug);
-
     Instant from = fromStr != null ? Instant.parse(fromStr) : null;
     Instant to = toStr != null ? Instant.parse(toStr) : null;
 
     PublicationListResponse publications =
-        publicationService.list(type, Set.of(team.getId()), user, search, from, to, page, size);
+        publicationService.listTeam(teamSlug, type, search, from, to, page, size);
 
     return Response.ok(publications).build();
   }

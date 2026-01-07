@@ -32,26 +32,26 @@ type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
  * @summary List route comments
  */
 export const listRouteComments = (
-  slug: string,
+  teamSlug: string,
   entitySlug: string,
   options?: SecondParameter<typeof axiosMutator>,
   signal?: AbortSignal
 ) => {
   return axiosMutator<CommentListResponse>(
-    { url: `/api/teams/${slug}/routes/${entitySlug}/comments`, method: 'GET', signal },
+    { url: `/api/teams/${teamSlug}/routes/${entitySlug}/comments`, method: 'GET', signal },
     options
   )
 }
 
-export const getListRouteCommentsQueryKey = (slug?: string, entitySlug?: string) => {
-  return [`/api/teams/${slug}/routes/${entitySlug}/comments`] as const
+export const getListRouteCommentsQueryKey = (teamSlug?: string, entitySlug?: string) => {
+  return [`/api/teams/${teamSlug}/routes/${entitySlug}/comments`] as const
 }
 
 export const getListRouteCommentsQueryOptions = <
   TData = Awaited<ReturnType<typeof listRouteComments>>,
-  TError = ErrorType<ErrorResponse>,
+  TError = ErrorType<void | ErrorResponse>,
 >(
-  slug: string,
+  teamSlug: string,
   entitySlug: string,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listRouteComments>>, TError, TData>>
@@ -60,28 +60,31 @@ export const getListRouteCommentsQueryOptions = <
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
-  const queryKey = queryOptions?.queryKey ?? getListRouteCommentsQueryKey(slug, entitySlug)
+  const queryKey = queryOptions?.queryKey ?? getListRouteCommentsQueryKey(teamSlug, entitySlug)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof listRouteComments>>> = ({ signal }) =>
-    listRouteComments(slug, entitySlug, requestOptions, signal)
+    listRouteComments(teamSlug, entitySlug, requestOptions, signal)
 
-  return { queryKey, queryFn, enabled: !!(slug && entitySlug), ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof listRouteComments>>,
-    TError,
-    TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!(teamSlug && entitySlug),
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof listRouteComments>>, TError, TData> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
 }
 
 export type ListRouteCommentsQueryResult = NonNullable<
   Awaited<ReturnType<typeof listRouteComments>>
 >
-export type ListRouteCommentsQueryError = ErrorType<ErrorResponse>
+export type ListRouteCommentsQueryError = ErrorType<void | ErrorResponse>
 
 export function useListRouteComments<
   TData = Awaited<ReturnType<typeof listRouteComments>>,
-  TError = ErrorType<ErrorResponse>,
+  TError = ErrorType<void | ErrorResponse>,
 >(
-  slug: string,
+  teamSlug: string,
   entitySlug: string,
   options: {
     query: Partial<UseQueryOptions<Awaited<ReturnType<typeof listRouteComments>>, TError, TData>> &
@@ -99,9 +102,9 @@ export function useListRouteComments<
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useListRouteComments<
   TData = Awaited<ReturnType<typeof listRouteComments>>,
-  TError = ErrorType<ErrorResponse>,
+  TError = ErrorType<void | ErrorResponse>,
 >(
-  slug: string,
+  teamSlug: string,
   entitySlug: string,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listRouteComments>>, TError, TData>> &
@@ -119,9 +122,9 @@ export function useListRouteComments<
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useListRouteComments<
   TData = Awaited<ReturnType<typeof listRouteComments>>,
-  TError = ErrorType<ErrorResponse>,
+  TError = ErrorType<void | ErrorResponse>,
 >(
-  slug: string,
+  teamSlug: string,
   entitySlug: string,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listRouteComments>>, TError, TData>>
@@ -135,9 +138,9 @@ export function useListRouteComments<
 
 export function useListRouteComments<
   TData = Awaited<ReturnType<typeof listRouteComments>>,
-  TError = ErrorType<ErrorResponse>,
+  TError = ErrorType<void | ErrorResponse>,
 >(
-  slug: string,
+  teamSlug: string,
   entitySlug: string,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listRouteComments>>, TError, TData>>
@@ -145,7 +148,7 @@ export function useListRouteComments<
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getListRouteCommentsQueryOptions(slug, entitySlug, options)
+  const queryOptions = getListRouteCommentsQueryOptions(teamSlug, entitySlug, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
     queryKey: DataTag<QueryKey, TData, TError>
@@ -160,7 +163,7 @@ export function useListRouteComments<
  * @summary Create route comment
  */
 export const createRouteComment = (
-  slug: string,
+  teamSlug: string,
   entitySlug: string,
   commentRequest: BodyType<CommentRequest>,
   options?: SecondParameter<typeof axiosMutator>,
@@ -168,7 +171,7 @@ export const createRouteComment = (
 ) => {
   return axiosMutator<CommentDto>(
     {
-      url: `/api/teams/${slug}/routes/${entitySlug}/comments`,
+      url: `/api/teams/${teamSlug}/routes/${entitySlug}/comments`,
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       data: commentRequest,
@@ -179,20 +182,20 @@ export const createRouteComment = (
 }
 
 export const getCreateRouteCommentMutationOptions = <
-  TError = ErrorType<ErrorResponse>,
+  TError = ErrorType<ErrorResponse | void>,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof createRouteComment>>,
     TError,
-    { slug: string; entitySlug: string; data: BodyType<CommentRequest> },
+    { teamSlug: string; entitySlug: string; data: BodyType<CommentRequest> },
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof createRouteComment>>,
   TError,
-  { slug: string; entitySlug: string; data: BodyType<CommentRequest> },
+  { teamSlug: string; entitySlug: string; data: BodyType<CommentRequest> },
   TContext
 > => {
   const mutationKey = ['createRouteComment']
@@ -204,11 +207,11 @@ export const getCreateRouteCommentMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof createRouteComment>>,
-    { slug: string; entitySlug: string; data: BodyType<CommentRequest> }
+    { teamSlug: string; entitySlug: string; data: BodyType<CommentRequest> }
   > = (props) => {
-    const { slug, entitySlug, data } = props ?? {}
+    const { teamSlug, entitySlug, data } = props ?? {}
 
-    return createRouteComment(slug, entitySlug, data, requestOptions)
+    return createRouteComment(teamSlug, entitySlug, data, requestOptions)
   }
 
   return { mutationFn, ...mutationOptions }
@@ -218,17 +221,17 @@ export type CreateRouteCommentMutationResult = NonNullable<
   Awaited<ReturnType<typeof createRouteComment>>
 >
 export type CreateRouteCommentMutationBody = BodyType<CommentRequest>
-export type CreateRouteCommentMutationError = ErrorType<ErrorResponse>
+export type CreateRouteCommentMutationError = ErrorType<ErrorResponse | void>
 
 /**
  * @summary Create route comment
  */
-export const useCreateRouteComment = <TError = ErrorType<ErrorResponse>, TContext = unknown>(
+export const useCreateRouteComment = <TError = ErrorType<ErrorResponse | void>, TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof createRouteComment>>,
       TError,
-      { slug: string; entitySlug: string; data: BodyType<CommentRequest> },
+      { teamSlug: string; entitySlug: string; data: BodyType<CommentRequest> },
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -237,7 +240,7 @@ export const useCreateRouteComment = <TError = ErrorType<ErrorResponse>, TContex
 ): UseMutationResult<
   Awaited<ReturnType<typeof createRouteComment>>,
   TError,
-  { slug: string; entitySlug: string; data: BodyType<CommentRequest> },
+  { teamSlug: string; entitySlug: string; data: BodyType<CommentRequest> },
   TContext
 > => {
   const mutationOptions = getCreateRouteCommentMutationOptions(options)
@@ -248,32 +251,32 @@ export const useCreateRouteComment = <TError = ErrorType<ErrorResponse>, TContex
  * @summary Delete route comment
  */
 export const deleteRouteComment = (
-  slug: string,
+  teamSlug: string,
   entitySlug: string,
   commentId: string,
   options?: SecondParameter<typeof axiosMutator>
 ) => {
   return axiosMutator<void>(
-    { url: `/api/teams/${slug}/routes/${entitySlug}/comments/${commentId}`, method: 'DELETE' },
+    { url: `/api/teams/${teamSlug}/routes/${entitySlug}/comments/${commentId}`, method: 'DELETE' },
     options
   )
 }
 
 export const getDeleteRouteCommentMutationOptions = <
-  TError = ErrorType<ErrorResponse>,
+  TError = ErrorType<void | ErrorResponse>,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof deleteRouteComment>>,
     TError,
-    { slug: string; entitySlug: string; commentId: string },
+    { teamSlug: string; entitySlug: string; commentId: string },
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof deleteRouteComment>>,
   TError,
-  { slug: string; entitySlug: string; commentId: string },
+  { teamSlug: string; entitySlug: string; commentId: string },
   TContext
 > => {
   const mutationKey = ['deleteRouteComment']
@@ -285,11 +288,11 @@ export const getDeleteRouteCommentMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof deleteRouteComment>>,
-    { slug: string; entitySlug: string; commentId: string }
+    { teamSlug: string; entitySlug: string; commentId: string }
   > = (props) => {
-    const { slug, entitySlug, commentId } = props ?? {}
+    const { teamSlug, entitySlug, commentId } = props ?? {}
 
-    return deleteRouteComment(slug, entitySlug, commentId, requestOptions)
+    return deleteRouteComment(teamSlug, entitySlug, commentId, requestOptions)
   }
 
   return { mutationFn, ...mutationOptions }
@@ -299,17 +302,17 @@ export type DeleteRouteCommentMutationResult = NonNullable<
   Awaited<ReturnType<typeof deleteRouteComment>>
 >
 
-export type DeleteRouteCommentMutationError = ErrorType<ErrorResponse>
+export type DeleteRouteCommentMutationError = ErrorType<void | ErrorResponse>
 
 /**
  * @summary Delete route comment
  */
-export const useDeleteRouteComment = <TError = ErrorType<ErrorResponse>, TContext = unknown>(
+export const useDeleteRouteComment = <TError = ErrorType<void | ErrorResponse>, TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof deleteRouteComment>>,
       TError,
-      { slug: string; entitySlug: string; commentId: string },
+      { teamSlug: string; entitySlug: string; commentId: string },
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -318,7 +321,7 @@ export const useDeleteRouteComment = <TError = ErrorType<ErrorResponse>, TContex
 ): UseMutationResult<
   Awaited<ReturnType<typeof deleteRouteComment>>,
   TError,
-  { slug: string; entitySlug: string; commentId: string },
+  { teamSlug: string; entitySlug: string; commentId: string },
   TContext
 > => {
   const mutationOptions = getDeleteRouteCommentMutationOptions(options)

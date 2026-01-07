@@ -1,36 +1,31 @@
 package com.tribly.service.ad;
 
+import com.tribly.common.exception.BusinessException;
 import com.tribly.domain.ad.Ad;
-import com.tribly.domain.ad.repository.AdQuery;
-import com.tribly.domain.ad.repository.AdRepository;
-import com.tribly.domain.common.repository.TriblyPage;
 import com.tribly.domain.team.Team;
-import com.tribly.domain.team.UserTeam;
-import com.tribly.domain.user.User;
 import com.tribly.dto.ads.request.AdRequest;
 import com.tribly.dto.ads.response.AdDto;
 import com.tribly.dto.ads.response.AdListResponse;
 import com.tribly.dto.error.ErrorCode;
 import com.tribly.enums.ActionType;
 import com.tribly.enums.AdType;
-import com.tribly.enums.AllEntityType;
+import com.tribly.enums.EntityType;
 import com.tribly.enums.Status;
-import com.tribly.infrastructure.exception.BusinessException;
-import com.tribly.infrastructure.exception.NotFoundException;
+import com.tribly.repository.ad.AdQuery;
+import com.tribly.repository.ad.AdRepository;
+import com.tribly.repository.common.TriblyPage;
 import com.tribly.service.common.TeamEntityService;
+import com.tribly.service.security.annotation.CheckAccess;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import java.time.Instant;
 import java.util.List;
 import java.util.Set;
-import org.jboss.logging.Logger;
 import org.jspecify.annotations.Nullable;
 
 @ApplicationScoped
 public class AdService extends TeamEntityService<Ad, AdRepository, AdDto> {
-
-  private static final Logger LOG = Logger.getLogger(AdService.class);
 
   @Inject AdRepository adRepository;
 
@@ -45,58 +40,30 @@ public class AdService extends TeamEntityService<Ad, AdRepository, AdDto> {
   }
 
   @Override
-  protected boolean hasRights(
-      ActionType action, Team team, @Nullable User user, @Nullable Ad entity) {
-    return switch (action) {
-      case CREATE -> securityService.getMembership(user, team) != null && team.isEnableTrips();
-      // SQL
-      case READ -> true;
-      case JOIN -> false;
-      case UPDATE, DELETE -> {
-        if (entity == null || user == null || !team.isEnableTrips()) {
-          yield false;
-        }
-        UserTeam membership = securityService.getMembership(user, team);
-        if (membership == null) {
-          yield false;
-        }
-        boolean isCreator = entity.getCreatedBy().getId().equals(user.getId());
-        yield isCreator || membership.isAdmin();
-      }
-    };
+  protected Ad findBySlug(Team team, String entitySlug) {
+    return super.findBySlug(team, entitySlug);
   }
 
-  @Override
-  protected Ad getBySlug(Team team, String adSlug, @Nullable User user) {
-    TriblyPage<Ad> ads =
-        adRepository.find(
-            AdQuery.builder()
-                .userId(user == null ? null : user.getId())
-                .teamIds(Set.of(team.getId()))
-                .slug(adSlug)
-                .page(0)
-                .size(1)
-                .build());
-    if (ads.items().isEmpty()) {
-      throw new NotFoundException(AllEntityType.AD, adSlug);
-    } else {
-      return ads.items().getFirst();
-    }
+  @CheckAccess(entityType = EntityType.AD, action = ActionType.READ)
+  public AdDto getDto(String teamSlug, String entitySlug) {
+    Team team = teamService.getTeam(teamSlug);
+    return super.getDto(team, entitySlug);
   }
 
+  @CheckAccess(entityType = EntityType.AD, action = ActionType.LIST)
   public AdListResponse listAds(
-      Team team,
-      @Nullable User user,
+      String teamSlug,
       @Nullable String search,
       @Nullable AdType adType,
       @Nullable Instant from,
       @Nullable Instant to,
       int page,
       int size) {
+    Team team = teamService.getTeam(teamSlug);
     TriblyPage<Ad> ads =
         adRepository.find(
             AdQuery.builder()
-                .userId(user == null ? null : user.getId())
+                .userId(triblyContext.getUserIdNullable())
                 .teamIds(Set.of(team.getId()))
                 .search(search)
                 .adType(adType)
@@ -110,18 +77,17 @@ public class AdService extends TeamEntityService<Ad, AdRepository, AdDto> {
   }
 
   @Transactional
-  public AdDto createAd(Team team, AdRequest request, User creator) {
-    // Security check: any team member can create ads
-    checkRights(ActionType.CREATE, team, creator, null);
-
-    verifyAd(request, team);
+  @CheckAccess(entityType = EntityType.AD, action = ActionType.CREATE)
+  public AdDto createAd(String teamSlug, AdRequest request) {
+    Team team = teamService.getTeam(teamSlug);
+    verifyAd(team, request);
 
     // Generate slug from name, ensure unique within team
     String slug = slugService.generateSlug(request.name(), team.getId(), adRepository);
 
     Ad ad =
         new Ad(
-            creator,
+            triblyContext.getUser(),
             team,
             Instant.now(),
             request.name(),
@@ -137,17 +103,17 @@ public class AdService extends TeamEntityService<Ad, AdRepository, AdDto> {
 
     adRepository.persist(ad);
 
-    LOG.infov(
-        "Ad '{0}' created by user {1} for team {2}", ad.getName(), creator.getId(), team.getSlug());
     return AdDto.from(ad, assetService);
   }
 
   @Transactional
-  public AdDto updateAd(Team team, String adSlug, AdRequest request, User user) {
-    Ad ad = get(ActionType.UPDATE, team, adSlug, user);
+  @CheckAccess(entityType = EntityType.AD, action = ActionType.UPDATE)
+  public AdDto updateAd(String teamSlug, String adSlug, AdRequest request) {
+    Team team = teamService.getTeam(teamSlug);
+    Ad ad = findBySlug(team, adSlug);
 
     // Validate visibility: private teams can only have team-only ads
-    verifyAd(request, team);
+    verifyAd(team, request);
 
     setProperties(request, ad);
 
@@ -155,21 +121,27 @@ public class AdService extends TeamEntityService<Ad, AdRepository, AdDto> {
 
     adRepository.persist(ad);
 
-    LOG.infov("Ad {0} updated by user {1}", adSlug, user.getId());
     return AdDto.from(ad, assetService);
   }
 
+  @CheckAccess(entityType = EntityType.AD, action = ActionType.UPDATE)
   @Transactional
-  public void deleteAd(Team team, String adSlug, User user) {
-    Ad ad = get(ActionType.DELETE, team, adSlug, user);
-
-    ad.setDeleted(true);
-    adRepository.persist(ad);
-    LOG.infov("Ad {0} deleted by user {1}", adSlug, user.getId());
+  public AdDto updateSlug(String teamSlug, String slug, String newSlug) {
+    Team team = teamService.getTeam(teamSlug);
+    return super.updateSlug(team, slug, newSlug);
   }
 
-  private void verifyAd(AdRequest request, Team team) {
-    validateVisibility(request, team);
+  @Transactional
+  @CheckAccess(entityType = EntityType.AD, action = ActionType.DELETE)
+  public void deleteAd(String teamSlug, String adSlug) {
+    Team team = teamService.getTeam(teamSlug);
+    Ad ad = findBySlug(team, adSlug);
+    ad.setDeleted(true);
+    adRepository.persist(ad);
+  }
+
+  private void verifyAd(Team team, AdRequest request) {
+    validateVisibility(team, request);
 
     // Validate rental period for rental ads
     if (request.adType() == AdType.RENTAL && request.rentalPeriod() == null) {

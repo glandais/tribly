@@ -226,7 +226,7 @@ export const listAllRoutesResponse = zod
  * @summary List routes
  */
 export const listRoutesParams = zod.object({
-  slug: zod.string().describe('Team URL slug'),
+  teamSlug: zod.string().describe('Team URL slug'),
 })
 
 export const listRoutesQueryPageDefault = 0
@@ -444,7 +444,7 @@ export const listRoutesResponse = zod
  * @summary Create route
  */
 export const createRouteParams = zod.object({
-  slug: zod.string().describe('Team URL slug'),
+  teamSlug: zod.string().describe('Team URL slug'),
 })
 
 export const createRouteBodyRouteNameMin = 3
@@ -615,7 +615,7 @@ export const createRouteBody = zod.object({
  */
 export const updateRouteParams = zod.object({
   routeSlug: zod.string().describe('Route slug'),
-  slug: zod.string().describe('Team URL slug'),
+  teamSlug: zod.string().describe('Team URL slug'),
 })
 
 export const updateRouteBodyRouteNameMin = 3
@@ -939,7 +939,7 @@ export const updateRouteResponse = zod
  */
 export const getRouteParams = zod.object({
   routeSlug: zod.string().describe('Route slug'),
-  slug: zod.string().describe('Team URL slug'),
+  teamSlug: zod.string().describe('Team URL slug'),
 })
 
 export const getRouteResponse = zod
@@ -1166,7 +1166,7 @@ export const getRouteResponse = zod
  */
 export const deleteRouteParams = zod.object({
   routeSlug: zod.string().describe('Route slug'),
-  slug: zod.string().describe('Team URL slug'),
+  teamSlug: zod.string().describe('Team URL slug'),
 })
 
 /**
@@ -1175,7 +1175,7 @@ export const deleteRouteParams = zod.object({
  */
 export const changeRouteSlugParams = zod.object({
   routeSlug: zod.string().describe('Current route URL slug'),
-  slug: zod.string().describe('Team URL slug'),
+  teamSlug: zod.string().describe('Team URL slug'),
 })
 
 export const changeRouteSlugBodySlugMax = 200

@@ -4,7 +4,7 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
 import com.tribly.api.AbstractResourceTest;
-import com.tribly.dto.common.response.MediaDto;
+import com.tribly.dto.common.asset.MediaDto;
 import com.tribly.dto.posts.request.PostRequest;
 import com.tribly.enums.Status;
 import com.tribly.enums.Visibility;

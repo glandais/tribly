@@ -1,7 +1,5 @@
 package com.tribly.api.publications;
 
-import com.tribly.api.AbstractAuthenticatedResource;
-import com.tribly.domain.user.User;
 import com.tribly.dto.publications.response.PublicationListResponse;
 import com.tribly.dto.publications.response.PublicationType;
 import com.tribly.service.common.PublicationService;
@@ -24,7 +22,7 @@ import org.jspecify.annotations.Nullable;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Tag(name = "Publications", description = "Publication listing")
-public class PublicationResource extends AbstractAuthenticatedResource {
+public class PublicationResource {
 
   @Inject PublicationService publicationService;
 
@@ -50,13 +48,11 @@ public class PublicationResource extends AbstractAuthenticatedResource {
       @Parameter(description = "Page number") @QueryParam("page") @DefaultValue("0") int page,
       @Parameter(description = "Page size") @QueryParam("size") @DefaultValue("20") int size) {
 
-    User user = getCurrentUserOrNull();
-
     Instant from = fromStr != null ? Instant.parse(fromStr) : null;
     Instant to = toStr != null ? Instant.parse(toStr) : null;
 
     PublicationListResponse response =
-        publicationService.list(type, null, user, search, from, to, page, size);
+        publicationService.listAll(type, search, from, to, page, size);
 
     return Response.ok(response).build();
   }

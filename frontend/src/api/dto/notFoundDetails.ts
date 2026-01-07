@@ -6,13 +6,13 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { NotFoundDetailsType } from './notFoundDetailsType'
-import type { AllEntityType } from './allEntityType'
+import type { EntityType } from './entityType'
 import type { SearchedBy } from './searchedBy'
 
 export interface NotFoundDetails {
   type: NotFoundDetailsType
   /** Entity type */
-  entityType: AllEntityType
+  entityType: EntityType
   /** Search type */
   searchedBy: SearchedBy
   /** id/slug */

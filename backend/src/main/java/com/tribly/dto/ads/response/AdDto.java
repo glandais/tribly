@@ -1,14 +1,14 @@
 package com.tribly.dto.ads.response;
 
+import com.tribly.common.TsidUtils;
 import com.tribly.domain.ad.Ad;
-import com.tribly.dto.common.response.MediaDto;
+import com.tribly.dto.common.asset.MediaDto;
 import com.tribly.dto.publications.response.TeamPublicationDto;
 import com.tribly.dto.validation.ValidateSchema;
 import com.tribly.enums.AdType;
 import com.tribly.enums.RentalPeriod;
 import com.tribly.enums.Status;
 import com.tribly.enums.Visibility;
-import com.tribly.infrastructure.id.TsidUtils;
 import com.tribly.service.asset.AssetService;
 import java.math.BigDecimal;
 import java.time.Instant;

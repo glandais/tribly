@@ -1,11 +1,11 @@
 package com.tribly.dto.ridetemplates.response;
 
+import com.tribly.common.TsidUtils;
 import com.tribly.domain.ridetemplate.RideTemplate;
 import com.tribly.dto.publications.response.TeamPublicationDto;
 import com.tribly.dto.validation.ValidateSchema;
 import com.tribly.enums.Status;
 import com.tribly.enums.Visibility;
-import com.tribly.infrastructure.id.TsidUtils;
 import java.time.Instant;
 import java.util.List;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;

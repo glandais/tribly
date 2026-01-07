@@ -5,6 +5,7 @@ import com.tribly.domain.place.Place;
 import com.tribly.domain.route.Route;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
+import com.tribly.enums.EntityType;
 import com.tribly.enums.Visibility;
 import jakarta.persistence.*;
 import java.time.*;
@@ -65,5 +66,10 @@ public class Ride extends Publication {
 
   public int getGroupCount() {
     return (int) groups.stream().filter(g -> !g.isDeleted()).count();
+  }
+
+  @Override
+  public EntityType getEntityType() {
+    return EntityType.RIDE;
   }
 }

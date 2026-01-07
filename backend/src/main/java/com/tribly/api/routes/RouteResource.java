@@ -1,14 +1,11 @@
 package com.tribly.api.routes;
 
-import com.tribly.api.AbstractAuthenticatedResource;
-import com.tribly.domain.team.Team;
-import com.tribly.domain.user.User;
 import com.tribly.dto.common.request.SlugChangeRequest;
 import com.tribly.dto.error.ErrorResponse;
 import com.tribly.dto.routes.request.RouteRequest;
+import com.tribly.dto.routes.request.RouteSearchParams;
 import com.tribly.dto.routes.response.*;
 import com.tribly.enums.*;
-import com.tribly.service.route.RouteSearchParams;
 import com.tribly.service.route.RouteService;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
@@ -18,7 +15,6 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import java.net.URI;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
@@ -35,11 +31,11 @@ import org.jspecify.annotations.Nullable;
  * REST API for route management.
  * Handles GPX upload, route CRUD, and file downloads.
  */
-@Path("/api/teams/{slug}/routes")
+@Path("/api/teams/{teamSlug}/routes")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Tag(name = "Routes", description = "GPX route management operations")
-public class RouteResource extends AbstractAuthenticatedResource {
+public class RouteResource {
 
   @Inject RouteService routeService;
 
@@ -62,7 +58,7 @@ public class RouteResource extends AbstractAuthenticatedResource {
         content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
   })
   public Response listRoutes(
-      @Parameter(description = "Team URL slug") @PathParam("slug") String teamSlug,
+      @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug,
       @Parameter(description = "Search by name/markdown") @QueryParam("search")
           @Nullable String search,
       @Parameter(description = "Page number (0-indexed)") @QueryParam("page") @DefaultValue("0")
@@ -98,9 +94,6 @@ public class RouteResource extends AbstractAuthenticatedResource {
       @Parameter(description = "Sort direction (ASC, DESC)") @QueryParam("sortDir")
           @Nullable SortDirection sortDir) {
 
-    User user = getCurrentUserOrNull();
-    Team team = teamService.getTeam(teamSlug);
-
     RouteSearchParams params =
         RouteSearchParams.builder()
             .search(search)
@@ -121,7 +114,7 @@ public class RouteResource extends AbstractAuthenticatedResource {
             .sortDir(sortDir)
             .build();
 
-    RouteListResponse routes = routeService.getRoutes(team, user, params);
+    RouteListResponse routes = routeService.getRoutes(teamSlug, params);
 
     return Response.ok(routes).build();
   }
@@ -132,7 +125,6 @@ public class RouteResource extends AbstractAuthenticatedResource {
    */
   @POST
   @Consumes(MediaType.MULTIPART_FORM_DATA)
-  @RolesAllowed("user")
   @Operation(summary = "Create route", description = "Create a new route by uploading a GPX file")
   @APIResponses({
     @APIResponse(
@@ -156,27 +148,22 @@ public class RouteResource extends AbstractAuthenticatedResource {
         description = "Team not found",
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
+  @RolesAllowed("user")
   public Response createRoute(
-      @Parameter(description = "Team URL slug") @PathParam("slug") String teamSlug,
+      @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug,
       @RestForm("route") @PartType(MediaType.APPLICATION_JSON) @Valid @NotNull
           RouteRequest routeRequest,
       @RestForm("gpxFile") @Nullable FileUpload gpxFile)
       throws Exception {
-
-    User user = getCurrentUser();
-    Team team = teamService.getTeam(teamSlug);
 
     java.nio.file.Path gpxPath = null;
     if (gpxFile != null) {
       gpxPath = gpxFile.filePath();
     }
 
-    RouteDto route = routeService.createRoute(team, routeRequest, gpxPath, user);
+    RouteDto route = routeService.createRoute(teamSlug, routeRequest, gpxPath);
 
-    return Response.created(
-            URI.create("/api/teams/" + route.team().slug() + "/routes/" + route.slug()))
-        .entity(route)
-        .build();
+    return Response.status(Response.Status.CREATED).entity(route).build();
   }
 
   /**
@@ -199,13 +186,10 @@ public class RouteResource extends AbstractAuthenticatedResource {
         content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
   })
   public Response getRoute(
-      @Parameter(description = "Team URL slug") @PathParam("slug") String teamSlug,
+      @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug,
       @Parameter(description = "Route slug") @PathParam("routeSlug") String routeSlug) {
 
-    User user = getCurrentUserOrNull();
-    Team team = teamService.getTeam(teamSlug);
-
-    RouteDetailDto route = routeService.getDto(team, routeSlug, user);
+    RouteDetailDto route = routeService.getDto(teamSlug, routeSlug);
     return Response.ok(route).build();
   }
 
@@ -215,7 +199,6 @@ public class RouteResource extends AbstractAuthenticatedResource {
   @PUT
   @Consumes(MediaType.MULTIPART_FORM_DATA)
   @Path("/{routeSlug}")
-  @RolesAllowed("user")
   @Operation(
       summary = "Update route",
       description =
@@ -243,21 +226,19 @@ public class RouteResource extends AbstractAuthenticatedResource {
         description = "Team or route not found",
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
+  @RolesAllowed("user")
   public Response updateRoute(
-      @Parameter(description = "Team URL slug") @PathParam("slug") String teamSlug,
+      @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug,
       @Parameter(description = "Route slug") @PathParam("routeSlug") String routeSlug,
       @RestForm("route") @PartType(MediaType.APPLICATION_JSON) @Valid @NotNull RouteRequest request,
       @RestForm("gpxFile") @Nullable FileUpload gpxFile) {
-
-    User user = getCurrentUser();
-    Team team = teamService.getTeam(teamSlug);
 
     java.nio.file.Path gpxPath = null;
     if (gpxFile != null) {
       gpxPath = gpxFile.filePath();
     }
 
-    RouteDto route = routeService.updateRoute(team, routeSlug, request, gpxPath, user);
+    RouteDto route = routeService.updateRoute(teamSlug, routeSlug, request, gpxPath);
     return Response.ok(route).build();
   }
 
@@ -266,7 +247,6 @@ public class RouteResource extends AbstractAuthenticatedResource {
    */
   @DELETE
   @Path("/{routeSlug}")
-  @RolesAllowed("user")
   @Operation(
       summary = "Delete route",
       description = "Soft delete a route. Requires route creator or team admin permissions.")
@@ -285,20 +265,17 @@ public class RouteResource extends AbstractAuthenticatedResource {
         description = "Team or route not found",
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
+  @RolesAllowed("user")
   public Response deleteRoute(
-      @Parameter(description = "Team URL slug") @PathParam("slug") String teamSlug,
+      @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug,
       @Parameter(description = "Route slug") @PathParam("routeSlug") String routeSlug) {
 
-    User user = getCurrentUser();
-    Team team = teamService.getTeam(teamSlug);
-
-    routeService.deleteRoute(team, routeSlug, user);
+    routeService.deleteRoute(teamSlug, routeSlug);
     return Response.noContent().build();
   }
 
   @PATCH
   @Path("/{routeSlug}/slug")
-  @RolesAllowed("user")
   @Operation(
       operationId = "changeRouteSlug",
       summary = "Change route slug",
@@ -329,13 +306,13 @@ public class RouteResource extends AbstractAuthenticatedResource {
         description = "Slug already in use",
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
+  @RolesAllowed("user")
   public Response changeSlug(
-      @Parameter(description = "Team URL slug") @PathParam("slug") String teamSlug,
+      @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug,
       @Parameter(description = "Current route URL slug") @PathParam("routeSlug") String currentSlug,
       @Valid SlugChangeRequest request) {
-    User user = getCurrentUser();
-    Team team = teamService.getTeam(teamSlug);
-    RouteDetailDto route = routeService.updateSlug(team, currentSlug, request.slug(), user);
+
+    RouteDetailDto route = routeService.updateSlug(teamSlug, currentSlug, request.slug());
     return Response.ok(route).build();
   }
 }

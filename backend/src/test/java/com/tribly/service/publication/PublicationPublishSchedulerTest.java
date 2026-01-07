@@ -3,15 +3,15 @@ package com.tribly.service.publication;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.tribly.domain.post.Post;
-import com.tribly.domain.post.repository.PostRepository;
 import com.tribly.domain.ride.Ride;
-import com.tribly.domain.ride.repository.RideRepository;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.trip.Trip;
-import com.tribly.domain.trip.repository.TripRepository;
 import com.tribly.domain.user.User;
 import com.tribly.enums.Status;
 import com.tribly.enums.Visibility;
+import com.tribly.repository.post.PostRepository;
+import com.tribly.repository.ride.RideRepository;
+import com.tribly.repository.trip.TripRepository;
 import com.tribly.util.TestDataCleaner;
 import com.tribly.util.TestDataService;
 import io.quarkus.test.junit.QuarkusTest;

@@ -1,5 +1,6 @@
 package com.tribly.infrastructure.exception;
 
+import com.tribly.common.exception.TriblyException;
 import com.tribly.dto.error.ErrorCode;
 import com.tribly.dto.error.ErrorResponse;
 import com.tribly.dto.error.FieldError;

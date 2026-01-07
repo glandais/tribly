@@ -246,13 +246,13 @@ export const useCreateTeam = <TError = ErrorType<ErrorResponse | void>, TContext
  * @summary Update team
  */
 export const updateTeam = (
-  slug: string,
+  teamSlug: string,
   teamRequest: BodyType<TeamRequest>,
   options?: SecondParameter<typeof axiosMutator>
 ) => {
   return axiosMutator<TeamDetailDto>(
     {
-      url: `/api/teams/${slug}`,
+      url: `/api/teams/${teamSlug}`,
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       data: teamRequest,
@@ -268,14 +268,14 @@ export const getUpdateTeamMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof updateTeam>>,
     TError,
-    { slug: string; data: BodyType<TeamRequest> },
+    { teamSlug: string; data: BodyType<TeamRequest> },
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof updateTeam>>,
   TError,
-  { slug: string; data: BodyType<TeamRequest> },
+  { teamSlug: string; data: BodyType<TeamRequest> },
   TContext
 > => {
   const mutationKey = ['updateTeam']
@@ -287,11 +287,11 @@ export const getUpdateTeamMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof updateTeam>>,
-    { slug: string; data: BodyType<TeamRequest> }
+    { teamSlug: string; data: BodyType<TeamRequest> }
   > = (props) => {
-    const { slug, data } = props ?? {}
+    const { teamSlug, data } = props ?? {}
 
-    return updateTeam(slug, data, requestOptions)
+    return updateTeam(teamSlug, data, requestOptions)
   }
 
   return { mutationFn, ...mutationOptions }
@@ -309,7 +309,7 @@ export const useUpdateTeam = <TError = ErrorType<ErrorResponse>, TContext = unkn
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof updateTeam>>,
       TError,
-      { slug: string; data: BodyType<TeamRequest> },
+      { teamSlug: string; data: BodyType<TeamRequest> },
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -318,7 +318,7 @@ export const useUpdateTeam = <TError = ErrorType<ErrorResponse>, TContext = unkn
 ): UseMutationResult<
   Awaited<ReturnType<typeof updateTeam>>,
   TError,
-  { slug: string; data: BodyType<TeamRequest> },
+  { teamSlug: string; data: BodyType<TeamRequest> },
   TContext
 > => {
   const mutationOptions = getUpdateTeamMutationOptions(options)
@@ -330,22 +330,25 @@ export const useUpdateTeam = <TError = ErrorType<ErrorResponse>, TContext = unkn
  * @summary Get team by slug
  */
 export const getTeam = (
-  slug: string,
+  teamSlug: string,
   options?: SecondParameter<typeof axiosMutator>,
   signal?: AbortSignal
 ) => {
-  return axiosMutator<TeamDetailDto>({ url: `/api/teams/${slug}`, method: 'GET', signal }, options)
+  return axiosMutator<TeamDetailDto>(
+    { url: `/api/teams/${teamSlug}`, method: 'GET', signal },
+    options
+  )
 }
 
-export const getGetTeamQueryKey = (slug?: string) => {
-  return [`/api/teams/${slug}`] as const
+export const getGetTeamQueryKey = (teamSlug?: string) => {
+  return [`/api/teams/${teamSlug}`] as const
 }
 
 export const getGetTeamQueryOptions = <
   TData = Awaited<ReturnType<typeof getTeam>>,
   TError = ErrorType<ErrorResponse>,
 >(
-  slug: string,
+  teamSlug: string,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getTeam>>, TError, TData>>
     request?: SecondParameter<typeof axiosMutator>
@@ -353,12 +356,12 @@ export const getGetTeamQueryOptions = <
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
-  const queryKey = queryOptions?.queryKey ?? getGetTeamQueryKey(slug)
+  const queryKey = queryOptions?.queryKey ?? getGetTeamQueryKey(teamSlug)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof getTeam>>> = ({ signal }) =>
-    getTeam(slug, requestOptions, signal)
+    getTeam(teamSlug, requestOptions, signal)
 
-  return { queryKey, queryFn, enabled: !!slug, ...queryOptions } as UseQueryOptions<
+  return { queryKey, queryFn, enabled: !!teamSlug, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof getTeam>>,
     TError,
     TData
@@ -372,7 +375,7 @@ export function useGetTeam<
   TData = Awaited<ReturnType<typeof getTeam>>,
   TError = ErrorType<ErrorResponse>,
 >(
-  slug: string,
+  teamSlug: string,
   options: {
     query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getTeam>>, TError, TData>> &
       Pick<
@@ -391,7 +394,7 @@ export function useGetTeam<
   TData = Awaited<ReturnType<typeof getTeam>>,
   TError = ErrorType<ErrorResponse>,
 >(
-  slug: string,
+  teamSlug: string,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getTeam>>, TError, TData>> &
       Pick<
@@ -410,7 +413,7 @@ export function useGetTeam<
   TData = Awaited<ReturnType<typeof getTeam>>,
   TError = ErrorType<ErrorResponse>,
 >(
-  slug: string,
+  teamSlug: string,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getTeam>>, TError, TData>>
     request?: SecondParameter<typeof axiosMutator>
@@ -425,14 +428,14 @@ export function useGetTeam<
   TData = Awaited<ReturnType<typeof getTeam>>,
   TError = ErrorType<ErrorResponse>,
 >(
-  slug: string,
+  teamSlug: string,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getTeam>>, TError, TData>>
     request?: SecondParameter<typeof axiosMutator>
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getGetTeamQueryOptions(slug, options)
+  const queryOptions = getGetTeamQueryOptions(teamSlug, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
     queryKey: DataTag<QueryKey, TData, TError>
@@ -447,8 +450,8 @@ export function useGetTeam<
  * Soft delete a team. Requires OWNER role.
  * @summary Delete team
  */
-export const deleteTeam = (slug: string, options?: SecondParameter<typeof axiosMutator>) => {
-  return axiosMutator<void>({ url: `/api/teams/${slug}`, method: 'DELETE' }, options)
+export const deleteTeam = (teamSlug: string, options?: SecondParameter<typeof axiosMutator>) => {
+  return axiosMutator<void>({ url: `/api/teams/${teamSlug}`, method: 'DELETE' }, options)
 }
 
 export const getDeleteTeamMutationOptions = <
@@ -458,14 +461,14 @@ export const getDeleteTeamMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof deleteTeam>>,
     TError,
-    { slug: string },
+    { teamSlug: string },
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof deleteTeam>>,
   TError,
-  { slug: string },
+  { teamSlug: string },
   TContext
 > => {
   const mutationKey = ['deleteTeam']
@@ -475,12 +478,13 @@ export const getDeleteTeamMutationOptions = <
       : { ...options, mutation: { ...options.mutation, mutationKey } }
     : { mutation: { mutationKey }, request: undefined }
 
-  const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteTeam>>, { slug: string }> = (
-    props
-  ) => {
-    const { slug } = props ?? {}
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteTeam>>,
+    { teamSlug: string }
+  > = (props) => {
+    const { teamSlug } = props ?? {}
 
-    return deleteTeam(slug, requestOptions)
+    return deleteTeam(teamSlug, requestOptions)
   }
 
   return { mutationFn, ...mutationOptions }
@@ -498,7 +502,7 @@ export const useDeleteTeam = <TError = ErrorType<ErrorResponse>, TContext = unkn
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof deleteTeam>>,
       TError,
-      { slug: string },
+      { teamSlug: string },
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -507,7 +511,7 @@ export const useDeleteTeam = <TError = ErrorType<ErrorResponse>, TContext = unkn
 ): UseMutationResult<
   Awaited<ReturnType<typeof deleteTeam>>,
   TError,
-  { slug: string },
+  { teamSlug: string },
   TContext
 > => {
   const mutationOptions = getDeleteTeamMutationOptions(options)
@@ -519,13 +523,13 @@ export const useDeleteTeam = <TError = ErrorType<ErrorResponse>, TContext = unkn
  * @summary Change team slug
  */
 export const changeTeamSlug = (
-  slug: string,
+  teamSlug: string,
   slugChangeRequest: BodyType<SlugChangeRequest>,
   options?: SecondParameter<typeof axiosMutator>
 ) => {
   return axiosMutator<TeamDetailDto>(
     {
-      url: `/api/teams/${slug}/slug`,
+      url: `/api/teams/${teamSlug}/slug`,
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       data: slugChangeRequest,
@@ -541,14 +545,14 @@ export const getChangeTeamSlugMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof changeTeamSlug>>,
     TError,
-    { slug: string; data: BodyType<SlugChangeRequest> },
+    { teamSlug: string; data: BodyType<SlugChangeRequest> },
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof changeTeamSlug>>,
   TError,
-  { slug: string; data: BodyType<SlugChangeRequest> },
+  { teamSlug: string; data: BodyType<SlugChangeRequest> },
   TContext
 > => {
   const mutationKey = ['changeTeamSlug']
@@ -560,11 +564,11 @@ export const getChangeTeamSlugMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof changeTeamSlug>>,
-    { slug: string; data: BodyType<SlugChangeRequest> }
+    { teamSlug: string; data: BodyType<SlugChangeRequest> }
   > = (props) => {
-    const { slug, data } = props ?? {}
+    const { teamSlug, data } = props ?? {}
 
-    return changeTeamSlug(slug, data, requestOptions)
+    return changeTeamSlug(teamSlug, data, requestOptions)
   }
 
   return { mutationFn, ...mutationOptions }
@@ -582,7 +586,7 @@ export const useChangeTeamSlug = <TError = ErrorType<ErrorResponse>, TContext = 
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof changeTeamSlug>>,
       TError,
-      { slug: string; data: BodyType<SlugChangeRequest> },
+      { teamSlug: string; data: BodyType<SlugChangeRequest> },
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -591,7 +595,7 @@ export const useChangeTeamSlug = <TError = ErrorType<ErrorResponse>, TContext = 
 ): UseMutationResult<
   Awaited<ReturnType<typeof changeTeamSlug>>,
   TError,
-  { slug: string; data: BodyType<SlugChangeRequest> },
+  { teamSlug: string; data: BodyType<SlugChangeRequest> },
   TContext
 > => {
   const mutationOptions = getChangeTeamSlugMutationOptions(options)

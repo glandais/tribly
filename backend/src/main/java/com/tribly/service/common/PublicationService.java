@@ -1,16 +1,18 @@
 package com.tribly.service.common;
 
 import com.tribly.domain.common.Publication;
-import com.tribly.domain.common.repository.AllPublicationRepository;
-import com.tribly.domain.common.repository.PublicationQuery;
-import com.tribly.domain.common.repository.TriblyPage;
-import com.tribly.domain.team.Team;
-import com.tribly.domain.user.User;
 import com.tribly.dto.publications.response.PublicationDto;
 import com.tribly.dto.publications.response.PublicationListResponse;
 import com.tribly.dto.publications.response.PublicationType;
 import com.tribly.enums.ActionType;
-import com.tribly.infrastructure.exception.ForbiddenException;
+import com.tribly.enums.EntityType;
+import com.tribly.repository.common.AllPublicationRepository;
+import com.tribly.repository.common.PublicationQuery;
+import com.tribly.repository.common.TriblyPage;
+import com.tribly.service.asset.AssetService;
+import com.tribly.service.security.TriblyQueryContext;
+import com.tribly.service.security.annotation.CheckAccess;
+import com.tribly.service.team.TeamService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.time.Instant;
@@ -19,38 +21,43 @@ import java.util.Set;
 import org.jspecify.annotations.Nullable;
 
 @ApplicationScoped
-public class PublicationService
-    extends TeamEntityService<Publication, AllPublicationRepository, PublicationDto> {
+public class PublicationService {
 
   @Inject AllPublicationRepository allPublicationRepository;
 
-  @Override
-  protected AllPublicationRepository getRepository() {
-    return allPublicationRepository;
+  @Inject AssetService assetService;
+
+  @Inject TriblyQueryContext triblyQueryContext;
+
+  @Inject TeamService teamService;
+
+  @CheckAccess(entityType = EntityType.PUBLICATION, action = ActionType.LIST_ALL_TEAMS)
+  public PublicationListResponse listAll(
+      @Nullable PublicationType type,
+      @Nullable String search,
+      @Nullable Instant from,
+      @Nullable Instant to,
+      int page,
+      int size) {
+    return list(type, null, search, from, to, page, size);
   }
 
-  @Override
-  protected PublicationDto toDto(Publication entity) {
-    return PublicationDto.from(entity, assetService);
+  @CheckAccess(entityType = EntityType.PUBLICATION, action = ActionType.LIST)
+  public PublicationListResponse listTeam(
+      String teamSlug,
+      @Nullable PublicationType type,
+      @Nullable String search,
+      @Nullable Instant from,
+      @Nullable Instant to,
+      int page,
+      int size) {
+    Long teamId = teamService.getTeam(teamSlug).getId();
+    return list(type, Set.of(teamId), search, from, to, page, size);
   }
 
-  @Override
-  protected boolean hasRights(
-      ActionType action, Team team, @Nullable User user, @Nullable Publication entity) {
-    return false;
-  }
-
-  @Override
-  @Nullable
-  protected Publication getBySlug(Team team, String entitySlug, @Nullable User user) {
-    // not redirectable at this level
-    throw new ForbiddenException();
-  }
-
-  public PublicationListResponse list(
+  protected PublicationListResponse list(
       @Nullable PublicationType type,
       @Nullable Set<Long> teamIds,
-      @Nullable User user,
       @Nullable String search,
       @Nullable Instant from,
       @Nullable Instant to,
@@ -59,7 +66,7 @@ public class PublicationService
     TriblyPage<Publication> publications =
         allPublicationRepository.find(
             PublicationQuery.builder()
-                .userId(user == null ? null : user.getId())
+                .userId(triblyQueryContext.getUserIdNullable())
                 .type(type)
                 .teamIds(teamIds)
                 .search(search)

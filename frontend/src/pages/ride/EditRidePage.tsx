@@ -9,9 +9,9 @@ import {
   useGetRide,
   useUpdateRide,
   useChangeRideSlug,
-  getListRidesQueryKey,
   getGetRideQueryKey,
 } from '../../api/endpoints/rides/rides'
+import { getListPublicationsQueryKey } from '../../api/endpoints/publications/publications'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { RideEditor } from '../../components/ride/RideEditor'
 import { paths } from '@/config/paths'
@@ -53,7 +53,7 @@ export function EditRidePage() {
 
     updateMutation.mutate(
       {
-        slug: teamSlug!,
+        teamSlug: teamSlug!,
         rideSlug: rideSlug!,
         data: {
           ...data,
@@ -63,7 +63,7 @@ export function EditRidePage() {
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetRideQueryKey(teamSlug!, rideSlug!) })
-          queryClient.invalidateQueries({ queryKey: getListRidesQueryKey(teamSlug!) })
+          queryClient.invalidateQueries({ queryKey: getListPublicationsQueryKey(teamSlug!) })
           toast.success(i18next.t('rides.notifications.updated'))
           navigate(paths.ride(teamSlug!, rideSlug!))
         },
@@ -73,10 +73,10 @@ export function EditRidePage() {
 
   const handleSlugChange = async (newSlug: string) => {
     await changeSlugMutation.mutateAsync(
-      { slug: teamSlug!, rideSlug: rideSlug!, data: { slug: newSlug } },
+      { teamSlug: teamSlug!, rideSlug: rideSlug!, data: { slug: newSlug } },
       {
         onSuccess: (updatedRide) => {
-          queryClient.invalidateQueries({ queryKey: getListRidesQueryKey(teamSlug!) })
+          queryClient.invalidateQueries({ queryKey: getListPublicationsQueryKey(teamSlug!) })
           queryClient.invalidateQueries({ queryKey: getGetRideQueryKey(teamSlug!, rideSlug!) })
           navigate(paths.rideEdit(teamSlug!, updatedRide.slug), { replace: true })
         },

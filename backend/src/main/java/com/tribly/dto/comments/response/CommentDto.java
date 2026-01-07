@@ -1,9 +1,9 @@
 package com.tribly.dto.comments.response;
 
+import com.tribly.common.TsidUtils;
 import com.tribly.domain.comment.Comment;
 import com.tribly.dto.users.response.PublicUserDto;
 import com.tribly.dto.validation.ValidateSchema;
-import com.tribly.infrastructure.id.TsidUtils;
 import java.time.Instant;
 import java.util.List;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;

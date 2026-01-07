@@ -1,7 +1,8 @@
 package com.tribly.dto.trips.request;
 
-import com.tribly.dto.common.response.MediaDto;
+import com.tribly.dto.common.asset.MediaDto;
 import com.tribly.dto.validation.ValidateSchema;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import java.time.Instant;
@@ -22,4 +23,4 @@ public record StageRequest(
     @Nullable @Schema(description = "Route slug for this stage") String routeSlug,
     @Nullable @Schema(description = "Start place ID (TSID)") String startPlaceId,
     @Nullable @Schema(description = "End place ID (TSID)") String endPlaceId,
-    @Schema(description = "Stage media", required = true) MediaDto media) {}
+    @Schema(description = "Stage media", required = true) @Valid MediaDto media) {}

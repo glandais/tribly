@@ -94,19 +94,3 @@ export const searchUsersResponseItem = zod
   })
   .describe('Public user information (limited fields)')
 export const searchUsersResponse = zod.array(searchUsersResponseItem)
-
-/**
- * Get public user information by ID
- * @summary Get user by ID
- */
-export const getUserByIdParams = zod.object({
-  id: zod.string().describe('User ID (TSID)'),
-})
-
-export const getUserByIdResponse = zod
-  .object({
-    id: zod.string().describe('User ID (TSID)'),
-    displayName: zod.string().describe('User display name'),
-    avatarUrl: zod.string().optional().describe('User avatar URL'),
-  })
-  .describe('Public user information (limited fields)')

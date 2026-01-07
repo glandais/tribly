@@ -4,6 +4,7 @@ import com.tribly.domain.common.NotNullableDbValue;
 import com.tribly.domain.common.TeamEntity;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
+import com.tribly.enums.EntityType;
 import com.tribly.enums.SurfaceType;
 import com.tribly.enums.Visibility;
 import com.tribly.enums.WindDirection;
@@ -83,5 +84,10 @@ public class Route extends TeamEntity {
   public void addWaypoint(GpxWaypoint waypoint) {
     waypoints.add(waypoint);
     waypoint.setRoute(this);
+  }
+
+  @Override
+  public EntityType getEntityType() {
+    return EntityType.ROUTE;
   }
 }

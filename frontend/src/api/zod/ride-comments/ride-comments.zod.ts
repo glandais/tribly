@@ -12,7 +12,7 @@ import * as zod from 'zod'
  */
 export const listRideCommentsParams = zod.object({
   entitySlug: zod.string().describe('Ride URL slug'),
-  slug: zod.string().describe('Team URL slug'),
+  teamSlug: zod.string().describe('Team URL slug'),
 })
 
 export const listRideCommentsResponse = zod
@@ -46,7 +46,7 @@ export const listRideCommentsResponse = zod
  */
 export const createRideCommentParams = zod.object({
   entitySlug: zod.string().describe('Ride URL slug'),
-  slug: zod.string().describe('Team URL slug'),
+  teamSlug: zod.string().describe('Team URL slug'),
 })
 
 export const createRideCommentBodyContentMax = 5000
@@ -70,5 +70,5 @@ export const createRideCommentBody = zod
 export const deleteRideCommentParams = zod.object({
   commentId: zod.string().describe('Comment ID'),
   entitySlug: zod.string().describe('Ride URL slug'),
-  slug: zod.string().describe('Team URL slug'),
+  teamSlug: zod.string().describe('Team URL slug'),
 })

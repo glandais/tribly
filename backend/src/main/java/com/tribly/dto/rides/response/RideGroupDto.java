@@ -1,10 +1,10 @@
 package com.tribly.dto.rides.response;
 
+import com.tribly.common.TsidUtils;
 import com.tribly.domain.ride.RideGroup;
 import com.tribly.domain.ride.RideParticipation;
 import com.tribly.dto.users.response.PublicUserDto;
 import com.tribly.dto.validation.ValidateSchema;
-import com.tribly.infrastructure.id.TsidUtils;
 import java.time.LocalTime;
 import java.util.List;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;

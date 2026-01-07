@@ -1,12 +1,13 @@
 package com.tribly.dto.ads.request;
 
+import com.tribly.dto.common.asset.MediaDto;
 import com.tribly.dto.common.request.WithVisibility;
-import com.tribly.dto.common.response.MediaDto;
 import com.tribly.dto.validation.ValidateSchema;
 import com.tribly.enums.AdType;
 import com.tribly.enums.RentalPeriod;
 import com.tribly.enums.Status;
 import com.tribly.enums.Visibility;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
@@ -18,7 +19,7 @@ import org.jspecify.annotations.Nullable;
 public record AdRequest(
     @Schema(description = "Ad name", required = true) @NotBlank @Size(min = 1, max = 200)
         String name,
-    @Schema(description = "Ad description", required = true) MediaDto media,
+    @Schema(description = "Ad description", required = true) @Valid MediaDto media,
     @Schema(description = "Ad status", required = true) Status status,
     @Schema(description = "Visibility level", required = true) Visibility visibility,
     @Schema(description = "Ad type", required = true) AdType adType,

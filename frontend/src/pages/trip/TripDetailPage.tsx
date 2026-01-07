@@ -19,8 +19,8 @@ import {
   useJoinTrip,
   useLeaveTrip,
   getGetTripQueryKey,
-  getListTripsQueryKey,
 } from '../../api/endpoints/trips/trips'
+import { getListPublicationsQueryKey } from '../../api/endpoints/publications/publications'
 import { Status } from '@/api/dto'
 import { useAuth } from '../../hooks/useAuth'
 import { LoadingPage, LoadingSpinner } from '../../components/common/LoadingSpinner'
@@ -122,11 +122,11 @@ export function TripDetailPage() {
 
   const handlePublish = () => {
     updateMutation.mutate(
-      { slug: teamSlug!, tripSlug: tripSlug!, data: { ...trip, status: Status.PUBLISHED } },
+      { teamSlug: teamSlug!, tripSlug: tripSlug!, data: { ...trip, status: Status.PUBLISHED } },
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetTripQueryKey(teamSlug!, tripSlug!) })
-          queryClient.invalidateQueries({ queryKey: getListTripsQueryKey(teamSlug!) })
+          queryClient.invalidateQueries({ queryKey: getListPublicationsQueryKey(teamSlug!) })
           toast.success(t('trips.notifications.published'))
         },
       }
@@ -135,11 +135,11 @@ export function TripDetailPage() {
 
   const handleUnpublish = () => {
     updateMutation.mutate(
-      { slug: teamSlug!, tripSlug: tripSlug!, data: { ...trip, status: Status.DRAFT } },
+      { teamSlug: teamSlug!, tripSlug: tripSlug!, data: { ...trip, status: Status.DRAFT } },
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetTripQueryKey(teamSlug!, tripSlug!) })
-          queryClient.invalidateQueries({ queryKey: getListTripsQueryKey(teamSlug!) })
+          queryClient.invalidateQueries({ queryKey: getListPublicationsQueryKey(teamSlug!) })
           toast.success(t('trips.notifications.unpublished'))
         },
       }
@@ -149,11 +149,11 @@ export function TripDetailPage() {
 
   const handleCancel = () => {
     updateMutation.mutate(
-      { slug: teamSlug!, tripSlug: tripSlug!, data: { ...trip, status: Status.CANCELLED } },
+      { teamSlug: teamSlug!, tripSlug: tripSlug!, data: { ...trip, status: Status.CANCELLED } },
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetTripQueryKey(teamSlug!, tripSlug!) })
-          queryClient.invalidateQueries({ queryKey: getListTripsQueryKey(teamSlug!) })
+          queryClient.invalidateQueries({ queryKey: getListPublicationsQueryKey(teamSlug!) })
           toast.success(t('trips.notifications.cancelled'))
         },
       }
@@ -163,11 +163,11 @@ export function TripDetailPage() {
 
   const handleUncancel = () => {
     updateMutation.mutate(
-      { slug: teamSlug!, tripSlug: tripSlug!, data: { ...trip, status: Status.DRAFT } },
+      { teamSlug: teamSlug!, tripSlug: tripSlug!, data: { ...trip, status: Status.DRAFT } },
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetTripQueryKey(teamSlug!, tripSlug!) })
-          queryClient.invalidateQueries({ queryKey: getListTripsQueryKey(teamSlug!) })
+          queryClient.invalidateQueries({ queryKey: getListPublicationsQueryKey(teamSlug!) })
           toast.success(t('trips.notifications.uncancelled'))
         },
       }
@@ -177,10 +177,10 @@ export function TripDetailPage() {
 
   const handleDelete = () => {
     deleteMutation.mutate(
-      { slug: teamSlug!, tripSlug: tripSlug! },
+      { teamSlug: teamSlug!, tripSlug: tripSlug! },
       {
         onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: getListTripsQueryKey(teamSlug!) })
+          queryClient.invalidateQueries({ queryKey: getListPublicationsQueryKey(teamSlug!) })
           toast.success(t('trips.notifications.deleted'))
           navigate(paths.team(teamSlug!))
         },
@@ -191,7 +191,7 @@ export function TripDetailPage() {
 
   const handleJoin = () => {
     joinMutation.mutate(
-      { slug: teamSlug!, tripSlug: tripSlug! },
+      { teamSlug: teamSlug!, tripSlug: tripSlug! },
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetTripQueryKey(teamSlug!, tripSlug!) })
@@ -203,7 +203,7 @@ export function TripDetailPage() {
 
   const handleLeave = () => {
     leaveMutation.mutate(
-      { slug: teamSlug!, tripSlug: tripSlug! },
+      { teamSlug: teamSlug!, tripSlug: tripSlug! },
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetTripQueryKey(teamSlug!, tripSlug!) })

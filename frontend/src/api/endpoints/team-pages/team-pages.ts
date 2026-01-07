@@ -40,25 +40,25 @@ type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
  * @summary List team pages
  */
 export const listPages = (
-  slug: string,
+  teamSlug: string,
   options?: SecondParameter<typeof axiosMutator>,
   signal?: AbortSignal
 ) => {
   return axiosMutator<TeamPageSummaryDto[]>(
-    { url: `/api/teams/${slug}/pages`, method: 'GET', signal },
+    { url: `/api/teams/${teamSlug}/pages`, method: 'GET', signal },
     options
   )
 }
 
-export const getListPagesQueryKey = (slug?: string) => {
-  return [`/api/teams/${slug}/pages`] as const
+export const getListPagesQueryKey = (teamSlug?: string) => {
+  return [`/api/teams/${teamSlug}/pages`] as const
 }
 
 export const getListPagesQueryOptions = <
   TData = Awaited<ReturnType<typeof listPages>>,
   TError = ErrorType<ErrorResponse>,
 >(
-  slug: string,
+  teamSlug: string,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listPages>>, TError, TData>>
     request?: SecondParameter<typeof axiosMutator>
@@ -66,12 +66,12 @@ export const getListPagesQueryOptions = <
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
-  const queryKey = queryOptions?.queryKey ?? getListPagesQueryKey(slug)
+  const queryKey = queryOptions?.queryKey ?? getListPagesQueryKey(teamSlug)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof listPages>>> = ({ signal }) =>
-    listPages(slug, requestOptions, signal)
+    listPages(teamSlug, requestOptions, signal)
 
-  return { queryKey, queryFn, enabled: !!slug, ...queryOptions } as UseQueryOptions<
+  return { queryKey, queryFn, enabled: !!teamSlug, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof listPages>>,
     TError,
     TData
@@ -85,7 +85,7 @@ export function useListPages<
   TData = Awaited<ReturnType<typeof listPages>>,
   TError = ErrorType<ErrorResponse>,
 >(
-  slug: string,
+  teamSlug: string,
   options: {
     query: Partial<UseQueryOptions<Awaited<ReturnType<typeof listPages>>, TError, TData>> &
       Pick<
@@ -104,7 +104,7 @@ export function useListPages<
   TData = Awaited<ReturnType<typeof listPages>>,
   TError = ErrorType<ErrorResponse>,
 >(
-  slug: string,
+  teamSlug: string,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listPages>>, TError, TData>> &
       Pick<
@@ -123,7 +123,7 @@ export function useListPages<
   TData = Awaited<ReturnType<typeof listPages>>,
   TError = ErrorType<ErrorResponse>,
 >(
-  slug: string,
+  teamSlug: string,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listPages>>, TError, TData>>
     request?: SecondParameter<typeof axiosMutator>
@@ -138,14 +138,14 @@ export function useListPages<
   TData = Awaited<ReturnType<typeof listPages>>,
   TError = ErrorType<ErrorResponse>,
 >(
-  slug: string,
+  teamSlug: string,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listPages>>, TError, TData>>
     request?: SecondParameter<typeof axiosMutator>
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getListPagesQueryOptions(slug, options)
+  const queryOptions = getListPagesQueryOptions(teamSlug, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
     queryKey: DataTag<QueryKey, TData, TError>
@@ -161,14 +161,14 @@ export function useListPages<
  * @summary Create page
  */
 export const createPage = (
-  slug: string,
+  teamSlug: string,
   teamPageRequest: BodyType<TeamPageRequest>,
   options?: SecondParameter<typeof axiosMutator>,
   signal?: AbortSignal
 ) => {
   return axiosMutator<TeamPageDto>(
     {
-      url: `/api/teams/${slug}/pages`,
+      url: `/api/teams/${teamSlug}/pages`,
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       data: teamPageRequest,
@@ -185,14 +185,14 @@ export const getCreatePageMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof createPage>>,
     TError,
-    { slug: string; data: BodyType<TeamPageRequest> },
+    { teamSlug: string; data: BodyType<TeamPageRequest> },
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof createPage>>,
   TError,
-  { slug: string; data: BodyType<TeamPageRequest> },
+  { teamSlug: string; data: BodyType<TeamPageRequest> },
   TContext
 > => {
   const mutationKey = ['createPage']
@@ -204,11 +204,11 @@ export const getCreatePageMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof createPage>>,
-    { slug: string; data: BodyType<TeamPageRequest> }
+    { teamSlug: string; data: BodyType<TeamPageRequest> }
   > = (props) => {
-    const { slug, data } = props ?? {}
+    const { teamSlug, data } = props ?? {}
 
-    return createPage(slug, data, requestOptions)
+    return createPage(teamSlug, data, requestOptions)
   }
 
   return { mutationFn, ...mutationOptions }
@@ -226,7 +226,7 @@ export const useCreatePage = <TError = ErrorType<ErrorResponse>, TContext = unkn
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof createPage>>,
       TError,
-      { slug: string; data: BodyType<TeamPageRequest> },
+      { teamSlug: string; data: BodyType<TeamPageRequest> },
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -235,7 +235,7 @@ export const useCreatePage = <TError = ErrorType<ErrorResponse>, TContext = unkn
 ): UseMutationResult<
   Awaited<ReturnType<typeof createPage>>,
   TError,
-  { slug: string; data: BodyType<TeamPageRequest> },
+  { teamSlug: string; data: BodyType<TeamPageRequest> },
   TContext
 > => {
   const mutationOptions = getCreatePageMutationOptions(options)
@@ -247,13 +247,13 @@ export const useCreatePage = <TError = ErrorType<ErrorResponse>, TContext = unkn
  * @summary Reorder pages
  */
 export const reorderPages = (
-  slug: string,
+  teamSlug: string,
   reorderPagesRequest: BodyType<ReorderPagesRequest>,
   options?: SecondParameter<typeof axiosMutator>
 ) => {
   return axiosMutator<TeamPageSummaryDto[]>(
     {
-      url: `/api/teams/${slug}/pages/reorder`,
+      url: `/api/teams/${teamSlug}/pages/reorder`,
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       data: reorderPagesRequest,
@@ -269,14 +269,14 @@ export const getReorderPagesMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof reorderPages>>,
     TError,
-    { slug: string; data: BodyType<ReorderPagesRequest> },
+    { teamSlug: string; data: BodyType<ReorderPagesRequest> },
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof reorderPages>>,
   TError,
-  { slug: string; data: BodyType<ReorderPagesRequest> },
+  { teamSlug: string; data: BodyType<ReorderPagesRequest> },
   TContext
 > => {
   const mutationKey = ['reorderPages']
@@ -288,11 +288,11 @@ export const getReorderPagesMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof reorderPages>>,
-    { slug: string; data: BodyType<ReorderPagesRequest> }
+    { teamSlug: string; data: BodyType<ReorderPagesRequest> }
   > = (props) => {
-    const { slug, data } = props ?? {}
+    const { teamSlug, data } = props ?? {}
 
-    return reorderPages(slug, data, requestOptions)
+    return reorderPages(teamSlug, data, requestOptions)
   }
 
   return { mutationFn, ...mutationOptions }
@@ -310,7 +310,7 @@ export const useReorderPages = <TError = ErrorType<ErrorResponse>, TContext = un
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof reorderPages>>,
       TError,
-      { slug: string; data: BodyType<ReorderPagesRequest> },
+      { teamSlug: string; data: BodyType<ReorderPagesRequest> },
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -319,7 +319,7 @@ export const useReorderPages = <TError = ErrorType<ErrorResponse>, TContext = un
 ): UseMutationResult<
   Awaited<ReturnType<typeof reorderPages>>,
   TError,
-  { slug: string; data: BodyType<ReorderPagesRequest> },
+  { teamSlug: string; data: BodyType<ReorderPagesRequest> },
   TContext
 > => {
   const mutationOptions = getReorderPagesMutationOptions(options)
@@ -331,14 +331,14 @@ export const useReorderPages = <TError = ErrorType<ErrorResponse>, TContext = un
  * @summary Update page
  */
 export const updatePage = (
-  slug: string,
+  teamSlug: string,
   pageSlug: string,
   teamPageRequest: BodyType<TeamPageRequest>,
   options?: SecondParameter<typeof axiosMutator>
 ) => {
   return axiosMutator<TeamPageDto>(
     {
-      url: `/api/teams/${slug}/pages/${pageSlug}`,
+      url: `/api/teams/${teamSlug}/pages/${pageSlug}`,
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       data: teamPageRequest,
@@ -354,14 +354,14 @@ export const getUpdatePageMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof updatePage>>,
     TError,
-    { slug: string; pageSlug: string; data: BodyType<TeamPageRequest> },
+    { teamSlug: string; pageSlug: string; data: BodyType<TeamPageRequest> },
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof updatePage>>,
   TError,
-  { slug: string; pageSlug: string; data: BodyType<TeamPageRequest> },
+  { teamSlug: string; pageSlug: string; data: BodyType<TeamPageRequest> },
   TContext
 > => {
   const mutationKey = ['updatePage']
@@ -373,11 +373,11 @@ export const getUpdatePageMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof updatePage>>,
-    { slug: string; pageSlug: string; data: BodyType<TeamPageRequest> }
+    { teamSlug: string; pageSlug: string; data: BodyType<TeamPageRequest> }
   > = (props) => {
-    const { slug, pageSlug, data } = props ?? {}
+    const { teamSlug, pageSlug, data } = props ?? {}
 
-    return updatePage(slug, pageSlug, data, requestOptions)
+    return updatePage(teamSlug, pageSlug, data, requestOptions)
   }
 
   return { mutationFn, ...mutationOptions }
@@ -395,7 +395,7 @@ export const useUpdatePage = <TError = ErrorType<ErrorResponse>, TContext = unkn
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof updatePage>>,
       TError,
-      { slug: string; pageSlug: string; data: BodyType<TeamPageRequest> },
+      { teamSlug: string; pageSlug: string; data: BodyType<TeamPageRequest> },
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -404,7 +404,7 @@ export const useUpdatePage = <TError = ErrorType<ErrorResponse>, TContext = unkn
 ): UseMutationResult<
   Awaited<ReturnType<typeof updatePage>>,
   TError,
-  { slug: string; pageSlug: string; data: BodyType<TeamPageRequest> },
+  { teamSlug: string; pageSlug: string; data: BodyType<TeamPageRequest> },
   TContext
 > => {
   const mutationOptions = getUpdatePageMutationOptions(options)
@@ -416,26 +416,26 @@ export const useUpdatePage = <TError = ErrorType<ErrorResponse>, TContext = unkn
  * @summary Get page details
  */
 export const getPage = (
-  slug: string,
+  teamSlug: string,
   pageSlug: string,
   options?: SecondParameter<typeof axiosMutator>,
   signal?: AbortSignal
 ) => {
   return axiosMutator<TeamPageDto>(
-    { url: `/api/teams/${slug}/pages/${pageSlug}`, method: 'GET', signal },
+    { url: `/api/teams/${teamSlug}/pages/${pageSlug}`, method: 'GET', signal },
     options
   )
 }
 
-export const getGetPageQueryKey = (slug?: string, pageSlug?: string) => {
-  return [`/api/teams/${slug}/pages/${pageSlug}`] as const
+export const getGetPageQueryKey = (teamSlug?: string, pageSlug?: string) => {
+  return [`/api/teams/${teamSlug}/pages/${pageSlug}`] as const
 }
 
 export const getGetPageQueryOptions = <
   TData = Awaited<ReturnType<typeof getPage>>,
   TError = ErrorType<ErrorResponse>,
 >(
-  slug: string,
+  teamSlug: string,
   pageSlug: string,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getPage>>, TError, TData>>
@@ -444,16 +444,19 @@ export const getGetPageQueryOptions = <
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
-  const queryKey = queryOptions?.queryKey ?? getGetPageQueryKey(slug, pageSlug)
+  const queryKey = queryOptions?.queryKey ?? getGetPageQueryKey(teamSlug, pageSlug)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof getPage>>> = ({ signal }) =>
-    getPage(slug, pageSlug, requestOptions, signal)
+    getPage(teamSlug, pageSlug, requestOptions, signal)
 
-  return { queryKey, queryFn, enabled: !!(slug && pageSlug), ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof getPage>>,
-    TError,
-    TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!(teamSlug && pageSlug),
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof getPage>>, TError, TData> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
 }
 
 export type GetPageQueryResult = NonNullable<Awaited<ReturnType<typeof getPage>>>
@@ -463,7 +466,7 @@ export function useGetPage<
   TData = Awaited<ReturnType<typeof getPage>>,
   TError = ErrorType<ErrorResponse>,
 >(
-  slug: string,
+  teamSlug: string,
   pageSlug: string,
   options: {
     query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getPage>>, TError, TData>> &
@@ -483,7 +486,7 @@ export function useGetPage<
   TData = Awaited<ReturnType<typeof getPage>>,
   TError = ErrorType<ErrorResponse>,
 >(
-  slug: string,
+  teamSlug: string,
   pageSlug: string,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getPage>>, TError, TData>> &
@@ -503,7 +506,7 @@ export function useGetPage<
   TData = Awaited<ReturnType<typeof getPage>>,
   TError = ErrorType<ErrorResponse>,
 >(
-  slug: string,
+  teamSlug: string,
   pageSlug: string,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getPage>>, TError, TData>>
@@ -519,7 +522,7 @@ export function useGetPage<
   TData = Awaited<ReturnType<typeof getPage>>,
   TError = ErrorType<ErrorResponse>,
 >(
-  slug: string,
+  teamSlug: string,
   pageSlug: string,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getPage>>, TError, TData>>
@@ -527,7 +530,7 @@ export function useGetPage<
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getGetPageQueryOptions(slug, pageSlug, options)
+  const queryOptions = getGetPageQueryOptions(teamSlug, pageSlug, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
     queryKey: DataTag<QueryKey, TData, TError>
@@ -543,12 +546,12 @@ export function useGetPage<
  * @summary Delete page
  */
 export const deletePage = (
-  slug: string,
+  teamSlug: string,
   pageSlug: string,
   options?: SecondParameter<typeof axiosMutator>
 ) => {
   return axiosMutator<void>(
-    { url: `/api/teams/${slug}/pages/${pageSlug}`, method: 'DELETE' },
+    { url: `/api/teams/${teamSlug}/pages/${pageSlug}`, method: 'DELETE' },
     options
   )
 }
@@ -560,14 +563,14 @@ export const getDeletePageMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof deletePage>>,
     TError,
-    { slug: string; pageSlug: string },
+    { teamSlug: string; pageSlug: string },
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof deletePage>>,
   TError,
-  { slug: string; pageSlug: string },
+  { teamSlug: string; pageSlug: string },
   TContext
 > => {
   const mutationKey = ['deletePage']
@@ -579,11 +582,11 @@ export const getDeletePageMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof deletePage>>,
-    { slug: string; pageSlug: string }
+    { teamSlug: string; pageSlug: string }
   > = (props) => {
-    const { slug, pageSlug } = props ?? {}
+    const { teamSlug, pageSlug } = props ?? {}
 
-    return deletePage(slug, pageSlug, requestOptions)
+    return deletePage(teamSlug, pageSlug, requestOptions)
   }
 
   return { mutationFn, ...mutationOptions }
@@ -601,7 +604,7 @@ export const useDeletePage = <TError = ErrorType<ErrorResponse>, TContext = unkn
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof deletePage>>,
       TError,
-      { slug: string; pageSlug: string },
+      { teamSlug: string; pageSlug: string },
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -610,7 +613,7 @@ export const useDeletePage = <TError = ErrorType<ErrorResponse>, TContext = unkn
 ): UseMutationResult<
   Awaited<ReturnType<typeof deletePage>>,
   TError,
-  { slug: string; pageSlug: string },
+  { teamSlug: string; pageSlug: string },
   TContext
 > => {
   const mutationOptions = getDeletePageMutationOptions(options)
@@ -622,14 +625,14 @@ export const useDeletePage = <TError = ErrorType<ErrorResponse>, TContext = unkn
  * @summary Change page slug
  */
 export const changePageSlug = (
-  slug: string,
+  teamSlug: string,
   pageSlug: string,
   slugChangeRequest: BodyType<SlugChangeRequest>,
   options?: SecondParameter<typeof axiosMutator>
 ) => {
   return axiosMutator<TeamPageDto>(
     {
-      url: `/api/teams/${slug}/pages/${pageSlug}/slug`,
+      url: `/api/teams/${teamSlug}/pages/${pageSlug}/slug`,
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       data: slugChangeRequest,
@@ -645,14 +648,14 @@ export const getChangePageSlugMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof changePageSlug>>,
     TError,
-    { slug: string; pageSlug: string; data: BodyType<SlugChangeRequest> },
+    { teamSlug: string; pageSlug: string; data: BodyType<SlugChangeRequest> },
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof changePageSlug>>,
   TError,
-  { slug: string; pageSlug: string; data: BodyType<SlugChangeRequest> },
+  { teamSlug: string; pageSlug: string; data: BodyType<SlugChangeRequest> },
   TContext
 > => {
   const mutationKey = ['changePageSlug']
@@ -664,11 +667,11 @@ export const getChangePageSlugMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof changePageSlug>>,
-    { slug: string; pageSlug: string; data: BodyType<SlugChangeRequest> }
+    { teamSlug: string; pageSlug: string; data: BodyType<SlugChangeRequest> }
   > = (props) => {
-    const { slug, pageSlug, data } = props ?? {}
+    const { teamSlug, pageSlug, data } = props ?? {}
 
-    return changePageSlug(slug, pageSlug, data, requestOptions)
+    return changePageSlug(teamSlug, pageSlug, data, requestOptions)
   }
 
   return { mutationFn, ...mutationOptions }
@@ -686,7 +689,7 @@ export const useChangePageSlug = <TError = ErrorType<ErrorResponse>, TContext = 
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof changePageSlug>>,
       TError,
-      { slug: string; pageSlug: string; data: BodyType<SlugChangeRequest> },
+      { teamSlug: string; pageSlug: string; data: BodyType<SlugChangeRequest> },
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -695,7 +698,7 @@ export const useChangePageSlug = <TError = ErrorType<ErrorResponse>, TContext = 
 ): UseMutationResult<
   Awaited<ReturnType<typeof changePageSlug>>,
   TError,
-  { slug: string; pageSlug: string; data: BodyType<SlugChangeRequest> },
+  { teamSlug: string; pageSlug: string; data: BodyType<SlugChangeRequest> },
   TContext
 > => {
   const mutationOptions = getChangePageSlugMutationOptions(options)

@@ -12,7 +12,7 @@ import * as zod from 'zod'
  */
 export const listPostCommentsParams = zod.object({
   entitySlug: zod.string().describe('Post URL slug'),
-  slug: zod.string().describe('Team URL slug'),
+  teamSlug: zod.string().describe('Team URL slug'),
 })
 
 export const listPostCommentsResponse = zod
@@ -46,7 +46,7 @@ export const listPostCommentsResponse = zod
  */
 export const createPostCommentParams = zod.object({
   entitySlug: zod.string().describe('Post URL slug'),
-  slug: zod.string().describe('Team URL slug'),
+  teamSlug: zod.string().describe('Team URL slug'),
 })
 
 export const createPostCommentBodyContentMax = 5000
@@ -70,5 +70,5 @@ export const createPostCommentBody = zod
 export const deletePostCommentParams = zod.object({
   commentId: zod.string().describe('Comment ID'),
   entitySlug: zod.string().describe('Post URL slug'),
-  slug: zod.string().describe('Team URL slug'),
+  teamSlug: zod.string().describe('Team URL slug'),
 })

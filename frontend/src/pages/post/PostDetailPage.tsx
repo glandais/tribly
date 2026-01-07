@@ -10,9 +10,9 @@ import {
   useGetPost,
   useUpdatePost,
   useDeletePost,
-  getListPostsQueryKey,
   getGetPostQueryKey,
 } from '../../api/endpoints/posts/posts'
+import { getListPublicationsQueryKey } from '../../api/endpoints/publications/publications'
 import { Status } from '../../api/dto'
 import { LoadingPage, LoadingSpinner } from '../../components/common/LoadingSpinner'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
@@ -94,13 +94,13 @@ export function PostDetailPage() {
   const formattedDate = formatDateTime(post.dateTime)
 
   const invalidatePosts = () => {
-    queryClient.invalidateQueries({ queryKey: getListPostsQueryKey(teamSlug!) })
+    queryClient.invalidateQueries({ queryKey: getListPublicationsQueryKey(teamSlug!) })
     queryClient.invalidateQueries({ queryKey: getGetPostQueryKey(teamSlug!, postSlug!) })
   }
 
   const handlePublish = () => {
     updateMutation.mutate(
-      { slug: teamSlug!, postSlug: postSlug!, data: { ...post, status: Status.PUBLISHED } },
+      { teamSlug: teamSlug!, postSlug: postSlug!, data: { ...post, status: Status.PUBLISHED } },
       {
         onSuccess: () => {
           invalidatePosts()
@@ -112,7 +112,7 @@ export function PostDetailPage() {
 
   const handleUnpublish = () => {
     updateMutation.mutate(
-      { slug: teamSlug!, postSlug: postSlug!, data: { ...post, status: Status.DRAFT } },
+      { teamSlug: teamSlug!, postSlug: postSlug!, data: { ...post, status: Status.DRAFT } },
       {
         onSuccess: () => {
           invalidatePosts()
@@ -125,7 +125,7 @@ export function PostDetailPage() {
 
   const handleCancel = () => {
     updateMutation.mutate(
-      { slug: teamSlug!, postSlug: postSlug!, data: { ...post, status: Status.CANCELLED } },
+      { teamSlug: teamSlug!, postSlug: postSlug!, data: { ...post, status: Status.CANCELLED } },
       {
         onSuccess: () => {
           invalidatePosts()
@@ -138,7 +138,7 @@ export function PostDetailPage() {
 
   const handleUncancel = () => {
     updateMutation.mutate(
-      { slug: teamSlug!, postSlug: postSlug!, data: { ...post, status: Status.PUBLISHED } },
+      { teamSlug: teamSlug!, postSlug: postSlug!, data: { ...post, status: Status.PUBLISHED } },
       {
         onSuccess: () => {
           invalidatePosts()
@@ -151,10 +151,10 @@ export function PostDetailPage() {
 
   const handleDelete = () => {
     deleteMutation.mutate(
-      { slug: teamSlug!, postSlug: postSlug! },
+      { teamSlug: teamSlug!, postSlug: postSlug! },
       {
         onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: getListPostsQueryKey(teamSlug!) })
+          queryClient.invalidateQueries({ queryKey: getListPublicationsQueryKey(teamSlug!) })
           toast.success(i18next.t('posts.notifications.deleted'))
           setShowDeleteConfirm(false)
           navigate(paths.team(teamSlug!))

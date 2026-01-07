@@ -7,7 +7,8 @@ import { toast } from 'sonner'
 import i18next from 'i18next'
 import { DocumentDuplicateIcon } from '@heroicons/react/24/outline'
 import { useGetTeam } from '@/api/endpoints/teams/teams'
-import { useCreateRide, getListRidesQueryKey } from '../../api/endpoints/rides/rides'
+import { useCreateRide } from '../../api/endpoints/rides/rides'
+import { getListPublicationsQueryKey } from '../../api/endpoints/publications/publications'
 import { Visibility, Status } from '@/api/dto'
 import type { RideRequest, RideTemplateDto } from '@/api/dto'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
@@ -106,7 +107,7 @@ export function CreateRidePage() {
     const filteredGroups = data.groups.filter((g) => g.name.trim())
     createMutation.mutate(
       {
-        slug: teamSlug!,
+        teamSlug: teamSlug!,
         data: {
           ...data,
           groups: filteredGroups,
@@ -114,7 +115,7 @@ export function CreateRidePage() {
       },
       {
         onSuccess: (ride) => {
-          queryClient.invalidateQueries({ queryKey: getListRidesQueryKey(teamSlug!) })
+          queryClient.invalidateQueries({ queryKey: getListPublicationsQueryKey(teamSlug!) })
           toast.success(i18next.t('rides.notifications.created'))
           navigate(paths.ride(teamSlug!, ride.slug))
         },

@@ -1,12 +1,12 @@
 package com.tribly.dto.teams.response;
 
+import com.tribly.common.TsidUtils;
 import com.tribly.domain.team.Team;
-import com.tribly.dto.common.response.MediaDto;
+import com.tribly.dto.common.asset.MediaDto;
 import com.tribly.dto.pages.response.TeamPageSummaryDto;
 import com.tribly.dto.validation.ValidateSchema;
 import com.tribly.enums.TeamRole;
 import com.tribly.enums.Visibility;
-import com.tribly.infrastructure.id.TsidUtils;
 import com.tribly.service.asset.AssetService;
 import com.tribly.service.team.response.TeamAndRole;
 import java.time.Instant;

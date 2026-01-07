@@ -39,26 +39,26 @@ type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
  * @summary List places
  */
 export const listPlaces = (
-  slug: string,
+  teamSlug: string,
   params?: ListPlacesParams,
   options?: SecondParameter<typeof axiosMutator>,
   signal?: AbortSignal
 ) => {
   return axiosMutator<PlaceListResponse>(
-    { url: `/api/teams/${slug}/places`, method: 'GET', params, signal },
+    { url: `/api/teams/${teamSlug}/places`, method: 'GET', params, signal },
     options
   )
 }
 
-export const getListPlacesQueryKey = (slug?: string, params?: ListPlacesParams) => {
-  return [`/api/teams/${slug}/places`, ...(params ? [params] : [])] as const
+export const getListPlacesQueryKey = (teamSlug?: string, params?: ListPlacesParams) => {
+  return [`/api/teams/${teamSlug}/places`, ...(params ? [params] : [])] as const
 }
 
 export const getListPlacesQueryOptions = <
   TData = Awaited<ReturnType<typeof listPlaces>>,
   TError = ErrorType<void | ErrorResponse>,
 >(
-  slug: string,
+  teamSlug: string,
   params?: ListPlacesParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listPlaces>>, TError, TData>>
@@ -67,12 +67,12 @@ export const getListPlacesQueryOptions = <
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
-  const queryKey = queryOptions?.queryKey ?? getListPlacesQueryKey(slug, params)
+  const queryKey = queryOptions?.queryKey ?? getListPlacesQueryKey(teamSlug, params)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof listPlaces>>> = ({ signal }) =>
-    listPlaces(slug, params, requestOptions, signal)
+    listPlaces(teamSlug, params, requestOptions, signal)
 
-  return { queryKey, queryFn, enabled: !!slug, ...queryOptions } as UseQueryOptions<
+  return { queryKey, queryFn, enabled: !!teamSlug, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof listPlaces>>,
     TError,
     TData
@@ -86,7 +86,7 @@ export function useListPlaces<
   TData = Awaited<ReturnType<typeof listPlaces>>,
   TError = ErrorType<void | ErrorResponse>,
 >(
-  slug: string,
+  teamSlug: string,
   params: undefined | ListPlacesParams,
   options: {
     query: Partial<UseQueryOptions<Awaited<ReturnType<typeof listPlaces>>, TError, TData>> &
@@ -106,7 +106,7 @@ export function useListPlaces<
   TData = Awaited<ReturnType<typeof listPlaces>>,
   TError = ErrorType<void | ErrorResponse>,
 >(
-  slug: string,
+  teamSlug: string,
   params?: ListPlacesParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listPlaces>>, TError, TData>> &
@@ -126,7 +126,7 @@ export function useListPlaces<
   TData = Awaited<ReturnType<typeof listPlaces>>,
   TError = ErrorType<void | ErrorResponse>,
 >(
-  slug: string,
+  teamSlug: string,
   params?: ListPlacesParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listPlaces>>, TError, TData>>
@@ -142,7 +142,7 @@ export function useListPlaces<
   TData = Awaited<ReturnType<typeof listPlaces>>,
   TError = ErrorType<void | ErrorResponse>,
 >(
-  slug: string,
+  teamSlug: string,
   params?: ListPlacesParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listPlaces>>, TError, TData>>
@@ -150,7 +150,7 @@ export function useListPlaces<
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getListPlacesQueryOptions(slug, params, options)
+  const queryOptions = getListPlacesQueryOptions(teamSlug, params, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
     queryKey: DataTag<QueryKey, TData, TError>
@@ -166,14 +166,14 @@ export function useListPlaces<
  * @summary Create place
  */
 export const createPlace = (
-  slug: string,
+  teamSlug: string,
   placeRequest: BodyType<PlaceRequest>,
   options?: SecondParameter<typeof axiosMutator>,
   signal?: AbortSignal
 ) => {
   return axiosMutator<PlaceDetailDto>(
     {
-      url: `/api/teams/${slug}/places`,
+      url: `/api/teams/${teamSlug}/places`,
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       data: placeRequest,
@@ -190,14 +190,14 @@ export const getCreatePlaceMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof createPlace>>,
     TError,
-    { slug: string; data: BodyType<PlaceRequest> },
+    { teamSlug: string; data: BodyType<PlaceRequest> },
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof createPlace>>,
   TError,
-  { slug: string; data: BodyType<PlaceRequest> },
+  { teamSlug: string; data: BodyType<PlaceRequest> },
   TContext
 > => {
   const mutationKey = ['createPlace']
@@ -209,11 +209,11 @@ export const getCreatePlaceMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof createPlace>>,
-    { slug: string; data: BodyType<PlaceRequest> }
+    { teamSlug: string; data: BodyType<PlaceRequest> }
   > = (props) => {
-    const { slug, data } = props ?? {}
+    const { teamSlug, data } = props ?? {}
 
-    return createPlace(slug, data, requestOptions)
+    return createPlace(teamSlug, data, requestOptions)
   }
 
   return { mutationFn, ...mutationOptions }
@@ -231,7 +231,7 @@ export const useCreatePlace = <TError = ErrorType<ErrorResponse>, TContext = unk
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof createPlace>>,
       TError,
-      { slug: string; data: BodyType<PlaceRequest> },
+      { teamSlug: string; data: BodyType<PlaceRequest> },
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -240,7 +240,7 @@ export const useCreatePlace = <TError = ErrorType<ErrorResponse>, TContext = unk
 ): UseMutationResult<
   Awaited<ReturnType<typeof createPlace>>,
   TError,
-  { slug: string; data: BodyType<PlaceRequest> },
+  { teamSlug: string; data: BodyType<PlaceRequest> },
   TContext
 > => {
   const mutationOptions = getCreatePlaceMutationOptions(options)
@@ -252,14 +252,14 @@ export const useCreatePlace = <TError = ErrorType<ErrorResponse>, TContext = unk
  * @summary Update place
  */
 export const updatePlace = (
-  slug: string,
+  teamSlug: string,
   placeId: string,
   placeRequest: BodyType<PlaceRequest>,
   options?: SecondParameter<typeof axiosMutator>
 ) => {
   return axiosMutator<PlaceDetailDto>(
     {
-      url: `/api/teams/${slug}/places/${placeId}`,
+      url: `/api/teams/${teamSlug}/places/${placeId}`,
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       data: placeRequest,
@@ -275,14 +275,14 @@ export const getUpdatePlaceMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof updatePlace>>,
     TError,
-    { slug: string; placeId: string; data: BodyType<PlaceRequest> },
+    { teamSlug: string; placeId: string; data: BodyType<PlaceRequest> },
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof updatePlace>>,
   TError,
-  { slug: string; placeId: string; data: BodyType<PlaceRequest> },
+  { teamSlug: string; placeId: string; data: BodyType<PlaceRequest> },
   TContext
 > => {
   const mutationKey = ['updatePlace']
@@ -294,11 +294,11 @@ export const getUpdatePlaceMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof updatePlace>>,
-    { slug: string; placeId: string; data: BodyType<PlaceRequest> }
+    { teamSlug: string; placeId: string; data: BodyType<PlaceRequest> }
   > = (props) => {
-    const { slug, placeId, data } = props ?? {}
+    const { teamSlug, placeId, data } = props ?? {}
 
-    return updatePlace(slug, placeId, data, requestOptions)
+    return updatePlace(teamSlug, placeId, data, requestOptions)
   }
 
   return { mutationFn, ...mutationOptions }
@@ -316,7 +316,7 @@ export const useUpdatePlace = <TError = ErrorType<ErrorResponse>, TContext = unk
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof updatePlace>>,
       TError,
-      { slug: string; placeId: string; data: BodyType<PlaceRequest> },
+      { teamSlug: string; placeId: string; data: BodyType<PlaceRequest> },
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -325,7 +325,7 @@ export const useUpdatePlace = <TError = ErrorType<ErrorResponse>, TContext = unk
 ): UseMutationResult<
   Awaited<ReturnType<typeof updatePlace>>,
   TError,
-  { slug: string; placeId: string; data: BodyType<PlaceRequest> },
+  { teamSlug: string; placeId: string; data: BodyType<PlaceRequest> },
   TContext
 > => {
   const mutationOptions = getUpdatePlaceMutationOptions(options)
@@ -337,26 +337,26 @@ export const useUpdatePlace = <TError = ErrorType<ErrorResponse>, TContext = unk
  * @summary Get place details
  */
 export const getPlace = (
-  slug: string,
+  teamSlug: string,
   placeId: string,
   options?: SecondParameter<typeof axiosMutator>,
   signal?: AbortSignal
 ) => {
   return axiosMutator<PlaceDetailDto>(
-    { url: `/api/teams/${slug}/places/${placeId}`, method: 'GET', signal },
+    { url: `/api/teams/${teamSlug}/places/${placeId}`, method: 'GET', signal },
     options
   )
 }
 
-export const getGetPlaceQueryKey = (slug?: string, placeId?: string) => {
-  return [`/api/teams/${slug}/places/${placeId}`] as const
+export const getGetPlaceQueryKey = (teamSlug?: string, placeId?: string) => {
+  return [`/api/teams/${teamSlug}/places/${placeId}`] as const
 }
 
 export const getGetPlaceQueryOptions = <
   TData = Awaited<ReturnType<typeof getPlace>>,
   TError = ErrorType<void | ErrorResponse>,
 >(
-  slug: string,
+  teamSlug: string,
   placeId: string,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getPlace>>, TError, TData>>
@@ -365,16 +365,19 @@ export const getGetPlaceQueryOptions = <
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
-  const queryKey = queryOptions?.queryKey ?? getGetPlaceQueryKey(slug, placeId)
+  const queryKey = queryOptions?.queryKey ?? getGetPlaceQueryKey(teamSlug, placeId)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof getPlace>>> = ({ signal }) =>
-    getPlace(slug, placeId, requestOptions, signal)
+    getPlace(teamSlug, placeId, requestOptions, signal)
 
-  return { queryKey, queryFn, enabled: !!(slug && placeId), ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof getPlace>>,
-    TError,
-    TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!(teamSlug && placeId),
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof getPlace>>, TError, TData> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
 }
 
 export type GetPlaceQueryResult = NonNullable<Awaited<ReturnType<typeof getPlace>>>
@@ -384,7 +387,7 @@ export function useGetPlace<
   TData = Awaited<ReturnType<typeof getPlace>>,
   TError = ErrorType<void | ErrorResponse>,
 >(
-  slug: string,
+  teamSlug: string,
   placeId: string,
   options: {
     query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getPlace>>, TError, TData>> &
@@ -404,7 +407,7 @@ export function useGetPlace<
   TData = Awaited<ReturnType<typeof getPlace>>,
   TError = ErrorType<void | ErrorResponse>,
 >(
-  slug: string,
+  teamSlug: string,
   placeId: string,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getPlace>>, TError, TData>> &
@@ -424,7 +427,7 @@ export function useGetPlace<
   TData = Awaited<ReturnType<typeof getPlace>>,
   TError = ErrorType<void | ErrorResponse>,
 >(
-  slug: string,
+  teamSlug: string,
   placeId: string,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getPlace>>, TError, TData>>
@@ -440,7 +443,7 @@ export function useGetPlace<
   TData = Awaited<ReturnType<typeof getPlace>>,
   TError = ErrorType<void | ErrorResponse>,
 >(
-  slug: string,
+  teamSlug: string,
   placeId: string,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getPlace>>, TError, TData>>
@@ -448,7 +451,7 @@ export function useGetPlace<
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getGetPlaceQueryOptions(slug, placeId, options)
+  const queryOptions = getGetPlaceQueryOptions(teamSlug, placeId, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
     queryKey: DataTag<QueryKey, TData, TError>
@@ -464,12 +467,12 @@ export function useGetPlace<
  * @summary Delete place
  */
 export const deletePlace = (
-  slug: string,
+  teamSlug: string,
   placeId: string,
   options?: SecondParameter<typeof axiosMutator>
 ) => {
   return axiosMutator<void>(
-    { url: `/api/teams/${slug}/places/${placeId}`, method: 'DELETE' },
+    { url: `/api/teams/${teamSlug}/places/${placeId}`, method: 'DELETE' },
     options
   )
 }
@@ -481,14 +484,14 @@ export const getDeletePlaceMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof deletePlace>>,
     TError,
-    { slug: string; placeId: string },
+    { teamSlug: string; placeId: string },
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof deletePlace>>,
   TError,
-  { slug: string; placeId: string },
+  { teamSlug: string; placeId: string },
   TContext
 > => {
   const mutationKey = ['deletePlace']
@@ -500,11 +503,11 @@ export const getDeletePlaceMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof deletePlace>>,
-    { slug: string; placeId: string }
+    { teamSlug: string; placeId: string }
   > = (props) => {
-    const { slug, placeId } = props ?? {}
+    const { teamSlug, placeId } = props ?? {}
 
-    return deletePlace(slug, placeId, requestOptions)
+    return deletePlace(teamSlug, placeId, requestOptions)
   }
 
   return { mutationFn, ...mutationOptions }
@@ -522,7 +525,7 @@ export const useDeletePlace = <TError = ErrorType<ErrorResponse>, TContext = unk
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof deletePlace>>,
       TError,
-      { slug: string; placeId: string },
+      { teamSlug: string; placeId: string },
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -531,7 +534,7 @@ export const useDeletePlace = <TError = ErrorType<ErrorResponse>, TContext = unk
 ): UseMutationResult<
   Awaited<ReturnType<typeof deletePlace>>,
   TError,
-  { slug: string; placeId: string },
+  { teamSlug: string; placeId: string },
   TContext
 > => {
   const mutationOptions = getDeletePlaceMutationOptions(options)

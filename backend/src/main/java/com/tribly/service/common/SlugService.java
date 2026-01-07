@@ -3,12 +3,12 @@ package com.tribly.service.common;
 import com.ibm.icu.text.Transliterator;
 import com.tribly.domain.common.TeamEntity;
 import com.tribly.domain.common.TeamEntitySlugRedirect;
-import com.tribly.domain.common.repository.TeamEntityRepository;
-import com.tribly.domain.common.repository.TeamEntitySlugRedirectRepository;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.team.TeamSlugRedirect;
-import com.tribly.domain.team.repository.TeamSlugRedirectRepository;
-import com.tribly.enums.EntityType;
+import com.tribly.enums.TeamEntityType;
+import com.tribly.repository.common.TeamEntityRepository;
+import com.tribly.repository.common.TeamEntitySlugRedirectRepository;
+import com.tribly.repository.team.TeamSlugRedirectRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -100,7 +100,7 @@ public class SlugService {
 
   @Transactional
   public void createEntityRedirect(TeamEntity entity, String oldSlug) {
-    EntityType entityType = EntityType.fromEntity(entity);
+    TeamEntityType entityType = TeamEntityType.fromEntity(entity);
     TeamEntitySlugRedirect redirect =
         new TeamEntitySlugRedirect(
             oldSlug, entity.getTeam(), entityType.getValue(), entity.getId());
@@ -108,13 +108,13 @@ public class SlugService {
   }
 
   public Optional<TeamEntitySlugRedirect> resolveEntityRedirect(
-      Long teamId, EntityType entityType, String oldSlug) {
+      Long teamId, TeamEntityType entityType, String oldSlug) {
     return teamEntitySlugRedirectRepository.findByTeamAndEntityTypeAndOldSlug(
         teamId, entityType.getValue(), oldSlug);
   }
 
   @Transactional
-  public void clearEntityRedirect(Long teamId, EntityType entityType, String oldSlug) {
+  public void clearEntityRedirect(Long teamId, TeamEntityType entityType, String oldSlug) {
     teamEntitySlugRedirectRepository.deleteByTeamAndEntityTypeAndOldSlug(
         teamId, entityType.getValue(), oldSlug);
   }

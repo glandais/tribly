@@ -1,17 +1,22 @@
 package com.tribly.service.user;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.when;
 
+import com.tribly.common.TsidUtils;
+import com.tribly.common.exception.TriblyException;
 import com.tribly.domain.user.User;
 import com.tribly.dto.users.response.PublicUserDto;
 import com.tribly.dto.users.response.UserDto;
-import com.tribly.infrastructure.exception.TriblyException;
-import com.tribly.infrastructure.id.TsidUtils;
+import com.tribly.service.security.TriblyQueryContext;
 import com.tribly.util.TestDataCleaner;
 import com.tribly.util.TestDataService;
+import io.quarkus.security.identity.SecurityIdentity;
+import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import java.util.List;
+import org.eclipse.microprofile.jwt.JsonWebToken;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -22,40 +27,14 @@ class UserServiceTest {
   @Inject UserService userService;
   @Inject TestDataService dataService;
   @Inject TestDataCleaner dataCleaner;
+  @Inject TriblyQueryContext queryContext;
+
+  @InjectMock JsonWebToken jwt;
+  @InjectMock SecurityIdentity securityIdentity;
 
   @BeforeEach
   void setUp() {
     dataCleaner.cleanAll();
-  }
-
-  // ==================== Get Public User DTO ====================
-
-  @Nested
-  class GetPublicUserDto {
-
-    @Test
-    void shouldReturnPublicUserDtoForExistingUser() {
-      User user = dataService.createUser("test@example.com", "Test User");
-
-      PublicUserDto result = userService.getPublicUserDto(user.getId());
-
-      assertNotNull(result);
-      assertEquals(TsidUtils.toString(user.getId()), result.id());
-      assertEquals("Test User", result.displayName());
-    }
-
-    @Test
-    void shouldThrowForNonexistentUser() {
-      assertThrows(TriblyException.class, () -> userService.getPublicUserDto(999999L));
-    }
-
-    @Test
-    void shouldThrowForDeletedUser() {
-      User user = dataService.createUser("deleted@example.com", "Deleted User");
-      dataService.deleteUser(user);
-
-      assertThrows(TriblyException.class, () -> userService.getPublicUserDto(user.getId()));
-    }
   }
 
   // ==================== Get User DTO ====================
@@ -67,7 +46,12 @@ class UserServiceTest {
     void shouldReturnUserDtoForExistingUser() {
       User user = dataService.createUser("test@example.com", "Test User");
 
-      UserDto result = userService.getUserDto(user.getId());
+      when(jwt.getClaim("email")).thenReturn("test@example.com");
+      when(jwt.getClaim("name")).thenReturn("Original Name");
+      when(securityIdentity.isAnonymous()).thenReturn(false);
+      when(securityIdentity.getPrincipal()).thenReturn(jwt);
+
+      UserDto result = userService.getUserDto();
 
       assertNotNull(result);
       assertEquals(TsidUtils.toString(user.getId()), result.id());
@@ -78,7 +62,8 @@ class UserServiceTest {
 
     @Test
     void shouldThrowForNonexistentUser() {
-      assertThrows(TriblyException.class, () -> userService.getUserDto(999999L));
+      queryContext.setContext(null);
+      assertThrows(TriblyException.class, () -> userService.getUserDto());
     }
 
     @Test
@@ -86,7 +71,8 @@ class UserServiceTest {
       User user = dataService.createUser("deleted@example.com", "Deleted User");
       dataService.deleteUser(user);
 
-      assertThrows(TriblyException.class, () -> userService.getUserDto(user.getId()));
+      queryContext.setContext(user);
+      assertThrows(TriblyException.class, () -> userService.getUserDto());
     }
   }
 
@@ -97,18 +83,28 @@ class UserServiceTest {
 
     @Test
     void shouldUpdateDisplayName() {
-      User user = dataService.createUser("test@example.com", "Original Name");
+      dataService.createUser("test@example.com", "Original Name");
 
-      UserDto result = userService.updateUser(user, "Updated Name");
+      when(jwt.getClaim("email")).thenReturn("test@example.com");
+      when(jwt.getClaim("name")).thenReturn("Original Name");
+      when(securityIdentity.isAnonymous()).thenReturn(false);
+      when(securityIdentity.getPrincipal()).thenReturn(jwt);
+
+      UserDto result = userService.updateUser("Updated Name");
 
       assertEquals("Updated Name", result.displayName());
     }
 
     @Test
     void shouldPreserveDisplayNameWhenNull() {
-      User user = dataService.createUser("test@example.com", "Original Name");
+      dataService.createUser("test@example.com", "Original Name");
 
-      UserDto result = userService.updateUser(user, null);
+      when(jwt.getClaim("email")).thenReturn("test@example.com");
+      when(jwt.getClaim("name")).thenReturn("Original Name");
+      when(securityIdentity.isAnonymous()).thenReturn(false);
+      when(securityIdentity.getPrincipal()).thenReturn(jwt);
+
+      UserDto result = userService.updateUser(null);
 
       assertEquals("Original Name", result.displayName());
     }
@@ -118,7 +114,8 @@ class UserServiceTest {
       User user = dataService.createUser("deleted@example.com", "Deleted User");
       dataService.deleteUser(user);
 
-      assertThrows(TriblyException.class, () -> userService.updateUser(user, "New Name"));
+      queryContext.setContext(user);
+      assertThrows(TriblyException.class, () -> userService.updateUser("New Name"));
     }
   }
 
@@ -131,9 +128,15 @@ class UserServiceTest {
     void shouldSoftDeleteUser() {
       User user = dataService.createUser("test@example.com", "Test User");
 
-      userService.deleteUser(user);
+      when(jwt.getClaim("email")).thenReturn("test@example.com");
+      when(jwt.getClaim("name")).thenReturn("Original Name");
+      when(securityIdentity.isAnonymous()).thenReturn(false);
+      when(securityIdentity.getPrincipal()).thenReturn(jwt);
 
-      assertThrows(TriblyException.class, () -> userService.getUserDto(user.getId()));
+      userService.deleteUser();
+
+      queryContext.setContext(user);
+      assertThrows(TriblyException.class, () -> userService.getUserDto());
     }
 
     @Test
@@ -141,7 +144,8 @@ class UserServiceTest {
       User user = dataService.createUser("deleted@example.com", "Deleted User");
       dataService.deleteUser(user);
 
-      assertThrows(TriblyException.class, () -> userService.deleteUser(user));
+      queryContext.setContext(user);
+      assertThrows(TriblyException.class, () -> userService.deleteUser());
     }
   }
 

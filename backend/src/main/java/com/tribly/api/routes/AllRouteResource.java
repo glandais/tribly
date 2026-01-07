@@ -1,10 +1,8 @@
 package com.tribly.api.routes;
 
-import com.tribly.api.AbstractAuthenticatedResource;
-import com.tribly.domain.user.User;
+import com.tribly.dto.routes.request.RouteSearchParams;
 import com.tribly.dto.routes.response.RouteListResponse;
 import com.tribly.enums.*;
-import com.tribly.service.route.RouteSearchParams;
 import com.tribly.service.route.RouteService;
 import jakarta.annotation.security.PermitAll;
 import jakarta.inject.Inject;
@@ -27,7 +25,7 @@ import org.jspecify.annotations.Nullable;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @Tag(name = "Routes", description = "GPX route management operations")
-public class AllRouteResource extends AbstractAuthenticatedResource {
+public class AllRouteResource {
 
   @Inject RouteService routeService;
 
@@ -82,8 +80,6 @@ public class AllRouteResource extends AbstractAuthenticatedResource {
       @Parameter(description = "Sort direction (ASC, DESC)") @QueryParam("sortDir")
           @Nullable SortDirection sortDir) {
 
-    User user = getCurrentUserOrNull();
-
     RouteSearchParams params =
         RouteSearchParams.builder()
             .search(search)
@@ -104,7 +100,7 @@ public class AllRouteResource extends AbstractAuthenticatedResource {
             .sortDir(sortDir)
             .build();
 
-    RouteListResponse routes = routeService.getAllRoutes(user, params);
+    RouteListResponse routes = routeService.getAllRoutes(params);
 
     return Response.ok(routes).build();
   }

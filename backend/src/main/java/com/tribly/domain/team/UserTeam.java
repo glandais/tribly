@@ -45,10 +45,10 @@ public class UserTeam extends BaseEntity {
   }
 
   public boolean isAdmin() {
-    return role == TeamRole.ADMIN;
+    return role.isAdmin();
   }
 
   public boolean isOrganizer() {
-    return role == TeamRole.ADMIN || role == TeamRole.ORGANIZER;
+    return role.isOrganizer();
   }
 }

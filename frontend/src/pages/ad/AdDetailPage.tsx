@@ -128,7 +128,7 @@ export function AdDetailPage() {
 
   const handlePublish = () => {
     updateMutation.mutate(
-      { slug: teamSlug!, adSlug: adSlug!, data: { ...ad, status: Status.PUBLISHED } },
+      { teamSlug: teamSlug!, slug: adSlug!, data: { ...ad, status: Status.PUBLISHED } },
       {
         onSuccess: () => {
           invalidateAds()
@@ -140,7 +140,7 @@ export function AdDetailPage() {
 
   const handleUnpublish = () => {
     updateMutation.mutate(
-      { slug: teamSlug!, adSlug: adSlug!, data: { ...ad, status: Status.DRAFT } },
+      { teamSlug: teamSlug!, slug: adSlug!, data: { ...ad, status: Status.DRAFT } },
       {
         onSuccess: () => {
           invalidateAds()
@@ -153,7 +153,7 @@ export function AdDetailPage() {
 
   const handleDelete = () => {
     deleteMutation.mutate(
-      { slug: teamSlug!, adSlug: adSlug! },
+      { teamSlug: teamSlug!, slug: adSlug! },
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getListAdsQueryKey(teamSlug!) })

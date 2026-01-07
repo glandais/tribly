@@ -9,6 +9,7 @@ import com.tribly.dto.publications.response.PublicationListResponse;
 import com.tribly.enums.Status;
 import com.tribly.enums.TeamRole;
 import com.tribly.enums.Visibility;
+import com.tribly.service.security.TriblyQueryContext;
 import com.tribly.util.TestDataCleaner;
 import com.tribly.util.TestDataService;
 import io.quarkus.test.junit.QuarkusTest;
@@ -27,6 +28,7 @@ class PublicationServiceTest {
   @Inject PublicationService publicationService;
   @Inject TestDataService dataService;
   @Inject TestDataCleaner dataCleaner;
+  @Inject TriblyQueryContext queryContext;
 
   private Team team;
   private Team privateTeam;
@@ -48,9 +50,7 @@ class PublicationServiceTest {
     privateTeam = dataService.createTeam(admin, "Private Team", "private-team", Visibility.TEAM);
     member = dataService.createUser("member@example.com", "Member");
     nonMember = dataService.createUser("nonmember@example.com", "NonMember");
-    dataService.addUserToTeam(admin, team, TeamRole.ADMIN);
     dataService.addUserToTeam(member, team, TeamRole.MEMBER);
-    dataService.addUserToTeam(admin, privateTeam, TeamRole.ADMIN);
   }
 
   @Nested
@@ -63,8 +63,9 @@ class PublicationServiceTest {
       dataService.createPost(team, admin, "Public Post", now, Visibility.PUBLIC);
       dataService.createRide(team, admin, "Team Ride", nextSlug(), now, Visibility.TEAM);
 
+      queryContext.setContext(null);
       PublicationListResponse result =
-          publicationService.list(null, Set.of(team.getId()), null, null, null, null, 0, 10);
+          publicationService.list(null, Set.of(team.getId()), null, null, null, 0, 10);
 
       assertEquals(2, result.publications().size());
       assertTrue(
@@ -77,8 +78,9 @@ class PublicationServiceTest {
       dataService.createRide(team, admin, "Public Ride", nextSlug(), now, Visibility.PUBLIC);
       dataService.createPost(team, admin, "Team Post", now, Visibility.TEAM);
 
+      queryContext.setContext(member);
       PublicationListResponse result =
-          publicationService.list(null, Set.of(team.getId()), member, null, null, null, 0, 10);
+          publicationService.list(null, Set.of(team.getId()), null, null, null, 0, 10);
 
       assertEquals(2, result.publications().size());
     }
@@ -89,8 +91,9 @@ class PublicationServiceTest {
       dataService.createRide(team, admin, "Team1 Ride", nextSlug(), now, Visibility.PUBLIC);
       dataService.createRide(privateTeam, admin, "Team2 Ride", nextSlug(), now, Visibility.PUBLIC);
 
+      queryContext.setContext(null);
       PublicationListResponse result =
-          publicationService.list(null, Set.of(team.getId()), null, null, null, null, 0, 10);
+          publicationService.list(null, Set.of(team.getId()), null, null, null, 0, 10);
 
       assertEquals(1, result.publications().size());
       assertEquals("Team1 Ride", result.publications().getFirst().getName());
@@ -106,9 +109,9 @@ class PublicationServiceTest {
       dataService.createRide(team, admin, "Recent Ride", nextSlug(), now, Visibility.PUBLIC);
       dataService.createRide(team, admin, "Old Ride", nextSlug(), lastWeek, Visibility.PUBLIC);
 
+      queryContext.setContext(null);
       PublicationListResponse result =
-          publicationService.list(
-              null, Set.of(team.getId()), null, null, yesterday, tomorrow, 0, 10);
+          publicationService.list(null, Set.of(team.getId()), null, yesterday, tomorrow, 0, 10);
 
       assertEquals(1, result.publications().size());
       assertEquals("Recent Ride", result.publications().getFirst().getName());
@@ -120,8 +123,9 @@ class PublicationServiceTest {
       dataService.createRide(team, admin, "Mountain Ride", nextSlug(), now, Visibility.PUBLIC);
       dataService.createRide(team, admin, "Beach Ride", nextSlug(), now, Visibility.PUBLIC);
 
+      queryContext.setContext(null);
       PublicationListResponse result =
-          publicationService.list(null, Set.of(team.getId()), null, "Mountain", null, null, 0, 10);
+          publicationService.list(null, Set.of(team.getId()), "Mountain", null, null, 0, 10);
 
       assertEquals(1, result.publications().size());
       assertEquals("Mountain Ride", result.publications().getFirst().getName());
@@ -135,8 +139,9 @@ class PublicationServiceTest {
             team, admin, "Ride " + i, nextSlug(), now.plus(i, ChronoUnit.HOURS), Visibility.PUBLIC);
       }
 
+      queryContext.setContext(null);
       PublicationListResponse result =
-          publicationService.list(null, Set.of(team.getId()), null, null, null, null, 0, 3);
+          publicationService.list(null, Set.of(team.getId()), null, null, null, 0, 3);
 
       assertEquals(3, result.publications().size());
       assertEquals(5, result.total());
@@ -152,8 +157,9 @@ class PublicationServiceTest {
             team, admin, "Ride " + i, nextSlug(), now.plus(i, ChronoUnit.HOURS), Visibility.PUBLIC);
       }
 
+      queryContext.setContext(null);
       PublicationListResponse result =
-          publicationService.list(null, Set.of(team.getId()), null, null, null, null, 1, 3);
+          publicationService.list(null, Set.of(team.getId()), null, null, null, 1, 3);
 
       assertEquals(2, result.publications().size());
       assertEquals(5, result.total());
@@ -168,8 +174,9 @@ class PublicationServiceTest {
       dataService.createRide(
           team, admin, "Draft Ride", nextSlug(), now, Visibility.PUBLIC, Status.DRAFT);
 
+      queryContext.setContext(null);
       PublicationListResponse result =
-          publicationService.list(null, Set.of(team.getId()), null, null, null, null, 0, 10);
+          publicationService.list(null, Set.of(team.getId()), null, null, null, 0, 10);
 
       assertEquals(1, result.publications().size());
       assertEquals("Published Ride", result.publications().getFirst().getName());
@@ -183,8 +190,9 @@ class PublicationServiceTest {
           dataService.createRide(team, admin, "Deleted Ride", nextSlug(), now, Visibility.PUBLIC);
       dataService.deleteRide(deletedRide);
 
+      queryContext.setContext(null);
       PublicationListResponse result =
-          publicationService.list(null, Set.of(team.getId()), null, null, null, null, 0, 10);
+          publicationService.list(null, Set.of(team.getId()), null, null, null, 0, 10);
 
       assertEquals(1, result.publications().size());
       assertEquals("Active Ride", result.publications().getFirst().getName());
@@ -196,8 +204,9 @@ class PublicationServiceTest {
       dataService.createRide(team, admin, "Test Ride", nextSlug(), now, Visibility.PUBLIC);
       dataService.createPost(team, admin, "Test Post", now, Visibility.PUBLIC);
 
+      queryContext.setContext(null);
       PublicationListResponse result =
-          publicationService.list(null, Set.of(team.getId()), null, null, null, null, 0, 10);
+          publicationService.list(null, Set.of(team.getId()), null, null, null, 0, 10);
 
       assertEquals(2, result.publications().size());
       assertTrue(result.publications().stream().anyMatch(p -> p.getName().equals("Test Ride")));
@@ -206,8 +215,9 @@ class PublicationServiceTest {
 
     @Test
     void shouldReturnEmptyListWhenNoPublications() {
+      queryContext.setContext(null);
       PublicationListResponse result =
-          publicationService.list(null, Set.of(team.getId()), null, null, null, null, 0, 10);
+          publicationService.list(null, Set.of(team.getId()), null, null, null, 0, 10);
 
       assertTrue(result.publications().isEmpty());
       assertEquals(0, result.total());
@@ -220,9 +230,10 @@ class PublicationServiceTest {
       dataService.createRide(team, admin, "Ride Team 1", nextSlug(), now, Visibility.PUBLIC);
       dataService.createRide(team2, admin, "Ride Team 2", nextSlug(), now, Visibility.PUBLIC);
 
+      queryContext.setContext(null);
       PublicationListResponse result =
           publicationService.list(
-              null, Set.of(team.getId(), team2.getId()), null, null, null, null, 0, 10);
+              null, Set.of(team.getId(), team2.getId()), null, null, null, 0, 10);
 
       assertEquals(2, result.publications().size());
     }
@@ -234,8 +245,8 @@ class PublicationServiceTest {
       dataService.createRide(team, admin, "Ride Team 1", nextSlug(), now, Visibility.PUBLIC);
       dataService.createRide(team2, admin, "Ride Team 2", nextSlug(), now, Visibility.PUBLIC);
 
-      PublicationListResponse result =
-          publicationService.list(null, null, null, null, null, null, 0, 10);
+      queryContext.setContext(null);
+      PublicationListResponse result = publicationService.list(null, null, null, null, null, 0, 10);
 
       assertEquals(2, result.publications().size());
     }

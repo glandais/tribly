@@ -12,7 +12,7 @@ import * as zod from 'zod'
  * @summary List ride templates
  */
 export const listTemplatesParams = zod.object({
-  slug: zod.string().describe('Team URL slug'),
+  teamSlug: zod.string().describe('Team URL slug'),
 })
 
 export const listTemplatesQueryPageDefault = 0
@@ -76,7 +76,7 @@ export const listTemplatesResponse = zod
  * @summary Create ride template
  */
 export const createTemplateParams = zod.object({
-  slug: zod.string().describe('Team URL slug'),
+  teamSlug: zod.string().describe('Team URL slug'),
 })
 
 export const createTemplateBodyNameMax = 200
@@ -123,7 +123,7 @@ export const createTemplateBody = zod
  * @summary Update ride template
  */
 export const updateTemplateParams = zod.object({
-  slug: zod.string().describe('Team URL slug'),
+  teamSlug: zod.string().describe('Team URL slug'),
   templateSlug: zod.string().describe('Template URL slug'),
 })
 
@@ -207,7 +207,7 @@ export const updateTemplateResponse = zod
  * @summary Get ride template
  */
 export const getTemplateParams = zod.object({
-  slug: zod.string().describe('Team URL slug'),
+  teamSlug: zod.string().describe('Team URL slug'),
   templateSlug: zod.string().describe('Template URL slug'),
 })
 
@@ -252,6 +252,6 @@ export const getTemplateResponse = zod
  * @summary Delete ride template
  */
 export const deleteTemplateParams = zod.object({
-  slug: zod.string().describe('Team URL slug'),
+  teamSlug: zod.string().describe('Team URL slug'),
   templateSlug: zod.string().describe('Template URL slug'),
 })

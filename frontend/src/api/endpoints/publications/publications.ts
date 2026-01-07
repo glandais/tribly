@@ -162,26 +162,26 @@ export function useListAllPublications<
  * @summary List publications
  */
 export const listPublications = (
-  slug: string,
+  teamSlug: string,
   params?: ListPublicationsParams,
   options?: SecondParameter<typeof axiosMutator>,
   signal?: AbortSignal
 ) => {
   return axiosMutator<PublicationListResponse>(
-    { url: `/api/teams/${slug}/publications`, method: 'GET', params, signal },
+    { url: `/api/teams/${teamSlug}/publications`, method: 'GET', params, signal },
     options
   )
 }
 
-export const getListPublicationsQueryKey = (slug?: string, params?: ListPublicationsParams) => {
-  return [`/api/teams/${slug}/publications`, ...(params ? [params] : [])] as const
+export const getListPublicationsQueryKey = (teamSlug?: string, params?: ListPublicationsParams) => {
+  return [`/api/teams/${teamSlug}/publications`, ...(params ? [params] : [])] as const
 }
 
 export const getListPublicationsQueryOptions = <
   TData = Awaited<ReturnType<typeof listPublications>>,
   TError = ErrorType<ErrorResponse>,
 >(
-  slug: string,
+  teamSlug: string,
   params?: ListPublicationsParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listPublications>>, TError, TData>>
@@ -190,12 +190,12 @@ export const getListPublicationsQueryOptions = <
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
-  const queryKey = queryOptions?.queryKey ?? getListPublicationsQueryKey(slug, params)
+  const queryKey = queryOptions?.queryKey ?? getListPublicationsQueryKey(teamSlug, params)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof listPublications>>> = ({ signal }) =>
-    listPublications(slug, params, requestOptions, signal)
+    listPublications(teamSlug, params, requestOptions, signal)
 
-  return { queryKey, queryFn, enabled: !!slug, ...queryOptions } as UseQueryOptions<
+  return { queryKey, queryFn, enabled: !!teamSlug, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof listPublications>>,
     TError,
     TData
@@ -209,7 +209,7 @@ export function useListPublications<
   TData = Awaited<ReturnType<typeof listPublications>>,
   TError = ErrorType<ErrorResponse>,
 >(
-  slug: string,
+  teamSlug: string,
   params: undefined | ListPublicationsParams,
   options: {
     query: Partial<UseQueryOptions<Awaited<ReturnType<typeof listPublications>>, TError, TData>> &
@@ -229,7 +229,7 @@ export function useListPublications<
   TData = Awaited<ReturnType<typeof listPublications>>,
   TError = ErrorType<ErrorResponse>,
 >(
-  slug: string,
+  teamSlug: string,
   params?: ListPublicationsParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listPublications>>, TError, TData>> &
@@ -249,7 +249,7 @@ export function useListPublications<
   TData = Awaited<ReturnType<typeof listPublications>>,
   TError = ErrorType<ErrorResponse>,
 >(
-  slug: string,
+  teamSlug: string,
   params?: ListPublicationsParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listPublications>>, TError, TData>>
@@ -265,7 +265,7 @@ export function useListPublications<
   TData = Awaited<ReturnType<typeof listPublications>>,
   TError = ErrorType<ErrorResponse>,
 >(
-  slug: string,
+  teamSlug: string,
   params?: ListPublicationsParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listPublications>>, TError, TData>>
@@ -273,7 +273,7 @@ export function useListPublications<
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getListPublicationsQueryOptions(slug, params, options)
+  const queryOptions = getListPublicationsQueryOptions(teamSlug, params, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
     queryKey: DataTag<QueryKey, TData, TError>

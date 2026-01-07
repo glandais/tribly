@@ -44,7 +44,7 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
 
   const handleJoin = () => {
     joinMutation.mutate(
-      { slug: team.slug },
+      { teamSlug: team.slug },
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetTeamQueryKey(team.slug) })
@@ -56,7 +56,7 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
 
   const handleLeave = () => {
     leaveMutation.mutate(
-      { slug: team.slug },
+      { teamSlug: team.slug },
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetTeamQueryKey(team.slug) })

@@ -73,7 +73,7 @@ export function RideTemplateListPage() {
   const confirmDelete = () => {
     if (templateToDelete && teamSlug) {
       deleteMutation.mutate(
-        { slug: teamSlug, templateSlug: templateToDelete.slug },
+        { teamSlug: teamSlug, templateSlug: templateToDelete.slug },
         {
           onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: getListTemplatesQueryKey(teamSlug) })

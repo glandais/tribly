@@ -1,7 +1,7 @@
 package com.tribly.dto.rides.request;
 
+import com.tribly.dto.common.asset.MediaDto;
 import com.tribly.dto.common.request.WithVisibility;
-import com.tribly.dto.common.response.MediaDto;
 import com.tribly.dto.validation.ValidateSchema;
 import com.tribly.enums.Status;
 import com.tribly.enums.Visibility;
@@ -20,7 +20,7 @@ public record RideRequest(
         @NotBlank
         @Size(min = 3, max = 200)
         String name,
-    @Schema(description = "Ride media", required = true) MediaDto media,
+    @Schema(description = "Ride media", required = true) @Valid MediaDto media,
     @Schema(description = "Ride date/time", required = true) Instant dateTime,
     @Schema(description = "Ride status", required = true) Status status,
     @Schema(description = "Visibility level", required = true) Visibility visibility,

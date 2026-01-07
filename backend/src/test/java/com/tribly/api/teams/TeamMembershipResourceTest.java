@@ -5,10 +5,10 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 
 import com.tribly.api.AbstractResourceTest;
-import com.tribly.dto.common.response.MediaDto;
+import com.tribly.common.TsidUtils;
+import com.tribly.dto.common.asset.MediaDto;
 import com.tribly.dto.teams.request.TeamRequest;
 import com.tribly.enums.Visibility;
-import com.tribly.infrastructure.id.TsidUtils;
 import io.quarkus.test.junit.QuarkusTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -63,7 +63,7 @@ class TeamMembershipResourceTest extends AbstractResourceTest {
         .post("/api/teams/" + slug + "/members/join")
         .then()
         .statusCode(409)
-        .body("code", equalTo("CONFLICT"));
+        .body("code", equalTo("ALREADY_REGISTERED"));
   }
 
   @Test

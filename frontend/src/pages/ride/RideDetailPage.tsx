@@ -18,8 +18,8 @@ import {
   useJoinGroup,
   useLeaveGroup,
   getGetRideQueryKey,
-  getListRidesQueryKey,
 } from '../../api/endpoints/rides/rides'
+import { getListPublicationsQueryKey } from '../../api/endpoints/publications/publications'
 import { Status } from '@/api/dto'
 import { useAuth } from '../../hooks/useAuth'
 import { LoadingPage, LoadingSpinner } from '../../components/common/LoadingSpinner'
@@ -140,11 +140,11 @@ export function RideDetailPage() {
 
   const handlePublish = () => {
     updateMutation.mutate(
-      { slug: teamSlug!, rideSlug: rideSlug!, data: { ...ride, status: Status.PUBLISHED } },
+      { teamSlug: teamSlug!, rideSlug: rideSlug!, data: { ...ride, status: Status.PUBLISHED } },
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetRideQueryKey(teamSlug!, rideSlug!) })
-          queryClient.invalidateQueries({ queryKey: getListRidesQueryKey(teamSlug!) })
+          queryClient.invalidateQueries({ queryKey: getListPublicationsQueryKey(teamSlug!) })
           toast.success(t('rides.notifications.published'))
         },
       }
@@ -153,11 +153,11 @@ export function RideDetailPage() {
 
   const handleUnpublish = () => {
     updateMutation.mutate(
-      { slug: teamSlug!, rideSlug: rideSlug!, data: { ...ride, status: Status.DRAFT } },
+      { teamSlug: teamSlug!, rideSlug: rideSlug!, data: { ...ride, status: Status.DRAFT } },
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetRideQueryKey(teamSlug!, rideSlug!) })
-          queryClient.invalidateQueries({ queryKey: getListRidesQueryKey(teamSlug!) })
+          queryClient.invalidateQueries({ queryKey: getListPublicationsQueryKey(teamSlug!) })
           toast.success(t('rides.notifications.unpublished'))
         },
       }
@@ -167,11 +167,11 @@ export function RideDetailPage() {
 
   const handleCancel = () => {
     updateMutation.mutate(
-      { slug: teamSlug!, rideSlug: rideSlug!, data: { ...ride, status: Status.CANCELLED } },
+      { teamSlug: teamSlug!, rideSlug: rideSlug!, data: { ...ride, status: Status.CANCELLED } },
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetRideQueryKey(teamSlug!, rideSlug!) })
-          queryClient.invalidateQueries({ queryKey: getListRidesQueryKey(teamSlug!) })
+          queryClient.invalidateQueries({ queryKey: getListPublicationsQueryKey(teamSlug!) })
           toast.success(t('rides.notifications.cancelled'))
         },
       }
@@ -181,11 +181,11 @@ export function RideDetailPage() {
 
   const handleUncancel = () => {
     updateMutation.mutate(
-      { slug: teamSlug!, rideSlug: rideSlug!, data: { ...ride, status: Status.DRAFT } },
+      { teamSlug: teamSlug!, rideSlug: rideSlug!, data: { ...ride, status: Status.DRAFT } },
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetRideQueryKey(teamSlug!, rideSlug!) })
-          queryClient.invalidateQueries({ queryKey: getListRidesQueryKey(teamSlug!) })
+          queryClient.invalidateQueries({ queryKey: getListPublicationsQueryKey(teamSlug!) })
           toast.success(t('rides.notifications.uncancelled'))
         },
       }
@@ -195,10 +195,10 @@ export function RideDetailPage() {
 
   const handleDelete = () => {
     deleteMutation.mutate(
-      { slug: teamSlug!, rideSlug: rideSlug! },
+      { teamSlug: teamSlug!, rideSlug: rideSlug! },
       {
         onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: getListRidesQueryKey(teamSlug!) })
+          queryClient.invalidateQueries({ queryKey: getListPublicationsQueryKey(teamSlug!) })
           toast.success(t('rides.notifications.deleted'))
           navigate(paths.team(teamSlug!))
         },
@@ -210,7 +210,7 @@ export function RideDetailPage() {
   const handleJoinGroup = (groupId: string) => {
     setJoiningGroupId(groupId)
     joinMutation.mutate(
-      { slug: teamSlug!, rideSlug: rideSlug!, groupId },
+      { teamSlug: teamSlug!, rideSlug: rideSlug!, groupId },
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetRideQueryKey(teamSlug!, rideSlug!) })
@@ -224,7 +224,7 @@ export function RideDetailPage() {
   const handleLeaveGroup = (groupId: string) => {
     setJoiningGroupId(groupId)
     leaveMutation.mutate(
-      { slug: teamSlug!, rideSlug: rideSlug!, groupId },
+      { teamSlug: teamSlug!, rideSlug: rideSlug!, groupId },
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetRideQueryKey(teamSlug!, rideSlug!) })

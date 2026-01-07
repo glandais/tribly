@@ -72,7 +72,7 @@ export function TeamMembersPage() {
   const handleAddMember = (selectedUser: PublicUserDto) => {
     if (!teamSlug) return
     addMemberMutation.mutate(
-      { slug: teamSlug, data: { userId: selectedUser.id, role: selectedRole } },
+      { teamSlug: teamSlug, data: { userId: selectedUser.id, role: selectedRole } },
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetTeamQueryKey(teamSlug) })
@@ -88,7 +88,7 @@ export function TeamMembersPage() {
   const handleUpdateRole = (memberId: string, role: TeamRole) => {
     if (!teamSlug) return
     updateRoleMutation.mutate(
-      { slug: teamSlug, memberId, data: { role } },
+      { teamSlug: teamSlug, memberId, data: { role } },
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetMembersQueryKey(teamSlug) })
@@ -100,7 +100,7 @@ export function TeamMembersPage() {
   const handleRemoveMember = (memberId: string) => {
     if (!teamSlug) return
     removeMemberMutation.mutate(
-      { slug: teamSlug, memberId },
+      { teamSlug: teamSlug, memberId },
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetTeamQueryKey(teamSlug) })

@@ -5,6 +5,7 @@ import com.tribly.domain.common.TeamEntity;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
 import com.tribly.enums.AdType;
+import com.tribly.enums.EntityType;
 import com.tribly.enums.RentalPeriod;
 import com.tribly.enums.Visibility;
 import jakarta.persistence.Column;
@@ -62,5 +63,10 @@ public class Ad extends TeamEntity {
       AdType adType) {
     super(createdBy, team, dateTime, name, slug, visibility);
     this.adType = adType;
+  }
+
+  @Override
+  public EntityType getEntityType() {
+    return EntityType.AD;
   }
 }

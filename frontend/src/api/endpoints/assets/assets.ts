@@ -24,7 +24,7 @@ type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
  * @summary Create asset
  */
 export const uploadAsset = (
-  slug: string,
+  teamSlug: string,
   uploadAssetBody: BodyType<UploadAssetBody>,
   options?: SecondParameter<typeof axiosMutator>,
   signal?: AbortSignal
@@ -36,7 +36,7 @@ export const uploadAsset = (
 
   return axiosMutator<AssetDto>(
     {
-      url: `/api/teams/${slug}/assets`,
+      url: `/api/teams/${teamSlug}/assets`,
       method: 'POST',
       headers: { 'Content-Type': 'multipart/form-data' },
       data: formData,
@@ -53,14 +53,14 @@ export const getUploadAssetMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof uploadAsset>>,
     TError,
-    { slug: string; data: BodyType<UploadAssetBody> },
+    { teamSlug: string; data: BodyType<UploadAssetBody> },
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof uploadAsset>>,
   TError,
-  { slug: string; data: BodyType<UploadAssetBody> },
+  { teamSlug: string; data: BodyType<UploadAssetBody> },
   TContext
 > => {
   const mutationKey = ['uploadAsset']
@@ -72,11 +72,11 @@ export const getUploadAssetMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof uploadAsset>>,
-    { slug: string; data: BodyType<UploadAssetBody> }
+    { teamSlug: string; data: BodyType<UploadAssetBody> }
   > = (props) => {
-    const { slug, data } = props ?? {}
+    const { teamSlug, data } = props ?? {}
 
-    return uploadAsset(slug, data, requestOptions)
+    return uploadAsset(teamSlug, data, requestOptions)
   }
 
   return { mutationFn, ...mutationOptions }
@@ -94,7 +94,7 @@ export const useUploadAsset = <TError = ErrorType<ErrorResponse>, TContext = unk
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof uploadAsset>>,
       TError,
-      { slug: string; data: BodyType<UploadAssetBody> },
+      { teamSlug: string; data: BodyType<UploadAssetBody> },
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -103,7 +103,7 @@ export const useUploadAsset = <TError = ErrorType<ErrorResponse>, TContext = unk
 ): UseMutationResult<
   Awaited<ReturnType<typeof uploadAsset>>,
   TError,
-  { slug: string; data: BodyType<UploadAssetBody> },
+  { teamSlug: string; data: BodyType<UploadAssetBody> },
   TContext
 > => {
   const mutationOptions = getUploadAssetMutationOptions(options)

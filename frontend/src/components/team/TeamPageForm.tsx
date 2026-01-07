@@ -73,7 +73,7 @@ export function TeamPageForm({
   const handleSubmit = (values: TeamPageRequest) => {
     if (isCreate) {
       createMutation.mutate(
-        { slug: teamSlug, data: values },
+        { teamSlug: teamSlug, data: values },
         {
           onSuccess: (page) => {
             queryClient.invalidateQueries({ queryKey: getListPagesQueryKey(teamSlug) })
@@ -86,7 +86,7 @@ export function TeamPageForm({
       )
     } else if (pageSlug) {
       updateMutation.mutate(
-        { slug: teamSlug, pageSlug, data: values },
+        { teamSlug: teamSlug, pageSlug, data: values },
         {
           onSuccess: (page) => {
             queryClient.invalidateQueries({ queryKey: getListPagesQueryKey(teamSlug) })
@@ -105,7 +105,7 @@ export function TeamPageForm({
   const handleSlugChange = async (newSlug: string) => {
     if (!pageSlug) return
     await changeSlugMutation.mutateAsync(
-      { slug: teamSlug, pageSlug, data: { slug: newSlug } },
+      { teamSlug: teamSlug, pageSlug, data: { slug: newSlug } },
       {
         onSuccess: (updatedPage) => {
           queryClient.invalidateQueries({ queryKey: getListPagesQueryKey(teamSlug) })

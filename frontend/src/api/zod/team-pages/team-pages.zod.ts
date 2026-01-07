@@ -12,7 +12,7 @@ import * as zod from 'zod'
  * @summary List team pages
  */
 export const listPagesParams = zod.object({
-  slug: zod.string().describe('Team URL slug'),
+  teamSlug: zod.string().describe('Team URL slug'),
 })
 
 export const listPagesResponseItem = zod
@@ -31,7 +31,7 @@ export const listPagesResponse = zod.array(listPagesResponseItem)
  * @summary Create page
  */
 export const createPageParams = zod.object({
-  slug: zod.string().describe('Team URL slug'),
+  teamSlug: zod.string().describe('Team URL slug'),
 })
 
 export const createPageBodyTitleMax = 100
@@ -186,7 +186,7 @@ export const createPageBody = zod
  * @summary Reorder pages
  */
 export const reorderPagesParams = zod.object({
-  slug: zod.string().describe('Team URL slug'),
+  teamSlug: zod.string().describe('Team URL slug'),
 })
 
 export const reorderPagesBody = zod
@@ -212,7 +212,7 @@ export const reorderPagesResponse = zod.array(reorderPagesResponseItem)
  */
 export const updatePageParams = zod.object({
   pageSlug: zod.string().describe('Page URL slug'),
-  slug: zod.string().describe('Team URL slug'),
+  teamSlug: zod.string().describe('Team URL slug'),
 })
 
 export const updatePageBodyTitleMax = 100
@@ -517,7 +517,7 @@ export const updatePageResponse = zod
  */
 export const getPageParams = zod.object({
   pageSlug: zod.string().describe('Page URL slug'),
-  slug: zod.string().describe('Team URL slug'),
+  teamSlug: zod.string().describe('Team URL slug'),
 })
 
 export const getPageResponse = zod
@@ -675,7 +675,7 @@ export const getPageResponse = zod
  */
 export const deletePageParams = zod.object({
   pageSlug: zod.string().describe('Page URL slug'),
-  slug: zod.string().describe('Team URL slug'),
+  teamSlug: zod.string().describe('Team URL slug'),
 })
 
 /**
@@ -684,7 +684,7 @@ export const deletePageParams = zod.object({
  */
 export const changePageSlugParams = zod.object({
   pageSlug: zod.string().describe('Current page URL slug'),
-  slug: zod.string().describe('Team URL slug'),
+  teamSlug: zod.string().describe('Team URL slug'),
 })
 
 export const changePageSlugBodySlugMax = 200

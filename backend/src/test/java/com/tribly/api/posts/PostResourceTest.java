@@ -4,7 +4,7 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
 import com.tribly.api.AbstractResourceTest;
-import com.tribly.dto.common.response.MediaDto;
+import com.tribly.dto.common.asset.MediaDto;
 import com.tribly.dto.posts.request.PostRequest;
 import com.tribly.enums.Status;
 import com.tribly.enums.Visibility;
@@ -45,66 +45,6 @@ class PostResourceTest extends AbstractResourceTest {
         .statusCode(201)
         .extract()
         .path("slug");
-  }
-
-  // ==================== List Posts Tests ====================
-
-  @Test
-  void listPosts_withoutAuth_shouldSucceed() {
-    given()
-        .when()
-        .get("/api/teams/" + team1Slug + "/posts")
-        .then()
-        .statusCode(200)
-        .body("posts", notNullValue())
-        .body("total", greaterThanOrEqualTo(0));
-  }
-
-  @Test
-  void listPosts_asMember_shouldSucceed() {
-    given()
-        .auth()
-        .oauth2(getAccessToken(USER3))
-        .when()
-        .get("/api/teams/" + team1Slug + "/posts")
-        .then()
-        .statusCode(200)
-        .body("posts", notNullValue());
-  }
-
-  @Test
-  void listPosts_asNonMember_shouldSucceed() {
-    given()
-        .auth()
-        .oauth2(getAccessToken(USER4))
-        .when()
-        .get("/api/teams/" + team1Slug + "/posts")
-        .then()
-        .statusCode(200)
-        .body("posts", notNullValue());
-  }
-
-  @Test
-  void listPosts_toNonexistentTeam_shouldReturn404() {
-    given()
-        .when()
-        .get("/api/teams/nonexistent-team/posts")
-        .then()
-        // empty list
-        .statusCode(404);
-  }
-
-  @Test
-  void listPosts_shouldSupportPagination() {
-    given()
-        .queryParam("page", 1)
-        .queryParam("size", 10)
-        .when()
-        .get("/api/teams/" + team1Slug + "/posts")
-        .then()
-        .statusCode(200)
-        .body("page", equalTo(1))
-        .body("size", equalTo(10));
   }
 
   // ==================== Create Post Tests ====================
@@ -244,7 +184,7 @@ class PostResourceTest extends AbstractResourceTest {
         .post("/api/teams/" + team1Slug + "/posts")
         .then()
         .statusCode(403)
-        .body("code", equalTo("USER_NOT_SYNCED"));
+        .body("code", equalTo("FORBIDDEN"));
   }
 
   // ==================== Get Post Tests ====================

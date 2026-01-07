@@ -1,100 +1,91 @@
 package com.tribly.service.place;
 
-import com.tribly.domain.common.repository.TriblyPage;
+import com.tribly.common.TsidUtils;
 import com.tribly.domain.place.Place;
-import com.tribly.domain.place.repository.PlaceRepository;
-import com.tribly.domain.team.Team;
-import com.tribly.domain.user.User;
 import com.tribly.dto.places.request.PlaceRequest;
 import com.tribly.dto.places.response.PlaceDetailDto;
 import com.tribly.dto.places.response.PlaceListResponse;
-import com.tribly.enums.AllEntityType;
+import com.tribly.enums.ActionType;
+import com.tribly.enums.EntityType;
 import com.tribly.infrastructure.exception.NotFoundException;
-import com.tribly.infrastructure.id.TsidUtils;
-import com.tribly.service.security.TeamSecurityService;
+import com.tribly.repository.common.TriblyPage;
+import com.tribly.repository.place.PlaceRepository;
+import com.tribly.service.security.TriblyQueryContext;
+import com.tribly.service.security.annotation.CheckAccess;
+import com.tribly.service.team.TeamService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import java.util.List;
-import org.jboss.logging.Logger;
-import org.jspecify.annotations.Nullable;
 
 @ApplicationScoped
 public class PlaceService {
 
-  private static final Logger LOG = Logger.getLogger(PlaceService.class);
-
   @Inject PlaceRepository placeRepository;
 
-  @Inject TeamSecurityService securityService;
+  @Inject TriblyQueryContext triblyContext;
 
-  public PlaceListResponse listPlaces(Team team, int page, int size, User user) {
-    securityService.requireOrganizer(user, team);
+  @Inject TeamService teamService;
 
-    TriblyPage<Place> places = placeRepository.findByTeam(team.getId(), page, size);
+  @CheckAccess(entityType = EntityType.PLACE, action = ActionType.LIST)
+  public PlaceListResponse listPlaces(String teamSlug, int page, int size) {
+    Long teamId = teamService.getTeam(teamSlug).getId();
+    TriblyPage<Place> places = placeRepository.findByTeam(teamId, page, size);
     List<PlaceDetailDto> dtos = places.items().stream().map(PlaceDetailDto::from).toList();
 
     return new PlaceListResponse(dtos, places.total(), page, size);
   }
 
-  public PlaceDetailDto getPlace(Team team, String placeId, @Nullable User user) {
-    securityService.requireOrganizer(user, team);
-
+  @CheckAccess(entityType = EntityType.PLACE, action = ActionType.READ)
+  public PlaceDetailDto getPlace(String teamSlug, String placeId) {
+    Long teamId = teamService.getTeam(teamSlug).getId();
     Place place =
         placeRepository
-            .findByIdAndTeam(TsidUtils.toLong(placeId), team.getId())
-            .orElseThrow(() -> new NotFoundException(AllEntityType.PLACE, placeId));
+            .findByIdAndTeam(TsidUtils.toLong(placeId), teamId)
+            .orElseThrow(() -> new NotFoundException(EntityType.PLACE, placeId));
 
     return PlaceDetailDto.from(place);
   }
 
+  @CheckAccess(entityType = EntityType.PLACE, action = ActionType.CREATE)
   @Transactional
-  public PlaceDetailDto createPlace(Team team, PlaceRequest request, User creator) {
-    // Security check: must be admin or organizer
-    securityService.requireOrganizer(creator, team);
-
-    Place place =
-        new Place(creator, team, request.name(), request.startPlace(), request.endPlace());
+  public PlaceDetailDto createPlace(String teamSlug, PlaceRequest request) {
+    var team = teamService.getTeam(teamSlug);
+    var user = triblyContext.getUser();
+    Place place = new Place(user, team, request.name(), request.startPlace(), request.endPlace());
     updatePlaceFromRequest(place, request);
 
     placeRepository.persistAndFlush(place);
-    LOG.infov(
-        "Place '{0}' created by user {1} for team {2}",
-        place.getName(), creator.getId(), team.getSlug());
 
     return PlaceDetailDto.from(place);
   }
 
+  @CheckAccess(entityType = EntityType.PLACE, action = ActionType.UPDATE)
   @Transactional
-  public PlaceDetailDto updatePlace(Team team, String placeId, PlaceRequest request, User user) {
-    // Security check: must be admin or organizer
-    securityService.requireOrganizer(user, team);
-
+  public PlaceDetailDto updatePlace(String teamSlug, String placeId, PlaceRequest request) {
+    Long teamId = teamService.getTeam(teamSlug).getId();
     Place place =
         placeRepository
-            .findByIdAndTeam(TsidUtils.toLong(placeId), team.getId())
-            .orElseThrow(() -> new NotFoundException(AllEntityType.PLACE, placeId));
+            .findByIdAndTeam(TsidUtils.toLong(placeId), teamId)
+            .orElseThrow(() -> new NotFoundException(EntityType.PLACE, placeId));
 
     updatePlaceFromRequest(place, request);
     placeRepository.persist(place);
 
-    LOG.infov("Place {0} updated by user {1}", placeId, user.getId());
     return PlaceDetailDto.from(place);
   }
 
+  @CheckAccess(entityType = EntityType.PLACE, action = ActionType.DELETE)
   @Transactional
-  public void deletePlace(Team team, String placeId, User user) {
-    // Security check: must be admin or organizer
-    securityService.requireOrganizer(user, team);
-
+  public void deletePlace(String teamSlug, String placeId) {
+    Long teamId = teamService.getTeam(teamSlug).getId();
     Place place =
         placeRepository
-            .findByIdAndTeam(TsidUtils.toLong(placeId), team.getId())
-            .orElseThrow(() -> new NotFoundException(AllEntityType.PLACE, placeId));
+            .findByIdAndTeam(TsidUtils.toLong(placeId), teamId)
+            .orElseThrow(() -> new NotFoundException(EntityType.PLACE, placeId));
 
     place.setDeleted(true);
     placeRepository.persist(place);
-    LOG.infov("Place {0} deleted by user {1}", placeId, user.getId());
   }
 
   private void updatePlaceFromRequest(Place place, PlaceRequest request) {

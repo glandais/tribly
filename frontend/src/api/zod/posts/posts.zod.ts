@@ -8,194 +8,11 @@
 import * as zod from 'zod'
 
 /**
- * Get paginated list of posts for a team with optional filtering
- * @summary List posts
- */
-export const listPostsParams = zod.object({
-  slug: zod.string().describe('Team URL slug'),
-})
-
-export const listPostsQueryPageDefault = 0
-export const listPostsQuerySizeDefault = 20
-
-export const listPostsQueryParams = zod.object({
-  from: zod.string().optional().describe('Start date filter (ISO format)'),
-  page: zod.number().optional().describe('Page number'),
-  search: zod.string().optional().describe('Search by name/description'),
-  size: zod.number().default(listPostsQuerySizeDefault).describe('Page size'),
-  to: zod.string().optional().describe('End date filter (ISO format)'),
-})
-
-export const listPostsResponse = zod
-  .object({
-    posts: zod
-      .array(
-        zod
-          .object({
-            type: zod.enum(['POST']),
-            team: zod
-              .object({
-                id: zod.string().describe('Team ID (TSID)'),
-                name: zod.string().describe('Team name'),
-                slug: zod.string().describe('Team URL slug'),
-                visibility: zod.enum(['TEAM', 'PUBLIC']),
-              })
-              .describe('Team information'),
-            id: zod.string().describe('Publication ID (TSID)'),
-            slug: zod.string().describe('Publication URL slug'),
-            name: zod.string().describe('Publication name'),
-            media: zod.object({
-              markdown: zod.string().describe('Markdown'),
-              assets: zod.object({
-                logo: zod
-                  .object({
-                    id: zod.string().describe('ID (TSID)'),
-                    fileName: zod.string().describe('Filename'),
-                    contentType: zod.string().describe('Content-Type'),
-                    url: zod.string().describe('url'),
-                    imageUrl: zod.string().optional().describe('image template url'),
-                    imageDimensions: zod
-                      .object({
-                        width: zod.number().optional(),
-                        height: zod.number().optional(),
-                      })
-                      .optional(),
-                  })
-                  .optional(),
-                images: zod
-                  .array(
-                    zod.object({
-                      id: zod.string().describe('ID (TSID)'),
-                      fileName: zod.string().describe('Filename'),
-                      contentType: zod.string().describe('Content-Type'),
-                      url: zod.string().describe('url'),
-                      imageUrl: zod.string().optional().describe('image template url'),
-                      imageDimensions: zod
-                        .object({
-                          width: zod.number().optional(),
-                          height: zod.number().optional(),
-                        })
-                        .optional(),
-                    })
-                  )
-                  .describe('Images'),
-                videos: zod
-                  .array(
-                    zod.object({
-                      id: zod.string().describe('ID (TSID)'),
-                      fileName: zod.string().describe('Filename'),
-                      contentType: zod.string().describe('Content-Type'),
-                      url: zod.string().describe('url'),
-                      imageUrl: zod.string().optional().describe('image template url'),
-                      imageDimensions: zod
-                        .object({
-                          width: zod.number().optional(),
-                          height: zod.number().optional(),
-                        })
-                        .optional(),
-                    })
-                  )
-                  .describe('Videos'),
-                attachments: zod
-                  .array(
-                    zod.object({
-                      id: zod.string().describe('ID (TSID)'),
-                      fileName: zod.string().describe('Filename'),
-                      contentType: zod.string().describe('Content-Type'),
-                      url: zod.string().describe('url'),
-                      imageUrl: zod.string().optional().describe('image template url'),
-                      imageDimensions: zod
-                        .object({
-                          width: zod.number().optional(),
-                          height: zod.number().optional(),
-                        })
-                        .optional(),
-                    })
-                  )
-                  .describe('Attachments'),
-                originalGpx: zod
-                  .object({
-                    id: zod.string().describe('ID (TSID)'),
-                    fileName: zod.string().describe('Filename'),
-                    contentType: zod.string().describe('Content-Type'),
-                    url: zod.string().describe('url'),
-                    imageUrl: zod.string().optional().describe('image template url'),
-                    imageDimensions: zod
-                      .object({
-                        width: zod.number().optional(),
-                        height: zod.number().optional(),
-                      })
-                      .optional(),
-                  })
-                  .optional(),
-                gpx: zod
-                  .object({
-                    id: zod.string().describe('ID (TSID)'),
-                    fileName: zod.string().describe('Filename'),
-                    contentType: zod.string().describe('Content-Type'),
-                    url: zod.string().describe('url'),
-                    imageUrl: zod.string().optional().describe('image template url'),
-                    imageDimensions: zod
-                      .object({
-                        width: zod.number().optional(),
-                        height: zod.number().optional(),
-                      })
-                      .optional(),
-                  })
-                  .optional(),
-                fit: zod
-                  .object({
-                    id: zod.string().describe('ID (TSID)'),
-                    fileName: zod.string().describe('Filename'),
-                    contentType: zod.string().describe('Content-Type'),
-                    url: zod.string().describe('url'),
-                    imageUrl: zod.string().optional().describe('image template url'),
-                    imageDimensions: zod
-                      .object({
-                        width: zod.number().optional(),
-                        height: zod.number().optional(),
-                      })
-                      .optional(),
-                  })
-                  .optional(),
-                thumbnail: zod
-                  .object({
-                    id: zod.string().describe('ID (TSID)'),
-                    fileName: zod.string().describe('Filename'),
-                    contentType: zod.string().describe('Content-Type'),
-                    url: zod.string().describe('url'),
-                    imageUrl: zod.string().optional().describe('image template url'),
-                    imageDimensions: zod
-                      .object({
-                        width: zod.number().optional(),
-                        height: zod.number().optional(),
-                      })
-                      .optional(),
-                  })
-                  .optional(),
-              }),
-            }),
-            dateTime: zod.iso.datetime({}),
-            status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']),
-            visibility: zod.enum(['TEAM', 'PUBLIC']),
-            publishAt: zod.iso.datetime({}).optional(),
-            createdAt: zod.iso.datetime({}).optional(),
-          })
-          .describe('Post summary data')
-      )
-      .describe('List of posts'),
-    total: zod.number().describe('Total number of posts'),
-    page: zod.number().describe('Current page number'),
-    size: zod.number().describe('Page size'),
-  })
-  .describe('Paginated post list response')
-
-/**
  * Create a new post with optional groups
  * @summary Create post
  */
 export const createPostParams = zod.object({
-  slug: zod.string().describe('Team URL slug'),
+  teamSlug: zod.string().describe('Team URL slug'),
 })
 
 export const createPostBodyNameMax = 200
@@ -354,7 +171,7 @@ export const createPostBody = zod
  */
 export const updatePostParams = zod.object({
   postSlug: zod.string().describe('Post URL slug'),
-  slug: zod.string().describe('Team URL slug'),
+  teamSlug: zod.string().describe('Team URL slug'),
 })
 
 export const updatePostBodyNameMax = 200
@@ -666,7 +483,7 @@ export const updatePostResponse = zod
  */
 export const getPostParams = zod.object({
   postSlug: zod.string().describe('Post URL slug'),
-  slug: zod.string().describe('Team URL slug'),
+  teamSlug: zod.string().describe('Team URL slug'),
 })
 
 export const getPostResponse = zod
@@ -828,7 +645,7 @@ export const getPostResponse = zod
  */
 export const deletePostParams = zod.object({
   postSlug: zod.string().describe('Post URL slug'),
-  slug: zod.string().describe('Team URL slug'),
+  teamSlug: zod.string().describe('Team URL slug'),
 })
 
 /**
@@ -837,7 +654,7 @@ export const deletePostParams = zod.object({
  */
 export const changePostSlugParams = zod.object({
   postSlug: zod.string().describe('Current post URL slug'),
-  slug: zod.string().describe('Team URL slug'),
+  teamSlug: zod.string().describe('Team URL slug'),
 })
 
 export const changePostSlugBodySlugMax = 200

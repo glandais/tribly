@@ -182,7 +182,7 @@ export const listTeamsResponse = zod
             enableTrips: zod.boolean().describe('Trips enabled'),
             enableAds: zod.boolean().describe('Ads enabled'),
             memberCount: zod.number().describe('Number of team members'),
-            role: zod.enum(['ADMIN', 'ORGANIZER', 'MEMBER']).optional(),
+            role: zod.enum(['MEMBER', 'ORGANIZER', 'ADMIN']).optional(),
             createdAt: zod.iso.datetime({}),
           })
           .describe('Detailed team information')
@@ -352,7 +352,7 @@ export const createTeamBody = zod
  * @summary Update team
  */
 export const updateTeamParams = zod.object({
-  slug: zod.string().describe('Team URL slug'),
+  teamSlug: zod.string().describe('Team URL slug'),
 })
 
 export const updateTeamBodyNameMax = 200
@@ -658,7 +658,7 @@ export const updateTeamResponse = zod
     enableTrips: zod.boolean().describe('Trips enabled'),
     enableAds: zod.boolean().describe('Ads enabled'),
     memberCount: zod.number().describe('Number of team members'),
-    role: zod.enum(['ADMIN', 'ORGANIZER', 'MEMBER']).optional(),
+    role: zod.enum(['MEMBER', 'ORGANIZER', 'ADMIN']).optional(),
     createdAt: zod.iso.datetime({}),
   })
   .describe('Detailed team information')
@@ -668,7 +668,7 @@ export const updateTeamResponse = zod
  * @summary Get team by slug
  */
 export const getTeamParams = zod.object({
-  slug: zod.string().describe('Team URL slug'),
+  teamSlug: zod.string().describe('Team URL slug'),
 })
 
 export const getTeamResponse = zod
@@ -825,7 +825,7 @@ export const getTeamResponse = zod
     enableTrips: zod.boolean().describe('Trips enabled'),
     enableAds: zod.boolean().describe('Ads enabled'),
     memberCount: zod.number().describe('Number of team members'),
-    role: zod.enum(['ADMIN', 'ORGANIZER', 'MEMBER']).optional(),
+    role: zod.enum(['MEMBER', 'ORGANIZER', 'ADMIN']).optional(),
     createdAt: zod.iso.datetime({}),
   })
   .describe('Detailed team information')
@@ -835,7 +835,7 @@ export const getTeamResponse = zod
  * @summary Delete team
  */
 export const deleteTeamParams = zod.object({
-  slug: zod.string().describe('Team URL slug'),
+  teamSlug: zod.string().describe('Team URL slug'),
 })
 
 /**
@@ -843,7 +843,7 @@ export const deleteTeamParams = zod.object({
  * @summary Change team slug
  */
 export const changeTeamSlugParams = zod.object({
-  slug: zod.string().describe('Current team URL slug'),
+  teamSlug: zod.string().describe('Current team URL slug'),
 })
 
 export const changeTeamSlugBodySlugMax = 200
@@ -1014,7 +1014,7 @@ export const changeTeamSlugResponse = zod
     enableTrips: zod.boolean().describe('Trips enabled'),
     enableAds: zod.boolean().describe('Ads enabled'),
     memberCount: zod.number().describe('Number of team members'),
-    role: zod.enum(['ADMIN', 'ORGANIZER', 'MEMBER']).optional(),
+    role: zod.enum(['MEMBER', 'ORGANIZER', 'ADMIN']).optional(),
     createdAt: zod.iso.datetime({}),
   })
   .describe('Detailed team information')

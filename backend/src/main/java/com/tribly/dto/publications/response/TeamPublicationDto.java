@@ -1,9 +1,9 @@
 package com.tribly.dto.publications.response;
 
+import com.tribly.common.TsidUtils;
 import com.tribly.domain.team.Team;
 import com.tribly.dto.validation.ValidateSchema;
 import com.tribly.enums.Visibility;
-import com.tribly.infrastructure.id.TsidUtils;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 
 @Schema(description = "Team information")

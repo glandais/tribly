@@ -8,262 +8,11 @@
 import * as zod from 'zod'
 
 /**
- * Get paginated list of rides for a team with optional filtering
- * @summary List rides
- */
-export const listRidesParams = zod.object({
-  slug: zod.string().describe('Team URL slug'),
-})
-
-export const listRidesQueryPageDefault = 0
-export const listRidesQuerySizeDefault = 20
-
-export const listRidesQueryParams = zod.object({
-  from: zod.string().optional().describe('Start date filter (ISO format)'),
-  page: zod.number().optional().describe('Page number'),
-  search: zod.string().optional().describe('Search by name/markdown'),
-  size: zod.number().default(listRidesQuerySizeDefault).describe('Page size'),
-  to: zod.string().optional().describe('End date filter (ISO format)'),
-})
-
-export const listRidesResponse = zod
-  .object({
-    rides: zod
-      .array(
-        zod
-          .object({
-            type: zod.enum(['RIDE']),
-            team: zod
-              .object({
-                id: zod.string().describe('Team ID (TSID)'),
-                name: zod.string().describe('Team name'),
-                slug: zod.string().describe('Team URL slug'),
-                visibility: zod.enum(['TEAM', 'PUBLIC']),
-              })
-              .describe('Team information'),
-            id: zod.string().describe('Publication ID (TSID)'),
-            slug: zod.string().describe('Publication URL slug'),
-            name: zod.string().describe('Publication name'),
-            media: zod.object({
-              markdown: zod.string().describe('Markdown'),
-              assets: zod.object({
-                logo: zod
-                  .object({
-                    id: zod.string().describe('ID (TSID)'),
-                    fileName: zod.string().describe('Filename'),
-                    contentType: zod.string().describe('Content-Type'),
-                    url: zod.string().describe('url'),
-                    imageUrl: zod.string().optional().describe('image template url'),
-                    imageDimensions: zod
-                      .object({
-                        width: zod.number().optional(),
-                        height: zod.number().optional(),
-                      })
-                      .optional(),
-                  })
-                  .optional(),
-                images: zod
-                  .array(
-                    zod.object({
-                      id: zod.string().describe('ID (TSID)'),
-                      fileName: zod.string().describe('Filename'),
-                      contentType: zod.string().describe('Content-Type'),
-                      url: zod.string().describe('url'),
-                      imageUrl: zod.string().optional().describe('image template url'),
-                      imageDimensions: zod
-                        .object({
-                          width: zod.number().optional(),
-                          height: zod.number().optional(),
-                        })
-                        .optional(),
-                    })
-                  )
-                  .describe('Images'),
-                videos: zod
-                  .array(
-                    zod.object({
-                      id: zod.string().describe('ID (TSID)'),
-                      fileName: zod.string().describe('Filename'),
-                      contentType: zod.string().describe('Content-Type'),
-                      url: zod.string().describe('url'),
-                      imageUrl: zod.string().optional().describe('image template url'),
-                      imageDimensions: zod
-                        .object({
-                          width: zod.number().optional(),
-                          height: zod.number().optional(),
-                        })
-                        .optional(),
-                    })
-                  )
-                  .describe('Videos'),
-                attachments: zod
-                  .array(
-                    zod.object({
-                      id: zod.string().describe('ID (TSID)'),
-                      fileName: zod.string().describe('Filename'),
-                      contentType: zod.string().describe('Content-Type'),
-                      url: zod.string().describe('url'),
-                      imageUrl: zod.string().optional().describe('image template url'),
-                      imageDimensions: zod
-                        .object({
-                          width: zod.number().optional(),
-                          height: zod.number().optional(),
-                        })
-                        .optional(),
-                    })
-                  )
-                  .describe('Attachments'),
-                originalGpx: zod
-                  .object({
-                    id: zod.string().describe('ID (TSID)'),
-                    fileName: zod.string().describe('Filename'),
-                    contentType: zod.string().describe('Content-Type'),
-                    url: zod.string().describe('url'),
-                    imageUrl: zod.string().optional().describe('image template url'),
-                    imageDimensions: zod
-                      .object({
-                        width: zod.number().optional(),
-                        height: zod.number().optional(),
-                      })
-                      .optional(),
-                  })
-                  .optional(),
-                gpx: zod
-                  .object({
-                    id: zod.string().describe('ID (TSID)'),
-                    fileName: zod.string().describe('Filename'),
-                    contentType: zod.string().describe('Content-Type'),
-                    url: zod.string().describe('url'),
-                    imageUrl: zod.string().optional().describe('image template url'),
-                    imageDimensions: zod
-                      .object({
-                        width: zod.number().optional(),
-                        height: zod.number().optional(),
-                      })
-                      .optional(),
-                  })
-                  .optional(),
-                fit: zod
-                  .object({
-                    id: zod.string().describe('ID (TSID)'),
-                    fileName: zod.string().describe('Filename'),
-                    contentType: zod.string().describe('Content-Type'),
-                    url: zod.string().describe('url'),
-                    imageUrl: zod.string().optional().describe('image template url'),
-                    imageDimensions: zod
-                      .object({
-                        width: zod.number().optional(),
-                        height: zod.number().optional(),
-                      })
-                      .optional(),
-                  })
-                  .optional(),
-                thumbnail: zod
-                  .object({
-                    id: zod.string().describe('ID (TSID)'),
-                    fileName: zod.string().describe('Filename'),
-                    contentType: zod.string().describe('Content-Type'),
-                    url: zod.string().describe('url'),
-                    imageUrl: zod.string().optional().describe('image template url'),
-                    imageDimensions: zod
-                      .object({
-                        width: zod.number().optional(),
-                        height: zod.number().optional(),
-                      })
-                      .optional(),
-                  })
-                  .optional(),
-              }),
-            }),
-            dateTime: zod.iso.datetime({}),
-            status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']),
-            visibility: zod.enum(['TEAM', 'PUBLIC']),
-            publishAt: zod.iso.datetime({}).optional(),
-            createdAt: zod.iso.datetime({}).optional(),
-            routeSlug: zod.string().optional().describe('Route slug'),
-            participantCount: zod.number().describe('Number of participants'),
-            groupCount: zod.number().describe('Number of groups'),
-            groups: zod
-              .array(
-                zod
-                  .object({
-                    id: zod.string().describe('Group ID (TSID)'),
-                    name: zod.string().describe('Group name'),
-                    time: zod.string().optional(),
-                    routeSlug: zod.string().optional().describe('Route slug'),
-                    averageSpeed: zod.number().optional().describe('Average speed in km/h'),
-                    maxParticipants: zod.number().optional().describe('Maximum participants'),
-                    countParticipants: zod.number().describe('Current number of participants'),
-                    participants: zod
-                      .array(
-                        zod
-                          .object({
-                            id: zod.string().describe('User ID (TSID)'),
-                            displayName: zod.string().describe('User display name'),
-                            avatarUrl: zod.string().optional().describe('User avatar URL'),
-                          })
-                          .describe('Public user information (limited fields)')
-                      )
-                      .describe('Participants, empty if not access'),
-                    sortOrder: zod.number().describe('Sort order'),
-                  })
-                  .describe('Ride group information')
-              )
-              .describe('Ride groups'),
-            startPlace: zod
-              .object({
-                id: zod.string().describe('Place ID (TSID)'),
-                name: zod.string(),
-                address: zod.string().optional(),
-                link: zod.string().optional(),
-                startPlace: zod.boolean(),
-                endPlace: zod.boolean(),
-                geometry: zod
-                  .object({
-                    type: zod.enum(['Point']),
-                    coordinates: zod
-                      .array(zod.number())
-                      .describe('Coordinates [longitude, latitude]'),
-                  })
-                  .optional()
-                  .describe('GeoJSON Point geometry'),
-              })
-              .optional(),
-            endPlace: zod
-              .object({
-                id: zod.string().describe('Place ID (TSID)'),
-                name: zod.string(),
-                address: zod.string().optional(),
-                link: zod.string().optional(),
-                startPlace: zod.boolean(),
-                endPlace: zod.boolean(),
-                geometry: zod
-                  .object({
-                    type: zod.enum(['Point']),
-                    coordinates: zod
-                      .array(zod.number())
-                      .describe('Coordinates [longitude, latitude]'),
-                  })
-                  .optional()
-                  .describe('GeoJSON Point geometry'),
-              })
-              .optional(),
-          })
-          .describe('Ride summary data')
-      )
-      .describe('List of rides'),
-    total: zod.number().describe('Total number of rides'),
-    page: zod.number().describe('Current page number'),
-    size: zod.number().describe('Page size'),
-  })
-  .describe('Paginated ride list response')
-
-/**
  * Create a new ride with optional groups
  * @summary Create ride
  */
 export const createRideParams = zod.object({
-  slug: zod.string().describe('Team URL slug'),
+  teamSlug: zod.string().describe('Team URL slug'),
 })
 
 export const createRideBodyNameMin = 3
@@ -448,7 +197,7 @@ export const createRideBody = zod
  */
 export const updateRideParams = zod.object({
   rideSlug: zod.string().describe('Ride URL slug'),
-  slug: zod.string().describe('Team URL slug'),
+  teamSlug: zod.string().describe('Team URL slug'),
 })
 
 export const updateRideBodyNameMin = 3
@@ -850,7 +599,7 @@ export const updateRideResponse = zod
  */
 export const getRideParams = zod.object({
   rideSlug: zod.string().describe('Ride URL slug'),
-  slug: zod.string().describe('Team URL slug'),
+  teamSlug: zod.string().describe('Team URL slug'),
 })
 
 export const getRideResponse = zod
@@ -1076,7 +825,7 @@ export const getRideResponse = zod
  */
 export const deleteRideParams = zod.object({
   rideSlug: zod.string().describe('Ride URL slug'),
-  slug: zod.string().describe('Team URL slug'),
+  teamSlug: zod.string().describe('Team URL slug'),
 })
 
 /**
@@ -1086,7 +835,7 @@ export const deleteRideParams = zod.object({
 export const joinGroupParams = zod.object({
   groupId: zod.string().describe('Group ID (TSID)'),
   rideSlug: zod.string().describe('Ride URL slug'),
-  slug: zod.string().describe('Team URL slug'),
+  teamSlug: zod.string().describe('Team URL slug'),
 })
 
 /**
@@ -1096,7 +845,7 @@ export const joinGroupParams = zod.object({
 export const leaveGroupParams = zod.object({
   groupId: zod.string().describe('Group ID (TSID)'),
   rideSlug: zod.string().describe('Ride URL slug'),
-  slug: zod.string().describe('Team URL slug'),
+  teamSlug: zod.string().describe('Team URL slug'),
 })
 
 /**
@@ -1105,7 +854,7 @@ export const leaveGroupParams = zod.object({
  */
 export const changeRideSlugParams = zod.object({
   rideSlug: zod.string().describe('Current ride URL slug'),
-  slug: zod.string().describe('Team URL slug'),
+  teamSlug: zod.string().describe('Team URL slug'),
 })
 
 export const changeRideSlugBodySlugMax = 200

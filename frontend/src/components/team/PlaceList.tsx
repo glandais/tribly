@@ -41,7 +41,7 @@ export function PlaceList({ teamSlug, canManage }: PlaceListProps) {
 
   const handleDelete = (placeId: string) => {
     deleteMutation.mutate(
-      { slug: teamSlug, placeId },
+      { teamSlug: teamSlug, placeId },
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getListPlacesQueryKey(teamSlug) })

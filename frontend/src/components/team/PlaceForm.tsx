@@ -52,7 +52,7 @@ export function PlaceForm({ teamSlug, place, onClose }: PlaceFormProps) {
 
     if (isEditing && place) {
       updateMutation.mutate(
-        { slug: teamSlug, placeId: place.id, data },
+        { teamSlug: teamSlug, placeId: place.id, data },
         {
           onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: getListPlacesQueryKey(teamSlug) })
@@ -64,7 +64,7 @@ export function PlaceForm({ teamSlug, place, onClose }: PlaceFormProps) {
       )
     } else {
       createMutation.mutate(
-        { slug: teamSlug, data },
+        { teamSlug: teamSlug, data },
         {
           onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: getListPlacesQueryKey(teamSlug) })

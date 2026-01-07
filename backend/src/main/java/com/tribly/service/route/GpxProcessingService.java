@@ -4,20 +4,21 @@ import static org.geolatte.geom.builder.DSL.*;
 import static org.geolatte.geom.crs.CoordinateReferenceSystems.WGS84;
 
 import com.tribly.common.GeoPoint;
+import com.tribly.common.exception.BusinessException;
 import com.tribly.domain.asset.Asset;
 import com.tribly.domain.route.GpxTrack;
 import com.tribly.domain.route.GpxWaypoint;
 import com.tribly.domain.route.Route;
 import com.tribly.domain.user.User;
 import com.tribly.dto.error.ErrorCode;
-import com.tribly.enums.AllEntityType;
 import com.tribly.enums.AssetType;
+import com.tribly.enums.EntityType;
 import com.tribly.enums.WindDirection;
-import com.tribly.infrastructure.exception.BusinessException;
 import com.tribly.infrastructure.exception.NotFoundException;
 import com.tribly.service.asset.AssetService;
 import com.tribly.service.asset.response.AssetWithFile;
 import com.tribly.service.route.response.TrackMetadata;
+import com.tribly.service.security.TriblyQueryContext;
 import io.github.glandais.gpx.climb.Climb;
 import io.github.glandais.gpx.climb.ClimbDetector;
 import io.github.glandais.gpx.data.*;
@@ -75,6 +76,8 @@ public class GpxProcessingService {
 
   @Inject AssetService assetService;
 
+  @Inject TriblyQueryContext triblyContext;
+
   @ConfigProperty(name = "mapbox.api.key")
   private String mapboxApiKey;
 
@@ -106,7 +109,8 @@ public class GpxProcessingService {
   }
 
   @Transactional
-  public TrackMetadata createTracks(User creator, Route route, GPX gpx) {
+  public TrackMetadata createTracks(Route route, GPX gpx) {
+    User creator = triblyContext.getUser();
     Long routeId = route.getId();
     try {
       if (gpx.paths().isEmpty()) {
@@ -114,8 +118,7 @@ public class GpxProcessingService {
       }
 
       // Save original GPX (parsed, before filtering)
-      AssetWithFile gpxAssetFile =
-          createAsset(creator, route, AssetType.ROUTE_ORIGINAL_GPX, "original.gpx");
+      AssetWithFile gpxAssetFile = createAsset(route, AssetType.ROUTE_ORIGINAL_GPX, "original.gpx");
       File originalFile = gpxAssetFile.file();
       gpxFileWriter.writeGPX(gpx, originalFile, false);
       LOG.infov("Saved original GPX to {0}", originalFile);
@@ -181,20 +184,20 @@ public class GpxProcessingService {
 
       // Save filtered GPX
       AssetWithFile filteredAssetFile =
-          createAsset(creator, route, AssetType.ROUTE_FILTERED_GPX, "filtered.gpx");
+          createAsset(route, AssetType.ROUTE_FILTERED_GPX, "filtered.gpx");
       File filteredFile = filteredAssetFile.file();
       gpxFileWriter.writeGPX(gpx, filteredFile, true);
       LOG.infov("Saved filtered GPX to {0}", filteredFile);
 
       // Save FIT file
-      AssetWithFile fitAssetFile = createAsset(creator, route, AssetType.ROUTE_FIT, "route.fit");
+      AssetWithFile fitAssetFile = createAsset(route, AssetType.ROUTE_FIT, "route.fit");
       File fitFile = fitAssetFile.file();
       fitFileWriter.writeGPX(gpx, fitFile);
       LOG.infov("Saved FIT file to {0}", fitFile);
 
       // Generate thumbnail map
       AssetWithFile thumbnailAssetFile =
-          createAsset(creator, route, AssetType.ROUTE_THUMBNAIL, "thumbnail.png");
+          createAsset(route, AssetType.ROUTE_THUMBNAIL, "thumbnail.png");
       File thumbnailFile = thumbnailAssetFile.file();
       try {
         // Use OpenStreetMap tiles, 512x512 max size, 0.1 margin
@@ -250,13 +253,13 @@ public class GpxProcessingService {
 
   record WindScore(WindDirection wd, double score) {}
 
-  private AssetWithFile createAsset(User user, Route route, AssetType assetType, String fileName)
+  private AssetWithFile createAsset(Route route, AssetType assetType, String fileName)
       throws IOException {
     Asset existingAsset = getAsset(route, assetType);
     if (existingAsset != null) {
       route.getAssets().remove(existingAsset);
     }
-    AssetWithFile assetFile = assetService.addAsset(user, route, assetType, fileName);
+    AssetWithFile assetFile = assetService.addAsset(route, assetType, fileName);
     route.getAssets().add(assetFile.asset());
     return assetFile;
   }
@@ -349,7 +352,7 @@ public class GpxProcessingService {
     if (matching != null) {
       return assetService.getAssetFile(matching);
     } else {
-      throw new NotFoundException(AllEntityType.ASSET, "forRoute-" + route.getId());
+      throw new NotFoundException(EntityType.ASSET, "forRoute-" + route.getId());
     }
   }
 

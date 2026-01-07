@@ -2,18 +2,20 @@ package com.tribly.service.route;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.tribly.common.exception.TriblyException;
 import com.tribly.domain.route.Route;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
-import com.tribly.dto.common.response.MediaDto;
+import com.tribly.dto.common.asset.MediaDto;
 import com.tribly.dto.routes.request.RouteRequest;
+import com.tribly.dto.routes.request.RouteSearchParams;
 import com.tribly.dto.routes.response.RouteDetailDto;
 import com.tribly.dto.routes.response.RouteDto;
 import com.tribly.dto.routes.response.RouteListResponse;
 import com.tribly.enums.SurfaceType;
 import com.tribly.enums.TeamRole;
 import com.tribly.enums.Visibility;
-import com.tribly.infrastructure.exception.TriblyException;
+import com.tribly.service.security.TriblyQueryContext;
 import com.tribly.util.TestDataCleaner;
 import com.tribly.util.TestDataService;
 import io.quarkus.test.junit.QuarkusTest;
@@ -32,11 +34,13 @@ class RouteServiceTest {
   @Inject GpxProcessingService gpxProcessingService;
   @Inject TestDataService dataService;
   @Inject TestDataCleaner dataCleaner;
+  @Inject TriblyQueryContext queryContext;
 
   private Team team;
   private User admin;
   private User organizer;
   private User member;
+  private User user2;
   private RouteDto createdRoute;
 
   @BeforeEach
@@ -46,9 +50,9 @@ class RouteServiceTest {
     team = dataService.createTeam(admin, "Test Team", "test-team", Visibility.PUBLIC);
     organizer = dataService.createUser("organizer@example.com", "Organizer");
     member = dataService.createUser("member@example.com", "Member");
-    dataService.addUserToTeam(admin, team, TeamRole.ADMIN);
     dataService.addUserToTeam(organizer, team, TeamRole.ORGANIZER);
     dataService.addUserToTeam(member, team, TeamRole.MEMBER);
+    user2 = dataService.createUser("user2@example.com", "user2");
   }
 
   @AfterEach
@@ -76,7 +80,8 @@ class RouteServiceTest {
             Visibility.PUBLIC,
             List.of());
 
-    createdRoute = routeService.createRoute(team, request, gpxPath, organizer);
+    queryContext.setContext(organizer);
+    createdRoute = routeService.createRoute(team.getSlug(), request, gpxPath);
 
     assertNotNull(createdRoute);
     assertEquals("Test Route", createdRoute.name());
@@ -102,8 +107,9 @@ class RouteServiceTest {
         new RouteRequest(
             "Test", MediaDto.builder().build(), SurfaceType.GRAVEL, Visibility.PUBLIC, List.of());
 
+    queryContext.setContext(member);
     assertThrows(
-        TriblyException.class, () -> routeService.createRoute(team, request, gpxPath, member));
+        TriblyException.class, () -> routeService.createRoute(team.getSlug(), request, gpxPath));
   }
 
   // ==================== Get Route ====================
@@ -112,7 +118,8 @@ class RouteServiceTest {
   void getRoute_shouldReturnRouteForMember() {
     Route route = dataService.createRoute(team, admin, "Public Route", Visibility.PUBLIC);
 
-    RouteDetailDto result = routeService.getDto(team, route.getSlug(), member);
+    queryContext.setContext(member);
+    RouteDetailDto result = routeService.getDto(team.getSlug(), route.getSlug());
 
     assertNotNull(result);
     assertEquals("Public Route", result.name());
@@ -122,7 +129,8 @@ class RouteServiceTest {
   void getRoute_shouldReturnRouteForNonMemberIfPublic() {
     Route route = dataService.createRoute(team, admin, "Public Route", Visibility.PUBLIC);
 
-    RouteDetailDto result = routeService.getDto(team, route.getSlug(), null);
+    queryContext.setContext(null);
+    RouteDetailDto result = routeService.getDto(team.getSlug(), route.getSlug());
 
     assertNotNull(result);
     assertEquals("Public Route", result.name());
@@ -132,12 +140,14 @@ class RouteServiceTest {
   void getRoute_shouldHideTeamRouteFromNonMembers() {
     Route route = dataService.createRoute(team, admin, "Team Route", Visibility.TEAM);
 
-    assertThrows(TriblyException.class, () -> routeService.getDto(team, route.getSlug(), null));
+    queryContext.setContext(null);
+    assertThrows(TriblyException.class, () -> routeService.getDto(team.getSlug(), route.getSlug()));
   }
 
   @Test
   void getRoute_shouldThrowForNonexistentRoute() {
-    assertThrows(TriblyException.class, () -> routeService.getDto(team, "missing", admin));
+    queryContext.setContext(admin);
+    assertThrows(TriblyException.class, () -> routeService.getDto(team.getSlug(), "missing"));
   }
 
   // ==================== Get Route Detail ====================
@@ -146,7 +156,8 @@ class RouteServiceTest {
   void getRouteDetail_shouldReturnRouteWithTrackForMember() {
     Route route = dataService.createRoute(team, admin, "Detailed Route", Visibility.PUBLIC);
 
-    RouteDetailDto result = routeService.getDto(team, route.getSlug(), member);
+    queryContext.setContext(member);
+    RouteDetailDto result = routeService.getDto(team.getSlug(), route.getSlug());
 
     assertNotNull(result);
     assertEquals("Detailed Route", result.name());
@@ -157,7 +168,8 @@ class RouteServiceTest {
   void getRouteDetail_shouldReturnRouteForNonMemberIfPublic() {
     Route route = dataService.createRoute(team, admin, "Public Route Detail", Visibility.PUBLIC);
 
-    RouteDetailDto result = routeService.getDto(team, route.getSlug(), null);
+    queryContext.setContext(null);
+    RouteDetailDto result = routeService.getDto(team.getSlug(), route.getSlug());
 
     assertNotNull(result);
     assertEquals("Public Route Detail", result.name());
@@ -167,12 +179,14 @@ class RouteServiceTest {
   void getRouteDetail_shouldHideTeamRouteFromNonMembers() {
     Route route = dataService.createRoute(team, admin, "Team Route Detail", Visibility.TEAM);
 
-    assertThrows(TriblyException.class, () -> routeService.getDto(team, route.getSlug(), null));
+    queryContext.setContext(null);
+    assertThrows(TriblyException.class, () -> routeService.getDto(team.getSlug(), route.getSlug()));
   }
 
   @Test
   void getRouteDetail_shouldThrowForNonexistentRoute() {
-    assertThrows(TriblyException.class, () -> routeService.getDto(team, "missing", admin));
+    queryContext.setContext(admin);
+    assertThrows(TriblyException.class, () -> routeService.getDto(team.getSlug(), "missing"));
   }
 
   // ==================== List Routes ====================
@@ -183,8 +197,10 @@ class RouteServiceTest {
     dataService.createRoute(team, admin, "Public 2", Visibility.PUBLIC);
     dataService.createRoute(team, admin, "Team Only", Visibility.TEAM);
 
+    queryContext.setContext(null);
     RouteListResponse result =
-        routeService.getRoutes(team, null, RouteSearchParams.builder().page(0).size(10).build());
+        routeService.getRoutes(
+            team.getSlug(), RouteSearchParams.builder().page(0).size(10).build());
 
     assertEquals(2, result.routes().size());
     assertTrue(result.routes().stream().allMatch(r -> r.visibility() == Visibility.PUBLIC));
@@ -195,8 +211,10 @@ class RouteServiceTest {
     dataService.createRoute(team, admin, "Public", Visibility.PUBLIC);
     dataService.createRoute(team, admin, "Team", Visibility.TEAM);
 
+    queryContext.setContext(member);
     RouteListResponse result =
-        routeService.getRoutes(team, member, RouteSearchParams.builder().page(0).size(10).build());
+        routeService.getRoutes(
+            team.getSlug(), RouteSearchParams.builder().page(0).size(10).build());
 
     assertEquals(2, result.routes().size());
   }
@@ -207,8 +225,9 @@ class RouteServiceTest {
       dataService.createRoute(team, admin, "Route " + i, Visibility.PUBLIC);
     }
 
+    queryContext.setContext(null);
     RouteListResponse result =
-        routeService.getRoutes(team, null, RouteSearchParams.builder().page(0).size(3).build());
+        routeService.getRoutes(team.getSlug(), RouteSearchParams.builder().page(0).size(3).build());
 
     assertEquals(3, result.routes().size());
     assertEquals(5, result.total());
@@ -217,12 +236,13 @@ class RouteServiceTest {
   @Test
   void getRoutes_shouldThrowForNonMemberOfPrivateTeam() {
     Team privateTeam =
-        dataService.createTeam(admin, "Private Team", "private-team", Visibility.TEAM);
-    dataService.createRoute(privateTeam, admin, "Route");
+        dataService.createTeam(user2, "Private Team", "private-team", Visibility.TEAM);
+    dataService.createRoute(privateTeam, user2, "Route");
 
+    queryContext.setContext(null);
     RouteListResponse routes =
         routeService.getRoutes(
-            privateTeam, null, RouteSearchParams.builder().page(0).size(10).build());
+            privateTeam.getSlug(), RouteSearchParams.builder().page(0).size(10).build());
 
     assertEquals(0, routes.routes().size());
     assertEquals(0, routes.total());
@@ -241,7 +261,8 @@ class RouteServiceTest {
             Visibility.TEAM,
             List.of());
 
-    RouteDto result = routeService.updateRoute(team, route.getSlug(), request, null, organizer);
+    queryContext.setContext(organizer);
+    RouteDto result = routeService.updateRoute(team.getSlug(), route.getSlug(), request, null);
 
     assertEquals("Updated Name", result.name());
     assertEquals("Updated description", result.media().markdown());
@@ -256,7 +277,8 @@ class RouteServiceTest {
         new RouteRequest(
             "New Name", MediaDto.builder().build(), SurfaceType.ROAD, Visibility.TEAM, List.of());
 
-    RouteDto result = routeService.updateRoute(team, route.getSlug(), request, null, organizer);
+    queryContext.setContext(organizer);
+    RouteDto result = routeService.updateRoute(team.getSlug(), route.getSlug(), request, null);
 
     assertEquals("New Name", result.name());
   }
@@ -272,7 +294,8 @@ class RouteServiceTest {
             Visibility.PUBLIC,
             List.of());
 
-    RouteDto result = routeService.updateRoute(team, route.getSlug(), request, null, organizer);
+    queryContext.setContext(organizer);
+    RouteDto result = routeService.updateRoute(team.getSlug(), route.getSlug(), request, null);
 
     assertEquals("New name 2", result.name());
     assertEquals("New description", result.media().markdown());
@@ -285,9 +308,10 @@ class RouteServiceTest {
     RouteRequest request =
         new RouteRequest("New", MediaDto.builder().build(), null, null, List.of());
 
+    queryContext.setContext(member);
     assertThrows(
         TriblyException.class,
-        () -> routeService.updateRoute(team, route.getSlug(), request, null, member));
+        () -> routeService.updateRoute(team.getSlug(), route.getSlug(), request, null));
   }
 
   @Test
@@ -302,7 +326,8 @@ class RouteServiceTest {
             Visibility.PUBLIC,
             List.of());
 
-    createdRoute = routeService.createRoute(team, createRequest, initialGpx, organizer);
+    queryContext.setContext(organizer);
+    createdRoute = routeService.createRoute(team.getSlug(), createRequest, initialGpx);
 
     int originalDistance = createdRoute.distance();
 
@@ -316,8 +341,9 @@ class RouteServiceTest {
             Visibility.TEAM,
             List.of());
 
+    queryContext.setContext(organizer);
     RouteDto updated =
-        routeService.updateRoute(team, createdRoute.slug(), updateRequest, newGpx, organizer);
+        routeService.updateRoute(team.getSlug(), createdRoute.slug(), updateRequest, newGpx);
 
     assertEquals("Updated Route", updated.name());
     assertEquals("Updated", updated.media().markdown());
@@ -335,12 +361,15 @@ class RouteServiceTest {
         new RouteRequest(
             "To Delete", MediaDto.builder().build(), null, Visibility.PUBLIC, List.of());
 
-    createdRoute = routeService.createRoute(team, request, gpxPath, admin);
+    queryContext.setContext(admin);
+    createdRoute = routeService.createRoute(team.getSlug(), request, gpxPath);
     String routeSlug = getCreatedRouteSlug();
 
-    routeService.deleteRoute(team, routeSlug, admin);
+    queryContext.setContext(admin);
+    routeService.deleteRoute(team.getSlug(), routeSlug);
 
-    assertThrows(TriblyException.class, () -> routeService.getDto(team, routeSlug, admin));
+    queryContext.setContext(admin);
+    assertThrows(TriblyException.class, () -> routeService.getDto(team.getSlug(), routeSlug));
 
     // Cleanup handled by gpxProcessingService.deleteRouteFiles
     createdRoute = null; // Prevent double cleanup in @AfterEach
@@ -350,7 +379,8 @@ class RouteServiceTest {
   void deleteRoute_shouldThrowForNonOrganizer() {
     Route route = dataService.createRoute(team, admin, "Test");
 
+    queryContext.setContext(member);
     assertThrows(
-        TriblyException.class, () -> routeService.deleteRoute(team, route.getSlug(), member));
+        TriblyException.class, () -> routeService.deleteRoute(team.getSlug(), route.getSlug()));
   }
 }

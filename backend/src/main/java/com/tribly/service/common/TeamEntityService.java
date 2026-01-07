@@ -1,108 +1,77 @@
 package com.tribly.service.common;
 
+import com.tribly.common.exception.BusinessException;
+import com.tribly.common.exception.ConflictException;
 import com.tribly.domain.common.TeamEntity;
 import com.tribly.domain.common.TeamEntitySlugRedirect;
-import com.tribly.domain.common.repository.TeamEntityRepository;
 import com.tribly.domain.team.Team;
-import com.tribly.domain.user.User;
+import com.tribly.dto.common.asset.MediaDto;
 import com.tribly.dto.common.request.WithVisibility;
-import com.tribly.dto.common.response.MediaDto;
 import com.tribly.dto.error.ErrorCode;
-import com.tribly.enums.ActionType;
-import com.tribly.enums.EntityType;
+import com.tribly.enums.TeamEntityType;
 import com.tribly.enums.Visibility;
 import com.tribly.infrastructure.exception.*;
+import com.tribly.repository.common.TeamEntityRepository;
 import com.tribly.service.asset.AssetService;
-import com.tribly.service.security.TeamSecurityService;
+import com.tribly.service.security.TriblyQueryContext;
+import com.tribly.service.team.TeamService;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
 import java.util.Optional;
 import org.jboss.logging.Logger;
-import org.jspecify.annotations.Nullable;
 
 public abstract class TeamEntityService<
     T extends TeamEntity, R extends TeamEntityRepository<T, ?>, D> {
 
   private static final Logger LOG = Logger.getLogger(TeamEntityService.class);
 
-  @Inject protected TeamSecurityService securityService;
-
   @Inject protected AssetService assetService;
 
   @Inject protected SlugService slugService;
 
-  protected abstract T getBySlug(Team team, String entitySlug, @Nullable User user);
+  @Inject protected TeamService teamService;
+
+  @Inject protected TriblyQueryContext triblyContext;
 
   protected abstract R getRepository();
 
   protected abstract D toDto(T entity);
 
-  protected abstract boolean hasRights(
-      ActionType action, Team team, @Nullable User user, @Nullable T entity);
-
-  protected void checkRights(
-      ActionType action, Team team, @Nullable User user, @Nullable T entity) {
-    if (!hasRights(action, team, user, entity)) {
-      throw new ForbiddenException();
-    }
-  }
-
-  public final D getDto(Team team, String adSlug, @Nullable User user) {
-    T entity = get(ActionType.READ, team, adSlug, user);
+  protected D getDto(Team team, String entitySlug) {
+    T entity = findBySlug(team, entitySlug);
     return toDto(entity);
   }
 
-  protected void updateMedia(TeamEntity teamEntity, MediaDto mediaDto) {
+  protected void updateMedia(TeamEntity teamEntity, @Valid MediaDto mediaDto) {
     teamEntity.setMarkdown(mediaDto.markdown());
 
     assetService.updateAssets(teamEntity, mediaDto.assets());
   }
 
-  protected void validateVisibility(WithVisibility request, Team team) {
+  protected void validateVisibility(Team team, WithVisibility request) {
     // Validate visibility: private teams can only have team-only items
     if (team.getVisibility() != Visibility.PUBLIC && request.visibility() == Visibility.PUBLIC) {
       throw new BusinessException(ErrorCode.INVALID_VISIBILITY);
     }
   }
 
-  public final T get(ActionType action, Team team, String entitySlug, @Nullable User user) {
-    T entity = findBySlug(team, entitySlug, user);
-    checkRights(action, team, user, entity);
-    return entity;
-  }
-
-  private T findBySlug(Team team, String entitySlug, @Nullable User user) {
-    try {
-      return getBySlug(team, entitySlug, user);
-    } catch (NotFoundException e) {
-      // Check for redirect if not found
-      Optional<TeamEntitySlugRedirect> redirect =
-          slugService.resolveEntityRedirect(
-              team.getId(), getRepository().getEntityType(), entitySlug);
-      if (redirect.isPresent()) {
-        String newSlug = getNewSlug(redirect.get());
-        if (newSlug != null) {
-          return getBySlug(team, newSlug, user);
-        }
-      }
-      throw e;
-    }
-  }
-
-  @Nullable
-  private String getNewSlug(TeamEntitySlugRedirect redirect) {
-    Optional<T> optionalEntity = getRepository().findByIdOptional(redirect.getEntityId());
-    return optionalEntity
-        .filter(entity -> !entity.isDeleted())
-        .map(TeamEntity::getSlug)
-        .orElse(null);
+  protected T findBySlug(Team team, String entitySlug) {
+    Long userId = triblyContext.getUserIdNullable();
+    Optional<T> byTeamAndSlug = getRepository().findByTeamAndSlug(team.getId(), userId, entitySlug);
+    return byTeamAndSlug.orElseGet(
+        () ->
+            slugService
+                .resolveEntityRedirect(team.getId(), getRepository().getEntityType(), entitySlug)
+                .map(TeamEntitySlugRedirect::getEntityId)
+                .flatMap(id -> getRepository().findByTeamAndId(team.getId(), userId, id))
+                .orElseThrow(
+                    () -> new NotFoundException(getRepository().getAllEntityType(), entitySlug)));
   }
 
   @Transactional
-  public final D updateSlug(Team team, String slugParam, String newSlug, User user) {
-    T entity = get(ActionType.UPDATE, team, slugParam, user);
-
-    checkRights(ActionType.UPDATE, team, user, entity);
+  protected D updateSlug(Team team, String slug, String newSlug) {
+    T entity = findBySlug(team, slug);
 
     String oldSlug = entity.getSlug();
 
@@ -118,13 +87,15 @@ public abstract class TeamEntityService<
       throw new ConflictException(ErrorCode.SLUG_TAKEN);
     }
 
-    slugService.clearEntityRedirect(entity.getTeam().getId(), EntityType.AD, newSlug);
+    slugService.clearEntityRedirect(entity.getTeam().getId(), TeamEntityType.AD, newSlug);
     slugService.createEntityRedirect(entity, oldSlug);
 
     entity.setSlug(newSlug);
     getRepository().persist(entity);
 
-    LOG.infov("Slug changed from {0} to {1} by user {2}", oldSlug, newSlug, user.getId());
+    LOG.infov(
+        "Slug changed from {0} to {1} by user {2}",
+        oldSlug, newSlug, triblyContext.getUserIdNullable());
     return toDto(entity);
   }
 }

@@ -56,7 +56,7 @@ export function CreateRideTemplatePage() {
   const handleSubmit = (data: RideTemplateRequest) => {
     createMutation.mutate(
       {
-        slug: teamSlug!,
+        teamSlug: teamSlug!,
         data,
       },
       {

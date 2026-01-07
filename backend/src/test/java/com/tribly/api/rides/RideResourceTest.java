@@ -4,7 +4,7 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
 import com.tribly.api.AbstractResourceTest;
-import com.tribly.dto.common.response.MediaDto;
+import com.tribly.dto.common.asset.MediaDto;
 import com.tribly.dto.rides.request.GroupRequest;
 import com.tribly.dto.rides.request.RideRequest;
 import com.tribly.dto.rides.response.RideDto;
@@ -196,62 +196,6 @@ class RideResourceTest extends AbstractResourceTest {
             .path("slug");
 
     given().when().get("/api/teams/" + team1Slug + "/rides/" + rideSlug).then().statusCode(404);
-  }
-
-  @Test
-  void listRides_shouldReturnTeamRides() {
-    // Create two rides
-    given()
-        .auth()
-        .oauth2(getAccessToken(USER1))
-        .contentType("application/json")
-        .body(
-            new RideRequest(
-                "Ride 1",
-                MediaDto.builder().build(),
-                LocalDate.parse("2025-01-20").atTime(0, 0).toInstant(ZoneOffset.UTC),
-                Status.DRAFT,
-                Visibility.PUBLIC,
-                null,
-                null,
-                null,
-                null,
-                List.of(new GroupRequest(null, "G1", null, null, null, null))))
-        .when()
-        .post("/api/teams/" + team1Slug + "/rides")
-        .then()
-        .statusCode(201);
-
-    given()
-        .auth()
-        .oauth2(getAccessToken(USER1))
-        .contentType("application/json")
-        .body(
-            new RideRequest(
-                "Ride 2",
-                MediaDto.builder().build(),
-                LocalDate.parse("2025-01-27").atTime(0, 0).toInstant(ZoneOffset.UTC),
-                Status.DRAFT,
-                Visibility.PUBLIC,
-                null,
-                null,
-                null,
-                null,
-                List.of(new GroupRequest(null, "G1", null, null, null, null))))
-        .when()
-        .post("/api/teams/" + team1Slug + "/rides")
-        .then()
-        .statusCode(201);
-
-    given()
-        .auth()
-        .oauth2(getAccessToken(USER1))
-        .when()
-        .get("/api/teams/" + team1Slug + "/rides")
-        .then()
-        .statusCode(200)
-        .body("rides", hasSize(greaterThanOrEqualTo(2)))
-        .body("total", greaterThanOrEqualTo(2));
   }
 
   @Test

@@ -3,6 +3,7 @@ package com.tribly.domain.team;
 import com.tribly.domain.common.NotNullableDbValue;
 import com.tribly.domain.common.TeamEntity;
 import com.tribly.domain.user.User;
+import com.tribly.enums.EntityType;
 import com.tribly.enums.Visibility;
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorValue;
@@ -50,5 +51,10 @@ public class TeamPage extends TeamEntity {
     page.setPageOrder(order);
     page.setAboutPage(false);
     return page;
+  }
+
+  @Override
+  public EntityType getEntityType() {
+    return EntityType.TEAM_PAGE;
   }
 }

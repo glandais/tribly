@@ -32,26 +32,26 @@ type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
  * @summary List post comments
  */
 export const listPostComments = (
-  slug: string,
+  teamSlug: string,
   entitySlug: string,
   options?: SecondParameter<typeof axiosMutator>,
   signal?: AbortSignal
 ) => {
   return axiosMutator<CommentListResponse>(
-    { url: `/api/teams/${slug}/posts/${entitySlug}/comments`, method: 'GET', signal },
+    { url: `/api/teams/${teamSlug}/posts/${entitySlug}/comments`, method: 'GET', signal },
     options
   )
 }
 
-export const getListPostCommentsQueryKey = (slug?: string, entitySlug?: string) => {
-  return [`/api/teams/${slug}/posts/${entitySlug}/comments`] as const
+export const getListPostCommentsQueryKey = (teamSlug?: string, entitySlug?: string) => {
+  return [`/api/teams/${teamSlug}/posts/${entitySlug}/comments`] as const
 }
 
 export const getListPostCommentsQueryOptions = <
   TData = Awaited<ReturnType<typeof listPostComments>>,
-  TError = ErrorType<ErrorResponse>,
+  TError = ErrorType<void | ErrorResponse>,
 >(
-  slug: string,
+  teamSlug: string,
   entitySlug: string,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listPostComments>>, TError, TData>>
@@ -60,26 +60,29 @@ export const getListPostCommentsQueryOptions = <
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
-  const queryKey = queryOptions?.queryKey ?? getListPostCommentsQueryKey(slug, entitySlug)
+  const queryKey = queryOptions?.queryKey ?? getListPostCommentsQueryKey(teamSlug, entitySlug)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof listPostComments>>> = ({ signal }) =>
-    listPostComments(slug, entitySlug, requestOptions, signal)
+    listPostComments(teamSlug, entitySlug, requestOptions, signal)
 
-  return { queryKey, queryFn, enabled: !!(slug && entitySlug), ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof listPostComments>>,
-    TError,
-    TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!(teamSlug && entitySlug),
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof listPostComments>>, TError, TData> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
 }
 
 export type ListPostCommentsQueryResult = NonNullable<Awaited<ReturnType<typeof listPostComments>>>
-export type ListPostCommentsQueryError = ErrorType<ErrorResponse>
+export type ListPostCommentsQueryError = ErrorType<void | ErrorResponse>
 
 export function useListPostComments<
   TData = Awaited<ReturnType<typeof listPostComments>>,
-  TError = ErrorType<ErrorResponse>,
+  TError = ErrorType<void | ErrorResponse>,
 >(
-  slug: string,
+  teamSlug: string,
   entitySlug: string,
   options: {
     query: Partial<UseQueryOptions<Awaited<ReturnType<typeof listPostComments>>, TError, TData>> &
@@ -97,9 +100,9 @@ export function useListPostComments<
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useListPostComments<
   TData = Awaited<ReturnType<typeof listPostComments>>,
-  TError = ErrorType<ErrorResponse>,
+  TError = ErrorType<void | ErrorResponse>,
 >(
-  slug: string,
+  teamSlug: string,
   entitySlug: string,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listPostComments>>, TError, TData>> &
@@ -117,9 +120,9 @@ export function useListPostComments<
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useListPostComments<
   TData = Awaited<ReturnType<typeof listPostComments>>,
-  TError = ErrorType<ErrorResponse>,
+  TError = ErrorType<void | ErrorResponse>,
 >(
-  slug: string,
+  teamSlug: string,
   entitySlug: string,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listPostComments>>, TError, TData>>
@@ -133,9 +136,9 @@ export function useListPostComments<
 
 export function useListPostComments<
   TData = Awaited<ReturnType<typeof listPostComments>>,
-  TError = ErrorType<ErrorResponse>,
+  TError = ErrorType<void | ErrorResponse>,
 >(
-  slug: string,
+  teamSlug: string,
   entitySlug: string,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listPostComments>>, TError, TData>>
@@ -143,7 +146,7 @@ export function useListPostComments<
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getListPostCommentsQueryOptions(slug, entitySlug, options)
+  const queryOptions = getListPostCommentsQueryOptions(teamSlug, entitySlug, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
     queryKey: DataTag<QueryKey, TData, TError>
@@ -158,7 +161,7 @@ export function useListPostComments<
  * @summary Create post comment
  */
 export const createPostComment = (
-  slug: string,
+  teamSlug: string,
   entitySlug: string,
   commentRequest: BodyType<CommentRequest>,
   options?: SecondParameter<typeof axiosMutator>,
@@ -166,7 +169,7 @@ export const createPostComment = (
 ) => {
   return axiosMutator<CommentDto>(
     {
-      url: `/api/teams/${slug}/posts/${entitySlug}/comments`,
+      url: `/api/teams/${teamSlug}/posts/${entitySlug}/comments`,
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       data: commentRequest,
@@ -177,20 +180,20 @@ export const createPostComment = (
 }
 
 export const getCreatePostCommentMutationOptions = <
-  TError = ErrorType<ErrorResponse>,
+  TError = ErrorType<ErrorResponse | void>,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof createPostComment>>,
     TError,
-    { slug: string; entitySlug: string; data: BodyType<CommentRequest> },
+    { teamSlug: string; entitySlug: string; data: BodyType<CommentRequest> },
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof createPostComment>>,
   TError,
-  { slug: string; entitySlug: string; data: BodyType<CommentRequest> },
+  { teamSlug: string; entitySlug: string; data: BodyType<CommentRequest> },
   TContext
 > => {
   const mutationKey = ['createPostComment']
@@ -202,11 +205,11 @@ export const getCreatePostCommentMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof createPostComment>>,
-    { slug: string; entitySlug: string; data: BodyType<CommentRequest> }
+    { teamSlug: string; entitySlug: string; data: BodyType<CommentRequest> }
   > = (props) => {
-    const { slug, entitySlug, data } = props ?? {}
+    const { teamSlug, entitySlug, data } = props ?? {}
 
-    return createPostComment(slug, entitySlug, data, requestOptions)
+    return createPostComment(teamSlug, entitySlug, data, requestOptions)
   }
 
   return { mutationFn, ...mutationOptions }
@@ -216,17 +219,17 @@ export type CreatePostCommentMutationResult = NonNullable<
   Awaited<ReturnType<typeof createPostComment>>
 >
 export type CreatePostCommentMutationBody = BodyType<CommentRequest>
-export type CreatePostCommentMutationError = ErrorType<ErrorResponse>
+export type CreatePostCommentMutationError = ErrorType<ErrorResponse | void>
 
 /**
  * @summary Create post comment
  */
-export const useCreatePostComment = <TError = ErrorType<ErrorResponse>, TContext = unknown>(
+export const useCreatePostComment = <TError = ErrorType<ErrorResponse | void>, TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof createPostComment>>,
       TError,
-      { slug: string; entitySlug: string; data: BodyType<CommentRequest> },
+      { teamSlug: string; entitySlug: string; data: BodyType<CommentRequest> },
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -235,7 +238,7 @@ export const useCreatePostComment = <TError = ErrorType<ErrorResponse>, TContext
 ): UseMutationResult<
   Awaited<ReturnType<typeof createPostComment>>,
   TError,
-  { slug: string; entitySlug: string; data: BodyType<CommentRequest> },
+  { teamSlug: string; entitySlug: string; data: BodyType<CommentRequest> },
   TContext
 > => {
   const mutationOptions = getCreatePostCommentMutationOptions(options)
@@ -246,32 +249,32 @@ export const useCreatePostComment = <TError = ErrorType<ErrorResponse>, TContext
  * @summary Delete post comment
  */
 export const deletePostComment = (
-  slug: string,
+  teamSlug: string,
   entitySlug: string,
   commentId: string,
   options?: SecondParameter<typeof axiosMutator>
 ) => {
   return axiosMutator<void>(
-    { url: `/api/teams/${slug}/posts/${entitySlug}/comments/${commentId}`, method: 'DELETE' },
+    { url: `/api/teams/${teamSlug}/posts/${entitySlug}/comments/${commentId}`, method: 'DELETE' },
     options
   )
 }
 
 export const getDeletePostCommentMutationOptions = <
-  TError = ErrorType<ErrorResponse>,
+  TError = ErrorType<void | ErrorResponse>,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof deletePostComment>>,
     TError,
-    { slug: string; entitySlug: string; commentId: string },
+    { teamSlug: string; entitySlug: string; commentId: string },
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof deletePostComment>>,
   TError,
-  { slug: string; entitySlug: string; commentId: string },
+  { teamSlug: string; entitySlug: string; commentId: string },
   TContext
 > => {
   const mutationKey = ['deletePostComment']
@@ -283,11 +286,11 @@ export const getDeletePostCommentMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof deletePostComment>>,
-    { slug: string; entitySlug: string; commentId: string }
+    { teamSlug: string; entitySlug: string; commentId: string }
   > = (props) => {
-    const { slug, entitySlug, commentId } = props ?? {}
+    const { teamSlug, entitySlug, commentId } = props ?? {}
 
-    return deletePostComment(slug, entitySlug, commentId, requestOptions)
+    return deletePostComment(teamSlug, entitySlug, commentId, requestOptions)
   }
 
   return { mutationFn, ...mutationOptions }
@@ -297,17 +300,17 @@ export type DeletePostCommentMutationResult = NonNullable<
   Awaited<ReturnType<typeof deletePostComment>>
 >
 
-export type DeletePostCommentMutationError = ErrorType<ErrorResponse>
+export type DeletePostCommentMutationError = ErrorType<void | ErrorResponse>
 
 /**
  * @summary Delete post comment
  */
-export const useDeletePostComment = <TError = ErrorType<ErrorResponse>, TContext = unknown>(
+export const useDeletePostComment = <TError = ErrorType<void | ErrorResponse>, TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof deletePostComment>>,
       TError,
-      { slug: string; entitySlug: string; commentId: string },
+      { teamSlug: string; entitySlug: string; commentId: string },
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -316,7 +319,7 @@ export const useDeletePostComment = <TError = ErrorType<ErrorResponse>, TContext
 ): UseMutationResult<
   Awaited<ReturnType<typeof deletePostComment>>,
   TError,
-  { slug: string; entitySlug: string; commentId: string },
+  { teamSlug: string; entitySlug: string; commentId: string },
   TContext
 > => {
   const mutationOptions = getDeletePostCommentMutationOptions(options)

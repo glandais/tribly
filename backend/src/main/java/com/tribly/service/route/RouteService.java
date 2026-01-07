@@ -1,37 +1,38 @@
 package com.tribly.service.route;
 
 import com.tribly.common.GeoPoint;
+import com.tribly.common.exception.BusinessException;
 import com.tribly.domain.asset.Asset;
-import com.tribly.domain.asset.repository.AssetRepository;
 import com.tribly.domain.common.TeamEntity;
-import com.tribly.domain.common.repository.TriblyPage;
 import com.tribly.domain.route.Route;
-import com.tribly.domain.route.repository.RouteQuery;
-import com.tribly.domain.route.repository.RouteRepository;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
-import com.tribly.dto.common.response.MediaDto;
+import com.tribly.dto.common.asset.MediaDto;
 import com.tribly.dto.error.ErrorCode;
 import com.tribly.dto.routes.request.RouteRequest;
+import com.tribly.dto.routes.request.RouteSearchParams;
 import com.tribly.dto.routes.response.RouteDetailDto;
 import com.tribly.dto.routes.response.RouteDto;
 import com.tribly.dto.routes.response.RouteListResponse;
 import com.tribly.enums.ActionType;
-import com.tribly.enums.AllEntityType;
+import com.tribly.enums.EntityType;
 import com.tribly.enums.WindDirection;
-import com.tribly.infrastructure.exception.BusinessException;
-import com.tribly.infrastructure.exception.NotFoundException;
+import com.tribly.repository.asset.AssetRepository;
+import com.tribly.repository.common.TriblyPage;
+import com.tribly.repository.route.RouteQuery;
+import com.tribly.repository.route.RouteRepository;
 import com.tribly.service.common.TeamEntityService;
 import com.tribly.service.route.response.TrackMetadata;
+import com.tribly.service.security.annotation.CheckAccess;
 import io.github.glandais.gpx.data.GPX;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.List;
 import java.util.Set;
-import org.jboss.logging.Logger;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -40,8 +41,6 @@ import org.jspecify.annotations.Nullable;
  */
 @ApplicationScoped
 public class RouteService extends TeamEntityService<Route, RouteRepository, RouteDetailDto> {
-
-  private static final Logger LOG = Logger.getLogger(RouteService.class);
 
   @Inject RouteRepository routeRepository;
 
@@ -60,31 +59,19 @@ public class RouteService extends TeamEntityService<Route, RouteRepository, Rout
   }
 
   @Override
-  protected boolean hasRights(
-      ActionType action, Team team, @Nullable User user, @Nullable Route entity) {
-    return switch (action) {
-      case CREATE, UPDATE, DELETE -> securityService.getOrganizer(user, team) != null;
-      // SQL
-      case READ -> true;
-      case JOIN -> false;
-    };
+  public Route findBySlug(Team team, String entitySlug) {
+    return super.findBySlug(team, entitySlug);
   }
 
-  @Override
-  protected Route getBySlug(Team team, String entitySlug, @Nullable User user) {
-    TriblyPage<Route> routes =
-        routeRepository.find(
-            RouteQuery.builder()
-                .userId(user == null ? null : user.getId())
-                .teamIds(Set.of(team.getId()))
-                .slug(entitySlug)
-                .size(1)
-                .build());
-    if (routes.items().isEmpty()) {
-      throw new NotFoundException(AllEntityType.ROUTE, entitySlug);
-    } else {
-      return routes.items().getFirst();
-    }
+  public Route get(String teamSlug, String entitySlug) {
+    Team team = teamService.getTeam(teamSlug);
+    return super.findBySlug(team, entitySlug);
+  }
+
+  @CheckAccess(entityType = EntityType.ROUTE, action = ActionType.READ)
+  public RouteDetailDto getDto(String teamSlug, String entitySlug) {
+    Team team = teamService.getTeam(teamSlug);
+    return super.getDto(team, entitySlug);
   }
 
   /**
@@ -92,11 +79,12 @@ public class RouteService extends TeamEntityService<Route, RouteRepository, Rout
    * Processes GPX file, extracts metadata, generates files, and stores everything.
    */
   @Transactional
-  public RouteDto createRoute(
-      Team team, RouteRequest request, @Nullable Path gpxPath, User creator) {
-    checkRights(ActionType.CREATE, team, creator, null);
+  @CheckAccess(entityType = EntityType.ROUTE, action = ActionType.CREATE)
+  public RouteDto createRoute(String teamSlug, RouteRequest request, @Nullable Path gpxPath) {
+    Team team = teamService.getTeam(teamSlug);
+    User creator = triblyContext.getUser();
 
-    validateVisibility(request, team);
+    validateVisibility(team, request);
 
     // Validate GPX file
     List<GeoPoint> routePoints = request.points();
@@ -112,8 +100,6 @@ public class RouteService extends TeamEntityService<Route, RouteRepository, Rout
 
     // Persist to get ID for file storage
     routeRepository.persistAndFlush(route);
-    LOG.infov(
-        "Route '{0}' created by user {1} for team {2}", route.getName(), creator.getId(), team);
 
     try {
 
@@ -124,7 +110,7 @@ public class RouteService extends TeamEntityService<Route, RouteRepository, Rout
         gpx = gpxProcessingService.fromPoints(route.getName(), routePoints);
       }
       // Process GPX file and update route
-      TrackMetadata metadata = gpxProcessingService.createTracks(creator, route, gpx);
+      TrackMetadata metadata = gpxProcessingService.createTracks(route, gpx);
 
       route.setDistance(metadata.distance());
       route.setElevationGain(metadata.elevationGain());
@@ -138,7 +124,6 @@ public class RouteService extends TeamEntityService<Route, RouteRepository, Rout
       routeRepository.persist(route);
       return RouteDto.from(route, assetService);
     } catch (Exception e) {
-      LOG.errorv("GPX processing failed for route {0}, cleaning up files", route.getId());
       gpxProcessingService.deleteRouteFiles(route);
       throw e;
     }
@@ -156,11 +141,13 @@ public class RouteService extends TeamEntityService<Route, RouteRepository, Rout
    * Update route metadata and optionally GPX file.
    */
   @Transactional
+  @CheckAccess(entityType = EntityType.ROUTE, action = ActionType.UPDATE)
   public RouteDto updateRoute(
-      Team team, String slug, RouteRequest request, @Nullable Path gpxPath, User user) {
-    Route route = get(ActionType.UPDATE, team, slug, user);
+      String teamSlug, String slug, RouteRequest request, @Nullable Path gpxPath) {
+    Team team = teamService.getTeam(teamSlug);
+    Route route = findBySlug(team, slug);
 
-    validateVisibility(request, route.getTeam());
+    validateVisibility(team, request);
 
     // Update basic metadata
     route.setName(request.name());
@@ -188,7 +175,7 @@ public class RouteService extends TeamEntityService<Route, RouteRepository, Rout
         route.getWaypoints().clear();
 
         // Process GPX file and update route
-        TrackMetadata metadata = gpxProcessingService.createTracks(user, route, gpx);
+        TrackMetadata metadata = gpxProcessingService.createTracks(route, gpx);
 
         route.setDistance(metadata.distance());
         route.setElevationGain(metadata.elevationGain());
@@ -197,33 +184,39 @@ public class RouteService extends TeamEntityService<Route, RouteRepository, Rout
         route.setStart(metadata.start());
         route.setEnd(metadata.end());
         route.setWindDirection(getWindDirection(metadata));
-
-        LOG.infov("Route {0} GPX file updated by user {1}", slug, user);
       }
     } catch (Exception e) {
-      LOG.errorv("GPX processing failed for route {0}, cleaning up files", route.getId());
       gpxProcessingService.deleteRouteFiles(route);
       throw new RuntimeException(e);
     }
 
     updateMedia(route, request.media());
     routeRepository.persist(route);
-    LOG.infov("Route {0} updated by user {1}", slug, user);
     return RouteDto.from(route, assetService);
+  }
+
+  @CheckAccess(entityType = EntityType.ROUTE, action = ActionType.UPDATE)
+  @Transactional
+  public RouteDetailDto updateSlug(String teamSlug, String slug, String newSlug) {
+    Team team = teamService.getTeam(teamSlug);
+    return super.updateSlug(team, slug, newSlug);
   }
 
   /**
    * List routes for a team with pagination, filtering, and access control.
    */
-  public RouteListResponse getRoutes(Team team, @Nullable User user, RouteSearchParams params) {
-    return getRoutesWithTeamIds(Set.of(team.getId()), user, params);
+  @CheckAccess(entityType = EntityType.ROUTE, action = ActionType.LIST)
+  public RouteListResponse getRoutes(String teamSlug, RouteSearchParams params) {
+    Team team = teamService.getTeam(teamSlug);
+    return getRoutesWithTeamIds(Set.of(team.getId()), triblyContext.getUserNullable(), params);
   }
 
   /**
    * List all routes across all accessible teams with pagination, filtering, and access control.
    */
-  public RouteListResponse getAllRoutes(@Nullable User user, RouteSearchParams params) {
-    return getRoutesWithTeamIds(null, user, params);
+  @CheckAccess(entityType = EntityType.ROUTE, action = ActionType.LIST_ALL_TEAMS)
+  public RouteListResponse getAllRoutes(RouteSearchParams params) {
+    return getRoutesWithTeamIds(null, triblyContext.getUserNullable(), params);
   }
 
   private RouteListResponse getRoutesWithTeamIds(
@@ -259,20 +252,20 @@ public class RouteService extends TeamEntityService<Route, RouteRepository, Rout
    * Delete route (soft delete) and cleanup files.
    */
   @Transactional
-  public void deleteRoute(Team team, String slug, User user) {
-    Route route = get(ActionType.DELETE, team, slug, user);
+  @CheckAccess(entityType = EntityType.ROUTE, action = ActionType.DELETE)
+  public void deleteRoute(String teamSlug, String slug) {
+    Team team = teamService.getTeam(teamSlug);
+    Route route = findBySlug(team, slug);
 
     route.setDeleted(true);
     routeRepository.persist(route);
 
     // Delete associated files
     gpxProcessingService.deleteRouteFiles(route);
-
-    LOG.infov("Route {0} deleted by user {1}", slug, user);
   }
 
   @Override
-  protected void updateMedia(TeamEntity teamEntity, MediaDto mediaDto) {
+  protected void updateMedia(TeamEntity teamEntity, @Valid MediaDto mediaDto) {
     super.updateMedia(teamEntity, mediaDto);
     Route route = (Route) teamEntity;
     for (Asset asset : teamEntity.getAssets()) {

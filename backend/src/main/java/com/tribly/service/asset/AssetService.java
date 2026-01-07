@@ -1,28 +1,22 @@
 package com.tribly.service.asset;
 
+import com.tribly.common.TsidUtils;
 import com.tribly.domain.asset.Asset;
-import com.tribly.domain.asset.repository.AssetRepository;
 import com.tribly.domain.common.TeamEntity;
-import com.tribly.domain.common.repository.AllTeamEntityRepository;
-import com.tribly.domain.common.repository.TeamEntityQueryBasic;
-import com.tribly.domain.common.repository.TriblyPage;
 import com.tribly.domain.team.Team;
-import com.tribly.domain.team.UserTeam;
 import com.tribly.domain.user.User;
-import com.tribly.domain.user.repository.UserRepository;
-import com.tribly.dto.common.response.AssetDimensionsDto;
-import com.tribly.dto.common.response.AssetDto;
-import com.tribly.dto.common.response.AssetsDto;
-import com.tribly.enums.AllEntityType;
-import com.tribly.enums.AssetType;
-import com.tribly.enums.Visibility;
-import com.tribly.infrastructure.exception.ForbiddenException;
+import com.tribly.dto.assets.response.DownloadableAsset;
+import com.tribly.dto.common.asset.AssetDimensionsDto;
+import com.tribly.dto.common.asset.AssetDto;
+import com.tribly.dto.common.asset.AssetsDto;
+import com.tribly.enums.*;
 import com.tribly.infrastructure.exception.NotFoundException;
-import com.tribly.infrastructure.id.TsidUtils;
 import com.tribly.infrastructure.imgproxy.ImgProxyService;
+import com.tribly.repository.asset.AssetRepository;
 import com.tribly.service.asset.response.AssetWithFile;
-import com.tribly.service.asset.response.DownloadableAsset;
-import com.tribly.service.security.TeamSecurityService;
+import com.tribly.service.security.TriblyQueryContext;
+import com.tribly.service.security.annotation.CheckAccess;
+import com.tribly.service.team.TeamService;
 import io.hypersistence.tsid.TSID;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -54,46 +48,40 @@ public class AssetService {
 
   @Inject AssetRepository assetRepository;
 
-  @Inject UserRepository userRepository;
-
-  @Inject AllTeamEntityRepository allTeamEntityRepository;
-
-  @Inject TeamSecurityService securityService;
-
   @Inject ImgProxyService imgProxyService;
+
+  @Inject TriblyQueryContext triblyContext;
+
+  @Inject TeamService teamService;
 
   @ConfigProperty(name = "storage.path")
   String storagePath = "/tmp";
 
   private final Tika tika = new Tika();
 
-  public AssetDto createAsset(Team team, User creator, InputStream inputStream, String fileName)
+  @CheckAccess(entityType = EntityType.ASSET, action = ActionType.CREATE)
+  public AssetDto createAsset(String teamSlug, InputStream inputStream, String fileName)
       throws IOException {
-    // Security check: reuse ride permissions (admins & organizers can create routes)
-    UserTeam userTeam = securityService.getOrganizer(creator, team);
-    if (userTeam == null) {
-      throw new ForbiddenException();
-    }
-
-    AssetWithFile assetFile =
-        addAssetStream(creator, userTeam.getTeam(), AssetType.IMAGE, null, inputStream, fileName);
+    Team team = teamService.getTeam(teamSlug);
+    // every member can create asset (ads, ...)
+    AssetWithFile assetFile = addAssetStream(team, AssetType.IMAGE, null, inputStream, fileName);
     return map(assetFile.asset());
   }
 
-  public AssetWithFile addAsset(
-      User creator, TeamEntity teamEntity, AssetType type, String fileName) throws IOException {
-    return addAssetStream(creator, teamEntity.getTeam(), type, teamEntity, null, fileName);
+  public AssetWithFile addAsset(TeamEntity teamEntity, AssetType type, String fileName)
+      throws IOException {
+    return addAssetStream(teamEntity.getTeam(), type, teamEntity, null, fileName);
   }
 
   @Transactional
-  public AssetWithFile addAssetStream(
-      User creator,
+  protected AssetWithFile addAssetStream(
       Team team,
       AssetType type,
       @Nullable TeamEntity teamEntity,
       @Nullable InputStream content,
       String fileName)
       throws IOException {
+    User creator = triblyContext.getUser();
     long fileId = TSID.Factory.getTsid().toLong();
 
     File file = getAssetFile(team, fileId);
@@ -132,27 +120,29 @@ public class AssetService {
     return getAssetFile(asset.getTeam(), asset.getFileId());
   }
 
-  public File getAssetFile(Team team, long fileId) {
+  private File getAssetFile(Team team, long fileId) {
     String idString = TsidUtils.toString(fileId);
     String subPath = idString.substring(0, 4);
     Path assetDirectory = Path.of(storagePath, TsidUtils.toString(team.getId()), subPath);
     return new File(assetDirectory.toFile(), idString);
   }
 
-  public String getRelativeAssetFile(Team team, long fileId) {
+  private String getRelativeAssetFile(Team team, long fileId) {
     String idString = TsidUtils.toString(fileId);
     String subPath = idString.substring(0, 4);
     return TsidUtils.toString(team.getId()) + "/" + subPath + "/" + idString;
   }
 
-  public DownloadableAsset getDownloadableAsset(String assetId, @Nullable User user) {
-    Asset asset = getAsset(TsidUtils.toLong(assetId), user);
+  @CheckAccess(entityType = EntityType.ASSET, action = ActionType.READ)
+  public DownloadableAsset getDownloadableAsset(String teamSlug, Long assetId) {
+    Asset asset = getAsset(assetId);
     File file = getAssetFile(asset);
     return new DownloadableAsset(file, asset.getContentType());
   }
 
-  public Response getImage(String assetId, @Nullable User user, int size, String accept) {
-    Asset asset = getAsset(TsidUtils.toLong(assetId), user);
+  @CheckAccess(entityType = EntityType.ASSET, action = ActionType.READ)
+  public Response getImage(String teamSlug, Long assetId, int size, String accept) {
+    Asset asset = getAsset(assetId);
     String relativeAssetFile = getRelativeAssetFile(asset.getTeam(), asset.getFileId());
     return Response.fromResponse(imgProxyService.getPhoto(accept, relativeAssetFile, size, size))
         .build();
@@ -201,45 +191,19 @@ public class AssetService {
     return null;
   }
 
-  public Asset getAsset(Long id) {
+  private Asset getAsset(Long id) {
     return assetRepository
         .findByIdOptional(id)
-        .orElseThrow(() -> new NotFoundException(AllEntityType.ASSET, id));
+        .orElseThrow(() -> new NotFoundException(EntityType.ASSET, id));
   }
 
-  public Asset getAsset(Long id, @Nullable User user) {
-    Asset asset =
-        assetRepository
-            .findByIdOptional(id)
-            .orElseThrow(() -> new NotFoundException(AllEntityType.ASSET, id));
-    if (asset.getTeamEntity() == null) {
-      if (asset.getTeam().getVisibility() == Visibility.TEAM) {
-        UserTeam organizer = securityService.getOrganizer(user, asset.getTeam());
-        if (organizer != null) {
-          throw new ForbiddenException();
-        }
-      }
-    } else {
-      TriblyPage<TeamEntity> page =
-          allTeamEntityRepository.find(
-              TeamEntityQueryBasic.builder()
-                  .userId(user == null ? null : user.getId())
-                  .id(asset.getTeamEntity().getId())
-                  .size(1)
-                  .build());
-      if (page.total() == 0) {
-        throw new NotFoundException(AllEntityType.ASSET, id);
-      }
-    }
-    return asset;
-  }
-
-  public void deleteAsset(Long id) {
+  @CheckAccess(entityType = EntityType.ASSET, action = ActionType.DELETE)
+  protected void deleteAsset(String teamSlug, Long id) {
     // FIXME auto delete files on cascade ?
     Asset asset =
         assetRepository
             .findByIdOptional(id)
-            .orElseThrow(() -> new NotFoundException(AllEntityType.ASSET, id));
+            .orElseThrow(() -> new NotFoundException(EntityType.ASSET, id));
     File file = getAssetFile(asset);
     if (file.exists()) {
       file.delete();
@@ -247,13 +211,14 @@ public class AssetService {
     // FIXME delete if parent directory is empty
   }
 
-  public AssetDto map(Asset asset) {
+  protected AssetDto map(Asset asset) {
     Visibility visibility;
     if (asset.getTeamEntity() == null) {
       visibility = asset.getTeam().getVisibility();
     } else {
       visibility = asset.getTeamEntity().getVisibility();
     }
+    String teamSlug = asset.getTeam().getSlug();
     AssetDimensionsDto assetDimensionsDto;
     String imageUrl;
     if (asset.getContentType().startsWith("image/")) {
@@ -261,6 +226,8 @@ public class AssetService {
           "/api/download/"
               + visibility.name().toLowerCase()
               + "/images/"
+              + teamSlug
+              + "/"
               + TsidUtils.toString(asset.getId())
               + "/{size}";
     } else {
@@ -275,6 +242,8 @@ public class AssetService {
         "/api/download/"
             + visibility.name().toLowerCase()
             + "/assets/"
+            + teamSlug
+            + "/"
             + TsidUtils.toString(asset.getId())
             + "/"
             + asset.getFileName();
@@ -287,6 +256,11 @@ public class AssetService {
         assetDimensionsDto);
   }
 
+  /**
+   * Called to create DTO in MediaDto.from
+   * @param teamEntity
+   * @return
+   */
   public AssetsDto getAssetsDto(TeamEntity teamEntity) {
     Map<AssetType, List<Asset>> assets =
         teamEntity.getAssets().stream().collect(Collectors.groupingBy(Asset::getType));
@@ -320,6 +294,11 @@ public class AssetService {
         .toList();
   }
 
+  /**
+   * Called in service having MediaDto
+   * @param teamEntity
+   * @param assets
+   */
   public void updateAssets(TeamEntity teamEntity, AssetsDto assets) {
     Set<Asset> unmodifiable =
         teamEntity.getAssets().stream()
@@ -332,9 +311,6 @@ public class AssetService {
       teamEntity.getAssets().add(asset);
     }
 
-    if (assets == null) {
-      return;
-    }
     order = addAssetToEntity(order, teamEntity, AssetType.LOGO, assets.logo());
     order = addAssetsToEntity(order, teamEntity, AssetType.IMAGE, assets.images());
     order = addAssetsToEntity(order, teamEntity, AssetType.VIDEO, assets.videos());
@@ -342,11 +318,8 @@ public class AssetService {
   }
 
   private int addAssetsToEntity(
-      int order, TeamEntity teamEntity, AssetType assetType, List<AssetDto> assetDtos) {
-    if (assetDtos == null) {
-      return order;
-    }
-    for (AssetDto assetDto : assetDtos) {
+      int order, TeamEntity teamEntity, AssetType assetType, List<AssetDto> assetRequests) {
+    for (AssetDto assetDto : assetRequests) {
       addAssetToEntity(order, teamEntity, assetType, assetDto);
       order++;
     }
@@ -354,11 +327,11 @@ public class AssetService {
   }
 
   private int addAssetToEntity(
-      int order, TeamEntity teamEntity, AssetType assetType, @Nullable AssetDto assetDto) {
-    if (assetDto == null) {
+      int order, TeamEntity teamEntity, AssetType assetType, @Nullable AssetDto assetRequest) {
+    if (assetRequest == null) {
       return order;
     }
-    Long assetId = TsidUtils.toLong(assetDto.id());
+    Long assetId = TsidUtils.toLong(assetRequest.id());
     Asset asset = getAsset(assetId);
     if (asset.getTeam().getId().equals(teamEntity.getTeam().getId())
         && (asset.getTeamEntity() == null

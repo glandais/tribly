@@ -1,44 +1,31 @@
 package com.tribly.enums;
 
-import com.tribly.domain.ad.Ad;
-import com.tribly.domain.common.TeamEntity;
-import com.tribly.domain.post.Post;
-import com.tribly.domain.ride.Ride;
-import com.tribly.domain.route.Route;
-import com.tribly.domain.team.TeamPage;
-import com.tribly.domain.trip.Trip;
-import com.tribly.domain.trip.TripStage;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.jspecify.annotations.Nullable;
 
-@Getter
 @RequiredArgsConstructor
+@Getter
 public enum EntityType {
-  RIDE(1, "Ride"),
-  ROUTE(2, "Route"),
-  POST(3, "Post"),
-  TEAM_PAGE(4, "TeamPage"),
-  TRIP(5, "Trip"),
-  TRIP_STAGE(6, "TripStage"),
-  AD(7, "Ad"),
-  PUBLICATION(-1, "Publication"),
-  ALL(-1, "TeamEntity");
+  TEAM(0, null),
+  USER(1, null),
+  USER_TEAM(2, null),
+  RIDE_TEMPLATE(3, null),
+  RIDE_TEMPLATE_GROUP(4, null),
+  PLACE(5, null),
+  COMMENT(6, null),
+  ASSET(7, null),
+  TRIP(8, TeamEntityType.TRIP),
+  TRIP_STAGE(9, TeamEntityType.TRIP_STAGE),
+  ROUTE(10, TeamEntityType.ROUTE),
+  RIDE(11, TeamEntityType.RIDE),
+  RIDE_GROUP(12, null),
+  AD(13, TeamEntityType.AD),
+  POST(14, TeamEntityType.POST),
+  TEAM_PAGE(15, TeamEntityType.TEAM_PAGE),
+  PUBLICATION(-1, null),
+  ANY(-1, null);
 
-  private final int value;
-  private final String typeName;
-
-  public static EntityType fromEntity(TeamEntity entity) {
-    return switch (entity) {
-      case Ride ignored -> RIDE;
-      case Route ignored -> ROUTE;
-      case Post ignored -> POST;
-      case TeamPage ignored -> TEAM_PAGE;
-      case Trip ignored -> TRIP;
-      case TripStage ignored -> TRIP_STAGE;
-      case Ad ignored -> AD;
-      case null, default ->
-          throw new IllegalArgumentException(
-              "Unknown entity class: " + entity.getClass().getName());
-    };
-  }
+  private final int stableOrdinal;
+  private final @Nullable TeamEntityType teamEntityType;
 }

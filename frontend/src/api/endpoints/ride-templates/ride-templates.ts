@@ -39,26 +39,26 @@ type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
  * @summary List ride templates
  */
 export const listTemplates = (
-  slug: string,
+  teamSlug: string,
   params?: ListTemplatesParams,
   options?: SecondParameter<typeof axiosMutator>,
   signal?: AbortSignal
 ) => {
   return axiosMutator<RideTemplateListResponse>(
-    { url: `/api/teams/${slug}/ride-templates`, method: 'GET', params, signal },
+    { url: `/api/teams/${teamSlug}/ride-templates`, method: 'GET', params, signal },
     options
   )
 }
 
-export const getListTemplatesQueryKey = (slug?: string, params?: ListTemplatesParams) => {
-  return [`/api/teams/${slug}/ride-templates`, ...(params ? [params] : [])] as const
+export const getListTemplatesQueryKey = (teamSlug?: string, params?: ListTemplatesParams) => {
+  return [`/api/teams/${teamSlug}/ride-templates`, ...(params ? [params] : [])] as const
 }
 
 export const getListTemplatesQueryOptions = <
   TData = Awaited<ReturnType<typeof listTemplates>>,
   TError = ErrorType<ErrorResponse>,
 >(
-  slug: string,
+  teamSlug: string,
   params?: ListTemplatesParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listTemplates>>, TError, TData>>
@@ -67,12 +67,12 @@ export const getListTemplatesQueryOptions = <
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
-  const queryKey = queryOptions?.queryKey ?? getListTemplatesQueryKey(slug, params)
+  const queryKey = queryOptions?.queryKey ?? getListTemplatesQueryKey(teamSlug, params)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof listTemplates>>> = ({ signal }) =>
-    listTemplates(slug, params, requestOptions, signal)
+    listTemplates(teamSlug, params, requestOptions, signal)
 
-  return { queryKey, queryFn, enabled: !!slug, ...queryOptions } as UseQueryOptions<
+  return { queryKey, queryFn, enabled: !!teamSlug, ...queryOptions } as UseQueryOptions<
     Awaited<ReturnType<typeof listTemplates>>,
     TError,
     TData
@@ -86,7 +86,7 @@ export function useListTemplates<
   TData = Awaited<ReturnType<typeof listTemplates>>,
   TError = ErrorType<ErrorResponse>,
 >(
-  slug: string,
+  teamSlug: string,
   params: undefined | ListTemplatesParams,
   options: {
     query: Partial<UseQueryOptions<Awaited<ReturnType<typeof listTemplates>>, TError, TData>> &
@@ -106,7 +106,7 @@ export function useListTemplates<
   TData = Awaited<ReturnType<typeof listTemplates>>,
   TError = ErrorType<ErrorResponse>,
 >(
-  slug: string,
+  teamSlug: string,
   params?: ListTemplatesParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listTemplates>>, TError, TData>> &
@@ -126,7 +126,7 @@ export function useListTemplates<
   TData = Awaited<ReturnType<typeof listTemplates>>,
   TError = ErrorType<ErrorResponse>,
 >(
-  slug: string,
+  teamSlug: string,
   params?: ListTemplatesParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listTemplates>>, TError, TData>>
@@ -142,7 +142,7 @@ export function useListTemplates<
   TData = Awaited<ReturnType<typeof listTemplates>>,
   TError = ErrorType<ErrorResponse>,
 >(
-  slug: string,
+  teamSlug: string,
   params?: ListTemplatesParams,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listTemplates>>, TError, TData>>
@@ -150,7 +150,7 @@ export function useListTemplates<
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getListTemplatesQueryOptions(slug, params, options)
+  const queryOptions = getListTemplatesQueryOptions(teamSlug, params, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
     queryKey: DataTag<QueryKey, TData, TError>
@@ -166,14 +166,14 @@ export function useListTemplates<
  * @summary Create ride template
  */
 export const createTemplate = (
-  slug: string,
+  teamSlug: string,
   rideTemplateRequest: BodyType<RideTemplateRequest>,
   options?: SecondParameter<typeof axiosMutator>,
   signal?: AbortSignal
 ) => {
   return axiosMutator<RideTemplateDto>(
     {
-      url: `/api/teams/${slug}/ride-templates`,
+      url: `/api/teams/${teamSlug}/ride-templates`,
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       data: rideTemplateRequest,
@@ -190,14 +190,14 @@ export const getCreateTemplateMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof createTemplate>>,
     TError,
-    { slug: string; data: BodyType<RideTemplateRequest> },
+    { teamSlug: string; data: BodyType<RideTemplateRequest> },
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof createTemplate>>,
   TError,
-  { slug: string; data: BodyType<RideTemplateRequest> },
+  { teamSlug: string; data: BodyType<RideTemplateRequest> },
   TContext
 > => {
   const mutationKey = ['createTemplate']
@@ -209,11 +209,11 @@ export const getCreateTemplateMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof createTemplate>>,
-    { slug: string; data: BodyType<RideTemplateRequest> }
+    { teamSlug: string; data: BodyType<RideTemplateRequest> }
   > = (props) => {
-    const { slug, data } = props ?? {}
+    const { teamSlug, data } = props ?? {}
 
-    return createTemplate(slug, data, requestOptions)
+    return createTemplate(teamSlug, data, requestOptions)
   }
 
   return { mutationFn, ...mutationOptions }
@@ -231,7 +231,7 @@ export const useCreateTemplate = <TError = ErrorType<ErrorResponse>, TContext = 
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof createTemplate>>,
       TError,
-      { slug: string; data: BodyType<RideTemplateRequest> },
+      { teamSlug: string; data: BodyType<RideTemplateRequest> },
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -240,7 +240,7 @@ export const useCreateTemplate = <TError = ErrorType<ErrorResponse>, TContext = 
 ): UseMutationResult<
   Awaited<ReturnType<typeof createTemplate>>,
   TError,
-  { slug: string; data: BodyType<RideTemplateRequest> },
+  { teamSlug: string; data: BodyType<RideTemplateRequest> },
   TContext
 > => {
   const mutationOptions = getCreateTemplateMutationOptions(options)
@@ -252,14 +252,14 @@ export const useCreateTemplate = <TError = ErrorType<ErrorResponse>, TContext = 
  * @summary Update ride template
  */
 export const updateTemplate = (
-  slug: string,
+  teamSlug: string,
   templateSlug: string,
   rideTemplateRequest: BodyType<RideTemplateRequest>,
   options?: SecondParameter<typeof axiosMutator>
 ) => {
   return axiosMutator<RideTemplateDto>(
     {
-      url: `/api/teams/${slug}/ride-templates/${templateSlug}`,
+      url: `/api/teams/${teamSlug}/ride-templates/${templateSlug}`,
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       data: rideTemplateRequest,
@@ -275,14 +275,14 @@ export const getUpdateTemplateMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof updateTemplate>>,
     TError,
-    { slug: string; templateSlug: string; data: BodyType<RideTemplateRequest> },
+    { teamSlug: string; templateSlug: string; data: BodyType<RideTemplateRequest> },
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof updateTemplate>>,
   TError,
-  { slug: string; templateSlug: string; data: BodyType<RideTemplateRequest> },
+  { teamSlug: string; templateSlug: string; data: BodyType<RideTemplateRequest> },
   TContext
 > => {
   const mutationKey = ['updateTemplate']
@@ -294,11 +294,11 @@ export const getUpdateTemplateMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof updateTemplate>>,
-    { slug: string; templateSlug: string; data: BodyType<RideTemplateRequest> }
+    { teamSlug: string; templateSlug: string; data: BodyType<RideTemplateRequest> }
   > = (props) => {
-    const { slug, templateSlug, data } = props ?? {}
+    const { teamSlug, templateSlug, data } = props ?? {}
 
-    return updateTemplate(slug, templateSlug, data, requestOptions)
+    return updateTemplate(teamSlug, templateSlug, data, requestOptions)
   }
 
   return { mutationFn, ...mutationOptions }
@@ -316,7 +316,7 @@ export const useUpdateTemplate = <TError = ErrorType<ErrorResponse>, TContext = 
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof updateTemplate>>,
       TError,
-      { slug: string; templateSlug: string; data: BodyType<RideTemplateRequest> },
+      { teamSlug: string; templateSlug: string; data: BodyType<RideTemplateRequest> },
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -325,7 +325,7 @@ export const useUpdateTemplate = <TError = ErrorType<ErrorResponse>, TContext = 
 ): UseMutationResult<
   Awaited<ReturnType<typeof updateTemplate>>,
   TError,
-  { slug: string; templateSlug: string; data: BodyType<RideTemplateRequest> },
+  { teamSlug: string; templateSlug: string; data: BodyType<RideTemplateRequest> },
   TContext
 > => {
   const mutationOptions = getUpdateTemplateMutationOptions(options)
@@ -337,26 +337,26 @@ export const useUpdateTemplate = <TError = ErrorType<ErrorResponse>, TContext = 
  * @summary Get ride template
  */
 export const getTemplate = (
-  slug: string,
+  teamSlug: string,
   templateSlug: string,
   options?: SecondParameter<typeof axiosMutator>,
   signal?: AbortSignal
 ) => {
   return axiosMutator<RideTemplateDto>(
-    { url: `/api/teams/${slug}/ride-templates/${templateSlug}`, method: 'GET', signal },
+    { url: `/api/teams/${teamSlug}/ride-templates/${templateSlug}`, method: 'GET', signal },
     options
   )
 }
 
-export const getGetTemplateQueryKey = (slug?: string, templateSlug?: string) => {
-  return [`/api/teams/${slug}/ride-templates/${templateSlug}`] as const
+export const getGetTemplateQueryKey = (teamSlug?: string, templateSlug?: string) => {
+  return [`/api/teams/${teamSlug}/ride-templates/${templateSlug}`] as const
 }
 
 export const getGetTemplateQueryOptions = <
   TData = Awaited<ReturnType<typeof getTemplate>>,
   TError = ErrorType<ErrorResponse>,
 >(
-  slug: string,
+  teamSlug: string,
   templateSlug: string,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getTemplate>>, TError, TData>>
@@ -365,15 +365,15 @@ export const getGetTemplateQueryOptions = <
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
-  const queryKey = queryOptions?.queryKey ?? getGetTemplateQueryKey(slug, templateSlug)
+  const queryKey = queryOptions?.queryKey ?? getGetTemplateQueryKey(teamSlug, templateSlug)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof getTemplate>>> = ({ signal }) =>
-    getTemplate(slug, templateSlug, requestOptions, signal)
+    getTemplate(teamSlug, templateSlug, requestOptions, signal)
 
   return {
     queryKey,
     queryFn,
-    enabled: !!(slug && templateSlug),
+    enabled: !!(teamSlug && templateSlug),
     ...queryOptions,
   } as UseQueryOptions<Awaited<ReturnType<typeof getTemplate>>, TError, TData> & {
     queryKey: DataTag<QueryKey, TData, TError>
@@ -387,7 +387,7 @@ export function useGetTemplate<
   TData = Awaited<ReturnType<typeof getTemplate>>,
   TError = ErrorType<ErrorResponse>,
 >(
-  slug: string,
+  teamSlug: string,
   templateSlug: string,
   options: {
     query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getTemplate>>, TError, TData>> &
@@ -407,7 +407,7 @@ export function useGetTemplate<
   TData = Awaited<ReturnType<typeof getTemplate>>,
   TError = ErrorType<ErrorResponse>,
 >(
-  slug: string,
+  teamSlug: string,
   templateSlug: string,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getTemplate>>, TError, TData>> &
@@ -427,7 +427,7 @@ export function useGetTemplate<
   TData = Awaited<ReturnType<typeof getTemplate>>,
   TError = ErrorType<ErrorResponse>,
 >(
-  slug: string,
+  teamSlug: string,
   templateSlug: string,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getTemplate>>, TError, TData>>
@@ -443,7 +443,7 @@ export function useGetTemplate<
   TData = Awaited<ReturnType<typeof getTemplate>>,
   TError = ErrorType<ErrorResponse>,
 >(
-  slug: string,
+  teamSlug: string,
   templateSlug: string,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getTemplate>>, TError, TData>>
@@ -451,7 +451,7 @@ export function useGetTemplate<
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getGetTemplateQueryOptions(slug, templateSlug, options)
+  const queryOptions = getGetTemplateQueryOptions(teamSlug, templateSlug, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
     queryKey: DataTag<QueryKey, TData, TError>
@@ -467,12 +467,12 @@ export function useGetTemplate<
  * @summary Delete ride template
  */
 export const deleteTemplate = (
-  slug: string,
+  teamSlug: string,
   templateSlug: string,
   options?: SecondParameter<typeof axiosMutator>
 ) => {
   return axiosMutator<void>(
-    { url: `/api/teams/${slug}/ride-templates/${templateSlug}`, method: 'DELETE' },
+    { url: `/api/teams/${teamSlug}/ride-templates/${templateSlug}`, method: 'DELETE' },
     options
   )
 }
@@ -484,14 +484,14 @@ export const getDeleteTemplateMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof deleteTemplate>>,
     TError,
-    { slug: string; templateSlug: string },
+    { teamSlug: string; templateSlug: string },
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof deleteTemplate>>,
   TError,
-  { slug: string; templateSlug: string },
+  { teamSlug: string; templateSlug: string },
   TContext
 > => {
   const mutationKey = ['deleteTemplate']
@@ -503,11 +503,11 @@ export const getDeleteTemplateMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof deleteTemplate>>,
-    { slug: string; templateSlug: string }
+    { teamSlug: string; templateSlug: string }
   > = (props) => {
-    const { slug, templateSlug } = props ?? {}
+    const { teamSlug, templateSlug } = props ?? {}
 
-    return deleteTemplate(slug, templateSlug, requestOptions)
+    return deleteTemplate(teamSlug, templateSlug, requestOptions)
   }
 
   return { mutationFn, ...mutationOptions }
@@ -525,7 +525,7 @@ export const useDeleteTemplate = <TError = ErrorType<ErrorResponse>, TContext = 
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof deleteTemplate>>,
       TError,
-      { slug: string; templateSlug: string },
+      { teamSlug: string; templateSlug: string },
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -534,7 +534,7 @@ export const useDeleteTemplate = <TError = ErrorType<ErrorResponse>, TContext = 
 ): UseMutationResult<
   Awaited<ReturnType<typeof deleteTemplate>>,
   TError,
-  { slug: string; templateSlug: string },
+  { teamSlug: string; templateSlug: string },
   TContext
 > => {
   const mutationOptions = getDeleteTemplateMutationOptions(options)

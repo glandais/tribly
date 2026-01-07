@@ -25,7 +25,6 @@ create table comments (
                           id bigint not null,
                           parent_id bigint,
                           team_entity_id bigint not null,
-                          team_id bigint not null,
                           updated_at timestamp(6) with time zone not null,
                           version bigint,
                           content TEXT not null,
@@ -149,7 +148,7 @@ create table team_entities (
                                distance integer,
                                elevation_gain integer,
                                elevation_loss integer,
-                               entity_type integer not null check ((entity_type in (5,3,1,2,7,4,6))),
+                               entity_type integer not null check ((entity_type in (1,3,5,7,4,2,6))),
                                hilliness integer,
                                is_about_page boolean,
                                latitude float(53),
@@ -246,7 +245,7 @@ create table user_teams (
                             updated_at timestamp(6) with time zone not null,
                             user_id bigint not null,
                             version bigint,
-                            role varchar(20) not null check ((role in ('ADMIN','ORGANIZER','MEMBER'))),
+                            role varchar(20) not null check ((role in ('MEMBER','ORGANIZER','ADMIN'))),
                             primary key (id),
                             unique (user_id, team_id)
 );
@@ -360,11 +359,6 @@ alter table if exists comments
     references comments;
 
 alter table if exists comments
-    add constraint FKnf3x2lk7e19sfhivdlo1p47hx
-    foreign key (team_id)
-    references teams;
-
-alter table if exists comments
     add constraint FKfqa92uteymtldue3nchyl5q4o
     foreign key (team_entity_id)
     references team_entities;
@@ -460,14 +454,14 @@ alter table if exists team_entities
     references teams;
 
 alter table if exists team_entities
-    add constraint FKsm0040p8exgxema0d3j4osclb
-    foreign key (route_id)
-    references team_entities;
-
-alter table if exists team_entities
     add constraint FKjukml9fp2eipuhmugtiaf12gs
     foreign key (place_end_id)
     references places;
+
+alter table if exists team_entities
+    add constraint FKsm0040p8exgxema0d3j4osclb
+    foreign key (route_id)
+    references team_entities;
 
 alter table if exists team_entities
     add constraint FKm7w1a9lbh6795ida5u4n95vdv

@@ -1,14 +1,14 @@
 package com.tribly.dto.routes.response;
 
+import com.tribly.common.TsidUtils;
 import com.tribly.domain.route.Route;
 import com.tribly.dto.common.GeoJsonPoint;
-import com.tribly.dto.common.response.MediaDto;
+import com.tribly.dto.common.asset.MediaDto;
 import com.tribly.dto.publications.response.TeamPublicationDto;
 import com.tribly.dto.users.response.PublicUserDto;
 import com.tribly.dto.validation.ValidateSchema;
 import com.tribly.enums.SurfaceType;
 import com.tribly.enums.Visibility;
-import com.tribly.infrastructure.id.TsidUtils;
 import com.tribly.service.asset.AssetService;
 import java.time.Instant;
 import java.util.List;

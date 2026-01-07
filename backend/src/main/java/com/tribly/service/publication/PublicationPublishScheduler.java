@@ -1,9 +1,9 @@
 package com.tribly.service.publication;
 
 import com.tribly.domain.common.Publication;
-import com.tribly.domain.common.repository.AllPublicationRepository;
 import com.tribly.domain.post.Post;
 import com.tribly.enums.Status;
+import com.tribly.repository.common.AllPublicationRepository;
 import io.quarkus.scheduler.Scheduled;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;

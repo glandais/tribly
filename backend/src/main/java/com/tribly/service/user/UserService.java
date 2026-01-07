@@ -1,11 +1,12 @@
 package com.tribly.service.user;
 
 import com.tribly.domain.user.User;
-import com.tribly.domain.user.repository.UserRepository;
 import com.tribly.dto.users.response.PublicUserDto;
 import com.tribly.dto.users.response.UserDto;
-import com.tribly.enums.AllEntityType;
-import com.tribly.infrastructure.exception.NotFoundException;
+import com.tribly.repository.user.UserRepository;
+import com.tribly.service.security.TriblyQueryContext;
+import com.tribly.service.security.annotation.Logged;
+import com.tribly.service.security.annotation.Public;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -18,28 +19,23 @@ public class UserService {
 
   @Inject UserRepository userRepository;
 
-  public PublicUserDto getPublicUserDto(Long userId) {
-    return PublicUserDto.from(getUserEntity(userId));
+  @Inject TriblyQueryContext triblyContext;
+
+  @Logged
+  public UserDto getUserDto() {
+    return UserDto.from(triblyContext.getUser());
   }
 
-  public UserDto getUserDto(Long userId) {
-    return UserDto.from(getUserEntity(userId));
-  }
-
-  private User getUserEntity(Long userId) {
-    return userRepository
-        .findActiveById(userId)
-        .orElseThrow(() -> new NotFoundException(AllEntityType.USER, userId));
-  }
-
+  @Public
   public List<PublicUserDto> searchByDisplayName(String query, int limit) {
     List<User> users = userRepository.searchByDisplayName(query, limit);
     return users.stream().map(PublicUserDto::from).toList();
   }
 
+  @Logged
   @Transactional
-  public UserDto updateUser(User userParam, @Nullable String displayName) {
-    User user = getUserEntity(userParam.getId());
+  public UserDto updateUser(@Nullable String displayName) {
+    User user = triblyContext.getUser();
 
     if (displayName != null) {
       user.setDisplayName(displayName);
@@ -49,9 +45,10 @@ public class UserService {
     return UserDto.from(user);
   }
 
+  @Logged
   @Transactional
-  public void deleteUser(User loggedUser) {
-    User user = getUserEntity(loggedUser.getId());
+  public void deleteUser() {
+    User user = triblyContext.getUser();
     user.setDeleted(true);
     userRepository.persist(user);
   }

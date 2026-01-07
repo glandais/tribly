@@ -1,23 +1,23 @@
 package com.tribly.service.page;
 
-import com.tribly.domain.common.repository.TriblyPage;
+import com.tribly.common.TsidUtils;
+import com.tribly.common.exception.BusinessException;
+import com.tribly.common.exception.ForbiddenException;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.team.TeamPage;
-import com.tribly.domain.team.repository.TeamPageQuery;
-import com.tribly.domain.team.repository.TeamPageRepository;
-import com.tribly.domain.user.User;
 import com.tribly.dto.error.ErrorCode;
 import com.tribly.dto.pages.request.ReorderPagesRequest;
 import com.tribly.dto.pages.request.TeamPageRequest;
 import com.tribly.dto.pages.response.TeamPageDto;
 import com.tribly.dto.pages.response.TeamPageSummaryDto;
 import com.tribly.enums.ActionType;
-import com.tribly.enums.AllEntityType;
-import com.tribly.infrastructure.exception.BusinessException;
-import com.tribly.infrastructure.exception.ForbiddenException;
+import com.tribly.enums.EntityType;
 import com.tribly.infrastructure.exception.NotFoundException;
-import com.tribly.infrastructure.id.TsidUtils;
+import com.tribly.repository.common.TriblyPage;
+import com.tribly.repository.team.TeamPageQuery;
+import com.tribly.repository.team.TeamPageRepository;
 import com.tribly.service.common.TeamEntityService;
+import com.tribly.service.security.annotation.CheckAccess;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -25,13 +25,10 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import org.jboss.logging.Logger;
-import org.jspecify.annotations.Nullable;
 
 @ApplicationScoped
 public class TeamPageService extends TeamEntityService<TeamPage, TeamPageRepository, TeamPageDto> {
 
-  private static final Logger LOG = Logger.getLogger(TeamPageService.class);
   private static final int MAX_ADDITIONAL_PAGES = 3;
 
   @Inject TeamPageRepository teamPageRepository;
@@ -47,39 +44,23 @@ public class TeamPageService extends TeamEntityService<TeamPage, TeamPageReposit
   }
 
   @Override
-  protected boolean hasRights(
-      ActionType action, Team team, @Nullable User user, @Nullable TeamPage entity) {
-    return switch (action) {
-      case CREATE, UPDATE, DELETE -> securityService.getAdmin(user, team) != null;
-      case JOIN -> false;
-      // SQL
-      case READ -> true;
-    };
+  protected TeamPage findBySlug(Team team, String entitySlug) {
+    return super.findBySlug(team, entitySlug);
   }
 
-  @Override
-  protected TeamPage getBySlug(Team team, String entitySlug, @Nullable User user) {
+  @CheckAccess(entityType = EntityType.TEAM_PAGE, action = ActionType.READ)
+  public TeamPageDto getDto(String teamSlug, String entitySlug) {
+    Team team = teamService.getTeam(teamSlug);
+    return super.getDto(team, entitySlug);
+  }
+
+  @CheckAccess(entityType = EntityType.TEAM_PAGE, action = ActionType.LIST)
+  public List<TeamPageSummaryDto> listPages(String teamSlug) {
+    Team team = teamService.getTeam(teamSlug);
     TriblyPage<TeamPage> teamPages =
         teamPageRepository.find(
             TeamPageQuery.builder()
-                .userId(user == null ? null : user.getId())
-                .teamIds(Set.of(team.getId()))
-                .slug(entitySlug)
-                .page(0)
-                .size(1)
-                .build());
-    if (teamPages.items().isEmpty()) {
-      throw new NotFoundException(AllEntityType.TEAM_PAGE, entitySlug);
-    } else {
-      return teamPages.items().getFirst();
-    }
-  }
-
-  public List<TeamPageSummaryDto> listPages(Team team, @Nullable User user) {
-    TriblyPage<TeamPage> teamPages =
-        teamPageRepository.find(
-            TeamPageQuery.builder()
-                .userId(user == null ? null : user.getId())
+                .userId(triblyContext.getUserIdNullable())
                 .teamIds(Set.of(team.getId()))
                 .includeAbout(false)
                 .page(0)
@@ -92,16 +73,16 @@ public class TeamPageService extends TeamEntityService<TeamPage, TeamPageReposit
   }
 
   @Transactional
-  public TeamPageDto createPage(Team team, TeamPageRequest request, User creator) {
-    hasRights(ActionType.CREATE, team, creator, null);
-
+  @CheckAccess(entityType = EntityType.TEAM_PAGE, action = ActionType.CREATE)
+  public TeamPageDto createPage(String teamSlug, TeamPageRequest request) {
+    Team team = teamService.getTeam(teamSlug);
     // Check max pages limit
     long currentCount = teamPageRepository.countAdditionalPages(team.getId());
     if (currentCount >= MAX_ADDITIONAL_PAGES) {
       throw new BusinessException(ErrorCode.TOO_MANY_TEAM_PAGES);
     }
 
-    validateVisibility(request, team);
+    validateVisibility(team, request);
 
     // Generate slug from title
     String slug = slugService.generateSlug(request.title(), team.getId(), teamPageRepository);
@@ -110,7 +91,7 @@ public class TeamPageService extends TeamEntityService<TeamPage, TeamPageReposit
 
     TeamPage page =
         TeamPage.createAdditionalPage(
-            creator, team, request.title(), slug, request.visibility(), order);
+            triblyContext.getUser(), team, request.title(), slug, request.visibility(), order);
 
     teamPageRepository.persistAndFlush(page);
 
@@ -118,22 +99,21 @@ public class TeamPageService extends TeamEntityService<TeamPage, TeamPageReposit
 
     teamPageRepository.persist(page);
 
-    LOG.infov(
-        "Page '{0}' created by user {1} for team {2}",
-        page.getName(), creator.getId(), team.getSlug());
     return TeamPageDto.from(page, assetService);
   }
 
   @Transactional
-  public TeamPageDto updatePage(Team team, String pageSlug, TeamPageRequest request, User user) {
-    TeamPage page = get(ActionType.UPDATE, team, pageSlug, user);
+  @CheckAccess(entityType = EntityType.TEAM_PAGE, action = ActionType.UPDATE)
+  public TeamPageDto updatePage(String teamSlug, String pageSlug, TeamPageRequest request) {
+    Team team = teamService.getTeam(teamSlug);
+    TeamPage page = findBySlug(team, pageSlug);
 
     // Don't allow editing the about page through this endpoint
     if (page.isAboutPage()) {
       throw new ForbiddenException();
     }
 
-    validateVisibility(request, team);
+    validateVisibility(team, request);
 
     page.setName(request.title());
     page.setVisibility(request.visibility());
@@ -142,13 +122,21 @@ public class TeamPageService extends TeamEntityService<TeamPage, TeamPageReposit
 
     teamPageRepository.persist(page);
 
-    LOG.infov("Page {0} updated by user {1}", pageSlug, user.getId());
     return TeamPageDto.from(page, assetService);
   }
 
+  @CheckAccess(entityType = EntityType.TEAM_PAGE, action = ActionType.UPDATE)
   @Transactional
-  public void deletePage(Team team, String pageSlug, User user) {
-    TeamPage page = get(ActionType.DELETE, team, pageSlug, user);
+  public TeamPageDto updateSlug(String teamSlug, String slug, String newSlug) {
+    Team team = teamService.getTeam(teamSlug);
+    return super.updateSlug(team, slug, newSlug);
+  }
+
+  @Transactional
+  @CheckAccess(entityType = EntityType.TEAM_PAGE, action = ActionType.DELETE)
+  public void deletePage(String teamSlug, String pageSlug) {
+    Team team = teamService.getTeam(teamSlug);
+    TeamPage page = findBySlug(team, pageSlug);
 
     // Don't allow deleting the about page
     if (page.isAboutPage()) {
@@ -157,13 +145,12 @@ public class TeamPageService extends TeamEntityService<TeamPage, TeamPageReposit
 
     page.setDeleted(true);
     teamPageRepository.persist(page);
-    LOG.infov("Page {0} deleted by user {1}", pageSlug, user.getId());
   }
 
   @Transactional
-  public List<TeamPageSummaryDto> reorderPages(Team team, ReorderPagesRequest request, User user) {
-    hasRights(ActionType.CREATE, team, user, null);
-
+  @CheckAccess(entityType = EntityType.TEAM_PAGE, action = ActionType.CREATE)
+  public List<TeamPageSummaryDto> reorderPages(String teamSlug, ReorderPagesRequest request) {
+    Team team = teamService.getTeam(teamSlug);
     List<String> pageIds = request.pageIds();
     for (int i = 0; i < pageIds.size(); i++) {
       Long pageId = TsidUtils.toLong(pageIds.get(i));
@@ -176,11 +163,10 @@ public class TeamPageService extends TeamEntityService<TeamPage, TeamPageReposit
         page.setPageOrder(i);
         teamPageRepository.persist(page);
       } else {
-        throw new NotFoundException(AllEntityType.TEAM_PAGE, pageId);
+        throw new NotFoundException(EntityType.TEAM_PAGE, pageId);
       }
     }
 
-    LOG.infov("Pages reordered by user {0} for team {1}", user.getId(), team.getSlug());
-    return listPages(team, user);
+    return listPages(teamSlug);
   }
 }

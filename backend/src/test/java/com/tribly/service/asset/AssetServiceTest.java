@@ -2,25 +2,27 @@ package com.tribly.service.asset;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.tribly.common.TsidUtils;
+import com.tribly.common.exception.TriblyException;
 import com.tribly.domain.asset.Asset;
 import com.tribly.domain.post.Post;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
-import com.tribly.dto.common.response.AssetDto;
-import com.tribly.dto.common.response.AssetsDto;
+import com.tribly.dto.assets.response.DownloadableAsset;
+import com.tribly.dto.common.asset.AssetDto;
+import com.tribly.dto.common.asset.AssetsDto;
 import com.tribly.enums.AssetType;
 import com.tribly.enums.TeamRole;
 import com.tribly.enums.Visibility;
-import com.tribly.infrastructure.exception.TriblyException;
-import com.tribly.infrastructure.id.TsidUtils;
 import com.tribly.service.asset.response.AssetWithFile;
-import com.tribly.service.asset.response.DownloadableAsset;
+import com.tribly.service.security.TriblyQueryContext;
 import com.tribly.util.TestDataCleaner;
 import com.tribly.util.TestDataService;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
@@ -36,6 +38,7 @@ class AssetServiceTest {
   @Inject AssetService assetService;
   @Inject TestDataService dataService;
   @Inject TestDataCleaner dataCleaner;
+  @Inject TriblyQueryContext queryContext;
 
   private Team team;
   private Team privateTeam;
@@ -53,10 +56,9 @@ class AssetServiceTest {
     organizer = dataService.createUser("organizer@example.com", "Organizer");
     member = dataService.createUser("member@example.com", "Member");
     nonMember = dataService.createUser("nonmember@example.com", "NonMember");
-    dataService.addUserToTeam(admin, team, TeamRole.ADMIN);
     dataService.addUserToTeam(organizer, team, TeamRole.ORGANIZER);
     dataService.addUserToTeam(member, team, TeamRole.MEMBER);
-    dataService.addUserToTeam(admin, privateTeam, TeamRole.ADMIN);
+    dataService.addUserToTeam(organizer, privateTeam, TeamRole.ORGANIZER);
   }
 
   @AfterEach
@@ -84,7 +86,8 @@ class AssetServiceTest {
       InputStream content =
           new ByteArrayInputStream("test content".getBytes(StandardCharsets.UTF_8));
 
-      AssetDto result = assetService.createAsset(team, organizer, content, "test.txt");
+      queryContext.setContext(organizer);
+      AssetDto result = assetService.createAsset(team.getSlug(), content, "test.txt");
 
       assertNotNull(result);
       assertNotNull(result.id());
@@ -93,11 +96,16 @@ class AssetServiceTest {
     }
 
     @Test
-    void shouldThrowForNonOrganizer() {
+    void shouldCreateAssetForNonOrganizer() throws IOException {
       InputStream content = new ByteArrayInputStream("test".getBytes());
 
-      assertThrows(
-          TriblyException.class, () -> assetService.createAsset(team, member, content, "test.txt"));
+      queryContext.setContext(member);
+      AssetDto result = assetService.createAsset(team.getSlug(), content, "test.txt");
+
+      assertNotNull(result);
+      assertNotNull(result.id());
+      assertEquals("test.txt", result.fileName());
+      assertTrue(result.url().contains("/api/download/"));
     }
   }
 
@@ -109,8 +117,9 @@ class AssetServiceTest {
       InputStream content =
           new ByteArrayInputStream("file content".getBytes(StandardCharsets.UTF_8));
 
+      queryContext.setContext(member);
       AssetWithFile result =
-          assetService.addAssetStream(admin, team, AssetType.IMAGE, null, content, "image.png");
+          assetService.addAssetStream(team, AssetType.IMAGE, null, content, "image.png");
 
       assertNotNull(result);
       assertNotNull(result.asset());
@@ -121,8 +130,9 @@ class AssetServiceTest {
 
     @Test
     void shouldCreateAssetWithoutContent() throws Exception {
+      queryContext.setContext(member);
       AssetWithFile result =
-          assetService.addAssetStream(admin, team, AssetType.IMAGE, null, null, "placeholder.png");
+          assetService.addAssetStream(team, AssetType.IMAGE, null, null, "placeholder.png");
 
       assertNotNull(result);
       assertNotNull(result.asset());
@@ -153,13 +163,18 @@ class AssetServiceTest {
 
     @Test
     void shouldReturnAssetForPublicTeam() throws Exception {
+      // Create a public post to attach the asset to
+      Post publicPost =
+          dataService.createPost(team, admin, "Public Post", Instant.now(), Visibility.PUBLIC);
       InputStream content = getExampleGpxStream();
+      queryContext.setContext(member);
       AssetWithFile assetWithFile =
           assetService.addAssetStream(
-              admin, team, AssetType.ROUTE_ORIGINAL_GPX, null, content, "route.gpx");
-      String assetId = TsidUtils.toString(assetWithFile.asset().getId());
+              team, AssetType.ROUTE_ORIGINAL_GPX, publicPost, content, "route.gpx");
+      Long assetId = assetWithFile.asset().getId();
 
-      DownloadableAsset result = assetService.getDownloadableAsset(assetId, null);
+      queryContext.setContext(null);
+      DownloadableAsset result = assetService.getDownloadableAsset(team.getSlug(), assetId);
 
       assertNotNull(result);
       assertNotNull(result.file());
@@ -171,33 +186,16 @@ class AssetServiceTest {
       // Create a minimal PNG file (1x1 transparent pixel)
       byte[] pngBytes = new byte[] {(byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A};
       InputStream content = new ByteArrayInputStream(pngBytes);
+      queryContext.setContext(organizer);
       AssetWithFile assetWithFile =
-          assetService.addAssetStream(admin, team, AssetType.IMAGE, null, content, "image.png");
-      String assetId = TsidUtils.toString(assetWithFile.asset().getId());
+          assetService.addAssetStream(team, AssetType.IMAGE, null, content, "image.png");
+      Long assetId = assetWithFile.asset().getId();
 
-      DownloadableAsset result = assetService.getDownloadableAsset(assetId, null);
+      queryContext.setContext(organizer);
+      DownloadableAsset result = assetService.getDownloadableAsset(team.getSlug(), assetId);
 
       assertNotNull(result);
       assertEquals("image/png", result.contentType());
-    }
-  }
-
-  @Nested
-  class GetAssetById {
-
-    @Test
-    void shouldReturnAssetById() {
-      Asset asset = dataService.createAsset(team, admin, AssetType.IMAGE, "test.png");
-
-      Asset result = assetService.getAsset(asset.getId());
-
-      assertNotNull(result);
-      assertEquals(asset.getId(), result.getId());
-    }
-
-    @Test
-    void shouldThrowForNonexistentAsset() {
-      assertThrows(TriblyException.class, () -> assetService.getAsset(999999L));
     }
   }
 
@@ -208,7 +206,8 @@ class AssetServiceTest {
     void shouldReturnAssetFromPublicTeamWithoutTeamEntity() {
       Asset asset = dataService.createAsset(team, admin, AssetType.IMAGE, "test.png");
 
-      Asset result = assetService.getAsset(asset.getId(), null);
+      queryContext.setContext(organizer);
+      DownloadableAsset result = assetService.getDownloadableAsset(team.getSlug(), asset.getId());
 
       assertNotNull(result);
     }
@@ -218,11 +217,16 @@ class AssetServiceTest {
       Asset asset = dataService.createAsset(privateTeam, admin, AssetType.IMAGE, "test.png");
 
       // Organizer of private team can access
-      Asset result = assetService.getAsset(asset.getId(), admin);
+      queryContext.setContext(organizer);
+      DownloadableAsset result =
+          assetService.getDownloadableAsset(privateTeam.getSlug(), asset.getId());
       assertNotNull(result);
 
       // Non-member cannot access
-      assertThrows(TriblyException.class, () -> assetService.getAsset(asset.getId(), nonMember));
+      queryContext.setContext(nonMember);
+      assertThrows(
+          TriblyException.class,
+          () -> assetService.getDownloadableAsset(privateTeam.getSlug(), asset.getId()));
     }
 
     @Test
@@ -234,7 +238,8 @@ class AssetServiceTest {
       dataService.updateAsset(asset);
 
       // Public post asset accessible to anyone
-      Asset result = assetService.getAsset(asset.getId(), null);
+      queryContext.setContext(null);
+      DownloadableAsset result = assetService.getDownloadableAsset(team.getSlug(), asset.getId());
       assertNotNull(result);
     }
 
@@ -246,7 +251,10 @@ class AssetServiceTest {
       dataService.updateAsset(asset);
 
       // Non-member cannot access team-visibility post asset
-      assertThrows(TriblyException.class, () -> assetService.getAsset(asset.getId(), nonMember));
+      queryContext.setContext(nonMember);
+      assertThrows(
+          TriblyException.class,
+          () -> assetService.getDownloadableAsset(team.getSlug(), asset.getId()));
     }
   }
 
@@ -256,11 +264,13 @@ class AssetServiceTest {
     @Test
     void shouldDeleteExistingFile() throws Exception {
       InputStream content = new ByteArrayInputStream("to delete".getBytes());
+      queryContext.setContext(organizer);
       AssetWithFile assetWithFile =
-          assetService.addAssetStream(admin, team, AssetType.IMAGE, null, content, "delete-me.txt");
+          assetService.addAssetStream(team, AssetType.IMAGE, null, content, "delete-me.txt");
       assertTrue(assetWithFile.file().exists());
 
-      assetService.deleteAsset(assetWithFile.asset().getId());
+      queryContext.setContext(organizer);
+      assetService.deleteAsset(team.getSlug(), assetWithFile.asset().getId());
 
       assertFalse(assetWithFile.file().exists());
     }
@@ -270,12 +280,14 @@ class AssetServiceTest {
       Asset asset = dataService.createAsset(team, admin, AssetType.IMAGE, "no-file.txt");
 
       // Should not throw even if file doesn't exist
-      assertDoesNotThrow(() -> assetService.deleteAsset(asset.getId()));
+      queryContext.setContext(organizer);
+      assertDoesNotThrow(() -> assetService.deleteAsset(team.getSlug(), asset.getId()));
     }
 
     @Test
     void shouldThrowForNonexistentAsset() {
-      assertThrows(TriblyException.class, () -> assetService.deleteAsset(999999L));
+      queryContext.setContext(organizer);
+      assertThrows(TriblyException.class, () -> assetService.deleteAsset(team.getSlug(), 999999L));
     }
   }
 
@@ -322,9 +334,10 @@ class AssetServiceTest {
     @Test
     void shouldNotIncludeImageUrlForNonImageAssets() throws Exception {
       InputStream content = getExampleGpxStream();
+      queryContext.setContext(member);
       AssetWithFile assetWithFile =
           assetService.addAssetStream(
-              admin, team, AssetType.ROUTE_ORIGINAL_GPX, null, content, "route.gpx");
+              team, AssetType.ROUTE_ORIGINAL_GPX, null, content, "route.gpx");
 
       AssetDto result = assetService.map(assetWithFile.asset());
 
@@ -377,9 +390,9 @@ class AssetServiceTest {
     void shouldExtractDimensionsFromValidImage() throws Exception {
       InputStream imageContent = getTestImageStream();
 
+      queryContext.setContext(member);
       AssetWithFile result =
-          assetService.addAssetStream(
-              admin, team, AssetType.IMAGE, null, imageContent, "photo.png");
+          assetService.addAssetStream(team, AssetType.IMAGE, null, imageContent, "photo.png");
 
       assertNotNull(result);
       assertNotNull(result.asset().getWidth(), "Width should be extracted from valid image");
@@ -394,9 +407,9 @@ class AssetServiceTest {
       InputStream invalidContent =
           new ByteArrayInputStream("not an image".getBytes(StandardCharsets.UTF_8));
 
+      queryContext.setContext(member);
       AssetWithFile result =
-          assetService.addAssetStream(
-              admin, team, AssetType.IMAGE, null, invalidContent, "fake.png");
+          assetService.addAssetStream(team, AssetType.IMAGE, null, invalidContent, "fake.png");
 
       assertNotNull(result);
       // Should not fail, just have no dimensions
@@ -408,9 +421,10 @@ class AssetServiceTest {
     void shouldNotExtractDimensionsForNonImageFiles() throws Exception {
       InputStream content = getExampleGpxStream();
 
+      queryContext.setContext(member);
       AssetWithFile result =
           assetService.addAssetStream(
-              admin, team, AssetType.ROUTE_ORIGINAL_GPX, null, content, "route.gpx");
+              team, AssetType.ROUTE_ORIGINAL_GPX, null, content, "route.gpx");
 
       assertNotNull(result);
       assertNull(result.asset().getWidth());
@@ -425,14 +439,16 @@ class AssetServiceTest {
     void shouldReturnResizedImage() throws Exception {
       // Upload a valid image first
       InputStream imageContent = getTestImageStream();
+
+      queryContext.setContext(organizer);
       AssetWithFile assetWithFile =
-          assetService.addAssetStream(
-              admin, team, AssetType.IMAGE, null, imageContent, "photo.png");
-      String assetId = TsidUtils.toString(assetWithFile.asset().getId());
+          assetService.addAssetStream(team, AssetType.IMAGE, null, imageContent, "photo.png");
+      Long assetId = assetWithFile.asset().getId();
 
       // Request resized image
+      queryContext.setContext(organizer);
       jakarta.ws.rs.core.Response response =
-          assetService.getImage(assetId, null, 200, "image/jpeg");
+          assetService.getImage(team.getSlug(), assetId, 200, "image/jpeg");
 
       assertNotNull(response);
       assertEquals(200, response.getStatus());
@@ -440,26 +456,27 @@ class AssetServiceTest {
 
     @Test
     void shouldThrowForNonexistentAsset() {
-      // Use a valid TSID format that doesn't exist
-      String nonexistentId = TsidUtils.toString(999999999L);
+      queryContext.setContext(null);
       assertThrows(
           TriblyException.class,
-          () -> assetService.getImage(nonexistentId, null, 200, "image/jpeg"));
+          () -> assetService.getImage(team.getSlug(), 999999999L, 200, "image/jpeg"));
     }
 
     @Test
     void shouldRespectSecurityForPrivateTeamAsset() throws Exception {
       // Upload image to private team
       InputStream imageContent = getTestImageStream();
+      queryContext.setContext(admin);
       AssetWithFile assetWithFile =
           assetService.addAssetStream(
-              admin, privateTeam, AssetType.IMAGE, null, imageContent, "private-photo.png");
-      String assetId = TsidUtils.toString(assetWithFile.asset().getId());
+              privateTeam, AssetType.IMAGE, null, imageContent, "private-photo.png");
+      Long assetId = assetWithFile.asset().getId();
 
       // Non-member should not be able to access
+      queryContext.setContext(nonMember);
       assertThrows(
           TriblyException.class,
-          () -> assetService.getImage(assetId, nonMember, 200, "image/jpeg"));
+          () -> assetService.getImage(privateTeam.getSlug(), assetId, 200, "image/jpeg"));
     }
   }
 
@@ -519,8 +536,8 @@ class AssetServiceTest {
           new AssetsDto(
               null, // no logo
               List.of(new AssetDto(imageId, "new-image.png", null, null, null, null)),
-              null,
-              null,
+              List.of(),
+              List.of(),
               null,
               null,
               null,
@@ -542,7 +559,7 @@ class AssetServiceTest {
       post.getAssets().add(systemAsset);
 
       // Update with null assets should preserve system assets
-      assetService.updateAssets(post, null);
+      assetService.updateAssets(post, AssetsDto.builder().build());
 
       assertTrue(post.getAssets().stream().anyMatch(a -> a.getType().isSystem()));
     }
@@ -553,7 +570,7 @@ class AssetServiceTest {
           dataService.createPost(team, admin, "Test Post", Instant.now(), Visibility.PUBLIC);
 
       // Should not throw
-      assertDoesNotThrow(() -> assetService.updateAssets(post, null));
+      assertDoesNotThrow(() -> assetService.updateAssets(post, AssetsDto.builder().build()));
     }
 
     @Test
@@ -566,10 +583,10 @@ class AssetServiceTest {
 
       AssetsDto assetsDto =
           new AssetsDto(
-              new AssetDto(foreignId, "foreign.png", null, null, null, null),
-              null,
-              null,
-              null,
+              new AssetDto(foreignId, null, null, null, null, null),
+              List.of(),
+              List.of(),
+              List.of(),
               null,
               null,
               null,
@@ -594,9 +611,9 @@ class AssetServiceTest {
       AssetsDto assetsDto =
           new AssetsDto(
               null,
-              List.of(new AssetDto(imageId, "existing-image.png", null, null, null, null)),
-              null,
-              null,
+              List.of(new AssetDto(imageId, null, null, null, null, null)),
+              List.of(),
+              List.of(),
               null,
               null,
               null,
@@ -620,9 +637,9 @@ class AssetServiceTest {
       AssetsDto assetsDto =
           new AssetsDto(
               null,
-              List.of(new AssetDto(imageId, "other-post-image.png", null, null, null, null)),
-              null,
-              null,
+              List.of(new AssetDto(imageId, null, null, null, null, null)),
+              List.of(),
+              List.of(),
               null,
               null,
               null,

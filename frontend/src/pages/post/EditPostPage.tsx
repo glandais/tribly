@@ -9,9 +9,9 @@ import {
   useGetPost,
   useUpdatePost,
   useChangePostSlug,
-  getListPostsQueryKey,
   getGetPostQueryKey,
 } from '../../api/endpoints/posts/posts'
+import { getListPublicationsQueryKey } from '../../api/endpoints/publications/publications'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { PostEditor } from '../../components/post/PostEditor'
 import { paths } from '@/config/paths'
@@ -51,13 +51,13 @@ export function EditPostPage() {
   const handleSubmit = (data: PostRequest) => {
     updateMutation.mutate(
       {
-        slug: teamSlug!,
+        teamSlug: teamSlug!,
         postSlug: postSlug!,
         data,
       },
       {
         onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: getListPostsQueryKey(teamSlug!) })
+          queryClient.invalidateQueries({ queryKey: getListPublicationsQueryKey(teamSlug!) })
           queryClient.invalidateQueries({ queryKey: getGetPostQueryKey(teamSlug!, postSlug!) })
           toast.success(i18next.t('posts.notifications.updated'))
           navigate(paths.post(teamSlug!, postSlug!))
@@ -68,10 +68,10 @@ export function EditPostPage() {
 
   const handleSlugChange = async (newSlug: string) => {
     await changeSlugMutation.mutateAsync(
-      { slug: teamSlug!, postSlug: postSlug!, data: { slug: newSlug } },
+      { teamSlug: teamSlug!, postSlug: postSlug!, data: { slug: newSlug } },
       {
         onSuccess: (updatedPost) => {
-          queryClient.invalidateQueries({ queryKey: getListPostsQueryKey(teamSlug!) })
+          queryClient.invalidateQueries({ queryKey: getListPublicationsQueryKey(teamSlug!) })
           queryClient.invalidateQueries({ queryKey: getGetPostQueryKey(teamSlug!, postSlug!) })
           navigate(paths.postEdit(teamSlug!, updatedPost.slug), { replace: true })
         },

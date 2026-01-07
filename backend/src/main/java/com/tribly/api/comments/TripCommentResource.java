@@ -1,20 +1,17 @@
 package com.tribly.api.comments;
 
-import com.tribly.domain.common.TeamEntity;
-import com.tribly.domain.team.Team;
-import com.tribly.domain.user.User;
+import com.tribly.common.TsidUtils;
 import com.tribly.dto.comments.request.CommentRequest;
 import com.tribly.dto.comments.response.CommentDto;
 import com.tribly.dto.comments.response.CommentListResponse;
 import com.tribly.dto.error.ErrorResponse;
-import com.tribly.enums.ActionType;
-import com.tribly.service.trip.TripService;
+import com.tribly.enums.EntityType;
+import com.tribly.service.comment.CommentService;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.DELETE;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
+import jakarta.transaction.Transactional;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
@@ -24,24 +21,17 @@ import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
-@Path("/api/teams/{slug}/trips/{entitySlug}/comments")
+@Path("/api/teams/{teamSlug}/trips/{entitySlug}/comments")
 @Tag(name = "Trip Comments", description = "Comment operations for trips")
-public class TripCommentResource extends AbstractCommentResource {
+@Produces(MediaType.APPLICATION_JSON)
+@Consumes(MediaType.APPLICATION_JSON)
+@RolesAllowed("user")
+@Transactional
+public class TripCommentResource {
 
-  @Inject TripService tripService;
-
-  @Override
-  protected TeamEntity getTeamEntity(Team team, String entitySlug, User user) {
-    return tripService.get(ActionType.READ, team, entitySlug, user);
-  }
-
-  @Override
-  protected String getEntityType() {
-    return "trips";
-  }
+  @Inject CommentService commentService;
 
   @GET
-  @Override
   @Operation(operationId = "listTripComments", summary = "List trip comments")
   @APIResponses({
     @APIResponse(
@@ -53,14 +43,15 @@ public class TripCommentResource extends AbstractCommentResource {
         description = "Not a team member",
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
-  public Response listComments(
-      @Parameter(description = "Team URL slug") @PathParam("slug") String teamSlug,
+  public Response listTripComments(
+      @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug,
       @Parameter(description = "Trip URL slug") @PathParam("entitySlug") String entitySlug) {
-    return super.listComments(teamSlug, entitySlug);
+    CommentListResponse response =
+        commentService.listComments(teamSlug, entitySlug, EntityType.TRIP);
+    return Response.ok(response).build();
   }
 
   @POST
-  @Override
   @Operation(operationId = "createTripComment", summary = "Create trip comment")
   @APIResponses({
     @APIResponse(
@@ -72,11 +63,13 @@ public class TripCommentResource extends AbstractCommentResource {
         description = "Invalid request",
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
-  public Response createComment(
-      @Parameter(description = "Team URL slug") @PathParam("slug") String teamSlug,
+  public Response createTripComment(
+      @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug,
       @Parameter(description = "Trip URL slug") @PathParam("entitySlug") String entitySlug,
       CommentRequest request) {
-    return super.createComment(teamSlug, entitySlug, request);
+    CommentDto comment =
+        commentService.createComment(teamSlug, entitySlug, EntityType.TRIP, request);
+    return Response.status(Response.Status.CREATED).entity(comment).build();
   }
 
   @DELETE
@@ -89,10 +82,12 @@ public class TripCommentResource extends AbstractCommentResource {
         description = "Cannot delete",
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
-  public Response deleteComment(
-      @Parameter(description = "Team URL slug") @PathParam("slug") String teamSlug,
+  public Response deleteTripComment(
+      @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug,
       @Parameter(description = "Trip URL slug") @PathParam("entitySlug") String entitySlug,
       @Parameter(description = "Comment ID") @PathParam("commentId") String commentId) {
-    return super.deleteComment(teamSlug, commentId);
+    commentService.deleteComment(
+        teamSlug, entitySlug, EntityType.TRIP, TsidUtils.toLong(commentId));
+    return Response.noContent().build();
   }
 }

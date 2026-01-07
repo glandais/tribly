@@ -5,7 +5,8 @@ import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import i18next from 'i18next'
 import { useGetTeam } from '@/api/endpoints/teams/teams'
-import { useCreatePost, getListPostsQueryKey } from '../../api/endpoints/posts/posts'
+import { useCreatePost } from '../../api/endpoints/posts/posts'
+import { getListPublicationsQueryKey } from '../../api/endpoints/publications/publications'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { PostEditor } from '../../components/post/PostEditor'
 import { defaultMedia } from '@/lib/apiUtils'
@@ -52,12 +53,12 @@ export function CreatePostPage() {
   const handleSubmit = (data: PostRequest) => {
     createMutation.mutate(
       {
-        slug: teamSlug!,
+        teamSlug: teamSlug!,
         data,
       },
       {
         onSuccess: (post) => {
-          queryClient.invalidateQueries({ queryKey: getListPostsQueryKey(teamSlug!) })
+          queryClient.invalidateQueries({ queryKey: getListPublicationsQueryKey(teamSlug!) })
           toast.success(i18next.t('posts.notifications.created'))
           navigate(paths.post(teamSlug!, post.slug))
         },

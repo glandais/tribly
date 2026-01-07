@@ -90,7 +90,7 @@ export function TeamForm({
       )
     } else if (teamSlug) {
       updateMutation.mutate(
-        { slug: teamSlug, data: values },
+        { teamSlug: teamSlug, data: values },
         {
           onSuccess: (team) => {
             queryClient.invalidateQueries({ queryKey: getGetTeamQueryKey(teamSlug) })

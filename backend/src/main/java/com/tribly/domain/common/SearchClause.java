@@ -1,8 +1,8 @@
 package com.tribly.domain.common;
 
-import com.tribly.domain.common.query.OrClause;
-import com.tribly.domain.common.query.SimpleClause;
-import com.tribly.domain.common.query.TriblyQuery;
+import com.tribly.repository.query.OrClause;
+import com.tribly.repository.query.SimpleClause;
+import com.tribly.repository.query.TriblyQuery;
 import java.util.Map;
 import java.util.Set;
 import org.jspecify.annotations.Nullable;

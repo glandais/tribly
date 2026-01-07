@@ -2,19 +2,20 @@ package com.tribly.service.ride;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.tribly.common.TsidUtils;
+import com.tribly.common.exception.TriblyException;
 import com.tribly.domain.ride.Ride;
 import com.tribly.domain.ride.RideGroup;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
-import com.tribly.dto.common.response.MediaDto;
+import com.tribly.dto.common.asset.MediaDto;
 import com.tribly.dto.rides.request.GroupRequest;
 import com.tribly.dto.rides.request.RideRequest;
 import com.tribly.dto.rides.response.*;
 import com.tribly.enums.Status;
 import com.tribly.enums.TeamRole;
 import com.tribly.enums.Visibility;
-import com.tribly.infrastructure.exception.TriblyException;
-import com.tribly.infrastructure.id.TsidUtils;
+import com.tribly.service.security.TriblyQueryContext;
 import com.tribly.util.TestDataCleaner;
 import com.tribly.util.TestDataService;
 import io.quarkus.test.junit.QuarkusTest;
@@ -30,11 +31,13 @@ class RideServiceTest {
   @Inject RideService rideService;
   @Inject TestDataService dataService;
   @Inject TestDataCleaner dataCleaner;
+  @Inject TriblyQueryContext userService;
 
   private Team team;
   private User admin;
   private User organizer;
   private User member;
+  private User user2;
 
   @BeforeEach
   void setUp() {
@@ -43,167 +46,9 @@ class RideServiceTest {
     team = dataService.createTeam(admin, "Test Team", "test-team", Visibility.PUBLIC);
     organizer = dataService.createUser("organizer@example.com", "Organizer");
     member = dataService.createUser("member@example.com", "Member");
-    dataService.addUserToTeam(admin, team, TeamRole.ADMIN);
     dataService.addUserToTeam(organizer, team, TeamRole.ORGANIZER);
     dataService.addUserToTeam(member, team, TeamRole.MEMBER);
-  }
-
-  // ==================== List Rides ====================
-
-  @Test
-  void listRides_shouldReturnPublishedRidesForNonMembers() {
-    dataService.createRide(
-        team,
-        admin,
-        "Public Ride",
-        "public-ride",
-        Instant.now(),
-        Visibility.PUBLIC,
-        Status.PUBLISHED);
-    dataService.createRide(
-        team, admin, "Team Ride", "team-ride", Instant.now(), Visibility.TEAM, Status.PUBLISHED);
-
-    RideListResponse result = rideService.listRides(team, null, null, null, null, 0, 10);
-
-    assertEquals(1, result.rides().size());
-    assertEquals("Public Ride", result.rides().getFirst().getName());
-  }
-
-  @Test
-  void listRides_shouldReturnTeamRidesForMembers() {
-    dataService.createRide(
-        team,
-        admin,
-        "Public Ride",
-        "public-ride",
-        Instant.now(),
-        Visibility.PUBLIC,
-        Status.PUBLISHED);
-    dataService.createRide(
-        team, admin, "Team Ride", "team-ride", Instant.now(), Visibility.TEAM, Status.PUBLISHED);
-
-    RideListResponse result = rideService.listRides(team, member, null, null, null, 0, 10);
-
-    assertEquals(2, result.rides().size());
-  }
-
-  @Test
-  void listRides_shouldFilterByDateRange() {
-    Instant today = Instant.now();
-    Instant tomorrow = today.plusSeconds(24 * 3600);
-    Instant nextWeek = today.plusSeconds(24 * 3600 * 7);
-    dataService.createRide(team, admin, "Today Ride", "today", today);
-    dataService.createRide(team, admin, "Tomorrow Ride", "tomorrow", tomorrow);
-    dataService.createRide(team, admin, "Next Week", "next-week", nextWeek);
-
-    RideListResponse result = rideService.listRides(team, null, null, today, tomorrow, 0, 10);
-
-    assertEquals(2, result.rides().size());
-  }
-
-  @Test
-  void listRides_shouldShowDraftsToOrganizers() {
-    dataService.createRide(team, admin, "Draft", "draft", Instant.now(), Status.DRAFT);
-
-    RideListResponse result = rideService.listRides(team, organizer, null, null, null, 0, 10);
-
-    assertEquals(1, result.rides().size());
-    assertEquals(Status.DRAFT, result.rides().getFirst().getStatus());
-  }
-
-  @Test
-  void listRides_shouldHideDraftsFromMembers() {
-    dataService.createRide(team, admin, "Draft", "draft", Instant.now(), Status.DRAFT);
-
-    RideListResponse result = rideService.listRides(team, member, null, null, null, 0, 10);
-
-    assertEquals(0, result.rides().size());
-  }
-
-  @Test
-  void listRides_shouldHideDraftsFromNonMembers() {
-    dataService.createRide(
-        team, admin, "Draft Ride", "draft-ride", Instant.now(), Visibility.PUBLIC, Status.DRAFT);
-    dataService.createRide(
-        team,
-        admin,
-        "Published Ride",
-        "published-ride",
-        Instant.now(),
-        Visibility.PUBLIC,
-        Status.PUBLISHED);
-
-    RideListResponse result = rideService.listRides(team, null, null, null, null, 0, 10);
-
-    assertEquals(1, result.rides().size());
-    assertEquals("Published Ride", result.rides().getFirst().getName());
-  }
-
-  @Test
-  void listRides_shouldReturnEmptyWhenNonMemberRequestsDrafts() {
-    dataService.createRide(
-        team, admin, "Draft Ride", "draft-ride", Instant.now(), Visibility.PUBLIC, Status.DRAFT);
-
-    RideListResponse result = rideService.listRides(team, null, null, null, null, 0, 10);
-
-    assertEquals(0, result.rides().size());
-  }
-
-  @Test
-  void listRides_shouldReturnDraftsWhenOrganizerRequestsThem() {
-    dataService.createRide(
-        team, admin, "Draft Ride", "draft-ride", Instant.now(), Visibility.PUBLIC, Status.DRAFT);
-    dataService.createRide(
-        team,
-        admin,
-        "Published Ride",
-        "published-ride",
-        Instant.now(),
-        Visibility.PUBLIC,
-        Status.PUBLISHED);
-
-    RideListResponse result = rideService.listRides(team, organizer, null, null, null, 0, 10);
-
-    assertEquals(2, result.rides().size());
-  }
-
-  @Test
-  void listRides_shouldReturnPublishedWhenNonMemberRequestsThem() {
-    dataService.createRide(
-        team, admin, "Draft Ride", "draft-ride", Instant.now(), Visibility.PUBLIC, Status.DRAFT);
-    dataService.createRide(
-        team,
-        admin,
-        "Published Ride",
-        "published-ride",
-        Instant.now(),
-        Visibility.PUBLIC,
-        Status.PUBLISHED);
-
-    RideListResponse result = rideService.listRides(team, null, null, null, null, 0, 10);
-
-    assertEquals(1, result.rides().size());
-    assertEquals("Published Ride", result.rides().getFirst().getName());
-    assertEquals(Status.PUBLISHED, result.rides().getFirst().getStatus());
-  }
-
-  @Test
-  void listRides_shouldThrowForNonMemberOfPrivateTeam() {
-    User privateTeamAdmin = dataService.createUser("private-admin@example.com", "Private Admin");
-    Team privateTeam =
-        dataService.createTeam(privateTeamAdmin, "Private Team", "private-team", Visibility.TEAM);
-    dataService.addUserToTeam(privateTeamAdmin, privateTeam, TeamRole.ADMIN);
-    dataService.createRide(
-        privateTeam,
-        privateTeamAdmin,
-        "Private Ride",
-        "private-ride",
-        Instant.now(),
-        Visibility.TEAM,
-        Status.PUBLISHED);
-
-    RideListResponse result = rideService.listRides(privateTeam, null, null, null, null, 0, 10);
-    assertEquals(0, result.rides().size());
+    user2 = dataService.createUser("user2@example.com", "user2");
   }
 
   // ==================== Get Ride ====================
@@ -211,8 +56,8 @@ class RideServiceTest {
   @Test
   void getRideBySlug_shouldReturnRide() {
     dataService.createRide(team, admin, "Test Ride", "test-ride", Instant.now());
-
-    RideDto result = rideService.getDto(team, "test-ride", null);
+    userService.setContext(null);
+    RideDto result = rideService.getDto(team.getSlug(), "test-ride");
 
     assertEquals("Test Ride", result.getName());
     assertEquals("test-ride", result.getSlug());
@@ -220,14 +65,15 @@ class RideServiceTest {
 
   @Test
   void getRideBySlug_shouldThrowForNonexistent() {
-    assertThrows(TriblyException.class, () -> rideService.getDto(team, "nonexistent", null));
+    userService.setContext(null);
+    assertThrows(TriblyException.class, () -> rideService.getDto(team.getSlug(), "nonexistent"));
   }
 
   @Test
   void getRideBySlug_shouldShowDraftToOrganizer() {
     dataService.createRide(team, admin, "Draft", "draft", Instant.now(), Status.DRAFT);
-
-    RideDto result = rideService.getDto(team, "draft", organizer);
+    userService.setContext(organizer);
+    RideDto result = rideService.getDto(team.getSlug(), "draft");
 
     assertEquals(Status.DRAFT, result.getStatus());
   }
@@ -236,7 +82,8 @@ class RideServiceTest {
   void getRideBySlug_shouldHideDraftFromMember() {
     dataService.createRide(team, admin, "Draft", "draft", Instant.now(), Status.DRAFT);
 
-    assertThrows(TriblyException.class, () -> rideService.getDto(team, "draft", member));
+    userService.setContext(member);
+    assertThrows(TriblyException.class, () -> rideService.getDto(team.getSlug(), "draft"));
   }
 
   // ==================== Create Ride ====================
@@ -256,7 +103,8 @@ class RideServiceTest {
             null,
             List.of());
 
-    RideDto result = rideService.createRide(team, request, organizer);
+    userService.setContext(organizer);
+    RideDto result = rideService.createRide(team.getSlug(), request);
 
     assertNotNull(result);
     assertEquals("Sunday Ride", result.getName());
@@ -280,7 +128,8 @@ class RideServiceTest {
             null,
             List.of());
 
-    RideDto result = rideService.createRide(team, request, organizer);
+    userService.setContext(organizer);
+    RideDto result = rideService.createRide(team.getSlug(), request);
 
     assertNotEquals("test-ride", result.getSlug());
     assertTrue(result.getSlug().startsWith("test-ride-"));
@@ -303,7 +152,8 @@ class RideServiceTest {
             null,
             List.of(group1, group2));
 
-    RideDto result = rideService.createRide(team, request, organizer);
+    userService.setContext(organizer);
+    RideDto result = rideService.createRide(team.getSlug(), request);
 
     assertEquals("Group Ride", result.getName());
     List<RideGroupDto> groups = result.getGroups();
@@ -325,13 +175,14 @@ class RideServiceTest {
             null,
             List.of());
 
-    assertThrows(TriblyException.class, () -> rideService.createRide(team, request, member));
+    userService.setContext(member);
+    assertThrows(TriblyException.class, () -> rideService.createRide(team.getSlug(), request));
   }
 
   @Test
   void createRide_shouldThrowForPublicRideInTeamVisibilityTeam() {
     Team privateTeam =
-        dataService.createTeam(organizer, "Private Team", "private-team", Visibility.TEAM);
+        dataService.createTeam(user2, "Private Team", "private-team", Visibility.TEAM);
     dataService.addUserToTeam(organizer, privateTeam, TeamRole.ORGANIZER);
 
     RideRequest request =
@@ -347,17 +198,18 @@ class RideServiceTest {
             null,
             List.of());
 
+    userService.setContext(organizer);
     TriblyException exception =
         assertThrows(
-            TriblyException.class, () -> rideService.createRide(privateTeam, request, organizer));
+            TriblyException.class, () -> rideService.createRide(privateTeam.getSlug(), request));
 
-    assertTrue(exception.getMessage().contains("Private teams can only have team-only items"));
+    assertTrue(exception.getMessage().contains("INVALID_VISIBILITY"));
   }
 
   @Test
   void createRide_shouldSucceedForTeamRideInTeamVisibilityTeam() {
     Team privateTeam =
-        dataService.createTeam(organizer, "Private Team", "private-team", Visibility.TEAM);
+        dataService.createTeam(user2, "Private Team", "private-team", Visibility.TEAM);
     dataService.addUserToTeam(organizer, privateTeam, TeamRole.ORGANIZER);
 
     RideRequest request =
@@ -373,7 +225,8 @@ class RideServiceTest {
             null,
             List.of());
 
-    RideDto result = rideService.createRide(privateTeam, request, organizer);
+    userService.setContext(organizer);
+    RideDto result = rideService.createRide(privateTeam.getSlug(), request);
 
     assertNotNull(result);
     assertEquals("Team Ride", result.getName());
@@ -397,7 +250,8 @@ class RideServiceTest {
             null,
             List.of());
 
-    RideDto result = rideService.createRide(team, request, organizer);
+    userService.setContext(organizer);
+    RideDto result = rideService.createRide(team.getSlug(), request);
 
     assertNotNull(result);
     assertNotNull(result.getRouteSlug());
@@ -419,14 +273,15 @@ class RideServiceTest {
             null,
             List.of());
 
-    assertThrows(TriblyException.class, () -> rideService.createRide(team, request, organizer));
+    userService.setContext(organizer);
+    assertThrows(TriblyException.class, () -> rideService.createRide(team.getSlug(), request));
   }
 
   @Test
   void createRide_shouldThrowForRouteFromDifferentTeam() {
-    Team otherTeam = dataService.createTeam(admin, "Other Team", "other-team", Visibility.PUBLIC);
+    Team otherTeam = dataService.createTeam(user2, "Other Team", "other-team", Visibility.PUBLIC);
     var foreignRoute =
-        dataService.createRoute(otherTeam, admin, "Foreign Route", Visibility.PUBLIC);
+        dataService.createRoute(otherTeam, user2, "Foreign Route", Visibility.PUBLIC);
 
     RideRequest request =
         new RideRequest(
@@ -441,7 +296,8 @@ class RideServiceTest {
             null,
             List.of());
 
-    assertThrows(TriblyException.class, () -> rideService.createRide(team, request, organizer));
+    userService.setContext(organizer);
+    assertThrows(TriblyException.class, () -> rideService.createRide(team.getSlug(), request));
   }
 
   @Test
@@ -461,10 +317,11 @@ class RideServiceTest {
             null,
             List.of());
 
+    userService.setContext(organizer);
     TriblyException exception =
-        assertThrows(TriblyException.class, () -> rideService.createRide(team, request, organizer));
+        assertThrows(TriblyException.class, () -> rideService.createRide(team.getSlug(), request));
 
-    assertTrue(exception.getMessage().contains("private route"));
+    assertTrue(exception.getMessage().contains("PUBLIC_RIDE_PRIVATE_ROUTE"));
   }
 
   @Test
@@ -484,7 +341,8 @@ class RideServiceTest {
             null,
             List.of());
 
-    RideDto result = rideService.createRide(team, request, organizer);
+    userService.setContext(organizer);
+    RideDto result = rideService.createRide(team.getSlug(), request);
 
     assertNotNull(result);
     assertEquals(teamRoute.getSlug(), result.getRouteSlug());
@@ -510,7 +368,8 @@ class RideServiceTest {
             null,
             List.of());
 
-    RideDto result = rideService.createRide(team, request, organizer);
+    userService.setContext(organizer);
+    RideDto result = rideService.createRide(team.getSlug(), request);
 
     assertNotNull(result);
     assertNotNull(result.getStartPlace());
@@ -534,7 +393,8 @@ class RideServiceTest {
             null,
             List.of());
 
-    assertThrows(TriblyException.class, () -> rideService.createRide(team, request, organizer));
+    userService.setContext(organizer);
+    assertThrows(TriblyException.class, () -> rideService.createRide(team.getSlug(), request));
   }
 
   @Test
@@ -552,13 +412,14 @@ class RideServiceTest {
             null,
             List.of());
 
-    assertThrows(TriblyException.class, () -> rideService.createRide(team, request, organizer));
+    userService.setContext(organizer);
+    assertThrows(TriblyException.class, () -> rideService.createRide(team.getSlug(), request));
   }
 
   @Test
   void createRide_shouldThrowForPlaceFromDifferentTeam() {
-    Team otherTeam = dataService.createTeam(admin, "Other Team", "other-team", Visibility.PUBLIC);
-    var foreignPlace = dataService.createPlace(otherTeam, admin, "Foreign Place");
+    Team otherTeam = dataService.createTeam(user2, "Other Team", "other-team", Visibility.PUBLIC);
+    var foreignPlace = dataService.createPlace(otherTeam, user2, "Foreign Place");
     String foreignPlaceId = TsidUtils.toString(foreignPlace.getId());
 
     RideRequest request =
@@ -574,7 +435,8 @@ class RideServiceTest {
             null,
             List.of());
 
-    assertThrows(TriblyException.class, () -> rideService.createRide(team, request, organizer));
+    userService.setContext(organizer);
+    assertThrows(TriblyException.class, () -> rideService.createRide(team.getSlug(), request));
   }
 
   // ==================== Update Ride ====================
@@ -595,7 +457,8 @@ class RideServiceTest {
             null,
             List.of());
 
-    RideDto result = rideService.updateRide(team, "original", request, organizer);
+    userService.setContext(organizer);
+    RideDto result = rideService.updateRide(team.getSlug(), "original", request);
 
     assertEquals("Updated Title", result.getName());
     assertEquals("Updated description", result.getMedia().markdown());
@@ -619,7 +482,8 @@ class RideServiceTest {
             null,
             List.of());
 
-    RideDto result = rideService.updateRide(team, "original", request, organizer);
+    userService.setContext(organizer);
+    RideDto result = rideService.updateRide(team.getSlug(), "original", request);
 
     assertEquals("New Title", result.getName());
     assertEquals(Status.PUBLISHED, result.getStatus());
@@ -648,7 +512,8 @@ class RideServiceTest {
             null,
             List.of());
 
-    RideDto result = rideService.updateRide(team, "published-ride", request, organizer);
+    userService.setContext(organizer);
+    RideDto result = rideService.updateRide(team.getSlug(), "published-ride", request);
 
     assertEquals("Updated Title", result.getName());
     assertEquals(Status.PUBLISHED, result.getStatus());
@@ -670,14 +535,15 @@ class RideServiceTest {
             null,
             List.of());
 
+    userService.setContext(member);
     assertThrows(
-        TriblyException.class, () -> rideService.updateRide(team, "test", request, member));
+        TriblyException.class, () -> rideService.updateRide(team.getSlug(), "test", request));
   }
 
   @Test
   void updateRide_shouldThrowForPublicVisibilityInTeamVisibilityTeam() {
     Team privateTeam =
-        dataService.createTeam(organizer, "Private Team", "private-team", Visibility.TEAM);
+        dataService.createTeam(user2, "Private Team", "private-team", Visibility.TEAM);
     dataService.addUserToTeam(organizer, privateTeam, TeamRole.ORGANIZER);
     dataService.createRide(
         privateTeam,
@@ -701,18 +567,19 @@ class RideServiceTest {
             null,
             List.of());
 
+    userService.setContext(organizer);
     TriblyException exception =
         assertThrows(
             TriblyException.class,
-            () -> rideService.updateRide(privateTeam, "team-ride", request, organizer));
+            () -> rideService.updateRide(privateTeam.getSlug(), "team-ride", request));
 
-    assertTrue(exception.getMessage().contains("Private teams can only have team-only items"));
+    assertTrue(exception.getMessage().contains("INVALID_VISIBILITY"));
   }
 
   @Test
   void updateRide_shouldSucceedForTeamVisibilityInTeamVisibilityTeam() {
     Team privateTeam =
-        dataService.createTeam(organizer, "Private Team", "private-team", Visibility.TEAM);
+        dataService.createTeam(user2, "Private Team", "private-team", Visibility.TEAM);
     dataService.addUserToTeam(organizer, privateTeam, TeamRole.ORGANIZER);
     dataService.createRide(
         privateTeam,
@@ -736,7 +603,8 @@ class RideServiceTest {
             null,
             List.of());
 
-    RideDto result = rideService.updateRide(privateTeam, "team-ride", request, organizer);
+    userService.setContext(organizer);
+    RideDto result = rideService.updateRide(privateTeam.getSlug(), "team-ride", request);
 
     assertEquals("Updated Title", result.getName());
     assertEquals(Visibility.TEAM, result.getVisibility());
@@ -760,7 +628,8 @@ class RideServiceTest {
             null,
             List.of(newGroup));
 
-    RideDto result = rideService.updateRide(team, "test-ride", request, organizer);
+    userService.setContext(organizer);
+    RideDto result = rideService.updateRide(team.getSlug(), "test-ride", request);
 
     assertEquals(1, result.getGroups().size());
     assertEquals("New Group", result.getGroups().getFirst().name());
@@ -787,7 +656,8 @@ class RideServiceTest {
             null,
             List.of(updatedGroup));
 
-    RideDto result = rideService.updateRide(team, "test-ride", request, organizer);
+    userService.setContext(organizer);
+    RideDto result = rideService.updateRide(team.getSlug(), "test-ride", request);
 
     assertEquals(1, result.getGroups().size());
     assertEquals("Updated Group", result.getGroups().getFirst().name());
@@ -814,7 +684,8 @@ class RideServiceTest {
             null,
             List.of());
 
-    RideDto result = rideService.updateRide(team, "test-ride", request, organizer);
+    userService.setContext(organizer);
+    RideDto result = rideService.updateRide(team.getSlug(), "test-ride", request);
 
     assertEquals(0, result.getGroups().size());
   }
@@ -843,7 +714,8 @@ class RideServiceTest {
             null,
             List.of(reorderedGroup1, reorderedGroup2));
 
-    RideDto result = rideService.updateRide(team, "test-ride", request, organizer);
+    userService.setContext(organizer);
+    RideDto result = rideService.updateRide(team.getSlug(), "test-ride", request);
 
     assertEquals(2, result.getGroups().size());
     assertEquals("Group B", result.getGroups().get(0).name());
@@ -872,7 +744,8 @@ class RideServiceTest {
             null,
             List.of(keepExisting, addNew));
 
-    RideDto result = rideService.updateRide(team, "test-ride", request, organizer);
+    userService.setContext(organizer);
+    RideDto result = rideService.updateRide(team.getSlug(), "test-ride", request);
 
     assertEquals(2, result.getGroups().size());
     assertEquals("Existing Group", result.getGroups().get(0).name());
@@ -898,12 +771,13 @@ class RideServiceTest {
             null,
             List.of(invalidGroup));
 
+    userService.setContext(organizer);
     TriblyException exception =
         assertThrows(
             TriblyException.class,
-            () -> rideService.updateRide(team, "test-ride", request, organizer));
+            () -> rideService.updateRide(team.getSlug(), "test-ride", request));
 
-    assertTrue(exception.getMessage().contains("Group"));
+    assertTrue(exception.getMessage().contains("NOT_FOUND"));
   }
 
   @Test
@@ -927,7 +801,8 @@ class RideServiceTest {
             null,
             List.of());
 
-    RideDto result = rideService.updateRide(team, "test-ride", request, organizer);
+    userService.setContext(organizer);
+    RideDto result = rideService.updateRide(team.getSlug(), "test-ride", request);
 
     assertNotNull(result.getStartPlace());
     assertNotNull(result.getEndPlace());
@@ -952,8 +827,9 @@ class RideServiceTest {
             null,
             List.of());
 
+    userService.setContext(organizer);
     assertThrows(
-        TriblyException.class, () -> rideService.updateRide(team, "test-ride", request, organizer));
+        TriblyException.class, () -> rideService.updateRide(team.getSlug(), "test-ride", request));
   }
 
   @Test
@@ -973,14 +849,15 @@ class RideServiceTest {
             null,
             List.of());
 
+    userService.setContext(organizer);
     assertThrows(
-        TriblyException.class, () -> rideService.updateRide(team, "test-ride", request, organizer));
+        TriblyException.class, () -> rideService.updateRide(team.getSlug(), "test-ride", request));
   }
 
   @Test
   void updateRide_shouldThrowForPlaceFromDifferentTeam() {
     dataService.createRide(team, admin, "Test Ride", "test-ride", Instant.now());
-    Team otherTeam = dataService.createTeam(admin, "Other Team", "other-team", Visibility.PUBLIC);
+    Team otherTeam = dataService.createTeam(user2, "Other Team", "other-team", Visibility.PUBLIC);
     var foreignPlace = dataService.createPlace(otherTeam, admin, "Foreign Place");
     String foreignPlaceId = TsidUtils.toString(foreignPlace.getId());
 
@@ -997,8 +874,9 @@ class RideServiceTest {
             null,
             List.of());
 
+    userService.setContext(organizer);
     assertThrows(
-        TriblyException.class, () -> rideService.updateRide(team, "test-ride", request, organizer));
+        TriblyException.class, () -> rideService.updateRide(team.getSlug(), "test-ride", request));
   }
 
   @Test
@@ -1022,7 +900,8 @@ class RideServiceTest {
             null,
             List.of());
 
-    RideDto result = rideService.updateRide(team, "test-ride", request, organizer);
+    userService.setContext(organizer);
+    RideDto result = rideService.updateRide(team.getSlug(), "test-ride", request);
 
     assertNull(result.getStartPlace());
     assertNull(result.getEndPlace());
@@ -1046,7 +925,8 @@ class RideServiceTest {
             null,
             List.of());
 
-    RideDto result = rideService.updateRide(team, "test-ride", request, organizer);
+    userService.setContext(organizer);
+    RideDto result = rideService.updateRide(team.getSlug(), "test-ride", request);
 
     assertNotNull(result.getRouteSlug());
     assertEquals(route.getSlug(), result.getRouteSlug());
@@ -1069,14 +949,15 @@ class RideServiceTest {
             null,
             List.of());
 
+    userService.setContext(organizer);
     assertThrows(
-        TriblyException.class, () -> rideService.updateRide(team, "test-ride", request, organizer));
+        TriblyException.class, () -> rideService.updateRide(team.getSlug(), "test-ride", request));
   }
 
   @Test
   void updateRide_shouldThrowForRouteFromDifferentTeam() {
     dataService.createRide(team, admin, "Test Ride", "test-ride", Instant.now());
-    Team otherTeam = dataService.createTeam(admin, "Other Team", "other-team", Visibility.PUBLIC);
+    Team otherTeam = dataService.createTeam(user2, "Other Team", "other-team", Visibility.PUBLIC);
     var foreignRoute =
         dataService.createRoute(otherTeam, admin, "Foreign Route", Visibility.PUBLIC);
 
@@ -1093,8 +974,9 @@ class RideServiceTest {
             null,
             List.of());
 
+    userService.setContext(organizer);
     assertThrows(
-        TriblyException.class, () -> rideService.updateRide(team, "test-ride", request, organizer));
+        TriblyException.class, () -> rideService.updateRide(team.getSlug(), "test-ride", request));
   }
 
   @Test
@@ -1115,12 +997,13 @@ class RideServiceTest {
             null,
             List.of());
 
+    userService.setContext(organizer);
     TriblyException exception =
         assertThrows(
             TriblyException.class,
-            () -> rideService.updateRide(team, "test-ride", request, organizer));
+            () -> rideService.updateRide(team.getSlug(), "test-ride", request));
 
-    assertTrue(exception.getMessage().contains("private route"));
+    assertTrue(exception.getMessage().contains("PUBLIC_RIDE_PRIVATE_ROUTE"));
   }
 
   @Test
@@ -1143,7 +1026,8 @@ class RideServiceTest {
             null,
             List.of());
 
-    RideDto result = rideService.updateRide(team, "team-ride", request, organizer);
+    userService.setContext(organizer);
+    RideDto result = rideService.updateRide(team.getSlug(), "team-ride", request);
 
     assertNotNull(result);
     assertEquals(teamRoute.getSlug(), result.getRouteSlug());
@@ -1168,7 +1052,8 @@ class RideServiceTest {
             null,
             List.of());
 
-    RideDto result = rideService.updateRide(team, "test-ride", request, organizer);
+    userService.setContext(organizer);
+    RideDto result = rideService.updateRide(team.getSlug(), "test-ride", request);
 
     assertNull(result.getRouteSlug());
   }
@@ -1179,16 +1064,19 @@ class RideServiceTest {
   void deleteRide_shouldSoftDelete() {
     dataService.createRide(team, admin, "Test", "test", Instant.now());
 
-    rideService.deleteRide(team, "test", organizer);
+    userService.setContext(organizer);
+    rideService.deleteRide(team.getSlug(), "test");
 
-    assertThrows(TriblyException.class, () -> rideService.getDto(team, "test", organizer));
+    userService.setContext(organizer);
+    assertThrows(TriblyException.class, () -> rideService.getDto(team.getSlug(), "test"));
   }
 
   @Test
   void deleteRide_shouldThrowForNonOrganizer() {
     dataService.createRide(team, admin, "Test", "test", Instant.now());
 
-    assertThrows(TriblyException.class, () -> rideService.deleteRide(team, "test", member));
+    userService.setContext(member);
+    assertThrows(TriblyException.class, () -> rideService.deleteRide(team.getSlug(), "test"));
   }
 
   // ==================== List Groups ====================
@@ -1199,7 +1087,8 @@ class RideServiceTest {
     dataService.createRideGroup(admin, ride, "Group 1", 2);
     dataService.createRideGroup(admin, ride, "Group 2", 1);
 
-    RideDto rideDto = rideService.getDto(team, ride.getSlug(), admin);
+    userService.setContext(admin);
+    RideDto rideDto = rideService.getDto(team.getSlug(), ride.getSlug());
     List<RideGroupDto> groups = rideDto.getGroups();
 
     assertEquals(2, groups.size());
@@ -1211,7 +1100,8 @@ class RideServiceTest {
   void listGroups_shouldReturnEmptyForNoGroups() {
     Ride ride = dataService.createRide(team, admin, "Test", "test", Instant.now());
 
-    RideDto rideDto = rideService.getDto(team, ride.getSlug(), admin);
+    userService.setContext(admin);
+    RideDto rideDto = rideService.getDto(team.getSlug(), ride.getSlug());
 
     assertEquals(0, rideDto.getGroups().size());
     assertEquals(0, rideDto.getGroupCount());
@@ -1225,7 +1115,8 @@ class RideServiceTest {
         dataService.createRide(team, admin, "Test", "test", Instant.now(), Status.PUBLISHED);
     RideGroup group = dataService.createRideGroup(admin, ride, "Group");
 
-    RideParticipationDto result = rideService.joinGroup(team, "test", group.getId(), member);
+    userService.setContext(member);
+    RideParticipationDto result = rideService.joinGroup(team.getSlug(), "test", group.getId());
 
     assertNotNull(result);
     assertEquals(member.getId(), TsidUtils.toLong(result.userId()));
@@ -1238,8 +1129,9 @@ class RideServiceTest {
             team, admin, "Draft", "draft", Instant.now(), Visibility.PUBLIC, Status.DRAFT);
     RideGroup group = dataService.createRideGroup(admin, ride, "Group");
 
+    userService.setContext(member);
     assertThrows(
-        TriblyException.class, () -> rideService.joinGroup(team, "draft", group.getId(), member));
+        TriblyException.class, () -> rideService.joinGroup(team.getSlug(), "draft", group.getId()));
   }
 
   @Test
@@ -1249,12 +1141,13 @@ class RideServiceTest {
             team, admin, "Draft", "draft", Instant.now(), Visibility.PUBLIC, Status.DRAFT);
     RideGroup group = dataService.createRideGroup(admin, ride, "Group");
 
+    userService.setContext(organizer);
     TriblyException exception =
         assertThrows(
             TriblyException.class,
-            () -> rideService.joinGroup(team, "draft", group.getId(), organizer));
+            () -> rideService.joinGroup(team.getSlug(), "draft", group.getId()));
 
-    assertTrue(exception.getMessage().contains("published"));
+    assertTrue(exception.getMessage().contains("FORBIDDEN"));
   }
 
   @Test
@@ -1263,12 +1156,13 @@ class RideServiceTest {
     RideGroup group = dataService.createRideGroup(admin, ride, "Group");
     dataService.createParticipation(group, member);
 
+    userService.setContext(member);
     TriblyException exception =
         assertThrows(
             TriblyException.class,
-            () -> rideService.joinGroup(team, "test", group.getId(), member));
+            () -> rideService.joinGroup(team.getSlug(), "test", group.getId()));
 
-    assertTrue(exception.getMessage().contains("already"));
+    assertTrue(exception.getMessage().contains("ALREADY_REGISTERED"));
   }
 
   @Test
@@ -1277,13 +1171,13 @@ class RideServiceTest {
     RideGroup group = dataService.createRideGroupWithMaxParticipants(admin, ride, "Group", 1);
     dataService.createParticipation(group, organizer);
 
+    userService.setContext(member);
     TriblyException exception =
         assertThrows(
             TriblyException.class,
-            () -> rideService.joinGroup(team, "test", group.getId(), member));
+            () -> rideService.joinGroup(team.getSlug(), "test", group.getId()));
 
-    assertTrue(
-        exception.getMessage().contains("full") || exception.getMessage().contains("capacity"));
+    assertTrue(exception.getMessage().contains("GROUP_FULL"));
   }
 
   // ==================== Leave Group ====================
@@ -1294,11 +1188,13 @@ class RideServiceTest {
     RideGroup group = dataService.createRideGroup(admin, ride, "Group");
     dataService.createParticipation(group, member);
 
-    rideService.leaveGroup(team, "test", group.getId(), member);
+    userService.setContext(member);
+    rideService.leaveGroup(team.getSlug(), "test", group.getId());
 
     // Member can now rejoin (participation was soft-deleted)
+    userService.setContext(member);
     RideParticipationDto newParticipation =
-        rideService.joinGroup(team, "test", group.getId(), member);
+        rideService.joinGroup(team.getSlug(), "test", group.getId());
     assertNotNull(newParticipation);
   }
 
@@ -1307,12 +1203,12 @@ class RideServiceTest {
     Ride ride = dataService.createRide(team, admin, "Test", "test", Instant.now());
     RideGroup group = dataService.createRideGroup(admin, ride, "Group");
 
+    userService.setContext(member);
     TriblyException exception =
         assertThrows(
             TriblyException.class,
-            () -> rideService.leaveGroup(team, "test", group.getId(), member));
+            () -> rideService.leaveGroup(team.getSlug(), "test", group.getId()));
 
-    assertTrue(
-        exception.getMessage().contains("not") || exception.getMessage().contains("participation"));
+    assertTrue(exception.getMessage().contains("NOT_REGISTERED"));
   }
 }

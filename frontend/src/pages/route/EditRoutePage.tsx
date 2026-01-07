@@ -86,7 +86,7 @@ export function EditRoutePage() {
   const handleSubmit = async (data: RouteRequest, gpxFile?: File) => {
     await updateRouteMutation.mutateAsync(
       {
-        slug: teamSlug!,
+        teamSlug: teamSlug!,
         routeSlug: routeSlug!,
         data: {
           route: data,
@@ -106,7 +106,7 @@ export function EditRoutePage() {
 
   const handleSlugChange = async (newSlug: string) => {
     await changeSlugMutation.mutateAsync(
-      { slug: teamSlug!, routeSlug: routeSlug!, data: { slug: newSlug } },
+      { teamSlug: teamSlug!, routeSlug: routeSlug!, data: { slug: newSlug } },
       {
         onSuccess: (updatedRoute) => {
           queryClient.invalidateQueries({ queryKey: getListRoutesQueryKey(teamSlug!) })

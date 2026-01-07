@@ -5,11 +5,12 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.tribly.api.AbstractResourceTest;
-import com.tribly.dto.common.response.MediaDto;
+import com.tribly.dto.common.asset.MediaDto;
 import com.tribly.dto.teams.request.TeamRequest;
 import com.tribly.dto.teams.response.TeamDetailDto;
 import com.tribly.enums.TeamRole;
 import com.tribly.enums.Visibility;
+import com.tribly.service.security.TriblyQueryContext;
 import com.tribly.service.team.TeamService;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
@@ -20,6 +21,7 @@ import org.junit.jupiter.api.Test;
 class TeamResourceTest extends AbstractResourceTest {
 
   @Inject TeamService teamService;
+  @Inject TriblyQueryContext queryContext;
 
   @Override
   @BeforeEach
@@ -83,6 +85,7 @@ class TeamResourceTest extends AbstractResourceTest {
 
   @Test
   void createTeam_shouldCreateTeamAndMakeUserAdmin() {
+    queryContext.setContext(user1);
     TeamDetailDto team =
         teamService.createTeam(
             new TeamRequest(
@@ -90,8 +93,7 @@ class TeamResourceTest extends AbstractResourceTest {
                 MediaDto.builder().markdown("A great cycling team").build(),
                 Visibility.PUBLIC,
                 true,
-                true),
-            user1);
+                true));
 
     assertNotNull(team.id());
     assertEquals("Test Cyclists", team.name());

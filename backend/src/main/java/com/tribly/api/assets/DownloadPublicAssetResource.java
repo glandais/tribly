@@ -1,6 +1,7 @@
 package com.tribly.api.assets;
 
 import com.tribly.service.user.UserAvatarService;
+import jakarta.annotation.security.PermitAll;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.HeaderParam;
@@ -17,6 +18,7 @@ public class DownloadPublicAssetResource extends AbstractDownloadAssetResource {
   @GET
   @Path("/avatars/{fileId}/{size}")
   @Operation(hidden = true)
+  @PermitAll
   public Response getAvatar(
       @HeaderParam("Accept") String accept,
       @PathParam("fileId") String fileId,

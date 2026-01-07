@@ -2,6 +2,7 @@ package com.tribly.infrastructure.id;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.tribly.common.TsidUtils;
 import io.hypersistence.tsid.TSID;
 import org.junit.jupiter.api.Test;
 

@@ -68,7 +68,7 @@ export function TeamPagesAdminPage() {
   const confirmDelete = () => {
     if (pageToDelete && teamSlug) {
       deleteMutation.mutate(
-        { slug: teamSlug, pageSlug: pageToDelete.slug },
+        { teamSlug: teamSlug, pageSlug: pageToDelete.slug },
         {
           onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: getListPagesQueryKey(teamSlug) })
@@ -107,7 +107,7 @@ export function TeamPagesAdminPage() {
     currentOrder.splice(targetIndex, 0, draggedItem.id)
 
     reorderMutation.mutate(
-      { slug: teamSlug, data: { pageIds: currentOrder } },
+      { teamSlug: teamSlug, data: { pageIds: currentOrder } },
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getListPagesQueryKey(teamSlug) })

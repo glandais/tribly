@@ -23,10 +23,8 @@ import type {
 
 import type {
   ErrorResponse,
-  ListTripsParams,
   SlugChangeRequest,
   TripDto,
-  TripListResponse,
   TripParticipationDto,
   TripRequest,
 } from '../../dto'
@@ -37,145 +35,18 @@ import type { ErrorType, BodyType } from '../../../lib/axiosInstance'
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
 
 /**
- * Get paginated list of trips for a team with optional filtering
- * @summary List trips
- */
-export const listTrips = (
-  slug: string,
-  params?: ListTripsParams,
-  options?: SecondParameter<typeof axiosMutator>,
-  signal?: AbortSignal
-) => {
-  return axiosMutator<TripListResponse>(
-    { url: `/api/teams/${slug}/trips`, method: 'GET', params, signal },
-    options
-  )
-}
-
-export const getListTripsQueryKey = (slug?: string, params?: ListTripsParams) => {
-  return [`/api/teams/${slug}/trips`, ...(params ? [params] : [])] as const
-}
-
-export const getListTripsQueryOptions = <
-  TData = Awaited<ReturnType<typeof listTrips>>,
-  TError = ErrorType<ErrorResponse>,
->(
-  slug: string,
-  params?: ListTripsParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listTrips>>, TError, TData>>
-    request?: SecondParameter<typeof axiosMutator>
-  }
-) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {}
-
-  const queryKey = queryOptions?.queryKey ?? getListTripsQueryKey(slug, params)
-
-  const queryFn: QueryFunction<Awaited<ReturnType<typeof listTrips>>> = ({ signal }) =>
-    listTrips(slug, params, requestOptions, signal)
-
-  return { queryKey, queryFn, enabled: !!slug, ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof listTrips>>,
-    TError,
-    TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type ListTripsQueryResult = NonNullable<Awaited<ReturnType<typeof listTrips>>>
-export type ListTripsQueryError = ErrorType<ErrorResponse>
-
-export function useListTrips<
-  TData = Awaited<ReturnType<typeof listTrips>>,
-  TError = ErrorType<ErrorResponse>,
->(
-  slug: string,
-  params: undefined | ListTripsParams,
-  options: {
-    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof listTrips>>, TError, TData>> &
-      Pick<
-        DefinedInitialDataOptions<
-          Awaited<ReturnType<typeof listTrips>>,
-          TError,
-          Awaited<ReturnType<typeof listTrips>>
-        >,
-        'initialData'
-      >
-    request?: SecondParameter<typeof axiosMutator>
-  },
-  queryClient?: QueryClient
-): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListTrips<
-  TData = Awaited<ReturnType<typeof listTrips>>,
-  TError = ErrorType<ErrorResponse>,
->(
-  slug: string,
-  params?: ListTripsParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listTrips>>, TError, TData>> &
-      Pick<
-        UndefinedInitialDataOptions<
-          Awaited<ReturnType<typeof listTrips>>,
-          TError,
-          Awaited<ReturnType<typeof listTrips>>
-        >,
-        'initialData'
-      >
-    request?: SecondParameter<typeof axiosMutator>
-  },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useListTrips<
-  TData = Awaited<ReturnType<typeof listTrips>>,
-  TError = ErrorType<ErrorResponse>,
->(
-  slug: string,
-  params?: ListTripsParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listTrips>>, TError, TData>>
-    request?: SecondParameter<typeof axiosMutator>
-  },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-/**
- * @summary List trips
- */
-
-export function useListTrips<
-  TData = Awaited<ReturnType<typeof listTrips>>,
-  TError = ErrorType<ErrorResponse>,
->(
-  slug: string,
-  params?: ListTripsParams,
-  options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listTrips>>, TError, TData>>
-    request?: SecondParameter<typeof axiosMutator>
-  },
-  queryClient?: QueryClient
-): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getListTripsQueryOptions(slug, params, options)
-
-  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
-    queryKey: DataTag<QueryKey, TData, TError>
-  }
-
-  query.queryKey = queryOptions.queryKey
-
-  return query
-}
-
-/**
  * Create a new trip with optional stages
  * @summary Create trip
  */
 export const createTrip = (
-  slug: string,
+  teamSlug: string,
   tripRequest: BodyType<TripRequest>,
   options?: SecondParameter<typeof axiosMutator>,
   signal?: AbortSignal
 ) => {
   return axiosMutator<TripDto>(
     {
-      url: `/api/teams/${slug}/trips`,
+      url: `/api/teams/${teamSlug}/trips`,
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       data: tripRequest,
@@ -192,14 +63,14 @@ export const getCreateTripMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof createTrip>>,
     TError,
-    { slug: string; data: BodyType<TripRequest> },
+    { teamSlug: string; data: BodyType<TripRequest> },
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof createTrip>>,
   TError,
-  { slug: string; data: BodyType<TripRequest> },
+  { teamSlug: string; data: BodyType<TripRequest> },
   TContext
 > => {
   const mutationKey = ['createTrip']
@@ -211,11 +82,11 @@ export const getCreateTripMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof createTrip>>,
-    { slug: string; data: BodyType<TripRequest> }
+    { teamSlug: string; data: BodyType<TripRequest> }
   > = (props) => {
-    const { slug, data } = props ?? {}
+    const { teamSlug, data } = props ?? {}
 
-    return createTrip(slug, data, requestOptions)
+    return createTrip(teamSlug, data, requestOptions)
   }
 
   return { mutationFn, ...mutationOptions }
@@ -233,7 +104,7 @@ export const useCreateTrip = <TError = ErrorType<ErrorResponse>, TContext = unkn
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof createTrip>>,
       TError,
-      { slug: string; data: BodyType<TripRequest> },
+      { teamSlug: string; data: BodyType<TripRequest> },
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -242,7 +113,7 @@ export const useCreateTrip = <TError = ErrorType<ErrorResponse>, TContext = unkn
 ): UseMutationResult<
   Awaited<ReturnType<typeof createTrip>>,
   TError,
-  { slug: string; data: BodyType<TripRequest> },
+  { teamSlug: string; data: BodyType<TripRequest> },
   TContext
 > => {
   const mutationOptions = getCreateTripMutationOptions(options)
@@ -254,14 +125,14 @@ export const useCreateTrip = <TError = ErrorType<ErrorResponse>, TContext = unkn
  * @summary Update trip
  */
 export const updateTrip = (
-  slug: string,
+  teamSlug: string,
   tripSlug: string,
   tripRequest: BodyType<TripRequest>,
   options?: SecondParameter<typeof axiosMutator>
 ) => {
   return axiosMutator<TripDto>(
     {
-      url: `/api/teams/${slug}/trips/${tripSlug}`,
+      url: `/api/teams/${teamSlug}/trips/${tripSlug}`,
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       data: tripRequest,
@@ -277,14 +148,14 @@ export const getUpdateTripMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof updateTrip>>,
     TError,
-    { slug: string; tripSlug: string; data: BodyType<TripRequest> },
+    { teamSlug: string; tripSlug: string; data: BodyType<TripRequest> },
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof updateTrip>>,
   TError,
-  { slug: string; tripSlug: string; data: BodyType<TripRequest> },
+  { teamSlug: string; tripSlug: string; data: BodyType<TripRequest> },
   TContext
 > => {
   const mutationKey = ['updateTrip']
@@ -296,11 +167,11 @@ export const getUpdateTripMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof updateTrip>>,
-    { slug: string; tripSlug: string; data: BodyType<TripRequest> }
+    { teamSlug: string; tripSlug: string; data: BodyType<TripRequest> }
   > = (props) => {
-    const { slug, tripSlug, data } = props ?? {}
+    const { teamSlug, tripSlug, data } = props ?? {}
 
-    return updateTrip(slug, tripSlug, data, requestOptions)
+    return updateTrip(teamSlug, tripSlug, data, requestOptions)
   }
 
   return { mutationFn, ...mutationOptions }
@@ -318,7 +189,7 @@ export const useUpdateTrip = <TError = ErrorType<ErrorResponse>, TContext = unkn
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof updateTrip>>,
       TError,
-      { slug: string; tripSlug: string; data: BodyType<TripRequest> },
+      { teamSlug: string; tripSlug: string; data: BodyType<TripRequest> },
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -327,7 +198,7 @@ export const useUpdateTrip = <TError = ErrorType<ErrorResponse>, TContext = unkn
 ): UseMutationResult<
   Awaited<ReturnType<typeof updateTrip>>,
   TError,
-  { slug: string; tripSlug: string; data: BodyType<TripRequest> },
+  { teamSlug: string; tripSlug: string; data: BodyType<TripRequest> },
   TContext
 > => {
   const mutationOptions = getUpdateTripMutationOptions(options)
@@ -339,26 +210,26 @@ export const useUpdateTrip = <TError = ErrorType<ErrorResponse>, TContext = unkn
  * @summary Get trip details
  */
 export const getTrip = (
-  slug: string,
+  teamSlug: string,
   tripSlug: string,
   options?: SecondParameter<typeof axiosMutator>,
   signal?: AbortSignal
 ) => {
   return axiosMutator<TripDto>(
-    { url: `/api/teams/${slug}/trips/${tripSlug}`, method: 'GET', signal },
+    { url: `/api/teams/${teamSlug}/trips/${tripSlug}`, method: 'GET', signal },
     options
   )
 }
 
-export const getGetTripQueryKey = (slug?: string, tripSlug?: string) => {
-  return [`/api/teams/${slug}/trips/${tripSlug}`] as const
+export const getGetTripQueryKey = (teamSlug?: string, tripSlug?: string) => {
+  return [`/api/teams/${teamSlug}/trips/${tripSlug}`] as const
 }
 
 export const getGetTripQueryOptions = <
   TData = Awaited<ReturnType<typeof getTrip>>,
   TError = ErrorType<ErrorResponse>,
 >(
-  slug: string,
+  teamSlug: string,
   tripSlug: string,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getTrip>>, TError, TData>>
@@ -367,16 +238,19 @@ export const getGetTripQueryOptions = <
 ) => {
   const { query: queryOptions, request: requestOptions } = options ?? {}
 
-  const queryKey = queryOptions?.queryKey ?? getGetTripQueryKey(slug, tripSlug)
+  const queryKey = queryOptions?.queryKey ?? getGetTripQueryKey(teamSlug, tripSlug)
 
   const queryFn: QueryFunction<Awaited<ReturnType<typeof getTrip>>> = ({ signal }) =>
-    getTrip(slug, tripSlug, requestOptions, signal)
+    getTrip(teamSlug, tripSlug, requestOptions, signal)
 
-  return { queryKey, queryFn, enabled: !!(slug && tripSlug), ...queryOptions } as UseQueryOptions<
-    Awaited<ReturnType<typeof getTrip>>,
-    TError,
-    TData
-  > & { queryKey: DataTag<QueryKey, TData, TError> }
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!(teamSlug && tripSlug),
+    ...queryOptions,
+  } as UseQueryOptions<Awaited<ReturnType<typeof getTrip>>, TError, TData> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
 }
 
 export type GetTripQueryResult = NonNullable<Awaited<ReturnType<typeof getTrip>>>
@@ -386,7 +260,7 @@ export function useGetTrip<
   TData = Awaited<ReturnType<typeof getTrip>>,
   TError = ErrorType<ErrorResponse>,
 >(
-  slug: string,
+  teamSlug: string,
   tripSlug: string,
   options: {
     query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getTrip>>, TError, TData>> &
@@ -406,7 +280,7 @@ export function useGetTrip<
   TData = Awaited<ReturnType<typeof getTrip>>,
   TError = ErrorType<ErrorResponse>,
 >(
-  slug: string,
+  teamSlug: string,
   tripSlug: string,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getTrip>>, TError, TData>> &
@@ -426,7 +300,7 @@ export function useGetTrip<
   TData = Awaited<ReturnType<typeof getTrip>>,
   TError = ErrorType<ErrorResponse>,
 >(
-  slug: string,
+  teamSlug: string,
   tripSlug: string,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getTrip>>, TError, TData>>
@@ -442,7 +316,7 @@ export function useGetTrip<
   TData = Awaited<ReturnType<typeof getTrip>>,
   TError = ErrorType<ErrorResponse>,
 >(
-  slug: string,
+  teamSlug: string,
   tripSlug: string,
   options?: {
     query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getTrip>>, TError, TData>>
@@ -450,7 +324,7 @@ export function useGetTrip<
   },
   queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-  const queryOptions = getGetTripQueryOptions(slug, tripSlug, options)
+  const queryOptions = getGetTripQueryOptions(teamSlug, tripSlug, options)
 
   const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
     queryKey: DataTag<QueryKey, TData, TError>
@@ -466,12 +340,12 @@ export function useGetTrip<
  * @summary Delete trip
  */
 export const deleteTrip = (
-  slug: string,
+  teamSlug: string,
   tripSlug: string,
   options?: SecondParameter<typeof axiosMutator>
 ) => {
   return axiosMutator<void>(
-    { url: `/api/teams/${slug}/trips/${tripSlug}`, method: 'DELETE' },
+    { url: `/api/teams/${teamSlug}/trips/${tripSlug}`, method: 'DELETE' },
     options
   )
 }
@@ -483,14 +357,14 @@ export const getDeleteTripMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof deleteTrip>>,
     TError,
-    { slug: string; tripSlug: string },
+    { teamSlug: string; tripSlug: string },
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof deleteTrip>>,
   TError,
-  { slug: string; tripSlug: string },
+  { teamSlug: string; tripSlug: string },
   TContext
 > => {
   const mutationKey = ['deleteTrip']
@@ -502,11 +376,11 @@ export const getDeleteTripMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof deleteTrip>>,
-    { slug: string; tripSlug: string }
+    { teamSlug: string; tripSlug: string }
   > = (props) => {
-    const { slug, tripSlug } = props ?? {}
+    const { teamSlug, tripSlug } = props ?? {}
 
-    return deleteTrip(slug, tripSlug, requestOptions)
+    return deleteTrip(teamSlug, tripSlug, requestOptions)
   }
 
   return { mutationFn, ...mutationOptions }
@@ -524,7 +398,7 @@ export const useDeleteTrip = <TError = ErrorType<ErrorResponse>, TContext = unkn
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof deleteTrip>>,
       TError,
-      { slug: string; tripSlug: string },
+      { teamSlug: string; tripSlug: string },
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -533,7 +407,7 @@ export const useDeleteTrip = <TError = ErrorType<ErrorResponse>, TContext = unkn
 ): UseMutationResult<
   Awaited<ReturnType<typeof deleteTrip>>,
   TError,
-  { slug: string; tripSlug: string },
+  { teamSlug: string; tripSlug: string },
   TContext
 > => {
   const mutationOptions = getDeleteTripMutationOptions(options)
@@ -545,13 +419,13 @@ export const useDeleteTrip = <TError = ErrorType<ErrorResponse>, TContext = unkn
  * @summary Join trip
  */
 export const joinTrip = (
-  slug: string,
+  teamSlug: string,
   tripSlug: string,
   options?: SecondParameter<typeof axiosMutator>,
   signal?: AbortSignal
 ) => {
   return axiosMutator<TripParticipationDto>(
-    { url: `/api/teams/${slug}/trips/${tripSlug}/join`, method: 'POST', signal },
+    { url: `/api/teams/${teamSlug}/trips/${tripSlug}/join`, method: 'POST', signal },
     options
   )
 }
@@ -563,14 +437,14 @@ export const getJoinTripMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof joinTrip>>,
     TError,
-    { slug: string; tripSlug: string },
+    { teamSlug: string; tripSlug: string },
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof joinTrip>>,
   TError,
-  { slug: string; tripSlug: string },
+  { teamSlug: string; tripSlug: string },
   TContext
 > => {
   const mutationKey = ['joinTrip']
@@ -582,11 +456,11 @@ export const getJoinTripMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof joinTrip>>,
-    { slug: string; tripSlug: string }
+    { teamSlug: string; tripSlug: string }
   > = (props) => {
-    const { slug, tripSlug } = props ?? {}
+    const { teamSlug, tripSlug } = props ?? {}
 
-    return joinTrip(slug, tripSlug, requestOptions)
+    return joinTrip(teamSlug, tripSlug, requestOptions)
   }
 
   return { mutationFn, ...mutationOptions }
@@ -604,7 +478,7 @@ export const useJoinTrip = <TError = ErrorType<ErrorResponse | void>, TContext =
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof joinTrip>>,
       TError,
-      { slug: string; tripSlug: string },
+      { teamSlug: string; tripSlug: string },
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -613,7 +487,7 @@ export const useJoinTrip = <TError = ErrorType<ErrorResponse | void>, TContext =
 ): UseMutationResult<
   Awaited<ReturnType<typeof joinTrip>>,
   TError,
-  { slug: string; tripSlug: string },
+  { teamSlug: string; tripSlug: string },
   TContext
 > => {
   const mutationOptions = getJoinTripMutationOptions(options)
@@ -625,13 +499,13 @@ export const useJoinTrip = <TError = ErrorType<ErrorResponse | void>, TContext =
  * @summary Leave trip
  */
 export const leaveTrip = (
-  slug: string,
+  teamSlug: string,
   tripSlug: string,
   options?: SecondParameter<typeof axiosMutator>,
   signal?: AbortSignal
 ) => {
   return axiosMutator<void>(
-    { url: `/api/teams/${slug}/trips/${tripSlug}/leave`, method: 'POST', signal },
+    { url: `/api/teams/${teamSlug}/trips/${tripSlug}/leave`, method: 'POST', signal },
     options
   )
 }
@@ -643,14 +517,14 @@ export const getLeaveTripMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof leaveTrip>>,
     TError,
-    { slug: string; tripSlug: string },
+    { teamSlug: string; tripSlug: string },
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof leaveTrip>>,
   TError,
-  { slug: string; tripSlug: string },
+  { teamSlug: string; tripSlug: string },
   TContext
 > => {
   const mutationKey = ['leaveTrip']
@@ -662,11 +536,11 @@ export const getLeaveTripMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof leaveTrip>>,
-    { slug: string; tripSlug: string }
+    { teamSlug: string; tripSlug: string }
   > = (props) => {
-    const { slug, tripSlug } = props ?? {}
+    const { teamSlug, tripSlug } = props ?? {}
 
-    return leaveTrip(slug, tripSlug, requestOptions)
+    return leaveTrip(teamSlug, tripSlug, requestOptions)
   }
 
   return { mutationFn, ...mutationOptions }
@@ -684,7 +558,7 @@ export const useLeaveTrip = <TError = ErrorType<ErrorResponse | void>, TContext 
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof leaveTrip>>,
       TError,
-      { slug: string; tripSlug: string },
+      { teamSlug: string; tripSlug: string },
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -693,7 +567,7 @@ export const useLeaveTrip = <TError = ErrorType<ErrorResponse | void>, TContext 
 ): UseMutationResult<
   Awaited<ReturnType<typeof leaveTrip>>,
   TError,
-  { slug: string; tripSlug: string },
+  { teamSlug: string; tripSlug: string },
   TContext
 > => {
   const mutationOptions = getLeaveTripMutationOptions(options)
@@ -705,14 +579,14 @@ export const useLeaveTrip = <TError = ErrorType<ErrorResponse | void>, TContext 
  * @summary Change trip slug
  */
 export const changeTripSlug = (
-  slug: string,
+  teamSlug: string,
   tripSlug: string,
   slugChangeRequest: BodyType<SlugChangeRequest>,
   options?: SecondParameter<typeof axiosMutator>
 ) => {
   return axiosMutator<TripDto>(
     {
-      url: `/api/teams/${slug}/trips/${tripSlug}/slug`,
+      url: `/api/teams/${teamSlug}/trips/${tripSlug}/slug`,
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       data: slugChangeRequest,
@@ -728,14 +602,14 @@ export const getChangeTripSlugMutationOptions = <
   mutation?: UseMutationOptions<
     Awaited<ReturnType<typeof changeTripSlug>>,
     TError,
-    { slug: string; tripSlug: string; data: BodyType<SlugChangeRequest> },
+    { teamSlug: string; tripSlug: string; data: BodyType<SlugChangeRequest> },
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
   Awaited<ReturnType<typeof changeTripSlug>>,
   TError,
-  { slug: string; tripSlug: string; data: BodyType<SlugChangeRequest> },
+  { teamSlug: string; tripSlug: string; data: BodyType<SlugChangeRequest> },
   TContext
 > => {
   const mutationKey = ['changeTripSlug']
@@ -747,11 +621,11 @@ export const getChangeTripSlugMutationOptions = <
 
   const mutationFn: MutationFunction<
     Awaited<ReturnType<typeof changeTripSlug>>,
-    { slug: string; tripSlug: string; data: BodyType<SlugChangeRequest> }
+    { teamSlug: string; tripSlug: string; data: BodyType<SlugChangeRequest> }
   > = (props) => {
-    const { slug, tripSlug, data } = props ?? {}
+    const { teamSlug, tripSlug, data } = props ?? {}
 
-    return changeTripSlug(slug, tripSlug, data, requestOptions)
+    return changeTripSlug(teamSlug, tripSlug, data, requestOptions)
   }
 
   return { mutationFn, ...mutationOptions }
@@ -769,7 +643,7 @@ export const useChangeTripSlug = <TError = ErrorType<ErrorResponse>, TContext = 
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof changeTripSlug>>,
       TError,
-      { slug: string; tripSlug: string; data: BodyType<SlugChangeRequest> },
+      { teamSlug: string; tripSlug: string; data: BodyType<SlugChangeRequest> },
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
@@ -778,7 +652,7 @@ export const useChangeTripSlug = <TError = ErrorType<ErrorResponse>, TContext = 
 ): UseMutationResult<
   Awaited<ReturnType<typeof changeTripSlug>>,
   TError,
-  { slug: string; tripSlug: string; data: BodyType<SlugChangeRequest> },
+  { teamSlug: string; tripSlug: string; data: BodyType<SlugChangeRequest> },
   TContext
 > => {
   const mutationOptions = getChangeTripSlugMutationOptions(options)

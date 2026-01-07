@@ -9,9 +9,9 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Getter
 public enum PublicationType {
-  RIDE(Ride.class.getCanonicalName()),
-  POST(Post.class.getCanonicalName()),
-  TRIP(Trip.class.getCanonicalName());
+  RIDE(Ride.class),
+  POST(Post.class),
+  TRIP(Trip.class);
 
-  final String typeName;
+  final Class<?> type;
 }

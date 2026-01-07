@@ -11,8 +11,8 @@ import {
   useUpdateTrip,
   useChangeTripSlug,
   getGetTripQueryKey,
-  getListTripsQueryKey,
 } from '../../api/endpoints/trips/trips'
+import { getListPublicationsQueryKey } from '../../api/endpoints/publications/publications'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { TripEditor } from '../../components/trip/TripEditor'
 import { TripRequest } from '@/api/dto'
@@ -51,14 +51,14 @@ export function EditTripPage() {
   const handleSubmit = (data: TripRequest) => {
     updateMutation.mutate(
       {
-        slug: teamSlug!,
+        teamSlug: teamSlug!,
         tripSlug: tripSlug!,
         data,
       },
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetTripQueryKey(teamSlug!, tripSlug!) })
-          queryClient.invalidateQueries({ queryKey: getListTripsQueryKey(teamSlug!) })
+          queryClient.invalidateQueries({ queryKey: getListPublicationsQueryKey(teamSlug!) })
           toast.success(i18next.t('trips.notifications.updated'))
           navigate(paths.trip(teamSlug!, tripSlug!))
         },
@@ -68,10 +68,10 @@ export function EditTripPage() {
 
   const handleSlugChange = async (newSlug: string) => {
     await changeSlugMutation.mutateAsync(
-      { slug: teamSlug!, tripSlug: tripSlug!, data: { slug: newSlug } },
+      { teamSlug: teamSlug!, tripSlug: tripSlug!, data: { slug: newSlug } },
       {
         onSuccess: (updatedTrip) => {
-          queryClient.invalidateQueries({ queryKey: getListTripsQueryKey(teamSlug!) })
+          queryClient.invalidateQueries({ queryKey: getListPublicationsQueryKey(teamSlug!) })
           queryClient.invalidateQueries({ queryKey: getGetTripQueryKey(teamSlug!, tripSlug!) })
           navigate(paths.tripEdit(teamSlug!, updatedTrip.slug), { replace: true })
         },

@@ -55,8 +55,8 @@ export function EditAdPage() {
   const handleSubmit = (data: AdRequest) => {
     updateMutation.mutate(
       {
-        slug: teamSlug!,
-        adSlug: adSlug!,
+        teamSlug: teamSlug!,
+        slug: adSlug!,
         data,
       },
       {
@@ -72,7 +72,7 @@ export function EditAdPage() {
 
   const handleSlugChange = async (newSlug: string) => {
     await changeSlugMutation.mutateAsync(
-      { slug: teamSlug!, adSlug: adSlug!, data: { slug: newSlug } },
+      { teamSlug: teamSlug!, slug: adSlug!, data: { slug: newSlug } },
       {
         onSuccess: (updatedAd) => {
           queryClient.invalidateQueries({ queryKey: getListAdsQueryKey(teamSlug!) })

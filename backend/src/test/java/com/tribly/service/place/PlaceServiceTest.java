@@ -5,6 +5,8 @@ import static org.geolatte.geom.builder.DSL.point;
 import static org.geolatte.geom.crs.CoordinateReferenceSystems.WGS84;
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.tribly.common.TsidUtils;
+import com.tribly.common.exception.TriblyException;
 import com.tribly.domain.place.Place;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
@@ -13,8 +15,7 @@ import com.tribly.dto.places.response.PlaceDetailDto;
 import com.tribly.dto.places.response.PlaceListResponse;
 import com.tribly.enums.TeamRole;
 import com.tribly.enums.Visibility;
-import com.tribly.infrastructure.exception.TriblyException;
-import com.tribly.infrastructure.id.TsidUtils;
+import com.tribly.service.security.TriblyQueryContext;
 import com.tribly.util.TestDataCleaner;
 import com.tribly.util.TestDataService;
 import io.quarkus.test.junit.QuarkusTest;
@@ -31,6 +32,7 @@ class PlaceServiceTest {
   @Inject PlaceService placeService;
   @Inject TestDataService dataService;
   @Inject TestDataCleaner dataCleaner;
+  @Inject TriblyQueryContext queryContext;
 
   private Team team;
   private User admin;
@@ -44,7 +46,6 @@ class PlaceServiceTest {
     team = dataService.createTeam(admin, "Test Team", "test-team", Visibility.PUBLIC);
     organizer = dataService.createUser("organizer@example.com", "Organizer");
     member = dataService.createUser("member@example.com", "Member");
-    dataService.addUserToTeam(admin, team, TeamRole.ADMIN);
     dataService.addUserToTeam(organizer, team, TeamRole.ORGANIZER);
     dataService.addUserToTeam(member, team, TeamRole.MEMBER);
   }
@@ -57,7 +58,8 @@ class PlaceServiceTest {
       dataService.createPlace(team, admin, "Place 1");
       dataService.createPlace(team, admin, "Place 2");
 
-      PlaceListResponse result = placeService.listPlaces(team, 0, 10, organizer);
+      queryContext.setContext(organizer);
+      PlaceListResponse result = placeService.listPlaces(team.getSlug(), 0, 10);
 
       assertEquals(2, result.places().size());
       assertEquals(2, result.total());
@@ -69,7 +71,8 @@ class PlaceServiceTest {
         dataService.createPlace(team, admin, "Place " + i);
       }
 
-      PlaceListResponse result = placeService.listPlaces(team, 0, 3, organizer);
+      queryContext.setContext(organizer);
+      PlaceListResponse result = placeService.listPlaces(team.getSlug(), 0, 3);
 
       assertEquals(3, result.places().size());
       assertEquals(5, result.total());
@@ -77,7 +80,8 @@ class PlaceServiceTest {
 
     @Test
     void shouldThrowForMember() {
-      assertThrows(TriblyException.class, () -> placeService.listPlaces(team, 0, 10, member));
+      queryContext.setContext(member);
+      assertThrows(TriblyException.class, () -> placeService.listPlaces(team.getSlug(), 0, 10));
     }
 
     @Test
@@ -86,7 +90,8 @@ class PlaceServiceTest {
       Place deletedPlace = dataService.createPlace(team, admin, "Deleted Place");
       dataService.deletePlace(deletedPlace);
 
-      PlaceListResponse result = placeService.listPlaces(team, 0, 10, organizer);
+      queryContext.setContext(organizer);
+      PlaceListResponse result = placeService.listPlaces(team.getSlug(), 0, 10);
 
       assertEquals(1, result.places().size());
       assertEquals("Active Place", result.places().getFirst().name());
@@ -101,7 +106,8 @@ class PlaceServiceTest {
       Place place = dataService.createPlace(team, admin, "Test Place");
       String placeId = TsidUtils.toString(place.getId());
 
-      PlaceDetailDto result = placeService.getPlace(team, placeId, organizer);
+      queryContext.setContext(organizer);
+      PlaceDetailDto result = placeService.getPlace(team.getSlug(), placeId);
 
       assertNotNull(result);
       assertEquals("Test Place", result.name());
@@ -109,9 +115,10 @@ class PlaceServiceTest {
 
     @Test
     void shouldThrowForNonexistentPlace() {
+      queryContext.setContext(organizer);
       assertThrows(
           TriblyException.class,
-          () -> placeService.getPlace(team, TsidUtils.toString(9999L), organizer));
+          () -> placeService.getPlace(team.getSlug(), TsidUtils.toString(9999L)));
     }
 
     @Test
@@ -119,7 +126,8 @@ class PlaceServiceTest {
       Place place = dataService.createPlace(team, admin, "Test Place");
       String placeId = TsidUtils.toString(place.getId());
 
-      assertThrows(TriblyException.class, () -> placeService.getPlace(team, placeId, member));
+      queryContext.setContext(member);
+      assertThrows(TriblyException.class, () -> placeService.getPlace(team.getSlug(), placeId));
     }
   }
 
@@ -131,7 +139,8 @@ class PlaceServiceTest {
       PlaceRequest request =
           new PlaceRequest("New Place", "123 Main St", "http://example.com", true, false, null);
 
-      PlaceDetailDto result = placeService.createPlace(team, request, organizer);
+      queryContext.setContext(organizer);
+      PlaceDetailDto result = placeService.createPlace(team.getSlug(), request);
 
       assertNotNull(result);
       assertEquals("New Place", result.name());
@@ -146,7 +155,8 @@ class PlaceServiceTest {
       Point<G2D> point = point(WGS84, g(2.3522, 48.8566));
       PlaceRequest request = new PlaceRequest("Geo Place", null, null, false, true, point);
 
-      PlaceDetailDto result = placeService.createPlace(team, request, organizer);
+      queryContext.setContext(organizer);
+      PlaceDetailDto result = placeService.createPlace(team.getSlug(), request);
 
       assertNotNull(result);
       assertNotNull(result.geometry());
@@ -156,7 +166,8 @@ class PlaceServiceTest {
     void shouldCreatePlaceWithoutCoordinates() {
       PlaceRequest request = new PlaceRequest("No Geo Place", null, null, true, true, null);
 
-      PlaceDetailDto result = placeService.createPlace(team, request, organizer);
+      queryContext.setContext(organizer);
+      PlaceDetailDto result = placeService.createPlace(team.getSlug(), request);
 
       assertNotNull(result);
       assertNull(result.geometry());
@@ -166,7 +177,8 @@ class PlaceServiceTest {
     void shouldThrowForMember() {
       PlaceRequest request = new PlaceRequest("Place", null, null, true, true, null);
 
-      assertThrows(TriblyException.class, () -> placeService.createPlace(team, request, member));
+      queryContext.setContext(member);
+      assertThrows(TriblyException.class, () -> placeService.createPlace(team.getSlug(), request));
     }
   }
 
@@ -181,7 +193,8 @@ class PlaceServiceTest {
       PlaceRequest request =
           new PlaceRequest("Updated", "New Address", "http://new.com", false, true, point);
 
-      PlaceDetailDto result = placeService.updatePlace(team, placeId, request, organizer);
+      queryContext.setContext(organizer);
+      PlaceDetailDto result = placeService.updatePlace(team.getSlug(), placeId, request);
 
       assertEquals("Updated", result.name());
       assertEquals("New Address", result.address());
@@ -198,11 +211,13 @@ class PlaceServiceTest {
       // First set coordinates
       Point<G2D> point = point(WGS84, g(2.3522, 48.8566));
       PlaceRequest withGeo = new PlaceRequest("With Geo", null, null, true, true, point);
-      placeService.updatePlace(team, placeId, withGeo, organizer);
+      queryContext.setContext(organizer);
+      placeService.updatePlace(team.getSlug(), placeId, withGeo);
 
       // Then clear them
       PlaceRequest noGeo = new PlaceRequest("No Geo", null, null, true, true, null);
-      PlaceDetailDto result = placeService.updatePlace(team, placeId, noGeo, organizer);
+      queryContext.setContext(organizer);
+      PlaceDetailDto result = placeService.updatePlace(team.getSlug(), placeId, noGeo);
 
       assertNull(result.geometry());
     }
@@ -211,9 +226,10 @@ class PlaceServiceTest {
     void shouldThrowForNonexistentPlace() {
       PlaceRequest request = new PlaceRequest("Place", null, null, true, true, null);
 
+      queryContext.setContext(organizer);
       assertThrows(
           TriblyException.class,
-          () -> placeService.updatePlace(team, TsidUtils.toString(9999L), request, organizer));
+          () -> placeService.updatePlace(team.getSlug(), TsidUtils.toString(9999L), request));
     }
 
     @Test
@@ -222,8 +238,9 @@ class PlaceServiceTest {
       String placeId = TsidUtils.toString(place.getId());
       PlaceRequest request = new PlaceRequest("Updated", null, null, true, true, null);
 
+      queryContext.setContext(member);
       assertThrows(
-          TriblyException.class, () -> placeService.updatePlace(team, placeId, request, member));
+          TriblyException.class, () -> placeService.updatePlace(team.getSlug(), placeId, request));
     }
   }
 
@@ -235,16 +252,19 @@ class PlaceServiceTest {
       Place place = dataService.createPlace(team, admin, "To Delete");
       String placeId = TsidUtils.toString(place.getId());
 
-      placeService.deletePlace(team, placeId, organizer);
+      queryContext.setContext(organizer);
+      placeService.deletePlace(team.getSlug(), placeId);
 
-      assertThrows(TriblyException.class, () -> placeService.getPlace(team, placeId, organizer));
+      queryContext.setContext(organizer);
+      assertThrows(TriblyException.class, () -> placeService.getPlace(team.getSlug(), placeId));
     }
 
     @Test
     void shouldThrowForNonexistentPlace() {
+      queryContext.setContext(organizer);
       assertThrows(
           TriblyException.class,
-          () -> placeService.deletePlace(team, TsidUtils.toString(9999L), organizer));
+          () -> placeService.deletePlace(team.getSlug(), TsidUtils.toString(9999L)));
     }
 
     @Test
@@ -252,7 +272,8 @@ class PlaceServiceTest {
       Place place = dataService.createPlace(team, admin, "Test");
       String placeId = TsidUtils.toString(place.getId());
 
-      assertThrows(TriblyException.class, () -> placeService.deletePlace(team, placeId, member));
+      queryContext.setContext(member);
+      assertThrows(TriblyException.class, () -> placeService.deletePlace(team.getSlug(), placeId));
     }
   }
 }

@@ -4,7 +4,7 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
 import com.tribly.api.AbstractResourceTest;
-import com.tribly.dto.common.response.MediaDto;
+import com.tribly.dto.common.asset.MediaDto;
 import com.tribly.dto.trips.request.StageRequest;
 import com.tribly.dto.trips.request.TripRequest;
 import com.tribly.enums.Status;
@@ -62,66 +62,6 @@ class TripResourceTest extends AbstractResourceTest {
 
   private String createTestTrip(String name) {
     return createTestTrip(name, Status.DRAFT, Visibility.PUBLIC);
-  }
-
-  // ==================== List Trips Tests ====================
-
-  @Test
-  void listTrips_withoutAuth_shouldSucceed() {
-    given()
-        .when()
-        .get("/api/teams/" + team1Slug + "/trips")
-        .then()
-        .statusCode(200)
-        .body("trips", notNullValue())
-        .body("total", greaterThanOrEqualTo(0));
-  }
-
-  @Test
-  void listTrips_asMember_shouldSucceed() {
-    given()
-        .auth()
-        .oauth2(getAccessToken(USER3))
-        .when()
-        .get("/api/teams/" + team1Slug + "/trips")
-        .then()
-        .statusCode(200)
-        .body("trips", notNullValue());
-  }
-
-  @Test
-  void listTrips_asNonMember_shouldSucceed() {
-    given()
-        .auth()
-        .oauth2(getAccessToken(USER4))
-        .when()
-        .get("/api/teams/" + team1Slug + "/trips")
-        .then()
-        .statusCode(200)
-        .body("trips", notNullValue());
-  }
-
-  @Test
-  void listTrips_toNonexistentTeam_shouldReturn404() {
-    given()
-        .when()
-        .get("/api/teams/nonexistent-team/trips")
-        .then()
-        // empty list
-        .statusCode(404);
-  }
-
-  @Test
-  void listTrips_shouldSupportPagination() {
-    given()
-        .queryParam("page", 1)
-        .queryParam("size", 10)
-        .when()
-        .get("/api/teams/" + team1Slug + "/trips")
-        .then()
-        .statusCode(200)
-        .body("page", equalTo(1))
-        .body("size", equalTo(10));
   }
 
   // ==================== Create Trip Tests ====================
@@ -557,7 +497,7 @@ class TripResourceTest extends AbstractResourceTest {
         .then()
         .statusCode(204);
 
-    // Verify trip is no longer accessible
+    // Verify trip is no longer accessible (403 for security by obscurity)
     given().when().get("/api/teams/" + team1Slug + "/trips/" + tripSlug).then().statusCode(404);
   }
 
@@ -763,7 +703,7 @@ class TripResourceTest extends AbstractResourceTest {
         .when()
         .post("/api/teams/" + team1Slug + "/trips/" + tripSlug + "/leave")
         .then()
-        .statusCode(404);
+        .statusCode(400);
   }
 
   @Test
