@@ -1,17 +1,27 @@
 package com.tribly.domain.team.repository;
 
-import com.tribly.domain.common.repository.TeamEntityQueryBasic;
+import com.tribly.domain.common.query.TriblyQuery;
 import com.tribly.domain.common.repository.TeamEntityRepository;
 import com.tribly.domain.team.TeamPage;
 import com.tribly.enums.EntityType;
 import jakarta.enterprise.context.ApplicationScoped;
+import java.util.Map;
 
 @ApplicationScoped
-public class TeamPageRepository implements TeamEntityRepository<TeamPage, TeamEntityQueryBasic> {
+public class TeamPageRepository implements TeamEntityRepository<TeamPage, TeamPageQuery> {
 
   @Override
   public EntityType getEntityType() {
     return EntityType.TEAM_PAGE;
+  }
+
+  @Override
+  public TriblyQuery andSpecific(TriblyQuery triblyQuery, TeamPageQuery query) {
+    boolean includeAbout = query.includeAbout() == null || query.includeAbout();
+    if (!includeAbout) {
+      triblyQuery = triblyQuery.and("te.aboutPage = false", Map.of());
+    }
+    return triblyQuery;
   }
 
   public long countAdditionalPages(Long teamId) {

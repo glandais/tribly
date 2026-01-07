@@ -6,7 +6,6 @@ import com.tribly.domain.ridetemplate.RideTemplateGroup;
 import com.tribly.domain.ridetemplate.repository.RideTemplateGroupRepository;
 import com.tribly.domain.ridetemplate.repository.RideTemplateRepository;
 import com.tribly.domain.team.Team;
-import com.tribly.domain.team.UserTeam;
 import com.tribly.domain.user.User;
 import com.tribly.dto.error.ErrorCode;
 import com.tribly.dto.ridetemplates.request.RideTemplateGroupRequest;
@@ -120,7 +119,7 @@ public class RideTemplateService {
             .orElseThrow(() -> new NotFoundException(AllEntityType.RIDE_TEMPLATE, templateSlug));
 
     // Security check: must be admin or organizer to update templates
-    UserTeam userTeam = securityService.requireOrganizer(user, team);
+    securityService.requireOrganizer(user, team);
 
     // Validate visibility: private teams can only have team-only templates
     if (team.getVisibility() != Visibility.PUBLIC && request.visibility() == Visibility.PUBLIC) {
@@ -146,7 +145,7 @@ public class RideTemplateService {
     for (RideTemplateGroupRequest groupRequest : request.groups()) {
       Long groupId = TsidUtils.toLongNullable(groupRequest.id());
       if (groupId == null) {
-        createTemplateGroup(userTeam.getUser(), template, groupRequest, sortOrder);
+        createTemplateGroup(user, template, groupRequest, sortOrder);
       } else {
         RideTemplateGroup existingGroup = existingGroups.remove(groupId);
         if (existingGroup != null) {

@@ -12,7 +12,7 @@ public record SlugChangeRequest(
     @Schema(
             description = "New slug (lowercase letters, numbers, and hyphens only)",
             required = true,
-            example = "my-new-slug")
+            examples = "my-new-slug")
         @NotBlank
         @Size(max = 200)
         @Pattern(regexp = "^[a-z0-9]+(-[a-z0-9]+)*$")

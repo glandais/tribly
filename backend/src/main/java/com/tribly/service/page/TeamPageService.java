@@ -1,7 +1,9 @@
 package com.tribly.service.page;
 
+import com.tribly.domain.common.repository.TriblyPage;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.team.TeamPage;
+import com.tribly.domain.team.repository.TeamPageQuery;
 import com.tribly.domain.team.repository.TeamPageRepository;
 import com.tribly.domain.user.User;
 import com.tribly.dto.error.ErrorCode;
@@ -11,7 +13,6 @@ import com.tribly.dto.pages.response.TeamPageDto;
 import com.tribly.dto.pages.response.TeamPageSummaryDto;
 import com.tribly.enums.ActionType;
 import com.tribly.enums.AllEntityType;
-import com.tribly.enums.Visibility;
 import com.tribly.infrastructure.exception.BusinessException;
 import com.tribly.infrastructure.exception.ForbiddenException;
 import com.tribly.infrastructure.exception.NotFoundException;
@@ -20,8 +21,10 @@ import com.tribly.service.common.TeamEntityService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.jboss.logging.Logger;
 import org.jspecify.annotations.Nullable;
 
@@ -44,53 +47,48 @@ public class TeamPageService extends TeamEntityService<TeamPage, TeamPageReposit
   }
 
   @Override
-  protected TeamPage getBySlug(Team team, String entitySlug, @Nullable User user) {
-    // FIXME Query with security filter
-    TeamPage page =
-        teamPageRepository
-            .findByTeamAndSlug(team.getId(), entitySlug)
-            .orElseThrow(() -> new NotFoundException(AllEntityType.TEAM_PAGE, entitySlug));
-    boolean isMember = securityService.isMember(user, team);
-    if (!canViewPage(page, isMember)) {
-      throw new ForbiddenException();
-    }
-    return page;
-  }
-
-  private boolean canViewPage(TeamPage page, boolean isMember) {
-    // Team-only pages require membership
-    if (page.getVisibility() == Visibility.TEAM) {
-      return isMember;
-    }
-    return true;
-  }
-
-  public List<TeamPageSummaryDto> listPages(Team team, @Nullable User user) {
-    boolean isMember = securityService.isMember(user, team);
-
-    return team.getAdditionalPages().stream()
-        .filter(page -> canViewPage(page, isMember))
-        .map(TeamPageSummaryDto::from)
-        .toList();
-  }
-
-  @Override
   protected boolean hasRights(
       ActionType action, Team team, @Nullable User user, @Nullable TeamPage entity) {
     return switch (action) {
       case CREATE, UPDATE, DELETE -> securityService.getAdmin(user, team) != null;
       case JOIN -> false;
-      case READ -> {
-        if (entity == null) {
-          yield false;
-        }
-        boolean isMember = securityService.isMember(user, team);
-        if (entity.getVisibility() == Visibility.TEAM) {
-          yield isMember;
-        }
-        yield true;
-      }
+      // SQL
+      case READ -> true;
     };
+  }
+
+  @Override
+  protected TeamPage getBySlug(Team team, String entitySlug, @Nullable User user) {
+    TriblyPage<TeamPage> teamPages =
+        teamPageRepository.find(
+            TeamPageQuery.builder()
+                .userId(user == null ? null : user.getId())
+                .teamIds(Set.of(team.getId()))
+                .slug(entitySlug)
+                .page(0)
+                .size(1)
+                .build());
+    if (teamPages.items().isEmpty()) {
+      throw new NotFoundException(AllEntityType.TEAM_PAGE, entitySlug);
+    } else {
+      return teamPages.items().getFirst();
+    }
+  }
+
+  public List<TeamPageSummaryDto> listPages(Team team, @Nullable User user) {
+    TriblyPage<TeamPage> teamPages =
+        teamPageRepository.find(
+            TeamPageQuery.builder()
+                .userId(user == null ? null : user.getId())
+                .teamIds(Set.of(team.getId()))
+                .includeAbout(false)
+                .page(0)
+                .size(100)
+                .build());
+    return teamPages.items().stream()
+        .sorted(Comparator.comparing(t -> t.getPageOrder() == null ? 0 : t.getPageOrder()))
+        .map(TeamPageSummaryDto::from)
+        .toList();
   }
 
   @Transactional

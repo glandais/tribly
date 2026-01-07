@@ -38,8 +38,8 @@ public class Team extends BaseEntity {
   @NotNullableDbValue
   private TeamPage aboutPage;
 
-  @OneToMany(mappedBy = "team", cascade = CascadeType.ALL, orphanRemoval = true)
-  @SQLRestriction("entity_type = 4 AND is_about_page = false AND deleted = false")
+  @OneToMany(mappedBy = "team")
+  @SQLRestriction("is_about_page = false AND deleted = false")
   @OrderBy("pageOrder ASC")
   private List<TeamPage> additionalPages = new ArrayList<>();
 

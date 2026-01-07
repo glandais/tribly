@@ -2248,7 +2248,7 @@ components:
   securitySchemes:
     SecurityScheme:
       type: openIdConnect
-      openIdConnectUrl: http://localhost:8180/realms/quarkus/.well-known/openid-configuration
+      openIdConnectUrl: http://localhost:8180/realms/tribly/.well-known/openid-configuration
       description: Authentication
 tags:
 - name: Ads
