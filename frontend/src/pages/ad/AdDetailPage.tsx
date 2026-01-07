@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useParams, useNavigate } from 'react-router-dom'
+import { Link, useParams, useNavigate, Navigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
@@ -35,6 +35,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { paths } from '@/config/paths'
 import { AdType, RentalPeriod, Status } from '../../api/dto'
+import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 
 const statusColors: Record<Status, string> = {
   [Status.DRAFT]: 'bg-gray-100 text-gray-800',
@@ -66,11 +67,17 @@ export function AdDetailPage() {
     error,
   } = useGetAd(teamSlug!, adSlug!, { query: { enabled: !!teamSlug && !!adSlug } })
 
+  useCanonicalPath(team && ad ? paths.ad(team.slug, ad.slug) : undefined)
+
   const updateMutation = useUpdateAd()
   const deleteMutation = useDeleteAd()
 
   if (isLoadingTeam || isLoadingAd) {
     return <LoadingPage message={t('loading')} />
+  }
+
+  if (!team) {
+    return <Navigate to={paths.teams()} replace />
   }
 
   if (error || !ad) {

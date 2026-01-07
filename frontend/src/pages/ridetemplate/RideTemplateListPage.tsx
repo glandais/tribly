@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useParams, Navigate } from 'react-router-dom'
+import { Link, Navigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
@@ -26,6 +26,7 @@ import { SearchInput } from '../../components/common/SearchInput'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import { MarkdownDisplay } from '../../components/common/MarkdownDisplay'
 import type { RideTemplateDto } from '@/api/dto'
+import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 
 export function RideTemplateListPage() {
   const { t } = useTranslation()
@@ -52,6 +53,8 @@ export function RideTemplateListPage() {
     pageSize,
     totalItems: templatesData?.total ?? 0,
   })
+
+  useCanonicalPath(team ? paths.rideTemplates(team.slug) : undefined)
 
   if (isLoadingTeam) {
     return <LoadingPage message={t('loading')} />

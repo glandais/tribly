@@ -40,6 +40,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 
 const statusColors: Record<Status, string> = {
   [Status.DRAFT]: 'bg-gray-100 text-gray-800',
@@ -76,8 +77,14 @@ export function TripDetailPage() {
   const joinMutation = useJoinTrip()
   const leaveMutation = useLeaveTrip()
 
+  useCanonicalPath(team && trip ? paths.trip(team.slug, trip.slug) : undefined)
+
   if (isLoadingTeam || isLoadingTrip) {
     return <LoadingPage message={t('loading')} />
+  }
+
+  if (!team) {
+    return <Navigate to={paths.teams()} replace />
   }
 
   if (team && !team.enableTrips) {

@@ -9,7 +9,7 @@ import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import { UserAvatar } from '../../components/common/UserAvatar'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { updateCurrentUserBody } from '@/api/zod/users/users.zod'
+import { updateMeBody } from '@/api/zod/users/users.zod'
 import {
   Form,
   FormControl,
@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/form'
 import { UpdateUserRequest } from '@/api/dto'
 
-const profileSchema = updateCurrentUserBody
+const profileSchema = updateMeBody
 
 export function UserProfilePage() {
   const { t } = useTranslation()

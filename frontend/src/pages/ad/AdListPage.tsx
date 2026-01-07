@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useParams, Navigate } from 'react-router-dom'
+import { Link, Navigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { keepPreviousData } from '@tanstack/react-query'
 import { PlusIcon, MagnifyingGlassIcon } from '@heroicons/react/24/outline'
@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/select'
 import { paths } from '@/config/paths'
 import { AdType } from '../../api/dto'
+import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 
 const PAGE_SIZE = 20
 
@@ -47,6 +48,8 @@ export function AdListPage() {
     },
     { query: { enabled: !!teamSlug, placeholderData: keepPreviousData } }
   )
+
+  useCanonicalPath(team ? paths.ads(team.slug) : undefined)
 
   if (isLoadingTeam) {
     return <LoadingPage message={t('loading')} />

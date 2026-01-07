@@ -1,10 +1,11 @@
-import { useParams, Navigate } from 'react-router-dom'
+import { Navigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { paths } from '../../config/paths'
 import { useGetTeam } from '@/api/endpoints/teams/teams'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { TeamAdminLayout } from '../../components/team/TeamAdminLayout'
 import { PlaceList } from '../../components/team/PlaceList'
+import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 
 export function TeamPlacesPage() {
   const { t } = useTranslation()
@@ -13,6 +14,9 @@ export function TeamPlacesPage() {
   const { data: team, isLoading } = useGetTeam(teamSlug!, {
     query: { enabled: !!teamSlug },
   })
+
+  useCanonicalPath(team ? paths.teamAdminPlaces(team.slug) : undefined)
+
   if (isLoading) {
     return <LoadingPage message={t('loading')} />
   }

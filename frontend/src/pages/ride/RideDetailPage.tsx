@@ -40,6 +40,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { paths } from '@/config/paths'
+import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 
 const statusColors: Record<Status, string> = {
   [Status.DRAFT]: 'bg-gray-100 text-gray-800',
@@ -100,11 +101,13 @@ export function RideDetailPage() {
     return items
   }, [ride, t])
 
+  useCanonicalPath(team && ride ? paths.ride(team.slug, ride.slug) : undefined)
+
   if (isLoadingTeam || isLoadingRide) {
     return <LoadingPage message={t('loading')} />
   }
 
-  if (error || !ride) {
+  if (error || !ride || !team) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-center py-12">

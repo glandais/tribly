@@ -10,6 +10,7 @@ import { AdEditor } from '../../components/ad/AdEditor'
 import { defaultMedia } from '@/lib/apiUtils'
 import { paths } from '@/config/paths'
 import { AdRequest, AdType, Status, Visibility } from '../../api/dto'
+import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 
 export function CreateAdPage() {
   const { t } = useTranslation()
@@ -21,6 +22,8 @@ export function CreateAdPage() {
   })
 
   const createMutation = useCreateAd()
+
+  useCanonicalPath(team ? paths.adNew(team.slug) : undefined)
 
   if (isLoadingTeam) {
     return <LoadingPage message={t('loading')} />

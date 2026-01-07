@@ -1,4 +1,5 @@
 import { useParams, Navigate, useNavigate } from 'react-router-dom'
+import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
@@ -30,6 +31,8 @@ export function EditTripPage() {
 
   const updateMutation = useUpdateTrip()
   const changeSlugMutation = useChangeTripSlug()
+
+  useCanonicalPath(team && trip ? paths.tripEdit(team.slug, trip.slug) : undefined)
 
   if (isLoadingTeam || isLoadingTrip) {
     return <LoadingPage message={t('loading')} />

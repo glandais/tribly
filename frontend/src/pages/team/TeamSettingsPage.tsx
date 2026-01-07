@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useParams, useNavigate, Navigate } from 'react-router-dom'
+import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
@@ -35,6 +36,8 @@ export function TeamSettingsPage() {
   const changeSlugMutation = useChangeTeamSlug()
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+
+  useCanonicalPath(team ? paths.teamSettings(team.slug) : undefined)
 
   if (isLoading) {
     return <LoadingPage message={t('loading')} />

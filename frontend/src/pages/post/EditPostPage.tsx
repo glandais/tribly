@@ -1,4 +1,5 @@
 import { useParams, Navigate, useNavigate } from 'react-router-dom'
+import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
@@ -30,6 +31,8 @@ export function EditPostPage() {
 
   const updateMutation = useUpdatePost()
   const changeSlugMutation = useChangePostSlug()
+
+  useCanonicalPath(team && post ? paths.postEdit(team.slug, post.slug) : undefined)
 
   if (isLoadingTeam || isLoadingPost) {
     return <LoadingPage message={t('loading')} />

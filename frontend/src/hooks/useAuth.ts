@@ -4,12 +4,12 @@ import { toast } from 'sonner'
 import i18next from 'i18next'
 import { useAuthStore } from '../store/authStore'
 import {
-  useGetCurrentUser,
-  useUpdateCurrentUser,
+  useGetMe,
+  useUpdateMe,
   useDeleteCurrentUser,
   useUploadAvatar,
   useDeleteAvatar,
-  getGetCurrentUserQueryKey,
+  getGetMeQueryKey,
 } from '../api/endpoints/users/users'
 import type { UpdateUserRequest } from '@/api/dto'
 
@@ -29,7 +29,7 @@ export function useAuth() {
   } = useAuthStore()
 
   // Fetch current user from backend - this creates/syncs the user on first call
-  const { data: backendUser, refetch: refetchUser } = useGetCurrentUser({
+  const { data: backendUser, refetch: refetchUser } = useGetMe({
     query: {
       enabled: isAuthenticated && isInitialized,
       staleTime: 1000 * 60 * 5,
@@ -45,10 +45,10 @@ export function useAuth() {
     }
   }, [backendUser, setUser, setLoading])
 
-  const updateProfileMutation = useUpdateCurrentUser({
+  const updateProfileMutation = useUpdateMe({
     mutation: {
       onSuccess: (updatedUser) => {
-        queryClient.setQueryData(getGetCurrentUserQueryKey(), updatedUser)
+        queryClient.setQueryData(getGetMeQueryKey(), updatedUser)
         setUser(updatedUser)
         toast.success(i18next.t('profile.notifications.updated'))
       },
@@ -67,7 +67,7 @@ export function useAuth() {
   const uploadAvatarMutation = useUploadAvatar({
     mutation: {
       onSuccess: (updatedUser) => {
-        queryClient.setQueryData(getGetCurrentUserQueryKey(), updatedUser)
+        queryClient.setQueryData(getGetMeQueryKey(), updatedUser)
         setUser(updatedUser)
         toast.success(i18next.t('profile.notifications.avatarUpdated'))
       },
@@ -77,7 +77,7 @@ export function useAuth() {
   const deleteAvatarMutation = useDeleteAvatar({
     mutation: {
       onSuccess: (updatedUser) => {
-        queryClient.setQueryData(getGetCurrentUserQueryKey(), updatedUser)
+        queryClient.setQueryData(getGetMeQueryKey(), updatedUser)
         setUser(updatedUser)
         toast.success(i18next.t('profile.notifications.avatarDeleted'))
       },

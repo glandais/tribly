@@ -1,4 +1,5 @@
 import { useParams, Navigate, useNavigate } from 'react-router-dom'
+import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
@@ -32,6 +33,9 @@ export function EditRideTemplatePage() {
 
   const updateMutation = useUpdateTemplate()
   const { t } = useTranslation()
+
+  useCanonicalPath(team && template ? paths.rideTemplateEdit(team.slug, template.slug) : undefined)
+
   if (isLoadingTeam || isLoadingTemplate) {
     return <LoadingPage message={t('loading')} />
   }

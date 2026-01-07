@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useParams, Navigate } from 'react-router-dom'
+import { Link, Navigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { PlusIcon, NewspaperIcon, ChevronDownIcon } from '@heroicons/react/24/outline'
 import { useGetTeam } from '@/api/endpoints/teams/teams'
@@ -30,6 +30,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { paths } from '@/config/paths'
+import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 
 type FilterValue = 'all' | 'ride' | 'post' | 'trip'
 
@@ -69,6 +70,8 @@ export function PublicationListPage() {
     pageSize,
     totalItems: publicationsData?.total ?? 0,
   })
+
+  useCanonicalPath(team ? paths.team(team.slug) : undefined)
 
   if (isLoadingTeam) {
     return <LoadingPage message={t('teams.publications.list.title')} />

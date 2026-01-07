@@ -1,4 +1,5 @@
 import { useParams, Navigate } from 'react-router-dom'
+import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 import { useTranslation } from 'react-i18next'
 import { paths } from '../../config/paths'
 import { useGetTeam } from '@/api/endpoints/teams/teams'
@@ -17,6 +18,9 @@ export function EditTeamPagePage() {
     query: { enabled: !!teamSlug && !!pageSlug },
   })
   const { t } = useTranslation()
+
+  useCanonicalPath(team && page ? paths.teamAdminPageEdit(team.slug, page.slug) : undefined)
+
   if (isTeamLoading || isPageLoading) {
     return <LoadingPage message={t('loading')} />
   }

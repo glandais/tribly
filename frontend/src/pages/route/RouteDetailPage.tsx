@@ -13,6 +13,7 @@ import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import { MediaDisplay } from '../../components/common/MediaDisplay'
 import { EntityLogo } from '../../components/common/EntityLogo'
 import { CommentSection } from '../../components/comment'
+import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 
 export function RouteDetailPage() {
   const { teamSlug, routeSlug } = useParams<{ teamSlug: string; routeSlug: string }>()
@@ -29,6 +30,8 @@ export function RouteDetailPage() {
   const deleteRouteMutation = useDeleteRoute()
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+
+  useCanonicalPath(team && route ? paths.route(team.slug, route.slug) : undefined)
 
   const isMember = !!team?.role
   const canEdit = team && (team.role === 'ADMIN' || team.role === 'ORGANIZER')
@@ -81,7 +84,7 @@ export function RouteDetailPage() {
     )
   }
 
-  if (!route) {
+  if (!route || !team) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-center">

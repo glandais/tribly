@@ -1,4 +1,5 @@
 import { useParams, Navigate, useNavigate } from 'react-router-dom'
+import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
@@ -21,6 +22,8 @@ export function CreateRoutePage() {
     query: { enabled: !!teamSlug },
   })
   const createRouteMutation = useCreateRoute()
+
+  useCanonicalPath(team ? paths.routeNew(team.slug) : undefined)
 
   const handleSubmit = async (data: RouteRequest, gpxFile?: File) => {
     // Either gpxFile or points must be provided

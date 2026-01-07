@@ -1,4 +1,4 @@
-import { useParams, Navigate } from 'react-router-dom'
+import { Navigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { UsersIcon, CalendarIcon } from '@heroicons/react/24/outline'
 import { paths } from '../../config/paths'
@@ -6,6 +6,7 @@ import { useGetTeam } from '@/api/endpoints/teams/teams'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { TeamLayout } from '../../components/team/TeamLayout'
 import { MediaDisplay } from '../../components/common/MediaDisplay'
+import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 
 export function TeamAboutPage() {
   const { t, i18n } = useTranslation()
@@ -14,6 +15,8 @@ export function TeamAboutPage() {
   const { data: team, isLoading } = useGetTeam(teamSlug!, {
     query: { enabled: !!teamSlug },
   })
+
+  useCanonicalPath(team ? paths.teamAbout(team.slug) : undefined)
 
   if (isLoading) {
     return <LoadingPage message={t('loading')} />

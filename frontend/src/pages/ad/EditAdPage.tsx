@@ -1,4 +1,5 @@
 import { useParams, Navigate, useNavigate } from 'react-router-dom'
+import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
@@ -30,6 +31,8 @@ export function EditAdPage() {
 
   const updateMutation = useUpdateAd()
   const changeSlugMutation = useChangeAdSlug()
+
+  useCanonicalPath(team && ad ? paths.adEdit(team.slug, ad.slug) : undefined)
 
   if (isLoadingTeam || isLoadingAd) {
     return <LoadingPage message={t('loading')} />

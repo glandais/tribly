@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useParams, Navigate } from 'react-router-dom'
+import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
@@ -52,6 +53,8 @@ export function TeamMembersPage() {
   const updateRoleMutation = useUpdateMemberRole()
   const removeMemberMutation = useRemoveMember()
   const addMemberMutation = useAddMember()
+
+  useCanonicalPath(team ? paths.teamMembers(team.slug) : undefined)
 
   if (isLoadingTeam) {
     return <LoadingPage message={t('loading')} />

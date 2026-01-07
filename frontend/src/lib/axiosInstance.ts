@@ -20,25 +20,6 @@ AXIOS_INSTANCE.interceptors.request.use(
   (error) => Promise.reject(error)
 )
 
-// Handle redirects for slug changes (308 is followed automatically by browser)
-// Detect redirect by comparing request URL with final response URL
-AXIOS_INSTANCE.interceptors.response.use(
-  (response) => {
-    const requestUrl = response.config.url
-    // In browser, XMLHttpRequest provides responseURL after redirects
-    const finalUrl = response.request?.responseURL
-
-    const finalPath = new URL(finalUrl).pathname
-    if (requestUrl && finalUrl && requestUrl !== finalPath) {
-      // A redirect occurred - update browser URL
-      const frontendUrl = finalPath.replace(/^\/api/, '')
-      window.history.replaceState(null, '', frontendUrl)
-    }
-    return response
-  },
-  (error) => Promise.reject(error)
-)
-
 // Orval mutator function - returns unwrapped data (T, not AxiosResponse<T>)
 export const axiosMutator = <T>(
   config: AxiosRequestConfig,

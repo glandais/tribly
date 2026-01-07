@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useParams, Navigate } from 'react-router-dom'
+import { Link, Navigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { keepPreviousData } from '@tanstack/react-query'
 import { paths } from '../../config/paths'
@@ -13,6 +13,7 @@ import { RouteCard, RouteCardSkeleton } from '../../components/route/RouteCard'
 import { Pagination } from '../../components/common/Pagination'
 import { usePagination } from '../../hooks/usePagination'
 import { RouteFilterPanel } from '../../components/route/RouteFilterPanel'
+import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 
 export function RouteListPage() {
   const { teamSlug } = useParams<{ teamSlug: string }>()
@@ -46,6 +47,8 @@ export function RouteListPage() {
     pageSize,
     totalItems: routesData?.total ?? 0,
   })
+
+  useCanonicalPath(team ? paths.routes(team.slug) : undefined)
 
   if (isLoadingTeam) {
     return <LoadingPage message={t('routes.list.title')} />

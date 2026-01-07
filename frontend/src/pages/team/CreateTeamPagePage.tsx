@@ -1,4 +1,5 @@
 import { useParams, Navigate } from 'react-router-dom'
+import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 import { useTranslation } from 'react-i18next'
 import { paths } from '../../config/paths'
 import { useGetTeam } from '@/api/endpoints/teams/teams'
@@ -15,6 +16,8 @@ export function CreateTeamPagePage() {
   const { data: team, isLoading } = useGetTeam(teamSlug!, {
     query: { enabled: !!teamSlug },
   })
+
+  useCanonicalPath(team ? paths.teamAdminPageNew(team.slug) : undefined)
 
   if (isLoading) {
     return <LoadingPage message={t('loading')} />

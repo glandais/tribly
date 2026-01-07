@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link, useParams, Navigate } from 'react-router-dom'
+import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
@@ -42,6 +43,8 @@ export function TeamPagesAdminPage() {
   })
   const deleteMutation = useDeletePage()
   const reorderMutation = useReorderPages()
+
+  useCanonicalPath(team ? paths.teamAdminPages(team.slug) : undefined)
 
   if (isLoadingTeam) {
     return <LoadingPage message={t('loading')} />
