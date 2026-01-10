@@ -7,7 +7,6 @@
  */
 import type { MediaDto } from './mediaDto'
 import type { Status } from './status'
-import type { Visibility } from './visibility'
 import type { AdType } from './adType'
 import type { RentalPeriod } from './rentalPeriod'
 
@@ -26,8 +25,6 @@ export interface AdRequest {
   media: MediaDto
   /** Ad status */
   status: Status
-  /** Visibility level */
-  visibility: Visibility
   /** Ad type */
   adType: AdType
   /** Price (optional, null for 'contact for price') */

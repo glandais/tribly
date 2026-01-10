@@ -53,15 +53,8 @@ public class Ad extends TeamEntity {
   @Nullable
   private String locationDescription;
 
-  public Ad(
-      User createdBy,
-      Team team,
-      Instant dateTime,
-      String name,
-      String slug,
-      Visibility visibility,
-      AdType adType) {
-    super(createdBy, team, dateTime, name, slug, visibility);
+  public Ad(User createdBy, Team team, Instant dateTime, String name, String slug, AdType adType) {
+    super(createdBy, team, dateTime, name, slug, Visibility.TEAM);
     this.adType = adType;
   }
 

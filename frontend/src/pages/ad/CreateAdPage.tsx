@@ -10,7 +10,7 @@ import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { AdEditor } from '../../components/ad/AdEditor'
 import { defaultMedia } from '@/lib/apiUtils'
 import { paths } from '@/config/paths'
-import { AdRequest, AdType, Status, Visibility } from '../../api/dto'
+import { AdRequest, AdType, Status } from '../../api/dto'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 
 export function CreateAdPage() {
@@ -46,7 +46,6 @@ export function CreateAdPage() {
     name: '',
     media: defaultMedia(),
     dateTime: new Date().toISOString(),
-    visibility: team.visibility === Visibility.TEAM ? Visibility.TEAM : Visibility.PUBLIC,
     status: Status.DRAFT,
     adType: AdType.SALE,
     price: undefined,

@@ -7,10 +7,7 @@ import com.tribly.dto.ads.request.AdRequest;
 import com.tribly.dto.ads.response.AdDto;
 import com.tribly.dto.ads.response.AdListResponse;
 import com.tribly.dto.error.ErrorCode;
-import com.tribly.enums.ActionType;
-import com.tribly.enums.AdType;
-import com.tribly.enums.EntityType;
-import com.tribly.enums.Status;
+import com.tribly.enums.*;
 import com.tribly.repository.ad.AdQuery;
 import com.tribly.repository.ad.AdRepository;
 import com.tribly.repository.common.TriblyPage;
@@ -87,13 +84,7 @@ public class AdService extends TeamEntityService<Ad, AdRepository, AdDto> {
 
     Ad ad =
         new Ad(
-            triblyContext.getUser(),
-            team,
-            Instant.now(),
-            request.name(),
-            slug,
-            request.visibility(),
-            request.adType());
+            triblyContext.getUser(), team, Instant.now(), request.name(), slug, request.adType());
 
     setProperties(request, ad);
 
@@ -141,8 +132,6 @@ public class AdService extends TeamEntityService<Ad, AdRepository, AdDto> {
   }
 
   private void verifyAd(Team team, AdRequest request) {
-    validateVisibility(team, request);
-
     // Validate rental period for rental ads
     if (request.adType() == AdType.RENTAL && request.rentalPeriod() == null) {
       throw new BusinessException(ErrorCode.RENTAL_PERIOD_MISSING);
@@ -154,7 +143,7 @@ public class AdService extends TeamEntityService<Ad, AdRepository, AdDto> {
   }
 
   private void setProperties(AdRequest request, Ad ad) {
-    ad.setVisibility(request.visibility());
+    ad.setVisibility(Visibility.TEAM);
     ad.setName(request.name());
     ad.setStatus(request.status());
     ad.setPublishAt(null);

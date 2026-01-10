@@ -25,6 +25,9 @@ public class RouteAccessChecker implements AccessChecker {
   @Override
   public boolean hasRights(ActionType action, List<Object> params) {
 
+    if (action == ActionType.LIST_ALL_TEAMS) {
+      return true;
+    }
     Context context = triblyContext.getContext(params);
     Team team = context.team();
     User user = context.user();

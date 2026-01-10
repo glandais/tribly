@@ -162,15 +162,6 @@ export function AdEditor({
           {...form.getInputProps('locationDescription')}
         />
 
-        {team.visibility !== 'TEAM' && (
-          <Radio.Group label={t('visibility.label')} {...form.getInputProps('visibility')}>
-            <Stack gap="xs" mt="xs">
-              <Radio value="TEAM" label={t('visibility.team')} />
-              <Radio value="PUBLIC" label={t('visibility.public')} />
-            </Stack>
-          </Radio.Group>
-        )}
-
         <Radio.Group label={t('form.status')} {...form.getInputProps('status')}>
           <Stack gap="xs" mt="xs">
             <Radio value="DRAFT" label={t('status.DRAFT')} />

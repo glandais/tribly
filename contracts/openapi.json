@@ -115,7 +115,7 @@
       "AdRequest" : {
         "description" : "Ad request",
         "type" : "object",
-        "required" : [ "name", "media", "status", "visibility", "adType" ],
+        "required" : [ "name", "media", "status", "adType" ],
         "properties" : {
           "name" : {
             "type" : "string",
@@ -133,11 +133,6 @@
             "description" : "Ad status",
             "type" : "string",
             "$ref" : "#/components/schemas/Status"
-          },
-          "visibility" : {
-            "description" : "Visibility level",
-            "type" : "string",
-            "$ref" : "#/components/schemas/Visibility"
           },
           "adType" : {
             "description" : "Ad type",
@@ -2407,7 +2402,7 @@
     "securitySchemes" : {
       "SecurityScheme" : {
         "type" : "openIdConnect",
-        "openIdConnectUrl" : "http://localhost:8180/realms/tribly/.well-known/openid-configuration",
+        "openIdConnectUrl" : "http://localhost:8180/realms/quarkus/.well-known/openid-configuration",
         "description" : "Authentication"
       }
     }
@@ -4081,17 +4076,8 @@
                 }
               }
             }
-          },
-          "401" : {
-            "description" : "Not Authorized"
-          },
-          "403" : {
-            "description" : "Not Allowed"
           }
-        },
-        "security" : [ {
-          "SecurityScheme" : [ "user" ]
-        } ]
+        }
       },
       "post" : {
         "summary" : "Create page",
@@ -4400,14 +4386,8 @@
                 }
               }
             }
-          },
-          "401" : {
-            "description" : "Not Authorized"
           }
-        },
-        "security" : [ {
-          "SecurityScheme" : [ "user" ]
-        } ]
+        }
       },
       "delete" : {
         "summary" : "Delete page",
@@ -5525,17 +5505,8 @@
                 }
               }
             }
-          },
-          "401" : {
-            "description" : "Not Authorized"
-          },
-          "403" : {
-            "description" : "Not Allowed"
           }
-        },
-        "security" : [ {
-          "SecurityScheme" : [ "user" ]
-        } ]
+        }
       }
     },
     "/api/teams/{teamSlug}/ride-templates" : {
@@ -6305,17 +6276,8 @@
                 }
               }
             }
-          },
-          "401" : {
-            "description" : "Not Authorized"
-          },
-          "403" : {
-            "description" : "Not Allowed"
           }
-        },
-        "security" : [ {
-          "SecurityScheme" : [ "user" ]
-        } ]
+        }
       },
       "delete" : {
         "summary" : "Delete ride",
@@ -6782,17 +6744,8 @@
                 }
               }
             }
-          },
-          "401" : {
-            "description" : "Not Authorized"
-          },
-          "403" : {
-            "description" : "Not Allowed"
           }
-        },
-        "security" : [ {
-          "SecurityScheme" : [ "user" ]
-        } ]
+        }
       },
       "post" : {
         "summary" : "Create route",
@@ -7202,17 +7155,8 @@
                 }
               }
             }
-          },
-          "401" : {
-            "description" : "Not Authorized"
-          },
-          "403" : {
-            "description" : "Not Allowed"
           }
-        },
-        "security" : [ {
-          "SecurityScheme" : [ "user" ]
-        } ]
+        }
       },
       "delete" : {
         "summary" : "Delete route",
@@ -7849,17 +7793,8 @@
                 }
               }
             }
-          },
-          "401" : {
-            "description" : "Not Authorized"
-          },
-          "403" : {
-            "description" : "Not Allowed"
           }
-        },
-        "security" : [ {
-          "SecurityScheme" : [ "user" ]
-        } ]
+        }
       },
       "delete" : {
         "summary" : "Delete trip",
