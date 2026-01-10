@@ -1,11 +1,12 @@
 import { useState } from 'react'
-import { Link, useParams, useNavigate, Navigate } from 'react-router-dom'
+import { useParams, useNavigate, Navigate } from 'react-router-dom'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
-import { toast } from 'sonner'
+import { notifications } from '@mantine/notifications'
 import i18next from 'i18next'
 import { paths } from '../../config/paths'
+import { Box, Button, Center, Stack, Text, Title } from '@mantine/core'
 import {
   useGetTeam,
   useDeleteTeam,
@@ -45,18 +46,19 @@ export function TeamSettingsPage() {
 
   if (error || !team) {
     return (
-      <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="text-center py-12">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">{t('error.loading')}</h1>
-          <p className="text-gray-600 mb-6">{t('teams.settings.error.loadFailed')}</p>
-          <Link
-            to={paths.teams()}
-            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
-          >
-            {t('teams.detail.notFound.backToTeams')}
-          </Link>
-        </div>
-      </div>
+      <Box maw={672} mx="auto" px={{ base: 'md', sm: 'lg' }} py="xl">
+        <Center py="xl">
+          <Stack align="center">
+            <Title order={1}>{t('error.loading')}</Title>
+            <Text c="dimmed" mb="lg">
+              {t('teams.settings.error.loadFailed')}
+            </Text>
+            <Button component="a" href={paths.teams()}>
+              {t('teams.detail.notFound.backToTeams')}
+            </Button>
+          </Stack>
+        </Center>
+      </Box>
     )
   }
 
@@ -89,7 +91,7 @@ export function TeamSettingsPage() {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getListTeamsQueryKey() })
           queryClient.removeQueries({ queryKey: getGetTeamQueryKey(teamSlug) })
-          toast.success(i18next.t('teams.notifications.deleted'))
+          notifications.show({ message: i18next.t('teams.notifications.deleted'), color: 'green' })
           navigate(paths.teams())
         },
       }
@@ -98,11 +100,13 @@ export function TeamSettingsPage() {
 
   return (
     <TeamAdminLayout team={team} currentTab="settings">
-      <div className="py-6 max-w-2xl">
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold text-gray-900">{t('teams.settings.title')}</h2>
-          <p className="mt-1 text-gray-600">{t('teams.settings.subtitle')}</p>
-        </div>
+      <Box py="md" maw={672}>
+        <Box mb="xl">
+          <Title order={2}>{t('teams.settings.title')}</Title>
+          <Text c="dimmed" mt="xs">
+            {t('teams.settings.subtitle')}
+          </Text>
+        </Box>
 
         <TeamForm
           teamSlug={teamSlug}
@@ -113,19 +117,18 @@ export function TeamSettingsPage() {
         />
 
         {/* Danger Zone */}
-        <div className="mt-12 pt-8 border-t border-gray-200">
-          <h2 className="text-lg font-semibold text-red-600">
+        <Box mt="xl" pt="xl" style={{ borderTop: '1px solid var(--mantine-color-gray-3)' }}>
+          <Title order={2} size="lg" c="red">
             {t('teams.settings.dangerZone.title')}
-          </h2>
-          <p className="mt-1 text-sm text-gray-600">{t('teams.settings.dangerZone.description')}</p>
+          </Title>
+          <Text size="sm" c="dimmed" mt="xs">
+            {t('teams.settings.dangerZone.description')}
+          </Text>
 
-          <button
-            onClick={() => setShowDeleteConfirm(true)}
-            className="mt-4 inline-flex items-center px-4 py-2 border border-red-300 rounded-md shadow-xs text-sm font-medium text-red-700 bg-white hover:bg-red-50 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-          >
+          <Button variant="outline" color="red" mt="md" onClick={() => setShowDeleteConfirm(true)}>
             {t('teams.settings.dangerZone.deleteTeam')}
-          </button>
-        </div>
+          </Button>
+        </Box>
 
         <ConfirmDialog
           isOpen={showDeleteConfirm}
@@ -137,7 +140,7 @@ export function TeamSettingsPage() {
           variant="danger"
           isLoading={deleteMutation.isPending}
         />
-      </div>
+      </Box>
     </TeamAdminLayout>
   )
 }

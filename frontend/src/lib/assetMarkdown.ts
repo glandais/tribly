@@ -18,19 +18,26 @@ export const IMAGE_SIZES: ImageSize[] = ['icon', 'thumbnail', 'medium', 'full']
 /** Default size for new uploads */
 export const DEFAULT_IMAGE_SIZE: ImageSize = 'medium'
 
-/** CSS classes for each image size */
-const IMAGE_SIZE_CLASSES: Record<ImageSize, string> = {
-  icon: 'w-8 h-8 object-cover',
-  thumbnail: 'w-24 h-auto',
-  medium: 'max-w-md h-auto',
-  full: 'max-w-full h-auto',
+/** Mantine style props for each image size */
+export interface ImageSizeStyle {
+  w?: number | string
+  h?: number | string
+  maw?: number | string
+  fit?: 'cover' | 'contain' | 'fill' | 'none' | 'scale-down'
+}
+
+const IMAGE_SIZE_STYLES: Record<ImageSize, ImageSizeStyle> = {
+  icon: { w: 32, h: 32, fit: 'cover' },
+  thumbnail: { w: 96, h: 'auto' },
+  medium: { maw: 448, h: 'auto' },
+  full: { maw: '100%', h: 'auto' },
 }
 
 /**
- * Get CSS class string for an image size
+ * Get Mantine style props for an image size
  */
-export function getImageSizeClass(size?: ImageSize): string {
-  return IMAGE_SIZE_CLASSES[size ?? DEFAULT_IMAGE_SIZE]
+export function getImageSizeStyle(size?: ImageSize): ImageSizeStyle {
+  return IMAGE_SIZE_STYLES[size ?? DEFAULT_IMAGE_SIZE]
 }
 
 // ============================================================================
@@ -64,7 +71,7 @@ export const ASSET_DIRECTIVE_REGEX = /::asset\{([^}]+)\}/g
 
 /**
  * Create directive syntax string for an asset
- * e.g., ("abc123", "My image", "medium") → '::asset{id="abc123" alt="My image"}'
+ * e.g., ("abc123", "My image", "medium") -> '::asset{id="abc123" alt="My image"}'
  */
 export function createAssetDirective(
   assetId: string,

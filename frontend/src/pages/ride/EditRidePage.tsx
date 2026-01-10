@@ -2,8 +2,9 @@ import { useParams, Navigate, useNavigate } from 'react-router-dom'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
-import { toast } from 'sonner'
+import { notifications } from '@mantine/notifications'
 import i18next from 'i18next'
+import { Container, Stack, Title, Text } from '@mantine/core'
 import { useGetTeam } from '@/api/endpoints/teams/teams'
 import {
   useGetRide,
@@ -64,7 +65,7 @@ export function EditRidePage() {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetRideQueryKey(teamSlug!, rideSlug!) })
           queryClient.invalidateQueries({ queryKey: getListPublicationsQueryKey(teamSlug!) })
-          toast.success(i18next.t('rides.notifications.updated'))
+          notifications.show({ message: i18next.t('rides.notifications.updated'), color: 'green' })
           navigate(paths.ride(teamSlug!, rideSlug!))
         },
       }
@@ -92,11 +93,11 @@ export function EditRidePage() {
   } as RideRequest
 
   return (
-    <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">{t('rides.edit.title')}</h1>
-        <p className="mt-1 text-gray-600">{t('rides.edit.subtitle', { teamName: team.name })}</p>
-      </div>
+    <Container size="sm" py="xl">
+      <Stack gap="xs" mb="xl">
+        <Title order={1}>{t('rides.edit.title')}</Title>
+        <Text c="dimmed">{t('rides.edit.subtitle', { teamName: team.name })}</Text>
+      </Stack>
 
       <RideEditor
         team={team}
@@ -110,6 +111,6 @@ export function EditRidePage() {
         onSlugChange={handleSlugChange}
         canEditSlug={canEdit}
       />
-    </div>
+    </Container>
   )
 }

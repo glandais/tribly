@@ -2,15 +2,27 @@ import { useState } from 'react'
 import { Link, useParams, useNavigate, Navigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
-import { toast } from 'sonner'
+import { notifications } from '@mantine/notifications'
 import i18next from 'i18next'
 import {
-  CalendarIcon,
-  PencilIcon,
-  ChevronDownIcon,
-  MapPinIcon,
-  CurrencyEuroIcon,
-} from '@heroicons/react/24/outline'
+  IconCalendar,
+  IconPencil,
+  IconChevronDown,
+  IconMapPin,
+  IconCurrencyEuro,
+} from '@tabler/icons-react'
+import {
+  Box,
+  Button,
+  Menu,
+  Container,
+  Paper,
+  Group,
+  Stack,
+  Title,
+  Text,
+  Badge,
+} from '@mantine/core'
 import { useGetTeam } from '@/api/endpoints/teams/teams'
 import {
   useGetAd,
@@ -24,29 +36,20 @@ import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import { MediaDisplay } from '../../components/common/MediaDisplay'
 import { EntityLogo } from '../../components/common/EntityLogo'
 import { useFormattedDate } from '../../utils/dateFormat'
-import { Button } from '@/components/ui/button'
-import { ButtonGroup } from '@/components/ui/button-group'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 import { paths } from '@/config/paths'
 import { AdType, RentalPeriod, Status } from '../../api/dto'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 
-const statusColors: Record<Status, string> = {
-  [Status.DRAFT]: 'bg-gray-100 text-gray-800',
-  [Status.PUBLISHED]: 'bg-green-100 text-green-800',
-  [Status.CANCELLED]: 'bg-red-100 text-red-800',
+const statusColors: Record<Status, 'gray' | 'green' | 'red'> = {
+  [Status.DRAFT]: 'gray',
+  [Status.PUBLISHED]: 'green',
+  [Status.CANCELLED]: 'red',
 }
 
-const adTypeColors: Record<AdType, string> = {
-  [AdType.SALE]: 'bg-indigo-100 text-indigo-800',
-  [AdType.RENTAL]: 'bg-purple-100 text-purple-800',
-  [AdType.WANTED]: 'bg-amber-100 text-amber-800',
+const adTypeColors: Record<AdType, 'indigo' | 'grape' | 'yellow'> = {
+  [AdType.SALE]: 'indigo',
+  [AdType.RENTAL]: 'grape',
+  [AdType.WANTED]: 'yellow',
 }
 
 export function AdDetailPage() {
@@ -82,20 +85,19 @@ export function AdDetailPage() {
 
   if (error || !ad) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="text-center py-12">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+      <Container size="xl" py="xl">
+        <Paper withBorder p="xl" ta="center">
+          <Title order={2} mb="xs">
             {t('ads.detail.notFound.title')}
-          </h1>
-          <p className="text-gray-600 mb-6">{t('ads.detail.notFound.message')}</p>
-          <Link
-            to={paths.ads(teamSlug!)}
-            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
-          >
+          </Title>
+          <Text c="dimmed" mb="lg">
+            {t('ads.detail.notFound.message')}
+          </Text>
+          <Button component={Link} to={paths.ads(teamSlug!)}>
             {t('ads.title')}
-          </Link>
-        </div>
-      </div>
+          </Button>
+        </Paper>
+      </Container>
     )
   }
 
@@ -132,7 +134,7 @@ export function AdDetailPage() {
       {
         onSuccess: () => {
           invalidateAds()
-          toast.success(i18next.t('ads.notifications.updated'))
+          notifications.show({ message: i18next.t('ads.notifications.updated'), color: 'green' })
         },
       }
     )
@@ -144,7 +146,7 @@ export function AdDetailPage() {
       {
         onSuccess: () => {
           invalidateAds()
-          toast.success(i18next.t('ads.notifications.updated'))
+          notifications.show({ message: i18next.t('ads.notifications.updated'), color: 'green' })
           setShowUnpublishConfirm(false)
         },
       }
@@ -157,7 +159,7 @@ export function AdDetailPage() {
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getListAdsQueryKey(teamSlug!) })
-          toast.success(i18next.t('ads.notifications.deleted'))
+          notifications.show({ message: i18next.t('ads.notifications.deleted'), color: 'green' })
           setShowDeleteConfirm(false)
           navigate(paths.ads(teamSlug!))
         },
@@ -166,104 +168,104 @@ export function AdDetailPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <Container size="md" py="xl">
       {/* Header */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="flex items-center gap-3 min-w-0">
+      <Paper withBorder p="lg" mb="lg">
+        <Group justify="space-between" align="flex-start" wrap="wrap" gap="md">
+          <Group gap="md" style={{ minWidth: 0 }}>
             <EntityLogo logo={ad.media.assets.logo} alt={ad.name} size="lg" />
-            <div className="min-w-0">
-              <h1 className="text-2xl font-bold text-gray-900 truncate">{ad.name}</h1>
-              <div className="flex flex-wrap items-center gap-2 mt-1">
-                <span
-                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${adTypeColors[ad.adType]}`}
-                >
+            <Stack gap={4} style={{ minWidth: 0 }}>
+              <Title order={2} lineClamp={1}>
+                {ad.name}
+              </Title>
+              <Group gap="xs">
+                <Badge color={adTypeColors[ad.adType]}>
                   {t(`ads.adType.${ad.adType satisfies 'SALE' | 'RENTAL' | 'WANTED'}`)}
-                </span>
-                <span
-                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColors[ad.status]}`}
-                >
+                </Badge>
+                <Badge color={statusColors[ad.status]}>
                   {t(`status.${ad.status satisfies 'DRAFT' | 'PUBLISHED' | 'CANCELLED'}`)}
-                </span>
-              </div>
-            </div>
-          </div>
+                </Badge>
+              </Group>
+            </Stack>
+          </Group>
 
           {canEdit && (
-            <ButtonGroup>
-              <Button asChild variant="outline">
-                <Link to={paths.adEdit(teamSlug!, adSlug!)}>
-                  <PencilIcon className="w-4 h-4" />
-                  {t('actions.edit')}
-                </Link>
+            <Button.Group>
+              <Button
+                component={Link}
+                to={paths.adEdit(teamSlug!, adSlug!)}
+                variant="default"
+                leftSection={<IconPencil size={16} />}
+              >
+                {t('actions.edit')}
               </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="!pl-2">
-                    <ChevronDownIcon className="w-4 h-4" />
+              <Menu position="bottom-end">
+                <Menu.Target>
+                  <Button variant="default" px="xs">
+                    <IconChevronDown size={16} />
                   </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
+                </Menu.Target>
+                <Menu.Dropdown>
                   {ad.status === Status.DRAFT && (
-                    <DropdownMenuItem
+                    <Menu.Item
                       onClick={handlePublish}
                       disabled={updateMutation.isPending}
-                      className="text-green-700"
+                      color="green"
+                      leftSection={
+                        updateMutation.isPending ? <LoadingSpinner size="sm" /> : undefined
+                      }
                     >
-                      {updateMutation.isPending && <LoadingSpinner size="sm" />}
                       {t('actions.publish')}
-                    </DropdownMenuItem>
+                    </Menu.Item>
                   )}
                   {ad.status === Status.PUBLISHED && (
-                    <>
-                      <DropdownMenuItem
-                        onClick={() => setShowUnpublishConfirm(true)}
-                        className="text-yellow-700"
-                      >
-                        {t('actions.unpublish')}
-                      </DropdownMenuItem>
-                    </>
+                    <Menu.Item onClick={() => setShowUnpublishConfirm(true)} color="yellow">
+                      {t('actions.unpublish')}
+                    </Menu.Item>
                   )}
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onClick={() => setShowDeleteConfirm(true)}
-                    variant="destructive"
-                  >
+                  <Menu.Divider />
+                  <Menu.Item onClick={() => setShowDeleteConfirm(true)} color="red">
                     {t('actions.delete')}
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </ButtonGroup>
+                  </Menu.Item>
+                </Menu.Dropdown>
+              </Menu>
+            </Button.Group>
           )}
-        </div>
+        </Group>
 
         {/* Price */}
-        <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-          <div className="flex items-center gap-2 text-2xl font-bold text-gray-900">
-            <CurrencyEuroIcon className="w-6 h-6" />
-            {formatPrice(ad.price, ad.adType, ad.rentalPeriod)}
-          </div>
-        </div>
+        <Box mt="lg" p="md" bg="gray.0" style={{ borderRadius: 'var(--mantine-radius-md)' }}>
+          <Group gap="xs">
+            <IconCurrencyEuro size={24} />
+            <Text size="xl" fw={700}>
+              {formatPrice(ad.price, ad.adType, ad.rentalPeriod)}
+            </Text>
+          </Group>
+        </Box>
 
         {/* Description */}
-        <div className="mt-4">
-          <MediaDisplay media={ad.media} className="text-gray-600" />
-        </div>
+        <Box mt="md">
+          <MediaDisplay media={ad.media} />
+        </Box>
 
         {/* Meta info */}
-        <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-gray-500">
-          <span className="flex items-center">
-            <CalendarIcon className="w-4 h-4 mr-1" />
-            {formattedDate}
-          </span>
+        <Group mt="md" gap="lg">
+          <Group gap="xs">
+            <IconCalendar size={16} />
+            <Text size="sm" c="dimmed">
+              {formattedDate}
+            </Text>
+          </Group>
           {ad.locationDescription && (
-            <span className="flex items-center">
-              <MapPinIcon className="w-4 h-4 mr-1" />
-              {ad.locationDescription}
-            </span>
+            <Group gap="xs">
+              <IconMapPin size={16} />
+              <Text size="sm" c="dimmed">
+                {ad.locationDescription}
+              </Text>
+            </Group>
           )}
-        </div>
-      </div>
+        </Group>
+      </Paper>
 
       {/* Confirmation Dialogs */}
       <ConfirmDialog
@@ -286,6 +288,6 @@ export function AdDetailPage() {
         variant="danger"
         isLoading={deleteMutation.isPending}
       />
-    </div>
+    </Container>
   )
 }

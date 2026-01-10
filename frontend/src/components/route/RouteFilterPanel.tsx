@@ -1,15 +1,6 @@
 import { useTranslation } from 'react-i18next'
-import { FunnelIcon, ChevronDownIcon, ChevronUpIcon, XMarkIcon } from '@heroicons/react/24/outline'
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
+import { IconFilter, IconChevronDown, IconChevronUp, IconX } from '@tabler/icons-react'
+import { Collapse, Select, Button, Text, Paper, Group, SimpleGrid, Stack } from '@mantine/core'
 import { RangeInput } from '@/components/common/RangeInput'
 import { Hilliness, SurfaceType, WindDirection, RouteSortBy, SortDirection } from '@/api/dto'
 import type { ListRoutesParams } from '@/api/dto'
@@ -54,40 +45,41 @@ export function RouteFilterPanel({
     filters.windDirection !== undefined
 
   return (
-    <Collapsible open={isOpen} onOpenChange={onOpenChange}>
-      <div className="flex items-center gap-2 mb-4">
-        <CollapsibleTrigger asChild>
-          <Button variant="outline" size="sm">
-            <FunnelIcon className="w-4 h-4 mr-2" />
-            {isOpen ? t('routes.list.filters.hide') : t('routes.list.filters.show')}
-            {isOpen ? (
-              <ChevronUpIcon className="w-4 h-4 ml-2" />
-            ) : (
-              <ChevronDownIcon className="w-4 h-4 ml-2" />
-            )}
-          </Button>
-        </CollapsibleTrigger>
+    <Stack gap="md">
+      <Group gap="sm">
+        <Button
+          variant="default"
+          size="sm"
+          leftSection={<IconFilter size={16} />}
+          rightSection={isOpen ? <IconChevronUp size={16} /> : <IconChevronDown size={16} />}
+          onClick={() => onOpenChange(!isOpen)}
+        >
+          {isOpen ? t('routes.list.filters.hide') : t('routes.list.filters.show')}
+        </Button>
         {hasActiveFilters && (
-          <Button variant="ghost" size="sm" onClick={clearFilters}>
-            <XMarkIcon className="w-4 h-4 mr-1" />
+          <Button
+            variant="subtle"
+            size="sm"
+            leftSection={<IconX size={16} />}
+            onClick={clearFilters}
+          >
             {t('routes.list.filters.clear')}
           </Button>
         )}
-      </div>
+      </Group>
 
-      <CollapsibleContent>
-        <div className="bg-gray-50 rounded-lg p-4 mb-6 border border-gray-200">
-          {/* Search Input */}
+      <Collapse in={isOpen}>
+        <Paper withBorder p="md" mb="md">
           <SearchInput
             id="routes-search"
             value={filters.search ?? ''}
             onChange={(value) => updateFilter('search', value || undefined)}
             placeholder={t('routes.list.search.placeholder')}
             label={t('routes.list.search.label')}
-            className="mb-4"
+            mb="md"
           />
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          <SimpleGrid cols={{ base: 1, sm: 2, lg: 3, xl: 4 }} spacing="md">
             {/* Distance Range */}
             <RangeInput
               label={t('routes.detail.stats.distance')}
@@ -99,7 +91,7 @@ export function RouteFilterPanel({
               maxPlaceholder={t('routes.list.filters.distance.max')}
               unit={t('routes.list.filters.distance.unit')}
               step={5}
-              displayMultiplier={0.001} // meters to km
+              displayMultiplier={0.001}
             />
 
             {/* Elevation Gain Range */}
@@ -116,124 +108,100 @@ export function RouteFilterPanel({
             />
 
             {/* Hilliness Preset */}
-            <div>
-              <Label className="text-sm font-medium text-gray-700 mb-2 block">
+            <Stack gap={4}>
+              <Text size="sm" fw={500}>
                 {t('routes.list.filters.hilliness.label')}
-              </Label>
+              </Text>
               <Select
                 value={filters.hilliness ?? NONE_VALUE}
-                onValueChange={(value) =>
+                onChange={(value) =>
                   updateFilter('hilliness', value === NONE_VALUE ? undefined : (value as Hilliness))
                 }
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder={t('routes.list.filters.hilliness.placeholder')} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={NONE_VALUE}>
-                    {t('routes.list.filters.hilliness.placeholder')}
-                  </SelectItem>
-                  {Object.values(Hilliness).map((type) => (
-                    <SelectItem key={type} value={type}>
-                      {t(
-                        `routes.list.filters.hilliness.${type satisfies 'FLAT' | 'HILLY' | 'MOUNTAINOUS'}`
-                      )}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+                placeholder={t('routes.list.filters.hilliness.placeholder')}
+                data={[
+                  { value: NONE_VALUE, label: t('routes.list.filters.hilliness.placeholder') },
+                  ...Object.values(Hilliness).map((type) => ({
+                    value: type,
+                    label: t(
+                      `routes.list.filters.hilliness.${type satisfies 'FLAT' | 'HILLY' | 'MOUNTAINOUS'}`
+                    ),
+                  })),
+                ]}
+              />
+            </Stack>
 
             {/* Surface Type */}
-            <div>
-              <Label className="text-sm font-medium text-gray-700 mb-2 block">
+            <Stack gap={4}>
+              <Text size="sm" fw={500}>
                 {t('routes.list.filters.surfaceType.label')}
-              </Label>
+              </Text>
               <Select
                 value={filters.surfaceType ?? NONE_VALUE}
-                onValueChange={(value) =>
+                onChange={(value) =>
                   updateFilter(
                     'surfaceType',
                     value === NONE_VALUE ? undefined : (value as SurfaceType)
                   )
                 }
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder={t('routes.list.filters.surfaceType.placeholder')} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={NONE_VALUE}>
-                    {t('routes.list.filters.surfaceType.placeholder')}
-                  </SelectItem>
-                  {Object.values(SurfaceType).map((type) => (
-                    <SelectItem key={type} value={type}>
-                      {t(
-                        `routes.surfaceType.${type satisfies 'ROAD' | 'GRAVEL' | 'MTB' | 'MIXED'}`
-                      )}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+                placeholder={t('routes.list.filters.surfaceType.placeholder')}
+                data={[
+                  { value: NONE_VALUE, label: t('routes.list.filters.surfaceType.placeholder') },
+                  ...Object.values(SurfaceType).map((type) => ({
+                    value: type,
+                    label: t(
+                      `routes.surfaceType.${type satisfies 'ROAD' | 'GRAVEL' | 'MTB' | 'MIXED'}`
+                    ),
+                  })),
+                ]}
+              />
+            </Stack>
 
             {/* Wind Direction */}
-            <div>
-              <Label className="text-sm font-medium text-gray-700 mb-2 block">
+            <Stack gap={4}>
+              <Text size="sm" fw={500}>
                 {t('routes.list.filters.windDirection.label')}
-              </Label>
+              </Text>
               <Select
                 value={filters.windDirection ?? NONE_VALUE}
-                onValueChange={(value) =>
+                onChange={(value) =>
                   updateFilter(
                     'windDirection',
                     value === NONE_VALUE ? undefined : (value as WindDirection)
                   )
                 }
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder={t('routes.list.filters.windDirection.placeholder')} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={NONE_VALUE}>
-                    {t('routes.list.filters.windDirection.placeholder')}
-                  </SelectItem>
-                  {Object.values(WindDirection).map((dir) => (
-                    <SelectItem key={dir} value={dir}>
-                      {t(
-                        `routes.list.filters.windDirection.${dir satisfies 'NORTH' | 'NORTH_EAST' | 'EAST' | 'SOUTH_EAST' | 'SOUTH' | 'SOUTH_WEST' | 'WEST' | 'NORTH_WEST'}`
-                      )}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+                placeholder={t('routes.list.filters.windDirection.placeholder')}
+                data={[
+                  { value: NONE_VALUE, label: t('routes.list.filters.windDirection.placeholder') },
+                  ...Object.values(WindDirection).map((dir) => ({
+                    value: dir,
+                    label: t(
+                      `routes.list.filters.windDirection.${dir satisfies 'NORTH' | 'NORTH_EAST' | 'EAST' | 'SOUTH_EAST' | 'SOUTH' | 'SOUTH_WEST' | 'WEST' | 'NORTH_WEST'}`
+                    ),
+                  })),
+                ]}
+              />
+            </Stack>
 
             {/* Sort Options */}
-            <div>
-              <Label className="text-sm font-medium text-gray-700 mb-2 block">
+            <Stack gap={4}>
+              <Text size="sm" fw={500}>
                 {t('routes.list.filters.sort.label')}
-              </Label>
-              <div className="flex gap-2">
+              </Text>
+              <Group gap="xs">
                 <Select
                   value={filters.sortBy ?? RouteSortBy.DATE_TIME}
-                  onValueChange={(value) => updateFilter('sortBy', value as RouteSortBy)}
-                >
-                  <SelectTrigger className="flex-1">
-                    <SelectValue placeholder={t('routes.list.filters.sort.DATE_TIME')} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.values(RouteSortBy).map((sort) => (
-                      <SelectItem key={sort} value={sort}>
-                        {t(
-                          `routes.list.filters.sort.${sort satisfies 'DISTANCE' | 'ELEVATION_GAIN' | 'HILLINESS' | 'DATE_TIME'}`
-                        )}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  onChange={(value) => updateFilter('sortBy', value as RouteSortBy)}
+                  style={{ flex: 1 }}
+                  data={Object.values(RouteSortBy).map((sort) => ({
+                    value: sort,
+                    label: t(
+                      `routes.list.filters.sort.${sort satisfies 'DISTANCE' | 'ELEVATION_GAIN' | 'HILLINESS' | 'DATE_TIME'}`
+                    ),
+                  }))}
+                />
                 <Button
-                  variant="outline"
-                  size="icon"
+                  variant="default"
+                  size="sm"
                   onClick={() =>
                     updateFilter(
                       'sortDir',
@@ -245,16 +213,16 @@ export function RouteFilterPanel({
                   )}
                 >
                   {filters.sortDir === SortDirection.ASC ? (
-                    <ChevronUpIcon className="w-4 h-4" />
+                    <IconChevronUp size={16} />
                   ) : (
-                    <ChevronDownIcon className="w-4 h-4" />
+                    <IconChevronDown size={16} />
                   )}
                 </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </CollapsibleContent>
-    </Collapsible>
+              </Group>
+            </Stack>
+          </SimpleGrid>
+        </Paper>
+      </Collapse>
+    </Stack>
   )
 }

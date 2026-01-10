@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next'
-import { CalendarIcon, MapPinIcon } from '@heroicons/react/24/outline'
+import { IconCalendar, IconMapPin } from '@tabler/icons-react'
+import { Paper, Group, Text, Anchor, Badge, Box } from '@mantine/core'
 import type { TripStageDto } from '@/api/dto'
 import { useFormattedDate } from '../../utils/dateFormat'
 import { MediaDisplay } from '../common/MediaDisplay'
@@ -24,66 +25,72 @@ export function TripStageCard({
   const { formatDateTime } = useFormattedDate()
 
   return (
-    <div
-      className={`border rounded-lg p-4 transition-all ${
-        isHighlighted
-          ? 'border-indigo-500 bg-indigo-50 shadow-md'
-          : 'border-gray-200 bg-white hover:border-gray-300'
-      }`}
+    <Paper
+      withBorder
+      p="md"
+      radius="md"
+      style={{
+        borderColor: isHighlighted ? 'var(--mantine-color-indigo-5)' : undefined,
+        backgroundColor: isHighlighted ? 'var(--mantine-color-indigo-0)' : undefined,
+        boxShadow: isHighlighted ? 'var(--mantine-shadow-md)' : undefined,
+        transition: 'all 0.2s',
+      }}
       onMouseEnter={() => onHover?.(stage.id)}
       onMouseLeave={() => onHover?.(null)}
     >
-      <div className="flex items-center justify-between gap-4 mb-2">
-        <div className="flex items-center gap-2 min-w-0">
-          <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 text-xs font-semibold shrink-0">
+      <Group justify="space-between" gap="md" mb="sm" wrap="nowrap">
+        <Group gap="sm" wrap="nowrap" style={{ minWidth: 0 }}>
+          <Badge size="lg" variant="light" color="indigo" circle style={{ flexShrink: 0 }}>
             {index + 1}
-          </span>
-          <h3 className="font-semibold text-gray-900 truncate">{stage.name}</h3>
-        </div>
-        <div className="flex items-center text-sm text-gray-500 shrink-0">
-          <CalendarIcon className="w-4 h-4 mr-1" />
-          {formatDateTime(stage.dateTime)}
-        </div>
-      </div>
+          </Badge>
+          <Text fw={600} truncate>
+            {stage.name}
+          </Text>
+        </Group>
+        <Group gap={4} wrap="nowrap" style={{ flexShrink: 0 }}>
+          <IconCalendar size={16} color="var(--mantine-color-gray-6)" />
+          <Text size="sm" c="dimmed">
+            {formatDateTime(stage.dateTime)}
+          </Text>
+        </Group>
+      </Group>
 
-      {/* Stage description */}
       {stage.media.markdown && (
-        <div className="mb-3 line-clamp-2">
-          <MediaDisplay media={stage.media} className="text-sm text-gray-600" />
-        </div>
+        <Box mb="sm">
+          <MediaDisplay media={stage.media} />
+        </Box>
       )}
 
-      {/* Start and End Places */}
       {(stage.startPlace || stage.endPlace) && (
-        <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
+        <Group gap="md" wrap="wrap">
           {stage.startPlace && (
-            <span className="flex items-center">
-              <MapPinIcon className="w-4 h-4 mr-1 text-green-600" />
-              <span className="font-medium text-green-700">{t('startPlace')}:</span>
-              <span className="ml-1">{stage.startPlace.name}</span>
-            </span>
+            <Group gap={4} wrap="nowrap">
+              <IconMapPin size={16} color="var(--mantine-color-green-6)" />
+              <Text size="sm" c="green.7" fw={500}>
+                {t('startPlace')}:
+              </Text>
+              <Text size="sm">{stage.startPlace.name}</Text>
+            </Group>
           )}
           {stage.endPlace && (
-            <span className="flex items-center">
-              <MapPinIcon className="w-4 h-4 mr-1 text-red-600" />
-              <span className="font-medium text-red-700">{t('endPlace')}:</span>
-              <span className="ml-1">{stage.endPlace.name}</span>
-            </span>
+            <Group gap={4} wrap="nowrap">
+              <IconMapPin size={16} color="var(--mantine-color-red-6)" />
+              <Text size="sm" c="red.7" fw={500}>
+                {t('endPlace')}:
+              </Text>
+              <Text size="sm">{stage.endPlace.name}</Text>
+            </Group>
           )}
-        </div>
+        </Group>
       )}
 
-      {/* Route link */}
       {stage.routeSlug && (
-        <div className="mt-2 text-sm">
-          <a
-            href={paths.route(teamSlug, stage.routeSlug)}
-            className="text-indigo-600 hover:text-indigo-700 font-medium"
-          >
+        <Box mt="sm">
+          <Anchor href={paths.route(teamSlug, stage.routeSlug)} size="sm" fw={500}>
             {t('trips.stage.viewRoute')}
-          </a>
-        </div>
+          </Anchor>
+        </Box>
       )}
-    </div>
+    </Paper>
   )
 }

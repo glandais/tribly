@@ -1,11 +1,24 @@
 import { useState } from 'react'
-import { useParams, Link, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
-import { toast } from 'sonner'
+import { notifications } from '@mantine/notifications'
 import i18next from 'i18next'
 import { paths } from '../../config/paths'
-import { MapIcon, ArrowUpIcon, ArrowDownIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline'
+import { IconMap, IconArrowUp, IconArrowDown, IconDownload } from '@tabler/icons-react'
+import {
+  Box,
+  Button,
+  Group,
+  Paper,
+  SimpleGrid,
+  Skeleton,
+  Stack,
+  Text,
+  Title,
+  Badge,
+  Center,
+} from '@mantine/core'
 import { useGetRoute, useDeleteRoute, getListRoutesQueryKey } from '@/api/endpoints/routes/routes'
 import { useGetTeam } from '@/api/endpoints/teams/teams'
 import { RouteMapView } from '../../components/route/RouteMapView'
@@ -43,7 +56,10 @@ export function RouteDetailPage() {
         {
           onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: getListRoutesQueryKey(teamSlug) })
-            toast.success(i18next.t('routes.notifications.deleted'))
+            notifications.show({
+              message: i18next.t('routes.notifications.deleted'),
+              color: 'green',
+            })
             navigate(paths.routes(teamSlug))
           },
         }
@@ -51,79 +67,73 @@ export function RouteDetailPage() {
     }
   }
 
-  const getClimbCategoryColor = (category: string) => {
+  const getClimbCategoryColor = (category: string): string => {
     switch (category) {
       case 'HC':
-        return 'bg-purple-100 text-purple-800 border-purple-300'
+        return 'grape'
       case 'CAT1':
-        return 'bg-red-100 text-red-800 border-red-300'
+        return 'red'
       case 'CAT2':
-        return 'bg-orange-100 text-orange-800 border-orange-300'
+        return 'orange'
       case 'CAT3':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-300'
+        return 'yellow'
       case 'CAT4':
-        return 'bg-green-100 text-green-800 border-green-300'
+        return 'green'
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-300'
+        return 'gray'
     }
   }
 
   if (routeLoading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded-sm w-1/4 mb-4" />
-          <div className="h-96 bg-gray-200 rounded-sm mb-8" />
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+      <Box maw={1280} mx="auto" px="md" py="xl">
+        <Stack gap="md">
+          <Skeleton height={32} width="25%" />
+          <Skeleton height={384} />
+          <SimpleGrid cols={{ base: 1, md: 3 }} spacing="lg">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="h-24 bg-gray-200 rounded-sm" />
+              <Skeleton key={i} height={96} />
             ))}
-          </div>
-        </div>
-      </div>
+          </SimpleGrid>
+        </Stack>
+      </Box>
     )
   }
 
   if (!route || !team) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="text-center">
-          <p className="text-gray-500">{t('errors.api.notFound')}</p>
-        </div>
-      </div>
+      <Box maw={1280} mx="auto" px="md" py="xl">
+        <Center>
+          <Text c="dimmed">{t('errors.api.notFound')}</Text>
+        </Center>
+      </Box>
     )
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <Box maw={1280} mx="auto" px="md" py="xl">
       {/* Header */}
-      <div className="mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <div className="flex items-center gap-3">
+      <Stack gap="lg" mb="lg">
+        <Group justify="space-between" align="flex-start" wrap="wrap">
+          <Stack gap="xs">
+            <Group gap="md">
               <EntityLogo logo={route.media.assets.logo} alt={route.name} size="lg" />
-              <h1 className="text-3xl font-bold text-gray-900">{route.name}</h1>
-            </div>
-            <MediaDisplay media={route.media} className="mt-2 text-gray-600" />
-          </div>
+              <Title order={1}>{route.name}</Title>
+            </Group>
+            <MediaDisplay media={route.media} />
+          </Stack>
           {canEdit && (
-            <div className="mt-4 sm:mt-0 flex gap-3">
-              <Link
-                to={paths.routeEdit(teamSlug!, routeSlug!)}
-                className="px-4 py-2 border border-gray-300 rounded-md shadow-xs text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-              >
+            <Group gap="md" mt={{ base: 'md', sm: 0 }}>
+              <Button variant="default" component="a" href={paths.routeEdit(teamSlug!, routeSlug!)}>
                 {t('actions.edit')}
-              </Link>
-              <button
-                onClick={() => setShowDeleteConfirm(true)}
-                className="px-4 py-2 border border-red-300 rounded-md shadow-xs text-sm font-medium text-red-700 bg-white hover:bg-red-50"
-              >
+              </Button>
+              <Button variant="outline" color="red" onClick={() => setShowDeleteConfirm(true)}>
                 {t('actions.delete')}
-              </button>
-            </div>
+              </Button>
+            </Group>
           )}
-        </div>
-      </div>
+        </Group>
+      </Stack>
 
       <ConfirmDialog
         isOpen={showDeleteConfirm}
@@ -137,165 +147,174 @@ export function RouteDetailPage() {
       />
 
       {/* Download Section */}
-      <div className="bg-white rounded-lg shadow-sm p-6  mb-8">
-        <div className="flex flex-wrap gap-3">
-          <a
+      <Paper shadow="xs" p="lg" mb="xl">
+        <Group gap="md" wrap="wrap">
+          <Button
+            variant="default"
+            component="a"
             href={route.media.assets.gpx?.url}
-            className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-xs text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+            leftSection={<IconDownload size={20} />}
           >
-            <ArrowDownTrayIcon className="w-5 h-5 mr-2 -ml-1" />
             {t('routes.detail.download.gpx')}
-          </a>
-          <a
+          </Button>
+          <Button
+            variant="default"
+            component="a"
             href={route.media.assets.fit?.url}
-            className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-xs text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+            leftSection={<IconDownload size={20} />}
           >
-            <ArrowDownTrayIcon className="w-5 h-5 mr-2 -ml-1" />
             {t('routes.detail.download.fit')}
-          </a>
-        </div>
-      </div>
+          </Button>
+        </Group>
+      </Paper>
 
       {/* Interactive Map with Elevation Chart */}
-      <div className="mb-8">
+      <Box mb="xl">
         <RouteMapView route={route} />
-      </div>
+      </Box>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <div className="flex items-center">
-            <MapIcon className="h-8 w-8 text-indigo-600 mr-3" />
-            <div>
-              <p className="text-sm text-gray-500">{t('routes.detail.stats.distance')}</p>
-              <p className="text-2xl font-bold text-gray-900">
+      <SimpleGrid cols={{ base: 1, md: 3 }} spacing="lg" mb="xl">
+        <Paper shadow="xs" p="lg">
+          <Group>
+            <IconMap size={32} color="var(--mantine-color-indigo-6)" />
+            <Stack gap={0}>
+              <Text size="sm" c="dimmed">
+                {t('routes.detail.stats.distance')}
+              </Text>
+              <Text size="xl" fw={700}>
                 {t('distance', { distance: (route.distance / 1000).toFixed(1) })}
-              </p>
-            </div>
-          </div>
-        </div>
+              </Text>
+            </Stack>
+          </Group>
+        </Paper>
 
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <div className="flex items-center">
-            <ArrowUpIcon className="h-8 w-8 text-green-600 mr-3" />
-            <div>
-              <p className="text-sm text-gray-500">{t('routes.detail.stats.elevationGain')}</p>
-              <p className="text-2xl font-bold text-gray-900">
+        <Paper shadow="xs" p="lg">
+          <Group>
+            <IconArrowUp size={32} color="var(--mantine-color-green-6)" />
+            <Stack gap={0}>
+              <Text size="sm" c="dimmed">
+                {t('routes.detail.stats.elevationGain')}
+              </Text>
+              <Text size="xl" fw={700}>
                 {t('elevation', { elevation: route.elevationGain })}
-              </p>
-            </div>
-          </div>
-        </div>
+              </Text>
+            </Stack>
+          </Group>
+        </Paper>
 
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <div className="flex items-center">
-            <ArrowDownIcon className="h-8 w-8 text-red-600 mr-3" />
-            <div>
-              <p className="text-sm text-gray-500">{t('routes.detail.stats.elevationLoss')}</p>
-              <p className="text-2xl font-bold text-gray-900">
+        <Paper shadow="xs" p="lg">
+          <Group>
+            <IconArrowDown size={32} color="var(--mantine-color-red-6)" />
+            <Stack gap={0}>
+              <Text size="sm" c="dimmed">
+                {t('routes.detail.stats.elevationLoss')}
+              </Text>
+              <Text size="xl" fw={700}>
                 {t('elevation', { elevation: route.elevationLoss })}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
+              </Text>
+            </Stack>
+          </Group>
+        </Paper>
+      </SimpleGrid>
 
       {/* Route Info */}
-      <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
-        <h2 className="text-xl font-bold text-gray-900 mb-4">{t('routes.detail.info.title')}</h2>
-        <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <Paper shadow="xs" p="lg" mb="xl">
+        <Title order={2} mb="md">
+          {t('routes.detail.info.title')}
+        </Title>
+        <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
           {route.surfaceType && (
             <>
-              <dt className="text-sm font-medium text-gray-500">
+              <Text size="sm" fw={500} c="dimmed">
                 {t('routes.detail.info.surfaceType')}
-              </dt>
-              <dd>
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+              </Text>
+              <Box>
+                <Badge color="green" variant="light">
                   {t(
                     `routes.surfaceType.${route.surfaceType satisfies 'ROAD' | 'GRAVEL' | 'MTB' | 'MIXED'}`
                   )}
-                </span>
-              </dd>
+                </Badge>
+              </Box>
             </>
           )}
-          <dt className="text-sm font-medium text-gray-500">{t('visibility.label')}</dt>
-          <dd>
-            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+          <Text size="sm" fw={500} c="dimmed">
+            {t('visibility.label')}
+          </Text>
+          <Box>
+            <Badge color="gray" variant="light">
               {t(`visibility.${route.visibility.toLowerCase() as 'public' | 'team'}`)}
-            </span>
-          </dd>
-          <dt className="text-sm font-medium text-gray-500">{t('routes.detail.info.createdAt')}</dt>
-          <dd className="text-sm text-gray-900">
-            {new Date(route.createdAt).toLocaleDateString()}
-          </dd>
-        </dl>
-      </div>
+            </Badge>
+          </Box>
+          <Text size="sm" fw={500} c="dimmed">
+            {t('routes.detail.info.createdAt')}
+          </Text>
+          <Text size="sm">{new Date(route.createdAt).toLocaleDateString()}</Text>
+        </SimpleGrid>
+      </Paper>
 
       {/* Climbs Section */}
       {(() => {
         const allClimbs = route.tracks?.flatMap((track) => track.climbs) || []
         return (
           allClimbs.length > 0 && (
-            <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">
+            <Paper shadow="xs" p="lg" mb="xl">
+              <Title order={2} mb="md">
                 {t('routes.detail.climbs.title')} ({allClimbs.length})
-              </h2>
-              <div className="space-y-4">
+              </Title>
+              <Stack gap="md">
                 {allClimbs.map((climb, index) => (
-                  <div
-                    key={index}
-                    className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
-                  >
-                    <div className="flex items-start justify-between mb-2">
-                      <div>
-                        <h3 className="font-semibold text-gray-900">
+                  <Paper key={index} withBorder p="md">
+                    <Group justify="space-between" mb="xs" align="flex-start">
+                      <Stack gap={2}>
+                        <Text fw={600}>
                           {t('routes.detail.climbs.unnamed', { number: index + 1 })}
-                        </h3>
-                        <p className="text-sm text-gray-600">
+                        </Text>
+                        <Text size="sm" c="dimmed">
                           {t('routes.detail.climbs.distance', {
                             start: (climb.startDistance / 1000).toFixed(1),
                             end: (climb.endDistance / 1000).toFixed(1),
                           })}
-                        </p>
-                      </div>
+                        </Text>
+                      </Stack>
                       {climb.category && (
-                        <span
-                          className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getClimbCategoryColor(climb.category)}`}
-                        >
+                        <Badge color={getClimbCategoryColor(climb.category)} variant="light">
                           {t(
                             `routes.climbCategory.${climb.category satisfies 'HC' | 'CAT1' | 'CAT2' | 'CAT3' | 'CAT4'}`
                           )}
-                        </span>
+                        </Badge>
                       )}
-                    </div>
-                    <div className="grid grid-cols-3 gap-4 text-sm">
-                      <div>
-                        <span className="text-gray-500">{t('routes.detail.climbs.gain')}: </span>
-                        <span className="font-medium text-gray-900">
+                    </Group>
+                    <SimpleGrid cols={3} spacing="md">
+                      <Box>
+                        <Text size="sm" c="dimmed" component="span">
+                          {t('routes.detail.climbs.gain')}:{' '}
+                        </Text>
+                        <Text size="sm" fw={500} component="span">
                           {t('elevation', { elevation: climb.elevationGain })}
-                        </span>
-                      </div>
-                      <div>
-                        <span className="text-gray-500">
+                        </Text>
+                      </Box>
+                      <Box>
+                        <Text size="sm" c="dimmed" component="span">
                           {t('routes.detail.climbs.avgGradient')}:{' '}
-                        </span>
-                        <span className="font-medium text-gray-900">
+                        </Text>
+                        <Text size="sm" fw={500} component="span">
                           {climb.averageGradient.toFixed(1)}%
-                        </span>
-                      </div>
-                      <div>
-                        <span className="text-gray-500">
+                        </Text>
+                      </Box>
+                      <Box>
+                        <Text size="sm" c="dimmed" component="span">
                           {t('routes.detail.climbs.maxGradient')}:{' '}
-                        </span>
-                        <span className="font-medium text-gray-900">
+                        </Text>
+                        <Text size="sm" fw={500} component="span">
                           {climb.maxGradient.toFixed(1)}%
-                        </span>
-                      </div>
-                    </div>
-                  </div>
+                        </Text>
+                      </Box>
+                    </SimpleGrid>
+                  </Paper>
                 ))}
-              </div>
-            </div>
+              </Stack>
+            </Paper>
           )
         )
       })()}
@@ -309,6 +328,6 @@ export function RouteDetailPage() {
           isOrganizer={!!canEdit}
         />
       )}
-    </div>
+    </Box>
   )
 }

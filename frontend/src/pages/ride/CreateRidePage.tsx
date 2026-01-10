@@ -3,9 +3,10 @@ import { useParams, Navigate, useNavigate } from 'react-router-dom'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
-import { toast } from 'sonner'
+import { notifications } from '@mantine/notifications'
 import i18next from 'i18next'
-import { DocumentDuplicateIcon } from '@heroicons/react/24/outline'
+import { IconCopy } from '@tabler/icons-react'
+import { Container, Stack, Group, Title, Text, Button } from '@mantine/core'
 import { useGetTeam } from '@/api/endpoints/teams/teams'
 import { useCreateRide } from '../../api/endpoints/rides/rides'
 import { getListPublicationsQueryKey } from '../../api/endpoints/publications/publications'
@@ -116,7 +117,7 @@ export function CreateRidePage() {
       {
         onSuccess: (ride) => {
           queryClient.invalidateQueries({ queryKey: getListPublicationsQueryKey(teamSlug!) })
-          toast.success(i18next.t('rides.notifications.created'))
+          notifications.show({ message: i18next.t('rides.notifications.created'), color: 'green' })
           navigate(paths.ride(teamSlug!, ride.slug))
         },
       }
@@ -124,21 +125,20 @@ export function CreateRidePage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="mb-8">
-        <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-gray-900">{t('rides.create.title')}</h1>
-          <button
-            type="button"
+    <Container size="sm" py="xl">
+      <Stack gap="lg" mb="xl">
+        <Group justify="space-between" align="center">
+          <Title order={1}>{t('rides.create.title')}</Title>
+          <Button
+            variant="light"
+            leftSection={<IconCopy size={16} />}
             onClick={() => setShowTemplateModal(true)}
-            className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-indigo-600 bg-indigo-50 rounded-lg hover:bg-indigo-100"
           >
-            <DocumentDuplicateIcon className="w-4 h-4 mr-1.5" />
             {t('rides.create.loadTemplate')}
-          </button>
-        </div>
-        <p className="mt-1 text-gray-600">{t('rides.create.subtitle', { teamName: team.name })}</p>
-      </div>
+          </Button>
+        </Group>
+        <Text c="dimmed">{t('rides.create.subtitle', { teamName: team.name })}</Text>
+      </Stack>
 
       <RideEditor
         key={editorKey}
@@ -157,6 +157,6 @@ export function CreateRidePage() {
         onSelect={handleTemplateSelect}
         teamSlug={teamSlug!}
       />
-    </div>
+    </Container>
   )
 }

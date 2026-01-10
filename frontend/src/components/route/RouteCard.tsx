@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { MapIcon, ArrowUpIcon, UsersIcon, ChevronRightIcon } from '@heroicons/react/24/outline'
+import { IconMap, IconArrowUp, IconUsers, IconChevronRight } from '@tabler/icons-react'
+import { Group, Text, Image, Box } from '@mantine/core'
 import type { RouteDto } from '@/api/dto'
 import { Card, CardContent, CardTitle, CardDescription } from '../common/card'
 import { Badge, VisibilityBadge, Stat, StatGroup, CardSkeleton } from '../common/card'
@@ -15,53 +16,50 @@ interface RouteCardProps {
 export function RouteCard({ route, showTeam }: RouteCardProps) {
   const { t } = useTranslation()
 
-  const distanceIcon = <MapIcon />
-  const elevationIcon = <ArrowUpIcon />
-
   return (
     <Card to={paths.route(route.team.slug, route.slug)}>
-      {/* Thumbnail */}
-      <img
-        src={route.media.assets.thumbnail?.url}
-        alt={route.name}
-        className="w-full aspect-square object-contain"
-      />
+      <Image src={route.media.assets.thumbnail?.url} alt={route.name} h={200} fit="contain" />
 
       <CardContent>
-        {/* Team header - clickable link to team page */}
         {showTeam && (
-          <Link
+          <Box
+            component={Link}
             to={paths.team(route.team.slug)}
-            onClick={(e) => e.stopPropagation()}
-            className="flex items-center gap-2 mb-3 text-sm text-gray-600 hover:text-indigo-600 transition-colors group"
+            onClick={(e: React.MouseEvent) => e.stopPropagation()}
+            mb="sm"
+            style={{
+              textDecoration: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 'var(--mantine-spacing-xs)',
+            }}
           >
-            <UsersIcon className="h-4 w-4" />
-            <span className="font-medium">{route.team.name}</span>
-            <ChevronRightIcon className="h-3 w-3 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
-          </Link>
+            <IconUsers size={16} color="var(--mantine-color-gray-6)" />
+            <Text size="sm" c="dimmed" fw={500}>
+              {route.team.name}
+            </Text>
+            <IconChevronRight size={12} color="var(--mantine-color-gray-5)" />
+          </Box>
         )}
 
-        <div className="flex items-start gap-3">
-          <EntityLogo
-            logo={route.media.assets.logo}
-            alt={route.name}
-            size="md"
-            className="shrink-0"
-          />
-          <div className="flex-1 min-w-0">
+        <Group gap="sm" wrap="nowrap" align="flex-start">
+          <EntityLogo logo={route.media.assets.logo} alt={route.name} size="md" />
+          <Box style={{ flex: 1, minWidth: 0 }}>
             <CardTitle>{route.name}</CardTitle>
             <CardDescription markdown={true} media={route.media} />
-          </div>
-        </div>
+          </Box>
+        </Group>
 
-        <StatGroup className="mb-3">
-          <Stat icon={distanceIcon}>
+        <StatGroup>
+          <Stat icon={<IconMap size={16} />}>
             {t('distance', { distance: (route.distance / 1000).toFixed(1) })}
           </Stat>
-          <Stat icon={elevationIcon}>{t('elevation', { elevation: route.elevationGain })}</Stat>
+          <Stat icon={<IconArrowUp size={16} />}>
+            {t('elevation', { elevation: route.elevationGain })}
+          </Stat>
         </StatGroup>
 
-        <div className="flex flex-wrap gap-2">
+        <Group gap="xs">
           {route.surfaceType && (
             <Badge variant="green">
               {t(
@@ -70,7 +68,7 @@ export function RouteCard({ route, showTeam }: RouteCardProps) {
             </Badge>
           )}
           <VisibilityBadge visibility={route.visibility} />
-        </div>
+        </Group>
       </CardContent>
     </Card>
   )
@@ -81,7 +79,5 @@ interface RouteCardSkeletonProps {
 }
 
 export function RouteCardSkeleton({ count = 1 }: RouteCardSkeletonProps) {
-  return (
-    <CardSkeleton count={count} hasImage imageHeight="aspect-square" statCount={2} badgeCount={3} />
-  )
+  return <CardSkeleton count={count} hasImage imageHeight="200px" statCount={2} badgeCount={3} />
 }

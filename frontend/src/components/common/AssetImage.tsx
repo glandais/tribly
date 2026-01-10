@@ -1,11 +1,12 @@
 import { useState, useMemo } from 'react'
-import { PhotoIcon } from '@heroicons/react/24/outline'
 import { useTranslation } from 'react-i18next'
+import { Group, Text, Box, Center, Image } from '@mantine/core'
+import { IconPhoto } from '@tabler/icons-react'
 import type { AssetDto } from '@/api/dto'
 import {
   createImageMap,
   resolveAssetUrl,
-  getImageSizeClass,
+  getImageSizeStyle,
   type ImageSize,
   DEFAULT_IMAGE_SIZE,
 } from '../../lib/assetMarkdown'
@@ -16,20 +17,13 @@ export interface AssetImageProps {
   images: AssetDto[]
   size?: ImageSize
   altText?: string
-  className?: string
 }
 
-/**
- * Shared component for rendering asset images with size support.
- * Handles loading, error, and missing image states.
- * Used by both MarkdownEditor (ImageComponent) and MarkdownDisplay.
- */
 export function AssetImage({
   assetId,
   images,
   size = DEFAULT_IMAGE_SIZE,
   altText = '',
-  className = '',
 }: AssetImageProps) {
   const { t } = useTranslation()
   const [isLoading, setIsLoading] = useState(true)
@@ -40,50 +34,64 @@ export function AssetImage({
     return resolveAssetUrl(assetId, imageMap)
   }, [assetId, images])
 
-  const sizeClass = getImageSizeClass(size)
+  const sizeStyle = getImageSizeStyle(size)
 
   // Missing image (asset not found in images array)
   if (!url) {
     return (
-      <span
-        className={`inline-flex items-center gap-1 px-2 py-1 bg-gray-100 text-gray-500 text-sm rounded ${className}`}
+      <Group
+        gap="xs"
+        p="xs"
+        bg="gray.1"
+        style={{ borderRadius: 'var(--mantine-radius-sm)', display: 'inline-flex' }}
       >
-        <PhotoIcon className="w-4 h-4 shrink-0" />
-        <span>{altText || t('images.notFound')}</span>
-      </span>
+        <IconPhoto size={16} color="var(--mantine-color-gray-5)" />
+        <Text size="sm" c="dimmed">
+          {altText || t('images.notFound')}
+        </Text>
+      </Group>
     )
   }
 
   // Error loading image
   if (hasError) {
     return (
-      <span
-        className={`inline-flex items-center gap-1 px-2 py-1 bg-red-50 text-red-500 text-sm rounded ${className}`}
+      <Group
+        gap="xs"
+        p="xs"
+        bg="red.0"
+        style={{ borderRadius: 'var(--mantine-radius-sm)', display: 'inline-flex' }}
       >
-        <PhotoIcon className="w-4 h-4 shrink-0" />
-        <span>{t('error.loading')}</span>
-      </span>
+        <IconPhoto size={16} color="var(--mantine-color-red-5)" />
+        <Text size="sm" c="red">
+          {t('error.loading')}
+        </Text>
+      </Group>
     )
   }
 
   return (
-    <span className={`inline-block ${className}`}>
+    <Box display="inline-block">
       {isLoading && (
-        <span className="flex items-center justify-center p-4 bg-gray-100 rounded-lg">
+        <Center p="md" bg="gray.1" style={{ borderRadius: 'var(--mantine-radius-md)' }}>
           <LoadingSpinner size="sm" />
-        </span>
+        </Center>
       )}
-      <img
+      <Image
         src={url}
         alt={altText}
-        className={`${sizeClass} rounded-lg ${isLoading ? 'hidden' : 'block'}`}
+        w={sizeStyle.w}
+        h={sizeStyle.h}
+        maw={sizeStyle.maw}
+        fit={sizeStyle.fit}
+        radius="md"
+        style={{ display: isLoading ? 'none' : 'block' }}
         onLoad={() => setIsLoading(false)}
         onError={() => {
           setIsLoading(false)
           setHasError(true)
         }}
-        draggable={false}
       />
-    </span>
+    </Box>
   )
 }

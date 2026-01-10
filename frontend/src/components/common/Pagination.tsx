@@ -1,12 +1,12 @@
 import { useTranslation } from 'react-i18next'
-import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline'
+import { Group, Button, Text } from '@mantine/core'
+import { IconChevronLeft, IconChevronRight } from '@tabler/icons-react'
 
 export interface PaginationProps {
   currentPage: number
   totalPages: number
   onPageChange: (page: number) => void
   variant?: 'default' | 'compact'
-  className?: string
 }
 
 export function Pagination({
@@ -14,7 +14,6 @@ export function Pagination({
   totalPages,
   onPageChange,
   variant = 'default',
-  className = '',
 }: PaginationProps) {
   const { t } = useTranslation()
 
@@ -36,51 +35,37 @@ export function Pagination({
     }
   }
 
-  const buttonBaseClasses =
-    'inline-flex items-center gap-1 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white transition-colors'
-
-  const compactButtonClasses =
-    'inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white transition-colors'
-
-  const buttonClasses = variant === 'compact' ? compactButtonClasses : buttonBaseClasses
-  const iconSize = variant === 'compact' ? 'h-3 w-3' : 'h-4 w-4'
-  const textSize = variant === 'compact' ? 'text-xs' : 'text-sm'
+  const isCompact = variant === 'compact'
+  const buttonSize = isCompact ? 'xs' : 'sm'
+  const iconSize = isCompact ? 12 : 16
 
   return (
-    <nav
-      role="navigation"
-      aria-label={t('pagination.label')}
-      className={`flex items-center justify-center gap-2 ${className}`}
-    >
-      <button
+    <Group justify="center" gap="sm" component="nav" aria-label={t('pagination.label')}>
+      <Button
+        variant="default"
+        size={buttonSize}
         onClick={handlePrevious}
         disabled={isFirstPage}
         aria-label={t('pagination.previousPage')}
-        className={buttonClasses}
-        type="button"
+        leftSection={<IconChevronLeft size={iconSize} />}
       >
-        <ChevronLeftIcon className={iconSize} />
-        <span className={variant === 'compact' ? 'sr-only' : ''}>{t('buttons.previous')}</span>
-      </button>
+        {!isCompact && t('buttons.previous')}
+      </Button>
 
-      <span
-        className={`text-gray-700 font-medium ${textSize}`}
-        aria-live="polite"
-        aria-atomic="true"
-      >
+      <Text size={isCompact ? 'xs' : 'sm'} fw={500} aria-live="polite" aria-atomic="true">
         {t('pagination.page', { current: currentPage + 1, total: totalPages })}
-      </span>
+      </Text>
 
-      <button
+      <Button
+        variant="default"
+        size={buttonSize}
         onClick={handleNext}
         disabled={isLastPage}
         aria-label={t('pagination.nextPage')}
-        className={buttonClasses}
-        type="button"
+        rightSection={<IconChevronRight size={iconSize} />}
       >
-        <span className={variant === 'compact' ? 'sr-only' : ''}>{t('buttons.next')}</span>
-        <ChevronRightIcon className={iconSize} />
-      </button>
-    </nav>
+        {!isCompact && t('buttons.next')}
+      </Button>
+    </Group>
   )
 }

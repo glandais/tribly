@@ -10,7 +10,8 @@ import Map, {
   MarkerDragEvent,
 } from 'react-map-gl/maplibre'
 import maplibregl from 'maplibre-gl'
-import { ArrowPathIcon, TrashIcon } from '@heroicons/react/24/outline'
+import { IconTrash } from '@tabler/icons-react'
+import { ActionIcon, Box, Group, Loader, Stack, Text } from '@mantine/core'
 import { MapStyleSwitcher } from '../map/MapStyleSwitcher'
 import { useMapStyle } from '../../hooks/useMapStyle'
 import { useRoutePlanner } from '../../hooks/useRoutePlanner'
@@ -376,47 +377,52 @@ export function EmbeddedRoutePlanner({ onPointsChange, initialTrack }: EmbeddedR
   }, [draggingMarker, draggingGhost, controlPoints])
 
   return (
-    <div className="flex flex-col h-full">
+    <Stack gap={0} h="100%">
       {/* Compact toolbar */}
-      <div className="flex items-center justify-between px-3 py-2 bg-gray-50 border-b text-sm">
-        <div className="flex items-center gap-3">
+      <Group
+        justify="space-between"
+        px="sm"
+        py="xs"
+        bg="gray.0"
+        style={{ borderBottom: '1px solid var(--mantine-color-gray-3)' }}
+      >
+        <Group gap="md">
           {controlPoints.length > 0 && (
-            <span className="text-gray-500">
+            <Text size="sm" c="dimmed">
               {t('planner.pointCount', { count: controlPoints.length })}
-            </span>
+            </Text>
           )}
           {isLoading && (
-            <span className="flex items-center text-indigo-600">
-              <ArrowPathIcon className="w-4 h-4 mr-1 animate-spin" />
-              {t('planner.calculating')}
-            </span>
+            <Group gap="xs" c="indigo">
+              <Loader size="xs" />
+              <Text size="sm">{t('planner.calculating')}</Text>
+            </Group>
           )}
-          {error && <span className="text-red-600">{error}</span>}
+          {error && (
+            <Text size="sm" c="red">
+              {error}
+            </Text>
+          )}
           {routeStats && (
-            <div className="flex items-center gap-2">
-              <span className="font-medium text-gray-900">
+            <Group gap="xs">
+              <Text size="sm" fw={500}>
                 {t('distance', { distance: routeStats.distance.toFixed(1) })}
-              </span>
-              <span className="text-green-600">
+              </Text>
+              <Text size="sm" c="green">
                 +{t('elevation', { elevation: Math.round(routeStats.ascend) })}
-              </span>
-            </div>
+              </Text>
+            </Group>
           )}
-        </div>
+        </Group>
         {controlPoints.length > 0 && (
-          <button
-            type="button"
-            onClick={clearRoute}
-            className="inline-flex items-center px-2 py-1 text-xs font-medium text-gray-600 hover:text-gray-900"
-          >
-            <TrashIcon className="w-3.5 h-3.5 mr-1" />
-            {t('planner.clear')}
-          </button>
+          <ActionIcon variant="subtle" color="gray" onClick={clearRoute} title={t('planner.clear')}>
+            <IconTrash size={14} />
+          </ActionIcon>
         )}
-      </div>
+      </Group>
 
       {/* Map */}
-      <div className="relative flex-1">
+      <Box pos="relative" style={{ flex: 1 }}>
         <Map
           ref={mapRef}
           mapLib={maplibregl}
@@ -476,10 +482,10 @@ export function EmbeddedRoutePlanner({ onPointsChange, initialTrack }: EmbeddedR
             const isLast = index === controlPoints.length - 1 && controlPoints.length > 1
             const isManual = point.manual
 
-            let markerColor = 'bg-amber-500'
-            if (isFirst) markerColor = 'bg-green-500'
-            else if (isLast) markerColor = 'bg-red-500'
-            else if (isManual) markerColor = 'bg-blue-500'
+            let markerColor = 'var(--mantine-color-yellow-5)'
+            if (isFirst) markerColor = 'var(--mantine-color-green-5)'
+            else if (isLast) markerColor = 'var(--mantine-color-red-5)'
+            else if (isManual) markerColor = 'var(--mantine-color-blue-5)'
 
             // Use dragging position if this marker is being dragged
             const isDragging = draggingMarker?.index === index
@@ -497,14 +503,21 @@ export function EmbeddedRoutePlanner({ onPointsChange, initialTrack }: EmbeddedR
                 onDrag={handleMarkerDrag(index)}
                 onDragEnd={handleMarkerDragEnd(index)}
               >
-                <div
-                  className="flex items-center cursor-grab active:cursor-grabbing"
+                <Box
+                  style={{ display: 'flex', alignItems: 'center', cursor: 'grab' }}
                   onContextMenu={handleMarkerRightClick(index)}
                 >
-                  <div
-                    className={`w-6 h-6 ${markerColor} border-2 border-white rounded-full shadow-lg`}
+                  <Box
+                    w={24}
+                    h={24}
+                    style={{
+                      backgroundColor: markerColor,
+                      border: '2px solid white',
+                      borderRadius: '50%',
+                      boxShadow: 'var(--mantine-shadow-lg)',
+                    }}
                   />
-                </div>
+                </Box>
               </Marker>
             )
           })}
@@ -516,10 +529,20 @@ export function EmbeddedRoutePlanner({ onPointsChange, initialTrack }: EmbeddedR
               latitude={(draggingGhost || hoverPoint)!.lat}
               anchor="center"
             >
-              <div
-                className={`w-5 h-5 border-2 border-white rounded-full shadow-lg transition-opacity pointer-events-none ${
-                  draggingGhost ? 'bg-indigo-600 opacity-100' : 'bg-indigo-400 opacity-70'
-                }`}
+              <Box
+                w={20}
+                h={20}
+                style={{
+                  backgroundColor: draggingGhost
+                    ? 'var(--mantine-color-indigo-6)'
+                    : 'var(--mantine-color-indigo-4)',
+                  border: '2px solid white',
+                  borderRadius: '50%',
+                  boxShadow: 'var(--mantine-shadow-lg)',
+                  opacity: draggingGhost ? 1 : 0.7,
+                  pointerEvents: 'none',
+                  transition: 'opacity 150ms',
+                }}
               />
             </Marker>
           )}
@@ -527,11 +550,25 @@ export function EmbeddedRoutePlanner({ onPointsChange, initialTrack }: EmbeddedR
 
         {/* Instructions overlay */}
         {controlPoints.length === 0 && (
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-2 bg-white/90 rounded-lg shadow-lg">
-            <p className="text-sm text-gray-600">{t('planner.instructions')}</p>
-          </div>
+          <Box
+            pos="absolute"
+            bottom={16}
+            left="50%"
+            px="md"
+            py="xs"
+            bg="rgba(255, 255, 255, 0.9)"
+            style={{
+              transform: 'translateX(-50%)',
+              borderRadius: 'var(--mantine-radius-md)',
+              boxShadow: 'var(--mantine-shadow-lg)',
+            }}
+          >
+            <Text size="sm" c="dimmed">
+              {t('planner.instructions')}
+            </Text>
+          </Box>
         )}
-      </div>
-    </div>
+      </Box>
+    </Stack>
   )
 }

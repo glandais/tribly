@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
-import { toast } from 'sonner'
+import { notifications } from '@mantine/notifications'
 import i18next from 'i18next'
 import type { RouteDto, TeamDetailDto, Visibility, SurfaceType, RouteRequest } from '@/api/dto'
 import { RouteEditor } from './RouteEditor'
@@ -21,7 +21,6 @@ export function CreateRouteModal({ isOpen, onClose, onRouteCreated, team }: Crea
   const queryClient = useQueryClient()
   const createRouteMutation = useCreateRoute()
 
-  // Prepare initial values for create mode
   const initialValues = {
     name: '',
     media: defaultMedia(),
@@ -32,7 +31,6 @@ export function CreateRouteModal({ isOpen, onClose, onRouteCreated, team }: Crea
   }
 
   const handleSubmit = async (data: RouteRequest, gpxFile?: File) => {
-    // Either gpxFile or points must be provided
     if (!gpxFile && (!data.points || data.points.length < 2)) return
 
     const route = await createRouteMutation.mutateAsync(
@@ -46,7 +44,7 @@ export function CreateRouteModal({ isOpen, onClose, onRouteCreated, team }: Crea
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getListRoutesQueryKey(team.slug) })
-          toast.success(i18next.t('routes.notifications.created'))
+          notifications.show({ message: i18next.t('routes.notifications.created'), color: 'green' })
         },
       }
     )

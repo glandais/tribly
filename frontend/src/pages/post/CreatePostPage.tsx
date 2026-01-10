@@ -2,8 +2,8 @@ import { useParams, Navigate, useNavigate } from 'react-router-dom'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
-import { toast } from 'sonner'
-import i18next from 'i18next'
+import { notifications } from '@mantine/notifications'
+import { Container, Stack, Title } from '@mantine/core'
 import { useGetTeam } from '@/api/endpoints/teams/teams'
 import { useCreatePost } from '../../api/endpoints/posts/posts'
 import { getListPublicationsQueryKey } from '../../api/endpoints/publications/publications'
@@ -59,7 +59,7 @@ export function CreatePostPage() {
       {
         onSuccess: (post) => {
           queryClient.invalidateQueries({ queryKey: getListPublicationsQueryKey(teamSlug!) })
-          toast.success(i18next.t('posts.notifications.created'))
+          notifications.show({ message: t('posts.notifications.created'), color: 'green' })
           navigate(paths.post(teamSlug!, post.slug))
         },
       }
@@ -67,10 +67,10 @@ export function CreatePostPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">{t('posts.create.title')}</h1>
-      </div>
+    <Container size="sm" py="xl">
+      <Stack gap="xs" mb="xl">
+        <Title order={1}>{t('posts.create.title')}</Title>
+      </Stack>
 
       <PostEditor
         team={team}
@@ -81,6 +81,6 @@ export function CreatePostPage() {
         isPending={createMutation.isPending}
         submitButtonText={t('posts.create.submit')}
       />
-    </div>
+    </Container>
   )
 }

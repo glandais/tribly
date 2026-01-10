@@ -1,6 +1,6 @@
 import Axios, { AxiosRequestConfig, AxiosError } from 'axios'
 import { useAuthStore } from '../store/authStore'
-import { toast } from 'sonner'
+import { notifications } from '@mantine/notifications'
 import i18next from 'i18next'
 import type { ErrorResponse } from '../api/dto'
 import { ApiClientError } from './apiError'
@@ -37,7 +37,10 @@ export const axiosMutator = <T>(
         const axiosError = error as AxiosError
         const errorData = axiosError.response?.data as ErrorResponse
         const apiError = new ApiClientError(axiosError.status || 500, errorData)
-        toast.error(i18next.t('errors.api.' + errorData.code, errorData.errorDetails || {}))
+        notifications.show({
+          message: i18next.t('errors.api.' + errorData.code, errorData.errorDetails || {}),
+          color: 'red',
+        })
         throw apiError
       }
       throw error

@@ -1,9 +1,22 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
-import { toast } from 'sonner'
+import { notifications } from '@mantine/notifications'
 import i18next from 'i18next'
-import { PencilIcon, TrashIcon, PlusIcon, MapPinIcon } from '@heroicons/react/24/outline'
+import {
+  Stack,
+  Group,
+  Title,
+  Button,
+  Text,
+  Paper,
+  Box,
+  Badge,
+  ActionIcon,
+  Anchor,
+  Center,
+} from '@mantine/core'
+import { IconPencil, IconTrash, IconPlus, IconMapPin } from '@tabler/icons-react'
 import {
   useListPlaces,
   useDeletePlace,
@@ -31,9 +44,9 @@ export function PlaceList({ teamSlug, canManage }: PlaceListProps) {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center py-8">
+      <Center py="xl">
         <LoadingSpinner />
-      </div>
+      </Center>
     )
   }
 
@@ -45,7 +58,10 @@ export function PlaceList({ teamSlug, canManage }: PlaceListProps) {
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getListPlacesQueryKey(teamSlug) })
-          toast.success(i18next.t('teams.notifications.placeDeleted'))
+          notifications.show({
+            message: i18next.t('teams.notifications.placeDeleted'),
+            color: 'green',
+          })
           setDeleteConfirm(null)
         },
       }
@@ -62,76 +78,98 @@ export function PlaceList({ teamSlug, canManage }: PlaceListProps) {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h3 className="text-lg font-medium text-gray-900">{t('places.title')}</h3>
+    <Stack gap="md">
+      <Group justify="space-between">
+        <Title order={4}>{t('places.title')}</Title>
         {canManage && (
-          <button
-            onClick={() => setShowCreateForm(true)}
-            className="inline-flex items-center px-3 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
-          >
-            <PlusIcon className="h-4 w-4 mr-1" />
+          <Button leftSection={<IconPlus size={16} />} onClick={() => setShowCreateForm(true)}>
             {t('places.add')}
-          </button>
+          </Button>
         )}
-      </div>
+      </Group>
 
       {places.length === 0 ? (
-        <p className="text-gray-500 text-sm py-4">{t('places.empty')}</p>
+        <Text size="sm" c="dimmed" py="md">
+          {t('places.empty')}
+        </Text>
       ) : (
-        <ul className="divide-y divide-gray-200 border border-gray-200 rounded-lg">
-          {places.map((place) => (
-            <li key={place.id} className="py-4 px-4 flex justify-between items-center">
-              <div className="flex items-start space-x-3">
-                <MapPinIcon className="h-5 w-5 text-gray-400 mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium text-gray-900">{place.name}</p>
-                  {place.address && <p className="text-sm text-gray-500">{place.address}</p>}
-                  {place.link && (
-                    <a
-                      href={place.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-sm text-indigo-600 hover:text-indigo-800"
-                    >
-                      {t('places.viewLink')}
-                    </a>
+        <Paper withBorder>
+          <Stack gap={0}>
+            {places.map((place, index) => (
+              <Box
+                key={place.id}
+                py="md"
+                px="md"
+                style={{
+                  borderBottom:
+                    index < places.length - 1 ? '1px solid var(--mantine-color-gray-2)' : undefined,
+                }}
+              >
+                <Group justify="space-between" wrap="nowrap">
+                  <Group gap="sm" wrap="nowrap" align="flex-start">
+                    <IconMapPin
+                      size={20}
+                      color="var(--mantine-color-gray-5)"
+                      style={{ marginTop: 2, flexShrink: 0 }}
+                    />
+                    <Box>
+                      <Text size="sm" fw={500}>
+                        {place.name}
+                      </Text>
+                      {place.address && (
+                        <Text size="sm" c="dimmed">
+                          {place.address}
+                        </Text>
+                      )}
+                      {place.link && (
+                        <Anchor
+                          href={place.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          size="sm"
+                        >
+                          {t('places.viewLink')}
+                        </Anchor>
+                      )}
+                      <Group gap="xs" mt="xs">
+                        {place.startPlace && (
+                          <Badge size="sm" color="green" variant="light">
+                            {t('startPlace')}
+                          </Badge>
+                        )}
+                        {place.endPlace && (
+                          <Badge size="sm" color="blue" variant="light">
+                            {t('endPlace')}
+                          </Badge>
+                        )}
+                      </Group>
+                    </Box>
+                  </Group>
+                  {canManage && (
+                    <Group gap="xs">
+                      <ActionIcon
+                        variant="subtle"
+                        color="gray"
+                        onClick={() => setEditingPlace(place)}
+                        title={t('actions.edit')}
+                      >
+                        <IconPencil size={16} />
+                      </ActionIcon>
+                      <ActionIcon
+                        variant="subtle"
+                        color="red"
+                        onClick={() => setDeleteConfirm(place.id)}
+                        title={t('places.delete')}
+                      >
+                        <IconTrash size={16} />
+                      </ActionIcon>
+                    </Group>
                   )}
-                  <div className="flex space-x-2 mt-1">
-                    {place.startPlace && (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                        {t('startPlace')}
-                      </span>
-                    )}
-                    {place.endPlace && (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                        {t('endPlace')}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </div>
-              {canManage && (
-                <div className="flex space-x-2">
-                  <button
-                    onClick={() => setEditingPlace(place)}
-                    className="p-1 text-gray-400 hover:text-gray-600"
-                    title={t('actions.edit')}
-                  >
-                    <PencilIcon className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={() => setDeleteConfirm(place.id)}
-                    className="p-1 text-gray-400 hover:text-red-600"
-                    title={t('places.delete')}
-                  >
-                    <TrashIcon className="h-4 w-4" />
-                  </button>
-                </div>
-              )}
-            </li>
-          ))}
-        </ul>
+                </Group>
+              </Box>
+            ))}
+          </Stack>
+        </Paper>
       )}
 
       {/* Create Form Modal */}
@@ -159,6 +197,6 @@ export function PlaceList({ teamSlug, canManage }: PlaceListProps) {
         variant="danger"
         isLoading={deleteMutation.isPending}
       />
-    </div>
+    </Stack>
   )
 }

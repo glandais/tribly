@@ -1,16 +1,12 @@
-import { ChevronUpIcon, ChevronDownIcon } from '@heroicons/react/24/outline'
+import { Group, ActionIcon, Badge } from '@mantine/core'
+import { IconChevronUp, IconChevronDown } from '@tabler/icons-react'
 import { useTranslation } from 'react-i18next'
 
 export interface ReorderControlsProps {
-  /** Current item index (0-based) */
   index: number
-  /** Total number of items in the list */
   total: number
-  /** Callback when move is requested */
   onMove: (direction: 'up' | 'down') => void
-  /** Whether to show the index badge (displays 1-based number) */
   showIndex?: boolean
-  /** Disables all controls */
   disabled?: boolean
 }
 
@@ -26,30 +22,32 @@ export function ReorderControls({
   const isLast = index >= total - 1
 
   return (
-    <div className="flex items-center gap-1">
+    <Group gap={4}>
       {showIndex && (
-        <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 text-xs font-semibold">
+        <Badge size="sm" circle color="indigo" variant="light">
           {index + 1}
-        </span>
+        </Badge>
       )}
-      <button
-        type="button"
+      <ActionIcon
+        variant="subtle"
+        color="gray"
+        size="sm"
         onClick={() => onMove('up')}
         disabled={disabled || isFirst}
-        className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed"
         aria-label={t('aria.moveUp')}
       >
-        <ChevronUpIcon className="w-4 h-4" />
-      </button>
-      <button
-        type="button"
+        <IconChevronUp size={16} />
+      </ActionIcon>
+      <ActionIcon
+        variant="subtle"
+        color="gray"
+        size="sm"
         onClick={() => onMove('down')}
         disabled={disabled || isLast}
-        className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30 disabled:cursor-not-allowed"
         aria-label={t('aria.moveDown')}
       >
-        <ChevronDownIcon className="w-4 h-4" />
-      </button>
-    </div>
+        <IconChevronDown size={16} />
+      </ActionIcon>
+    </Group>
   )
 }

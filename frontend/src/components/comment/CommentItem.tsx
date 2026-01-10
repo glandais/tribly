@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { TrashIcon, ChatBubbleLeftIcon } from '@heroicons/react/24/outline'
+import { Group, Stack, Text, Button, Box } from '@mantine/core'
+import { IconTrash, IconMessage } from '@tabler/icons-react'
 import { UserAvatar } from '../common/UserAvatar'
 import { CommentForm } from './CommentForm'
 import { ConfirmDialog } from '../common/ConfirmDialog'
@@ -40,42 +41,51 @@ export function CommentItem({
   const isReplyingToThis = replyingTo === comment.id
 
   return (
-    <div className={`${isReply ? 'ml-8 border-l-2 border-gray-200 pl-4' : ''}`}>
-      <div className="flex items-start gap-3">
+    <Box
+      ml={isReply ? 'xl' : 0}
+      pl={isReply ? 'md' : 0}
+      style={isReply ? { borderLeft: '2px solid var(--mantine-color-gray-3)' } : undefined}
+    >
+      <Group align="flex-start" gap="sm">
         <UserAvatar user={comment.author} size="sm" />
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <span className="font-medium text-gray-900">{comment.author.displayName}</span>
-            <span className="text-xs text-gray-500">{formatRelative(comment.createdAt)}</span>
-          </div>
-          <p className="mt-1 text-gray-700 whitespace-pre-wrap break-words">{comment.content}</p>
+        <Stack gap={4} style={{ flex: 1, minWidth: 0 }}>
+          <Group gap="xs">
+            <Text fw={500}>{comment.author.displayName}</Text>
+            <Text size="xs" c="dimmed">
+              {formatRelative(comment.createdAt)}
+            </Text>
+          </Group>
+          <Text style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{comment.content}</Text>
 
-          <div className="mt-2 flex items-center gap-4">
+          <Group gap="md" mt={4}>
             {!isReply && onReply && (
-              <button
+              <Button
+                variant="subtle"
+                size="xs"
+                color="gray"
+                leftSection={<IconMessage size={14} />}
                 onClick={onReply}
-                className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1"
               >
-                <ChatBubbleLeftIcon className="w-4 h-4" />
                 {t('comments.actions.reply')}
-              </button>
+              </Button>
             )}
             {canDelete && (
-              <button
+              <Button
+                variant="subtle"
+                size="xs"
+                color="red"
+                leftSection={<IconTrash size={14} />}
                 onClick={() => setShowDeleteConfirm(true)}
-                className="text-sm text-red-500 hover:text-red-700 flex items-center gap-1"
               >
-                <TrashIcon className="w-4 h-4" />
                 {t('actions.delete')}
-              </button>
+              </Button>
             )}
-          </div>
-        </div>
-      </div>
+          </Group>
+        </Stack>
+      </Group>
 
-      {/* Reply form */}
       {isReplyingToThis && onReplySubmit && onCancelReply && (
-        <div className="mt-3 ml-11">
+        <Box mt="sm" ml={44}>
           <CommentForm
             onSubmit={onReplySubmit}
             onCancel={onCancelReply}
@@ -83,12 +93,11 @@ export function CommentItem({
             placeholder={t('comments.form.replyPlaceholder')}
             autoFocus
           />
-        </div>
+        </Box>
       )}
 
-      {/* Nested replies */}
       {comment.replies && comment.replies.length > 0 && (
-        <div className="mt-4 space-y-3">
+        <Stack gap="sm" mt="md">
           {comment.replies.map((reply) => (
             <CommentItem
               key={reply.id}
@@ -101,7 +110,7 @@ export function CommentItem({
               isReply
             />
           ))}
-        </div>
+        </Stack>
       )}
 
       <ConfirmDialog
@@ -117,6 +126,6 @@ export function CommentItem({
         variant="danger"
         isLoading={isDeleting}
       />
-    </div>
+    </Box>
   )
 }

@@ -1,11 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import {
-  CalendarIcon,
-  UsersIcon,
-  RectangleStackIcon,
-  ChevronRightIcon,
-} from '@heroicons/react/24/outline'
+import { IconCalendar, IconUsers, IconStack2, IconChevronRight } from '@tabler/icons-react'
+import { Group, Box, Stack, Anchor, Text } from '@mantine/core'
 import { Card, CardContent, CardTitle, CardDescription } from '../common/card'
 import { Badge, VisibilityBadge, Stat, StatGroup, CardSkeleton } from '../common/card'
 import { EntityLogo } from '../common/EntityLogo'
@@ -69,9 +65,9 @@ export function PublicationCard({ publication, showTeam }: PublicationCardProps)
 
   // Render stats based on publication type
   const renderStats = () => {
-    const calendarIcon = <CalendarIcon />
-    const participantsIcon = <UsersIcon />
-    const groupsIcon = <RectangleStackIcon />
+    const calendarIcon = <IconCalendar size={16} />
+    const participantsIcon = <IconUsers size={16} />
+    const groupsIcon = <IconStack2 size={16} />
 
     switch (publication.type) {
       case 'RIDE': {
@@ -112,39 +108,41 @@ export function PublicationCard({ publication, showTeam }: PublicationCardProps)
       <CardContent>
         {/* Team header - clickable link to team page */}
         {showTeam && (
-          <Link
+          <Anchor
+            component={Link}
             to={paths.team(publication.team.slug)}
             onClick={(e) => e.stopPropagation()}
-            className="flex items-center gap-2 mb-3 text-sm text-gray-600 hover:text-indigo-600 transition-colors group"
+            underline="hover"
+            mb="sm"
+            style={{ display: 'block' }}
           >
-            <UsersIcon className="h-4 w-4" />
-            <span className="font-medium">{publication.team.name}</span>
-            <ChevronRightIcon className="h-3 w-3 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
-          </Link>
+            <Group gap="xs">
+              <IconUsers size={16} />
+              <Text size="sm" fw={500}>
+                {publication.team.name}
+              </Text>
+              <IconChevronRight size={12} />
+            </Group>
+          </Anchor>
         )}
 
         {/* Main content */}
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex items-start gap-3 flex-1 min-w-0">
-            <EntityLogo
-              logo={publication.media.assets.logo}
-              alt={publication.name}
-              size="md"
-              className="shrink-0"
-            />
-            <div className="flex-1 min-w-0">
+        <Group align="flex-start" justify="space-between" mb="md" wrap="nowrap">
+          <Group align="flex-start" gap="sm" style={{ flex: 1, minWidth: 0 }}>
+            <EntityLogo logo={publication.media.assets.logo} alt={publication.name} size="md" />
+            <Box style={{ flex: 1, minWidth: 0 }}>
               <CardTitle>{publication.name}</CardTitle>
               <CardDescription markdown={true} media={publication.media} />
-            </div>
-          </div>
-          <div className="ml-3 flex flex-col items-end gap-1">
+            </Box>
+          </Group>
+          <Stack gap={4} align="flex-end" ml="sm">
             <Badge variant={typeBadgeVariants[publication.type] || 'indigo'}>
               {getTypeLabel()}
             </Badge>
             <Badge variant={statusVariants[publication.status] || 'gray'}>{getStatusLabel()}</Badge>
             <VisibilityBadge visibility={publication.visibility} />
-          </div>
-        </div>
+          </Stack>
+        </Group>
 
         {renderStats()}
       </CardContent>

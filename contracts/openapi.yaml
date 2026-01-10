@@ -2250,7 +2250,7 @@ components:
   securitySchemes:
     SecurityScheme:
       type: openIdConnect
-      openIdConnectUrl: http://localhost:8180/realms/quarkus/.well-known/openid-configuration
+      openIdConnectUrl: http://localhost:8180/realms/tribly/.well-known/openid-configuration
       description: Authentication
 tags:
 - name: Ads
@@ -3407,6 +3407,13 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme:
+        - user
     post:
       summary: Create page
       description: Create a new team page. Requires admin permissions. Maximum 3 additional
@@ -3615,6 +3622,11 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not Authorized
+      security:
+      - SecurityScheme:
+        - user
     delete:
       summary: Delete page
       description: Delete a team page. Requires admin permissions.
@@ -4389,6 +4401,13 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme:
+        - user
   /api/teams/{teamSlug}/ride-templates:
     get:
       summary: List ride templates
@@ -4919,6 +4938,13 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme:
+        - user
     delete:
       summary: Delete ride
       description: Soft delete a ride. Requires organizer permissions.
@@ -5249,6 +5275,13 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme:
+        - user
     post:
       summary: Create route
       description: Create a new route by uploading a GPX file
@@ -5534,6 +5567,13 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme:
+        - user
     delete:
       summary: Delete route
       description: Soft delete a route. Requires route creator or team admin permissions.
@@ -5969,6 +6009,13 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme:
+        - user
     delete:
       summary: Delete trip
       description: Soft delete a trip. Requires organizer permissions.

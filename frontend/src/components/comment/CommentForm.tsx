@@ -1,11 +1,9 @@
 import { useTranslation } from 'react-i18next'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm } from '@mantine/form'
+import { zod4Resolver } from 'mantine-form-zod-resolver'
 import { z } from 'zod'
-import { PaperAirplaneIcon } from '@heroicons/react/24/solid'
-import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
-import { Form, FormControl, FormField, FormItem } from '@/components/ui/form'
+import { Group, Textarea, Button, ActionIcon, Stack } from '@mantine/core'
+import { IconSend } from '@tabler/icons-react'
 import { LoadingSpinner } from '../common/LoadingSpinner'
 
 const commentSchema = z.object({
@@ -32,9 +30,9 @@ export function CommentForm({
   const { t } = useTranslation()
 
   const form = useForm<CommentFormValues>({
-    resolver: zodResolver(commentSchema),
-    mode: 'onChange',
-    defaultValues: { content: '' },
+    validate: zod4Resolver(commentSchema),
+    initialValues: { content: '' },
+    validateInputOnChange: true,
   })
 
   const handleSubmit = (values: CommentFormValues) => {
@@ -43,37 +41,33 @@ export function CommentForm({
   }
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="flex gap-2">
-        <FormField
-          control={form.control}
-          name="content"
-          render={({ field }) => (
-            <FormItem className="flex-1">
-              <FormControl>
-                <Textarea
-                  {...field}
-                  placeholder={placeholder || t('comments.form.placeholder')}
-                  autoFocus={autoFocus}
-                  rows={2}
-                  className="min-h-0 resize-none"
-                  disabled={isLoading}
-                />
-              </FormControl>
-            </FormItem>
-          )}
+    <form onSubmit={form.onSubmit(handleSubmit)}>
+      <Group gap="xs" align="flex-start">
+        <Textarea
+          {...form.getInputProps('content')}
+          placeholder={placeholder || t('comments.form.placeholder')}
+          autoFocus={autoFocus}
+          rows={2}
+          autosize
+          disabled={isLoading}
+          style={{ flex: 1 }}
         />
-        <div className="flex flex-col gap-1">
-          <Button type="submit" disabled={isLoading || !form.formState.isValid} size="icon">
-            {isLoading ? <LoadingSpinner size="sm" /> : <PaperAirplaneIcon className="size-4" />}
-          </Button>
+        <Stack gap={4}>
+          <ActionIcon
+            type="submit"
+            disabled={isLoading || !form.isValid()}
+            size="lg"
+            variant="filled"
+          >
+            {isLoading ? <LoadingSpinner size="sm" color="white" /> : <IconSend size={18} />}
+          </ActionIcon>
           {onCancel && (
-            <Button type="button" variant="ghost" size="sm" onClick={onCancel} className="text-xs">
+            <Button variant="subtle" size="xs" onClick={onCancel}>
               {t('actions.cancelAction')}
             </Button>
           )}
-        </div>
-      </form>
-    </Form>
+        </Stack>
+      </Group>
+    </form>
   )
 }

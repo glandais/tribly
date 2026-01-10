@@ -2,14 +2,29 @@ import { useState, useMemo } from 'react'
 import { Link, useParams, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
-import { toast } from 'sonner'
+import { notifications } from '@mantine/notifications'
 import {
-  CalendarIcon,
-  UsersIcon,
-  PencilIcon,
-  MapPinIcon,
-  ChevronDownIcon,
-} from '@heroicons/react/24/outline'
+  IconCalendar,
+  IconUsers,
+  IconPencil,
+  IconMapPin,
+  IconChevronDown,
+} from '@tabler/icons-react'
+import {
+  Container,
+  Paper,
+  Group,
+  Stack,
+  Title,
+  Text,
+  Button,
+  Menu,
+  Badge,
+  SimpleGrid,
+  Box,
+  Alert,
+  Anchor,
+} from '@mantine/core'
 import { useGetTeam } from '@/api/endpoints/teams/teams'
 import {
   useGetRide,
@@ -30,22 +45,13 @@ import { useFormattedDate } from '../../utils/dateFormat'
 import { MediaDisplay } from '../../components/common/MediaDisplay'
 import { EntityLogo } from '../../components/common/EntityLogo'
 import { CommentSection } from '../../components/comment'
-import { Button } from '@/components/ui/button'
-import { ButtonGroup } from '@/components/ui/button-group'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 import { paths } from '@/config/paths'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 
 const statusColors: Record<Status, string> = {
-  [Status.DRAFT]: 'bg-gray-100 text-gray-800',
-  [Status.PUBLISHED]: 'bg-green-100 text-green-800',
-  [Status.CANCELLED]: 'bg-red-100 text-red-800',
+  [Status.DRAFT]: 'gray',
+  [Status.PUBLISHED]: 'green',
+  [Status.CANCELLED]: 'red',
 }
 
 export function RideDetailPage() {
@@ -109,20 +115,15 @@ export function RideDetailPage() {
 
   if (error || !ride || !team) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="text-center py-12">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">
-            {t('rides.detail.notFound.title')}
-          </h1>
-          <p className="text-gray-600 mb-6">{t('rides.detail.notFound.message')}</p>
-          <Link
-            to={paths.team(teamSlug!)}
-            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
-          >
+      <Container size="xl" py="xl">
+        <Stack align="center" py="xl">
+          <Title order={2}>{t('rides.detail.notFound.title')}</Title>
+          <Text c="dimmed">{t('rides.detail.notFound.message')}</Text>
+          <Button component={Link} to={paths.team(teamSlug!)}>
             {t('rides.detail.notFound.backToRides')}
-          </Link>
-        </div>
-      </div>
+          </Button>
+        </Stack>
+      </Container>
     )
   }
 
@@ -145,7 +146,7 @@ export function RideDetailPage() {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetRideQueryKey(teamSlug!, rideSlug!) })
           queryClient.invalidateQueries({ queryKey: getListPublicationsQueryKey(teamSlug!) })
-          toast.success(t('rides.notifications.published'))
+          notifications.show({ message: t('rides.notifications.published'), color: 'green' })
         },
       }
     )
@@ -158,7 +159,7 @@ export function RideDetailPage() {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetRideQueryKey(teamSlug!, rideSlug!) })
           queryClient.invalidateQueries({ queryKey: getListPublicationsQueryKey(teamSlug!) })
-          toast.success(t('rides.notifications.unpublished'))
+          notifications.show({ message: t('rides.notifications.unpublished'), color: 'green' })
         },
       }
     )
@@ -172,7 +173,7 @@ export function RideDetailPage() {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetRideQueryKey(teamSlug!, rideSlug!) })
           queryClient.invalidateQueries({ queryKey: getListPublicationsQueryKey(teamSlug!) })
-          toast.success(t('rides.notifications.cancelled'))
+          notifications.show({ message: t('rides.notifications.cancelled'), color: 'green' })
         },
       }
     )
@@ -186,7 +187,7 @@ export function RideDetailPage() {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetRideQueryKey(teamSlug!, rideSlug!) })
           queryClient.invalidateQueries({ queryKey: getListPublicationsQueryKey(teamSlug!) })
-          toast.success(t('rides.notifications.uncancelled'))
+          notifications.show({ message: t('rides.notifications.uncancelled'), color: 'green' })
         },
       }
     )
@@ -199,7 +200,7 @@ export function RideDetailPage() {
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getListPublicationsQueryKey(teamSlug!) })
-          toast.success(t('rides.notifications.deleted'))
+          notifications.show({ message: t('rides.notifications.deleted'), color: 'green' })
           navigate(paths.team(teamSlug!))
         },
       }
@@ -214,7 +215,7 @@ export function RideDetailPage() {
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetRideQueryKey(teamSlug!, rideSlug!) })
-          toast.success(t('rides.notifications.joined'))
+          notifications.show({ message: t('rides.notifications.joined'), color: 'green' })
         },
         onSettled: () => setJoiningGroupId(null),
       }
@@ -228,7 +229,7 @@ export function RideDetailPage() {
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetRideQueryKey(teamSlug!, rideSlug!) })
-          toast.success(t('rides.notifications.left'))
+          notifications.show({ message: t('rides.notifications.left'), color: 'green' })
         },
         onSettled: () => setJoiningGroupId(null),
       }
@@ -236,143 +237,152 @@ export function RideDetailPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <Container size="xl" py="xl">
       {/* Header */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="flex items-center gap-3 min-w-0">
+      <Paper shadow="xs" p="lg" mb="lg" withBorder>
+        <Group justify="space-between" wrap="wrap" gap="md">
+          <Group gap="sm" style={{ minWidth: 0 }}>
             <EntityLogo logo={ride.media.assets.logo} alt={ride.name} size="lg" />
-            <h1 className="text-2xl font-bold text-gray-900 truncate">{ride.name}</h1>
-            <span
-              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium shrink-0 ${statusColors[ride.status]}`}
+            <Title
+              order={2}
+              style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
             >
+              {ride.name}
+            </Title>
+            <Badge color={statusColors[ride.status]} variant="light">
               {t(`status.${ride.status satisfies 'DRAFT' | 'PUBLISHED' | 'CANCELLED'}`)}
-            </span>
-          </div>
+            </Badge>
+          </Group>
 
           {canEdit && (
-            <ButtonGroup>
-              <Button asChild variant="outline">
-                <Link to={paths.rideEdit(teamSlug!, rideSlug!)}>
-                  <PencilIcon className="w-4 h-4" />
-                  {t('actions.edit')}
-                </Link>
+            <Button.Group>
+              <Button
+                component={Link}
+                to={paths.rideEdit(teamSlug!, rideSlug!)}
+                variant="outline"
+                leftSection={<IconPencil size={16} />}
+              >
+                {t('actions.edit')}
               </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="!pl-2">
-                    <ChevronDownIcon className="w-4 h-4" />
+              <Menu position="bottom-end">
+                <Menu.Target>
+                  <Button variant="outline" px="xs">
+                    <IconChevronDown size={16} />
                   </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
+                </Menu.Target>
+                <Menu.Dropdown>
                   {ride.status === Status.DRAFT && (
-                    <DropdownMenuItem
+                    <Menu.Item
                       onClick={handlePublish}
                       disabled={updateMutation.isPending}
-                      className="text-green-700"
+                      color="green"
                     >
                       {updateMutation.isPending && <LoadingSpinner size="sm" />}
                       {t('actions.publish')}
-                    </DropdownMenuItem>
+                    </Menu.Item>
                   )}
                   {ride.status === Status.PUBLISHED && (
                     <>
-                      <DropdownMenuItem
-                        onClick={() => setShowUnpublishConfirm(true)}
-                        className="text-yellow-700"
-                      >
+                      <Menu.Item onClick={() => setShowUnpublishConfirm(true)} color="yellow">
                         {t('actions.unpublish')}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => setShowCancelConfirm(true)}
-                        className="text-yellow-700"
-                      >
+                      </Menu.Item>
+                      <Menu.Item onClick={() => setShowCancelConfirm(true)} color="yellow">
                         {t('rides.detail.actions.cancel')}
-                      </DropdownMenuItem>
+                      </Menu.Item>
                     </>
                   )}
                   {ride.status === Status.CANCELLED && (
-                    <DropdownMenuItem
-                      onClick={() => setShowUncancelConfirm(true)}
-                      className="text-green-700"
-                    >
+                    <Menu.Item onClick={() => setShowUncancelConfirm(true)} color="green">
                       {t('rides.detail.actions.uncancel')}
-                    </DropdownMenuItem>
+                    </Menu.Item>
                   )}
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onClick={() => setShowDeleteConfirm(true)}
-                    variant="destructive"
-                  >
+                  <Menu.Divider />
+                  <Menu.Item onClick={() => setShowDeleteConfirm(true)} color="red">
                     {t('actions.delete')}
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </ButtonGroup>
+                  </Menu.Item>
+                </Menu.Dropdown>
+              </Menu>
+            </Button.Group>
           )}
-        </div>
+        </Group>
 
-        <div className="mt-4">
-          <MediaDisplay media={ride.media} className="text-gray-600" />
-        </div>
+        <Box mt="md">
+          <MediaDisplay media={ride.media} />
+        </Box>
         {ride.status === Status.DRAFT && ride.publishAt && (
-          <div className="mt-2 text-sm text-amber-600 flex items-center">
-            <CalendarIcon className="w-4 h-4 mr-1" />
-            {t('rides.detail.scheduledPublish', {
-              date: formatDateTime(ride.publishAt),
-            })}
-          </div>
+          <Group mt="xs" gap="xs">
+            <IconCalendar size={16} color="var(--mantine-color-yellow-6)" />
+            <Text size="sm" c="yellow.6">
+              {t('rides.detail.scheduledPublish', {
+                date: formatDateTime(ride.publishAt),
+              })}
+            </Text>
+          </Group>
         )}
-        <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-gray-500">
-          <span className="flex items-center">
-            <CalendarIcon className="w-4 h-4 mr-1" />
-            {formattedDate}
-          </span>
-          <span className="flex items-center">
-            <UsersIcon className="w-4 h-4 mr-1" />
-            {t('participantCount', { count: ride.participantCount })}
-          </span>
-        </div>
+        <Group mt="md" gap="lg">
+          <Group gap="xs">
+            <IconCalendar size={16} />
+            <Text size="sm" c="dimmed">
+              {formattedDate}
+            </Text>
+          </Group>
+          <Group gap="xs">
+            <IconUsers size={16} />
+            <Text size="sm" c="dimmed">
+              {t('participantCount', { count: ride.participantCount })}
+            </Text>
+          </Group>
+        </Group>
         {/* Start and End Places */}
         {(ride.startPlace || ride.endPlace) && (
-          <div className="mt-3 flex flex-wrap items-center gap-4 text-sm text-gray-600">
+          <Group mt="sm" gap="lg" wrap="wrap">
             {ride.startPlace && (
-              <span className="flex items-center">
-                <MapPinIcon className="w-4 h-4 mr-1 text-green-600" />
-                <span className="font-medium text-green-700">{t('startPlace')}:</span>
-                <span className="ml-1">
+              <Group gap="xs">
+                <IconMapPin size={16} color="var(--mantine-color-green-6)" />
+                <Text size="sm" fw={500} c="green.7">
+                  {t('startPlace')}:
+                </Text>
+                <Text size="sm">
                   {ride.startPlace.name}
                   {ride.startPlace.address && (
-                    <span className="text-gray-500"> ({ride.startPlace.address})</span>
+                    <Text span c="dimmed">
+                      {' '}
+                      ({ride.startPlace.address})
+                    </Text>
                   )}
-                </span>
-              </span>
+                </Text>
+              </Group>
             )}
             {ride.endPlace && (
-              <span className="flex items-center">
-                <MapPinIcon className="w-4 h-4 mr-1 text-red-600" />
-                <span className="font-medium text-red-700">{t('endPlace')}:</span>
-                <span className="ml-1">
+              <Group gap="xs">
+                <IconMapPin size={16} color="var(--mantine-color-red-6)" />
+                <Text size="sm" fw={500} c="red.7">
+                  {t('endPlace')}:
+                </Text>
+                <Text size="sm">
                   {ride.endPlace.name}
                   {ride.endPlace.address && (
-                    <span className="text-gray-500"> ({ride.endPlace.address})</span>
+                    <Text span c="dimmed">
+                      {' '}
+                      ({ride.endPlace.address})
+                    </Text>
                   )}
-                </span>
-              </span>
+                </Text>
+              </Group>
             )}
-          </div>
+          </Group>
         )}
-      </div>
+      </Paper>
 
       {/* Map and Groups */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-6">
+      <SimpleGrid cols={{ base: 1, xl: 3 }} spacing="lg" mb="lg">
         {/* Groups list on left (takes 1 column on xl screens) */}
-        <div className="xl:col-span-1 order-2 xl:order-1">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+        <Box style={{ order: 2 }} data-order-xl="1">
+          <Title order={4} mb="md">
             {t('rides.detail.groups.title')}
-          </h2>
+          </Title>
           {ride.groups && ride.groups.length > 0 ? (
-            <div className="space-y-3">
+            <Stack gap="sm">
               {ride.groups.map((group) => {
                 const isJoined = user ? group.participants.some((p) => p.id === user.id) : false
                 return (
@@ -394,14 +404,14 @@ export function RideDetailPage() {
                   />
                 )
               })}
-            </div>
+            </Stack>
           ) : (
-            <p className="text-gray-500">{t('rides.detail.groups.empty')}</p>
+            <Text c="dimmed">{t('rides.detail.groups.empty')}</Text>
           )}
-        </div>
+        </Box>
 
         {/* Map on right (takes 2 columns on xl screens) */}
-        <div className="xl:col-span-2 order-1 xl:order-2">
+        <Box style={{ order: 1, gridColumn: 'span 2' }} data-order-xl="2" visibleFrom="xl">
           {mapItems.length > 0 && (
             <RoutesMapView
               items={mapItems}
@@ -410,42 +420,52 @@ export function RideDetailPage() {
               onItemHover={setHighlightedGroupId}
             />
           )}
-        </div>
-      </div>
+        </Box>
+        <Box style={{ order: 1 }} hiddenFrom="xl">
+          {mapItems.length > 0 && (
+            <RoutesMapView
+              items={mapItems}
+              teamSlug={teamSlug!}
+              highlightedItemId={highlightedGroupId}
+              onItemHover={setHighlightedGroupId}
+            />
+          )}
+        </Box>
+      </SimpleGrid>
 
       {/* Info for non-members */}
       {!isMember && isAuthenticated && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-          <p className="text-yellow-800">
+        <Alert color="yellow" variant="light" mb="lg">
+          <Text>
             {t('rides.detail.nonMember.message')}{' '}
-            <Link to={paths.team(teamSlug!)} className="font-medium underline">
+            <Anchor component={Link} to={paths.team(teamSlug!)} fw={500}>
               {t('rides.detail.nonMember.viewTeam')}
-            </Link>
-          </p>
-        </div>
+            </Anchor>
+          </Text>
+        </Alert>
       )}
 
       {!isAuthenticated && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <p className="text-blue-800">
+        <Alert color="blue" variant="light" mb="lg">
+          <Text>
             {t('rides.detail.notAuthenticated.message')}{' '}
-            <Link to="/login" className="font-medium underline">
+            <Anchor component={Link} to="/login" fw={500}>
               {t('rides.detail.notAuthenticated.signIn')}
-            </Link>
-          </p>
-        </div>
+            </Anchor>
+          </Text>
+        </Alert>
       )}
 
       {/* Comments Section - only visible to team members */}
       {isMember && (
-        <div className="mt-6">
+        <Box mt="lg">
           <CommentSection
             teamSlug={teamSlug!}
             entityType="rides"
             entitySlug={rideSlug!}
             isOrganizer={canEdit}
           />
-        </div>
+        </Box>
       )}
 
       {/* Confirmation Dialogs */}
@@ -489,6 +509,6 @@ export function RideDetailPage() {
         variant="danger"
         isLoading={deleteMutation.isPending}
       />
-    </div>
+    </Container>
   )
 }

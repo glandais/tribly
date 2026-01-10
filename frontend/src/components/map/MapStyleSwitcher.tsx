@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
-import { MapIcon, XMarkIcon } from '@heroicons/react/24/outline'
+import { IconMap, IconX } from '@tabler/icons-react'
+import { Box, Paper, Group, Text, Stack, ActionIcon, UnstyledButton } from '@mantine/core'
 import { MAP_STYLES, STYLE_IDS, type MapStyleId } from './mapStyles'
 
 export interface MapStyleSwitcherProps {
@@ -9,11 +10,11 @@ export interface MapStyleSwitcherProps {
   onStyleChange: (styleId: MapStyleId) => void
 }
 
-const POSITION_CLASSES: Record<string, string> = {
-  'top-left': 'top-2 left-12',
-  'top-right': 'top-2 right-2',
-  'bottom-left': 'bottom-2 left-2',
-  'bottom-right': 'bottom-2 right-2',
+const POSITION_STYLES: Record<string, React.CSSProperties> = {
+  'top-left': { top: 8, left: 48 },
+  'top-right': { top: 8, right: 8 },
+  'bottom-left': { bottom: 8, left: 8 },
+  'bottom-right': { bottom: 8, right: 8 },
 }
 
 export function MapStyleSwitcher({
@@ -37,52 +38,70 @@ export function MapStyleSwitcher({
   )
 
   return (
-    <div className={`absolute ${POSITION_CLASSES[position]} z-10`}>
+    <Box pos="absolute" style={{ ...POSITION_STYLES[position], zIndex: 10 }}>
       {isExpanded ? (
-        <div className="bg-white rounded-lg shadow-lg p-2 min-w-[160px]">
-          <div className="flex justify-between items-center mb-2 pb-2 border-b">
-            <span className="text-sm font-medium text-gray-700">{t('map.styles.title')}</span>
-            <button
+        <Paper shadow="lg" p="sm" radius="md" maw={160}>
+          <Group
+            justify="space-between"
+            align="center"
+            mb="sm"
+            pb="sm"
+            style={{ borderBottom: '1px solid var(--mantine-color-gray-2)' }}
+          >
+            <Text size="sm" fw={500} c="gray.7">
+              {t('map.styles.title')}
+            </Text>
+            <ActionIcon
+              variant="subtle"
+              color="gray"
+              size="sm"
               onClick={toggleExpanded}
-              className="p-1 hover:bg-gray-100 rounded"
               aria-label={t('actions.cancelAction')}
             >
-              <XMarkIcon className="w-4 h-4 text-gray-500" />
-            </button>
-          </div>
-          <div className="flex flex-col gap-1">
+              <IconX size={16} />
+            </ActionIcon>
+          </Group>
+          <Stack gap={4}>
             {STYLE_IDS.map((styleId) => {
               const style = MAP_STYLES[styleId]
               const isSelected = styleId === currentStyleId
               return (
-                <button
+                <UnstyledButton
                   key={styleId}
                   onClick={() => handleStyleSelect(styleId)}
-                  className={`
-                    px-3 py-2 text-sm text-left rounded transition-colors
-                    ${
-                      isSelected
-                        ? 'bg-indigo-100 text-indigo-700 font-medium'
-                        : 'hover:bg-gray-100 text-gray-700'
-                    }
-                  `}
+                  px="sm"
+                  py="xs"
+                  style={{
+                    borderRadius: 'var(--mantine-radius-sm)',
+                    backgroundColor: isSelected ? 'var(--mantine-color-indigo-1)' : undefined,
+                    transition: 'background-color 150ms',
+                  }}
                 >
-                  {style.name}
-                </button>
+                  <Text
+                    size="sm"
+                    c={isSelected ? 'indigo.7' : 'gray.7'}
+                    fw={isSelected ? 500 : 400}
+                  >
+                    {style.name}
+                  </Text>
+                </UnstyledButton>
               )
             })}
-          </div>
-        </div>
+          </Stack>
+        </Paper>
       ) : (
-        <button
+        <ActionIcon
+          variant="white"
+          size="lg"
+          radius="md"
           onClick={toggleExpanded}
-          className="bg-white p-2 rounded-lg shadow-lg hover:bg-gray-50 transition-colors"
           aria-label={t('map.styles.switch')}
           title={t('map.styles.switch')}
+          style={{ boxShadow: 'var(--mantine-shadow-lg)' }}
         >
-          <MapIcon className="w-5 h-5 text-gray-700" />
-        </button>
+          <IconMap size={20} />
+        </ActionIcon>
       )}
-    </div>
+    </Box>
   )
 }

@@ -1,16 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
-import { buttonVariants } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
+import { Modal, Button, Group, Text, Stack, Title } from '@mantine/core'
 
 interface ConfirmDialogProps {
   isOpen: boolean
@@ -22,6 +11,12 @@ interface ConfirmDialogProps {
   cancelText?: string
   variant?: 'danger' | 'warning' | 'info'
   isLoading?: boolean
+}
+
+const variantColors: Record<'danger' | 'warning' | 'info', string> = {
+  danger: 'red',
+  warning: 'yellow',
+  info: 'blue',
 }
 
 export function ConfirmDialog({
@@ -37,32 +32,19 @@ export function ConfirmDialog({
 }: ConfirmDialogProps) {
   const { t } = useTranslation()
 
-  const variantStyles = {
-    danger: 'bg-destructive text-destructive-foreground hover:bg-destructive/90',
-    warning: 'bg-yellow-600 text-white hover:bg-yellow-700',
-    info: 'bg-blue-600 text-white hover:bg-blue-700',
-  }
-
   return (
-    <AlertDialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>{title}</AlertDialogTitle>
-          <AlertDialogDescription>{message}</AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel disabled={isLoading}>
+    <Modal opened={isOpen} onClose={onClose} title={<Title order={4}>{title}</Title>} centered>
+      <Stack>
+        <Text c="dimmed">{message}</Text>
+        <Group justify="flex-end" mt="md">
+          <Button variant="default" onClick={onClose} disabled={isLoading}>
             {cancelText || t('actions.cancelAction')}
-          </AlertDialogCancel>
-          <AlertDialogAction
-            onClick={onConfirm}
-            disabled={isLoading}
-            className={cn(buttonVariants(), variantStyles[variant])}
-          >
-            {isLoading ? t('loading') : confirmText || t('buttons.confirm')}
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+          </Button>
+          <Button color={variantColors[variant]} onClick={onConfirm} loading={isLoading}>
+            {confirmText || t('buttons.confirm')}
+          </Button>
+        </Group>
+      </Stack>
+    </Modal>
   )
 }

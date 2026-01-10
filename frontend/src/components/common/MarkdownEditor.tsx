@@ -1,5 +1,6 @@
 import React, { useCallback, useRef, useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Box, ActionIcon } from '@mantine/core'
 import {
   MDXEditor,
   headingsPlugin,
@@ -25,7 +26,7 @@ import '@mdxeditor/editor/style.css'
 import './mdxeditor/mdxeditor.css'
 import type { AssetDto } from '@/api/dto'
 import { AssetDirectiveDescriptor, AssetImagesProvider } from './mdxeditor'
-import { PhotoIcon } from '@heroicons/react/24/outline'
+import { IconPhoto } from '@tabler/icons-react'
 import { LoadingSpinner } from './LoadingSpinner'
 
 // Debounce utility
@@ -81,26 +82,22 @@ function AssetUploadButton({ editorRef, onImageUpload, isUploadingImage }: Asset
 
   return (
     <>
-      <button
-        type="button"
+      <ActionIcon
+        variant="subtle"
+        color="gray"
         onClick={handleClick}
         disabled={isUploadingImage}
-        className="mdxeditor-toolbar-button"
         title={t('editor.image')}
         aria-label={t('editor.image')}
       >
-        {isUploadingImage ? (
-          <LoadingSpinner size="sm" color="gray" className="h-4 w-4" />
-        ) : (
-          <PhotoIcon className="w-4 h-4" />
-        )}
-      </button>
+        {isUploadingImage ? <LoadingSpinner size="sm" color="gray" /> : <IconPhoto size={16} />}
+      </ActionIcon>
       <input
         ref={imageInputRef}
         type="file"
         accept="image/*"
         onChange={handleImageSelect}
-        className="hidden"
+        style={{ display: 'none' }}
       />
     </>
   )
@@ -146,7 +143,6 @@ export interface MarkdownEditorProps {
   value: string
   onChange?: (value: string) => void
   placeholder?: string
-  className?: string
   minHeight?: string
   maxHeight?: string
   disabled?: boolean
@@ -160,7 +156,6 @@ export function MarkdownEditor({
   value = '',
   onChange,
   placeholder,
-  className = '',
   minHeight = '200px',
   maxHeight = '500px',
   disabled = false,
@@ -204,9 +199,16 @@ export function MarkdownEditor({
 
   return (
     <AssetImagesProvider images={images}>
-      <div
-        className={`markdown-editor-container border border-gray-300 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-300 bg-white ${className}`}
-        style={editorStyle}
+      <Box
+        style={{
+          ...editorStyle,
+          border: '1px solid var(--mantine-color-gray-3)',
+          borderRadius: 'var(--mantine-radius-xl)',
+          overflow: 'hidden',
+          boxShadow: 'var(--mantine-shadow-sm)',
+          backgroundColor: 'var(--mantine-color-white)',
+          transition: 'box-shadow 300ms ease',
+        }}
       >
         <MDXEditor
           ref={editorRef}
@@ -214,7 +216,6 @@ export function MarkdownEditor({
           onChange={handleChange}
           readOnly={disabled}
           placeholder={placeholder || t('editor.placeholder')}
-          contentEditableClassName="prose prose-gray max-w-none px-6 py-5 focus:outline-none"
           plugins={[
             headingsPlugin(),
             listsPlugin(),
@@ -228,7 +229,6 @@ export function MarkdownEditor({
               directiveDescriptors: [AssetDirectiveDescriptor],
             }),
             toolbarPlugin({
-              toolbarClassName: 'flex items-start gap-1 p-2 border-b border-gray-200 bg-gray-50/50',
               toolbarContents: () => (
                 <ToolbarContents
                   editorRef={editorRef}
@@ -238,9 +238,8 @@ export function MarkdownEditor({
               ),
             }),
           ]}
-          className="mdxeditor-custom"
         />
-      </div>
+      </Box>
     </AssetImagesProvider>
   )
 }

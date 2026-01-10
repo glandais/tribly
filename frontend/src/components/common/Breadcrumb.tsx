@@ -1,22 +1,8 @@
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { ChevronLeftIcon } from '@heroicons/react/24/outline'
-import {
-  Breadcrumb as BreadcrumbRoot,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-  BreadcrumbEllipsis,
-} from '@/components/ui/breadcrumb'
+import { Breadcrumbs, Anchor, Text, Group, Menu, Box, ActionIcon } from '@mantine/core'
+import { IconChevronLeft, IconDots } from '@tabler/icons-react'
 import { Fragment } from 'react/jsx-runtime'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '../ui/dropdown-menu'
 
 export interface BreadcrumbSubItemType {
   label: string
@@ -45,68 +31,71 @@ export function Breadcrumb({ items, showBackLink = false }: BreadcrumbProps) {
   const previousItem = items.length > 1 ? items[items.length - 2] : null
 
   return (
-    <div className="px-4 sm:px-0">
-      <nav className="mb-6" aria-label={t('aria.breadcrumb')}>
+    <Box mb="lg">
+      <nav aria-label={t('aria.breadcrumb')}>
         {/* Back link - shown on mobile always, on desktop only when showBackLink is true */}
         {previousItem && previousItem.path && (
-          <Link
+          <Anchor
+            component={Link}
             to={previousItem.path}
-            className={`inline-flex items-center text-sm text-muted-foreground hover:text-foreground ${
-              showBackLink ? 'mb-2' : 'sm:hidden'
-            }`}
+            c="dimmed"
+            size="sm"
+            mb={showBackLink ? 'xs' : undefined}
+            display={showBackLink ? 'inline-flex' : { base: 'inline-flex', sm: 'none' }}
+            style={{ alignItems: 'center' }}
           >
-            <ChevronLeftIcon className="size-4 mr-1" aria-hidden="true" />
+            <IconChevronLeft size={16} style={{ marginRight: 4 }} />
             {previousItem.label}
-          </Link>
+          </Anchor>
         )}
 
         {/* Desktop: Full breadcrumb path (hidden when showBackLink is true to avoid redundancy) */}
         {!showBackLink && (
-          <BreadcrumbRoot className="hidden sm:block">
-            <BreadcrumbList>
-              {items.map((item, index) => {
-                const isLast = index === items.length - 1
-                return (
-                  <Fragment key={`bc-${index}`}>
-                    <BreadcrumbItem>
-                      {item.path && !isLast ? (
-                        <BreadcrumbLink asChild>
-                          <Link to={item.path}>{item.label}</Link>
-                        </BreadcrumbLink>
-                      ) : (
-                        <BreadcrumbPage>{item.label}</BreadcrumbPage>
-                      )}
-                    </BreadcrumbItem>
+          <Breadcrumbs visibleFrom="sm">
+            {items.map((item, index) => {
+              const isLast = index === items.length - 1
+              return (
+                <Fragment key={`bc-${index}`}>
+                  <Group gap={4}>
+                    {item.path && !isLast ? (
+                      <Anchor component={Link} to={item.path} size="sm">
+                        {item.label}
+                      </Anchor>
+                    ) : (
+                      <Text size="sm" c="dimmed">
+                        {item.label}
+                      </Text>
+                    )}
 
-                    {item.subItems && item.subItems?.length > 0 ? (
-                      <DropdownMenu>
-                        <DropdownMenuTrigger className="flex items-center gap-1">
-                          <BreadcrumbEllipsis className="size-4" />
-                          <span className="sr-only">{t('aria.more')}</span>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="start">
+                    {item.subItems && item.subItems.length > 0 && (
+                      <Menu shadow="md" width={200}>
+                        <Menu.Target>
+                          <ActionIcon variant="subtle" size="xs" aria-label={t('aria.more')}>
+                            <IconDots size={14} />
+                          </ActionIcon>
+                        </Menu.Target>
+                        <Menu.Dropdown>
                           {item.subItems.map((subItem, bIndex) =>
                             subItem.path ? (
-                              <DropdownMenuItem key={bIndex} asChild>
-                                <Link to={subItem.path}>{subItem.label}</Link>
-                              </DropdownMenuItem>
-                            ) : (
-                              <DropdownMenuItem key={bIndex} disabled>
+                              <Menu.Item key={bIndex} component={Link} to={subItem.path}>
                                 {subItem.label}
-                              </DropdownMenuItem>
+                              </Menu.Item>
+                            ) : (
+                              <Menu.Item key={bIndex} disabled>
+                                {subItem.label}
+                              </Menu.Item>
                             )
                           )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    ) : null}
-                    {!isLast && <BreadcrumbSeparator />}
-                  </Fragment>
-                )
-              })}
-            </BreadcrumbList>
-          </BreadcrumbRoot>
+                        </Menu.Dropdown>
+                      </Menu>
+                    )}
+                  </Group>
+                </Fragment>
+              )
+            })}
+          </Breadcrumbs>
         )}
       </nav>
-    </div>
+    </Box>
   )
 }

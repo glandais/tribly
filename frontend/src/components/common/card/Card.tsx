@@ -1,56 +1,71 @@
 import { Link } from 'react-router-dom'
 import { ReactNode } from 'react'
+import { Paper, Title, Box } from '@mantine/core'
 import { MarkdownDisplay } from '../MarkdownDisplay'
 import { MediaDto } from '@/api/dto'
 
 interface CardProps {
   to: string
   children: ReactNode
-  className?: string
 }
 
-export function Card({ to, children, className = '' }: CardProps) {
+export function Card({ to, children }: CardProps) {
   return (
-    <Link
+    <Paper
+      component={Link}
       to={to}
-      className={`block bg-white rounded-lg shadow-xs border border-gray-200 hover:shadow-md hover:border-gray-300 transition-all ${className}`}
+      withBorder
+      radius="md"
+      style={{
+        display: 'block',
+        textDecoration: 'none',
+        color: 'inherit',
+        transition: 'box-shadow 0.2s, border-color 0.2s',
+      }}
+      styles={{
+        root: {
+          '&:hover': {
+            boxShadow: 'var(--mantine-shadow-md)',
+            borderColor: 'var(--mantine-color-gray-4)',
+          },
+        },
+      }}
     >
       {children}
-    </Link>
+    </Paper>
   )
 }
 
 interface CardContentProps {
   children: ReactNode
-  className?: string
 }
 
-export function CardContent({ children, className = '' }: CardContentProps) {
-  return <div className={`p-4 ${className}`}>{children}</div>
+export function CardContent({ children }: CardContentProps) {
+  return <Box p="md">{children}</Box>
 }
 
 interface CardHeaderProps {
   children: ReactNode
-  className?: string
 }
 
-export function CardHeader({ children, className = '' }: CardHeaderProps) {
-  return <div className={`flex items-start justify-between ${className}`}>{children}</div>
+export function CardHeader({ children }: CardHeaderProps) {
+  return (
+    <Box style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+      {children}
+    </Box>
+  )
 }
 
 interface CardTitleProps {
   children: ReactNode
   truncate?: boolean
-  className?: string
 }
 
-export function CardTitle({ children, truncate = false, className = '' }: CardTitleProps) {
+export function CardTitle({ children, truncate = false }: CardTitleProps) {
   return (
-    <h3
-      className={`text-lg font-semibold text-gray-900 ${truncate ? 'truncate' : ''} ${className}`}
-    >
+    <Title order={4} lineClamp={truncate ? 1 : undefined}>
       {children}
-    </h3>
+    </Title>
   )
 }
 
@@ -58,26 +73,16 @@ interface CardDescriptionProps {
   media: MediaDto
   markdown?: boolean
   maxLength?: number
-  className?: string
 }
 
 export function CardDescription({
   media,
   markdown = false,
   maxLength = 150,
-  className = '',
 }: CardDescriptionProps) {
-  // Markdown preview mode
   if (markdown && media.markdown) {
-    return (
-      <MarkdownDisplay
-        markdown={media.markdown}
-        preview={true}
-        maxLength={maxLength}
-        className={`text-sm text-gray-600 ${className}`}
-      />
-    )
+    return <MarkdownDisplay markdown={media.markdown} preview={true} maxLength={maxLength} />
   }
 
-  return <p></p>
+  return null
 }

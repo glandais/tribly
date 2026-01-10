@@ -2,8 +2,9 @@ import { useParams, Navigate, useNavigate } from 'react-router-dom'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
-import { toast } from 'sonner'
+import { notifications } from '@mantine/notifications'
 import i18next from 'i18next'
+import { Container, Stack, Title } from '@mantine/core'
 import { useGetTeam } from '@/api/endpoints/teams/teams'
 import {
   useGetAd,
@@ -63,7 +64,7 @@ export function EditAdPage() {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getListAdsQueryKey(teamSlug!) })
           queryClient.invalidateQueries({ queryKey: getGetAdQueryKey(teamSlug!, adSlug!) })
-          toast.success(i18next.t('ads.notifications.updated'))
+          notifications.show({ message: i18next.t('ads.notifications.updated'), color: 'green' })
           navigate(paths.ad(teamSlug!, adSlug!))
         },
       }
@@ -90,10 +91,10 @@ export function EditAdPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">{t('ads.edit.title')}</h1>
-      </div>
+    <Container size="sm" py="xl">
+      <Stack gap="xs" mb="xl">
+        <Title order={1}>{t('ads.edit.title')}</Title>
+      </Stack>
 
       <AdEditor
         team={team}
@@ -107,6 +108,6 @@ export function EditAdPage() {
         onSlugChange={handleSlugChange}
         canEditSlug={isAdmin}
       />
-    </div>
+    </Container>
   )
 }

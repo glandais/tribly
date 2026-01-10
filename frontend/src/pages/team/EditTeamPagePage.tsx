@@ -2,6 +2,7 @@ import { useParams, Navigate } from 'react-router-dom'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 import { useTranslation } from 'react-i18next'
 import { paths } from '../../config/paths'
+import { Box, Paper, Title } from '@mantine/core'
 import { useGetTeam } from '@/api/endpoints/teams/teams'
 import { useGetPage } from '@/api/endpoints/team-pages/team-pages'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
@@ -40,12 +41,12 @@ export function EditTeamPagePage() {
 
   return (
     <TeamAdminLayout team={team} currentTab="pages">
-      <div className="py-6">
-        <div className="max-w-2xl">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">
+      <Box py="md">
+        <Box maw={672}>
+          <Title order={2} mb="lg">
             {t('teams.pages.edit.title', { name: page.title })}
-          </h2>
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          </Title>
+          <Paper p="lg" withBorder>
             <TeamPageForm
               teamSlug={team.slug}
               pageSlug={page.slug}
@@ -55,9 +56,9 @@ export function EditTeamPagePage() {
                 // Navigation is handled by the hook
               }}
             />
-          </div>
-        </div>
-      </div>
+          </Paper>
+        </Box>
+      </Box>
     </TeamAdminLayout>
   )
 }

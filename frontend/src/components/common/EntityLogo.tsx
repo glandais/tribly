@@ -1,19 +1,19 @@
+import { Image } from '@mantine/core'
 import { AssetDto } from '@/api/dto'
 
 // Size configurations for the logo
-const sizeClasses = {
-  xs: 'h-6 w-6',
-  sm: 'h-8 w-8',
-  md: 'h-10 w-10',
-  lg: 'h-12 w-12',
-  xl: 'h-16 w-16',
+const mantineSizes = {
+  xs: 24,
+  sm: 32,
+  md: 40,
+  lg: 48,
+  xl: 64,
 } as const
 
 export interface EntityLogoProps {
   logo?: AssetDto
   alt?: string
-  size?: keyof typeof sizeClasses
-  className?: string
+  size?: keyof typeof mantineSizes
 }
 
 /**
@@ -21,14 +21,12 @@ export interface EntityLogoProps {
  * Use for rides, posts, routes - entities that don't need a placeholder.
  * Returns null if no logo is provided.
  */
-export function EntityLogo({ logo, alt = 'Logo', size = 'md', className = '' }: EntityLogoProps) {
+export function EntityLogo({ logo, alt = 'Logo', size = 'md' }: EntityLogoProps) {
   if (!logo?.url) {
     return null
   }
 
-  const sizeClass = sizeClasses[size]
+  const pixelSize = mantineSizes[size]
 
-  return (
-    <img src={logo.url} alt={alt} className={`${sizeClass} object-cover rounded-lg ${className}`} />
-  )
+  return <Image src={logo.url} alt={alt} w={pixelSize} h={pixelSize} fit="cover" radius="md" />
 }

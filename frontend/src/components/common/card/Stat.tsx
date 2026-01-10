@@ -1,25 +1,36 @@
 import { ReactNode } from 'react'
+import { Group, Text, Box } from '@mantine/core'
 
 interface StatProps {
   icon: ReactNode
   children: ReactNode
-  className?: string
 }
 
-export function Stat({ icon, children, className = '' }: StatProps) {
+export function Stat({ icon, children }: StatProps) {
   return (
-    <span className={`flex items-center text-sm text-gray-500 ${className}`}>
-      <span className="w-4 h-4 mr-1">{icon}</span>
-      {children}
-    </span>
+    <Group gap={4} wrap="nowrap">
+      <Box
+        w={16}
+        h={16}
+        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+      >
+        {icon}
+      </Box>
+      <Text size="sm" c="dimmed">
+        {children}
+      </Text>
+    </Group>
   )
 }
 
 interface StatGroupProps {
   children: ReactNode
-  className?: string
 }
 
-export function StatGroup({ children, className = '' }: StatGroupProps) {
-  return <div className={`flex items-center gap-4 ${className}`}>{children}</div>
+export function StatGroup({ children }: StatGroupProps) {
+  return (
+    <Group gap="md" my="xs">
+      {children}
+    </Group>
+  )
 }

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Paper, Title, Stack, Text, Center } from '@mantine/core'
 import {
   useComments,
   useCreateComment,
@@ -50,19 +51,19 @@ export function CommentSection({
 
   if (isLoading) {
     return (
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <div className="flex justify-center">
+      <Paper p="xl" shadow="xs" withBorder>
+        <Center>
           <LoadingSpinner />
-        </div>
-      </div>
+        </Center>
+      </Paper>
     )
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-      <h2 className="text-lg font-semibold text-gray-900 mb-4">
+    <Paper p="xl" shadow="xs" withBorder>
+      <Title order={4} mb="md">
         {t('comments.title')} ({data?.total || 0})
-      </h2>
+      </Title>
 
       {/* Comment form for new top-level comments */}
       <CommentForm
@@ -72,7 +73,7 @@ export function CommentSection({
       />
 
       {/* Comments list */}
-      <div className="mt-6 space-y-4">
+      <Stack mt="xl" gap="md">
         {data?.items.map((comment) => (
           <CommentItem
             key={comment.id}
@@ -88,9 +89,11 @@ export function CommentSection({
           />
         ))}
         {(!data?.items || data.items.length === 0) && (
-          <p className="text-gray-500 text-center py-4">{t('comments.empty')}</p>
+          <Text c="dimmed" ta="center" py="md">
+            {t('comments.empty')}
+          </Text>
         )}
-      </div>
-    </div>
+      </Stack>
+    </Paper>
   )
 }

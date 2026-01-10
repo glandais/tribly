@@ -21,6 +21,7 @@ import {
   ScriptableContext,
   ScriptableLineSegmentContext,
 } from 'chart.js'
+import { Box, Center, Paper, Text } from '@mantine/core'
 import type { RouteDetailDto } from '@/api/dto'
 import { StartMarker, EndMarker, HoverMarker, WaypointMarker } from '../map/MapMarkers'
 import {
@@ -286,18 +287,18 @@ export function RouteMapView({ route }: RouteMapViewProps) {
 
   if (trackPoints.length === 0) {
     return (
-      <div className="w-full h-[700px] flex items-center justify-center bg-gray-100 rounded">
-        <div className="text-gray-500">{t('map.noTrackData')}</div>
-      </div>
+      <Center h={700} bg="gray.1" style={{ borderRadius: 'var(--mantine-radius-default)' }}>
+        <Text c="dimmed">{t('map.noTrackData')}</Text>
+      </Center>
     )
   }
 
   const hoveredPoint = hoveredPointIndex >= 0 ? trackPoints[hoveredPointIndex] : null
 
   return (
-    <div className="border rounded overflow-hidden">
+    <Paper withBorder style={{ overflow: 'hidden' }}>
       {/* Map container */}
-      <div className="relative w-full h-[700px] z-0">
+      <Box pos="relative" w="100%" h={700} style={{ zIndex: 0 }}>
         <Map
           ref={mapRef}
           mapLib={maplibregl}
@@ -359,15 +360,23 @@ export function RouteMapView({ route }: RouteMapViewProps) {
         </Map>
 
         {/* Elevation chart overlay */}
-        <div className="absolute bottom-0 left-0 right-0 h-[200px] bg-white/95 shadow-lg z-[1000] pointer-events-auto">
+        <Box
+          pos="absolute"
+          bottom={0}
+          left={0}
+          right={0}
+          h={200}
+          bg="rgba(255, 255, 255, 0.95)"
+          style={{ zIndex: 1000, pointerEvents: 'auto', boxShadow: 'var(--mantine-shadow-lg)' }}
+        >
           <Line
             ref={chartRef}
             data={chartData}
             options={chartOptions}
             plugins={[crosshairPlugin]}
           />
-        </div>
-      </div>
-    </div>
+        </Box>
+      </Box>
+    </Paper>
   )
 }

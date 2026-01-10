@@ -2,8 +2,8 @@ import { useParams, Navigate, useNavigate } from 'react-router-dom'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
-import { toast } from 'sonner'
-import i18next from 'i18next'
+import { notifications } from '@mantine/notifications'
+import { Container, Stack, Title } from '@mantine/core'
 import { useGetTeam } from '@/api/endpoints/teams/teams'
 import {
   useGetPost,
@@ -59,7 +59,7 @@ export function EditPostPage() {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getListPublicationsQueryKey(teamSlug!) })
           queryClient.invalidateQueries({ queryKey: getGetPostQueryKey(teamSlug!, postSlug!) })
-          toast.success(i18next.t('posts.notifications.updated'))
+          notifications.show({ message: t('posts.notifications.updated'), color: 'green' })
           navigate(paths.post(teamSlug!, postSlug!))
         },
       }
@@ -83,10 +83,10 @@ export function EditPostPage() {
   const initialValues: PostRequest = { ...post }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">{t('posts.edit.title')}</h1>
-      </div>
+    <Container size="sm" py="xl">
+      <Stack gap="xs" mb="xl">
+        <Title order={1}>{t('posts.edit.title')}</Title>
+      </Stack>
 
       <PostEditor
         team={team}
@@ -100,6 +100,6 @@ export function EditPostPage() {
         onSlugChange={handleSlugChange}
         canEditSlug={canEdit}
       />
-    </div>
+    </Container>
   )
 }

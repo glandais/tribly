@@ -1,27 +1,14 @@
 import { useEffect } from 'react'
-import { useForm, useWatch } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm } from '@mantine/form'
+import { zod4Resolver } from 'mantine-form-zod-resolver'
 import { useTranslation } from 'react-i18next'
+import { TextInput, Radio, Stack, Group, Button, Text } from '@mantine/core'
+import { DateTimePicker } from '@mantine/dates'
 import type { TeamDetailDto } from '@/api/dto'
-import { LoadingSpinner } from '../common/LoadingSpinner'
 import { MediaEditor } from '../common/MediaEditor'
 import { SlugEditor } from '../common/SlugEditor'
 import { Status, PostRequest } from '@/api/dto'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
 import { createPostBody } from '@/api/zod/posts/posts.zod'
-import { InputDateTime } from '../ui/input-datetime'
 
 const postSchema = createPostBody.refine(
   (data) => {
@@ -37,25 +24,14 @@ const postSchema = createPostBody.refine(
 )
 
 interface PostEditorProps {
-  // Context
   team: TeamDetailDto
   teamSlug: string
-
-  // Initial values (REQUIRED - each page prepares these)
   initialValues: PostRequest
-
-  // Submission
   onSubmit: (data: PostRequest) => void | Promise<void>
   onCancel: () => void
-
-  // State
   isPending: boolean
-
-  // UI customization
   submitButtonText?: string
   cancelButtonText?: string
-
-  // Slug editing (only for edit mode)
   currentSlug?: string
   onSlugChange?: (newSlug: string) => Promise<void>
   canEditSlug?: boolean
@@ -74,41 +50,40 @@ export function PostEditor({
   onSlugChange,
   canEditSlug = false,
 }: PostEditorProps) {
-  const { t: t } = useTranslation()
+  const { t } = useTranslation()
 
   const form = useForm<PostRequest>({
-    resolver: zodResolver(postSchema),
-    mode: 'onChange',
-    defaultValues: initialValues,
+    validate: zod4Resolver(postSchema) as any,
+    initialValues,
+    validateInputOnChange: true,
   })
 
-  const status = useWatch({ control: form.control, name: 'status' })
+  const status = form.values.status
 
   useEffect(() => {
-    form.trigger('publishAt')
-  }, [status, form])
+    form.validateField('publishAt')
+  }, [status])
+
+  const handleSubmit = (values: PostRequest) => {
+    onSubmit(values)
+  }
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        {/* Title */}
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>
-                {t('form.title')} <span className="text-destructive">*</span>
-              </FormLabel>
-              <FormControl>
-                <Input placeholder={t('posts.create.namePlaceholder')} {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+    <form onSubmit={form.onSubmit(handleSubmit)}>
+      <Stack gap="lg">
+        <TextInput
+          label={
+            <>
+              {t('form.title')}{' '}
+              <Text span c="red">
+                *
+              </Text>
+            </>
+          }
+          placeholder={t('posts.create.namePlaceholder')}
+          {...form.getInputProps('name')}
         />
 
-        {/* Slug Editor (only in edit mode) */}
         {currentSlug && onSlugChange && (
           <SlugEditor
             currentSlug={currentSlug}
@@ -118,143 +93,79 @@ export function PostEditor({
           />
         )}
 
-        {/* Description */}
-        <FormField
-          control={form.control}
-          name="media"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t('form.description')}</FormLabel>
-              <FormControl>
-                <MediaEditor
-                  value={field.value}
-                  onChange={field.onChange}
-                  placeholder={t('posts.create.descriptionPlaceholder')}
-                  minHeight="200px"
-                  maxHeight="400px"
-                  disabled={isPending}
-                  ariaLabel={t('form.description')}
-                  teamSlug={teamSlug}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <Stack gap="xs">
+          <Text size="sm" fw={500}>
+            {t('form.description')}
+          </Text>
+          <MediaEditor
+            value={form.values.media}
+            onChange={(val) => form.setFieldValue('media', val)}
+            placeholder={t('posts.create.descriptionPlaceholder')}
+            minHeight="200px"
+            maxHeight="400px"
+            disabled={isPending}
+            ariaLabel={t('form.description')}
+            teamSlug={teamSlug}
+          />
+        </Stack>
 
-        {/* Visibility */}
         {team.visibility !== 'TEAM' && (
-          <FormField
-            control={form.control}
-            name="visibility"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t('visibility.label')}</FormLabel>
-                <FormControl>
-                  <RadioGroup
-                    value={field.value}
-                    onValueChange={field.onChange}
-                    className="space-y-2"
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="TEAM" id="visibility-team" />
-                      <Label htmlFor="visibility-team">{t('visibility.team')}</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="PUBLIC" id="visibility-public" />
-                      <Label htmlFor="visibility-public">{t('visibility.public')}</Label>
-                    </div>
-                  </RadioGroup>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <Radio.Group label={t('visibility.label')} {...form.getInputProps('visibility')}>
+            <Stack gap="xs" mt="xs">
+              <Radio value="TEAM" label={t('visibility.team')} />
+              <Radio value="PUBLIC" label={t('visibility.public')} />
+            </Stack>
+          </Radio.Group>
         )}
 
-        {/* Status */}
-        <FormField
-          control={form.control}
-          name="status"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t('form.status')}</FormLabel>
-              <FormControl>
-                <RadioGroup
-                  value={field.value}
-                  onValueChange={field.onChange}
-                  className="space-y-2"
-                >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="DRAFT" id="status-draft" />
-                    <Label htmlFor="status-draft">{t('status.DRAFT')}</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="PUBLISHED" id="status-published" />
-                    <Label htmlFor="status-published">{t('status.PUBLISHED')}</Label>
-                  </div>
-                </RadioGroup>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <Radio.Group label={t('form.status')} {...form.getInputProps('status')}>
+          <Stack gap="xs" mt="xs">
+            <Radio value="DRAFT" label={t('status.DRAFT')} />
+            <Radio value="PUBLISHED" label={t('status.PUBLISHED')} />
+          </Stack>
+        </Radio.Group>
 
-        {/* Date and Time (shown when PUBLISHED) */}
         {status === Status.PUBLISHED && (
-          <FormField
-            control={form.control}
-            name="dateTime"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>
-                  {t('posts.create.dateTimeLabel')} <span className="text-destructive">*</span>
-                </FormLabel>
-                <FormControl>
-                  <InputDateTime {...field} />
-                </FormControl>
-                <FormDescription>{t('posts.create.dateTimeHint')}</FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
+          <DateTimePicker
+            label={
+              <>
+                {t('posts.create.dateTimeLabel')}{' '}
+                <Text span c="red">
+                  *
+                </Text>
+              </>
+            }
+            description={t('posts.create.dateTimeHint')}
+            value={form.values.dateTime ? new Date(form.values.dateTime) : null}
+            onChange={(date) => {
+              if (date) form.setFieldValue('dateTime', new Date(date).toISOString())
+            }}
+            error={form.errors.dateTime}
           />
         )}
 
-        {/* Scheduled Publication (shown when DRAFT) */}
         {status === Status.DRAFT && (
-          <FormField
-            control={form.control}
-            name="publishAt"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t('posts.create.publishAtLabel')}</FormLabel>
-                <FormControl>
-                  <InputDateTime {...field} />
-                </FormControl>
-                <FormDescription>{t('form.publishAtHint')}</FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
+          <DateTimePicker
+            label={t('posts.create.publishAtLabel')}
+            description={t('form.publishAtHint')}
+            value={form.values.publishAt ? new Date(form.values.publishAt) : null}
+            onChange={(date) =>
+              form.setFieldValue('publishAt', date ? new Date(date).toISOString() : undefined)
+            }
+            error={form.errors.publishAt}
+            clearable
           />
         )}
 
-        {/* Actions */}
-        <div className="pt-4 flex items-center justify-end gap-3">
-          <Button type="button" variant="outline" onClick={onCancel}>
+        <Group justify="flex-end" pt="md">
+          <Button variant="default" onClick={onCancel}>
             {cancelButtonText || t('actions.cancelAction')}
           </Button>
-          <Button type="submit" disabled={isPending || !form.formState.isValid}>
-            {isPending ? (
-              <>
-                <LoadingSpinner size="sm" color="white" className="mr-2" />
-                {t('loading')}
-              </>
-            ) : (
-              submitButtonText || t('actions.save')
-            )}
+          <Button type="submit" disabled={isPending || !form.isValid()} loading={isPending}>
+            {submitButtonText || t('actions.save')}
           </Button>
-        </div>
-      </form>
-    </Form>
+        </Group>
+      </Stack>
+    </form>
   )
 }

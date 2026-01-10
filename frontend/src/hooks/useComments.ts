@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { toast } from 'sonner'
+import { notifications } from '@mantine/notifications'
 import i18next from 'i18next'
 import {
   listRideComments,
@@ -91,7 +91,7 @@ export function useCreateComment(
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: getQueryKey(teamSlug!, entityType, entitySlug!) })
-      toast.success(i18next.t('comments.notifications.created'))
+      notifications.show({ message: i18next.t('comments.notifications.created'), color: 'green' })
     },
   })
 }
@@ -119,7 +119,7 @@ export function useDeleteComment(
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: getQueryKey(teamSlug!, entityType, entitySlug!) })
-      toast.success(i18next.t('comments.notifications.deleted'))
+      notifications.show({ message: i18next.t('comments.notifications.deleted'), color: 'green' })
     },
   })
 }

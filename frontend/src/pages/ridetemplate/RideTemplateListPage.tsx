@@ -2,16 +2,21 @@ import { useState } from 'react'
 import { Link, Navigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
-import { toast } from 'sonner'
-import i18next from 'i18next'
+import { notifications } from '@mantine/notifications'
 import { paths } from '../../config/paths'
+import { IconPlus, IconFiles, IconPencil, IconTrash, IconUsersGroup } from '@tabler/icons-react'
 import {
-  PlusIcon,
-  DocumentDuplicateIcon,
-  PencilIcon,
-  TrashIcon,
-  UserGroupIcon,
-} from '@heroicons/react/24/outline'
+  Box,
+  Button,
+  Group,
+  Stack,
+  Title,
+  Text,
+  Paper,
+  Center,
+  Badge,
+  ActionIcon,
+} from '@mantine/core'
 import { useGetTeam } from '@/api/endpoints/teams/teams'
 import {
   useListTemplates,
@@ -77,7 +82,10 @@ export function RideTemplateListPage() {
         {
           onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: getListTemplatesQueryKey(teamSlug) })
-            toast.success(i18next.t('rideTemplates.notifications.deleted'))
+            notifications.show({
+              message: t('rideTemplates.notifications.deleted'),
+              color: 'green',
+            })
             setTemplateToDelete(null)
           },
         }
@@ -87,148 +95,144 @@ export function RideTemplateListPage() {
 
   return (
     <TeamAdminLayout team={team} currentTab="ride-templates">
-      <div className="py-6">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900">{t('rideTemplates.list.title')}</h2>
-          </div>
+      <Stack py="lg" gap="lg">
+        <Group justify="space-between">
+          <Title order={2}>{t('rideTemplates.list.title')}</Title>
           {canManage && (
-            <Link
+            <Button
+              component={Link}
               to={paths.rideTemplateNew(teamSlug!)}
-              className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
+              leftSection={<IconPlus size={16} />}
             >
-              <PlusIcon className="w-4 h-4 mr-2" />
               {t('rideTemplates.create.title')}
-            </Link>
+            </Button>
           )}
-        </div>
+        </Group>
 
         {/* Search Input */}
-        <SearchInput
-          id="templates-search"
-          value={search}
-          onChange={(value) => {
-            setSearch(value)
-            resetPage()
-          }}
-          placeholder={t('rideTemplates.list.search.placeholder')}
-          label={t('rideTemplates.list.search.label')}
-          className="mb-6"
-        />
+        <Box>
+          <SearchInput
+            id="templates-search"
+            value={search}
+            onChange={(value) => {
+              setSearch(value)
+              resetPage()
+            }}
+            placeholder={t('rideTemplates.list.search.placeholder')}
+            label={t('rideTemplates.list.search.label')}
+          />
+        </Box>
 
         {/* Templates List */}
         {isLoadingTemplates ? (
-          <div className="flex justify-center py-12">
+          <Center py="xl">
             <LoadingSpinner />
-          </div>
+          </Center>
         ) : templatesData?.templates && templatesData.templates.length > 0 ? (
           <>
-            <div className="space-y-4">
+            <Stack gap="md">
               {templatesData.templates.map((template) => (
-                <div
-                  key={template.id}
-                  className="bg-white rounded-lg shadow-sm border border-gray-200 p-4"
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-lg font-medium text-gray-900">{template.name}</h3>
+                <Paper key={template.id} withBorder p="md">
+                  <Group justify="space-between" align="flex-start" wrap="nowrap">
+                    <Stack gap="xs" style={{ flex: 1, minWidth: 0 }}>
+                      <Text size="lg" fw={500}>
+                        {template.name}
+                      </Text>
                       {template.markdown && (
-                        <MarkdownDisplay
-                          markdown={template.markdown}
-                          preview={true}
-                          maxLength={150}
-                          className="mt-1 text-sm text-gray-500"
-                        />
+                        <Box>
+                          <MarkdownDisplay
+                            markdown={template.markdown}
+                            preview={true}
+                            maxLength={150}
+                          />
+                        </Box>
                       )}
-                      <div className="mt-3 flex items-center gap-4 text-sm text-gray-500">
-                        <span className="flex items-center gap-1">
-                          <UserGroupIcon className="w-4 h-4" />
-                          {t('groups.groupCount', { count: template.groupCount })}
-                        </span>
-                        <span
-                          className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                            template.visibility === 'PUBLIC'
-                              ? 'bg-green-100 text-green-800'
-                              : 'bg-gray-100 text-gray-800'
-                          }`}
+                      <Group gap="md">
+                        <Group gap="xs">
+                          <IconUsersGroup size={16} />
+                          <Text size="sm" c="dimmed">
+                            {t('groups.groupCount', { count: template.groupCount })}
+                          </Text>
+                        </Group>
+                        <Badge
+                          variant="light"
+                          color={template.visibility === 'PUBLIC' ? 'green' : 'gray'}
                         >
                           {t(
                             `visibility.${template.visibility.toLowerCase() as 'public' | 'team'}`
                           )}
-                        </span>
-                      </div>
+                        </Badge>
+                      </Group>
                       {template.groups && template.groups.length > 0 && (
-                        <div className="mt-3 flex flex-wrap gap-2">
+                        <Group gap="xs" mt="xs">
                           {template.groups.map((group) => (
-                            <span
-                              key={group.id}
-                              className="inline-flex items-center px-2 py-1 text-xs font-medium bg-indigo-50 text-indigo-700 rounded"
-                            >
+                            <Badge key={group.id} variant="light" color="indigo" size="sm">
                               {group.name}
                               {group.averageSpeed && (
-                                <span className="ml-1 text-indigo-400">
+                                <Text span ml={4} c="dimmed">
                                   {t('speed', { speed: group.averageSpeed })}
-                                </span>
+                                </Text>
                               )}
-                            </span>
+                            </Badge>
                           ))}
-                        </div>
+                        </Group>
                       )}
-                    </div>
+                    </Stack>
                     {canManage && (
-                      <div className="flex items-center gap-2 ml-4">
-                        <Link
+                      <Group gap="xs" ml="md">
+                        <ActionIcon
+                          component={Link}
                           to={paths.rideTemplateEdit(teamSlug!, template.slug)}
-                          className="p-2 text-gray-400 hover:text-indigo-600 rounded-lg hover:bg-gray-100"
+                          variant="subtle"
+                          color="gray"
                           title={t('actions.edit')}
                         >
-                          <PencilIcon className="w-5 h-5" />
-                        </Link>
-                        <button
+                          <IconPencil size={20} />
+                        </ActionIcon>
+                        <ActionIcon
+                          variant="subtle"
+                          color="red"
                           onClick={() => handleDelete(template)}
-                          className="p-2 text-gray-400 hover:text-red-600 rounded-lg hover:bg-gray-100"
                           title={t('actions.delete')}
                         >
-                          <TrashIcon className="w-5 h-5" />
-                        </button>
-                      </div>
+                          <IconTrash size={20} />
+                        </ActionIcon>
+                      </Group>
                     )}
-                  </div>
-                </div>
+                  </Group>
+                </Paper>
               ))}
-            </div>
+            </Stack>
 
-            <Pagination
-              currentPage={page}
-              totalPages={totalPages}
-              onPageChange={setPage}
-              className="mt-8"
-            />
+            <Box mt="xl">
+              <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+            </Box>
           </>
         ) : (
-          <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
-            <DocumentDuplicateIcon className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-4 text-lg font-medium text-gray-900">
-              {search ? t('rideTemplates.list.noResults') : t('rideTemplates.list.empty.title')}
-            </h3>
-            {!search && (
-              <p className="mt-2 text-gray-500">
-                {canManage
-                  ? t('rideTemplates.list.empty.admin')
-                  : t('rideTemplates.list.empty.member')}
-              </p>
-            )}
-            {canManage && !search && (
-              <Link
-                to={paths.rideTemplateNew(teamSlug!)}
-                className="mt-4 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
-              >
-                {t('rideTemplates.create.title')}
-              </Link>
-            )}
-          </div>
+          <Paper withBorder py="xl">
+            <Center>
+              <Stack align="center" gap="md">
+                <IconFiles size={48} color="var(--mantine-color-gray-5)" />
+                <Title order={3}>
+                  {search ? t('rideTemplates.list.noResults') : t('rideTemplates.list.empty.title')}
+                </Title>
+                {!search && (
+                  <Text c="dimmed">
+                    {canManage
+                      ? t('rideTemplates.list.empty.admin')
+                      : t('rideTemplates.list.empty.member')}
+                  </Text>
+                )}
+                {canManage && !search && (
+                  <Button component={Link} to={paths.rideTemplateNew(teamSlug!)} mt="sm">
+                    {t('rideTemplates.create.title')}
+                  </Button>
+                )}
+              </Stack>
+            </Center>
+          </Paper>
         )}
-      </div>
+      </Stack>
 
       {/* Delete Confirmation Dialog */}
       <ConfirmDialog

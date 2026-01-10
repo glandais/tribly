@@ -3,16 +3,11 @@ import { Link, useParams, Navigate } from 'react-router-dom'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
-import { toast } from 'sonner'
+import { notifications } from '@mantine/notifications'
 import i18next from 'i18next'
 import { paths } from '../../config/paths'
-import {
-  PlusIcon,
-  DocumentTextIcon,
-  PencilIcon,
-  TrashIcon,
-  Bars3Icon,
-} from '@heroicons/react/24/outline'
+import { IconPlus, IconFileText, IconPencil, IconTrash, IconMenu2 } from '@tabler/icons-react'
+import { ActionIcon, Box, Button, Center, Group, Paper, Stack, Text, Title } from '@mantine/core'
 import { useGetTeam, getGetTeamQueryKey } from '@/api/endpoints/teams/teams'
 import {
   useListPages,
@@ -73,7 +68,10 @@ export function TeamPagesAdminPage() {
           onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: getListPagesQueryKey(teamSlug) })
             queryClient.invalidateQueries({ queryKey: getGetTeamQueryKey(teamSlug) })
-            toast.success(i18next.t('teams.pages.notifications.deleted'))
+            notifications.show({
+              message: i18next.t('teams.pages.notifications.deleted'),
+              color: 'green',
+            })
             setPageToDelete(null)
           },
         }
@@ -112,7 +110,10 @@ export function TeamPagesAdminPage() {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getListPagesQueryKey(teamSlug) })
           queryClient.invalidateQueries({ queryKey: getGetTeamQueryKey(teamSlug) })
-          toast.success(i18next.t('teams.pages.notifications.reordered'))
+          notifications.show({
+            message: i18next.t('teams.pages.notifications.reordered'),
+            color: 'green',
+          })
         },
       }
     )
@@ -125,89 +126,107 @@ export function TeamPagesAdminPage() {
 
   return (
     <TeamAdminLayout team={team} currentTab="pages">
-      <div className="py-6">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-900">{t('teams.pages.title')}</h2>
-            <p className="mt-1 text-sm text-gray-500">
+      <Box py="md">
+        <Group justify="space-between" mb="lg">
+          <Box>
+            <Title order={2}>{t('teams.pages.title')}</Title>
+            <Text size="sm" c="dimmed" mt="xs">
               {t('teams.pages.subtitle', { count: pages?.length ?? 0, max: MAX_ADDITIONAL_PAGES })}
-            </p>
-          </div>
+            </Text>
+          </Box>
           {canAddMore && (
-            <Link
+            <Button
+              component={Link}
               to={paths.teamAdminPageNew(teamSlug!)}
-              className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
+              leftSection={<IconPlus size={16} />}
             >
-              <PlusIcon className="w-4 h-4 mr-2" />
               {t('teams.pages.add')}
-            </Link>
+            </Button>
           )}
-        </div>
+        </Group>
 
         {/* Pages List */}
         {isLoadingPages ? (
-          <div className="flex justify-center py-12">
+          <Center py="xl">
             <LoadingSpinner />
-          </div>
+          </Center>
         ) : pages && pages.length > 0 ? (
-          <div className="space-y-2">
+          <Stack gap="xs">
             {pages.map((page) => (
-              <div
+              <Paper
                 key={page.id}
+                p="md"
+                withBorder
                 draggable
                 onDragStart={(e) => handleDragStart(e, page)}
                 onDragOver={handleDragOver}
                 onDrop={(e) => handleDrop(e, page)}
                 onDragEnd={handleDragEnd}
-                className={`bg-white rounded-lg shadow-sm border border-gray-200 p-4 cursor-move transition-opacity ${
-                  draggedItem?.id === page.id ? 'opacity-50' : ''
-                }`}
+                style={{
+                  cursor: 'move',
+                  opacity: draggedItem?.id === page.id ? 0.5 : 1,
+                  transition: 'opacity 0.2s',
+                }}
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <Bars3Icon className="w-5 h-5 text-gray-400 flex-shrink-0" />
-                    <div className="flex items-center gap-2 min-w-0">
-                      <h3 className="text-lg font-medium text-gray-900 truncate">{page.title}</h3>
+                <Group justify="space-between">
+                  <Group gap="sm" style={{ flex: 1, minWidth: 0 }}>
+                    <IconMenu2
+                      size={20}
+                      color="var(--mantine-color-gray-5)"
+                      style={{ flexShrink: 0 }}
+                    />
+                    <Group gap="xs" style={{ minWidth: 0 }}>
+                      <Text size="lg" fw={500} truncate>
+                        {page.title}
+                      </Text>
                       <VisibilityBadge visibility={page.visibility} />
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 ml-4">
-                    <Link
+                    </Group>
+                  </Group>
+                  <Group gap="xs" ml="md">
+                    <ActionIcon
+                      component={Link}
                       to={paths.teamAdminPageEdit(teamSlug!, page.slug)}
-                      className="p-2 text-gray-400 hover:text-indigo-600 rounded-lg hover:bg-gray-100"
+                      variant="subtle"
+                      color="gray"
                       title={t('teams.actions.edit')}
                     >
-                      <PencilIcon className="w-5 h-5" />
-                    </Link>
-                    <button
+                      <IconPencil size={20} />
+                    </ActionIcon>
+                    <ActionIcon
+                      variant="subtle"
+                      color="red"
                       onClick={() => handleDelete(page)}
-                      className="p-2 text-gray-400 hover:text-red-600 rounded-lg hover:bg-gray-100"
                       title={t('teams.buttons.delete')}
                     >
-                      <TrashIcon className="w-5 h-5" />
-                    </button>
-                  </div>
-                </div>
-              </div>
+                      <IconTrash size={20} />
+                    </ActionIcon>
+                  </Group>
+                </Group>
+              </Paper>
             ))}
-          </div>
+          </Stack>
         ) : (
-          <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
-            <DocumentTextIcon className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-4 text-lg font-medium text-gray-900">
-              {t('teams.pages.empty.title')}
-            </h3>
-            <p className="mt-2 text-gray-500">{t('teams.pages.empty.description')}</p>
-            <Link
-              to={paths.teamAdminPageNew(teamSlug!)}
-              className="mt-4 inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
-            >
-              <PlusIcon className="w-4 h-4 mr-2" />
-              {t('teams.pages.add')}
-            </Link>
-          </div>
+          <Paper p="xl" withBorder>
+            <Center>
+              <Stack align="center">
+                <IconFileText size={48} color="var(--mantine-color-gray-5)" />
+                <Title order={3} mt="md">
+                  {t('teams.pages.empty.title')}
+                </Title>
+                <Text c="dimmed">{t('teams.pages.empty.description')}</Text>
+                <Button
+                  component={Link}
+                  to={paths.teamAdminPageNew(teamSlug!)}
+                  leftSection={<IconPlus size={16} />}
+                  mt="md"
+                >
+                  {t('teams.pages.add')}
+                </Button>
+              </Stack>
+            </Center>
+          </Paper>
         )}
-      </div>
+      </Box>
 
       {/* Delete Confirmation Dialog */}
       <ConfirmDialog

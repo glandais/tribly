@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Paper, Group, Text, Badge, Button, Select, Box, Stack, Skeleton } from '@mantine/core'
 import { UserAvatar } from '../common/UserAvatar'
-import { LoadingSpinner } from '../common/LoadingSpinner'
 import { ConfirmDialog } from '../common/ConfirmDialog'
 import type { MemberDto } from '@/api/dto'
 import { TeamRole } from '@/api/dto'
@@ -17,10 +17,10 @@ interface TeamMemberListProps {
   isRemoving?: boolean
 }
 
-const roleBadgeColors = {
-  ADMIN: 'bg-purple-100 text-purple-800',
-  ORGANIZER: 'bg-blue-100 text-blue-800',
-  MEMBER: 'bg-gray-100 text-gray-800',
+const roleBadgeColors: Record<string, string> = {
+  ADMIN: 'grape',
+  ORGANIZER: 'blue',
+  MEMBER: 'gray',
 }
 
 export function TeamMemberList({
@@ -63,18 +63,37 @@ export function TeamMemberList({
     }
   }
 
+  const getRoleOptions = () => {
+    const options = []
+    if (canManageMembers) {
+      options.push({ value: 'ADMIN', label: t('roles.ADMIN') })
+    }
+    if (canAssignOrganizers) {
+      options.push({ value: 'ORGANIZER', label: t('roles.ORGANIZER') })
+    }
+    options.push({ value: 'MEMBER', label: t('roles.MEMBER') })
+    return options
+  }
+
   return (
-    <div className="bg-white shadow-xs rounded-lg border border-gray-200">
-      <ul className="divide-y divide-gray-200">
-        {members.map((member) => {
+    <Paper shadow="xs" withBorder>
+      <Stack gap={0}>
+        {members.map((member, index) => {
           const isCurrentUser = member.user.id === currentUserId
           const canEdit = canManageMembers && !isCurrentUser && member.role !== 'ADMIN'
           const canRemove = canManageMembers && !isCurrentUser
 
           return (
-            <li key={member.id} className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center min-w-0">
+            <Box
+              key={member.id}
+              p="md"
+              style={{
+                borderBottom:
+                  index < members.length - 1 ? '1px solid var(--mantine-color-gray-2)' : undefined,
+              }}
+            >
+              <Group justify="space-between" wrap="nowrap">
+                <Group gap="sm" wrap="nowrap" style={{ minWidth: 0 }}>
                   <UserAvatar
                     user={{
                       displayName: member.user.displayName,
@@ -82,94 +101,95 @@ export function TeamMemberList({
                     }}
                     size="md"
                   />
-                  <div className="ml-3 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate">
-                      {member.user.displayName}
+                  <Box style={{ minWidth: 0 }}>
+                    <Group gap="xs">
+                      <Text size="sm" fw={500} truncate>
+                        {member.user.displayName}
+                      </Text>
                       {isCurrentUser && (
-                        <span className="ml-2 text-xs text-gray-500">
+                        <Text size="xs" c="dimmed">
                           {t('teams.detail.members.you')}
-                        </span>
+                        </Text>
                       )}
-                    </p>
-                    <p className="text-xs text-gray-400">
+                    </Group>
+                    <Text size="xs" c="dimmed">
                       {t('teams.detail.members.joined', {
                         date: formatDate(member.joinedAt) || t('unknown'),
                       })}
-                    </p>
-                  </div>
-                </div>
+                    </Text>
+                  </Box>
+                </Group>
 
-                <div className="flex items-center gap-2">
+                <Group gap="xs" wrap="nowrap">
                   {editingMemberId === member.id ? (
                     <>
-                      <select
+                      <Select
+                        size="xs"
                         value={selectedRole}
-                        onChange={(e) => setSelectedRole(e.target.value as TeamRole)}
-                        className="text-sm border border-gray-300 rounded-md px-2 py-1 focus:ring-indigo-500 focus:border-indigo-500"
+                        onChange={(value) => value && setSelectedRole(value as TeamRole)}
+                        data={getRoleOptions()}
                         disabled={isUpdating}
-                      >
-                        {canManageMembers && <option value="ADMIN">{t('roles.ADMIN')}</option>}
-                        {canAssignOrganizers && (
-                          <option value="ORGANIZER">{t('roles.ORGANIZER')}</option>
-                        )}
-                        <option value="MEMBER">{t('roles.MEMBER')}</option>
-                      </select>
-                      <button
+                        w={120}
+                      />
+                      <Button
+                        size="xs"
+                        variant="subtle"
                         onClick={() => handleRoleChange(member.user.id)}
                         disabled={isUpdating}
-                        className="text-sm text-indigo-600 hover:text-indigo-900 disabled:opacity-50"
+                        loading={isUpdating}
                       >
-                        {isUpdating ? <LoadingSpinner size="sm" /> : t('actions.save')}
-                      </button>
-                      <button
+                        {t('actions.save')}
+                      </Button>
+                      <Button
+                        size="xs"
+                        variant="subtle"
+                        color="gray"
                         onClick={() => setEditingMemberId(null)}
                         disabled={isUpdating}
-                        className="text-sm text-gray-600 hover:text-gray-900 disabled:opacity-50"
                       >
                         {t('actions.cancelAction')}
-                      </button>
+                      </Button>
                     </>
                   ) : (
                     <>
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${roleBadgeColors[member.role]}`}
-                      >
+                      <Badge color={roleBadgeColors[member.role]} variant="light">
                         {t(`roles.${member.role satisfies 'ADMIN' | 'ORGANIZER' | 'MEMBER'}`)}
-                      </span>
+                      </Badge>
 
                       {canEdit && (
-                        <button
+                        <Button
+                          size="xs"
+                          variant="subtle"
+                          color="gray"
                           onClick={() => {
                             setSelectedRole(member.role)
                             setEditingMemberId(member.id)
                           }}
-                          className="text-sm text-gray-600 hover:text-gray-900"
                         >
                           {t('actions.edit')}
-                        </button>
+                        </Button>
                       )}
 
                       {canRemove && (
-                        <button
+                        <Button
+                          size="xs"
+                          variant="subtle"
+                          color="red"
                           onClick={() => handleRemove(member.user.id)}
                           disabled={isRemoving}
-                          className="text-sm text-red-600 hover:text-red-900 disabled:opacity-50"
+                          loading={isRemoving}
                         >
-                          {isRemoving ? (
-                            <LoadingSpinner size="sm" />
-                          ) : (
-                            t('teams.detail.members.remove')
-                          )}
-                        </button>
+                          {t('teams.detail.members.remove')}
+                        </Button>
                       )}
                     </>
                   )}
-                </div>
-              </div>
-            </li>
+                </Group>
+              </Group>
+            </Box>
           )
         })}
-      </ul>
+      </Stack>
 
       <ConfirmDialog
         isOpen={showRemoveConfirm}
@@ -184,27 +204,33 @@ export function TeamMemberList({
         variant="danger"
         isLoading={isRemoving}
       />
-    </div>
+    </Paper>
   )
 }
 
 export function TeamMemberListSkeleton({ count = 3 }: { count?: number }) {
   return (
-    <div className="bg-white shadow-xs rounded-lg border border-gray-200">
-      <ul className="divide-y divide-gray-200">
+    <Paper shadow="xs" withBorder>
+      <Stack gap={0}>
         {Array.from({ length: count }).map((_, i) => (
-          <li key={i} className="p-4 animate-pulse">
-            <div className="flex items-center">
-              <div className="w-10 h-10 bg-gray-200 rounded-full" />
-              <div className="ml-3 flex-1">
-                <div className="h-4 bg-gray-200 rounded-sm w-1/4 mb-2" />
-                <div className="h-3 bg-gray-200 rounded-sm w-1/3" />
-              </div>
-              <div className="h-5 bg-gray-200 rounded-sm w-16" />
-            </div>
-          </li>
+          <Box
+            key={i}
+            p="md"
+            style={{
+              borderBottom: i < count - 1 ? '1px solid var(--mantine-color-gray-2)' : undefined,
+            }}
+          >
+            <Group>
+              <Skeleton circle height={40} width={40} />
+              <Box style={{ flex: 1 }}>
+                <Skeleton height={16} width="25%" mb="xs" />
+                <Skeleton height={12} width="33%" />
+              </Box>
+              <Skeleton height={20} width={60} radius="xl" />
+            </Group>
+          </Box>
         ))}
-      </ul>
-    </div>
+      </Stack>
+    </Paper>
   )
 }

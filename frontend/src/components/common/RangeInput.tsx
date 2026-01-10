@@ -1,5 +1,4 @@
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { NumberInput, Group, Text, Stack } from '@mantine/core'
 
 interface RangeInputProps {
   label: string
@@ -11,8 +10,7 @@ interface RangeInputProps {
   maxPlaceholder?: string
   unit?: string
   step?: number
-  displayMultiplier?: number // e.g., 0.001 for meters -> km
-  className?: string
+  displayMultiplier?: number
 }
 
 export function RangeInput({
@@ -26,44 +24,47 @@ export function RangeInput({
   unit,
   step = 1,
   displayMultiplier = 1,
-  className = '',
 }: RangeInputProps) {
   // Convert API value (meters) to display value (km)
   const toDisplay = (val: number | undefined) =>
     val !== undefined ? val * displayMultiplier : undefined
 
   // Convert display value back to API value
-  const fromDisplay = (val: string) => {
-    const num = parseFloat(val)
+  const fromDisplay = (val: string | number) => {
+    if (val === '' || val === undefined) return undefined
+    const num = typeof val === 'number' ? val : parseFloat(val)
     return isNaN(num) ? undefined : num / displayMultiplier
   }
 
   return (
-    <div className={className}>
-      <Label className="text-sm font-medium text-gray-700 mb-2 block">
-        {label} {unit && <span className="text-gray-500">({unit})</span>}
-      </Label>
-      <div className="flex items-center gap-2">
-        <Input
-          type="number"
+    <Stack gap="xs">
+      <Text size="sm" fw={500}>
+        {label}{' '}
+        {unit && (
+          <Text span c="dimmed">
+            ({unit})
+          </Text>
+        )}
+      </Text>
+      <Group gap="xs">
+        <NumberInput
           placeholder={minPlaceholder}
           value={toDisplay(minValue) ?? ''}
-          onChange={(e) => onMinChange(fromDisplay(e.target.value))}
+          onChange={(val) => onMinChange(fromDisplay(val))}
           step={step}
           min={0}
-          className="w-24"
+          w={100}
         />
-        <span className="text-gray-400">-</span>
-        <Input
-          type="number"
+        <Text c="dimmed">-</Text>
+        <NumberInput
           placeholder={maxPlaceholder}
           value={toDisplay(maxValue) ?? ''}
-          onChange={(e) => onMaxChange(fromDisplay(e.target.value))}
+          onChange={(val) => onMaxChange(fromDisplay(val))}
           step={step}
           min={0}
-          className="w-24"
+          w={100}
         />
-      </div>
-    </div>
+      </Group>
+    </Stack>
   )
 }

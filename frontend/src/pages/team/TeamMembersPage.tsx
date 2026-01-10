@@ -3,10 +3,11 @@ import { useParams, Navigate } from 'react-router-dom'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
-import { toast } from 'sonner'
+import { notifications } from '@mantine/notifications'
 import i18next from 'i18next'
 import { paths } from '../../config/paths'
-import { PlusIcon } from '@heroicons/react/24/outline'
+import { IconPlus } from '@tabler/icons-react'
+import { Alert, Box, Button, Group, Select, Stack, Text, Title } from '@mantine/core'
 import { useGetTeam, getGetTeamQueryKey } from '@/api/endpoints/teams/teams'
 import {
   useGetMembers,
@@ -77,7 +78,10 @@ export function TeamMembersPage() {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetTeamQueryKey(teamSlug) })
           queryClient.invalidateQueries({ queryKey: getGetMembersQueryKey(teamSlug) })
-          toast.success(i18next.t('teams.notifications.memberAdded'))
+          notifications.show({
+            message: i18next.t('teams.notifications.memberAdded'),
+            color: 'green',
+          })
           setShowAddMember(false)
           setSelectedRole(TeamRole.MEMBER)
         },
@@ -105,7 +109,10 @@ export function TeamMembersPage() {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetTeamQueryKey(teamSlug) })
           queryClient.invalidateQueries({ queryKey: getGetMembersQueryKey(teamSlug) })
-          toast.success(i18next.t('teams.notifications.memberRemoved'))
+          notifications.show({
+            message: i18next.t('teams.notifications.memberRemoved'),
+            color: 'green',
+          })
         },
       }
     )
@@ -113,17 +120,13 @@ export function TeamMembersPage() {
 
   return (
     <TeamAdminLayout team={team} currentTab="members">
-      <div className="py-6">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold text-gray-900">{t('teams.detail.members.title')}</h2>
-          <button
-            onClick={() => setShowAddMember(true)}
-            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-          >
-            <PlusIcon className="w-4 h-4 mr-2" />
+      <Box py="md">
+        <Group justify="space-between" mb="lg">
+          <Title order={2}>{t('teams.detail.members.title')}</Title>
+          <Button onClick={() => setShowAddMember(true)} leftSection={<IconPlus size={16} />}>
             {t('teams.detail.members.addMember')}
-          </button>
-        </div>
+          </Button>
+        </Group>
 
         {isLoadingMembers ? (
           <TeamMemberListSkeleton count={5} />
@@ -139,15 +142,12 @@ export function TeamMembersPage() {
               isRemoving={removeMemberMutation.isPending}
             />
 
-            <Pagination
-              currentPage={page}
-              totalPages={totalPages}
-              onPageChange={setPage}
-              className="mt-8"
-            />
+            <Box mt="xl">
+              <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+            </Box>
           </>
         ) : (
-          <p className="text-gray-500">{t('teams.detail.members.empty')}</p>
+          <Text c="dimmed">{t('teams.detail.members.empty')}</Text>
         )}
 
         {/* Add Member Modal */}
@@ -160,53 +160,48 @@ export function TeamMembersPage() {
           title={t('teams.detail.members.addMember')}
           size="md"
           footer={
-            <button
+            <Button
+              variant="default"
               onClick={() => {
                 setShowAddMember(false)
                 setSelectedRole(TeamRole.MEMBER)
               }}
               disabled={addMemberMutation.isPending}
-              className="px-4 py-2 border border-gray-300 rounded-md shadow-xs text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
             >
               {t('actions.cancelAction')}
-            </button>
+            </Button>
           }
         >
-          <div className="space-y-4">
-            <div>
-              <label htmlFor="user-search" className="block text-sm font-medium text-gray-700 mb-2">
+          <Stack gap="md">
+            <Box>
+              <Text size="sm" fw={500} mb="xs">
                 {t('teams.detail.members.searchUser')}
-              </label>
+              </Text>
               <UserAutocomplete
                 onSelect={handleAddMember}
                 placeholder={t('teams.detail.members.searchPlaceholder')}
               />
-            </div>
-            <div>
-              <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-2">
-                {t('teams.detail.members.role')}
-              </label>
-              <select
-                id="role"
-                value={selectedRole}
-                onChange={(e) => setSelectedRole(e.target.value as TeamRole)}
-                className="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-xs focus:ring-indigo-500 focus:border-indigo-500"
-              >
-                <option value={TeamRole.MEMBER}>{t('roles.MEMBER')}</option>
-                <option value={TeamRole.ORGANIZER}>{t('roles.ORGANIZER')}</option>
-                <option value={TeamRole.ADMIN}>{t('roles.ADMIN')}</option>
-              </select>
-            </div>
+            </Box>
+            <Select
+              label={t('teams.detail.members.role')}
+              value={selectedRole}
+              onChange={(value) => setSelectedRole(value as TeamRole)}
+              data={[
+                { value: TeamRole.MEMBER, label: t('roles.MEMBER') },
+                { value: TeamRole.ORGANIZER, label: t('roles.ORGANIZER') },
+                { value: TeamRole.ADMIN, label: t('roles.ADMIN') },
+              ]}
+            />
             {addMemberMutation.error && (
-              <div className="text-sm text-red-600">
+              <Alert color="red">
                 {addMemberMutation.error instanceof Error
                   ? addMemberMutation.error.message
                   : t('teams.detail.members.addError')}
-              </div>
+              </Alert>
             )}
-          </div>
+          </Stack>
         </Modal>
-      </div>
+      </Box>
     </TeamAdminLayout>
   )
 }

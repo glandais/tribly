@@ -2,6 +2,18 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import remarkDirective from 'remark-directive'
 import removeMd from 'remove-markdown'
+import {
+  Text,
+  Box,
+  Title,
+  Anchor,
+  Table,
+  Divider,
+  Code,
+  Blockquote,
+  List,
+  Image,
+} from '@mantine/core'
 import type { AssetDto } from '@/api/dto'
 import type { ImageSize } from '../../lib/assetMarkdown'
 import { remarkAssetDirective } from '../../lib/remarkAssetDirective'
@@ -9,7 +21,6 @@ import { AssetImage } from './AssetImage'
 
 export interface MarkdownDisplayProps {
   markdown: string
-  className?: string
   preview?: boolean
   maxLength?: number
   images?: AssetDto[]
@@ -17,7 +28,6 @@ export interface MarkdownDisplayProps {
 
 export function MarkdownDisplay({
   markdown,
-  className = '',
   preview = false,
   maxLength = 150,
   images = [],
@@ -31,19 +41,16 @@ export function MarkdownDisplay({
     const plainText = removeMd(markdown)
     const truncated =
       plainText.length > maxLength ? plainText.slice(0, maxLength) + '...' : plainText
-    return <p className={className}>{truncated}</p>
+    return (
+      <Text size="sm" c="dimmed">
+        {truncated}
+      </Text>
+    )
   }
 
   // Full markdown rendering - asset URLs handled at render time via AssetImage
   return (
-    <div
-      className={`markdown-display prose prose-gray max-w-none ${className}`}
-      style={{
-        // Custom prose styles to match MarkdownEditor theme
-        fontSize: '1rem',
-        lineHeight: '1.75',
-      }}
-    >
+    <Box fz="md" lh={1.75}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm, remarkDirective, remarkAssetDirective]}
         components={{
@@ -52,111 +59,132 @@ export function MarkdownDisplay({
           'asset-image': ({ id, size, alt }: { id?: string; size?: string; alt?: string }) => {
             if (!id) return null
             return (
-              <AssetImage
-                assetId={id}
-                images={images}
-                size={size as ImageSize}
-                altText={alt}
-                className="my-4"
-              />
+              <Box my="md">
+                <AssetImage assetId={id} images={images} size={size as ImageSize} altText={alt} />
+              </Box>
             )
           },
           // Regular image URLs
           img: ({ src, alt, ...props }) => (
-            <img
-              src={src}
-              alt={alt}
-              className="max-w-full h-auto rounded-lg my-4"
-              loading="lazy"
-              {...props}
-            />
+            <Image src={src} alt={alt} maw="100%" h="auto" radius="md" my="md" {...props} />
           ),
           // Headings
-          h1: ({ ...props }) => (
-            <h1 className="text-3xl font-bold mb-4 mt-6 text-gray-900 tracking-tight" {...props} />
+          h1: ({ children }) => (
+            <Title order={1} mb="md" mt="lg" style={{ letterSpacing: '-0.025em' }}>
+              {children}
+            </Title>
           ),
-          h2: ({ ...props }) => (
-            <h2 className="text-2xl font-bold mb-3 mt-5 text-gray-900 tracking-tight" {...props} />
+          h2: ({ children }) => (
+            <Title order={2} mb="sm" mt="lg" style={{ letterSpacing: '-0.025em' }}>
+              {children}
+            </Title>
           ),
-          h3: ({ ...props }) => (
-            <h3 className="text-xl font-bold mb-2 mt-4 text-gray-900 tracking-tight" {...props} />
+          h3: ({ children }) => (
+            <Title order={3} mb="xs" mt="md" style={{ letterSpacing: '-0.025em' }}>
+              {children}
+            </Title>
           ),
           // Paragraphs
-          p: ({ ...props }) => <p className="mb-2 text-gray-900 leading-relaxed" {...props} />,
+          p: ({ children }) => (
+            <Text component="p" mb="xs" lh={1.625}>
+              {children}
+            </Text>
+          ),
           // Lists
-          ul: ({ ...props }) => (
-            <ul className="list-disc list-inside mb-2 text-gray-900" {...props} />
+          ul: ({ children }) => (
+            <List type="unordered" mb="xs">
+              {children}
+            </List>
           ),
-          ol: ({ ...props }) => (
-            <ol className="list-decimal list-inside mb-2 text-gray-900" {...props} />
+          ol: ({ children }) => (
+            <List type="ordered" mb="xs">
+              {children}
+            </List>
           ),
-          li: ({ ...props }) => <li className="mb-1" {...props} />,
+          li: ({ children }) => <List.Item mb={4}>{children}</List.Item>,
           // Links
-          a: ({ ...props }) => (
-            <a
-              className="text-cyan-600 hover:text-cyan-700 underline cursor-pointer transition-colors"
-              target="_blank"
-              rel="noopener noreferrer"
-              {...props}
-            />
+          a: ({ href, children }) => (
+            <Anchor href={href} target="_blank" rel="noopener noreferrer" c="cyan.6">
+              {children}
+            </Anchor>
           ),
           // Code
-          code: ({ className, children, ...props }) => {
+          code: ({ className, children }) => {
             const isInline = !className
             if (isInline) {
               return (
-                <code
-                  className="bg-gray-100 text-pink-600 px-1.5 py-0.5 rounded font-mono text-sm"
-                  {...props}
-                >
+                <Code bg="gray.1" c="pink.6" px={6} py={2} fz="sm">
                   {children}
-                </code>
+                </Code>
               )
             }
             return (
-              <code
-                className="block bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-sm my-4 overflow-x-auto"
-                {...props}
+              <Code
+                block
+                bg="dark.8"
+                c="gray.1"
+                p="md"
+                fz="sm"
+                my="md"
+                style={{ overflowX: 'auto' }}
               >
                 {children}
-              </code>
+              </Code>
             )
           },
           // Blockquotes
-          blockquote: ({ ...props }) => (
-            <blockquote
-              className="border-l-4 border-cyan-500 pl-4 italic text-gray-700 my-4"
-              {...props}
-            />
+          blockquote: ({ children }) => (
+            <Blockquote color="cyan" my="md" fs="italic">
+              {children}
+            </Blockquote>
           ),
           // Tables (from remark-gfm)
-          table: ({ ...props }) => (
-            <div className="overflow-x-auto my-4">
-              <table className="min-w-full divide-y divide-gray-200" {...props} />
-            </div>
+          table: ({ children }) => (
+            <Box style={{ overflowX: 'auto' }} my="md">
+              <Table striped highlightOnHover withTableBorder>
+                {children}
+              </Table>
+            </Box>
           ),
-          thead: ({ ...props }) => <thead className="bg-gray-50" {...props} />,
-          tbody: ({ ...props }) => (
-            <tbody className="bg-white divide-y divide-gray-200" {...props} />
+          thead: ({ children }) => <Table.Thead bg="gray.0">{children}</Table.Thead>,
+          tbody: ({ children }) => <Table.Tbody>{children}</Table.Tbody>,
+          tr: ({ children }) => <Table.Tr>{children}</Table.Tr>,
+          th: ({ children }) => (
+            <Table.Th
+              px="sm"
+              py="xs"
+              fz="xs"
+              fw={500}
+              c="gray.6"
+              tt="uppercase"
+              style={{ letterSpacing: '0.05em' }}
+            >
+              {children}
+            </Table.Th>
           ),
-          tr: ({ ...props }) => <tr {...props} />,
-          th: ({ ...props }) => (
-            <th
-              className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-              {...props}
-            />
+          td: ({ children }) => (
+            <Table.Td px="sm" py="xs" fz="sm">
+              {children}
+            </Table.Td>
           ),
-          td: ({ ...props }) => <td className="px-3 py-2 text-sm text-gray-900" {...props} />,
           // Horizontal rule
-          hr: ({ ...props }) => <hr className="my-4 border-gray-300" {...props} />,
+          hr: () => <Divider my="md" color="gray.3" />,
           // Strong/bold
-          strong: ({ ...props }) => <strong className="font-bold" {...props} />,
+          strong: ({ children }) => (
+            <Text component="strong" fw={700}>
+              {children}
+            </Text>
+          ),
           // Emphasis/italic
-          em: ({ ...props }) => <em className="italic" {...props} />,
+          em: ({ children }) => (
+            <Text component="em" fs="italic">
+              {children}
+            </Text>
+          ),
         }}
       >
         {markdown}
       </ReactMarkdown>
-    </div>
+    </Box>
   )
 }

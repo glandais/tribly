@@ -1,23 +1,18 @@
 import { useState, useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { MapPinIcon, XMarkIcon } from '@heroicons/react/24/outline'
+import { Group, Text, ActionIcon, Paper, Box } from '@mantine/core'
+import { IconMapPin, IconX } from '@tabler/icons-react'
 import { Autocomplete } from './Autocomplete'
 import { useListPlaces } from '../../api/endpoints/places/places'
 import type { PlaceDetailDto } from '@/api/dto'
-import { Button } from '@/components/ui/button'
 
 interface PlaceAutocompleteProps {
   teamSlug: string
-  /** Current place ID value (controlled input) */
   value?: string
-  /** Called when place changes (with place id or undefined when cleared) */
   onChange: (placeId: string | undefined) => void
-  /** Filter to only show places that can be used as start */
   filterStart?: boolean
-  /** Filter to only show places that can be used as end */
   filterEnd?: boolean
   placeholder?: string
-  className?: string
 }
 
 export function PlaceAutocomplete({
@@ -27,7 +22,6 @@ export function PlaceAutocomplete({
   filterStart,
   filterEnd,
   placeholder,
-  className = '',
 }: PlaceAutocompleteProps) {
   const { t } = useTranslation()
   const [query, setQuery] = useState('')
@@ -36,22 +30,18 @@ export function PlaceAutocomplete({
 
   const places = placesData?.places
 
-  // Find the selected place from the value
   const selectedPlace = useMemo(() => {
     if (!value || !places) return undefined
     return places.find((place) => place.id === value)
   }, [value, places])
 
-  // Filter places based on query and start/end filters
   const filteredPlaces = useMemo(() => {
     if (!places) return []
 
     return places.filter((place) => {
-      // Filter by start/end capability
       if (filterStart && !place.startPlace) return false
       if (filterEnd && !place.endPlace) return false
 
-      // Filter by search query
       if (query.trim().length < 1) return true
       const searchLower = query.toLowerCase()
       return (
@@ -79,40 +69,50 @@ export function PlaceAutocomplete({
 
   const renderPlace = useCallback(
     (place: PlaceDetailDto) => (
-      <div className="flex items-center gap-3">
-        <MapPinIcon className="h-5 w-5 text-gray-400 shrink-0" />
-        <div className="min-w-0">
-          <p className="text-sm font-medium text-gray-900 truncate">{place.name}</p>
-          {place.address && <p className="text-xs text-gray-500 truncate">{place.address}</p>}
-        </div>
-      </div>
+      <Group gap="sm" wrap="nowrap">
+        <IconMapPin size={20} color="var(--mantine-color-gray-5)" style={{ flexShrink: 0 }} />
+        <Box style={{ minWidth: 0 }}>
+          <Text size="sm" fw={500} truncate>
+            {place.name}
+          </Text>
+          {place.address && (
+            <Text size="xs" c="dimmed" truncate>
+              {place.address}
+            </Text>
+          )}
+        </Box>
+      </Group>
     ),
     []
   )
 
-  // Show selected place with clear button when a value is set
   if (selectedPlace) {
     return (
-      <div className={`flex items-center gap-2 ${className}`}>
-        <div className="flex-1 flex items-center gap-3 px-4 py-2 border border-gray-300 rounded-md bg-white">
-          <MapPinIcon className="h-5 w-5 text-gray-400 shrink-0" />
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-medium text-gray-900 truncate">{selectedPlace.name}</p>
-            {selectedPlace.address && (
-              <p className="text-xs text-gray-500 truncate">{selectedPlace.address}</p>
-            )}
-          </div>
-        </div>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
+      <Group gap="xs">
+        <Paper withBorder p="sm" style={{ flex: 1 }}>
+          <Group gap="sm" wrap="nowrap">
+            <IconMapPin size={20} color="var(--mantine-color-gray-5)" style={{ flexShrink: 0 }} />
+            <Box style={{ minWidth: 0, flex: 1 }}>
+              <Text size="sm" fw={500} truncate>
+                {selectedPlace.name}
+              </Text>
+              {selectedPlace.address && (
+                <Text size="xs" c="dimmed" truncate>
+                  {selectedPlace.address}
+                </Text>
+              )}
+            </Box>
+          </Group>
+        </Paper>
+        <ActionIcon
+          variant="subtle"
+          color="gray"
           onClick={handleClear}
           aria-label={t('planner.clear')}
         >
-          <XMarkIcon className="size-4" />
-        </Button>
-      </div>
+          <IconX size={16} />
+        </ActionIcon>
+      </Group>
     )
   }
 
@@ -126,7 +126,6 @@ export function PlaceAutocomplete({
       getItemKey={(place) => place.id}
       placeholder={placeholder || t('autocomplete.searchPlaces')}
       noResultsMessage={t('autocomplete.noPlacesFound')}
-      className={className}
       minChars={1}
       clearOnSelect={true}
     />

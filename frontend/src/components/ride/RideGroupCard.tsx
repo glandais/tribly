@@ -1,13 +1,8 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import {
-  BoltIcon,
-  UsersIcon,
-  ClockIcon,
-  MapIcon,
-  ArrowDownTrayIcon,
-} from '@heroicons/react/24/outline'
+import { IconBolt, IconUsers, IconClock, IconMap, IconDownload } from '@tabler/icons-react'
+import { Paper, Group, Text, Button, Badge, UnstyledButton, Anchor } from '@mantine/core'
 import type { RideGroupDto } from '@/api/dto'
 import { useGetRoute } from '@/api/endpoints/routes/routes'
 import { UserAvatarGroup } from '../common/UserAvatar'
@@ -51,131 +46,136 @@ export function RideGroupCard({
     query: { enabled: !!effectiveRouteSlug },
   })
 
-  const getCardClassName = () => {
-    const base = 'rounded-lg border p-4 transition-all'
-    if (isHighlighted) {
-      return `${base} border-indigo-500 bg-indigo-50 shadow-md`
-    }
-    if (isJoined) {
-      return `${base} bg-white border-indigo-500 ring-1 ring-indigo-500`
-    }
-    return `${base} bg-white border-gray-200 hover:border-gray-300`
-  }
-
   return (
-    <div
-      className={getCardClassName()}
+    <Paper
+      shadow={isHighlighted ? 'md' : 'xs'}
+      p="md"
+      withBorder
+      style={{
+        borderColor: isHighlighted
+          ? 'var(--mantine-color-indigo-5)'
+          : isJoined
+            ? 'var(--mantine-color-indigo-5)'
+            : undefined,
+        backgroundColor: isHighlighted ? 'var(--mantine-color-indigo-0)' : undefined,
+        boxShadow: isJoined ? '0 0 0 1px var(--mantine-color-indigo-5)' : undefined,
+        transition: 'all 150ms ease',
+      }}
       onMouseEnter={() => onHover?.(group.id)}
       onMouseLeave={() => onHover?.(null)}
     >
       {/* Header row: title + badge + button */}
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-2 min-w-0">
-          <h4 className="text-base font-medium text-gray-900 truncate">{group.name}</h4>
+      <Group justify="space-between" gap="md" wrap="nowrap">
+        <Group gap="sm" style={{ minWidth: 0 }}>
+          <Text fw={500} truncate>
+            {group.name}
+          </Text>
           {isJoined && (
-            <span className="inline-flex items-center px-2 py-0.5 rounded-sm text-xs font-medium bg-indigo-100 text-indigo-800 shrink-0">
+            <Badge size="sm" color="indigo" variant="light">
               {t('rides.detail.groups.joined')}
-            </span>
+            </Badge>
           )}
-        </div>
+        </Group>
 
         {(canJoin || isJoined) && (
-          <div className="shrink-0">
+          <>
             {isJoined ? (
-              <button
-                onClick={onLeave}
-                disabled={isLoading}
-                className="inline-flex items-center px-3 py-1.5 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
-              >
+              <Button variant="outline" size="xs" onClick={onLeave} disabled={isLoading}>
                 {t('rides.detail.groups.leave')}
-              </button>
+              </Button>
             ) : canJoin && !isFull ? (
-              <button
-                onClick={onJoin}
-                disabled={isLoading}
-                className="inline-flex items-center px-3 py-1.5 border border-transparent rounded-md text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50"
-              >
+              <Button size="xs" onClick={onJoin} disabled={isLoading}>
                 {t('rides.detail.groups.join')}
-              </button>
+              </Button>
             ) : isFull ? (
-              <span className="inline-flex items-center px-3 py-1.5 rounded-md text-sm font-medium text-gray-500 bg-gray-100">
+              <Badge color="gray" variant="light">
                 {t('rides.detail.groups.full')}
-              </span>
+              </Badge>
             ) : null}
-          </div>
+          </>
         )}
-      </div>
+      </Group>
 
       {/* Details row */}
-      <div className="mt-2 flex items-center gap-4 text-sm text-gray-500">
+      <Group mt="xs" gap="md">
         {group.time && (
-          <span className="flex items-center">
-            <ClockIcon className="w-4 h-4 mr-1" />
-            {group.time}
-          </span>
+          <Group gap={4}>
+            <IconClock size={16} />
+            <Text size="sm" c="dimmed">
+              {group.time}
+            </Text>
+          </Group>
         )}
         {group.averageSpeed && (
-          <span className="flex items-center">
-            <BoltIcon className="w-4 h-4 mr-1" />
-            {t('speed', { speed: group.averageSpeed })}
-          </span>
+          <Group gap={4}>
+            <IconBolt size={16} />
+            <Text size="sm" c="dimmed">
+              {t('speed', { speed: group.averageSpeed })}
+            </Text>
+          </Group>
         )}
-        <button
+        <UnstyledButton
           onClick={() => setShowParticipants(true)}
-          className="flex items-center gap-2 rounded-lg p-1 -ml-1 transition-all hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
           title={t('rides.detail.groups.viewParticipants')}
+          style={{ borderRadius: 'var(--mantine-radius-sm)' }}
         >
-          {group.participants.length > 0 && (
-            <UserAvatarGroup users={group.participants} max={5} size="sm" />
-          )}
-          <span className="flex items-center text-sm text-gray-500">
-            <UsersIcon className="w-4 h-4 mr-1" />
-            {group.maxParticipants
-              ? t('rides.detail.groups.participants', {
-                  current: group.countParticipants,
-                  max: group.maxParticipants,
-                })
-              : t('rides.detail.groups.participantsNoMax', { current: group.countParticipants })}
-          </span>
-          {group.participants.length > 5 && (
-            <span className="text-xs font-medium text-indigo-600 group-hover:text-indigo-700">
-              {t('rides.detail.groups.viewAll')}
-            </span>
-          )}
-        </button>
-      </div>
+          <Group gap="sm">
+            {group.participants.length > 0 && (
+              <UserAvatarGroup users={group.participants} max={5} size="sm" />
+            )}
+            <Group gap={4}>
+              <IconUsers size={16} />
+              <Text size="sm" c="dimmed">
+                {group.maxParticipants
+                  ? t('rides.detail.groups.participants', {
+                      current: group.countParticipants,
+                      max: group.maxParticipants,
+                    })
+                  : t('rides.detail.groups.participantsNoMax', {
+                      current: group.countParticipants,
+                    })}
+              </Text>
+            </Group>
+            {group.participants.length > 5 && (
+              <Text size="xs" fw={500} c="indigo">
+                {t('rides.detail.groups.viewAll')}
+              </Text>
+            )}
+          </Group>
+        </UnstyledButton>
+      </Group>
 
       {/* Route actions */}
       {effectiveRouteSlug && (
-        <div className="mt-3 flex items-center gap-2">
-          <Link
+        <Group mt="sm" gap="xs">
+          <Anchor
+            component={Link}
             to={paths.route(teamSlug, effectiveRouteSlug)}
-            className="inline-flex items-center px-2 py-1 text-xs font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded"
+            size="xs"
+            c="dimmed"
           >
-            <MapIcon className="w-4 h-4 mr-1" />
-            {t('rides.detail.groups.route.view')}
-          </Link>
+            <Group gap={4}>
+              <IconMap size={16} />
+              {t('rides.detail.groups.route.view')}
+            </Group>
+          </Anchor>
           {route?.media?.assets?.gpx?.url && (
-            <a
-              href={route.media.assets.gpx.url}
-              className="inline-flex items-center px-2 py-1 text-xs font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded"
-              download
-            >
-              <ArrowDownTrayIcon className="w-4 h-4 mr-1" />
-              {t('rides.detail.groups.route.downloadGpx')}
-            </a>
+            <Anchor href={route.media.assets.gpx.url} size="xs" c="dimmed" download>
+              <Group gap={4}>
+                <IconDownload size={16} />
+                {t('rides.detail.groups.route.downloadGpx')}
+              </Group>
+            </Anchor>
           )}
           {route?.media?.assets?.fit?.url && (
-            <a
-              href={route.media.assets.fit.url}
-              className="inline-flex items-center px-2 py-1 text-xs font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded"
-              download
-            >
-              <ArrowDownTrayIcon className="w-4 h-4 mr-1" />
-              {t('rides.detail.groups.route.downloadFit')}
-            </a>
+            <Anchor href={route.media.assets.fit.url} size="xs" c="dimmed" download>
+              <Group gap={4}>
+                <IconDownload size={16} />
+                {t('rides.detail.groups.route.downloadFit')}
+              </Group>
+            </Anchor>
           )}
-        </div>
+        </Group>
       )}
 
       <ParticipantListModal
@@ -184,6 +184,6 @@ export function RideGroupCard({
         participants={group.participants}
         groupName={group.name}
       />
-    </div>
+    </Paper>
   )
 }

@@ -1,8 +1,9 @@
 import { useParams, Navigate, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
-import { toast } from 'sonner'
+import { notifications } from '@mantine/notifications'
 import i18next from 'i18next'
+import { Container, Stack, Title } from '@mantine/core'
 import { useGetTeam } from '@/api/endpoints/teams/teams'
 import { useCreateAd, getListAdsQueryKey } from '../../api/endpoints/ads/ads'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
@@ -64,7 +65,7 @@ export function CreateAdPage() {
       {
         onSuccess: (ad) => {
           queryClient.invalidateQueries({ queryKey: getListAdsQueryKey(teamSlug!) })
-          toast.success(i18next.t('ads.notifications.created'))
+          notifications.show({ message: i18next.t('ads.notifications.created'), color: 'green' })
           navigate(paths.ad(teamSlug!, ad.slug))
         },
       }
@@ -72,10 +73,10 @@ export function CreateAdPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">{t('ads.create.title')}</h1>
-      </div>
+    <Container size="sm" py="xl">
+      <Stack gap="xs" mb="xl">
+        <Title order={1}>{t('ads.create.title')}</Title>
+      </Stack>
 
       <AdEditor
         team={team}
@@ -86,6 +87,6 @@ export function CreateAdPage() {
         isPending={createMutation.isPending}
         submitButtonText={t('ads.create.submit')}
       />
-    </div>
+    </Container>
   )
 }

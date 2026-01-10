@@ -1,5 +1,6 @@
 import { createContext, useContext, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Group, Text, Box, Button, Image } from '@mantine/core'
 import type { DirectiveDescriptor, DirectiveEditorProps } from '@mdxeditor/editor'
 import type { LeafDirective } from 'mdast-util-directive'
 import type { AssetDto } from '@/api/dto'
@@ -9,9 +10,9 @@ import {
   DEFAULT_IMAGE_SIZE,
   createImageMap,
   resolveAssetUrl,
-  getImageSizeClass,
+  getImageSizeStyle,
 } from '../../../lib/assetMarkdown'
-import { PhotoIcon } from '@heroicons/react/24/outline'
+import { IconPhoto } from '@tabler/icons-react'
 
 // ============================================================================
 // Context for providing images to directive editors
@@ -79,7 +80,7 @@ function AssetDirectiveEditor({
     return resolveAssetUrl(assetId, imageMap)
   }, [assetId, images])
 
-  const sizeClass = getImageSizeClass(currentSize)
+  const sizeStyle = getImageSizeStyle(currentSize)
 
   // Update the directive attributes
   const updateSize = (newSize: ImageSize) => {
@@ -102,41 +103,64 @@ function AssetDirectiveEditor({
   // Missing image (asset not found in images array)
   if (!url) {
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 text-gray-500 text-sm rounded">
-        <PhotoIcon className="w-4 h-4 shrink-0" />
-        <span>{altText || t('images.notFound')}</span>
-      </span>
+      <Group
+        gap="xs"
+        px="xs"
+        py={4}
+        bg="gray.1"
+        style={{ borderRadius: 'var(--mantine-radius-sm)', display: 'inline-flex' }}
+      >
+        <IconPhoto size={16} style={{ flexShrink: 0 }} />
+        <Text size="sm" c="dimmed">
+          {altText || t('images.notFound')}
+        </Text>
+      </Group>
     )
   }
 
   return (
-    <div className="relative inline-block group my-2">
+    <Box className="asset-directive-container">
       {/* Image */}
-      <img src={url} alt={altText} className={`${sizeClass} rounded-lg`} draggable={false} />
+      <Image
+        src={url}
+        alt={altText}
+        w={sizeStyle.w}
+        h={sizeStyle.h}
+        maw={sizeStyle.maw}
+        fit={sizeStyle.fit}
+        radius="md"
+        style={{ pointerEvents: 'none' }}
+      />
 
       {/* Size controls - visible on hover */}
-      <div className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity">
-        <div className="flex gap-1 bg-white/90 backdrop-blur-sm rounded-lg shadow-lg p-1">
+      <Box pos="absolute" top={8} left={8} className="asset-controls">
+        <Group
+          gap={4}
+          p={4}
+          bg="rgba(255, 255, 255, 0.9)"
+          style={{
+            backdropFilter: 'blur(4px)',
+            borderRadius: 'var(--mantine-radius-md)',
+            boxShadow: 'var(--mantine-shadow-lg)',
+          }}
+        >
           {IMAGE_SIZES.map((size) => (
-            <button
+            <Button
               key={size}
-              type="button"
+              size="compact-xs"
+              variant={currentSize === size ? 'filled' : 'light'}
+              color={currentSize === size ? 'cyan' : 'gray'}
               onClick={() => updateSize(size)}
-              className={`px-2 py-1 text-xs font-medium rounded transition-colors ${
-                currentSize === size
-                  ? 'bg-cyan-500 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
               title={t(
                 `editor.imageSize.${size satisfies 'icon' | 'thumbnail' | 'medium' | 'full'}`
               )}
             >
               {SIZE_LABELS[size]}
-            </button>
+            </Button>
           ))}
-        </div>
-      </div>
-    </div>
+        </Group>
+      </Box>
+    </Box>
   )
 }
 

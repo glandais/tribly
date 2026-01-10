@@ -56,7 +56,7 @@ export const getListPagesQueryKey = (teamSlug?: string) => {
 
 export const getListPagesQueryOptions = <
   TData = Awaited<ReturnType<typeof listPages>>,
-  TError = ErrorType<ErrorResponse>,
+  TError = ErrorType<void | ErrorResponse>,
 >(
   teamSlug: string,
   options?: {
@@ -79,11 +79,11 @@ export const getListPagesQueryOptions = <
 }
 
 export type ListPagesQueryResult = NonNullable<Awaited<ReturnType<typeof listPages>>>
-export type ListPagesQueryError = ErrorType<ErrorResponse>
+export type ListPagesQueryError = ErrorType<void | ErrorResponse>
 
 export function useListPages<
   TData = Awaited<ReturnType<typeof listPages>>,
-  TError = ErrorType<ErrorResponse>,
+  TError = ErrorType<void | ErrorResponse>,
 >(
   teamSlug: string,
   options: {
@@ -102,7 +102,7 @@ export function useListPages<
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useListPages<
   TData = Awaited<ReturnType<typeof listPages>>,
-  TError = ErrorType<ErrorResponse>,
+  TError = ErrorType<void | ErrorResponse>,
 >(
   teamSlug: string,
   options?: {
@@ -121,7 +121,7 @@ export function useListPages<
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useListPages<
   TData = Awaited<ReturnType<typeof listPages>>,
-  TError = ErrorType<ErrorResponse>,
+  TError = ErrorType<void | ErrorResponse>,
 >(
   teamSlug: string,
   options?: {
@@ -136,7 +136,7 @@ export function useListPages<
 
 export function useListPages<
   TData = Awaited<ReturnType<typeof listPages>>,
-  TError = ErrorType<ErrorResponse>,
+  TError = ErrorType<void | ErrorResponse>,
 >(
   teamSlug: string,
   options?: {
@@ -433,7 +433,7 @@ export const getGetPageQueryKey = (teamSlug?: string, pageSlug?: string) => {
 
 export const getGetPageQueryOptions = <
   TData = Awaited<ReturnType<typeof getPage>>,
-  TError = ErrorType<ErrorResponse>,
+  TError = ErrorType<void | ErrorResponse>,
 >(
   teamSlug: string,
   pageSlug: string,
@@ -460,11 +460,11 @@ export const getGetPageQueryOptions = <
 }
 
 export type GetPageQueryResult = NonNullable<Awaited<ReturnType<typeof getPage>>>
-export type GetPageQueryError = ErrorType<ErrorResponse>
+export type GetPageQueryError = ErrorType<void | ErrorResponse>
 
 export function useGetPage<
   TData = Awaited<ReturnType<typeof getPage>>,
-  TError = ErrorType<ErrorResponse>,
+  TError = ErrorType<void | ErrorResponse>,
 >(
   teamSlug: string,
   pageSlug: string,
@@ -484,7 +484,7 @@ export function useGetPage<
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetPage<
   TData = Awaited<ReturnType<typeof getPage>>,
-  TError = ErrorType<ErrorResponse>,
+  TError = ErrorType<void | ErrorResponse>,
 >(
   teamSlug: string,
   pageSlug: string,
@@ -504,7 +504,7 @@ export function useGetPage<
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetPage<
   TData = Awaited<ReturnType<typeof getPage>>,
-  TError = ErrorType<ErrorResponse>,
+  TError = ErrorType<void | ErrorResponse>,
 >(
   teamSlug: string,
   pageSlug: string,
@@ -520,7 +520,7 @@ export function useGetPage<
 
 export function useGetPage<
   TData = Awaited<ReturnType<typeof getPage>>,
-  TError = ErrorType<ErrorResponse>,
+  TError = ErrorType<void | ErrorResponse>,
 >(
   teamSlug: string,
   pageSlug: string,

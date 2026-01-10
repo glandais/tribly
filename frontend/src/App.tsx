@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { BrowserRouter } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { ArrowPathIcon } from '@heroicons/react/24/outline'
+import { Center, Loader, Stack, Text } from '@mantine/core'
 import { ErrorBoundary } from './components/common/ErrorBoundary'
 import { AppRoutes } from './config/RouteGenerator'
 import { useAuthStore } from './store/authStore'
@@ -23,12 +23,12 @@ function App() {
   // Wait for auth initialization and user sync before rendering routes
   if (!isInitialized || isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <ArrowPathIcon className="inline-block h-8 w-8 animate-spin text-indigo-600" />
-          <p className="mt-4 text-gray-600">{t('status.checkingAuth')}</p>
-        </div>
-      </div>
+      <Center mih="100vh" bg="gray.0">
+        <Stack align="center">
+          <Loader color="indigo" size="lg" />
+          <Text c="dimmed">{t('status.checkingAuth')}</Text>
+        </Stack>
+      </Center>
     )
   }
 

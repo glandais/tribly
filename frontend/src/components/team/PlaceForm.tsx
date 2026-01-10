@@ -1,9 +1,10 @@
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm } from '@mantine/form'
+import { zod4Resolver } from 'mantine-form-zod-resolver'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
-import { toast } from 'sonner'
+import { notifications } from '@mantine/notifications'
 import i18next from 'i18next'
+import { TextInput, Checkbox, Stack, Group, Button, Text } from '@mantine/core'
 import {
   useCreatePlace,
   useUpdatePlace,
@@ -13,17 +14,6 @@ import {
 import { createPlaceBody } from '../../api/zod/places/places.zod'
 import type { PlaceDetailDto, PlaceRequest } from '../../api/dto'
 import { Modal } from '../common/Modal'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Checkbox } from '@/components/ui/checkbox'
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
 
 const placeSchema = createPlaceBody
 
@@ -42,9 +32,9 @@ export function PlaceForm({ teamSlug, place, onClose }: PlaceFormProps) {
   const isEditing = place.id !== ''
 
   const form = useForm<PlaceRequest>({
-    resolver: zodResolver(placeSchema),
-    mode: 'onChange',
-    defaultValues: place,
+    validate: zod4Resolver(placeSchema) as any,
+    initialValues: place,
+    validateInputOnChange: true,
   })
 
   const handleSubmit = (values: PlaceRequest) => {
@@ -57,7 +47,10 @@ export function PlaceForm({ teamSlug, place, onClose }: PlaceFormProps) {
           onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: getListPlacesQueryKey(teamSlug) })
             queryClient.invalidateQueries({ queryKey: getGetPlaceQueryKey(teamSlug, place.id) })
-            toast.success(i18next.t('teams.notifications.placeUpdated'))
+            notifications.show({
+              message: i18next.t('teams.notifications.placeUpdated'),
+              color: 'green',
+            })
             onClose()
           },
         }
@@ -68,7 +61,10 @@ export function PlaceForm({ teamSlug, place, onClose }: PlaceFormProps) {
         {
           onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: getListPlacesQueryKey(teamSlug) })
-            toast.success(i18next.t('teams.notifications.placeCreated'))
+            notifications.show({
+              message: i18next.t('teams.notifications.placeCreated'),
+              color: 'green',
+            })
             onClose()
           },
         }
@@ -80,19 +76,16 @@ export function PlaceForm({ teamSlug, place, onClose }: PlaceFormProps) {
 
   const footerContent = (
     <>
-      <Button type="button" variant="outline" onClick={onClose}>
+      <Button variant="default" onClick={onClose}>
         {t('actions.cancelAction')}
       </Button>
       <Button
         type="submit"
         form="place-form"
-        disabled={mutation.isPending || !form.formState.isValid}
+        disabled={mutation.isPending || !form.isValid()}
+        loading={mutation.isPending}
       >
-        {mutation.isPending
-          ? t('loading')
-          : isEditing
-            ? t('actions.save')
-            : t('places.form.create')}
+        {isEditing ? t('actions.save') : t('places.form.create')}
       </Button>
     </>
   )
@@ -105,79 +98,46 @@ export function PlaceForm({ teamSlug, place, onClose }: PlaceFormProps) {
       size="md"
       footer={footerContent}
     >
-      <Form {...form}>
-        <form id="place-form" onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t('places.form.name.label')} *</FormLabel>
-                <FormControl>
-                  <Input placeholder={t('places.form.name.placeholder')} {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+      <form id="place-form" onSubmit={form.onSubmit(handleSubmit)}>
+        <Stack gap="md">
+          <TextInput
+            label={
+              <>
+                {t('places.form.name.label')}{' '}
+                <Text span c="red">
+                  *
+                </Text>
+              </>
+            }
+            placeholder={t('places.form.name.placeholder')}
+            {...form.getInputProps('name')}
           />
 
-          <FormField
-            control={form.control}
-            name="address"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t('places.form.address.label')}</FormLabel>
-                <FormControl>
-                  <Input placeholder={t('places.form.address.placeholder')} {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+          <TextInput
+            label={t('places.form.address.label')}
+            placeholder={t('places.form.address.placeholder')}
+            {...form.getInputProps('address')}
           />
 
-          <FormField
-            control={form.control}
-            name="link"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t('places.form.link.label')}</FormLabel>
-                <FormControl>
-                  <Input type="url" placeholder={t('places.form.link.placeholder')} {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+          <TextInput
+            label={t('places.form.link.label')}
+            placeholder={t('places.form.link.placeholder')}
+            type="url"
+            {...form.getInputProps('link')}
           />
 
-          <div className="flex space-x-4">
-            <FormField
-              control={form.control}
-              name="startPlace"
-              render={({ field }) => (
-                <FormItem className="flex items-center space-x-2 space-y-0">
-                  <FormControl>
-                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                  </FormControl>
-                  <FormLabel className="font-normal">{t('places.form.startPlace')}</FormLabel>
-                </FormItem>
-              )}
+          <Group>
+            <Checkbox
+              label={t('places.form.startPlace')}
+              {...form.getInputProps('startPlace', { type: 'checkbox' })}
             />
-
-            <FormField
-              control={form.control}
-              name="endPlace"
-              render={({ field }) => (
-                <FormItem className="flex items-center space-x-2 space-y-0">
-                  <FormControl>
-                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                  </FormControl>
-                  <FormLabel className="font-normal">{t('places.form.endPlace')}</FormLabel>
-                </FormItem>
-              )}
+            <Checkbox
+              label={t('places.form.endPlace')}
+              {...form.getInputProps('endPlace', { type: 'checkbox' })}
             />
-          </div>
-        </form>
-      </Form>
+          </Group>
+        </Stack>
+      </form>
     </Modal>
   )
 }

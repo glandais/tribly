@@ -1,7 +1,8 @@
 import { useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
-import { PencilIcon, CheckIcon, XMarkIcon } from '@heroicons/react/24/outline'
-import { toast } from 'sonner'
+import { Group, Text, TextInput, ActionIcon, Stack } from '@mantine/core'
+import { notifications } from '@mantine/notifications'
+import { IconPencil, IconCheck, IconX } from '@tabler/icons-react'
 
 interface SlugEditorProps {
   currentSlug: string
@@ -69,11 +70,12 @@ export function SlugEditor({
 
     try {
       await onSlugChange(newSlug)
-      toast.success(t('slug.success'))
+      notifications.show({
+        message: t('slug.success'),
+        color: 'green',
+      })
       setIsEditing(false)
     } catch (err) {
-      // Error is handled by the parent component or apiClient
-      // Check for conflict error
       if (err && typeof err === 'object' && 'status' in err && err.status === 409) {
         setError(t('slug.error.taken'))
       }
@@ -82,9 +84,9 @@ export function SlugEditor({
     }
   }
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '')
-    setNewSlug(value)
+  const handleInputChange = (value: string) => {
+    const cleanValue = value.toLowerCase().replace(/[^a-z0-9-]/g, '')
+    setNewSlug(cleanValue)
     setError(null)
   }
 
@@ -99,60 +101,72 @@ export function SlugEditor({
 
   if (!isEditing) {
     return (
-      <div className="flex items-center gap-2 text-sm text-gray-600">
-        <span className="font-medium">{t('slug.label')}:</span>
-        <span className="font-mono text-gray-800">{baseUrl + currentSlug}</span>
+      <Group gap="xs">
+        <Text size="sm" fw={500} c="dimmed">
+          {t('slug.label')}:
+        </Text>
+        <Text size="sm" ff="monospace">
+          {baseUrl + currentSlug}
+        </Text>
         {!disabled && (
-          <button
-            type="button"
+          <ActionIcon
+            variant="subtle"
+            color="gray"
+            size="sm"
             onClick={handleStartEdit}
-            className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
             title={t('slug.edit')}
           >
-            <PencilIcon className="h-4 w-4" />
-          </button>
+            <IconPencil size={16} />
+          </ActionIcon>
         )}
-      </div>
+      </Group>
     )
   }
 
   return (
-    <div className="space-y-2">
-      <div className="flex items-center gap-2">
-        <span className="text-sm font-medium text-gray-600">{t('slug.label')}:</span>
-        <div className="flex flex-1 items-center gap-1">
-          <span className="text-sm text-gray-500">{baseUrl}</span>
-          <input
-            type="text"
-            value={newSlug}
-            onChange={handleInputChange}
-            onKeyDown={handleKeyDown}
-            disabled={isLoading}
-            className="w-48 rounded border border-gray-300 px-2 py-1 font-mono text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:bg-gray-100"
-            autoFocus
-          />
-          <button
-            type="button"
-            onClick={handleSave}
-            disabled={isLoading}
-            className="rounded p-1 text-green-600 hover:bg-green-50 disabled:opacity-50"
-            title={t('actions.save')}
-          >
-            <CheckIcon className="h-4 w-4" />
-          </button>
-          <button
-            type="button"
-            onClick={handleCancel}
-            disabled={isLoading}
-            className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600 disabled:opacity-50"
-            title={t('actions.cancelAction')}
-          >
-            <XMarkIcon className="h-4 w-4" />
-          </button>
-        </div>
-      </div>
-      {error && <p className="text-sm text-red-600">{error}</p>}
-      <p className="text-xs text-gray-500">{t('slug.hint')}</p>
-    </div>
+    <Stack gap="xs">
+      <Group gap="xs">
+        <Text size="sm" fw={500} c="dimmed">
+          {t('slug.label')}:
+        </Text>
+        <Text size="sm" c="dimmed">
+          {baseUrl}
+        </Text>
+        <TextInput
+          value={newSlug}
+          onChange={(e) => handleInputChange(e.currentTarget.value)}
+          onKeyDown={handleKeyDown}
+          disabled={isLoading}
+          w={200}
+          size="xs"
+          ff="monospace"
+          autoFocus
+          error={error}
+        />
+        <ActionIcon
+          variant="subtle"
+          color="green"
+          size="sm"
+          onClick={handleSave}
+          disabled={isLoading}
+          title={t('actions.save')}
+        >
+          <IconCheck size={16} />
+        </ActionIcon>
+        <ActionIcon
+          variant="subtle"
+          color="gray"
+          size="sm"
+          onClick={handleCancel}
+          disabled={isLoading}
+          title={t('actions.cancelAction')}
+        >
+          <IconX size={16} />
+        </ActionIcon>
+      </Group>
+      <Text size="xs" c="dimmed">
+        {t('slug.hint')}
+      </Text>
+    </Stack>
   )
 }

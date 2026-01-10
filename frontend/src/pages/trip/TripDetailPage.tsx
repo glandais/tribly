@@ -2,15 +2,30 @@ import { useState } from 'react'
 import { Link, useParams, Navigate, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
-import { toast } from 'sonner'
+import { notifications } from '@mantine/notifications'
 import { paths } from '../../config/paths'
 import {
-  CalendarIcon,
-  UsersIcon,
-  PencilIcon,
-  RectangleStackIcon,
-  ChevronDownIcon,
-} from '@heroicons/react/24/outline'
+  IconCalendar,
+  IconUsers,
+  IconPencil,
+  IconStack2,
+  IconChevronDown,
+} from '@tabler/icons-react'
+import {
+  Box,
+  Button,
+  Menu,
+  Container,
+  Paper,
+  Group,
+  Stack,
+  Title,
+  Text,
+  Badge,
+  SimpleGrid,
+  Alert,
+  Anchor,
+} from '@mantine/core'
 import { useGetTeam } from '@/api/endpoints/teams/teams'
 import {
   useGetTrip,
@@ -31,21 +46,12 @@ import { useFormattedDate } from '../../utils/dateFormat'
 import { MediaDisplay } from '../../components/common/MediaDisplay'
 import { EntityLogo } from '../../components/common/EntityLogo'
 import { CommentSection } from '../../components/comment'
-import { Button } from '@/components/ui/button'
-import { ButtonGroup } from '@/components/ui/button-group'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 
-const statusColors: Record<Status, string> = {
-  [Status.DRAFT]: 'bg-gray-100 text-gray-800',
-  [Status.PUBLISHED]: 'bg-green-100 text-green-800',
-  [Status.CANCELLED]: 'bg-red-100 text-red-800',
+const statusColors: Record<Status, 'gray' | 'green' | 'red'> = {
+  [Status.DRAFT]: 'gray',
+  [Status.PUBLISHED]: 'green',
+  [Status.CANCELLED]: 'red',
 }
 
 export function TripDetailPage() {
@@ -93,20 +99,19 @@ export function TripDetailPage() {
 
   if (error || !trip) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="text-center py-12">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">
+      <Container size="xl" py="xl">
+        <Paper withBorder p="xl" ta="center">
+          <Title order={2} mb="xs">
             {t('trips.detail.notFound.title')}
-          </h1>
-          <p className="text-gray-600 mb-6">{t('trips.detail.notFound.message')}</p>
-          <Link
-            to={paths.team(teamSlug!)}
-            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700"
-          >
+          </Title>
+          <Text c="dimmed" mb="lg">
+            {t('trips.detail.notFound.message')}
+          </Text>
+          <Button component={Link} to={paths.team(teamSlug!)}>
             {t('trips.detail.notFound.backToTrips')}
-          </Link>
-        </div>
-      </div>
+          </Button>
+        </Paper>
+      </Container>
     )
   }
 
@@ -127,7 +132,7 @@ export function TripDetailPage() {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetTripQueryKey(teamSlug!, tripSlug!) })
           queryClient.invalidateQueries({ queryKey: getListPublicationsQueryKey(teamSlug!) })
-          toast.success(t('trips.notifications.published'))
+          notifications.show({ message: t('trips.notifications.published'), color: 'green' })
         },
       }
     )
@@ -140,7 +145,7 @@ export function TripDetailPage() {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetTripQueryKey(teamSlug!, tripSlug!) })
           queryClient.invalidateQueries({ queryKey: getListPublicationsQueryKey(teamSlug!) })
-          toast.success(t('trips.notifications.unpublished'))
+          notifications.show({ message: t('trips.notifications.unpublished'), color: 'green' })
         },
       }
     )
@@ -154,7 +159,7 @@ export function TripDetailPage() {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetTripQueryKey(teamSlug!, tripSlug!) })
           queryClient.invalidateQueries({ queryKey: getListPublicationsQueryKey(teamSlug!) })
-          toast.success(t('trips.notifications.cancelled'))
+          notifications.show({ message: t('trips.notifications.cancelled'), color: 'green' })
         },
       }
     )
@@ -168,7 +173,7 @@ export function TripDetailPage() {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetTripQueryKey(teamSlug!, tripSlug!) })
           queryClient.invalidateQueries({ queryKey: getListPublicationsQueryKey(teamSlug!) })
-          toast.success(t('trips.notifications.uncancelled'))
+          notifications.show({ message: t('trips.notifications.uncancelled'), color: 'green' })
         },
       }
     )
@@ -181,7 +186,7 @@ export function TripDetailPage() {
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getListPublicationsQueryKey(teamSlug!) })
-          toast.success(t('trips.notifications.deleted'))
+          notifications.show({ message: t('trips.notifications.deleted'), color: 'green' })
           navigate(paths.team(teamSlug!))
         },
       }
@@ -195,7 +200,7 @@ export function TripDetailPage() {
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetTripQueryKey(teamSlug!, tripSlug!) })
-          toast.success(t('trips.notifications.joined'))
+          notifications.show({ message: t('trips.notifications.joined'), color: 'green' })
         },
       }
     )
@@ -207,149 +212,139 @@ export function TripDetailPage() {
       {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetTripQueryKey(teamSlug!, tripSlug!) })
-          toast.success(t('trips.notifications.left'))
+          notifications.show({ message: t('trips.notifications.left'), color: 'green' })
         },
       }
     )
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <Container size="xl" py="xl">
       {/* Header */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div className="flex items-center gap-3 min-w-0">
+      <Paper withBorder p="lg" mb="lg">
+        <Group justify="space-between" align="flex-start" wrap="wrap" gap="md">
+          <Group gap="md" style={{ minWidth: 0 }}>
             <EntityLogo logo={trip.media.assets.logo} alt={trip.name} size="lg" />
-            <h1 className="text-2xl font-bold text-gray-900 truncate">{trip.name}</h1>
-            <span
-              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium shrink-0 ${statusColors[trip.status]}`}
-            >
+            <Title order={2} lineClamp={1}>
+              {trip.name}
+            </Title>
+            <Badge color={statusColors[trip.status]}>
               {t(`status.${trip.status satisfies 'DRAFT' | 'PUBLISHED' | 'CANCELLED'}`)}
-            </span>
-          </div>
+            </Badge>
+          </Group>
 
-          <div className="flex flex-wrap items-center gap-2 shrink-0">
+          <Group gap="sm" wrap="wrap">
             {/* Join/Leave button for members */}
             {canJoinTrip && (
-              <button
-                onClick={handleJoin}
-                disabled={joinMutation.isPending}
-                className="inline-flex items-center px-3 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50"
-              >
-                {joinMutation.isPending ? <LoadingSpinner size="sm" className="mr-2" /> : null}
+              <Button onClick={handleJoin} loading={joinMutation.isPending}>
                 {t('trips.detail.actions.join')}
-              </button>
+              </Button>
             )}
             {hasJoined && (
-              <button
-                onClick={handleLeave}
-                disabled={leaveMutation.isPending}
-                className="inline-flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
-              >
-                {leaveMutation.isPending ? <LoadingSpinner size="sm" className="mr-2" /> : null}
+              <Button variant="outline" onClick={handleLeave} loading={leaveMutation.isPending}>
                 {t('trips.detail.actions.leave')}
-              </button>
+              </Button>
             )}
 
             {canEdit && (
-              <ButtonGroup>
-                <Button asChild variant="outline">
-                  <Link to={paths.tripEdit(teamSlug!, tripSlug!)}>
-                    <PencilIcon className="w-4 h-4" />
-                    {t('actions.edit')}
-                  </Link>
+              <Button.Group>
+                <Button
+                  component={Link}
+                  to={paths.tripEdit(teamSlug!, tripSlug!)}
+                  variant="outline"
+                  leftSection={<IconPencil size={16} />}
+                >
+                  {t('actions.edit')}
                 </Button>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" className="!pl-2">
-                      <ChevronDownIcon className="w-4 h-4" />
+                <Menu position="bottom-end">
+                  <Menu.Target>
+                    <Button variant="outline" px="xs">
+                      <IconChevronDown size={16} />
                     </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
+                  </Menu.Target>
+                  <Menu.Dropdown>
                     {trip.status === Status.DRAFT && (
-                      <DropdownMenuItem
+                      <Menu.Item
                         onClick={handlePublish}
                         disabled={updateMutation.isPending}
-                        className="text-green-700"
+                        color="green"
+                        leftSection={
+                          updateMutation.isPending ? <LoadingSpinner size="sm" /> : undefined
+                        }
                       >
-                        {updateMutation.isPending && <LoadingSpinner size="sm" />}
                         {t('actions.publish')}
-                      </DropdownMenuItem>
+                      </Menu.Item>
                     )}
                     {trip.status === Status.PUBLISHED && (
                       <>
-                        <DropdownMenuItem
-                          onClick={() => setShowUnpublishConfirm(true)}
-                          className="text-yellow-700"
-                        >
+                        <Menu.Item onClick={() => setShowUnpublishConfirm(true)} color="yellow">
                           {t('actions.unpublish')}
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => setShowCancelConfirm(true)}
-                          className="text-yellow-700"
-                        >
+                        </Menu.Item>
+                        <Menu.Item onClick={() => setShowCancelConfirm(true)} color="yellow">
                           {t('trips.detail.actions.cancel')}
-                        </DropdownMenuItem>
+                        </Menu.Item>
                       </>
                     )}
                     {trip.status === Status.CANCELLED && (
-                      <DropdownMenuItem
-                        onClick={() => setShowUncancelConfirm(true)}
-                        className="text-green-700"
-                      >
+                      <Menu.Item onClick={() => setShowUncancelConfirm(true)} color="green">
                         {t('trips.detail.actions.uncancel')}
-                      </DropdownMenuItem>
+                      </Menu.Item>
                     )}
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      onClick={() => setShowDeleteConfirm(true)}
-                      variant="destructive"
-                    >
+                    <Menu.Divider />
+                    <Menu.Item onClick={() => setShowDeleteConfirm(true)} color="red">
                       {t('actions.delete')}
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </ButtonGroup>
+                    </Menu.Item>
+                  </Menu.Dropdown>
+                </Menu>
+              </Button.Group>
             )}
-          </div>
-        </div>
+          </Group>
+        </Group>
 
-        <div className="mt-4">
-          <MediaDisplay media={trip.media} className="text-gray-600" />
-        </div>
+        <Box mt="md">
+          <MediaDisplay media={trip.media} />
+        </Box>
         {trip.status === Status.DRAFT && trip.publishAt && (
-          <div className="mt-2 text-sm text-amber-600 flex items-center">
-            <CalendarIcon className="w-4 h-4 mr-1" />
-            {t('trips.detail.scheduledPublish', {
-              date: formatDateTime(trip.publishAt),
-            })}
-          </div>
+          <Group mt="sm" gap="xs">
+            <IconCalendar size={16} color="var(--mantine-color-yellow-6)" />
+            <Text size="sm" c="yellow.6">
+              {t('trips.detail.scheduledPublish', {
+                date: formatDateTime(trip.publishAt),
+              })}
+            </Text>
+          </Group>
         )}
-        <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-gray-500">
-          <span className="flex items-center">
-            <CalendarIcon className="w-4 h-4 mr-1" />
-            {formattedDate}
-          </span>
-          <span className="flex items-center">
-            <UsersIcon className="w-4 h-4 mr-1" />
-            {t('participantCount', { count: trip.participantCount })}
-          </span>
-          <span className="flex items-center">
-            <RectangleStackIcon className="w-4 h-4 mr-1" />
-            {t('trips.card.stageCount', { count: trip.stageCount })}
-          </span>
-        </div>
-      </div>
+        <Group mt="md" gap="lg">
+          <Group gap="xs">
+            <IconCalendar size={16} />
+            <Text size="sm" c="dimmed">
+              {formattedDate}
+            </Text>
+          </Group>
+          <Group gap="xs">
+            <IconUsers size={16} />
+            <Text size="sm" c="dimmed">
+              {t('participantCount', { count: trip.participantCount })}
+            </Text>
+          </Group>
+          <Group gap="xs">
+            <IconStack2 size={16} />
+            <Text size="sm" c="dimmed">
+              {t('trips.card.stageCount', { count: trip.stageCount })}
+            </Text>
+          </Group>
+        </Group>
+      </Paper>
 
       {/* Map and Stages */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 mb-6">
+      <SimpleGrid cols={{ base: 1, xl: 3 }} spacing="lg" mb="lg">
         {/* Stages list on left (takes 1 column on xl screens) */}
-        <div className="xl:col-span-1 order-2 xl:order-1">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+        <Box style={{ order: 2 }} data-order-xl="1">
+          <Title order={3} mb="md">
             {t('trips.detail.stages.title')}
-          </h2>
+          </Title>
           {trip.stages && trip.stages.length > 0 ? (
-            <div className="space-y-3">
+            <Stack gap="sm">
               {trip.stages.map((stage, index) => (
                 <TripStageCard
                   key={stage.id}
@@ -360,14 +355,14 @@ export function TripDetailPage() {
                   isHighlighted={highlightedStageId === stage.id}
                 />
               ))}
-            </div>
+            </Stack>
           ) : (
-            <p className="text-gray-500">{t('trips.detail.stages.empty')}</p>
+            <Text c="dimmed">{t('trips.detail.stages.empty')}</Text>
           )}
-        </div>
+        </Box>
 
         {/* Map on right (takes 2 columns on xl screens) */}
-        <div className="xl:col-span-2 order-1 xl:order-2">
+        <Box style={{ order: 1, gridColumn: 'span 2' }} data-order-xl="2" visibleFrom="xl">
           {trip.stages && trip.stages.length > 0 && (
             <RoutesMapView
               items={trip.stages}
@@ -376,61 +371,68 @@ export function TripDetailPage() {
               onItemHover={setHighlightedStageId}
             />
           )}
-        </div>
-      </div>
+        </Box>
+        <Box style={{ order: 1 }} hiddenFrom="xl">
+          {trip.stages && trip.stages.length > 0 && (
+            <RoutesMapView
+              items={trip.stages}
+              teamSlug={teamSlug!}
+              highlightedItemId={highlightedStageId}
+              onItemHover={setHighlightedStageId}
+            />
+          )}
+        </Box>
+      </SimpleGrid>
 
       {/* Participants section */}
       {trip.participants && trip.participants.length > 0 && (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+        <Paper withBorder p="lg" mb="lg">
+          <Title order={3} mb="md">
             {t('trips.detail.participants.title')}
-          </h2>
-          <div className="flex flex-wrap gap-2">
+          </Title>
+          <Group gap="xs">
             {trip.participants.map((participant) => (
-              <span
-                key={participant.id}
-                className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-gray-100 text-gray-800"
-              >
+              <Badge key={participant.id} variant="light" color="gray" size="lg">
                 {participant.displayName}
-              </span>
+              </Badge>
             ))}
-          </div>
-        </div>
+          </Group>
+        </Paper>
       )}
 
       {/* Info for non-members */}
       {!isMember && isAuthenticated && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-          <p className="text-yellow-800">
+        <Alert color="yellow" variant="light" mb="lg">
+          <Text>
             {t('trips.detail.nonMember.message')}{' '}
-            <Link to={paths.team(teamSlug!)} className="font-medium underline">
+            <Anchor component={Link} to={paths.team(teamSlug!)} fw={500}>
               {t('trips.detail.nonMember.viewTeam')}
-            </Link>
-          </p>
-        </div>
+            </Anchor>
+          </Text>
+        </Alert>
       )}
 
       {!isAuthenticated && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <p className="text-blue-800">
+        <Alert color="blue" variant="light" mb="lg">
+          <Text>
             {t('trips.detail.notAuthenticated.message')}{' '}
-            <Link to="/login" className="font-medium underline">
+            <Anchor component={Link} to="/login" fw={500}>
               {t('trips.detail.notAuthenticated.signIn')}
-            </Link>
-          </p>
-        </div>
+            </Anchor>
+          </Text>
+        </Alert>
       )}
 
       {/* Comments Section - only visible to team members */}
       {isMember && (
-        <div className="mt-6">
+        <Box mt="lg">
           <CommentSection
             teamSlug={teamSlug!}
             entityType="trips"
             entitySlug={tripSlug!}
             isOrganizer={canEdit}
           />
-        </div>
+        </Box>
       )}
 
       {/* Confirmation Dialogs */}
@@ -474,6 +476,6 @@ export function TripDetailPage() {
         variant="danger"
         isLoading={deleteMutation.isPending}
       />
-    </div>
+    </Container>
   )
 }

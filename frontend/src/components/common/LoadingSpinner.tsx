@@ -1,34 +1,31 @@
-import { ArrowPathIcon } from '@heroicons/react/24/outline'
+import {
+  Loader,
+  Center,
+  Text,
+  Stack,
+  Box,
+  LoadingOverlay as MantineLoadingOverlay,
+} from '@mantine/core'
 
 interface LoadingSpinnerProps {
   size?: 'sm' | 'md' | 'lg'
   color?: 'primary' | 'white' | 'gray'
-  className?: string
 }
 
-const sizeClasses = {
-  sm: 'h-4 w-4',
-  md: 'h-8 w-8',
-  lg: 'h-12 w-12',
+const sizeMap = {
+  sm: 'sm',
+  md: 'md',
+  lg: 'lg',
+} as const
+
+const colorMap = {
+  primary: 'indigo',
+  white: 'white',
+  gray: 'gray',
 }
 
-const colorClasses = {
-  primary: 'text-indigo-600',
-  white: 'text-white',
-  gray: 'text-gray-400',
-}
-
-export function LoadingSpinner({
-  size = 'md',
-  color = 'primary',
-  className = '',
-}: LoadingSpinnerProps) {
-  return (
-    <ArrowPathIcon
-      className={`animate-spin ${sizeClasses[size]} ${colorClasses[color]} ${className}`}
-      aria-hidden="true"
-    />
-  )
+export function LoadingSpinner({ size = 'md', color = 'primary' }: LoadingSpinnerProps) {
+  return <Loader size={sizeMap[size]} color={colorMap[color]} />
 }
 
 interface LoadingPageProps {
@@ -37,10 +34,12 @@ interface LoadingPageProps {
 
 export function LoadingPage({ message }: LoadingPageProps) {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh]">
-      <LoadingSpinner size="lg" />
-      <p className="mt-4 text-gray-600">{message}</p>
-    </div>
+    <Center mih="60vh">
+      <Stack align="center">
+        <LoadingSpinner size="lg" />
+        <Text c="dimmed">{message}</Text>
+      </Stack>
+    </Center>
   )
 }
 
@@ -51,13 +50,9 @@ interface LoadingOverlayProps {
 
 export function LoadingOverlay({ isLoading, children }: LoadingOverlayProps) {
   return (
-    <div className="relative">
+    <Box pos="relative">
+      <MantineLoadingOverlay visible={isLoading} overlayProps={{ blur: 2 }} />
       {children}
-      {isLoading && (
-        <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10">
-          <LoadingSpinner size="lg" />
-        </div>
-      )}
-    </div>
+    </Box>
   )
 }

@@ -1,7 +1,8 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation, Trans } from 'react-i18next'
-import { ArrowRightOnRectangleIcon } from '@heroicons/react/24/outline'
+import { IconLogin } from '@tabler/icons-react'
+import { Center, Paper, Stack, Title, Text, Button, Anchor } from '@mantine/core'
 import { useAuth } from '../../hooks/useAuth'
 import { paths } from '@/config/paths'
 
@@ -17,37 +18,29 @@ export function LoginPage() {
   }, [isAuthenticated, navigate])
 
   return (
-    <div className="min-h-[70vh] flex items-center justify-center">
-      <div className="max-w-md w-full space-y-8 p-8 bg-white rounded-xl shadow-lg">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900">{t('welcome')}</h1>
-          <p className="mt-2 text-gray-600">{t('auth.login.subtitle')}</p>
-        </div>
+    <Center mih="70vh">
+      <Paper shadow="lg" radius="lg" p="xl" w="100%" maw={400}>
+        <Stack gap="lg">
+          <Stack gap="xs" ta="center">
+            <Title order={1}>{t('welcome')}</Title>
+            <Text c="dimmed">{t('auth.login.subtitle')}</Text>
+          </Stack>
 
-        <div className="mt-8">
-          <button
-            onClick={() => login()}
-            className="w-full flex items-center justify-center gap-3 px-4 py-3 border border-transparent text-base font-medium rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
-          >
-            <ArrowRightOnRectangleIcon className="w-5 h-5" />
+          <Button onClick={() => login()} size="lg" fullWidth leftSection={<IconLogin size={20} />}>
             {t('auth.login.button')}
-          </button>
-        </div>
+          </Button>
 
-        <p className="mt-8 text-center text-sm text-gray-500">
-          <Trans
-            i18nKey="auth.login.termsText"
-            components={{
-              termsLink: (
-                <a href="/terms" className="font-medium text-indigo-600 hover:text-indigo-500" />
-              ),
-              privacyLink: (
-                <a href="/privacy" className="font-medium text-indigo-600 hover:text-indigo-500" />
-              ),
-            }}
-          />
-        </p>
-      </div>
-    </div>
+          <Text size="sm" c="dimmed" ta="center">
+            <Trans
+              i18nKey="auth.login.termsText"
+              components={{
+                termsLink: <Anchor href="/terms" />,
+                privacyLink: <Anchor href="/privacy" />,
+              }}
+            />
+          </Text>
+        </Stack>
+      </Paper>
+    </Center>
   )
 }

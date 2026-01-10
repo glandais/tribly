@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
+import { Stack, Group, Title, Button, Tabs, Box } from '@mantine/core'
 import { getGetTeamQueryKey } from '@/api/endpoints/teams/teams'
 import {
   useLeaveTeam,
@@ -95,71 +96,56 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
   }, [team.slug, team.pages, team.enableAds, isMember, t])
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="relative pt-14 sm:pt-8 sm:pl-32">
-        {/* Team Avatar - absolute on larger screens, centered on mobile */}
-        <div className="absolute left-1/2 -translate-x-1/2 top-0 sm:left-0 sm:translate-x-0 sm:top-0">
-          <TeamAvatar team={team} size="xl" className="ring-4 ring-white shadow-lg" />
-        </div>
+    <Stack gap="lg">
+      {/* Team Header */}
+      <Group align="flex-start" gap="lg" wrap="wrap">
+        <TeamAvatar team={team} size="xl" />
+        <Box style={{ flex: 1 }}>
+          <Group justify="space-between" align="flex-start" wrap="wrap" gap="md">
+            <Group gap="sm">
+              <Title order={1}>{team.name}</Title>
+              {team.visibility === 'TEAM' && <VisibilityBadge visibility={team.visibility} />}
+            </Group>
 
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <h1 className="text-3xl font-bold text-gray-900">{team.name}</h1>
-            {team.visibility === 'TEAM' && <VisibilityBadge visibility={team.visibility} />}
-          </div>
+            <Group gap="sm">
+              {canJoin && (
+                <Button onClick={handleJoin} loading={joinMutation.isPending}>
+                  {joinMutation.isPending
+                    ? t('teams.detail.actions.joining')
+                    : t('teams.detail.actions.join')}
+                </Button>
+              )}
 
-          <div className="flex items-center gap-3">
-            {canJoin && (
-              <button
-                onClick={handleJoin}
-                disabled={joinMutation.isPending}
-                className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
-              >
-                {joinMutation.isPending
-                  ? t('teams.detail.actions.joining')
-                  : t('teams.detail.actions.join')}
-              </button>
-            )}
+              {canLeave && (
+                <Button variant="default" onClick={() => setShowLeaveConfirm(true)}>
+                  {t('teams.detail.actions.leave')}
+                </Button>
+              )}
 
-            {canLeave && (
-              <button
-                onClick={() => setShowLeaveConfirm(true)}
-                className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-xs text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-              >
-                {t('teams.detail.actions.leave')}
-              </button>
-            )}
-
-            {isOrganizer && (
-              <Link
-                to={paths.teamAdmin(team.slug)}
-                className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-xs text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-              >
-                {t('teams.detail.actions.admin')}
-              </Link>
-            )}
-          </div>
-        </div>
-      </div>
+              {isOrganizer && (
+                <Button variant="default" component={Link} to={paths.teamAdmin(team.slug)}>
+                  {t('teams.detail.actions.admin')}
+                </Button>
+              )}
+            </Group>
+          </Group>
+        </Box>
+      </Group>
 
       {/* Team Navigation */}
-      <div className="mt-8 border-b border-gray-200">
-        <nav className="-mb-px flex space-x-8">
+      <Tabs value={currentTab}>
+        <Tabs.List>
           {tabs.map((tab) => (
-            <Link
+            <Tabs.Tab
               key={tab.id}
-              to={tab.path}
-              className={
-                currentTab === tab.id
-                  ? 'border-indigo-500 text-indigo-600 py-4 px-1 border-b-2 font-medium text-sm'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 py-4 px-1 border-b-2 font-medium text-sm'
-              }
+              value={tab.id}
+              renderRoot={(props) => <Link to={tab.path} {...props} />}
             >
               {tab.label}
-            </Link>
+            </Tabs.Tab>
           ))}
-        </nav>
-      </div>
+        </Tabs.List>
+      </Tabs>
 
       {/* Page Content */}
       <div>{children}</div>
@@ -175,6 +161,6 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
         variant="warning"
         isLoading={leaveMutation.isPending}
       />
-    </div>
+    </Stack>
   )
 }

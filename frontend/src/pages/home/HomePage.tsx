@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { NewspaperIcon } from '@heroicons/react/24/outline'
+import { Box, Select, Stack, Title, Group, Paper, Text, Center } from '@mantine/core'
+import { IconNews } from '@tabler/icons-react'
 import { useListAllPublications } from '../../api/endpoints/publications/publications'
 import { PublicationType } from '@/api/dto'
 import {
@@ -11,13 +12,6 @@ import { Pagination } from '../../components/common/Pagination'
 import { usePagination } from '../../hooks/usePagination'
 import { SearchInput } from '../../components/common/SearchInput'
 import { HomeLayout } from '../../components/home/HomeLayout'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 
 type FilterValue = 'all' | 'ride' | 'post' | 'trip'
 
@@ -57,12 +51,12 @@ export function HomePage() {
   return (
     <HomeLayout currentTab="feed">
       {/* Publications Section */}
-      <div className="mt-6 mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">{t('home.feed.title')}</h2>
-      </div>
+      <Title order={2} mb="md">
+        {t('home.feed.title')}
+      </Title>
 
       {/* Search and Filter */}
-      <div className="flex flex-col sm:flex-row gap-4 mb-6">
+      <Group gap="md" mb="lg" align="flex-end" wrap="wrap">
         <SearchInput
           id="publications-search"
           value={search}
@@ -72,65 +66,65 @@ export function HomePage() {
           }}
           placeholder={t('home.feed.search.placeholder')}
           label={t('home.feed.search.label')}
-          className="flex-1"
+          style={{ flex: 1, minWidth: 200 }}
         />
         <Select
           value={filter}
-          onValueChange={(value: FilterValue) => {
-            setFilter(value)
-            resetPage()
+          onChange={(value) => {
+            if (value) {
+              setFilter(value as FilterValue)
+              resetPage()
+            }
           }}
-        >
-          <SelectTrigger
-            className="w-full sm:w-40"
-            aria-label={t('teams.publications.list.filter.label')}
-          >
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{t('teams.publications.list.filter.all')}</SelectItem>
-            <SelectItem value="ride">{t('teams.publications.list.filter.ride')}</SelectItem>
-            <SelectItem value="post">{t('teams.publications.list.filter.post')}</SelectItem>
-            <SelectItem value="trip">{t('teams.publications.list.filter.trip')}</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+          data={[
+            { value: 'all', label: t('teams.publications.list.filter.all') },
+            { value: 'ride', label: t('teams.publications.list.filter.ride') },
+            { value: 'post', label: t('teams.publications.list.filter.post') },
+            { value: 'trip', label: t('teams.publications.list.filter.trip') },
+          ]}
+          aria-label={t('teams.publications.list.filter.label')}
+          w={{ base: '100%', sm: 160 }}
+        />
+      </Group>
 
       {/* Loading State */}
       {isLoading ? (
-        <div className="space-y-6">
+        <Stack gap="lg">
           {[...Array(6)].map((_, i) => (
             <PublicationCardSkeleton key={i} />
           ))}
-        </div>
+        </Stack>
       ) : isError ? (
         /* Error State */
-        <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
-          <NewspaperIcon className="mx-auto h-12 w-12 text-red-400" />
-          <h3 className="mt-4 text-lg font-medium text-gray-900">{t('error.loading')}</h3>
-        </div>
+        <Paper withBorder p="xl" radius="md">
+          <Center>
+            <Stack align="center" gap="sm">
+              <IconNews size={48} color="var(--mantine-color-red-5)" />
+              <Text fw={500}>{t('error.loading')}</Text>
+            </Stack>
+          </Center>
+        </Paper>
       ) : publicationsData?.publications && publicationsData.publications.length > 0 ? (
         /* Publications List */
-        <div className="space-y-6">
+        <Stack gap="lg">
           {publicationsData.publications.map((publication) => (
             <PublicationCard key={publication.id} publication={publication} showTeam={true} />
           ))}
 
-          <Pagination
-            currentPage={page}
-            totalPages={totalPages}
-            onPageChange={setPage}
-            className="mt-8"
-          />
-        </div>
+          <Box mt="xl">
+            <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+          </Box>
+        </Stack>
       ) : (
         /* Empty State */
-        <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
-          <NewspaperIcon className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-4 text-lg font-medium text-gray-900">
-            {search ? t('home.feed.noResults') : t('home.feed.empty')}
-          </h3>
-        </div>
+        <Paper withBorder p="xl" radius="md">
+          <Center>
+            <Stack align="center" gap="sm">
+              <IconNews size={48} color="var(--mantine-color-gray-5)" />
+              <Text fw={500}>{search ? t('home.feed.noResults') : t('home.feed.empty')}</Text>
+            </Stack>
+          </Center>
+        </Paper>
       )}
     </HomeLayout>
   )

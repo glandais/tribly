@@ -16,6 +16,7 @@ import {
   TooltipItem,
 } from 'chart.js'
 import { useTranslation } from 'react-i18next'
+import { Box, Center, Text, Paper } from '@mantine/core'
 import { getRoute } from '@/api/endpoints/routes/routes'
 import type { RouteDetailDto } from '@/api/dto'
 import { StartMarker, EndMarker } from '../map/MapMarkers'
@@ -280,17 +281,17 @@ export function RoutesMapView({
 
   if (isLoading) {
     return (
-      <div className="w-full h-[500px] flex items-center justify-center bg-gray-100 rounded">
-        <div className="text-gray-500">{t('loading')}</div>
-      </div>
+      <Center w="100%" h={500} bg="gray.1" style={{ borderRadius: 'var(--mantine-radius-sm)' }}>
+        <Text c="dimmed">{t('loading')}</Text>
+      </Center>
     )
   }
 
   if (routesData.length === 0) {
     return (
-      <div className="w-full h-[500px] flex items-center justify-center bg-gray-100 rounded">
-        <div className="text-gray-500">{t(`map.noRoutes`)}</div>
-      </div>
+      <Center w="100%" h={500} bg="gray.1" style={{ borderRadius: 'var(--mantine-radius-sm)' }}>
+        <Text c="dimmed">{t(`map.noRoutes`)}</Text>
+      </Center>
     )
   }
 
@@ -299,9 +300,15 @@ export function RoutesMapView({
   const endPoint = lastRoute.trackPoints[lastRoute.trackPoints.length - 1]
 
   return (
-    <div className="border rounded overflow-hidden">
+    <Box
+      style={{
+        border: '1px solid var(--mantine-color-gray-3)',
+        borderRadius: 'var(--mantine-radius-sm)',
+        overflow: 'hidden',
+      }}
+    >
       {/* Map container */}
-      <div className="relative w-full h-[500px] z-0">
+      <Box pos="relative" w="100%" h={500} style={{ zIndex: 0 }}>
         <Map
           ref={mapRef}
           mapLib={maplibregl}
@@ -360,10 +367,18 @@ export function RoutesMapView({
         </Map>
 
         {/* Elevation chart overlay */}
-        <div className="absolute top-0 right-0 w-full sm:w-2/5 h-[150px] bg-white shadow-lg z-[1000] pointer-events-auto">
+        <Paper
+          pos="absolute"
+          top={0}
+          right={0}
+          w={{ base: '100%', sm: '40%' }}
+          h={150}
+          shadow="lg"
+          style={{ zIndex: 1000, pointerEvents: 'auto' }}
+        >
           {chartData && <Line data={chartData} options={chartOptions} />}
-        </div>
-      </div>
-    </div>
+        </Paper>
+      </Box>
+    </Box>
   )
 }

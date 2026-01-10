@@ -227,7 +227,7 @@ export const getGetRideQueryKey = (teamSlug?: string, rideSlug?: string) => {
 
 export const getGetRideQueryOptions = <
   TData = Awaited<ReturnType<typeof getRide>>,
-  TError = ErrorType<ErrorResponse>,
+  TError = ErrorType<void | ErrorResponse>,
 >(
   teamSlug: string,
   rideSlug: string,
@@ -254,11 +254,11 @@ export const getGetRideQueryOptions = <
 }
 
 export type GetRideQueryResult = NonNullable<Awaited<ReturnType<typeof getRide>>>
-export type GetRideQueryError = ErrorType<ErrorResponse>
+export type GetRideQueryError = ErrorType<void | ErrorResponse>
 
 export function useGetRide<
   TData = Awaited<ReturnType<typeof getRide>>,
-  TError = ErrorType<ErrorResponse>,
+  TError = ErrorType<void | ErrorResponse>,
 >(
   teamSlug: string,
   rideSlug: string,
@@ -278,7 +278,7 @@ export function useGetRide<
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetRide<
   TData = Awaited<ReturnType<typeof getRide>>,
-  TError = ErrorType<ErrorResponse>,
+  TError = ErrorType<void | ErrorResponse>,
 >(
   teamSlug: string,
   rideSlug: string,
@@ -298,7 +298,7 @@ export function useGetRide<
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetRide<
   TData = Awaited<ReturnType<typeof getRide>>,
-  TError = ErrorType<ErrorResponse>,
+  TError = ErrorType<void | ErrorResponse>,
 >(
   teamSlug: string,
   rideSlug: string,
@@ -314,7 +314,7 @@ export function useGetRide<
 
 export function useGetRide<
   TData = Awaited<ReturnType<typeof getRide>>,
-  TError = ErrorType<ErrorResponse>,
+  TError = ErrorType<void | ErrorResponse>,
 >(
   teamSlug: string,
   rideSlug: string,

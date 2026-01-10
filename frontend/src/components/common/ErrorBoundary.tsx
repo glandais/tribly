@@ -1,7 +1,18 @@
 import { Component, ErrorInfo, ReactNode } from 'react'
 import { Translation } from 'react-i18next'
-import { ExclamationTriangleIcon } from '@heroicons/react/24/outline'
-import { XCircleIcon } from '@heroicons/react/24/solid'
+import {
+  Alert,
+  Button,
+  Center,
+  Paper,
+  Stack,
+  Text,
+  Title,
+  Code,
+  Group,
+  ThemeIcon,
+} from '@mantine/core'
+import { IconAlertTriangle, IconXboxX } from '@tabler/icons-react'
 
 interface ErrorBoundaryProps {
   children: ReactNode
@@ -42,36 +53,32 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       return (
         <Translation ns="errors">
           {(t) => (
-            <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center px-4">
-              <div className="max-w-md w-full bg-white shadow-lg rounded-lg p-8 text-center">
-                <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
-                  <ExclamationTriangleIcon className="h-6 w-6 text-red-600" />
-                </div>
-                <h2 className="text-xl font-semibold text-gray-900 mb-2">{t('boundary.title')}</h2>
-                <p className="text-gray-600 mb-6">{t('boundary.message')}</p>
-                {this.state.error && import.meta.env.DEV && (
-                  <div className="mb-6 p-4 bg-gray-100 rounded-md text-left">
-                    <p className="text-sm font-mono text-red-600 break-all">
+            <Center mih="100vh" bg="gray.0">
+              <Paper shadow="lg" p="xl" radius="md" w={{ base: '100%', sm: 400 }}>
+                <Stack align="center">
+                  <ThemeIcon size="xl" radius="xl" color="red" variant="light">
+                    <IconAlertTriangle size={24} />
+                  </ThemeIcon>
+                  <Title order={3} ta="center">
+                    {t('boundary.title')}
+                  </Title>
+                  <Text c="dimmed" ta="center">
+                    {t('boundary.message')}
+                  </Text>
+                  {this.state.error && import.meta.env.DEV && (
+                    <Code block color="red" w="100%">
                       {this.state.error.message}
-                    </p>
-                  </div>
-                )}
-                <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                  <button
-                    onClick={this.handleRetry}
-                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                  >
-                    {t('boundary.retry')}
-                  </button>
-                  <button
-                    onClick={() => window.location.reload()}
-                    className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-hidden focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                  >
-                    {t('boundary.reload')}
-                  </button>
-                </div>
-              </div>
-            </div>
+                    </Code>
+                  )}
+                  <Group>
+                    <Button onClick={this.handleRetry}>{t('boundary.retry')}</Button>
+                    <Button variant="default" onClick={() => window.location.reload()}>
+                      {t('boundary.reload')}
+                    </Button>
+                  </Group>
+                </Stack>
+              </Paper>
+            </Center>
           )}
         </Translation>
       )
@@ -91,30 +98,14 @@ export function ErrorMessage({ title, message, onRetry }: ErrorMessageProps) {
   return (
     <Translation ns="errors">
       {(t) => (
-        <div className="rounded-md bg-red-50 p-4">
-          <div className="flex">
-            <div className="shrink-0">
-              <XCircleIcon className="h-5 w-5 text-red-400" />
-            </div>
-            <div className="ml-3">
-              <h3 className="text-sm font-medium text-red-800">{title || t('generic.title')}</h3>
-              <div className="mt-2 text-sm text-red-700">
-                <p>{message}</p>
-              </div>
-              {onRetry && (
-                <div className="mt-4">
-                  <button
-                    type="button"
-                    onClick={onRetry}
-                    className="text-sm font-medium text-red-800 hover:text-red-700"
-                  >
-                    {t('generic.retry')}
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+        <Alert icon={<IconXboxX size={16} />} title={title || t('generic.title')} color="red">
+          <Text size="sm">{message}</Text>
+          {onRetry && (
+            <Button variant="subtle" color="red" size="xs" mt="sm" onClick={onRetry}>
+              {t('generic.retry')}
+            </Button>
+          )}
+        </Alert>
       )}
     </Translation>
   )

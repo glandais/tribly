@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
-import { UsersIcon, ChevronRightIcon } from '@heroicons/react/24/outline'
-import { ShieldCheckIcon } from '@heroicons/react/20/solid'
+import { IconUsers, IconChevronRight, IconShieldCheck } from '@tabler/icons-react'
+import { Stack, Group, Text, Box, ThemeIcon } from '@mantine/core'
 import { UserAvatar } from '../common/UserAvatar'
 import { Modal } from '../common/Modal'
 
@@ -29,62 +29,83 @@ export function ParticipantListModal({
   const participantCount = participants.length
 
   const headerSubtitle = (
-    <p className="text-sm font-semibold text-indigo-600">
+    <Text size="sm" fw={600} c="indigo">
       {t('rides.detail.groups.participantsNoMax', { current: participantCount })}
-    </p>
+    </Text>
   )
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={groupName} size="md">
       {headerSubtitle}
 
-      <div className="mt-4">
+      <Box mt="md">
         {participants.length === 0 ? (
-          <div className="py-12 text-center">
-            <UsersIcon className="mx-auto h-12 w-12 text-gray-300" />
-            <p className="mt-3 text-sm font-medium text-gray-500">
+          <Stack align="center" py="xl">
+            <IconUsers size={48} color="var(--mantine-color-gray-4)" />
+            <Text size="sm" fw={500} c="dimmed">
               {t('rides.detail.groups.empty')}
-            </p>
-          </div>
+            </Text>
+          </Stack>
         ) : (
-          <ul className="space-y-2" role="list">
+          <Stack gap="xs" component="ul" style={{ listStyle: 'none', padding: 0, margin: 0 }}>
             {participants.map((participant) => (
-              <li
+              <Box
                 key={participant.id}
-                className="group relative flex items-center gap-3 rounded-lg p-3 transition-all duration-200 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 hover:shadow-sm"
+                component="li"
+                p="sm"
+                style={{
+                  borderRadius: 'var(--mantine-radius-md)',
+                  transition: 'all 200ms ease',
+                  cursor: 'default',
+                }}
+                mod={{ hover: true }}
+                __vars={{
+                  '--hover-bg':
+                    'linear-gradient(to right, var(--mantine-color-indigo-0), var(--mantine-color-grape-0))',
+                }}
               >
-                {/* Avatar with organizer badge */}
-                <div className="relative flex-shrink-0">
-                  <UserAvatar user={participant} size="md" />
-                  {participant.isOrganizer && (
-                    <div
-                      className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-indigo-600 ring-2 ring-white shadow-sm"
-                      title={t('roles.ORGANIZER')}
-                    >
-                      <ShieldCheckIcon className="h-3 w-3 text-white" />
-                    </div>
-                  )}
-                </div>
+                <Group gap="sm" wrap="nowrap">
+                  {/* Avatar with organizer badge */}
+                  <Box pos="relative" style={{ flexShrink: 0 }}>
+                    <UserAvatar user={participant} size="md" />
+                    {participant.isOrganizer && (
+                      <ThemeIcon
+                        size={20}
+                        radius="xl"
+                        color="indigo"
+                        pos="absolute"
+                        bottom={-4}
+                        right={-4}
+                        style={{ border: '2px solid white' }}
+                        title={t('roles.ORGANIZER')}
+                      >
+                        <IconShieldCheck size={12} />
+                      </ThemeIcon>
+                    )}
+                  </Box>
 
-                {/* Participant info */}
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-gray-900 truncate transition-colors group-hover:text-indigo-900">
-                    {participant.displayName}
-                  </p>
-                  {participant.isOrganizer && (
-                    <p className="text-xs text-gray-500 mt-0.5">{t('groups.groupOrganizer')}</p>
-                  )}
-                </div>
+                  {/* Participant info */}
+                  <Box style={{ flex: 1, minWidth: 0 }}>
+                    <Text size="sm" fw={600} truncate>
+                      {participant.displayName}
+                    </Text>
+                    {participant.isOrganizer && (
+                      <Text size="xs" c="dimmed" mt={2}>
+                        {t('groups.groupOrganizer')}
+                      </Text>
+                    )}
+                  </Box>
 
-                {/* Subtle hover indicator */}
-                <div className="flex-shrink-0 opacity-0 transition-opacity group-hover:opacity-100">
-                  <ChevronRightIcon className="h-4 w-4 text-indigo-400" />
-                </div>
-              </li>
+                  {/* Subtle hover indicator */}
+                  <Box style={{ flexShrink: 0, opacity: 0.5 }}>
+                    <IconChevronRight size={16} color="var(--mantine-color-indigo-4)" />
+                  </Box>
+                </Group>
+              </Box>
             ))}
-          </ul>
+          </Stack>
         )}
-      </div>
+      </Box>
     </Modal>
   )
 }

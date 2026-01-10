@@ -1,3 +1,5 @@
+import { Paper, Skeleton, Group, Stack, Box } from '@mantine/core'
+
 interface CardSkeletonProps {
   count?: number
   hasImage?: boolean
@@ -9,39 +11,48 @@ interface CardSkeletonProps {
 export function CardSkeleton({
   count = 1,
   hasImage = false,
-  imageHeight = 'h-32',
+  imageHeight = '128px',
   statCount = 2,
   badgeCount = 3,
 }: CardSkeletonProps) {
   return (
     <>
       {Array.from({ length: count }).map((_, i) => (
-        <div key={i} className="bg-white rounded-lg shadow-xs border border-gray-200 animate-pulse">
-          {hasImage && <div className={`w-full ${imageHeight} bg-gray-200 rounded-t-lg`} />}
-          <div className="p-4">
-            <div className="h-5 bg-gray-200 rounded-sm w-3/4 mb-2" />
-            <div className="h-4 bg-gray-200 rounded-sm w-full mb-1" />
-            <div className="h-4 bg-gray-200 rounded-sm w-2/3 mb-4" />
+        <Paper key={i} withBorder radius="md">
+          {hasImage && (
+            <Skeleton
+              h={imageHeight}
+              radius={0}
+              style={{
+                borderTopLeftRadius: 'var(--mantine-radius-md)',
+                borderTopRightRadius: 'var(--mantine-radius-md)',
+              }}
+            />
+          )}
+          <Box p="md">
+            <Stack gap="xs">
+              <Skeleton h={20} w="75%" radius="sm" />
+              <Skeleton h={16} w="100%" radius="sm" />
+              <Skeleton h={16} w="66%" radius="sm" />
+            </Stack>
 
-            {/* Stats */}
             {statCount > 0 && (
-              <div className="flex gap-4 mb-3">
+              <Group gap="md" mt="md">
                 {Array.from({ length: statCount }).map((_, j) => (
-                  <div key={j} className="h-4 bg-gray-200 rounded-sm w-16" />
+                  <Skeleton key={j} h={16} w={64} radius="sm" />
                 ))}
-              </div>
+              </Group>
             )}
 
-            {/* Badges */}
             {badgeCount > 0 && (
-              <div className="flex gap-2">
+              <Group gap="xs" mt="sm">
                 {Array.from({ length: badgeCount }).map((_, j) => (
-                  <div key={j} className="h-5 bg-gray-200 rounded-full w-16" />
+                  <Skeleton key={j} h={20} w={64} radius="xl" />
                 ))}
-              </div>
+              </Group>
             )}
-          </div>
-        </div>
+          </Box>
+        </Paper>
       ))}
     </>
   )

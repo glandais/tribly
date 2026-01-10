@@ -1,5 +1,6 @@
 import { Navigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { Box } from '@mantine/core'
 import { paths } from '../../config/paths'
 import { useGetTeam } from '@/api/endpoints/teams/teams'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
@@ -29,9 +30,9 @@ export function TeamPlacesPage() {
 
   return (
     <TeamAdminLayout team={team} currentTab="places">
-      <div className="py-6">
+      <Box py="lg">
         <PlaceList teamSlug={teamSlug!} canManage={canManage} />
-      </div>
+      </Box>
     </TeamAdminLayout>
   )
 }

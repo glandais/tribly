@@ -1,28 +1,16 @@
 import { useState, useRef, useEffect, useCallback, type ReactNode } from 'react'
-import { ArrowPathIcon } from '@heroicons/react/24/outline'
+import { TextInput, Paper, Stack, Text, Loader, Box, UnstyledButton } from '@mantine/core'
 
 export interface AutocompleteProps<T> {
-  /** Items to display in the dropdown */
   items: T[]
-  /** Whether the items are currently loading */
   isLoading?: boolean
-  /** Called when the query changes */
   onQueryChange: (query: string) => void
-  /** Called when an item is selected */
   onSelect: (item: T) => void
-  /** Render function for each item */
   renderItem: (item: T, isSelected: boolean) => ReactNode
-  /** Get unique key for each item */
   getItemKey: (item: T) => string | number
-  /** Placeholder text for the input */
   placeholder?: string
-  /** Additional class name for the wrapper */
-  className?: string
-  /** Minimum characters before showing dropdown */
   minChars?: number
-  /** Message to show when no items found */
   noResultsMessage?: string
-  /** Clear input after selection */
   clearOnSelect?: boolean
 }
 
@@ -34,7 +22,6 @@ export function Autocomplete<T>({
   renderItem,
   getItemKey,
   placeholder = 'Search...',
-  className = '',
   minChars = 2,
   noResultsMessage = 'No results found',
   clearOnSelect = true,
@@ -119,50 +106,49 @@ export function Autocomplete<T>({
   const showNoResults = showDropdown && !isLoading && items.length === 0
 
   return (
-    <div ref={wrapperRef} className={`relative ${className}`}>
-      <div className="relative">
-        <input
-          ref={inputRef}
-          type="text"
-          value={query}
-          onChange={(e) => handleInputChange(e.target.value)}
-          onKeyDown={handleKeyDown}
-          onFocus={handleFocus}
-          placeholder={placeholder}
-          className="block w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
-        />
-        {isLoading && (
-          <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-            <ArrowPathIcon className="animate-spin h-5 w-5 text-gray-400" />
-          </div>
-        )}
-      </div>
+    <Box ref={wrapperRef} pos="relative">
+      <TextInput
+        ref={inputRef}
+        value={query}
+        onChange={(e) => handleInputChange(e.currentTarget.value)}
+        onKeyDown={handleKeyDown}
+        onFocus={handleFocus}
+        placeholder={placeholder}
+        rightSection={isLoading ? <Loader size="xs" /> : null}
+      />
 
       {showDropdown && items.length > 0 && (
-        <div className="absolute z-10 mt-1 w-full bg-white shadow-lg max-h-60 rounded-md border border-gray-200 overflow-auto">
-          <ul className="py-1">
+        <Paper
+          shadow="md"
+          pos="absolute"
+          w="100%"
+          mt="xs"
+          style={{ zIndex: 10, maxHeight: 240, overflow: 'auto' }}
+          withBorder
+        >
+          <Stack gap={0}>
             {items.map((item, index) => (
-              <li key={getItemKey(item)}>
-                <button
-                  type="button"
-                  onClick={() => handleSelect(item)}
-                  className={`w-full text-left px-4 py-2 hover:bg-gray-100 ${
-                    index === selectedIndex ? 'bg-gray-100' : ''
-                  }`}
-                >
-                  {renderItem(item, index === selectedIndex)}
-                </button>
-              </li>
+              <UnstyledButton
+                key={getItemKey(item)}
+                onClick={() => handleSelect(item)}
+                p="sm"
+                bg={index === selectedIndex ? 'gray.1' : undefined}
+                style={{ '&:hover': { backgroundColor: 'var(--mantine-color-gray-1)' } }}
+              >
+                {renderItem(item, index === selectedIndex)}
+              </UnstyledButton>
             ))}
-          </ul>
-        </div>
+          </Stack>
+        </Paper>
       )}
 
       {showNoResults && (
-        <div className="absolute z-10 mt-1 w-full bg-white shadow-lg rounded-md border border-gray-200 py-2 px-4">
-          <p className="text-sm text-gray-500">{noResultsMessage}</p>
-        </div>
+        <Paper shadow="md" pos="absolute" w="100%" mt="xs" p="sm" style={{ zIndex: 10 }} withBorder>
+          <Text size="sm" c="dimmed">
+            {noResultsMessage}
+          </Text>
+        </Paper>
       )}
-    </div>
+    </Box>
   )
 }

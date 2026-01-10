@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { paths } from '../../config/paths'
+import { Box, Stack, Text, Title } from '@mantine/core'
 import { TeamForm } from '../../components/team/TeamForm'
 import { TeamDetailDto, Visibility } from '@/api/dto'
 import { defaultMedia } from '@/lib/apiUtils'
@@ -22,13 +23,13 @@ export function CreateTeamPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">{t('teams.create.title')}</h1>
-        <p className="mt-1 text-gray-600">{t('teams.create.subtitle')}</p>
-      </div>
+    <Box maw={672} mx="auto" px={{ base: 'md', sm: 'lg' }} py="xl">
+      <Stack gap="xs" mb="xl">
+        <Title order={1}>{t('teams.create.title')}</Title>
+        <Text c="dimmed">{t('teams.create.subtitle')}</Text>
+      </Stack>
 
       <TeamForm onSuccess={handleSuccess} create={true} initialValues={initialValues} />
-    </div>
+    </Box>
   )
 }

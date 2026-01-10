@@ -2,9 +2,10 @@ import { useParams, useNavigate, Navigate } from 'react-router-dom'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
-import { toast } from 'sonner'
+import { notifications } from '@mantine/notifications'
 import i18next from 'i18next'
 import { paths } from '../../config/paths'
+import { Box, Skeleton, Stack, Text, Title } from '@mantine/core'
 import {
   useGetRoute,
   useUpdateRoute,
@@ -50,20 +51,20 @@ export function EditRoutePage() {
 
   if (isLoading) {
     return (
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded-sm w-1/4 mb-4" />
-          <div className="h-4 bg-gray-200 rounded-sm w-1/2 mb-8" />
-          <div className="space-y-6">
+      <Box maw={768} mx="auto" px="md" py="xl">
+        <Stack gap="md">
+          <Skeleton height={32} width="25%" />
+          <Skeleton height={16} width="50%" mb="xl" />
+          <Stack gap="lg">
             {[...Array(5)].map((_, i) => (
-              <div key={i}>
-                <div className="h-4 bg-gray-200 rounded-sm w-1/4 mb-2" />
-                <div className="h-10 bg-gray-200 rounded-sm" />
-              </div>
+              <Stack key={i} gap="xs">
+                <Skeleton height={16} width="25%" />
+                <Skeleton height={40} />
+              </Stack>
             ))}
-          </div>
-        </div>
-      </div>
+          </Stack>
+        </Stack>
+      </Box>
     )
   }
 
@@ -97,7 +98,7 @@ export function EditRoutePage() {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetRouteQueryKey(teamSlug!, routeSlug!) })
           queryClient.invalidateQueries({ queryKey: getListRoutesQueryKey(teamSlug!) })
-          toast.success(i18next.t('routes.notifications.updated'))
+          notifications.show({ message: i18next.t('routes.notifications.updated'), color: 'green' })
         },
       }
     )
@@ -118,11 +119,11 @@ export function EditRoutePage() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">{t('routes.edit.title')}</h1>
-        <p className="mt-2 text-gray-600">{t('routes.edit.subtitle')}</p>
-      </div>
+    <Box maw={768} mx="auto" px="md" py="xl">
+      <Stack mb="xl" gap="xs">
+        <Title order={1}>{t('routes.edit.title')}</Title>
+        <Text c="dimmed">{t('routes.edit.subtitle')}</Text>
+      </Stack>
 
       <RouteEditor
         team={team}
@@ -138,6 +139,6 @@ export function EditRoutePage() {
         onSlugChange={handleSlugChange}
         canEditSlug={canEdit}
       />
-    </div>
+    </Box>
   )
 }

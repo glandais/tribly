@@ -2,6 +2,7 @@ import { useParams, Navigate } from 'react-router-dom'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 import { useTranslation } from 'react-i18next'
 import { paths } from '../../config/paths'
+import { Box, Group, Paper, Text, Title } from '@mantine/core'
 import { useGetTeam } from '@/api/endpoints/teams/teams'
 import { useGetPage } from '@/api/endpoints/team-pages/team-pages'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
@@ -39,24 +40,26 @@ export function TeamPageDetailPage() {
 
   return (
     <TeamLayout team={team} currentTab={page.slug}>
-      <div className="py-6">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <h2 className="text-xl font-semibold text-gray-900">{page.title}</h2>
+      <Box py="md">
+        <Paper p="lg" withBorder>
+          <Group gap="sm" mb="md">
+            <Title order={2}>{page.title}</Title>
             {page.visibility === 'TEAM' && isMember && (
               <VisibilityBadge visibility={page.visibility} />
             )}
-          </div>
+          </Group>
 
           {/* Page Content */}
-          <div>
-            <MediaDisplay media={page.media} className="text-gray-600" />
+          <Box>
+            <MediaDisplay media={page.media} />
             {!page.media?.markdown && (
-              <p className="text-gray-500 italic">{t('teams.pages.noContent')}</p>
+              <Text c="dimmed" fs="italic">
+                {t('teams.pages.noContent')}
+              </Text>
             )}
-          </div>
-        </div>
-      </div>
+          </Box>
+        </Paper>
+      </Box>
     </TeamLayout>
   )
 }

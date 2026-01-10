@@ -1,12 +1,5 @@
 import { type ReactNode } from 'react'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog'
-import { cn } from '@/lib/utils'
+import { Modal as MantineModal, Group, Title, ScrollArea } from '@mantine/core'
 
 type ModalSize = 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '4xl' | 'full'
 
@@ -17,20 +10,18 @@ interface ModalProps {
   children: ReactNode
   size?: ModalSize
   footer?: ReactNode
-  /** Content that appears below the header but doesn't scroll */
   subheader?: ReactNode
-  /** Remove padding from content area */
   noPadding?: boolean
 }
 
-const sizeClasses: Record<ModalSize, string> = {
-  sm: 'sm:max-w-sm',
-  md: 'sm:max-w-md',
-  lg: 'sm:max-w-lg',
-  xl: 'sm:max-w-xl',
-  '2xl': 'sm:max-w-2xl',
-  '4xl': 'sm:max-w-4xl',
-  full: 'sm:max-w-[95vw]',
+const sizeMap: Record<ModalSize, string | number> = {
+  sm: 'sm',
+  md: 'md',
+  lg: 'lg',
+  xl: 'xl',
+  '2xl': '42rem',
+  '4xl': '56rem',
+  full: '95vw',
 }
 
 export function Modal({
@@ -44,22 +35,42 @@ export function Modal({
   noPadding = false,
 }: ModalProps) {
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className={cn('flex max-h-[90vh] flex-col gap-0 p-0', sizeClasses[size])}>
-        {/* Header */}
-        <DialogHeader className="shrink-0 border-b p-6">
-          <DialogTitle>{title}</DialogTitle>
-        </DialogHeader>
-
-        {/* Subheader */}
-        {subheader && <div className="shrink-0 border-b p-6">{subheader}</div>}
-
-        {/* Content */}
-        <div className={cn('flex-1 overflow-y-auto', !noPadding && 'p-6')}>{children}</div>
-
-        {/* Footer */}
-        {footer && <DialogFooter className="shrink-0 border-t p-6">{footer}</DialogFooter>}
-      </DialogContent>
-    </Dialog>
+    <MantineModal
+      opened={isOpen}
+      onClose={onClose}
+      title={<Title order={3}>{title}</Title>}
+      size={sizeMap[size]}
+      padding={0}
+      styles={{
+        body: { display: 'flex', flexDirection: 'column', maxHeight: 'calc(90vh - 60px)' },
+        header: {
+          padding: 'var(--mantine-spacing-md)',
+          borderBottom: '1px solid var(--mantine-color-default-border)',
+        },
+      }}
+    >
+      {subheader && (
+        <div
+          style={{
+            padding: 'var(--mantine-spacing-md)',
+            borderBottom: '1px solid var(--mantine-color-default-border)',
+          }}
+        >
+          {subheader}
+        </div>
+      )}
+      <ScrollArea style={{ flex: 1 }} p={noPadding ? 0 : 'md'}>
+        {children}
+      </ScrollArea>
+      {footer && (
+        <Group
+          justify="flex-end"
+          p="md"
+          style={{ borderTop: '1px solid var(--mantine-color-default-border)' }}
+        >
+          {footer}
+        </Group>
+      )}
+    </MantineModal>
   )
 }

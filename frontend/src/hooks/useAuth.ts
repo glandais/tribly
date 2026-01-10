@@ -1,6 +1,6 @@
 import { useCallback, useEffect } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { toast } from 'sonner'
+import { notifications } from '@mantine/notifications'
 import i18next from 'i18next'
 import { useAuthStore } from '../store/authStore'
 import {
@@ -50,7 +50,7 @@ export function useAuth() {
       onSuccess: (updatedUser) => {
         queryClient.setQueryData(getGetMeQueryKey(), updatedUser)
         setUser(updatedUser)
-        toast.success(i18next.t('profile.notifications.updated'))
+        notifications.show({ message: i18next.t('profile.notifications.updated'), color: 'green' })
       },
     },
   })
@@ -58,7 +58,10 @@ export function useAuth() {
   const deleteAccountMutation = useDeleteCurrentUser({
     mutation: {
       onSuccess: () => {
-        toast.success(i18next.t('profile.notifications.accountDeleted'))
+        notifications.show({
+          message: i18next.t('profile.notifications.accountDeleted'),
+          color: 'green',
+        })
         logout()
       },
     },
@@ -69,7 +72,10 @@ export function useAuth() {
       onSuccess: (updatedUser) => {
         queryClient.setQueryData(getGetMeQueryKey(), updatedUser)
         setUser(updatedUser)
-        toast.success(i18next.t('profile.notifications.avatarUpdated'))
+        notifications.show({
+          message: i18next.t('profile.notifications.avatarUpdated'),
+          color: 'green',
+        })
       },
     },
   })
@@ -79,7 +85,10 @@ export function useAuth() {
       onSuccess: (updatedUser) => {
         queryClient.setQueryData(getGetMeQueryKey(), updatedUser)
         setUser(updatedUser)
-        toast.success(i18next.t('profile.notifications.avatarDeleted'))
+        notifications.show({
+          message: i18next.t('profile.notifications.avatarDeleted'),
+          color: 'green',
+        })
       },
     },
   })

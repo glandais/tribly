@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
+import { Group, Loader, Text } from '@mantine/core'
 import { useGetRoute } from '@/api/endpoints/routes/routes'
-import { LoadingSpinner } from '../common/LoadingSpinner'
 
 interface RoutePreviewCompactProps {
   routeSlug: string
@@ -13,21 +13,30 @@ export function RoutePreviewCompact({ routeSlug, teamSlug }: RoutePreviewCompact
 
   if (isLoading)
     return (
-      <div className="flex items-center gap-1 text-xs text-gray-400">
-        <LoadingSpinner size="sm" />
-        <span>{t('loading')}</span>
-      </div>
+      <Group gap="xs">
+        <Loader size="xs" />
+        <Text size="xs" c="dimmed">
+          {t('loading')}
+        </Text>
+      </Group>
     )
 
-  if (!route) return <div className="text-xs text-red-500">{t('routes.preview.notFound')}</div>
+  if (!route)
+    return (
+      <Text size="xs" c="red">
+        {t('routes.preview.notFound')}
+      </Text>
+    )
 
   return (
-    <div className="text-xs text-gray-600">
-      <span className="font-medium">{route.name}</span>
-      <span className="ml-2">
+    <Text size="xs" c="dimmed">
+      <Text component="span" fw={500}>
+        {route.name}
+      </Text>
+      <Text component="span" ml="xs">
         ({t('distance', { distance: (route.distance / 1000).toFixed(1) })},{' '}
         {t('elevation', { elevation: route.elevationGain })})
-      </span>
-    </div>
+      </Text>
+    </Text>
   )
 }

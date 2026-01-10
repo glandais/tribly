@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { EyeIcon, UserGroupIcon } from '@heroicons/react/20/solid'
+import { IconEye, IconUsers } from '@tabler/icons-react'
 import { Badge } from './Badge'
 
 interface VisibilityBadgeProps {
@@ -12,9 +12,9 @@ export function VisibilityBadge({ visibility, showIcon = true }: VisibilityBadge
 
   const icon =
     showIcon && visibility === 'PUBLIC' ? (
-      <EyeIcon className="w-3 h-3" />
+      <IconEye size={12} />
     ) : showIcon && visibility === 'TEAM' ? (
-      <UserGroupIcon className="w-3 h-3" />
+      <IconUsers size={12} />
     ) : undefined
 
   return (

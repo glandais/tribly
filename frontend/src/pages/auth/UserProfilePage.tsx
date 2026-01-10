@@ -1,23 +1,26 @@
 import { useRef, useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm } from '@mantine/form'
+import { zod4Resolver } from 'mantine-form-zod-resolver'
 import { useTranslation } from 'react-i18next'
-import { CameraIcon, XMarkIcon } from '@heroicons/react/24/outline'
+import { IconCamera, IconX } from '@tabler/icons-react'
+import {
+  Button,
+  TextInput,
+  Stack,
+  Group,
+  Paper,
+  Title,
+  Text,
+  Box,
+  ActionIcon,
+  Divider,
+  Center,
+} from '@mantine/core'
 import { useAuth } from '../../hooks/useAuth'
 import { LoadingSpinner } from '../../components/common/LoadingSpinner'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import { UserAvatar } from '../../components/common/UserAvatar'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { updateMeBody } from '@/api/zod/users/users.zod'
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
 import { UpdateUserRequest } from '@/api/dto'
 
 const profileSchema = updateMeBody
@@ -43,22 +46,22 @@ export function UserProfilePage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   const form = useForm<UpdateUserRequest>({
-    resolver: zodResolver(profileSchema),
-    mode: 'onChange',
-    defaultValues: user || { displayName: '' },
+    validate: zod4Resolver(profileSchema) as any,
+    validateInputOnChange: true,
+    initialValues: user || { displayName: '' },
   })
 
   if (isLoading || !user) {
     return (
-      <div className="flex justify-center py-12">
+      <Center py="xl">
         <LoadingSpinner size="lg" />
-      </div>
+      </Center>
     )
   }
 
   const handleStartEditing = () => {
-    form.reset(user)
-    form.trigger()
+    form.setValues(user)
+    form.validate()
     setIsEditing(true)
   }
 
@@ -85,143 +88,140 @@ export function UserProfilePage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <div className="bg-white shadow-sm rounded-lg">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h1 className="text-xl font-semibold text-gray-900">{t('profile.title')}</h1>
-        </div>
+    <Box maw={672} mx="auto">
+      <Paper shadow="sm" radius="md">
+        <Box px="lg" py="md" style={{ borderBottom: '1px solid var(--mantine-color-gray-2)' }}>
+          <Title order={2} size="h4">
+            {t('profile.title')}
+          </Title>
+        </Box>
 
-        <div className="p-6 space-y-6">
-          <div className="flex items-center gap-6">
-            <div className="relative">
+        <Stack gap="lg" p="lg">
+          <Group gap="lg">
+            <Box pos="relative">
               <UserAvatar user={user} size="xl" />
-              <div className="absolute -bottom-1 -right-1 flex gap-1">
+              <Group gap={4} pos="absolute" bottom={-4} right={-4}>
                 <input
                   ref={avatarInputRef}
                   type="file"
                   accept="image/*"
                   onChange={handleAvatarSelect}
-                  className="hidden"
+                  style={{ display: 'none' }}
                 />
-                <button
+                <ActionIcon
+                  variant="filled"
+                  color="indigo"
+                  size="sm"
+                  radius="xl"
                   onClick={() => avatarInputRef.current?.click()}
                   disabled={isUploadingAvatar}
-                  className="p-1.5 rounded-full bg-indigo-600 text-white hover:bg-indigo-700 shadow-sm disabled:opacity-50"
                   title={t('profile.avatar.upload')}
                 >
-                  {isUploadingAvatar ? (
-                    <LoadingSpinner size="sm" color="white" />
-                  ) : (
-                    <CameraIcon className="h-4 w-4" />
-                  )}
-                </button>
+                  {isUploadingAvatar ? <LoadingSpinner size="sm" /> : <IconCamera size={14} />}
+                </ActionIcon>
                 {user.avatarUrl && (
-                  <button
+                  <ActionIcon
+                    variant="filled"
+                    color="red"
+                    size="sm"
+                    radius="xl"
                     onClick={() => deleteAvatar()}
                     disabled={isDeletingAvatar}
-                    className="p-1.5 rounded-full bg-red-600 text-white hover:bg-red-700 shadow-sm disabled:opacity-50"
                     title={t('profile.avatar.remove')}
                   >
-                    {isDeletingAvatar ? (
-                      <LoadingSpinner size="sm" color="white" />
-                    ) : (
-                      <XMarkIcon className="h-4 w-4" />
-                    )}
-                  </button>
+                    {isDeletingAvatar ? <LoadingSpinner size="sm" /> : <IconX size={14} />}
+                  </ActionIcon>
                 )}
-              </div>
-            </div>
-            <div>
-              <h2 className="text-lg font-medium text-gray-900">{user.displayName}</h2>
-              <p className="text-gray-500">{user.email}</p>
-            </div>
-          </div>
+              </Group>
+            </Box>
+            <Box>
+              <Text fw={500} size="lg">
+                {user.displayName}
+              </Text>
+              <Text c="dimmed">{user.email}</Text>
+            </Box>
+          </Group>
 
-          <hr className="border-gray-200" />
+          <Divider />
 
           {isEditing ? (
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="displayName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>{t('profile.form.displayName.label')}</FormLabel>
-                      <FormControl>
-                        <Input {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+            <form onSubmit={form.onSubmit(handleSubmit)}>
+              <Stack gap="md">
+                <TextInput
+                  label={t('profile.form.displayName.label')}
+                  {...form.getInputProps('displayName')}
                 />
 
-                <div className="flex gap-3 pt-4">
-                  <Button type="submit" disabled={isUpdatingProfile || !form.formState.isValid}>
-                    {isUpdatingProfile ? (
-                      <>
-                        <LoadingSpinner size="sm" color="white" className="mr-2" />
-                        {t('actions.save')}
-                      </>
-                    ) : (
-                      t('actions.save')
-                    )}
+                <Group gap="sm" pt="md">
+                  <Button
+                    type="submit"
+                    disabled={isUpdatingProfile || !form.isValid()}
+                    loading={isUpdatingProfile}
+                  >
+                    {t('actions.save')}
                   </Button>
-                  <Button type="button" variant="outline" onClick={() => setIsEditing(false)}>
+                  <Button type="button" variant="default" onClick={() => setIsEditing(false)}>
                     {t('actions.cancelAction')}
                   </Button>
-                </div>
-              </form>
-            </Form>
+                </Group>
+              </Stack>
+            </form>
           ) : (
-            <div className="space-y-4">
-              <div>
-                <dt className="text-sm font-medium text-gray-500">
+            <Stack gap="md">
+              <Box>
+                <Text size="sm" fw={500} c="dimmed">
                   {t('profile.form.displayName.label')}
-                </dt>
-                <dd className="mt-1 text-sm text-gray-900">{user.displayName}</dd>
-              </div>
-              <div>
-                <dt className="text-sm font-medium text-gray-500">
+                </Text>
+                <Text size="sm" mt={4}>
+                  {user.displayName}
+                </Text>
+              </Box>
+              <Box>
+                <Text size="sm" fw={500} c="dimmed">
                   {t('profile.form.email.label')}
-                </dt>
-                <dd className="mt-1 text-sm text-gray-900">{user.email}</dd>
-              </div>
+                </Text>
+                <Text size="sm" mt={4}>
+                  {user.email}
+                </Text>
+              </Box>
 
-              <div className="pt-4">
+              <Box pt="md">
                 <Button onClick={handleStartEditing}>{t('profile.actions.editProfile')}</Button>
-              </div>
-            </div>
+              </Box>
+            </Stack>
           )}
 
-          <hr className="border-gray-200" />
+          <Divider />
 
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium text-gray-900">{t('profile.account.title')}</h3>
+          <Stack gap="md">
+            <Title order={3} size="h5">
+              {t('profile.account.title')}
+            </Title>
 
-            <Button variant="outline" onClick={logout}>
+            <Button variant="default" onClick={logout}>
               {t('profile.account.signOut')}
             </Button>
 
-            <div className="pt-4 border-t border-gray-200">
-              <h4 className="text-sm font-medium text-red-600">
+            <Box pt="md" style={{ borderTop: '1px solid var(--mantine-color-gray-2)' }}>
+              <Text size="sm" fw={500} c="red">
                 {t('profile.account.dangerZone.title')}
-              </h4>
-              <p className="mt-1 text-sm text-gray-500">
+              </Text>
+              <Text size="sm" c="dimmed" mt={4}>
                 {t('profile.account.dangerZone.deleteDescription')}
-              </p>
+              </Text>
 
               <Button
                 variant="outline"
-                className="mt-4 border-red-300 text-red-700 hover:bg-red-50"
+                color="red"
+                mt="md"
                 onClick={() => setShowDeleteConfirm(true)}
               >
                 {t('profile.account.dangerZone.deleteButton')}
               </Button>
-            </div>
-          </div>
-        </div>
-      </div>
+            </Box>
+          </Stack>
+        </Stack>
+      </Paper>
 
       <ConfirmDialog
         isOpen={showDeleteConfirm}
@@ -233,6 +233,6 @@ export function UserProfilePage() {
         variant="danger"
         isLoading={isDeletingAccount}
       />
-    </div>
+    </Box>
   )
 }

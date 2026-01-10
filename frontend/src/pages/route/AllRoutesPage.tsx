@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { keepPreviousData } from '@tanstack/react-query'
-import { MapIcon } from '@heroicons/react/24/outline'
+import { IconMap } from '@tabler/icons-react'
+import { Box, Center, Paper, SimpleGrid, Stack, Text, Title } from '@mantine/core'
 import { useListAllRoutes } from '@/api/endpoints/routes/routes'
 import type { ListAllRoutesParams } from '@/api/dto'
 import { RouteCard, RouteCardSkeleton } from '../../components/route/RouteCard'
@@ -56,57 +57,66 @@ export function AllRoutesPage() {
   return (
     <HomeLayout currentTab="routes">
       {/* Routes Section */}
-      <div className="mt-6 mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">{t('routes.list.title')}</h2>
-      </div>
+      <Stack my="lg" gap="lg">
+        <Title order={2}>{t('routes.list.title')}</Title>
 
-      {/* Filter Panel */}
-      <RouteFilterPanel
-        filters={filters}
-        onFiltersChange={handleFiltersChange}
-        isOpen={filtersOpen}
-        onOpenChange={setFiltersOpen}
-      />
+        {/* Filter Panel */}
+        <RouteFilterPanel
+          filters={filters}
+          onFiltersChange={handleFiltersChange}
+          isOpen={filtersOpen}
+          onOpenChange={setFiltersOpen}
+        />
 
-      {/* Loading State */}
-      {isLoading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          <RouteCardSkeleton count={6} />
-        </div>
-      ) : isError ? (
-        /* Error State */
-        <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
-          <MapIcon className="mx-auto h-12 w-12 text-red-400" />
-          <h3 className="mt-4 text-lg font-medium text-gray-900">{t('error.loading')}</h3>
-        </div>
-      ) : routesData?.routes && routesData.routes.length > 0 ? (
-        /* Routes Grid */
-        <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {routesData.routes.map((route) => {
-              return <RouteCard key={route.id} route={route} showTeam={true} />
-            })}
-          </div>
+        {/* Loading State */}
+        {isLoading ? (
+          <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="lg">
+            <RouteCardSkeleton count={6} />
+          </SimpleGrid>
+        ) : isError ? (
+          /* Error State */
+          <Paper shadow="xs" withBorder py="xl">
+            <Center>
+              <Stack align="center" gap="md">
+                <IconMap size={48} color="var(--mantine-color-red-5)" />
+                <Title order={3}>{t('error.loading')}</Title>
+              </Stack>
+            </Center>
+          </Paper>
+        ) : routesData?.routes && routesData.routes.length > 0 ? (
+          /* Routes Grid */
+          <>
+            <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="lg">
+              {routesData.routes.map((route) => {
+                return <RouteCard key={route.id} route={route} showTeam={true} />
+              })}
+            </SimpleGrid>
 
-          <Pagination
-            currentPage={filters.page ?? 0}
-            totalPages={totalPages}
-            onPageChange={handlePageChange}
-            className="mt-8"
-          />
-        </>
-      ) : (
-        /* Empty State */
-        <div className="text-center py-12 bg-white rounded-lg shadow-sm border border-gray-200">
-          <MapIcon className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-4 text-lg font-medium text-gray-900">
-            {hasFiltersOrSearch ? t('routes.list.noResults') : t('routes.list.empty.title')}
-          </h3>
-          {!hasFiltersOrSearch && (
-            <p className="mt-2 text-gray-500">{t('routes.list.empty.description')}</p>
-          )}
-        </div>
-      )}
+            <Box mt="xl">
+              <Pagination
+                currentPage={filters.page ?? 0}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+              />
+            </Box>
+          </>
+        ) : (
+          /* Empty State */
+          <Paper shadow="xs" withBorder py="xl">
+            <Center>
+              <Stack align="center" gap="md">
+                <IconMap size={48} color="var(--mantine-color-gray-5)" />
+                <Title order={3}>
+                  {hasFiltersOrSearch ? t('routes.list.noResults') : t('routes.list.empty.title')}
+                </Title>
+                {!hasFiltersOrSearch && (
+                  <Text c="dimmed">{t('routes.list.empty.description')}</Text>
+                )}
+              </Stack>
+            </Center>
+          </Paper>
+        )}
+      </Stack>
     </HomeLayout>
   )
 }

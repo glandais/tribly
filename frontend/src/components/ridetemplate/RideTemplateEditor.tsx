@@ -1,25 +1,25 @@
 import { useTranslation } from 'react-i18next'
-import { XMarkIcon } from '@heroicons/react/24/outline'
-import { LoadingSpinner } from '../common/LoadingSpinner'
+import { useForm } from '@mantine/form'
+import { zod4Resolver } from 'mantine-form-zod-resolver'
+import {
+  TextInput,
+  Radio,
+  Stack,
+  Group,
+  Button,
+  Text,
+  Paper,
+  SimpleGrid,
+  NumberInput,
+  ActionIcon,
+  Box,
+} from '@mantine/core'
+import { TimeInput } from '@mantine/dates'
+import { IconX } from '@tabler/icons-react'
 import { ReorderControls } from '../common/ReorderControls'
 import { MarkdownEditor } from '../common/MarkdownEditor'
 import type { RideTemplateRequest, TeamDetailDto } from '@/api/dto'
 import { createTemplateBody } from '@/api/zod/ride-templates/ride-templates.zod'
-import { useFieldArray, useForm, useWatch } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { Input } from '@/components/ui/input'
-
-import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
 
 interface RideTemplateEditorProps {
   team: TeamDetailDto
@@ -43,304 +43,192 @@ export function RideTemplateEditor({
   const { t } = useTranslation()
 
   const form = useForm<RideTemplateRequest>({
-    resolver: zodResolver(createTemplateBody),
-    mode: 'onChange',
-    defaultValues: initialValues,
+    validate: zod4Resolver(createTemplateBody) as any,
+    initialValues,
+    validateInputOnChange: true,
   })
 
-  const groups = useWatch({ control: form.control, name: 'groups' })
-
-  const {
-    fields: groupFieldArray,
-    append,
-    remove,
-    move,
-  } = useFieldArray({
-    control: form.control,
-    name: 'groups',
-  })
+  const groups = form.values.groups
 
   const handleAddGroup = () => {
-    append({
+    form.insertListItem('groups', {
       name: `Groupe ${groups.length + 1}`,
     })
   }
 
   const handleRemoveGroup = (index: number) => {
-    remove(index)
+    form.removeListItem('groups', index)
   }
 
   const handleMoveGroup = (index: number, direction: 'up' | 'down') => {
     const newIndex = direction === 'up' ? index - 1 : index + 1
-    if (newIndex >= 0 && newIndex < groupFieldArray.length) {
-      move(index, newIndex)
+    if (newIndex >= 0 && newIndex < groups.length) {
+      form.reorderListItem('groups', { from: index, to: newIndex })
     }
   }
 
+  const handleSubmit = (values: RideTemplateRequest) => {
+    onSubmit(values)
+  }
+
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        {/* Name */}
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>
-                {t('rideTemplates.form.name.label')} <span className="text-destructive">*</span>
-              </FormLabel>
-              <FormControl>
-                <Input placeholder={t('rideTemplates.form.name.placeholder')} {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+    <form onSubmit={form.onSubmit(handleSubmit)}>
+      <Stack gap="lg">
+        <TextInput
+          label={
+            <>
+              {t('rideTemplates.form.name.label')}{' '}
+              <Text span c="red">
+                *
+              </Text>
+            </>
+          }
+          placeholder={t('rideTemplates.form.name.placeholder')}
+          {...form.getInputProps('name')}
         />
 
-        {/* Description */}
-        <FormField
-          control={form.control}
-          name="markdown"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t('form.description')}</FormLabel>
-              <FormControl>
-                <MarkdownEditor
-                  value={field.value || ''}
-                  onChange={field.onChange}
-                  placeholder={t('form.description')}
-                  minHeight="150px"
-                  maxHeight="300px"
-                  disabled={isPending}
-                  ariaLabel={t('form.description')}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* Visibility */}
-        {team.visibility !== 'TEAM' && (
-          <FormField
-            control={form.control}
-            name="visibility"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t('visibility.label')}</FormLabel>
-                <FormControl>
-                  <RadioGroup
-                    value={field.value}
-                    onValueChange={field.onChange}
-                    className="space-y-2"
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="TEAM" id="visibility-team" />
-                      <Label htmlFor="visibility-team">{t('visibility.team')}</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="PUBLIC" id="visibility-public" />
-                      <Label htmlFor="visibility-public">{t('visibility.public')}</Label>
-                    </div>
-                  </RadioGroup>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+        <Stack gap="xs">
+          <Text size="sm" fw={500}>
+            {t('form.description')}
+          </Text>
+          <MarkdownEditor
+            value={form.values.markdown || ''}
+            onChange={(val) => form.setFieldValue('markdown', val)}
+            placeholder={t('form.description')}
+            minHeight="150px"
+            maxHeight="300px"
+            disabled={isPending}
+            ariaLabel={t('form.description')}
           />
+        </Stack>
+
+        {team.visibility !== 'TEAM' && (
+          <Radio.Group label={t('visibility.label')} {...form.getInputProps('visibility')}>
+            <Stack gap="xs" mt="xs">
+              <Radio value="TEAM" label={t('visibility.team')} />
+              <Radio value="PUBLIC" label={t('visibility.public')} />
+            </Stack>
+          </Radio.Group>
         )}
 
-        {/* Status */}
-        <FormField
-          control={form.control}
-          name="status"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t('form.status')}</FormLabel>
-              <FormControl>
-                <RadioGroup
-                  value={field.value}
-                  onValueChange={field.onChange}
-                  className="space-y-2"
-                >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="DRAFT" id="status-draft" />
-                    <Label htmlFor="status-draft">{t('status.DRAFT')}</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="PUBLISHED" id="status-published" />
-                    <Label htmlFor="status-published">{t('status.PUBLISHED')}</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="CANCELLED" id="status-cancelled" />
-                    <Label htmlFor="status-cancelled">{t('status.CANCELLED')}</Label>
-                  </div>
-                </RadioGroup>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <Radio.Group label={t('form.status')} {...form.getInputProps('status')}>
+          <Stack gap="xs" mt="xs">
+            <Radio value="DRAFT" label={t('status.DRAFT')} />
+            <Radio value="PUBLISHED" label={t('status.PUBLISHED')} />
+            <Radio value="CANCELLED" label={t('status.CANCELLED')} />
+          </Stack>
+        </Radio.Group>
 
         {/* Groups */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <Label>{t('rides.create.form.groups.label')}</Label>
-            <Button
-              type="button"
-              variant="link"
-              size="sm"
-              className="h-auto p-0"
-              onClick={handleAddGroup}
-            >
+        <Stack gap="xs">
+          <Group justify="space-between">
+            <Text size="sm" fw={500}>
+              {t('rides.create.form.groups.label')}
+            </Text>
+            <Button variant="subtle" size="xs" onClick={handleAddGroup}>
               {t('groups.add')}
             </Button>
-          </div>
-          <div className="space-y-3">
-            {groupFieldArray.map((field, index) => {
-              const group = groups?.[index]
-              if (!group) return null
+          </Group>
 
-              return (
-                <div key={field.id} className={`border rounded-lg p-4 border-border`}>
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <ReorderControls
-                        index={index}
-                        total={groupFieldArray.length}
-                        onMove={(dir) => handleMoveGroup(index, dir)}
-                      />
-                      <span className="text-sm font-medium">
-                        {group.name ||
-                          t('rides.create.form.groups.defaultName', { number: index + 1 })}
-                      </span>
-                    </div>
-                    <Button
-                      type="button"
-                      variant="link"
-                      size="sm"
-                      className="h-auto p-0 text-destructive"
-                      onClick={() => handleRemoveGroup(index)}
-                    >
-                      {t('rides.create.form.groups.remove')}
-                    </Button>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-                    <FormField
-                      control={form.control}
-                      name={`groups.${index}.name`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <Input
-                              placeholder={t('rides.create.form.groups.name.placeholder')}
-                              {...field}
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
+          <Stack gap="sm">
+            {groups.map((group, index) => (
+              <Paper key={index} withBorder p="sm">
+                <Group justify="space-between" mb="sm">
+                  <Group gap="xs">
+                    <ReorderControls
+                      index={index}
+                      total={groups.length}
+                      onMove={(dir) => handleMoveGroup(index, dir)}
                     />
-                    <div className="relative">
-                      <FormField
-                        control={form.control}
-                        name={`groups.${index}.time`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormControl>
-                              <Input
-                                type="time"
-                                {...field}
-                                value={field.value || ''}
-                                onChange={(e) => field.onChange(e.target.value || undefined)}
-                              />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
-                      {group.time && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="absolute right-8 top-1/2 -translate-y-1/2 size-6"
-                          onClick={() => form.setValue(`groups.${index}.time`, undefined)}
-                        >
-                          <XMarkIcon className="size-4" />
-                        </Button>
-                      )}
-                    </div>
-                    <FormField
-                      control={form.control}
-                      name={`groups.${index}.averageSpeed`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              placeholder={t('rides.create.form.groups.speed.placeholder')}
-                              min={0}
-                              {...field}
-                              value={field.value ?? ''}
-                              onChange={(e) =>
-                                field.onChange(e.target.value ? Number(e.target.value) : undefined)
-                              }
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
+                    <Text size="sm" fw={500}>
+                      {group.name ||
+                        t('rides.create.form.groups.defaultName', { number: index + 1 })}
+                    </Text>
+                  </Group>
+                  <Button
+                    variant="subtle"
+                    size="xs"
+                    color="red"
+                    onClick={() => handleRemoveGroup(index)}
+                  >
+                    {t('rides.create.form.groups.remove')}
+                  </Button>
+                </Group>
+
+                <SimpleGrid cols={{ base: 1, sm: 4 }} spacing="xs">
+                  <TextInput
+                    placeholder={t('rides.create.form.groups.name.placeholder')}
+                    {...form.getInputProps(`groups.${index}.name`)}
+                  />
+                  <Box pos="relative">
+                    <TimeInput
+                      value={form.values.groups[index]?.time || ''}
+                      onChange={(e) =>
+                        form.setFieldValue(
+                          `groups.${index}.time`,
+                          e.currentTarget.value || undefined
+                        )
+                      }
                     />
-                    <FormField
-                      control={form.control}
-                      name={`groups.${index}.maxParticipants`}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              placeholder={t(
-                                'rides.create.form.groups.maxParticipants.placeholder'
-                              )}
-                              min={1}
-                              {...field}
-                              value={field.value ?? ''}
-                              onChange={(e) =>
-                                field.onChange(e.target.value ? Number(e.target.value) : undefined)
-                              }
-                            />
-                          </FormControl>
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </div>
-              )
-            })}
-            {groupFieldArray.length === 0 && (
-              <p className="text-sm text-muted-foreground italic">
+                    {group.time && (
+                      <ActionIcon
+                        variant="subtle"
+                        size="sm"
+                        pos="absolute"
+                        right={30}
+                        top="50%"
+                        style={{ transform: 'translateY(-50%)' }}
+                        onClick={() => form.setFieldValue(`groups.${index}.time`, undefined)}
+                      >
+                        <IconX size={14} />
+                      </ActionIcon>
+                    )}
+                  </Box>
+                  <NumberInput
+                    placeholder={t('rides.create.form.groups.speed.placeholder')}
+                    min={0}
+                    value={form.values.groups[index]?.averageSpeed ?? ''}
+                    onChange={(val) =>
+                      form.setFieldValue(
+                        `groups.${index}.averageSpeed`,
+                        val === '' ? undefined : Number(val)
+                      )
+                    }
+                  />
+                  <NumberInput
+                    placeholder={t('rides.create.form.groups.maxParticipants.placeholder')}
+                    min={1}
+                    value={form.values.groups[index]?.maxParticipants ?? ''}
+                    onChange={(val) =>
+                      form.setFieldValue(
+                        `groups.${index}.maxParticipants`,
+                        val === '' ? undefined : Number(val)
+                      )
+                    }
+                  />
+                </SimpleGrid>
+              </Paper>
+            ))}
+            {groups.length === 0 && (
+              <Text size="sm" c="dimmed" fs="italic">
                 {t('rides.create.form.groups.empty')}
-              </p>
+              </Text>
             )}
-          </div>
-          <p className="text-sm text-muted-foreground">{t('rides.create.form.groups.hint')}</p>
-        </div>
+          </Stack>
+          <Text size="xs" c="dimmed">
+            {t('rides.create.form.groups.hint')}
+          </Text>
+        </Stack>
 
-        {/* Actions */}
-        <div className="pt-4 flex items-center justify-end gap-3">
-          <Button type="button" variant="outline" onClick={onCancel} disabled={isPending}>
+        <Group justify="flex-end" pt="md">
+          <Button variant="default" onClick={onCancel} disabled={isPending}>
             {t('actions.cancelAction')}
           </Button>
-          <Button type="submit" disabled={isPending || !form.formState.isValid}>
-            {isPending ? (
-              <>
-                <LoadingSpinner size="sm" color="white" className="mr-2" />
-                {t('status.saving')}
-              </>
-            ) : (
-              submitButtonText || t('actions.save')
-            )}
+          <Button type="submit" disabled={isPending || !form.isValid()} loading={isPending}>
+            {submitButtonText || t('actions.save')}
           </Button>
-        </div>
-      </form>
-    </Form>
+        </Group>
+      </Stack>
+    </form>
   )
 }

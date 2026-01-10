@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Group, Avatar, Text } from '@mantine/core'
 import { Autocomplete } from './Autocomplete'
 import { useSearchUsers } from '@/api/endpoints/users/users'
 import type { PublicUserDto } from '@/api/dto'
@@ -7,10 +8,9 @@ import type { PublicUserDto } from '@/api/dto'
 interface UserAutocompleteProps {
   onSelect: (user: PublicUserDto) => void
   placeholder?: string
-  className?: string
 }
 
-export function UserAutocomplete({ onSelect, placeholder, className = '' }: UserAutocompleteProps) {
+export function UserAutocomplete({ onSelect, placeholder }: UserAutocompleteProps) {
   const { t } = useTranslation()
   const [query, setQuery] = useState('')
 
@@ -35,18 +35,12 @@ export function UserAutocomplete({ onSelect, placeholder, className = '' }: User
 
   const renderUser = useCallback(
     (user: PublicUserDto) => (
-      <div className="flex items-center gap-3">
-        {user.avatarUrl ? (
-          <img src={user.avatarUrl} alt={user.displayName} className="h-8 w-8 rounded-full" />
-        ) : (
-          <div className="h-8 w-8 rounded-full bg-indigo-500 flex items-center justify-center">
-            <span className="text-white text-sm font-medium">
-              {user.displayName.charAt(0).toUpperCase()}
-            </span>
-          </div>
-        )}
-        <span className="text-sm text-gray-900">{user.displayName}</span>
-      </div>
+      <Group gap="sm" wrap="nowrap">
+        <Avatar src={user.avatarUrl} alt={user.displayName} size="sm" color="indigo">
+          {user.displayName.charAt(0).toUpperCase()}
+        </Avatar>
+        <Text size="sm">{user.displayName}</Text>
+      </Group>
     ),
     []
   )
@@ -61,7 +55,6 @@ export function UserAutocomplete({ onSelect, placeholder, className = '' }: User
       getItemKey={(user) => user.id}
       placeholder={placeholder || t('autocomplete.searchUsers')}
       noResultsMessage={t('autocomplete.noUsersFound')}
-      className={className}
       minChars={2}
       clearOnSelect={true}
     />

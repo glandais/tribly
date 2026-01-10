@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { Stack, Title, Text, Tabs } from '@mantine/core'
 import { paths } from '@/config/paths'
 
 export type HomeTab = 'feed' | 'routes' | 'teams'
@@ -31,34 +32,32 @@ export function HomeLayout({ currentTab, children }: HomeLayoutProps) {
   ]
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <Stack gap="lg">
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">{t('welcome')}</h1>
-        <p className="mt-1 text-gray-600">{t('home.subtitle')}</p>
+      <div>
+        <Title order={1}>{t('welcome')}</Title>
+        <Text c="dimmed" mt={4}>
+          {t('home.subtitle')}
+        </Text>
       </div>
 
       {/* Home Navigation */}
-      <div className="border-b border-gray-200">
-        <nav className="-mb-px flex space-x-8">
+      <Tabs value={currentTab}>
+        <Tabs.List>
           {tabs.map((tab) => (
-            <Link
+            <Tabs.Tab
               key={tab.id}
-              to={tab.path}
-              className={
-                currentTab === tab.id
-                  ? 'border-indigo-500 text-indigo-600 py-4 px-1 border-b-2 font-medium text-sm'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 py-4 px-1 border-b-2 font-medium text-sm'
-              }
+              value={tab.id}
+              renderRoot={(props) => <Link to={tab.path} {...props} />}
             >
               {tab.label}
-            </Link>
+            </Tabs.Tab>
           ))}
-        </nav>
-      </div>
+        </Tabs.List>
+      </Tabs>
 
       {/* Page Content */}
       <div>{children}</div>
-    </div>
+    </Stack>
   )
 }

@@ -1,6 +1,7 @@
 import { Link, Navigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { ArrowLeftIcon } from '@heroicons/react/24/outline'
+import { Container, Group, Title, Tabs, Anchor, Box } from '@mantine/core'
+import { IconArrowLeft } from '@tabler/icons-react'
 import type { TeamDetailDto } from '@/api/dto'
 import { paths } from '@/config/paths'
 
@@ -58,40 +59,37 @@ export function TeamAdminLayout({ team, currentTab, children }: TeamAdminLayoutP
   const visibleTabs = tabs.filter((tab) => !tab.adminOnly || isAdmin)
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <Container size="xl" py="xl">
       {/* Header with back link */}
-      <div className="mb-6">
-        <Link
-          to={paths.team(team.slug)}
-          className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700"
-        >
-          <ArrowLeftIcon className="w-4 h-4 mr-1" />
-          {t('teams.admin.backToTeam', { teamName: team.name })}
-        </Link>
-        <h1 className="mt-2 text-2xl font-bold text-gray-900">{t('teams.admin.title')}</h1>
-      </div>
+      <Box mb="xl">
+        <Anchor component={Link} to={paths.team(team.slug)} c="dimmed" size="sm">
+          <Group gap={4}>
+            <IconArrowLeft size={16} />
+            {t('teams.admin.backToTeam', { teamName: team.name })}
+          </Group>
+        </Anchor>
+        <Title order={2} mt="xs">
+          {t('teams.admin.title')}
+        </Title>
+      </Box>
 
       {/* Admin Navigation */}
-      <div className="border-b border-gray-200">
-        <nav className="-mb-px flex space-x-8">
+      <Tabs value={currentTab} mb="xl">
+        <Tabs.List>
           {visibleTabs.map((tab) => (
-            <Link
+            <Tabs.Tab
               key={tab.id}
-              to={tab.path}
-              className={
-                currentTab === tab.id
-                  ? 'border-indigo-500 text-indigo-600 py-4 px-1 border-b-2 font-medium text-sm'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 py-4 px-1 border-b-2 font-medium text-sm'
-              }
+              value={tab.id}
+              renderRoot={(props) => <Link {...props} to={tab.path} />}
             >
               {tab.label}
-            </Link>
+            </Tabs.Tab>
           ))}
-        </nav>
-      </div>
+        </Tabs.List>
+      </Tabs>
 
       {/* Page Content */}
-      <div>{children}</div>
-    </div>
+      <Box>{children}</Box>
+    </Container>
   )
 }

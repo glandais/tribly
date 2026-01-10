@@ -2,9 +2,10 @@ import { useParams, Navigate, useNavigate } from 'react-router-dom'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
-import { toast } from 'sonner'
+import { notifications } from '@mantine/notifications'
 import i18next from 'i18next'
 import { paths } from '../../config/paths'
+import { Container, Stack, Title, Text } from '@mantine/core'
 import { useGetTeam } from '@/api/endpoints/teams/teams'
 import {
   useGetTrip,
@@ -59,7 +60,7 @@ export function EditTripPage() {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getGetTripQueryKey(teamSlug!, tripSlug!) })
           queryClient.invalidateQueries({ queryKey: getListPublicationsQueryKey(teamSlug!) })
-          toast.success(i18next.t('trips.notifications.updated'))
+          notifications.show({ message: i18next.t('trips.notifications.updated'), color: 'green' })
           navigate(paths.trip(teamSlug!, tripSlug!))
         },
       }
@@ -83,11 +84,11 @@ export function EditTripPage() {
   const initialValues = { ...trip }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">{t('trips.edit.title')}</h1>
-        <p className="mt-1 text-gray-600">{t('trips.edit.subtitle', { teamName: team.name })}</p>
-      </div>
+    <Container size="sm" py="xl">
+      <Stack gap="xs" mb="xl">
+        <Title order={1}>{t('trips.edit.title')}</Title>
+        <Text c="dimmed">{t('trips.edit.subtitle', { teamName: team.name })}</Text>
+      </Stack>
 
       <TripEditor
         team={team}
@@ -101,6 +102,6 @@ export function EditTripPage() {
         onSlugChange={handleSlugChange}
         canEditSlug={canEdit}
       />
-    </div>
+    </Container>
   )
 }

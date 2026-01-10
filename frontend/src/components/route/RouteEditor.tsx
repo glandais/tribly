@@ -1,65 +1,43 @@
 import { useState, useCallback } from 'react'
+import { useForm } from '@mantine/form'
+import { zod4Resolver } from 'mantine-form-zod-resolver'
 import { useTranslation } from 'react-i18next'
+import {
+  TextInput,
+  Radio,
+  Stack,
+  Group,
+  Button,
+  Text,
+  Select,
+  Alert,
+  FileInput,
+  Box,
+} from '@mantine/core'
 import { RouteRequest, SurfaceType } from '@/api/dto'
 import type { TeamDetailDto, GeoPoint } from '@/api/dto'
-import { LoadingSpinner } from '../common/LoadingSpinner'
 import { MediaEditor } from '../common/MediaEditor'
 import { SlugEditor } from '../common/SlugEditor'
 import { EmbeddedRoutePlanner } from '../planner/EmbeddedRoutePlanner'
 import { createRouteBody } from '@/api/zod/routes/routes.zod'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useForm, useWatch } from 'react-hook-form'
-
-import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { Input } from '@/components/ui/input'
-
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
-
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 
 export type RouteSourceMode = 'gpx' | 'planner'
 
 const routeSchema = createRouteBody.shape.route.unwrap()
 
 interface RouteEditorProps {
-  // Context
   team: TeamDetailDto
   teamSlug: string
-
-  // Initial values (REQUIRED - each page prepares these)
   initialValues: RouteRequest
-
-  // Submission
   onSubmit: (data: RouteRequest, gpxFile?: File) => void | Promise<void>
   onCancel: () => void
-
-  // State
   isPending: boolean
   error?: Error | null
-
-  // UI customization
-  isCreateMode?: boolean // true for create (requires source), false for edit
-  initialTrack?: number[][] // [lng, lat, ele, dist][] for edit mode with planner
+  isCreateMode?: boolean
+  initialTrack?: number[][]
   submitButtonText?: string
   cancelButtonText?: string
   showCancelButton?: boolean
-
-  // Slug editing (only for edit mode)
   currentSlug?: string
   onSlugChange?: (newSlug: string) => Promise<void>
   canEditSlug?: boolean
@@ -85,35 +63,29 @@ export function RouteEditor({
   const { t } = useTranslation()
 
   const form = useForm<RouteRequest>({
-    resolver: zodResolver(routeSchema),
-    mode: 'onChange',
-    defaultValues: initialValues,
+    validate: zod4Resolver(routeSchema) as any,
+    initialValues,
+    validateInputOnChange: true,
   })
 
-  // Can use planner if creating or if editing with a single-track route
   const canUsePlanner = isCreateMode || !!initialTrack
-
-  // Route source mode (GPX upload or Planner)
-  // Default to planner if editing with initialTrack
   const [sourceMode, setSourceMode] = useState<RouteSourceMode>(
     !isCreateMode && initialTrack ? 'planner' : 'gpx'
   )
 
-  const name = useWatch({ control: form.control, name: 'name' })
+  const name = form.values.name
 
   const [gpxFile, setGpxFile] = useState<File | null>(null)
   const [plannerPoints, setPlannerPoints] = useState<GeoPoint[]>([])
   const [error, setError] = useState<string | null>(null)
 
   const handleFileChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0]
+    (file: File | null) => {
       if (!name && file?.name) {
         const defaultName = file.name.replace(/\.gpx$/i, '')
-        form.setValue('name', defaultName)
+        form.setFieldValue('name', defaultName)
       }
       if (file) {
-        // Validate file type
         if (!file.name.endsWith('.gpx')) {
           setError(t('routes.create.validation.invalidFileType'))
           setGpxFile(null)
@@ -121,13 +93,14 @@ export function RouteEditor({
         }
         setError(null)
         setGpxFile(file)
+      } else {
+        setGpxFile(null)
       }
     },
     [t, form, name]
   )
 
   const handleSubmit = async (values: RouteRequest) => {
-    // Validate source in create mode
     if (isCreateMode) {
       if (sourceMode === 'gpx' && !gpxFile) {
         setError(t('routes.create.validation.fileRequired'))
@@ -139,7 +112,6 @@ export function RouteEditor({
       }
     }
 
-    // Clear local errors
     setError(null)
 
     onSubmit(
@@ -152,104 +124,108 @@ export function RouteEditor({
   }
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-        {error && (
-          <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-            <p className="text-red-700">{error}</p>
-          </div>
-        )}
+    <form onSubmit={form.onSubmit(handleSubmit)}>
+      <Stack gap="lg">
+        {error && <Alert color="red">{error}</Alert>}
 
-        {/* Route Source - Mode selector (create mode or edit with single-track) */}
+        {/* Route Source - Mode selector */}
         {canUsePlanner && (
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              {t('routes.create.form.sourceMode')} {isCreateMode && '*'}
-            </label>
-            <div className="flex gap-2">
-              <button
-                type="button"
+          <Stack gap="xs">
+            <Text size="sm" fw={500}>
+              {t('routes.create.form.sourceMode')}{' '}
+              {isCreateMode && (
+                <Text span c="red">
+                  *
+                </Text>
+              )}
+            </Text>
+            <Group gap="xs">
+              <Button
+                variant={sourceMode === 'gpx' ? 'filled' : 'default'}
                 onClick={() => setSourceMode('gpx')}
-                className={`flex-1 py-2 px-4 text-sm font-medium rounded-lg border transition-colors ${
-                  sourceMode === 'gpx'
-                    ? 'bg-indigo-600 text-white border-indigo-600'
-                    : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                }`}
               >
                 {t('routes.create.form.sourceModeGpx')}
-              </button>
-              <button
-                type="button"
+              </Button>
+              <Button
+                variant={sourceMode === 'planner' ? 'filled' : 'default'}
                 onClick={() => setSourceMode('planner')}
-                className={`flex-1 py-2 px-4 text-sm font-medium rounded-lg border transition-colors ${
-                  sourceMode === 'planner'
-                    ? 'bg-indigo-600 text-white border-indigo-600'
-                    : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                }`}
               >
                 {t('routes.create.form.sourceModePlanner')}
-              </button>
-            </div>
-          </div>
+              </Button>
+            </Group>
+          </Stack>
         )}
 
-        {/* GPX File Upload (GPX mode or edit mode without planner) */}
+        {/* GPX File Upload */}
         {(sourceMode === 'gpx' || !canUsePlanner) && (
-          <div>
-            <label htmlFor="gpxFile" className="block text-sm font-medium text-gray-700">
-              {t('routes.create.form.gpxFile')} {isCreateMode && sourceMode === 'gpx' && '*'}
-            </label>
-            <div className="mt-1">
-              <input
-                id="gpxFile"
-                name="gpxFile"
-                type="file"
-                accept=".gpx"
-                onChange={handleFileChange}
-                className="block w-full text-sm text-gray-500
-                file:mr-4 file:py-2 file:px-4
-                file:rounded-md file:border-0
-                file:text-sm file:font-semibold
-                file:bg-indigo-50 file:text-indigo-700
-                hover:file:bg-indigo-100"
-              />
-            </div>
-            <p className="mt-2 text-sm text-gray-500">{t('routes.create.form.gpxFileHint')}</p>
-          </div>
+          <FileInput
+            label={
+              <>
+                {t('routes.create.form.gpxFile')}{' '}
+                {isCreateMode && sourceMode === 'gpx' && (
+                  <Text span c="red">
+                    *
+                  </Text>
+                )}
+              </>
+            }
+            description={t('routes.create.form.gpxFileHint')}
+            accept=".gpx"
+            value={gpxFile}
+            onChange={handleFileChange}
+          />
         )}
 
-        {/* Route Planner - full viewport width */}
+        {/* Route Planner */}
         {canUsePlanner && sourceMode === 'planner' && (
-          <div className="relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] w-screen">
-            <label className="block text-sm font-medium text-gray-700 mb-2 px-4 sm:px-6 lg:px-8">
-              {t('routes.create.form.plannerLabel')} {isCreateMode && '*'}
-            </label>
-            <div className="h-[70vh] border-y border-gray-300 overflow-hidden">
+          <Box
+            style={{
+              position: 'relative',
+              left: '50%',
+              right: '50%',
+              marginLeft: '-50vw',
+              marginRight: '-50vw',
+              width: '100vw',
+            }}
+          >
+            <Text size="sm" fw={500} mb="xs" px="md">
+              {t('routes.create.form.plannerLabel')}{' '}
+              {isCreateMode && (
+                <Text span c="red">
+                  *
+                </Text>
+              )}
+            </Text>
+            <Box
+              h="70vh"
+              style={{
+                borderTop: '1px solid var(--mantine-color-default-border)',
+                borderBottom: '1px solid var(--mantine-color-default-border)',
+                overflow: 'hidden',
+              }}
+            >
               <EmbeddedRoutePlanner onPointsChange={setPlannerPoints} initialTrack={initialTrack} />
-            </div>
+            </Box>
             {plannerPoints.length > 0 && (
-              <p className="mt-2 text-sm text-gray-500 px-4 sm:px-6 lg:px-8">
+              <Text size="sm" c="dimmed" mt="xs" px="md">
                 {t('routes.create.form.pointCount', { count: plannerPoints.length })}
-              </p>
+              </Text>
             )}
-          </div>
+          </Box>
         )}
 
         {/* Name */}
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>
-                {t('routes.create.form.name')} <span className="text-destructive">*</span>
-              </FormLabel>
-              <FormControl>
-                <Input placeholder={t('routes.create.form.name')} {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+        <TextInput
+          label={
+            <>
+              {t('routes.create.form.name')}{' '}
+              <Text span c="red">
+                *
+              </Text>
+            </>
+          }
+          placeholder={t('routes.create.form.name')}
+          {...form.getInputProps('name')}
         />
 
         {/* Slug Editor (only in edit mode) */}
@@ -263,90 +239,49 @@ export function RouteEditor({
         )}
 
         {/* Description */}
-        <FormField
-          control={form.control}
-          name="media"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t('form.description')}</FormLabel>
-              <FormControl>
-                <MediaEditor
-                  value={field.value}
-                  onChange={field.onChange}
-                  placeholder={t('form.description')}
-                  minHeight="150px"
-                  maxHeight="300px"
-                  disabled={isPending}
-                  ariaLabel={t('form.description')}
-                  teamSlug={teamSlug}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <Stack gap="xs">
+          <Text size="sm" fw={500}>
+            {t('form.description')}
+          </Text>
+          <MediaEditor
+            value={form.values.media}
+            onChange={(val) => form.setFieldValue('media', val)}
+            placeholder={t('form.description')}
+            minHeight="150px"
+            maxHeight="300px"
+            disabled={isPending}
+            ariaLabel={t('form.description')}
+            teamSlug={teamSlug}
+          />
+        </Stack>
 
         {/* Surface Type */}
-        <FormField
-          control={form.control}
-          name="surfaceType"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t('routes.create.form.surfaceType')}</FormLabel>
-              <Select value={field.value} onValueChange={field.onChange}>
-                <FormControl>
-                  <SelectTrigger className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value={SurfaceType.ROAD}>{t('routes.surfaceType.ROAD')}</SelectItem>
-                  <SelectItem value={SurfaceType.GRAVEL}>
-                    {t('routes.surfaceType.GRAVEL')}
-                  </SelectItem>
-                  <SelectItem value={SurfaceType.MTB}>{t('routes.surfaceType.MTB')}</SelectItem>
-                  <SelectItem value={SurfaceType.MIXED}>{t('routes.surfaceType.MIXED')}</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
+        <Select
+          label={t('routes.create.form.surfaceType')}
+          value={form.values.surfaceType}
+          onChange={(val) => form.setFieldValue('surfaceType', val as SurfaceType)}
+          data={[
+            { value: SurfaceType.ROAD, label: t('routes.surfaceType.ROAD') },
+            { value: SurfaceType.GRAVEL, label: t('routes.surfaceType.GRAVEL') },
+            { value: SurfaceType.MTB, label: t('routes.surfaceType.MTB') },
+            { value: SurfaceType.MIXED, label: t('routes.surfaceType.MIXED') },
+          ]}
         />
 
         {/* Visibility */}
         {team.visibility !== 'TEAM' && (
-          <FormField
-            control={form.control}
-            name="visibility"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t('visibility.label')}</FormLabel>
-                <FormControl>
-                  <RadioGroup
-                    value={field.value}
-                    onValueChange={field.onChange}
-                    className="space-y-2"
-                  >
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="TEAM" id="visibility-team" />
-                      <Label htmlFor="visibility-team">{t('visibility.team')}</Label>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <RadioGroupItem value="PUBLIC" id="visibility-public" />
-                      <Label htmlFor="visibility-public">{t('visibility.public')}</Label>
-                    </div>
-                  </RadioGroup>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <Radio.Group label={t('visibility.label')} {...form.getInputProps('visibility')}>
+            <Stack gap="xs" mt="xs">
+              <Radio value="TEAM" label={t('visibility.team')} />
+              <Radio value="PUBLIC" label={t('visibility.public')} />
+            </Stack>
+          </Radio.Group>
         )}
 
         {/* Submit Buttons */}
-        <div className="flex justify-end gap-3">
+        <Group justify="flex-end" pt="md">
           {showCancelButton && (
-            <Button type="button" variant="outline" onClick={onCancel} disabled={isPending}>
+            <Button variant="default" onClick={onCancel} disabled={isPending}>
               {cancelButtonText || t('actions.cancelAction')}
             </Button>
           )}
@@ -354,22 +289,16 @@ export function RouteEditor({
             type="submit"
             disabled={
               isPending ||
-              !form.formState.isValid ||
+              !form.isValid() ||
               (isCreateMode && sourceMode === 'gpx' && !gpxFile) ||
               (isCreateMode && sourceMode === 'planner' && plannerPoints.length < 2)
             }
+            loading={isPending}
           >
-            {isPending ? (
-              <>
-                <LoadingSpinner size="sm" />
-                {t('status.creating')}
-              </>
-            ) : (
-              submitButtonText || t('routes.create.submit')
-            )}
+            {submitButtonText || t('routes.create.submit')}
           </Button>
-        </div>
-      </form>
-    </Form>
+        </Group>
+      </Stack>
+    </form>
   )
 }

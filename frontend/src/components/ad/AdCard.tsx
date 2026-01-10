@@ -1,12 +1,13 @@
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
-  CalendarIcon,
-  UsersIcon,
-  ChevronRightIcon,
-  MapPinIcon,
-  CurrencyEuroIcon,
-} from '@heroicons/react/24/outline'
+  IconCalendar,
+  IconUsers,
+  IconChevronRight,
+  IconMapPin,
+  IconCurrencyEuro,
+} from '@tabler/icons-react'
+import { Group, Text, Box, Stack } from '@mantine/core'
 import { Card, CardContent, CardTitle, CardDescription } from '../common/card'
 import { Badge, VisibilityBadge, Stat, StatGroup, CardSkeleton } from '../common/card'
 import { EntityLogo } from '../common/EntityLogo'
@@ -14,14 +15,12 @@ import { useFormattedDate } from '../../utils/dateFormat'
 import { paths } from '@/config/paths'
 import { AdDto, AdType, RentalPeriod } from '@/api/dto'
 
-// Status variants for badges
 const statusVariants: Record<string, 'gray' | 'green' | 'red'> = {
   DRAFT: 'gray',
   PUBLISHED: 'green',
   CANCELLED: 'red',
 }
 
-// Ad type badge variants
 const adTypeBadgeVariants: Record<AdType, 'indigo' | 'purple' | 'orange'> = {
   [AdType.SALE]: 'indigo',
   [AdType.RENTAL]: 'purple',
@@ -60,29 +59,36 @@ export function AdCard({ ad, showTeam = false }: AdCardProps) {
   return (
     <Card to={paths.ad(ad.team.slug, ad.slug)}>
       <CardContent>
-        {/* Team header - clickable link to team page */}
         {showTeam && (
-          <Link
+          <Box
+            component={Link}
             to={paths.team(ad.team.slug)}
-            onClick={(e) => e.stopPropagation()}
-            className="flex items-center gap-2 mb-3 text-sm text-gray-600 hover:text-indigo-600 transition-colors group"
+            onClick={(e: React.MouseEvent) => e.stopPropagation()}
+            mb="sm"
+            style={{
+              textDecoration: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 'var(--mantine-spacing-xs)',
+            }}
           >
-            <UsersIcon className="h-4 w-4" />
-            <span className="font-medium">{ad.team.name}</span>
-            <ChevronRightIcon className="h-3 w-3 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
-          </Link>
+            <IconUsers size={16} color="var(--mantine-color-gray-6)" />
+            <Text size="sm" c="dimmed" fw={500}>
+              {ad.team.name}
+            </Text>
+            <IconChevronRight size={12} color="var(--mantine-color-gray-5)" />
+          </Box>
         )}
 
-        {/* Main content */}
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex items-start gap-3 flex-1 min-w-0">
-            <EntityLogo logo={ad.media.assets.logo} alt={ad.name} size="md" className="shrink-0" />
-            <div className="flex-1 min-w-0">
+        <Group justify="space-between" mb="md" align="flex-start">
+          <Group gap="sm" wrap="nowrap" style={{ flex: 1, minWidth: 0 }}>
+            <EntityLogo logo={ad.media.assets.logo} alt={ad.name} size="md" />
+            <Box style={{ flex: 1, minWidth: 0 }}>
               <CardTitle>{ad.name}</CardTitle>
               <CardDescription markdown={true} media={ad.media} />
-            </div>
-          </div>
-          <div className="ml-3 flex flex-col items-end gap-1">
+            </Box>
+          </Group>
+          <Stack gap="xs" align="flex-end">
             <Badge variant={adTypeBadgeVariants[ad.adType]}>
               {t(`ads.adType.${ad.adType satisfies 'SALE' | 'RENTAL' | 'WANTED'}`)}
             </Badge>
@@ -90,15 +96,17 @@ export function AdCard({ ad, showTeam = false }: AdCardProps) {
               {t(`status.${ad.status satisfies 'DRAFT' | 'PUBLISHED' | 'CANCELLED'}`)}
             </Badge>
             <VisibilityBadge visibility={ad.visibility} />
-          </div>
-        </div>
+          </Stack>
+        </Group>
 
         <StatGroup>
-          <Stat icon={<CurrencyEuroIcon />}>
+          <Stat icon={<IconCurrencyEuro size={16} />}>
             {formatPrice(ad.price, ad.adType, ad.rentalPeriod)}
           </Stat>
-          <Stat icon={<CalendarIcon />}>{formattedDate}</Stat>
-          {ad.locationDescription && <Stat icon={<MapPinIcon />}>{ad.locationDescription}</Stat>}
+          <Stat icon={<IconCalendar size={16} />}>{formattedDate}</Stat>
+          {ad.locationDescription && (
+            <Stat icon={<IconMapPin size={16} />}>{ad.locationDescription}</Stat>
+          )}
         </StatGroup>
       </CardContent>
     </Card>

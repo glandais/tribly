@@ -1,10 +1,10 @@
 import { useState, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { PaperClipIcon, XMarkIcon, PlusIcon, PhotoIcon } from '@heroicons/react/24/outline'
+import { Stack, Paper, Group, Text, Button, ActionIcon, Image, Center } from '@mantine/core'
+import { IconPaperclip, IconX, IconPlus, IconPhoto } from '@tabler/icons-react'
 import { MediaDto, AssetDto } from '@/api/dto'
 import { MarkdownEditor } from './MarkdownEditor'
 import { uploadAsset } from '@/api/endpoints/assets/assets'
-import { LoadingSpinner } from './LoadingSpinner'
 
 export interface MediaEditorProps {
   value: MediaDto
@@ -14,14 +14,9 @@ export interface MediaEditorProps {
   maxHeight?: string
   disabled?: boolean
   ariaLabel?: string
-  teamSlug?: string // Required for file uploads - when missing, attachments are disabled
+  teamSlug?: string
 }
 
-/**
- * MediaEditor component - editable media content component.
- * Handles MediaDto and extracts/updates markdown for MarkdownEditor.
- * Supports logo and file attachments when teamSlug is provided.
- */
 export function MediaEditor({
   value,
   onChange,
@@ -43,13 +38,9 @@ export function MediaEditor({
   const [imageError, setImageError] = useState<string | null>(null)
 
   const handleMarkdownChange = (markdown: string) => {
-    onChange({
-      ...value,
-      markdown,
-    })
+    onChange({ ...value, markdown })
   }
 
-  // Handle image upload from markdown editor toolbar
   const handleImageUpload = async (
     file: File
   ): Promise<{ id: string; fileName: string } | null> => {
@@ -60,16 +51,10 @@ export function MediaEditor({
 
     try {
       const asset = await uploadAsset(teamSlug, { file })
-
-      // Add to images array
       onChange({
         ...value,
-        assets: {
-          ...value.assets,
-          images: [...value.assets.images, asset],
-        },
+        assets: { ...value.assets, images: [...value.assets.images, asset] },
       })
-
       return { id: asset.id, fileName: asset.fileName }
     } catch {
       setImageError(t('error.loading'))
@@ -88,32 +73,17 @@ export function MediaEditor({
 
     try {
       const asset = await uploadAsset(teamSlug, { file })
-
-      onChange({
-        ...value,
-        assets: {
-          ...value.assets,
-          logo: asset,
-        },
-      })
+      onChange({ ...value, assets: { ...value.assets, logo: asset } })
     } catch {
       setLogoError(t('error.loading'))
     } finally {
       setLogoUploading(false)
-      if (logoInputRef.current) {
-        logoInputRef.current.value = ''
-      }
+      if (logoInputRef.current) logoInputRef.current.value = ''
     }
   }
 
   const handleRemoveLogo = () => {
-    onChange({
-      ...value,
-      assets: {
-        ...value.assets,
-        logo: undefined,
-      },
-    })
+    onChange({ ...value, assets: { ...value.assets, logo: undefined } })
   }
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -125,23 +95,15 @@ export function MediaEditor({
 
     try {
       const asset = await uploadAsset(teamSlug, { file })
-
-      // Add the new attachment to the assets
       onChange({
         ...value,
-        assets: {
-          ...value.assets,
-          attachments: [...value.assets.attachments, asset],
-        },
+        assets: { ...value.assets, attachments: [...value.assets.attachments, asset] },
       })
     } catch {
       setUploadError(t('error.loading'))
     } finally {
       setUploading(false)
-      // Reset the file input so the same file can be selected again
-      if (fileInputRef.current) {
-        fileInputRef.current.value = ''
-      }
+      if (fileInputRef.current) fileInputRef.current.value = ''
     }
   }
 
@@ -160,80 +122,72 @@ export function MediaEditor({
   const canUpload = !!teamSlug && !disabled
 
   return (
-    <div className="space-y-3">
-      {/* Logo section - only show when teamSlug is available */}
+    <Stack gap="sm">
       {teamSlug && (
-        <div className="border border-gray-200 rounded-lg p-3 bg-gray-50">
-          <div className="flex items-center justify-between mb-2">
-            <h4 className="text-sm font-medium text-gray-700 flex items-center gap-1">
-              <PhotoIcon className="h-4 w-4" />
+        <Paper withBorder p="sm" bg="gray.0">
+          <Group gap="xs" mb="sm">
+            <IconPhoto size={16} />
+            <Text size="sm" fw={500}>
               {t('logo.title')}
-            </h4>
-          </div>
+            </Text>
+          </Group>
 
-          <div className="flex items-center gap-4">
-            {/* Logo preview */}
+          <Group gap="md">
             {logo?.url ? (
-              <div className="relative">
-                <img
-                  src={logo.url}
-                  alt={t('logo.title')}
-                  className="h-16 w-16 object-cover rounded-lg border border-gray-200"
-                />
-              </div>
+              <Image src={logo.url} alt={t('logo.title')} w={64} h={64} radius="md" fit="cover" />
             ) : (
-              <div className="h-16 w-16 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center bg-white">
-                <PhotoIcon className="h-8 w-8 text-gray-300" />
-              </div>
+              <Center
+                w={64}
+                h={64}
+                style={{
+                  border: '2px dashed var(--mantine-color-gray-4)',
+                  borderRadius: 'var(--mantine-radius-md)',
+                }}
+              >
+                <IconPhoto size={32} color="var(--mantine-color-gray-4)" />
+              </Center>
             )}
 
-            {/* Logo actions */}
-            <div className="flex items-center gap-2">
+            <Group gap="xs">
               <input
                 ref={logoInputRef}
                 type="file"
                 accept="image/*"
                 onChange={handleLogoSelect}
                 disabled={!canUpload || logoUploading}
-                className="hidden"
+                hidden
               />
-              <button
-                type="button"
+              <Button
+                variant="default"
+                size="xs"
                 onClick={() => logoInputRef.current?.click()}
                 disabled={!canUpload || logoUploading}
-                className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                loading={logoUploading}
+                leftSection={!logoUploading && !logo && <IconPlus size={14} />}
               >
-                {logoUploading ? (
-                  <>
-                    <LoadingSpinner size="sm" />
-                    {t('loading')}
-                  </>
-                ) : logo ? (
-                  t('logo.change')
-                ) : (
-                  <>
-                    <PlusIcon className="h-4 w-4" />
-                    {t('logo.upload')}
-                  </>
-                )}
-              </button>
+                {logo ? t('logo.change') : t('logo.upload')}
+              </Button>
               {logo && (
-                <button
-                  type="button"
+                <Button
+                  variant="default"
+                  size="xs"
+                  color="red"
                   onClick={handleRemoveLogo}
                   disabled={disabled}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-red-600 bg-white border border-gray-300 rounded-md hover:bg-red-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  leftSection={<IconX size={14} />}
                 >
-                  <XMarkIcon className="h-4 w-4" />
                   {t('logo.remove')}
-                </button>
+                </Button>
               )}
-            </div>
-          </div>
+            </Group>
+          </Group>
 
-          {/* Logo upload error */}
-          {logoError && <p className="mt-2 text-sm text-red-600">{logoError}</p>}
-        </div>
+          {logoError && (
+            <Text size="sm" c="red" mt="xs">
+              {logoError}
+            </Text>
+          )}
+        </Paper>
       )}
 
       <MarkdownEditor
@@ -248,77 +202,77 @@ export function MediaEditor({
         isUploadingImage={imageUploading}
         images={value.assets.images}
       />
-      {imageError && <p className="text-sm text-red-600">{imageError}</p>}
+      {imageError && (
+        <Text size="sm" c="red">
+          {imageError}
+        </Text>
+      )}
 
-      {/* Attachments section - only show when teamSlug is available */}
       {teamSlug && (
-        <div className="border border-gray-200 rounded-lg p-3 bg-gray-50">
-          <div className="flex items-center justify-between mb-2">
-            <h4 className="text-sm font-medium text-gray-700 flex items-center gap-1">
-              <PaperClipIcon className="h-4 w-4" />
+        <Paper withBorder p="sm" bg="gray.0">
+          <Group gap="xs" mb="sm">
+            <IconPaperclip size={16} />
+            <Text size="sm" fw={500}>
               {t('attachments.title')}
-            </h4>
-          </div>
+            </Text>
+          </Group>
 
-          {/* Existing attachments */}
           {attachments.length > 0 && (
-            <ul className="space-y-1 mb-3">
+            <Stack gap={4} mb="sm">
               {attachments.map((attachment: AssetDto) => (
-                <li
+                <Group
                   key={attachment.id}
-                  className="flex items-center justify-between bg-white rounded px-2 py-1 text-sm"
+                  justify="space-between"
+                  p="xs"
+                  bg="white"
+                  style={{ borderRadius: 'var(--mantine-radius-sm)' }}
                 >
-                  <span className="flex items-center gap-2 text-gray-700 truncate">
-                    <PaperClipIcon className="h-4 w-4 text-gray-400 shrink-0" />
-                    <span className="truncate">{attachment.fileName}</span>
-                  </span>
-                  <button
-                    type="button"
+                  <Group gap="xs" style={{ flex: 1, minWidth: 0 }}>
+                    <IconPaperclip size={14} color="var(--mantine-color-gray-5)" />
+                    <Text size="sm" truncate>
+                      {attachment.fileName}
+                    </Text>
+                  </Group>
+                  <ActionIcon
+                    variant="subtle"
+                    color="gray"
+                    size="sm"
                     onClick={() => handleRemoveAttachment(attachment.id)}
                     disabled={disabled}
-                    className="text-gray-400 hover:text-red-500 disabled:opacity-50 disabled:cursor-not-allowed p-1"
                     title={t('actions.delete')}
                   >
-                    <XMarkIcon className="h-4 w-4" />
-                  </button>
-                </li>
+                    <IconX size={14} />
+                  </ActionIcon>
+                </Group>
               ))}
-            </ul>
+            </Stack>
           )}
 
-          {/* Upload button */}
-          <div className="flex items-center gap-2">
-            <input
-              ref={fileInputRef}
-              type="file"
-              onChange={handleFileSelect}
-              disabled={!canUpload || uploading}
-              className="hidden"
-            />
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={!canUpload || uploading}
-              className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {uploading ? (
-                <>
-                  <LoadingSpinner size="sm" />
-                  {t('loading')}
-                </>
-              ) : (
-                <>
-                  <PlusIcon className="h-4 w-4" />
-                  {t('attachments.add')}
-                </>
-              )}
-            </button>
-          </div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            onChange={handleFileSelect}
+            disabled={!canUpload || uploading}
+            hidden
+          />
+          <Button
+            variant="default"
+            size="xs"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={!canUpload || uploading}
+            loading={uploading}
+            leftSection={!uploading && <IconPlus size={14} />}
+          >
+            {t('attachments.add')}
+          </Button>
 
-          {/* Upload error */}
-          {uploadError && <p className="mt-2 text-sm text-red-600">{uploadError}</p>}
-        </div>
+          {uploadError && (
+            <Text size="sm" c="red" mt="xs">
+              {uploadError}
+            </Text>
+          )}
+        </Paper>
       )}
-    </div>
+    </Stack>
   )
 }

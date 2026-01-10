@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { paths } from '../../config/paths'
-import { PlusIcon, UserGroupIcon } from '@heroicons/react/24/outline'
+import { IconPlus, IconUsersGroup } from '@tabler/icons-react'
 import { useListTeams } from '@/api/endpoints/teams/teams'
 import { MinRole } from '@/api/dto'
 import { useAuth } from '../../hooks/useAuth'
@@ -13,11 +13,17 @@ import { SearchInput } from '../../components/common/SearchInput'
 import { HomeLayout } from '../../components/home/HomeLayout'
 import {
   Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+  Box,
+  Group,
+  Title,
+  Text,
+  Stack,
+  Button,
+  SimpleGrid,
+  Paper,
+  Center,
+  Alert,
+} from '@mantine/core'
 
 type FilterValue = 'all' | 'member' | 'organizer' | 'admin'
 
@@ -60,100 +66,97 @@ export function TeamListPage() {
 
   return (
     <HomeLayout currentTab="teams">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-6 mb-8">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">{t('teams.title')}</h2>
-          <p className="mt-1 text-gray-700">{t('teams.list.subtitle')}</p>
-        </div>
-        {isAuthenticated && (
-          <Link
-            to={paths.teamsNew()}
-            className="mt-4 sm:mt-0 inline-flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-xs text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-500"
-          >
-            <PlusIcon className="w-5 h-5 mr-2 -ml-1" aria-hidden="true" />
-            {t('teams.create.title')}
-          </Link>
-        )}
-      </div>
-
-      <div className="flex flex-col sm:flex-row gap-4 mb-6">
-        <SearchInput
-          id="team-search"
-          value={search}
-          onChange={(value) => {
-            setSearch(value)
-            resetPage()
-          }}
-          placeholder={t('teams.list.search.placeholder')}
-          label={t('teams.list.search.label')}
-          className="flex-1"
-        />
-        {isAuthenticated && (
-          <Select
-            value={filter}
-            onValueChange={(value: FilterValue) => {
-              setFilter(value)
-              resetPage()
-            }}
-          >
-            <SelectTrigger className="w-full sm:w-40" aria-label={t('teams.list.filter.label')}>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{t('teams.list.filter.all')}</SelectItem>
-              <SelectItem value="member">{t('roles.MEMBER')}</SelectItem>
-              <SelectItem value="organizer">{t('roles.ORGANIZER')}</SelectItem>
-              <SelectItem value="admin">{t('roles.ADMIN')}</SelectItem>
-            </SelectContent>
-          </Select>
-        )}
-      </div>
-
-      {error && (
-        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-          <p className="text-red-700">
-            {error instanceof Error ? error.message : t('errors.api.failedToLoad')}
-          </p>
-        </div>
-      )}
-
-      {isLoading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          <TeamCardSkeleton count={6} />
-        </div>
-      ) : teams && teams.length > 0 ? (
-        <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {teams.map((team) => (
-              <TeamCard key={team.id} team={team} showRole={true} />
-            ))}
+      <Stack gap="lg">
+        <Group justify="space-between" align="flex-start" wrap="wrap">
+          <div>
+            <Title order={2}>{t('teams.title')}</Title>
+            <Text c="dimmed" mt={4}>
+              {t('teams.list.subtitle')}
+            </Text>
           </div>
-
-          <Pagination
-            currentPage={page}
-            totalPages={totalPages}
-            onPageChange={setPage}
-            className="mt-8"
-          />
-        </>
-      ) : (
-        <div className="text-center py-12">
-          <UserGroupIcon className="mx-auto h-12 w-12 text-gray-400" aria-hidden="true" />
-          <h3 className="mt-2 text-sm font-medium text-gray-900">{t('teams.list.empty.title')}</h3>
-          <p className="mt-1 text-sm text-gray-700">{t('teams.list.empty.publicTeams')}</p>
           {isAuthenticated && (
-            <div className="mt-6">
-              <Link
-                to={paths.teamsNew()}
-                className="inline-flex items-center px-4 py-2 border border-transparent shadow-xs text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-indigo-500"
-              >
-                <PlusIcon className="w-5 h-5 mr-2 -ml-1" aria-hidden="true" />
-                {t('teams.create.title')}
-              </Link>
-            </div>
+            <Button component={Link} to={paths.teamsNew()} leftSection={<IconPlus size={20} />}>
+              {t('teams.create.title')}
+            </Button>
           )}
-        </div>
-      )}
+        </Group>
+
+        <Group gap="md" align="flex-end" wrap="wrap">
+          <Box style={{ flex: 1, minWidth: 200 }}>
+            <SearchInput
+              id="team-search"
+              value={search}
+              onChange={(value) => {
+                setSearch(value)
+                resetPage()
+              }}
+              placeholder={t('teams.list.search.placeholder')}
+              label={t('teams.list.search.label')}
+            />
+          </Box>
+          {isAuthenticated && (
+            <Select
+              value={filter}
+              onChange={(value) => {
+                setFilter(value as FilterValue)
+                resetPage()
+              }}
+              data={[
+                { value: 'all', label: t('teams.list.filter.all') },
+                { value: 'member', label: t('roles.MEMBER') },
+                { value: 'organizer', label: t('roles.ORGANIZER') },
+                { value: 'admin', label: t('roles.ADMIN') },
+              ]}
+              aria-label={t('teams.list.filter.label')}
+              w={{ base: '100%', sm: 160 }}
+            />
+          )}
+        </Group>
+
+        {error && (
+          <Alert color="red">
+            {error instanceof Error ? error.message : t('errors.api.failedToLoad')}
+          </Alert>
+        )}
+
+        {isLoading ? (
+          <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="lg">
+            <TeamCardSkeleton count={6} />
+          </SimpleGrid>
+        ) : teams && teams.length > 0 ? (
+          <Stack gap="lg">
+            <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="lg">
+              {teams.map((team) => (
+                <TeamCard key={team.id} team={team} showRole={true} />
+              ))}
+            </SimpleGrid>
+
+            <Box mt="lg">
+              <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+            </Box>
+          </Stack>
+        ) : (
+          <Paper withBorder p="xl" radius="md">
+            <Center>
+              <Stack align="center" gap="sm">
+                <IconUsersGroup size={48} color="var(--mantine-color-gray-5)" />
+                <Text fw={500}>{t('teams.list.empty.title')}</Text>
+                <Text c="dimmed">{t('teams.list.empty.publicTeams')}</Text>
+                {isAuthenticated && (
+                  <Button
+                    component={Link}
+                    to={paths.teamsNew()}
+                    leftSection={<IconPlus size={20} />}
+                    mt="md"
+                  >
+                    {t('teams.create.title')}
+                  </Button>
+                )}
+              </Stack>
+            </Center>
+          </Paper>
+        )}
+      </Stack>
     </HomeLayout>
   )
 }

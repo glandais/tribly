@@ -2,9 +2,10 @@ import { useParams, Navigate, useNavigate } from 'react-router-dom'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
-import { toast } from 'sonner'
+import { notifications } from '@mantine/notifications'
 import i18next from 'i18next'
 import { paths } from '../../config/paths'
+import { Container, Stack, Title, Text } from '@mantine/core'
 import { useGetTeam } from '@/api/endpoints/teams/teams'
 import { useCreateTrip } from '../../api/endpoints/trips/trips'
 import { getListPublicationsQueryKey } from '../../api/endpoints/publications/publications'
@@ -87,7 +88,7 @@ export function CreateTripPage() {
       {
         onSuccess: (trip) => {
           queryClient.invalidateQueries({ queryKey: getListPublicationsQueryKey(teamSlug!) })
-          toast.success(i18next.t('trips.notifications.created'))
+          notifications.show({ message: i18next.t('trips.notifications.created'), color: 'green' })
           navigate(paths.trip(teamSlug!, trip.slug))
         },
       }
@@ -95,11 +96,11 @@ export function CreateTripPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">{t('trips.create.title')}</h1>
-        <p className="mt-1 text-gray-600">{t('trips.create.subtitle', { teamName: team.name })}</p>
-      </div>
+    <Container size="sm" py="xl">
+      <Stack gap="xs" mb="xl">
+        <Title order={1}>{t('trips.create.title')}</Title>
+        <Text c="dimmed">{t('trips.create.subtitle', { teamName: team.name })}</Text>
+      </Stack>
 
       <TripEditor
         team={team}
@@ -110,6 +111,6 @@ export function CreateTripPage() {
         isPending={createMutation.isPending}
         submitButtonText={t('trips.create.button')}
       />
-    </div>
+    </Container>
   )
 }

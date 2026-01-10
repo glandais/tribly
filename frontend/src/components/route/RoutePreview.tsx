@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next'
-import { ArrowsPointingOutIcon, ArrowUpIcon } from '@heroicons/react/24/outline'
+import { IconArrowsMaximize, IconArrowUp } from '@tabler/icons-react'
+import { Paper, Group, Text, Image, Stack, Loader } from '@mantine/core'
 import { useGetRoute } from '@/api/endpoints/routes/routes'
-import { LoadingSpinner } from '../common/LoadingSpinner'
 
 interface RoutePreviewProps {
   routeSlug: string
@@ -14,34 +14,52 @@ export function RoutePreview({ routeSlug, teamSlug }: RoutePreviewProps) {
 
   if (isLoading)
     return (
-      <div className="flex items-center gap-2 text-sm text-gray-400">
-        <LoadingSpinner size="sm" />
-        <span>{t('loading')}</span>
-      </div>
+      <Group gap="xs">
+        <Loader size="sm" />
+        <Text size="sm" c="dimmed">
+          {t('loading')}
+        </Text>
+      </Group>
     )
 
-  if (!route) return <div className="text-sm text-red-500">{t('routes.preview.notFound')}</div>
+  if (!route)
+    return (
+      <Text size="sm" c="red">
+        {t('routes.preview.notFound')}
+      </Text>
+    )
 
   return (
-    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
-      <img
-        src={route.media.assets.thumbnail?.url}
-        alt={route.name}
-        className="w-16 h-16 object-cover rounded"
-      />
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-gray-900 truncate">{route.name}</p>
-        <div className="flex gap-3 mt-1 text-xs text-gray-500">
-          <span className="flex items-center gap-1">
-            <ArrowsPointingOutIcon className="w-3.5 h-3.5" />
-            {t('distance', { distance: (route.distance / 1000).toFixed(1) })}
-          </span>
-          <span className="flex items-center gap-1">
-            <ArrowUpIcon className="w-3.5 h-3.5" />
-            {t('elevation', { elevation: route.elevationGain })}
-          </span>
-        </div>
-      </div>
-    </div>
+    <Paper withBorder p="sm" bg="gray.0">
+      <Group gap="md" wrap="nowrap">
+        <Image
+          src={route.media.assets.thumbnail?.url}
+          alt={route.name}
+          w={64}
+          h={64}
+          fit="cover"
+          radius="sm"
+        />
+        <Stack gap={4} style={{ flex: 1, minWidth: 0 }}>
+          <Text size="sm" fw={500} truncate>
+            {route.name}
+          </Text>
+          <Group gap="md">
+            <Group gap={4}>
+              <IconArrowsMaximize size={14} />
+              <Text size="xs" c="dimmed">
+                {t('distance', { distance: (route.distance / 1000).toFixed(1) })}
+              </Text>
+            </Group>
+            <Group gap={4}>
+              <IconArrowUp size={14} />
+              <Text size="xs" c="dimmed">
+                {t('elevation', { elevation: route.elevationGain })}
+              </Text>
+            </Group>
+          </Group>
+        </Stack>
+      </Group>
+    </Paper>
   )
 }
