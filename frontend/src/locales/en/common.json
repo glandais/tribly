@@ -397,6 +397,8 @@
   "slug.label": "URL",
   "slug.success": "URL changed successfully",
   "speed": "{{speed}} km/h",
+  "spotsFull": "Full",
+  "spotsOf": "{{current}}/{{max}} spots",
   "startPlace": "Start",
   "status.CANCELLED": "Cancelled",
   "status.checkingAuth": "Checking authentication...",

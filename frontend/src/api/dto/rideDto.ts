@@ -13,6 +13,7 @@ import type { Status } from './status'
 import type { Visibility } from './visibility'
 import type { RideGroupDto } from './rideGroupDto'
 import type { PlaceDetailDto } from './placeDetailDto'
+import type { PublicUserDto } from './publicUserDto'
 
 /**
  * Ride summary data
@@ -51,4 +52,8 @@ export interface RideDto {
   startPlace?: PlaceDetailDto
   /** End place */
   endPlace?: PlaceDetailDto
+  /** Preview of first participants (max 5) */
+  topParticipants: PublicUserDto[]
+  /** Route thumbnail URL */
+  routeThumbnailUrl?: string
 }

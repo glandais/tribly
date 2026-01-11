@@ -247,6 +247,18 @@ export const listAllPublicationsResponse = zod
                       .describe('GeoJSON Point geometry'),
                   })
                   .optional(),
+                topParticipants: zod
+                  .array(
+                    zod
+                      .object({
+                        id: zod.string().describe('User ID (TSID)'),
+                        displayName: zod.string().describe('User display name'),
+                        avatarUrl: zod.string().optional().describe('User avatar URL'),
+                      })
+                      .describe('Public user information (limited fields)')
+                  )
+                  .describe('Preview of first participants (max 5)'),
+                routeThumbnailUrl: zod.string().optional().describe('Route thumbnail URL'),
               })
               .describe('Ride summary data'),
             zod
@@ -748,6 +760,7 @@ export const listAllPublicationsResponse = zod
                       .describe('Public user information (limited fields)')
                   )
                   .describe('Trip participants'),
+                routeThumbnailUrl: zod.string().optional().describe('Route thumbnail URL'),
               })
               .describe('Trip data'),
           ])
@@ -1004,6 +1017,18 @@ export const listPublicationsResponse = zod
                       .describe('GeoJSON Point geometry'),
                   })
                   .optional(),
+                topParticipants: zod
+                  .array(
+                    zod
+                      .object({
+                        id: zod.string().describe('User ID (TSID)'),
+                        displayName: zod.string().describe('User display name'),
+                        avatarUrl: zod.string().optional().describe('User avatar URL'),
+                      })
+                      .describe('Public user information (limited fields)')
+                  )
+                  .describe('Preview of first participants (max 5)'),
+                routeThumbnailUrl: zod.string().optional().describe('Route thumbnail URL'),
               })
               .describe('Ride summary data'),
             zod
@@ -1505,6 +1530,7 @@ export const listPublicationsResponse = zod
                       .describe('Public user information (limited fields)')
                   )
                   .describe('Trip participants'),
+                routeThumbnailUrl: zod.string().optional().describe('Route thumbnail URL'),
               })
               .describe('Trip data'),
           ])

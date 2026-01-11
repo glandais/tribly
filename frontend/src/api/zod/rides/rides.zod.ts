@@ -590,6 +590,18 @@ export const updateRideResponse = zod
           .describe('GeoJSON Point geometry'),
       })
       .optional(),
+    topParticipants: zod
+      .array(
+        zod
+          .object({
+            id: zod.string().describe('User ID (TSID)'),
+            displayName: zod.string().describe('User display name'),
+            avatarUrl: zod.string().optional().describe('User avatar URL'),
+          })
+          .describe('Public user information (limited fields)')
+      )
+      .describe('Preview of first participants (max 5)'),
+    routeThumbnailUrl: zod.string().optional().describe('Route thumbnail URL'),
   })
   .describe('Ride summary data')
 
@@ -816,6 +828,18 @@ export const getRideResponse = zod
           .describe('GeoJSON Point geometry'),
       })
       .optional(),
+    topParticipants: zod
+      .array(
+        zod
+          .object({
+            id: zod.string().describe('User ID (TSID)'),
+            displayName: zod.string().describe('User display name'),
+            avatarUrl: zod.string().optional().describe('User avatar URL'),
+          })
+          .describe('Public user information (limited fields)')
+      )
+      .describe('Preview of first participants (max 5)'),
+    routeThumbnailUrl: zod.string().optional().describe('Route thumbnail URL'),
   })
   .describe('Ride summary data')
 
@@ -1085,5 +1109,17 @@ export const changeRideSlugResponse = zod
           .describe('GeoJSON Point geometry'),
       })
       .optional(),
+    topParticipants: zod
+      .array(
+        zod
+          .object({
+            id: zod.string().describe('User ID (TSID)'),
+            displayName: zod.string().describe('User display name'),
+            avatarUrl: zod.string().optional().describe('User avatar URL'),
+          })
+          .describe('Public user information (limited fields)')
+      )
+      .describe('Preview of first participants (max 5)'),
+    routeThumbnailUrl: zod.string().optional().describe('Route thumbnail URL'),
   })
   .describe('Ride summary data')

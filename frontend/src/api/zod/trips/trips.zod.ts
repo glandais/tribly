@@ -979,6 +979,7 @@ export const updateTripResponse = zod
           .describe('Public user information (limited fields)')
       )
       .describe('Trip participants'),
+    routeThumbnailUrl: zod.string().optional().describe('Route thumbnail URL'),
   })
   .describe('Trip data')
 
@@ -1338,6 +1339,7 @@ export const getTripResponse = zod
           .describe('Public user information (limited fields)')
       )
       .describe('Trip participants'),
+    routeThumbnailUrl: zod.string().optional().describe('Route thumbnail URL'),
   })
   .describe('Trip data')
 
@@ -1738,5 +1740,6 @@ export const changeTripSlugResponse = zod
           .describe('Public user information (limited fields)')
       )
       .describe('Trip participants'),
+    routeThumbnailUrl: zod.string().optional().describe('Route thumbnail URL'),
   })
   .describe('Trip data')

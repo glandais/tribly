@@ -403,6 +403,8 @@
   "slug.label": "URL",
   "slug.success": "URL modifiée avec succès",
   "speed": "{{speed}} km/h",
+  "spotsFull": "Complet",
+  "spotsOf": "{{current}}/{{max}} places",
   "startPlace": "Départ",
   "status.CANCELLED": "Annulé",
   "status.checkingAuth": "Vérification de l'authentification...",

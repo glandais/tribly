@@ -1066,7 +1066,7 @@
       "RideDto" : {
         "description" : "Ride summary data",
         "type" : "object",
-        "required" : [ "type", "team", "id", "slug", "name", "media", "dateTime", "status", "visibility", "participantCount", "groupCount", "groups" ],
+        "required" : [ "type", "team", "id", "slug", "name", "media", "dateTime", "status", "visibility", "participantCount", "groupCount", "groups", "topParticipants" ],
         "properties" : {
           "type" : {
             "description" : "Type",
@@ -1150,6 +1150,17 @@
             "description" : "End place",
             "type" : "object",
             "$ref" : "#/components/schemas/PlaceDetailDto"
+          },
+          "topParticipants" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/PublicUserDto"
+            },
+            "description" : "Preview of first participants (max 5)"
+          },
+          "routeThumbnailUrl" : {
+            "type" : "string",
+            "description" : "Route thumbnail URL"
           }
         }
       },
@@ -2175,6 +2186,10 @@
               "$ref" : "#/components/schemas/PublicUserDto"
             },
             "description" : "Trip participants"
+          },
+          "routeThumbnailUrl" : {
+            "type" : "string",
+            "description" : "Route thumbnail URL"
           }
         }
       },

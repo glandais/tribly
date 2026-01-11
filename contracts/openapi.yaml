@@ -1016,6 +1016,7 @@ components:
       - participantCount
       - groupCount
       - groups
+      - topParticipants
       properties:
         type:
           description: Type
@@ -1082,6 +1083,14 @@ components:
           description: End place
           type: object
           $ref: "#/components/schemas/PlaceDetailDto"
+        topParticipants:
+          type: array
+          items:
+            $ref: "#/components/schemas/PublicUserDto"
+          description: Preview of first participants (max 5)
+        routeThumbnailUrl:
+          type: string
+          description: Route thumbnail URL
     RideGroupDto:
       type: object
       description: Ride group information
@@ -2038,6 +2047,9 @@ components:
           items:
             $ref: "#/components/schemas/PublicUserDto"
           description: Trip participants
+        routeThumbnailUrl:
+          type: string
+          description: Route thumbnail URL
     TripListResponse:
       description: Paginated trip list response
       type: object

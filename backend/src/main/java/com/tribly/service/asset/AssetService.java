@@ -222,14 +222,7 @@ public class AssetService {
     AssetDimensionsDto assetDimensionsDto;
     String imageUrl;
     if (asset.getContentType().startsWith("image/")) {
-      imageUrl =
-          "/api/download/"
-              + visibility.name().toLowerCase()
-              + "/images/"
-              + teamSlug
-              + "/"
-              + TsidUtils.toString(asset.getId())
-              + "/{size}";
+      imageUrl = getImageUrl(asset);
     } else {
       imageUrl = null;
     }
@@ -254,6 +247,23 @@ public class AssetService {
         url,
         imageUrl,
         assetDimensionsDto);
+  }
+
+  public String getImageUrl(Asset asset) {
+    String teamSlug = asset.getTeam().getSlug();
+    Visibility visibility;
+    if (asset.getTeamEntity() == null) {
+      visibility = asset.getTeam().getVisibility();
+    } else {
+      visibility = asset.getTeamEntity().getVisibility();
+    }
+    return "/api/download/"
+        + visibility.name().toLowerCase()
+        + "/images/"
+        + teamSlug
+        + "/"
+        + TsidUtils.toString(asset.getId())
+        + "/{size}";
   }
 
   /**

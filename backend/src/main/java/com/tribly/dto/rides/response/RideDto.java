@@ -4,18 +4,23 @@ import com.tribly.common.TsidUtils;
 import com.tribly.domain.place.Place;
 import com.tribly.domain.ride.Ride;
 import com.tribly.domain.ride.RideGroup;
+import com.tribly.domain.ride.RideParticipation;
 import com.tribly.dto.common.asset.MediaDto;
 import com.tribly.dto.places.response.PlaceDetailDto;
 import com.tribly.dto.publications.response.PublicationDto;
 import com.tribly.dto.publications.response.PublicationType;
 import com.tribly.dto.publications.response.TeamPublicationDto;
+import com.tribly.dto.users.response.PublicUserDto;
 import com.tribly.dto.validation.ValidateSchema;
+import com.tribly.enums.AssetType;
 import com.tribly.enums.Status;
 import com.tribly.enums.Visibility;
 import com.tribly.service.asset.AssetService;
 import java.time.Instant;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import lombok.Getter;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.jspecify.annotations.Nullable;
@@ -82,6 +87,13 @@ public class RideDto implements PublicationDto {
   @Schema(description = "End place")
   final PlaceDetailDto endPlace;
 
+  @Schema(description = "Preview of first participants (max 5)", required = true)
+  final List<PublicUserDto> topParticipants;
+
+  @Nullable
+  @Schema(description = "Route thumbnail URL")
+  final String routeThumbnailUrl;
+
   public RideDto(
       TeamPublicationDto team,
       String id,
@@ -98,7 +110,9 @@ public class RideDto implements PublicationDto {
       int groupCount,
       List<RideGroupDto> groups,
       @Nullable PlaceDetailDto startPlace,
-      @Nullable PlaceDetailDto endPlace) {
+      @Nullable PlaceDetailDto endPlace,
+      List<PublicUserDto> topParticipants,
+      @Nullable String routeThumbnailUrl) {
     super();
     this.team = team;
     this.id = id;
@@ -116,6 +130,8 @@ public class RideDto implements PublicationDto {
     this.groups = groups;
     this.startPlace = startPlace;
     this.endPlace = endPlace;
+    this.topParticipants = topParticipants;
+    this.routeThumbnailUrl = routeThumbnailUrl;
   }
 
   public static RideDto from(Ride ride, boolean groupDetails, AssetService assetService) {
@@ -129,6 +145,32 @@ public class RideDto implements PublicationDto {
             : List.of();
     Place startPlace = ride.getStart();
     Place endPlace = ride.getEnd();
+
+    // Extract top 5 unique participants across all groups
+    Set<Long> seenUserIds = new HashSet<>();
+    List<PublicUserDto> topParticipants =
+        ride.getGroups().stream()
+            .filter(g -> !g.isDeleted())
+            .flatMap(g -> g.getParticipations().stream())
+            .filter(p -> !p.isDeleted())
+            .sorted(Comparator.comparing(RideParticipation::getRegisteredAt))
+            .map(RideParticipation::getUser)
+            .filter(user -> seenUserIds.add(user.getId()))
+            .limit(5)
+            .map(PublicUserDto::from)
+            .toList();
+
+    // Get route thumbnail URL if route exists
+    String routeThumbnailUrl = null;
+    if (ride.getRoute() != null) {
+      routeThumbnailUrl =
+          ride.getRoute().getAssets().stream()
+              .filter(a -> a.getType() == AssetType.ROUTE_THUMBNAIL)
+              .findFirst()
+              .map(assetService::getImageUrl)
+              .orElse(null);
+    }
+
     return new RideDto(
         TeamPublicationDto.from(ride.getTeam()),
         TsidUtils.toString(ride.getId()),
@@ -145,6 +187,8 @@ public class RideDto implements PublicationDto {
         ride.getGroupCount(),
         groupDtos,
         startPlace != null ? PlaceDetailDto.from(startPlace) : null,
-        endPlace != null ? PlaceDetailDto.from(endPlace) : null);
+        endPlace != null ? PlaceDetailDto.from(endPlace) : null,
+        topParticipants,
+        routeThumbnailUrl);
   }
 }

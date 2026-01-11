@@ -10,6 +10,7 @@ import com.tribly.dto.publications.response.PublicationType;
 import com.tribly.dto.publications.response.TeamPublicationDto;
 import com.tribly.dto.users.response.PublicUserDto;
 import com.tribly.dto.validation.ValidateSchema;
+import com.tribly.enums.AssetType;
 import com.tribly.enums.Status;
 import com.tribly.enums.Visibility;
 import com.tribly.service.asset.AssetService;
@@ -76,6 +77,10 @@ public class TripDto implements PublicationDto {
   @Schema(description = "Trip participants", required = true)
   final List<PublicUserDto> participants;
 
+  @Nullable
+  @Schema(description = "Route thumbnail URL")
+  final String routeThumbnailUrl;
+
   public TripDto(
       TeamPublicationDto team,
       String id,
@@ -91,7 +96,8 @@ public class TripDto implements PublicationDto {
       int participantCount,
       int stageCount,
       List<TripStageDto> stages,
-      List<PublicUserDto> participants) {
+      List<PublicUserDto> participants,
+      @Nullable String routeThumbnailUrl) {
     super();
     this.team = team;
     this.id = id;
@@ -108,6 +114,7 @@ public class TripDto implements PublicationDto {
     this.stageCount = stageCount;
     this.stages = stages;
     this.participants = participants;
+    this.routeThumbnailUrl = routeThumbnailUrl;
   }
 
   public static TripDto from(Trip trip, boolean stageDetails, AssetService assetService) {
@@ -127,6 +134,18 @@ public class TripDto implements PublicationDto {
                 .map(PublicUserDto::from)
                 .toList()
             : List.of();
+
+    // Get route thumbnail URL if route exists
+    String routeThumbnailUrl = null;
+    if (trip.getRoute() != null) {
+      routeThumbnailUrl =
+          trip.getRoute().getAssets().stream()
+              .filter(a -> a.getType() == AssetType.ROUTE_THUMBNAIL)
+              .findFirst()
+              .map(assetService::getImageUrl)
+              .orElse(null);
+    }
+
     return new TripDto(
         TeamPublicationDto.from(trip.getTeam()),
         TsidUtils.toString(trip.getId()),
@@ -142,6 +161,7 @@ public class TripDto implements PublicationDto {
         trip.getParticipantCount(),
         trip.getStageCount(),
         stageDtos,
-        participantDtos);
+        participantDtos,
+        routeThumbnailUrl);
   }
 }

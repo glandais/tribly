@@ -2,11 +2,13 @@ import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { IconCalendar, IconUsers, IconStack2, IconChevronRight } from '@tabler/icons-react'
 import { Group, Box, Stack, Anchor, Text } from '@mantine/core'
-import { Card, CardContent, CardTitle, CardDescription } from '../common/card'
+import { Card, CardContent, CardTitle, CardDescription, CardImage } from '../common/card'
 import { Badge, VisibilityBadge, Stat, StatGroup, CardSkeleton } from '../common/card'
-import { EntityLogo } from '../common/EntityLogo'
+import { UserAvatarGroup } from '../common/UserAvatar'
 import { useFormattedDate } from '../../utils/dateFormat'
 import { paths } from '@/config/paths'
+import { PublicationCardProgress } from './PublicationCardProgress'
+import { RouteThumbnail } from './RouteThumbnail'
 import type { PublicationDto, RideDto, TripDto } from '@/api/dto'
 
 // Status variants for badges
@@ -103,8 +105,41 @@ export function PublicationCard({ publication, showTeam }: PublicationCardProps)
     }
   }
 
+  // Get participants for avatar display
+  const getParticipants = () => {
+    if (publication.type === 'TRIP') {
+      return (publication as TripDto).participants || []
+    }
+    if (publication.type === 'RIDE') {
+      return (publication as RideDto).topParticipants || []
+    }
+    return []
+  }
+
+  // Get route thumbnail URL for rides and trips
+  const getRouteThumbnailUrl = () => {
+    if (publication.type === 'RIDE') {
+      return (publication as RideDto).routeThumbnailUrl
+    }
+    if (publication.type === 'TRIP') {
+      return (publication as TripDto).routeThumbnailUrl
+    }
+    return undefined
+  }
+
+  const participants = getParticipants()
+  const routeThumbnailUrl = getRouteThumbnailUrl()
+
   return (
     <Card to={getPublicationPath()}>
+      {/* Featured image with fallback chain */}
+      <CardImage
+        media={publication.media}
+        alt={publication.name}
+        type={publication.type}
+        height={160}
+      />
+
       <CardContent>
         {/* Team header - clickable link to team page */}
         {showTeam && (
@@ -126,15 +161,12 @@ export function PublicationCard({ publication, showTeam }: PublicationCardProps)
           </Anchor>
         )}
 
-        {/* Main content */}
+        {/* Main content - title, description, badges */}
         <Group align="flex-start" justify="space-between" mb="md" wrap="nowrap">
-          <Group align="flex-start" gap="sm" style={{ flex: 1, minWidth: 0 }}>
-            <EntityLogo logo={publication.media.assets.logo} alt={publication.name} size="md" />
-            <Box style={{ flex: 1, minWidth: 0 }}>
-              <CardTitle>{publication.name}</CardTitle>
-              <CardDescription markdown={true} media={publication.media} />
-            </Box>
-          </Group>
+          <Box style={{ flex: 1, minWidth: 0 }}>
+            <CardTitle>{publication.name}</CardTitle>
+            <CardDescription markdown={true} media={publication.media} />
+          </Box>
           <Stack gap={4} align="flex-end" ml="sm">
             <Badge variant={typeBadgeVariants[publication.type] || 'primary'}>
               {getTypeLabel()}
@@ -143,6 +175,21 @@ export function PublicationCard({ publication, showTeam }: PublicationCardProps)
             <VisibilityBadge visibility={publication.visibility} />
           </Stack>
         </Group>
+
+        {/* Participants section - avatars, progress, and route thumbnail */}
+        {(participants.length > 0 || publication.type === 'RIDE' || routeThumbnailUrl) && (
+          <Group justify="space-between" align="center" mb="md" wrap="nowrap">
+            <Group gap="md" style={{ flex: 1 }}>
+              {participants.length > 0 && (
+                <UserAvatarGroup users={participants} max={5} size="sm" />
+              )}
+              {publication.type === 'RIDE' && (
+                <PublicationCardProgress ride={publication as RideDto} />
+              )}
+            </Group>
+            {routeThumbnailUrl && <RouteThumbnail thumbnailUrl={routeThumbnailUrl} size="sm" />}
+          </Group>
+        )}
 
         {renderStats()}
       </CardContent>
