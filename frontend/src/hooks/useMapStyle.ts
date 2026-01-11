@@ -1,29 +1,39 @@
 import { useState, useCallback, useMemo } from 'react'
-import {
-  MAP_STYLES,
-  DEFAULT_STYLE_ID,
-  type MapStyleId,
-  type MapStyle,
-} from '../components/map/mapStyles'
+import { useComputedColorScheme } from '@mantine/core'
+import { MAP_STYLES, type MapStyleId, type MapStyle } from '../components/map/mapStyles'
 
 const STORAGE_KEY = 'tribly-map-style'
+const DEFAULT_LIGHT_STYLE: MapStyleId = 'graybeard'
+const DEFAULT_DARK_STYLE: MapStyleId = 'eclipse'
 
-function getInitialStyleId(): MapStyleId {
-  if (typeof window === 'undefined') return DEFAULT_STYLE_ID
+function getSavedStyleId(): MapStyleId | null {
+  if (typeof window === 'undefined') return null
 
   const saved = localStorage.getItem(STORAGE_KEY) as MapStyleId | null
   if (saved && MAP_STYLES[saved]) {
     return saved
   }
-  return DEFAULT_STYLE_ID
+  return null
 }
 
 export function useMapStyle() {
-  const [styleId, setStyleIdState] = useState<MapStyleId>(getInitialStyleId)
+  const colorScheme = useComputedColorScheme('light')
+  const defaultStyle = colorScheme === 'dark' ? DEFAULT_DARK_STYLE : DEFAULT_LIGHT_STYLE
+
+  // Track user's manual preference (null means follow color scheme)
+  const [savedStyleId, setSavedStyleId] = useState<MapStyleId | null>(() => getSavedStyleId())
+
+  // Effective styleId: use saved preference if exists, otherwise follow color scheme
+  const styleId = savedStyleId ?? defaultStyle
 
   const setStyleId = useCallback((id: MapStyleId) => {
-    setStyleIdState(id)
+    setSavedStyleId(id)
     localStorage.setItem(STORAGE_KEY, id)
+  }, [])
+
+  const clearPreference = useCallback(() => {
+    localStorage.removeItem(STORAGE_KEY)
+    setSavedStyleId(null)
   }, [])
 
   const currentStyle: MapStyle = useMemo(() => MAP_STYLES[styleId], [styleId])
@@ -31,6 +41,7 @@ export function useMapStyle() {
   return {
     styleId,
     setStyleId,
+    clearPreference,
     currentStyle,
     style: currentStyle.style,
   }

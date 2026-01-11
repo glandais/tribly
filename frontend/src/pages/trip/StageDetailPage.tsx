@@ -165,7 +165,7 @@ export function StageDetailPage() {
           {/* Stage header */}
           <Paper withBorder p="lg">
             <Group gap="md" mb="md">
-              <Badge size="xl" variant="light" color="indigo" circle>
+              <Badge size="xl" variant="light" color="primary" circle>
                 {stageIndex + 1}
               </Badge>
               <Box>
@@ -191,7 +191,7 @@ export function StageDetailPage() {
               <Stack gap="sm">
                 {stage.startPlace && (
                   <Group gap="sm">
-                    <IconMapPin size={20} color="var(--mantine-color-green-6)" />
+                    <IconMapPin size={20} color="var(--mantine-color-green-text)" />
                     <Box>
                       <Text size="xs" c="dimmed">
                         {t('startPlace')}
@@ -202,7 +202,7 @@ export function StageDetailPage() {
                 )}
                 {stage.endPlace && (
                   <Group gap="sm">
-                    <IconMapPin size={20} color="var(--mantine-color-red-6)" />
+                    <IconMapPin size={20} color="var(--mantine-color-red-text)" />
                     <Box>
                       <Text size="xs" c="dimmed">
                         {t('endPlace')}

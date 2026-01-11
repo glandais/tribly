@@ -2,7 +2,7 @@ import { ReactNode } from 'react'
 import { Badge as MantineBadge } from '@mantine/core'
 
 interface BadgeProps {
-  variant?: 'blue' | 'green' | 'red' | 'yellow' | 'gray' | 'indigo' | 'purple' | 'pink' | 'orange'
+  variant?: 'blue' | 'green' | 'red' | 'yellow' | 'gray' | 'primary' | 'purple' | 'pink' | 'orange'
   children: ReactNode
   icon?: ReactNode
 }
@@ -13,7 +13,7 @@ const variantColors: Record<string, string> = {
   red: 'red',
   yellow: 'yellow',
   gray: 'gray',
-  indigo: 'indigo',
+  primary: 'primary',
   purple: 'grape',
   pink: 'pink',
   orange: 'orange',

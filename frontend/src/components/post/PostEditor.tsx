@@ -62,7 +62,7 @@ export function PostEditor({
 
   useEffect(() => {
     form.validateField('publishAt')
-  }, [status])
+  }, [status, form])
 
   const handleSubmit = (values: PostRequest) => {
     onSubmit(values)

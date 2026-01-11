@@ -87,7 +87,7 @@ export function RoutePickerModal({
   const footerContent = (
     <>
       {selectedRouteSlug && (
-        <Button variant="subtle" color="red" onClick={() => onSelect(null)}>
+        <Button variant="subtle" color="danger" onClick={() => onSelect(null)}>
           {t('routes.picker.clearSelection')}
         </Button>
       )}
@@ -120,7 +120,7 @@ export function RoutePickerModal({
       ) : routes.length === 0 ? (
         <Center py="xl">
           <Stack align="center">
-            <IconMap size={48} color="var(--mantine-color-gray-5)" />
+            <IconMap size={48} color="var(--mantine-color-dimmed)" />
             <Text c="dimmed">{t('routes.picker.noResults')}</Text>
             {selectedRouteSlug && (
               <Button variant="subtle" onClick={() => onSelect(null)}>
@@ -143,10 +143,12 @@ export function RoutePickerModal({
                   textAlign: 'left',
                   border:
                     route.slug === selectedRouteSlug
-                      ? '2px solid var(--mantine-color-indigo-5)'
+                      ? '2px solid var(--mantine-primary-color-filled)'
                       : undefined,
                   backgroundColor:
-                    route.slug === selectedRouteSlug ? 'var(--mantine-color-indigo-0)' : undefined,
+                    route.slug === selectedRouteSlug
+                      ? 'var(--mantine-primary-color-light)'
+                      : undefined,
                 }}
               >
                 <Stack gap="xs" w="100%">

@@ -44,7 +44,7 @@ export function CommentItem({
     <Box
       ml={isReply ? 'xl' : 0}
       pl={isReply ? 'md' : 0}
-      style={isReply ? { borderLeft: '2px solid var(--mantine-color-gray-3)' } : undefined}
+      style={isReply ? { borderLeft: '2px solid var(--mantine-color-default-border)' } : undefined}
     >
       <Group align="flex-start" gap="sm">
         <UserAvatar user={comment.author} size="sm" />
@@ -73,7 +73,7 @@ export function CommentItem({
               <Button
                 variant="subtle"
                 size="xs"
-                color="red"
+                color="danger"
                 leftSection={<IconTrash size={14} />}
                 onClick={() => setShowDeleteConfirm(true)}
               >

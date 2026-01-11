@@ -1,6 +1,6 @@
 import React, { useCallback, useRef, useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Box, ActionIcon } from '@mantine/core'
+import { Box, ActionIcon, useComputedColorScheme } from '@mantine/core'
 import {
   MDXEditor,
   headingsPlugin,
@@ -166,6 +166,7 @@ export function MarkdownEditor({
   images = [],
 }: MarkdownEditorProps) {
   const { t } = useTranslation()
+  const colorScheme = useComputedColorScheme('light')
   const editorRef = useRef<MDXEditorMethods>(null)
 
   // Debounced onChange to avoid performance issues during typing
@@ -202,16 +203,19 @@ export function MarkdownEditor({
       <Box
         style={{
           ...editorStyle,
-          border: '1px solid var(--mantine-color-gray-3)',
+          border: '1px solid var(--mantine-color-default-border)',
           borderRadius: 'var(--mantine-radius-xl)',
           overflow: 'hidden',
           boxShadow: 'var(--mantine-shadow-sm)',
-          backgroundColor: 'var(--mantine-color-white)',
+          backgroundColor: 'var(--mantine-color-body)',
           transition: 'box-shadow 300ms ease',
         }}
       >
         <MDXEditor
           ref={editorRef}
+          className={
+            colorScheme === 'dark' ? 'dark-theme dark-editor mdxeditor-custom' : 'mdxeditor-custom'
+          }
           markdown={value}
           onChange={handleChange}
           readOnly={disabled}

@@ -104,7 +104,12 @@ export function MarkdownDisplay({
           li: ({ children }) => <List.Item mb={4}>{children}</List.Item>,
           // Links
           a: ({ href, children }) => (
-            <Anchor href={href} target="_blank" rel="noopener noreferrer" c="cyan.6">
+            <Anchor
+              href={href}
+              target="_blank"
+              rel="noopener noreferrer"
+              c="var(--mantine-color-anchor)"
+            >
               {children}
             </Anchor>
           ),
@@ -113,7 +118,13 @@ export function MarkdownDisplay({
             const isInline = !className
             if (isInline) {
               return (
-                <Code bg="gray.1" c="pink.6" px={6} py={2} fz="sm">
+                <Code
+                  bg="var(--mantine-color-default-hover)"
+                  c="var(--mantine-color-pink-text)"
+                  px={6}
+                  py={2}
+                  fz="sm"
+                >
                   {children}
                 </Code>
               )
@@ -121,8 +132,8 @@ export function MarkdownDisplay({
             return (
               <Code
                 block
-                bg="dark.8"
-                c="gray.1"
+                bg="var(--mantine-color-dark-filled)"
+                c="var(--mantine-color-text)"
                 p="md"
                 fz="sm"
                 my="md"
@@ -146,7 +157,9 @@ export function MarkdownDisplay({
               </Table>
             </Box>
           ),
-          thead: ({ children }) => <Table.Thead bg="gray.0">{children}</Table.Thead>,
+          thead: ({ children }) => (
+            <Table.Thead bg="var(--mantine-color-body)">{children}</Table.Thead>
+          ),
           tbody: ({ children }) => <Table.Tbody>{children}</Table.Tbody>,
           tr: ({ children }) => <Table.Tr>{children}</Table.Tr>,
           th: ({ children }) => (
@@ -155,7 +168,7 @@ export function MarkdownDisplay({
               py="xs"
               fz="xs"
               fw={500}
-              c="gray.6"
+              c="dimmed"
               tt="uppercase"
               style={{ letterSpacing: '0.05em' }}
             >
@@ -168,7 +181,7 @@ export function MarkdownDisplay({
             </Table.Td>
           ),
           // Horizontal rule
-          hr: () => <Divider my="md" color="gray.3" />,
+          hr: () => <Divider my="md" color="var(--mantine-color-default-border)" />,
           // Strong/bold
           strong: ({ children }) => (
             <Text component="strong" fw={700}>

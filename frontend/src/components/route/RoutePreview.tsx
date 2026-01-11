@@ -30,7 +30,7 @@ export function RoutePreview({ routeSlug, teamSlug }: RoutePreviewProps) {
     )
 
   return (
-    <Paper withBorder p="sm" bg="gray.0">
+    <Paper withBorder p="sm" bg="var(--mantine-color-body)">
       <Group gap="md" wrap="nowrap">
         <Image
           src={route.media.assets.thumbnail?.url}

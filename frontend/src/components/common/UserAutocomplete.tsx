@@ -36,7 +36,7 @@ export function UserAutocomplete({ onSelect, placeholder }: UserAutocompleteProp
   const renderUser = useCallback(
     (user: PublicUserDto) => (
       <Group gap="sm" wrap="nowrap">
-        <Avatar src={user.avatarUrl} alt={user.displayName} size="sm" color="indigo">
+        <Avatar src={user.avatarUrl} alt={user.displayName} size="sm" color="primary">
           {user.displayName.charAt(0).toUpperCase()}
         </Avatar>
         <Text size="sm">{user.displayName}</Text>

@@ -99,7 +99,7 @@ export function HomePage() {
         <Paper withBorder p="xl" radius="md">
           <Center>
             <Stack align="center" gap="sm">
-              <IconNews size={48} color="var(--mantine-color-red-5)" />
+              <IconNews size={48} color="var(--mantine-color-red-filled)" />
               <Text fw={500}>{t('error.loading')}</Text>
             </Stack>
           </Center>
@@ -120,7 +120,7 @@ export function HomePage() {
         <Paper withBorder p="xl" radius="md">
           <Center>
             <Stack align="center" gap="sm">
-              <IconNews size={48} color="var(--mantine-color-gray-5)" />
+              <IconNews size={48} color="var(--mantine-color-dimmed)" />
               <Text fw={500}>{search ? t('home.feed.noResults') : t('home.feed.empty')}</Text>
             </Stack>
           </Center>

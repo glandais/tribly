@@ -143,7 +143,7 @@ export function TripEditor({
             {stages.map((stage, index) => (
               <Tabs.Tab key={index} value={`stage-${index}`}>
                 <Group gap="xs" wrap="nowrap">
-                  <Badge size="sm" variant="light" color="indigo" circle>
+                  <Badge size="sm" variant="light" color="primary" circle>
                     {index + 1}
                   </Badge>
                   <Text size="sm" lineClamp={1} style={{ maxWidth: 100 }}>
@@ -272,7 +272,7 @@ export function TripEditor({
                       <Button
                         variant="subtle"
                         size="xs"
-                        color="red"
+                        color="danger"
                         onClick={() => form.setFieldValue('routeSlug', undefined)}
                       >
                         {t('trips.create.form.route.clear')}
@@ -305,7 +305,7 @@ export function TripEditor({
                       total={stages.length}
                       onMove={(dir) => handleMoveStage(index, dir)}
                     />
-                    <Badge size="lg" variant="light" color="indigo" circle>
+                    <Badge size="lg" variant="light" color="primary" circle>
                       {index + 1}
                     </Badge>
                     <Text size="lg" fw={500}>
@@ -316,7 +316,7 @@ export function TripEditor({
                   <Button
                     variant="subtle"
                     size="xs"
-                    color="red"
+                    color="danger"
                     leftSection={<IconTrash size={14} />}
                     onClick={() => handleRemoveStage(index)}
                   >
@@ -418,7 +418,7 @@ export function TripEditor({
                           <Button
                             variant="subtle"
                             size="xs"
-                            color="red"
+                            color="danger"
                             onClick={() =>
                               form.setFieldValue(`stages.${index}.routeSlug`, undefined)
                             }

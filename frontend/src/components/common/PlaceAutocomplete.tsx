@@ -70,7 +70,7 @@ export function PlaceAutocomplete({
   const renderPlace = useCallback(
     (place: PlaceDetailDto) => (
       <Group gap="sm" wrap="nowrap">
-        <IconMapPin size={20} color="var(--mantine-color-gray-5)" style={{ flexShrink: 0 }} />
+        <IconMapPin size={20} color="var(--mantine-color-dimmed)" style={{ flexShrink: 0 }} />
         <Box style={{ minWidth: 0 }}>
           <Text size="sm" fw={500} truncate>
             {place.name}
@@ -91,7 +91,7 @@ export function PlaceAutocomplete({
       <Group gap="xs">
         <Paper withBorder p="sm" style={{ flex: 1 }}>
           <Group gap="sm" wrap="nowrap">
-            <IconMapPin size={20} color="var(--mantine-color-gray-5)" style={{ flexShrink: 0 }} />
+            <IconMapPin size={20} color="var(--mantine-color-dimmed)" style={{ flexShrink: 0 }} />
             <Box style={{ minWidth: 0, flex: 1 }}>
               <Text size="sm" fw={500} truncate>
                 {selectedPlace.name}

@@ -14,9 +14,9 @@ interface ConfirmDialogProps {
 }
 
 const variantColors: Record<'danger' | 'warning' | 'info', string> = {
-  danger: 'red',
-  warning: 'yellow',
-  info: 'blue',
+  danger: 'danger',
+  warning: 'warning',
+  info: 'primary',
 }
 
 export function ConfirmDialog({

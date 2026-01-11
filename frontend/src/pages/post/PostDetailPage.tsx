@@ -203,7 +203,7 @@ export function PostDetailPage() {
                       <Menu.Item
                         onClick={handlePublish}
                         disabled={updateMutation.isPending}
-                        color="green"
+                        color="success"
                         leftSection={
                           updateMutation.isPending ? <LoadingSpinner size="sm" /> : undefined
                         }
@@ -213,10 +213,10 @@ export function PostDetailPage() {
                     )}
                     {post.status === Status.PUBLISHED && (
                       <>
-                        <Menu.Item onClick={() => setShowUnpublishConfirm(true)} color="yellow">
+                        <Menu.Item onClick={() => setShowUnpublishConfirm(true)} color="warning">
                           {t('actions.unpublish')}
                         </Menu.Item>
-                        <Menu.Item onClick={() => setShowCancelConfirm(true)} color="yellow">
+                        <Menu.Item onClick={() => setShowCancelConfirm(true)} color="warning">
                           {t('actions.cancelAction')}
                         </Menu.Item>
                       </>
@@ -227,7 +227,7 @@ export function PostDetailPage() {
                       </Menu.Item>
                     )}
                     <Menu.Divider />
-                    <Menu.Item onClick={() => setShowDeleteConfirm(true)} color="red">
+                    <Menu.Item onClick={() => setShowDeleteConfirm(true)} color="danger">
                       {t('actions.delete')}
                     </Menu.Item>
                   </Menu.Dropdown>
@@ -241,8 +241,8 @@ export function PostDetailPage() {
           </Box>
           {post.status === Status.DRAFT && post.publishAt && (
             <Group gap="xs" mt="sm">
-              <IconCalendar size={16} color="var(--mantine-color-yellow-6)" />
-              <Text size="sm" c="yellow.6">
+              <IconCalendar size={16} color="var(--mantine-color-yellow-text)" />
+              <Text size="sm" c="var(--mantine-color-yellow-text)">
                 {t('posts.detail.scheduledPublish', {
                   date: formatDateTime(post.publishAt),
                 })}
@@ -251,7 +251,7 @@ export function PostDetailPage() {
           )}
           <Group gap="md" mt="md">
             <Group gap="xs">
-              <IconCalendar size={16} color="var(--mantine-color-gray-5)" />
+              <IconCalendar size={16} color="var(--mantine-color-dimmed)" />
               <Text size="sm" c="dimmed">
                 {formattedDate}
               </Text>

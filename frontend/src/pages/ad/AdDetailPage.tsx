@@ -46,8 +46,8 @@ const statusColors: Record<Status, 'gray' | 'green' | 'red'> = {
   [Status.CANCELLED]: 'red',
 }
 
-const adTypeColors: Record<AdType, 'indigo' | 'grape' | 'yellow'> = {
-  [AdType.SALE]: 'indigo',
+const adTypeColors: Record<AdType, 'primary' | 'grape' | 'yellow'> = {
+  [AdType.SALE]: 'primary',
   [AdType.RENTAL]: 'grape',
   [AdType.WANTED]: 'yellow',
 }
@@ -210,7 +210,7 @@ export function AdDetailPage() {
                     <Menu.Item
                       onClick={handlePublish}
                       disabled={updateMutation.isPending}
-                      color="green"
+                      color="success"
                       leftSection={
                         updateMutation.isPending ? <LoadingSpinner size="sm" /> : undefined
                       }
@@ -219,12 +219,12 @@ export function AdDetailPage() {
                     </Menu.Item>
                   )}
                   {ad.status === Status.PUBLISHED && (
-                    <Menu.Item onClick={() => setShowUnpublishConfirm(true)} color="yellow">
+                    <Menu.Item onClick={() => setShowUnpublishConfirm(true)} color="warning">
                       {t('actions.unpublish')}
                     </Menu.Item>
                   )}
                   <Menu.Divider />
-                  <Menu.Item onClick={() => setShowDeleteConfirm(true)} color="red">
+                  <Menu.Item onClick={() => setShowDeleteConfirm(true)} color="danger">
                     {t('actions.delete')}
                   </Menu.Item>
                 </Menu.Dropdown>
@@ -234,7 +234,12 @@ export function AdDetailPage() {
         </Group>
 
         {/* Price */}
-        <Box mt="lg" p="md" bg="gray.0" style={{ borderRadius: 'var(--mantine-radius-md)' }}>
+        <Box
+          mt="lg"
+          p="md"
+          bg="var(--mantine-color-body)"
+          style={{ borderRadius: 'var(--mantine-radius-md)' }}
+        >
           <Group gap="xs">
             <IconCurrencyEuro size={24} />
             <Text size="xl" fw={700}>

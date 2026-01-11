@@ -21,8 +21,8 @@ const statusVariants: Record<string, 'gray' | 'green' | 'red'> = {
   CANCELLED: 'red',
 }
 
-const adTypeBadgeVariants: Record<AdType, 'indigo' | 'purple' | 'orange'> = {
-  [AdType.SALE]: 'indigo',
+const adTypeBadgeVariants: Record<AdType, 'primary' | 'purple' | 'orange'> = {
+  [AdType.SALE]: 'primary',
   [AdType.RENTAL]: 'purple',
   [AdType.WANTED]: 'orange',
 }
@@ -72,11 +72,11 @@ export function AdCard({ ad, showTeam = false }: AdCardProps) {
               gap: 'var(--mantine-spacing-xs)',
             }}
           >
-            <IconUsers size={16} color="var(--mantine-color-gray-6)" />
+            <IconUsers size={16} color="var(--mantine-color-dimmed)" />
             <Text size="sm" c="dimmed" fw={500}>
               {ad.team.name}
             </Text>
-            <IconChevronRight size={12} color="var(--mantine-color-gray-5)" />
+            <IconChevronRight size={12} color="var(--mantine-color-dimmed)" />
           </Box>
         )}
 

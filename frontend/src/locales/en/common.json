@@ -123,6 +123,7 @@
   "memberCount_other": "{{count}} members",
   "nav.avatar": "Avatar of {{name}}",
   "nav.closeMenu": "Close menu",
+  "nav.colorScheme": "Toggle color scheme",
   "nav.language": "Language",
   "nav.openMenu": "Open menu",
   "nav.profile": "Profile",

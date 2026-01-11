@@ -275,7 +275,7 @@ export function RideDetailPage() {
                     <Menu.Item
                       onClick={handlePublish}
                       disabled={updateMutation.isPending}
-                      color="green"
+                      color="success"
                     >
                       {updateMutation.isPending && <LoadingSpinner size="sm" />}
                       {t('actions.publish')}
@@ -283,10 +283,10 @@ export function RideDetailPage() {
                   )}
                   {ride.status === Status.PUBLISHED && (
                     <>
-                      <Menu.Item onClick={() => setShowUnpublishConfirm(true)} color="yellow">
+                      <Menu.Item onClick={() => setShowUnpublishConfirm(true)} color="warning">
                         {t('actions.unpublish')}
                       </Menu.Item>
-                      <Menu.Item onClick={() => setShowCancelConfirm(true)} color="yellow">
+                      <Menu.Item onClick={() => setShowCancelConfirm(true)} color="warning">
                         {t('rides.detail.actions.cancel')}
                       </Menu.Item>
                     </>
@@ -297,7 +297,7 @@ export function RideDetailPage() {
                     </Menu.Item>
                   )}
                   <Menu.Divider />
-                  <Menu.Item onClick={() => setShowDeleteConfirm(true)} color="red">
+                  <Menu.Item onClick={() => setShowDeleteConfirm(true)} color="danger">
                     {t('actions.delete')}
                   </Menu.Item>
                 </Menu.Dropdown>
@@ -311,8 +311,8 @@ export function RideDetailPage() {
         </Box>
         {ride.status === Status.DRAFT && ride.publishAt && (
           <Group mt="xs" gap="xs">
-            <IconCalendar size={16} color="var(--mantine-color-yellow-6)" />
-            <Text size="sm" c="yellow.6">
+            <IconCalendar size={16} color="var(--mantine-color-yellow-text)" />
+            <Text size="sm" c="var(--mantine-color-yellow-text)">
               {t('rides.detail.scheduledPublish', {
                 date: formatDateTime(ride.publishAt),
               })}
@@ -338,8 +338,8 @@ export function RideDetailPage() {
           <Group mt="sm" gap="lg" wrap="wrap">
             {ride.startPlace && (
               <Group gap="xs">
-                <IconMapPin size={16} color="var(--mantine-color-green-6)" />
-                <Text size="sm" fw={500} c="green.7">
+                <IconMapPin size={16} color="var(--mantine-color-green-text)" />
+                <Text size="sm" fw={500} c="var(--mantine-color-green-text)">
                   {t('startPlace')}:
                 </Text>
                 <Text size="sm">
@@ -355,8 +355,8 @@ export function RideDetailPage() {
             )}
             {ride.endPlace && (
               <Group gap="xs">
-                <IconMapPin size={16} color="var(--mantine-color-red-6)" />
-                <Text size="sm" fw={500} c="red.7">
+                <IconMapPin size={16} color="var(--mantine-color-red-text)" />
+                <Text size="sm" fw={500} c="var(--mantine-color-red-text)">
                   {t('endPlace')}:
                 </Text>
                 <Text size="sm">

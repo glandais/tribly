@@ -5,7 +5,8 @@ Must-have for public launch. Focus on first impressions and core UX.
 
 ### UX Polish
 - [ ] Responsive website — Mobile-first is non-negotiable for cyclists
-- [ ] Dark mode — Expected by modern users
+- [X] Dark mode — Expected by modern users
+  - [ ] Fix style select dark mode in markdown editor
 - [ ] Appealing cards (icons, route previews)
 - [ ] Pagination / infinite scrolling — Performance at scale
 

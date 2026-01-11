@@ -24,7 +24,7 @@ export function ReorderControls({
   return (
     <Group gap={4}>
       {showIndex && (
-        <Badge size="sm" circle color="indigo" variant="light">
+        <Badge size="sm" circle color="primary" variant="light">
           {index + 1}
         </Badge>
       )}

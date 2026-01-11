@@ -26,7 +26,7 @@ export function Card({ to, children }: CardProps) {
         root: {
           '&:hover': {
             boxShadow: 'var(--mantine-shadow-md)',
-            borderColor: 'var(--mantine-color-gray-4)',
+            borderColor: 'var(--mantine-color-default-border)',
           },
         },
       }}

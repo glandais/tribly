@@ -1,9 +1,10 @@
-import { createContext, useContext, useMemo } from 'react'
+// Directive descriptor exports a config object referencing an internal component - intentional pattern
+/* eslint-disable react-refresh/only-export-components */
+import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Group, Text, Box, Button, Image } from '@mantine/core'
+import { Group, Text, Box, Button, Image, useComputedColorScheme } from '@mantine/core'
 import type { DirectiveDescriptor, DirectiveEditorProps } from '@mdxeditor/editor'
 import type { LeafDirective } from 'mdast-util-directive'
-import type { AssetDto } from '@/api/dto'
 import {
   IMAGE_SIZES,
   type ImageSize,
@@ -12,36 +13,11 @@ import {
   resolveAssetUrl,
   getImageSizeStyle,
 } from '../../../lib/assetMarkdown'
+import { getOverlayBg } from '@/lib/colors'
 import { IconPhoto } from '@tabler/icons-react'
+import { useAssetImages } from './AssetImagesContext'
 
-// ============================================================================
-// Context for providing images to directive editors
-// ============================================================================
-
-interface AssetImagesContextValue {
-  images: AssetDto[]
-}
-
-const AssetImagesContext = createContext<AssetImagesContextValue>({ images: [] })
-
-export function AssetImagesProvider({
-  images,
-  children,
-}: {
-  images: AssetDto[]
-  children: React.ReactNode
-}) {
-  const value = useMemo(() => ({ images }), [images])
-  return <AssetImagesContext.Provider value={value}>{children}</AssetImagesContext.Provider>
-}
-
-export function useAssetImages(): AssetDto[] {
-  return useContext(AssetImagesContext).images
-}
-
-// ============================================================================
 // Size labels for the UI
-// ============================================================================
 
 const SIZE_LABELS: Record<ImageSize, string> = {
   icon: 'XS',
@@ -66,6 +42,7 @@ function AssetDirectiveEditor({
   parentEditor,
 }: DirectiveEditorProps<LeafDirective>) {
   const { t } = useTranslation()
+  const colorScheme = useComputedColorScheme('light')
   const images = useAssetImages()
 
   const attributes = (mdastNode.attributes ?? {}) as AssetDirectiveAttributes
@@ -107,7 +84,7 @@ function AssetDirectiveEditor({
         gap="xs"
         px="xs"
         py={4}
-        bg="gray.1"
+        bg="var(--mantine-color-default-hover)"
         style={{ borderRadius: 'var(--mantine-radius-sm)', display: 'inline-flex' }}
       >
         <IconPhoto size={16} style={{ flexShrink: 0 }} />
@@ -137,7 +114,7 @@ function AssetDirectiveEditor({
         <Group
           gap={4}
           p={4}
-          bg="rgba(255, 255, 255, 0.9)"
+          bg={getOverlayBg(colorScheme)}
           style={{
             backdropFilter: 'blur(4px)',
             borderRadius: 'var(--mantine-radius-md)',

@@ -21,6 +21,7 @@ import { IconUser, IconLogout } from '@tabler/icons-react'
 import { useAuth } from '../../hooks/useAuth'
 import { useBreadcrumb } from '../../hooks/useBreadcrumb'
 import { Breadcrumb } from './Breadcrumb'
+import { ColorSchemeSwitcher } from './ColorSchemeSwitcher'
 import { LanguageSwitcher } from './LanguageSwitcher'
 import { paths } from '@/config/paths'
 
@@ -52,13 +53,14 @@ export function Layout() {
         <Container size="lg" h="100%">
           <Group h="100%" justify="space-between">
             <Anchor component={Link} to="/" underline="never">
-              <Text size="xl" fw={700} c="indigo">
+              <Text size="xl" fw={700} c="primary">
                 {t('appName')}
               </Text>
             </Anchor>
 
             {/* Desktop Navigation */}
             <Group gap="sm" visibleFrom="sm">
+              <ColorSchemeSwitcher />
               <LanguageSwitcher />
               {isAuthenticated ? (
                 <Menu shadow="md" width={200}>
@@ -70,7 +72,7 @@ export function Layout() {
                           alt={user?.displayName}
                           radius="xl"
                           size="sm"
-                          color="indigo"
+                          color="primary"
                         >
                           {user?.displayName?.charAt(0).toUpperCase()}
                         </Avatar>
@@ -89,7 +91,11 @@ export function Layout() {
                       {t('nav.profile')}
                     </Menu.Item>
                     <Menu.Divider />
-                    <Menu.Item leftSection={<IconLogout size={14} />} onClick={logout} color="red">
+                    <Menu.Item
+                      leftSection={<IconLogout size={14} />}
+                      onClick={logout}
+                      color="danger"
+                    >
                       {t('nav.signOut')}
                     </Menu.Item>
                   </Menu.Dropdown>
@@ -110,6 +116,7 @@ export function Layout() {
       {/* Mobile Navigation */}
       <AppShell.Navbar p="md">
         <Stack>
+          <ColorSchemeSwitcher />
           <LanguageSwitcher />
           <Divider />
           {isAuthenticated ? (
@@ -121,7 +128,7 @@ export function Layout() {
                     alt={user?.displayName}
                     radius="xl"
                     size="sm"
-                    color="indigo"
+                    color="primary"
                   >
                     {user?.displayName?.charAt(0).toUpperCase()}
                   </Avatar>
@@ -130,7 +137,7 @@ export function Layout() {
               </UnstyledButton>
               <Button
                 variant="subtle"
-                color="red"
+                color="danger"
                 leftSection={<IconLogout size={16} />}
                 onClick={() => {
                   logout()
@@ -158,7 +165,7 @@ export function Layout() {
       <Box
         component="footer"
         py="xl"
-        style={{ borderTop: '1px solid var(--mantine-color-gray-3)' }}
+        style={{ borderTop: '1px solid var(--mantine-color-default-border)' }}
       >
         <Container size="lg">
           <Text ta="center" c="dimmed" size="sm">

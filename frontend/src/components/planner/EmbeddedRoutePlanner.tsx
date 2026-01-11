@@ -11,13 +11,14 @@ import Map, {
 } from 'react-map-gl/maplibre'
 import maplibregl from 'maplibre-gl'
 import { IconTrash } from '@tabler/icons-react'
-import { ActionIcon, Box, Group, Loader, Stack, Text } from '@mantine/core'
+import { ActionIcon, Box, Group, Loader, Stack, Text, useComputedColorScheme } from '@mantine/core'
 import { MapStyleSwitcher } from '../map/MapStyleSwitcher'
 import { useMapStyle } from '../../hooks/useMapStyle'
 import { useRoutePlanner } from '../../hooks/useRoutePlanner'
 import type { GeoPoint } from '@/api/dto'
-import 'maplibre-gl/dist/maplibre-gl.css'
+// maplibre-gl CSS is provided by maplibre-theme in index.css
 import { findPreviousControlPointIndex } from '@/lib/planner'
+import { getOverlayBg } from '@/lib/colors'
 import { around } from 'geokdbush'
 
 // Default center (France)
@@ -31,6 +32,7 @@ interface EmbeddedRoutePlannerProps {
 
 export function EmbeddedRoutePlanner({ onPointsChange, initialTrack }: EmbeddedRoutePlannerProps) {
   const { t } = useTranslation()
+  const colorScheme = useComputedColorScheme('light')
   const { styleId, setStyleId, style } = useMapStyle()
   const mapRef = useRef<MapRef>(null)
 
@@ -383,8 +385,8 @@ export function EmbeddedRoutePlanner({ onPointsChange, initialTrack }: EmbeddedR
         justify="space-between"
         px="sm"
         py="xs"
-        bg="gray.0"
-        style={{ borderBottom: '1px solid var(--mantine-color-gray-3)' }}
+        bg="var(--mantine-color-body)"
+        style={{ borderBottom: '1px solid var(--mantine-color-default-border)' }}
       >
         <Group gap="md">
           {controlPoints.length > 0 && (
@@ -393,7 +395,7 @@ export function EmbeddedRoutePlanner({ onPointsChange, initialTrack }: EmbeddedR
             </Text>
           )}
           {isLoading && (
-            <Group gap="xs" c="indigo">
+            <Group gap="xs" c="primary">
               <Loader size="xs" />
               <Text size="sm">{t('planner.calculating')}</Text>
             </Group>
@@ -422,7 +424,11 @@ export function EmbeddedRoutePlanner({ onPointsChange, initialTrack }: EmbeddedR
       </Group>
 
       {/* Map */}
-      <Box pos="relative" style={{ flex: 1 }}>
+      <Box
+        pos="relative"
+        className={colorScheme === 'dark' ? 'dark' : undefined}
+        style={{ flex: 1 }}
+      >
         <Map
           ref={mapRef}
           mapLib={maplibregl}
@@ -482,10 +488,10 @@ export function EmbeddedRoutePlanner({ onPointsChange, initialTrack }: EmbeddedR
             const isLast = index === controlPoints.length - 1 && controlPoints.length > 1
             const isManual = point.manual
 
-            let markerColor = 'var(--mantine-color-yellow-5)'
-            if (isFirst) markerColor = 'var(--mantine-color-green-5)'
-            else if (isLast) markerColor = 'var(--mantine-color-red-5)'
-            else if (isManual) markerColor = 'var(--mantine-color-blue-5)'
+            let markerColor = 'var(--mantine-color-yellow-filled)'
+            if (isFirst) markerColor = 'var(--mantine-color-green-filled)'
+            else if (isLast) markerColor = 'var(--mantine-color-red-filled)'
+            else if (isManual) markerColor = 'var(--mantine-color-blue-filled)'
 
             // Use dragging position if this marker is being dragged
             const isDragging = draggingMarker?.index === index
@@ -534,8 +540,8 @@ export function EmbeddedRoutePlanner({ onPointsChange, initialTrack }: EmbeddedR
                 h={20}
                 style={{
                   backgroundColor: draggingGhost
-                    ? 'var(--mantine-color-indigo-6)'
-                    : 'var(--mantine-color-indigo-4)',
+                    ? 'var(--mantine-primary-color-filled)'
+                    : 'var(--mantine-primary-color-light-color)',
                   border: '2px solid white',
                   borderRadius: '50%',
                   boxShadow: 'var(--mantine-shadow-lg)',
@@ -556,7 +562,7 @@ export function EmbeddedRoutePlanner({ onPointsChange, initialTrack }: EmbeddedR
             left="50%"
             px="md"
             py="xs"
-            bg="rgba(255, 255, 255, 0.9)"
+            bg={getOverlayBg(colorScheme)}
             style={{
               transform: 'translateX(-50%)',
               borderRadius: 'var(--mantine-radius-md)',

@@ -46,9 +46,9 @@ export function MapStyleSwitcher({
             align="center"
             mb="sm"
             pb="sm"
-            style={{ borderBottom: '1px solid var(--mantine-color-gray-2)' }}
+            style={{ borderBottom: '1px solid var(--mantine-color-default-border)' }}
           >
-            <Text size="sm" fw={500} c="gray.7">
+            <Text size="sm" fw={500} c="dimmed">
               {t('map.styles.title')}
             </Text>
             <ActionIcon
@@ -73,13 +73,13 @@ export function MapStyleSwitcher({
                   py="xs"
                   style={{
                     borderRadius: 'var(--mantine-radius-sm)',
-                    backgroundColor: isSelected ? 'var(--mantine-color-indigo-1)' : undefined,
+                    backgroundColor: isSelected ? 'var(--mantine-primary-color-light)' : undefined,
                     transition: 'background-color 150ms',
                   }}
                 >
                   <Text
                     size="sm"
-                    c={isSelected ? 'indigo.7' : 'gray.7'}
+                    c={isSelected ? 'var(--mantine-primary-color-filled)' : undefined}
                     fw={isSelected ? 500 : 400}
                   >
                     {style.name}
@@ -91,7 +91,7 @@ export function MapStyleSwitcher({
         </Paper>
       ) : (
         <ActionIcon
-          variant="white"
+          variant="default"
           size="lg"
           radius="md"
           onClick={toggleExpanded}

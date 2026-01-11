@@ -117,7 +117,7 @@ export function TeamSettingsPage() {
         />
 
         {/* Danger Zone */}
-        <Box mt="xl" pt="xl" style={{ borderTop: '1px solid var(--mantine-color-gray-3)' }}>
+        <Box mt="xl" pt="xl" style={{ borderTop: '1px solid var(--mantine-color-default-border)' }}>
           <Title order={2} size="lg" c="red">
             {t('teams.settings.dangerZone.title')}
           </Title>
@@ -125,7 +125,12 @@ export function TeamSettingsPage() {
             {t('teams.settings.dangerZone.description')}
           </Text>
 
-          <Button variant="outline" color="red" mt="md" onClick={() => setShowDeleteConfirm(true)}>
+          <Button
+            variant="outline"
+            color="danger"
+            mt="md"
+            onClick={() => setShowDeleteConfirm(true)}
+          >
             {t('teams.settings.dangerZone.deleteTeam')}
           </Button>
         </Box>

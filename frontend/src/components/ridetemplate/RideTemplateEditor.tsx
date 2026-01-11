@@ -148,7 +148,7 @@ export function RideTemplateEditor({
                   <Button
                     variant="subtle"
                     size="xs"
-                    color="red"
+                    color="danger"
                     onClick={() => handleRemoveGroup(index)}
                   >
                     {t('rides.create.form.groups.remove')}

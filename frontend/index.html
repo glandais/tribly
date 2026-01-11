@@ -5,6 +5,17 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Tribly - Cycling Team Management</title>
+    <script>
+      // Mantine color scheme script to prevent FOUC (flash of unstyled content)
+      (function() {
+        try {
+          var colorScheme = localStorage.getItem('mantine-color-scheme-value');
+          if (colorScheme === 'dark' || (!colorScheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.setAttribute('data-mantine-color-scheme', 'dark');
+          }
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

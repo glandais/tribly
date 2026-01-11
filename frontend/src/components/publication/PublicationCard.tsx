@@ -17,10 +17,10 @@ const statusVariants: Record<string, 'gray' | 'green' | 'red'> = {
 }
 
 // Type badge variants
-const typeBadgeVariants: Record<string, 'indigo' | 'purple'> = {
-  RIDE: 'indigo',
+const typeBadgeVariants: Record<string, 'primary' | 'purple'> = {
+  RIDE: 'primary',
   POST: 'purple',
-  TRIP: 'indigo',
+  TRIP: 'primary',
 }
 
 interface PublicationCardProps {
@@ -136,7 +136,7 @@ export function PublicationCard({ publication, showTeam }: PublicationCardProps)
             </Box>
           </Group>
           <Stack gap={4} align="flex-end" ml="sm">
-            <Badge variant={typeBadgeVariants[publication.type] || 'indigo'}>
+            <Badge variant={typeBadgeVariants[publication.type] || 'primary'}>
               {getTypeLabel()}
             </Badge>
             <Badge variant={statusVariants[publication.status] || 'gray'}>{getStatusLabel()}</Badge>

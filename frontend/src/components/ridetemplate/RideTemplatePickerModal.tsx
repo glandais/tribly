@@ -114,7 +114,7 @@ export function RideTemplatePickerModal({
       ) : templates.length === 0 ? (
         <Center py="xl">
           <Stack align="center" gap="xs">
-            <IconCopy size={48} color="var(--mantine-color-gray-5)" />
+            <IconCopy size={48} color="var(--mantine-color-dimmed)" />
             <Text c="dimmed">{t('rideTemplates.list.noResults')}</Text>
           </Stack>
         </Center>
@@ -127,7 +127,7 @@ export function RideTemplatePickerModal({
                 onClick={() => handleSelect(template)}
                 p="md"
                 style={{
-                  border: '1px solid var(--mantine-color-gray-3)',
+                  border: '1px solid var(--mantine-color-default-border)',
                   borderRadius: 'var(--mantine-radius-md)',
                   textAlign: 'left',
                   width: '100%',
@@ -147,7 +147,7 @@ export function RideTemplatePickerModal({
                     )}
                   </Box>
                   <Group gap="xs" ml="md">
-                    <IconUsers size={16} color="var(--mantine-color-gray-6)" />
+                    <IconUsers size={16} color="var(--mantine-color-dimmed)" />
                     <Text size="sm" c="dimmed">
                       {t('groups.groupCount', { count: template.groupCount })}
                     </Text>

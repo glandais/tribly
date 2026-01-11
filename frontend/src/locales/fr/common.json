@@ -126,6 +126,7 @@
   "memberCount_other": "{{count}} membres",
   "nav.avatar": "Avatar de {{name}}",
   "nav.closeMenu": "Fermer le menu",
+  "nav.colorScheme": "Changer le thème",
   "nav.language": "Langue",
   "nav.openMenu": "Ouvrir le menu",
   "nav.profile": "Profil",

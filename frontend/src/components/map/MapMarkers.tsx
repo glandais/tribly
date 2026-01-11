@@ -1,5 +1,6 @@
 import { Marker } from 'react-map-gl/maplibre'
-import { Box, Text } from '@mantine/core'
+import { Box, Text, useComputedColorScheme } from '@mantine/core'
+import { getOverlayBg } from '@/lib/colors'
 
 interface MarkerProps {
   longitude: number
@@ -12,7 +13,7 @@ export function StartMarker({ longitude, latitude }: MarkerProps) {
       <Box
         w={24}
         h={24}
-        bg="green.5"
+        bg="var(--mantine-color-green-filled)"
         style={{
           borderRadius: '50%',
           border: '2px solid white',
@@ -29,7 +30,7 @@ export function EndMarker({ longitude, latitude }: MarkerProps) {
       <Box
         w={24}
         h={24}
-        bg="red.5"
+        bg="var(--mantine-color-red-filled)"
         style={{
           borderRadius: '50%',
           border: '2px solid white',
@@ -46,7 +47,7 @@ export function HoverMarker({ longitude, latitude }: MarkerProps) {
       <Box
         w={16}
         h={16}
-        bg="blue.5"
+        bg="var(--mantine-color-blue-filled)"
         style={{
           borderRadius: '50%',
           border: '2px solid white',
@@ -62,13 +63,16 @@ interface WaypointMarkerProps extends MarkerProps {
 }
 
 export function WaypointMarker({ longitude, latitude, name }: WaypointMarkerProps) {
+  const colorScheme = useComputedColorScheme('light')
+  const labelBg = getOverlayBg(colorScheme)
+
   return (
     <Marker longitude={longitude} latitude={latitude} anchor="center">
       <Box style={{ display: 'flex', alignItems: 'center' }}>
         <Box
           w={20}
           h={20}
-          bg="yellow.5"
+          bg="var(--mantine-color-yellow-filled)"
           style={{
             borderRadius: '50%',
             border: '2px solid white',
@@ -82,7 +86,7 @@ export function WaypointMarker({ longitude, latitude, name }: WaypointMarkerProp
             ml={4}
             px={4}
             style={{
-              backgroundColor: 'rgba(255, 255, 255, 0.9)',
+              backgroundColor: labelBg,
               borderRadius: 'var(--mantine-radius-sm)',
               boxShadow: 'var(--mantine-shadow-sm)',
               whiteSpace: 'nowrap',

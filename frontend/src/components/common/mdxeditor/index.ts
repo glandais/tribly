@@ -1,5 +1,2 @@
-export {
-  AssetDirectiveDescriptor,
-  AssetImagesProvider,
-  useAssetImages,
-} from './AssetDirectiveDescriptor'
+export { AssetDirectiveDescriptor } from './AssetDirectiveDescriptor'
+export { AssetImagesProvider, useAssetImages } from './AssetImagesContext'

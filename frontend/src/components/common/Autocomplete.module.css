@@ -1,0 +1,10 @@
+.item {
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 150ms;
+}
+
+.item:hover {
+  background-color: var(--mantine-color-default-hover);
+}

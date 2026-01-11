@@ -16,7 +16,7 @@ export function UserAvatar({ user, size = 'md' }: UserAvatarProps) {
 
   return (
     <Tooltip label={user.displayName} withArrow>
-      <Avatar src={user.avatarUrl} alt={user.displayName} size={size} radius="xl" color="indigo">
+      <Avatar src={user.avatarUrl} alt={user.displayName} size={size} radius="xl" color="primary">
         {initials}
       </Avatar>
     </Tooltip>

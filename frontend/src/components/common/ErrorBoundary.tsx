@@ -53,7 +53,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       return (
         <Translation ns="errors">
           {(t) => (
-            <Center mih="100vh" bg="gray.0">
+            <Center mih="100vh" bg="var(--mantine-color-body)">
               <Paper shadow="lg" p="xl" radius="md" w={{ base: '100%', sm: 400 }}>
                 <Stack align="center">
                   <ThemeIcon size="xl" radius="xl" color="red" variant="light">

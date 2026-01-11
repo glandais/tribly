@@ -71,6 +71,9 @@ importers:
       maplibre-gl:
         specifier: ^5.15.0
         version: 5.15.0
+      maplibre-theme:
+        specifier: ^1.0.0
+        version: 1.0.0
       react:
         specifier: ^19.2.3
         version: 19.2.3
@@ -3980,6 +3983,9 @@ packages:
   maplibre-gl@5.15.0:
     resolution: {integrity: sha512-pPeu/t4yPDX/+Uf9ibLUdmaKbNMlGxMAX+tBednYukol2qNk2TZXAlhdohWxjVvTO3is8crrUYv3Ok02oAaKzA==}
     engines: {node: '>=16.14.0', npm: '>=8.1.0'}
+
+  maplibre-theme@1.0.0:
+    resolution: {integrity: sha512-SDoaMwQNOZReiQvrw2FVR0WsImpEqyg6Q7ps8ky4oKz+qEpHkquddozIWPJch/q1pWkrLOwwB20OZBx1aiQlgA==}
 
   markdown-it@14.1.0:
     resolution: {integrity: sha512-a54IwgWPaeBCAAsv13YgmALOF1elABB08FxO9i+r4VFk5Vl4pKokRPeX8u5TCgSsPi6ec1otfLjdOpVcgbpshg==}
@@ -10000,6 +10006,8 @@ snapshots:
       quickselect: 3.0.0
       supercluster: 8.0.1
       tinyqueue: 3.0.0
+
+  maplibre-theme@1.0.0: {}
 
   markdown-it@14.1.0:
     dependencies:

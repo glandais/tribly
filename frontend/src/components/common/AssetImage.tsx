@@ -42,10 +42,10 @@ export function AssetImage({
       <Group
         gap="xs"
         p="xs"
-        bg="gray.1"
+        bg="var(--mantine-color-default-hover)"
         style={{ borderRadius: 'var(--mantine-radius-sm)', display: 'inline-flex' }}
       >
-        <IconPhoto size={16} color="var(--mantine-color-gray-5)" />
+        <IconPhoto size={16} color="var(--mantine-color-dimmed)" />
         <Text size="sm" c="dimmed">
           {altText || t('images.notFound')}
         </Text>
@@ -59,10 +59,10 @@ export function AssetImage({
       <Group
         gap="xs"
         p="xs"
-        bg="red.0"
+        bg="var(--mantine-color-red-light)"
         style={{ borderRadius: 'var(--mantine-radius-sm)', display: 'inline-flex' }}
       >
-        <IconPhoto size={16} color="var(--mantine-color-red-5)" />
+        <IconPhoto size={16} color="var(--mantine-color-red-filled)" />
         <Text size="sm" c="red">
           {t('error.loading')}
         </Text>
@@ -73,7 +73,11 @@ export function AssetImage({
   return (
     <Box display="inline-block">
       {isLoading && (
-        <Center p="md" bg="gray.1" style={{ borderRadius: 'var(--mantine-radius-md)' }}>
+        <Center
+          p="md"
+          bg="var(--mantine-color-default-hover)"
+          style={{ borderRadius: 'var(--mantine-radius-md)' }}
+        >
           <LoadingSpinner size="sm" />
         </Center>
       )}

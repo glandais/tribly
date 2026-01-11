@@ -166,7 +166,7 @@ export function RideTemplateListPage() {
                       {template.groups && template.groups.length > 0 && (
                         <Group gap="xs" mt="xs">
                           {template.groups.map((group) => (
-                            <Badge key={group.id} variant="light" color="indigo" size="sm">
+                            <Badge key={group.id} variant="light" color="primary" size="sm">
                               {group.name}
                               {group.averageSpeed && (
                                 <Text span ml={4} c="dimmed">
@@ -191,7 +191,7 @@ export function RideTemplateListPage() {
                         </ActionIcon>
                         <ActionIcon
                           variant="subtle"
-                          color="red"
+                          color="danger"
                           onClick={() => handleDelete(template)}
                           title={t('actions.delete')}
                         >
@@ -212,7 +212,7 @@ export function RideTemplateListPage() {
           <Paper withBorder py="xl">
             <Center>
               <Stack align="center" gap="md">
-                <IconFiles size={48} color="var(--mantine-color-gray-5)" />
+                <IconFiles size={48} color="var(--mantine-color-dimmed)" />
                 <Title order={3}>
                   {search ? t('rideTemplates.list.noResults') : t('rideTemplates.list.empty.title')}
                 </Title>

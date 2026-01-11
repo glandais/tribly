@@ -89,7 +89,9 @@ export function TeamMemberList({
               p="md"
               style={{
                 borderBottom:
-                  index < members.length - 1 ? '1px solid var(--mantine-color-gray-2)' : undefined,
+                  index < members.length - 1
+                    ? '1px solid var(--mantine-color-default-border)'
+                    : undefined,
               }}
             >
               <Group justify="space-between" wrap="nowrap">
@@ -174,7 +176,7 @@ export function TeamMemberList({
                         <Button
                           size="xs"
                           variant="subtle"
-                          color="red"
+                          color="danger"
                           onClick={() => handleRemove(member.user.id)}
                           disabled={isRemoving}
                           loading={isRemoving}
@@ -217,7 +219,8 @@ export function TeamMemberListSkeleton({ count = 3 }: { count?: number }) {
             key={i}
             p="md"
             style={{
-              borderBottom: i < count - 1 ? '1px solid var(--mantine-color-gray-2)' : undefined,
+              borderBottom:
+                i < count - 1 ? '1px solid var(--mantine-color-default-border)' : undefined,
             }}
           >
             <Group>

@@ -79,7 +79,7 @@ export function RouteDetailView({
       <SimpleGrid cols={{ base: 1, md: 3 }} spacing="lg">
         <Paper shadow="xs" p="lg">
           <Group>
-            <IconMap size={32} color="var(--mantine-color-indigo-6)" />
+            <IconMap size={32} color="var(--mantine-primary-color-filled)" />
             <Stack gap={0}>
               <Text size="sm" c="dimmed">
                 {t('routes.detail.stats.distance')}
@@ -93,7 +93,7 @@ export function RouteDetailView({
 
         <Paper shadow="xs" p="lg">
           <Group>
-            <IconArrowUp size={32} color="var(--mantine-color-green-6)" />
+            <IconArrowUp size={32} color="var(--mantine-color-green-text)" />
             <Stack gap={0}>
               <Text size="sm" c="dimmed">
                 {t('routes.detail.stats.elevationGain')}
@@ -107,7 +107,7 @@ export function RouteDetailView({
 
         <Paper shadow="xs" p="lg">
           <Group>
-            <IconArrowDown size={32} color="var(--mantine-color-red-6)" />
+            <IconArrowDown size={32} color="var(--mantine-color-red-text)" />
             <Stack gap={0}>
               <Text size="sm" c="dimmed">
                 {t('routes.detail.stats.elevationLoss')}

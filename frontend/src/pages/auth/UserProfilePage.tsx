@@ -90,7 +90,11 @@ export function UserProfilePage() {
   return (
     <Box maw={672} mx="auto">
       <Paper shadow="sm" radius="md">
-        <Box px="lg" py="md" style={{ borderBottom: '1px solid var(--mantine-color-gray-2)' }}>
+        <Box
+          px="lg"
+          py="md"
+          style={{ borderBottom: '1px solid var(--mantine-color-default-border)' }}
+        >
           <Title order={2} size="h4">
             {t('profile.title')}
           </Title>
@@ -110,7 +114,7 @@ export function UserProfilePage() {
                 />
                 <ActionIcon
                   variant="filled"
-                  color="indigo"
+                  color="primary"
                   size="sm"
                   radius="xl"
                   onClick={() => avatarInputRef.current?.click()}
@@ -122,7 +126,7 @@ export function UserProfilePage() {
                 {user.avatarUrl && (
                   <ActionIcon
                     variant="filled"
-                    color="red"
+                    color="danger"
                     size="sm"
                     radius="xl"
                     onClick={() => deleteAvatar()}
@@ -202,7 +206,7 @@ export function UserProfilePage() {
               {t('profile.account.signOut')}
             </Button>
 
-            <Box pt="md" style={{ borderTop: '1px solid var(--mantine-color-gray-2)' }}>
+            <Box pt="md" style={{ borderTop: '1px solid var(--mantine-color-default-border)' }}>
               <Text size="sm" fw={500} c="red">
                 {t('profile.account.dangerZone.title')}
               </Text>
@@ -212,7 +216,7 @@ export function UserProfilePage() {
 
               <Button
                 variant="outline"
-                color="red"
+                color="danger"
                 mt="md"
                 onClick={() => setShowDeleteConfirm(true)}
               >

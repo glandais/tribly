@@ -34,11 +34,11 @@ export function RouteCard({ route, showTeam }: RouteCardProps) {
               gap: 'var(--mantine-spacing-xs)',
             }}
           >
-            <IconUsers size={16} color="var(--mantine-color-gray-6)" />
+            <IconUsers size={16} color="var(--mantine-color-dimmed)" />
             <Text size="sm" c="dimmed" fw={500}>
               {route.team.name}
             </Text>
-            <IconChevronRight size={12} color="var(--mantine-color-gray-5)" />
+            <IconChevronRight size={12} color="var(--mantine-color-dimmed)" />
           </Box>
         )}
 

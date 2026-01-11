@@ -16,14 +16,15 @@ import {
   TooltipItem,
 } from 'chart.js'
 import { useTranslation } from 'react-i18next'
-import { Box, Center, Text, Paper } from '@mantine/core'
+import { Box, Center, Text, Paper, useComputedColorScheme, useMantineTheme } from '@mantine/core'
 import { getRoute } from '@/api/endpoints/routes/routes'
 import type { RouteDetailDto } from '@/api/dto'
 import { StartMarker, EndMarker } from '../map/MapMarkers'
 import { calculateBounds, routeToGeoJSON } from '../map/mapUtils'
 import { MapStyleSwitcher } from '../map/MapStyleSwitcher'
 import { useMapStyle } from '../../hooks/useMapStyle'
-import 'maplibre-gl/dist/maplibre-gl.css'
+import { getOverlayBg } from '@/lib/colors'
+// maplibre-gl CSS is provided by maplibre-theme in index.css
 
 // Register Chart.js components
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Filler)
@@ -73,9 +74,20 @@ export function RoutesMapView({
   onItemHover,
 }: RoutesMapViewProps) {
   const { t } = useTranslation()
-
+  const colorScheme = useComputedColorScheme('light')
+  const theme = useMantineTheme()
   const { styleId, setStyleId, style } = useMapStyle()
   const mapRef = useRef<MapRef>(null)
+
+  // Chart colors based on color scheme
+  const chartColors = useMemo(
+    () => ({
+      text: colorScheme === 'dark' ? theme.colors.dark[0] : theme.colors.dark[7],
+      grid: colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[3],
+      background: getOverlayBg(colorScheme, true),
+    }),
+    [colorScheme, theme.colors.dark, theme.colors.gray]
+  )
   const [routesData, setRoutesData] = useState<RouteData[]>([])
   const [selectedRouteId, setSelectedRouteId] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -229,59 +241,84 @@ export function RoutesMapView({
       }
     : null
 
-  const chartOptions: ChartOptions<'line'> = {
-    responsive: true,
-    maintainAspectRatio: false,
-    interaction: {
-      mode: 'index',
-      intersect: false,
-    },
-    plugins: {
-      legend: {
-        display: false,
+  const chartOptions: ChartOptions<'line'> = useMemo(
+    () => ({
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: {
+        mode: 'index',
+        intersect: false,
       },
-      tooltip: {
-        enabled: true,
-        callbacks: {
-          title: (tooltipItems: TooltipItem<'line'>[]) => {
-            if (tooltipItems.length > 0 && highlightedRoute) {
-              const index = tooltipItems[0].dataIndex
-              const point = highlightedRoute.trackPoints[index]
-              return `${(point[3] / 1000).toFixed(1)} km`
-            }
-            return ''
+      plugins: {
+        legend: {
+          display: false,
+        },
+        tooltip: {
+          enabled: true,
+          backgroundColor: chartColors.background,
+          titleColor: chartColors.text,
+          bodyColor: chartColors.text,
+          borderColor: chartColors.grid,
+          borderWidth: 1,
+          callbacks: {
+            title: (tooltipItems: TooltipItem<'line'>[]) => {
+              if (tooltipItems.length > 0 && highlightedRoute) {
+                const index = tooltipItems[0].dataIndex
+                const point = highlightedRoute.trackPoints[index]
+                return `${(point[3] / 1000).toFixed(1)} km`
+              }
+              return ''
+            },
+            label: (item: TooltipItem<'line'>) => {
+              return `${Math.round(item.parsed.y ?? 0)} m`
+            },
           },
-          label: (item: TooltipItem<'line'>) => {
-            return `${Math.round(item.parsed.y ?? 0)} m`
+        },
+      },
+      scales: {
+        x: {
+          display: true,
+          title: {
+            display: true,
+            text: 'Distance (km)',
+            color: chartColors.text,
+          },
+          ticks: {
+            maxTicksLimit: 10,
+            color: chartColors.text,
+          },
+          grid: {
+            color: chartColors.grid,
+          },
+        },
+        y: {
+          display: true,
+          title: {
+            display: true,
+            text: 'Elevation (m)',
+            color: chartColors.text,
+          },
+          ticks: {
+            color: chartColors.text,
+          },
+          grid: {
+            color: chartColors.grid,
           },
         },
       },
-    },
-    scales: {
-      x: {
-        display: true,
-        title: {
-          display: true,
-          text: 'Distance (km)',
-        },
-        ticks: {
-          maxTicksLimit: 10,
-        },
-      },
-      y: {
-        display: true,
-        title: {
-          display: true,
-          text: 'Elevation (m)',
-        },
-      },
-    },
-    animation: { duration: 0 },
-  }
+      animation: { duration: 0 },
+    }),
+    [chartColors, highlightedRoute]
+  )
 
   if (isLoading) {
     return (
-      <Center w="100%" h={500} bg="gray.1" style={{ borderRadius: 'var(--mantine-radius-sm)' }}>
+      <Center
+        w="100%"
+        h={500}
+        bg="var(--mantine-color-default-hover)"
+        style={{ borderRadius: 'var(--mantine-radius-sm)' }}
+      >
         <Text c="dimmed">{t('loading')}</Text>
       </Center>
     )
@@ -289,7 +326,12 @@ export function RoutesMapView({
 
   if (routesData.length === 0) {
     return (
-      <Center w="100%" h={500} bg="gray.1" style={{ borderRadius: 'var(--mantine-radius-sm)' }}>
+      <Center
+        w="100%"
+        h={500}
+        bg="var(--mantine-color-default-hover)"
+        style={{ borderRadius: 'var(--mantine-radius-sm)' }}
+      >
         <Text c="dimmed">{t(`map.noRoutes`)}</Text>
       </Center>
     )
@@ -302,13 +344,19 @@ export function RoutesMapView({
   return (
     <Box
       style={{
-        border: '1px solid var(--mantine-color-gray-3)',
+        border: '1px solid var(--mantine-color-default-border)',
         borderRadius: 'var(--mantine-radius-sm)',
         overflow: 'hidden',
       }}
     >
       {/* Map container */}
-      <Box pos="relative" w="100%" h={500} style={{ zIndex: 0 }}>
+      <Box
+        pos="relative"
+        w="100%"
+        h={500}
+        className={colorScheme === 'dark' ? 'dark' : undefined}
+        style={{ zIndex: 0 }}
+      >
         <Map
           ref={mapRef}
           mapLib={maplibregl}
@@ -374,7 +422,7 @@ export function RoutesMapView({
           w={{ base: '100%', sm: '40%' }}
           h={150}
           shadow="lg"
-          style={{ zIndex: 1000, pointerEvents: 'auto' }}
+          style={{ zIndex: 1000, pointerEvents: 'auto', backgroundColor: chartColors.background }}
         >
           {chartData && <Line data={chartData} options={chartOptions} />}
         </Paper>

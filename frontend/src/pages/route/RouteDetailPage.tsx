@@ -97,7 +97,7 @@ export function RouteDetailPage() {
               <Button variant="default" component="a" href={paths.routeEdit(teamSlug!, routeSlug!)}>
                 {t('actions.edit')}
               </Button>
-              <Button variant="outline" color="red" onClick={() => setShowDeleteConfirm(true)}>
+              <Button variant="outline" color="danger" onClick={() => setShowDeleteConfirm(true)}>
                 {t('actions.delete')}
               </Button>
             </Group>

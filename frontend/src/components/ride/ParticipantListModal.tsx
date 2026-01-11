@@ -29,7 +29,7 @@ export function ParticipantListModal({
   const participantCount = participants.length
 
   const headerSubtitle = (
-    <Text size="sm" fw={600} c="indigo">
+    <Text size="sm" fw={600} c="primary">
       {t('rides.detail.groups.participantsNoMax', { current: participantCount })}
     </Text>
   )
@@ -41,7 +41,7 @@ export function ParticipantListModal({
       <Box mt="md">
         {participants.length === 0 ? (
           <Stack align="center" py="xl">
-            <IconUsers size={48} color="var(--mantine-color-gray-4)" />
+            <IconUsers size={48} color="var(--mantine-color-dimmed)" />
             <Text size="sm" fw={500} c="dimmed">
               {t('rides.detail.groups.empty')}
             </Text>
@@ -61,7 +61,7 @@ export function ParticipantListModal({
                 mod={{ hover: true }}
                 __vars={{
                   '--hover-bg':
-                    'linear-gradient(to right, var(--mantine-color-indigo-0), var(--mantine-color-grape-0))',
+                    'linear-gradient(to right, var(--mantine-primary-color-light), var(--mantine-primary-color-light))',
                 }}
               >
                 <Group gap="sm" wrap="nowrap">
@@ -72,7 +72,7 @@ export function ParticipantListModal({
                       <ThemeIcon
                         size={20}
                         radius="xl"
-                        color="indigo"
+                        color="primary"
                         pos="absolute"
                         bottom={-4}
                         right={-4}
@@ -98,7 +98,7 @@ export function ParticipantListModal({
 
                   {/* Subtle hover indicator */}
                   <Box style={{ flexShrink: 0, opacity: 0.5 }}>
-                    <IconChevronRight size={16} color="var(--mantine-color-indigo-4)" />
+                    <IconChevronRight size={16} color="var(--mantine-primary-color-light-color)" />
                   </Box>
                 </Group>
               </Box>

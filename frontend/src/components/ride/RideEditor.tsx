@@ -88,7 +88,7 @@ export function RideEditor({
 
   useEffect(() => {
     form.validateField('publishAt')
-  }, [status])
+  }, [status, form])
 
   const handleAddGroup = () => {
     form.insertListItem('groups', { name: `Groupe ${groups.length + 1}` })
@@ -244,7 +244,7 @@ export function RideEditor({
                 <Button
                   variant="subtle"
                   size="xs"
-                  color="red"
+                  color="danger"
                   onClick={() => form.setFieldValue('routeSlug', undefined)}
                 >
                   {t('rides.create.form.route.clear')}
@@ -293,7 +293,7 @@ export function RideEditor({
                   <Button
                     variant="subtle"
                     size="xs"
-                    color="red"
+                    color="danger"
                     onClick={() => handleRemoveGroup(index)}
                   >
                     {t('rides.create.form.groups.remove')}
@@ -377,7 +377,7 @@ export function RideEditor({
                         <Button
                           variant="subtle"
                           size="xs"
-                          color="red"
+                          color="danger"
                           onClick={() => form.setFieldValue(`groups.${index}.routeSlug`, undefined)}
                         >
                           {t('rides.create.form.route.clear')}

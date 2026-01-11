@@ -53,12 +53,12 @@ export function RideGroupCard({
       withBorder
       style={{
         borderColor: isHighlighted
-          ? 'var(--mantine-color-indigo-5)'
+          ? 'var(--mantine-primary-color-filled)'
           : isJoined
-            ? 'var(--mantine-color-indigo-5)'
+            ? 'var(--mantine-primary-color-filled)'
             : undefined,
-        backgroundColor: isHighlighted ? 'var(--mantine-color-indigo-0)' : undefined,
-        boxShadow: isJoined ? '0 0 0 1px var(--mantine-color-indigo-5)' : undefined,
+        backgroundColor: isHighlighted ? 'var(--mantine-primary-color-light)' : undefined,
+        boxShadow: isJoined ? '0 0 0 1px var(--mantine-primary-color-filled)' : undefined,
         transition: 'all 150ms ease',
       }}
       onMouseEnter={() => onHover?.(group.id)}
@@ -71,7 +71,7 @@ export function RideGroupCard({
             {group.name}
           </Text>
           {isJoined && (
-            <Badge size="sm" color="indigo" variant="light">
+            <Badge size="sm" color="primary" variant="light">
               {t('rides.detail.groups.joined')}
             </Badge>
           )}
@@ -137,7 +137,7 @@ export function RideGroupCard({
               </Text>
             </Group>
             {group.participants.length > 5 && (
-              <Text size="xs" fw={500} c="indigo">
+              <Text size="xs" fw={500} c="var(--mantine-primary-color-filled)">
                 {t('rides.detail.groups.viewAll')}
               </Text>
             )}

@@ -19,7 +19,7 @@ const sizeMap = {
 } as const
 
 const colorMap = {
-  primary: 'indigo',
+  primary: 'primary',
   white: 'white',
   gray: 'gray',
 }

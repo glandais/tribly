@@ -102,14 +102,16 @@ export function PlaceList({ teamSlug, canManage }: PlaceListProps) {
                 px="md"
                 style={{
                   borderBottom:
-                    index < places.length - 1 ? '1px solid var(--mantine-color-gray-2)' : undefined,
+                    index < places.length - 1
+                      ? '1px solid var(--mantine-color-default-border)'
+                      : undefined,
                 }}
               >
                 <Group justify="space-between" wrap="nowrap">
                   <Group gap="sm" wrap="nowrap" align="flex-start">
                     <IconMapPin
                       size={20}
-                      color="var(--mantine-color-gray-5)"
+                      color="var(--mantine-color-dimmed)"
                       style={{ marginTop: 2, flexShrink: 0 }}
                     />
                     <Box>
@@ -157,7 +159,7 @@ export function PlaceList({ teamSlug, canManage }: PlaceListProps) {
                       </ActionIcon>
                       <ActionIcon
                         variant="subtle"
-                        color="red"
+                        color="danger"
                         onClick={() => setDeleteConfirm(place.id)}
                         title={t('places.delete')}
                       >

@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback, type ReactNode } from 'react'
-import { TextInput, Paper, Stack, Text, Loader, Box, UnstyledButton } from '@mantine/core'
+import { TextInput, Paper, Stack, Text, Loader, Box } from '@mantine/core'
+import classes from './Autocomplete.module.css'
 
 export interface AutocompleteProps<T> {
   items: T[]
@@ -128,15 +129,18 @@ export function Autocomplete<T>({
         >
           <Stack gap={0}>
             {items.map((item, index) => (
-              <UnstyledButton
+              <Box
                 key={getItemKey(item)}
+                component="button"
+                type="button"
                 onClick={() => handleSelect(item)}
+                className={classes.item}
                 p="sm"
-                bg={index === selectedIndex ? 'gray.1' : undefined}
-                style={{ '&:hover': { backgroundColor: 'var(--mantine-color-gray-1)' } }}
+                w="100%"
+                bg={index === selectedIndex ? 'var(--mantine-color-default-hover)' : undefined}
               >
                 {renderItem(item, index === selectedIndex)}
-              </UnstyledButton>
+              </Box>
             ))}
           </Stack>
         </Paper>

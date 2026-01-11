@@ -18,7 +18,7 @@ export function VisibilityBadge({ visibility, showIcon = true }: VisibilityBadge
     ) : undefined
 
   return (
-    <Badge variant={visibility === 'PUBLIC' ? 'indigo' : 'gray'} icon={icon}>
+    <Badge variant={visibility === 'PUBLIC' ? 'primary' : 'gray'} icon={icon}>
       {t(`visibility.${visibility.toLowerCase() as 'public' | 'team'}`)}
     </Badge>
   )

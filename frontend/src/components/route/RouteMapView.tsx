@@ -21,7 +21,7 @@ import {
   ScriptableContext,
   ScriptableLineSegmentContext,
 } from 'chart.js'
-import { Box, Center, Paper, Text } from '@mantine/core'
+import { Box, Center, Paper, Text, useComputedColorScheme, useMantineTheme } from '@mantine/core'
 import type { RouteDetailDto } from '@/api/dto'
 import { StartMarker, EndMarker, HoverMarker, WaypointMarker } from '../map/MapMarkers'
 import {
@@ -35,15 +35,16 @@ import {
 } from '../map/mapUtils'
 import { MapStyleSwitcher } from '../map/MapStyleSwitcher'
 import { useMapStyle } from '../../hooks/useMapStyle'
-import 'maplibre-gl/dist/maplibre-gl.css'
+import { getOverlayBg } from '@/lib/colors'
+// maplibre-gl CSS is provided by maplibre-theme in index.css
 
 // Register Chart.js components
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Filler)
 
 // Extended chart type with crosshair property
-type ChartWithCrosshair = ChartJS<'line'> & { crosshair?: { x: number } | null }
+type ChartWithCrosshair = ChartJS<'line'> & { crosshair?: { x: number; color?: string } | null }
 
-// Crosshair plugin for Chart.js
+// Crosshair plugin for Chart.js - color is set dynamically via chart.crosshair.color
 const crosshairPlugin: Plugin<'line'> = {
   id: 'crosshair',
   afterDraw: (chart) => {
@@ -58,7 +59,7 @@ const crosshairPlugin: Plugin<'line'> = {
       ctx.moveTo(x, yAxis.top)
       ctx.lineTo(x, yAxis.bottom)
       ctx.lineWidth = 1
-      ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)'
+      ctx.strokeStyle = chartWithCrosshair.crosshair.color || 'rgba(0, 0, 0, 0.3)'
       ctx.stroke()
       ctx.restore()
     }
@@ -71,7 +72,20 @@ interface RouteMapViewProps {
 
 export function RouteMapView({ route }: RouteMapViewProps) {
   const { t } = useTranslation()
+  const colorScheme = useComputedColorScheme('light')
+  const theme = useMantineTheme()
   const { styleId, setStyleId, style } = useMapStyle()
+
+  // Chart colors based on color scheme
+  const chartColors = useMemo(
+    () => ({
+      text: colorScheme === 'dark' ? theme.colors.dark[0] : theme.colors.dark[7],
+      grid: colorScheme === 'dark' ? theme.colors.dark[4] : theme.colors.gray[3],
+      background: getOverlayBg(colorScheme, true),
+      crosshair: colorScheme === 'dark' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)',
+    }),
+    [colorScheme, theme.colors.dark, theme.colors.gray]
+  )
   const [hoveredPointIndex, setHoveredPointIndex] = useState<number>(-1)
   const mapRef = useRef<MapRef>(null)
   const chartRef = useRef<ChartJS<'line'>>(null)
@@ -180,6 +194,11 @@ export function RouteMapView({ route }: RouteMapViewProps) {
         },
         tooltip: {
           enabled: true,
+          backgroundColor: chartColors.background,
+          titleColor: chartColors.text,
+          bodyColor: chartColors.text,
+          borderColor: chartColors.grid,
+          borderWidth: 1,
           callbacks: {
             title: (items: TooltipItem<'line'>[]) => {
               if (items.length > 0) {
@@ -225,9 +244,14 @@ export function RouteMapView({ route }: RouteMapViewProps) {
           title: {
             display: true,
             text: 'Distance (km)',
+            color: chartColors.text,
           },
           ticks: {
             maxTicksLimit: 10,
+            color: chartColors.text,
+          },
+          grid: {
+            color: chartColors.grid,
           },
         },
         y: {
@@ -235,6 +259,13 @@ export function RouteMapView({ route }: RouteMapViewProps) {
           title: {
             display: true,
             text: 'Elevation (m)',
+            color: chartColors.text,
+          },
+          ticks: {
+            color: chartColors.text,
+          },
+          grid: {
+            color: chartColors.grid,
           },
         },
       },
@@ -249,7 +280,7 @@ export function RouteMapView({ route }: RouteMapViewProps) {
             const meta = chart.getDatasetMeta(0)
             const point = meta.data[index]
             if (point) {
-              chart.crosshair = { x: point.x }
+              chart.crosshair = { x: point.x, color: chartColors.crosshair }
               chart.draw()
             }
           }
@@ -257,7 +288,7 @@ export function RouteMapView({ route }: RouteMapViewProps) {
       },
       animation: { duration: 0 },
     }),
-    [trackPoints, climbs]
+    [trackPoints, climbs, chartColors]
   )
 
   // Update chart crosshair when hovering over map
@@ -267,7 +298,7 @@ export function RouteMapView({ route }: RouteMapViewProps) {
       const meta = chart.getDatasetMeta(0)
       const point = meta.data[hoveredPointIndex]
       if (point) {
-        chart.crosshair = { x: point.x }
+        chart.crosshair = { x: point.x, color: chartColors.crosshair }
         chart.draw()
 
         // Show tooltip
@@ -283,11 +314,15 @@ export function RouteMapView({ route }: RouteMapViewProps) {
       chart.tooltip?.setActiveElements([], { x: 0, y: 0 })
       chart.update()
     }
-  }, [hoveredPointIndex])
+  }, [hoveredPointIndex, chartColors.crosshair])
 
   if (trackPoints.length === 0) {
     return (
-      <Center h={700} bg="gray.1" style={{ borderRadius: 'var(--mantine-radius-default)' }}>
+      <Center
+        h={700}
+        bg="var(--mantine-color-default-hover)"
+        style={{ borderRadius: 'var(--mantine-radius-default)' }}
+      >
         <Text c="dimmed">{t('map.noTrackData')}</Text>
       </Center>
     )
@@ -298,7 +333,13 @@ export function RouteMapView({ route }: RouteMapViewProps) {
   return (
     <Paper withBorder style={{ overflow: 'hidden' }}>
       {/* Map container */}
-      <Box pos="relative" w="100%" h={700} style={{ zIndex: 0 }}>
+      <Box
+        pos="relative"
+        w="100%"
+        h={700}
+        className={colorScheme === 'dark' ? 'dark' : undefined}
+        style={{ zIndex: 0 }}
+      >
         <Map
           ref={mapRef}
           mapLib={maplibregl}
@@ -366,8 +407,12 @@ export function RouteMapView({ route }: RouteMapViewProps) {
           left={0}
           right={0}
           h={200}
-          bg="rgba(255, 255, 255, 0.95)"
-          style={{ zIndex: 1000, pointerEvents: 'auto', boxShadow: 'var(--mantine-shadow-lg)' }}
+          style={{
+            zIndex: 1000,
+            pointerEvents: 'auto',
+            boxShadow: 'var(--mantine-shadow-lg)',
+            backgroundColor: chartColors.background,
+          }}
         >
           <Line
             ref={chartRef}

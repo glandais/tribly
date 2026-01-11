@@ -139,7 +139,7 @@ export function TeamListPage() {
           <Paper withBorder p="xl" radius="md">
             <Center>
               <Stack align="center" gap="sm">
-                <IconUsersGroup size={48} color="var(--mantine-color-gray-5)" />
+                <IconUsersGroup size={48} color="var(--mantine-color-dimmed)" />
                 <Text fw={500}>{t('teams.list.empty.title')}</Text>
                 <Text c="dimmed">{t('teams.list.empty.publicTeams')}</Text>
                 {isAuthenticated && (

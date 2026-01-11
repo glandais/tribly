@@ -124,7 +124,7 @@ export function MediaEditor({
   return (
     <Stack gap="sm">
       {teamSlug && (
-        <Paper withBorder p="sm" bg="gray.0">
+        <Paper withBorder p="sm" bg="var(--mantine-color-body)">
           <Group gap="xs" mb="sm">
             <IconPhoto size={16} />
             <Text size="sm" fw={500}>
@@ -140,11 +140,11 @@ export function MediaEditor({
                 w={64}
                 h={64}
                 style={{
-                  border: '2px dashed var(--mantine-color-gray-4)',
+                  border: '2px dashed var(--mantine-color-default-border)',
                   borderRadius: 'var(--mantine-radius-md)',
                 }}
               >
-                <IconPhoto size={32} color="var(--mantine-color-gray-4)" />
+                <IconPhoto size={32} color="var(--mantine-color-dimmed)" />
               </Center>
             )}
 
@@ -171,7 +171,7 @@ export function MediaEditor({
                 <Button
                   variant="default"
                   size="xs"
-                  color="red"
+                  color="danger"
                   onClick={handleRemoveLogo}
                   disabled={disabled}
                   leftSection={<IconX size={14} />}
@@ -209,7 +209,7 @@ export function MediaEditor({
       )}
 
       {teamSlug && (
-        <Paper withBorder p="sm" bg="gray.0">
+        <Paper withBorder p="sm" bg="var(--mantine-color-body)">
           <Group gap="xs" mb="sm">
             <IconPaperclip size={16} />
             <Text size="sm" fw={500}>
@@ -224,11 +224,11 @@ export function MediaEditor({
                   key={attachment.id}
                   justify="space-between"
                   p="xs"
-                  bg="white"
+                  bg="var(--mantine-color-default)"
                   style={{ borderRadius: 'var(--mantine-radius-sm)' }}
                 >
                   <Group gap="xs" style={{ flex: 1, minWidth: 0 }}>
-                    <IconPaperclip size={14} color="var(--mantine-color-gray-5)" />
+                    <IconPaperclip size={14} color="var(--mantine-color-dimmed)" />
                     <Text size="sm" truncate>
                       {attachment.fileName}
                     </Text>

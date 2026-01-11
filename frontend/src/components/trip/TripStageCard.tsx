@@ -35,8 +35,8 @@ export function TripStageCard({
       p="md"
       radius="md"
       style={{
-        borderColor: isHighlighted ? 'var(--mantine-color-indigo-5)' : undefined,
-        backgroundColor: isHighlighted ? 'var(--mantine-color-indigo-0)' : undefined,
+        borderColor: isHighlighted ? 'var(--mantine-primary-color-filled)' : undefined,
+        backgroundColor: isHighlighted ? 'var(--mantine-primary-color-light)' : undefined,
         boxShadow: isHighlighted ? 'var(--mantine-shadow-md)' : undefined,
         transition: 'all 0.2s',
         textDecoration: 'none',
@@ -48,7 +48,7 @@ export function TripStageCard({
     >
       <Group justify="space-between" gap="md" mb="sm" wrap="nowrap">
         <Group gap="sm" wrap="nowrap" style={{ minWidth: 0 }}>
-          <Badge size="lg" variant="light" color="indigo" circle style={{ flexShrink: 0 }}>
+          <Badge size="lg" variant="light" color="primary" circle style={{ flexShrink: 0 }}>
             {index + 1}
           </Badge>
           <Text fw={600} truncate>
@@ -56,7 +56,7 @@ export function TripStageCard({
           </Text>
         </Group>
         <Group gap={4} wrap="nowrap" style={{ flexShrink: 0 }}>
-          <IconCalendar size={16} color="var(--mantine-color-gray-6)" />
+          <IconCalendar size={16} color="var(--mantine-color-dimmed)" />
           <Text size="sm" c="dimmed">
             {formatDateTime(stage.dateTime)}
           </Text>
@@ -73,8 +73,8 @@ export function TripStageCard({
         <Group gap="md" wrap="wrap">
           {stage.startPlace && (
             <Group gap={4} wrap="nowrap">
-              <IconMapPin size={16} color="var(--mantine-color-green-6)" />
-              <Text size="sm" c="green.7" fw={500}>
+              <IconMapPin size={16} color="var(--mantine-color-green-text)" />
+              <Text size="sm" c="var(--mantine-color-green-text)" fw={500}>
                 {t('startPlace')}:
               </Text>
               <Text size="sm">{stage.startPlace.name}</Text>
@@ -82,8 +82,8 @@ export function TripStageCard({
           )}
           {stage.endPlace && (
             <Group gap={4} wrap="nowrap">
-              <IconMapPin size={16} color="var(--mantine-color-red-6)" />
-              <Text size="sm" c="red.7" fw={500}>
+              <IconMapPin size={16} color="var(--mantine-color-red-text)" />
+              <Text size="sm" c="var(--mantine-color-red-text)" fw={500}>
                 {t('endPlace')}:
               </Text>
               <Text size="sm">{stage.endPlace.name}</Text>

@@ -18,7 +18,7 @@ export function MediaDisplay({ media }: MediaDisplayProps) {
       <MarkdownDisplay markdown={media.markdown} preview={false} images={images} />
 
       {attachments.length > 0 && (
-        <Paper withBorder p="sm" bg="gray.0">
+        <Paper withBorder p="sm" bg="var(--mantine-color-body)">
           <Group gap="xs" mb="xs">
             <IconPaperclip size={16} />
             <Text size="sm" fw={500}>
@@ -35,7 +35,7 @@ export function MediaDisplay({ media }: MediaDisplayProps) {
                 size="sm"
               >
                 <Group gap="xs">
-                  <IconPaperclip size={14} color="var(--mantine-color-gray-5)" />
+                  <IconPaperclip size={14} color="var(--mantine-color-dimmed)" />
                   <Text truncate style={{ flex: 1 }}>
                     {attachment.fileName}
                   </Text>

@@ -166,7 +166,7 @@ export function PublicationListPage() {
           <Paper withBorder p="xl" radius="md">
             <Center>
               <Stack align="center" gap="sm">
-                <IconNews size={48} color="var(--mantine-color-gray-5)" />
+                <IconNews size={48} color="var(--mantine-color-dimmed)" />
                 <Text fw={500}>{search ? t('noResults') : t('teams.publications.list.empty')}</Text>
                 {!search && <Text c="dimmed">{t('teams.publications.list.emptyDescription')}</Text>}
               </Stack>

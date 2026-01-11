@@ -23,9 +23,9 @@ function App() {
   // Wait for auth initialization and user sync before rendering routes
   if (!isInitialized || isLoading) {
     return (
-      <Center mih="100vh" bg="gray.0">
+      <Center mih="100vh" bg="var(--mantine-color-body)">
         <Stack align="center">
-          <Loader color="indigo" size="lg" />
+          <Loader color="primary" size="lg" />
           <Text c="dimmed">{t('status.checkingAuth')}</Text>
         </Stack>
       </Center>

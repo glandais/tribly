@@ -78,7 +78,7 @@ export function AllRoutesPage() {
           <Paper shadow="xs" withBorder py="xl">
             <Center>
               <Stack align="center" gap="md">
-                <IconMap size={48} color="var(--mantine-color-red-5)" />
+                <IconMap size={48} color="var(--mantine-color-red-filled)" />
                 <Title order={3}>{t('error.loading')}</Title>
               </Stack>
             </Center>
@@ -105,7 +105,7 @@ export function AllRoutesPage() {
           <Paper shadow="xs" withBorder py="xl">
             <Center>
               <Stack align="center" gap="md">
-                <IconMap size={48} color="var(--mantine-color-gray-5)" />
+                <IconMap size={48} color="var(--mantine-color-dimmed)" />
                 <Title order={3}>
                   {hasFiltersOrSearch ? t('routes.list.noResults') : t('routes.list.empty.title')}
                 </Title>

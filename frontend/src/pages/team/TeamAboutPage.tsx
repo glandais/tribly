@@ -46,11 +46,11 @@ export function TeamAboutPage() {
           </Box>
 
           {/* Stats */}
-          <Box pt="md" style={{ borderTop: '1px solid var(--mantine-color-gray-3)' }}>
+          <Box pt="md" style={{ borderTop: '1px solid var(--mantine-color-default-border)' }}>
             <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
               <Group gap="sm">
                 <Box style={{ flexShrink: 0 }}>
-                  <IconUsers size={20} color="var(--mantine-color-gray-5)" />
+                  <IconUsers size={20} color="var(--mantine-color-dimmed)" />
                 </Box>
                 <Stack gap={0}>
                   <Text size="sm" c="dimmed">
@@ -65,7 +65,7 @@ export function TeamAboutPage() {
               {team.createdAt && (
                 <Group gap="sm">
                   <Box style={{ flexShrink: 0 }}>
-                    <IconCalendar size={20} color="var(--mantine-color-gray-5)" />
+                    <IconCalendar size={20} color="var(--mantine-color-dimmed)" />
                   </Box>
                   <Stack gap={0}>
                     <Text size="sm" c="dimmed">

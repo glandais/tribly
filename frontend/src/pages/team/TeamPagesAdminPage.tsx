@@ -172,7 +172,7 @@ export function TeamPagesAdminPage() {
                   <Group gap="sm" style={{ flex: 1, minWidth: 0 }}>
                     <IconMenu2
                       size={20}
-                      color="var(--mantine-color-gray-5)"
+                      color="var(--mantine-color-dimmed)"
                       style={{ flexShrink: 0 }}
                     />
                     <Group gap="xs" style={{ minWidth: 0 }}>
@@ -194,7 +194,7 @@ export function TeamPagesAdminPage() {
                     </ActionIcon>
                     <ActionIcon
                       variant="subtle"
-                      color="red"
+                      color="danger"
                       onClick={() => handleDelete(page)}
                       title={t('teams.buttons.delete')}
                     >
@@ -209,7 +209,7 @@ export function TeamPagesAdminPage() {
           <Paper p="xl" withBorder>
             <Center>
               <Stack align="center">
-                <IconFileText size={48} color="var(--mantine-color-gray-5)" />
+                <IconFileText size={48} color="var(--mantine-color-dimmed)" />
                 <Title order={3} mt="md">
                   {t('teams.pages.empty.title')}
                 </Title>

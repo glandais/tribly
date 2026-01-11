@@ -77,6 +77,7 @@ frontend/src/
 - Never run backend tests by yourself, give instructions to user. You're bad at fixing tests from tests outcomes
 
 **Frontend**:
+- Check https://mantine.dev/llms.txt for Mantine (UI toolkit) docs
 - Config from `/api/config` endpoint, no .env files
 - Always use `ConfirmDialog` for confirmations (never `confirm()` or custom modals)
 - `MediaEditor` needs `teamSlug` prop for uploads (hidden during team creation)
