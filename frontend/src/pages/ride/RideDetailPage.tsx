@@ -375,9 +375,25 @@ export function RideDetailPage() {
       </Paper>
 
       {/* Map and Groups */}
-      <SimpleGrid cols={{ base: 1, xl: 3 }} spacing="lg" mb="lg">
-        {/* Groups list on left (takes 1 column on xl screens) */}
-        <Box style={{ order: 2 }} data-order-xl="1">
+      <SimpleGrid
+        cols={{ base: 1, md: 2, xl: 3 }}
+        spacing={{ base: 'md', sm: 'lg' }}
+        mb={{ base: 'md', sm: 'lg' }}
+      >
+        {/* Map - shown first on mobile, spans 2 cols on xl */}
+        <Box className="ride-detail-map" style={{ order: 1 }}>
+          {mapItems.length > 0 && (
+            <RoutesMapView
+              items={mapItems}
+              teamSlug={teamSlug!}
+              highlightedItemId={highlightedGroupId}
+              onItemHover={setHighlightedGroupId}
+            />
+          )}
+        </Box>
+
+        {/* Groups list */}
+        <Box style={{ order: 2 }}>
           <Title order={4} mb="md">
             {t('rides.detail.groups.title')}
           </Title>
@@ -407,28 +423,6 @@ export function RideDetailPage() {
             </Stack>
           ) : (
             <Text c="dimmed">{t('rides.detail.groups.empty')}</Text>
-          )}
-        </Box>
-
-        {/* Map on right (takes 2 columns on xl screens) */}
-        <Box style={{ order: 1, gridColumn: 'span 2' }} data-order-xl="2" visibleFrom="xl">
-          {mapItems.length > 0 && (
-            <RoutesMapView
-              items={mapItems}
-              teamSlug={teamSlug!}
-              highlightedItemId={highlightedGroupId}
-              onItemHover={setHighlightedGroupId}
-            />
-          )}
-        </Box>
-        <Box style={{ order: 1 }} hiddenFrom="xl">
-          {mapItems.length > 0 && (
-            <RoutesMapView
-              items={mapItems}
-              teamSlug={teamSlug!}
-              highlightedItemId={highlightedGroupId}
-              onItemHover={setHighlightedGroupId}
-            />
           )}
         </Box>
       </SimpleGrid>

@@ -17,6 +17,7 @@ import {
 } from 'chart.js'
 import { useTranslation } from 'react-i18next'
 import { Box, Center, Text, Paper, useComputedColorScheme, useMantineTheme } from '@mantine/core'
+import { responsiveMapHeight } from '@/hooks/useResponsive'
 import { getRoute } from '@/api/endpoints/routes/routes'
 import type { RouteDetailDto } from '@/api/dto'
 import { StartMarker, EndMarker } from '../map/MapMarkers'
@@ -65,6 +66,8 @@ export interface RoutesMapViewProps {
   teamSlug: string
   highlightedItemId?: string | null
   onItemHover?: (itemId: string | null) => void
+  /** Map size variant: 'compact' for cards, 'standard' for detail pages, 'full' for full-screen */
+  variant?: 'compact' | 'standard' | 'full'
 }
 
 export function RoutesMapView({
@@ -72,8 +75,10 @@ export function RoutesMapView({
   teamSlug,
   highlightedItemId,
   onItemHover,
+  variant = 'full',
 }: RoutesMapViewProps) {
   const { t } = useTranslation()
+  const mapHeight = responsiveMapHeight[variant]
   const colorScheme = useComputedColorScheme('light')
   const theme = useMantineTheme()
   const { styleId, setStyleId, style } = useMapStyle()
@@ -315,7 +320,7 @@ export function RoutesMapView({
     return (
       <Center
         w="100%"
-        h={500}
+        h={mapHeight}
         bg="var(--mantine-color-default-hover)"
         style={{ borderRadius: 'var(--mantine-radius-sm)' }}
       >
@@ -328,7 +333,7 @@ export function RoutesMapView({
     return (
       <Center
         w="100%"
-        h={500}
+        h={mapHeight}
         bg="var(--mantine-color-default-hover)"
         style={{ borderRadius: 'var(--mantine-radius-sm)' }}
       >
@@ -353,7 +358,7 @@ export function RoutesMapView({
       <Box
         pos="relative"
         w="100%"
-        h={500}
+        h={mapHeight}
         className={colorScheme === 'dark' ? 'dark' : undefined}
         style={{ zIndex: 0 }}
       >
@@ -419,8 +424,8 @@ export function RoutesMapView({
           pos="absolute"
           top={0}
           right={0}
-          w={{ base: '100%', sm: '40%' }}
-          h={150}
+          w={{ base: '100%', sm: '50%', md: '40%' }}
+          h={{ base: 120, sm: 140, md: 150 }}
           shadow="lg"
           style={{ zIndex: 1000, pointerEvents: 'auto', backgroundColor: chartColors.background }}
         >

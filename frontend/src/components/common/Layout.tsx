@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { Outlet, Link } from 'react-router-dom'
+import { Outlet, Link, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
   AppShell,
@@ -30,6 +30,12 @@ export function Layout() {
   const { user, isAuthenticated, logout } = useAuth()
   const { items: breadcrumbItems, showBackLink } = useBreadcrumb()
   const [opened, { toggle, close }] = useDisclosure(false)
+  const { pathname } = useLocation()
+
+  // Scroll to top on route change
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [pathname])
 
   // Close mobile menu on Escape key
   useEffect(() => {
@@ -45,9 +51,9 @@ export function Layout() {
 
   return (
     <AppShell
-      header={{ height: 60 }}
+      header={{ height: { base: 56, sm: 60 } }}
       navbar={{ width: 300, breakpoint: 'sm', collapsed: { desktop: true, mobile: !opened } }}
-      padding="md"
+      padding={{ base: 0, sm: 'md' }}
     >
       <AppShell.Header>
         <Container size="lg" h="100%">
@@ -156,7 +162,7 @@ export function Layout() {
       </AppShell.Navbar>
 
       <AppShell.Main>
-        <Container size="lg">
+        <Container size="lg" px={0}>
           <Breadcrumb items={breadcrumbItems} showBackLink={showBackLink} />
           <Outlet />
         </Container>

@@ -17,3 +17,19 @@ body {
   min-width: 320px;
   min-height: 100vh;
 }
+
+/* Responsive layout utilities */
+
+/* TripLayout: content spans 3 cols on md+ (64em = 1024px) */
+@media (min-width: 64em) {
+  .trip-layout-content {
+    grid-column: span 3;
+  }
+}
+
+/* RideDetailPage: map spans 2 cols on xl (90em = 1440px) */
+@media (min-width: 90em) {
+  .ride-detail-map {
+    grid-column: span 2;
+  }
+}

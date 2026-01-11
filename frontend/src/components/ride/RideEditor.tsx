@@ -300,7 +300,7 @@ export function RideEditor({
                   </Button>
                 </Group>
 
-                <SimpleGrid cols={{ base: 1, sm: 4 }} spacing="xs">
+                <SimpleGrid cols={{ base: 1, xs: 2, sm: 4 }} spacing={{ base: 'xs', sm: 'xs' }}>
                   <TextInput
                     placeholder={t('rides.create.form.groups.name.placeholder')}
                     {...form.getInputProps(`groups.${index}.name`)}
