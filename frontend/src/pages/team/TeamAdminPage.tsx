@@ -1,5 +1,5 @@
-import { useParams, Navigate } from 'react-router-dom'
-import { useCanonicalPath } from '../../hooks/useCanonicalPath'
+import { useEffect } from 'react'
+import { useParams, useNavigate } from 'react-router-dom'
 import { paths } from '../../config/paths'
 import { useGetTeam } from '@/api/endpoints/teams/teams'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
@@ -8,28 +8,29 @@ import { useTranslation } from 'react-i18next'
 export function TeamAdminPage() {
   const { t } = useTranslation()
   const { teamSlug } = useParams<{ teamSlug: string }>()
+  const navigate = useNavigate()
 
   const { data: team, isLoading } = useGetTeam(teamSlug!, {
     query: { enabled: !!teamSlug },
   })
 
-  useCanonicalPath(team ? paths.teamAdmin(team.slug) : undefined)
+  useEffect(() => {
+    if (isLoading) return
 
-  if (isLoading) {
-    return <LoadingPage message={t('loading')} />
-  }
+    if (!team) {
+      navigate(paths.teams(), { replace: true })
+      return
+    }
 
-  if (!team) {
-    return <Navigate to={paths.teams()} replace />
-  }
+    const isOrganizer = team.role === 'ADMIN' || team.role === 'ORGANIZER'
+    if (!isOrganizer) {
+      navigate(paths.team(teamSlug!), { replace: true })
+      return
+    }
 
-  // Check if user has admin access
-  const isOrganizer = team.role === 'ADMIN' || team.role === 'ORGANIZER'
+    // Redirect to ride templates as the default admin tab
+    navigate(paths.rideTemplates(teamSlug!), { replace: true })
+  }, [team, isLoading, teamSlug, navigate])
 
-  if (!isOrganizer) {
-    return <Navigate to={paths.team(teamSlug!)} replace />
-  }
-
-  // Redirect to ride templates as the default admin tab
-  return <Navigate to={paths.rideTemplates(teamSlug!)} replace />
+  return <LoadingPage message={t('loading')} />
 }
