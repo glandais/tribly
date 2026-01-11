@@ -5,6 +5,7 @@ import { IconPaperclip, IconX, IconPlus, IconPhoto } from '@tabler/icons-react'
 import { MediaDto, AssetDto } from '@/api/dto'
 import { MarkdownEditor } from './MarkdownEditor'
 import { uploadAsset } from '@/api/endpoints/assets/assets'
+import { getImageSizeWidth } from '@/lib/assetMarkdown'
 
 export interface MediaEditorProps {
   value: MediaDto
@@ -87,19 +88,33 @@ export function MediaEditor({
   }
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file || !teamSlug) return
+    const files = e.target.files
+    if (!files || files.length === 0 || !teamSlug) return
 
     setUploading(true)
     setUploadError(null)
 
+    const newAttachments: AssetDto[] = []
     try {
-      const asset = await uploadAsset(teamSlug, { file })
+      for (const file of Array.from(files)) {
+        const asset = await uploadAsset(teamSlug, { file })
+        newAttachments.push(asset)
+      }
       onChange({
         ...value,
-        assets: { ...value.assets, attachments: [...value.assets.attachments, asset] },
+        assets: { ...value.assets, attachments: [...value.assets.attachments, ...newAttachments] },
       })
     } catch {
+      // Add any successfully uploaded files before the error
+      if (newAttachments.length > 0) {
+        onChange({
+          ...value,
+          assets: {
+            ...value.assets,
+            attachments: [...value.assets.attachments, ...newAttachments],
+          },
+        })
+      }
       setUploadError(t('error.loading'))
     } finally {
       setUploading(false)
@@ -218,39 +233,57 @@ export function MediaEditor({
           </Group>
 
           {attachments.length > 0 && (
-            <Stack gap={4} mb="sm">
-              {attachments.map((attachment: AssetDto) => (
-                <Group
-                  key={attachment.id}
-                  justify="space-between"
-                  p="xs"
-                  bg="var(--mantine-color-default)"
-                  style={{ borderRadius: 'var(--mantine-radius-sm)' }}
-                >
-                  <Group gap="xs" style={{ flex: 1, minWidth: 0 }}>
-                    <IconPaperclip size={14} color="var(--mantine-color-dimmed)" />
-                    <Text size="sm" truncate>
-                      {attachment.fileName}
-                    </Text>
-                  </Group>
-                  <ActionIcon
-                    variant="subtle"
-                    color="gray"
-                    size="sm"
-                    onClick={() => handleRemoveAttachment(attachment.id)}
-                    disabled={disabled}
-                    title={t('actions.delete')}
+            <Stack gap="xs" mb="sm">
+              {attachments.map((attachment: AssetDto) => {
+                const thumbnailUrl = attachment.imageUrl?.replace(
+                  '{size}',
+                  String(getImageSizeWidth('thumbnail'))
+                )
+                return (
+                  <Group
+                    key={attachment.id}
+                    justify="space-between"
+                    p="xs"
+                    bg="var(--mantine-color-default)"
+                    style={{ borderRadius: 'var(--mantine-radius-sm)' }}
                   >
-                    <IconX size={14} />
-                  </ActionIcon>
-                </Group>
-              ))}
+                    <Group gap="xs" style={{ flex: 1, minWidth: 0 }}>
+                      {thumbnailUrl ? (
+                        <Image
+                          src={thumbnailUrl}
+                          alt={attachment.fileName}
+                          w={32}
+                          h={32}
+                          fit="cover"
+                          radius="sm"
+                        />
+                      ) : (
+                        <IconPaperclip size={14} color="var(--mantine-color-dimmed)" />
+                      )}
+                      <Text size="sm" truncate>
+                        {attachment.fileName}
+                      </Text>
+                    </Group>
+                    <ActionIcon
+                      variant="subtle"
+                      color="gray"
+                      size="sm"
+                      onClick={() => handleRemoveAttachment(attachment.id)}
+                      disabled={disabled}
+                      title={t('actions.delete')}
+                    >
+                      <IconX size={14} />
+                    </ActionIcon>
+                  </Group>
+                )
+              })}
             </Stack>
           )}
 
           <input
             ref={fileInputRef}
             type="file"
+            multiple
             onChange={handleFileSelect}
             disabled={!canUpload || uploading}
             hidden

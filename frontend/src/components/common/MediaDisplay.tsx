@@ -1,8 +1,9 @@
 import { useTranslation } from 'react-i18next'
-import { Stack, Paper, Group, Text, Anchor } from '@mantine/core'
+import { Stack, Paper, Group, Text, Anchor, Image } from '@mantine/core'
 import { IconPaperclip, IconDownload } from '@tabler/icons-react'
 import { MediaDto, AssetDto } from '@/api/dto'
 import { MarkdownDisplay } from './MarkdownDisplay'
+import { getImageSizeWidth } from '@/lib/assetMarkdown'
 
 export interface MediaDisplayProps {
   media: MediaDto
@@ -25,24 +26,41 @@ export function MediaDisplay({ media }: MediaDisplayProps) {
               {t('attachments.title')}
             </Text>
           </Group>
-          <Stack gap={4}>
-            {attachments.map((attachment: AssetDto) => (
-              <Anchor
-                key={attachment.id}
-                href={attachment.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                size="sm"
-              >
-                <Group gap="xs">
-                  <IconPaperclip size={14} color="var(--mantine-color-dimmed)" />
-                  <Text truncate style={{ flex: 1 }}>
-                    {attachment.fileName}
-                  </Text>
-                  <IconDownload size={14} />
-                </Group>
-              </Anchor>
-            ))}
+          <Stack gap="xs">
+            {attachments.map((attachment: AssetDto) => {
+              const thumbnailUrl = attachment.imageUrl?.replace(
+                '{size}',
+                String(getImageSizeWidth('thumbnail'))
+              )
+              return (
+                <Anchor
+                  key={attachment.id}
+                  href={attachment.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  size="sm"
+                >
+                  <Group gap="xs">
+                    {thumbnailUrl ? (
+                      <Image
+                        src={thumbnailUrl}
+                        alt={attachment.fileName}
+                        w={getImageSizeWidth('thumbnail')}
+                        h={getImageSizeWidth('thumbnail')}
+                        fit="cover"
+                        radius="sm"
+                      />
+                    ) : (
+                      <IconPaperclip size={14} color="var(--mantine-color-dimmed)" />
+                    )}
+                    <Text truncate style={{ flex: 1 }}>
+                      {attachment.fileName}
+                    </Text>
+                    <IconDownload size={14} />
+                  </Group>
+                </Anchor>
+              )
+            })}
           </Stack>
         </Paper>
       )}
