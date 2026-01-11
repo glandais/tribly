@@ -790,6 +790,7 @@ export const updateTripResponse = zod
         zod
           .object({
             id: zod.string().describe('Stage ID (TSID)'),
+            slug: zod.string().describe('Stage slug'),
             name: zod.string().describe('Stage name'),
             dateTime: zod.iso.datetime({}),
             routeSlug: zod.string().optional().describe('Route slug'),
@@ -1148,6 +1149,7 @@ export const getTripResponse = zod
         zod
           .object({
             id: zod.string().describe('Stage ID (TSID)'),
+            slug: zod.string().describe('Stage slug'),
             name: zod.string().describe('Stage name'),
             dateTime: zod.iso.datetime({}),
             routeSlug: zod.string().optional().describe('Route slug'),
@@ -1547,6 +1549,7 @@ export const changeTripSlugResponse = zod
         zod
           .object({
             id: zod.string().describe('Stage ID (TSID)'),
+            slug: zod.string().describe('Stage slug'),
             name: zod.string().describe('Stage name'),
             dateTime: zod.iso.datetime({}),
             routeSlug: zod.string().optional().describe('Route slug'),

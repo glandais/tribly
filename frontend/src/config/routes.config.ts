@@ -82,6 +82,9 @@ const CreateTripPage = lazy(() =>
 const EditTripPage = lazy(() =>
   import('../pages/trip/EditTripPage').then((m) => ({ default: m.EditTripPage }))
 )
+const StageDetailPage = lazy(() =>
+  import('../pages/trip/StageDetailPage').then((m) => ({ default: m.StageDetailPage }))
+)
 const PostDetailPage = lazy(() =>
   import('../pages/post/PostDetailPage').then((m) => ({ default: m.PostDetailPage }))
 )
@@ -347,6 +350,14 @@ export const routesConfig: RoutesConfig = [
     parentId: 'trip-detail',
     breadcrumb: { type: 'static', i18nKey: tRegister('actions.edit') },
     showBackLink: true,
+  },
+  {
+    id: 'stage-detail',
+    path: paths.stage(':teamSlug', ':tripSlug', ':stageSlug'),
+    component: StageDetailPage,
+    auth: 'public',
+    parentId: 'trip-detail',
+    breadcrumb: { type: 'dynamic', entity: 'stage' },
   },
 
   // === Post Routes ===

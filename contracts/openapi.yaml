@@ -2133,6 +2133,7 @@ components:
       description: Trip stage information
       required:
       - id
+      - slug
       - name
       - dateTime
       - media
@@ -2141,6 +2142,9 @@ components:
         id:
           type: string
           description: Stage ID (TSID)
+        slug:
+          type: string
+          description: Stage slug
         name:
           type: string
           description: Stage name

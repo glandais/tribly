@@ -181,7 +181,7 @@ export const getListRoutesQueryKey = (teamSlug?: string, params?: ListRoutesPara
 
 export const getListRoutesQueryOptions = <
   TData = Awaited<ReturnType<typeof listRoutes>>,
-  TError = ErrorType<void | ErrorResponse>,
+  TError = ErrorType<ErrorResponse>,
 >(
   teamSlug: string,
   params?: ListRoutesParams,
@@ -205,11 +205,11 @@ export const getListRoutesQueryOptions = <
 }
 
 export type ListRoutesQueryResult = NonNullable<Awaited<ReturnType<typeof listRoutes>>>
-export type ListRoutesQueryError = ErrorType<void | ErrorResponse>
+export type ListRoutesQueryError = ErrorType<ErrorResponse>
 
 export function useListRoutes<
   TData = Awaited<ReturnType<typeof listRoutes>>,
-  TError = ErrorType<void | ErrorResponse>,
+  TError = ErrorType<ErrorResponse>,
 >(
   teamSlug: string,
   params: undefined | ListRoutesParams,
@@ -229,7 +229,7 @@ export function useListRoutes<
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useListRoutes<
   TData = Awaited<ReturnType<typeof listRoutes>>,
-  TError = ErrorType<void | ErrorResponse>,
+  TError = ErrorType<ErrorResponse>,
 >(
   teamSlug: string,
   params?: ListRoutesParams,
@@ -249,7 +249,7 @@ export function useListRoutes<
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useListRoutes<
   TData = Awaited<ReturnType<typeof listRoutes>>,
-  TError = ErrorType<void | ErrorResponse>,
+  TError = ErrorType<ErrorResponse>,
 >(
   teamSlug: string,
   params?: ListRoutesParams,
@@ -265,7 +265,7 @@ export function useListRoutes<
 
 export function useListRoutes<
   TData = Awaited<ReturnType<typeof listRoutes>>,
-  TError = ErrorType<void | ErrorResponse>,
+  TError = ErrorType<ErrorResponse>,
 >(
   teamSlug: string,
   params?: ListRoutesParams,
@@ -495,7 +495,7 @@ export const getGetRouteQueryKey = (teamSlug?: string, routeSlug?: string) => {
 
 export const getGetRouteQueryOptions = <
   TData = Awaited<ReturnType<typeof getRoute>>,
-  TError = ErrorType<void | ErrorResponse>,
+  TError = ErrorType<ErrorResponse>,
 >(
   teamSlug: string,
   routeSlug: string,
@@ -522,11 +522,11 @@ export const getGetRouteQueryOptions = <
 }
 
 export type GetRouteQueryResult = NonNullable<Awaited<ReturnType<typeof getRoute>>>
-export type GetRouteQueryError = ErrorType<void | ErrorResponse>
+export type GetRouteQueryError = ErrorType<ErrorResponse>
 
 export function useGetRoute<
   TData = Awaited<ReturnType<typeof getRoute>>,
-  TError = ErrorType<void | ErrorResponse>,
+  TError = ErrorType<ErrorResponse>,
 >(
   teamSlug: string,
   routeSlug: string,
@@ -546,7 +546,7 @@ export function useGetRoute<
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetRoute<
   TData = Awaited<ReturnType<typeof getRoute>>,
-  TError = ErrorType<void | ErrorResponse>,
+  TError = ErrorType<ErrorResponse>,
 >(
   teamSlug: string,
   routeSlug: string,
@@ -566,7 +566,7 @@ export function useGetRoute<
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetRoute<
   TData = Awaited<ReturnType<typeof getRoute>>,
-  TError = ErrorType<void | ErrorResponse>,
+  TError = ErrorType<ErrorResponse>,
 >(
   teamSlug: string,
   routeSlug: string,
@@ -582,7 +582,7 @@ export function useGetRoute<
 
 export function useGetRoute<
   TData = Awaited<ReturnType<typeof getRoute>>,
-  TError = ErrorType<void | ErrorResponse>,
+  TError = ErrorType<ErrorResponse>,
 >(
   teamSlug: string,
   routeSlug: string,

@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { IconCalendar, IconMapPin } from '@tabler/icons-react'
 import { Paper, Group, Text, Anchor, Badge, Box } from '@mantine/core'
@@ -10,6 +11,7 @@ interface TripStageCardProps {
   stage: TripStageDto
   index: number
   teamSlug: string
+  tripSlug: string
   onHover?: (stageId: string | null) => void
   isHighlighted?: boolean
 }
@@ -18,6 +20,7 @@ export function TripStageCard({
   stage,
   index,
   teamSlug,
+  tripSlug,
   onHover,
   isHighlighted = false,
 }: TripStageCardProps) {
@@ -26,6 +29,8 @@ export function TripStageCard({
 
   return (
     <Paper
+      component={Link}
+      to={paths.stage(teamSlug, tripSlug, stage.slug)}
       withBorder
       p="md"
       radius="md"
@@ -34,6 +39,9 @@ export function TripStageCard({
         backgroundColor: isHighlighted ? 'var(--mantine-color-indigo-0)' : undefined,
         boxShadow: isHighlighted ? 'var(--mantine-shadow-md)' : undefined,
         transition: 'all 0.2s',
+        textDecoration: 'none',
+        color: 'inherit',
+        cursor: 'pointer',
       }}
       onMouseEnter={() => onHover?.(stage.id)}
       onMouseLeave={() => onHover?.(null)}

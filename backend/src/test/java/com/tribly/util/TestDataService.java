@@ -565,18 +565,12 @@ public class TestDataService {
 
   @Transactional
   public Ad createAd(Team team, User createdBy, String name, AdType adType) {
-    return createAd(team, createdBy, name, Instant.now(), Visibility.PUBLIC, adType);
+    return createAd(team, createdBy, name, Instant.now(), adType);
   }
 
   @Transactional
-  public Ad createAd(
-      Team team,
-      User createdBy,
-      String name,
-      Instant dateTime,
-      Visibility visibility,
-      AdType adType) {
-    Ad ad = new Ad(createdBy, team, dateTime, name, SlugService.slugify(name), visibility, adType);
+  public Ad createAd(Team team, User createdBy, String name, Instant dateTime, AdType adType) {
+    Ad ad = new Ad(createdBy, team, dateTime, name, SlugService.slugify(name), adType);
     adRepository.persistAndFlush(ad);
     return ad;
   }

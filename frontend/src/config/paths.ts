@@ -42,6 +42,8 @@ export const paths = {
   tripNew: (teamSlug: string) => `/teams/${teamSlug}/trips/new`,
   trip: (teamSlug: string, tripSlug: string) => `/teams/${teamSlug}/trips/${tripSlug}`,
   tripEdit: (teamSlug: string, tripSlug: string) => `/teams/${teamSlug}/trips/${tripSlug}/edit`,
+  stage: (teamSlug: string, tripSlug: string, stageSlug: string) =>
+    `/teams/${teamSlug}/trips/${tripSlug}/stages/${stageSlug}`,
 
   // Posts
   postNew: (teamSlug: string) => `/teams/${teamSlug}/posts/new`,

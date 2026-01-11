@@ -78,7 +78,6 @@ export function CreateAdPage() {
       </Stack>
 
       <AdEditor
-        team={team}
         teamSlug={teamSlug!}
         initialValues={initialValues}
         onSubmit={handleSubmit}

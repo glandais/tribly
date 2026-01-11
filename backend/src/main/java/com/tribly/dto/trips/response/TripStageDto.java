@@ -14,6 +14,7 @@ import org.jspecify.annotations.Nullable;
 @ValidateSchema
 public record TripStageDto(
     @Schema(description = "Stage ID (TSID)", required = true) String id,
+    @Schema(description = "Stage slug", required = true) String slug,
     @Schema(description = "Stage name", required = true) String name,
     @Schema(description = "Stage date/time", required = true) Instant dateTime,
     @Nullable @Schema(description = "Route slug") String routeSlug,
@@ -25,6 +26,7 @@ public record TripStageDto(
   public static TripStageDto from(TripStage stage, AssetService assetService) {
     return new TripStageDto(
         TsidUtils.toString(stage.getId()),
+        stage.getSlug(),
         stage.getName(),
         stage.getDateTime(),
         stage.getRoute() != null ? stage.getRoute().getSlug() : null,

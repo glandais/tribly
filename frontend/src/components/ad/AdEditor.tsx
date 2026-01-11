@@ -3,7 +3,7 @@ import { useForm } from '@mantine/form'
 import { zod4Resolver } from 'mantine-form-zod-resolver'
 import { useTranslation } from 'react-i18next'
 import { TextInput, Radio, Stack, Group, Button, Text, Select, NumberInput } from '@mantine/core'
-import { AdRequest, AdType, RentalPeriod, TeamDetailDto } from '@/api/dto'
+import { AdRequest, AdType, RentalPeriod } from '@/api/dto'
 import { createAdBody } from '@/api/zod/ads/ads.zod'
 import { MediaEditor } from '../common/MediaEditor'
 import { SlugEditor } from '../common/SlugEditor'
@@ -22,7 +22,6 @@ const adSchema = createAdBody.refine(
 )
 
 interface AdEditorProps {
-  team: TeamDetailDto
   teamSlug: string
   initialValues: AdRequest
   onSubmit: (data: AdRequest) => void | Promise<void>
@@ -36,7 +35,6 @@ interface AdEditorProps {
 }
 
 export function AdEditor({
-  team,
   teamSlug,
   initialValues,
   onSubmit,

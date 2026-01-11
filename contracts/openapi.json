@@ -2281,11 +2281,15 @@
       "TripStageDto" : {
         "type" : "object",
         "description" : "Trip stage information",
-        "required" : [ "id", "name", "dateTime", "media", "sortOrder" ],
+        "required" : [ "id", "slug", "name", "dateTime", "media", "sortOrder" ],
         "properties" : {
           "id" : {
             "type" : "string",
             "description" : "Stage ID (TSID)"
+          },
+          "slug" : {
+            "type" : "string",
+            "description" : "Stage slug"
           },
           "name" : {
             "type" : "string",

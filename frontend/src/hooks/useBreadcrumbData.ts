@@ -18,8 +18,17 @@ interface EntityData {
  * Only fetches data for entities present in params
  */
 export function useBreadcrumbData(params: RouteParams): Record<EntityType, EntityData> {
-  const { teamSlug, rideSlug, postSlug, tripSlug, routeSlug, templateSlug, adSlug, pageSlug } =
-    params
+  const {
+    teamSlug,
+    rideSlug,
+    postSlug,
+    tripSlug,
+    stageSlug,
+    routeSlug,
+    templateSlug,
+    adSlug,
+    pageSlug,
+  } = params
 
   // Fetch team - needed for all team-related breadcrumbs
   const { data: team, isLoading: isLoadingTeam } = useGetTeam(teamSlug!, {
@@ -51,11 +60,15 @@ export function useBreadcrumbData(params: RouteParams): Record<EntityType, Entit
     query: { enabled: !!teamSlug && !!pageSlug },
   })
 
+  // Stage name comes from trip's stages array
+  const stage = stageSlug ? trip?.stages?.find((s) => s.slug === stageSlug) : undefined
+
   return {
     team: { name: team?.name, isLoading: isLoadingTeam },
     ride: { name: ride?.name, isLoading: isLoadingRide },
     post: { name: post?.name, isLoading: isLoadingPost },
     trip: { name: trip?.name, isLoading: isLoadingTrip },
+    stage: { name: stage?.name, isLoading: isLoadingTrip },
     route: { name: route?.name, isLoading: isLoadingRoute },
     rideTemplate: { name: rideTemplate?.name, isLoading: isLoadingTemplate },
     ad: { name: ad?.name, isLoading: isLoadingAd },

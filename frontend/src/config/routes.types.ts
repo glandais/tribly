@@ -13,6 +13,7 @@ export interface RouteParams {
   rideSlug?: string
   postSlug?: string
   tripSlug?: string
+  stageSlug?: string
   routeSlug?: string
   templateSlug?: string
   adSlug?: string
@@ -27,6 +28,7 @@ export type EntityType =
   | 'ride'
   | 'post'
   | 'trip'
+  | 'stage'
   | 'route'
   | 'rideTemplate'
   | 'ad'

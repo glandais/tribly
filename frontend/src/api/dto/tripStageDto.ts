@@ -15,6 +15,8 @@ import type { MediaDto } from './mediaDto'
 export interface TripStageDto {
   /** Stage ID (TSID) */
   id: string
+  /** Stage slug */
+  slug: string
   /** Stage name */
   name: string
   /** Stage date/time */

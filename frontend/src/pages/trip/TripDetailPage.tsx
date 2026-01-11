@@ -22,7 +22,6 @@ import {
   Title,
   Text,
   Badge,
-  SimpleGrid,
   Alert,
   Anchor,
 } from '@mantine/core'
@@ -40,6 +39,7 @@ import { Status } from '@/api/dto'
 import { useAuth } from '../../hooks/useAuth'
 import { LoadingPage, LoadingSpinner } from '../../components/common/LoadingSpinner'
 import { TripStageCard } from '../../components/trip/TripStageCard'
+import { TripLayout } from '../../components/trip/TripLayout'
 import { RoutesMapView } from '../../components/common/RoutesMapView'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import { useFormattedDate } from '../../utils/dateFormat'
@@ -336,33 +336,10 @@ export function TripDetailPage() {
         </Group>
       </Paper>
 
-      {/* Map and Stages */}
-      <SimpleGrid cols={{ base: 1, xl: 3 }} spacing="lg" mb="lg">
-        {/* Stages list on left (takes 1 column on xl screens) */}
-        <Box style={{ order: 2 }} data-order-xl="1">
-          <Title order={3} mb="md">
-            {t('trips.detail.stages.title')}
-          </Title>
-          {trip.stages && trip.stages.length > 0 ? (
-            <Stack gap="sm">
-              {trip.stages.map((stage, index) => (
-                <TripStageCard
-                  key={stage.id}
-                  stage={stage}
-                  index={index}
-                  teamSlug={teamSlug!}
-                  onHover={setHighlightedStageId}
-                  isHighlighted={highlightedStageId === stage.id}
-                />
-              ))}
-            </Stack>
-          ) : (
-            <Text c="dimmed">{t('trips.detail.stages.empty')}</Text>
-          )}
-        </Box>
-
-        {/* Map on right (takes 2 columns on xl screens) */}
-        <Box style={{ order: 1, gridColumn: 'span 2' }} data-order-xl="2" visibleFrom="xl">
+      {/* Stage tabs + Overview content */}
+      <TripLayout trip={trip} teamSlug={teamSlug!} currentTab="overview">
+        <Stack gap="lg">
+          {/* Map */}
           {trip.stages && trip.stages.length > 0 && (
             <RoutesMapView
               items={trip.stages}
@@ -371,69 +348,83 @@ export function TripDetailPage() {
               onItemHover={setHighlightedStageId}
             />
           )}
-        </Box>
-        <Box style={{ order: 1 }} hiddenFrom="xl">
-          {trip.stages && trip.stages.length > 0 && (
-            <RoutesMapView
-              items={trip.stages}
-              teamSlug={teamSlug!}
-              highlightedItemId={highlightedStageId}
-              onItemHover={setHighlightedStageId}
-            />
+
+          {/* Stages list */}
+          <Box>
+            <Title order={3} mb="md">
+              {t('trips.detail.stages.title')}
+            </Title>
+            {trip.stages && trip.stages.length > 0 ? (
+              <Stack gap="sm">
+                {trip.stages.map((stage, index) => (
+                  <TripStageCard
+                    key={stage.id}
+                    stage={stage}
+                    index={index}
+                    teamSlug={teamSlug!}
+                    tripSlug={trip.slug}
+                    onHover={setHighlightedStageId}
+                    isHighlighted={highlightedStageId === stage.id}
+                  />
+                ))}
+              </Stack>
+            ) : (
+              <Text c="dimmed">{t('trips.detail.stages.empty')}</Text>
+            )}
+          </Box>
+
+          {/* Participants section */}
+          {trip.participants && trip.participants.length > 0 && (
+            <Paper withBorder p="lg">
+              <Title order={3} mb="md">
+                {t('trips.detail.participants.title')}
+              </Title>
+              <Group gap="xs">
+                {trip.participants.map((participant) => (
+                  <Badge key={participant.id} variant="light" color="gray" size="lg">
+                    {participant.displayName}
+                  </Badge>
+                ))}
+              </Group>
+            </Paper>
           )}
-        </Box>
-      </SimpleGrid>
 
-      {/* Participants section */}
-      {trip.participants && trip.participants.length > 0 && (
-        <Paper withBorder p="lg" mb="lg">
-          <Title order={3} mb="md">
-            {t('trips.detail.participants.title')}
-          </Title>
-          <Group gap="xs">
-            {trip.participants.map((participant) => (
-              <Badge key={participant.id} variant="light" color="gray" size="lg">
-                {participant.displayName}
-              </Badge>
-            ))}
-          </Group>
-        </Paper>
-      )}
+          {/* Info for non-members */}
+          {!isMember && isAuthenticated && (
+            <Alert color="yellow" variant="light">
+              <Text>
+                {t('trips.detail.nonMember.message')}{' '}
+                <Anchor component={Link} to={paths.team(teamSlug!)} fw={500}>
+                  {t('trips.detail.nonMember.viewTeam')}
+                </Anchor>
+              </Text>
+            </Alert>
+          )}
 
-      {/* Info for non-members */}
-      {!isMember && isAuthenticated && (
-        <Alert color="yellow" variant="light" mb="lg">
-          <Text>
-            {t('trips.detail.nonMember.message')}{' '}
-            <Anchor component={Link} to={paths.team(teamSlug!)} fw={500}>
-              {t('trips.detail.nonMember.viewTeam')}
-            </Anchor>
-          </Text>
-        </Alert>
-      )}
+          {!isAuthenticated && (
+            <Alert color="blue" variant="light">
+              <Text>
+                {t('trips.detail.notAuthenticated.message')}{' '}
+                <Anchor component={Link} to="/login" fw={500}>
+                  {t('trips.detail.notAuthenticated.signIn')}
+                </Anchor>
+              </Text>
+            </Alert>
+          )}
 
-      {!isAuthenticated && (
-        <Alert color="blue" variant="light" mb="lg">
-          <Text>
-            {t('trips.detail.notAuthenticated.message')}{' '}
-            <Anchor component={Link} to="/login" fw={500}>
-              {t('trips.detail.notAuthenticated.signIn')}
-            </Anchor>
-          </Text>
-        </Alert>
-      )}
-
-      {/* Comments Section - only visible to team members */}
-      {isMember && (
-        <Box mt="lg">
-          <CommentSection
-            teamSlug={teamSlug!}
-            entityType="trips"
-            entitySlug={tripSlug!}
-            isOrganizer={canEdit}
-          />
-        </Box>
-      )}
+          {/* Comments Section - only visible to team members */}
+          {isMember && (
+            <Box>
+              <CommentSection
+                teamSlug={teamSlug!}
+                entityType="trips"
+                entitySlug={tripSlug!}
+                isOrganizer={canEdit}
+              />
+            </Box>
+          )}
+        </Stack>
+      </TripLayout>
 
       {/* Confirmation Dialogs */}
       <ConfirmDialog

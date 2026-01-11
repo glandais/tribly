@@ -179,7 +179,7 @@ export const getListPublicationsQueryKey = (teamSlug?: string, params?: ListPubl
 
 export const getListPublicationsQueryOptions = <
   TData = Awaited<ReturnType<typeof listPublications>>,
-  TError = ErrorType<void | ErrorResponse>,
+  TError = ErrorType<ErrorResponse>,
 >(
   teamSlug: string,
   params?: ListPublicationsParams,
@@ -203,11 +203,11 @@ export const getListPublicationsQueryOptions = <
 }
 
 export type ListPublicationsQueryResult = NonNullable<Awaited<ReturnType<typeof listPublications>>>
-export type ListPublicationsQueryError = ErrorType<void | ErrorResponse>
+export type ListPublicationsQueryError = ErrorType<ErrorResponse>
 
 export function useListPublications<
   TData = Awaited<ReturnType<typeof listPublications>>,
-  TError = ErrorType<void | ErrorResponse>,
+  TError = ErrorType<ErrorResponse>,
 >(
   teamSlug: string,
   params: undefined | ListPublicationsParams,
@@ -227,7 +227,7 @@ export function useListPublications<
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useListPublications<
   TData = Awaited<ReturnType<typeof listPublications>>,
-  TError = ErrorType<void | ErrorResponse>,
+  TError = ErrorType<ErrorResponse>,
 >(
   teamSlug: string,
   params?: ListPublicationsParams,
@@ -247,7 +247,7 @@ export function useListPublications<
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useListPublications<
   TData = Awaited<ReturnType<typeof listPublications>>,
-  TError = ErrorType<void | ErrorResponse>,
+  TError = ErrorType<ErrorResponse>,
 >(
   teamSlug: string,
   params?: ListPublicationsParams,
@@ -263,7 +263,7 @@ export function useListPublications<
 
 export function useListPublications<
   TData = Awaited<ReturnType<typeof listPublications>>,
-  TError = ErrorType<void | ErrorResponse>,
+  TError = ErrorType<ErrorResponse>,
 >(
   teamSlug: string,
   params?: ListPublicationsParams,
