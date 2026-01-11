@@ -389,6 +389,8 @@
   "routes.surfaceType.MIXED": "Mixed",
   "routes.surfaceType.MTB": "MTB",
   "routes.surfaceType.ROAD": "Road",
+  "routes.upload.button": "Import GPX",
+  "routes.upload.progress": "{{current}}/{{total}}",
   "slug.edit": "Edit URL",
   "slug.error.empty": "URL cannot be empty",
   "slug.error.invalid": "Only lowercase letters, numbers, and hyphens are allowed",

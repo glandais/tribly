@@ -15,6 +15,7 @@ import { Pagination } from '../../components/common/Pagination'
 import { usePaginatedQuery } from '../../hooks/usePaginatedQuery'
 import { RouteFilterPanel } from '../../components/route/RouteFilterPanel'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
+import { UploadGpxFiles } from '../../components/route/UploadGpxFiles'
 
 export function RouteListPage() {
   const { teamSlug } = useParams<{ teamSlug: string }>()
@@ -85,13 +86,16 @@ export function RouteListPage() {
         <Group justify="space-between">
           <Title order={2}>{t('routes.list.title')}</Title>
           {canCreateRoute && (
-            <Button
-              component="a"
-              href={paths.routeNew(teamSlug!)}
-              leftSection={<IconPlus size={16} />}
-            >
-              {t('routes.create.title')}
-            </Button>
+            <Group gap="sm">
+              <UploadGpxFiles teamSlug={teamSlug!} />
+              <Button
+                component="a"
+                href={paths.routeNew(teamSlug!)}
+                leftSection={<IconPlus size={16} />}
+              >
+                {t('routes.create.title')}
+              </Button>
+            </Group>
           )}
         </Group>
 

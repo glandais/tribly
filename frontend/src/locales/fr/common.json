@@ -395,6 +395,8 @@
   "routes.surfaceType.MIXED": "Mixte",
   "routes.surfaceType.MTB": "VTT",
   "routes.surfaceType.ROAD": "Route",
+  "routes.upload.button": "Importer GPX",
+  "routes.upload.progress": "{{current}}/{{total}}",
   "slug.edit": "Modifier l'URL",
   "slug.error.empty": "L'URL ne peut pas être vide",
   "slug.error.invalid": "Seules les lettres minuscules, chiffres et tirets sont autorisés",
