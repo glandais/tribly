@@ -3,14 +3,6 @@
   "enabled": true,
   "clients": [
     {
-      "clientId": "tribly-backend",
-      "enabled": true,
-      "publicClient": true,
-      "directAccessGrantsEnabled": true,
-      "redirectUris": ["*"],
-      "webOrigins": ["*"]
-    },
-    {
       "clientId": "tribly-frontend",
       "enabled": true,
       "publicClient": true,

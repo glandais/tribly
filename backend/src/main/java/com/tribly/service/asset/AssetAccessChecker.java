@@ -53,7 +53,7 @@ public class AssetAccessChecker implements AccessChecker {
         TeamEntity teamEntity = asset.getTeamEntity();
         if (teamEntity == null) {
           // Asset not yet attached to entity - only organizers can see/modify
-          yield teamRole != null && teamRole.isOrganizer();
+          yield user != null && teamRole != null && asset.getCreatedBy().getId().equals(user.getId());
         }
         // User can read asset if he has rights to see related entity
         securityVerifier.verifyAccess(

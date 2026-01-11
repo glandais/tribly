@@ -8,8 +8,9 @@ Must-have for public launch. Focus on first impressions and core UX.
   - [ ] Still issues
 - [X] Dark mode — Expected by modern users
   - [ ] Fix style select dark mode in markdown editor
-- [ ] Appealing cards (icons, route previews)
-- [ ] Pagination / infinite scrolling — Performance at scale
+- [X] Appealing cards (icons, route previews)
+  - [ ] Still some polish to do ...
+- [X] Pagination / infinite scrolling — Performance at scale
 
 ### Discoverability
 - [ ] SEO/robots.txt/llms.txt — Organic growth driver

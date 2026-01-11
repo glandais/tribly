@@ -54,7 +54,7 @@ public class UserService {
   }
 
   /**
-   * Lookup user by email without creating/updating. Used by SecurityIdentityAugmentor.
+   * Lookup user by email without creating/updating. Used by TriblyQueryContext.
    *
    * @param email the user's email
    * @return Optional containing the user if found, empty otherwise
