@@ -19,77 +19,142 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
+        // Order matters: specific checks MUST come before broad ones
         manualChunks(id) {
-          // React core
-          if (id.includes('node_modules/react/') ||
-              id.includes('node_modules/react-dom/') ||
-              id.includes('node_modules/react-router')) {
-            return 'react-vendor';
-          }
-          if (id.includes('node_modules/react') ||
-              id.includes('node_modules/tailwind-merge') ||
-              id.includes('node_modules/sonner') ||
-              id.includes('node_modules/zod') ||
-              id.includes('node_modules/@radix-ui') ||
-              id.includes('node_modules/@tanstack') ||
-              id.includes('node_modules/scheduler/')) {
-            return 'react-plus-vendor';
+          if (!id.includes('node_modules/')) {
+            return; // Let Rollup handle app code
           }
 
-          // Maps
-          if (id.includes('node_modules/maplibre-gl/') ||
-              id.includes('node_modules/@versatiles') ||
-              id.includes('node_modules/@vis.gl/react-maplibre') ||
-              id.includes('node_modules/react-map-gl/')) {
-            return 'maplibre-vendor';
+          // === MAPS (check first - react-map-gl must not fall to react checks) ===
+          if (
+            id.includes('node_modules/maplibre-gl/') ||
+            id.includes('node_modules/maplibre-theme/') ||
+            id.includes('node_modules/react-map-gl/') ||
+            id.includes('node_modules/@versatiles/') ||
+            id.includes('node_modules/geokdbush/') ||
+            id.includes('node_modules/kdbush/')
+          ) {
+            return 'map-vendor';
           }
 
-          // Auth
-          if (id.includes('node_modules/keycloak-js/')) {
-            return 'keycloak-vendor';
+          // === EDITOR (unified ecosystem must be together to avoid cycles) ===
+          if (
+            // MDX/Lexical editors
+            id.includes('node_modules/@mdxeditor/') ||
+            id.includes('node_modules/@lexical/') ||
+            id.includes('node_modules/lexical/') ||
+            // React markdown
+            id.includes('node_modules/react-markdown/') ||
+            // Syntax highlighting
+            id.includes('node_modules/prismjs/') ||
+            id.includes('node_modules/remove-markdown/') ||
+            // Unified ecosystem (remark, rehype, mdast, hast, micromark, etc.)
+            id.includes('node_modules/unified/') ||
+            id.includes('node_modules/remark') ||
+            id.includes('node_modules/rehype') ||
+            id.includes('node_modules/mdast') ||
+            id.includes('node_modules/hast') ||
+            id.includes('node_modules/micromark') ||
+            id.includes('node_modules/unist') ||
+            id.includes('node_modules/vfile') ||
+            // Unified utilities
+            id.includes('node_modules/bail/') ||
+            id.includes('node_modules/trough/') ||
+            id.includes('node_modules/devlop/') ||
+            id.includes('node_modules/ccount/') ||
+            id.includes('node_modules/zwitch/') ||
+            id.includes('node_modules/character-entities') ||
+            id.includes('node_modules/character-reference') ||
+            id.includes('node_modules/comma-separated-tokens/') ||
+            id.includes('node_modules/space-separated-tokens/') ||
+            id.includes('node_modules/property-information/') ||
+            id.includes('node_modules/stringify-entities/') ||
+            id.includes('node_modules/decode-named-character-reference/') ||
+            id.includes('node_modules/estree-util-') ||
+            id.includes('node_modules/parse-entities/') ||
+            id.includes('node_modules/trim-lines/') ||
+            id.includes('node_modules/is-plain-obj/')
+          ) {
+            return 'editor-vendor';
           }
 
-          if (id.includes('node_modules/axios')) {
-            return 'axios-vendor';
-          }
-
-          if (id.includes('node_modules/react-chartjs') ||
-              id.includes('node_modules/chart.js')) {
+          // === CHARTS (check before react - react-chartjs-2 must not fall to react) ===
+          if (
+            id.includes('node_modules/chart.js/') ||
+            id.includes('node_modules/react-chartjs-2/')
+          ) {
             return 'chart-vendor';
           }
 
-          if (id.includes('node_modules/@mdxeditor') ||
-              id.includes('node_modules/@lexical') ||
-              id.includes('node_modules/lexical') ||
-              id.includes('node_modules/react-markdown') ||
-              id.includes('node_modules/prismjs') ||
-              id.includes('node_modules/micromark') ||
-              id.includes('node_modules/mdast')) {
-            return 'markdown-vendor';
-          }
-
-          if (id.includes('node_modules/date-fns')) {
-            return 'date-vendor';
-          }
-
-          if (id.includes('node_modules/@heroicons')) {
-            return 'heroicons-vendor';
-          }
-
-          // i18n
-          if (id.includes('node_modules/i18next') ||
-              id.includes('node_modules/react-i18next/')) {
+          // === I18N (check before react - react-i18next must not fall to react) ===
+          if (
+            id.includes('node_modules/i18next') ||
+            id.includes('node_modules/react-i18next/')
+          ) {
             return 'i18n-vendor';
           }
 
-          // Other node_modules go to vendor chunk
-          if (id.includes('node_modules/')) {
-            return 'vendor';
+          // === UI: Mantine (large, separate chunk) ===
+          if (
+            id.includes('node_modules/@mantine/') ||
+            id.includes('node_modules/mantine-form-zod-resolver/')
+          ) {
+            return 'mantine-vendor';
           }
+
+          // === ICONS (project uses @tabler, not @heroicons) ===
+          if (id.includes('node_modules/@tabler/icons-react/')) {
+            return 'icons-vendor';
+          }
+
+          // === REACT CORE (now safe - specific react-* packages already handled) ===
+          if (
+            id.includes('node_modules/react/') ||
+            id.includes('node_modules/react-dom/') ||
+            id.includes('node_modules/scheduler/')
+          ) {
+            return 'react-vendor';
+          }
+
+          // === REACT ROUTER ===
+          if (id.includes('node_modules/react-router')) {
+            return 'router-vendor';
+          }
+
+          // === DATA LAYER (state, fetching, validation) ===
+          if (
+            id.includes('node_modules/@tanstack/') ||
+            id.includes('node_modules/zustand/') ||
+            id.includes('node_modules/axios/') ||
+            id.includes('node_modules/zod/')
+          ) {
+            return 'data-vendor';
+          }
+
+          // === DATES ===
+          if (
+            id.includes('node_modules/date-fns') ||
+            id.includes('node_modules/dayjs/')
+          ) {
+            return 'date-vendor';
+          }
+
+          // === AUTH ===
+          if (id.includes('node_modules/keycloak-js/')) {
+            return 'auth-vendor';
+          }
+
+          // === UI UTILITIES ===
+          if (id.includes('node_modules/react-resizable-panels/')) {
+            return 'ui-utils-vendor';
+          }
+
+          // === REMAINING VENDOR ===
+          return 'vendor';
         },
       },
     },
-    chunkSizeWarningLimit: 600, // Temporarily increase to reduce noise while optimizing
+    chunkSizeWarningLimit: 500,
   },
   server: {
     port: 5173,
