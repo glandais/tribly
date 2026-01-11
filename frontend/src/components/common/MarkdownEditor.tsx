@@ -119,7 +119,7 @@ function ToolbarContents({ editorRef, onImageUpload, isUploadingImage }: Toolbar
     <>
       <UndoRedo />
       <Separator />
-      <BoldItalicUnderlineToggles />
+      <BoldItalicUnderlineToggles options={['Bold', 'Italic']} />
       <Separator />
       <BlockTypeSelect />
       <Separator />
