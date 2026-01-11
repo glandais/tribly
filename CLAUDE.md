@@ -6,8 +6,8 @@ Tribly: multi-tenant cycling team platform (rides, routes with GPX/maps, posts).
 
 | Layer | Technologies |
 |-------|-------------|
-| Backend | Java 21, Quarkus 3.30.x, PostgreSQL 16 + PostGIS, Hibernate/Panache, Flyway |
-| Frontend | TypeScript 5, React 18, Vite, TailwindCSS, Zustand, React Query |
+| Backend | Java 21, Quarkus 3.30.x, PostgreSQL 17 + PostGIS, Hibernate/Panache, Flyway |
+| Frontend | TypeScript 5, React 19, Vite, Mantine UI, Zustand, React Query |
 | Auth | Keycloak OIDC (docker-compose dev, Dev Services test) |
 | IDs | TSID via hypersistence-utils (Long internally, lowercase string in API) |
 | API | OpenAPI 3.1 contract-first with code generation |
@@ -25,28 +25,45 @@ pnpm build                         # Type check + build
 pnpm generate-api                  # Generate API client from OpenAPI
 
 # Infrastructure
-docker compose up -d               # PostgreSQL + Keycloak
+docker compose up -d               # PostgreSQL + Keycloak + imgproxy + brouter
 docker compose --profile tools up  # + pgAdmin + Mailhog
 ```
+
+## Backend Services
+
+| Service | Port | Purpose |
+|---------|------|---------|
+| imgproxy | 38080 | Image optimization/transformation (WebP, AVIF, JXL) |
+| brouter | 17777 | Routing engine and elevation profiles |
 
 ## Architecture
 
 ```
 backend/src/main/java/com/tribly/
 ├── api/              # REST resources (thin controllers)
+├── common/           # Utilities (TsidUtils, exceptions)
 ├── dto/              # Request/response DTOs by domain
-├── domain/           # JPA entities, repositories, query builders
-├── service/          # Business logic
+├── domain/           # JPA entities organized by subdomain
+│   └── common/       # BaseEntity, TeamEntity, Publication
 ├── enums/            # Shared enums (Status, TeamRole, Visibility, AssetType)
-└── infrastructure/   # Exceptions, security, ID utils
+├── infrastructure/   # Cross-cutting (security, cache, brouter, imgproxy)
+├── repository/       # Panache repositories
+└── service/          # Business logic
 
 frontend/src/
 ├── api/              # Generated from Orval (pnpm generate-api)
-├── components/       # By domain (common/, team/, ride/, route/, post/)
+│   ├── dto/          # Generated DTOs
+│   ├── endpoints/    # Generated API functions
+│   └── zod/          # Generated Zod schemas
+├── components/       # By domain (common/, team/, ride/, route/, post/, trip/, etc.)
+├── config/           # paths.ts, routes.config.ts, appConfig.ts
 ├── hooks/            # React Query wrappers
-├── pages/            # Route-level components
+├── lib/              # axiosInstance.ts, apiUtils.ts
 ├── locales/{en,fr}/  # i18n (French default)
-└── lib/              # apiClient.ts, apiUtils.ts
+├── pages/            # Route-level components
+├── store/            # Zustand stores
+├── types/            # TypeScript type definitions
+└── utils/            # Utility functions
 ```
 
 ## Contract-First Workflow
@@ -57,11 +74,11 @@ frontend/src/
 
 ## Key Patterns
 
-- **Base entities**: `BaseEntity` (TSID, timestamps, soft delete), `TeamEntity` (adds slug, visibility, status)
+- **Base entities**: `BaseEntity` (TSID, timestamps, soft delete), `TeamEntity` (adds slug, visibility, status) in `domain/common/`
+- **Publications**: `Publication` is an abstract @Entity extending TeamEntity (single-table inheritance). Rides and Posts extend it.
 - **Slugs**: Unique per team, auto-generated from title → see `SlugService.generateSlug()`
-- **TSID conversion**: `TsidUtils.toString()` / `TsidUtils.toLong()`
+- **TSID conversion**: `TsidUtils.toString()` / `TsidUtils.toLong()` in `common/` package
 - **Assets**: Upload via `assetsApi.uploadAsset()`, type assigned by field placement in `AssetsDto` → see `AssetService.updateAssets()`
-- **Publications**: Rides and Posts implement `Publication` interface for unified feeds
 
 ## Critical Gotchas
 
@@ -77,13 +94,13 @@ frontend/src/
 - Never run backend tests by yourself, give instructions to user. You're bad at fixing tests from tests outcomes
 
 **Frontend**:
-- Check https://mantine.dev/llms.txt for Mantine (UI toolkit) docs
-- Config from `/api/config` endpoint, no .env files
+- Uses Mantine UI as component library → check https://mantine.dev/llms.txt for docs
+- Frontend config from `/api/config` endpoint, no .env files (backend uses `.env` for OIDC secret only)
 - Always use `ConfirmDialog` for confirmations (never `confirm()` or custom modals)
 - `MediaEditor` needs `teamSlug` prop for uploads (hidden during team creation)
 - Logos: `TeamAvatar` (with initials fallback) vs `EntityLogo` (no fallback)
-- Never use SVG for icons, use `@heroicons`
-- Never use hard coded links, use paths.XXX(YYYslug)
+- Never use SVG for icons, use `@tabler/icons-react`
+- Never use hard coded links, use paths.XXX(YYYslug) from `config/paths.ts`
 - Templated i18n keys must use type annotations: `t(\`status.\${x satisfies 'DRAFT' | 'PUBLISHED'}\`)` (validated by `pnpm i18n:lint`)
 
 **Keycloak**:
@@ -95,7 +112,7 @@ frontend/src/
 | Username | Password | Roles |
 |----------|----------|-------|
 | admin | admin | admin, user |
-| user1/2/3 | user1/2/3 | user |
+| user1-6 | user1-6 | user |
 
 ## Dev URLs
 
