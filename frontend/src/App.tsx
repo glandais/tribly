@@ -6,19 +6,26 @@ import { ErrorBoundary } from './components/common/ErrorBoundary'
 import { AppRoutes } from './config/RouteGenerator'
 import { useAuthStore } from './store/authStore'
 import { useAuth } from './hooks/useAuth'
+import { prefetchCommonRoutes } from './lib/prefetch'
 
 function App() {
   const isInitialized = useAuthStore((state) => state.isInitialized)
   const initialize = useAuthStore((state) => state.initialize)
   const { t } = useTranslation()
+  // useAuth triggers the /me query and sets isLoading to false when done
+  const { isLoading } = useAuth()
 
   // Initialize Keycloak auth on mount
   useEffect(() => {
     initialize()
   }, [initialize])
 
-  // useAuth triggers the /me query and sets isLoading to false when done
-  const { isLoading } = useAuth()
+  // Prefetch common routes after app is ready
+  useEffect(() => {
+    if (isInitialized && !isLoading) {
+      prefetchCommonRoutes()
+    }
+  }, [isInitialized, isLoading])
 
   // Wait for auth initialization and user sync before rendering routes
   if (!isInitialized || isLoading) {

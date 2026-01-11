@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, lazy, Suspense } from 'react'
 import { Link, useParams, Navigate, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
@@ -24,6 +24,7 @@ import {
   Badge,
   Alert,
   Anchor,
+  Skeleton,
 } from '@mantine/core'
 import { useGetTeam } from '@/api/endpoints/teams/teams'
 import {
@@ -40,8 +41,12 @@ import { useAuth } from '../../hooks/useAuth'
 import { LoadingPage, LoadingSpinner } from '../../components/common/LoadingSpinner'
 import { TripStageCard } from '../../components/trip/TripStageCard'
 import { TripLayout } from '../../components/trip/TripLayout'
-import { RoutesMapView } from '../../components/common/RoutesMapView'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
+
+// Lazy load the map component (pulls in map-vendor ~1MB and chart-vendor ~150KB)
+const RoutesMapView = lazy(() =>
+  import('../../components/common/RoutesMapView').then((m) => ({ default: m.RoutesMapView }))
+)
 import { useFormattedDate } from '../../utils/dateFormat'
 import { MediaDisplay } from '../../components/common/MediaDisplay'
 import { EntityLogo } from '../../components/common/EntityLogo'
@@ -341,12 +346,14 @@ export function TripDetailPage() {
         <Stack gap="lg">
           {/* Map */}
           {trip.stages && trip.stages.length > 0 && (
-            <RoutesMapView
-              items={trip.stages}
-              teamSlug={teamSlug!}
-              highlightedItemId={highlightedStageId}
-              onItemHover={setHighlightedStageId}
-            />
+            <Suspense fallback={<Skeleton height={500} radius="md" />}>
+              <RoutesMapView
+                items={trip.stages}
+                teamSlug={teamSlug!}
+                highlightedItemId={highlightedStageId}
+                onItemHover={setHighlightedStageId}
+              />
+            </Suspense>
           )}
 
           {/* Stages list */}

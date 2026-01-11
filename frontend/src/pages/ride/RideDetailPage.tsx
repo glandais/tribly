@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, lazy, Suspense } from 'react'
 import { Link, useParams, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
@@ -24,6 +24,7 @@ import {
   Box,
   Alert,
   Anchor,
+  Skeleton,
 } from '@mantine/core'
 import { useGetTeam } from '@/api/endpoints/teams/teams'
 import {
@@ -39,8 +40,13 @@ import { Status } from '@/api/dto'
 import { useAuth } from '../../hooks/useAuth'
 import { LoadingPage, LoadingSpinner } from '../../components/common/LoadingSpinner'
 import { RideGroupCard } from '../../components/ride/RideGroupCard'
-import { RoutesMapView, MapRouteItem } from '../../components/common/RoutesMapView'
+import type { MapRouteItem } from '../../components/common/RoutesMapView'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
+
+// Lazy load the map component (pulls in map-vendor ~1MB and chart-vendor ~150KB)
+const RoutesMapView = lazy(() =>
+  import('../../components/common/RoutesMapView').then((m) => ({ default: m.RoutesMapView }))
+)
 import { useFormattedDate } from '../../utils/dateFormat'
 import { MediaDisplay } from '../../components/common/MediaDisplay'
 import { EntityLogo } from '../../components/common/EntityLogo'
@@ -413,22 +419,26 @@ export function RideDetailPage() {
         {/* Map on right (takes 2 columns on xl screens) */}
         <Box style={{ order: 1, gridColumn: 'span 2' }} data-order-xl="2" visibleFrom="xl">
           {mapItems.length > 0 && (
-            <RoutesMapView
-              items={mapItems}
-              teamSlug={teamSlug!}
-              highlightedItemId={highlightedGroupId}
-              onItemHover={setHighlightedGroupId}
-            />
+            <Suspense fallback={<Skeleton height={500} radius="md" />}>
+              <RoutesMapView
+                items={mapItems}
+                teamSlug={teamSlug!}
+                highlightedItemId={highlightedGroupId}
+                onItemHover={setHighlightedGroupId}
+              />
+            </Suspense>
           )}
         </Box>
         <Box style={{ order: 1 }} hiddenFrom="xl">
           {mapItems.length > 0 && (
-            <RoutesMapView
-              items={mapItems}
-              teamSlug={teamSlug!}
-              highlightedItemId={highlightedGroupId}
-              onItemHover={setHighlightedGroupId}
-            />
+            <Suspense fallback={<Skeleton height={400} radius="md" />}>
+              <RoutesMapView
+                items={mapItems}
+                teamSlug={teamSlug!}
+                highlightedItemId={highlightedGroupId}
+                onItemHover={setHighlightedGroupId}
+              />
+            </Suspense>
           )}
         </Box>
       </SimpleGrid>
