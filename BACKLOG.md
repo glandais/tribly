@@ -17,7 +17,7 @@ Must-have for public launch. Focus on first impressions and core UX.
 - [ ] Share URL (Social + Strava) — Viral loop
 
 ### Core Features (In Progress)
-- [ ] Slug changes with redirects — Already started per git status
+- [X] Slug changes with redirects — Already started per git status
 
 ---
 

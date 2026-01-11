@@ -4,9 +4,8 @@ import { Group, Text, Box, Center, Image } from '@mantine/core'
 import { IconPhoto } from '@tabler/icons-react'
 import type { AssetDto } from '@/api/dto'
 import {
-  createImageMap,
-  resolveAssetUrl,
   getImageSizeStyle,
+  resolveAssetImageUrl,
   type ImageSize,
   DEFAULT_IMAGE_SIZE,
 } from '../../lib/assetMarkdown'
@@ -29,10 +28,7 @@ export function AssetImage({
   const [isLoading, setIsLoading] = useState(true)
   const [hasError, setHasError] = useState(false)
 
-  const url = useMemo(() => {
-    const imageMap = createImageMap(images)
-    return resolveAssetUrl(assetId, imageMap)
-  }, [assetId, images])
+  const url = useMemo(() => resolveAssetImageUrl(assetId, images, size), [assetId, images, size])
 
   const sizeStyle = getImageSizeStyle(size)
 

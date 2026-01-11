@@ -15,7 +15,7 @@ import {
   Image,
 } from '@mantine/core'
 import type { AssetDto } from '@/api/dto'
-import type { ImageSize } from '../../lib/assetMarkdown'
+import { type ImageSize, ASSET_DIRECTIVE_REGEX } from '../../lib/assetMarkdown'
 import { remarkAssetDirective } from '../../lib/remarkAssetDirective'
 import { AssetImage } from './AssetImage'
 
@@ -38,7 +38,9 @@ export function MarkdownDisplay({
 
   // Preview mode: strip markdown and truncate
   if (preview) {
-    const plainText = removeMd(markdown)
+    // Remove asset directives before stripping markdown (removeMd doesn't handle them)
+    const withoutDirectives = markdown.replace(ASSET_DIRECTIVE_REGEX, '')
+    const plainText = removeMd(withoutDirectives)
     const truncated =
       plainText.length > maxLength ? plainText.slice(0, maxLength) + '...' : plainText
     return (

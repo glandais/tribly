@@ -33,6 +33,21 @@ const IMAGE_SIZE_STYLES: Record<ImageSize, ImageSizeStyle> = {
   full: { maw: '100%', h: 'auto' },
 }
 
+/** Width in pixels for each image size (used for imgproxy resizing) */
+const IMAGE_SIZE_WIDTHS: Record<ImageSize, number> = {
+  icon: 32,
+  thumbnail: 96,
+  medium: 448,
+  full: 1920,
+}
+
+/**
+ * Get the width in pixels for an image size
+ */
+export function getImageSizeWidth(size?: ImageSize): number {
+  return IMAGE_SIZE_WIDTHS[size ?? DEFAULT_IMAGE_SIZE]
+}
+
 /**
  * Get Mantine style props for an image size
  */
@@ -41,25 +56,26 @@ export function getImageSizeStyle(size?: ImageSize): ImageSizeStyle {
 }
 
 // ============================================================================
-// Image Map Utilities
+// Asset URL Resolution
 // ============================================================================
 
 /**
- * Create a lookup map from asset ID to URL for O(1) resolution
+ * Resolve an asset ID to a sized image URL.
+ * Uses imageUrl with size substitution if available, otherwise falls back to raw url.
  */
-export function createImageMap(images: AssetDto[]): Map<string, string> {
-  return new Map(images.map((img) => [img.id, img.url]))
-}
-
-/**
- * Resolve an asset ID to its URL using an image map
- * Returns undefined if not found
- */
-export function resolveAssetUrl(
+export function resolveAssetImageUrl(
   assetId: string,
-  imageMap: Map<string, string | undefined>
+  images: AssetDto[],
+  size?: ImageSize
 ): string | undefined {
-  return imageMap.get(assetId)
+  const asset = images.find((img) => img.id === assetId)
+  if (!asset) return undefined
+
+  if (asset.imageUrl) {
+    const sizeWidth = getImageSizeWidth(size)
+    return asset.imageUrl.replace('{size}', String(sizeWidth))
+  }
+  return asset.url
 }
 
 // ============================================================================

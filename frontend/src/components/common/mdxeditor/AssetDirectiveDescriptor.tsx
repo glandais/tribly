@@ -9,9 +9,8 @@ import {
   IMAGE_SIZES,
   type ImageSize,
   DEFAULT_IMAGE_SIZE,
-  createImageMap,
-  resolveAssetUrl,
   getImageSizeStyle,
+  resolveAssetImageUrl,
 } from '../../../lib/assetMarkdown'
 import { getOverlayBg } from '@/lib/colors'
 import { IconPhoto } from '@tabler/icons-react'
@@ -50,12 +49,11 @@ function AssetDirectiveEditor({
   const currentSize = (attributes.size as ImageSize) ?? DEFAULT_IMAGE_SIZE
   const altText = attributes.alt ?? ''
 
-  // Resolve asset URL
-  const url = useMemo(() => {
-    if (!assetId) return undefined
-    const imageMap = createImageMap(images)
-    return resolveAssetUrl(assetId, imageMap)
-  }, [assetId, images])
+  // Resolve asset URL with size
+  const url = useMemo(
+    () => (assetId ? resolveAssetImageUrl(assetId, images, currentSize) : undefined),
+    [assetId, images, currentSize]
+  )
 
   const sizeStyle = getImageSizeStyle(currentSize)
 

@@ -25,6 +25,7 @@ import {
 import '@mdxeditor/editor/style.css'
 import './mdxeditor/mdxeditor.css'
 import type { AssetDto } from '@/api/dto'
+import { createAssetDirective } from '@/lib/assetMarkdown'
 import { AssetDirectiveDescriptor, AssetImagesProvider } from './mdxeditor'
 import { IconPhoto } from '@tabler/icons-react'
 import { LoadingSpinner } from './LoadingSpinner'
@@ -69,7 +70,7 @@ function AssetUploadButton({ editorRef, onImageUpload, isUploadingImage }: Asset
         const altText = result.fileName.replace(/\.[^/.]+$/, '') // Remove extension
 
         // Insert markdown directly since we can't access insertDirective$ from outside
-        const directiveMarkdown = `\n::asset{id="${result.id}" alt="${altText}"}\n`
+        const directiveMarkdown = `\n${createAssetDirective(result.id, altText)}\n`
         editorRef.current.insertMarkdown(directiveMarkdown)
       }
       // Reset input to allow selecting the same file again
