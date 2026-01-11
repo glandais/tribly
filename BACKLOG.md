@@ -27,7 +27,7 @@ Must-have for public launch. Focus on first impressions and core UX.
 Drive engagement and reduce friction for organizers.
 
 ### Organizer Productivity
-- [ ] Multi-GPX upload (one route per file) — Huge time saver
+- [X] Multi-GPX upload (one route per file) — Huge time saver
 - [ ] Team location (init route planner) — Better defaults
 - [ ] Card CTAs (modify, publish, delete, add to calendar)
 - [ ] Team dashboard (drafts count, what's next, activity feed)
