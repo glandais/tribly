@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
   IconCalendar,
@@ -7,7 +7,7 @@ import {
   IconMapPin,
   IconCurrencyEuro,
 } from '@tabler/icons-react'
-import { Group, Text, Box, Stack } from '@mantine/core'
+import { Group, Text, Box, Stack, UnstyledButton } from '@mantine/core'
 import { Card, CardContent, CardTitle, CardDescription } from '../common/card'
 import { Badge, VisibilityBadge, Stat, StatGroup, CardSkeleton } from '../common/card'
 import { EntityLogo } from '../common/EntityLogo'
@@ -35,6 +35,7 @@ interface AdCardProps {
 export function AdCard({ ad, showTeam = false }: AdCardProps) {
   const { t } = useTranslation()
   const { formatDateTime } = useFormattedDate()
+  const navigate = useNavigate()
 
   const formattedDate = formatDateTime(ad.createdAt)
 
@@ -60,16 +61,24 @@ export function AdCard({ ad, showTeam = false }: AdCardProps) {
     <Card to={paths.ad(ad.team.slug, ad.slug)}>
       <CardContent>
         {showTeam && (
-          <Box
-            component={Link}
-            to={paths.team(ad.team.slug)}
-            onClick={(e: React.MouseEvent) => e.stopPropagation()}
+          <UnstyledButton
+            onClick={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              navigate(paths.team(ad.team.slug))
+            }}
             mb="sm"
             style={{
-              textDecoration: 'none',
               display: 'flex',
               alignItems: 'center',
               gap: 'var(--mantine-spacing-xs)',
+            }}
+            styles={{
+              root: {
+                '&:hover': {
+                  textDecoration: 'underline',
+                },
+              },
             }}
           >
             <IconUsers size={16} color="var(--mantine-color-dimmed)" />
@@ -77,7 +86,7 @@ export function AdCard({ ad, showTeam = false }: AdCardProps) {
               {ad.team.name}
             </Text>
             <IconChevronRight size={12} color="var(--mantine-color-dimmed)" />
-          </Box>
+          </UnstyledButton>
         )}
 
         <Group justify="space-between" mb="md" align="flex-start">

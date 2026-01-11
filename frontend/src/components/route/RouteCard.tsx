@@ -1,7 +1,7 @@
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { IconMap, IconArrowUp, IconUsers, IconChevronRight } from '@tabler/icons-react'
-import { Group, Text, Image, Box } from '@mantine/core'
+import { Group, Text, Image, Box, UnstyledButton } from '@mantine/core'
 import type { RouteDto } from '@/api/dto'
 import { Card, CardContent, CardTitle, CardDescription } from '../common/card'
 import { Badge, VisibilityBadge, Stat, StatGroup, CardSkeleton } from '../common/card'
@@ -15,6 +15,7 @@ interface RouteCardProps {
 
 export function RouteCard({ route, showTeam }: RouteCardProps) {
   const { t } = useTranslation()
+  const navigate = useNavigate()
 
   return (
     <Card to={paths.route(route.team.slug, route.slug)}>
@@ -22,16 +23,24 @@ export function RouteCard({ route, showTeam }: RouteCardProps) {
 
       <CardContent>
         {showTeam && (
-          <Box
-            component={Link}
-            to={paths.team(route.team.slug)}
-            onClick={(e: React.MouseEvent) => e.stopPropagation()}
+          <UnstyledButton
+            onClick={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              navigate(paths.team(route.team.slug))
+            }}
             mb="sm"
             style={{
-              textDecoration: 'none',
               display: 'flex',
               alignItems: 'center',
               gap: 'var(--mantine-spacing-xs)',
+            }}
+            styles={{
+              root: {
+                '&:hover': {
+                  textDecoration: 'underline',
+                },
+              },
             }}
           >
             <IconUsers size={16} color="var(--mantine-color-dimmed)" />
@@ -39,7 +48,7 @@ export function RouteCard({ route, showTeam }: RouteCardProps) {
               {route.team.name}
             </Text>
             <IconChevronRight size={12} color="var(--mantine-color-dimmed)" />
-          </Box>
+          </UnstyledButton>
         )}
 
         <Group gap="sm" wrap="nowrap" align="flex-start">

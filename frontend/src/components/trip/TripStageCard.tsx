@@ -1,7 +1,7 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { IconCalendar, IconMapPin } from '@tabler/icons-react'
-import { Paper, Group, Text, Anchor, Badge, Box } from '@mantine/core'
+import { Paper, Group, Text, UnstyledButton, Badge, Box } from '@mantine/core'
 import type { TripStageDto } from '@/api/dto'
 import { useFormattedDate } from '../../utils/dateFormat'
 import { MediaDisplay } from '../common/MediaDisplay'
@@ -26,6 +26,7 @@ export function TripStageCard({
 }: TripStageCardProps) {
   const { t } = useTranslation()
   const { formatDateTime } = useFormattedDate()
+  const navigate = useNavigate()
 
   return (
     <Paper
@@ -94,9 +95,25 @@ export function TripStageCard({
 
       {stage.routeSlug && (
         <Box mt="sm">
-          <Anchor href={paths.route(teamSlug, stage.routeSlug)} size="sm" fw={500}>
+          <UnstyledButton
+            onClick={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              navigate(paths.route(teamSlug, stage.routeSlug!))
+            }}
+            styles={{
+              root: {
+                fontSize: 'var(--mantine-font-size-sm)',
+                fontWeight: 500,
+                color: 'var(--mantine-color-anchor)',
+                '&:hover': {
+                  textDecoration: 'underline',
+                },
+              },
+            }}
+          >
             {t('trips.stage.viewRoute')}
-          </Anchor>
+          </UnstyledButton>
         </Box>
       )}
     </Paper>
