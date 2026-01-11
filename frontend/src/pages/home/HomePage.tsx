@@ -1,15 +1,19 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Box, Select, Stack, Title, Group, Paper, Text, Center } from '@mantine/core'
 import { IconNews } from '@tabler/icons-react'
-import { useListAllPublications } from '../../api/endpoints/publications/publications'
+import {
+  useListAllPublications,
+  listAllPublications,
+  getListAllPublicationsQueryKey,
+} from '../../api/endpoints/publications/publications'
 import { PublicationType } from '@/api/dto'
 import {
   PublicationCard,
   PublicationCardSkeleton,
 } from '../../components/publication/PublicationCard'
 import { Pagination } from '../../components/common/Pagination'
-import { usePagination } from '../../hooks/usePagination'
+import { usePaginatedQuery } from '../../hooks/usePaginatedQuery'
 import { SearchInput } from '../../components/common/SearchInput'
 import { HomeLayout } from '../../components/home/HomeLayout'
 
@@ -42,10 +46,30 @@ export function HomePage() {
 
   const resetPage = () => setPage(0)
 
-  // Use usePagination only for totalPages calculation
-  const { totalPages } = usePagination({
+  const prefetchPage = useCallback(
+    (prefetchPageNum: number) => ({
+      queryKey: getListAllPublicationsQueryKey({
+        search: search || undefined,
+        page: prefetchPageNum,
+        size: pageSize,
+        type: filterToType[filter],
+      }),
+      queryFn: () =>
+        listAllPublications({
+          search: search || undefined,
+          page: prefetchPageNum,
+          size: pageSize,
+          type: filterToType[filter],
+        }),
+    }),
+    [search, filter, pageSize]
+  )
+
+  const { totalPages } = usePaginatedQuery({
+    page,
     pageSize,
     totalItems: publicationsData?.total ?? 0,
+    prefetchPage,
   })
 
   return (

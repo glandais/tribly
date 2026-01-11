@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { Link, Navigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
@@ -22,11 +22,12 @@ import {
   useListTemplates,
   useDeleteTemplate,
   getListTemplatesQueryKey,
+  listTemplates,
 } from '@/api/endpoints/ride-templates/ride-templates'
 import { LoadingPage, LoadingSpinner } from '../../components/common/LoadingSpinner'
 import { TeamAdminLayout } from '../../components/team/TeamAdminLayout'
 import { Pagination } from '../../components/common/Pagination'
-import { usePagination } from '../../hooks/usePagination'
+import { usePaginatedQuery } from '../../hooks/usePaginatedQuery'
 import { SearchInput } from '../../components/common/SearchInput'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import { MarkdownDisplay } from '../../components/common/MarkdownDisplay'
@@ -54,9 +55,28 @@ export function RideTemplateListPage() {
 
   const resetPage = () => setPage(0)
 
-  const { totalPages } = usePagination({
+  const prefetchPage = useCallback(
+    (prefetchPageNum: number) => ({
+      queryKey: getListTemplatesQueryKey(teamSlug, {
+        search: search || undefined,
+        page: prefetchPageNum,
+        size: pageSize,
+      }),
+      queryFn: () =>
+        listTemplates(teamSlug!, {
+          search: search || undefined,
+          page: prefetchPageNum,
+          size: pageSize,
+        }),
+    }),
+    [teamSlug, search, pageSize]
+  )
+
+  const { totalPages } = usePaginatedQuery({
+    page,
     pageSize,
     totalItems: templatesData?.total ?? 0,
+    prefetchPage,
   })
 
   useCanonicalPath(team ? paths.rideTemplates(team.slug) : undefined)

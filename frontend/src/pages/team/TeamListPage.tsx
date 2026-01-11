@@ -1,12 +1,12 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { paths } from '../../config/paths'
 import { IconPlus, IconUsersGroup } from '@tabler/icons-react'
-import { useListTeams } from '@/api/endpoints/teams/teams'
+import { useListTeams, listTeams, getListTeamsQueryKey } from '@/api/endpoints/teams/teams'
 import { MinRole } from '@/api/dto'
 import { useAuth } from '../../hooks/useAuth'
-import { usePagination } from '../../hooks/usePagination'
+import { usePaginatedQuery } from '../../hooks/usePaginatedQuery'
 import { TeamCard, TeamCardSkeleton } from '../../components/team/TeamCard'
 import { Pagination } from '../../components/common/Pagination'
 import { SearchInput } from '../../components/common/SearchInput'
@@ -54,10 +54,30 @@ export function TeamListPage() {
     minRole: filterToMinRole[filter],
   })
 
-  // Use usePagination only for totalPages calculation
-  const { totalPages } = usePagination({
+  const prefetchPage = useCallback(
+    (prefetchPageNum: number) => ({
+      queryKey: getListTeamsQueryKey({
+        search,
+        page: prefetchPageNum,
+        size: pageSize,
+        minRole: filterToMinRole[filter],
+      }),
+      queryFn: () =>
+        listTeams({
+          search,
+          page: prefetchPageNum,
+          size: pageSize,
+          minRole: filterToMinRole[filter],
+        }),
+    }),
+    [search, filter, pageSize]
+  )
+
+  const { totalPages } = usePaginatedQuery({
+    page,
     pageSize,
     totalItems: teamsData?.total ?? 0,
+    prefetchPage,
   })
 
   const teams = teamsData?.teams

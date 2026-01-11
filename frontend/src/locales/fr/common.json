@@ -139,6 +139,7 @@
   "noRouteSelected": "Aucun parcours sélectionné",
   "notFound.message": "Page non trouvée",
   "notFound.title": "404",
+  "pagination.goToPage": "Aller à la page {{page}}",
   "pagination.label": "Pagination",
   "pagination.nextPage": "Page suivante",
   "pagination.page": "Page {{current}} sur {{total}}",

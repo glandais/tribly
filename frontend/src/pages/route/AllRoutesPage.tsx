@@ -1,13 +1,17 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { keepPreviousData } from '@tanstack/react-query'
 import { IconMap } from '@tabler/icons-react'
 import { Box, Center, Paper, SimpleGrid, Stack, Text, Title } from '@mantine/core'
-import { useListAllRoutes } from '@/api/endpoints/routes/routes'
+import {
+  useListAllRoutes,
+  listAllRoutes,
+  getListAllRoutesQueryKey,
+} from '@/api/endpoints/routes/routes'
 import type { ListAllRoutesParams } from '@/api/dto'
 import { RouteCard, RouteCardSkeleton } from '../../components/route/RouteCard'
 import { Pagination } from '../../components/common/Pagination'
-import { usePagination } from '../../hooks/usePagination'
+import { usePaginatedQuery } from '../../hooks/usePaginatedQuery'
 import { HomeLayout } from '../../components/home/HomeLayout'
 import { RouteFilterPanel } from '../../components/route/RouteFilterPanel'
 
@@ -38,10 +42,19 @@ export function AllRoutesPage() {
     setFilters((prev) => ({ ...prev, page }))
   }
 
-  // Use usePagination only for totalPages calculation
-  const { totalPages } = usePagination({
+  const prefetchPage = useCallback(
+    (prefetchPageNum: number) => ({
+      queryKey: getListAllRoutesQueryKey({ ...filters, page: prefetchPageNum }),
+      queryFn: () => listAllRoutes({ ...filters, page: prefetchPageNum }),
+    }),
+    [filters]
+  )
+
+  const { totalPages } = usePaginatedQuery({
+    page: filters.page ?? 0,
     pageSize,
     totalItems: routesData?.total ?? 0,
+    prefetchPage,
   })
 
   const hasFiltersOrSearch =

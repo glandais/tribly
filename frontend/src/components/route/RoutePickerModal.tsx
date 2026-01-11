@@ -7,7 +7,6 @@ import { useListRoutes } from '@/api/endpoints/routes/routes'
 import type { RouteDto } from '@/api/dto'
 import { MarkdownDisplay } from '../../components/common/MarkdownDisplay'
 import { Pagination } from '../common/Pagination'
-import { usePagination } from '../../hooks/usePagination'
 import { SearchInput } from '../common/SearchInput'
 import { Modal } from '../common/Modal'
 
@@ -58,10 +57,7 @@ export function RoutePickerModal({
     }
   )
 
-  const { totalPages } = usePagination({
-    pageSize,
-    totalItems: routesResponse?.total ?? 0,
-  })
+  const totalPages = Math.ceil((routesResponse?.total ?? 0) / pageSize)
 
   const handleClose = () => {
     setSearch('')

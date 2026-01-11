@@ -136,6 +136,7 @@
   "noRouteSelected": "No route selected",
   "notFound.message": "Page not found",
   "notFound.title": "404",
+  "pagination.goToPage": "Go to page {{page}}",
   "pagination.label": "Pagination",
   "pagination.nextPage": "Next page",
   "pagination.page": "Page {{current}} of {{total}}",

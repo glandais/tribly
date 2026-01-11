@@ -1,10 +1,14 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { Link, Navigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { IconPlus, IconNews, IconChevronDown } from '@tabler/icons-react'
 import { Button, Menu, Select, Stack, Group, Title, Paper, Text, Center, Box } from '@mantine/core'
 import { useGetTeam } from '@/api/endpoints/teams/teams'
-import { useListPublications } from '../../api/endpoints/publications/publications'
+import {
+  useListPublications,
+  listPublications,
+  getListPublicationsQueryKey,
+} from '../../api/endpoints/publications/publications'
 import { PublicationType } from '@/api/dto'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import {
@@ -13,7 +17,7 @@ import {
 } from '../../components/publication/PublicationCard'
 import { TeamLayout } from '../../components/team/TeamLayout'
 import { Pagination } from '../../components/common/Pagination'
-import { usePagination } from '../../hooks/usePagination'
+import { usePaginatedQuery } from '../../hooks/usePaginatedQuery'
 import { SearchInput } from '../../components/common/SearchInput'
 import { paths } from '@/config/paths'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
@@ -51,10 +55,30 @@ export function PublicationListPage() {
 
   const resetPage = () => setPage(0)
 
-  // Use usePagination only for totalPages calculation
-  const { totalPages } = usePagination({
+  const prefetchPage = useCallback(
+    (prefetchPageNum: number) => ({
+      queryKey: getListPublicationsQueryKey(teamSlug, {
+        search: search || undefined,
+        page: prefetchPageNum,
+        size: pageSize,
+        type: filterToType[filter],
+      }),
+      queryFn: () =>
+        listPublications(teamSlug!, {
+          search: search || undefined,
+          page: prefetchPageNum,
+          size: pageSize,
+          type: filterToType[filter],
+        }),
+    }),
+    [teamSlug, search, filter, pageSize]
+  )
+
+  const { totalPages } = usePaginatedQuery({
+    page,
     pageSize,
     totalItems: publicationsData?.total ?? 0,
+    prefetchPage,
   })
 
   useCanonicalPath(team ? paths.team(team.slug) : undefined)

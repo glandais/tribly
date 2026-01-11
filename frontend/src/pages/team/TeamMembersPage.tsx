@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { useParams, Navigate } from 'react-router-dom'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 import { useTranslation } from 'react-i18next'
@@ -15,6 +15,7 @@ import {
   useRemoveMember,
   useAddMember,
   getGetMembersQueryKey,
+  getMembers,
 } from '@/api/endpoints/team-members/team-members'
 import { useAuth } from '../../hooks/useAuth'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
@@ -24,7 +25,7 @@ import { UserAutocomplete } from '../../components/common/UserAutocomplete'
 import type { PublicUserDto } from '@/api/dto'
 import { TeamRole } from '@/api/dto'
 import { Pagination } from '../../components/common/Pagination'
-import { usePagination } from '../../hooks/usePagination'
+import { usePaginatedQuery } from '../../hooks/usePaginatedQuery'
 import { Modal } from '../../components/common/Modal'
 
 export function TeamMembersPage() {
@@ -46,11 +47,21 @@ export function TeamMembersPage() {
     { query: { enabled: !!teamSlug } }
   )
 
-  // Use usePagination only for totalPages calculation
-  const { totalPages } = usePagination({
+  const prefetchPage = useCallback(
+    (prefetchPageNum: number) => ({
+      queryKey: getGetMembersQueryKey(teamSlug, { page: prefetchPageNum, size: pageSize }),
+      queryFn: () => getMembers(teamSlug!, { page: prefetchPageNum, size: pageSize }),
+    }),
+    [teamSlug, pageSize]
+  )
+
+  const { totalPages } = usePaginatedQuery({
+    page,
     pageSize,
     totalItems: membersData?.total ?? 0,
+    prefetchPage,
   })
+
   const updateRoleMutation = useUpdateMemberRole()
   const removeMemberMutation = useRemoveMember()
   const addMemberMutation = useAddMember()

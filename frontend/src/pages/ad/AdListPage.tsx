@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { Link, Navigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { keepPreviousData } from '@tanstack/react-query'
@@ -17,7 +17,8 @@ import {
   Center,
 } from '@mantine/core'
 import { useGetTeam } from '@/api/endpoints/teams/teams'
-import { useListAds } from '../../api/endpoints/ads/ads'
+import { useListAds, listAds, getListAdsQueryKey } from '../../api/endpoints/ads/ads'
+import { usePaginatedQuery } from '../../hooks/usePaginatedQuery'
 import { AdCard, AdCardSkeleton } from '../../components/ad'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { Pagination } from '../../components/common/Pagination'
@@ -53,6 +54,32 @@ export function AdListPage() {
     { query: { enabled: !!teamSlug, placeholderData: keepPreviousData } }
   )
 
+  const prefetchPage = useCallback(
+    (prefetchPageNum: number) => ({
+      queryKey: getListAdsQueryKey(teamSlug, {
+        search: search || undefined,
+        adType,
+        page: prefetchPageNum,
+        size: PAGE_SIZE,
+      }),
+      queryFn: () =>
+        listAds(teamSlug!, {
+          search: search || undefined,
+          adType,
+          page: prefetchPageNum,
+          size: PAGE_SIZE,
+        }),
+    }),
+    [teamSlug, search, adType]
+  )
+
+  const { totalPages } = usePaginatedQuery({
+    page,
+    pageSize: PAGE_SIZE,
+    totalItems: adsResponse?.total ?? 0,
+    prefetchPage,
+  })
+
   useCanonicalPath(team ? paths.ads(team.slug) : undefined)
 
   if (isLoadingTeam) {
@@ -65,7 +92,6 @@ export function AdListPage() {
 
   const isMember = !!team.role
   const ads = adsResponse?.ads || []
-  const totalPages = adsResponse ? Math.ceil(adsResponse.total / PAGE_SIZE) : 0
 
   const handleSearchChange = (value: string) => {
     setSearch(value)

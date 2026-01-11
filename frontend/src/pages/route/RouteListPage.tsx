@@ -1,18 +1,18 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { Navigate, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { keepPreviousData } from '@tanstack/react-query'
 import { paths } from '../../config/paths'
 import { IconPlus, IconMap } from '@tabler/icons-react'
 import { Box, Button, Center, Group, Paper, SimpleGrid, Stack, Text, Title } from '@mantine/core'
-import { useListRoutes } from '@/api/endpoints/routes/routes'
+import { useListRoutes, listRoutes, getListRoutesQueryKey } from '@/api/endpoints/routes/routes'
 import { useGetTeam } from '@/api/endpoints/teams/teams'
 import type { ListRoutesParams } from '@/api/dto'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { TeamLayout } from '../../components/team/TeamLayout'
 import { RouteCard, RouteCardSkeleton } from '../../components/route/RouteCard'
 import { Pagination } from '../../components/common/Pagination'
-import { usePagination } from '../../hooks/usePagination'
+import { usePaginatedQuery } from '../../hooks/usePaginatedQuery'
 import { RouteFilterPanel } from '../../components/route/RouteFilterPanel'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 
@@ -43,10 +43,19 @@ export function RouteListPage() {
     setFilters((prev) => ({ ...prev, page }))
   }
 
-  // Use usePagination only for totalPages calculation
-  const { totalPages } = usePagination({
+  const prefetchPage = useCallback(
+    (prefetchPageNum: number) => ({
+      queryKey: getListRoutesQueryKey(teamSlug, { ...filters, page: prefetchPageNum }),
+      queryFn: () => listRoutes(teamSlug!, { ...filters, page: prefetchPageNum }),
+    }),
+    [teamSlug, filters]
+  )
+
+  const { totalPages } = usePaginatedQuery({
+    page: filters.page ?? 0,
     pageSize,
     totalItems: routesData?.total ?? 0,
+    prefetchPage,
   })
 
   useCanonicalPath(team ? paths.routes(team.slug) : undefined)

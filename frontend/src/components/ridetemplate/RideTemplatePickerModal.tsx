@@ -8,7 +8,6 @@ import type { RideTemplateDto } from '@/api/dto'
 import { MarkdownDisplay } from '../common/MarkdownDisplay'
 import { LoadingSpinner } from '../common/LoadingSpinner'
 import { Pagination } from '../common/Pagination'
-import { usePagination } from '../../hooks/usePagination'
 import { SearchInput } from '../common/SearchInput'
 import { Modal } from '../common/Modal'
 
@@ -58,10 +57,7 @@ export function RideTemplatePickerModal({
     { query: { placeholderData: keepPreviousData } }
   )
 
-  const { totalPages } = usePagination({
-    pageSize,
-    totalItems: templatesResponse?.total ?? 0,
-  })
+  const totalPages = Math.ceil((templatesResponse?.total ?? 0) / pageSize)
 
   const handleClose = () => {
     setSearch('')
