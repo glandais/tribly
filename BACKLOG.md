@@ -4,7 +4,8 @@
 Must-have for public launch. Focus on first impressions and core UX.
 
 ### UX Polish
-- [ ] Responsive website — Mobile-first is non-negotiable for cyclists
+- [X] Responsive website — Mobile-first is non-negotiable for cyclists
+  - [ ] Still issues
 - [X] Dark mode — Expected by modern users
   - [ ] Fix style select dark mode in markdown editor
 - [ ] Appealing cards (icons, route previews)
