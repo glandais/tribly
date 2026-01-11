@@ -34,7 +34,7 @@ public class TriblyQueryContext {
   @Inject UserTeamRepository userTeamRepository;
 
   // for test
-  public void setContext(@Nullable User user) {
+  public void setUserForTest(@Nullable User user) {
     this.initialized = true;
     this.user = user;
   }

@@ -85,7 +85,7 @@ class TeamResourceTest extends AbstractResourceTest {
 
   @Test
   void createTeam_shouldCreateTeamAndMakeUserAdmin() {
-    queryContext.setContext(user1);
+    queryContext.setUserForTest(user1);
     TeamDetailDto team =
         teamService.createTeam(
             new TeamRequest(

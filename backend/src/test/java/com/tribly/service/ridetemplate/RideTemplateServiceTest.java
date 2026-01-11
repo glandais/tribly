@@ -59,7 +59,7 @@ class RideTemplateServiceTest {
       dataService.createRideTemplate(team, admin, "Template 1", "template-1");
       dataService.createRideTemplate(team, admin, "Template 2", "template-2");
 
-      queryContext.setContext(organizer);
+      queryContext.setUserForTest(organizer);
       RideTemplateListResponse result = templateService.listTemplates(team.getSlug(), null, 0, 10);
 
       assertEquals(2, result.templates().size());
@@ -72,7 +72,7 @@ class RideTemplateServiceTest {
         dataService.createRideTemplate(team, admin, "Template " + i, "template-" + i);
       }
 
-      queryContext.setContext(organizer);
+      queryContext.setUserForTest(organizer);
       RideTemplateListResponse result = templateService.listTemplates(team.getSlug(), null, 0, 3);
 
       assertEquals(3, result.templates().size());
@@ -85,7 +85,7 @@ class RideTemplateServiceTest {
       dataService.createRideTemplate(team, admin, "Evening Ride", "evening-ride");
       dataService.createRideTemplate(team, admin, "Weekend Trip", "weekend-trip");
 
-      queryContext.setContext(organizer);
+      queryContext.setUserForTest(organizer);
       RideTemplateListResponse result =
           templateService.listTemplates(team.getSlug(), "ride", 0, 10);
 
@@ -94,7 +94,7 @@ class RideTemplateServiceTest {
 
     @Test
     void shouldThrowForMember() {
-      queryContext.setContext(member);
+      queryContext.setUserForTest(member);
       assertThrows(
           TriblyException.class, () -> templateService.listTemplates(team.getSlug(), null, 0, 10));
     }
@@ -106,7 +106,7 @@ class RideTemplateServiceTest {
           dataService.createRideTemplate(team, admin, "Deleted Template", "deleted-template");
       dataService.deleteRideTemplate(deletedTemplate);
 
-      queryContext.setContext(organizer);
+      queryContext.setUserForTest(organizer);
       RideTemplateListResponse result = templateService.listTemplates(team.getSlug(), null, 0, 10);
 
       assertEquals(1, result.templates().size());
@@ -121,7 +121,7 @@ class RideTemplateServiceTest {
     void shouldReturnTemplateForOrganizer() {
       dataService.createRideTemplate(team, admin, "Test Template", "test-template");
 
-      queryContext.setContext(organizer);
+      queryContext.setUserForTest(organizer);
       RideTemplateDto result = templateService.getTemplate(team.getSlug(), "test-template");
 
       assertNotNull(result);
@@ -131,7 +131,7 @@ class RideTemplateServiceTest {
 
     @Test
     void shouldThrowForNonexistentTemplate() {
-      queryContext.setContext(organizer);
+      queryContext.setUserForTest(organizer);
       assertThrows(
           TriblyException.class, () -> templateService.getTemplate(team.getSlug(), "nonexistent"));
     }
@@ -140,7 +140,7 @@ class RideTemplateServiceTest {
     void shouldThrowForMember() {
       dataService.createRideTemplate(team, admin, "Test Template", "test-template");
 
-      queryContext.setContext(member);
+      queryContext.setUserForTest(member);
       assertThrows(
           TriblyException.class,
           () -> templateService.getTemplate(team.getSlug(), "test-template"));
@@ -160,7 +160,7 @@ class RideTemplateServiceTest {
               Status.PUBLISHED,
               List.of());
 
-      queryContext.setContext(organizer);
+      queryContext.setUserForTest(organizer);
       RideTemplateDto result = templateService.createTemplate(team.getSlug(), request);
 
       assertNotNull(result);
@@ -191,7 +191,7 @@ class RideTemplateServiceTest {
                       .maxParticipants(15)
                       .build()));
 
-      queryContext.setContext(organizer);
+      queryContext.setUserForTest(organizer);
       RideTemplateDto result = templateService.createTemplate(team.getSlug(), request);
 
       assertNotNull(result);
@@ -210,7 +210,7 @@ class RideTemplateServiceTest {
           new RideTemplateRequest(
               "Test Template", "markdown", Visibility.TEAM, Status.PUBLISHED, List.of());
 
-      queryContext.setContext(organizer);
+      queryContext.setUserForTest(organizer);
       RideTemplateDto result = templateService.createTemplate(team.getSlug(), request);
 
       assertNotNull(result);
@@ -224,7 +224,7 @@ class RideTemplateServiceTest {
           new RideTemplateRequest(
               "Public Template", "markdown", Visibility.PUBLIC, Status.PUBLISHED, List.of());
 
-      queryContext.setContext(organizer);
+      queryContext.setUserForTest(organizer);
       RideTemplateDto result = templateService.createTemplate(team.getSlug(), request);
 
       assertNotNull(result);
@@ -237,7 +237,7 @@ class RideTemplateServiceTest {
           new RideTemplateRequest(
               "Public Template", "markdown", Visibility.PUBLIC, Status.PUBLISHED, List.of());
 
-      queryContext.setContext(organizer);
+      queryContext.setUserForTest(organizer);
       assertThrows(
           TriblyException.class,
           () -> templateService.createTemplate(privateTeam.getSlug(), request));
@@ -249,7 +249,7 @@ class RideTemplateServiceTest {
           new RideTemplateRequest(
               "Team Template", "markdown", Visibility.TEAM, Status.PUBLISHED, List.of());
 
-      queryContext.setContext(organizer);
+      queryContext.setUserForTest(organizer);
       RideTemplateDto result = templateService.createTemplate(privateTeam.getSlug(), request);
 
       assertNotNull(result);
@@ -262,7 +262,7 @@ class RideTemplateServiceTest {
           new RideTemplateRequest(
               "Template", "markdown", Visibility.TEAM, Status.PUBLISHED, List.of());
 
-      queryContext.setContext(member);
+      queryContext.setUserForTest(member);
       assertThrows(
           TriblyException.class, () -> templateService.createTemplate(team.getSlug(), request));
     }
@@ -280,7 +280,7 @@ class RideTemplateServiceTest {
           new RideTemplateRequest(
               "Updated Name", "New description", Visibility.PUBLIC, Status.PUBLISHED, List.of());
 
-      queryContext.setContext(organizer);
+      queryContext.setUserForTest(organizer);
       RideTemplateDto result =
           templateService.updateTemplate(team.getSlug(), "original-slug", request);
 
@@ -307,7 +307,7 @@ class RideTemplateServiceTest {
                       .maxParticipants(12)
                       .build()));
 
-      queryContext.setContext(organizer);
+      queryContext.setUserForTest(organizer);
       RideTemplateDto result =
           templateService.updateTemplate(team.getSlug(), "template-slug", request);
 
@@ -337,7 +337,7 @@ class RideTemplateServiceTest {
                       .maxParticipants(15)
                       .build()));
 
-      queryContext.setContext(organizer);
+      queryContext.setUserForTest(organizer);
       RideTemplateDto result =
           templateService.updateTemplate(team.getSlug(), "template-slug", request);
 
@@ -357,7 +357,7 @@ class RideTemplateServiceTest {
           new RideTemplateRequest(
               "Template", "markdown", Visibility.TEAM, Status.PUBLISHED, List.of());
 
-      queryContext.setContext(organizer);
+      queryContext.setUserForTest(organizer);
       RideTemplateDto result =
           templateService.updateTemplate(team.getSlug(), "template-slug", request);
 
@@ -380,7 +380,7 @@ class RideTemplateServiceTest {
                       .name("Nonexistent Group")
                       .build()));
 
-      queryContext.setContext(organizer);
+      queryContext.setUserForTest(organizer);
       assertThrows(
           TriblyException.class,
           () -> templateService.updateTemplate(team.getSlug(), "template-slug", request));
@@ -400,7 +400,7 @@ class RideTemplateServiceTest {
           new RideTemplateRequest(
               "Template", "markdown", Visibility.PUBLIC, Status.PUBLISHED, List.of());
 
-      queryContext.setContext(organizer);
+      queryContext.setUserForTest(organizer);
       assertThrows(
           TriblyException.class,
           () -> templateService.updateTemplate(privateTeam.getSlug(), "private-template", request));
@@ -412,7 +412,7 @@ class RideTemplateServiceTest {
           new RideTemplateRequest(
               "Template", "markdown", Visibility.TEAM, Status.PUBLISHED, List.of());
 
-      queryContext.setContext(organizer);
+      queryContext.setUserForTest(organizer);
       assertThrows(
           TriblyException.class,
           () -> templateService.updateTemplate(team.getSlug(), "nonexistent", request));
@@ -425,7 +425,7 @@ class RideTemplateServiceTest {
           new RideTemplateRequest(
               "Updated", "markdown", Visibility.TEAM, Status.PUBLISHED, List.of());
 
-      queryContext.setContext(member);
+      queryContext.setUserForTest(member);
       assertThrows(
           TriblyException.class,
           () -> templateService.updateTemplate(team.getSlug(), "template-slug", request));
@@ -439,17 +439,17 @@ class RideTemplateServiceTest {
     void shouldSoftDeleteTemplate() {
       dataService.createRideTemplate(team, admin, "To Delete", "to-delete");
 
-      queryContext.setContext(organizer);
+      queryContext.setUserForTest(organizer);
       templateService.deleteTemplate(team.getSlug(), "to-delete");
 
-      queryContext.setContext(organizer);
+      queryContext.setUserForTest(organizer);
       assertThrows(
           TriblyException.class, () -> templateService.getTemplate(team.getSlug(), "to-delete"));
     }
 
     @Test
     void shouldThrowForNonexistentTemplate() {
-      queryContext.setContext(organizer);
+      queryContext.setUserForTest(organizer);
       assertThrows(
           TriblyException.class,
           () -> templateService.deleteTemplate(team.getSlug(), "nonexistent"));
@@ -459,7 +459,7 @@ class RideTemplateServiceTest {
     void shouldThrowForMember() {
       dataService.createRideTemplate(team, admin, "Template", "template-slug");
 
-      queryContext.setContext(member);
+      queryContext.setUserForTest(member);
       assertThrows(
           TriblyException.class,
           () -> templateService.deleteTemplate(team.getSlug(), "template-slug"));

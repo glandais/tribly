@@ -86,7 +86,7 @@ class AssetServiceTest {
       InputStream content =
           new ByteArrayInputStream("test content".getBytes(StandardCharsets.UTF_8));
 
-      queryContext.setContext(organizer);
+      queryContext.setUserForTest(organizer);
       AssetDto result = assetService.createAsset(team.getSlug(), content, "test.txt");
 
       assertNotNull(result);
@@ -99,7 +99,7 @@ class AssetServiceTest {
     void shouldCreateAssetForNonOrganizer() throws IOException {
       InputStream content = new ByteArrayInputStream("test".getBytes());
 
-      queryContext.setContext(member);
+      queryContext.setUserForTest(member);
       AssetDto result = assetService.createAsset(team.getSlug(), content, "test.txt");
 
       assertNotNull(result);
@@ -117,7 +117,7 @@ class AssetServiceTest {
       InputStream content =
           new ByteArrayInputStream("file content".getBytes(StandardCharsets.UTF_8));
 
-      queryContext.setContext(member);
+      queryContext.setUserForTest(member);
       AssetWithFile result =
           assetService.addAssetStream(team, AssetType.IMAGE, null, content, "image.png");
 
@@ -130,7 +130,7 @@ class AssetServiceTest {
 
     @Test
     void shouldCreateAssetWithoutContent() throws Exception {
-      queryContext.setContext(member);
+      queryContext.setUserForTest(member);
       AssetWithFile result =
           assetService.addAssetStream(team, AssetType.IMAGE, null, null, "placeholder.png");
 
@@ -167,13 +167,13 @@ class AssetServiceTest {
       Post publicPost =
           dataService.createPost(team, admin, "Public Post", Instant.now(), Visibility.PUBLIC);
       InputStream content = getExampleGpxStream();
-      queryContext.setContext(member);
+      queryContext.setUserForTest(member);
       AssetWithFile assetWithFile =
           assetService.addAssetStream(
               team, AssetType.ROUTE_ORIGINAL_GPX, publicPost, content, "route.gpx");
       Long assetId = assetWithFile.asset().getId();
 
-      queryContext.setContext(null);
+      queryContext.setUserForTest(null);
       DownloadableAsset result = assetService.getDownloadableAsset(team.getSlug(), assetId);
 
       assertNotNull(result);
@@ -186,12 +186,12 @@ class AssetServiceTest {
       // Create a minimal PNG file (1x1 transparent pixel)
       byte[] pngBytes = new byte[] {(byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A};
       InputStream content = new ByteArrayInputStream(pngBytes);
-      queryContext.setContext(organizer);
+      queryContext.setUserForTest(organizer);
       AssetWithFile assetWithFile =
           assetService.addAssetStream(team, AssetType.IMAGE, null, content, "image.png");
       Long assetId = assetWithFile.asset().getId();
 
-      queryContext.setContext(organizer);
+      queryContext.setUserForTest(organizer);
       DownloadableAsset result = assetService.getDownloadableAsset(team.getSlug(), assetId);
 
       assertNotNull(result);
@@ -206,7 +206,7 @@ class AssetServiceTest {
     void shouldReturnAssetFromPublicTeamWithoutTeamEntity() {
       Asset asset = dataService.createAsset(team, admin, AssetType.IMAGE, "test.png");
 
-      queryContext.setContext(organizer);
+      queryContext.setUserForTest(organizer);
       DownloadableAsset result = assetService.getDownloadableAsset(team.getSlug(), asset.getId());
 
       assertNotNull(result);
@@ -217,13 +217,13 @@ class AssetServiceTest {
       Asset asset = dataService.createAsset(privateTeam, admin, AssetType.IMAGE, "test.png");
 
       // Organizer of private team can access
-      queryContext.setContext(organizer);
+      queryContext.setUserForTest(organizer);
       DownloadableAsset result =
           assetService.getDownloadableAsset(privateTeam.getSlug(), asset.getId());
       assertNotNull(result);
 
       // Non-member cannot access
-      queryContext.setContext(nonMember);
+      queryContext.setUserForTest(nonMember);
       assertThrows(
           TriblyException.class,
           () -> assetService.getDownloadableAsset(privateTeam.getSlug(), asset.getId()));
@@ -238,7 +238,7 @@ class AssetServiceTest {
       dataService.updateAsset(asset);
 
       // Public post asset accessible to anyone
-      queryContext.setContext(null);
+      queryContext.setUserForTest(null);
       DownloadableAsset result = assetService.getDownloadableAsset(team.getSlug(), asset.getId());
       assertNotNull(result);
     }
@@ -251,7 +251,7 @@ class AssetServiceTest {
       dataService.updateAsset(asset);
 
       // Non-member cannot access team-visibility post asset
-      queryContext.setContext(nonMember);
+      queryContext.setUserForTest(nonMember);
       assertThrows(
           TriblyException.class,
           () -> assetService.getDownloadableAsset(team.getSlug(), asset.getId()));
@@ -264,12 +264,12 @@ class AssetServiceTest {
     @Test
     void shouldDeleteExistingFile() throws Exception {
       InputStream content = new ByteArrayInputStream("to delete".getBytes());
-      queryContext.setContext(organizer);
+      queryContext.setUserForTest(organizer);
       AssetWithFile assetWithFile =
           assetService.addAssetStream(team, AssetType.IMAGE, null, content, "delete-me.txt");
       assertTrue(assetWithFile.file().exists());
 
-      queryContext.setContext(organizer);
+      queryContext.setUserForTest(organizer);
       assetService.deleteAsset(team.getSlug(), assetWithFile.asset().getId());
 
       assertFalse(assetWithFile.file().exists());
@@ -280,13 +280,13 @@ class AssetServiceTest {
       Asset asset = dataService.createAsset(team, admin, AssetType.IMAGE, "no-file.txt");
 
       // Should not throw even if file doesn't exist
-      queryContext.setContext(organizer);
+      queryContext.setUserForTest(organizer);
       assertDoesNotThrow(() -> assetService.deleteAsset(team.getSlug(), asset.getId()));
     }
 
     @Test
     void shouldThrowForNonexistentAsset() {
-      queryContext.setContext(organizer);
+      queryContext.setUserForTest(organizer);
       assertThrows(TriblyException.class, () -> assetService.deleteAsset(team.getSlug(), 999999L));
     }
   }
@@ -334,7 +334,7 @@ class AssetServiceTest {
     @Test
     void shouldNotIncludeImageUrlForNonImageAssets() throws Exception {
       InputStream content = getExampleGpxStream();
-      queryContext.setContext(member);
+      queryContext.setUserForTest(member);
       AssetWithFile assetWithFile =
           assetService.addAssetStream(
               team, AssetType.ROUTE_ORIGINAL_GPX, null, content, "route.gpx");
@@ -390,7 +390,7 @@ class AssetServiceTest {
     void shouldExtractDimensionsFromValidImage() throws Exception {
       InputStream imageContent = getTestImageStream();
 
-      queryContext.setContext(member);
+      queryContext.setUserForTest(member);
       AssetWithFile result =
           assetService.addAssetStream(team, AssetType.IMAGE, null, imageContent, "photo.png");
 
@@ -407,7 +407,7 @@ class AssetServiceTest {
       InputStream invalidContent =
           new ByteArrayInputStream("not an image".getBytes(StandardCharsets.UTF_8));
 
-      queryContext.setContext(member);
+      queryContext.setUserForTest(member);
       AssetWithFile result =
           assetService.addAssetStream(team, AssetType.IMAGE, null, invalidContent, "fake.png");
 
@@ -421,7 +421,7 @@ class AssetServiceTest {
     void shouldNotExtractDimensionsForNonImageFiles() throws Exception {
       InputStream content = getExampleGpxStream();
 
-      queryContext.setContext(member);
+      queryContext.setUserForTest(member);
       AssetWithFile result =
           assetService.addAssetStream(
               team, AssetType.ROUTE_ORIGINAL_GPX, null, content, "route.gpx");
@@ -440,13 +440,13 @@ class AssetServiceTest {
       // Upload a valid image first
       InputStream imageContent = getTestImageStream();
 
-      queryContext.setContext(organizer);
+      queryContext.setUserForTest(organizer);
       AssetWithFile assetWithFile =
           assetService.addAssetStream(team, AssetType.IMAGE, null, imageContent, "photo.png");
       Long assetId = assetWithFile.asset().getId();
 
       // Request resized image
-      queryContext.setContext(organizer);
+      queryContext.setUserForTest(organizer);
       jakarta.ws.rs.core.Response response =
           assetService.getImage(team.getSlug(), assetId, 200, "image/jpeg");
 
@@ -456,7 +456,7 @@ class AssetServiceTest {
 
     @Test
     void shouldThrowForNonexistentAsset() {
-      queryContext.setContext(null);
+      queryContext.setUserForTest(null);
       assertThrows(
           TriblyException.class,
           () -> assetService.getImage(team.getSlug(), 999999999L, 200, "image/jpeg"));
@@ -466,14 +466,14 @@ class AssetServiceTest {
     void shouldRespectSecurityForPrivateTeamAsset() throws Exception {
       // Upload image to private team
       InputStream imageContent = getTestImageStream();
-      queryContext.setContext(admin);
+      queryContext.setUserForTest(admin);
       AssetWithFile assetWithFile =
           assetService.addAssetStream(
               privateTeam, AssetType.IMAGE, null, imageContent, "private-photo.png");
       Long assetId = assetWithFile.asset().getId();
 
       // Non-member should not be able to access
-      queryContext.setContext(nonMember);
+      queryContext.setUserForTest(nonMember);
       assertThrows(
           TriblyException.class,
           () -> assetService.getImage(privateTeam.getSlug(), assetId, 200, "image/jpeg"));

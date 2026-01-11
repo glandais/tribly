@@ -62,7 +62,7 @@ class GpxProcessingServiceTest {
     Path gpxPath = getExampleGpxPath();
 
     GPX gpx = gpxProcessingService.parseGpx(gpxPath);
-    context.setContext(user);
+    context.setUserForTest(user);
     TrackMetadata result = gpxProcessingService.createTracks(route, gpx);
 
     assertNotNull(result);
@@ -81,7 +81,7 @@ class GpxProcessingServiceTest {
     Path gpxPath = getExampleGpxPath();
 
     GPX gpx = gpxProcessingService.parseGpx(gpxPath);
-    context.setContext(user);
+    context.setUserForTest(user);
     TrackMetadata result = gpxProcessingService.createTracks(route, gpx);
 
     assertNotNull(result);
@@ -103,7 +103,7 @@ class GpxProcessingServiceTest {
     Path gpxPath = getExampleGpxPath();
 
     GPX gpx = gpxProcessingService.parseGpx(gpxPath);
-    context.setContext(user);
+    context.setUserForTest(user);
     gpxProcessingService.createTracks(route, gpx);
 
     GpxTrack track = route.getTracks().getFirst();
@@ -123,7 +123,7 @@ class GpxProcessingServiceTest {
     Path gpxPath = getExampleGpxPath();
 
     GPX gpx = gpxProcessingService.parseGpx(gpxPath);
-    context.setContext(user);
+    context.setUserForTest(user);
     gpxProcessingService.createTracks(route, gpx);
 
     GpxTrack track = route.getTracks().getFirst();
@@ -143,7 +143,7 @@ class GpxProcessingServiceTest {
     Path gpxPath = getExampleGpxPath();
 
     GPX gpx = gpxProcessingService.parseGpx(gpxPath);
-    context.setContext(user);
+    context.setUserForTest(user);
     gpxProcessingService.createTracks(route, gpx);
 
     GpxTrack track = route.getTracks().getFirst();
@@ -158,7 +158,7 @@ class GpxProcessingServiceTest {
     Path gpxPath = getExampleGpxPath();
 
     GPX gpx = gpxProcessingService.parseGpx(gpxPath);
-    context.setContext(user);
+    context.setUserForTest(user);
     gpxProcessingService.createTracks(route, gpx);
 
     Set<Asset> assets = route.getAssets();
@@ -176,7 +176,7 @@ class GpxProcessingServiceTest {
     Path gpxPath = getTwoTracksGpxPath();
 
     GPX gpx = gpxProcessingService.parseGpx(gpxPath);
-    context.setContext(user);
+    context.setUserForTest(user);
     TrackMetadata result = gpxProcessingService.createTracks(route, gpx);
 
     assertNotNull(result);
@@ -197,7 +197,7 @@ class GpxProcessingServiceTest {
     Path gpxPath = getTwoTracksGpxPath();
 
     GPX gpx = gpxProcessingService.parseGpx(gpxPath);
-    context.setContext(user);
+    context.setUserForTest(user);
     TrackMetadata result = gpxProcessingService.createTracks(route, gpx);
 
     List<GpxTrack> tracks = route.getTracks();
@@ -217,7 +217,7 @@ class GpxProcessingServiceTest {
     Path gpxPath = getTwoTracksGpxPath();
 
     GPX gpx = gpxProcessingService.parseGpx(gpxPath);
-    context.setContext(user);
+    context.setUserForTest(user);
     TrackMetadata result = gpxProcessingService.createTracks(route, gpx);
 
     List<GpxTrack> tracks = route.getTracks();
@@ -242,7 +242,7 @@ class GpxProcessingServiceTest {
     Path gpxPath = new File("src/test/resources/empty.gpx").toPath();
 
     GPX gpx = gpxProcessingService.parseGpx(gpxPath);
-    context.setContext(user);
+    context.setUserForTest(user);
     TriblyException exception =
         assertThrows(TriblyException.class, () -> gpxProcessingService.createTracks(route, gpx));
 
@@ -261,7 +261,7 @@ class GpxProcessingServiceTest {
   void getFilteredGpxFile_shouldReturnFileIfExists() {
     Path gpxPath = getExampleGpxPath();
     GPX gpx = gpxProcessingService.parseGpx(gpxPath);
-    context.setContext(user);
+    context.setUserForTest(user);
     gpxProcessingService.createTracks(route, gpx);
 
     File result = gpxProcessingService.getFilteredGpxFile(route);
@@ -279,7 +279,7 @@ class GpxProcessingServiceTest {
   void getFitFile_shouldReturnFileIfExists() {
     Path gpxPath = getExampleGpxPath();
     GPX gpx = gpxProcessingService.parseGpx(gpxPath);
-    context.setContext(user);
+    context.setUserForTest(user);
     gpxProcessingService.createTracks(route, gpx);
 
     File result = gpxProcessingService.getFitFile(route);

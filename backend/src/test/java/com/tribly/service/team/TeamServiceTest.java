@@ -50,7 +50,7 @@ class TeamServiceTest {
             true,
             true);
 
-    queryContext.setContext(user1);
+    queryContext.setUserForTest(user1);
     TeamDetailDto result = teamService.createTeam(request);
 
     assertNotNull(result);
@@ -67,7 +67,7 @@ class TeamServiceTest {
     TeamRequest request =
         new TeamRequest("My Team", MediaDto.builder().build(), Visibility.PUBLIC, true, true);
 
-    queryContext.setContext(user1);
+    queryContext.setUserForTest(user1);
     TeamDetailDto result = teamService.createTeam(request);
 
     assertEquals(TeamRole.ADMIN, result.role());
@@ -80,9 +80,9 @@ class TeamServiceTest {
     TeamRequest request2 =
         new TeamRequest("Test Team", MediaDto.builder().build(), Visibility.PUBLIC, true, true);
 
-    queryContext.setContext(user1);
+    queryContext.setUserForTest(user1);
     TeamDetailDto team1 = teamService.createTeam(request1);
-    queryContext.setContext(user2);
+    queryContext.setUserForTest(user2);
     TeamDetailDto team2 = teamService.createTeam(request2);
 
     assertEquals("test-team", team1.slug());
@@ -98,7 +98,7 @@ class TeamServiceTest {
     dataService.createTeam(user1, "Public Team 2", "public-2", Visibility.PUBLIC);
     dataService.createTeam(user1, "Private Team", "private", Visibility.TEAM);
 
-    queryContext.setContext(null);
+    queryContext.setUserForTest(null);
     TeamListResponse result = teamService.listTeams(MinRole.NOT_MEMBER, null, 0, 10);
 
     assertEquals(2, result.teams().size());
@@ -110,7 +110,7 @@ class TeamServiceTest {
     dataService.createTeam(user2, "Team 2", "team-2", Visibility.PUBLIC);
     dataService.addUserToTeam(user1, team1, TeamRole.MEMBER);
 
-    queryContext.setContext(user1);
+    queryContext.setUserForTest(user1);
     TeamListResponse result = teamService.listTeams(MinRole.MEMBER, null, 0, 10);
 
     assertEquals(1, result.teams().size());
@@ -123,7 +123,7 @@ class TeamServiceTest {
     Team team2 = dataService.createTeam(user1, "Team 2", "team-2", Visibility.PUBLIC);
     dataService.addUserToTeam(user1, team1, TeamRole.MEMBER);
 
-    queryContext.setContext(user1);
+    queryContext.setUserForTest(user1);
     TeamListResponse result = teamService.listTeams(MinRole.ADMIN, null, 0, 10);
 
     assertEquals(1, result.teams().size());
@@ -136,7 +136,7 @@ class TeamServiceTest {
       dataService.createTeam(user1, "Team " + i, "team-" + i, Visibility.PUBLIC);
     }
 
-    queryContext.setContext(null);
+    queryContext.setUserForTest(null);
     TeamListResponse result = teamService.listTeams(MinRole.NOT_MEMBER, null, 0, 2);
 
     assertEquals(2, result.teams().size());
@@ -149,7 +149,7 @@ class TeamServiceTest {
   void getTeam_shouldReturnTeam() {
     Team team = dataService.createTeam(user1, "Test Team", "test-team", Visibility.PUBLIC);
 
-    queryContext.setContext(null);
+    queryContext.setUserForTest(null);
     TeamDetailDto result = teamService.getTeamDetailDto(team.getSlug());
 
     assertEquals("Test Team", result.name());
@@ -169,7 +169,7 @@ class TeamServiceTest {
             true,
             true);
 
-    queryContext.setContext(user1);
+    queryContext.setUserForTest(user1);
     TeamDetailDto result = teamService.updateTeam(team.getSlug(), request);
 
     assertEquals("Updated Name", result.name());
@@ -188,7 +188,7 @@ class TeamServiceTest {
             true,
             true);
 
-    queryContext.setContext(user1);
+    queryContext.setUserForTest(user1);
     TeamDetailDto result = teamService.updateTeam(team.getSlug(), request);
 
     assertEquals("New Name", result.name());
@@ -206,7 +206,7 @@ class TeamServiceTest {
             true,
             true);
 
-    queryContext.setContext(user1);
+    queryContext.setUserForTest(user1);
     TeamDetailDto result = teamService.updateTeam(team.getSlug(), request);
 
     assertEquals("New name", result.name());
@@ -220,7 +220,7 @@ class TeamServiceTest {
     TeamRequest request =
         new TeamRequest("New Name", MediaDto.builder().build(), Visibility.PUBLIC, true, true);
 
-    queryContext.setContext(user1);
+    queryContext.setUserForTest(user1);
     assertThrows(TriblyException.class, () -> teamService.updateTeam(team.getSlug(), request));
   }
 
@@ -230,10 +230,10 @@ class TeamServiceTest {
   void deleteTeam_shouldSoftDeleteTeam() {
     Team team = dataService.createTeam(user1, "Test Team", "test-team", Visibility.PUBLIC);
 
-    queryContext.setContext(user1);
+    queryContext.setUserForTest(user1);
     teamService.deleteTeam(team.getSlug());
 
-    queryContext.setContext(null);
+    queryContext.setUserForTest(null);
     assertThrows(TriblyException.class, () -> teamService.getTeamDetailDto(team.getSlug()));
   }
 
@@ -242,7 +242,7 @@ class TeamServiceTest {
     Team team = dataService.createTeam(user2, "Test Team", "test-team", Visibility.PUBLIC);
     dataService.addUserToTeam(user1, team, TeamRole.MEMBER);
 
-    queryContext.setContext(user1);
+    queryContext.setUserForTest(user1);
     assertThrows(TriblyException.class, () -> teamService.deleteTeam(team.getSlug()));
   }
 }

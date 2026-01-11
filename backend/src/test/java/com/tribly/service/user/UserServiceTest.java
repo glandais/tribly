@@ -62,7 +62,7 @@ class UserServiceTest {
 
     @Test
     void shouldThrowForNonexistentUser() {
-      queryContext.setContext(null);
+      queryContext.setUserForTest(null);
       assertThrows(TriblyException.class, () -> userService.getUserDto());
     }
 
@@ -71,7 +71,7 @@ class UserServiceTest {
       User user = dataService.createUser("deleted@example.com", "Deleted User");
       dataService.deleteUser(user);
 
-      queryContext.setContext(user);
+      queryContext.setUserForTest(user);
       assertThrows(TriblyException.class, () -> userService.getUserDto());
     }
   }
@@ -114,7 +114,7 @@ class UserServiceTest {
       User user = dataService.createUser("deleted@example.com", "Deleted User");
       dataService.deleteUser(user);
 
-      queryContext.setContext(user);
+      queryContext.setUserForTest(user);
       assertThrows(TriblyException.class, () -> userService.updateUser("New Name"));
     }
   }
@@ -135,7 +135,7 @@ class UserServiceTest {
 
       userService.deleteUser();
 
-      queryContext.setContext(user);
+      queryContext.setUserForTest(user);
       assertThrows(TriblyException.class, () -> userService.getUserDto());
     }
 
@@ -144,7 +144,7 @@ class UserServiceTest {
       User user = dataService.createUser("deleted@example.com", "Deleted User");
       dataService.deleteUser(user);
 
-      queryContext.setContext(user);
+      queryContext.setUserForTest(user);
       assertThrows(TriblyException.class, () -> userService.deleteUser());
     }
   }

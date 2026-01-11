@@ -59,7 +59,7 @@ class PostServiceTest {
       Post post =
           dataService.createPost(publicTeam, admin, "Test Post", Instant.now(), Visibility.PUBLIC);
 
-      userService.setContext(member);
+      userService.setUserForTest(member);
       PostDto result = postService.getDto(publicTeam.getSlug(), post.getSlug());
 
       assertNotNull(result);
@@ -72,7 +72,7 @@ class PostServiceTest {
           dataService.createPost(
               publicTeam, admin, "Public Post", Instant.now(), Visibility.PUBLIC);
 
-      userService.setContext(null);
+      userService.setUserForTest(null);
       PostDto result = postService.getDto(publicTeam.getSlug(), post.getSlug());
 
       assertNotNull(result);
@@ -83,14 +83,14 @@ class PostServiceTest {
       Post post =
           dataService.createPost(publicTeam, admin, "Team Post", Instant.now(), Visibility.TEAM);
 
-      userService.setContext(null);
+      userService.setUserForTest(null);
       assertThrows(
           TriblyException.class, () -> postService.getDto(publicTeam.getSlug(), post.getSlug()));
     }
 
     @Test
     void shouldThrowForNonexistentPost() {
-      userService.setContext(admin);
+      userService.setUserForTest(admin);
       assertThrows(
           TriblyException.class, () -> postService.getDto(publicTeam.getSlug(), "nonexistent"));
     }
@@ -111,7 +111,7 @@ class PostServiceTest {
               Visibility.PUBLIC,
               null);
 
-      userService.setContext(organizer);
+      userService.setUserForTest(organizer);
       PostDto result = postService.createPost(publicTeam.getSlug(), request);
 
       assertNotNull(result);
@@ -132,7 +132,7 @@ class PostServiceTest {
               Visibility.PUBLIC,
               null);
 
-      userService.setContext(organizer);
+      userService.setUserForTest(organizer);
       PostDto result = postService.createPost(publicTeam.getSlug(), request);
 
       assertEquals(Status.DRAFT, result.getStatus());
@@ -151,7 +151,7 @@ class PostServiceTest {
               Visibility.PUBLIC,
               publishAt);
 
-      userService.setContext(organizer);
+      userService.setUserForTest(organizer);
       PostDto result = postService.createPost(publicTeam.getSlug(), request);
 
       assertEquals(publishAt, result.getPublishAt());
@@ -168,7 +168,7 @@ class PostServiceTest {
               Visibility.PUBLIC,
               null);
 
-      userService.setContext(member);
+      userService.setUserForTest(member);
       assertThrows(
           TriblyException.class, () -> postService.createPost(publicTeam.getSlug(), request));
     }
@@ -184,7 +184,7 @@ class PostServiceTest {
               Visibility.PUBLIC,
               null);
 
-      userService.setContext(admin);
+      userService.setUserForTest(admin);
       assertThrows(
           TriblyException.class, () -> postService.createPost(privateTeam.getSlug(), request));
     }
@@ -200,7 +200,7 @@ class PostServiceTest {
               Visibility.TEAM,
               null);
 
-      userService.setContext(admin);
+      userService.setUserForTest(admin);
       PostDto result = postService.createPost(privateTeam.getSlug(), request);
 
       assertNotNull(result);
@@ -227,9 +227,9 @@ class PostServiceTest {
               Visibility.PUBLIC,
               null);
 
-      userService.setContext(organizer);
+      userService.setUserForTest(organizer);
       PostDto result1 = postService.createPost(publicTeam.getSlug(), request1);
-      userService.setContext(organizer);
+      userService.setUserForTest(organizer);
       PostDto result2 = postService.createPost(publicTeam.getSlug(), request2);
 
       assertNotEquals(result1.getSlug(), result2.getSlug());
@@ -253,7 +253,7 @@ class PostServiceTest {
               Visibility.TEAM,
               null);
 
-      userService.setContext(organizer);
+      userService.setUserForTest(organizer);
       PostDto result = postService.updatePost(publicTeam.getSlug(), post.getSlug(), request);
 
       assertEquals("Updated", result.getName());
@@ -274,7 +274,7 @@ class PostServiceTest {
               Visibility.PUBLIC,
               null);
 
-      userService.setContext(organizer);
+      userService.setUserForTest(organizer);
       PostDto result = postService.updatePost(publicTeam.getSlug(), post.getSlug(), request);
 
       assertNull(result.getPublishAt());
@@ -293,7 +293,7 @@ class PostServiceTest {
               Visibility.PUBLIC,
               null);
 
-      userService.setContext(member);
+      userService.setUserForTest(member);
       assertThrows(
           TriblyException.class,
           () -> postService.updatePost(publicTeam.getSlug(), post.getSlug(), request));
@@ -312,7 +312,7 @@ class PostServiceTest {
               Visibility.PUBLIC,
               null);
 
-      userService.setContext(admin);
+      userService.setUserForTest(admin);
       assertThrows(
           TriblyException.class,
           () -> postService.updatePost(privateTeam.getSlug(), post.getSlug(), request));
@@ -331,7 +331,7 @@ class PostServiceTest {
               Visibility.TEAM,
               null);
 
-      userService.setContext(admin);
+      userService.setUserForTest(admin);
       PostDto result = postService.updatePost(privateTeam.getSlug(), post.getSlug(), request);
 
       assertNotNull(result);
@@ -351,7 +351,7 @@ class PostServiceTest {
               Visibility.PUBLIC,
               null);
 
-      userService.setContext(admin);
+      userService.setUserForTest(admin);
       assertThrows(
           TriblyException.class,
           () -> postService.updatePost(publicTeam.getSlug(), "nonexistent", request));
@@ -366,10 +366,10 @@ class PostServiceTest {
       Post post =
           dataService.createPost(publicTeam, admin, "To Delete", Instant.now(), Visibility.PUBLIC);
 
-      userService.setContext(organizer);
+      userService.setUserForTest(organizer);
       postService.deletePost(publicTeam.getSlug(), post.getSlug());
 
-      userService.setContext(admin);
+      userService.setUserForTest(admin);
       assertThrows(
           TriblyException.class, () -> postService.getDto(publicTeam.getSlug(), post.getSlug()));
     }
@@ -379,7 +379,7 @@ class PostServiceTest {
       Post post =
           dataService.createPost(publicTeam, admin, "Test", Instant.now(), Visibility.PUBLIC);
 
-      userService.setContext(member);
+      userService.setUserForTest(member);
       assertThrows(
           TriblyException.class,
           () -> postService.deletePost(publicTeam.getSlug(), post.getSlug()));
@@ -387,7 +387,7 @@ class PostServiceTest {
 
     @Test
     void shouldThrowForNonexistentPost() {
-      userService.setContext(admin);
+      userService.setUserForTest(admin);
       assertThrows(
           TriblyException.class, () -> postService.deletePost(publicTeam.getSlug(), "nonexistent"));
     }

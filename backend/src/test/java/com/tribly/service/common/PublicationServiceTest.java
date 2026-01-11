@@ -63,7 +63,7 @@ class PublicationServiceTest {
       dataService.createPost(team, admin, "Public Post", now, Visibility.PUBLIC);
       dataService.createRide(team, admin, "Team Ride", nextSlug(), now, Visibility.TEAM);
 
-      queryContext.setContext(null);
+      queryContext.setUserForTest(null);
       PublicationListResponse result =
           publicationService.list(null, Set.of(team.getId()), null, null, null, 0, 10);
 
@@ -78,7 +78,7 @@ class PublicationServiceTest {
       dataService.createRide(team, admin, "Public Ride", nextSlug(), now, Visibility.PUBLIC);
       dataService.createPost(team, admin, "Team Post", now, Visibility.TEAM);
 
-      queryContext.setContext(member);
+      queryContext.setUserForTest(member);
       PublicationListResponse result =
           publicationService.list(null, Set.of(team.getId()), null, null, null, 0, 10);
 
@@ -91,7 +91,7 @@ class PublicationServiceTest {
       dataService.createRide(team, admin, "Team1 Ride", nextSlug(), now, Visibility.PUBLIC);
       dataService.createRide(privateTeam, admin, "Team2 Ride", nextSlug(), now, Visibility.PUBLIC);
 
-      queryContext.setContext(null);
+      queryContext.setUserForTest(null);
       PublicationListResponse result =
           publicationService.list(null, Set.of(team.getId()), null, null, null, 0, 10);
 
@@ -109,7 +109,7 @@ class PublicationServiceTest {
       dataService.createRide(team, admin, "Recent Ride", nextSlug(), now, Visibility.PUBLIC);
       dataService.createRide(team, admin, "Old Ride", nextSlug(), lastWeek, Visibility.PUBLIC);
 
-      queryContext.setContext(null);
+      queryContext.setUserForTest(null);
       PublicationListResponse result =
           publicationService.list(null, Set.of(team.getId()), null, yesterday, tomorrow, 0, 10);
 
@@ -123,7 +123,7 @@ class PublicationServiceTest {
       dataService.createRide(team, admin, "Mountain Ride", nextSlug(), now, Visibility.PUBLIC);
       dataService.createRide(team, admin, "Beach Ride", nextSlug(), now, Visibility.PUBLIC);
 
-      queryContext.setContext(null);
+      queryContext.setUserForTest(null);
       PublicationListResponse result =
           publicationService.list(null, Set.of(team.getId()), "Mountain", null, null, 0, 10);
 
@@ -139,7 +139,7 @@ class PublicationServiceTest {
             team, admin, "Ride " + i, nextSlug(), now.plus(i, ChronoUnit.HOURS), Visibility.PUBLIC);
       }
 
-      queryContext.setContext(null);
+      queryContext.setUserForTest(null);
       PublicationListResponse result =
           publicationService.list(null, Set.of(team.getId()), null, null, null, 0, 3);
 
@@ -157,7 +157,7 @@ class PublicationServiceTest {
             team, admin, "Ride " + i, nextSlug(), now.plus(i, ChronoUnit.HOURS), Visibility.PUBLIC);
       }
 
-      queryContext.setContext(null);
+      queryContext.setUserForTest(null);
       PublicationListResponse result =
           publicationService.list(null, Set.of(team.getId()), null, null, null, 1, 3);
 
@@ -174,7 +174,7 @@ class PublicationServiceTest {
       dataService.createRide(
           team, admin, "Draft Ride", nextSlug(), now, Visibility.PUBLIC, Status.DRAFT);
 
-      queryContext.setContext(null);
+      queryContext.setUserForTest(null);
       PublicationListResponse result =
           publicationService.list(null, Set.of(team.getId()), null, null, null, 0, 10);
 
@@ -190,7 +190,7 @@ class PublicationServiceTest {
           dataService.createRide(team, admin, "Deleted Ride", nextSlug(), now, Visibility.PUBLIC);
       dataService.deleteRide(deletedRide);
 
-      queryContext.setContext(null);
+      queryContext.setUserForTest(null);
       PublicationListResponse result =
           publicationService.list(null, Set.of(team.getId()), null, null, null, 0, 10);
 
@@ -204,7 +204,7 @@ class PublicationServiceTest {
       dataService.createRide(team, admin, "Test Ride", nextSlug(), now, Visibility.PUBLIC);
       dataService.createPost(team, admin, "Test Post", now, Visibility.PUBLIC);
 
-      queryContext.setContext(null);
+      queryContext.setUserForTest(null);
       PublicationListResponse result =
           publicationService.list(null, Set.of(team.getId()), null, null, null, 0, 10);
 
@@ -215,7 +215,7 @@ class PublicationServiceTest {
 
     @Test
     void shouldReturnEmptyListWhenNoPublications() {
-      queryContext.setContext(null);
+      queryContext.setUserForTest(null);
       PublicationListResponse result =
           publicationService.list(null, Set.of(team.getId()), null, null, null, 0, 10);
 
@@ -230,7 +230,7 @@ class PublicationServiceTest {
       dataService.createRide(team, admin, "Ride Team 1", nextSlug(), now, Visibility.PUBLIC);
       dataService.createRide(team2, admin, "Ride Team 2", nextSlug(), now, Visibility.PUBLIC);
 
-      queryContext.setContext(null);
+      queryContext.setUserForTest(null);
       PublicationListResponse result =
           publicationService.list(
               null, Set.of(team.getId(), team2.getId()), null, null, null, 0, 10);
@@ -245,7 +245,7 @@ class PublicationServiceTest {
       dataService.createRide(team, admin, "Ride Team 1", nextSlug(), now, Visibility.PUBLIC);
       dataService.createRide(team2, admin, "Ride Team 2", nextSlug(), now, Visibility.PUBLIC);
 
-      queryContext.setContext(null);
+      queryContext.setUserForTest(null);
       PublicationListResponse result = publicationService.list(null, null, null, null, null, 0, 10);
 
       assertEquals(2, result.publications().size());
