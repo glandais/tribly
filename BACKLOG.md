@@ -13,7 +13,9 @@ Must-have for public launch. Focus on first impressions and core UX.
 - [X] Pagination / infinite scrolling — Performance at scale
 
 ### Discoverability
-- [ ] SEO/robots.txt/llms.txt — Organic growth driver
+- [x] SEO/robots.txt — Phase 1 complete (static meta)
+- [ ] SSR/Dynamic meta — Future: migrate to Next.js for full SEO
+- [ ] Dynamic sitemap.xml — Requires backend endpoint
 - [ ] Share URL (Social + Strava) — Viral loop
 
 ### Core Features (In Progress)

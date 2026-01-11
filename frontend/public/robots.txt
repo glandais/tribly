@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+Allow: /teams
+Allow: /routes
+
+# Private/authenticated areas
+Disallow: /profile
+Disallow: /create-team
+Disallow: /join-team
+
+# Future: Add sitemap reference when domain is decided
+# Sitemap: https://YOUR_DOMAIN/sitemap.xml
