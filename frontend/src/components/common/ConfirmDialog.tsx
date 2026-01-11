@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { Modal, Button, Group, Text, Stack, Title } from '@mantine/core'
+import { Modal, Button, Group, Text, Stack } from '@mantine/core'
 
 interface ConfirmDialogProps {
   isOpen: boolean
@@ -33,7 +33,7 @@ export function ConfirmDialog({
   const { t } = useTranslation()
 
   return (
-    <Modal opened={isOpen} onClose={onClose} title={<Title order={4}>{title}</Title>} centered>
+    <Modal opened={isOpen} onClose={onClose} title={title} centered>
       <Stack>
         <Text c="dimmed">{message}</Text>
         <Group justify="flex-end" mt="md">

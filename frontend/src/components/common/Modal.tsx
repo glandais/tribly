@@ -1,5 +1,5 @@
 import { type ReactNode } from 'react'
-import { Modal as MantineModal, Group, Title, ScrollArea } from '@mantine/core'
+import { Modal as MantineModal, Group, ScrollArea } from '@mantine/core'
 
 type ModalSize = 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '4xl' | 'full'
 
@@ -38,7 +38,7 @@ export function Modal({
     <MantineModal
       opened={isOpen}
       onClose={onClose}
-      title={<Title order={3}>{title}</Title>}
+      title={title}
       size={sizeMap[size]}
       padding={0}
       styles={{

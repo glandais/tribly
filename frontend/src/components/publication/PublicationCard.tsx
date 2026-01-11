@@ -1,7 +1,7 @@
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { IconCalendar, IconUsers, IconStack2, IconChevronRight } from '@tabler/icons-react'
-import { Group, Box, Stack, Anchor, Text } from '@mantine/core'
+import { Group, Box, Stack, UnstyledButton, Text } from '@mantine/core'
 import { Card, CardContent, CardTitle, CardDescription, CardImage } from '../common/card'
 import { Badge, VisibilityBadge, Stat, StatGroup, CardSkeleton } from '../common/card'
 import { UserAvatarGroup } from '../common/UserAvatar'
@@ -33,6 +33,7 @@ interface PublicationCardProps {
 export function PublicationCard({ publication, showTeam }: PublicationCardProps) {
   const { t } = useTranslation()
   const { formatDateTime } = useFormattedDate()
+  const navigate = useNavigate()
 
   // Get the appropriate path based on publication type
   const getPublicationPath = () => {
@@ -141,15 +142,23 @@ export function PublicationCard({ publication, showTeam }: PublicationCardProps)
       />
 
       <CardContent>
-        {/* Team header - clickable link to team page */}
+        {/* Team header - clickable button to team page (not a link to avoid nested <a> tags) */}
         {showTeam && (
-          <Anchor
-            component={Link}
-            to={paths.team(publication.team.slug)}
-            onClick={(e) => e.stopPropagation()}
-            underline="hover"
+          <UnstyledButton
+            onClick={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              navigate(paths.team(publication.team.slug))
+            }}
             mb="sm"
-            style={{ display: 'block' }}
+            styles={{
+              root: {
+                display: 'block',
+                '&:hover': {
+                  textDecoration: 'underline',
+                },
+              },
+            }}
           >
             <Group gap="xs">
               <IconUsers size={16} />
@@ -158,7 +167,7 @@ export function PublicationCard({ publication, showTeam }: PublicationCardProps)
               </Text>
               <IconChevronRight size={12} />
             </Group>
-          </Anchor>
+          </UnstyledButton>
         )}
 
         {/* Main content - title, description, badges */}

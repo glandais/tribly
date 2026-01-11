@@ -53,7 +53,7 @@ const theme = createTheme({
         root: {
           // Touch-friendly minimum on mobile (44px), smaller on desktop
           minHeight: 'var(--button-min-height, 44px)',
-          '@media (min-width: 48em)': {
+          '@media (minWidth: 48em)': {
             '--button-min-height': '36px',
           },
         },

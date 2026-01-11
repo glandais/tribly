@@ -503,7 +503,7 @@
   "teams.publications.list.filter.trip": "Voyages",
   "teams.publications.list.search.label": "Rechercher des publications",
   "teams.publications.list.search.placeholder": "Rechercher par titre ou description...",
-  "teams.publications.list.title": "Activités",
+  "teams.publications.list.title": "Fil d'actualités",
   "teams.settings.dangerZone.confirmDelete": "Oui, supprimer l'équipe",
   "teams.settings.dangerZone.deleteTeam": "Supprimer l'équipe",
   "teams.settings.dangerZone.deleteWarning": "Êtes-vous sûr de vouloir supprimer <strong>{{teamName}}</strong> ? Cette action est irréversible et supprimera toutes les données de l'équipe, y compris les sorties et les parcours.",
