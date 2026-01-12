@@ -14,7 +14,7 @@
 
     <properties>
         <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
-        <quarkus.platform.version>3.30.5</quarkus.platform.version>
+        <quarkus.platform.version>3.30.6</quarkus.platform.version>
         <compiler-plugin.version>3.14.1</compiler-plugin.version>
         <surefire-plugin.version>3.5.4</surefire-plugin.version>
         <checkstyle-plugin.version>3.6.0</checkstyle-plugin.version>
@@ -23,7 +23,7 @@
         <gpx.version>1.2.7</gpx.version>
         <lombok.version>1.18.42</lombok.version>
         <jspecify.version>1.0.0</jspecify.version>
-        <icu4j.version>78.1</icu4j.version>
+        <icu4j.version>78.2</icu4j.version>
         <tika.version>3.2.3</tika.version>
         <dependencyversion-maven-plugin.version>1.0.0</dependencyversion-maven-plugin.version>
         <geolatte-geojson.version>1.10</geolatte-geojson.version>
@@ -85,7 +85,7 @@
         <dependency>
             <groupId>org.hibernate.orm</groupId>
             <artifactId>hibernate-spatial</artifactId>
-            <version>7.1.11.Final</version>
+            <version>7.2.0.Final</version>
         </dependency>
 
         <!-- Security - Keycloak OIDC -->
