@@ -72,6 +72,7 @@ data/storage/*
 !data/storage/.gitkeep
 data/segments4/*
 !data/segments4/.gitkeep
-!data/segments4/download.sh
+!data/segments4/*.sh
+!data/segments4/*.jar
 
 frontend/i18n-reverse-map.json
