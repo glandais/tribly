@@ -28,6 +28,9 @@ public class AllPublicationAccessChecker implements AccessChecker {
     if (action != ActionType.LIST && action != ActionType.LIST_ALL_TEAMS) {
       return false;
     }
+    if (action == ActionType.LIST_ALL_TEAMS) {
+      return true;
+    }
 
     Context context = triblyContext.getContext(params);
     Team team = context.team();

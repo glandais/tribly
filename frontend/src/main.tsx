@@ -71,6 +71,8 @@ const theme = createTheme({
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
+      staleTime: 3 * 60 * 1000, // 3 minutes - data considered fresh
+      gcTime: 10 * 60 * 1000, // 10 minutes - keep unused data in cache
       retry: (failureCount, error) => {
         // Allow one retry for 401 errors to handle token refresh race condition
         if (error instanceof Error && error.message.includes('401')) {

@@ -65,6 +65,7 @@ export function useComments(
       }
     },
     enabled: !!teamSlug && !!entitySlug,
+    staleTime: 30 * 1000, // 30 seconds - comments need fresher data
   })
 }
 
