@@ -1,34 +1,20 @@
-import React, { useCallback, useRef, useEffect, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Box, ActionIcon, useComputedColorScheme } from '@mantine/core'
-import {
-  MDXEditor,
-  headingsPlugin,
-  listsPlugin,
-  quotePlugin,
-  linkPlugin,
-  linkDialogPlugin,
-  tablePlugin,
-  thematicBreakPlugin,
-  markdownShortcutPlugin,
-  directivesPlugin,
-  toolbarPlugin,
-  UndoRedo,
-  BoldItalicUnderlineToggles,
-  BlockTypeSelect,
-  CreateLink,
-  ListsToggle,
-  InsertTable,
-  Separator,
-  type MDXEditorMethods,
-} from '@mdxeditor/editor'
-import '@mdxeditor/editor/style.css'
-import './mdxeditor/mdxeditor.css'
+import { Box } from '@mantine/core'
+import { RichTextEditor, Link } from '@mantine/tiptap'
+import { useEditor } from '@tiptap/react'
+import StarterKit from '@tiptap/starter-kit'
+import { Table } from '@tiptap/extension-table'
+import TableRow from '@tiptap/extension-table-row'
+import TableHeader from '@tiptap/extension-table-header'
+import TableCell from '@tiptap/extension-table-cell'
+import Placeholder from '@tiptap/extension-placeholder'
+import { Markdown } from 'tiptap-markdown'
+import '@mantine/tiptap/styles.css'
+
 import type { AssetDto } from '@/api/dto'
-import { createAssetDirective } from '@/lib/assetMarkdown'
-import { AssetDirectiveDescriptor, AssetImagesProvider } from './mdxeditor'
-import { IconPhoto } from '@tabler/icons-react'
-import { LoadingSpinner } from './LoadingSpinner'
+import { AssetNode, AssetImagesProvider, markdownToEditor, ImageUploadControl } from './tiptap'
+import './tiptap/tiptap.css'
 
 // Debounce utility
 function debounce<T extends (...args: Parameters<T>) => void>(
@@ -42,104 +28,6 @@ function debounce<T extends (...args: Parameters<T>) => void>(
   }
 }
 
-// ============================================================================
-// Custom Asset Upload Toolbar Button
-// ============================================================================
-
-interface AssetUploadButtonProps {
-  editorRef: React.RefObject<MDXEditorMethods | null>
-  onImageUpload?: (file: File) => Promise<{ id: string; fileName: string } | null>
-  isUploadingImage?: boolean
-}
-
-function AssetUploadButton({ editorRef, onImageUpload, isUploadingImage }: AssetUploadButtonProps) {
-  const { t } = useTranslation()
-  const imageInputRef = useRef<HTMLInputElement>(null)
-
-  const handleClick = useCallback(() => {
-    imageInputRef.current?.click()
-  }, [])
-
-  const handleImageSelect = useCallback(
-    async (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0]
-      if (!file || !onImageUpload || !editorRef.current) return
-
-      const result = await onImageUpload(file)
-      if (result) {
-        const altText = result.fileName.replace(/\.[^/.]+$/, '') // Remove extension
-
-        // Insert markdown directly since we can't access insertDirective$ from outside
-        const directiveMarkdown = `\n${createAssetDirective(result.id, altText)}\n`
-        editorRef.current.insertMarkdown(directiveMarkdown)
-      }
-      // Reset input to allow selecting the same file again
-      e.target.value = ''
-    },
-    [editorRef, onImageUpload]
-  )
-
-  if (!onImageUpload) return null
-
-  return (
-    <>
-      <ActionIcon
-        variant="subtle"
-        color="gray"
-        onClick={handleClick}
-        disabled={isUploadingImage}
-        title={t('editor.image')}
-        aria-label={t('editor.image')}
-      >
-        {isUploadingImage ? <LoadingSpinner size="sm" color="gray" /> : <IconPhoto size={16} />}
-      </ActionIcon>
-      <input
-        ref={imageInputRef}
-        type="file"
-        accept="image/*"
-        onChange={handleImageSelect}
-        style={{ display: 'none' }}
-      />
-    </>
-  )
-}
-
-// ============================================================================
-// Toolbar Contents Component
-// ============================================================================
-
-interface ToolbarContentsProps {
-  editorRef: React.RefObject<MDXEditorMethods | null>
-  onImageUpload?: (file: File) => Promise<{ id: string; fileName: string } | null>
-  isUploadingImage?: boolean
-}
-
-function ToolbarContents({ editorRef, onImageUpload, isUploadingImage }: ToolbarContentsProps) {
-  return (
-    <>
-      <UndoRedo />
-      <Separator />
-      <BoldItalicUnderlineToggles options={['Bold', 'Italic']} />
-      <Separator />
-      <BlockTypeSelect />
-      <Separator />
-      <ListsToggle />
-      <Separator />
-      <CreateLink />
-      <InsertTable />
-      <AssetUploadButton
-        editorRef={editorRef}
-        onImageUpload={onImageUpload}
-        isUploadingImage={isUploadingImage}
-      />
-    </>
-  )
-}
-
-// ============================================================================
-// Main MarkdownEditor Component
-// ============================================================================
-
 export interface MarkdownEditorProps {
   value: string
   onChange?: (value: string) => void
@@ -150,7 +38,7 @@ export interface MarkdownEditorProps {
   ariaLabel?: string
   onImageUpload?: (file: File) => Promise<{ id: string; fileName: string } | null>
   isUploadingImage?: boolean
-  images?: AssetDto[] // For resolving asset:id URLs to actual image URLs
+  images?: AssetDto[]
 }
 
 export function MarkdownEditor({
@@ -158,17 +46,17 @@ export function MarkdownEditor({
   onChange,
   placeholder,
   minHeight = '200px',
-  maxHeight = '500px',
+  maxHeight = '1024px',
   disabled = false,
-  // ariaLabel is kept in props interface for backwards compatibility but MDXEditor handles accessibility internally
   ariaLabel: _ariaLabel,
   onImageUpload,
   isUploadingImage,
   images = [],
 }: MarkdownEditorProps) {
   const { t } = useTranslation()
-  const colorScheme = useComputedColorScheme('light')
-  const editorRef = useRef<MDXEditorMethods>(null)
+
+  // Track if we're updating from external value change
+  const isExternalUpdate = useRef(false)
 
   // Debounced onChange to avoid performance issues during typing
   const debouncedOnChange = useMemo(
@@ -176,74 +64,144 @@ export function MarkdownEditor({
     [onChange]
   )
 
-  const handleChange = useCallback(
+  // Wrapper that checks if we should skip the update
+  const handleEditorChange = useCallback(
     (markdown: string) => {
-      debouncedOnChange(markdown)
+      if (!isExternalUpdate.current) {
+        debouncedOnChange(markdown)
+      }
     },
     [debouncedOnChange]
   )
 
-  // Sync external value changes to editor (e.g., when loading existing content)
+  const editor = useEditor({
+    extensions: [
+      StarterKit.configure({
+        // Disable code block (not in original editor)
+        codeBlock: false,
+      }),
+      // Link must be before Markdown to avoid duplicate extension registration.
+      // Note: tiptap-markdown includes its own link handling, causing a harmless
+      // "Duplicate extension names found: ['link']" console warning.
+      Link,
+      Table.configure({ resizable: true }),
+      TableRow,
+      TableHeader,
+      TableCell,
+      Placeholder.configure({
+        placeholder: placeholder || t('editor.placeholder'),
+      }),
+      Markdown.configure({
+        // html: true is needed to parse <div data-type="asset"> tags from markdownToEditor()
+        html: true,
+        tightLists: true,
+        bulletListMarker: '-',
+      }),
+      AssetNode,
+    ],
+    content: markdownToEditor(value),
+    editable: !disabled,
+    onUpdate: ({ editor }) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const storage = editor.storage as any
+      const markdown = storage.markdown?.getMarkdown?.() || ''
+      handleEditorChange(markdown)
+    },
+  })
+
+  // Sync external value changes to editor
   useEffect(() => {
-    if (editorRef.current) {
-      const currentMarkdown = editorRef.current.getMarkdown()
+    if (editor) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const storage = editor.storage as any
+      const currentMarkdown = storage.markdown?.getMarkdown?.() || ''
       if (value !== currentMarkdown) {
-        editorRef.current.setMarkdown(value)
+        isExternalUpdate.current = true
+        editor.commands.setContent(markdownToEditor(value))
+        // Reset flag after a short delay to allow the update to complete
+        setTimeout(() => {
+          isExternalUpdate.current = false
+        }, 50)
       }
     }
-  }, [value])
+  }, [value, editor])
 
-  // Use CSS custom properties for dynamic height
-  const editorStyle = {
-    '--mdx-min-height': minHeight,
-    '--mdx-max-height': maxHeight,
-  } as React.CSSProperties
+  // Update editable state when disabled changes
+  useEffect(() => {
+    editor?.setEditable(!disabled)
+  }, [disabled, editor])
 
   return (
     <AssetImagesProvider images={images}>
       <Box
-        style={{
-          ...editorStyle,
-          border: '1px solid var(--mantine-color-default-border)',
-          borderRadius: 'var(--mantine-radius-xl)',
-          overflow: 'hidden',
-          boxShadow: 'var(--mantine-shadow-sm)',
-          backgroundColor: 'var(--mantine-color-body)',
-          transition: 'box-shadow 300ms ease',
-        }}
+        className="tiptap-editor"
+        style={
+          {
+            '--tiptap-min-height': minHeight,
+            '--tiptap-max-height': maxHeight,
+          } as React.CSSProperties
+        }
       >
-        <MDXEditor
-          ref={editorRef}
-          className={
-            colorScheme === 'dark' ? 'dark-theme dark-editor mdxeditor-custom' : 'mdxeditor-custom'
-          }
-          markdown={value}
-          onChange={handleChange}
-          readOnly={disabled}
-          placeholder={placeholder || t('editor.placeholder')}
-          plugins={[
-            headingsPlugin(),
-            listsPlugin(),
-            quotePlugin(),
-            linkPlugin(),
-            linkDialogPlugin(),
-            tablePlugin(),
-            thematicBreakPlugin(),
-            markdownShortcutPlugin(),
-            directivesPlugin({
-              directiveDescriptors: [AssetDirectiveDescriptor],
-            }),
-            toolbarPlugin({
-              toolbarContents: () => (
-                <ToolbarContents
-                  editorRef={editorRef}
-                  onImageUpload={onImageUpload}
-                  isUploadingImage={isUploadingImage}
-                />
-              ),
-            }),
-          ]}
-        />
+        <RichTextEditor
+          editor={editor}
+          styles={{
+            root: {
+              border: '1px solid var(--mantine-color-default-border)',
+              borderRadius: 'var(--mantine-radius-xl)',
+              boxShadow: 'var(--mantine-shadow-sm)',
+              backgroundColor: 'var(--mantine-color-body)',
+            },
+            toolbar: {
+              backgroundColor: 'var(--mantine-color-default-hover)',
+              borderBottom: '1px solid var(--mantine-color-default-border)',
+              borderRadius: 'var(--mantine-radius-xl) var(--mantine-radius-xl) 0 0',
+            },
+            content: {
+              borderRadius: '0 0 var(--mantine-radius-xl) var(--mantine-radius-xl)',
+            },
+          }}
+        >
+          <RichTextEditor.Toolbar sticky stickyOffset={0}>
+            <RichTextEditor.ControlsGroup>
+              <RichTextEditor.Undo />
+              <RichTextEditor.Redo />
+            </RichTextEditor.ControlsGroup>
+
+            <RichTextEditor.ControlsGroup>
+              <RichTextEditor.Bold />
+              <RichTextEditor.Italic />
+            </RichTextEditor.ControlsGroup>
+
+            <RichTextEditor.ControlsGroup>
+              <RichTextEditor.H1 />
+              <RichTextEditor.H2 />
+              <RichTextEditor.H3 />
+            </RichTextEditor.ControlsGroup>
+
+            <RichTextEditor.ControlsGroup>
+              <RichTextEditor.BulletList />
+              <RichTextEditor.OrderedList />
+            </RichTextEditor.ControlsGroup>
+
+            <RichTextEditor.ControlsGroup>
+              <RichTextEditor.Link />
+              <RichTextEditor.Unlink />
+            </RichTextEditor.ControlsGroup>
+
+            <RichTextEditor.ControlsGroup>
+              <RichTextEditor.Blockquote />
+              <RichTextEditor.Hr />
+            </RichTextEditor.ControlsGroup>
+
+            {onImageUpload && (
+              <RichTextEditor.ControlsGroup>
+                <ImageUploadControl onImageUpload={onImageUpload} isUploading={isUploadingImage} />
+              </RichTextEditor.ControlsGroup>
+            )}
+          </RichTextEditor.Toolbar>
+
+          <RichTextEditor.Content />
+        </RichTextEditor>
       </Box>
     </AssetImagesProvider>
   )

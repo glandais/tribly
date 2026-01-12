@@ -12,8 +12,6 @@ export interface AssetsDto {
   logo?: AssetDto
   /** Images */
   images: AssetDto[]
-  /** Videos */
-  videos: AssetDto[]
   /** Attachments */
   attachments: AssetDto[]
   /** Original GPX */

@@ -139,7 +139,6 @@ export function TeamPageForm({
             onChange={(val) => form.setFieldValue('media', val)}
             placeholder={t('teams.pages.form.content.placeholder')}
             minHeight="200px"
-            maxHeight="400px"
             disabled={mutation.isPending}
             ariaLabel={t('teams.pages.form.content.placeholder')}
             teamSlug={teamSlug}

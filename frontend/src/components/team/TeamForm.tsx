@@ -117,7 +117,6 @@ export function TeamForm({
             onChange={(val) => form.setFieldValue('media', val)}
             placeholder={t('teams.create.form.description.placeholder')}
             minHeight="150px"
-            maxHeight="300px"
             disabled={mutation.isPending}
             ariaLabel={t('teams.create.form.description.placeholder')}
             teamSlug={teamSlug}

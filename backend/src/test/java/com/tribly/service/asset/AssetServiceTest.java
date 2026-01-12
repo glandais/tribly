@@ -505,7 +505,6 @@ class AssetServiceTest {
       assertNotNull(result);
       assertNotNull(result.logo());
       assertEquals(2, result.images().size());
-      assertTrue(result.videos().isEmpty());
       assertTrue(result.attachments().isEmpty());
     }
 
@@ -533,15 +532,7 @@ class AssetServiceTest {
       String imageId = TsidUtils.toString(image.getId());
 
       AssetsDto assetsDto =
-          new AssetsDto(
-              null, // no logo
-              List.of(new AssetDto(imageId, "new-image.png", null, null, null, null)),
-              List.of(),
-              List.of(),
-              null,
-              null,
-              null,
-              null);
+          AssetsDto.builder().images(List.of(AssetDto.builder().id(imageId).build())).build();
 
       assetService.updateAssets(post, assetsDto);
 
@@ -582,15 +573,7 @@ class AssetServiceTest {
       String foreignId = TsidUtils.toString(foreignAsset.getId());
 
       AssetsDto assetsDto =
-          new AssetsDto(
-              new AssetDto(foreignId, null, null, null, null, null),
-              List.of(),
-              List.of(),
-              List.of(),
-              null,
-              null,
-              null,
-              null);
+          AssetsDto.builder().logo(AssetDto.builder().id(foreignId).build()).build();
 
       assetService.updateAssets(post, assetsDto);
 
@@ -609,15 +592,7 @@ class AssetServiceTest {
       String imageId = TsidUtils.toString(image.getId());
 
       AssetsDto assetsDto =
-          new AssetsDto(
-              null,
-              List.of(new AssetDto(imageId, null, null, null, null, null)),
-              List.of(),
-              List.of(),
-              null,
-              null,
-              null,
-              null);
+          AssetsDto.builder().images(List.of(AssetDto.builder().id(imageId).build())).build();
 
       assetService.updateAssets(post, assetsDto);
 
@@ -635,15 +610,7 @@ class AssetServiceTest {
       String imageId = TsidUtils.toString(image.getId());
 
       AssetsDto assetsDto =
-          new AssetsDto(
-              null,
-              List.of(new AssetDto(imageId, null, null, null, null, null)),
-              List.of(),
-              List.of(),
-              null,
-              null,
-              null,
-              null);
+          AssetsDto.builder().images(List.of(AssetDto.builder().id(imageId).build())).build();
 
       assetService.updateAssets(post2, assetsDto);
 

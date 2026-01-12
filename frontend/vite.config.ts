@@ -37,16 +37,15 @@ export default defineConfig({
             return 'map-vendor';
           }
 
-          // === EDITOR (unified ecosystem must be together to avoid cycles) ===
+          // === EDITOR (Tiptap + unified ecosystem for markdown rendering) ===
           if (
-            // MDX/Lexical editors
-            id.includes('node_modules/@mdxeditor/') ||
-            id.includes('node_modules/@lexical/') ||
-            id.includes('node_modules/lexical/') ||
-            // React markdown
+            // Tiptap editor
+            id.includes('node_modules/@tiptap/') ||
+            id.includes('node_modules/tiptap-markdown/') ||
+            id.includes('node_modules/prosemirror') ||
+            id.includes('node_modules/markdown-it/') ||
+            // React markdown (for MarkdownDisplay)
             id.includes('node_modules/react-markdown/') ||
-            // Syntax highlighting
-            id.includes('node_modules/prismjs/') ||
             id.includes('node_modules/remove-markdown/') ||
             // Unified ecosystem (remark, rehype, mdast, hast, micromark, etc.)
             id.includes('node_modules/unified/') ||

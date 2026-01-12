@@ -96,7 +96,6 @@ export function RideTemplateEditor({
             onChange={(val) => form.setFieldValue('markdown', val)}
             placeholder={t('form.description')}
             minHeight="150px"
-            maxHeight="300px"
             disabled={isPending}
             ariaLabel={t('form.description')}
           />

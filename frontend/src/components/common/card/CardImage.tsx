@@ -38,7 +38,7 @@ export function CardImage({ media, alt, height = 160, type }: CardImageProps) {
   }
 
   // Priority 3: Logo centered on muted background
-  if (assets.logo?.url) {
+  if (assets.logo?.imageUrl) {
     return (
       <Box
         h={height}
@@ -49,7 +49,14 @@ export function CardImage({ media, alt, height = 160, type }: CardImageProps) {
           justifyContent: 'center',
         }}
       >
-        <Image src={assets.logo.url} alt={alt} w={80} h={80} fit="contain" radius="md" />
+        <Image
+          src={assets.logo.imageUrl?.replace('{size}', String(80))}
+          alt={alt}
+          w={80}
+          h={80}
+          fit="contain"
+          radius="md"
+        />
       </Box>
     )
   }

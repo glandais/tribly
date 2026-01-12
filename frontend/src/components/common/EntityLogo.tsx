@@ -22,11 +22,12 @@ export interface EntityLogoProps {
  * Returns null if no logo is provided.
  */
 export function EntityLogo({ logo, alt = 'Logo', size = 'md' }: EntityLogoProps) {
-  if (!logo?.url) {
+  if (!logo?.imageUrl) {
     return null
   }
 
   const pixelSize = mantineSizes[size]
+  const url = logo.imageUrl?.replace('{size}', String(pixelSize))
 
-  return <Image src={logo.url} alt={alt} w={pixelSize} h={pixelSize} fit="cover" radius="md" />
+  return <Image src={url} alt={alt} w={pixelSize} h={pixelSize} fit="cover" radius="md" />
 }

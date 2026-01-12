@@ -5,6 +5,7 @@ import { IconUpload } from '@tabler/icons-react'
 import { useQueryClient } from '@tanstack/react-query'
 import { createRoute, getListRoutesQueryKey } from '@/api/endpoints/routes/routes'
 import { Visibility, SurfaceType } from '@/api/dto'
+import { defaultMedia } from '@/lib/apiUtils'
 
 export interface UploadGpxFilesProps {
   teamSlug: string
@@ -40,14 +41,7 @@ export function UploadGpxFiles({ teamSlug, disabled }: UploadGpxFilesProps) {
             name,
             visibility: Visibility.TEAM,
             surfaceType: SurfaceType.ROAD,
-            media: {
-              markdown: '',
-              assets: {
-                images: [],
-                videos: [],
-                attachments: [],
-              },
-            },
+            media: defaultMedia(),
           },
           gpxFile: file,
         })

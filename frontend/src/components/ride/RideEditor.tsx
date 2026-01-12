@@ -143,7 +143,6 @@ export function RideEditor({
             onChange={(val) => form.setFieldValue('media', val)}
             placeholder={t('rides.create.form.description.placeholder')}
             minHeight="150px"
-            maxHeight="300px"
             disabled={isPending}
             ariaLabel={t('form.description')}
             teamSlug={teamSlug}

@@ -61,7 +61,13 @@ export function TeamAvatar({ team, size = 'md' }: TeamAvatarProps) {
 
   return (
     <Tooltip label={team.name} withArrow>
-      <Avatar src={logo?.url} alt={team.name} size={size} radius="xl" color={color}>
+      <Avatar
+        src={logo?.imageUrl?.replace('{size}', String(128))}
+        alt={team.name}
+        size={size}
+        radius="xl"
+        color={color}
+      >
         {initials}
       </Avatar>
     </Tooltip>

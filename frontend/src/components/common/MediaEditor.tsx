@@ -148,8 +148,15 @@ export function MediaEditor({
           </Group>
 
           <Group gap="md">
-            {logo?.url ? (
-              <Image src={logo.url} alt={t('logo.title')} w={64} h={64} radius="md" fit="cover" />
+            {logo?.imageUrl ? (
+              <Image
+                src={logo.imageUrl?.replace('{size}', String(getImageSizeWidth('thumbnail')))}
+                alt={t('logo.title')}
+                w={64}
+                h={64}
+                radius="md"
+                fit="cover"
+              />
             ) : (
               <Center
                 w={64}
@@ -167,7 +174,7 @@ export function MediaEditor({
               <input
                 ref={logoInputRef}
                 type="file"
-                accept="image/*"
+                accept="image/*,.heic,.heif"
                 onChange={handleLogoSelect}
                 disabled={!canUpload || logoUploading}
                 hidden

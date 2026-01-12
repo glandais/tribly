@@ -1,8 +1,10 @@
 package com.tribly.dto.common.asset;
 
+import lombok.Builder;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.jspecify.annotations.Nullable;
 
+@Builder
 public record AssetDto(
     @Schema(description = "ID (TSID)", required = true) String id,
     @Schema(description = "Filename", required = true) String fileName,

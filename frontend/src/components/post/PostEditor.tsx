@@ -102,7 +102,6 @@ export function PostEditor({
             onChange={(val) => form.setFieldValue('media', val)}
             placeholder={t('posts.create.descriptionPlaceholder')}
             minHeight="200px"
-            maxHeight="400px"
             disabled={isPending}
             ariaLabel={t('form.description')}
             teamSlug={teamSlug}

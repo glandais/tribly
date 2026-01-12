@@ -32,7 +32,7 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false)
 
   // Set favicon to team logo
-  useFavicon(team.about?.assets?.logo?.url)
+  useFavicon(team.about?.assets?.logo?.imageUrl?.replace('{size}', String(128)))
 
   const isMember = !!team.role
   const isAdmin = team.role === 'ADMIN'

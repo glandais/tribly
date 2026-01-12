@@ -198,7 +198,6 @@ export function TripEditor({
                   onChange={(val) => form.setFieldValue('media', val)}
                   placeholder={t('trips.create.form.description.placeholder')}
                   minHeight="150px"
-                  maxHeight="300px"
                   disabled={isPending}
                   ariaLabel={t('form.description')}
                   teamSlug={teamSlug}
@@ -388,7 +387,6 @@ export function TripEditor({
                       onChange={(val) => form.setFieldValue(`stages.${index}.media`, val)}
                       placeholder={t('trips.create.form.stages.description.placeholder')}
                       minHeight="120px"
-                      maxHeight="200px"
                       disabled={isPending}
                       ariaLabel={t('form.description')}
                       teamSlug={teamSlug}

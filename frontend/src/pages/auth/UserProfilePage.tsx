@@ -108,7 +108,7 @@ export function UserProfilePage() {
                 <input
                   ref={avatarInputRef}
                   type="file"
-                  accept="image/*"
+                  accept="image/*,.heic,.heif"
                   onChange={handleAvatarSelect}
                   style={{ display: 'none' }}
                 />

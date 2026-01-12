@@ -209,11 +209,6 @@ components:
           items:
             $ref: "#/components/schemas/AssetDto"
           description: Images
-        videos:
-          type: array
-          items:
-            $ref: "#/components/schemas/AssetDto"
-          description: Videos
         attachments:
           type: array
           items:
@@ -237,7 +232,6 @@ components:
           $ref: "#/components/schemas/AssetDto"
       required:
       - images
-      - videos
       - attachments
     ClimbCategory:
       type: string

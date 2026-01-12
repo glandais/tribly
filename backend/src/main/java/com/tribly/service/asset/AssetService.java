@@ -277,7 +277,6 @@ public class AssetService {
     return new AssetsDto(
         getAssetDto(assets, AssetType.LOGO),
         getAssetDtoList(assets, AssetType.IMAGE),
-        getAssetDtoList(assets, AssetType.VIDEO),
         getAssetDtoList(assets, AssetType.ATTACHMENT),
         getAssetDto(assets, AssetType.ROUTE_ORIGINAL_GPX),
         getAssetDto(assets, AssetType.ROUTE_FILTERED_GPX),
@@ -323,7 +322,6 @@ public class AssetService {
 
     order = addAssetToEntity(order, teamEntity, AssetType.LOGO, assets.logo());
     order = addAssetsToEntity(order, teamEntity, AssetType.IMAGE, assets.images());
-    order = addAssetsToEntity(order, teamEntity, AssetType.VIDEO, assets.videos());
     addAssetsToEntity(order, teamEntity, AssetType.ATTACHMENT, assets.attachments());
   }
 

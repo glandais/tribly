@@ -235,13 +235,6 @@
             },
             "description" : "Images"
           },
-          "videos" : {
-            "type" : "array",
-            "items" : {
-              "$ref" : "#/components/schemas/AssetDto"
-            },
-            "description" : "Videos"
-          },
           "attachments" : {
             "type" : "array",
             "items" : {
@@ -270,7 +263,7 @@
             "$ref" : "#/components/schemas/AssetDto"
           }
         },
-        "required" : [ "images", "videos", "attachments" ]
+        "required" : [ "images", "attachments" ]
       },
       "ClimbCategory" : {
         "type" : "string",

@@ -78,23 +78,6 @@ export const listAllPublicationsResponse = zod
                         })
                       )
                       .describe('Images'),
-                    videos: zod
-                      .array(
-                        zod.object({
-                          id: zod.string().describe('ID (TSID)'),
-                          fileName: zod.string().describe('Filename'),
-                          contentType: zod.string().describe('Content-Type'),
-                          url: zod.string().describe('url'),
-                          imageUrl: zod.string().optional().describe('image template url'),
-                          imageDimensions: zod
-                            .object({
-                              width: zod.number().optional(),
-                              height: zod.number().optional(),
-                            })
-                            .optional(),
-                        })
-                      )
-                      .describe('Videos'),
                     attachments: zod
                       .array(
                         zod.object({
@@ -310,23 +293,6 @@ export const listAllPublicationsResponse = zod
                         })
                       )
                       .describe('Images'),
-                    videos: zod
-                      .array(
-                        zod.object({
-                          id: zod.string().describe('ID (TSID)'),
-                          fileName: zod.string().describe('Filename'),
-                          contentType: zod.string().describe('Content-Type'),
-                          url: zod.string().describe('url'),
-                          imageUrl: zod.string().optional().describe('image template url'),
-                          imageDimensions: zod
-                            .object({
-                              width: zod.number().optional(),
-                              height: zod.number().optional(),
-                            })
-                            .optional(),
-                        })
-                      )
-                      .describe('Videos'),
                     attachments: zod
                       .array(
                         zod.object({
@@ -462,23 +428,6 @@ export const listAllPublicationsResponse = zod
                         })
                       )
                       .describe('Images'),
-                    videos: zod
-                      .array(
-                        zod.object({
-                          id: zod.string().describe('ID (TSID)'),
-                          fileName: zod.string().describe('Filename'),
-                          contentType: zod.string().describe('Content-Type'),
-                          url: zod.string().describe('url'),
-                          imageUrl: zod.string().optional().describe('image template url'),
-                          imageDimensions: zod
-                            .object({
-                              width: zod.number().optional(),
-                              height: zod.number().optional(),
-                            })
-                            .optional(),
-                        })
-                      )
-                      .describe('Videos'),
                     attachments: zod
                       .array(
                         zod.object({
@@ -648,23 +597,6 @@ export const listAllPublicationsResponse = zod
                                 })
                               )
                               .describe('Images'),
-                            videos: zod
-                              .array(
-                                zod.object({
-                                  id: zod.string().describe('ID (TSID)'),
-                                  fileName: zod.string().describe('Filename'),
-                                  contentType: zod.string().describe('Content-Type'),
-                                  url: zod.string().describe('url'),
-                                  imageUrl: zod.string().optional().describe('image template url'),
-                                  imageDimensions: zod
-                                    .object({
-                                      width: zod.number().optional(),
-                                      height: zod.number().optional(),
-                                    })
-                                    .optional(),
-                                })
-                              )
-                              .describe('Videos'),
                             attachments: zod
                               .array(
                                 zod.object({
@@ -848,23 +780,6 @@ export const listPublicationsResponse = zod
                         })
                       )
                       .describe('Images'),
-                    videos: zod
-                      .array(
-                        zod.object({
-                          id: zod.string().describe('ID (TSID)'),
-                          fileName: zod.string().describe('Filename'),
-                          contentType: zod.string().describe('Content-Type'),
-                          url: zod.string().describe('url'),
-                          imageUrl: zod.string().optional().describe('image template url'),
-                          imageDimensions: zod
-                            .object({
-                              width: zod.number().optional(),
-                              height: zod.number().optional(),
-                            })
-                            .optional(),
-                        })
-                      )
-                      .describe('Videos'),
                     attachments: zod
                       .array(
                         zod.object({
@@ -1080,23 +995,6 @@ export const listPublicationsResponse = zod
                         })
                       )
                       .describe('Images'),
-                    videos: zod
-                      .array(
-                        zod.object({
-                          id: zod.string().describe('ID (TSID)'),
-                          fileName: zod.string().describe('Filename'),
-                          contentType: zod.string().describe('Content-Type'),
-                          url: zod.string().describe('url'),
-                          imageUrl: zod.string().optional().describe('image template url'),
-                          imageDimensions: zod
-                            .object({
-                              width: zod.number().optional(),
-                              height: zod.number().optional(),
-                            })
-                            .optional(),
-                        })
-                      )
-                      .describe('Videos'),
                     attachments: zod
                       .array(
                         zod.object({
@@ -1232,23 +1130,6 @@ export const listPublicationsResponse = zod
                         })
                       )
                       .describe('Images'),
-                    videos: zod
-                      .array(
-                        zod.object({
-                          id: zod.string().describe('ID (TSID)'),
-                          fileName: zod.string().describe('Filename'),
-                          contentType: zod.string().describe('Content-Type'),
-                          url: zod.string().describe('url'),
-                          imageUrl: zod.string().optional().describe('image template url'),
-                          imageDimensions: zod
-                            .object({
-                              width: zod.number().optional(),
-                              height: zod.number().optional(),
-                            })
-                            .optional(),
-                        })
-                      )
-                      .describe('Videos'),
                     attachments: zod
                       .array(
                         zod.object({
@@ -1418,23 +1299,6 @@ export const listPublicationsResponse = zod
                                 })
                               )
                               .describe('Images'),
-                            videos: zod
-                              .array(
-                                zod.object({
-                                  id: zod.string().describe('ID (TSID)'),
-                                  fileName: zod.string().describe('Filename'),
-                                  contentType: zod.string().describe('Content-Type'),
-                                  url: zod.string().describe('url'),
-                                  imageUrl: zod.string().optional().describe('image template url'),
-                                  imageDimensions: zod
-                                    .object({
-                                      width: zod.number().optional(),
-                                      height: zod.number().optional(),
-                                    })
-                                    .optional(),
-                                })
-                              )
-                              .describe('Videos'),
                             attachments: zod
                               .array(
                                 zod.object({

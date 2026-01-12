@@ -8,7 +8,6 @@ import lombok.RequiredArgsConstructor;
 public enum AssetType {
   LOGO(false),
   IMAGE(false),
-  VIDEO(false),
   ATTACHMENT(false),
   ROUTE_ORIGINAL_GPX(true),
   ROUTE_FILTERED_GPX(true),

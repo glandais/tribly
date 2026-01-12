@@ -5,7 +5,6 @@ export const defaultMedia = (): MediaDto => {
     markdown: '',
     assets: {
       images: [],
-      videos: [],
       attachments: [],
     },
   }

@@ -11,7 +11,6 @@ import org.jspecify.annotations.Nullable;
 public record AssetsDto(
     @Nullable @Schema(description = "Logo") @Valid AssetDto logo,
     @Schema(description = "Images", required = true) List<@Valid AssetDto> images,
-    @Schema(description = "Videos", required = true) List<@Valid AssetDto> videos,
     @Schema(description = "Attachments", required = true) List<@Valid AssetDto> attachments,
     @Nullable @Schema(description = "Original GPX") AssetDto originalGpx,
     @Nullable @Schema(description = "GPX") AssetDto gpx,
@@ -21,7 +20,6 @@ public record AssetsDto(
   public static class AssetsDtoBuilder {
     AssetsDtoBuilder() {
       images = new ArrayList<>();
-      videos = new ArrayList<>();
       attachments = new ArrayList<>();
     }
   }
