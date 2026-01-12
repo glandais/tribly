@@ -167,6 +167,13 @@ export const listTeamsResponse = zod
             memberCount: zod.number().describe('Number of team members'),
             role: zod.enum(['MEMBER', 'ORGANIZER', 'ADMIN']).optional(),
             createdAt: zod.iso.datetime({}),
+            geometry: zod
+              .object({
+                type: zod.enum(['Point']),
+                coordinates: zod.array(zod.number()).describe('Coordinates [longitude, latitude]'),
+              })
+              .optional()
+              .describe('Team location coordinates [longitude, latitude]'),
           })
           .describe('Detailed team information')
       )
@@ -310,6 +317,13 @@ export const createTeamBody = zod
     visibility: zod.enum(['TEAM', 'PUBLIC']),
     enableTrips: zod.boolean().describe('Trips enabled for team'),
     enableAds: zod.boolean().describe('Ads enabled for team'),
+    geometry: zod
+      .object({
+        type: zod.enum(['Point']),
+        coordinates: zod.array(zod.number()).describe('Coordinates [longitude, latitude]'),
+      })
+      .optional()
+      .describe('Team location coordinates [longitude, latitude]'),
   })
   .describe('Team creation request')
 
@@ -450,6 +464,13 @@ export const updateTeamBody = zod
     visibility: zod.enum(['TEAM', 'PUBLIC']),
     enableTrips: zod.boolean().describe('Trips enabled for team'),
     enableAds: zod.boolean().describe('Ads enabled for team'),
+    geometry: zod
+      .object({
+        type: zod.enum(['Point']),
+        coordinates: zod.array(zod.number()).describe('Coordinates [longitude, latitude]'),
+      })
+      .optional()
+      .describe('Team location coordinates [longitude, latitude]'),
   })
   .describe('Team creation request')
 
@@ -592,6 +613,13 @@ export const updateTeamResponse = zod
     memberCount: zod.number().describe('Number of team members'),
     role: zod.enum(['MEMBER', 'ORGANIZER', 'ADMIN']).optional(),
     createdAt: zod.iso.datetime({}),
+    geometry: zod
+      .object({
+        type: zod.enum(['Point']),
+        coordinates: zod.array(zod.number()).describe('Coordinates [longitude, latitude]'),
+      })
+      .optional()
+      .describe('Team location coordinates [longitude, latitude]'),
   })
   .describe('Detailed team information')
 
@@ -742,6 +770,13 @@ export const getTeamResponse = zod
     memberCount: zod.number().describe('Number of team members'),
     role: zod.enum(['MEMBER', 'ORGANIZER', 'ADMIN']).optional(),
     createdAt: zod.iso.datetime({}),
+    geometry: zod
+      .object({
+        type: zod.enum(['Point']),
+        coordinates: zod.array(zod.number()).describe('Coordinates [longitude, latitude]'),
+      })
+      .optional()
+      .describe('Team location coordinates [longitude, latitude]'),
   })
   .describe('Detailed team information')
 
@@ -914,5 +949,12 @@ export const changeTeamSlugResponse = zod
     memberCount: zod.number().describe('Number of team members'),
     role: zod.enum(['MEMBER', 'ORGANIZER', 'ADMIN']).optional(),
     createdAt: zod.iso.datetime({}),
+    geometry: zod
+      .object({
+        type: zod.enum(['Point']),
+        coordinates: zod.array(zod.number()).describe('Coordinates [longitude, latitude]'),
+      })
+      .optional()
+      .describe('Team location coordinates [longitude, latitude]'),
   })
   .describe('Detailed team information')

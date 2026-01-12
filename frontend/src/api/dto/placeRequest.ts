@@ -5,7 +5,7 @@
  * API for Tribly Cycling Team Management Platform
  * OpenAPI spec version: 1.0.0
  */
-import type { PlaceRequestCoordinates } from './placeRequestCoordinates'
+import type { PlaceRequestGeometry } from './placeRequestGeometry'
 
 /**
  * Place create/update request
@@ -35,5 +35,5 @@ export interface PlaceRequest {
   /** Can be used as ride end point */
   endPlace: boolean
   /** Geographic coordinates [longitude, latitude] */
-  coordinates?: PlaceRequestCoordinates
+  geometry?: PlaceRequestGeometry
 }

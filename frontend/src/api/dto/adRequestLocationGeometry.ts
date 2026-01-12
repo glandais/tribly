@@ -5,13 +5,13 @@
  * API for Tribly Cycling Team Management Platform
  * OpenAPI spec version: 1.0.0
  */
-import type { PlaceRequestCoordinatesType } from './placeRequestCoordinatesType'
+import type { AdRequestLocationGeometryType } from './adRequestLocationGeometryType'
 
 /**
- * Geographic coordinates [longitude, latitude]
+ * Location coordinates [longitude, latitude]
  */
-export type PlaceRequestCoordinates = {
-  type: PlaceRequestCoordinatesType
+export type AdRequestLocationGeometry = {
+  type: AdRequestLocationGeometryType
   /** Coordinates [longitude, latitude] */
   coordinates: number[]
 }

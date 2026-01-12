@@ -12,8 +12,9 @@ import {
   getGetPlaceQueryKey,
 } from '../../api/endpoints/places/places'
 import { createPlaceBody } from '../../api/zod/places/places.zod'
-import type { PlaceDetailDto, PlaceRequest } from '../../api/dto'
+import type { PlaceDetailDto, PlaceRequest, GeoJsonPoint } from '../../api/dto'
 import { Modal } from '../common/Modal'
+import { GeocoderAutocomplete } from '../common/GeocoderAutocomplete'
 
 const placeSchema = createPlaceBody
 
@@ -37,12 +38,10 @@ export function PlaceForm({ teamSlug, place, onClose }: PlaceFormProps) {
     validateInputOnChange: true,
   })
 
-  const handleSubmit = (values: PlaceRequest) => {
-    const data = values
-
-    if (isEditing && place) {
+  const handleSubmit = (data: PlaceRequest) => {
+    if (isEditing) {
       updateMutation.mutate(
-        { teamSlug: teamSlug, placeId: place.id, data },
+        { teamSlug, placeId: place.id, data },
         {
           onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: getListPlacesQueryKey(teamSlug) })
@@ -57,7 +56,7 @@ export function PlaceForm({ teamSlug, place, onClose }: PlaceFormProps) {
       )
     } else {
       createMutation.mutate(
-        { teamSlug: teamSlug, data },
+        { teamSlug, data },
         {
           onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: getListPlacesQueryKey(teamSlug) })
@@ -124,6 +123,13 @@ export function PlaceForm({ teamSlug, place, onClose }: PlaceFormProps) {
             placeholder={t('places.form.link.placeholder')}
             type="url"
             {...form.getInputProps('link')}
+          />
+
+          <GeocoderAutocomplete
+            value={form.values.geometry as GeoJsonPoint | null | undefined}
+            onChange={(point) => form.setFieldValue('geometry', point ?? undefined)}
+            label={t('geocoder.label')}
+            disabled={mutation.isPending}
           />
 
           <Group>

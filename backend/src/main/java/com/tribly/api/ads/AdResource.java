@@ -2,6 +2,7 @@ package com.tribly.api.ads;
 
 import com.tribly.dto.ads.request.AdRequest;
 import com.tribly.dto.ads.response.AdDto;
+import com.tribly.dto.ads.response.AdEditDto;
 import com.tribly.dto.ads.response.AdListResponse;
 import com.tribly.dto.common.request.SlugChangeRequest;
 import com.tribly.dto.error.ErrorResponse;
@@ -120,6 +121,27 @@ public class AdResource {
       @Parameter(description = "Ad URL slug") @PathParam("slug") String slug) {
 
     AdDto ad = adService.getDto(teamSlug, slug);
+    return Response.ok(ad).build();
+  }
+
+  @GET
+  @Path("/{slug}/edit")
+  @Operation(summary = "Get ad details for edit", description = "Get detailed ad information")
+  @APIResponses({
+    @APIResponse(
+        responseCode = "200",
+        description = "Ad retrieved successfully",
+        content = @Content(schema = @Schema(implementation = AdEditDto.class))),
+    @APIResponse(
+        responseCode = "404",
+        description = "Team or ad not found",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  })
+  public Response getAdEdit(
+      @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug,
+      @Parameter(description = "Ad URL slug") @PathParam("slug") String slug) {
+
+    AdEditDto ad = adService.getDtoEdit(teamSlug, slug);
     return Response.ok(ad).build();
   }
 

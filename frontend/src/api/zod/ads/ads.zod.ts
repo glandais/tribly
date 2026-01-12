@@ -163,8 +163,6 @@ export const listAdsResponse = zod
             adType: zod.enum(['SALE', 'RENTAL', 'WANTED']),
             price: zod.number().optional().describe('Price'),
             rentalPeriod: zod.enum(['DAY', 'WEEK', 'MONTH']).optional(),
-            latitude: zod.number().optional().describe('Latitude'),
-            longitude: zod.number().optional().describe('Longitude'),
             locationDescription: zod.string().optional().describe('Location description'),
             createdAt: zod.iso.datetime({}),
             updatedAt: zod.iso.datetime({}),
@@ -323,6 +321,13 @@ export const createAdBody = zod
       .max(createAdBodyLocationDescriptionMax)
       .optional()
       .describe('Location description'),
+    locationGeometry: zod
+      .object({
+        type: zod.enum(['Point']),
+        coordinates: zod.array(zod.number()).describe('Coordinates [longitude, latitude]'),
+      })
+      .optional()
+      .describe('Location coordinates [longitude, latitude]'),
   })
   .describe('Ad request')
 
@@ -471,6 +476,13 @@ export const updateAdBody = zod
       .max(updateAdBodyLocationDescriptionMax)
       .optional()
       .describe('Location description'),
+    locationGeometry: zod
+      .object({
+        type: zod.enum(['Point']),
+        coordinates: zod.array(zod.number()).describe('Coordinates [longitude, latitude]'),
+      })
+      .optional()
+      .describe('Location coordinates [longitude, latitude]'),
   })
   .describe('Ad request')
 
@@ -606,8 +618,6 @@ export const updateAdResponse = zod
     adType: zod.enum(['SALE', 'RENTAL', 'WANTED']),
     price: zod.number().optional().describe('Price'),
     rentalPeriod: zod.enum(['DAY', 'WEEK', 'MONTH']).optional(),
-    latitude: zod.number().optional().describe('Latitude'),
-    longitude: zod.number().optional().describe('Longitude'),
     locationDescription: zod.string().optional().describe('Location description'),
     createdAt: zod.iso.datetime({}),
     updatedAt: zod.iso.datetime({}),
@@ -756,8 +766,6 @@ export const getAdResponse = zod
     adType: zod.enum(['SALE', 'RENTAL', 'WANTED']),
     price: zod.number().optional().describe('Price'),
     rentalPeriod: zod.enum(['DAY', 'WEEK', 'MONTH']).optional(),
-    latitude: zod.number().optional().describe('Latitude'),
-    longitude: zod.number().optional().describe('Longitude'),
     locationDescription: zod.string().optional().describe('Location description'),
     createdAt: zod.iso.datetime({}),
     updatedAt: zod.iso.datetime({}),
@@ -773,6 +781,161 @@ export const deleteAdParams = zod.object({
   slug: zod.string().describe('Ad URL slug'),
   teamSlug: zod.string().describe('Team URL slug'),
 })
+
+/**
+ * Get detailed ad information
+ * @summary Get ad details for edit
+ */
+export const getAdEditParams = zod.object({
+  slug: zod.string().describe('Ad URL slug'),
+  teamSlug: zod.string().describe('Team URL slug'),
+})
+
+export const getAdEditResponse = zod
+  .object({
+    team: zod
+      .object({
+        id: zod.string().describe('Team ID (TSID)'),
+        name: zod.string().describe('Team name'),
+        slug: zod.string().describe('Team URL slug'),
+        visibility: zod.enum(['TEAM', 'PUBLIC']),
+      })
+      .describe('Team information'),
+    id: zod.string().describe('Ad ID (TSID)'),
+    slug: zod.string().describe('Ad URL slug'),
+    name: zod.string().describe('Ad name'),
+    media: zod.object({
+      markdown: zod.string().describe('Markdown'),
+      assets: zod.object({
+        logo: zod
+          .object({
+            id: zod.string().describe('ID (TSID)'),
+            fileName: zod.string().describe('Filename'),
+            contentType: zod.string().describe('Content-Type'),
+            url: zod.string().describe('url'),
+            imageUrl: zod.string().optional().describe('image template url'),
+            imageDimensions: zod
+              .object({
+                width: zod.number().optional(),
+                height: zod.number().optional(),
+              })
+              .optional(),
+          })
+          .optional(),
+        images: zod
+          .array(
+            zod.object({
+              id: zod.string().describe('ID (TSID)'),
+              fileName: zod.string().describe('Filename'),
+              contentType: zod.string().describe('Content-Type'),
+              url: zod.string().describe('url'),
+              imageUrl: zod.string().optional().describe('image template url'),
+              imageDimensions: zod
+                .object({
+                  width: zod.number().optional(),
+                  height: zod.number().optional(),
+                })
+                .optional(),
+            })
+          )
+          .describe('Images'),
+        attachments: zod
+          .array(
+            zod.object({
+              id: zod.string().describe('ID (TSID)'),
+              fileName: zod.string().describe('Filename'),
+              contentType: zod.string().describe('Content-Type'),
+              url: zod.string().describe('url'),
+              imageUrl: zod.string().optional().describe('image template url'),
+              imageDimensions: zod
+                .object({
+                  width: zod.number().optional(),
+                  height: zod.number().optional(),
+                })
+                .optional(),
+            })
+          )
+          .describe('Attachments'),
+        originalGpx: zod
+          .object({
+            id: zod.string().describe('ID (TSID)'),
+            fileName: zod.string().describe('Filename'),
+            contentType: zod.string().describe('Content-Type'),
+            url: zod.string().describe('url'),
+            imageUrl: zod.string().optional().describe('image template url'),
+            imageDimensions: zod
+              .object({
+                width: zod.number().optional(),
+                height: zod.number().optional(),
+              })
+              .optional(),
+          })
+          .optional(),
+        gpx: zod
+          .object({
+            id: zod.string().describe('ID (TSID)'),
+            fileName: zod.string().describe('Filename'),
+            contentType: zod.string().describe('Content-Type'),
+            url: zod.string().describe('url'),
+            imageUrl: zod.string().optional().describe('image template url'),
+            imageDimensions: zod
+              .object({
+                width: zod.number().optional(),
+                height: zod.number().optional(),
+              })
+              .optional(),
+          })
+          .optional(),
+        fit: zod
+          .object({
+            id: zod.string().describe('ID (TSID)'),
+            fileName: zod.string().describe('Filename'),
+            contentType: zod.string().describe('Content-Type'),
+            url: zod.string().describe('url'),
+            imageUrl: zod.string().optional().describe('image template url'),
+            imageDimensions: zod
+              .object({
+                width: zod.number().optional(),
+                height: zod.number().optional(),
+              })
+              .optional(),
+          })
+          .optional(),
+        thumbnail: zod
+          .object({
+            id: zod.string().describe('ID (TSID)'),
+            fileName: zod.string().describe('Filename'),
+            contentType: zod.string().describe('Content-Type'),
+            url: zod.string().describe('url'),
+            imageUrl: zod.string().optional().describe('image template url'),
+            imageDimensions: zod
+              .object({
+                width: zod.number().optional(),
+                height: zod.number().optional(),
+              })
+              .optional(),
+          })
+          .optional(),
+      }),
+    }),
+    status: zod.enum(['DRAFT', 'PUBLISHED', 'CANCELLED']),
+    visibility: zod.enum(['TEAM', 'PUBLIC']),
+    adType: zod.enum(['SALE', 'RENTAL', 'WANTED']),
+    price: zod.number().optional().describe('Price'),
+    rentalPeriod: zod.enum(['DAY', 'WEEK', 'MONTH']).optional(),
+    locationGeometry: zod
+      .object({
+        type: zod.enum(['Point']),
+        coordinates: zod.array(zod.number()).describe('Coordinates [longitude, latitude]'),
+      })
+      .optional()
+      .describe('Location coordinates [longitude, latitude]'),
+    locationDescription: zod.string().optional().describe('Location description'),
+    createdAt: zod.iso.datetime({}),
+    updatedAt: zod.iso.datetime({}),
+    createdById: zod.string().describe('Creator ID (TSID)'),
+  })
+  .describe('Ad data')
 
 /**
  * Change ad URL slug. Requires admin permissions.
@@ -929,8 +1092,6 @@ export const changeAdSlugResponse = zod
     adType: zod.enum(['SALE', 'RENTAL', 'WANTED']),
     price: zod.number().optional().describe('Price'),
     rentalPeriod: zod.enum(['DAY', 'WEEK', 'MONTH']).optional(),
-    latitude: zod.number().optional().describe('Latitude'),
-    longitude: zod.number().optional().describe('Longitude'),
     locationDescription: zod.string().optional().describe('Location description'),
     createdAt: zod.iso.datetime({}),
     updatedAt: zod.iso.datetime({}),

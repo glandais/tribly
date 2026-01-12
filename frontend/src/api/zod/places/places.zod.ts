@@ -40,7 +40,7 @@ export const listPlacesResponse = zod
               coordinates: zod.array(zod.number()).describe('Coordinates [longitude, latitude]'),
             })
             .optional()
-            .describe('GeoJSON Point geometry'),
+            .describe('Location coordinates [longitude, latitude]'),
         })
       )
       .describe('List of places'),
@@ -89,7 +89,7 @@ export const createPlaceBody = zod
       .describe('External link (e.g., Google Maps URL)'),
     startPlace: zod.boolean().describe('Can be used as ride start point'),
     endPlace: zod.boolean().describe('Can be used as ride end point'),
-    coordinates: zod
+    geometry: zod
       .object({
         type: zod.enum(['Point']),
         coordinates: zod.array(zod.number()).describe('Coordinates [longitude, latitude]'),
@@ -139,7 +139,7 @@ export const updatePlaceBody = zod
       .describe('External link (e.g., Google Maps URL)'),
     startPlace: zod.boolean().describe('Can be used as ride start point'),
     endPlace: zod.boolean().describe('Can be used as ride end point'),
-    coordinates: zod
+    geometry: zod
       .object({
         type: zod.enum(['Point']),
         coordinates: zod.array(zod.number()).describe('Coordinates [longitude, latitude]'),
@@ -162,7 +162,7 @@ export const updatePlaceResponse = zod.object({
       coordinates: zod.array(zod.number()).describe('Coordinates [longitude, latitude]'),
     })
     .optional()
-    .describe('GeoJSON Point geometry'),
+    .describe('Location coordinates [longitude, latitude]'),
 })
 
 /**
@@ -187,7 +187,7 @@ export const getPlaceResponse = zod.object({
       coordinates: zod.array(zod.number()).describe('Coordinates [longitude, latitude]'),
     })
     .optional()
-    .describe('GeoJSON Point geometry'),
+    .describe('Location coordinates [longitude, latitude]'),
 })
 
 /**

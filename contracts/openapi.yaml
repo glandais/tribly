@@ -54,14 +54,94 @@ components:
           description: Rental period
           type: string
           $ref: "#/components/schemas/RentalPeriod"
-        latitude:
+        locationDescription:
+          type: string
+          description: Location description
+        createdAt:
+          description: Creation timestamp
+          type: string
+          $ref: "#/components/schemas/Instant"
+        updatedAt:
+          description: Creation timestamp
+          type: string
+          $ref: "#/components/schemas/Instant"
+        createdById:
+          type: string
+          description: Creator ID (TSID)
+    AdEditDto:
+      description: Ad data
+      type: object
+      required:
+      - team
+      - id
+      - slug
+      - name
+      - media
+      - status
+      - visibility
+      - adType
+      - createdAt
+      - updatedAt
+      - createdById
+      properties:
+        team:
+          description: Team
+          type: object
+          $ref: "#/components/schemas/TeamPublicationDto"
+        id:
+          type: string
+          description: Ad ID (TSID)
+        slug:
+          type: string
+          description: Ad URL slug
+        name:
+          type: string
+          description: Ad name
+        media:
+          description: Ad media
+          type: object
+          $ref: "#/components/schemas/MediaDto"
+        status:
+          description: Ad status
+          type: string
+          $ref: "#/components/schemas/Status"
+        visibility:
+          description: Visibility level
+          type: string
+          $ref: "#/components/schemas/Visibility"
+        adType:
+          description: Ad type
+          type: string
+          $ref: "#/components/schemas/AdType"
+        price:
           type: number
-          format: double
-          description: Latitude
-        longitude:
-          type: number
-          format: double
-          description: Longitude
+          description: Price
+        rentalPeriod:
+          description: Rental period
+          type: string
+          $ref: "#/components/schemas/RentalPeriod"
+        locationGeometry:
+          description: "Location coordinates [longitude, latitude]"
+          type: object
+          required:
+          - type
+          - coordinates
+          properties:
+            type:
+              type: string
+              examples:
+              - Point
+              enum:
+              - Point
+            coordinates:
+              type: array
+              items:
+                type: number
+                format: double
+              description: "Coordinates [longitude, latitude]"
+              examples:
+              - - 2.3522
+                - 48.8566
         locationDescription:
           type: string
           description: Location description
@@ -140,6 +220,28 @@ components:
           type: string
           description: Location description
           maxLength: 200
+        locationGeometry:
+          description: "Location coordinates [longitude, latitude]"
+          type: object
+          required:
+          - type
+          - coordinates
+          properties:
+            type:
+              type: string
+              examples:
+              - Point
+              enum:
+              - Point
+            coordinates:
+              type: array
+              items:
+                type: number
+                format: double
+              description: "Coordinates [longitude, latitude]"
+              examples:
+              - - 2.3522
+                - 48.8566
     AdType:
       type: string
       enum:
@@ -471,7 +573,7 @@ components:
               format: double
           description: "Array of [lon, lat] coordinates"
     GeoJsonPoint:
-      description: GeoJSON Point geometry
+      description: "Location coordinates [longitude, latitude]"
       type: object
       required:
       - type
@@ -768,7 +870,7 @@ components:
         endPlace:
           type: boolean
           description: Can be used as ride end point
-        coordinates:
+        geometry:
           description: "Geographic coordinates [longitude, latitude]"
           type: object
           required:
@@ -1766,6 +1868,28 @@ components:
           description: Team creation timestamp
           type: string
           $ref: "#/components/schemas/Instant"
+        geometry:
+          description: "Team location coordinates [longitude, latitude]"
+          type: object
+          required:
+          - type
+          - coordinates
+          properties:
+            type:
+              type: string
+              examples:
+              - Point
+              enum:
+              - Point
+            coordinates:
+              type: array
+              items:
+                type: number
+                format: double
+              description: "Coordinates [longitude, latitude]"
+              examples:
+              - - 2.3522
+                - 48.8566
     TeamListResponse:
       description: Paginated team list response
       type: object
@@ -1940,6 +2064,28 @@ components:
           description: Ads enabled for team
           examples:
           - true
+        geometry:
+          description: "Team location coordinates [longitude, latitude]"
+          type: object
+          required:
+          - type
+          - coordinates
+          properties:
+            type:
+              type: string
+              examples:
+              - Point
+              enum:
+              - Point
+            coordinates:
+              type: array
+              items:
+                type: number
+                format: double
+              description: "Coordinates [longitude, latitude]"
+              examples:
+              - - 2.3522
+                - 48.8566
     TeamRole:
       type: string
       enum:
@@ -2965,6 +3111,46 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - SecurityScheme:
+        - user
+  /api/teams/{teamSlug}/ads/{slug}/edit:
+    get:
+      summary: Get ad details for edit
+      description: Get detailed ad information
+      operationId: getAdEdit
+      tags:
+      - Ads
+      parameters:
+      - description: Ad URL slug
+        name: slug
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: Team URL slug
+        name: teamSlug
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Ad retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdEditDto"
+        "404":
+          description: Team or ad not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
       security:
       - SecurityScheme:
         - user

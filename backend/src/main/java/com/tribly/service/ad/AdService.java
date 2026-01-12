@@ -5,6 +5,7 @@ import com.tribly.domain.ad.Ad;
 import com.tribly.domain.team.Team;
 import com.tribly.dto.ads.request.AdRequest;
 import com.tribly.dto.ads.response.AdDto;
+import com.tribly.dto.ads.response.AdEditDto;
 import com.tribly.dto.ads.response.AdListResponse;
 import com.tribly.dto.error.ErrorCode;
 import com.tribly.enums.*;
@@ -45,6 +46,13 @@ public class AdService extends TeamEntityService<Ad, AdRepository, AdDto> {
   public AdDto getDto(String teamSlug, String entitySlug) {
     Team team = teamService.getTeam(teamSlug);
     return super.getDto(team, entitySlug);
+  }
+
+  @CheckAccess(entityType = EntityType.AD, action = ActionType.UPDATE)
+  public AdEditDto getDtoEdit(String teamSlug, String entitySlug) {
+    Team team = teamService.getTeam(teamSlug);
+    Ad entity = findBySlug(team, entitySlug);
+    return AdEditDto.from(entity, assetService);
   }
 
   @CheckAccess(entityType = EntityType.AD, action = ActionType.LIST)
@@ -155,5 +163,6 @@ public class AdService extends TeamEntityService<Ad, AdRepository, AdDto> {
       ad.setRentalPeriod(null);
     }
     ad.setLocationDescription(request.locationDescription());
+    ad.setLocationGeometry(request.locationGeometry());
   }
 }

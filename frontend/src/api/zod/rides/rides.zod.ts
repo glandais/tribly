@@ -519,7 +519,7 @@ export const updateRideResponse = zod
             coordinates: zod.array(zod.number()).describe('Coordinates [longitude, latitude]'),
           })
           .optional()
-          .describe('GeoJSON Point geometry'),
+          .describe('Location coordinates [longitude, latitude]'),
       })
       .optional(),
     endPlace: zod
@@ -536,7 +536,7 @@ export const updateRideResponse = zod
             coordinates: zod.array(zod.number()).describe('Coordinates [longitude, latitude]'),
           })
           .optional()
-          .describe('GeoJSON Point geometry'),
+          .describe('Location coordinates [longitude, latitude]'),
       })
       .optional(),
     topParticipants: zod
@@ -740,7 +740,7 @@ export const getRideResponse = zod
             coordinates: zod.array(zod.number()).describe('Coordinates [longitude, latitude]'),
           })
           .optional()
-          .describe('GeoJSON Point geometry'),
+          .describe('Location coordinates [longitude, latitude]'),
       })
       .optional(),
     endPlace: zod
@@ -757,7 +757,7 @@ export const getRideResponse = zod
             coordinates: zod.array(zod.number()).describe('Coordinates [longitude, latitude]'),
           })
           .optional()
-          .describe('GeoJSON Point geometry'),
+          .describe('Location coordinates [longitude, latitude]'),
       })
       .optional(),
     topParticipants: zod
@@ -1004,7 +1004,7 @@ export const changeRideSlugResponse = zod
             coordinates: zod.array(zod.number()).describe('Coordinates [longitude, latitude]'),
           })
           .optional()
-          .describe('GeoJSON Point geometry'),
+          .describe('Location coordinates [longitude, latitude]'),
       })
       .optional(),
     endPlace: zod
@@ -1021,7 +1021,7 @@ export const changeRideSlugResponse = zod
             coordinates: zod.array(zod.number()).describe('Coordinates [longitude, latitude]'),
           })
           .optional()
-          .describe('GeoJSON Point geometry'),
+          .describe('Location coordinates [longitude, latitude]'),
       })
       .optional(),
     topParticipants: zod

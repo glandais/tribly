@@ -3,10 +3,11 @@ import { useForm } from '@mantine/form'
 import { zod4Resolver } from 'mantine-form-zod-resolver'
 import { useTranslation } from 'react-i18next'
 import { TextInput, Radio, Stack, Group, Button, Text, Select, NumberInput } from '@mantine/core'
-import { AdRequest, AdType, RentalPeriod } from '@/api/dto'
+import { AdRequest, AdType, RentalPeriod, GeoJsonPoint } from '@/api/dto'
 import { createAdBody } from '@/api/zod/ads/ads.zod'
 import { MediaEditor } from '../common/MediaEditor'
 import { SlugEditor } from '../common/SlugEditor'
+import { GeocoderAutocomplete } from '../common/GeocoderAutocomplete'
 
 const adSchema = createAdBody.refine(
   (data) => {
@@ -158,6 +159,13 @@ export function AdEditor({
           label={t('ads.create.locationDescriptionLabel')}
           placeholder={t('ads.create.locationDescriptionPlaceholder')}
           {...form.getInputProps('locationDescription')}
+        />
+
+        <GeocoderAutocomplete
+          value={form.values.locationGeometry as GeoJsonPoint | null | undefined}
+          onChange={(point) => form.setFieldValue('locationGeometry', point ?? undefined)}
+          label={t('geocoder.label')}
+          disabled={isPending}
         />
 
         <Radio.Group label={t('form.status')} {...form.getInputProps('status')}>

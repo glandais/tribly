@@ -6,10 +6,10 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type PlaceRequestCoordinatesType =
-  (typeof PlaceRequestCoordinatesType)[keyof typeof PlaceRequestCoordinatesType]
+export type AdRequestLocationGeometryType =
+  (typeof AdRequestLocationGeometryType)[keyof typeof AdRequestLocationGeometryType]
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
-export const PlaceRequestCoordinatesType = {
+export const AdRequestLocationGeometryType = {
   Point: 'Point',
 } as const

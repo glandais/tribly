@@ -12,7 +12,7 @@ create table assets (
                         team_id bigint not null,
                         updated_at timestamp(6) with time zone not null,
                         version bigint,
-                        type varchar(20) not null check ((type in ('LOGO','IMAGE','VIDEO','ATTACHMENT','ROUTE_ORIGINAL_GPX','ROUTE_FILTERED_GPX','ROUTE_FIT','ROUTE_THUMBNAIL'))),
+                        type varchar(20) not null check ((type in ('LOGO','IMAGE','ATTACHMENT','ROUTE_ORIGINAL_GPX','ROUTE_FILTERED_GPX','ROUTE_FIT','ROUTE_THUMBNAIL'))),
                         content_type varchar(200) not null,
                         file_name varchar(200) not null,
                         primary key (id)
@@ -148,11 +148,9 @@ create table team_entities (
                                distance integer,
                                elevation_gain integer,
                                elevation_loss integer,
-                               entity_type integer not null check ((entity_type in (1,3,5,7,4,2,6))),
+                               entity_type integer not null check ((entity_type in (5,3,1,4,2,6,7))),
                                hilliness integer,
                                is_about_page boolean,
-                               latitude float(53),
-                               longitude float(53),
                                page_order integer,
                                price numeric(10,2),
                                sort_order integer,
@@ -179,6 +177,7 @@ create table team_entities (
                                slug varchar(250) not null,
                                markdown TEXT not null,
                                "end" geometry(Point,4326),
+                               location_geometry geometry(Point,4326),
                                "start" geometry(Point,4326),
                                primary key (id),
                                constraint uk_team_entity_slug unique (team_id, entity_type, slug),
@@ -218,6 +217,7 @@ create table teams (
                        visibility varchar(20) not null check ((visibility in ('TEAM','PUBLIC'))),
                        name varchar(250) not null,
                        slug varchar(250) not null unique,
+                       geometry geometry(Point,4326),
                        primary key (id)
 );
 
@@ -454,14 +454,14 @@ alter table if exists team_entities
     references teams;
 
 alter table if exists team_entities
-    add constraint FKjukml9fp2eipuhmugtiaf12gs
-    foreign key (place_end_id)
-    references places;
-
-alter table if exists team_entities
     add constraint FKsm0040p8exgxema0d3j4osclb
     foreign key (route_id)
     references team_entities;
+
+alter table if exists team_entities
+    add constraint FKjukml9fp2eipuhmugtiaf12gs
+    foreign key (place_end_id)
+    references places;
 
 alter table if exists team_entities
     add constraint FKm7w1a9lbh6795ida5u4n95vdv
