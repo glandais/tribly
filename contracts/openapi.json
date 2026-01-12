@@ -265,6 +265,97 @@
         },
         "required" : [ "images", "attachments" ]
       },
+      "CalendarEventDto" : {
+        "description" : "Calendar event data",
+        "type" : "object",
+        "required" : [ "id", "title", "start", "allDay", "type", "teamSlug", "teamName", "entitySlug" ],
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "description" : "Event ID (TSID)"
+          },
+          "title" : {
+            "type" : "string",
+            "description" : "Event title"
+          },
+          "start" : {
+            "description" : "Event start date/time",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Instant"
+          },
+          "end" : {
+            "description" : "Event end date/time",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Instant"
+          },
+          "allDay" : {
+            "type" : "boolean",
+            "description" : "Is all-day event"
+          },
+          "type" : {
+            "description" : "Event type",
+            "type" : "string",
+            "$ref" : "#/components/schemas/CalendarEventType"
+          },
+          "teamSlug" : {
+            "type" : "string",
+            "description" : "Team slug"
+          },
+          "teamName" : {
+            "type" : "string",
+            "description" : "Team name"
+          },
+          "entitySlug" : {
+            "type" : "string",
+            "description" : "Entity slug (ride or stage)"
+          },
+          "tripSlug" : {
+            "type" : "string",
+            "description" : "Parent trip slug (for stages only)"
+          },
+          "color" : {
+            "type" : "string",
+            "description" : "Color for the event"
+          }
+        }
+      },
+      "CalendarEventType" : {
+        "type" : "string",
+        "enum" : [ "RIDE", "TRIP_STAGE" ]
+      },
+      "CalendarEventsResponse" : {
+        "description" : "Calendar events response",
+        "type" : "object",
+        "required" : [ "events" ],
+        "properties" : {
+          "events" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/CalendarEventDto"
+            },
+            "description" : "List of calendar events"
+          }
+        }
+      },
+      "CalendarTokenDto" : {
+        "description" : "Calendar token information",
+        "type" : "object",
+        "required" : [ "token", "globalFeedUrl", "teamFeedUrlTemplate" ],
+        "properties" : {
+          "token" : {
+            "type" : "string",
+            "description" : "ICS feed token (include in URL)"
+          },
+          "globalFeedUrl" : {
+            "type" : "string",
+            "description" : "Global ICS feed URL"
+          },
+          "teamFeedUrlTemplate" : {
+            "type" : "string",
+            "description" : "Team-specific feed URL template"
+          }
+        }
+      },
       "ClimbCategory" : {
         "type" : "string",
         "enum" : [ "HC", "CAT1", "CAT2", "CAT3", "CAT4" ]
@@ -390,7 +481,7 @@
       },
       "EntityType" : {
         "type" : "string",
-        "enum" : [ "TEAM", "USER", "USER_TEAM", "RIDE_TEMPLATE", "RIDE_TEMPLATE_GROUP", "PLACE", "COMMENT", "ASSET", "TRIP", "TRIP_STAGE", "ROUTE", "RIDE", "RIDE_GROUP", "AD", "POST", "TEAM_PAGE", "PUBLICATION", "ANY" ]
+        "enum" : [ "TEAM", "USER", "USER_TEAM", "RIDE_TEMPLATE", "RIDE_TEMPLATE_GROUP", "PLACE", "COMMENT", "ASSET", "TRIP", "TRIP_STAGE", "ROUTE", "RIDE", "RIDE_GROUP", "AD", "POST", "TEAM_PAGE", "CALENDAR", "PUBLICATION", "ANY" ]
       },
       "ErrorCode" : {
         "type" : "string",
@@ -2426,6 +2517,9 @@
     "name" : "Assets",
     "description" : "Assets management operations"
   }, {
+    "name" : "Calendar",
+    "description" : "Team calendar operations"
+  }, {
     "name" : "Configuration",
     "description" : "Application configuration endpoints"
   }, {
@@ -2478,6 +2572,163 @@
     "description" : "User profile management operations"
   } ],
   "paths" : {
+    "/api/calendar/events" : {
+      "get" : {
+        "summary" : "Get calendar events",
+        "description" : "Get calendar events for all teams the user belongs to",
+        "operationId" : "getEvents",
+        "tags" : [ "Calendar" ],
+        "parameters" : [ {
+          "description" : "Start date (ISO 8601)",
+          "name" : "from",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "End date (ISO 8601)",
+          "name" : "to",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Events retrieved successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CalendarEventsResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
+    "/api/calendar/ics" : {
+      "get" : {
+        "summary" : "Get global ICS feed",
+        "description" : "Get ICS calendar feed for all user's teams (requires token)",
+        "operationId" : "getGlobalIcsFeed",
+        "tags" : [ "Calendar" ],
+        "parameters" : [ {
+          "description" : "Calendar access token",
+          "name" : "token",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "ICS feed retrieved successfully",
+            "content" : {
+              "text/calendar" : { }
+            }
+          },
+          "403" : {
+            "description" : "Invalid or missing token",
+            "content" : {
+              "text/calendar" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/calendar/token" : {
+      "get" : {
+        "summary" : "Get calendar token",
+        "description" : "Get or create the user's calendar token for ICS feed access",
+        "operationId" : "getToken",
+        "tags" : [ "Calendar" ],
+        "responses" : {
+          "200" : {
+            "description" : "Token retrieved successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CalendarTokenDto"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
+    "/api/calendar/token/regenerate" : {
+      "post" : {
+        "summary" : "Regenerate calendar token",
+        "description" : "Regenerate the user's calendar token, invalidating the old one",
+        "operationId" : "regenerateToken",
+        "tags" : [ "Calendar" ],
+        "responses" : {
+          "200" : {
+            "description" : "Token regenerated successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CalendarTokenDto"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
     "/api/config" : {
       "get" : {
         "summary" : "Get application configuration",
@@ -3621,6 +3872,111 @@
         "security" : [ {
           "SecurityScheme" : [ "user" ]
         } ]
+      }
+    },
+    "/api/teams/{teamSlug}/calendar/events" : {
+      "get" : {
+        "summary" : "Get team calendar events",
+        "description" : "Get calendar events for a specific team",
+        "operationId" : "getTeamEvents",
+        "tags" : [ "Calendar" ],
+        "parameters" : [ {
+          "description" : "Team URL slug",
+          "name" : "teamSlug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Start date (ISO 8601)",
+          "name" : "from",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "End date (ISO 8601)",
+          "name" : "to",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Events retrieved successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/CalendarEventsResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Team not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/teams/{teamSlug}/calendar/ics" : {
+      "get" : {
+        "summary" : "Get team ICS feed",
+        "description" : "Get ICS calendar feed for a specific team (requires token)",
+        "operationId" : "getTeamIcsFeed",
+        "tags" : [ "Calendar" ],
+        "parameters" : [ {
+          "description" : "Team URL slug",
+          "name" : "teamSlug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Calendar access token",
+          "name" : "token",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "ICS feed retrieved successfully",
+            "content" : {
+              "text/calendar" : { }
+            }
+          },
+          "403" : {
+            "description" : "Invalid token or user not member of team",
+            "content" : {
+              "text/calendar" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Team not found",
+            "content" : {
+              "text/calendar" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/teams/{teamSlug}/members" : {

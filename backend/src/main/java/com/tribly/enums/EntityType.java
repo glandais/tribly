@@ -23,6 +23,7 @@ public enum EntityType {
   AD(13, TeamEntityType.AD),
   POST(14, TeamEntityType.POST),
   TEAM_PAGE(15, TeamEntityType.TEAM_PAGE),
+  CALENDAR(16, null),
   PUBLICATION(-1, null),
   ANY(-1, null);
 

@@ -12,10 +12,22 @@ create table assets (
                         team_id bigint not null,
                         updated_at timestamp(6) with time zone not null,
                         version bigint,
-                        type varchar(20) not null check ((type in ('LOGO','IMAGE','VIDEO','ATTACHMENT','ROUTE_ORIGINAL_GPX','ROUTE_FILTERED_GPX','ROUTE_FIT','ROUTE_THUMBNAIL'))),
+                        type varchar(20) not null check ((type in ('LOGO','IMAGE','ATTACHMENT','ROUTE_ORIGINAL_GPX','ROUTE_FILTERED_GPX','ROUTE_FIT','ROUTE_THUMBNAIL'))),
                         content_type varchar(200) not null,
                         file_name varchar(200) not null,
                         primary key (id)
+);
+
+create table calendar_tokens (
+                                 deleted boolean not null,
+                                 created_at timestamp(6) with time zone not null,
+                                 created_by_id bigint not null,
+                                 id bigint not null,
+                                 updated_at timestamp(6) with time zone not null,
+                                 user_id bigint not null unique,
+                                 version bigint,
+                                 token varchar(64) not null unique,
+                                 primary key (id)
 );
 
 create table comments (
@@ -148,7 +160,7 @@ create table team_entities (
                                distance integer,
                                elevation_gain integer,
                                elevation_loss integer,
-                               entity_type integer not null check ((entity_type in (1,3,5,7,4,2,6))),
+                               entity_type integer not null check ((entity_type in (3,5,1,4,6,2,7))),
                                hilliness integer,
                                is_about_page boolean,
                                latitude float(53),
@@ -347,6 +359,16 @@ alter table if exists assets
     add constraint FKenrk244dfrua38w17igcj3g
     foreign key (team_entity_id)
     references team_entities;
+
+alter table if exists calendar_tokens
+    add constraint FKrsheny6pger8g5xrsgqk0ubrr
+    foreign key (created_by_id)
+    references users;
+
+alter table if exists calendar_tokens
+    add constraint FK9qc4k129i9u9bhxnwhvda9qdv
+    foreign key (user_id)
+    references users;
 
 alter table if exists comments
     add constraint FKakkm6qfydu7vgnfne1yo0xmed

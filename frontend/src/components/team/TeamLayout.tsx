@@ -76,6 +76,11 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
         path: paths.team(team.slug),
         label: t('teams.publications.list.title'),
       },
+      {
+        id: 'calendar',
+        path: paths.teamCalendar(team.slug),
+        label: t('teams.detail.tabs.calendar'),
+      },
       { id: 'routes', path: paths.routes(team.slug), label: t('teams.detail.tabs.routes') },
       ...(team.enableAds ? [{ id: 'ads', path: paths.ads(team.slug), label: t('ads.title') }] : []),
       { id: 'about', path: paths.teamAbout(team.slug), label: t('teams.detail.tabs.about') },

@@ -109,6 +109,12 @@ const EditRoutePage = lazy(() =>
 const AllRoutesPage = lazy(() =>
   import('../pages/route/AllRoutesPage').then((m) => ({ default: m.AllRoutesPage }))
 )
+const CalendarPage = lazy(() =>
+  import('../pages/calendar/CalendarPage').then((m) => ({ default: m.CalendarPage }))
+)
+const TeamCalendarPage = lazy(() =>
+  import('../pages/calendar/TeamCalendarPage').then((m) => ({ default: m.TeamCalendarPage }))
+)
 const AdListPage = lazy(() =>
   import('../pages/ad/AdListPage').then((m) => ({ default: m.AdListPage }))
 )
@@ -161,6 +167,14 @@ export const routesConfig: RoutesConfig = [
     parentId: null,
     breadcrumb: { type: 'static', i18nKey: tRegister('nav.profile') },
   },
+  {
+    id: 'calendar',
+    path: paths.calendar(),
+    component: CalendarPage,
+    auth: 'authenticated',
+    parentId: null,
+    breadcrumb: { type: 'static', i18nKey: tRegister('calendar.title') },
+  },
 
   // === Team Routes ===
   {
@@ -197,6 +211,14 @@ export const routesConfig: RoutesConfig = [
     auth: 'public',
     parentId: 'team-detail',
     breadcrumb: { type: 'static', i18nKey: tRegister('teams.detail.tabs.about') },
+  },
+  {
+    id: 'team-calendar',
+    path: paths.teamCalendar(':teamSlug'),
+    component: TeamCalendarPage,
+    auth: 'public',
+    parentId: 'team-detail',
+    breadcrumb: { type: 'static', i18nKey: tRegister('calendar.title') },
   },
   {
     id: 'team-page',

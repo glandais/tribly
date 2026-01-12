@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Stack, Title, Text, Tabs } from '@mantine/core'
 import { paths } from '@/config/paths'
 
-export type HomeTab = 'feed' | 'routes' | 'teams'
+export type HomeTab = 'feed' | 'routes' | 'teams' | 'calendar'
 
 interface HomeLayoutProps {
   currentTab: HomeTab
@@ -18,6 +18,11 @@ export function HomeLayout({ currentTab, children }: HomeLayoutProps) {
       id: 'feed',
       path: paths.home(),
       label: t('home.tabs.feed'),
+    },
+    {
+      id: 'calendar',
+      path: paths.calendar(),
+      label: t('calendar.title'),
     },
     {
       id: 'routes',
