@@ -39,7 +39,7 @@ public abstract class AbstractResourceTest {
   final KeycloakTestClient keycloakClient = new KeycloakTestClient();
 
   protected String getAccessToken(String userName) {
-    return keycloakClient.getAccessToken(userName, userName, "tribly-backend");
+    return keycloakClient.getAccessToken(userName, userName, "tribly-frontend");
   }
 
   protected void setUp() {
