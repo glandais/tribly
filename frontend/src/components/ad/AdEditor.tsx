@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useForm } from '@mantine/form'
-import { zod4Resolver } from 'mantine-form-zod-resolver'
+import { zodFormValidator } from '@/lib/formUtils'
 import { useTranslation } from 'react-i18next'
 import { TextInput, Radio, Stack, Group, Button, Text, Select, NumberInput } from '@mantine/core'
 import { AdRequest, AdType, RentalPeriod, GeoJsonPoint } from '@/api/dto'
@@ -50,7 +50,7 @@ export function AdEditor({
   const { t } = useTranslation()
 
   const form = useForm<AdRequest>({
-    validate: zod4Resolver(adSchema) as any,
+    validate: zodFormValidator<AdRequest>(adSchema),
     initialValues,
     validateInputOnChange: true,
   })

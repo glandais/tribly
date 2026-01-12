@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useForm } from '@mantine/form'
-import { zod4Resolver } from 'mantine-form-zod-resolver'
+import { zodFormValidator } from '@/lib/formUtils'
 import { useTranslation } from 'react-i18next'
 import { TextInput, Radio, Stack, Group, Button, Text } from '@mantine/core'
 import { DateTimePicker } from '@mantine/dates'
@@ -53,7 +53,7 @@ export function PostEditor({
   const { t } = useTranslation()
 
   const form = useForm<PostRequest>({
-    validate: zod4Resolver(postSchema) as any,
+    validate: zodFormValidator<PostRequest>(postSchema),
     initialValues,
     validateInputOnChange: true,
   })

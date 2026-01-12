@@ -1,5 +1,5 @@
 import { useForm } from '@mantine/form'
-import { zod4Resolver } from 'mantine-form-zod-resolver'
+import { zodFormValidator } from '@/lib/formUtils'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
 import { notifications } from '@mantine/notifications'
@@ -33,7 +33,7 @@ export function PlaceForm({ teamSlug, place, onClose }: PlaceFormProps) {
   const isEditing = place.id !== ''
 
   const form = useForm<PlaceRequest>({
-    validate: zod4Resolver(placeSchema) as any,
+    validate: zodFormValidator<PlaceRequest>(placeSchema),
     initialValues: place,
     validateInputOnChange: true,
   })

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useForm } from '@mantine/form'
-import { zod4Resolver } from 'mantine-form-zod-resolver'
+import { zodFormValidator } from '@/lib/formUtils'
 import { useTranslation } from 'react-i18next'
 import {
   TextInput,
@@ -77,7 +77,7 @@ export function RideEditor({
   const [pickerTarget, setPickerTarget] = useState<Target | null>(null)
 
   const form = useForm<RideRequest>({
-    validate: zod4Resolver(rideSchema) as any,
+    validate: zodFormValidator<RideRequest>(rideSchema),
     initialValues,
     validateInputOnChange: true,
   })

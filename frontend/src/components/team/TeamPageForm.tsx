@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { useForm } from '@mantine/form'
-import { zod4Resolver } from 'mantine-form-zod-resolver'
+import { zodFormValidator } from '@/lib/formUtils'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
 import { notifications } from '@mantine/notifications'
@@ -47,7 +47,7 @@ export function TeamPageForm({
   const mutation = isCreate ? createMutation : updateMutation
 
   const form = useForm<TeamPageRequest>({
-    validate: zod4Resolver(teamPageSchema) as any,
+    validate: zodFormValidator<TeamPageRequest>(teamPageSchema),
     initialValues,
     validateInputOnChange: true,
   })

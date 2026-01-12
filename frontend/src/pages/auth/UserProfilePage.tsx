@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { useForm } from '@mantine/form'
-import { zod4Resolver } from 'mantine-form-zod-resolver'
+import { zodFormValidator } from '@/lib/formUtils'
 import { useTranslation } from 'react-i18next'
 import { IconCamera, IconX } from '@tabler/icons-react'
 import {
@@ -46,7 +46,7 @@ export function UserProfilePage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   const form = useForm<UpdateUserRequest>({
-    validate: zod4Resolver(profileSchema) as any,
+    validate: zodFormValidator<UpdateUserRequest>(profileSchema),
     validateInputOnChange: true,
     initialValues: user || { displayName: '' },
   })

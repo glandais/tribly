@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react'
 import { useForm } from '@mantine/form'
-import { zod4Resolver } from 'mantine-form-zod-resolver'
+import { zodFormValidator } from '@/lib/formUtils'
 import { useTranslation } from 'react-i18next'
 import {
   TextInput,
@@ -63,7 +63,7 @@ export function RouteEditor({
   const { t } = useTranslation()
 
   const form = useForm<RouteRequest>({
-    validate: zod4Resolver(routeSchema) as any,
+    validate: zodFormValidator<RouteRequest>(routeSchema),
     initialValues,
     validateInputOnChange: true,
   })

@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { useForm } from '@mantine/form'
-import { zod4Resolver } from 'mantine-form-zod-resolver'
+import { zodFormValidator } from '@/lib/formUtils'
 import {
   TextInput,
   Radio,
@@ -43,7 +43,7 @@ export function RideTemplateEditor({
   const { t } = useTranslation()
 
   const form = useForm<RideTemplateRequest>({
-    validate: zod4Resolver(createTemplateBody) as any,
+    validate: zodFormValidator<RideTemplateRequest>(createTemplateBody),
     initialValues,
     validateInputOnChange: true,
   })
