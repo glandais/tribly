@@ -17,5 +17,4 @@ public record CalendarEventDto(
     @Schema(description = "Team slug", required = true) String teamSlug,
     @Schema(description = "Team name", required = true) String teamName,
     @Schema(description = "Entity slug (ride or stage)", required = true) String entitySlug,
-    @Nullable @Schema(description = "Parent trip slug (for stages only)") String tripSlug,
-    @Nullable @Schema(description = "Color for the event") String color) {}
+    @Nullable @Schema(description = "Parent trip slug (for stages only)") String tripSlug) {}

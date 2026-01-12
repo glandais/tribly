@@ -32,7 +32,6 @@ export const getEventsResponse = zod
             teamName: zod.string().describe('Team name'),
             entitySlug: zod.string().describe('Entity slug (ride or stage)'),
             tripSlug: zod.string().optional().describe('Parent trip slug (for stages only)'),
-            color: zod.string().optional().describe('Color for the event'),
           })
           .describe('Calendar event data')
       )
@@ -101,7 +100,6 @@ export const getTeamEventsResponse = zod
             teamName: zod.string().describe('Team name'),
             entitySlug: zod.string().describe('Entity slug (ride or stage)'),
             tripSlug: zod.string().optional().describe('Parent trip slug (for stages only)'),
-            color: zod.string().optional().describe('Color for the event'),
           })
           .describe('Calendar event data')
       )

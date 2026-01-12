@@ -3,6 +3,9 @@
 @import '@mantine/notifications/styles.css';
 @import 'maplibre-theme/icons.default.css';
 @import 'maplibre-theme/classic.css';
+@import '@fullcalendar/core/skeleton.css';
+@import '@fullcalendar/theme-classic/theme.css';
+@import '@fullcalendar/theme-classic/palette.css';
 
 :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;

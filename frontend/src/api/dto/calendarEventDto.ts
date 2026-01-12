@@ -32,6 +32,4 @@ export interface CalendarEventDto {
   entitySlug: string
   /** Parent trip slug (for stages only) */
   tripSlug?: string
-  /** Color for the event */
-  color?: string
 }

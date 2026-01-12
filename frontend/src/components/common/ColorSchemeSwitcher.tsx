@@ -8,7 +8,9 @@ export function ColorSchemeSwitcher() {
   const computedColorScheme = useComputedColorScheme('light')
 
   const toggleColorScheme = () => {
-    setColorScheme(computedColorScheme === 'dark' ? 'light' : 'dark')
+    const colorScheme = computedColorScheme === 'dark' ? 'light' : 'dark'
+    setColorScheme(colorScheme)
+    document.documentElement.setAttribute('data-color-scheme', colorScheme)
   }
 
   return (

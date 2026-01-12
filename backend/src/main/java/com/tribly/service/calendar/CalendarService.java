@@ -220,7 +220,6 @@ public class CalendarService {
         team.getSlug(),
         team.getName(),
         ride.getSlug(),
-        null,
         null);
   }
 
@@ -237,8 +236,7 @@ public class CalendarService {
         team.getSlug(),
         team.getName(),
         stage.getSlug(),
-        trip.getSlug(),
-        null);
+        trip.getSlug());
   }
 
   protected Instant getDefaultFrom() {

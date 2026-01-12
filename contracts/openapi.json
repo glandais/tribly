@@ -415,10 +415,6 @@
           "tripSlug" : {
             "type" : "string",
             "description" : "Parent trip slug (for stages only)"
-          },
-          "color" : {
-            "type" : "string",
-            "description" : "Color for the event"
           }
         }
       },

@@ -28,7 +28,6 @@ class IcsGenerationServiceTest {
             "cycling-team",
             "Cycling Team",
             "morning-ride",
-            null,
             null);
 
     String ics = icsGenerationService.generateIcs(List.of(event), "My Calendar");
@@ -53,7 +52,6 @@ class IcsGenerationServiceTest {
             "team-slug",
             "Team Name",
             "test-ride",
-            null,
             null);
 
     String ics = icsGenerationService.generateIcs(List.of(event), "Calendar");
@@ -79,8 +77,7 @@ class IcsGenerationServiceTest {
             "team-slug",
             "Team Name",
             "stage-1",
-            "trip-slug",
-            null);
+            "trip-slug");
 
     String ics = icsGenerationService.generateIcs(List.of(event), "Calendar");
 
@@ -102,7 +99,6 @@ class IcsGenerationServiceTest {
             "team-slug",
             "Team Name",
             "timed-ride",
-            null,
             null);
 
     String ics = icsGenerationService.generateIcs(List.of(event), "Calendar");
@@ -124,7 +120,6 @@ class IcsGenerationServiceTest {
             "cycling-club",
             "Cycling Club",
             "sunday-ride",
-            null,
             null);
 
     String ics = icsGenerationService.generateIcs(List.of(event), "Calendar");
@@ -146,8 +141,7 @@ class IcsGenerationServiceTest {
             "cycling-club",
             "Cycling Club",
             "stage-1",
-            "summer-trip",
-            null);
+            "summer-trip");
 
     String ics = icsGenerationService.generateIcs(List.of(event), "Calendar");
 
@@ -168,7 +162,6 @@ class IcsGenerationServiceTest {
             "team",
             "Team, Name; Test",
             "ride",
-            null,
             null);
 
     String ics = icsGenerationService.generateIcs(List.of(event), "Calendar; Test, Name");
@@ -191,7 +184,6 @@ class IcsGenerationServiceTest {
             "team",
             "Team",
             "first",
-            null,
             null);
 
     CalendarEventDto event2 =
@@ -205,7 +197,6 @@ class IcsGenerationServiceTest {
             "team",
             "Team",
             "second",
-            null,
             null);
 
     String ics = icsGenerationService.generateIcs(List.of(event1, event2), "Calendar");
@@ -243,7 +234,6 @@ class IcsGenerationServiceTest {
                     "team",
                     "Team",
                     "event",
-                    null,
                     null)),
             "Calendar");
 

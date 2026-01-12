@@ -3,9 +3,13 @@ import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import FullCalendar from '@fullcalendar/react'
 import dayGridPlugin from '@fullcalendar/daygrid'
+import multimonthPlugin from '@fullcalendar/multimonth'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
-import type { EventClickArg, DatesSetArg } from '@fullcalendar/core'
+import classicThemePlugin from '@fullcalendar/theme-classic'
+import type { LocaleInput, EventClickData, DatesSetData } from '@fullcalendar/core'
+import frLocale from '@fullcalendar/core/locales/fr'
+import enLocale from '@fullcalendar/core/locales/en-gb'
 import { LoadingOverlay, Box } from '@mantine/core'
 import { paths } from '@/config/paths'
 import type { CalendarEventDto, CalendarEventType } from '@/api/dto'
@@ -21,8 +25,13 @@ const EVENT_COLORS: Record<CalendarEventType, string> = {
   TRIP_STAGE: '#40c057',
 }
 
-function getEventColor(event: CalendarEventDto): string {
-  return event.color ?? EVENT_COLORS[event.type]
+const locales: Record<'fr' | 'en', LocaleInput> = {
+  fr: frLocale,
+  en: enLocale,
+}
+
+function getLocale(lang: string): LocaleInput {
+  return lang in locales ? locales[lang as keyof typeof locales] : enLocale
 }
 
 export function CalendarView({
@@ -35,7 +44,7 @@ export function CalendarView({
   const calendarRef = useRef<FullCalendar>(null)
 
   const handleEventClick = useCallback(
-    (info: EventClickArg) => {
+    (info: EventClickData) => {
       const event = info.event.extendedProps as CalendarEventDto
       switch (event.type) {
         case 'RIDE':
@@ -52,7 +61,7 @@ export function CalendarView({
   )
 
   const handleDatesSet = useCallback(
-    (arg: DatesSetArg) => {
+    (arg: DatesSetData) => {
       onDateRangeChange(arg.start, arg.end)
     },
     [onDateRangeChange]
@@ -61,7 +70,7 @@ export function CalendarView({
   const fullCalendarEvents = useMemo(
     () =>
       events.map((event) => {
-        const color = getEventColor(event)
+        const color = EVENT_COLORS[event.type]
         return {
           id: event.id,
           title: event.title,
@@ -81,17 +90,23 @@ export function CalendarView({
       <LoadingOverlay visible={isLoading} />
       <FullCalendar
         ref={calendarRef}
-        plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+        plugins={[
+          multimonthPlugin,
+          dayGridPlugin,
+          timeGridPlugin,
+          interactionPlugin,
+          classicThemePlugin,
+        ]}
         initialView="dayGridMonth"
         headerToolbar={{
-          left: 'prev,next today',
+          left: 'prev,today,next',
           center: 'title',
-          right: 'dayGridMonth,timeGridWeek,timeGridDay',
+          right: 'multiMonthYear,dayGridMonth',
         }}
         events={fullCalendarEvents}
         eventClick={handleEventClick}
         datesSet={handleDatesSet}
-        locale={i18n.language}
+        locale={getLocale(i18n.language)}
         firstDay={1}
         height="auto"
         eventTimeFormat={{
