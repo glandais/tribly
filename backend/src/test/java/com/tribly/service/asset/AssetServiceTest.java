@@ -45,6 +45,7 @@ class AssetServiceTest {
   private User admin;
   private User organizer;
   private User member;
+  private User member2;
   private User nonMember;
 
   @BeforeEach
@@ -55,6 +56,7 @@ class AssetServiceTest {
     privateTeam = dataService.createTeam(admin, "Private Team", "private-team", Visibility.TEAM);
     organizer = dataService.createUser("organizer@example.com", "Organizer");
     member = dataService.createUser("member@example.com", "Member");
+    member2 = dataService.createUser("member2@example.com", "Member2");
     nonMember = dataService.createUser("nonmember@example.com", "NonMember");
     dataService.addUserToTeam(organizer, team, TeamRole.ORGANIZER);
     dataService.addUserToTeam(member, team, TeamRole.MEMBER);
@@ -204,20 +206,20 @@ class AssetServiceTest {
 
     @Test
     void shouldReturnAssetFromPublicTeamWithoutTeamEntity() {
-      Asset asset = dataService.createAsset(team, admin, AssetType.IMAGE, "test.png");
+      Asset asset = dataService.createAsset(team, member, AssetType.IMAGE, "test.png");
 
-      queryContext.setUserForTest(organizer);
+      queryContext.setUserForTest(member);
       DownloadableAsset result = assetService.getDownloadableAsset(team.getSlug(), asset.getId());
 
       assertNotNull(result);
     }
 
     @Test
-    void shouldRequireOrganizerForPrivateTeamWithoutTeamEntity() {
-      Asset asset = dataService.createAsset(privateTeam, admin, AssetType.IMAGE, "test.png");
+    void shouldRequireOwnerForPrivateTeamWithoutTeamEntity() {
+      Asset asset = dataService.createAsset(privateTeam, member2, AssetType.IMAGE, "test.png");
 
       // Organizer of private team can access
-      queryContext.setUserForTest(organizer);
+      queryContext.setUserForTest(member2);
       DownloadableAsset result =
           assetService.getDownloadableAsset(privateTeam.getSlug(), asset.getId());
       assertNotNull(result);
@@ -280,7 +282,7 @@ class AssetServiceTest {
       Asset asset = dataService.createAsset(team, admin, AssetType.IMAGE, "no-file.txt");
 
       // Should not throw even if file doesn't exist
-      queryContext.setUserForTest(organizer);
+      queryContext.setUserForTest(admin);
       assertDoesNotThrow(() -> assetService.deleteAsset(team.getSlug(), asset.getId()));
     }
 

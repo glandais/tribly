@@ -258,14 +258,14 @@ class AssetResourceTest extends AbstractResourceTest {
   // ==================== Download Team Asset Tests (team2 - TEAM/private) ====================
 
   @Test
-  void downloadTeamAsset_asOrganizer_shouldSucceed() {
+  void downloadTeamAsset_asOwner_shouldSucceed() {
     File gpxFile = new File("src/test/resources/example.gpx");
 
     // Upload asset to private team
     String assetUrl =
         given()
             .auth()
-            .oauth2(getAccessToken(USER1))
+            .oauth2(getAccessToken(USER3))
             .multiPart("file", gpxFile, "application/gpx+xml")
             .when()
             .post("/api/teams/" + team2Slug + "/assets")
@@ -279,7 +279,7 @@ class AssetResourceTest extends AbstractResourceTest {
         .redirects()
         .follow(false)
         .auth()
-        .oauth2(getAccessToken(USER2))
+        .oauth2(getAccessToken(USER3))
         .when()
         .get(assetUrl)
         .then()
@@ -551,14 +551,14 @@ class AssetResourceTest extends AbstractResourceTest {
   }
 
   @Test
-  void downloadTeamImage_asOrganizer_shouldSucceed() {
+  void downloadTeamImage_asOwner_shouldSucceed() {
     File imageFile = new File("src/test/resources/image.png");
 
     // Upload image to private team
     String imageUrl =
         given()
             .auth()
-            .oauth2(getAccessToken(USER1))
+            .oauth2(getAccessToken(USER3))
             .multiPart("file", imageFile, "image/png")
             .when()
             .post("/api/teams/" + team2Slug + "/assets")
@@ -574,7 +574,7 @@ class AssetResourceTest extends AbstractResourceTest {
         .redirects()
         .follow(false)
         .auth()
-        .oauth2(getAccessToken(USER2))
+        .oauth2(getAccessToken(USER3))
         .header("Accept", "image/jpeg")
         .when()
         .get(resizedUrl)
