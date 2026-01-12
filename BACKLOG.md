@@ -27,12 +27,12 @@ Drive engagement and reduce friction for organizers.
 
 ### Organizer Productivity
 - [X] Multi-GPX upload (one route per file) — Huge time saver
-- [ ] Team location (init route planner) — Better defaults
+- [X] Team location (init route planner) — Better defaults
 - [ ] Card CTAs (modify, publish, delete, add to calendar)
 - [ ] Team dashboard (drafts count, what's next, activity feed)
 
 ### Member Engagement
-- [ ] Calendar view (rides, trips) + sync URL export
+- [X] Calendar view (rides, trips) + sync URL export
 - [ ] User unit system toggle (metric/imperial) — Respect preferences
 - [ ] Ride/trip "Terminated" status — Clarity on past events
 
