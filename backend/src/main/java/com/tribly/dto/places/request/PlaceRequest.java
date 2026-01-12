@@ -23,4 +23,4 @@ public record PlaceRequest(
     @Schema(
             description = "Geographic coordinates [longitude, latitude]",
             implementation = GeoJsonPoint.class)
-        @Nullable Point<G2D> coordinates) {}
+        @Nullable Point<G2D> geometry) {}

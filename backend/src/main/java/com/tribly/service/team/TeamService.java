@@ -76,6 +76,7 @@ public class TeamService {
 
     Team team = new Team(creator, request.name(), slug, request.visibility());
     team.setVisibility(request.visibility());
+    team.setGeometry(request.geometry());
 
     teamRepository.persistAndFlush(team);
     updateMedia(team.getAboutPage(), request.media());
@@ -122,6 +123,7 @@ public class TeamService {
     team.setVisibility(request.visibility());
     team.setEnableTrips(request.enableTrips());
     team.setEnableAds(request.enableAds());
+    team.setGeometry(request.geometry());
     updateMedia(team.getAboutPage(), request.media());
 
     teamRepository.persist(team);

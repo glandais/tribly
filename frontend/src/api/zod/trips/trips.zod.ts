@@ -725,7 +725,7 @@ export const updateTripResponse = zod
                       .describe('Coordinates [longitude, latitude]'),
                   })
                   .optional()
-                  .describe('GeoJSON Point geometry'),
+                  .describe('Location coordinates [longitude, latitude]'),
               })
               .optional(),
             endPlace: zod
@@ -744,7 +744,7 @@ export const updateTripResponse = zod
                       .describe('Coordinates [longitude, latitude]'),
                   })
                   .optional()
-                  .describe('GeoJSON Point geometry'),
+                  .describe('Location coordinates [longitude, latitude]'),
               })
               .optional(),
             media: zod.object({
@@ -1051,7 +1051,7 @@ export const getTripResponse = zod
                       .describe('Coordinates [longitude, latitude]'),
                   })
                   .optional()
-                  .describe('GeoJSON Point geometry'),
+                  .describe('Location coordinates [longitude, latitude]'),
               })
               .optional(),
             endPlace: zod
@@ -1070,7 +1070,7 @@ export const getTripResponse = zod
                       .describe('Coordinates [longitude, latitude]'),
                   })
                   .optional()
-                  .describe('GeoJSON Point geometry'),
+                  .describe('Location coordinates [longitude, latitude]'),
               })
               .optional(),
             media: zod.object({
@@ -1418,7 +1418,7 @@ export const changeTripSlugResponse = zod
                       .describe('Coordinates [longitude, latitude]'),
                   })
                   .optional()
-                  .describe('GeoJSON Point geometry'),
+                  .describe('Location coordinates [longitude, latitude]'),
               })
               .optional(),
             endPlace: zod
@@ -1437,7 +1437,7 @@ export const changeTripSlugResponse = zod
                       .describe('Coordinates [longitude, latitude]'),
                   })
                   .optional()
-                  .describe('GeoJSON Point geometry'),
+                  .describe('Location coordinates [longitude, latitude]'),
               })
               .optional(),
             media: zod.object({

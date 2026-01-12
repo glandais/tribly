@@ -7,11 +7,12 @@ import i18next from 'i18next'
 import { Container, Stack, Title } from '@mantine/core'
 import { useGetTeam } from '@/api/endpoints/teams/teams'
 import {
-  useGetAd,
   useUpdateAd,
   useChangeAdSlug,
   getListAdsQueryKey,
   getGetAdQueryKey,
+  useGetAdEdit,
+  getGetAdEditQueryKey,
 } from '../../api/endpoints/ads/ads'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { AdEditor } from '../../components/ad/AdEditor'
@@ -26,7 +27,7 @@ export function EditAdPage() {
   const { data: team, isLoading: isLoadingTeam } = useGetTeam(teamSlug!, {
     query: { enabled: !!teamSlug },
   })
-  const { data: ad, isLoading: isLoadingAd } = useGetAd(teamSlug!, adSlug!, {
+  const { data: ad, isLoading: isLoadingAd } = useGetAdEdit(teamSlug!, adSlug!, {
     query: { enabled: !!teamSlug && !!adSlug },
   })
 
@@ -64,6 +65,7 @@ export function EditAdPage() {
         onSuccess: () => {
           queryClient.invalidateQueries({ queryKey: getListAdsQueryKey(teamSlug!) })
           queryClient.invalidateQueries({ queryKey: getGetAdQueryKey(teamSlug!, adSlug!) })
+          queryClient.invalidateQueries({ queryKey: getGetAdEditQueryKey(teamSlug!, adSlug!) })
           notifications.show({ message: i18next.t('ads.notifications.updated'), color: 'green' })
           navigate(paths.ad(teamSlug!, adSlug!))
         },
@@ -78,6 +80,7 @@ export function EditAdPage() {
         onSuccess: (updatedAd) => {
           queryClient.invalidateQueries({ queryKey: getListAdsQueryKey(teamSlug!) })
           queryClient.invalidateQueries({ queryKey: getGetAdQueryKey(teamSlug!, adSlug!) })
+          queryClient.invalidateQueries({ queryKey: getGetAdEditQueryKey(teamSlug!, adSlug!) })
           // Navigate to the new slug URL
           navigate(paths.adEdit(teamSlug!, updatedAd.slug), { replace: true })
         },

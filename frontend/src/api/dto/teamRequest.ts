@@ -7,6 +7,7 @@
  */
 import type { MediaDto } from './mediaDto'
 import type { Visibility } from './visibility'
+import type { TeamRequestGeometry } from './teamRequestGeometry'
 
 /**
  * Team creation request
@@ -27,4 +28,6 @@ export interface TeamRequest {
   enableTrips: boolean
   /** Ads enabled for team */
   enableAds: boolean
+  /** Team location coordinates [longitude, latitude] */
+  geometry?: TeamRequestGeometry
 }

@@ -48,7 +48,8 @@ class TeamServiceTest {
             MediaDto.builder().markdown("A test team").build(),
             Visibility.PUBLIC,
             true,
-            true);
+            true,
+            null);
 
     queryContext.setUserForTest(user1);
     TeamDetailDto result = teamService.createTeam(request);
@@ -65,7 +66,7 @@ class TeamServiceTest {
   @Test
   void createTeam_shouldCreateAdminMembership() {
     TeamRequest request =
-        new TeamRequest("My Team", MediaDto.builder().build(), Visibility.PUBLIC, true, true);
+        new TeamRequest("My Team", MediaDto.builder().build(), Visibility.PUBLIC, true, true, null);
 
     queryContext.setUserForTest(user1);
     TeamDetailDto result = teamService.createTeam(request);
@@ -76,9 +77,11 @@ class TeamServiceTest {
   @Test
   void createTeam_shouldHandleSlugCollisionWithTimestamp() {
     TeamRequest request1 =
-        new TeamRequest("Test Team", MediaDto.builder().build(), Visibility.PUBLIC, true, true);
+        new TeamRequest(
+            "Test Team", MediaDto.builder().build(), Visibility.PUBLIC, true, true, null);
     TeamRequest request2 =
-        new TeamRequest("Test Team", MediaDto.builder().build(), Visibility.PUBLIC, true, true);
+        new TeamRequest(
+            "Test Team", MediaDto.builder().build(), Visibility.PUBLIC, true, true, null);
 
     queryContext.setUserForTest(user1);
     TeamDetailDto team1 = teamService.createTeam(request1);
@@ -167,7 +170,8 @@ class TeamServiceTest {
             MediaDto.builder().markdown("Updated description").build(),
             Visibility.TEAM,
             true,
-            true);
+            true,
+            null);
 
     queryContext.setUserForTest(user1);
     TeamDetailDto result = teamService.updateTeam(team.getSlug(), request);
@@ -186,7 +190,8 @@ class TeamServiceTest {
             MediaDto.builder().markdown("original").build(),
             Visibility.PUBLIC,
             true,
-            true);
+            true,
+            null);
 
     queryContext.setUserForTest(user1);
     TeamDetailDto result = teamService.updateTeam(team.getSlug(), request);
@@ -204,7 +209,8 @@ class TeamServiceTest {
             MediaDto.builder().markdown("Updated description").build(),
             Visibility.PUBLIC,
             true,
-            true);
+            true,
+            null);
 
     queryContext.setUserForTest(user1);
     TeamDetailDto result = teamService.updateTeam(team.getSlug(), request);
@@ -218,7 +224,8 @@ class TeamServiceTest {
     Team team = dataService.createTeam(user2, "Test Team", "test-team", Visibility.PUBLIC);
     dataService.addUserToTeam(user1, team, TeamRole.MEMBER);
     TeamRequest request =
-        new TeamRequest("New Name", MediaDto.builder().build(), Visibility.PUBLIC, true, true);
+        new TeamRequest(
+            "New Name", MediaDto.builder().build(), Visibility.PUBLIC, true, true, null);
 
     queryContext.setUserForTest(user1);
     assertThrows(TriblyException.class, () -> teamService.updateTeam(team.getSlug(), request));

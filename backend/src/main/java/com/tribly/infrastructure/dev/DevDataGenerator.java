@@ -139,7 +139,8 @@ public class DevDataGenerator {
             MediaDto.builder().markdown("# " + name + "\n\nWelcome to our cycling team!").build(),
             visibility,
             true,
-            true);
+            true,
+            null);
 
     var dto = teamService.createTeam(request);
     Team team = teamService.getTeam(dto.slug());
@@ -525,7 +526,8 @@ public class DevDataGenerator {
               adType,
               BigDecimal.valueOf(r.nextInt(100, 1000)),
               rentalPeriod,
-              teamSuffix[r.nextInt(teamSuffix.length)]);
+              teamSuffix[r.nextInt(teamSuffix.length)],
+              null);
 
       adService.createAd(teamSlug, request);
     }

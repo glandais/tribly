@@ -10,6 +10,7 @@ import type { TeamPageSummaryDto } from './teamPageSummaryDto'
 import type { Visibility } from './visibility'
 import type { TeamRole } from './teamRole'
 import type { Instant } from './instant'
+import type { TeamDetailDtoGeometry } from './teamDetailDtoGeometry'
 
 /**
  * Detailed team information
@@ -37,4 +38,6 @@ export interface TeamDetailDto {
   role?: TeamRole
   /** Team creation timestamp */
   createdAt: Instant
+  /** Team location coordinates [longitude, latitude] */
+  geometry?: TeamDetailDtoGeometry
 }

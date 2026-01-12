@@ -23,6 +23,7 @@ import type {
 
 import type {
   AdDto,
+  AdEditDto,
   AdListResponse,
   AdRequest,
   ErrorResponse,
@@ -539,6 +540,133 @@ export const useDeleteAd = <TError = ErrorType<ErrorResponse>, TContext = unknow
 
   return useMutation(mutationOptions, queryClient)
 }
+/**
+ * Get detailed ad information
+ * @summary Get ad details for edit
+ */
+export const getAdEdit = (
+  teamSlug: string,
+  slug: string,
+  options?: SecondParameter<typeof axiosMutator>,
+  signal?: AbortSignal
+) => {
+  return axiosMutator<AdEditDto>(
+    { url: `/api/teams/${teamSlug}/ads/${slug}/edit`, method: 'GET', signal },
+    options
+  )
+}
+
+export const getGetAdEditQueryKey = (teamSlug?: string, slug?: string) => {
+  return [`/api/teams/${teamSlug}/ads/${slug}/edit`] as const
+}
+
+export const getGetAdEditQueryOptions = <
+  TData = Awaited<ReturnType<typeof getAdEdit>>,
+  TError = ErrorType<void | ErrorResponse>,
+>(
+  teamSlug: string,
+  slug: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdEdit>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  }
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getGetAdEditQueryKey(teamSlug, slug)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getAdEdit>>> = ({ signal }) =>
+    getAdEdit(teamSlug, slug, requestOptions, signal)
+
+  return { queryKey, queryFn, enabled: !!(teamSlug && slug), ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getAdEdit>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetAdEditQueryResult = NonNullable<Awaited<ReturnType<typeof getAdEdit>>>
+export type GetAdEditQueryError = ErrorType<void | ErrorResponse>
+
+export function useGetAdEdit<
+  TData = Awaited<ReturnType<typeof getAdEdit>>,
+  TError = ErrorType<void | ErrorResponse>,
+>(
+  teamSlug: string,
+  slug: string,
+  options: {
+    query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdEdit>>, TError, TData>> &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAdEdit>>,
+          TError,
+          Awaited<ReturnType<typeof getAdEdit>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAdEdit<
+  TData = Awaited<ReturnType<typeof getAdEdit>>,
+  TError = ErrorType<void | ErrorResponse>,
+>(
+  teamSlug: string,
+  slug: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdEdit>>, TError, TData>> &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAdEdit>>,
+          TError,
+          Awaited<ReturnType<typeof getAdEdit>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAdEdit<
+  TData = Awaited<ReturnType<typeof getAdEdit>>,
+  TError = ErrorType<void | ErrorResponse>,
+>(
+  teamSlug: string,
+  slug: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdEdit>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Get ad details for edit
+ */
+
+export function useGetAdEdit<
+  TData = Awaited<ReturnType<typeof getAdEdit>>,
+  TError = ErrorType<void | ErrorResponse>,
+>(
+  teamSlug: string,
+  slug: string,
+  options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getAdEdit>>, TError, TData>>
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getGetAdEditQueryOptions(teamSlug, slug, options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  query.queryKey = queryOptions.queryKey
+
+  return query
+}
+
 /**
  * Change ad URL slug. Requires admin permissions.
  * @summary Change ad slug

@@ -13,8 +13,9 @@ import {
   getGetTeamQueryKey,
 } from '@/api/endpoints/teams/teams'
 import { SlugEditor } from '../common/SlugEditor'
-import { Visibility, TeamDetailDto, TeamRequest } from '@/api/dto'
+import { Visibility, TeamDetailDto, TeamRequest, GeoJsonPoint } from '@/api/dto'
 import { MediaEditor } from '../common/MediaEditor'
+import { GeocoderAutocomplete } from '../common/GeocoderAutocomplete'
 import { paths } from '@/config/paths'
 import { createTeamBody } from '@/api/zod/teams/teams.zod'
 
@@ -43,6 +44,13 @@ export function TeamForm({
   const updateMutation = useUpdateTeam()
   const mutation = teamSlug ? updateMutation : createMutation
 
+  function getSubmitButtonText(): string {
+    if (mutation.isPending) {
+      return create ? t('status.creating') : t('status.saving')
+    }
+    return create ? t('teams.create.button') : t('actions.save')
+  }
+
   const form = useForm<TeamRequest>({
     validate: zod4Resolver(teamSchema) as any,
     initialValues,
@@ -67,7 +75,7 @@ export function TeamForm({
       )
     } else if (teamSlug) {
       updateMutation.mutate(
-        { teamSlug: teamSlug, data: values },
+        { teamSlug, data: values },
         {
           onSuccess: (team) => {
             queryClient.invalidateQueries({ queryKey: getGetTeamQueryKey(teamSlug) })
@@ -139,6 +147,13 @@ export function TeamForm({
           {...form.getInputProps('visibility')}
         />
 
+        <GeocoderAutocomplete
+          value={form.values.geometry as GeoJsonPoint | null | undefined}
+          onChange={(point) => form.setFieldValue('geometry', point ?? undefined)}
+          label={t('geocoder.label')}
+          disabled={mutation.isPending}
+        />
+
         <Checkbox
           label={t('teams.create.form.enableTrips.label')}
           description={t('teams.create.form.enableTrips.hint')}
@@ -164,13 +179,7 @@ export function TeamForm({
             disabled={mutation.isPending || !form.isValid()}
             loading={mutation.isPending}
           >
-            {mutation.isPending
-              ? create
-                ? t('status.creating')
-                : t('status.saving')
-              : create
-                ? t('teams.create.button')
-                : t('actions.save')}
+            {getSubmitButtonText()}
           </Button>
         </Group>
       </Stack>

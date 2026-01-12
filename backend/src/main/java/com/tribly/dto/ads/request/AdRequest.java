@@ -1,5 +1,6 @@
 package com.tribly.dto.ads.request;
 
+import com.tribly.dto.common.GeoJsonPoint;
 import com.tribly.dto.common.asset.MediaDto;
 import com.tribly.dto.validation.ValidateSchema;
 import com.tribly.enums.AdType;
@@ -10,6 +11,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.geolatte.geom.G2D;
+import org.geolatte.geom.Point;
 import org.jspecify.annotations.Nullable;
 
 @Schema(description = "Ad request")
@@ -25,4 +28,9 @@ public record AdRequest(
     @Nullable @Schema(description = "Rental period (required for RENTAL type)")
         RentalPeriod rentalPeriod,
     @Nullable @Schema(description = "Location description") @Size(max = 200)
-        String locationDescription) {}
+        String locationDescription,
+    @Nullable
+        @Schema(
+            description = "Location coordinates [longitude, latitude]",
+            implementation = GeoJsonPoint.class)
+        Point<G2D> locationGeometry) {}

@@ -94,6 +94,6 @@ public class PlaceService {
     place.setLink(request.link());
     place.setStartPlace(request.startPlace());
     place.setEndPlace(request.endPlace());
-    place.setGeometry(request.coordinates());
+    place.setGeometry(request.geometry());
   }
 }

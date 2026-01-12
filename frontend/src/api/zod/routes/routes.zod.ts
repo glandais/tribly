@@ -995,14 +995,14 @@ export const getRouteResponse = zod
         coordinates: zod.array(zod.number()).describe('Coordinates [longitude, latitude]'),
       })
       .optional()
-      .describe('GeoJSON Point geometry'),
+      .describe('Location coordinates [longitude, latitude]'),
     end: zod
       .object({
         type: zod.enum(['Point']),
         coordinates: zod.array(zod.number()).describe('Coordinates [longitude, latitude]'),
       })
       .optional()
-      .describe('GeoJSON Point geometry'),
+      .describe('Location coordinates [longitude, latitude]'),
     createdBy: zod
       .object({
         id: zod.string().describe('User ID (TSID)'),
@@ -1050,7 +1050,7 @@ export const getRouteResponse = zod
               type: zod.enum(['Point']),
               coordinates: zod.array(zod.number()).describe('Coordinates [longitude, latitude]'),
             })
-            .describe('GeoJSON Point geometry'),
+            .describe('Location coordinates [longitude, latitude]'),
           name: zod.string().optional(),
         })
       )
@@ -1228,14 +1228,14 @@ export const changeRouteSlugResponse = zod
         coordinates: zod.array(zod.number()).describe('Coordinates [longitude, latitude]'),
       })
       .optional()
-      .describe('GeoJSON Point geometry'),
+      .describe('Location coordinates [longitude, latitude]'),
     end: zod
       .object({
         type: zod.enum(['Point']),
         coordinates: zod.array(zod.number()).describe('Coordinates [longitude, latitude]'),
       })
       .optional()
-      .describe('GeoJSON Point geometry'),
+      .describe('Location coordinates [longitude, latitude]'),
     createdBy: zod
       .object({
         id: zod.string().describe('User ID (TSID)'),
@@ -1283,7 +1283,7 @@ export const changeRouteSlugResponse = zod
               type: zod.enum(['Point']),
               coordinates: zod.array(zod.number()).describe('Coordinates [longitude, latitude]'),
             })
-            .describe('GeoJSON Point geometry'),
+            .describe('Location coordinates [longitude, latitude]'),
           name: zod.string().optional(),
         })
       )

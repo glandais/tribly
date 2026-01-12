@@ -19,6 +19,10 @@ CREATE INDEX idx_gpx_tracks_geometry
     ON gpx_tracks
     USING GIST (geometry);
 
+CREATE INDEX idx_gpx_waypoints_geometry
+    ON gpx_waypoints
+    USING GIST (geometry);
+
 CREATE INDEX idx_places_geometry
     ON places
     USING GIST (geometry);
@@ -31,5 +35,10 @@ CREATE INDEX idx_team_entities_end
     ON team_entities
     USING GIST ("end");
 
--- GIST index for geometry
-CREATE INDEX idx_gpx_waypoints_geometry ON gpx_waypoints USING GIST (geometry);
+CREATE INDEX idx_team_entities_location_geometry
+    ON team_entities
+    USING GIST (location_geometry);
+
+CREATE INDEX idx_teams_geometry
+    ON teams
+    USING GIST (geometry);

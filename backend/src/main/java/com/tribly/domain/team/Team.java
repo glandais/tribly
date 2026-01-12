@@ -12,7 +12,10 @@ import java.util.Set;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.geolatte.geom.G2D;
+import org.geolatte.geom.Point;
 import org.hibernate.annotations.SQLRestriction;
+import org.jspecify.annotations.Nullable;
 
 @Setter
 @Getter
@@ -51,6 +54,10 @@ public class Team extends BaseEntity {
 
   @Column(name = "enable_ads", nullable = false)
   private boolean enableAds = true;
+
+  @Column(name = "geometry", columnDefinition = "geometry(Point,4326)")
+  @Nullable
+  private Point<G2D> geometry;
 
   public Team(User creator, String name, String slug, Visibility visibility) {
     super(creator);

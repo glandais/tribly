@@ -18,6 +18,8 @@ import java.time.Instant;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.geolatte.geom.G2D;
+import org.geolatte.geom.Point;
 import org.jspecify.annotations.Nullable;
 
 @Setter
@@ -41,13 +43,9 @@ public class Ad extends TeamEntity {
   @Nullable
   private RentalPeriod rentalPeriod;
 
-  @Column(name = "latitude")
+  @Column(name = "location_geometry", columnDefinition = "geometry(Point,4326)")
   @Nullable
-  private Double latitude;
-
-  @Column(name = "longitude")
-  @Nullable
-  private Double longitude;
+  private Point<G2D> locationGeometry;
 
   @Column(name = "location_description", length = 250)
   @Nullable

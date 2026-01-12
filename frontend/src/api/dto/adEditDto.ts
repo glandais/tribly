@@ -11,12 +11,13 @@ import type { Status } from './status'
 import type { Visibility } from './visibility'
 import type { AdType } from './adType'
 import type { RentalPeriod } from './rentalPeriod'
+import type { AdEditDtoLocationGeometry } from './adEditDtoLocationGeometry'
 import type { Instant } from './instant'
 
 /**
  * Ad data
  */
-export interface AdDto {
+export interface AdEditDto {
   /** Team */
   team: TeamPublicationDto
   /** Ad ID (TSID) */
@@ -37,6 +38,8 @@ export interface AdDto {
   price?: number
   /** Rental period */
   rentalPeriod?: RentalPeriod
+  /** Location coordinates [longitude, latitude] */
+  locationGeometry?: AdEditDtoLocationGeometry
   /** Location description */
   locationDescription?: string
   /** Creation timestamp */

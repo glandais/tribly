@@ -208,7 +208,7 @@ export const listAllPublicationsResponse = zod
                           .describe('Coordinates [longitude, latitude]'),
                       })
                       .optional()
-                      .describe('GeoJSON Point geometry'),
+                      .describe('Location coordinates [longitude, latitude]'),
                   })
                   .optional(),
                 endPlace: zod
@@ -227,7 +227,7 @@ export const listAllPublicationsResponse = zod
                           .describe('Coordinates [longitude, latitude]'),
                       })
                       .optional()
-                      .describe('GeoJSON Point geometry'),
+                      .describe('Location coordinates [longitude, latitude]'),
                   })
                   .optional(),
                 topParticipants: zod
@@ -540,7 +540,7 @@ export const listAllPublicationsResponse = zod
                                   .describe('Coordinates [longitude, latitude]'),
                               })
                               .optional()
-                              .describe('GeoJSON Point geometry'),
+                              .describe('Location coordinates [longitude, latitude]'),
                           })
                           .optional(),
                         endPlace: zod
@@ -559,7 +559,7 @@ export const listAllPublicationsResponse = zod
                                   .describe('Coordinates [longitude, latitude]'),
                               })
                               .optional()
-                              .describe('GeoJSON Point geometry'),
+                              .describe('Location coordinates [longitude, latitude]'),
                           })
                           .optional(),
                         media: zod.object({
@@ -910,7 +910,7 @@ export const listPublicationsResponse = zod
                           .describe('Coordinates [longitude, latitude]'),
                       })
                       .optional()
-                      .describe('GeoJSON Point geometry'),
+                      .describe('Location coordinates [longitude, latitude]'),
                   })
                   .optional(),
                 endPlace: zod
@@ -929,7 +929,7 @@ export const listPublicationsResponse = zod
                           .describe('Coordinates [longitude, latitude]'),
                       })
                       .optional()
-                      .describe('GeoJSON Point geometry'),
+                      .describe('Location coordinates [longitude, latitude]'),
                   })
                   .optional(),
                 topParticipants: zod
@@ -1242,7 +1242,7 @@ export const listPublicationsResponse = zod
                                   .describe('Coordinates [longitude, latitude]'),
                               })
                               .optional()
-                              .describe('GeoJSON Point geometry'),
+                              .describe('Location coordinates [longitude, latitude]'),
                           })
                           .optional(),
                         endPlace: zod
@@ -1261,7 +1261,7 @@ export const listPublicationsResponse = zod
                                   .describe('Coordinates [longitude, latitude]'),
                               })
                               .optional()
-                              .describe('GeoJSON Point geometry'),
+                              .describe('Location coordinates [longitude, latitude]'),
                           })
                           .optional(),
                         media: zod.object({

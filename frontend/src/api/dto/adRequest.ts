@@ -9,6 +9,7 @@ import type { MediaDto } from './mediaDto'
 import type { Status } from './status'
 import type { AdType } from './adType'
 import type { RentalPeriod } from './rentalPeriod'
+import type { AdRequestLocationGeometry } from './adRequestLocationGeometry'
 
 /**
  * Ad request
@@ -36,4 +37,6 @@ export interface AdRequest {
    * @maxLength 200
    */
   locationDescription?: string
+  /** Location coordinates [longitude, latitude] */
+  locationGeometry?: AdRequestLocationGeometry
 }
