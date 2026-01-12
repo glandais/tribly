@@ -4,6 +4,7 @@ import static org.geolatte.geom.crs.CoordinateReferenceSystems.WGS84;
 
 import com.tribly.domain.ad.Ad;
 import com.tribly.domain.asset.Asset;
+import com.tribly.domain.calendar.CalendarToken;
 import com.tribly.domain.comment.Comment;
 import com.tribly.domain.common.TeamEntity;
 import com.tribly.domain.common.TeamEntitySlugRedirect;
@@ -25,6 +26,7 @@ import com.tribly.domain.user.User;
 import com.tribly.enums.*;
 import com.tribly.repository.ad.AdRepository;
 import com.tribly.repository.asset.AssetRepository;
+import com.tribly.repository.calendar.CalendarTokenRepository;
 import com.tribly.repository.comment.CommentRepository;
 import com.tribly.repository.common.TeamEntitySlugRedirectRepository;
 import com.tribly.repository.place.PlaceRepository;
@@ -493,6 +495,15 @@ public class TestDataService {
   }
 
   @Transactional
+  public TripStage createTripStage(User createdBy, Trip trip, String name, Instant dateTime) {
+    TripStage stage = new TripStage(createdBy, trip, name);
+    stage.setSlug(SlugService.slugify(name));
+    stage.setDateTime(dateTime);
+    tripStageRepository.persistAndFlush(stage);
+    return stage;
+  }
+
+  @Transactional
   public void deleteTripStage(TripStage stage) {
     stage.setDeleted(true);
     tripStageRepository.getEntityManager().merge(stage);
@@ -645,5 +656,20 @@ public class TestDataService {
         new TeamEntitySlugRedirect(oldSlug, team, entityType, entityId);
     teamEntitySlugRedirectRepository.persistAndFlush(redirect);
     return redirect;
+  }
+
+  @Inject CalendarTokenRepository calendarTokenRepository;
+
+  @Transactional
+  public CalendarToken createCalendarToken(User user, String token) {
+    CalendarToken calendarToken = new CalendarToken(user, token);
+    calendarTokenRepository.persistAndFlush(calendarToken);
+    return calendarToken;
+  }
+
+  @Transactional
+  public void deleteCalendarToken(CalendarToken token) {
+    token.setDeleted(true);
+    calendarTokenRepository.getEntityManager().merge(token);
   }
 }

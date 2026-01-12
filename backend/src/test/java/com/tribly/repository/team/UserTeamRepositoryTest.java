@@ -12,6 +12,7 @@ import com.tribly.util.TestDataCleaner;
 import com.tribly.util.TestDataService;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -178,5 +179,73 @@ class UserTeamRepositoryTest {
 
     assertTrue(member.isPresent());
     assertEquals(TeamRole.MEMBER, member.get().getRole());
+  }
+
+  // ==================== findByUserId ====================
+
+  @Test
+  void findByUserId_shouldReturnAllTeamsForUser() {
+    Team team2 = dataService.createTeam(user2, "Second Team", "second-team", Visibility.PUBLIC);
+    dataService.addUserToTeam(user1, team2, TeamRole.MEMBER);
+
+    List<UserTeam> result = userTeamRepository.findByUserId(user1.getId());
+
+    assertEquals(2, result.size());
+  }
+
+  @Test
+  void findByUserId_shouldReturnEmptyListWhenUserHasNoTeams() {
+    List<UserTeam> result = userTeamRepository.findByUserId(user2.getId());
+
+    assertTrue(result.isEmpty());
+  }
+
+  @Test
+  void findByUserId_shouldIgnoreDeletedMemberships() {
+    UserTeam membership = dataService.addUserToTeam(user2, team, TeamRole.MEMBER);
+    dataService.deleteUserTeam(membership);
+
+    List<UserTeam> result = userTeamRepository.findByUserId(user2.getId());
+
+    assertTrue(result.isEmpty());
+  }
+
+  @Test
+  void findByUserId_shouldIgnoreDeletedTeams() {
+    dataService.addUserToTeam(user2, team, TeamRole.MEMBER);
+    dataService.deleteTeam(team);
+
+    List<UserTeam> result = userTeamRepository.findByUserId(user2.getId());
+
+    assertTrue(result.isEmpty());
+  }
+
+  @Test
+  void findByUserId_shouldIgnoreDeletedUsers() {
+    dataService.addUserToTeam(user2, team, TeamRole.MEMBER);
+    dataService.deleteUser(user2);
+
+    List<UserTeam> result = userTeamRepository.findByUserId(user2.getId());
+
+    assertTrue(result.isEmpty());
+  }
+
+  @Test
+  void findByUserId_shouldReturnCorrectTeamsForDifferentUsers() {
+    Team team2 = dataService.createTeam(user2, "Second Team", "second-team", Visibility.PUBLIC);
+    dataService.addUserToTeam(user3, team, TeamRole.MEMBER);
+
+    List<UserTeam> user1Teams = userTeamRepository.findByUserId(user1.getId());
+    List<UserTeam> user2Teams = userTeamRepository.findByUserId(user2.getId());
+    List<UserTeam> user3Teams = userTeamRepository.findByUserId(user3.getId());
+
+    assertEquals(1, user1Teams.size());
+    assertEquals(team.getId(), user1Teams.getFirst().getTeam().getId());
+
+    assertEquals(1, user2Teams.size());
+    assertEquals(team2.getId(), user2Teams.getFirst().getTeam().getId());
+
+    assertEquals(1, user3Teams.size());
+    assertEquals(team.getId(), user3Teams.getFirst().getTeam().getId());
   }
 }

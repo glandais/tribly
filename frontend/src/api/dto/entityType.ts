@@ -26,6 +26,7 @@ export const EntityType = {
   AD: 'AD',
   POST: 'POST',
   TEAM_PAGE: 'TEAM_PAGE',
+  CALENDAR: 'CALENDAR',
   PUBLICATION: 'PUBLICATION',
   ANY: 'ANY',
 } as const

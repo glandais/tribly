@@ -22,6 +22,11 @@
     "i18n:extract": "i18next-cli extract"
   },
   "dependencies": {
+    "@fullcalendar/core": "^6.1.15",
+    "@fullcalendar/daygrid": "^6.1.15",
+    "@fullcalendar/interaction": "^6.1.15",
+    "@fullcalendar/react": "^6.1.15",
+    "@fullcalendar/timegrid": "^6.1.15",
     "@mantine/core": "^8.3.12",
     "@mantine/dates": "^8.3.12",
     "@mantine/form": "^8.3.12",

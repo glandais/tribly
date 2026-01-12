@@ -6,6 +6,7 @@ export const paths = {
   home: () => '/',
   login: () => '/login',
   profile: () => '/profile',
+  calendar: () => '/calendar',
   allRoutes: () => '/routes',
 
   // Teams
@@ -13,6 +14,7 @@ export const paths = {
   teamsNew: () => '/teams/new',
   team: (teamSlug: string) => `/teams/${teamSlug}`,
   teamAbout: (teamSlug: string) => `/teams/${teamSlug}/about`,
+  teamCalendar: (teamSlug: string) => `/teams/${teamSlug}/calendar`,
 
   // Team Pages (displayed as tabs)
   teamPage: (teamSlug: string, pageSlug: string) => `/teams/${teamSlug}/pages/${pageSlug}`,

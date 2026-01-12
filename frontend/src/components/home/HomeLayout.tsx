@@ -1,9 +1,11 @@
+import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Stack, Title, Text, Tabs } from '@mantine/core'
 import { paths } from '@/config/paths'
+import { useAuth } from '@/hooks/useAuth'
 
-export type HomeTab = 'feed' | 'routes' | 'teams'
+export type HomeTab = 'feed' | 'routes' | 'teams' | 'calendar'
 
 interface HomeLayoutProps {
   currentTab: HomeTab
@@ -12,24 +14,34 @@ interface HomeLayoutProps {
 
 export function HomeLayout({ currentTab, children }: HomeLayoutProps) {
   const { t } = useTranslation()
+  const { isAuthenticated } = useAuth()
 
-  const tabs: { id: HomeTab; path: string; label: string }[] = [
-    {
-      id: 'feed',
-      path: paths.home(),
-      label: t('home.tabs.feed'),
-    },
-    {
-      id: 'routes',
-      path: paths.allRoutes(),
-      label: t('nav.routes'),
-    },
-    {
-      id: 'teams',
-      path: paths.teams(),
-      label: t('teams.title'),
-    },
-  ]
+  const tabs = useMemo(() => {
+    const allTabs: { id: HomeTab; path: string; label: string; requiresAuth?: boolean }[] = [
+      {
+        id: 'feed',
+        path: paths.home(),
+        label: t('home.tabs.feed'),
+      },
+      {
+        id: 'calendar',
+        path: paths.calendar(),
+        label: t('calendar.title'),
+        requiresAuth: true,
+      },
+      {
+        id: 'routes',
+        path: paths.allRoutes(),
+        label: t('nav.routes'),
+      },
+      {
+        id: 'teams',
+        path: paths.teams(),
+        label: t('teams.title'),
+      },
+    ]
+    return allTabs.filter((tab) => !tab.requiresAuth || isAuthenticated)
+  }, [t, isAuthenticated])
 
   return (
     <Stack gap="lg">

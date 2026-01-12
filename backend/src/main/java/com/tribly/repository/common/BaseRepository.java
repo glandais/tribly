@@ -40,4 +40,9 @@ public interface BaseRepository<T> extends PanacheRepository<T> {
     }
     throw new NonUniqueResultException("Query returned more than one result");
   }
+
+  default List<T> findAll(TriblyQuery triblyQuery) {
+    PanacheQuery<T> panacheQuery = find(triblyQuery.getStringQuery(), triblyQuery.getParams());
+    return panacheQuery.list();
+  }
 }

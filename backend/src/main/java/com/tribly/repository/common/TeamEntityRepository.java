@@ -10,6 +10,7 @@ import com.tribly.repository.query.SimpleClause;
 import com.tribly.repository.query.TriblyQuery;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -50,6 +51,11 @@ public interface TeamEntityRepository<T extends TeamEntity, Q extends TeamEntity
   default Optional<T> findOne(Q query) {
     TriblyQuery triblyQuery = getTriblyQuery(query);
     return findOne(triblyQuery);
+  }
+
+  default List<T> findAll(Q query) {
+    TriblyQuery triblyQuery = getTriblyQuery(query);
+    return findAll(triblyQuery);
   }
 
   private TriblyQuery getTriblyQuery(Q query) {

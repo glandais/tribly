@@ -77,6 +77,11 @@ export default defineConfig({
             return 'editor-vendor';
           }
 
+          // === CALENDAR (FullCalendar - check before react) ===
+          if (id.includes('node_modules/@fullcalendar/')) {
+            return 'calendar-vendor';
+          }
+
           // === CHARTS (check before react - react-chartjs-2 must not fall to react) ===
           if (
             id.includes('node_modules/chart.js/') ||

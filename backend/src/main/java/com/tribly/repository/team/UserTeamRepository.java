@@ -6,6 +6,7 @@ import com.tribly.repository.common.BaseRepository;
 import com.tribly.repository.common.TriblyPage;
 import com.tribly.repository.query.TriblyQuery;
 import jakarta.enterprise.context.ApplicationScoped;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -14,6 +15,13 @@ public class UserTeamRepository implements BaseRepository<UserTeam> {
 
   public Optional<UserTeam> findByUserAndTeamIncludingDeleted(Long userId, Long teamId) {
     return find("user.id = ?1 and team.id = ?2", userId, teamId).firstResultOptional();
+  }
+
+  public List<UserTeam> findByUserId(Long userId) {
+    return find(
+            "user.id = ?1 and deleted = false and user.deleted = false and team.deleted = false",
+            userId)
+        .list();
   }
 
   public TriblyPage<UserTeam> findByTeam(Long teamId, int page, int size) {
