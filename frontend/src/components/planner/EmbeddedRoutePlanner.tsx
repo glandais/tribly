@@ -28,9 +28,14 @@ const DEFAULT_ZOOM = 12
 interface EmbeddedRoutePlannerProps {
   onPointsChange: (points: GeoPoint[]) => void
   initialTrack?: number[][] // [lng, lat, ele, dist][] from existing route
+  teamLocation?: [number, number] // [lng, lat] from team geometry
 }
 
-export function EmbeddedRoutePlanner({ onPointsChange, initialTrack }: EmbeddedRoutePlannerProps) {
+export function EmbeddedRoutePlanner({
+  onPointsChange,
+  initialTrack,
+  teamLocation,
+}: EmbeddedRoutePlannerProps) {
   const { t } = useTranslation()
   const colorScheme = useComputedColorScheme('light')
   const { styleId, setStyleId, style } = useMapStyle()
@@ -50,12 +55,14 @@ export function EmbeddedRoutePlanner({ onPointsChange, initialTrack }: EmbeddedR
     clearRoute,
   } = useRoutePlanner({ initialTrack })
 
-  // Calculate initial view state from track bounds
+  // Calculate initial view state from track bounds or team location
   const initialViewState = useMemo(() => {
     if (!initialTrack || initialTrack.length === 0) {
+      // Use team location if available, otherwise fall back to default
+      const center = teamLocation ? { lng: teamLocation[0], lat: teamLocation[1] } : DEFAULT_CENTER
       return {
-        longitude: DEFAULT_CENTER.lng,
-        latitude: DEFAULT_CENTER.lat,
+        longitude: center.lng,
+        latitude: center.lat,
         zoom: DEFAULT_ZOOM,
       }
     }
@@ -92,7 +99,7 @@ export function EmbeddedRoutePlanner({ onPointsChange, initialTrack }: EmbeddedR
       latitude: centerLat,
       zoom,
     }
-  }, [initialTrack])
+  }, [initialTrack, teamLocation])
 
   // Notify parent when route changes - pass the complete computed path
   useEffect(() => {

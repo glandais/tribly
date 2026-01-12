@@ -204,7 +204,11 @@ export function RouteEditor({
                 overflow: 'hidden',
               }}
             >
-              <EmbeddedRoutePlanner onPointsChange={setPlannerPoints} initialTrack={initialTrack} />
+              <EmbeddedRoutePlanner
+                onPointsChange={setPlannerPoints}
+                initialTrack={initialTrack}
+                teamLocation={team.geometry?.coordinates as [number, number] | undefined}
+              />
             </Box>
             {plannerPoints.length > 0 && (
               <Text size="sm" c="dimmed" mt="xs" px="md">
