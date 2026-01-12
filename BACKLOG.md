@@ -7,7 +7,6 @@ Must-have for public launch. Focus on first impressions and core UX.
 - [X] Responsive website — Mobile-first is non-negotiable for cyclists
   - [ ] Still issues
 - [X] Dark mode — Expected by modern users
-  - [ ] Fix style select dark mode in markdown editor
 - [X] Appealing cards (icons, route previews)
   - [ ] Still some polish to do ...
 - [X] Pagination / infinite scrolling — Performance at scale
