@@ -5,6 +5,7 @@
  * API for Tribly Cycling Team Management Platform
  * OpenAPI spec version: 1.0.0
  */
+import type { UnitSystem } from './unitSystem'
 
 /**
  * User profile update request
@@ -15,5 +16,7 @@ export interface UpdateUserRequest {
    * @minLength 1
    * @maxLength 200
    */
-  displayName: string
+  displayName?: string
+  /** Preferred unit system */
+  unitSystem?: UnitSystem
 }

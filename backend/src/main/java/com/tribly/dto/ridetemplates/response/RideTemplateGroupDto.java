@@ -13,7 +13,7 @@ public record RideTemplateGroupDto(
     @Schema(description = "Group ID (TSID)", required = true) String id,
     @Schema(description = "Group name", required = true) String name,
     @Nullable LocalTime time,
-    @Nullable @Schema(description = "Average speed in km/h") Integer averageSpeed,
+    @Nullable @Schema(description = "Average speed in km/h") Float averageSpeed,
     @Nullable @Schema(description = "Maximum participants") Integer maxParticipants,
     @Schema(description = "Sort order", required = true) int sortOrder) {
 

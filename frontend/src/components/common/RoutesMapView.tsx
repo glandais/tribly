@@ -24,6 +24,7 @@ import { StartMarker, EndMarker } from '../map/MapMarkers'
 import { calculateBounds, routeToGeoJSON } from '../map/mapUtils'
 import { MapStyleSwitcher } from '../map/MapStyleSwitcher'
 import { useMapStyle } from '../../hooks/useMapStyle'
+import { useUnits } from '../../hooks/useUnits'
 import { getOverlayBg } from '@/lib/colors'
 // maplibre-gl CSS is provided by maplibre-theme in index.css
 
@@ -82,6 +83,7 @@ export function RoutesMapView({
   const colorScheme = useComputedColorScheme('light')
   const theme = useMantineTheme()
   const { styleId, setStyleId, style } = useMapStyle()
+  const { config, distance, formatDistance, elevation } = useUnits()
   const mapRef = useRef<MapRef>(null)
 
   // Chart colors based on color scheme
@@ -230,7 +232,7 @@ export function RoutesMapView({
   // Prepare chart data from highlighted route
   const chartData: ChartData<'line'> | null = highlightedRoute
     ? {
-        labels: highlightedRoute.trackPoints.map((p) => (p[3] / 1000).toFixed(1)),
+        labels: highlightedRoute.trackPoints.map((p) => formatDistance(p[3])),
         datasets: [
           {
             label: 'Elevation',
@@ -270,12 +272,12 @@ export function RoutesMapView({
               if (tooltipItems.length > 0 && highlightedRoute) {
                 const index = tooltipItems[0].dataIndex
                 const point = highlightedRoute.trackPoints[index]
-                return `${(point[3] / 1000).toFixed(1)} km`
+                return `${distance(point[3])}`
               }
               return ''
             },
             label: (item: TooltipItem<'line'>) => {
-              return `${Math.round(item.parsed.y ?? 0)} m`
+              return `${elevation(item.parsed.y ?? 0)}`
             },
           },
         },
@@ -285,7 +287,7 @@ export function RoutesMapView({
           display: true,
           title: {
             display: true,
-            text: 'Distance (km)',
+            text: `Distance (${config.distanceUnit})`,
             color: chartColors.text,
           },
           ticks: {
@@ -300,7 +302,7 @@ export function RoutesMapView({
           display: true,
           title: {
             display: true,
-            text: 'Elevation (m)',
+            text: `Elevation (${config.elevationUnit})`,
             color: chartColors.text,
           },
           ticks: {
@@ -313,7 +315,7 @@ export function RoutesMapView({
       },
       animation: { duration: 0 },
     }),
-    [chartColors, highlightedRoute]
+    [chartColors, highlightedRoute, config, distance, elevation]
   )
 
   if (isLoading) {

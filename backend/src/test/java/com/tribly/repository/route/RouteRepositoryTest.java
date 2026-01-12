@@ -145,7 +145,7 @@ class RouteRepositoryTest {
           45.5,
           6.5);
 
-      RouteQuery query = RouteQuery.builder().minDistance(20000).build();
+      RouteQuery query = RouteQuery.builder().minDistance(20000.0f).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(1, result.items().size());
@@ -181,7 +181,7 @@ class RouteRepositoryTest {
           45.5,
           6.5);
 
-      RouteQuery query = RouteQuery.builder().maxDistance(10000).build();
+      RouteQuery query = RouteQuery.builder().maxDistance(10000.0f).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(1, result.items().size());
@@ -230,7 +230,7 @@ class RouteRepositoryTest {
           45.8,
           6.8);
 
-      RouteQuery query = RouteQuery.builder().minDistance(10000).maxDistance(50000).build();
+      RouteQuery query = RouteQuery.builder().minDistance(10000.0f).maxDistance(50000.0f).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(1, result.items().size());
@@ -271,7 +271,7 @@ class RouteRepositoryTest {
           45.5,
           6.5);
 
-      RouteQuery query = RouteQuery.builder().minElevationGain(500).build();
+      RouteQuery query = RouteQuery.builder().minElevationGain(500.0f).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(1, result.items().size());
@@ -307,7 +307,7 @@ class RouteRepositoryTest {
           45.5,
           6.5);
 
-      RouteQuery query = RouteQuery.builder().maxElevationGain(500).build();
+      RouteQuery query = RouteQuery.builder().maxElevationGain(500.0f).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(1, result.items().size());
@@ -809,7 +809,7 @@ class RouteRepositoryTest {
           6.5);
 
       RouteQuery query =
-          RouteQuery.builder().minDistance(30000).surfaceType(SurfaceType.GRAVEL).build();
+          RouteQuery.builder().minDistance(30000.0f).surfaceType(SurfaceType.GRAVEL).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(1, result.items().size());

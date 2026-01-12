@@ -3,6 +3,7 @@ import { IconMap, IconArrowUp, IconArrowDown, IconDownload } from '@tabler/icons
 import { Box, Button, Group, Stack, Text, Title, Badge } from '@mantine/core'
 import type { RouteDetailDto } from '@/api/dto'
 import { RouteMapView } from './RouteMapView'
+import { useUnits } from '@/hooks/useUnits'
 
 interface RouteDetailViewProps {
   route: RouteDetailDto
@@ -39,6 +40,7 @@ export function RouteDetailView({
   showInfo = true,
 }: RouteDetailViewProps) {
   const { t } = useTranslation()
+  const { distance, elevation, formatDistance, config } = useUnits()
 
   return (
     <Stack gap="md">
@@ -84,7 +86,7 @@ export function RouteDetailView({
               {t('routes.detail.stats.distance')}
             </Text>
             <Text size="lg" fw={700}>
-              {t('distance', { distance: (route.distance / 1000).toFixed(1) })}
+              {distance(route.distance)}
             </Text>
           </Box>
         </Group>
@@ -96,7 +98,7 @@ export function RouteDetailView({
               {t('routes.detail.stats.elevationGain')}
             </Text>
             <Text size="lg" fw={700}>
-              {t('elevation', { elevation: route.elevationGain })}
+              {elevation(route.elevationGain)}
             </Text>
           </Box>
         </Group>
@@ -108,7 +110,7 @@ export function RouteDetailView({
               {t('routes.detail.stats.elevationLoss')}
             </Text>
             <Text size="lg" fw={700}>
-              {t('elevation', { elevation: route.elevationLoss })}
+              {elevation(route.elevationLoss)}
             </Text>
           </Box>
         </Group>
@@ -167,8 +169,9 @@ export function RouteDetailView({
                         </Text>
                         <Text size="sm" c="dimmed">
                           {t('routes.detail.climbs.distance', {
-                            start: (climb.startDistance / 1000).toFixed(1),
-                            end: (climb.endDistance / 1000).toFixed(1),
+                            start: formatDistance(climb.startDistance),
+                            end: formatDistance(climb.endDistance),
+                            unit: config.distanceUnit,
                           })}
                         </Text>
                       </Group>
@@ -178,7 +181,7 @@ export function RouteDetailView({
                             {t('routes.detail.climbs.gain')}:
                           </Text>{' '}
                           <Text span fw={500}>
-                            {t('elevation', { elevation: climb.elevationGain })}
+                            {elevation(climb.elevationGain)}
                           </Text>
                         </Text>
                         <Text size="sm">

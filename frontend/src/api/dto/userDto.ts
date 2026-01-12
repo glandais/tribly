@@ -6,6 +6,7 @@
  * OpenAPI spec version: 1.0.0
  */
 import type { Instant } from './instant'
+import type { UnitSystem } from './unitSystem'
 
 /**
  * User profile data
@@ -21,4 +22,6 @@ export interface UserDto {
   avatarUrl?: string
   /** Account creation timestamp */
   createdAt?: Instant
+  /** Preferred unit system (metric or imperial) */
+  unitSystem?: UnitSystem
 }

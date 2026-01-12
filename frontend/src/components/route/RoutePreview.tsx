@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { IconArrowsMaximize, IconArrowUp } from '@tabler/icons-react'
 import { Paper, Group, Text, Image, Stack, Loader } from '@mantine/core'
 import { useGetRoute } from '@/api/endpoints/routes/routes'
+import { useUnits } from '@/hooks/useUnits'
 
 interface RoutePreviewProps {
   routeSlug: string
@@ -10,6 +11,7 @@ interface RoutePreviewProps {
 
 export function RoutePreview({ routeSlug, teamSlug }: RoutePreviewProps) {
   const { t } = useTranslation()
+  const { distance, elevation } = useUnits()
   const { data: route, isLoading } = useGetRoute(teamSlug, routeSlug)
 
   if (isLoading)
@@ -48,13 +50,13 @@ export function RoutePreview({ routeSlug, teamSlug }: RoutePreviewProps) {
             <Group gap={4}>
               <IconArrowsMaximize size={14} />
               <Text size="xs" c="dimmed">
-                {t('distance', { distance: (route.distance / 1000).toFixed(1) })}
+                {distance(route.distance)}
               </Text>
             </Group>
             <Group gap={4}>
               <IconArrowUp size={14} />
               <Text size="xs" c="dimmed">
-                {t('elevation', { elevation: route.elevationGain })}
+                {elevation(route.elevationGain)}
               </Text>
             </Group>
           </Group>

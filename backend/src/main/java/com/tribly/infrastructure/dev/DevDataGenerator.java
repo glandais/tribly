@@ -277,13 +277,13 @@ public class DevDataGenerator {
           List.of(
               GroupRequest.builder()
                   .name("Fast Group")
-                  .averageSpeed(30)
+                  .averageSpeed(30.0f)
                   .maxParticipants(15)
                   .routeSlug(r.nextBoolean() ? getRandomRoute(routes, visibility) : null)
                   .build(),
               GroupRequest.builder()
                   .name("Leisure Group")
-                  .averageSpeed(25)
+                  .averageSpeed(25.0f)
                   .maxParticipants(20)
                   .routeSlug(r.nextBoolean() ? getRandomRoute(routes, visibility) : null)
                   .build());
@@ -473,12 +473,12 @@ public class DevDataGenerator {
           List.of(
               RideTemplateGroupRequest.builder()
                   .name("Performance Group")
-                  .averageSpeed(32)
+                  .averageSpeed(32.0f)
                   .maxParticipants(12)
                   .build(),
               RideTemplateGroupRequest.builder()
                   .name("Casual Group")
-                  .averageSpeed(24)
+                  .averageSpeed(24.0f)
                   .maxParticipants(25)
                   .build());
 

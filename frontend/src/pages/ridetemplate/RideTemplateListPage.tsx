@@ -33,9 +33,11 @@ import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import { MarkdownDisplay } from '../../components/common/MarkdownDisplay'
 import type { RideTemplateDto } from '@/api/dto'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
+import { useUnits } from '@/hooks/useUnits'
 
 export function RideTemplateListPage() {
   const { t } = useTranslation()
+  const { speed } = useUnits()
   const { teamSlug } = useParams<{ teamSlug: string }>()
   const queryClient = useQueryClient()
   const [page, setPage] = useState(0)
@@ -190,7 +192,7 @@ export function RideTemplateListPage() {
                               {group.name}
                               {group.averageSpeed && (
                                 <Text span ml={4} c="dimmed">
-                                  {t('speed', { speed: group.averageSpeed })}
+                                  {speed(group.averageSpeed)}
                                 </Text>
                               )}
                             </Badge>

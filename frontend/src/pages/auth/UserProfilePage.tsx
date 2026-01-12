@@ -20,6 +20,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { LoadingSpinner } from '../../components/common/LoadingSpinner'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import { UserAvatar } from '../../components/common/UserAvatar'
+import { UnitSystemSwitcher } from '../../components/common/UnitSystemSwitcher'
 import { updateMeBody } from '@/api/zod/users/users.zod'
 import { UpdateUserRequest } from '@/api/dto'
 
@@ -194,6 +195,15 @@ export function UserProfilePage() {
               </Box>
             </Stack>
           )}
+
+          <Divider />
+
+          <Stack gap="md">
+            <Title order={3} size="h5">
+              {t('profile.preferences.title')}
+            </Title>
+            <UnitSystemSwitcher />
+          </Stack>
 
           <Divider />
 

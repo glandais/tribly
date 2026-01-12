@@ -216,13 +216,16 @@ public class GpxProcessingService {
 
       LOG.infov("GPX processing complete for route}");
 
-      int distance = tracksMetadata.stream().mapToInt(TrackMetadata::distance).sum();
-      int elevationGain = tracksMetadata.stream().mapToInt(TrackMetadata::elevationGain).sum();
+      float distance = (float) tracksMetadata.stream().mapToDouble(TrackMetadata::distance).sum();
+      float elevationGain =
+          (float) tracksMetadata.stream().mapToDouble(TrackMetadata::elevationGain).sum();
+      float elevationLoss =
+          (float) tracksMetadata.stream().mapToDouble(TrackMetadata::elevationLoss).sum();
       return new TrackMetadata(
           distance,
           elevationGain,
           getHilliness(distance, elevationGain),
-          tracksMetadata.stream().mapToInt(TrackMetadata::elevationLoss).sum(),
+          elevationLoss,
           tracksMetadata.getFirst().start(),
           tracksMetadata.getLast().end(),
           windDirection);
@@ -300,8 +303,8 @@ public class GpxProcessingService {
     Point start = points.getFirst();
     Point end = points.getLast();
 
-    int distance = (int) Math.round(path.getDist());
-    int elevationGain = (int) Math.round(path.getTotalElevation());
+    float distance = (float) path.getDist();
+    float elevationGain = (float) path.getTotalElevation();
     return new TrackMetadata(
         distance,
         elevationGain,
@@ -312,11 +315,11 @@ public class GpxProcessingService {
         null);
   }
 
-  private int getHilliness(int distance, int elevationGain) {
+  private float getHilliness(float distance, float elevationGain) {
     if (distance == 0) {
       return 0;
     }
-    return (1000 * elevationGain) / distance;
+    return (1000.0f * elevationGain) / distance;
   }
 
   /**

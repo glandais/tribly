@@ -9,6 +9,7 @@ import { MarkdownDisplay } from '../../components/common/MarkdownDisplay'
 import { Pagination } from '../common/Pagination'
 import { SearchInput } from '../common/SearchInput'
 import { Modal } from '../common/Modal'
+import { useUnits } from '@/hooks/useUnits'
 
 interface RoutePickerModalProps {
   isOpen: boolean
@@ -30,6 +31,7 @@ export function RoutePickerModal({
   onCreateNew,
 }: RoutePickerModalProps) {
   const { t } = useTranslation()
+  const { distance, elevation } = useUnits()
   const [page, setPage] = useState(0)
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
@@ -163,13 +165,13 @@ export function RoutePickerModal({
                     <Group gap={4}>
                       <IconArrowsMaximize size={14} />
                       <Text size="xs" c="dimmed">
-                        {t('distance', { distance: (route.distance / 1000).toFixed(1) })}
+                        {distance(route.distance)}
                       </Text>
                     </Group>
                     <Group gap={4}>
                       <IconArrowUp size={14} />
                       <Text size="xs" c="dimmed">
-                        {t('elevation', { elevation: route.elevationGain })}
+                        {elevation(route.elevationGain)}
                       </Text>
                     </Group>
                   </Group>

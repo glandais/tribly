@@ -182,12 +182,12 @@ class RideTemplateServiceTest {
               List.of(
                   RideTemplateGroupRequest.builder()
                       .name("Group A")
-                      .averageSpeed(25)
+                      .averageSpeed(25.0f)
                       .maxParticipants(20)
                       .build(),
                   RideTemplateGroupRequest.builder()
                       .name("Group B")
-                      .averageSpeed(30)
+                      .averageSpeed(30.0f)
                       .maxParticipants(15)
                       .build()));
 
@@ -303,7 +303,7 @@ class RideTemplateServiceTest {
               List.of(
                   RideTemplateGroupRequest.builder()
                       .name("New Group")
-                      .averageSpeed(28)
+                      .averageSpeed(28.0f)
                       .maxParticipants(12)
                       .build()));
 
@@ -333,7 +333,7 @@ class RideTemplateServiceTest {
                   RideTemplateGroupRequest.builder()
                       .id(groupId)
                       .name("Updated Group")
-                      .averageSpeed(30)
+                      .averageSpeed(30.0f)
                       .maxParticipants(15)
                       .build()));
 

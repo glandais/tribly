@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { useForm } from '@mantine/form'
 import { zodFormValidator } from '@/lib/formUtils'
+import { useUnits } from '@/hooks/useUnits'
 import {
   TextInput,
   Radio,
@@ -41,6 +42,7 @@ export function RideTemplateEditor({
   submitButtonText,
 }: RideTemplateEditorProps) {
   const { t } = useTranslation()
+  const { config, speedToDisplay, speedFromDisplay } = useUnits()
 
   const form = useForm<RideTemplateRequest>({
     validate: zodFormValidator<RideTemplateRequest>(createTemplateBody),
@@ -184,14 +186,14 @@ export function RideTemplateEditor({
                     )}
                   </Box>
                   <NumberInput
-                    placeholder={t('rides.create.form.groups.speed.placeholder')}
+                    placeholder={t('rides.create.form.groups.speed.placeholder', {
+                      unit: config.speedUnit,
+                    })}
                     min={0}
-                    value={form.values.groups[index]?.averageSpeed ?? ''}
+                    suffix={` ${config.speedUnit}`}
+                    value={speedToDisplay(form.values.groups[index]?.averageSpeed) ?? ''}
                     onChange={(val) =>
-                      form.setFieldValue(
-                        `groups.${index}.averageSpeed`,
-                        val === '' ? undefined : Number(val)
-                      )
+                      form.setFieldValue(`groups.${index}.averageSpeed`, speedFromDisplay(val))
                     }
                   />
                   <NumberInput

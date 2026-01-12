@@ -10,6 +10,7 @@ import { LoadingSpinner } from '../common/LoadingSpinner'
 import { Pagination } from '../common/Pagination'
 import { SearchInput } from '../common/SearchInput'
 import { Modal } from '../common/Modal'
+import { useUnits } from '@/hooks/useUnits'
 
 interface RideTemplatePickerModalProps {
   isOpen: boolean
@@ -27,6 +28,7 @@ export function RideTemplatePickerModal({
   title,
 }: RideTemplatePickerModalProps) {
   const { t } = useTranslation()
+  const { speed } = useUnits()
   const [page, setPage] = useState(0)
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
@@ -156,7 +158,7 @@ export function RideTemplatePickerModal({
                         {group.name}
                         {group.averageSpeed && (
                           <Text component="span" ml={4} c="dimmed">
-                            {t('speed', { speed: group.averageSpeed })}
+                            {speed(group.averageSpeed)}
                           </Text>
                         )}
                       </Badge>

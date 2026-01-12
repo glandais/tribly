@@ -329,7 +329,7 @@ class RouteServiceTest {
     queryContext.setUserForTest(organizer);
     createdRoute = routeService.createRoute(team.getSlug(), createRequest, initialGpx);
 
-    int originalDistance = createdRoute.distance();
+    float originalDistance = createdRoute.distance();
 
     // Update route with new GPX file
     Path newGpx = getTwoTracksGpxPath();

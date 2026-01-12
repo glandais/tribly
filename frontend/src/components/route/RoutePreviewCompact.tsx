@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { Group, Loader, Text } from '@mantine/core'
 import { useGetRoute } from '@/api/endpoints/routes/routes'
+import { useUnits } from '@/hooks/useUnits'
 
 interface RoutePreviewCompactProps {
   routeSlug: string
@@ -9,6 +10,7 @@ interface RoutePreviewCompactProps {
 
 export function RoutePreviewCompact({ routeSlug, teamSlug }: RoutePreviewCompactProps) {
   const { t } = useTranslation()
+  const { distance, elevation } = useUnits()
   const { data: route, isLoading } = useGetRoute(teamSlug, routeSlug)
 
   if (isLoading)
@@ -34,8 +36,7 @@ export function RoutePreviewCompact({ routeSlug, teamSlug }: RoutePreviewCompact
         {route.name}
       </Text>
       <Text component="span" ml="xs">
-        ({t('distance', { distance: (route.distance / 1000).toFixed(1) })},{' '}
-        {t('elevation', { elevation: route.elevationGain })})
+        ({distance(route.distance)}, {elevation(route.elevationGain)})
       </Text>
     </Text>
   )

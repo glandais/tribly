@@ -114,9 +114,9 @@ class RideResourceTest extends AbstractResourceTest {
             null,
             null,
             List.of(
-                new GroupRequest(null, "Fast", null, 32, 10, null),
-                new GroupRequest(null, "Fase", null, 28, 15, null),
-                new GroupRequest(null, "Social", null, 25, null, null)));
+                new GroupRequest(null, "Fast", null, 32.0f, 10, null),
+                new GroupRequest(null, "Fase", null, 28.0f, 15, null),
+                new GroupRequest(null, "Social", null, 25.0f, null, null)));
 
     given()
         .auth()

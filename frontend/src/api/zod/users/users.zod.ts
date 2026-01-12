@@ -15,7 +15,13 @@ export const updateMeBodyDisplayNameMax = 200
 
 export const updateMeBody = zod
   .object({
-    displayName: zod.string().min(1).max(updateMeBodyDisplayNameMax).describe('User display name'),
+    displayName: zod
+      .string()
+      .min(1)
+      .max(updateMeBodyDisplayNameMax)
+      .optional()
+      .describe('User display name'),
+    unitSystem: zod.enum(['METRIC', 'IMPERIAL']).optional(),
   })
   .describe('User profile update request')
 
@@ -26,6 +32,7 @@ export const updateMeResponse = zod
     displayName: zod.string().describe('User display name'),
     avatarUrl: zod.string().optional().describe('User avatar URL'),
     createdAt: zod.iso.datetime({}).optional(),
+    unitSystem: zod.enum(['METRIC', 'IMPERIAL']).optional(),
   })
   .describe('User profile data')
 
@@ -40,6 +47,7 @@ export const getMeResponse = zod
     displayName: zod.string().describe('User display name'),
     avatarUrl: zod.string().optional().describe('User avatar URL'),
     createdAt: zod.iso.datetime({}).optional(),
+    unitSystem: zod.enum(['METRIC', 'IMPERIAL']).optional(),
   })
   .describe('User profile data')
 
@@ -58,6 +66,7 @@ export const uploadAvatarResponse = zod
     displayName: zod.string().describe('User display name'),
     avatarUrl: zod.string().optional().describe('User avatar URL'),
     createdAt: zod.iso.datetime({}).optional(),
+    unitSystem: zod.enum(['METRIC', 'IMPERIAL']).optional(),
   })
   .describe('User profile data')
 
@@ -72,6 +81,7 @@ export const deleteAvatarResponse = zod
     displayName: zod.string().describe('User display name'),
     avatarUrl: zod.string().optional().describe('User avatar URL'),
     createdAt: zod.iso.datetime({}).optional(),
+    unitSystem: zod.enum(['METRIC', 'IMPERIAL']).optional(),
   })
   .describe('User profile data')
 

@@ -1,9 +1,8 @@
 package com.tribly.domain.user;
 
 import com.tribly.domain.common.BaseEntity;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import com.tribly.enums.UnitSystem;
+import jakarta.persistence.*;
 import java.time.Instant;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -28,6 +27,10 @@ public class User extends BaseEntity {
 
   @Column(name = "last_login_at")
   private @Nullable Instant lastLoginAt;
+
+  @Enumerated(EnumType.STRING)
+  @Column(name = "unit_system", length = 10)
+  private @Nullable UnitSystem unitSystem;
 
   public User(String email, String displayName) {
     super(null);

@@ -110,8 +110,8 @@ class RouteResourceTest extends AbstractResourceTest {
         .statusCode(201)
         .body("name", equalTo("Admin Route"))
         .body("media.markdown", equalTo("A test route"))
-        .body("distance", greaterThan(0))
-        .body("elevationGain", greaterThanOrEqualTo(0));
+        .body("distance", greaterThan(0.0f))
+        .body("elevationGain", greaterThanOrEqualTo(0.0f));
   }
 
   @Test
@@ -444,8 +444,8 @@ class RouteResourceTest extends AbstractResourceTest {
         .statusCode(200)
         .body("name", equalTo("Updated Route"))
         .body("media.markdown", equalTo("Updated with new GPX"))
-        .body("distance", greaterThan(0))
-        .body("elevationGain", greaterThanOrEqualTo(0));
+        .body("distance", greaterThan(0.0f))
+        .body("elevationGain", greaterThanOrEqualTo(0.0f));
   }
 
   @Test

@@ -20,7 +20,7 @@ public record GroupRequest(
         String name,
     @Nullable LocalTime time,
     @Nullable @Schema(description = "Average speed in km/h", examples = "25") @Positive
-        Integer averageSpeed,
+        Float averageSpeed,
     @Nullable @Schema(description = "Maximum participants", examples = "10") @Positive
         Integer maxParticipants,
     @Nullable @Schema(description = "Route slug for this group") String routeSlug) {}

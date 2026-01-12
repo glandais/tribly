@@ -61,6 +61,7 @@ class AssetServiceTest {
     dataService.addUserToTeam(organizer, team, TeamRole.ORGANIZER);
     dataService.addUserToTeam(member, team, TeamRole.MEMBER);
     dataService.addUserToTeam(organizer, privateTeam, TeamRole.ORGANIZER);
+    dataService.addUserToTeam(member2, privateTeam, TeamRole.MEMBER);
   }
 
   @AfterEach

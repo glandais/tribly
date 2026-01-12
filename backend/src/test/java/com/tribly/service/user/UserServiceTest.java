@@ -6,6 +6,7 @@ import static org.mockito.Mockito.when;
 import com.tribly.common.TsidUtils;
 import com.tribly.common.exception.TriblyException;
 import com.tribly.domain.user.User;
+import com.tribly.dto.users.request.UpdateUserRequest;
 import com.tribly.dto.users.response.PublicUserDto;
 import com.tribly.dto.users.response.UserDto;
 import com.tribly.service.security.TriblyQueryContext;
@@ -90,7 +91,8 @@ class UserServiceTest {
       when(securityIdentity.isAnonymous()).thenReturn(false);
       when(securityIdentity.getPrincipal()).thenReturn(jwt);
 
-      UserDto result = userService.updateUser("Updated Name");
+      UserDto result =
+          userService.updateUser(UpdateUserRequest.builder().displayName("Updated Name").build());
 
       assertEquals("Updated Name", result.displayName());
     }
@@ -104,7 +106,7 @@ class UserServiceTest {
       when(securityIdentity.isAnonymous()).thenReturn(false);
       when(securityIdentity.getPrincipal()).thenReturn(jwt);
 
-      UserDto result = userService.updateUser(null);
+      UserDto result = userService.updateUser(UpdateUserRequest.builder().build());
 
       assertEquals("Original Name", result.displayName());
     }
@@ -115,7 +117,10 @@ class UserServiceTest {
       dataService.deleteUser(user);
 
       queryContext.setUserForTest(user);
-      assertThrows(TriblyException.class, () -> userService.updateUser("New Name"));
+      assertThrows(
+          TriblyException.class,
+          () ->
+              userService.updateUser(UpdateUserRequest.builder().displayName("New Name").build()));
     }
   }
 

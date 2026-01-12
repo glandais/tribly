@@ -51,13 +51,13 @@ public class AllRouteResource {
           int page,
       @Parameter(description = "Page size") @QueryParam("size") @DefaultValue("20") int size,
       @Parameter(description = "Minimum distance in meters") @QueryParam("minDistance")
-          @Nullable Integer minDistance,
+          @Nullable Float minDistance,
       @Parameter(description = "Maximum distance in meters") @QueryParam("maxDistance")
-          @Nullable Integer maxDistance,
+          @Nullable Float maxDistance,
       @Parameter(description = "Minimum elevation gain in meters") @QueryParam("minElevationGain")
-          @Nullable Integer minElevationGain,
+          @Nullable Float minElevationGain,
       @Parameter(description = "Maximum elevation gain in meters") @QueryParam("maxElevationGain")
-          @Nullable Integer maxElevationGain,
+          @Nullable Float maxElevationGain,
       @Parameter(description = "Hilliness preset (FLAT, HILLY, MOUNTAINOUS)")
           @QueryParam("hilliness")
           @Nullable Hilliness hilliness,
@@ -70,7 +70,7 @@ public class AllRouteResource {
       @Parameter(description = "Longitude for proximity search") @QueryParam("nearLon")
           @Nullable Double nearLon,
       @Parameter(description = "Search radius in meters (default: 25000)") @QueryParam("nearRadius")
-          @Nullable Integer nearRadius,
+          @Nullable Double nearRadius,
       @Parameter(description = "Search near START, END, or START_OR_END (default)")
           @QueryParam("nearType")
           @Nullable NearType nearType,

@@ -293,10 +293,10 @@ public class TestDataService {
     Route route =
         new Route(createdBy, team, name, SlugService.slugify(name), visibility, surfaceType);
     route.addTrack(track);
-    route.setDistance(distance);
-    route.setElevationGain(elevationGain);
-    route.setElevationLoss(0);
-    route.setHilliness(distance > 0 ? (1000 * elevationGain) / distance : 0);
+    route.setDistance((float) distance);
+    route.setElevationGain((float) elevationGain);
+    route.setElevationLoss((float) 0);
+    route.setHilliness((float) (distance > 0 ? (1000 * elevationGain) / distance : 0));
     route.setSurfaceType(surfaceType);
     route.setWindDirection(windDirection);
     route.setStart(
@@ -560,7 +560,7 @@ public class TestDataService {
       Integer averageSpeed,
       Integer maxParticipants) {
     RideTemplateGroup group = new RideTemplateGroup(createdBy, template, name);
-    group.setAverageSpeed(averageSpeed);
+    group.setAverageSpeed(averageSpeed != null ? (float) averageSpeed : null);
     group.setMaxParticipants(maxParticipants);
     rideTemplateGroupRepository.persistAndFlush(group);
     return group;

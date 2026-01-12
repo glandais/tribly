@@ -3,6 +3,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { notifications } from '@mantine/notifications'
 import i18next from 'i18next'
 import { useAuthStore } from '../store/authStore'
+import { usePreferencesStore } from '../store/preferencesStore'
 import {
   useGetMe,
   useUpdateMe,
@@ -37,13 +38,17 @@ export function useAuth() {
     },
   })
 
+  // Sync preferences from server
+  const syncFromServer = usePreferencesStore((state) => state.syncFromServer)
+
   // Update store when backend user is fetched - store UserDto directly
   useEffect(() => {
     if (backendUser) {
       setUser(backendUser)
       setLoading(false) // User is loaded, app can render content
+      syncFromServer(backendUser.unitSystem) // Sync unit preference from server
     }
-  }, [backendUser, setUser, setLoading])
+  }, [backendUser, setUser, setLoading, syncFromServer])
 
   const updateProfileMutation = useUpdateMe({
     mutation: {

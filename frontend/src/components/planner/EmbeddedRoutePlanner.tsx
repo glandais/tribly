@@ -14,6 +14,7 @@ import { IconTrash } from '@tabler/icons-react'
 import { ActionIcon, Box, Group, Loader, Stack, Text, useComputedColorScheme } from '@mantine/core'
 import { MapStyleSwitcher } from '../map/MapStyleSwitcher'
 import { useMapStyle } from '../../hooks/useMapStyle'
+import { useUnits } from '../../hooks/useUnits'
 import { useRoutePlanner } from '../../hooks/useRoutePlanner'
 import type { GeoPoint } from '@/api/dto'
 // maplibre-gl CSS is provided by maplibre-theme in index.css
@@ -37,6 +38,7 @@ export function EmbeddedRoutePlanner({
   teamLocation,
 }: EmbeddedRoutePlannerProps) {
   const { t } = useTranslation()
+  const { distance, elevation } = useUnits()
   const colorScheme = useComputedColorScheme('light')
   const { styleId, setStyleId, style } = useMapStyle()
   const mapRef = useRef<MapRef>(null)
@@ -415,10 +417,10 @@ export function EmbeddedRoutePlanner({
           {routeStats && (
             <Group gap="xs">
               <Text size="sm" fw={500}>
-                {t('distance', { distance: routeStats.distance.toFixed(1) })}
+                {distance(routeStats.distance)}
               </Text>
               <Text size="sm" c="green">
-                +{t('elevation', { elevation: Math.round(routeStats.ascend) })}
+                +{elevation(routeStats.ascend)}
               </Text>
             </Group>
           )}

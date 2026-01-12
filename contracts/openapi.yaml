@@ -704,8 +704,8 @@ components:
         time:
           $ref: "#/components/schemas/LocalTime"
         averageSpeed:
-          type: integer
-          format: int32
+          type: number
+          format: float
           description: Average speed in km/h
           examples:
           - 25
@@ -1289,8 +1289,8 @@ components:
           type: string
           description: Route slug
         averageSpeed:
-          type: integer
-          format: int32
+          type: number
+          format: float
           description: Average speed in km/h
         maxParticipants:
           type: integer
@@ -1479,8 +1479,8 @@ components:
         time:
           $ref: "#/components/schemas/LocalTime"
         averageSpeed:
-          type: integer
-          format: int32
+          type: number
+          format: float
           description: Average speed in km/h
         maxParticipants:
           type: integer
@@ -1506,8 +1506,8 @@ components:
         time:
           $ref: "#/components/schemas/LocalTime"
         averageSpeed:
-          type: integer
-          format: int32
+          type: number
+          format: float
           description: Average speed in km/h
           examples:
           - 25
@@ -1615,16 +1615,16 @@ components:
           type: object
           $ref: "#/components/schemas/MediaDto"
         distance:
-          type: integer
-          format: int32
+          type: number
+          format: float
           description: Distance in meters
         elevationGain:
-          type: integer
-          format: int32
+          type: number
+          format: float
           description: Total elevation gain in meters
         elevationLoss:
-          type: integer
-          format: int32
+          type: number
+          format: float
           description: Total elevation loss in meters
         surfaceType:
           description: Surface type
@@ -1696,16 +1696,16 @@ components:
           type: object
           $ref: "#/components/schemas/MediaDto"
         distance:
-          type: integer
-          format: int32
+          type: number
+          format: float
           description: Distance in meters
         elevationGain:
-          type: integer
-          format: int32
+          type: number
+          format: float
           description: Total elevation gain in meters
         elevationLoss:
-          type: integer
-          format: int32
+          type: number
+          format: float
           description: Total elevation loss in meters
         surfaceType:
           description: Surface type
@@ -2403,6 +2403,11 @@ components:
           type: integer
           format: int32
           description: Sort order
+    UnitSystem:
+      type: string
+      enum:
+      - METRIC
+      - IMPERIAL
     UpdateMemberRoleRequest:
       description: Request to update a member's role
       type: object
@@ -2416,8 +2421,6 @@ components:
     UpdateUserRequest:
       description: User profile update request
       type: object
-      required:
-      - displayName
       properties:
         displayName:
           type: string
@@ -2426,6 +2429,12 @@ components:
           - John Doe
           minLength: 1
           maxLength: 200
+        unitSystem:
+          description: Preferred unit system
+          type: string
+          examples:
+          - metric
+          $ref: "#/components/schemas/UnitSystem"
     UserDto:
       description: User profile data
       type: object
@@ -2452,6 +2461,10 @@ components:
           description: Account creation timestamp
           type: string
           $ref: "#/components/schemas/Instant"
+        unitSystem:
+          description: Preferred unit system (metric or imperial)
+          type: string
+          $ref: "#/components/schemas/UnitSystem"
     Visibility:
       type: string
       enum:
@@ -2756,26 +2769,26 @@ paths:
         name: maxDistance
         in: query
         schema:
-          type: integer
-          format: int32
+          type: number
+          format: float
       - description: Maximum elevation gain in meters
         name: maxElevationGain
         in: query
         schema:
-          type: integer
-          format: int32
+          type: number
+          format: float
       - description: Minimum distance in meters
         name: minDistance
         in: query
         schema:
-          type: integer
-          format: int32
+          type: number
+          format: float
       - description: Minimum elevation gain in meters
         name: minElevationGain
         in: query
         schema:
-          type: integer
-          format: int32
+          type: number
+          format: float
       - description: Latitude for proximity search
         name: nearLat
         in: query
@@ -2792,8 +2805,8 @@ paths:
         name: nearRadius
         in: query
         schema:
-          type: integer
-          format: int32
+          type: number
+          format: double
       - description: "Search near START, END, or START_OR_END (default)"
         name: nearType
         in: query
@@ -5610,26 +5623,26 @@ paths:
         name: maxDistance
         in: query
         schema:
-          type: integer
-          format: int32
+          type: number
+          format: float
       - description: Maximum elevation gain in meters
         name: maxElevationGain
         in: query
         schema:
-          type: integer
-          format: int32
+          type: number
+          format: float
       - description: Minimum distance in meters
         name: minDistance
         in: query
         schema:
-          type: integer
-          format: int32
+          type: number
+          format: float
       - description: Minimum elevation gain in meters
         name: minElevationGain
         in: query
         schema:
-          type: integer
-          format: int32
+          type: number
+          format: float
       - description: Latitude for proximity search
         name: nearLat
         in: query
@@ -5646,8 +5659,8 @@ paths:
         name: nearRadius
         in: query
         schema:
-          type: integer
-          format: int32
+          type: number
+          format: double
       - description: "Search near START, END, or START_OR_END (default)"
         name: nearType
         in: query

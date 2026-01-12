@@ -41,7 +41,7 @@ public class RideGroup extends BaseEntity {
 
   @Column(name = "average_speed")
   @Nullable
-  private Integer averageSpeed;
+  private Float averageSpeed;
 
   @Column(name = "max_participants")
   @Nullable

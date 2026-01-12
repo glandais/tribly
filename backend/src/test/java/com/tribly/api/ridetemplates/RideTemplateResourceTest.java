@@ -31,12 +31,12 @@ class RideTemplateResourceTest extends AbstractResourceTest {
         List.of(
             RideTemplateGroupRequest.builder()
                 .name("Group A")
-                .averageSpeed(25)
+                .averageSpeed(25.0f)
                 .maxParticipants(20)
                 .build(),
             RideTemplateGroupRequest.builder()
                 .name("Group B")
-                .averageSpeed(30)
+                .averageSpeed(30.0f)
                 .maxParticipants(15)
                 .build()));
   }
@@ -157,7 +157,7 @@ class RideTemplateResourceTest extends AbstractResourceTest {
         .body("status", equalTo("PUBLISHED"))
         .body("groups", hasSize(2))
         .body("groups[0].name", equalTo("Group A"))
-        .body("groups[0].averageSpeed", equalTo(25))
+        .body("groups[0].averageSpeed", equalTo(25.0f))
         .body("groups[0].maxParticipants", equalTo(20))
         .body("groups[1].name", equalTo("Group B"));
   }
@@ -402,7 +402,7 @@ class RideTemplateResourceTest extends AbstractResourceTest {
             List.of(
                 RideTemplateGroupRequest.builder()
                     .name("Updated Group")
-                    .averageSpeed(35)
+                    .averageSpeed(35.0f)
                     .maxParticipants(10)
                     .build()));
 

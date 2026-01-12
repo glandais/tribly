@@ -47,15 +47,15 @@ public class GpxTrack extends BaseEntity {
 
   @Column(name = "distance", nullable = false)
   @NotNullableDbValue
-  private Integer distance;
+  private Float distance;
 
   @Column(name = "elevation_gain", nullable = false)
   @NotNullableDbValue
-  private Integer elevationGain;
+  private Float elevationGain;
 
   @Column(name = "elevation_loss", nullable = false)
   @NotNullableDbValue
-  private Integer elevationLoss;
+  private Float elevationLoss;
 
   public GpxTrack(
       User createdBy,
@@ -63,9 +63,9 @@ public class GpxTrack extends BaseEntity {
       LineString<G2D> geometry,
       List<TrackPoint> trackPoints,
       List<Climb> climbs,
-      int distance,
-      int elevationGain,
-      int elevationLoss) {
+      float distance,
+      float elevationGain,
+      float elevationLoss) {
     super(createdBy);
     this.name = name;
     this.geometry = geometry;

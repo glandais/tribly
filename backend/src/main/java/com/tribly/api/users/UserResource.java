@@ -81,7 +81,7 @@ public class UserResource {
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
   public Response updateMe(@Valid UpdateUserRequest request) {
-    UserDto userDto = userService.updateUser(request.displayName());
+    UserDto userDto = userService.updateUser(request);
     return Response.ok(userDto).build();
   }
 

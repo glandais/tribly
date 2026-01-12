@@ -1,8 +1,10 @@
 package com.tribly.service.user;
 
 import com.tribly.domain.user.User;
+import com.tribly.dto.users.request.UpdateUserRequest;
 import com.tribly.dto.users.response.PublicUserDto;
 import com.tribly.dto.users.response.UserDto;
+import com.tribly.enums.UnitSystem;
 import com.tribly.repository.user.UserRepository;
 import com.tribly.service.security.TriblyQueryContext;
 import com.tribly.service.security.annotation.Logged;
@@ -12,7 +14,6 @@ import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import java.util.List;
 import java.util.Optional;
-import org.jspecify.annotations.Nullable;
 
 @ApplicationScoped
 public class UserService {
@@ -34,11 +35,17 @@ public class UserService {
 
   @Logged
   @Transactional
-  public UserDto updateUser(@Nullable String displayName) {
+  public UserDto updateUser(UpdateUserRequest request) {
     User user = triblyContext.getUser();
 
+    String displayName = request.displayName();
     if (displayName != null) {
       user.setDisplayName(displayName);
+    }
+
+    UnitSystem unitSystem = request.unitSystem();
+    if (unitSystem != null) {
+      user.setUnitSystem(unitSystem);
     }
 
     userRepository.persist(user);

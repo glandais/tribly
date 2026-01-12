@@ -5,6 +5,7 @@ import { RangeInput } from '@/components/common/RangeInput'
 import { Hilliness, SurfaceType, WindDirection, RouteSortBy, SortDirection } from '@/api/dto'
 import type { ListRoutesParams } from '@/api/dto'
 import { SearchInput } from '../common/SearchInput'
+import { useUnits } from '@/hooks/useUnits'
 
 const NONE_VALUE = '_none'
 
@@ -22,6 +23,7 @@ export function RouteFilterPanel({
   onOpenChange,
 }: RouteFilterPanelProps) {
   const { t } = useTranslation()
+  const { config, distanceUnit, elevationUnit } = useUnits()
 
   const updateFilter = <K extends keyof ListRoutesParams>(key: K, value: ListRoutesParams[K]) => {
     onFiltersChange({ ...filters, [key]: value, page: 0 })
@@ -89,9 +91,9 @@ export function RouteFilterPanel({
               onMaxChange={(v) => updateFilter('maxDistance', v)}
               minPlaceholder={t('routes.list.filters.distance.min')}
               maxPlaceholder={t('routes.list.filters.distance.max')}
-              unit={t('routes.list.filters.distance.unit')}
+              unit={distanceUnit()}
               step={5}
-              displayMultiplier={0.001}
+              displayMultiplier={config.distanceMultiplier}
             />
 
             {/* Elevation Gain Range */}
@@ -103,8 +105,9 @@ export function RouteFilterPanel({
               onMaxChange={(v) => updateFilter('maxElevationGain', v)}
               minPlaceholder={t('routes.list.filters.elevationGain.min')}
               maxPlaceholder={t('routes.list.filters.elevationGain.max')}
-              unit={t('routes.list.filters.elevationGain.unit')}
+              unit={elevationUnit()}
               step={50}
+              displayMultiplier={config.elevationMultiplier}
             />
 
             {/* Hilliness Preset */}

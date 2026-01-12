@@ -45,9 +45,9 @@ create table comments (
 
 create table gpx_tracks (
                             deleted boolean not null,
-                            distance integer not null,
-                            elevation_gain integer not null,
-                            elevation_loss integer not null,
+                            distance float4 not null,
+                            elevation_gain float4 not null,
+                            elevation_loss float4 not null,
                             created_at timestamp(6) with time zone not null,
                             created_by_id bigint not null,
                             id bigint not null,
@@ -92,7 +92,7 @@ create table places (
 );
 
 create table ride_groups (
-                             average_speed integer,
+                             average_speed float4,
                              deleted boolean not null,
                              max_participants integer,
                              sort_order integer not null,
@@ -123,7 +123,7 @@ create table ride_participations (
 );
 
 create table ride_template_groups (
-                                      average_speed integer,
+                                      average_speed float4,
                                       deleted boolean not null,
                                       max_participants integer,
                                       sort_order integer not null,
@@ -157,11 +157,11 @@ create table ride_templates (
 
 create table team_entities (
                                deleted boolean not null,
-                               distance integer,
-                               elevation_gain integer,
-                               elevation_loss integer,
-                               entity_type integer not null check ((entity_type in (3,5,1,4,6,2,7))),
-                               hilliness integer,
+                               distance float4,
+                               elevation_gain float4,
+                               elevation_loss float4,
+                               entity_type integer not null check ((entity_type in (1,3,5,2,7,4,6))),
+                               hilliness float4,
                                is_about_page boolean,
                                page_order integer,
                                price numeric(10,2),
@@ -270,6 +270,7 @@ create table users (
                        last_login_at timestamp(6) with time zone,
                        updated_at timestamp(6) with time zone not null,
                        version bigint,
+                       unit_system varchar(10) check ((unit_system in ('METRIC','IMPERIAL'))),
                        display_name varchar(250) not null,
                        email varchar(250) not null unique,
                        avatar_url varchar(500),
@@ -476,14 +477,14 @@ alter table if exists team_entities
     references teams;
 
 alter table if exists team_entities
-    add constraint FKsm0040p8exgxema0d3j4osclb
-    foreign key (route_id)
-    references team_entities;
-
-alter table if exists team_entities
     add constraint FKjukml9fp2eipuhmugtiaf12gs
     foreign key (place_end_id)
     references places;
+
+alter table if exists team_entities
+    add constraint FKsm0040p8exgxema0d3j4osclb
+    foreign key (route_id)
+    references team_entities;
 
 alter table if exists team_entities
     add constraint FKm7w1a9lbh6795ida5u4n95vdv

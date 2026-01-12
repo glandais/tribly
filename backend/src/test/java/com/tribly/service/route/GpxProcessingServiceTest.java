@@ -201,9 +201,11 @@ class GpxProcessingServiceTest {
     TrackMetadata result = gpxProcessingService.createTracks(route, gpx);
 
     List<GpxTrack> tracks = route.getTracks();
-    int totalDistance = tracks.stream().mapToInt(GpxTrack::getDistance).sum();
-    int totalElevationGain = tracks.stream().mapToInt(GpxTrack::getElevationGain).sum();
-    int totalElevationLoss = tracks.stream().mapToInt(GpxTrack::getElevationLoss).sum();
+    float totalDistance = (float) tracks.stream().mapToDouble(GpxTrack::getDistance).sum();
+    float totalElevationGain =
+        (float) tracks.stream().mapToDouble(GpxTrack::getElevationGain).sum();
+    float totalElevationLoss =
+        (float) tracks.stream().mapToDouble(GpxTrack::getElevationLoss).sum();
 
     assertEquals(totalDistance, result.distance(), "Distance should be sum of all tracks");
     assertEquals(

@@ -8,6 +8,7 @@ import { useGetRoute } from '@/api/endpoints/routes/routes'
 import { UserAvatarGroup } from '../common/UserAvatar'
 import { ParticipantListModal } from './ParticipantListModal'
 import { paths } from '@/config/paths'
+import { useUnits } from '@/hooks/useUnits'
 
 interface RideGroupCardProps {
   group: RideGroupDto
@@ -35,6 +36,7 @@ export function RideGroupCard({
   isHighlighted = false,
 }: RideGroupCardProps) {
   const { t } = useTranslation()
+  const { speed } = useUnits()
   const [showParticipants, setShowParticipants] = useState(false)
   const isFull = group.maxParticipants && group.countParticipants >= group.maxParticipants
 
@@ -110,7 +112,7 @@ export function RideGroupCard({
           <Group gap={4}>
             <IconBolt size={16} />
             <Text size="sm" c="dimmed">
-              {t('speed', { speed: group.averageSpeed })}
+              {speed(group.averageSpeed)}
             </Text>
           </Group>
         )}

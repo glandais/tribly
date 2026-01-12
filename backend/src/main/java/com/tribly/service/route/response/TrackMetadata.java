@@ -9,10 +9,10 @@ import org.jspecify.annotations.Nullable;
  * Extracted route metadata from GPX.
  */
 public record TrackMetadata(
-    int distance,
-    int elevationGain,
-    int hilliness,
-    int elevationLoss,
+    float distance,
+    float elevationGain,
+    float hilliness,
+    float elevationLoss,
     Point<G2D> start,
     Point<G2D> end,
     @Nullable WindDirection windDirection) {}

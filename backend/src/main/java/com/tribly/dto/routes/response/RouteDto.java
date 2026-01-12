@@ -22,9 +22,9 @@ public record RouteDto(
     @Schema(description = "Team", required = true) TeamPublicationDto team,
     @Schema(description = "Route name", required = true) String name,
     @Schema(description = "Route description", required = true) MediaDto media,
-    @Schema(description = "Distance in meters", required = true) Integer distance,
-    @Schema(description = "Total elevation gain in meters", required = true) Integer elevationGain,
-    @Schema(description = "Total elevation loss in meters", required = true) Integer elevationLoss,
+    @Schema(description = "Distance in meters", required = true) Float distance,
+    @Schema(description = "Total elevation gain in meters", required = true) Float elevationGain,
+    @Schema(description = "Total elevation loss in meters", required = true) Float elevationLoss,
     @Schema(description = "Surface type", required = true) SurfaceType surfaceType,
     @Schema(description = "Whether the route is public", required = true) Visibility visibility,
     @Schema(description = "Creation timestamp", required = true) Instant createdAt) {

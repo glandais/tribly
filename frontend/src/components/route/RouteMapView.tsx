@@ -35,6 +35,7 @@ import {
 } from '../map/mapUtils'
 import { MapStyleSwitcher } from '../map/MapStyleSwitcher'
 import { useMapStyle } from '../../hooks/useMapStyle'
+import { useUnits } from '../../hooks/useUnits'
 import { getOverlayBg } from '@/lib/colors'
 // maplibre-gl CSS is provided by maplibre-theme in index.css
 
@@ -75,6 +76,7 @@ export function RouteMapView({ route }: RouteMapViewProps) {
   const colorScheme = useComputedColorScheme('light')
   const theme = useMantineTheme()
   const { styleId, setStyleId, style } = useMapStyle()
+  const { config, formatDistance, distance: distanceFormat, elevation } = useUnits()
 
   // Chart colors based on color scheme
   const chartColors = useMemo(
@@ -144,7 +146,7 @@ export function RouteMapView({ route }: RouteMapViewProps) {
   // Prepare chart data with climb coloring
   const chartData: ChartData<'line'> = useMemo(
     () => ({
-      labels: trackPoints.map((p) => (p[3] / 1000).toFixed(1)),
+      labels: trackPoints.map((p) => formatDistance(p[3])),
       datasets: [
         {
           label: 'Elevation',
@@ -177,7 +179,7 @@ export function RouteMapView({ route }: RouteMapViewProps) {
         },
       ],
     }),
-    [trackPoints, climbs]
+    [trackPoints, climbs, formatDistance]
   )
 
   const chartOptions: ChartOptions<'line'> = useMemo(
@@ -204,7 +206,7 @@ export function RouteMapView({ route }: RouteMapViewProps) {
               if (items.length > 0) {
                 const index = items[0].dataIndex
                 const point = trackPoints[index]
-                return `${(point[3] / 1000).toFixed(1)} km`
+                return `${distanceFormat(point[3])}`
               }
               return ''
             },
@@ -213,7 +215,7 @@ export function RouteMapView({ route }: RouteMapViewProps) {
               const point = trackPoints[index]
               const gradient = getPointClimbGradient(point, climbs)
 
-              let label = `${Math.round(item.parsed.y ?? 0)} m`
+              let label = `${elevation(item.parsed.y ?? 0)}`
               if (gradient > 0) {
                 label += ` (${gradient.toFixed(1)}%)`
               }
@@ -228,7 +230,7 @@ export function RouteMapView({ route }: RouteMapViewProps) {
                 if (point[3] >= climb.startDistance && point[3] <= climb.endDistance) {
                   return [
                     '',
-                    `${Math.round(climb.elevationGain)}m / ${((climb.endDistance - climb.startDistance) / 1000).toFixed(1)}km`,
+                    `${elevation(climb.elevationGain)} / ${distanceFormat(climb.endDistance - climb.startDistance)}`,
                     `Avg: ${climb.averageGradient.toFixed(1)}% | Max: ${climb.maxGradient.toFixed(1)}%`,
                   ]
                 }
@@ -243,7 +245,7 @@ export function RouteMapView({ route }: RouteMapViewProps) {
           display: true,
           title: {
             display: true,
-            text: 'Distance (km)',
+            text: `Distance (${config.distanceUnit})`,
             color: chartColors.text,
           },
           ticks: {
@@ -258,7 +260,7 @@ export function RouteMapView({ route }: RouteMapViewProps) {
           display: true,
           title: {
             display: true,
-            text: 'Elevation (m)',
+            text: `Elevation (${config.elevationUnit})`,
             color: chartColors.text,
           },
           ticks: {
@@ -288,7 +290,7 @@ export function RouteMapView({ route }: RouteMapViewProps) {
       },
       animation: { duration: 0 },
     }),
-    [trackPoints, climbs, chartColors]
+    [trackPoints, climbs, chartColors, config, distanceFormat, elevation]
   )
 
   // Update chart crosshair when hovering over map

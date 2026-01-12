@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { IconMap, IconArrowUp, IconUsers, IconChevronRight } from '@tabler/icons-react'
+import { useUnits } from '@/hooks/useUnits'
 import { Group, Text, Image, Box, UnstyledButton } from '@mantine/core'
 import type { RouteDto } from '@/api/dto'
 import { Card, CardContent, CardTitle, CardDescription } from '../common/card'
@@ -16,6 +17,7 @@ interface RouteCardProps {
 export function RouteCard({ route, showTeam }: RouteCardProps) {
   const { t } = useTranslation()
   const navigate = useNavigate()
+  const { distance, elevation } = useUnits()
 
   return (
     <Card to={paths.route(route.team.slug, route.slug)}>
@@ -60,12 +62,8 @@ export function RouteCard({ route, showTeam }: RouteCardProps) {
         </Group>
 
         <StatGroup>
-          <Stat icon={<IconMap size={16} />}>
-            {t('distance', { distance: (route.distance / 1000).toFixed(1) })}
-          </Stat>
-          <Stat icon={<IconArrowUp size={16} />}>
-            {t('elevation', { elevation: route.elevationGain })}
-          </Stat>
+          <Stat icon={<IconMap size={16} />}>{distance(route.distance)}</Stat>
+          <Stat icon={<IconArrowUp size={16} />}>{elevation(route.elevationGain)}</Stat>
         </StatGroup>
 
         <Group gap="xs">

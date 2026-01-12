@@ -91,7 +91,7 @@ public class RouteRepository implements TeamEntityRepository<Route, RouteQuery> 
     // Geographic proximity filter
     if (query.nearLat() != null && query.nearLon() != null) {
       Point<G2D> nearPoint = point(WGS84, g(query.nearLon(), query.nearLat()));
-      int radius = query.nearRadius() != null ? query.nearRadius() : DEFAULT_NEAR_RADIUS;
+      double radius = query.nearRadius() != null ? query.nearRadius() : DEFAULT_NEAR_RADIUS;
       NearType nearType = query.nearType() != null ? query.nearType() : NearType.START_OR_END;
 
       String geoClause =

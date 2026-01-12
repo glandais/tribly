@@ -13,6 +13,12 @@ interface RangeInputProps {
   displayMultiplier?: number
 }
 
+// Round to avoid floating-point precision issues
+function round(value: number, decimals: number = 2): number {
+  const factor = Math.pow(10, decimals)
+  return Math.round(value * factor) / factor
+}
+
 export function RangeInput({
   label,
   minValue,
@@ -25,15 +31,13 @@ export function RangeInput({
   step = 1,
   displayMultiplier = 1,
 }: RangeInputProps) {
-  // Convert API value (meters) to display value (km)
-  const toDisplay = (val: number | undefined) =>
-    val !== undefined ? val * displayMultiplier : undefined
+  const toDisplay = (val: number | undefined): number | undefined =>
+    val !== undefined ? round(val * displayMultiplier) : undefined
 
-  // Convert display value back to API value
-  const fromDisplay = (val: string | number) => {
+  const fromDisplay = (val: string | number): number | undefined => {
     if (val === '' || val === undefined) return undefined
     const num = typeof val === 'number' ? val : parseFloat(val)
-    return isNaN(num) ? undefined : num / displayMultiplier
+    return isNaN(num) ? undefined : round(num / displayMultiplier)
   }
 
   return (

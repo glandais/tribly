@@ -27,19 +27,19 @@ public class Route extends TeamEntity {
 
   @Column(name = "distance")
   @NotNullableDbValue
-  private Integer distance;
+  private Float distance;
 
   @Column(name = "elevation_gain")
   @NotNullableDbValue
-  private Integer elevationGain;
+  private Float elevationGain;
 
   @Column(name = "hilliness")
   @NotNullableDbValue
-  private Integer hilliness;
+  private Float hilliness;
 
   @Column(name = "elevation_loss")
   @NotNullableDbValue
-  private Integer elevationLoss;
+  private Float elevationLoss;
 
   @Enumerated(EnumType.STRING)
   @Column(name = "surface_type", length = 20)

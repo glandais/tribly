@@ -17,7 +17,7 @@ public record RideGroupDto(
     @Schema(description = "Group name", required = true) String name,
     @Nullable LocalTime time,
     @Nullable @Schema(description = "Route slug") String routeSlug,
-    @Nullable @Schema(description = "Average speed in km/h") Integer averageSpeed,
+    @Nullable @Schema(description = "Average speed in km/h") Float averageSpeed,
     @Nullable @Schema(description = "Maximum participants") Integer maxParticipants,
     @Schema(description = "Current number of participants", required = true) int countParticipants,
     @Schema(description = "Participants, empty if not access", required = true)
