@@ -33,7 +33,7 @@ Drive engagement and reduce friction for organizers.
 
 ### Member Engagement
 - [X] Calendar view (rides, trips) + sync URL export
-- [ ] User unit system toggle (metric/imperial) — Respect preferences
+- [X] User unit system toggle (metric/imperial) — Respect preferences
 - [ ] Ride/trip "Terminated" status — Clarity on past events
 
 ### Content System
