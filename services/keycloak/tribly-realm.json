@@ -1,0 +1,32 @@
+{
+  "realm": "tribly",
+  "enabled": true,
+  "clients": [
+    {
+      "clientId": "tribly-frontend",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "redirectUris": ["*"],
+      "webOrigins": ["*"]
+    }
+  ],
+  "roles": {
+    "realm": [
+      { "name": "admin" },
+      { "name": "user" }
+    ]
+  },
+  "users": [
+    {
+      "username": "admin",
+      "email": "admin@example.com",
+      "firstName": "Admin",
+      "lastName": "User",
+      "enabled": true,
+      "credentials": [{"type": "password", "value": "admin"}],
+      "realmRoles": ["admin", "user"]
+    }
+  ]
+}

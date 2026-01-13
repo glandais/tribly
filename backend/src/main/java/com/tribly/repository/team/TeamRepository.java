@@ -76,7 +76,7 @@ public class TeamRepository implements BaseRepository<Team> {
     }
     String stringQuery = triblyQuery.getStringQuery();
     Map<String, @Nullable Object> params = triblyQuery.getParams();
-    log.info("{} {}", stringQuery, params);
+    log.debug("{} {}", stringQuery, params);
     PanacheQuery<TeamAndRole> panacheQuery = find(stringQuery, params).project(TeamAndRole.class);
     return getPage(panacheQuery, teamQuery.page(), teamQuery.size());
   }

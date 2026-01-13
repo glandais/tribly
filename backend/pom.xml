@@ -133,6 +133,12 @@
             <artifactId>quarkus-smallrye-health</artifactId>
         </dependency>
 
+        <!-- Logging - route Log4j to Quarkus logging -->
+        <dependency>
+            <groupId>org.jboss.logmanager</groupId>
+            <artifactId>log4j2-jboss-logmanager</artifactId>
+        </dependency>
+
         <!-- Mailer -->
         <dependency>
             <groupId>io.quarkus</groupId>
@@ -170,6 +176,12 @@
             <groupId>org.apache.tika</groupId>
             <artifactId>tika-parsers-standard-package</artifactId>
             <version>${tika.version}</version>
+        </dependency>
+
+        <!-- Container -->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-container-image-jib</artifactId>
         </dependency>
 
         <!-- Testing -->

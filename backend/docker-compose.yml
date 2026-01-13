@@ -1,0 +1,78 @@
+services:
+  postgres:
+    image: postgis/postgis:17-3.5-alpine
+    container_name: tribly-dev-postgres
+    restart: unless-stopped
+    networks:
+      - tribly-dev
+    environment:
+      POSTGRES_USER: tribly
+      POSTGRES_PASSWORD: tribly_dev_password
+      POSTGRES_DB: tribly
+    ports:
+      - "127.0.0.1:5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tribly"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.4
+    container_name: tribly-dev-keycloak
+    restart: unless-stopped
+    networks:
+      - tribly-dev
+    command: start-dev --import-realm
+    environment:
+      JAVA_OPTS_APPEND: "-Djava.net.preferIPv4Stack=true"
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      KC_HTTP_PORT: "8180"
+      KC_HEALTH_ENABLED: "true"
+    ports:
+      - "127.0.0.1:8180:8180"
+    volumes:
+      - ./src/main/resources/keycloak/quarkus-realm.json:/opt/keycloak/data/import/quarkus-realm.json:ro
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/8180;echo -e 'GET /health/ready HTTP/1.1\\r\\nhost: localhost\\r\\nConnection: close\\r\\n\\r\\n' >&3;if [ $? -eq 0 ]; then echo 'Healthcheck Successful';exit 0;else echo 'Healthcheck Failed';exit 1;fi;"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 30s
+
+  imgproxy:
+    image: ghcr.io/imgproxy/imgproxy:v3.30.1
+    container_name: tribly-dev-imgproxy
+    restart: unless-stopped
+    networks:
+      - tribly-dev
+    volumes:
+      - "../data/storage:/mnt/storage:ro"
+    environment:
+      IMGPROXY_AUTO_WEBP: "true"
+      IMGPROXY_AUTO_AVIF: "true"
+      IMGPROXY_AUTO_JXL: "true"
+      IMGPROXY_QUALITY: "85"
+      IMGPROXY_MAX_SRC_RESOLUTION: "50000000"
+      IMGPROXY_MAX_ANIMATION_FRAMES: "100"
+      IMGPROXY_LOCAL_FILESYSTEM_ROOT: "/mnt/storage"
+      IMGPROXY_USE_ETAG: "true"
+    ports:
+      - "127.0.0.1:38080:8080"
+
+  brouter:
+    build: ../services/brouter
+    container_name: tribly-dev-brouter
+    restart: unless-stopped
+    networks:
+      - tribly-dev
+    ports:
+      - "127.0.0.1:17777:17777"
+    volumes:
+      - ../data/segments4:/segments4:ro
+    environment:
+      BROUTER_THREADS: "8"
+
+networks:
+  tribly-dev:

@@ -10,6 +10,7 @@ import com.tribly.dto.common.asset.AssetDto;
 import com.tribly.dto.common.asset.AssetsDto;
 import com.tribly.dto.common.asset.MediaDto;
 import com.tribly.dto.posts.request.PostRequest;
+import com.tribly.dto.posts.response.PostDto;
 import com.tribly.enums.Status;
 import com.tribly.enums.Visibility;
 import io.quarkus.test.junit.QuarkusTest;
@@ -42,7 +43,7 @@ class AssetResourceTest extends AbstractResourceTest {
         null);
   }
 
-  private String createTestPost(String name, AssetDto assetDto) {
+  private PostDto createTestPost(String name, AssetDto assetDto) {
     return given()
         .auth()
         .oauth2(getAccessToken(USER1))
@@ -53,7 +54,7 @@ class AssetResourceTest extends AbstractResourceTest {
         .then()
         .statusCode(201)
         .extract()
-        .path("slug");
+        .as(PostDto.class);
   }
 
   // ==================== Upload Tests ====================
@@ -71,7 +72,7 @@ class AssetResourceTest extends AbstractResourceTest {
         .then()
         .statusCode(201)
         .body("id", notNullValue())
-        .body("url", containsString("/api/download/public/assets/" + team1Slug + "/"));
+        .body("url", containsString("/api/download/team/assets/" + team1Slug + "/"));
   }
 
   @Test
@@ -87,7 +88,7 @@ class AssetResourceTest extends AbstractResourceTest {
         .then()
         .statusCode(201)
         .body("id", notNullValue())
-        .body("url", containsString("/api/download/public/assets/" + team1Slug + "/"));
+        .body("url", containsString("/api/download/team/assets/" + team1Slug + "/"));
   }
 
   @Test
@@ -103,7 +104,7 @@ class AssetResourceTest extends AbstractResourceTest {
         .then()
         .statusCode(201)
         .body("id", notNullValue())
-        .body("url", containsString("/api/download/public/assets/" + team1Slug + "/"));
+        .body("url", containsString("/api/download/team/assets/" + team1Slug + "/"));
   }
 
   @Test
@@ -196,9 +197,9 @@ class AssetResourceTest extends AbstractResourceTest {
             .as(AssetDto.class);
 
     // add asset to post
-    createTestPost("post1", assetDto);
+    PostDto postDto = createTestPost("post1", assetDto);
 
-    String assetUrl = assetDto.url();
+    String assetUrl = postDto.getMedia().assets().attachments().getFirst().url();
 
     // Download without auth should work for public team assets
     given().when().get(assetUrl).then().statusCode(200).contentType("application/gpx+xml");
@@ -393,8 +394,8 @@ class AssetResourceTest extends AbstractResourceTest {
         .body("id", notNullValue())
         .body("fileName", notNullValue())
         .body("contentType", containsString("image/"))
-        .body("url", containsString("/api/download/public/assets/"))
-        .body("imageUrl", containsString("/api/download/public/images/" + team1Slug + "/"))
+        .body("url", containsString("/api/download/team/assets/"))
+        .body("imageUrl", containsString("/api/download/team/images/" + team1Slug + "/"))
         .body("imageUrl", containsString("/{size}"));
   }
 
@@ -468,9 +469,9 @@ class AssetResourceTest extends AbstractResourceTest {
             .as(AssetDto.class);
 
     // add asset to post
-    createTestPost("post1", assetDto);
+    PostDto postDto = createTestPost("post1", assetDto);
 
-    String imageUrl = assetDto.imageUrl();
+    String imageUrl = postDto.getMedia().assets().attachments().getFirst().imageUrl();
 
     // Replace {size} placeholder with actual size
     String resizedUrl = imageUrl.replace("{size}", "200");
@@ -503,9 +504,9 @@ class AssetResourceTest extends AbstractResourceTest {
             .as(AssetDto.class);
 
     // add asset to post
-    createTestPost("post1", assetDto);
+    PostDto postDto = createTestPost("post1", assetDto);
 
-    String imageUrl = assetDto.imageUrl();
+    String imageUrl = postDto.getMedia().assets().attachments().getFirst().imageUrl();
     // Test different sizes
     for (int size : new int[] {100, 200, 400, 800}) {
       String resizedUrl = imageUrl.replace("{size}", String.valueOf(size));

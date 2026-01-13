@@ -214,7 +214,7 @@ public class AssetService {
   protected AssetDto map(Asset asset) {
     Visibility visibility;
     if (asset.getTeamEntity() == null) {
-      visibility = asset.getTeam().getVisibility();
+      visibility = Visibility.TEAM;
     } else {
       visibility = asset.getTeamEntity().getVisibility();
     }
@@ -253,7 +253,7 @@ public class AssetService {
     String teamSlug = asset.getTeam().getSlug();
     Visibility visibility;
     if (asset.getTeamEntity() == null) {
-      visibility = asset.getTeam().getVisibility();
+      visibility = Visibility.TEAM;
     } else {
       visibility = asset.getTeamEntity().getVisibility();
     }

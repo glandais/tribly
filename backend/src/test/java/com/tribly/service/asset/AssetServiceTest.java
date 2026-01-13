@@ -306,7 +306,8 @@ class AssetServiceTest {
       assertNotNull(result);
       assertEquals(TsidUtils.toString(asset.getId()), result.id());
       assertEquals("test.png", result.fileName());
-      assertTrue(result.url().contains("/public/")); // Team is public
+      assertTrue(result.url().contains("/team/")); // No teamEntity -> authent
+      assertTrue(result.imageUrl().contains("/team/")); // No teamEntity -> authent
     }
 
     @Test
