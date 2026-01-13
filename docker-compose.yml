@@ -32,6 +32,10 @@ services:
       - tribly
     env_file:
       - .env
+    environment:
+      QUARKUS_LOG_CONSOLE_LEVEL: DEBUG
+      QUARKUS_LOG_CATEGORY__IO_QUARKUS_OIDC__LEVEL: DEBUG
+      QUARKUS_LOG_CATEGORY__IO_QUARKUS_SECURITY__LEVEL: DEBUG
     volumes:
       - ./data/storage:/mnt/storage
     labels:
