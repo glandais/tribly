@@ -20,9 +20,6 @@ public class IcsGenerationService {
   @ConfigProperty(name = "tribly.base-url", defaultValue = "http://localhost:8080")
   String baseUrl;
 
-  @ConfigProperty(name = "tribly.frontend-url", defaultValue = "http://localhost:5173")
-  String frontendUrl;
-
   public String generateIcs(List<CalendarEventDto> events, String calendarName) {
     StringBuilder ics = new StringBuilder();
 
@@ -93,10 +90,10 @@ public class IcsGenerationService {
 
   private String buildEventUrl(CalendarEventDto event) {
     return switch (event.type()) {
-      case RIDE -> frontendUrl + "/teams/" + event.teamSlug() + "/rides/" + event.entitySlug();
+      case RIDE -> baseUrl + "/teams/" + event.teamSlug() + "/rides/" + event.entitySlug();
       case TRIP_STAGE -> {
         if (event.tripSlug() != null) {
-          yield frontendUrl
+          yield baseUrl
               + "/teams/"
               + event.teamSlug()
               + "/trips/"
@@ -104,7 +101,7 @@ public class IcsGenerationService {
               + "/stages/"
               + event.entitySlug();
         }
-        yield frontendUrl;
+        yield baseUrl;
       }
     };
   }
