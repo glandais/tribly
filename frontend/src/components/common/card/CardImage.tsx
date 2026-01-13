@@ -28,13 +28,13 @@ export function CardImage({ media, alt, height = 160, type }: CardImageProps) {
 
   // Priority 1: First image from images array
   const firstImage = assets.images?.[0]
-  if (firstImage?.url) {
-    return <Image src={firstImage.url} alt={alt} h={height} fit="cover" />
+  if (firstImage?.imageUrl) {
+    return <Image src={firstImage.imageUrl.replace('{size}', String(height * 2))} alt={alt} h={height} fit="cover" />
   }
 
   // Priority 2: Thumbnail
-  if (assets.thumbnail?.url) {
-    return <Image src={assets.thumbnail.url} alt={alt} h={height} fit="contain" />
+  if (assets.thumbnail?.imageUrl) {
+    return <Image src={assets.thumbnail.imageUrl.replace('{size}', String(height * 2))} alt={alt} h={height} fit="contain" />
   }
 
   // Priority 3: Logo centered on muted background
@@ -50,7 +50,7 @@ export function CardImage({ media, alt, height = 160, type }: CardImageProps) {
         }}
       >
         <Image
-          src={assets.logo.imageUrl?.replace('{size}', String(80))}
+          src={assets.logo.imageUrl?.replace('{size}', String(160))}
           alt={alt}
           w={80}
           h={80}

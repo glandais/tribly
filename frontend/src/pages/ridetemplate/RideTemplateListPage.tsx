@@ -132,18 +132,16 @@ export function RideTemplateListPage() {
         </Group>
 
         {/* Search Input */}
-        <Box>
-          <SearchInput
-            id="templates-search"
-            value={search}
-            onChange={(value) => {
-              setSearch(value)
-              resetPage()
-            }}
-            placeholder={t('rideTemplates.list.search.placeholder')}
-            label={t('rideTemplates.list.search.label')}
-          />
-        </Box>
+        <SearchInput
+          id="templates-search"
+          value={search}
+          onChange={(value) => {
+            setSearch(value)
+            resetPage()
+          }}
+          placeholder={t('rideTemplates.list.search.placeholder')}
+          label={t('rideTemplates.list.search.label')}
+        />
 
         {/* Templates List */}
         {isLoadingTemplates ? (

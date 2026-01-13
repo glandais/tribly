@@ -102,18 +102,17 @@ export function TeamListPage() {
         </Group>
 
         <Group gap="md" align="flex-end" wrap="wrap">
-          <Box style={{ flex: 1, minWidth: 200 }}>
-            <SearchInput
-              id="team-search"
-              value={search}
-              onChange={(value) => {
-                setSearch(value)
-                resetPage()
-              }}
-              placeholder={t('teams.list.search.placeholder')}
-              label={t('teams.list.search.label')}
-            />
-          </Box>
+          <SearchInput
+            id="team-search"
+            value={search}
+            onChange={(value) => {
+              setSearch(value)
+              resetPage()
+            }}
+            placeholder={t('teams.list.search.placeholder')}
+            label={t('teams.list.search.label')}
+            style={{ flex: 1, minWidth: 200 }}
+          />
           {isAuthenticated && (
             <Select
               value={filter}

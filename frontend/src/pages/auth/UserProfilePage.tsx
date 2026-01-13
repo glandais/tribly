@@ -1,9 +1,11 @@
 import { useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useForm } from '@mantine/form'
 import { zodFormValidator } from '@/lib/formUtils'
 import { useTranslation } from 'react-i18next'
-import { IconCamera, IconX } from '@tabler/icons-react'
+import { IconArrowLeft, IconCamera, IconX } from '@tabler/icons-react'
 import {
+  Anchor,
   Button,
   TextInput,
   Stack,
@@ -28,6 +30,7 @@ const profileSchema = updateMeBody
 
 export function UserProfilePage() {
   const { t } = useTranslation()
+  const navigate = useNavigate()
   const {
     user,
     isLoading,
@@ -90,6 +93,12 @@ export function UserProfilePage() {
 
   return (
     <Box maw={672} mx="auto">
+      <Anchor component="button" onClick={() => navigate(-1)} c="dimmed" size="sm" mb="md">
+        <Group gap={4}>
+          <IconArrowLeft size={16} />
+          {t('actions.back')}
+        </Group>
+      </Anchor>
       <Paper shadow="sm" radius="md">
         <Box
           px="lg"

@@ -9,6 +9,9 @@ import { useUnits } from '@/hooks/useUnits'
 
 const NONE_VALUE = '_none'
 
+export const DEFAULT_ROUTE_SORT_BY = RouteSortBy.DATE_TIME
+export const DEFAULT_ROUTE_SORT_DIR = SortDirection.DESC
+
 interface RouteFilterPanelProps {
   filters: ListRoutesParams
   onFiltersChange: (filters: ListRoutesParams) => void
@@ -34,8 +37,14 @@ export function RouteFilterPanel({
       search: filters.search,
       page: 0,
       size: filters.size,
+      sortBy: DEFAULT_ROUTE_SORT_BY,
+      sortDir: DEFAULT_ROUTE_SORT_DIR,
     })
   }
+
+  const hasNonDefaultSort =
+    (filters.sortBy !== undefined && filters.sortBy !== DEFAULT_ROUTE_SORT_BY) ||
+    (filters.sortDir !== undefined && filters.sortDir !== DEFAULT_ROUTE_SORT_DIR)
 
   const hasActiveFilters =
     filters.minDistance !== undefined ||
@@ -44,7 +53,8 @@ export function RouteFilterPanel({
     filters.maxElevationGain !== undefined ||
     filters.hilliness !== undefined ||
     filters.surfaceType !== undefined ||
-    filters.windDirection !== undefined
+    filters.windDirection !== undefined ||
+    hasNonDefaultSort
 
   return (
     <Stack gap="md">
@@ -78,6 +88,7 @@ export function RouteFilterPanel({
             onChange={(value) => updateFilter('search', value || undefined)}
             placeholder={t('routes.list.search.placeholder')}
             label={t('routes.list.search.label')}
+            fullWidth
             mb="md"
           />
 

@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { Group, Text, Pagination as MantinePagination } from '@mantine/core'
+import { useResponsive } from '@/hooks/useResponsive'
 
 export interface PaginationProps {
   currentPage: number
@@ -15,6 +16,7 @@ export function Pagination({
   variant = 'default',
 }: PaginationProps) {
   const { t } = useTranslation()
+  const { sizeCompact, isMobile } = useResponsive()
 
   // Don't render if only one page or less
   if (totalPages <= 1) return null
@@ -27,7 +29,7 @@ export function Pagination({
     onPageChange(page - 1)
   }
 
-  if (variant === 'compact') {
+  if (isMobile || variant === 'compact') {
     return (
       <Group justify="center" gap="xs" component="nav" aria-label={t('pagination.label')}>
         <MantinePagination.Root
@@ -54,6 +56,7 @@ export function Pagination({
         total={totalPages}
         value={mantineValue}
         onChange={handleChange}
+        size={sizeCompact}
         withEdges
         siblings={1}
         boundaries={1}

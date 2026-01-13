@@ -1,4 +1,4 @@
-import { useMantineTheme, MantineSpacing, StyleProp } from '@mantine/core'
+import { useMantineTheme, MantineSpacing, MantineSize, StyleProp } from '@mantine/core'
 import { useMediaQuery } from '@mantine/hooks'
 
 /**
@@ -23,7 +23,11 @@ export function useResponsive() {
     getInitialValueInEffect: false,
   })
 
-  return { isMobile, isTablet, isDesktop }
+  // Responsive sizes for Mantine components (mobile: xs, tablet: sm, desktop: md)
+  const size: MantineSize = isMobile ? 'xs' : isTablet ? 'sm' : 'md'
+  const sizeCompact: MantineSize = isMobile ? 'xs' : 'sm'
+
+  return { isMobile, isTablet, isDesktop, size, sizeCompact }
 }
 
 // Type for responsive spacing props

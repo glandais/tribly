@@ -51,7 +51,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
       }
 
       return (
-        <Translation ns="errors">
+        <Translation ns="common">
           {(t) => (
             <Center mih="100vh" bg="var(--mantine-color-body)">
               <Paper shadow="lg" p="xl" radius="md" w={{ base: '100%', sm: 400 }}>
@@ -96,7 +96,7 @@ interface ErrorMessageProps {
 
 export function ErrorMessage({ title, message, onRetry }: ErrorMessageProps) {
   return (
-    <Translation ns="errors">
+    <Translation ns="common">
       {(t) => (
         <Alert icon={<IconXboxX size={16} />} title={title || t('generic.title')} color="red">
           <Text size="sm">{message}</Text>

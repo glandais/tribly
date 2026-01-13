@@ -1,4 +1,4 @@
-import { TextInput, Box, type MantineStyleProp, type MantineSpacing } from '@mantine/core'
+import { TextInput, Box, CloseButton, type MantineStyleProp, type MantineSpacing } from '@mantine/core'
 import { IconSearch } from '@tabler/icons-react'
 
 export interface SearchInputProps {
@@ -32,6 +32,7 @@ export function SearchInput({
         onChange={(e) => onChange(e.currentTarget.value)}
         aria-label={label || placeholder}
         leftSection={<IconSearch size={16} />}
+        rightSection={value && <CloseButton size="sm" onClick={() => onChange('')} />}
       />
     </Box>
   )

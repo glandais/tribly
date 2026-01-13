@@ -137,7 +137,7 @@ export const routesConfig: RoutesConfig = [
     auth: 'public',
     parentId: null,
     index: true,
-    subRouteIds: ['home', 'all-routes', 'teams'],
+    subRouteIds: ['home', 'calendar', 'all-routes', 'teams'],
     breadcrumb: { type: 'static', i18nKey: tRegister('home.tabs.feed') },
   },
   {
@@ -146,7 +146,7 @@ export const routesConfig: RoutesConfig = [
     component: AllRoutesPage,
     auth: 'public',
     parentId: null,
-    subRouteIds: ['home', 'all-routes', 'teams'],
+    subRouteIds: ['home', 'calendar', 'all-routes', 'teams'],
     breadcrumb: { type: 'static', i18nKey: tRegister('nav.routes') },
   },
 
@@ -173,6 +173,7 @@ export const routesConfig: RoutesConfig = [
     component: CalendarPage,
     auth: 'authenticated',
     parentId: null,
+    subRouteIds: ['home', 'calendar', 'all-routes', 'teams'],
     breadcrumb: { type: 'static', i18nKey: tRegister('calendar.title') },
   },
 
@@ -183,7 +184,7 @@ export const routesConfig: RoutesConfig = [
     component: TeamListPage,
     auth: 'public',
     parentId: null,
-    subRouteIds: ['home', 'all-routes', 'teams'],
+    subRouteIds: ['home', 'calendar', 'all-routes', 'teams'],
     breadcrumb: { type: 'static', i18nKey: tRegister('teams.title') },
   },
   {

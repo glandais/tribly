@@ -35,7 +35,7 @@ export function RoutePreview({ routeSlug, teamSlug }: RoutePreviewProps) {
     <Paper withBorder p="sm" bg="var(--mantine-color-body)">
       <Group gap="md" wrap="nowrap">
         <Image
-          src={route.media.assets.thumbnail?.url}
+          src={route.media.assets.thumbnail?.imageUrl?.replace('{size}', '128')}
           alt={route.name}
           w={64}
           h={64}

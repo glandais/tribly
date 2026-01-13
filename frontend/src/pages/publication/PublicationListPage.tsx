@@ -136,18 +136,17 @@ export function PublicationListPage() {
 
         {/* Search and Filter */}
         <Group gap="md" align="flex-end" wrap="wrap">
-          <Box style={{ flex: 1, minWidth: 200 }}>
-            <SearchInput
-              id="publications-search"
-              value={search}
-              onChange={(value) => {
-                setSearch(value)
-                resetPage()
-              }}
-              placeholder={t('teams.publications.list.search.placeholder')}
-              label={t('teams.publications.list.search.label')}
-            />
-          </Box>
+          <SearchInput
+            id="publications-search"
+            value={search}
+            onChange={(value) => {
+              setSearch(value)
+              resetPage()
+            }}
+            placeholder={t('teams.publications.list.search.placeholder')}
+            label={t('teams.publications.list.search.label')}
+            style={{ flex: 1, minWidth: 200 }}
+          />
           <Select
             value={filter}
             onChange={(value) => {

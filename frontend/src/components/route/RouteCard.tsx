@@ -21,7 +21,7 @@ export function RouteCard({ route, showTeam }: RouteCardProps) {
 
   return (
     <Card to={paths.route(route.team.slug, route.slug)}>
-      <Image src={route.media.assets.thumbnail?.url} alt={route.name} h={200} fit="contain" />
+      <Image src={route.media.assets.thumbnail?.imageUrl?.replace('{size}', '400')} alt={route.name} />
 
       <CardContent>
         {showTeam && (

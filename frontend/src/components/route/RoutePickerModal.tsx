@@ -143,7 +143,7 @@ export function RoutePickerModal({
               >
                 <Stack gap="xs" w="100%">
                   <Image
-                    src={route.media.assets.thumbnail?.url}
+                    src={route.media.assets.thumbnail?.imageUrl?.replace('{size}', '256')}
                     alt={route.name}
                     h={128}
                     fit="cover"
