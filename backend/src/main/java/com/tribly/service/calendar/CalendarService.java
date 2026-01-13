@@ -39,7 +39,6 @@ import org.jspecify.annotations.Nullable;
 @ApplicationScoped
 public class CalendarService {
 
-  private static final SecureRandom SECURE_RANDOM = new SecureRandom();
   private static final int TOKEN_BYTES = 32; // 256 bits = 64 hex chars
 
   @Inject CalendarTokenRepository calendarTokenRepository;
@@ -138,7 +137,7 @@ public class CalendarService {
 
   private String generateSecureToken() {
     byte[] bytes = new byte[TOKEN_BYTES];
-    SECURE_RANDOM.nextBytes(bytes);
+    new SecureRandom().nextBytes(bytes);
     return HexFormat.of().formatHex(bytes);
   }
 

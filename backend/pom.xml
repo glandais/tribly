@@ -23,8 +23,6 @@
         <gpx.version>1.2.7</gpx.version>
         <lombok.version>1.18.42</lombok.version>
         <jspecify.version>1.0.0</jspecify.version>
-        <icu4j.version>78.2</icu4j.version>
-        <tika.version>3.2.3</tika.version>
         <dependencyversion-maven-plugin.version>1.0.0</dependencyversion-maven-plugin.version>
         <geolatte-geojson.version>1.10</geolatte-geojson.version>
         <archunit-junit5.version>1.4.1</archunit-junit5.version>
@@ -105,6 +103,16 @@
             <groupId>io.github.glandais.gpx2web</groupId>
             <artifactId>gpx</artifactId>
             <version>${gpx.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.github.haifengl</groupId>
+                    <artifactId>smile-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>net.iakovlev</groupId>
+                    <artifactId>timeshape</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <!-- Validation -->
@@ -144,6 +152,10 @@
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-mailer</artifactId>
         </dependency>
+        <dependency>
+            <groupId>jakarta.mail</groupId>
+            <artifactId>jakarta.mail-api</artifactId>
+        </dependency>
 
         <!-- Scheduler -->
         <dependency>
@@ -159,23 +171,6 @@
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-rest-client-jackson</artifactId>
-        </dependency>
-
-        <!-- Others -->
-        <dependency>
-            <groupId>com.ibm.icu</groupId>
-            <artifactId>icu4j</artifactId>
-            <version>${icu4j.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.tika</groupId>
-            <artifactId>tika-core</artifactId>
-            <version>${tika.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.tika</groupId>
-            <artifactId>tika-parsers-standard-package</artifactId>
-            <version>${tika.version}</version>
         </dependency>
 
         <!-- Container -->

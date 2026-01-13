@@ -28,6 +28,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermission;
@@ -36,10 +37,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.imageio.ImageIO;
 import org.apache.commons.io.IOUtils;
-import org.apache.tika.Tika;
-import org.apache.tika.io.TikaInputStream;
-import org.apache.tika.metadata.Metadata;
-import org.apache.tika.metadata.TikaCoreProperties;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jspecify.annotations.Nullable;
 
@@ -56,8 +53,6 @@ public class AssetService {
 
   @ConfigProperty(name = "storage.path")
   String storagePath = "/tmp";
-
-  private final Tika tika = new Tika();
 
   @CheckAccess(entityType = EntityType.ASSET, action = ActionType.CREATE)
   public AssetDto createAsset(String teamSlug, InputStream inputStream, String fileName)
@@ -149,25 +144,27 @@ public class AssetService {
   }
 
   private String getContentType(File file, String fileName) {
-    Metadata metadata = new Metadata();
-    metadata.set(TikaCoreProperties.RESOURCE_NAME_KEY, fileName);
+    // First check for known overrides based on extension
     String contentTypeOverride = getContentTypeOverride(fileName);
     if (contentTypeOverride != null) {
-      metadata.set(TikaCoreProperties.CONTENT_TYPE_USER_OVERRIDE, contentTypeOverride);
+      return contentTypeOverride;
     }
-    if (!file.exists()) {
+
+    // Try to probe content type from file content
+    if (file.exists()) {
       try {
-        return tika.detect(null, metadata);
-      } catch (IOException e) {
-        return MediaType.APPLICATION_OCTET_STREAM;
-      }
-    } else {
-      try (TikaInputStream fis = TikaInputStream.get(file.toPath(), metadata)) {
-        return tika.detect(fis, metadata);
-      } catch (IOException e) {
-        return MediaType.APPLICATION_OCTET_STREAM;
+        String probed = Files.probeContentType(file.toPath());
+        if (probed != null) {
+          return probed;
+        }
+      } catch (IOException ignored) {
+        // Fall through to filename-based detection
       }
     }
+
+    // Fall back to filename-based detection
+    String guessed = URLConnection.guessContentTypeFromName(fileName);
+    return guessed != null ? guessed : MediaType.APPLICATION_OCTET_STREAM;
   }
 
   @Nullable

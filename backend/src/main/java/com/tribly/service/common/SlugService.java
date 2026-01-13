@@ -1,6 +1,5 @@
 package com.tribly.service.common;
 
-import com.ibm.icu.text.Transliterator;
 import com.tribly.domain.common.TeamEntity;
 import com.tribly.domain.common.TeamEntitySlugRedirect;
 import com.tribly.domain.team.Team;
@@ -12,6 +11,7 @@ import com.tribly.repository.team.TeamSlugRedirectRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import java.text.Normalizer;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -19,8 +19,8 @@ import java.util.regex.Pattern;
 
 @ApplicationScoped
 public class SlugService {
-  private static final String ASCII =
-      "Cyrillic-Latin; Any-Latin; Latin-ASCII; [^\\p{Print}] Remove";
+  private static final Pattern PATTERN_DIACRITICS =
+      Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
   private static final Pattern PATTERN_NON_ALPHANUMERIC = Pattern.compile("[^a-zA-Z0-9]+");
   private static final Pattern PATTERN_TRIM_DASH = Pattern.compile("^-|-$");
   private static final Pattern PATTERN_VALID_SLUG = Pattern.compile("^[a-z0-9]+(-[a-z0-9]+)*$");
@@ -65,11 +65,13 @@ public class SlugService {
   }
 
   private static String prepare(final String input) {
-    // transliterate or normalize
-    String transliterate = Transliterator.getInstance(ASCII).transliterate(input);
-    // replace non-alphanumeric chars with hyphen
-    String hyphened = PATTERN_NON_ALPHANUMERIC.matcher(transliterate).replaceAll(HYPHEN);
-    // remove leading and trailing dashes
+    // Normalize to NFKD (compatibility decomposition) to handle ligatures and diacritics
+    String normalized = Normalizer.normalize(input, Normalizer.Form.NFKD);
+    // Remove diacritical marks (accents, etc.)
+    String ascii = PATTERN_DIACRITICS.matcher(normalized).replaceAll(EMPTY);
+    // Replace non-alphanumeric chars with hyphen
+    String hyphened = PATTERN_NON_ALPHANUMERIC.matcher(ascii).replaceAll(HYPHEN);
+    // Remove leading and trailing dashes
     return PATTERN_TRIM_DASH.matcher(hyphened).replaceAll(EMPTY);
   }
 
