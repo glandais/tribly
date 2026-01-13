@@ -7,7 +7,7 @@ import { notifications } from '@mantine/notifications'
 import i18next from 'i18next'
 import { paths } from '../../config/paths'
 import { IconPlus } from '@tabler/icons-react'
-import { Alert, Box, Button, Group, Select, Stack, Text, Title } from '@mantine/core'
+import { Alert, Box, Button, Group, Modal, Select, Stack, Text, Title } from '@mantine/core'
 import { useGetTeam, getGetTeamQueryKey } from '@/api/endpoints/teams/teams'
 import {
   useGetMembers,
@@ -26,7 +26,6 @@ import type { PublicUserDto } from '@/api/dto'
 import { TeamRole } from '@/api/dto'
 import { Pagination } from '../../components/common/Pagination'
 import { usePaginatedQuery } from '../../hooks/usePaginatedQuery'
-import { Modal } from '../../components/common/Modal'
 
 export function TeamMembersPage() {
   const { t } = useTranslation()
@@ -163,25 +162,13 @@ export function TeamMembersPage() {
 
         {/* Add Member Modal */}
         <Modal
-          isOpen={showAddMember}
+          opened={showAddMember}
           onClose={() => {
             setShowAddMember(false)
             setSelectedRole(TeamRole.MEMBER)
           }}
           title={t('teams.detail.members.addMember')}
           size="md"
-          footer={
-            <Button
-              variant="default"
-              onClick={() => {
-                setShowAddMember(false)
-                setSelectedRole(TeamRole.MEMBER)
-              }}
-              disabled={addMemberMutation.isPending}
-            >
-              {t('actions.cancelAction')}
-            </Button>
-          }
         >
           <Stack gap="md">
             <Box>
@@ -211,6 +198,18 @@ export function TeamMembersPage() {
               </Alert>
             )}
           </Stack>
+          <Box mt="md">
+            <Button
+              variant="default"
+              onClick={() => {
+                setShowAddMember(false)
+                setSelectedRole(TeamRole.MEMBER)
+              }}
+              disabled={addMemberMutation.isPending}
+            >
+              {t('actions.cancelAction')}
+            </Button>
+          </Box>
         </Modal>
       </Box>
     </TeamAdminLayout>

@@ -2,14 +2,23 @@ import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { keepPreviousData } from '@tanstack/react-query'
 import { IconCopy, IconUsers } from '@tabler/icons-react'
-import { Badge, Box, Button, Center, Group, Stack, Text, UnstyledButton } from '@mantine/core'
+import {
+  Badge,
+  Box,
+  Button,
+  Center,
+  Group,
+  Modal,
+  Stack,
+  Text,
+  UnstyledButton,
+} from '@mantine/core'
 import { useListTemplates } from '@/api/endpoints/ride-templates/ride-templates'
 import type { RideTemplateDto } from '@/api/dto'
 import { MarkdownDisplay } from '../common/MarkdownDisplay'
 import { LoadingSpinner } from '../common/LoadingSpinner'
 import { Pagination } from '../common/Pagination'
 import { SearchInput } from '../common/SearchInput'
-import { Modal } from '../common/Modal'
 import { useUnits } from '@/hooks/useUnits'
 
 interface RideTemplatePickerModalProps {
@@ -74,30 +83,21 @@ export function RideTemplatePickerModal({
 
   const templates = templatesResponse?.templates || []
 
-  const searchBar = (
-    <SearchInput
-      value={search}
-      onChange={setSearch}
-      placeholder={t('rideTemplates.picker.search')}
-      fullWidth
-    />
-  )
-
-  const footerContent = (
-    <Button variant="default" onClick={handleClose}>
-      {t('actions.cancelAction')}
-    </Button>
-  )
-
   return (
     <Modal
-      isOpen={isOpen}
+      opened={isOpen}
       onClose={handleClose}
       title={title || t('rideTemplates.picker.title')}
       size="2xl"
-      subheader={searchBar}
-      footer={footerContent}
     >
+      <Box mb="md">
+        <SearchInput
+          value={search}
+          onChange={setSearch}
+          placeholder={t('rideTemplates.picker.search')}
+          fullWidth
+        />
+      </Box>
       {isLoading ? (
         <Center py="xl">
           <Stack align="center" gap="xs">
@@ -177,6 +177,11 @@ export function RideTemplatePickerModal({
           />
         </>
       )}
+      <Box mt="md">
+        <Button variant="default" onClick={handleClose}>
+          {t('actions.cancelAction')}
+        </Button>
+      </Box>
     </Modal>
   )
 }

@@ -123,6 +123,8 @@ export function RouteEditor({
     )
   }
 
+  const showPlanner = canUsePlanner && sourceMode === 'planner'
+
   return (
     <form onSubmit={form.onSubmit(handleSubmit)}>
       <Stack gap="lg">
@@ -177,17 +179,8 @@ export function RouteEditor({
         )}
 
         {/* Route Planner */}
-        {canUsePlanner && sourceMode === 'planner' && (
-          <Box
-            style={{
-              position: 'relative',
-              left: '50%',
-              right: '50%',
-              marginLeft: '-50vw',
-              marginRight: '-50vw',
-              width: '100vw',
-            }}
-          >
+        {showPlanner && (
+          <Box>
             <Text size="sm" fw={500} mb="xs" px="md">
               {t('routes.create.form.plannerLabel')}{' '}
               {isCreateMode && (
@@ -201,7 +194,6 @@ export function RouteEditor({
               style={{
                 borderTop: '1px solid var(--mantine-color-default-border)',
                 borderBottom: '1px solid var(--mantine-color-default-border)',
-                overflow: 'hidden',
               }}
             >
               <EmbeddedRoutePlanner

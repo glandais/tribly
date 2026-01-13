@@ -7,7 +7,7 @@ import { RouteEditor } from './RouteEditor'
 import { useCreateRoute, getListRoutesQueryKey } from '@/api/endpoints/routes/routes'
 import { Visibility as VisibilityEnum, SurfaceType as SurfaceTypeEnum } from '@/api/dto'
 import { defaultMedia } from '@/lib/apiUtils'
-import { Modal } from '../common/Modal'
+import { Modal } from '@mantine/core'
 
 interface CreateRouteModalProps {
   isOpen: boolean
@@ -54,7 +54,7 @@ export function CreateRouteModal({ isOpen, onClose, onRouteCreated, team }: Crea
   }
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={t('routes.create.title')} size="full">
+    <Modal opened={isOpen} onClose={onClose} title={t('routes.create.title')} fullScreen>
       <RouteEditor
         team={team}
         teamSlug={team.slug}

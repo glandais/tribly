@@ -2,13 +2,23 @@ import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { keepPreviousData } from '@tanstack/react-query'
 import { IconMap, IconArrowsMaximize, IconArrowUp } from '@tabler/icons-react'
-import { Stack, Group, Button, Text, SimpleGrid, Image, Center, Loader } from '@mantine/core'
+import {
+  Stack,
+  Group,
+  Button,
+  Text,
+  SimpleGrid,
+  Image,
+  Center,
+  Loader,
+  Modal,
+  Box,
+} from '@mantine/core'
 import { useListRoutes } from '@/api/endpoints/routes/routes'
 import type { RouteDto } from '@/api/dto'
 import { MarkdownDisplay } from '../../components/common/MarkdownDisplay'
 import { Pagination } from '../common/Pagination'
 import { SearchInput } from '../common/SearchInput'
-import { Modal } from '../common/Modal'
 import { useUnits } from '@/hooks/useUnits'
 
 interface RoutePickerModalProps {
@@ -69,41 +79,23 @@ export function RoutePickerModal({
 
   const routes = routesResponse?.routes || []
 
-  const searchBar = (
-    <Group gap="md">
-      <SearchInput
-        value={search}
-        onChange={setSearch}
-        placeholder={t('routes.picker.search')}
-        fullWidth
-        style={{ flex: 1 }}
-      />
-      {onCreateNew && <Button onClick={onCreateNew}>{t('routes.create.title')}</Button>}
-    </Group>
-  )
-
-  const footerContent = (
-    <>
-      {selectedRouteSlug && (
-        <Button variant="subtle" color="danger" onClick={() => onSelect(null)}>
-          {t('routes.picker.clearSelection')}
-        </Button>
-      )}
-      <Button variant="default" onClick={handleClose}>
-        {t('actions.cancelAction')}
-      </Button>
-    </>
-  )
-
   return (
     <Modal
-      isOpen={isOpen}
+      opened={isOpen}
       onClose={handleClose}
       title={title || t('routes.picker.title')}
       size="4xl"
-      subheader={searchBar}
-      footer={footerContent}
     >
+      <Group mb="md">
+        <SearchInput
+          value={search}
+          onChange={setSearch}
+          placeholder={t('routes.picker.search')}
+          fullWidth
+          style={{ flex: 1 }}
+        />
+        {onCreateNew && <Button onClick={onCreateNew}>{t('routes.create.title')}</Button>}
+      </Group>
       {isLoading ? (
         <Center py="xl">
           <Stack align="center">
@@ -188,6 +180,16 @@ export function RoutePickerModal({
           />
         </Stack>
       )}
+      <Box mt="md">
+        {selectedRouteSlug && (
+          <Button variant="subtle" color="danger" onClick={() => onSelect(null)}>
+            {t('routes.picker.clearSelection')}
+          </Button>
+        )}
+        <Button variant="default" onClick={handleClose}>
+          {t('actions.cancelAction')}
+        </Button>
+      </Box>
     </Modal>
   )
 }

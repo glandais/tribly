@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
 import { notifications } from '@mantine/notifications'
 import i18next from 'i18next'
-import { TextInput, Checkbox, Stack, Group, Button, Text } from '@mantine/core'
+import { TextInput, Checkbox, Stack, Group, Button, Text, Modal, Box } from '@mantine/core'
 import {
   useCreatePlace,
   useUpdatePlace,
@@ -13,7 +13,6 @@ import {
 } from '../../api/endpoints/places/places'
 import { createPlaceBody } from '../../api/zod/places/places.zod'
 import type { PlaceDetailDto, PlaceRequest, GeoJsonPoint } from '../../api/dto'
-import { Modal } from '../common/Modal'
 import { GeocoderAutocomplete } from '../common/GeocoderAutocomplete'
 
 const placeSchema = createPlaceBody
@@ -73,29 +72,12 @@ export function PlaceForm({ teamSlug, place, onClose }: PlaceFormProps) {
 
   const mutation = isEditing ? updateMutation : createMutation
 
-  const footerContent = (
-    <>
-      <Button variant="default" onClick={onClose}>
-        {t('actions.cancelAction')}
-      </Button>
-      <Button
-        type="submit"
-        form="place-form"
-        disabled={mutation.isPending || !form.isValid()}
-        loading={mutation.isPending}
-      >
-        {isEditing ? t('actions.save') : t('places.form.create')}
-      </Button>
-    </>
-  )
-
   return (
     <Modal
-      isOpen={true}
+      opened={true}
       onClose={onClose}
       title={isEditing ? t('places.form.editTitle') : t('places.add')}
       size="md"
-      footer={footerContent}
     >
       <form id="place-form" onSubmit={form.onSubmit(handleSubmit)}>
         <Stack gap="md">
@@ -144,6 +126,19 @@ export function PlaceForm({ teamSlug, place, onClose }: PlaceFormProps) {
           </Group>
         </Stack>
       </form>
+      <Box mt="md">
+        <Button variant="default" onClick={onClose}>
+          {t('actions.cancelAction')}
+        </Button>
+        <Button
+          type="submit"
+          form="place-form"
+          disabled={mutation.isPending || !form.isValid()}
+          loading={mutation.isPending}
+        >
+          {isEditing ? t('actions.save') : t('places.form.create')}
+        </Button>
+      </Box>
     </Modal>
   )
 }

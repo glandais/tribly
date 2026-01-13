@@ -1,8 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { IconUsers, IconChevronRight, IconShieldCheck } from '@tabler/icons-react'
-import { Stack, Group, Text, Box, ThemeIcon } from '@mantine/core'
+import { Stack, Group, Text, Box, ThemeIcon, Modal } from '@mantine/core'
 import { UserAvatar } from '../common/UserAvatar'
-import { Modal } from '../common/Modal'
 
 interface Participant {
   id: string
@@ -28,15 +27,13 @@ export function ParticipantListModal({
 
   const participantCount = participants.length
 
-  const headerSubtitle = (
-    <Text size="sm" fw={600} c="primary">
-      {t('rides.detail.groups.participantsNoMax', { current: participantCount })}
-    </Text>
-  )
-
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={groupName} size="md">
-      {headerSubtitle}
+    <Modal opened={isOpen} onClose={onClose} title={groupName} size="xl">
+      <Box mb="md">
+        <Text size="sm" fw={600} c="primary">
+          {t('rides.detail.groups.participantsNoMax', { current: participantCount })}
+        </Text>
+      </Box>
 
       <Box mt="md">
         {participants.length === 0 ? (
