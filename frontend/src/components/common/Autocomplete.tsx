@@ -13,6 +13,12 @@ export interface AutocompleteProps<T> {
   minChars?: number
   noResultsMessage?: string
   clearOnSelect?: boolean
+  label?: string
+  description?: string
+  error?: string
+  required?: boolean
+  disabled?: boolean
+  leftSection?: ReactNode
 }
 
 export function Autocomplete<T>({
@@ -26,6 +32,12 @@ export function Autocomplete<T>({
   minChars = 2,
   noResultsMessage = 'No results found',
   clearOnSelect = true,
+  label,
+  description,
+  error,
+  required,
+  disabled,
+  leftSection,
 }: AutocompleteProps<T>) {
   const [query, setQuery] = useState('')
   const [isOpen, setIsOpen] = useState(false)
@@ -115,6 +127,12 @@ export function Autocomplete<T>({
         onKeyDown={handleKeyDown}
         onFocus={handleFocus}
         placeholder={placeholder}
+        label={label}
+        description={description}
+        error={error}
+        required={required}
+        disabled={disabled}
+        leftSection={leftSection}
         rightSection={isLoading ? <Loader size="xs" /> : null}
       />
 

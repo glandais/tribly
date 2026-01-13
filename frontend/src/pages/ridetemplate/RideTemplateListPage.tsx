@@ -16,6 +16,7 @@ import {
   Center,
   Badge,
   ActionIcon,
+  Loader,
 } from '@mantine/core'
 import { useGetTeam } from '@/api/endpoints/teams/teams'
 import {
@@ -24,7 +25,7 @@ import {
   getListTemplatesQueryKey,
   listTemplates,
 } from '@/api/endpoints/ride-templates/ride-templates'
-import { LoadingPage, LoadingSpinner } from '../../components/common/LoadingSpinner'
+import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { TeamAdminLayout } from '../../components/team/TeamAdminLayout'
 import { Pagination } from '../../components/common/Pagination'
 import { usePaginatedQuery } from '../../hooks/usePaginatedQuery'
@@ -117,7 +118,7 @@ export function RideTemplateListPage() {
 
   return (
     <TeamAdminLayout team={team} currentTab="ride-templates">
-      <Stack py="lg" gap="lg">
+      <Stack py="lg">
         <Group justify="space-between">
           <Title order={2}>{t('rideTemplates.list.title')}</Title>
           {canManage && (
@@ -146,11 +147,11 @@ export function RideTemplateListPage() {
         {/* Templates List */}
         {isLoadingTemplates ? (
           <Center py="xl">
-            <LoadingSpinner />
+            <Loader />
           </Center>
         ) : templatesData?.templates && templatesData.templates.length > 0 ? (
           <>
-            <Stack gap="md">
+            <Stack>
               {templatesData.templates.map((template) => (
                 <Paper key={template.id} withBorder p="md">
                   <Group justify="space-between" align="flex-start" wrap="nowrap">
@@ -167,7 +168,7 @@ export function RideTemplateListPage() {
                           />
                         </Box>
                       )}
-                      <Group gap="md">
+                      <Group>
                         <Group gap="xs">
                           <IconUsersGroup size={16} />
                           <Text size="sm" c="dimmed">
@@ -231,7 +232,7 @@ export function RideTemplateListPage() {
         ) : (
           <Paper withBorder py="xl">
             <Center>
-              <Stack align="center" gap="md">
+              <Stack align="center">
                 <IconFiles size={48} color="var(--mantine-color-dimmed)" />
                 <Title order={3}>
                   {search ? t('rideTemplates.list.noResults') : t('rideTemplates.list.empty.title')}

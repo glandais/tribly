@@ -8,7 +8,7 @@ import { useGetPage } from '@/api/endpoints/team-pages/team-pages'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { TeamLayout } from '../../components/team/TeamLayout'
 import { MediaDisplay } from '../../components/common/MediaDisplay'
-import { VisibilityBadge } from '../../components/common/card/VisibilityBadge'
+import { VisibilityBadge } from '../../components/card/common'
 
 export function TeamPageDetailPage() {
   const { teamSlug, pageSlug } = useParams<{ teamSlug: string; pageSlug: string }>()

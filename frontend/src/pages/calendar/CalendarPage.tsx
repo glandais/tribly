@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { Stack, Title, Group } from '@mantine/core'
+import { Title, Group } from '@mantine/core'
 import { useGetEvents } from '@/api/endpoints/calendar/calendar'
 import { CalendarView } from '@/components/calendar/CalendarView'
 import { IcsFeedSettings } from '@/components/calendar/IcsFeedSettings'
@@ -17,19 +17,17 @@ export function CalendarPage(): React.ReactElement {
 
   return (
     <HomeLayout currentTab="calendar">
-      <Stack gap="lg" p="md">
-        <Group justify="space-between" align="center">
-          <Title order={2}>{t('calendar.title')}</Title>
-        </Group>
+      <Group justify="space-between" align="center">
+        <Title order={2}>{t('calendar.title')}</Title>
+      </Group>
 
-        <CalendarView
-          events={eventsData?.events ?? []}
-          isLoading={isLoadingEvents}
-          onDateRangeChange={handleDateRangeChange}
-        />
+      <CalendarView
+        events={eventsData?.events ?? []}
+        isLoading={isLoadingEvents}
+        onDateRangeChange={handleDateRangeChange}
+      />
 
-        <IcsFeedSettings />
-      </Stack>
+      <IcsFeedSettings />
     </HomeLayout>
   )
 }

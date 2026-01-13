@@ -22,6 +22,7 @@ import {
   Title,
   Text,
   Badge,
+  Loader,
 } from '@mantine/core'
 import { useGetTeam } from '@/api/endpoints/teams/teams'
 import {
@@ -31,7 +32,7 @@ import {
   getListAdsQueryKey,
   getGetAdQueryKey,
 } from '../../api/endpoints/ads/ads'
-import { LoadingPage, LoadingSpinner } from '../../components/common/LoadingSpinner'
+import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import { MediaDisplay } from '../../components/common/MediaDisplay'
 import { EntityLogo } from '../../components/common/EntityLogo'
@@ -171,8 +172,8 @@ export function AdDetailPage() {
     <Container size="md" py="xl">
       {/* Header */}
       <Paper withBorder p="lg" mb="lg">
-        <Group justify="space-between" align="flex-start" wrap="wrap" gap="md">
-          <Group gap="md" style={{ minWidth: 0 }}>
+        <Group justify="space-between" align="flex-start" wrap="wrap">
+          <Group style={{ minWidth: 0 }}>
             <EntityLogo logo={ad.media.assets.logo} alt={ad.name} size="lg" />
             <Stack gap={4} style={{ minWidth: 0 }}>
               <Title order={2} lineClamp={1}>
@@ -211,9 +212,7 @@ export function AdDetailPage() {
                       onClick={handlePublish}
                       disabled={updateMutation.isPending}
                       color="success"
-                      leftSection={
-                        updateMutation.isPending ? <LoadingSpinner size="sm" /> : undefined
-                      }
+                      leftSection={updateMutation.isPending ? <Loader size="sm" /> : undefined}
                     >
                       {t('actions.publish')}
                     </Menu.Item>
@@ -254,7 +253,7 @@ export function AdDetailPage() {
         </Box>
 
         {/* Meta info */}
-        <Group mt="md" gap="lg">
+        <Group mt="md">
           <Group gap="xs">
             <IconCalendar size={16} />
             <Text size="sm" c="dimmed">

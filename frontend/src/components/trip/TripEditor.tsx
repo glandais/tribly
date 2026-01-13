@@ -134,7 +134,7 @@ export function TripEditor({
 
   return (
     <form onSubmit={form.onSubmit(handleSubmit)}>
-      <Stack gap="lg">
+      <Stack>
         <Tabs value={activeTab} onChange={(value) => setActiveTab(value || 'details')}>
           <Tabs.List>
             <Tabs.Tab value="details" leftSection={<IconSettings size={16} />}>
@@ -166,7 +166,7 @@ export function TripEditor({
 
           {/* Details Tab */}
           <Tabs.Panel value="details" pt="md">
-            <Stack gap="lg">
+            <Stack>
               <TextInput
                 label={
                   <>
@@ -323,7 +323,7 @@ export function TripEditor({
                   </Button>
                 </Group>
 
-                <Stack gap="md">
+                <Stack>
                   <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
                     <TextInput
                       label={t('trips.create.form.stages.name.label')}

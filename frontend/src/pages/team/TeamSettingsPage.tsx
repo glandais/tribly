@@ -101,7 +101,7 @@ export function TeamSettingsPage() {
   return (
     <TeamAdminLayout team={team} currentTab="settings">
       <Box py="md" maw={672}>
-        <Box mb="xl">
+        <Box>
           <Title order={2}>{t('teams.settings.title')}</Title>
           <Text c="dimmed" mt="xs">
             {t('teams.settings.subtitle')}

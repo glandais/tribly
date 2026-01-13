@@ -8,6 +8,7 @@ import {
   Button,
   Center,
   Group,
+  Loader,
   Modal,
   Stack,
   Text,
@@ -16,7 +17,6 @@ import {
 import { useListTemplates } from '@/api/endpoints/ride-templates/ride-templates'
 import type { RideTemplateDto } from '@/api/dto'
 import { MarkdownDisplay } from '../common/MarkdownDisplay'
-import { LoadingSpinner } from '../common/LoadingSpinner'
 import { Pagination } from '../common/Pagination'
 import { SearchInput } from '../common/SearchInput'
 import { useUnits } from '@/hooks/useUnits'
@@ -101,7 +101,7 @@ export function RideTemplatePickerModal({
       {isLoading ? (
         <Center py="xl">
           <Stack align="center" gap="xs">
-            <LoadingSpinner />
+            <Loader />
             <Text c="dimmed">{t('loading')}</Text>
           </Stack>
         </Center>

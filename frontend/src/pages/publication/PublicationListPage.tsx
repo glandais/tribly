@@ -11,10 +11,7 @@ import {
 } from '../../api/endpoints/publications/publications'
 import { PublicationType } from '@/api/dto'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
-import {
-  PublicationCard,
-  PublicationCardSkeleton,
-} from '../../components/publication/PublicationCard'
+import { PublicationCard, PublicationCardSkeleton } from '../../components/card'
 import { TeamLayout } from '../../components/team/TeamLayout'
 import { Pagination } from '../../components/common/Pagination'
 import { usePaginatedQuery } from '../../hooks/usePaginatedQuery'
@@ -95,7 +92,7 @@ export function PublicationListPage() {
 
   return (
     <TeamLayout team={team} currentTab="publications">
-      <Stack gap="lg">
+      <Stack>
         <Group justify="space-between" align="center" wrap="wrap">
           <Title order={2}>{t('teams.publications.list.title')}</Title>
           {canCreate && (
@@ -135,7 +132,7 @@ export function PublicationListPage() {
         </Group>
 
         {/* Search and Filter */}
-        <Group gap="md" align="flex-end" wrap="wrap">
+        <Group align="flex-end" wrap="wrap">
           <SearchInput
             id="publications-search"
             value={search}
@@ -170,13 +167,13 @@ export function PublicationListPage() {
 
         {/* Publications List */}
         {isLoadingPublications ? (
-          <Stack gap="md">
+          <Stack>
             {[...Array(3)].map((_, i) => (
               <PublicationCardSkeleton key={i} />
             ))}
           </Stack>
         ) : publicationsData?.publications && publicationsData.publications.length > 0 ? (
-          <Stack gap="md">
+          <Stack>
             {publicationsData.publications.map((publication) => (
               <PublicationCard key={publication.id} publication={publication} showTeam={false} />
             ))}

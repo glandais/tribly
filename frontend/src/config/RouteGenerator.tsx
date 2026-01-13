@@ -4,8 +4,8 @@ import { routesConfig } from './routes.config'
 import type { RouteConfig, AuthRequirement } from './routes.types'
 import { AuthenticatedRoute, UnauthenticatedRoute } from '../components/auth/ProtectedRoute'
 import { Layout } from '../components/common/Layout'
-import { LoadingSpinner } from '../components/common/LoadingSpinner'
 import { NotFoundPage } from '../pages/NotFoundPage'
+import { Loader } from '@mantine/core'
 
 /**
  * Wrap component based on auth requirement
@@ -29,7 +29,7 @@ function generateRoute(config: RouteConfig): React.ReactNode {
   const Component = config.component
 
   const element = (
-    <Suspense fallback={<LoadingSpinner />}>
+    <Suspense fallback={<Loader />}>
       <Component />
     </Suspense>
   )

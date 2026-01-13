@@ -1,9 +1,17 @@
 import { Link, Navigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Container, Group, Title, Tabs, Anchor, Box } from '@mantine/core'
-import { IconArrowLeft } from '@tabler/icons-react'
+import { Container, Group, Title, Anchor, Box } from '@mantine/core'
+import {
+  IconArrowLeft,
+  IconCalendarRepeat,
+  IconMapPin,
+  IconFileText,
+  IconUsers,
+  IconSettings,
+} from '@tabler/icons-react'
 import type { TeamDetailDto } from '@/api/dto'
 import { paths } from '@/config/paths'
+import { NavButtons, type NavButtonItem } from '../common/NavButtons'
 
 export type AdminTab = 'ride-templates' | 'places' | 'pages' | 'members' | 'settings'
 
@@ -24,44 +32,49 @@ export function TeamAdminLayout({ team, currentTab, children }: TeamAdminLayoutP
     return <Navigate to={paths.team(team.slug)} replace />
   }
 
-  const tabs: { id: AdminTab; path: string; label: string; adminOnly?: boolean }[] = [
+  const tabs: (NavButtonItem & { adminOnly?: boolean })[] = [
     {
       id: 'ride-templates',
       path: paths.rideTemplates(team.slug),
       label: t('teams.admin.tabs.rideTemplates'),
+      icon: IconCalendarRepeat,
     },
     {
       id: 'places',
       path: paths.teamAdminPlaces(team.slug),
       label: t('places.title'),
+      icon: IconMapPin,
     },
     {
       id: 'pages',
       path: paths.teamAdminPages(team.slug),
       label: t('teams.admin.tabs.pages'),
+      icon: IconFileText,
       adminOnly: true,
     },
     {
       id: 'members',
       path: paths.teamMembers(team.slug),
       label: t('teams.admin.tabs.members'),
+      icon: IconUsers,
       adminOnly: true,
     },
     {
       id: 'settings',
       path: paths.teamSettings(team.slug),
       label: t('teams.admin.tabs.settings'),
+      icon: IconSettings,
       adminOnly: true,
     },
   ]
 
   // Filter tabs based on role
-  const visibleTabs = tabs.filter((tab) => !tab.adminOnly || isAdmin)
+  const visibleTabs: NavButtonItem[] = tabs.filter((tab) => !tab.adminOnly || isAdmin)
 
   return (
     <Container size="xl" py="xl">
       {/* Header with back link */}
-      <Box mb="xl">
+      <Box>
         <Anchor component={Link} to={paths.team(team.slug)} c="dimmed" size="sm">
           <Group gap={4}>
             <IconArrowLeft size={16} />
@@ -74,19 +87,7 @@ export function TeamAdminLayout({ team, currentTab, children }: TeamAdminLayoutP
       </Box>
 
       {/* Admin Navigation */}
-      <Tabs value={currentTab} mb="xl">
-        <Tabs.List>
-          {visibleTabs.map((tab) => (
-            <Tabs.Tab
-              key={tab.id}
-              value={tab.id}
-              renderRoot={(props) => <Link {...props} to={tab.path} />}
-            >
-              {tab.label}
-            </Tabs.Tab>
-          ))}
-        </Tabs.List>
-      </Tabs>
+      <NavButtons items={visibleTabs} currentId={currentTab} />
 
       {/* Page Content */}
       <Box>{children}</Box>

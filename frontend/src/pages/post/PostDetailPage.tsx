@@ -17,6 +17,7 @@ import {
   Text,
   Box,
   Center,
+  Loader,
 } from '@mantine/core'
 import { useGetTeam } from '@/api/endpoints/teams/teams'
 import {
@@ -27,7 +28,7 @@ import {
 } from '../../api/endpoints/posts/posts'
 import { getListPublicationsQueryKey } from '../../api/endpoints/publications/publications'
 import { Status } from '../../api/dto'
-import { LoadingPage, LoadingSpinner } from '../../components/common/LoadingSpinner'
+import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import { MediaDisplay } from '../../components/common/MediaDisplay'
 import { EntityLogo } from '../../components/common/EntityLogo'
@@ -76,7 +77,7 @@ export function PostDetailPage() {
       <Container size="lg" py="xl">
         <Paper withBorder p="xl" radius="md">
           <Center>
-            <Stack align="center" gap="md">
+            <Stack align="center">
               <Title order={2}>{t('posts.detail.notFound.title')}</Title>
               <Text c="dimmed">{t('posts.detail.notFound.message')}</Text>
               <Button component={Link} to={paths.team(teamSlug!)}>
@@ -168,10 +169,10 @@ export function PostDetailPage() {
 
   return (
     <Container size="md" py="xl">
-      <Stack gap="lg">
+      <Stack>
         {/* Header */}
         <Paper withBorder p="lg" radius="md">
-          <Group justify="space-between" align="flex-start" wrap="wrap" gap="md">
+          <Group justify="space-between" align="flex-start" wrap="wrap">
             <Group gap="sm" style={{ minWidth: 0 }}>
               <EntityLogo logo={post.media.assets.logo} alt={post.name} size="lg" />
               <Title order={2} lineClamp={1}>
@@ -204,9 +205,7 @@ export function PostDetailPage() {
                         onClick={handlePublish}
                         disabled={updateMutation.isPending}
                         color="success"
-                        leftSection={
-                          updateMutation.isPending ? <LoadingSpinner size="sm" /> : undefined
-                        }
+                        leftSection={updateMutation.isPending ? <Loader size="sm" /> : undefined}
                       >
                         {t('actions.publish')}
                       </Menu.Item>
@@ -249,7 +248,7 @@ export function PostDetailPage() {
               </Text>
             </Group>
           )}
-          <Group gap="md" mt="md">
+          <Group mt="md">
             <Group gap="xs">
               <IconCalendar size={16} color="var(--mantine-color-dimmed)" />
               <Text size="sm" c="dimmed">

@@ -113,7 +113,7 @@ export function RideEditor({
 
   return (
     <form onSubmit={form.onSubmit(handleSubmit)}>
-      <Stack gap="lg">
+      <Stack>
         <TextInput
           label={
             <>

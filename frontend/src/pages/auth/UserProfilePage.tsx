@@ -17,9 +17,9 @@ import {
   ActionIcon,
   Divider,
   Center,
+  Loader,
 } from '@mantine/core'
 import { useAuth } from '../../hooks/useAuth'
-import { LoadingSpinner } from '../../components/common/LoadingSpinner'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import { UserAvatar } from '../../components/common/UserAvatar'
 import { UnitSystemSwitcher } from '../../components/common/UnitSystemSwitcher'
@@ -58,7 +58,7 @@ export function UserProfilePage() {
   if (isLoading || !user) {
     return (
       <Center py="xl">
-        <LoadingSpinner size="lg" />
+        <Loader size="lg" />
       </Center>
     )
   }
@@ -110,8 +110,8 @@ export function UserProfilePage() {
           </Title>
         </Box>
 
-        <Stack gap="lg" p="lg">
-          <Group gap="lg">
+        <Stack p="lg">
+          <Group>
             <Box pos="relative">
               <UserAvatar user={user} size="xl" />
               <Group gap={4} pos="absolute" bottom={-4} right={-4}>
@@ -131,7 +131,7 @@ export function UserProfilePage() {
                   disabled={isUploadingAvatar}
                   title={t('profile.avatar.upload')}
                 >
-                  {isUploadingAvatar ? <LoadingSpinner size="sm" /> : <IconCamera size={14} />}
+                  {isUploadingAvatar ? <Loader size="sm" /> : <IconCamera size={14} />}
                 </ActionIcon>
                 {user.avatarUrl && (
                   <ActionIcon
@@ -143,7 +143,7 @@ export function UserProfilePage() {
                     disabled={isDeletingAvatar}
                     title={t('profile.avatar.remove')}
                   >
-                    {isDeletingAvatar ? <LoadingSpinner size="sm" /> : <IconX size={14} />}
+                    {isDeletingAvatar ? <Loader size="sm" /> : <IconX size={14} />}
                   </ActionIcon>
                 )}
               </Group>
@@ -160,7 +160,7 @@ export function UserProfilePage() {
 
           {isEditing ? (
             <form onSubmit={form.onSubmit(handleSubmit)}>
-              <Stack gap="md">
+              <Stack>
                 <TextInput
                   label={t('profile.form.displayName.label')}
                   {...form.getInputProps('displayName')}
@@ -181,7 +181,7 @@ export function UserProfilePage() {
               </Stack>
             </form>
           ) : (
-            <Stack gap="md">
+            <Stack>
               <Box>
                 <Text size="sm" fw={500} c="dimmed">
                   {t('profile.form.displayName.label')}
@@ -207,7 +207,7 @@ export function UserProfilePage() {
 
           <Divider />
 
-          <Stack gap="md">
+          <Stack>
             <Title order={3} size="h5">
               {t('profile.preferences.title')}
             </Title>
@@ -216,7 +216,7 @@ export function UserProfilePage() {
 
           <Divider />
 
-          <Stack gap="md">
+          <Stack>
             <Title order={3} size="h5">
               {t('profile.account.title')}
             </Title>

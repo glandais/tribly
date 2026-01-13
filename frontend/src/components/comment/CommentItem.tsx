@@ -57,7 +57,7 @@ export function CommentItem({
           </Group>
           <Text style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{comment.content}</Text>
 
-          <Group gap="md" mt={4}>
+          <Group mt={4}>
             {!isReply && onReply && (
               <Button
                 variant="subtle"

@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Group, Text, Box, Center, Image } from '@mantine/core'
+import { Group, Text, Box, Center, Image, Loader } from '@mantine/core'
 import { IconPhoto } from '@tabler/icons-react'
 import type { AssetDto } from '@/api/dto'
 import {
@@ -9,7 +9,6 @@ import {
   type ImageSize,
   DEFAULT_IMAGE_SIZE,
 } from '../../lib/assetMarkdown'
-import { LoadingSpinner } from './LoadingSpinner'
 
 export interface AssetImageProps {
   assetId: string
@@ -74,7 +73,7 @@ export function AssetImage({
           bg="var(--mantine-color-default-hover)"
           style={{ borderRadius: 'var(--mantine-radius-md)' }}
         >
-          <LoadingSpinner size="sm" />
+          <Loader size="sm" />
         </Center>
       )}
       <Image

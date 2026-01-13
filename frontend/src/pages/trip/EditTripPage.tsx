@@ -85,7 +85,7 @@ export function EditTripPage() {
 
   return (
     <Container size="sm" py="xl">
-      <Stack gap="xs" mb="xl">
+      <Stack gap="xs">
         <Title order={1}>{t('trips.edit.title')}</Title>
         <Text c="dimmed">{t('trips.edit.subtitle', { teamName: team.name })}</Text>
       </Stack>

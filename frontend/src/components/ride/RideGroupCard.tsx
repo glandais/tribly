@@ -67,7 +67,7 @@ export function RideGroupCard({
       onMouseLeave={() => onHover?.(null)}
     >
       {/* Header row: title + badge + button */}
-      <Group justify="space-between" gap="md" wrap="nowrap">
+      <Group justify="space-between" wrap="nowrap">
         <Group gap="sm" style={{ minWidth: 0 }}>
           <Text fw={500} truncate>
             {group.name}
@@ -99,7 +99,7 @@ export function RideGroupCard({
       </Group>
 
       {/* Details row */}
-      <Group mt="xs" gap="md">
+      <Group mt="xs">
         {group.time && (
           <Group gap={4}>
             <IconClock size={16} />

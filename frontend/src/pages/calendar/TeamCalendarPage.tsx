@@ -38,7 +38,7 @@ export function TeamCalendarPage(): React.ReactElement {
 
   return (
     <TeamLayout team={team} currentTab="calendar">
-      <Stack gap="lg">
+      <Stack>
         <Title order={2}>{t('calendar.title')}</Title>
 
         <CalendarView

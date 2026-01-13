@@ -1,72 +1,60 @@
 import { useMemo } from 'react'
-import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Stack, Title, Text, Tabs } from '@mantine/core'
+import { Stack } from '@mantine/core'
+import { IconNews, IconCalendar, IconRoute, IconUsers } from '@tabler/icons-react'
 import { paths } from '@/config/paths'
 import { useAuth } from '@/hooks/useAuth'
+import { NavButtons, type NavButtonItem } from '../common/NavButtons'
 
 export type HomeTab = 'feed' | 'routes' | 'teams' | 'calendar'
 
 interface HomeLayoutProps {
+  header?: React.ReactNode
   currentTab: HomeTab
   children: React.ReactNode
 }
 
-export function HomeLayout({ currentTab, children }: HomeLayoutProps) {
+export function HomeLayout({ header = <></>, currentTab, children }: HomeLayoutProps) {
   const { t } = useTranslation()
   const { isAuthenticated } = useAuth()
 
   const tabs = useMemo(() => {
-    const allTabs: { id: HomeTab; path: string; label: string; requiresAuth?: boolean }[] = [
+    const allTabs: (NavButtonItem & { requiresAuth?: boolean })[] = [
       {
         id: 'feed',
         path: paths.home(),
         label: t('home.tabs.feed'),
+        icon: IconNews,
       },
       {
         id: 'calendar',
         path: paths.calendar(),
         label: t('calendar.title'),
+        icon: IconCalendar,
         requiresAuth: true,
       },
       {
         id: 'routes',
         path: paths.allRoutes(),
         label: t('nav.routes'),
+        icon: IconRoute,
       },
       {
         id: 'teams',
         path: paths.teams(),
         label: t('teams.title'),
+        icon: IconUsers,
       },
     ]
     return allTabs.filter((tab) => !tab.requiresAuth || isAuthenticated)
   }, [t, isAuthenticated])
 
   return (
-    <Stack gap="lg">
-      {/* Header */}
-      <div>
-        <Title order={1}>{t('welcome')}</Title>
-        <Text c="dimmed" mt={4}>
-          {t('home.subtitle')}
-        </Text>
-      </div>
+    <Stack>
+      {header}
 
       {/* Home Navigation */}
-      <Tabs value={currentTab}>
-        <Tabs.List>
-          {tabs.map((tab) => (
-            <Tabs.Tab
-              key={tab.id}
-              value={tab.id}
-              renderRoot={(props) => <Link to={tab.path} {...props} />}
-            >
-              {tab.label}
-            </Tabs.Tab>
-          ))}
-        </Tabs.List>
-      </Tabs>
+      <NavButtons items={tabs} currentId={currentTab} />
 
       {/* Page Content */}
       <div>{children}</div>

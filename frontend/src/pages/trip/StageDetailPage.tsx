@@ -124,8 +124,8 @@ export function StageDetailPage() {
     <Container size="xl" py="xl">
       {/* Trip Header */}
       <Paper withBorder p="lg" mb="lg">
-        <Group justify="space-between" align="flex-start" wrap="wrap" gap="md">
-          <Group gap="md" style={{ minWidth: 0 }}>
+        <Group justify="space-between" align="flex-start" wrap="wrap">
+          <Group style={{ minWidth: 0 }}>
             <EntityLogo logo={trip.media.assets.logo} alt={trip.name} size="lg" />
             <Box>
               <Anchor
@@ -161,10 +161,10 @@ export function StageDetailPage() {
 
       {/* Stage tabs + Stage content */}
       <TripLayout trip={trip} teamSlug={teamSlug!} currentTab={stageSlug!}>
-        <Stack gap="lg">
+        <Stack>
           {/* Stage header */}
           <Paper withBorder p="lg">
-            <Group gap="md" mb="md">
+            <Group mb="md">
               <Badge size="xl" variant="light" color="primary" circle>
                 {stageIndex + 1}
               </Badge>

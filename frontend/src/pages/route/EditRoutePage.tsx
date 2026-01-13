@@ -52,10 +52,10 @@ export function EditRoutePage() {
   if (isLoading) {
     return (
       <Box maw={768} mx="auto" px="md" py="xl">
-        <Stack gap="md">
+        <Stack>
           <Skeleton height={32} width="25%" />
-          <Skeleton height={16} width="50%" mb="xl" />
-          <Stack gap="lg">
+          <Skeleton height={16} width="50%" />
+          <Stack>
             {[...Array(5)].map((_, i) => (
               <Stack key={i} gap="xs">
                 <Skeleton height={16} width="25%" />
@@ -120,7 +120,7 @@ export function EditRoutePage() {
 
   return (
     <Box maw={768} mx="auto" px="md" py="xl">
-      <Stack mb="xl" gap="xs">
+      <Stack gap="xs">
         <Title order={1}>{t('routes.edit.title')}</Title>
         <Text c="dimmed">{t('routes.edit.subtitle')}</Text>
       </Stack>

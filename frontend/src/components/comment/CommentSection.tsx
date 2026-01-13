@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Paper, Title, Stack, Text, Center } from '@mantine/core'
+import { Paper, Title, Stack, Text, Center, Loader } from '@mantine/core'
 import {
   useComments,
   useCreateComment,
@@ -9,7 +9,6 @@ import {
 } from '../../hooks/useComments'
 import { CommentItem } from './CommentItem'
 import { CommentForm } from './CommentForm'
-import { LoadingSpinner } from '../common/LoadingSpinner'
 import type { CommentDto } from '../../api/dto'
 import { useAuth } from '../../hooks/useAuth'
 
@@ -53,7 +52,7 @@ export function CommentSection({
     return (
       <Paper p="xl" shadow="xs" withBorder>
         <Center>
-          <LoadingSpinner />
+          <Loader />
         </Center>
       </Paper>
     )
@@ -73,7 +72,7 @@ export function CommentSection({
       />
 
       {/* Comments list */}
-      <Stack mt="xl" gap="md">
+      <Stack mt="xl">
         {data?.items.map((comment) => (
           <CommentItem
             key={comment.id}

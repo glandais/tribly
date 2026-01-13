@@ -1,2 +1,2 @@
-export { AdCard, AdCardSkeleton } from './AdCard'
+export { AdCard, AdCardSkeleton } from '../card'
 export { AdEditor } from './AdEditor'

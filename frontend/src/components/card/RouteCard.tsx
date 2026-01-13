@@ -1,11 +1,10 @@
-import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { IconMap, IconArrowUp, IconUsers, IconChevronRight } from '@tabler/icons-react'
+import { IconMap, IconArrowUp } from '@tabler/icons-react'
 import { useUnits } from '@/hooks/useUnits'
-import { Group, Text, Image, Box, UnstyledButton } from '@mantine/core'
+import { Group, Image, Box } from '@mantine/core'
 import type { RouteDto } from '@/api/dto'
-import { Card, CardContent, CardTitle, CardDescription } from '../common/card'
-import { Badge, VisibilityBadge, Stat, StatGroup, CardSkeleton } from '../common/card'
+import { Card, CardContent, CardTitle, CardDescription, CardTeamLink } from './common'
+import { Badge, VisibilityBadge, Stat, StatGroup, CardSkeleton } from './common'
 import { EntityLogo } from '../common/EntityLogo'
 import { paths } from '@/config/paths'
 
@@ -16,42 +15,17 @@ interface RouteCardProps {
 
 export function RouteCard({ route, showTeam }: RouteCardProps) {
   const { t } = useTranslation()
-  const navigate = useNavigate()
   const { distance, elevation } = useUnits()
 
   return (
     <Card to={paths.route(route.team.slug, route.slug)}>
-      <Image src={route.media.assets.thumbnail?.imageUrl?.replace('{size}', '400')} alt={route.name} />
+      <Image
+        src={route.media.assets.thumbnail?.imageUrl?.replace('{size}', '400')}
+        alt={route.name}
+      />
 
       <CardContent>
-        {showTeam && (
-          <UnstyledButton
-            onClick={(e) => {
-              e.preventDefault()
-              e.stopPropagation()
-              navigate(paths.team(route.team.slug))
-            }}
-            mb="sm"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 'var(--mantine-spacing-xs)',
-            }}
-            styles={{
-              root: {
-                '&:hover': {
-                  textDecoration: 'underline',
-                },
-              },
-            }}
-          >
-            <IconUsers size={16} color="var(--mantine-color-dimmed)" />
-            <Text size="sm" c="dimmed" fw={500}>
-              {route.team.name}
-            </Text>
-            <IconChevronRight size={12} color="var(--mantine-color-dimmed)" />
-          </UnstyledButton>
-        )}
+        {showTeam && <CardTeamLink teamSlug={route.team.slug} teamName={route.team.name} />}
 
         <Group gap="sm" wrap="nowrap" align="flex-start">
           <EntityLogo logo={route.media.assets.logo} alt={route.name} size="md" />

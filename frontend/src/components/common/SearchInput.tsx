@@ -1,4 +1,10 @@
-import { TextInput, Box, CloseButton, type MantineStyleProp, type MantineSpacing } from '@mantine/core'
+import {
+  TextInput,
+  Box,
+  CloseButton,
+  type MantineStyleProp,
+  type MantineSpacing,
+} from '@mantine/core'
 import { IconSearch } from '@tabler/icons-react'
 
 export interface SearchInputProps {

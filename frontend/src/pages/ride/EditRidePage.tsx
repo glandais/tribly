@@ -94,7 +94,7 @@ export function EditRidePage() {
 
   return (
     <Container size="sm" py="xl">
-      <Stack gap="xs" mb="xl">
+      <Stack gap="xs">
         <Title order={1}>{t('rides.edit.title')}</Title>
         <Text c="dimmed">{t('rides.edit.subtitle', { teamName: team.name })}</Text>
       </Stack>

@@ -70,7 +70,7 @@ export function PostEditor({
 
   return (
     <form onSubmit={form.onSubmit(handleSubmit)}>
-      <Stack gap="lg">
+      <Stack>
         <TextInput
           label={
             <>

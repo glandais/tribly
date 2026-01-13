@@ -2,7 +2,15 @@ import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
-import { Stack, Group, Title, Button, Tabs, Box } from '@mantine/core'
+import { Stack, Group, Title, Button, Box } from '@mantine/core'
+import {
+  IconNews,
+  IconCalendar,
+  IconRoute,
+  IconTags,
+  IconInfoCircle,
+  IconFileText,
+} from '@tabler/icons-react'
 import { getGetTeamQueryKey } from '@/api/endpoints/teams/teams'
 import {
   useLeaveTeam,
@@ -12,7 +20,8 @@ import {
 import { useAuth } from '../../hooks/useAuth'
 import { useFavicon } from '../../hooks/useFavicon'
 import { ConfirmDialog } from '../common/ConfirmDialog'
-import { VisibilityBadge } from '../common/card/VisibilityBadge'
+import { NavButtons, type NavButtonItem } from '../common/NavButtons'
+import { VisibilityBadge } from '../card/common'
 import { TeamAvatar } from './TeamAvatar'
 import type { TeamDetailDto } from '@/api/dto'
 import { paths } from '@/config/paths'
@@ -70,20 +79,45 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
 
   // Build tabs list with dynamic pages
   const tabs = useMemo(() => {
-    const baseTabs = [
+    const baseTabs: NavButtonItem[] = [
       {
         id: 'publications',
         path: paths.team(team.slug),
         label: t('teams.publications.list.title'),
+        icon: IconNews,
       },
       ...(isMember
-        ? [{ id: 'calendar', path: paths.teamCalendar(team.slug), label: t('teams.detail.tabs.calendar') }]
+        ? [
+            {
+              id: 'calendar',
+              path: paths.teamCalendar(team.slug),
+              label: t('teams.detail.tabs.calendar'),
+              icon: IconCalendar,
+            },
+          ]
         : []),
-      { id: 'routes', path: paths.routes(team.slug), label: t('teams.detail.tabs.routes') },
+      {
+        id: 'routes',
+        path: paths.routes(team.slug),
+        label: t('teams.detail.tabs.routes'),
+        icon: IconRoute,
+      },
       ...(isMember && team.enableAds
-        ? [{ id: 'ads', path: paths.ads(team.slug), label: t('ads.title') }]
+        ? [
+            {
+              id: 'ads',
+              path: paths.ads(team.slug),
+              label: t('ads.title'),
+              icon: IconTags,
+            },
+          ]
         : []),
-      { id: 'about', path: paths.teamAbout(team.slug), label: t('teams.detail.tabs.about') },
+      {
+        id: 'about',
+        path: paths.teamAbout(team.slug),
+        label: t('teams.detail.tabs.about'),
+        icon: IconInfoCircle,
+      },
     ]
 
     // Add dynamic pages - filter by visibility (PUBLIC pages or member can see TEAM pages)
@@ -91,22 +125,23 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
       (page) => page.visibility === 'PUBLIC' || isMember
     )
 
-    const pageTabs = visiblePages.map((page) => ({
+    const pageTabs: NavButtonItem[] = visiblePages.map((page) => ({
       id: page.slug,
       path: paths.teamPage(team.slug, page.slug),
       label: page.title,
+      icon: IconFileText,
     }))
 
     return [...baseTabs, ...pageTabs]
   }, [team.slug, team.pages, team.enableAds, isMember, t])
 
   return (
-    <Stack gap="lg">
+    <Stack>
       {/* Team Header */}
-      <Group align="flex-start" gap="lg" wrap="wrap">
+      <Group align="flex-start" wrap="wrap">
         <TeamAvatar team={team} size="xl" />
         <Box style={{ flex: 1 }}>
-          <Group justify="space-between" align="flex-start" wrap="wrap" gap="md">
+          <Group justify="space-between" align="flex-start" wrap="wrap">
             <Group gap="sm">
               <Title order={1}>{team.name}</Title>
               {team.visibility === 'TEAM' && <VisibilityBadge visibility={team.visibility} />}
@@ -138,19 +173,7 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
       </Group>
 
       {/* Team Navigation */}
-      <Tabs value={currentTab}>
-        <Tabs.List>
-          {tabs.map((tab) => (
-            <Tabs.Tab
-              key={tab.id}
-              value={tab.id}
-              renderRoot={(props) => <Link to={tab.path} {...props} />}
-            >
-              {tab.label}
-            </Tabs.Tab>
-          ))}
-        </Tabs.List>
-      </Tabs>
+      <NavButtons items={tabs} currentId={currentTab} />
 
       {/* Page Content */}
       <div>{children}</div>

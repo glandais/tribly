@@ -24,7 +24,7 @@ export function CreateTeamPage() {
 
   return (
     <Box maw={672} mx="auto" px={{ base: 'md', sm: 'lg' }} py="xl">
-      <Stack gap="xs" mb="xl">
+      <Stack gap="xs">
         <Title order={1}>{t('teams.create.title')}</Title>
         <Text c="dimmed">{t('teams.create.subtitle')}</Text>
       </Stack>

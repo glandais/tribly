@@ -77,7 +77,7 @@ export function CreateRoutePage() {
 
   return (
     <Box maw={768} mx="auto" px="md" py="xl">
-      <Stack mb="xl" gap="xs">
+      <Stack gap="xs">
         <Title order={1}>{t('routes.create.title')}</Title>
         <Text c="dimmed">{t('routes.create.subtitle')}</Text>
       </Stack>

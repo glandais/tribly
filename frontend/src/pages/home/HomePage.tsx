@@ -8,10 +8,7 @@ import {
   getListAllPublicationsQueryKey,
 } from '../../api/endpoints/publications/publications'
 import { PublicationType } from '@/api/dto'
-import {
-  PublicationCard,
-  PublicationCardSkeleton,
-} from '../../components/publication/PublicationCard'
+import { PublicationCard, PublicationCardSkeleton } from '../../components/card'
 import { Pagination } from '../../components/common/Pagination'
 import { usePaginatedQuery } from '../../hooks/usePaginatedQuery'
 import { SearchInput } from '../../components/common/SearchInput'
@@ -74,82 +71,87 @@ export function HomePage() {
 
   return (
     <HomeLayout currentTab="feed">
-      {/* Publications Section */}
-      <Title order={2} mb="md">
-        {t('home.feed.title')}
-      </Title>
+      <Stack>
+        <Box>
+          <Title order={2}>{t('welcome')}</Title>
+          <Text c="dimmed" mt={4} mb="md">
+            {t('home.subtitle')}
+          </Text>
 
-      {/* Search and Filter */}
-      <Group gap="md" mb="lg" align="flex-end" wrap="wrap">
-        <SearchInput
-          id="publications-search"
-          value={search}
-          onChange={(value) => {
-            setSearch(value)
-            resetPage()
-          }}
-          placeholder={t('home.feed.search.placeholder')}
-          label={t('home.feed.search.label')}
-          style={{ flex: 1, minWidth: 200 }}
-        />
-        <Select
-          value={filter}
-          onChange={(value) => {
-            if (value) {
-              setFilter(value as FilterValue)
+          {/* Publications Section */}
+          <Title order={2}>{t('home.feed.title')}</Title>
+        </Box>
+
+        {/* Search and Filter */}
+        <Group align="flex-end" wrap="wrap">
+          <SearchInput
+            id="publications-search"
+            value={search}
+            onChange={(value) => {
+              setSearch(value)
               resetPage()
-            }
-          }}
-          data={[
-            { value: 'all', label: t('teams.publications.list.filter.all') },
-            { value: 'ride', label: t('teams.publications.list.filter.ride') },
-            { value: 'post', label: t('teams.publications.list.filter.post') },
-            { value: 'trip', label: t('teams.publications.list.filter.trip') },
-          ]}
-          aria-label={t('teams.publications.list.filter.label')}
-          w={{ base: '100%', sm: 160 }}
-        />
-      </Group>
+            }}
+            placeholder={t('home.feed.search.placeholder')}
+            label={t('home.feed.search.label')}
+            style={{ flex: 1, minWidth: 200 }}
+          />
+          <Select
+            value={filter}
+            onChange={(value) => {
+              if (value) {
+                setFilter(value as FilterValue)
+                resetPage()
+              }
+            }}
+            data={[
+              { value: 'all', label: t('teams.publications.list.filter.all') },
+              { value: 'ride', label: t('teams.publications.list.filter.ride') },
+              { value: 'post', label: t('teams.publications.list.filter.post') },
+              { value: 'trip', label: t('teams.publications.list.filter.trip') },
+            ]}
+            aria-label={t('teams.publications.list.filter.label')}
+            w={{ base: '100%', sm: 160 }}
+          />
+        </Group>
 
-      {/* Loading State */}
-      {isLoading ? (
-        <Stack gap="lg">
-          {[...Array(6)].map((_, i) => (
-            <PublicationCardSkeleton key={i} />
-          ))}
-        </Stack>
-      ) : isError ? (
-        /* Error State */
-        <Paper withBorder p="xl" radius="md">
-          <Center>
-            <Stack align="center" gap="sm">
-              <IconNews size={48} color="var(--mantine-color-red-filled)" />
-              <Text fw={500}>{t('error.loading')}</Text>
-            </Stack>
-          </Center>
-        </Paper>
-      ) : publicationsData?.publications && publicationsData.publications.length > 0 ? (
-        /* Publications List */
-        <Stack gap="lg">
-          {publicationsData.publications.map((publication) => (
-            <PublicationCard key={publication.id} publication={publication} showTeam={true} />
-          ))}
+        {/* Loading State */}
+        {isLoading ? (
+          <Stack>
+            {[...Array(6)].map((_, i) => (
+              <PublicationCardSkeleton key={i} />
+            ))}
+          </Stack>
+        ) : isError ? (
+          /* Error State */
+          <Paper withBorder p="xl" radius="md">
+            <Center>
+              <Stack align="center" gap="sm">
+                <IconNews size={48} color="var(--mantine-color-red-filled)" />
+                <Text fw={500}>{t('error.loading')}</Text>
+              </Stack>
+            </Center>
+          </Paper>
+        ) : publicationsData?.publications && publicationsData.publications.length > 0 ? (
+          /* Publications List */
+          <Stack>
+            {publicationsData.publications.map((publication) => (
+              <PublicationCard key={publication.id} publication={publication} showTeam={true} />
+            ))}
 
-          <Box mt="xl">
             <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
-          </Box>
-        </Stack>
-      ) : (
-        /* Empty State */
-        <Paper withBorder p="xl" radius="md">
-          <Center>
-            <Stack align="center" gap="sm">
-              <IconNews size={48} color="var(--mantine-color-dimmed)" />
-              <Text fw={500}>{search ? t('home.feed.noResults') : t('home.feed.empty')}</Text>
-            </Stack>
-          </Center>
-        </Paper>
-      )}
+          </Stack>
+        ) : (
+          /* Empty State */
+          <Paper withBorder p="xl" radius="md">
+            <Center>
+              <Stack align="center" gap="sm">
+                <IconNews size={48} color="var(--mantine-color-dimmed)" />
+                <Text fw={500}>{search ? t('home.feed.noResults') : t('home.feed.empty')}</Text>
+              </Stack>
+            </Center>
+          </Paper>
+        )}
+      </Stack>
     </HomeLayout>
   )
 }

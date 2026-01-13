@@ -32,7 +32,7 @@ export function Layout() {
   const [opened, { toggle, close }] = useDisclosure(false)
   const { pathname } = useLocation()
 
-  const pinned = useHeadroom({ fixedAt: 120 });
+  const pinned = useHeadroom({ fixedAt: 120 })
   // Scroll to top on route change
   useEffect(() => {
     window.scrollTo(0, 0)

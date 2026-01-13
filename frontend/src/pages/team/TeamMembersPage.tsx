@@ -170,7 +170,7 @@ export function TeamMembersPage() {
           title={t('teams.detail.members.addMember')}
           size="md"
         >
-          <Stack gap="md">
+          <Stack>
             <Box>
               <Text size="sm" fw={500} mb="xs">
                 {t('teams.detail.members.searchUser')}

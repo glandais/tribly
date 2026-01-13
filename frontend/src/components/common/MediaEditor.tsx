@@ -147,7 +147,7 @@ export function MediaEditor({
             </Text>
           </Group>
 
-          <Group gap="md">
+          <Group>
             {logo?.imageUrl ? (
               <Image
                 src={logo.imageUrl?.replace('{size}', String(getImageSizeWidth('thumbnail')))}

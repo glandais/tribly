@@ -29,13 +29,10 @@ export function ParticipantListModal({
 
   return (
     <Modal opened={isOpen} onClose={onClose} title={groupName} size="xl">
-      <Box mb="md">
+      <Stack>
         <Text size="sm" fw={600} c="primary">
           {t('rides.detail.groups.participantsNoMax', { current: participantCount })}
         </Text>
-      </Box>
-
-      <Box mt="md">
         {participants.length === 0 ? (
           <Stack align="center" py="xl">
             <IconUsers size={48} color="var(--mantine-color-dimmed)" />
@@ -102,7 +99,7 @@ export function ParticipantListModal({
             ))}
           </Stack>
         )}
-      </Box>
+      </Stack>
     </Modal>
   )
 }

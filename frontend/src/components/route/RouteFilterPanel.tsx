@@ -57,7 +57,7 @@ export function RouteFilterPanel({
     hasNonDefaultSort
 
   return (
-    <Stack gap="md">
+    <Stack>
       <Group gap="sm">
         <Button
           variant="default"

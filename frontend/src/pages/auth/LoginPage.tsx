@@ -20,7 +20,7 @@ export function LoginPage() {
   return (
     <Center mih="70vh">
       <Paper shadow="lg" radius="lg" p="xl" w="100%" maw={400}>
-        <Stack gap="lg">
+        <Stack>
           <Stack gap="xs" ta="center">
             <Title order={1}>{t('welcome')}</Title>
             <Text c="dimmed">{t('auth.login.subtitle')}</Text>

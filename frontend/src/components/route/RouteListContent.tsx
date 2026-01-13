@@ -2,12 +2,12 @@ import { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { IconMap } from '@tabler/icons-react'
 import { Box, Center, Paper, SimpleGrid, Stack, Text, Title } from '@mantine/core'
-import type { RouteListItemDto } from '@/api/dto'
-import { RouteCard, RouteCardSkeleton } from './RouteCard'
+import type { RouteDto } from '@/api/dto'
+import { RouteCard, RouteCardSkeleton } from '../card'
 import { Pagination } from '../common/Pagination'
 
 interface RouteListContentProps {
-  routes: RouteListItemDto[] | undefined
+  routes: RouteDto[] | undefined
   isLoading: boolean
   isError?: boolean
   showTeam: boolean
@@ -33,7 +33,7 @@ export function RouteListContent({
 
   if (isLoading) {
     return (
-      <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="lg">
+      <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }}>
         <RouteCardSkeleton count={6} />
       </SimpleGrid>
     )
@@ -41,9 +41,9 @@ export function RouteListContent({
 
   if (isError) {
     return (
-      <Paper shadow="xs" withBorder py="xl">
+      <Paper shadow="xs" withBorder>
         <Center>
-          <Stack align="center" gap="md">
+          <Stack align="center">
             <IconMap size={48} color="var(--mantine-color-red-filled)" />
             <Title order={3}>{t('error.loading')}</Title>
           </Stack>
@@ -75,7 +75,7 @@ export function RouteListContent({
   return (
     <Paper shadow="xs" withBorder py="xl">
       <Center>
-        <Stack align="center" gap="md">
+        <Stack align="center">
           <IconMap size={48} color="var(--mantine-color-dimmed)" />
           <Title order={3}>
             {hasFiltersOrSearch ? t('routes.list.noResults') : t('routes.list.empty.title')}

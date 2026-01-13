@@ -15,6 +15,7 @@ import {
   ActionIcon,
   Anchor,
   Center,
+  Loader,
 } from '@mantine/core'
 import { IconPencil, IconTrash, IconPlus, IconMapPin } from '@tabler/icons-react'
 import {
@@ -23,7 +24,6 @@ import {
   getListPlacesQueryKey,
 } from '../../api/endpoints/places/places'
 import { ConfirmDialog } from '../common/ConfirmDialog'
-import { LoadingSpinner } from '../common/LoadingSpinner'
 import { PlaceForm } from './PlaceForm'
 import type { PlaceDetailDto } from '../../api/dto'
 
@@ -45,7 +45,7 @@ export function PlaceList({ teamSlug, canManage }: PlaceListProps) {
   if (isLoading) {
     return (
       <Center py="xl">
-        <LoadingSpinner />
+        <Loader />
       </Center>
     )
   }
@@ -78,7 +78,7 @@ export function PlaceList({ teamSlug, canManage }: PlaceListProps) {
   }
 
   return (
-    <Stack gap="md">
+    <Stack>
       <Group justify="space-between">
         <Title order={4}>{t('places.title')}</Title>
         {canManage && (

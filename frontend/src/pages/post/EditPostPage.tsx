@@ -84,7 +84,7 @@ export function EditPostPage() {
 
   return (
     <Container size="sm" py="xl">
-      <Stack gap="xs" mb="xl">
+      <Stack gap="xs">
         <Title order={1}>{t('posts.edit.title')}</Title>
       </Stack>
 

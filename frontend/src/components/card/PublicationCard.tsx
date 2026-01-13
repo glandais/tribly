@@ -1,14 +1,13 @@
-import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { IconCalendar, IconUsers, IconStack2, IconChevronRight } from '@tabler/icons-react'
-import { Group, Box, Stack, UnstyledButton, Text } from '@mantine/core'
-import { Card, CardContent, CardTitle, CardDescription, CardImage } from '../common/card'
-import { Badge, VisibilityBadge, Stat, StatGroup, CardSkeleton } from '../common/card'
+import { IconCalendar, IconUsers, IconStack2 } from '@tabler/icons-react'
+import { Group, Box, Stack } from '@mantine/core'
+import { Card, CardContent, CardTitle, CardDescription, CardImage, CardTeamLink } from './common'
+import { Badge, VisibilityBadge, Stat, StatGroup, CardSkeleton } from './common'
 import { UserAvatarGroup } from '../common/UserAvatar'
 import { useFormattedDate } from '../../utils/dateFormat'
 import { paths } from '@/config/paths'
 import { PublicationCardProgress } from './PublicationCardProgress'
-import { RouteThumbnail } from './RouteThumbnail'
+import { RouteThumbnail } from '../route/RouteThumbnail'
 import type { PublicationDto, RideDto, TripDto } from '@/api/dto'
 
 // Status variants for badges
@@ -33,7 +32,6 @@ interface PublicationCardProps {
 export function PublicationCard({ publication, showTeam }: PublicationCardProps) {
   const { t } = useTranslation()
   const { formatDateTime } = useFormattedDate()
-  const navigate = useNavigate()
 
   // Get the appropriate path based on publication type
   const getPublicationPath = () => {
@@ -142,32 +140,8 @@ export function PublicationCard({ publication, showTeam }: PublicationCardProps)
       />
 
       <CardContent>
-        {/* Team header - clickable button to team page (not a link to avoid nested <a> tags) */}
         {showTeam && (
-          <UnstyledButton
-            onClick={(e) => {
-              e.preventDefault()
-              e.stopPropagation()
-              navigate(paths.team(publication.team.slug))
-            }}
-            mb="sm"
-            styles={{
-              root: {
-                display: 'block',
-                '&:hover': {
-                  textDecoration: 'underline',
-                },
-              },
-            }}
-          >
-            <Group gap="xs">
-              <IconUsers size={16} />
-              <Text size="sm" fw={500}>
-                {publication.team.name}
-              </Text>
-              <IconChevronRight size={12} />
-            </Group>
-          </UnstyledButton>
+          <CardTeamLink teamSlug={publication.team.slug} teamName={publication.team.name} />
         )}
 
         {/* Main content - title, description, badges */}
@@ -188,7 +162,7 @@ export function PublicationCard({ publication, showTeam }: PublicationCardProps)
         {/* Participants section - avatars, progress, and route thumbnail */}
         {(participants.length > 0 || publication.type === 'RIDE' || routeThumbnailUrl) && (
           <Group justify="space-between" align="center" mb="md" wrap="nowrap">
-            <Group gap="md" style={{ flex: 1 }}>
+            <Group style={{ flex: 1 }}>
               {participants.length > 0 && (
                 <UserAvatarGroup users={participants} max={5} size="sm" />
               )}

@@ -47,7 +47,7 @@ export function TripStageCard({
       onMouseEnter={() => onHover?.(stage.id)}
       onMouseLeave={() => onHover?.(null)}
     >
-      <Group justify="space-between" gap="md" mb="sm" wrap="nowrap">
+      <Group justify="space-between" mb="sm" wrap="nowrap">
         <Group gap="sm" wrap="nowrap" style={{ minWidth: 0 }}>
           <Badge size="lg" variant="light" color="primary" circle style={{ flexShrink: 0 }}>
             {index + 1}
@@ -71,7 +71,7 @@ export function TripStageCard({
       )}
 
       {(stage.startPlace || stage.endPlace) && (
-        <Group gap="md" wrap="wrap">
+        <Group wrap="wrap">
           {stage.startPlace && (
             <Group gap={4} wrap="nowrap">
               <IconMapPin size={16} color="var(--mantine-color-green-text)" />

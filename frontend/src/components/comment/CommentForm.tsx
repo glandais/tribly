@@ -2,9 +2,8 @@ import { useTranslation } from 'react-i18next'
 import { useForm } from '@mantine/form'
 import { zod4Resolver } from 'mantine-form-zod-resolver'
 import { z } from 'zod'
-import { Group, Textarea, Button, ActionIcon, Stack } from '@mantine/core'
+import { Group, Textarea, Button, ActionIcon, Stack, Loader } from '@mantine/core'
 import { IconSend } from '@tabler/icons-react'
-import { LoadingSpinner } from '../common/LoadingSpinner'
 
 const commentSchema = z.object({
   content: z.string().min(1),
@@ -59,7 +58,7 @@ export function CommentForm({
             size="lg"
             variant="filled"
           >
-            {isLoading ? <LoadingSpinner size="sm" color="white" /> : <IconSend size={18} />}
+            {isLoading ? <Loader size="sm" color="white" /> : <IconSend size={18} />}
           </ActionIcon>
           {onCancel && (
             <Button variant="subtle" size="xs" onClick={onCancel}>

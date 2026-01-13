@@ -80,7 +80,7 @@ export function PlaceForm({ teamSlug, place, onClose }: PlaceFormProps) {
       size="md"
     >
       <form id="place-form" onSubmit={form.onSubmit(handleSubmit)}>
-        <Stack gap="md">
+        <Stack>
           <TextInput
             label={
               <>

@@ -2,9 +2,9 @@ import { useTranslation } from 'react-i18next'
 import { IconUsers } from '@tabler/icons-react'
 import { Group } from '@mantine/core'
 import type { TeamDetailDto } from '@/api/dto'
-import { Card, CardContent, CardTitle, CardDescription } from '../common/card'
-import { Badge, VisibilityBadge, Stat, CardSkeleton } from '../common/card'
-import { TeamAvatar } from './TeamAvatar'
+import { Card, CardContent, CardTitle, CardDescription } from './common'
+import { Badge, VisibilityBadge, Stat, CardSkeleton } from './common'
+import { TeamAvatar } from '../team/TeamAvatar'
 import { paths } from '@/config/paths'
 
 interface TeamCardProps {

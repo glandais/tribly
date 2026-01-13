@@ -67,7 +67,7 @@ export function RouteListPage() {
 
   return (
     <TeamLayout team={team} currentTab="routes">
-      <Stack py="lg" gap="lg">
+      <Stack py="lg">
         <Group justify="space-between">
           <Title order={2}>{t('routes.list.title')}</Title>
           {canCreateRoute && (

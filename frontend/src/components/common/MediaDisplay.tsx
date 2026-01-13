@@ -15,7 +15,7 @@ export function MediaDisplay({ media }: MediaDisplayProps) {
   const images = media.assets.images
 
   return (
-    <Stack gap="md">
+    <Stack>
       <MarkdownDisplay markdown={media.markdown} preview={false} images={images} />
 
       {attachments.length > 0 && (

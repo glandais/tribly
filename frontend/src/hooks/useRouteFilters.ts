@@ -1,9 +1,6 @@
 import { useState, useCallback } from 'react'
 import type { ListRoutesParams, ListAllRoutesParams } from '@/api/dto'
-import {
-  DEFAULT_ROUTE_SORT_BY,
-  DEFAULT_ROUTE_SORT_DIR,
-} from '../components/route/RouteFilterPanel'
+import { DEFAULT_ROUTE_SORT_BY, DEFAULT_ROUTE_SORT_DIR } from '../components/route/RouteFilterPanel'
 
 type RouteFilters = ListRoutesParams | ListAllRoutesParams
 
@@ -11,7 +8,9 @@ interface UseRouteFiltersOptions {
   pageSize?: number
 }
 
-export function useRouteFilters<T extends RouteFilters>({ pageSize = 12 }: UseRouteFiltersOptions = {}) {
+export function useRouteFilters<T extends RouteFilters>({
+  pageSize = 12,
+}: UseRouteFiltersOptions = {}) {
   const [filters, setFilters] = useState<T>({
     page: 0,
     size: pageSize,
@@ -31,8 +30,8 @@ export function useRouteFilters<T extends RouteFilters>({ pageSize = 12 }: UseRo
     setFilters((prev) => ({ ...prev, page }))
   }, [])
 
-  const hasFiltersOrSearch =
-    filters.search ||
+  const hasFiltersOrSearch: boolean =
+    (filters.search ? true : false) ||
     filters.minDistance !== undefined ||
     filters.maxDistance !== undefined ||
     filters.minElevationGain !== undefined ||

@@ -15,6 +15,7 @@ import {
   Box,
   Paper,
   Center,
+  Space,
 } from '@mantine/core'
 import { useGetTeam } from '@/api/endpoints/teams/teams'
 import { useListAds, listAds, getListAdsQueryKey } from '../../api/endpoints/ads/ads'
@@ -105,85 +106,80 @@ export function AdListPage() {
 
   return (
     <TeamLayout team={team} currentTab="ads">
-      <Stack gap="lg">
-        {/* Header */}
-        <Group justify="space-between" align="center" wrap="wrap">
-          <Title order={2}>{t('ads.title')}</Title>
-          {isMember && (
-            <Button
-              component={Link}
-              to={paths.adNew(teamSlug!)}
-              leftSection={<IconPlus size={20} />}
-            >
-              {t('ads.list.createAd')}
-            </Button>
-          )}
-        </Group>
+      {/* Header */}
+      <Group justify="space-between" align="center" wrap="wrap">
+        <Title order={2}>{t('ads.title')}</Title>
+        {isMember && (
+          <Button component={Link} to={paths.adNew(teamSlug!)} leftSection={<IconPlus size={20} />}>
+            {t('ads.list.createAd')}
+          </Button>
+        )}
+      </Group>
+      <Space h="md" />
 
-        {/* Filters */}
-        <Group gap="md" align="flex-end" wrap="wrap">
-          <TextInput
-            style={{ flex: 1, minWidth: 200 }}
-            placeholder={t('ads.list.search.placeholder')}
-            value={search}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              handleSearchChange(e.target.value)
-            }
-            leftSection={<IconSearch size={20} />}
-            aria-label={t('ads.list.search.label')}
-          />
-          <Select
-            w={{ base: '100%', sm: 180 }}
-            value={adType || 'ALL'}
-            onChange={(value: string | null) => handleAdTypeChange(value || 'ALL')}
-            placeholder={t('ads.list.filterByType')}
-            data={[
-              { value: 'ALL', label: t('ads.list.allTypes') },
-              { value: AdType.SALE, label: t('ads.adType.SALE') },
-              { value: AdType.RENTAL, label: t('ads.adType.RENTAL') },
-              { value: AdType.WANTED, label: t('ads.adType.WANTED') },
-            ]}
-          />
-        </Group>
+      {/* Filters */}
+      <Group align="flex-end" wrap="wrap">
+        <TextInput
+          style={{ flex: 1, minWidth: 200 }}
+          placeholder={t('ads.list.search.placeholder')}
+          value={search}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSearchChange(e.target.value)}
+          leftSection={<IconSearch size={20} />}
+          aria-label={t('ads.list.search.label')}
+        />
+        <Select
+          w={{ base: '100%', sm: 180 }}
+          value={adType || 'ALL'}
+          onChange={(value: string | null) => handleAdTypeChange(value || 'ALL')}
+          placeholder={t('ads.list.filterByType')}
+          data={[
+            { value: 'ALL', label: t('ads.list.allTypes') },
+            { value: AdType.SALE, label: t('ads.adType.SALE') },
+            { value: AdType.RENTAL, label: t('ads.adType.RENTAL') },
+            { value: AdType.WANTED, label: t('ads.adType.WANTED') },
+          ]}
+        />
+      </Group>
 
-        {/* Content */}
-        {isLoadingAds ? (
-          <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <AdCardSkeleton key={i} />
+      <Space h="md" />
+
+      {/* Content */}
+      {isLoadingAds ? (
+        <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <AdCardSkeleton key={i} />
+          ))}
+        </SimpleGrid>
+      ) : ads.length === 0 ? (
+        <Paper withBorder p="xl" radius="md">
+          <Center>
+            <Stack align="center" gap="sm">
+              <Title order={3}>{t('ads.list.empty.title')}</Title>
+              <Text c="dimmed">
+                {search || adType ? t('ads.list.noResults') : t('ads.list.empty.member')}
+              </Text>
+            </Stack>
+          </Center>
+        </Paper>
+      ) : (
+        <Stack>
+          <SimpleGrid
+            cols={{ base: 1, md: 2 }}
+            spacing="md"
+            style={{ opacity: isFetching ? 0.5 : 1 }}
+          >
+            {ads.map((ad) => (
+              <AdCard key={ad.id} ad={ad} />
             ))}
           </SimpleGrid>
-        ) : ads.length === 0 ? (
-          <Paper withBorder p="xl" radius="md">
-            <Center>
-              <Stack align="center" gap="sm">
-                <Title order={3}>{t('ads.list.empty.title')}</Title>
-                <Text c="dimmed">
-                  {search || adType ? t('ads.list.noResults') : t('ads.list.empty.member')}
-                </Text>
-              </Stack>
-            </Center>
-          </Paper>
-        ) : (
-          <Stack gap="lg">
-            <SimpleGrid
-              cols={{ base: 1, md: 2 }}
-              spacing="md"
-              style={{ opacity: isFetching ? 0.5 : 1 }}
-            >
-              {ads.map((ad) => (
-                <AdCard key={ad.id} ad={ad} />
-              ))}
-            </SimpleGrid>
 
-            {totalPages > 1 && (
-              <Box mt="md">
-                <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
-              </Box>
-            )}
-          </Stack>
-        )}
-      </Stack>
+          {totalPages > 1 && (
+            <Box mt="md">
+              <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
+            </Box>
+          )}
+        </Stack>
+      )}
     </TeamLayout>
   )
 }

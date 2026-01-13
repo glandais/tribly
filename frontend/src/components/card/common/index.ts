@@ -1,5 +1,6 @@
 export { Card, CardContent, CardHeader, CardTitle, CardDescription } from './Card'
 export { CardImage } from './CardImage'
+export { CardTeamLink } from './CardTeamLink'
 export { Badge } from './Badge'
 export { VisibilityBadge } from './VisibilityBadge'
 export { Stat, StatGroup } from './Stat'

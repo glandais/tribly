@@ -7,7 +7,18 @@ import { notifications } from '@mantine/notifications'
 import i18next from 'i18next'
 import { paths } from '../../config/paths'
 import { IconPlus, IconFileText, IconPencil, IconTrash, IconMenu2 } from '@tabler/icons-react'
-import { ActionIcon, Box, Button, Center, Group, Paper, Stack, Text, Title } from '@mantine/core'
+import {
+  ActionIcon,
+  Box,
+  Button,
+  Center,
+  Group,
+  Loader,
+  Paper,
+  Stack,
+  Text,
+  Title,
+} from '@mantine/core'
 import { useGetTeam, getGetTeamQueryKey } from '@/api/endpoints/teams/teams'
 import {
   useListPages,
@@ -15,10 +26,10 @@ import {
   useReorderPages,
   getListPagesQueryKey,
 } from '@/api/endpoints/team-pages/team-pages'
-import { LoadingPage, LoadingSpinner } from '../../components/common/LoadingSpinner'
+import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { TeamAdminLayout } from '../../components/team/TeamAdminLayout'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
-import { VisibilityBadge } from '../../components/common/card/VisibilityBadge'
+import { VisibilityBadge } from '../../components/card/common'
 import type { TeamPageSummaryDto } from '@/api/dto'
 
 const MAX_ADDITIONAL_PAGES = 3
@@ -148,7 +159,7 @@ export function TeamPagesAdminPage() {
         {/* Pages List */}
         {isLoadingPages ? (
           <Center py="xl">
-            <LoadingSpinner />
+            <Loader />
           </Center>
         ) : pages && pages.length > 0 ? (
           <Stack gap="xs">

@@ -37,7 +37,7 @@ export function CardSkeleton({
             </Stack>
 
             {statCount > 0 && (
-              <Group gap="md" mt="md">
+              <Group mt="md">
                 {Array.from({ length: statCount }).map((_, j) => (
                   <Skeleton key={j} h={16} w={64} radius="sm" />
                 ))}

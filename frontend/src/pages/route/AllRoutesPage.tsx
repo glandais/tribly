@@ -1,7 +1,6 @@
 import { useCallback } from 'react'
-import { useTranslation } from 'react-i18next'
 import { keepPreviousData } from '@tanstack/react-query'
-import { Stack, Title } from '@mantine/core'
+import { Stack } from '@mantine/core'
 import {
   useListAllRoutes,
   listAllRoutes,
@@ -15,8 +14,6 @@ import { RouteFilterPanel } from '../../components/route/RouteFilterPanel'
 import { RouteListContent } from '../../components/route/RouteListContent'
 
 export function AllRoutesPage() {
-  const { t } = useTranslation()
-
   const {
     filters,
     filtersOpen,
@@ -52,9 +49,7 @@ export function AllRoutesPage() {
 
   return (
     <HomeLayout currentTab="routes">
-      <Stack my="lg" gap="lg">
-        <Title order={2}>{t('routes.list.title')}</Title>
-
+      <Stack my="lg">
         <RouteFilterPanel
           filters={filters}
           onFiltersChange={handleFiltersChange}

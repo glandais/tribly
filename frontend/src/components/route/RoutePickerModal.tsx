@@ -120,7 +120,7 @@ export function RoutePickerModal({
           </Stack>
         </Center>
       ) : (
-        <Stack gap="md">
+        <Stack>
           <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
             {routes.map((route) => (
               <Button
@@ -153,7 +153,7 @@ export function RoutePickerModal({
                     {route.name}
                   </Text>
                   <MarkdownDisplay markdown={route.media.markdown} preview={true} maxLength={120} />
-                  <Group gap="md">
+                  <Group>
                     <Group gap={4}>
                       <IconArrowsMaximize size={14} />
                       <Text size="xs" c="dimmed">

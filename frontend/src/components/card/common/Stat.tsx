@@ -28,9 +28,5 @@ interface StatGroupProps {
 }
 
 export function StatGroup({ children }: StatGroupProps) {
-  return (
-    <Group gap="md" my="xs">
-      {children}
-    </Group>
-  )
+  return <Group my="xs">{children}</Group>
 }

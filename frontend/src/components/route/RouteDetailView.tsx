@@ -43,7 +43,7 @@ export function RouteDetailView({
   const { distance, elevation, formatDistance, config } = useUnits()
 
   return (
-    <Stack gap="md">
+    <Stack>
       {/* Interactive Map with Elevation Chart */}
       <Box>
         <RouteMapView route={route} />
@@ -175,7 +175,7 @@ export function RouteDetailView({
                           })}
                         </Text>
                       </Group>
-                      <Group gap="md">
+                      <Group>
                         <Text size="sm">
                           <Text span c="dimmed">
                             {t('routes.detail.climbs.gain')}:

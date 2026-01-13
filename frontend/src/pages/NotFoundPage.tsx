@@ -6,7 +6,7 @@ export function NotFoundPage() {
   const { t } = useTranslation()
   return (
     <Center mih="60vh">
-      <Stack align="center" gap="md">
+      <Stack align="center">
         <Title order={1}>{t('notFound.title')}</Title>
         <Text size="lg" c="dimmed">
           {t('notFound.message')}

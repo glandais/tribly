@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { ReactNode } from 'react'
 import { Paper, Title, Box } from '@mantine/core'
-import { MarkdownDisplay } from '../MarkdownDisplay'
+import { MarkdownDisplay } from '../../common/MarkdownDisplay'
 import { MediaDto } from '@/api/dto'
 
 interface CardProps {

@@ -126,7 +126,7 @@ export function CreateRidePage() {
 
   return (
     <Container size="sm" py="xl">
-      <Stack gap="lg" mb="xl">
+      <Stack>
         <Group justify="space-between" align="center">
           <Title order={1}>{t('rides.create.title')}</Title>
           <Button

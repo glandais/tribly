@@ -78,7 +78,7 @@ export function EditRideTemplatePage() {
 
   return (
     <Container size="sm" py="xl">
-      <Stack gap="xs" mb="xl">
+      <Stack gap="xs">
         <Title order={1}>{t('rideTemplates.edit.title')}</Title>
         <Text c="dimmed">{t('rideTemplates.edit.subtitle')}</Text>
       </Stack>

@@ -18,7 +18,7 @@ import { RouteRequest, SurfaceType } from '@/api/dto'
 import type { TeamDetailDto, GeoPoint } from '@/api/dto'
 import { MediaEditor } from '../common/MediaEditor'
 import { SlugEditor } from '../common/SlugEditor'
-import { EmbeddedRoutePlanner } from '../planner/EmbeddedRoutePlanner'
+import { RoutePlanner } from '../planner/RoutePlanner'
 import { createRouteBody } from '@/api/zod/routes/routes.zod'
 
 export type RouteSourceMode = 'gpx' | 'planner'
@@ -127,7 +127,7 @@ export function RouteEditor({
 
   return (
     <form onSubmit={form.onSubmit(handleSubmit)}>
-      <Stack gap="lg">
+      <Stack>
         {error && <Alert color="red">{error}</Alert>}
 
         {/* Route Source - Mode selector */}
@@ -196,7 +196,7 @@ export function RouteEditor({
                 borderBottom: '1px solid var(--mantine-color-default-border)',
               }}
             >
-              <EmbeddedRoutePlanner
+              <RoutePlanner
                 onPointsChange={setPlannerPoints}
                 initialTrack={initialTrack}
                 teamLocation={team.geometry?.coordinates as [number, number] | undefined}

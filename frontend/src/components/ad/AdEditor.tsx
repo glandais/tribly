@@ -67,7 +67,7 @@ export function AdEditor({
 
   return (
     <form onSubmit={form.onSubmit(handleSubmit)}>
-      <Stack gap="lg">
+      <Stack>
         <TextInput
           label={
             <>
@@ -101,7 +101,7 @@ export function AdEditor({
           }
           {...form.getInputProps('adType')}
         >
-          <Group gap="lg" mt="xs">
+          <Group mt="xs">
             <Radio value={AdType.SALE} label={t('ads.adType.SALE')} />
             <Radio value={AdType.RENTAL} label={t('ads.adType.RENTAL')} />
             <Radio value={AdType.WANTED} label={t('ads.adType.WANTED')} />

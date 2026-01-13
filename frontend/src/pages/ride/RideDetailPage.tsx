@@ -25,6 +25,7 @@ import {
   Alert,
   Anchor,
   Skeleton,
+  Loader,
 } from '@mantine/core'
 import { useGetTeam } from '@/api/endpoints/teams/teams'
 import {
@@ -38,14 +39,14 @@ import {
 import { getListPublicationsQueryKey } from '../../api/endpoints/publications/publications'
 import { Status } from '@/api/dto'
 import { useAuth } from '../../hooks/useAuth'
-import { LoadingPage, LoadingSpinner } from '../../components/common/LoadingSpinner'
+import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { RideGroupCard } from '../../components/ride/RideGroupCard'
-import type { MapRouteItem } from '../../components/common/RoutesMapView'
+import type { MapRouteItem } from '../../components/route/RoutesMapView'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 
 // Lazy load the map component (pulls in map-vendor ~1MB and chart-vendor ~150KB)
 const RoutesMapView = lazy(() =>
-  import('../../components/common/RoutesMapView').then((m) => ({ default: m.RoutesMapView }))
+  import('../../components/route/RoutesMapView').then((m) => ({ default: m.RoutesMapView }))
 )
 import { useFormattedDate } from '../../utils/dateFormat'
 import { MediaDisplay } from '../../components/common/MediaDisplay'
@@ -246,7 +247,7 @@ export function RideDetailPage() {
     <Container size="xl" py="xl">
       {/* Header */}
       <Paper shadow="xs" p="lg" mb="lg" withBorder>
-        <Group justify="space-between" wrap="wrap" gap="md">
+        <Group justify="space-between" wrap="wrap">
           <Group gap="sm" style={{ minWidth: 0 }}>
             <EntityLogo logo={ride.media.assets.logo} alt={ride.name} size="lg" />
             <Title
@@ -283,7 +284,7 @@ export function RideDetailPage() {
                       disabled={updateMutation.isPending}
                       color="success"
                     >
-                      {updateMutation.isPending && <LoadingSpinner size="sm" />}
+                      {updateMutation.isPending && <Loader size="sm" />}
                       {t('actions.publish')}
                     </Menu.Item>
                   )}
@@ -325,7 +326,7 @@ export function RideDetailPage() {
             </Text>
           </Group>
         )}
-        <Group mt="md" gap="lg">
+        <Group mt="md">
           <Group gap="xs">
             <IconCalendar size={16} />
             <Text size="sm" c="dimmed">
@@ -341,7 +342,7 @@ export function RideDetailPage() {
         </Group>
         {/* Start and End Places */}
         {(ride.startPlace || ride.endPlace) && (
-          <Group mt="sm" gap="lg" wrap="wrap">
+          <Group mt="sm" wrap="wrap">
             {ride.startPlace && (
               <Group gap="xs">
                 <IconMapPin size={16} color="var(--mantine-color-green-text)" />

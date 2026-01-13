@@ -7,7 +7,7 @@ import { useListTeams, listTeams, getListTeamsQueryKey } from '@/api/endpoints/t
 import { MinRole } from '@/api/dto'
 import { useAuth } from '../../hooks/useAuth'
 import { usePaginatedQuery } from '../../hooks/usePaginatedQuery'
-import { TeamCard, TeamCardSkeleton } from '../../components/team/TeamCard'
+import { TeamCard, TeamCardSkeleton } from '../../components/card'
 import { Pagination } from '../../components/common/Pagination'
 import { SearchInput } from '../../components/common/SearchInput'
 import { HomeLayout } from '../../components/home/HomeLayout'
@@ -86,7 +86,7 @@ export function TeamListPage() {
 
   return (
     <HomeLayout currentTab="teams">
-      <Stack gap="lg">
+      <Stack>
         <Group justify="space-between" align="flex-start" wrap="wrap">
           <div>
             <Title order={2}>{t('teams.title')}</Title>
@@ -101,7 +101,7 @@ export function TeamListPage() {
           )}
         </Group>
 
-        <Group gap="md" align="flex-end" wrap="wrap">
+        <Group align="flex-end" wrap="wrap">
           <SearchInput
             id="team-search"
             value={search}
@@ -143,7 +143,7 @@ export function TeamListPage() {
             <TeamCardSkeleton count={6} />
           </SimpleGrid>
         ) : teams && teams.length > 0 ? (
-          <Stack gap="lg">
+          <Stack>
             <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="lg">
               {teams.map((team) => (
                 <TeamCard key={team.id} team={team} showRole={true} />

@@ -64,7 +64,7 @@ export function IcsFeedSettings({ teamSlug }: IcsFeedSettingsProps): React.React
   if (isLoading) {
     return (
       <Paper withBorder p="lg" radius="md">
-        <Stack gap="md">
+        <Stack>
           <Skeleton height={20} width="60%" />
           <Skeleton height={36} />
           <Skeleton height={36} width={150} />
@@ -75,7 +75,7 @@ export function IcsFeedSettings({ teamSlug }: IcsFeedSettingsProps): React.React
 
   return (
     <Paper withBorder p="lg" radius="md">
-      <Stack gap="md">
+      <Stack>
         <Alert icon={<IconInfoCircle size={16} />} color="blue" variant="light">
           {t(descriptionKey)}
         </Alert>

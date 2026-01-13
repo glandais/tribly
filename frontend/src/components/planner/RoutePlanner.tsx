@@ -26,17 +26,13 @@ import { around } from 'geokdbush'
 const DEFAULT_CENTER = { lng: -1.55, lat: 47.22 }
 const DEFAULT_ZOOM = 12
 
-interface EmbeddedRoutePlannerProps {
+interface RoutePlannerProps {
   onPointsChange: (points: GeoPoint[]) => void
   initialTrack?: number[][] // [lng, lat, ele, dist][] from existing route
   teamLocation?: [number, number] // [lng, lat] from team geometry
 }
 
-export function EmbeddedRoutePlanner({
-  onPointsChange,
-  initialTrack,
-  teamLocation,
-}: EmbeddedRoutePlannerProps) {
+export function RoutePlanner({ onPointsChange, initialTrack, teamLocation }: RoutePlannerProps) {
   const { t } = useTranslation()
   const { distance, elevation } = useUnits()
   const colorScheme = useComputedColorScheme('light')
@@ -397,7 +393,7 @@ export function EmbeddedRoutePlanner({
         bg="var(--mantine-color-body)"
         style={{ borderBottom: '1px solid var(--mantine-color-default-border)' }}
       >
-        <Group gap="md">
+        <Group>
           {controlPoints.length > 0 && (
             <Text size="sm" c="dimmed">
               {t('planner.pointCount', { count: controlPoints.length })}

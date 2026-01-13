@@ -7,27 +7,6 @@ import {
   LoadingOverlay as MantineLoadingOverlay,
 } from '@mantine/core'
 
-interface LoadingSpinnerProps {
-  size?: 'sm' | 'md' | 'lg'
-  color?: 'primary' | 'white' | 'gray'
-}
-
-const sizeMap = {
-  sm: 'sm',
-  md: 'md',
-  lg: 'lg',
-} as const
-
-const colorMap = {
-  primary: 'primary',
-  white: 'white',
-  gray: 'gray',
-}
-
-export function LoadingSpinner({ size = 'md', color = 'primary' }: LoadingSpinnerProps) {
-  return <Loader size={sizeMap[size]} color={colorMap[color]} />
-}
-
 interface LoadingPageProps {
   message: string
 }
@@ -36,7 +15,7 @@ export function LoadingPage({ message }: LoadingPageProps) {
   return (
     <Center mih="60vh">
       <Stack align="center">
-        <LoadingSpinner size="lg" />
+        <Loader size="lg" />
         <Text c="dimmed">{message}</Text>
       </Stack>
     </Center>

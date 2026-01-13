@@ -57,7 +57,7 @@ export function RouteDetailPage() {
   if (routeLoading) {
     return (
       <Box maw={1280} mx="auto" px="md" py="xl">
-        <Stack gap="md">
+        <Stack>
           <Skeleton height={32} width="25%" />
           <Skeleton height={384} />
           <SimpleGrid cols={{ base: 1, md: 3 }} spacing="lg">
@@ -83,17 +83,17 @@ export function RouteDetailPage() {
   return (
     <Box maw={1280} mx="auto" px="md" py="xl">
       {/* Header */}
-      <Stack gap="lg" mb="lg">
+      <Stack mb="lg">
         <Group justify="space-between" align="flex-start" wrap="wrap">
           <Stack gap="xs">
-            <Group gap="md">
+            <Group>
               <EntityLogo logo={route.media.assets.logo} alt={route.name} size="lg" />
               <Title order={1}>{route.name}</Title>
             </Group>
             <MediaDisplay media={route.media} />
           </Stack>
           {canEdit && (
-            <Group gap="md" mt={{ base: 'md', sm: 0 }}>
+            <Group mt={{ base: 'md', sm: 0 }}>
               <Button variant="default" component="a" href={paths.routeEdit(teamSlug!, routeSlug!)}>
                 {t('actions.edit')}
               </Button>
@@ -117,7 +117,7 @@ export function RouteDetailPage() {
       />
 
       {/* Route Details */}
-      <Box mb="xl">
+      <Box>
         <RouteDetailView route={route} />
       </Box>
 

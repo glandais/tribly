@@ -1,10 +1,10 @@
-import { useState, useRef, useEffect, useCallback, useMemo, type KeyboardEvent } from 'react'
-import { TextInput, Paper, Stack, Text, Loader, Box, Group, ActionIcon } from '@mantine/core'
+import { useState, useEffect, useCallback, useMemo } from 'react'
+import { Paper, Text, Box, Group, ActionIcon } from '@mantine/core'
 import { IconMapPin, IconX } from '@tabler/icons-react'
 import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
+import { Autocomplete } from './Autocomplete'
 import type { GeoJsonPoint } from '@/api/dto'
-import classes from './Autocomplete.module.css'
 
 interface NominatimResult {
   place_id: number
@@ -49,36 +49,7 @@ export function GeocoderAutocomplete({
   const { t } = useTranslation()
   const [query, setQuery] = useState('')
   const [debouncedQuery, setDebouncedQuery] = useState('')
-  // Track which query the user explicitly dismissed (click outside, escape, or select)
-  const [dismissedQuery, setDismissedQuery] = useState('')
-  const [selectedIndex, setSelectedIndex] = useState(-1)
   const [selectedName, setSelectedName] = useState<string | null>(null)
-  const wrapperRef = useRef<HTMLDivElement>(null)
-  const inputRef = useRef<HTMLInputElement>(null)
-
-  // Use React Query for fetching
-  const { data: results = [], isFetching: isLoading } = useQuery({
-    queryKey: ['nominatim', debouncedQuery],
-    queryFn: ({ signal }) => searchNominatim(debouncedQuery, signal),
-    enabled: debouncedQuery.length >= 3,
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
-  })
-
-  // Dropdown is open when: query is valid, has results, and user hasn't dismissed this query
-  const isOpen =
-    debouncedQuery.length >= 3 && results.length > 0 && dismissedQuery !== debouncedQuery
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
-        setDismissedQuery(debouncedQuery)
-      }
-    }
-
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [debouncedQuery])
 
   // Debounce query (300ms)
   useEffect(() => {
@@ -88,24 +59,23 @@ export function GeocoderAutocomplete({
     return () => clearTimeout(timer)
   }, [query])
 
+  // Use React Query for fetching
+  const { data: results = [], isFetching: isLoading } = useQuery({
+    queryKey: ['nominatim', debouncedQuery],
+    queryFn: ({ signal }) => searchNominatim(debouncedQuery, signal),
+    enabled: debouncedQuery.length >= 3,
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+  })
+
   // Filter results based on query length
   const filteredResults = useMemo(
     () => (debouncedQuery.length < 3 ? [] : results),
     [debouncedQuery, results]
   )
 
-  const handleInputChange = useCallback(
-    (inputValue: string) => {
-      setQuery(inputValue)
-      setSelectedIndex(-1)
-      setSelectedName(null)
-      // Reset dismissed state when user types new query
-      if (inputValue !== query) {
-        setDismissedQuery('')
-      }
-    },
-    [query]
-  )
+  const handleQueryChange = useCallback((newQuery: string) => {
+    setQuery(newQuery)
+  }, [])
 
   const handleSelect = useCallback(
     (result: NominatimResult) => {
@@ -115,10 +85,8 @@ export function GeocoderAutocomplete({
       })
       setSelectedName(result.display_name)
       setQuery('')
-      setDismissedQuery(debouncedQuery)
-      setSelectedIndex(-1)
     },
-    [onChange, debouncedQuery]
+    [onChange]
   )
 
   const handleClear = useCallback(() => {
@@ -127,51 +95,20 @@ export function GeocoderAutocomplete({
     setSelectedName(null)
   }, [onChange])
 
-  const handleKeyDown = useCallback(
-    (e: KeyboardEvent) => {
-      if (!isOpen || filteredResults.length === 0) return
-
-      switch (e.key) {
-        case 'ArrowDown':
-          e.preventDefault()
-          setSelectedIndex((prev) => (prev < filteredResults.length - 1 ? prev + 1 : prev))
-          break
-        case 'ArrowUp':
-          e.preventDefault()
-          setSelectedIndex((prev) => (prev > 0 ? prev - 1 : -1))
-          break
-        case 'Enter':
-          e.preventDefault()
-          if (selectedIndex >= 0 && selectedIndex < filteredResults.length) {
-            handleSelect(filteredResults[selectedIndex])
-          }
-          break
-        case 'Escape':
-          e.preventDefault()
-          setDismissedQuery(debouncedQuery)
-          setSelectedIndex(-1)
-          break
-      }
-    },
-    [isOpen, filteredResults, selectedIndex, handleSelect, debouncedQuery]
+  const renderItem = useCallback(
+    (result: NominatimResult) => (
+      <Group gap="xs" wrap="nowrap">
+        <IconMapPin size={14} style={{ flexShrink: 0 }} />
+        <Text size="sm" ta="left" truncate style={{ flex: 1 }}>
+          {result.display_name}
+        </Text>
+      </Group>
+    ),
+    []
   )
-
-  const handleFocus = useCallback(() => {
-    // Reset dismissed state on focus to re-show dropdown if we have results
-    if (query.trim().length >= 3 && filteredResults.length > 0) {
-      setDismissedQuery('')
-    }
-  }, [query, filteredResults.length])
 
   // If we have a value but no selectedName (e.g., on initial load), don't show address
   const hasValue = value && value.coordinates && value.coordinates.length === 2
-
-  const showDropdown = isOpen && query.trim().length >= 3
-  const showNoResults =
-    query.trim().length >= 3 &&
-    !isLoading &&
-    filteredResults.length === 0 &&
-    dismissedQuery !== debouncedQuery
 
   // Show selected location with clear button if we have coordinates
   if (hasValue && selectedName) {
@@ -222,63 +159,23 @@ export function GeocoderAutocomplete({
   }
 
   return (
-    <Box ref={wrapperRef} pos="relative">
-      <TextInput
-        ref={inputRef}
-        value={query}
-        onChange={(e) => handleInputChange(e.currentTarget.value)}
-        onKeyDown={handleKeyDown}
-        onFocus={handleFocus}
-        label={label}
-        description={description}
-        placeholder={placeholder ?? t('geocoder.placeholder')}
-        error={error}
-        required={required}
-        disabled={disabled}
-        rightSection={isLoading ? <Loader size="xs" /> : null}
-        leftSection={<IconMapPin size={16} />}
-      />
-
-      {showDropdown && filteredResults.length > 0 && (
-        <Paper
-          shadow="md"
-          pos="absolute"
-          w="100%"
-          mt="xs"
-          style={{ zIndex: 10, maxHeight: 240, overflow: 'auto' }}
-          withBorder
-        >
-          <Stack gap={0}>
-            {filteredResults.map((result, index) => (
-              <Box
-                key={result.place_id}
-                component="button"
-                type="button"
-                onClick={() => handleSelect(result)}
-                className={classes.item}
-                p="sm"
-                w="100%"
-                bg={index === selectedIndex ? 'var(--mantine-color-default-hover)' : undefined}
-              >
-                <Group gap="xs" wrap="nowrap">
-                  <IconMapPin size={14} style={{ flexShrink: 0 }} />
-                  <Text size="sm" ta="left" truncate style={{ flex: 1 }}>
-                    {result.display_name}
-                  </Text>
-                </Group>
-              </Box>
-            ))}
-          </Stack>
-        </Paper>
-      )}
-
-      {showNoResults && (
-        <Paper shadow="md" pos="absolute" w="100%" mt="xs" p="sm" style={{ zIndex: 10 }} withBorder>
-          <Text size="sm" c="dimmed">
-            {t('geocoder.noResults')}
-          </Text>
-        </Paper>
-      )}
-    </Box>
+    <Autocomplete<NominatimResult>
+      items={filteredResults}
+      isLoading={isLoading}
+      onQueryChange={handleQueryChange}
+      onSelect={handleSelect}
+      renderItem={renderItem}
+      getItemKey={(result) => result.place_id}
+      placeholder={placeholder ?? t('geocoder.placeholder')}
+      noResultsMessage={t('geocoder.noResults')}
+      minChars={3}
+      clearOnSelect={true}
+      label={label}
+      description={description}
+      error={error}
+      required={required}
+      disabled={disabled}
+      leftSection={<IconMapPin size={16} />}
+    />
   )
 }
