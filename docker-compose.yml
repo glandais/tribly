@@ -74,7 +74,7 @@ services:
       retries: 5
 
   keycloak:
-    image: quay.io/keycloak/keycloak:26.4
+    image: quay.io/keycloak/keycloak:26.5
     container_name: tribly-keycloak
     restart: unless-stopped
     networks:
