@@ -173,6 +173,16 @@
             <artifactId>quarkus-rest-client-jackson</artifactId>
         </dependency>
 
+        <!-- OIDC DB Token State Manager (stores tokens in DB instead of cookies) -->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-oidc-db-token-state-manager</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-reactive-pg-client</artifactId>
+        </dependency>
+
         <!-- Container -->
         <dependency>
             <groupId>io.quarkus</groupId>
