@@ -16,7 +16,7 @@ import {
   Box,
   UnstyledButton,
 } from '@mantine/core'
-import { useDisclosure } from '@mantine/hooks'
+import { useDisclosure, useHeadroom } from '@mantine/hooks'
 import { IconUser, IconLogout } from '@tabler/icons-react'
 import { useAuth } from '../../hooks/useAuth'
 import { useBreadcrumb } from '../../hooks/useBreadcrumb'
@@ -32,6 +32,7 @@ export function Layout() {
   const [opened, { toggle, close }] = useDisclosure(false)
   const { pathname } = useLocation()
 
+  const pinned = useHeadroom({ fixedAt: 120 });
   // Scroll to top on route change
   useEffect(() => {
     window.scrollTo(0, 0)
@@ -51,9 +52,9 @@ export function Layout() {
 
   return (
     <AppShell
-      header={{ height: { base: 56, sm: 60 } }}
+      header={{ height: { base: 56, sm: 60 }, collapsed: !pinned }}
       navbar={{ width: 300, breakpoint: 'sm', collapsed: { desktop: true, mobile: !opened } }}
-      padding={{ base: 0, sm: 'md' }}
+      padding={{ base: 'xs', sm: 'md' }}
     >
       <AppShell.Header>
         <Container size="lg" h="100%">
