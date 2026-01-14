@@ -5,12 +5,13 @@
  * API for Tribly Cycling Team Management Platform
  * OpenAPI spec version: 1.0.0
  */
-import type { KeycloakConfig } from './keycloakConfig'
 
 /**
  * Application configuration
  */
 export interface ConfigDto {
-  /** Keycloak authentication configuration */
-  keycloak: KeycloakConfig
+  /** WebAuthn Relying Party ID (domain) */
+  webAuthnRpId: string
+  /** Application name */
+  appName: string
 }

@@ -119,7 +119,7 @@ export const useUpdateMe = <TError = ErrorType<ErrorResponse | void>, TContext =
   return useMutation(mutationOptions, queryClient)
 }
 /**
- * Get the current authenticated user's profile. Creates the user if first call after login.
+ * Get the current authenticated user's profile.
  * @summary Get current user
  */
 export const getMe = (options?: SecondParameter<typeof axiosMutator>, signal?: AbortSignal) => {

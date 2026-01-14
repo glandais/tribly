@@ -27,7 +27,7 @@ public class ConfigResource {
   @GET
   @Operation(
       summary = "Get application configuration",
-      description = "Get frontend configuration including Keycloak and map settings")
+      description = "Get frontend configuration including auth and app settings")
   @APIResponses({
     @APIResponse(
         responseCode = "200",

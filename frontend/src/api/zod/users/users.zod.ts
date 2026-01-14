@@ -37,7 +37,7 @@ export const updateMeResponse = zod
   .describe('User profile data')
 
 /**
- * Get the current authenticated user's profile. Creates the user if first call after login.
+ * Get the current authenticated user's profile.
  * @summary Get current user
  */
 export const getMeResponse = zod

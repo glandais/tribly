@@ -17,9 +17,7 @@ class ConfigServiceTest {
     ConfigDto config = configService.getConfig();
 
     assertNotNull(config);
-    assertNotNull(config.keycloak());
-    assertNotNull(config.keycloak().url());
-    assertNotNull(config.keycloak().realm());
-    assertNotNull(config.keycloak().clientId());
+    assertNotNull(config.webAuthnRpId());
+    assertNotNull(config.appName());
   }
 }

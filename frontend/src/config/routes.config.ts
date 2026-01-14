@@ -8,6 +8,12 @@ const HomePage = lazy(() => import('../pages/home/HomePage').then((m) => ({ defa
 const LoginPage = lazy(() =>
   import('../pages/auth/LoginPage').then((m) => ({ default: m.LoginPage }))
 )
+const VerifyEmailPage = lazy(() =>
+  import('../pages/auth/VerifyEmailPage').then((m) => ({ default: m.VerifyEmailPage }))
+)
+const MagicLinkVerifyPage = lazy(() =>
+  import('../pages/auth/MagicLinkVerifyPage').then((m) => ({ default: m.MagicLinkVerifyPage }))
+)
 const UserProfilePage = lazy(() =>
   import('../pages/auth/UserProfilePage').then((m) => ({ default: m.UserProfilePage }))
 )
@@ -158,6 +164,22 @@ export const routesConfig: RoutesConfig = [
     auth: 'unauthenticated',
     parentId: null,
     breadcrumb: { type: 'static', i18nKey: tRegister('auth.login.title') },
+  },
+  {
+    id: 'verify-email',
+    path: paths.verifyEmail(),
+    component: VerifyEmailPage,
+    auth: 'public',
+    parentId: null,
+    breadcrumb: { type: 'static', i18nKey: tRegister('auth.verifyEmail.title') },
+  },
+  {
+    id: 'magic-link-verify',
+    path: paths.magicLinkVerify(),
+    component: MagicLinkVerifyPage,
+    auth: 'public',
+    parentId: null,
+    breadcrumb: { type: 'static', i18nKey: tRegister('auth.magicLink.verify.title') },
   },
   {
     id: 'profile',

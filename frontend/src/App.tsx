@@ -15,7 +15,7 @@ function App() {
   // useAuth triggers the /me query and sets isLoading to false when done
   const { isLoading } = useAuth()
 
-  // Initialize Keycloak auth on mount
+  // Initialize auth on mount
   useEffect(() => {
     initialize()
   }, [initialize])

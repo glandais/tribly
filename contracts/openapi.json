@@ -368,6 +368,26 @@
         },
         "required" : [ "images", "attachments" ]
       },
+      "AuthResponse" : {
+        "description" : "Authentication response",
+        "type" : "object",
+        "properties" : {
+          "accessToken" : {
+            "type" : "string",
+            "description" : "JWT access token"
+          },
+          "expiresIn" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Token expiry in seconds"
+          },
+          "user" : {
+            "description" : "Authenticated user",
+            "type" : "object",
+            "$ref" : "#/components/schemas/UserDto"
+          }
+        }
+      },
       "CalendarEventDto" : {
         "description" : "Calendar event data",
         "type" : "object",
@@ -569,12 +589,15 @@
       "ConfigDto" : {
         "description" : "Application configuration",
         "type" : "object",
-        "required" : [ "keycloak" ],
+        "required" : [ "webAuthnRpId", "appName" ],
         "properties" : {
-          "keycloak" : {
-            "description" : "Keycloak authentication configuration",
-            "type" : "object",
-            "$ref" : "#/components/schemas/KeycloakConfig"
+          "webAuthnRpId" : {
+            "type" : "string",
+            "description" : "WebAuthn Relying Party ID (domain)"
+          },
+          "appName" : {
+            "type" : "string",
+            "description" : "Application name"
           }
         }
       },
@@ -584,7 +607,7 @@
       },
       "ErrorCode" : {
         "type" : "string",
-        "enum" : [ "BAD_REQUEST", "NOT_FOUND", "UNAUTHORIZED", "FORBIDDEN", "INTERNAL_ERROR", "UNKNOWN", "VALIDATION", "BUSINESS_RULE", "LAST_ADMIN", "ALREADY_REGISTERED", "NOT_REGISTERED", "INVALID_SLUG", "SLUG_TAKEN", "USER_NOT_SYNCED", "GROUP_FULL", "INVALID_VISIBILITY", "PUBLIC_TRIP_PRIVATE_ROUTE", "GPX_FAILURE", "FILE_REQUIRED", "TOO_MANY_TEAM_PAGES", "GPX_EMPTY", "INVALID_FORMAT", "RENTAL_PERIOD_MISSING", "STATUS_INVALID", "PUBLIC_RIDE_PRIVATE_ROUTE" ]
+        "enum" : [ "BAD_REQUEST", "NOT_FOUND", "UNAUTHORIZED", "FORBIDDEN", "INTERNAL_ERROR", "UNKNOWN", "VALIDATION", "BUSINESS_RULE", "LAST_ADMIN", "ALREADY_REGISTERED", "NOT_REGISTERED", "INVALID_SLUG", "SLUG_TAKEN", "USER_NOT_SYNCED", "GROUP_FULL", "INVALID_VISIBILITY", "PUBLIC_TRIP_PRIVATE_ROUTE", "GPX_FAILURE", "FILE_REQUIRED", "TOO_MANY_TEAM_PAGES", "GPX_EMPTY", "INVALID_FORMAT", "RENTAL_PERIOD_MISSING", "STATUS_INVALID", "PUBLIC_RIDE_PRIVATE_ROUTE", "INVALID_CREDENTIALS", "EMAIL_NOT_VERIFIED", "EMAIL_ALREADY_EXISTS", "TOKEN_INVALID", "TOKEN_EXPIRED", "SESSION_EXPIRED", "PASSWORD_NOT_SET", "PASSKEY_NOT_FOUND", "USER_NOT_FOUND" ]
       },
       "ErrorDetails" : {
         "oneOf" : [ {
@@ -764,28 +787,6 @@
         "format" : "date-time",
         "examples" : [ "2022-03-10T16:15:50Z" ]
       },
-      "KeycloakConfig" : {
-        "type" : "object",
-        "description" : "Keycloak configuration",
-        "required" : [ "url", "realm", "clientId" ],
-        "properties" : {
-          "url" : {
-            "type" : "string",
-            "description" : "Keycloak server URL",
-            "examples" : [ "http://localhost:8180" ]
-          },
-          "realm" : {
-            "type" : "string",
-            "description" : "Keycloak realm name",
-            "examples" : [ "quarkus" ]
-          },
-          "clientId" : {
-            "type" : "string",
-            "description" : "Keycloak client ID",
-            "examples" : [ "tribly-frontend" ]
-          }
-        }
-      },
       "LocalTime" : {
         "type" : "string",
         "format" : "local-time",
@@ -793,6 +794,20 @@
         "externalDocs" : {
           "description" : "As defined by 'partial-time' in RFC3339",
           "url" : "https://www.rfc-editor.org/rfc/rfc3339.html#section-5.6"
+        }
+      },
+      "MagicLinkRequest" : {
+        "description" : "Magic link request",
+        "type" : "object",
+        "required" : [ "email" ],
+        "properties" : {
+          "email" : {
+            "type" : "string",
+            "description" : "Email address",
+            "examples" : [ "user@example.com" ],
+            "pattern" : "\\S",
+            "maxLength" : 250
+          }
         }
       },
       "MediaDto" : {
@@ -870,6 +885,16 @@
           }
         }
       },
+      "MessageResponse" : {
+        "description" : "Simple message response",
+        "type" : "object",
+        "properties" : {
+          "message" : {
+            "type" : "string",
+            "description" : "Response message"
+          }
+        }
+      },
       "MinRole" : {
         "type" : "string",
         "enum" : [ "NOT_MEMBER", "MEMBER", "ORGANIZER", "ADMIN" ]
@@ -900,6 +925,65 @@
           "id" : {
             "type" : "string",
             "description" : "id/slug"
+          }
+        }
+      },
+      "PasskeyAuthenticationRequest" : {
+        "description" : "Request for passkey authentication options",
+        "type" : "object",
+        "properties" : {
+          "email" : {
+            "type" : "string",
+            "description" : "Optional email to filter passkeys",
+            "examples" : [ "user@example.com" ],
+            "maxLength" : 250
+          }
+        }
+      },
+      "PasskeyDto" : {
+        "description" : "Passkey information",
+        "type" : "object",
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "description" : "Passkey ID"
+          },
+          "credentialId" : {
+            "type" : "string",
+            "description" : "Credential ID (base64url)"
+          },
+          "deviceName" : {
+            "type" : "string",
+            "description" : "Device name"
+          },
+          "transports" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            },
+            "description" : "Transport methods"
+          },
+          "createdAt" : {
+            "description" : "Created timestamp",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Instant"
+          },
+          "lastUsedAt" : {
+            "description" : "Last used timestamp",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Instant"
+          }
+        }
+      },
+      "PasskeyRegisterRequest" : {
+        "description" : "Request to register a new passkey with device name",
+        "type" : "object",
+        "properties" : {
+          "deviceName" : {
+            "type" : "string",
+            "description" : "Optional device name for this passkey",
+            "examples" : [ "MacBook Pro" ],
+            "maxLength" : 250
           }
         }
       },
@@ -1227,6 +1311,28 @@
       "PublicationType" : {
         "type" : "string",
         "enum" : [ "RIDE", "POST", "TRIP" ]
+      },
+      "RegisterRequest" : {
+        "description" : "User registration request",
+        "type" : "object",
+        "required" : [ "email", "displayName" ],
+        "properties" : {
+          "email" : {
+            "type" : "string",
+            "description" : "Email address",
+            "examples" : [ "user@example.com" ],
+            "pattern" : "\\S",
+            "maxLength" : 250
+          },
+          "displayName" : {
+            "type" : "string",
+            "description" : "Display name",
+            "examples" : [ "John Doe" ],
+            "pattern" : "\\S",
+            "minLength" : 1,
+            "maxLength" : 200
+          }
+        }
       },
       "RentalPeriod" : {
         "type" : "string",
@@ -2602,8 +2708,8 @@
         }
       },
       "UserDto" : {
-        "description" : "User profile data",
         "type" : "object",
+        "description" : "User profile data",
         "required" : [ "id", "email", "displayName" ],
         "properties" : {
           "id" : {
@@ -2635,6 +2741,19 @@
           }
         }
       },
+      "VerifyTokenRequest" : {
+        "description" : "Token verification request",
+        "type" : "object",
+        "required" : [ "token" ],
+        "properties" : {
+          "token" : {
+            "type" : "string",
+            "description" : "Verification token",
+            "pattern" : "\\S",
+            "maxLength" : 100
+          }
+        }
+      },
       "Visibility" : {
         "type" : "string",
         "enum" : [ "TEAM", "PUBLIC" ]
@@ -2659,8 +2778,9 @@
     },
     "securitySchemes" : {
       "SecurityScheme" : {
-        "type" : "openIdConnect",
-        "openIdConnectUrl" : "http://localhost:8180/realms/quarkus/.well-known/openid-configuration",
+        "type" : "http",
+        "scheme" : "bearer",
+        "bearerFormat" : "JWT",
         "description" : "Authentication"
       }
     }
@@ -2672,11 +2792,17 @@
     "name" : "Assets",
     "description" : "Assets management operations"
   }, {
+    "name" : "Authentication",
+    "description" : "User authentication operations"
+  }, {
     "name" : "Calendar",
     "description" : "Team calendar operations"
   }, {
     "name" : "Configuration",
     "description" : "Application configuration endpoints"
+  }, {
+    "name" : "Passkeys",
+    "description" : "WebAuthn passkey management"
   }, {
     "name" : "Places",
     "description" : "Place management for ride starting/ending points"
@@ -2727,6 +2853,555 @@
     "description" : "User profile management operations"
   } ],
   "paths" : {
+    "/api/auth/logout" : {
+      "post" : {
+        "summary" : "Logout",
+        "description" : "Logout and invalidate the refresh token",
+        "operationId" : "logout",
+        "tags" : [ "Authentication" ],
+        "parameters" : [ {
+          "name" : "refresh_token",
+          "in" : "cookie",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "Logged out successfully"
+          }
+        }
+      }
+    },
+    "/api/auth/logout-all" : {
+      "post" : {
+        "summary" : "Logout all sessions",
+        "description" : "Logout from all devices by invalidating all refresh tokens",
+        "operationId" : "logoutAll",
+        "tags" : [ "Authentication" ],
+        "responses" : {
+          "204" : {
+            "description" : "All sessions invalidated"
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
+    "/api/auth/magic-link" : {
+      "post" : {
+        "summary" : "Request magic link",
+        "description" : "Send a magic link to the user's email for passwordless login",
+        "operationId" : "requestMagicLink",
+        "tags" : [ "Authentication" ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/MagicLinkRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Magic link sent (if email exists)",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MessageResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request"
+          }
+        }
+      }
+    },
+    "/api/auth/magic-link/verify" : {
+      "post" : {
+        "summary" : "Verify magic link",
+        "description" : "Verify magic link token and authenticate",
+        "operationId" : "verifyMagicLink",
+        "tags" : [ "Authentication" ],
+        "parameters" : [ {
+          "name" : "X-Forwarded-For",
+          "in" : "header",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "X-Real-IP",
+          "in" : "header",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/VerifyTokenRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Login successful",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AuthResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Invalid or expired token",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/passkeys" : {
+      "get" : {
+        "summary" : "List passkeys",
+        "description" : "List all passkeys registered for the current user",
+        "operationId" : "listPasskeys",
+        "tags" : [ "Passkeys" ],
+        "responses" : {
+          "200" : {
+            "description" : "List of passkeys",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/PasskeyDto"
+                  }
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
+    "/api/auth/passkeys/authenticate" : {
+      "post" : {
+        "summary" : "Authenticate with passkey",
+        "description" : "Authenticate using a passkey",
+        "operationId" : "authenticate",
+        "tags" : [ "Passkeys" ],
+        "parameters" : [ {
+          "name" : "X-Forwarded-For",
+          "in" : "header",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "X-Real-IP",
+          "in" : "header",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "type" : "object",
+                "additionalProperties" : { }
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Authentication successful",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AuthResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Authentication failed",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request"
+          }
+        }
+      }
+    },
+    "/api/auth/passkeys/authentication-options" : {
+      "post" : {
+        "summary" : "Get authentication options",
+        "description" : "Get WebAuthn options for authenticating with a passkey",
+        "operationId" : "getAuthenticationOptions",
+        "tags" : [ "Passkeys" ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PasskeyAuthenticationRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Authentication options",
+            "content" : {
+              "application/json" : {
+                "schema" : { }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Bad Request"
+          }
+        }
+      }
+    },
+    "/api/auth/passkeys/register" : {
+      "post" : {
+        "summary" : "Register passkey",
+        "description" : "Verify and register a new passkey for the current user",
+        "operationId" : "registerPasskey",
+        "tags" : [ "Passkeys" ],
+        "parameters" : [ {
+          "name" : "deviceName",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "type" : "object",
+                "additionalProperties" : { }
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Passkey registered",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PasskeyDto"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Invalid registration response",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
+    "/api/auth/passkeys/registration-options" : {
+      "get" : {
+        "summary" : "Get registration options",
+        "description" : "Get WebAuthn options for registering a new passkey",
+        "operationId" : "getRegistrationOptions",
+        "tags" : [ "Passkeys" ],
+        "responses" : {
+          "200" : {
+            "description" : "Registration options",
+            "content" : {
+              "application/json" : {
+                "schema" : { }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
+    "/api/auth/passkeys/{id}" : {
+      "delete" : {
+        "summary" : "Delete passkey",
+        "description" : "Delete a passkey",
+        "operationId" : "deletePasskey",
+        "tags" : [ "Passkeys" ],
+        "parameters" : [ {
+          "name" : "id",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "Passkey deleted"
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Passkey not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
+    "/api/auth/refresh" : {
+      "post" : {
+        "summary" : "Refresh access token",
+        "description" : "Get a new access token using the refresh token cookie",
+        "operationId" : "refresh",
+        "tags" : [ "Authentication" ],
+        "parameters" : [ {
+          "name" : "X-Forwarded-For",
+          "in" : "header",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "X-Real-IP",
+          "in" : "header",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "refresh_token",
+          "in" : "cookie",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Token refreshed successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AuthResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Invalid or expired refresh token",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/register" : {
+      "post" : {
+        "summary" : "Register new user",
+        "description" : "Register a new user. A verification email will be sent.",
+        "operationId" : "register",
+        "tags" : [ "Authentication" ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/RegisterRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Registration initiated, verification email sent",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/MessageResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Invalid request or email already registered",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/verify-email" : {
+      "post" : {
+        "summary" : "Verify email",
+        "description" : "Verify email address and complete registration",
+        "operationId" : "verifyEmail",
+        "tags" : [ "Authentication" ],
+        "parameters" : [ {
+          "name" : "X-Forwarded-For",
+          "in" : "header",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "X-Real-IP",
+          "in" : "header",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/VerifyTokenRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Email verified successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AuthResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Invalid or expired token",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/calendar/events" : {
       "get" : {
         "summary" : "Get calendar events",
@@ -2887,7 +3562,7 @@
     "/api/config" : {
       "get" : {
         "summary" : "Get application configuration",
-        "description" : "Get frontend configuration including Keycloak and map settings",
+        "description" : "Get frontend configuration including auth and app settings",
         "operationId" : "getConfig",
         "tags" : [ "Configuration" ],
         "responses" : {
@@ -8723,7 +9398,7 @@
       },
       "get" : {
         "summary" : "Get current user",
-        "description" : "Get the current authenticated user's profile. Creates the user if first call after login.",
+        "description" : "Get the current authenticated user's profile.",
         "operationId" : "getMe",
         "tags" : [ "Users" ],
         "responses" : {

@@ -166,27 +166,6 @@ class PostResourceTest extends AbstractResourceTest {
         .body("publishAt", notNullValue());
   }
 
-  @Test
-  void createPost_asUnsyncedUser_shouldReturn403() {
-    // Given: USER5 exists in Keycloak but has never called /me,
-    // so no user record exists in the database
-    PostRequest request = createPostRequest("Unsynced User Post");
-
-    // When: USER5 tries to create a post
-    // Then: should fail with 403 because UserSecurityIdentityAugmentor
-    // cannot find user by email, so userId is not set in identity
-    given()
-        .auth()
-        .oauth2(getAccessToken(USER5))
-        .contentType("application/json")
-        .body(request)
-        .when()
-        .post("/api/teams/" + team1Slug + "/posts")
-        .then()
-        .statusCode(403)
-        .body("code", equalTo("FORBIDDEN"));
-  }
-
   // ==================== Get Post Tests ====================
 
   @Test

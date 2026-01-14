@@ -4,9 +4,9 @@ import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
 import com.tribly.enums.TeamRole;
 import com.tribly.enums.Visibility;
+import com.tribly.service.auth.JwtService;
 import com.tribly.util.TestDataCleaner;
 import com.tribly.util.TestDataService;
-import io.quarkus.test.keycloak.client.KeycloakTestClient;
 import jakarta.inject.Inject;
 
 public abstract class AbstractResourceTest {
@@ -24,6 +24,7 @@ public abstract class AbstractResourceTest {
 
   @Inject protected TestDataService dataService;
   @Inject protected TestDataCleaner dataCleaner;
+  @Inject protected JwtService jwtService;
 
   protected User user1;
   // public team
@@ -35,11 +36,20 @@ public abstract class AbstractResourceTest {
   protected User user2;
   protected User user3;
   protected User user4;
-
-  final KeycloakTestClient keycloakClient = new KeycloakTestClient();
+  protected User user5;
 
   protected String getAccessToken(String userName) {
-    return keycloakClient.getAccessToken(userName, userName, "tribly-frontend");
+    // Get the user by email (userName is the prefix, e.g., "user1" -> "user1@example.com")
+    User user =
+        switch (userName) {
+          case USER1 -> user1;
+          case USER2 -> user2;
+          case USER3 -> user3;
+          case USER4 -> user4;
+          case USER5 -> user5;
+          default -> dataService.findUserByEmail(userName + "@example.com");
+        };
+    return jwtService.generateAccessToken(user);
   }
 
   protected void setUp() {
@@ -48,6 +58,7 @@ public abstract class AbstractResourceTest {
     user2 = dataService.createUser(EMAIL2, "Test User 2");
     user3 = dataService.createUser(EMAIL3, "Test User 3");
     user4 = dataService.createUser(EMAIL4, "Test User 4");
+    user5 = dataService.createUser(EMAIL5, "Test User 5");
 
     // Create test team with organizer
     team1 = dataService.createTeam(user1, "Team 1", "team-1", Visibility.PUBLIC);

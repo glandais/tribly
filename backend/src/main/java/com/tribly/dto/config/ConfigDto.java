@@ -6,5 +6,6 @@ import org.eclipse.microprofile.openapi.annotations.media.Schema;
 @Schema(description = "Application configuration")
 @ValidateSchema
 public record ConfigDto(
-    @Schema(description = "Keycloak authentication configuration", required = true)
-        KeycloakConfig keycloak) {}
+    @Schema(description = "WebAuthn Relying Party ID (domain)", required = true)
+        String webAuthnRpId,
+    @Schema(description = "Application name", required = true) String appName) {}

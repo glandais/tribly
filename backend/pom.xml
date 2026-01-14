@@ -26,6 +26,7 @@
         <dependencyversion-maven-plugin.version>1.0.0</dependencyversion-maven-plugin.version>
         <geolatte-geojson.version>1.10</geolatte-geojson.version>
         <archunit-junit5.version>1.4.1</archunit-junit5.version>
+        <webauthn4j-core.version>0.30.2.RELEASE</webauthn4j-core.version>
     </properties>
 
     <dependencyManagement>
@@ -86,10 +87,21 @@
             <version>7.2.0.Final</version>
         </dependency>
 
-        <!-- Security - Keycloak OIDC -->
+        <!-- Security - JWT -->
         <dependency>
             <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-oidc</artifactId>
+            <artifactId>quarkus-smallrye-jwt</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-smallrye-jwt-build</artifactId>
+        </dependency>
+
+        <!-- WebAuthn/Passkeys -->
+        <dependency>
+            <groupId>com.webauthn4j</groupId>
+            <artifactId>webauthn4j-core</artifactId>
+            <version>${webauthn4j-core.version}</version>
         </dependency>
 
         <!-- OpenAPI -->
@@ -173,11 +185,7 @@
             <artifactId>quarkus-rest-client-jackson</artifactId>
         </dependency>
 
-        <!-- OIDC DB Token State Manager (stores tokens in DB instead of cookies) -->
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-oidc-db-token-state-manager</artifactId>
-        </dependency>
+        <!-- Reactive DB Client (used for async operations) -->
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-reactive-pg-client</artifactId>
@@ -198,11 +206,6 @@
         <dependency>
             <groupId>io.rest-assured</groupId>
             <artifactId>rest-assured</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-test-keycloak-server</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>

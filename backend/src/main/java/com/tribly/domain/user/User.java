@@ -32,6 +32,12 @@ public class User extends BaseEntity {
   @Column(name = "unit_system", length = 10)
   private @Nullable UnitSystem unitSystem;
 
+  @Column(name = "email_verified", nullable = false)
+  private boolean emailVerified = false;
+
+  @Column(name = "email_verified_at")
+  private @Nullable Instant emailVerifiedAt;
+
   public User(String email, String displayName) {
     super(null);
     this.email = email;
@@ -41,5 +47,10 @@ public class User extends BaseEntity {
 
   public void recordLogin() {
     this.lastLoginAt = Instant.now();
+  }
+
+  public void markEmailVerified() {
+    this.emailVerified = true;
+    this.emailVerifiedAt = Instant.now();
   }
 }

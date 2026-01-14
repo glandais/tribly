@@ -8,7 +8,7 @@ Tribly: multi-tenant cycling team platform (rides, routes with GPX/maps, posts).
 |-------|-------------|
 | Backend | Java 21, Quarkus 3.30.x, PostgreSQL 17 + PostGIS, Hibernate/Panache, Flyway |
 | Frontend | TypeScript 5, React 19, Vite, Mantine UI, Zustand, React Query |
-| Auth | Keycloak OIDC (docker-compose dev, Dev Services test) |
+| Auth | Database auth with JWT (password, magic link, passkeys/WebAuthn) |
 | IDs | TSID via hypersistence-utils (Long internally, lowercase string in API) |
 | API | OpenAPI 3.1 contract-first with code generation |
 
@@ -25,7 +25,7 @@ pnpm build                         # Type check + build
 pnpm generate-api                  # Generate API client from OpenAPI
 
 # Infrastructure
-docker compose up -d               # PostgreSQL + Keycloak + imgproxy + brouter
+docker compose up -d               # PostgreSQL + imgproxy + brouter
 docker compose --profile tools up  # + pgAdmin + Mailhog
 ```
 
@@ -95,7 +95,7 @@ frontend/src/
 
 **Frontend**:
 - Uses Mantine UI as component library → check https://mantine.dev/llms.txt for docs
-- Frontend config from `/api/config` endpoint, no .env files (backend uses `.env` for OIDC secret only)
+- Frontend config from `/api/config` endpoint, no .env files
 - Always use `ConfirmDialog` for confirmations (never `confirm()` or custom modals)
 - `MediaEditor` needs `teamSlug` prop for uploads (hidden during team creation)
 - Logos: `TeamAvatar` (with initials fallback) vs `EntityLogo` (no fallback)
@@ -103,16 +103,12 @@ frontend/src/
 - Never use hard coded links, use paths.XXX(YYYslug) from `config/paths.ts`
 - Templated i18n keys must use type annotations: `t(\`status.\${x satisfies 'DRAFT' | 'PUBLISHED'}\`)` (validated by `pnpm i18n:lint`)
 
-**Keycloak**:
-- Users need `firstName`/`lastName` in realm or prompted for profile update
-- Realm changes: `docker compose rm -f keycloak` + restart
+## Test Users (dev mode only, seeded by TestUserSeeder)
 
-## Test Users (keycloak/quarkus-realm.json)
-
-| Username | Password | Roles |
-|----------|----------|-------|
-| admin | admin | admin, user |
-| user1-6 | user1-6 | user |
+| Email | Password |
+|-------|----------|
+| admin@example.com | admin |
+| user1@example.com - user6@example.com | user1 - user6 |
 
 ## Dev URLs
 
@@ -121,5 +117,4 @@ frontend/src/
 | Backend API | http://localhost:8080/api |
 | Swagger UI | http://localhost:8080/q/swagger-ui |
 | Frontend | http://localhost:5173 |
-| Keycloak | http://localhost:8180 |
 | pgAdmin | http://localhost:5050 |

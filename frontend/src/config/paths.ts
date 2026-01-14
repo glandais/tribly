@@ -5,6 +5,9 @@
 export const paths = {
   home: () => '/',
   login: () => '/login',
+  verifyEmail: () => '/verify-email',
+  magicLink: () => '/magic-link',
+  magicLinkVerify: () => '/magic-link/verify',
   profile: () => '/profile',
   calendar: () => '/calendar',
   allRoutes: () => '/routes',

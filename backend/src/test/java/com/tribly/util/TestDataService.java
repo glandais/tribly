@@ -78,6 +78,24 @@ public class TestDataService {
   }
 
   @Transactional
+  public User createVerifiedUser(String email, String displayName) {
+    User user = new User(email, displayName);
+    user.markEmailVerified();
+    userRepository.persistAndFlush(user);
+    return user;
+  }
+
+  @Transactional
+  public void markEmailVerified(User user) {
+    user.markEmailVerified();
+    userRepository.getEntityManager().merge(user);
+  }
+
+  public User findUserByEmail(String email) {
+    return userRepository.findByEmail(email).orElseThrow();
+  }
+
+  @Transactional
   public void deleteUser(User user) {
     user.setDeleted(true);
     userRepository.getEntityManager().merge(user);
@@ -671,5 +689,147 @@ public class TestDataService {
   public void deleteCalendarToken(CalendarToken token) {
     token.setDeleted(true);
     calendarTokenRepository.getEntityManager().merge(token);
+  }
+
+  // ===== Auth entities =====
+
+  @Inject com.tribly.repository.auth.AuthSessionRepository authSessionRepository;
+  @Inject com.tribly.repository.auth.AuthTokenRepository authTokenRepository;
+  @Inject com.tribly.repository.auth.PasskeyRepository passkeyRepository;
+  @Inject com.tribly.repository.auth.WebAuthnChallengeRepository webAuthnChallengeRepository;
+
+  @Transactional
+  public com.tribly.domain.auth.AuthSession createAuthSession(
+      User user, String refreshTokenHash, java.time.Instant expiresAt) {
+    var session = new com.tribly.domain.auth.AuthSession(user, refreshTokenHash, expiresAt);
+    authSessionRepository.persistAndFlush(session);
+    return session;
+  }
+
+  /**
+   * Creates a refresh token for a user and returns the raw token (not the hash).
+   * The token is stored as a hash in the database.
+   */
+  @Transactional
+  public String createRefreshTokenForUser(User user) {
+    String rawToken = generateSecureToken();
+    String tokenHash = hashToken(rawToken);
+    var session =
+        new com.tribly.domain.auth.AuthSession(
+            user, tokenHash, java.time.Instant.now().plusSeconds(30 * 24 * 60 * 60));
+    authSessionRepository.persistAndFlush(session);
+    return rawToken;
+  }
+
+  private String generateSecureToken() {
+    byte[] bytes = new byte[32];
+    new java.security.SecureRandom().nextBytes(bytes);
+    return java.util.Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
+  }
+
+  private String hashToken(String token) {
+    try {
+      java.security.MessageDigest digest = java.security.MessageDigest.getInstance("SHA-256");
+      byte[] hash = digest.digest(token.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+      return java.util.Base64.getEncoder().encodeToString(hash);
+    } catch (java.security.NoSuchAlgorithmException e) {
+      throw new RuntimeException("SHA-256 not available", e);
+    }
+  }
+
+  @Transactional
+  public com.tribly.domain.auth.AuthSession createExpiredAuthSession(
+      User user, String refreshTokenHash) {
+    var session =
+        new com.tribly.domain.auth.AuthSession(
+            user, refreshTokenHash, java.time.Instant.now().minusSeconds(3600));
+    authSessionRepository.persistAndFlush(session);
+    return session;
+  }
+
+  @Transactional
+  public void revokeAuthSession(com.tribly.domain.auth.AuthSession session) {
+    session.revoke();
+    authSessionRepository.getEntityManager().merge(session);
+  }
+
+  @Transactional
+  public com.tribly.domain.auth.AuthToken createAuthToken(
+      String email,
+      String tokenHash,
+      com.tribly.enums.AuthTokenType tokenType,
+      java.time.Instant expiresAt) {
+    var token = new com.tribly.domain.auth.AuthToken(email, tokenHash, tokenType, expiresAt);
+    authTokenRepository.persistAndFlush(token);
+    return token;
+  }
+
+  @Transactional
+  public com.tribly.domain.auth.AuthToken createAuthToken(
+      User user,
+      String email,
+      String tokenHash,
+      com.tribly.enums.AuthTokenType tokenType,
+      java.time.Instant expiresAt) {
+    var token = new com.tribly.domain.auth.AuthToken(user, email, tokenHash, tokenType, expiresAt);
+    authTokenRepository.persistAndFlush(token);
+    return token;
+  }
+
+  @Transactional
+  public com.tribly.domain.auth.AuthToken createExpiredAuthToken(
+      String email, String tokenHash, com.tribly.enums.AuthTokenType tokenType) {
+    var token =
+        new com.tribly.domain.auth.AuthToken(
+            email, tokenHash, tokenType, java.time.Instant.now().minusSeconds(3600));
+    authTokenRepository.persistAndFlush(token);
+    return token;
+  }
+
+  @Transactional
+  public void markAuthTokenUsed(com.tribly.domain.auth.AuthToken token) {
+    token.markUsed();
+    authTokenRepository.getEntityManager().merge(token);
+  }
+
+  @Transactional
+  public com.tribly.domain.auth.Passkey createPasskey(
+      User user, byte[] credentialId, byte[] publicKey) {
+    var passkey = new com.tribly.domain.auth.Passkey(user, credentialId, publicKey);
+    passkeyRepository.persistAndFlush(passkey);
+    return passkey;
+  }
+
+  @Transactional
+  public void deletePasskey(com.tribly.domain.auth.Passkey passkey) {
+    passkey.softDelete();
+    passkeyRepository.getEntityManager().merge(passkey);
+  }
+
+  @Transactional
+  public com.tribly.domain.auth.WebAuthnChallenge createWebAuthnChallenge(
+      User user,
+      String email,
+      String challenge,
+      com.tribly.enums.WebAuthnChallengeType challengeType,
+      java.time.Instant expiresAt) {
+    var webAuthnChallenge =
+        new com.tribly.domain.auth.WebAuthnChallenge(
+            user, email, challenge, challengeType, expiresAt);
+    webAuthnChallengeRepository.persistAndFlush(webAuthnChallenge);
+    return webAuthnChallenge;
+  }
+
+  @Transactional
+  public com.tribly.domain.auth.WebAuthnChallenge createExpiredWebAuthnChallenge(
+      User user,
+      String email,
+      String challenge,
+      com.tribly.enums.WebAuthnChallengeType challengeType) {
+    var webAuthnChallenge =
+        new com.tribly.domain.auth.WebAuthnChallenge(
+            user, email, challenge, challengeType, java.time.Instant.now().minusSeconds(3600));
+    webAuthnChallengeRepository.persistAndFlush(webAuthnChallenge);
+    return webAuthnChallenge;
   }
 }

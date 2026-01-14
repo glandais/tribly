@@ -76,3 +76,9 @@ data/segments4/*
 !data/segments4/*.jar
 
 frontend/i18n-reverse-map.json
+
+# JWT keys (generated, keep .gitkeep)
+backend/keys/*.pem
+data/keys/*
+!data/keys/.gitkeep
+!data/keys/*.sh

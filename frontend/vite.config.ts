@@ -143,11 +143,6 @@ export default defineConfig({
             return 'date-vendor';
           }
 
-          // === AUTH ===
-          if (id.includes('node_modules/keycloak-js/')) {
-            return 'auth-vendor';
-          }
-
           // === UI UTILITIES ===
           if (id.includes('node_modules/react-resizable-panels/')) {
             return 'ui-utils-vendor';

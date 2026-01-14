@@ -27,9 +27,7 @@ class ConfigResourceTest extends AbstractResourceTest {
         .get("/api/config")
         .then()
         .statusCode(200)
-        .body("keycloak", is(notNullValue()))
-        .body("keycloak.url", equalTo("http://localhost:8180"))
-        .body("keycloak.realm", equalTo("quarkus"))
-        .body("keycloak.clientId", equalTo("tribly-frontend"));
+            .body("webAuthnRpId", is(notNullValue()))
+            .body("appName", is(notNullValue()));
   }
 }

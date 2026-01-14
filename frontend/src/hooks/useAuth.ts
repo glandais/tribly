@@ -18,21 +18,28 @@ export function useAuth() {
   const queryClient = useQueryClient()
   const {
     user,
+    accessToken,
     isAuthenticated,
     isInitialized,
+    isInitializing,
     isLoading,
     error,
-    login,
+    initialize,
     logout: storeLogout,
     setUser,
     setLoading,
     clearError,
   } = useAuthStore()
 
-  // Fetch current user from backend - this creates/syncs the user on first call
+  // Initialize auth state on mount
+  useEffect(() => {
+    initialize()
+  }, [initialize])
+
+  // Fetch current user from backend when authenticated
   const { data: backendUser, refetch: refetchUser } = useGetMe({
     query: {
-      enabled: isAuthenticated && isInitialized,
+      enabled: isAuthenticated && isInitialized && !!accessToken,
       staleTime: 1000 * 60 * 5,
       retry: 1,
     },
@@ -41,12 +48,12 @@ export function useAuth() {
   // Sync preferences from server
   const syncFromServer = usePreferencesStore((state) => state.syncFromServer)
 
-  // Update store when backend user is fetched - store UserDto directly
+  // Update store when backend user is fetched
   useEffect(() => {
     if (backendUser) {
       setUser(backendUser)
-      setLoading(false) // User is loaded, app can render content
-      syncFromServer(backendUser.unitSystem) // Sync unit preference from server
+      setLoading(false)
+      syncFromServer(backendUser.unitSystem)
     }
   }, [backendUser, setUser, setLoading, syncFromServer])
 
@@ -122,9 +129,9 @@ export function useAuth() {
     user,
     isAuthenticated,
     isInitialized,
-    isLoading, // True until user is fetched from /me
+    isInitializing,
+    isLoading,
     error,
-    login,
     logout,
     updateProfile,
     isUpdatingProfile: updateProfileMutation.isPending,

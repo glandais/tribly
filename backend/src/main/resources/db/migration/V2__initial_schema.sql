@@ -18,6 +18,33 @@ create table assets (
                         primary key (id)
 );
 
+create table auth_sessions (
+                               revoked boolean not null,
+                               created_at timestamp(6) with time zone not null,
+                               expires_at timestamp(6) with time zone not null,
+                               id bigint not null,
+                               last_used_at timestamp(6) with time zone,
+                               revoked_at timestamp(6) with time zone,
+                               user_id bigint not null,
+                               ip_address varchar(45),
+                               refresh_token_hash varchar(100) not null,
+                               user_agent varchar(500),
+                               primary key (id)
+);
+
+create table auth_tokens (
+                             created_at timestamp(6) with time zone not null,
+                             expires_at timestamp(6) with time zone not null,
+                             id bigint not null,
+                             used_at timestamp(6) with time zone,
+                             user_id bigint,
+                             token_type varchar(20) not null check ((token_type in ('EMAIL_VERIFICATION','MAGIC_LINK','PASSWORD_RESET'))),
+                             token_hash varchar(100) not null unique,
+                             email varchar(250) not null,
+                             pending_display_name varchar(250),
+                             primary key (id)
+);
+
 create table calendar_tokens (
                                  deleted boolean not null,
                                  created_at timestamp(6) with time zone not null,
@@ -72,6 +99,21 @@ create table gpx_waypoints (
                                name varchar(250) not null,
                                geometry geometry(Point,4326) not null,
                                primary key (id)
+);
+
+create table passkeys (
+                          deleted boolean not null,
+                          created_at timestamp(6) with time zone not null,
+                          id bigint not null,
+                          last_used_at timestamp(6) with time zone,
+                          sign_count bigint not null,
+                          user_id bigint not null,
+                          device_name varchar(250),
+                          aaguid bytea,
+                          credential_id bytea not null unique,
+                          public_key bytea not null,
+                          transports text[],
+                          primary key (id)
 );
 
 create table places (
@@ -160,7 +202,7 @@ create table team_entities (
                                distance float4,
                                elevation_gain float4,
                                elevation_loss float4,
-                               entity_type integer not null check ((entity_type in (1,3,5,2,7,4,6))),
+                               entity_type integer not null check ((entity_type in (1,5,3,4,7,2,6))),
                                hilliness float4,
                                is_about_page boolean,
                                page_order integer,
@@ -264,8 +306,10 @@ create table user_teams (
 
 create table users (
                        deleted boolean not null,
+                       email_verified boolean not null,
                        created_at timestamp(6) with time zone not null,
                        created_by_id bigint not null,
+                       email_verified_at timestamp(6) with time zone,
                        id bigint not null,
                        last_login_at timestamp(6) with time zone,
                        updated_at timestamp(6) with time zone not null,
@@ -275,6 +319,17 @@ create table users (
                        email varchar(250) not null unique,
                        avatar_url varchar(500),
                        primary key (id)
+);
+
+create table webauthn_challenges (
+                                     created_at timestamp(6) with time zone not null,
+                                     expires_at timestamp(6) with time zone not null,
+                                     id bigint not null,
+                                     user_id bigint,
+                                     challenge_type varchar(20) not null check ((challenge_type in ('REGISTRATION','AUTHENTICATION'))),
+                                     challenge varchar(100) not null,
+                                     email varchar(250),
+                                     primary key (id)
 );
 
 create index idx_assets_team_entity_deleted
@@ -361,6 +416,16 @@ alter table if exists assets
     foreign key (team_entity_id)
     references team_entities;
 
+alter table if exists auth_sessions
+    add constraint FKpu507182mdfutajr71rgk67l
+    foreign key (user_id)
+    references users;
+
+alter table if exists auth_tokens
+    add constraint FKkhs4tpy3l5krnk87ykkmafeic
+    foreign key (user_id)
+    references users;
+
 alter table if exists calendar_tokens
     add constraint FKrsheny6pger8g5xrsgqk0ubrr
     foreign key (created_by_id)
@@ -405,6 +470,11 @@ alter table if exists gpx_waypoints
     add constraint FK5cv6u4vigp9if7mvs8utt07m4
     foreign key (route_id)
     references team_entities;
+
+alter table if exists passkeys
+    add constraint FKefwmbs0eskxcwgt6r8eycw970
+    foreign key (user_id)
+    references users;
 
 alter table if exists places
     add constraint FKt5u395u1lpaabeikbk3lbbvud
@@ -549,4 +619,9 @@ alter table if exists user_teams
 alter table if exists users
     add constraint FK8nakkftyppd62ke6tv7oo5a92
     foreign key (created_by_id)
+    references users;
+
+alter table if exists webauthn_challenges
+    add constraint FKrq1swjkjdah0kq4e09tfvo2sp
+    foreign key (user_id)
     references users;

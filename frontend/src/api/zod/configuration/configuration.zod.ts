@@ -8,17 +8,12 @@
 import * as zod from 'zod'
 
 /**
- * Get frontend configuration including Keycloak and map settings
+ * Get frontend configuration including auth and app settings
  * @summary Get application configuration
  */
 export const getConfigResponse = zod
   .object({
-    keycloak: zod
-      .object({
-        url: zod.string().describe('Keycloak server URL'),
-        realm: zod.string().describe('Keycloak realm name'),
-        clientId: zod.string().describe('Keycloak client ID'),
-      })
-      .describe('Keycloak configuration'),
+    webAuthnRpId: zod.string().describe('WebAuthn Relying Party ID (domain)'),
+    appName: zod.string().describe('Application name'),
   })
   .describe('Application configuration')

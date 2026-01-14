@@ -26,7 +26,7 @@ import type { ErrorType } from '../../../lib/axiosInstance'
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
 
 /**
- * Get frontend configuration including Keycloak and map settings
+ * Get frontend configuration including auth and app settings
  * @summary Get application configuration
  */
 export const getConfig = (options?: SecondParameter<typeof axiosMutator>, signal?: AbortSignal) => {

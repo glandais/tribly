@@ -1,0 +1,396 @@
+package com.tribly.service.auth;
+
+import com.tribly.common.exception.BadRequestException;
+import com.tribly.common.exception.ForbiddenException;
+import com.tribly.common.exception.NotFoundException;
+import com.tribly.domain.auth.Passkey;
+import com.tribly.domain.auth.WebAuthnChallenge;
+import com.tribly.domain.user.User;
+import com.tribly.dto.auth.response.PasskeyDto;
+import com.tribly.dto.error.ErrorCode;
+import com.tribly.enums.WebAuthnChallengeType;
+import com.tribly.repository.auth.PasskeyRepository;
+import com.tribly.repository.auth.WebAuthnChallengeRepository;
+import com.tribly.repository.user.UserRepository;
+import com.webauthn4j.WebAuthnManager;
+import com.webauthn4j.converter.AttestedCredentialDataConverter;
+import com.webauthn4j.converter.util.ObjectConverter;
+import com.webauthn4j.credential.CredentialRecord;
+import com.webauthn4j.credential.CredentialRecordImpl;
+import com.webauthn4j.data.*;
+import com.webauthn4j.data.attestation.AttestationObject;
+import com.webauthn4j.data.attestation.authenticator.AttestedCredentialData;
+import com.webauthn4j.data.attestation.statement.COSEAlgorithmIdentifier;
+import com.webauthn4j.data.client.Origin;
+import com.webauthn4j.data.client.challenge.Challenge;
+import com.webauthn4j.data.client.challenge.DefaultChallenge;
+import com.webauthn4j.server.ServerProperty;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
+import java.security.SecureRandom;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.*;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.jspecify.annotations.Nullable;
+
+@ApplicationScoped
+public class PasskeyService {
+
+  private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+
+  private final WebAuthnManager webAuthnManager = WebAuthnManager.createNonStrictWebAuthnManager();
+  private final ObjectConverter objectConverter = new ObjectConverter();
+  private final AttestedCredentialDataConverter attestedCredentialDataConverter =
+      new AttestedCredentialDataConverter(objectConverter);
+
+  @Inject PasskeyRepository passkeyRepository;
+  @Inject WebAuthnChallengeRepository challengeRepository;
+  @Inject UserRepository userRepository;
+
+  @ConfigProperty(name = "tribly.auth.webauthn.rp-id")
+  String rpId;
+
+  @ConfigProperty(name = "tribly.auth.webauthn.rp-name", defaultValue = "Tribly")
+  String rpName;
+
+  @ConfigProperty(name = "tribly.auth.webauthn.origin")
+  String origin;
+
+  @ConfigProperty(name = "tribly.auth.webauthn.challenge-expiry-minutes", defaultValue = "5")
+  int challengeExpiryMinutes;
+
+  @Transactional
+  public Map<String, Object> generateRegistrationOptions(User user) {
+    // Clean up old challenges
+    challengeRepository.deleteByUserId(user.getId());
+
+    // Generate challenge
+    byte[] challengeBytes = new byte[32];
+    SECURE_RANDOM.nextBytes(challengeBytes);
+    String challengeBase64 = Base64.getUrlEncoder().withoutPadding().encodeToString(challengeBytes);
+
+    // Store challenge
+    WebAuthnChallenge challenge =
+        new WebAuthnChallenge(
+            user,
+            null,
+            challengeBase64,
+            WebAuthnChallengeType.REGISTRATION,
+            Instant.now().plus(Duration.ofMinutes(challengeExpiryMinutes)));
+    challengeRepository.persist(challenge);
+
+    // Get existing credential IDs to exclude
+    List<Map<String, Object>> excludeCredentials =
+        passkeyRepository.findByUserId(user.getId()).stream()
+            .map(
+                p ->
+                    Map.<String, Object>of(
+                        "type",
+                        "public-key",
+                        "id",
+                        Base64.getUrlEncoder().withoutPadding().encodeToString(p.getCredentialId()),
+                        "transports",
+                        p.getTransports() != null ? p.getTransports() : List.of()))
+            .toList();
+
+    // Build registration options
+    Map<String, Object> options = new LinkedHashMap<>();
+    options.put("challenge", challengeBase64);
+    options.put(
+        "rp",
+        Map.of(
+            "id", rpId,
+            "name", rpName));
+    options.put(
+        "user",
+        Map.of(
+            "id",
+                Base64.getUrlEncoder()
+                    .withoutPadding()
+                    .encodeToString(user.getId().toString().getBytes()),
+            "name", user.getEmail(),
+            "displayName", user.getDisplayName()));
+    options.put(
+        "pubKeyCredParams",
+        List.of(
+            Map.of("type", "public-key", "alg", -7), // ES256
+            Map.of("type", "public-key", "alg", -257) // RS256
+            ));
+    options.put("timeout", 60000);
+    options.put("attestation", "none");
+    options.put(
+        "authenticatorSelection",
+        Map.of(
+            "residentKey", "preferred",
+            "userVerification", "preferred"));
+    if (!excludeCredentials.isEmpty()) {
+      options.put("excludeCredentials", excludeCredentials);
+    }
+
+    return options;
+  }
+
+  @Transactional
+  public PasskeyDto verifyRegistration(
+      User user, Map<String, Object> response, @Nullable String deviceName) {
+    // Get stored challenge
+    WebAuthnChallenge storedChallenge =
+        challengeRepository
+            .findValidByUserIdAndType(user.getId(), WebAuthnChallengeType.REGISTRATION)
+            .orElseThrow(() -> new BadRequestException(ErrorCode.TOKEN_INVALID));
+
+    // Delete the challenge (single use)
+    challengeRepository.delete(storedChallenge);
+
+    try {
+      Map<String, Object> responseInner = (Map<String, Object>) response.get("response");
+      // Parse the registration response
+      String clientDataJSON = (String) responseInner.get("clientDataJSON");
+      String attestationObject = (String) responseInner.get("attestationObject");
+      @SuppressWarnings("unchecked")
+      List<String> transports = (List<String>) responseInner.get("transports");
+
+      byte[] clientDataJSONBytes = Base64.getUrlDecoder().decode(clientDataJSON);
+      byte[] attestationObjectBytes = Base64.getUrlDecoder().decode(attestationObject);
+
+      // Build registration data
+      RegistrationRequest registrationRequest =
+          new RegistrationRequest(attestationObjectBytes, clientDataJSONBytes);
+
+      RegistrationData registrationData = webAuthnManager.parse(registrationRequest);
+
+      // Verify the registration
+      Challenge challenge =
+          new DefaultChallenge(Base64.getUrlDecoder().decode(storedChallenge.getChallenge()));
+      Origin originObj = new Origin(origin);
+      ServerProperty serverProperty =
+          ServerProperty.builder()
+              .origins(Set.of(originObj))
+              .rpId(rpId)
+              .challenge(challenge)
+              .build();
+
+      List<PublicKeyCredentialParameters> pubKeyCredParams =
+          List.of(
+              new PublicKeyCredentialParameters(
+                  PublicKeyCredentialType.PUBLIC_KEY, COSEAlgorithmIdentifier.ES256),
+              new PublicKeyCredentialParameters(
+                  PublicKeyCredentialType.PUBLIC_KEY, COSEAlgorithmIdentifier.RS256));
+
+      RegistrationParameters registrationParameters =
+          new RegistrationParameters(serverProperty, pubKeyCredParams, false, true);
+
+      webAuthnManager.verify(registrationData, registrationParameters);
+
+      // Extract credential data
+      AttestationObject attestation = registrationData.getAttestationObject();
+      if (attestation == null) {
+        throw new BadRequestException(ErrorCode.BAD_REQUEST);
+      }
+
+      AttestedCredentialData credentialData =
+          attestation.getAuthenticatorData().getAttestedCredentialData();
+      if (credentialData == null) {
+        throw new BadRequestException(ErrorCode.BAD_REQUEST);
+      }
+
+      byte[] credentialId = credentialData.getCredentialId();
+      byte[] publicKeyBytes = attestedCredentialDataConverter.convert(credentialData);
+      byte[] aaguid = credentialData.getAaguid().getBytes();
+
+      // Check if credential already exists
+      if (passkeyRepository.findByCredentialId(credentialId).isPresent()) {
+        throw new BadRequestException(ErrorCode.ALREADY_REGISTERED);
+      }
+
+      // Create and save passkey
+      Passkey passkey = new Passkey(user, credentialId, publicKeyBytes);
+      passkey.setTransports(transports);
+      passkey.setDeviceName(deviceName);
+      passkey.setAaguid(aaguid);
+      passkey.setSignCount(attestation.getAuthenticatorData().getSignCount());
+      passkeyRepository.persist(passkey);
+
+      return PasskeyDto.from(passkey);
+
+    } catch (BadRequestException e) {
+      throw e;
+    } catch (Exception e) {
+      throw new BadRequestException(ErrorCode.BAD_REQUEST);
+    }
+  }
+
+  @Transactional
+  public Map<String, Object> generateAuthenticationOptions(@Nullable String email) {
+    // Clean up old challenges if email provided
+    if (email != null) {
+      challengeRepository.deleteByEmail(email);
+    }
+
+    // Generate challenge
+    byte[] challengeBytes = new byte[32];
+    SECURE_RANDOM.nextBytes(challengeBytes);
+    String challengeBase64 = Base64.getUrlEncoder().withoutPadding().encodeToString(challengeBytes);
+
+    // Get allowed credentials if email provided
+    List<Map<String, Object>> allowCredentials = new ArrayList<>();
+    User user = null;
+
+    if (email != null) {
+      user = userRepository.findByEmail(email).orElse(null);
+      if (user != null) {
+        allowCredentials =
+            passkeyRepository.findByUserId(user.getId()).stream()
+                .map(
+                    p ->
+                        Map.<String, Object>of(
+                            "type",
+                            "public-key",
+                            "id",
+                            Base64.getUrlEncoder()
+                                .withoutPadding()
+                                .encodeToString(p.getCredentialId()),
+                            "transports",
+                            p.getTransports() != null ? p.getTransports() : List.of()))
+                .toList();
+      }
+    }
+
+    // Store challenge
+    WebAuthnChallenge challenge =
+        new WebAuthnChallenge(
+            user,
+            email,
+            challengeBase64,
+            WebAuthnChallengeType.AUTHENTICATION,
+            Instant.now().plus(Duration.ofMinutes(challengeExpiryMinutes)));
+    challengeRepository.persist(challenge);
+
+    // Build authentication options
+    Map<String, Object> options = new LinkedHashMap<>();
+    options.put("challenge", challengeBase64);
+    options.put("timeout", 60000);
+    options.put("rpId", rpId);
+    options.put("userVerification", "preferred");
+    if (!allowCredentials.isEmpty()) {
+      options.put("allowCredentials", allowCredentials);
+    }
+
+    return options;
+  }
+
+  @Transactional
+  public User verifyAuthentication(Map<String, Object> response) {
+    try {
+      @SuppressWarnings("unchecked")
+      Map<String, Object> responseInner = (Map<String, Object>) response.get("response");
+      // Parse the authentication response
+      String credentialIdBase64 = (String) response.get("id");
+      String clientDataJSON = (String) responseInner.get("clientDataJSON");
+      String authenticatorData = (String) responseInner.get("authenticatorData");
+      String signature = (String) responseInner.get("signature");
+      String userHandle = (String) responseInner.get("userHandle");
+
+      byte[] credentialId = Base64.getUrlDecoder().decode(credentialIdBase64);
+      byte[] clientDataJSONBytes = Base64.getUrlDecoder().decode(clientDataJSON);
+      byte[] authenticatorDataBytes = Base64.getUrlDecoder().decode(authenticatorData);
+      byte[] signatureBytes = Base64.getUrlDecoder().decode(signature);
+
+      // Find the passkey
+      Passkey passkey =
+          passkeyRepository
+              .findByCredentialId(credentialId)
+              .orElseThrow(() -> new NotFoundException(ErrorCode.PASSKEY_NOT_FOUND));
+
+      // Parse the authentication request to extract the challenge
+      AuthenticationRequest authenticationRequest =
+          new AuthenticationRequest(
+              credentialId,
+              userHandle != null ? Base64.getUrlDecoder().decode(userHandle) : null,
+              authenticatorDataBytes,
+              clientDataJSONBytes,
+              null,
+              signatureBytes);
+
+      AuthenticationData authenticationData = webAuthnManager.parse(authenticationRequest);
+
+      // Extract challenge from clientData and find stored challenge
+      String challengeFromClient =
+          Base64.getUrlEncoder()
+              .withoutPadding()
+              .encodeToString(
+                  authenticationData.getCollectedClientData().getChallenge().getValue());
+
+      WebAuthnChallenge storedChallenge =
+          challengeRepository
+              .findValidByChallenge(challengeFromClient)
+              .filter(c -> c.getChallengeType() == WebAuthnChallengeType.AUTHENTICATION)
+              .orElseThrow(() -> new BadRequestException(ErrorCode.TOKEN_INVALID));
+
+      // Delete the challenge (single use)
+      challengeRepository.delete(storedChallenge);
+
+      // Build credential record from stored data
+      AttestedCredentialData credentialData =
+          attestedCredentialDataConverter.convert(passkey.getPublicKey());
+      CredentialRecord credentialRecord =
+          new CredentialRecordImpl(
+              null, // attestationStatement
+              null, // uvInitialized
+              null, // backupEligible
+              null, // backupState
+              passkey.getSignCount(),
+              credentialData,
+              null, // authenticatorExtensions
+              null, // clientData
+              null, // clientExtensions
+              null // transports
+              );
+
+      // Verify the authentication
+      Challenge challenge =
+          new DefaultChallenge(Base64.getUrlDecoder().decode(storedChallenge.getChallenge()));
+      Origin originObj = new Origin(origin);
+      ServerProperty serverProperty =
+          ServerProperty.builder()
+              .origins(Set.of(originObj))
+              .rpId(rpId)
+              .challenge(challenge)
+              .build();
+
+      AuthenticationParameters authenticationParameters =
+          new AuthenticationParameters(serverProperty, credentialRecord, null, false, true);
+
+      webAuthnManager.verify(authenticationData, authenticationParameters);
+
+      // Update sign count
+      if (authenticationData.getAuthenticatorData() != null) {
+        long newSignCount = authenticationData.getAuthenticatorData().getSignCount();
+        passkey.recordUsage(newSignCount);
+      }
+
+      return passkey.getUser();
+
+    } catch (ForbiddenException | BadRequestException | NotFoundException e) {
+      throw e;
+    } catch (Exception e) {
+      throw new ForbiddenException();
+    }
+  }
+
+  public List<PasskeyDto> listPasskeys(Long userId) {
+    return passkeyRepository.findByUserId(userId).stream().map(PasskeyDto::from).toList();
+  }
+
+  @Transactional
+  public void deletePasskey(Long passkeyId, Long userId) {
+    Passkey passkey =
+        passkeyRepository
+            .findByIdAndUserId(passkeyId, userId)
+            .orElseThrow(() -> new NotFoundException(ErrorCode.PASSKEY_NOT_FOUND));
+
+    passkey.softDelete();
+  }
+}

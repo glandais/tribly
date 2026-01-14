@@ -74,5 +74,15 @@ services:
     environment:
       BROUTER_THREADS: "8"
 
+  mailhog:
+    image: mailhog/mailhog:latest
+    container_name: tribly-dev-mailhog
+    restart: unless-stopped
+    networks:
+      - tribly-dev
+    ports:
+      - "127.0.0.1:1025:1025"   # SMTP
+      - "127.0.0.1:8025:8025"   # Web UI
+
 networks:
   tribly-dev:

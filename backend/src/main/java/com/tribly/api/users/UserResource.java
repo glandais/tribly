@@ -8,7 +8,6 @@ import com.tribly.dto.users.response.PublicUserDto;
 import com.tribly.dto.users.response.UserDto;
 import com.tribly.service.user.UserAvatarService;
 import com.tribly.service.user.UserService;
-import com.tribly.service.user.UserSyncService;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
@@ -37,17 +36,13 @@ public class UserResource {
 
   @Inject UserService userService;
 
-  @Inject UserSyncService userSyncService;
-
   @Inject UserAvatarService userAvatarService;
 
   @GET
   @Path("/me")
   @Operation(
       summary = "Get current user",
-      description =
-          "Get the current authenticated user's profile. Creates the user if first call after"
-              + " login.")
+      description = "Get the current authenticated user's profile.")
   @APIResponses({
     @APIResponse(
         responseCode = "200",
@@ -59,7 +54,7 @@ public class UserResource {
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
   public Response getMe() {
-    UserDto userDto = userSyncService.syncUser();
+    UserDto userDto = userService.getUserDto();
     return Response.ok(userDto).build();
   }
 

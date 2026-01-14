@@ -113,30 +113,6 @@ class UserResourceTest extends AbstractResourceTest {
   }
 
   @Test
-  void getCurrentUser_shouldCreateUserWhenNotInDatabase() {
-    // Given: user5 exists in Keycloak but NOT in the database
-    Optional<User> existingUser = userRepository.findByEmail(EMAIL5);
-    assertTrue(existingUser.isEmpty());
-
-    // When: user5 calls getCurrentUser for the first time
-    given()
-        .auth()
-        .oauth2(getAccessToken(USER5))
-        .when()
-        .get("/api/users/me")
-        .then()
-        .statusCode(200)
-        .body("email", equalTo(EMAIL5))
-        // Display name from JWT (firstName + lastName in Keycloak: "User Five")
-        .body("displayName", equalTo("User Five"));
-
-    // Then: user should be created in the database
-    Optional<User> createdUser = userRepository.findByEmail(EMAIL5);
-    assertTrue(createdUser.isPresent());
-    assertThat(createdUser.get().getDisplayName(), equalTo("User Five"));
-  }
-
-  @Test
   void getCurrentUser_shouldNotUpdateDisplayNameFromJwt() {
     // Given: user1 exists in database with display name "Test User 1"
     // (different from JWT which would have "User One" from Keycloak)

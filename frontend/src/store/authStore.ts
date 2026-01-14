@@ -1,10 +1,11 @@
 import { create } from 'zustand'
-import { getKeycloak, initKeycloak } from '../config/keycloak'
 import type { UserDto } from '@/api/dto'
 import { paths } from '@/config/paths'
 
 export interface AuthState {
   user: UserDto | null
+  accessToken: string | null
+  hasPasskeys: boolean
   isAuthenticated: boolean
   isInitialized: boolean
   isInitializing: boolean
@@ -14,19 +15,23 @@ export interface AuthState {
 
 export interface AuthActions {
   initialize: () => Promise<void>
-  login: () => void
-  logout: () => void
+  setAccessToken: (token: string | null) => void
   setUser: (user: UserDto | null) => void
+  setHasPasskeys: (hasPasskeys: boolean) => void
   setLoading: (isLoading: boolean) => void
   setError: (error: string | null) => void
   clearError: () => void
-  getToken: () => string | undefined
+  getToken: () => string | null
+  logout: () => Promise<void>
+  redirectToLogin: () => void
 }
 
 export type AuthStore = AuthState & AuthActions
 
 const initialState: AuthState = {
   user: null,
+  accessToken: null,
+  hasPasskeys: false,
   isAuthenticated: false,
   isInitialized: false,
   isInitializing: false,
@@ -45,21 +50,36 @@ export const useAuthStore = create<AuthStore>()((set, get) => ({
     set({ isInitializing: true, isLoading: true })
 
     try {
-      const authenticated = await initKeycloak()
-
-      // Don't set user here - useAuth will fetch from /me
-      // Keep isLoading: true if authenticated, useAuth will set it to false after user is loaded
-      set({
-        user: null,
-        isAuthenticated: authenticated,
-        isInitialized: true,
-        isInitializing: false,
-        isLoading: authenticated, // Stay loading until user is fetched from /me
+      // Try to refresh token on startup (will work if refresh_token cookie exists)
+      const response = await fetch('/api/auth/refresh', {
+        method: 'POST',
+        credentials: 'include',
       })
+
+      if (response.ok) {
+        const data = await response.json()
+        set({
+          accessToken: data.accessToken,
+          user: data.user,
+          hasPasskeys: data.hasPasskeys ?? false,
+          isAuthenticated: true,
+          isInitialized: true,
+          isInitializing: false,
+          isLoading: false,
+        })
+      } else {
+        // No valid session, but initialization succeeded
+        set({
+          isAuthenticated: false,
+          isInitialized: true,
+          isInitializing: false,
+          isLoading: false,
+        })
+      }
     } catch (error) {
       console.error('Auth initialization failed:', error)
       set({
-        error: 'Failed to initialize authentication',
+        isAuthenticated: false,
         isInitialized: true,
         isInitializing: false,
         isLoading: false,
@@ -67,26 +87,16 @@ export const useAuthStore = create<AuthStore>()((set, get) => ({
     }
   },
 
-  login: () => {
-    const keycloak = getKeycloak()
-    if (keycloak) {
-      keycloak.login({
-        redirectUri: window.location.origin + '/',
-      })
-    }
-  },
+  setAccessToken: (token) => set({ accessToken: token }),
 
-  logout: () => {
-    const keycloak = getKeycloak()
-    if (keycloak) {
-      keycloak.logout({
-        redirectUri: window.location.origin + paths.login(),
-      })
-    }
-    set({ ...initialState, isInitialized: true, isLoading: false })
-  },
+  setUser: (user) =>
+    set({
+      user,
+      isAuthenticated: user !== null,
+      isLoading: false,
+    }),
 
-  setUser: (user) => set({ user, isAuthenticated: user !== null }),
+  setHasPasskeys: (hasPasskeys) => set({ hasPasskeys }),
 
   setLoading: (isLoading) => set({ isLoading }),
 
@@ -94,10 +104,30 @@ export const useAuthStore = create<AuthStore>()((set, get) => ({
 
   clearError: () => set({ error: null }),
 
-  getToken: () => getKeycloak()?.token,
+  getToken: () => get().accessToken,
+
+  logout: async () => {
+    try {
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+      })
+    } catch (error) {
+      console.error('Logout failed:', error)
+    }
+
+    set({ ...initialState, isInitialized: true, isLoading: false })
+    window.location.href = paths.login()
+  },
+
+  redirectToLogin: () => {
+    window.location.href = paths.login()
+  },
 }))
 
 export const selectUser = (state: AuthStore) => state.user
+export const selectAccessToken = (state: AuthStore) => state.accessToken
+export const selectHasPasskeys = (state: AuthStore) => state.hasPasskeys
 export const selectIsAuthenticated = (state: AuthStore) => state.isAuthenticated
 export const selectIsInitialized = (state: AuthStore) => state.isInitialized
 export const selectIsLoading = (state: AuthStore) => state.isLoading

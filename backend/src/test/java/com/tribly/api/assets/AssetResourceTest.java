@@ -289,7 +289,7 @@ class AssetResourceTest extends AbstractResourceTest {
   }
 
   @Test
-  void downloadTeamAsset_withoutAuth_shouldRedirectToKeycloak() {
+  void downloadTeamAsset_withoutAuth_shouldReturnForbidden() {
     File gpxFile = new File("src/test/resources/example.gpx");
 
     // Upload asset to private team
@@ -312,8 +312,7 @@ class AssetResourceTest extends AbstractResourceTest {
         .when()
         .get(assetUrl)
         .then()
-        .statusCode(302)
-        .header("Location", containsString("/realms/quarkus/protocol/openid-connect/auth"));
+        .statusCode(403);
   }
 
   @Test
@@ -521,7 +520,7 @@ class AssetResourceTest extends AbstractResourceTest {
   }
 
   @Test
-  void downloadTeamImage_withoutAuth_shouldRedirectToKeycloak() {
+  void downloadTeamImage_withoutAuth_shouldReturnForbidden() {
     File imageFile = new File("src/test/resources/image.png");
 
     // Upload image to private team
@@ -547,8 +546,7 @@ class AssetResourceTest extends AbstractResourceTest {
         .when()
         .get(resizedUrl)
         .then()
-        .statusCode(302)
-        .header("Location", containsString("/realms/quarkus/protocol/openid-connect/auth"));
+        .statusCode(403);
   }
 
   @Test

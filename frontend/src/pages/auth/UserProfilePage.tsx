@@ -23,6 +23,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import { UserAvatar } from '../../components/common/UserAvatar'
 import { UnitSystemSwitcher } from '../../components/common/UnitSystemSwitcher'
+import { PasskeyManager } from '../../components/auth/PasskeyManager'
 import { updateMeBody } from '@/api/zod/users/users.zod'
 import { UpdateUserRequest } from '@/api/dto'
 
@@ -213,6 +214,10 @@ export function UserProfilePage() {
             </Title>
             <UnitSystemSwitcher />
           </Stack>
+
+          <Divider />
+
+          <PasskeyManager />
 
           <Divider />
 
