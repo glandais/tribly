@@ -2,11 +2,10 @@ package com.tribly.dto.auth.response;
 
 import com.tribly.common.TsidUtils;
 import com.tribly.domain.auth.Passkey;
+import com.tribly.dto.validation.ValidateSchema;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.List;
-
-import com.tribly.dto.validation.ValidateSchema;
 import lombok.Builder;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.jspecify.annotations.Nullable;

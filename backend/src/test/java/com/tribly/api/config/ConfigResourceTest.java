@@ -27,7 +27,7 @@ class ConfigResourceTest extends AbstractResourceTest {
         .get("/api/config")
         .then()
         .statusCode(200)
-            .body("webAuthnRpId", is(notNullValue()))
-            .body("appName", is(notNullValue()));
+        .body("webAuthnRpId", is(notNullValue()))
+        .body("appName", is(notNullValue()));
   }
 }

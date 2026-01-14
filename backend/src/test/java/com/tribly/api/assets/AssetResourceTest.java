@@ -306,13 +306,7 @@ class AssetResourceTest extends AbstractResourceTest {
             .path("url");
 
     // Download without auth should redirect to Keycloak
-    given()
-        .redirects()
-        .follow(false)
-        .when()
-        .get(assetUrl)
-        .then()
-        .statusCode(403);
+    given().redirects().follow(false).when().get(assetUrl).then().statusCode(403);
   }
 
   @Test
