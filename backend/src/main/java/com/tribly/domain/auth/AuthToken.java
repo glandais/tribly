@@ -45,6 +45,9 @@ public class AuthToken {
   @Column(name = "pending_display_name", length = 250)
   private @Nullable String pendingDisplayName;
 
+  @Column(name = "pending_domain_id")
+  private @Nullable Long pendingDomainId;
+
   public AuthToken(String email, String tokenHash, AuthTokenType tokenType, Instant expiresAt) {
     this.email = email;
     this.tokenHash = tokenHash;

@@ -8,6 +8,7 @@ import org.jspecify.annotations.Nullable;
 
 @Builder
 public record TeamPageQuery(
+    Long domainId,
     @Nullable Long userId,
     @Nullable Set<Long> teamIds,
     @Nullable Long id,

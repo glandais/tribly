@@ -3,6 +3,7 @@ package com.tribly.repository.ad;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.tribly.domain.ad.Ad;
+import com.tribly.domain.platform.Domain;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
 import com.tribly.enums.AdType;
@@ -24,12 +25,14 @@ class AdRepositoryTest {
   @Inject TestDataService dataService;
   @Inject TestDataCleaner dataCleaner;
 
+  private Domain domain;
   private Team team;
   private User user;
 
   @BeforeEach
   void setUp() {
     dataCleaner.cleanAll();
+    domain = dataService.getOrCreateDefaultDomain();
     user = dataService.createUser("test@example.com", "Test User");
     team = dataService.createTeam(user, "Test Team", "test-team", Visibility.PUBLIC);
   }
@@ -44,7 +47,7 @@ class AdRepositoryTest {
       dataService.createAd(team, user, "Rental Ad", AdType.RENTAL);
       dataService.createAd(team, user, "Wanted Ad", AdType.WANTED);
 
-      AdQuery query = AdQuery.builder().userId(user.getId()).build();
+      AdQuery query = AdQuery.builder().domainId(domain.getId()).userId(user.getId()).build();
       TriblyPage<Ad> result = adRepository.find(query);
 
       assertEquals(3, result.items().size());
@@ -57,7 +60,12 @@ class AdRepositoryTest {
       dataService.createAd(team, user, "Rental Ad", AdType.RENTAL);
       dataService.createAd(team, user, "Wanted Ad", AdType.WANTED);
 
-      AdQuery query = AdQuery.builder().userId(user.getId()).adType(AdType.SALE).build();
+      AdQuery query =
+          AdQuery.builder()
+              .domainId(domain.getId())
+              .userId(user.getId())
+              .adType(AdType.SALE)
+              .build();
       TriblyPage<Ad> result = adRepository.find(query);
 
       assertEquals(1, result.items().size());
@@ -71,7 +79,12 @@ class AdRepositoryTest {
       dataService.createAd(team, user, "Rental Ad", AdType.RENTAL);
       dataService.createAd(team, user, "Wanted Ad", AdType.WANTED);
 
-      AdQuery query = AdQuery.builder().userId(user.getId()).adType(AdType.RENTAL).build();
+      AdQuery query =
+          AdQuery.builder()
+              .domainId(domain.getId())
+              .userId(user.getId())
+              .adType(AdType.RENTAL)
+              .build();
       TriblyPage<Ad> result = adRepository.find(query);
 
       assertEquals(1, result.items().size());
@@ -85,7 +98,12 @@ class AdRepositoryTest {
       dataService.createAd(team, user, "Rental Ad", AdType.RENTAL);
       dataService.createAd(team, user, "Wanted Ad", AdType.WANTED);
 
-      AdQuery query = AdQuery.builder().userId(user.getId()).adType(AdType.WANTED).build();
+      AdQuery query =
+          AdQuery.builder()
+              .domainId(domain.getId())
+              .userId(user.getId())
+              .adType(AdType.WANTED)
+              .build();
       TriblyPage<Ad> result = adRepository.find(query);
 
       assertEquals(1, result.items().size());
@@ -97,7 +115,7 @@ class AdRepositoryTest {
     void find_shouldReturnEmptyWhenNoAdsMatchAdType() {
       dataService.createAd(team, user, "Sale Ad", AdType.SALE);
 
-      AdQuery query = AdQuery.builder().adType(AdType.RENTAL).build();
+      AdQuery query = AdQuery.builder().domainId(domain.getId()).adType(AdType.RENTAL).build();
       TriblyPage<Ad> result = adRepository.find(query);
 
       assertEquals(0, result.items().size());
@@ -111,7 +129,12 @@ class AdRepositoryTest {
       dataService.createAd(team, user, "Sale Ad 3", AdType.SALE);
       dataService.createAd(team, user, "Rental Ad", AdType.RENTAL);
 
-      AdQuery query = AdQuery.builder().userId(user.getId()).adType(AdType.SALE).build();
+      AdQuery query =
+          AdQuery.builder()
+              .domainId(domain.getId())
+              .userId(user.getId())
+              .adType(AdType.SALE)
+              .build();
       TriblyPage<Ad> result = adRepository.find(query);
 
       assertEquals(3, result.items().size());

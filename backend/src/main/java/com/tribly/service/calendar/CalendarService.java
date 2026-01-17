@@ -22,6 +22,7 @@ import com.tribly.repository.calendar.CalendarTokenRepository;
 import com.tribly.repository.common.AllPublicationRepository;
 import com.tribly.repository.common.PublicationQuery;
 import com.tribly.repository.team.UserTeamRepository;
+import com.tribly.service.security.DomainResolver;
 import com.tribly.service.security.TriblyQueryContext;
 import com.tribly.service.security.annotation.CheckAccess;
 import com.tribly.service.team.TeamService;
@@ -33,7 +34,6 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jspecify.annotations.Nullable;
 
 @ApplicationScoped
@@ -53,8 +53,7 @@ public class CalendarService {
 
   @Inject UserTeamRepository userTeamRepository;
 
-  @ConfigProperty(name = "tribly.base-url", defaultValue = "http://localhost:8080")
-  String baseUrl;
+  @Inject DomainResolver domainResolver;
 
   @CheckAccess(entityType = EntityType.CALENDAR, action = ActionType.LIST_ALL_TEAMS)
   public CalendarEventsResponse getEventsForUser(
@@ -142,6 +141,7 @@ public class CalendarService {
   }
 
   private CalendarTokenDto buildTokenDto(CalendarToken token) {
+    String baseUrl = domainResolver.getDomain().getBaseUrl();
     String globalFeedUrl = baseUrl + "/api/calendar/ics?token=" + token.getToken();
     String teamFeedUrlTemplate =
         baseUrl + "/api/teams/{teamSlug}/calendar/ics?token=" + token.getToken();
@@ -199,6 +199,7 @@ public class CalendarService {
       PublicationType publicationType) {
     return allPublicationRepository.findAll(
         PublicationQuery.builder()
+            .domainId(triblyQueryContext.getDomainId())
             .userId(userId)
             .type(publicationType)
             .teamIds(teamIds)

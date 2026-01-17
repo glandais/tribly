@@ -2,6 +2,7 @@ package com.tribly.domain.team;
 
 import com.tribly.domain.common.BaseEntity;
 import com.tribly.domain.common.NotNullableDbValue;
+import com.tribly.domain.platform.Domain;
 import com.tribly.domain.user.User;
 import com.tribly.enums.Visibility;
 import jakarta.persistence.*;
@@ -22,14 +23,23 @@ import org.jspecify.annotations.Nullable;
 @Entity
 @Table(
     name = "teams",
-    indexes = {@Index(columnList = "slug, deleted")})
+    indexes = {@Index(columnList = "slug, deleted"), @Index(columnList = "domain_id, deleted")},
+    uniqueConstraints = {
+      @UniqueConstraint(
+          name = "uk_teams_domain_slug",
+          columnNames = {"domain_id", "slug"})
+    })
 @NoArgsConstructor
 public class Team extends BaseEntity {
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "domain_id", nullable = false)
+  private Domain domain;
 
   @Column(name = "name", nullable = false, length = 250)
   private String name;
 
-  @Column(name = "slug", nullable = false, unique = true, length = 250)
+  @Column(name = "slug", nullable = false, length = 250)
   private String slug;
 
   @Enumerated(EnumType.STRING)
@@ -59,8 +69,9 @@ public class Team extends BaseEntity {
   @Nullable
   private Point<G2D> geometry;
 
-  public Team(User creator, String name, String slug, Visibility visibility) {
+  public Team(Domain domain, User creator, String name, String slug, Visibility visibility) {
     super(creator);
+    this.domain = domain;
     this.name = name;
     this.slug = slug;
     this.visibility = visibility;

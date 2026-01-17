@@ -2,6 +2,7 @@ package com.tribly.repository.team;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.tribly.domain.platform.Domain;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.team.TeamSlugRedirect;
 import com.tribly.domain.user.User;
@@ -24,25 +25,28 @@ class TeamSlugRedirectRepositoryTest {
   @Inject TestDataService dataService;
   @Inject TestDataCleaner dataCleaner;
 
+  private Domain domain;
   private Team team;
   private User user;
 
   @BeforeEach
   void setUp() {
     dataCleaner.cleanAll();
+    domain = dataService.getOrCreateDefaultDomain();
     user = dataService.createUser("test@example.com", "Test User");
     team = dataService.createTeam(user, "Test Team", "test-team", Visibility.PUBLIC);
   }
 
   @Nested
-  @DisplayName("findByOldSlug")
-  class FindByOldSlug {
+  @DisplayName("findByOldSlugAndDomain")
+  class FindByOldSlugAndDomain {
 
     @Test
     void shouldReturnRedirectWhenOldSlugExists() {
       dataService.createTeamSlugRedirect("old-team-slug", team);
 
-      Optional<TeamSlugRedirect> result = teamSlugRedirectRepository.findByOldSlug("old-team-slug");
+      Optional<TeamSlugRedirect> result =
+          teamSlugRedirectRepository.findByOldSlugAndDomain(domain.getId(), "old-team-slug");
 
       assertTrue(result.isPresent());
       assertEquals("old-team-slug", result.get().getOldSlug());
@@ -52,7 +56,7 @@ class TeamSlugRedirectRepositoryTest {
     @Test
     void shouldReturnEmptyWhenOldSlugNotExists() {
       Optional<TeamSlugRedirect> result =
-          teamSlugRedirectRepository.findByOldSlug("non-existent-slug");
+          teamSlugRedirectRepository.findByOldSlugAndDomain(domain.getId(), "non-existent-slug");
 
       assertTrue(result.isEmpty());
     }
@@ -63,7 +67,8 @@ class TeamSlugRedirectRepositoryTest {
       dataService.createTeamSlugRedirect("old-slug-1", team);
       dataService.createTeamSlugRedirect("old-slug-2", team2);
 
-      Optional<TeamSlugRedirect> result = teamSlugRedirectRepository.findByOldSlug("old-slug-2");
+      Optional<TeamSlugRedirect> result =
+          teamSlugRedirectRepository.findByOldSlugAndDomain(domain.getId(), "old-slug-2");
 
       assertTrue(result.isPresent());
       assertEquals("old-slug-2", result.get().getOldSlug());
@@ -74,7 +79,8 @@ class TeamSlugRedirectRepositoryTest {
     void shouldBeCaseSensitive() {
       dataService.createTeamSlugRedirect("old-team-slug", team);
 
-      Optional<TeamSlugRedirect> result = teamSlugRedirectRepository.findByOldSlug("Old-Team-Slug");
+      Optional<TeamSlugRedirect> result =
+          teamSlugRedirectRepository.findByOldSlugAndDomain(domain.getId(), "Old-Team-Slug");
 
       assertTrue(result.isEmpty());
     }
@@ -83,7 +89,8 @@ class TeamSlugRedirectRepositoryTest {
     void shouldReturnRedirectWithTeamAssociation() {
       TeamSlugRedirect redirect = dataService.createTeamSlugRedirect("previous-slug", team);
 
-      Optional<TeamSlugRedirect> result = teamSlugRedirectRepository.findByOldSlug("previous-slug");
+      Optional<TeamSlugRedirect> result =
+          teamSlugRedirectRepository.findByOldSlugAndDomain(domain.getId(), "previous-slug");
 
       assertTrue(result.isPresent());
       assertEquals(redirect.getId(), result.get().getId());
@@ -94,19 +101,23 @@ class TeamSlugRedirectRepositoryTest {
 
   @Test
   @Transactional
-  void shouldDeleteRedirectByOldSlug() {
+  void shouldDeleteRedirectByOldSlugAndDomain() {
     dataService.createTeamSlugRedirect("slug-to-delete", team);
 
-    teamSlugRedirectRepository.deleteByOldSlug("slug-to-delete");
+    teamSlugRedirectRepository.deleteByOldSlugAndDomain(domain.getId(), "slug-to-delete");
 
-    Optional<TeamSlugRedirect> result = teamSlugRedirectRepository.findByOldSlug("slug-to-delete");
+    Optional<TeamSlugRedirect> result =
+        teamSlugRedirectRepository.findByOldSlugAndDomain(domain.getId(), "slug-to-delete");
     assertTrue(result.isEmpty());
   }
 
   @Test
   @Transactional
   void shouldNotThrowWhenDeletingNonExistentSlug() {
-    assertDoesNotThrow(() -> teamSlugRedirectRepository.deleteByOldSlug("non-existent-slug"));
+    assertDoesNotThrow(
+        () ->
+            teamSlugRedirectRepository.deleteByOldSlugAndDomain(
+                domain.getId(), "non-existent-slug"));
   }
 
   @Test
@@ -116,11 +127,14 @@ class TeamSlugRedirectRepositoryTest {
     dataService.createTeamSlugRedirect("slug-2", team);
     dataService.createTeamSlugRedirect("slug-3", team);
 
-    teamSlugRedirectRepository.deleteByOldSlug("slug-2");
+    teamSlugRedirectRepository.deleteByOldSlugAndDomain(domain.getId(), "slug-2");
 
-    assertTrue(teamSlugRedirectRepository.findByOldSlug("slug-1").isPresent());
-    assertTrue(teamSlugRedirectRepository.findByOldSlug("slug-2").isEmpty());
-    assertTrue(teamSlugRedirectRepository.findByOldSlug("slug-3").isPresent());
+    assertTrue(
+        teamSlugRedirectRepository.findByOldSlugAndDomain(domain.getId(), "slug-1").isPresent());
+    assertTrue(
+        teamSlugRedirectRepository.findByOldSlugAndDomain(domain.getId(), "slug-2").isEmpty());
+    assertTrue(
+        teamSlugRedirectRepository.findByOldSlugAndDomain(domain.getId(), "slug-3").isPresent());
   }
 
   @Test
@@ -128,8 +142,11 @@ class TeamSlugRedirectRepositoryTest {
   void shouldBeCaseSensitiveWhenDeleting() {
     dataService.createTeamSlugRedirect("case-sensitive-slug", team);
 
-    teamSlugRedirectRepository.deleteByOldSlug("Case-Sensitive-Slug");
+    teamSlugRedirectRepository.deleteByOldSlugAndDomain(domain.getId(), "Case-Sensitive-Slug");
 
-    assertTrue(teamSlugRedirectRepository.findByOldSlug("case-sensitive-slug").isPresent());
+    assertTrue(
+        teamSlugRedirectRepository
+            .findByOldSlugAndDomain(domain.getId(), "case-sensitive-slug")
+            .isPresent());
   }
 }

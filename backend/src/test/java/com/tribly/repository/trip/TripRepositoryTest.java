@@ -2,6 +2,7 @@ package com.tribly.repository.trip;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.tribly.domain.platform.Domain;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.trip.Trip;
 import com.tribly.domain.user.User;
@@ -29,6 +30,7 @@ class TripRepositoryTest {
   @Inject TestDataCleaner dataCleaner;
   @Inject TriblyQueryContext triblyQueryContext;
 
+  private Domain domain;
   private User user;
   private Team team;
   private Instant now;
@@ -36,6 +38,7 @@ class TripRepositoryTest {
   @BeforeEach
   void setUp() {
     dataCleaner.cleanAll();
+    domain = dataService.getOrCreateDefaultDomain();
     user = dataService.createUser("test@example.com", "Test User");
     team = dataService.createTeam(user, "Test Team", "test-team", Visibility.PUBLIC);
     now = Instant.now();
@@ -51,7 +54,7 @@ class TripRepositoryTest {
       Trip trip = dataService.createTrip(team, user, "Test Trip", now);
 
       Optional<Trip> result =
-          tripRepository.findByTeamAndSlug(team.getId(), user.getId(), "test-trip");
+          tripRepository.findByTeamAndSlug(domain.getId(), team.getId(), user.getId(), "test-trip");
 
       assertTrue(result.isPresent());
       assertEquals(trip.getId(), result.get().getId());
@@ -63,7 +66,8 @@ class TripRepositoryTest {
       dataService.createTrip(team, user, "Test Trip", now);
 
       Optional<Trip> result =
-          tripRepository.findByTeamAndSlug(team.getId(), user.getId(), "non-existent");
+          tripRepository.findByTeamAndSlug(
+              domain.getId(), team.getId(), user.getId(), "non-existent");
 
       assertTrue(result.isEmpty());
     }
@@ -75,7 +79,7 @@ class TripRepositoryTest {
       dataService.deleteTrip(trip);
 
       Optional<Trip> result =
-          tripRepository.findByTeamAndSlug(team.getId(), user.getId(), "test-trip");
+          tripRepository.findByTeamAndSlug(domain.getId(), team.getId(), user.getId(), "test-trip");
 
       assertTrue(result.isEmpty());
     }
@@ -87,7 +91,7 @@ class TripRepositoryTest {
       dataService.createTrip(otherTeam, user, "Test Trip", now);
 
       Optional<Trip> result =
-          tripRepository.findByTeamAndSlug(team.getId(), user.getId(), "test-trip");
+          tripRepository.findByTeamAndSlug(domain.getId(), team.getId(), user.getId(), "test-trip");
 
       assertTrue(result.isEmpty());
     }

@@ -4,6 +4,7 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
 import com.tribly.domain.auth.AuthToken;
+import com.tribly.domain.platform.Domain;
 import com.tribly.domain.user.User;
 import com.tribly.enums.AuthTokenType;
 import com.tribly.repository.auth.AuthTokenRepository;
@@ -33,9 +34,12 @@ class AuthResourceTest {
   @Inject JwtService jwtService;
   @Inject MockMailbox mailbox;
 
+  private Domain domain;
+
   @BeforeEach
   void setUp() {
     dataCleaner.cleanAll();
+    domain = dataService.getOrCreateDefaultDomain();
     mailbox.clear();
   }
 
@@ -362,6 +366,7 @@ class AuthResourceTest {
             AuthTokenType.EMAIL_VERIFICATION,
             Instant.now().plus(24, ChronoUnit.HOURS));
     authToken.setPendingDisplayName(displayName);
+    authToken.setPendingDomainId(domain.getId());
     authTokenRepository.persist(authToken);
   }
 
@@ -375,6 +380,7 @@ class AuthResourceTest {
             AuthTokenType.EMAIL_VERIFICATION,
             Instant.now().minus(1, ChronoUnit.HOURS));
     authToken.setPendingDisplayName(displayName);
+    authToken.setPendingDomainId(domain.getId());
     authTokenRepository.persist(authToken);
   }
 

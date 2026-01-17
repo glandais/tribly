@@ -1,12 +1,13 @@
 package com.tribly.service.calendar;
 
 import com.tribly.dto.calendar.response.CalendarEventDto;
+import com.tribly.service.security.DomainResolver;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 @ApplicationScoped
 public class IcsGenerationService {
@@ -17,8 +18,7 @@ public class IcsGenerationService {
   private static final DateTimeFormatter ICS_DATE_FORMAT =
       DateTimeFormatter.ofPattern("yyyyMMdd").withZone(ZoneId.of("UTC"));
 
-  @ConfigProperty(name = "tribly.base-url", defaultValue = "http://localhost:8080")
-  String baseUrl;
+  @Inject DomainResolver domainResolver;
 
   public String generateIcs(List<CalendarEventDto> events, String calendarName) {
     StringBuilder ics = new StringBuilder();
@@ -89,6 +89,7 @@ public class IcsGenerationService {
   }
 
   private String buildEventUrl(CalendarEventDto event) {
+    String baseUrl = domainResolver.getDomain().getBaseUrl();
     return switch (event.type()) {
       case RIDE -> baseUrl + "/teams/" + event.teamSlug() + "/rides/" + event.entitySlug();
       case TRIP_STAGE -> {

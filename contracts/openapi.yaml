@@ -537,6 +537,7 @@ components:
       required:
       - webAuthnRpId
       - appName
+      - singleTeam
       properties:
         webAuthnRpId:
           type: string
@@ -544,6 +545,9 @@ components:
         appName:
           type: string
           description: Application name
+        singleTeam:
+          type: boolean
+          description: Single team mode - team creation disabled
     EntityType:
       type: string
       enum:
@@ -603,6 +607,8 @@ components:
       - PASSWORD_NOT_SET
       - PASSKEY_NOT_FOUND
       - USER_NOT_FOUND
+      - DOMAIN_NOT_FOUND
+      - TEAM_CREATION_DISABLED
     ErrorDetails:
       oneOf:
       - $ref: "#/components/schemas/ErrorValidationDetails"

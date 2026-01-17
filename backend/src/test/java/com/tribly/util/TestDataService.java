@@ -1,5 +1,7 @@
 package com.tribly.util;
 
+import static com.tribly.common.TokenUtils.generateSecureToken;
+import static com.tribly.common.TokenUtils.hashToken;
 import static org.geolatte.geom.crs.CoordinateReferenceSystems.WGS84;
 
 import com.tribly.domain.ad.Ad;
@@ -9,6 +11,7 @@ import com.tribly.domain.comment.Comment;
 import com.tribly.domain.common.TeamEntity;
 import com.tribly.domain.common.TeamEntitySlugRedirect;
 import com.tribly.domain.place.Place;
+import com.tribly.domain.platform.Domain;
 import com.tribly.domain.post.Post;
 import com.tribly.domain.ride.*;
 import com.tribly.domain.ridetemplate.RideTemplate;
@@ -30,6 +33,7 @@ import com.tribly.repository.calendar.CalendarTokenRepository;
 import com.tribly.repository.comment.CommentRepository;
 import com.tribly.repository.common.TeamEntitySlugRedirectRepository;
 import com.tribly.repository.place.PlaceRepository;
+import com.tribly.repository.platform.DomainRepository;
 import com.tribly.repository.post.PostRepository;
 import com.tribly.repository.ride.RideGroupRepository;
 import com.tribly.repository.ride.RideParticipationRepository;
@@ -69,17 +73,54 @@ public class TestDataService {
   @Inject RideGroupRepository rideGroupRepository;
   @Inject RideParticipationRepository participationRepository;
   @Inject RouteRepository routeRepository;
+  @Inject DomainRepository domainRepository;
+
+  @Transactional
+  public Domain getOrCreateDefaultDomain() {
+    return domainRepository
+        .findByDomain("localhost")
+        .orElseGet(
+            () -> {
+              Domain domain = new Domain("localhost", "Tribly", "http://localhost:5173");
+              domainRepository.persistAndFlush(domain);
+              return domain;
+            });
+  }
+
+  @Transactional
+  public Domain createDomain(String domainName, String name, String baseUrl) {
+    Domain domain = new Domain(domainName, name, baseUrl);
+    domainRepository.persistAndFlush(domain);
+    return domain;
+  }
+
+  @Transactional
+  public User createUser(Domain domain, String email, String displayName) {
+    User user = new User(domain, email, displayName);
+    userRepository.persistAndFlush(user);
+    return user;
+  }
 
   @Transactional
   public User createUser(String email, String displayName) {
-    User user = new User(email, displayName);
+    Domain domain = getOrCreateDefaultDomain();
+    User user = new User(domain, email, displayName);
+    userRepository.persistAndFlush(user);
+    return user;
+  }
+
+  @Transactional
+  public User createVerifiedUser(Domain domain, String email, String displayName) {
+    User user = new User(domain, email, displayName);
+    user.markEmailVerified();
     userRepository.persistAndFlush(user);
     return user;
   }
 
   @Transactional
   public User createVerifiedUser(String email, String displayName) {
-    User user = new User(email, displayName);
+    Domain domain = getOrCreateDefaultDomain();
+    User user = new User(domain, email, displayName);
     user.markEmailVerified();
     userRepository.persistAndFlush(user);
     return user;
@@ -92,7 +133,12 @@ public class TestDataService {
   }
 
   public User findUserByEmail(String email) {
-    return userRepository.findByEmail(email).orElseThrow();
+    Domain domain = getOrCreateDefaultDomain();
+    return userRepository.findByEmailAndDomain(domain.getId(), email).orElseThrow();
+  }
+
+  public User findUserByEmail(Domain domain, String email) {
+    return userRepository.findByEmailAndDomain(domain.getId(), email).orElseThrow();
   }
 
   @Transactional
@@ -103,7 +149,17 @@ public class TestDataService {
 
   @Transactional
   public Team createTeam(User user, String name, String slug, Visibility visibility) {
-    Team team = new Team(user, name, slug, visibility);
+    Domain domain = user.getDomain();
+    Team team = new Team(domain, user, name, slug, visibility);
+    teamRepository.persistAndFlush(team);
+    addUserToTeam(user, team, TeamRole.ADMIN);
+    return team;
+  }
+
+  @Transactional
+  public Team createTeam(
+      Domain domain, User user, String name, String slug, Visibility visibility) {
+    Team team = new Team(domain, user, name, slug, visibility);
     teamRepository.persistAndFlush(team);
     addUserToTeam(user, team, TeamRole.ADMIN);
     return team;
@@ -707,8 +763,8 @@ public class TestDataService {
   }
 
   /**
-   * Creates a refresh token for a user and returns the raw token (not the hash).
-   * The token is stored as a hash in the database.
+   * Creates a refresh token for a user and returns the raw token (not the hash). The token is
+   * stored as a hash in the database.
    */
   @Transactional
   public String createRefreshTokenForUser(User user) {
@@ -719,22 +775,6 @@ public class TestDataService {
             user, tokenHash, java.time.Instant.now().plusSeconds(30 * 24 * 60 * 60));
     authSessionRepository.persistAndFlush(session);
     return rawToken;
-  }
-
-  private String generateSecureToken() {
-    byte[] bytes = new byte[32];
-    new java.security.SecureRandom().nextBytes(bytes);
-    return java.util.Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
-  }
-
-  private String hashToken(String token) {
-    try {
-      java.security.MessageDigest digest = java.security.MessageDigest.getInstance("SHA-256");
-      byte[] hash = digest.digest(token.getBytes(java.nio.charset.StandardCharsets.UTF_8));
-      return java.util.Base64.getEncoder().encodeToString(hash);
-    } catch (java.security.NoSuchAlgorithmException e) {
-      throw new RuntimeException("SHA-256 not available", e);
-    }
   }
 
   @Transactional

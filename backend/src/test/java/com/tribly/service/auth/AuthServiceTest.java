@@ -6,6 +6,7 @@ import com.tribly.common.exception.BadRequestException;
 import com.tribly.common.exception.ForbiddenException;
 import com.tribly.common.exception.NotFoundException;
 import com.tribly.domain.auth.AuthToken;
+import com.tribly.domain.platform.Domain;
 import com.tribly.domain.user.User;
 import com.tribly.dto.auth.request.MagicLinkRequest;
 import com.tribly.dto.auth.request.RegisterRequest;
@@ -15,6 +16,7 @@ import com.tribly.enums.AuthTokenType;
 import com.tribly.repository.auth.AuthSessionRepository;
 import com.tribly.repository.auth.AuthTokenRepository;
 import com.tribly.repository.user.UserRepository;
+import com.tribly.service.security.DomainResolver;
 import com.tribly.util.TestDataCleaner;
 import com.tribly.util.TestDataService;
 import io.quarkus.mailer.MockMailbox;
@@ -36,11 +38,16 @@ class AuthServiceTest {
   @Inject TestDataService dataService;
   @Inject TestDataCleaner dataCleaner;
   @Inject MockMailbox mailbox;
+  @Inject DomainResolver domainResolver;
+
+  private Domain domain;
 
   @BeforeEach
   void setUp() {
     dataCleaner.cleanAll();
     mailbox.clear();
+    domain = dataService.getOrCreateDefaultDomain();
+    domainResolver.setDomainForTest(domain);
   }
 
   // --- Register tests ---
@@ -66,7 +73,7 @@ class AuthServiceTest {
 
     var sent = mailbox.getMailsSentTo("new@example.com");
     assertEquals(1, sent.size());
-    assertTrue(sent.getFirst().getSubject().contains("Verify"));
+    assertTrue(sent.getFirst().getSubject().contains("Confirmez"));
   }
 
   @Test
@@ -106,7 +113,8 @@ class AuthServiceTest {
     assertEquals("Verified User", result.response().user().displayName());
 
     // User should exist and be verified
-    User user = userRepository.findByEmail("verify@example.com").orElseThrow();
+    User user =
+        userRepository.findByEmailAndDomain(domain.getId(), "verify@example.com").orElseThrow();
     assertTrue(user.isEmailVerified());
   }
 
@@ -270,6 +278,7 @@ class AuthServiceTest {
             AuthTokenType.EMAIL_VERIFICATION,
             Instant.now().plus(24, ChronoUnit.HOURS));
     authToken.setPendingDisplayName(displayName);
+    authToken.setPendingDomainId(domain.getId());
     authTokenRepository.persist(authToken);
   }
 
@@ -283,6 +292,7 @@ class AuthServiceTest {
             AuthTokenType.EMAIL_VERIFICATION,
             Instant.now().minus(1, ChronoUnit.HOURS));
     authToken.setPendingDisplayName(displayName);
+    authToken.setPendingDomainId(domain.getId());
     authTokenRepository.persist(authToken);
   }
 

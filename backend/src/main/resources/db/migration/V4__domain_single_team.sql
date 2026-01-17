@@ -1,0 +1,1 @@
+ALTER TABLE domains ADD COLUMN single_team BOOLEAN NOT NULL DEFAULT false;

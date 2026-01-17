@@ -2,6 +2,7 @@ package com.tribly.repository.team;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.tribly.domain.platform.Domain;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
 import com.tribly.enums.TeamRole;
@@ -24,21 +25,23 @@ class TeamRepositoryTest {
   @Inject TestDataService dataService;
   @Inject TestDataCleaner dataCleaner;
 
+  private Domain domain;
   private User user1;
   private User user2;
 
   @BeforeEach
   void setUp() {
     dataCleaner.cleanAll();
+    domain = dataService.getOrCreateDefaultDomain();
     user1 = dataService.createUser("user1@example.com", "User One");
     user2 = dataService.createUser("user2@example.com", "User Two");
   }
 
   @Test
-  void findBySlug_shouldReturnTeamWhenExists() {
+  void findBySlugAndDomain_shouldReturnTeamWhenExists() {
     dataService.createTeam(user1, "Test Team", "test-team", Visibility.PUBLIC);
 
-    Optional<Team> result = teamRepository.findBySlug("test-team");
+    Optional<Team> result = teamRepository.findBySlugAndDomain(domain.getId(), "test-team");
 
     assertTrue(result.isPresent());
     assertEquals("Test Team", result.get().getName());
@@ -46,44 +49,44 @@ class TeamRepositoryTest {
   }
 
   @Test
-  void findBySlug_shouldReturnEmptyWhenNotExists() {
-    Optional<Team> result = teamRepository.findBySlug("nonexistent");
+  void findBySlugAndDomain_shouldReturnEmptyWhenNotExists() {
+    Optional<Team> result = teamRepository.findBySlugAndDomain(domain.getId(), "nonexistent");
 
     assertTrue(result.isEmpty());
   }
 
   @Test
-  void findBySlug_shouldIgnoreDeletedTeams() {
+  void findBySlugAndDomain_shouldIgnoreDeletedTeams() {
     Team team = dataService.createTeam(user1, "Deleted Team", "deleted-team", Visibility.PUBLIC);
     dataService.deleteTeam(team);
 
-    Optional<Team> result = teamRepository.findBySlug("deleted-team");
+    Optional<Team> result = teamRepository.findBySlugAndDomain(domain.getId(), "deleted-team");
 
     assertTrue(result.isEmpty());
   }
 
   @Test
-  void existsBySlug_shouldReturnTrueWhenExists() {
+  void existsBySlugAndDomain_shouldReturnTrueWhenExists() {
     dataService.createTeam(user1, "Test Team", "test-team", Visibility.PUBLIC);
 
-    boolean exists = teamRepository.existsBySlug("test-team");
+    boolean exists = teamRepository.existsBySlugAndDomain(domain.getId(), "test-team");
 
     assertTrue(exists);
   }
 
   @Test
-  void existsBySlug_shouldReturnFalseWhenNotExists() {
-    boolean exists = teamRepository.existsBySlug("nonexistent");
+  void existsBySlugAndDomain_shouldReturnFalseWhenNotExists() {
+    boolean exists = teamRepository.existsBySlugAndDomain(domain.getId(), "nonexistent");
 
     assertFalse(exists);
   }
 
   @Test
-  void existsBySlug_shouldIgnoreDeletedTeams() {
+  void existsBySlugAndDomain_shouldIgnoreDeletedTeams() {
     Team team = dataService.createTeam(user1, "Deleted Team", "deleted-team", Visibility.PUBLIC);
     dataService.deleteTeam(team);
 
-    boolean exists = teamRepository.existsBySlug("deleted-team");
+    boolean exists = teamRepository.existsBySlugAndDomain(domain.getId(), "deleted-team");
 
     assertFalse(exists);
   }
@@ -93,7 +96,7 @@ class TeamRepositoryTest {
     dataService.createTeam(user1, "Public Team", "public-team", Visibility.PUBLIC);
     dataService.createTeam(user1, "Private Team", "private-team", Visibility.TEAM);
 
-    TeamQuery query = TeamQuery.builder().page(0).size(10).build();
+    TeamQuery query = TeamQuery.builder().domainId(domain.getId()).page(0).size(10).build();
     TriblyPage<TeamAndRole> result = teamRepository.find(query);
 
     assertEquals(1, result.items().size());
@@ -105,7 +108,7 @@ class TeamRepositoryTest {
     Team team1 = dataService.createTeam(user1, "Team 1", "team-1", Visibility.PUBLIC);
     dataService.createTeam(user1, "Team 2", "team-2", Visibility.PUBLIC);
 
-    TeamQuery query = new TeamQuery(0, 10, team1.getId(), null, null, null);
+    TeamQuery query = new TeamQuery(0, 10, domain.getId(), team1.getId(), null, null, null);
     TriblyPage<TeamAndRole> result = teamRepository.find(query);
 
     assertEquals(1, result.items().size());
@@ -120,7 +123,7 @@ class TeamRepositoryTest {
 
     dataService.createTeam(user1, "Running Club", "running-club", Visibility.PUBLIC);
 
-    TeamQuery query = new TeamQuery(0, 10, null, null, null, "%cycling%");
+    TeamQuery query = new TeamQuery(0, 10, domain.getId(), null, null, null, "%cycling%");
     TriblyPage<TeamAndRole> result = teamRepository.find(query);
 
     assertEquals(1, result.items().size());
@@ -134,7 +137,8 @@ class TeamRepositoryTest {
 
     dataService.addUserToTeam(user2, team1, TeamRole.MEMBER);
 
-    TeamQuery query = new TeamQuery(0, 10, null, user2.getId(), MinRole.MEMBER, null);
+    TeamQuery query =
+        new TeamQuery(0, 10, domain.getId(), null, user2.getId(), MinRole.MEMBER, null);
     TriblyPage<TeamAndRole> result = teamRepository.find(query);
 
     assertEquals(1, result.items().size());
@@ -151,7 +155,7 @@ class TeamRepositoryTest {
 
     dataService.addUserToTeam(user2, privateTeam, TeamRole.MEMBER);
 
-    TeamQuery query = new TeamQuery(0, 10, null, user2.getId(), null, null);
+    TeamQuery query = new TeamQuery(0, 10, domain.getId(), null, user2.getId(), null, null);
     TriblyPage<TeamAndRole> result = teamRepository.find(query);
 
     assertEquals(2, result.items().size());
@@ -163,7 +167,7 @@ class TeamRepositoryTest {
     Team deletedTeam = dataService.createTeam(user1, "Deleted Team", "deleted", Visibility.PUBLIC);
     dataService.deleteTeam(deletedTeam);
 
-    TeamQuery query = new TeamQuery(0, 10, null, null, null, null);
+    TeamQuery query = new TeamQuery(0, 10, domain.getId(), null, null, null, null);
     TriblyPage<TeamAndRole> result = teamRepository.find(query);
 
     assertEquals(1, result.items().size());
@@ -175,7 +179,8 @@ class TeamRepositoryTest {
     Team team = dataService.createTeam(user1, "Test Team", "test-team", Visibility.PUBLIC);
     dataService.addUserToTeam(user2, team, TeamRole.ADMIN);
 
-    Optional<TeamAndRole> result = teamRepository.findOne(team.getId(), user2.getId());
+    Optional<TeamAndRole> result =
+        teamRepository.findOne(domain.getId(), team.getId(), user2.getId());
 
     assertTrue(result.isPresent());
     assertEquals("test-team", result.get().team().getSlug());
@@ -184,7 +189,7 @@ class TeamRepositoryTest {
 
   @Test
   void findOne_shouldReturnEmptyWhenNotExists() {
-    Optional<TeamAndRole> result = teamRepository.findOne(-1L, user1.getId());
+    Optional<TeamAndRole> result = teamRepository.findOne(domain.getId(), -1L, user1.getId());
 
     assertTrue(result.isEmpty());
   }
@@ -194,7 +199,8 @@ class TeamRepositoryTest {
     Team publicTeam =
         dataService.createTeam(user1, "Public Team", "public-team", Visibility.PUBLIC);
 
-    Optional<TeamAndRole> result = teamRepository.findOne(publicTeam.getId(), user2.getId());
+    Optional<TeamAndRole> result =
+        teamRepository.findOne(domain.getId(), publicTeam.getId(), user2.getId());
 
     assertTrue(result.isPresent());
     assertEquals("public-team", result.get().team().getSlug());

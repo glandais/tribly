@@ -89,13 +89,13 @@ public class SlugService {
     teamSlugRedirectRepository.persist(redirect);
   }
 
-  public Optional<TeamSlugRedirect> resolveTeamRedirect(String oldSlug) {
-    return teamSlugRedirectRepository.findByOldSlug(oldSlug);
+  public Optional<TeamSlugRedirect> resolveTeamRedirect(Long domainId, String oldSlug) {
+    return teamSlugRedirectRepository.findByOldSlugAndDomain(domainId, oldSlug);
   }
 
   @Transactional
-  public void clearTeamRedirect(String oldSlug) {
-    teamSlugRedirectRepository.deleteByOldSlug(oldSlug);
+  public void clearTeamRedirect(Long domainId, String oldSlug) {
+    teamSlugRedirectRepository.deleteByOldSlugAndDomain(domainId, oldSlug);
   }
 
   // ========== TeamEntity Redirects ==========

@@ -57,14 +57,16 @@ public abstract class TeamEntityService<
   }
 
   protected T findBySlug(Team team, String entitySlug) {
+    Long domainId = triblyContext.getDomainId();
     Long userId = triblyContext.getUserIdNullable();
-    Optional<T> byTeamAndSlug = getRepository().findByTeamAndSlug(team.getId(), userId, entitySlug);
+    Optional<T> byTeamAndSlug =
+        getRepository().findByTeamAndSlug(domainId, team.getId(), userId, entitySlug);
     return byTeamAndSlug.orElseGet(
         () ->
             slugService
                 .resolveEntityRedirect(team.getId(), getRepository().getEntityType(), entitySlug)
                 .map(TeamEntitySlugRedirect::getEntityId)
-                .flatMap(id -> getRepository().findByTeamAndId(team.getId(), userId, id))
+                .flatMap(id -> getRepository().findByTeamAndId(domainId, team.getId(), userId, id))
                 .orElseThrow(
                     () -> new NotFoundException(getRepository().getAllEntityType(), entitySlug)));
   }

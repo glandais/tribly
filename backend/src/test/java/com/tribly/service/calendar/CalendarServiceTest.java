@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import com.tribly.common.exception.ForbiddenException;
 import com.tribly.domain.calendar.CalendarToken;
+import com.tribly.domain.platform.Domain;
 import com.tribly.domain.ride.Ride;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.trip.Trip;
@@ -16,6 +17,7 @@ import com.tribly.dto.calendar.response.CalendarTokenDto;
 import com.tribly.enums.Status;
 import com.tribly.enums.TeamRole;
 import com.tribly.enums.Visibility;
+import com.tribly.service.security.DomainResolver;
 import com.tribly.service.security.TriblyQueryContext;
 import com.tribly.util.TestDataCleaner;
 import com.tribly.util.TestDataService;
@@ -33,7 +35,9 @@ class CalendarServiceTest {
   @Inject TestDataService dataService;
   @Inject TestDataCleaner dataCleaner;
   @Inject TriblyQueryContext queryContext;
+  @Inject DomainResolver domainResolver;
 
+  private Domain domain;
   private User user1;
   private User user2;
   private Team team1;
@@ -43,6 +47,8 @@ class CalendarServiceTest {
   @BeforeEach
   void setUp() {
     dataCleaner.cleanAll();
+    domain = dataService.getOrCreateDefaultDomain();
+    domainResolver.setDomainForTest(domain);
     user1 = dataService.createUser("user1@example.com", "User One");
     user2 = dataService.createUser("user2@example.com", "User Two");
     team1 = dataService.createTeam(user1, "Team One", "team-one", Visibility.PUBLIC);

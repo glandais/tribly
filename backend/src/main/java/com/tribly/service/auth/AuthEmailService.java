@@ -1,24 +1,23 @@
 package com.tribly.service.auth;
 
+import com.tribly.domain.platform.Domain;
+import com.tribly.service.security.DomainResolver;
 import io.quarkus.mailer.Mail;
 import io.quarkus.mailer.Mailer;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 @ApplicationScoped
 public class AuthEmailService {
 
   @Inject Mailer mailer;
 
-  @ConfigProperty(name = "tribly.base-url", defaultValue = "http://localhost:5173")
-  String baseUrl;
-
-  @ConfigProperty(name = "tribly.app-name", defaultValue = "Tribly")
-  String appName;
+  @Inject DomainResolver domainResolver;
 
   public void sendVerificationEmail(String email, String displayName, String token) {
-    String verifyUrl = baseUrl + "/verify-email?token=" + token;
+    Domain domain = domainResolver.getDomain();
+    String appName = domain.getName();
+    String verifyUrl = domain.getBaseUrl() + "/verify-email?token=" + token;
     String subject = "Confirmez votre adresse email - " + appName;
     String body =
         """
@@ -41,7 +40,9 @@ public class AuthEmailService {
   }
 
   public void sendMagicLinkEmail(String email, String token) {
-    String loginUrl = baseUrl + "/magic-link/verify?token=" + token;
+    Domain domain = domainResolver.getDomain();
+    String appName = domain.getName();
+    String loginUrl = domain.getBaseUrl() + "/magic-link/verify?token=" + token;
     String subject = "Connexion à " + appName;
     String body =
         """

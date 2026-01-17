@@ -5,10 +5,12 @@ import static org.mockito.Mockito.when;
 
 import com.tribly.common.TsidUtils;
 import com.tribly.common.exception.TriblyException;
+import com.tribly.domain.platform.Domain;
 import com.tribly.domain.user.User;
 import com.tribly.dto.users.request.UpdateUserRequest;
 import com.tribly.dto.users.response.PublicUserDto;
 import com.tribly.dto.users.response.UserDto;
+import com.tribly.service.security.DomainResolver;
 import com.tribly.service.security.TriblyQueryContext;
 import com.tribly.util.TestDataCleaner;
 import com.tribly.util.TestDataService;
@@ -29,13 +31,18 @@ class UserServiceTest {
   @Inject TestDataService dataService;
   @Inject TestDataCleaner dataCleaner;
   @Inject TriblyQueryContext queryContext;
+  @Inject DomainResolver domainResolver;
 
   @InjectMock JsonWebToken jwt;
   @InjectMock SecurityIdentity securityIdentity;
 
+  private Domain domain;
+
   @BeforeEach
   void setUp() {
     dataCleaner.cleanAll();
+    domain = dataService.getOrCreateDefaultDomain();
+    domainResolver.setDomainForTest(domain);
   }
 
   // ==================== Get User DTO ====================

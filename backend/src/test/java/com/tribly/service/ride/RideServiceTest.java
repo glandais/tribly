@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import com.tribly.common.TsidUtils;
 import com.tribly.common.exception.TriblyException;
+import com.tribly.domain.platform.Domain;
 import com.tribly.domain.ride.Ride;
 import com.tribly.domain.ride.RideGroup;
 import com.tribly.domain.team.Team;
@@ -15,6 +16,7 @@ import com.tribly.dto.rides.response.*;
 import com.tribly.enums.Status;
 import com.tribly.enums.TeamRole;
 import com.tribly.enums.Visibility;
+import com.tribly.service.security.DomainResolver;
 import com.tribly.service.security.TriblyQueryContext;
 import com.tribly.util.TestDataCleaner;
 import com.tribly.util.TestDataService;
@@ -32,7 +34,9 @@ class RideServiceTest {
   @Inject TestDataService dataService;
   @Inject TestDataCleaner dataCleaner;
   @Inject TriblyQueryContext userService;
+  @Inject DomainResolver domainResolver;
 
+  private Domain domain;
   private Team team;
   private User admin;
   private User organizer;
@@ -42,6 +46,8 @@ class RideServiceTest {
   @BeforeEach
   void setUp() {
     dataCleaner.cleanAll();
+    domain = dataService.getOrCreateDefaultDomain();
+    domainResolver.setDomainForTest(domain);
     admin = dataService.createUser("admin@example.com", "Admin");
     team = dataService.createTeam(admin, "Test Team", "test-team", Visibility.PUBLIC);
     organizer = dataService.createUser("organizer@example.com", "Organizer");

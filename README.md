@@ -101,3 +101,34 @@ cd backend && ./mvnw checkstyle:check
 # Frontend linting
 cd frontend && pnpm lint
 ```
+
+## Multi-Tenancy
+
+Tribly is multi-tenant: each domain (hostname) has isolated teams and users. The domain is resolved from the `Host` or `X-Forwarded-Host` HTTP header.
+
+### Creating a Domain
+
+No admin UI yet. Create domains directly in PostgreSQL:
+
+```sql
+INSERT INTO domains (id, domain, name, base_url, active, deleted, created_at, updated_at, version)
+VALUES (
+    (EXTRACT(EPOCH FROM NOW()) * 1000)::BIGINT * 1000000 + (RANDOM() * 999999)::INT,
+    'monclub.fr',                    -- domain: hostname used to access the site
+    'Mon Club Cycliste',             -- name: displayed in emails, UI, WebAuthn prompts
+    'https://monclub.fr',            -- base_url: full URL for email/calendar links
+    true,                            -- active
+    false,                           -- deleted
+    NOW(),
+    NOW(),
+    0
+);
+```
+
+| Field | Description |
+|-------|-------------|
+| `domain` | HTTP hostname (matched against `Host`/`X-Forwarded-Host` header) |
+| `name` | App name shown in emails, WebAuthn prompts, and UI |
+| `base_url` | Full URL with protocol, used in email links and calendar feeds |
+
+A default `localhost` domain is created automatically in dev mode.

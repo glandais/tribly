@@ -47,12 +47,23 @@ public class AllPublicationRepository
   }
 
   @Override
-  public PublicationQuery getQuerySlug(Long teamId, @Nullable Long userId, String slug) {
-    return PublicationQuery.builder().teamIds(Set.of(teamId)).userId(userId).slug(slug).build();
+  public PublicationQuery getQuerySlug(
+      Long domainId, Long teamId, @Nullable Long userId, String slug) {
+    return PublicationQuery.builder()
+        .domainId(domainId)
+        .teamIds(Set.of(teamId))
+        .userId(userId)
+        .slug(slug)
+        .build();
   }
 
   @Override
-  public PublicationQuery getQueryId(Long teamId, @Nullable Long userId, Long id) {
-    return PublicationQuery.builder().teamIds(Set.of(teamId)).userId(userId).id(id).build();
+  public PublicationQuery getQueryId(Long domainId, Long teamId, @Nullable Long userId, Long id) {
+    return PublicationQuery.builder()
+        .domainId(domainId)
+        .teamIds(Set.of(teamId))
+        .userId(userId)
+        .id(id)
+        .build();
   }
 }

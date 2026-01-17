@@ -1,6 +1,7 @@
 package com.tribly.domain.user;
 
 import com.tribly.domain.common.BaseEntity;
+import com.tribly.domain.platform.Domain;
 import com.tribly.enums.UnitSystem;
 import jakarta.persistence.*;
 import java.time.Instant;
@@ -12,11 +13,22 @@ import org.jspecify.annotations.Nullable;
 @Setter
 @Getter
 @Entity
-@Table(name = "users")
+@Table(
+    name = "users",
+    indexes = {@Index(columnList = "domain_id, deleted")},
+    uniqueConstraints = {
+      @UniqueConstraint(
+          name = "uk_users_domain_email",
+          columnNames = {"domain_id", "email"})
+    })
 @NoArgsConstructor
 public class User extends BaseEntity {
 
-  @Column(name = "email", nullable = false, unique = true, length = 250)
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "domain_id", nullable = false)
+  private Domain domain;
+
+  @Column(name = "email", nullable = false, length = 250)
   private String email;
 
   @Column(name = "display_name", nullable = false, length = 250)
@@ -38,8 +50,9 @@ public class User extends BaseEntity {
   @Column(name = "email_verified_at")
   private @Nullable Instant emailVerifiedAt;
 
-  public User(String email, String displayName) {
+  public User(Domain domain, String email, String displayName) {
     super(null);
+    this.domain = domain;
     this.email = email;
     this.displayName = displayName;
     setCreatedBy(this);

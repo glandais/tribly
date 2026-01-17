@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { paths } from '../../config/paths'
@@ -5,10 +6,20 @@ import { Box, Stack, Text, Title } from '@mantine/core'
 import { TeamForm } from '../../components/team/TeamForm'
 import { TeamDetailDto, Visibility } from '@/api/dto'
 import { defaultMedia } from '@/lib/apiUtils'
+import { getAppConfig } from '../../config/appConfig'
+import { useListTeams } from '@/api/endpoints/teams/teams'
 
 export function CreateTeamPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
+  const config = getAppConfig()
+  const { data: teamsData } = useListTeams({ page: 0, size: 1 })
+
+  useEffect(() => {
+    if (config?.singleTeam && teamsData && teamsData.total > 0) {
+      navigate(paths.teams())
+    }
+  }, [config, teamsData, navigate])
 
   const handleSuccess = (team: TeamDetailDto) => {
     navigate(paths.team(team.slug))

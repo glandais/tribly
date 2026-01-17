@@ -2,10 +2,12 @@ package com.tribly.service.team;
 
 import static com.tribly.dto.error.ErrorCode.INVALID_SLUG;
 import static com.tribly.dto.error.ErrorCode.SLUG_TAKEN;
+import static com.tribly.dto.error.ErrorCode.TEAM_CREATION_DISABLED;
 
 import com.tribly.common.exception.BusinessException;
 import com.tribly.common.exception.ConflictException;
 import com.tribly.domain.common.TeamEntity;
+import com.tribly.domain.platform.Domain;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.team.TeamSlugRedirect;
 import com.tribly.domain.team.UserTeam;
@@ -50,11 +52,12 @@ public class TeamService {
   @Inject TriblyQueryContext triblyContext;
 
   public Team getTeam(String teamSlug) {
-    Optional<Team> optionalTeam = teamRepository.findBySlug(teamSlug);
+    Long domainId = triblyContext.getDomainId();
+    Optional<Team> optionalTeam = teamRepository.findBySlugAndDomain(domainId, teamSlug);
     if (optionalTeam.isPresent()) {
       return optionalTeam.get();
     }
-    Optional<TeamSlugRedirect> redirect = slugService.resolveTeamRedirect(teamSlug);
+    Optional<TeamSlugRedirect> redirect = slugService.resolveTeamRedirect(domainId, teamSlug);
     if (redirect.isPresent()) {
       return redirect.get().getTeam();
     }
@@ -63,18 +66,25 @@ public class TeamService {
 
   protected TeamAndRole getTeamAndRole(Long id) {
     return teamRepository
-        .findOne(id, triblyContext.getUserIdNullable())
+        .findOne(triblyContext.getDomainId(), id, triblyContext.getUserIdNullable())
         .orElseThrow(() -> new NotFoundException(EntityType.TEAM, id));
   }
 
   @Transactional
   @CheckAccess(entityType = EntityType.TEAM, action = ActionType.CREATE)
   public TeamDetailDto createTeam(TeamRequest request) {
+    Domain domain = triblyContext.getDomain();
+    if (domain.isSingleTeam() && teamRepository.existsByDomain(domain.getId())) {
+      throw new BusinessException(TEAM_CREATION_DISABLED);
+    }
     User creator = triblyContext.getUser();
-    String slug = slugService.generateSlug(request.name(), teamRepository::existsBySlug);
-    slugService.clearTeamRedirect(slug);
+    Long domainId = domain.getId();
+    String slug =
+        slugService.generateSlug(
+            request.name(), s -> teamRepository.existsBySlugAndDomain(domainId, s));
+    slugService.clearTeamRedirect(domainId, slug);
 
-    Team team = new Team(creator, request.name(), slug, request.visibility());
+    Team team = new Team(domain, creator, request.name(), slug, request.visibility());
     team.setVisibility(request.visibility());
     team.setGeometry(request.geometry());
 
@@ -94,6 +104,7 @@ public class TeamService {
     TriblyPage<TeamAndRole> teams =
         teamRepository.find(
             TeamQuery.builder()
+                .domainId(triblyContext.getDomainId())
                 .userId(triblyContext.getUserIdNullable())
                 .minRole(minRole)
                 .search(search)
@@ -141,6 +152,7 @@ public class TeamService {
   @Transactional
   @CheckAccess(entityType = EntityType.TEAM, action = ActionType.UPDATE)
   public TeamDetailDto updateSlug(String teamSlug, String newSlug) {
+    Long domainId = triblyContext.getDomainId();
     Team team = getTeam(teamSlug);
     String currentSlug = team.getSlug();
     // Validate new slug format
@@ -153,13 +165,13 @@ public class TeamService {
       return getTeamDetailDto(teamSlug);
     }
 
-    // Check if new slug is already taken (by a non-deleted team)
-    if (teamRepository.existsBySlug(newSlug)) {
+    // Check if new slug is already taken (by a non-deleted team in this domain)
+    if (teamRepository.existsBySlugAndDomain(domainId, newSlug)) {
       throw new ConflictException(SLUG_TAKEN);
     }
 
     // Clear any existing redirect TO this new slug (reuse scenario)
-    slugService.clearTeamRedirect(newSlug);
+    slugService.clearTeamRedirect(domainId, newSlug);
 
     // Create redirect from old slug to this team
     slugService.createTeamRedirect(team, currentSlug);

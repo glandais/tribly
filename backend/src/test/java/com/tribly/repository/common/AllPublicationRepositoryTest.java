@@ -3,6 +3,7 @@ package com.tribly.repository.common;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.tribly.domain.common.Publication;
+import com.tribly.domain.platform.Domain;
 import com.tribly.domain.post.Post;
 import com.tribly.domain.ride.Ride;
 import com.tribly.domain.team.Team;
@@ -35,6 +36,7 @@ class AllPublicationRepositoryTest {
   @Inject TestDataService dataService;
   @Inject TestDataCleaner dataCleaner;
 
+  private Domain domain;
   private User user;
   private Team team;
   private Instant now;
@@ -42,6 +44,7 @@ class AllPublicationRepositoryTest {
   @BeforeEach
   void setUp() {
     dataCleaner.cleanAll();
+    domain = dataService.getOrCreateDefaultDomain();
     user = dataService.createUser("test@example.com", "Test User");
     team = dataService.createTeam(user, "Test Team", "test-team", Visibility.PUBLIC);
     now = Instant.now();
@@ -56,7 +59,8 @@ class AllPublicationRepositoryTest {
     void find_shouldReturnRides() {
       dataService.createRide(team, user, "Test Ride", "test-ride", now);
 
-      PublicationQuery query = PublicationQuery.builder().page(0).size(10).build();
+      PublicationQuery query =
+          PublicationQuery.builder().domainId(domain.getId()).page(0).size(10).build();
       TriblyPage<Publication> result = publicationRepository.find(query);
 
       assertEquals(1, result.total());
@@ -68,7 +72,8 @@ class AllPublicationRepositoryTest {
     void find_shouldReturnPosts() {
       dataService.createPost(team, user, "Test Post", now);
 
-      PublicationQuery query = PublicationQuery.builder().page(0).size(10).build();
+      PublicationQuery query =
+          PublicationQuery.builder().domainId(domain.getId()).page(0).size(10).build();
       TriblyPage<Publication> result = publicationRepository.find(query);
 
       assertEquals(1, result.total());
@@ -81,7 +86,8 @@ class AllPublicationRepositoryTest {
       dataService.createRide(team, user, "Test Ride", "test-ride", now);
       dataService.createPost(team, user, "Test Post", now.plus(1, ChronoUnit.HOURS));
 
-      PublicationQuery query = PublicationQuery.builder().page(0).size(10).build();
+      PublicationQuery query =
+          PublicationQuery.builder().domainId(domain.getId()).page(0).size(10).build();
       TriblyPage<Publication> result = publicationRepository.find(query);
 
       assertEquals(2, result.total());
@@ -98,7 +104,8 @@ class AllPublicationRepositoryTest {
       dataService.createPost(team, user, "Test Post", now);
       dataService.createRoute(team, user, "Test Route", Visibility.PUBLIC);
 
-      PublicationQuery query = PublicationQuery.builder().page(0).size(10).build();
+      PublicationQuery query =
+          PublicationQuery.builder().domainId(domain.getId()).page(0).size(10).build();
       TriblyPage<Publication> result = publicationRepository.find(query);
 
       assertEquals(2, result.total()); // Only Ride and Post
@@ -111,7 +118,8 @@ class AllPublicationRepositoryTest {
       dataService.createPost(team, user, "Test Post", now);
       dataService.deleteRide(ride);
 
-      PublicationQuery query = PublicationQuery.builder().page(0).size(10).build();
+      PublicationQuery query =
+          PublicationQuery.builder().domainId(domain.getId()).page(0).size(10).build();
       TriblyPage<Publication> result = publicationRepository.find(query);
 
       assertEquals(1, result.total());
@@ -124,7 +132,8 @@ class AllPublicationRepositoryTest {
       dataService.createRide(team, user, "Published Ride", "published-ride", now, Status.PUBLISHED);
       dataService.createRide(team, user, "Draft Ride", "draft-ride", now, Status.DRAFT);
 
-      PublicationQuery query = PublicationQuery.builder().page(0).size(10).build();
+      PublicationQuery query =
+          PublicationQuery.builder().domainId(domain.getId()).page(0).size(10).build();
       TriblyPage<Publication> result = publicationRepository.find(query);
 
       assertEquals(1, result.total());
@@ -136,7 +145,8 @@ class AllPublicationRepositoryTest {
     void find_shouldReturnCancelledForAnonymous() {
       dataService.createRide(team, user, "Cancelled Ride", "cancelled-ride", now, Status.CANCELLED);
 
-      PublicationQuery query = PublicationQuery.builder().page(0).size(10).build();
+      PublicationQuery query =
+          PublicationQuery.builder().domainId(domain.getId()).page(0).size(10).build();
       TriblyPage<Publication> result = publicationRepository.find(query);
 
       assertEquals(1, result.total());
@@ -154,7 +164,12 @@ class AllPublicationRepositoryTest {
           team, user, "Team Post", now.plus(1, ChronoUnit.HOURS), Visibility.TEAM);
 
       PublicationQuery query =
-          PublicationQuery.builder().userId(member.getId()).page(0).size(10).build();
+          PublicationQuery.builder()
+              .domainId(domain.getId())
+              .userId(member.getId())
+              .page(0)
+              .size(10)
+              .build();
       TriblyPage<Publication> result = publicationRepository.find(query);
 
       assertEquals(2, result.total());
@@ -168,7 +183,12 @@ class AllPublicationRepositoryTest {
           team, user, "Team Ride", "team-ride", now, Visibility.TEAM, Status.PUBLISHED);
 
       PublicationQuery query =
-          PublicationQuery.builder().userId(nonMember.getId()).page(0).size(10).build();
+          PublicationQuery.builder()
+              .domainId(domain.getId())
+              .userId(nonMember.getId())
+              .page(0)
+              .size(10)
+              .build();
       TriblyPage<Publication> result = publicationRepository.find(query);
 
       assertEquals(0, result.total());
@@ -189,7 +209,12 @@ class AllPublicationRepositoryTest {
           Status.CANCELLED);
 
       PublicationQuery query =
-          PublicationQuery.builder().userId(member.getId()).page(0).size(10).build();
+          PublicationQuery.builder()
+              .domainId(domain.getId())
+              .userId(member.getId())
+              .page(0)
+              .size(10)
+              .build();
       TriblyPage<Publication> result = publicationRepository.find(query);
 
       assertEquals(1, result.total());
@@ -205,7 +230,12 @@ class AllPublicationRepositoryTest {
           team, user, "Draft Ride", "draft-ride", now, Visibility.PUBLIC, Status.DRAFT);
 
       PublicationQuery query =
-          PublicationQuery.builder().userId(member.getId()).page(0).size(10).build();
+          PublicationQuery.builder()
+              .domainId(domain.getId())
+              .userId(member.getId())
+              .page(0)
+              .size(10)
+              .build();
       TriblyPage<Publication> result = publicationRepository.find(query);
 
       assertEquals(0, result.total());
@@ -220,7 +250,12 @@ class AllPublicationRepositoryTest {
           team, user, "Draft Ride", "draft-ride", now, Visibility.PUBLIC, Status.DRAFT);
 
       PublicationQuery query =
-          PublicationQuery.builder().userId(organizer.getId()).page(0).size(10).build();
+          PublicationQuery.builder()
+              .domainId(domain.getId())
+              .userId(organizer.getId())
+              .page(0)
+              .size(10)
+              .build();
       TriblyPage<Publication> result = publicationRepository.find(query);
 
       assertEquals(1, result.total());
@@ -236,7 +271,12 @@ class AllPublicationRepositoryTest {
           team, user, "Draft Ride", "draft-ride", now, Visibility.PUBLIC, Status.DRAFT);
 
       PublicationQuery query =
-          PublicationQuery.builder().userId(admin.getId()).page(0).size(10).build();
+          PublicationQuery.builder()
+              .domainId(domain.getId())
+              .userId(admin.getId())
+              .page(0)
+              .size(10)
+              .build();
       TriblyPage<Publication> result = publicationRepository.find(query);
 
       assertEquals(1, result.total());
@@ -254,7 +294,12 @@ class AllPublicationRepositoryTest {
           otherTeam, user, "Other Draft", "other-draft", now, Visibility.PUBLIC, Status.DRAFT);
 
       PublicationQuery query =
-          PublicationQuery.builder().userId(organizer.getId()).page(0).size(10).build();
+          PublicationQuery.builder()
+              .domainId(domain.getId())
+              .userId(organizer.getId())
+              .page(0)
+              .size(10)
+              .build();
       TriblyPage<Publication> result = publicationRepository.find(query);
 
       assertEquals(0, result.total());
@@ -272,7 +317,8 @@ class AllPublicationRepositoryTest {
         dataService.createPost(team, user, "Post " + i, now.plus(i, ChronoUnit.HOURS));
       }
 
-      PublicationQuery query = PublicationQuery.builder().page(0).size(2).build();
+      PublicationQuery query =
+          PublicationQuery.builder().domainId(domain.getId()).page(0).size(2).build();
       TriblyPage<Publication> result = publicationRepository.find(query);
 
       assertEquals(2, result.items().size());
@@ -293,7 +339,8 @@ class AllPublicationRepositoryTest {
       dataService.createPost(team, user, "Test Post", now.plus(1, ChronoUnit.HOURS));
       dataService.createTrip(team, user, "Test Trip", now.plus(2, ChronoUnit.HOURS));
 
-      PublicationQuery query = PublicationQuery.builder().page(0).size(10).build();
+      PublicationQuery query =
+          PublicationQuery.builder().domainId(domain.getId()).page(0).size(10).build();
       TriblyPage<Publication> result = publicationRepository.find(query);
 
       assertEquals(3, result.total());
@@ -310,7 +357,12 @@ class AllPublicationRepositoryTest {
       dataService.createTrip(team, user, "Test Trip", now.plus(3, ChronoUnit.HOURS));
 
       PublicationQuery query =
-          PublicationQuery.builder().type(PublicationType.RIDE).page(0).size(10).build();
+          PublicationQuery.builder()
+              .domainId(domain.getId())
+              .type(PublicationType.RIDE)
+              .page(0)
+              .size(10)
+              .build();
       TriblyPage<Publication> result = publicationRepository.find(query);
 
       assertEquals(2, result.total());
@@ -328,7 +380,12 @@ class AllPublicationRepositoryTest {
       dataService.createTrip(team, user, "Test Trip", now.plus(3, ChronoUnit.HOURS));
 
       PublicationQuery query =
-          PublicationQuery.builder().type(PublicationType.POST).page(0).size(10).build();
+          PublicationQuery.builder()
+              .domainId(domain.getId())
+              .type(PublicationType.POST)
+              .page(0)
+              .size(10)
+              .build();
       TriblyPage<Publication> result = publicationRepository.find(query);
 
       assertEquals(2, result.total());
@@ -346,7 +403,12 @@ class AllPublicationRepositoryTest {
       dataService.createTrip(team, user, "Trip 2", now.plus(3, ChronoUnit.HOURS));
 
       PublicationQuery query =
-          PublicationQuery.builder().type(PublicationType.TRIP).page(0).size(10).build();
+          PublicationQuery.builder()
+              .domainId(domain.getId())
+              .type(PublicationType.TRIP)
+              .page(0)
+              .size(10)
+              .build();
       TriblyPage<Publication> result = publicationRepository.find(query);
 
       assertEquals(2, result.total());
@@ -359,7 +421,12 @@ class AllPublicationRepositoryTest {
       dataService.createRide(team, user, "Test Ride", "test-ride", now);
 
       PublicationQuery query =
-          PublicationQuery.builder().type(PublicationType.POST).page(0).size(10).build();
+          PublicationQuery.builder()
+              .domainId(domain.getId())
+              .type(PublicationType.POST)
+              .page(0)
+              .size(10)
+              .build();
       TriblyPage<Publication> result = publicationRepository.find(query);
 
       assertEquals(0, result.total());
@@ -374,7 +441,12 @@ class AllPublicationRepositoryTest {
       dataService.createTrip(team, user, "Hidden Trip", now);
 
       PublicationQuery query =
-          PublicationQuery.builder().type(PublicationType.TRIP).page(0).size(10).build();
+          PublicationQuery.builder()
+              .domainId(domain.getId())
+              .type(PublicationType.TRIP)
+              .page(0)
+              .size(10)
+              .build();
       TriblyPage<Publication> result = publicationRepository.find(query);
 
       assertEquals(0, result.total());
@@ -394,6 +466,7 @@ class AllPublicationRepositoryTest {
 
       PublicationQuery query =
           PublicationQuery.builder()
+              .domainId(domain.getId())
               .type(PublicationType.RIDE)
               .userId(member.getId())
               .page(0)
@@ -418,7 +491,8 @@ class AllPublicationRepositoryTest {
       dataService.createTrip(team, user, "Summer Trip", now);
       dataService.createPost(team, user, "Test Post", now.plus(1, ChronoUnit.HOURS));
 
-      PublicationQuery query = PublicationQuery.builder().page(0).size(10).build();
+      PublicationQuery query =
+          PublicationQuery.builder().domainId(domain.getId()).page(0).size(10).build();
       TriblyPage<Publication> result = publicationRepository.find(query);
 
       assertEquals(2, result.total());
@@ -434,7 +508,8 @@ class AllPublicationRepositoryTest {
       dataService.createTrip(team, user, "Hidden Trip", now);
       dataService.createPost(team, user, "Test Post", now.plus(1, ChronoUnit.HOURS));
 
-      PublicationQuery query = PublicationQuery.builder().page(0).size(10).build();
+      PublicationQuery query =
+          PublicationQuery.builder().domainId(domain.getId()).page(0).size(10).build();
       TriblyPage<Publication> result = publicationRepository.find(query);
 
       assertEquals(1, result.total());
@@ -450,7 +525,8 @@ class AllPublicationRepositoryTest {
       dataService.createRide(team, user, "Test Ride", "test-ride", now.plus(1, ChronoUnit.HOURS));
       dataService.createPost(team, user, "Test Post", now.plus(2, ChronoUnit.HOURS));
 
-      PublicationQuery query = PublicationQuery.builder().page(0).size(10).build();
+      PublicationQuery query =
+          PublicationQuery.builder().domainId(domain.getId()).page(0).size(10).build();
       TriblyPage<Publication> result = publicationRepository.find(query);
 
       assertEquals(2, result.total());
@@ -477,7 +553,8 @@ class AllPublicationRepositoryTest {
       dataService.createPost(
           disabledTeam, user, "Post from Disabled", now.plus(2, ChronoUnit.HOURS));
 
-      PublicationQuery query = PublicationQuery.builder().page(0).size(10).build();
+      PublicationQuery query =
+          PublicationQuery.builder().domainId(domain.getId()).page(0).size(10).build();
       TriblyPage<Publication> result = publicationRepository.find(query);
 
       assertEquals(2, result.total());
@@ -499,7 +576,12 @@ class AllPublicationRepositoryTest {
           team, user, "Team Post", now.plus(1, ChronoUnit.HOURS), Visibility.TEAM);
 
       PublicationQuery query =
-          PublicationQuery.builder().userId(member.getId()).page(0).size(10).build();
+          PublicationQuery.builder()
+              .domainId(domain.getId())
+              .userId(member.getId())
+              .page(0)
+              .size(10)
+              .build();
       TriblyPage<Publication> result = publicationRepository.find(query);
 
       assertEquals(2, result.total());
@@ -519,7 +601,12 @@ class AllPublicationRepositoryTest {
           team, user, "Team Post", now.plus(1, ChronoUnit.HOURS), Visibility.TEAM);
 
       PublicationQuery query =
-          PublicationQuery.builder().userId(member.getId()).page(0).size(10).build();
+          PublicationQuery.builder()
+              .domainId(domain.getId())
+              .userId(member.getId())
+              .page(0)
+              .size(10)
+              .build();
       TriblyPage<Publication> result = publicationRepository.find(query);
 
       assertEquals(1, result.total());

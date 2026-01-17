@@ -36,6 +36,7 @@ create table auth_tokens (
                              created_at timestamp(6) with time zone not null,
                              expires_at timestamp(6) with time zone not null,
                              id bigint not null,
+                             pending_domain_id bigint,
                              used_at timestamp(6) with time zone,
                              user_id bigint,
                              token_type varchar(20) not null check ((token_type in ('EMAIL_VERIFICATION','MAGIC_LINK','PASSWORD_RESET'))),
@@ -68,6 +69,19 @@ create table comments (
                           version bigint,
                           content TEXT not null,
                           primary key (id)
+);
+
+create table domains (
+                         active boolean not null,
+                         deleted boolean not null,
+                         created_at timestamp(6) with time zone not null,
+                         id bigint not null,
+                         updated_at timestamp(6) with time zone not null,
+                         version bigint,
+                         domain varchar(250) not null unique,
+                         name varchar(250) not null,
+                         base_url varchar(500) not null,
+                         primary key (id)
 );
 
 create table gpx_tracks (
@@ -202,7 +216,7 @@ create table team_entities (
                                distance float4,
                                elevation_gain float4,
                                elevation_loss float4,
-                               entity_type integer not null check ((entity_type in (1,5,3,4,7,2,6))),
+                               entity_type integer not null check ((entity_type in (3,5,1,4,6,7,2))),
                                hilliness float4,
                                is_about_page boolean,
                                page_order integer,
@@ -265,14 +279,16 @@ create table teams (
                        created_at timestamp(6) with time zone not null,
                        created_by_id bigint not null,
                        description_id bigint,
+                       domain_id bigint not null,
                        id bigint not null,
                        updated_at timestamp(6) with time zone not null,
                        version bigint,
                        visibility varchar(20) not null check ((visibility in ('TEAM','PUBLIC'))),
                        name varchar(250) not null,
-                       slug varchar(250) not null unique,
+                       slug varchar(250) not null,
                        geometry geometry(Point,4326),
-                       primary key (id)
+                       primary key (id),
+                       constraint uk_teams_domain_slug unique (domain_id, slug)
 );
 
 create table trip_participations (
@@ -309,6 +325,7 @@ create table users (
                        email_verified boolean not null,
                        created_at timestamp(6) with time zone not null,
                        created_by_id bigint not null,
+                       domain_id bigint not null,
                        email_verified_at timestamp(6) with time zone,
                        id bigint not null,
                        last_login_at timestamp(6) with time zone,
@@ -316,9 +333,10 @@ create table users (
                        version bigint,
                        unit_system varchar(10) check ((unit_system in ('METRIC','IMPERIAL'))),
                        display_name varchar(250) not null,
-                       email varchar(250) not null unique,
+                       email varchar(250) not null,
                        avatar_url varchar(500),
-                       primary key (id)
+                       primary key (id),
+                       constraint uk_users_domain_email unique (domain_id, email)
 );
 
 create table webauthn_challenges (
@@ -343,6 +361,9 @@ create index IDXryn234ylmua6os660w5avbkgy
 
 create index IDXg9o7ansoiy9pm6nkpb9brn44o
     on comments (parent_id, deleted);
+
+create index IDXlbe3g423tjd7cfd2sqgr0k2y4
+    on domains (domain, active, deleted);
 
 create index idx_gpx_tracks_route_deleted
     on gpx_tracks (route_id, deleted);
@@ -395,11 +416,17 @@ create index IDXrlonsx13n7g24ealhxutql822
 create index IDXo3hbo8wlcgmi4dqwrqm9jtm8f
     on teams (slug, deleted);
 
+create index IDXm94jxjp0x5ggnfr8qi6k1udla
+    on teams (domain_id, deleted);
+
 create index idx_trip_participations_user_trip_deleted
     on trip_participations (user_id, trip_id, deleted);
 
 create index idx_user_teams_user_team_deleted
     on user_teams (user_id, team_id, deleted);
+
+create index IDXpa3pv32s3gion34c2pxm8g4it
+    on users (domain_id, deleted);
 
 alter table if exists assets
     add constraint FKcifafsjy81jtl602qr99flp5u
@@ -547,14 +574,14 @@ alter table if exists team_entities
     references teams;
 
 alter table if exists team_entities
-    add constraint FKjukml9fp2eipuhmugtiaf12gs
-    foreign key (place_end_id)
-    references places;
-
-alter table if exists team_entities
     add constraint FKsm0040p8exgxema0d3j4osclb
     foreign key (route_id)
     references team_entities;
+
+alter table if exists team_entities
+    add constraint FKjukml9fp2eipuhmugtiaf12gs
+    foreign key (place_end_id)
+    references places;
 
 alter table if exists team_entities
     add constraint FKm7w1a9lbh6795ida5u4n95vdv
@@ -585,6 +612,11 @@ alter table if exists teams
     add constraint FKlorb7wivvrwpknrj7pcc6pqny
     foreign key (description_id)
     references team_entities;
+
+alter table if exists teams
+    add constraint FK5xho22jdfijfwmeo34iwqbf1w
+    foreign key (domain_id)
+    references domains;
 
 alter table if exists trip_participations
     add constraint FK53e4u32gp8syx3tks1hc5wlt6
@@ -620,6 +652,11 @@ alter table if exists users
     add constraint FK8nakkftyppd62ke6tv7oo5a92
     foreign key (created_by_id)
     references users;
+
+alter table if exists users
+    add constraint FKs9lrl1uxmxj8m76brdmr5kx6e
+    foreign key (domain_id)
+    references domains;
 
 alter table if exists webauthn_challenges
     add constraint FKrq1swjkjdah0kq4e09tfvo2sp

@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import com.tribly.common.exception.TriblyException;
 import com.tribly.domain.asset.Asset;
+import com.tribly.domain.platform.Domain;
 import com.tribly.domain.route.GpxTrack;
 import com.tribly.domain.route.Route;
 import com.tribly.domain.team.Team;
@@ -11,6 +12,7 @@ import com.tribly.domain.user.User;
 import com.tribly.enums.Visibility;
 import com.tribly.service.asset.AssetService;
 import com.tribly.service.route.response.TrackMetadata;
+import com.tribly.service.security.DomainResolver;
 import com.tribly.service.security.TriblyQueryContext;
 import com.tribly.util.TestDataCleaner;
 import com.tribly.util.TestDataService;
@@ -35,7 +37,9 @@ class GpxProcessingServiceTest {
   @Inject AssetService assetService;
   @Inject TestDataService dataService;
   @Inject TestDataCleaner dataCleaner;
+  @Inject DomainResolver domainResolver;
 
+  private Domain domain;
   private Team team;
   private User user;
   private Route route;
@@ -43,6 +47,8 @@ class GpxProcessingServiceTest {
   @BeforeEach
   void setUp() {
     dataCleaner.cleanAll();
+    domain = dataService.getOrCreateDefaultDomain();
+    domainResolver.setDomainForTest(domain);
     user = dataService.createUser("admin@example.com", "Admin");
     team = dataService.createTeam(user, "Test Team", "test-team", Visibility.PUBLIC);
     route = dataService.createRoute(team, user, "route", Visibility.PUBLIC);

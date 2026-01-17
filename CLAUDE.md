@@ -80,6 +80,14 @@ frontend/src/
 - **TSID conversion**: `TsidUtils.toString()` / `TsidUtils.toLong()` in `common/` package
 - **Assets**: Upload via `assetsApi.uploadAsset()`, type assigned by field placement in `AssetsDto` → see `AssetService.updateAssets()`
 
+## Multi-Tenancy
+
+- **Domain-based isolation**: Each HTTP domain has its own teams/users. Same email can exist on different domains.
+- **Domain resolution**: `DomainResolver` extracts domain from `X-Forwarded-Host` → `Host` header → finds `Domain` entity
+- **Domain entity**: Stores `domain` (hostname), `name`, `baseUrl`. WebAuthn/email settings derived from Domain.
+- **All queries must filter by domainId**: Use `triblyQueryContext.getDomainId()` in query builders
+- **Tests**: Call `dataService.getOrCreateDefaultDomain()` + `domainResolver.setDomainForTest(domain)` in setUp()
+
 ## Critical Gotchas
 
 **OpenAPI**:

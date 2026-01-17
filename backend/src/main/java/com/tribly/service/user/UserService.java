@@ -29,7 +29,8 @@ public class UserService {
 
   @Public
   public List<PublicUserDto> searchByDisplayName(String query, int limit) {
-    List<User> users = userRepository.searchByDisplayName(query, limit);
+    Long domainId = triblyContext.getDomainId();
+    List<User> users = userRepository.searchByDisplayNameAndDomain(domainId, query, limit);
     return users.stream().map(PublicUserDto::from).toList();
   }
 
@@ -61,13 +62,14 @@ public class UserService {
   }
 
   /**
-   * Lookup user by email without creating/updating. Used by TriblyQueryContext.
+   * Lookup user by email and domain without creating/updating. Used by TriblyQueryContext.
    *
+   * @param domainId the domain ID
    * @param email the user's email
    * @return Optional containing the user if found, empty otherwise
    */
   @Transactional
-  public Optional<User> lookupUserByEmail(String email) {
-    return userRepository.findByEmail(email);
+  public Optional<User> lookupUserByEmailAndDomain(Long domainId, String email) {
+    return userRepository.findByEmailAndDomain(domainId, email);
   }
 }

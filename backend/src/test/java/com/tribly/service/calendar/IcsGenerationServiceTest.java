@@ -2,18 +2,35 @@ package com.tribly.service.calendar;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.tribly.domain.platform.Domain;
 import com.tribly.dto.calendar.response.CalendarEventDto;
 import com.tribly.dto.calendar.response.CalendarEventType;
+import com.tribly.service.security.DomainResolver;
+import com.tribly.util.TestDataCleaner;
+import com.tribly.util.TestDataService;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import java.time.Instant;
 import java.util.List;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
 class IcsGenerationServiceTest {
 
   @Inject IcsGenerationService icsGenerationService;
+  @Inject TestDataService dataService;
+  @Inject TestDataCleaner dataCleaner;
+  @Inject DomainResolver domainResolver;
+
+  private Domain domain;
+
+  @BeforeEach
+  void setUp() {
+    dataCleaner.cleanAll();
+    domain = dataService.getOrCreateDefaultDomain();
+    domainResolver.setDomainForTest(domain);
+  }
 
   @Test
   void generateIcs_shouldReturnValidIcsFormat() {

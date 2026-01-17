@@ -1,7 +1,10 @@
 package com.tribly.service.security;
 
+import static com.tribly.common.TokenUtils.hashToken;
+
 import com.tribly.common.exception.ForbiddenException;
 import com.tribly.domain.auth.AuthSession;
+import com.tribly.domain.platform.Domain;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.team.UserTeam;
 import com.tribly.domain.user.User;
@@ -15,10 +18,6 @@ import io.quarkus.security.identity.SecurityIdentity;
 import io.vertx.ext.web.RoutingContext;
 import jakarta.enterprise.context.RequestScoped;
 import jakarta.inject.Inject;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
 import java.util.List;
 import org.eclipse.microprofile.jwt.JsonWebToken;
 import org.jspecify.annotations.Nullable;
@@ -33,6 +32,8 @@ public class TriblyQueryContext {
   @Inject RoutingContext routingContext;
 
   @Inject AuthSessionRepository authSessionRepository;
+
+  @Inject DomainResolver domainResolver;
 
   @Nullable User user;
 
@@ -52,6 +53,18 @@ public class TriblyQueryContext {
     this.user = user;
   }
 
+  public Domain getDomain() {
+    return domainResolver.getDomain();
+  }
+
+  public Long getDomainId() {
+    return domainResolver.getDomainId();
+  }
+
+  public @Nullable Domain getDomainNullable() {
+    return domainResolver.getDomainNullable();
+  }
+
   public User getUser() {
     User user = getUserNullable();
     if (user == null) {
@@ -63,10 +76,7 @@ public class TriblyQueryContext {
   @Nullable
   public Long getUserIdNullable() {
     init();
-    if (user == null) {
-      return null;
-    }
-    return user.getId();
+    return user != null ? user.getId() : null;
   }
 
   public Long getUserId() {
@@ -79,11 +89,7 @@ public class TriblyQueryContext {
 
   public @Nullable User getUserNullable() {
     init();
-    if (user != null) {
-      return userRepository.findActiveById(user.getId()).orElse(null);
-    } else {
-      return null;
-    }
+    return user != null ? userRepository.findActiveById(user.getId()).orElse(null) : null;
   }
 
   void init() {
@@ -94,18 +100,23 @@ public class TriblyQueryContext {
   }
 
   void doInit() {
+    Domain domain = domainResolver.getDomainNullable();
+    if (domain == null) {
+      return;
+    }
+
     if (identity.getPrincipal() instanceof JsonWebToken jwt) {
       String email = jwt.getClaim("email");
-      // Lookup user - do NOT create/update
-      user = userService.lookupUserByEmail(email).orElse(null);
+      // Lookup user by email AND domain - do NOT create/update
+      user = userService.lookupUserByEmailAndDomain(domain.getId(), email).orElse(null);
     } else {
       // Fallback to cookie-based auth for browser direct requests (downloads, images)
-      user = getUserFromRefreshTokenCookie();
+      user = getUserFromRefreshTokenCookie(domain.getId());
     }
   }
 
   @Nullable
-  private User getUserFromRefreshTokenCookie() {
+  private User getUserFromRefreshTokenCookie(Long domainId) {
     try {
       io.vertx.core.http.Cookie cookie = routingContext.request().getCookie(REFRESH_TOKEN_COOKIE);
       if (cookie == null) {
@@ -120,19 +131,10 @@ public class TriblyQueryContext {
           .findByRefreshTokenHash(tokenHash)
           .filter(AuthSession::isValid)
           .map(AuthSession::getUser)
+          .filter(u -> u.getDomain().getId().equals(domainId))
           .orElse(null);
     } catch (Exception e) {
       return null;
-    }
-  }
-
-  private String hashToken(String token) {
-    try {
-      MessageDigest digest = MessageDigest.getInstance("SHA-256");
-      byte[] hash = digest.digest(token.getBytes(StandardCharsets.UTF_8));
-      return Base64.getEncoder().encodeToString(hash);
-    } catch (NoSuchAlgorithmException e) {
-      throw new RuntimeException("SHA-256 not available", e);
     }
   }
 

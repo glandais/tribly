@@ -22,6 +22,7 @@ public class JwtService {
         .claim("email", user.getEmail())
         .claim("userId", TsidUtils.toString(user.getId()))
         .claim("displayName", user.getDisplayName())
+        .claim("domainId", TsidUtils.toString(user.getDomain().getId()))
         .groups("user")
         .expiresIn(Duration.ofMinutes(accessTokenExpiryMinutes))
         .sign();

@@ -1,5 +1,6 @@
 package com.tribly.api;
 
+import com.tribly.domain.platform.Domain;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
 import com.tribly.enums.TeamRole;
@@ -26,6 +27,7 @@ public abstract class AbstractResourceTest {
   @Inject protected TestDataCleaner dataCleaner;
   @Inject protected JwtService jwtService;
 
+  protected Domain domain;
   protected User user1;
   // public team
   protected Team team1;
@@ -54,6 +56,9 @@ public abstract class AbstractResourceTest {
 
   protected void setUp() {
     dataCleaner.cleanAll();
+    // Create domain first - DomainResolver will find it from HTTP request Host header
+    domain = dataService.getOrCreateDefaultDomain();
+
     user1 = dataService.createUser(EMAIL1, "Test User 1");
     user2 = dataService.createUser(EMAIL2, "Test User 2");
     user3 = dataService.createUser(EMAIL3, "Test User 3");

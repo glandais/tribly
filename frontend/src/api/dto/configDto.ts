@@ -14,4 +14,6 @@ export interface ConfigDto {
   webAuthnRpId: string
   /** Application name */
   appName: string
+  /** Single team mode - team creation disabled */
+  singleTeam: boolean
 }

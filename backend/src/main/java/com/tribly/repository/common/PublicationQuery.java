@@ -8,6 +8,7 @@ import org.jspecify.annotations.Nullable;
 
 @Builder
 public record PublicationQuery(
+    Long domainId,
     @Nullable PublicationType type,
     @Nullable Long userId,
     @Nullable Set<Long> teamIds,

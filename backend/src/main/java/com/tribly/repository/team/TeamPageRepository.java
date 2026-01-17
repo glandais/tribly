@@ -49,12 +49,23 @@ public class TeamPageRepository implements TeamEntityRepository<TeamPage, TeamPa
   }
 
   @Override
-  public TeamPageQuery getQuerySlug(Long teamId, @Nullable Long userId, String slug) {
-    return TeamPageQuery.builder().teamIds(Set.of(teamId)).userId(userId).slug(slug).build();
+  public TeamPageQuery getQuerySlug(
+      Long domainId, Long teamId, @Nullable Long userId, String slug) {
+    return TeamPageQuery.builder()
+        .domainId(domainId)
+        .teamIds(Set.of(teamId))
+        .userId(userId)
+        .slug(slug)
+        .build();
   }
 
   @Override
-  public TeamPageQuery getQueryId(Long teamId, @Nullable Long userId, Long id) {
-    return TeamPageQuery.builder().teamIds(Set.of(teamId)).userId(userId).id(id).build();
+  public TeamPageQuery getQueryId(Long domainId, Long teamId, @Nullable Long userId, Long id) {
+    return TeamPageQuery.builder()
+        .domainId(domainId)
+        .teamIds(Set.of(teamId))
+        .userId(userId)
+        .id(id)
+        .build();
   }
 }

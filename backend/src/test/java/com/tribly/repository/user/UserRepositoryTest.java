@@ -2,6 +2,7 @@ package com.tribly.repository.user;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.tribly.domain.platform.Domain;
 import com.tribly.domain.user.User;
 import com.tribly.util.TestDataCleaner;
 import com.tribly.util.TestDataService;
@@ -19,16 +20,19 @@ class UserRepositoryTest {
   @Inject TestDataService dataService;
   @Inject TestDataCleaner dataCleaner;
 
+  private Domain domain;
+
   @BeforeEach
   void setUp() {
     dataCleaner.cleanAll();
+    domain = dataService.getOrCreateDefaultDomain();
   }
 
   @Test
-  void findByEmail_shouldReturnUser() {
+  void findByEmailAndDomain_shouldReturnUser() {
     dataService.createUser("test@example.com", "Test User");
 
-    Optional<User> result = userRepository.findByEmail("test@example.com");
+    Optional<User> result = userRepository.findByEmailAndDomain(domain.getId(), "test@example.com");
 
     assertTrue(result.isPresent());
     assertEquals("test@example.com", result.get().getEmail());
@@ -36,18 +40,20 @@ class UserRepositoryTest {
   }
 
   @Test
-  void findByEmail_shouldReturnEmptyForNonexistent() {
-    Optional<User> result = userRepository.findByEmail("nonexistent@example.com");
+  void findByEmailAndDomain_shouldReturnEmptyForNonexistent() {
+    Optional<User> result =
+        userRepository.findByEmailAndDomain(domain.getId(), "nonexistent@example.com");
 
     assertTrue(result.isEmpty());
   }
 
   @Test
-  void findByEmail_shouldIgnoreDeletedUsers() {
+  void findByEmailAndDomain_shouldIgnoreDeletedUsers() {
     User user = dataService.createUser("deleted@example.com", "Deleted User");
     dataService.deleteUser(user);
 
-    Optional<User> result = userRepository.findByEmail("deleted@example.com");
+    Optional<User> result =
+        userRepository.findByEmailAndDomain(domain.getId(), "deleted@example.com");
 
     assertTrue(result.isEmpty());
   }
@@ -73,12 +79,12 @@ class UserRepositoryTest {
   }
 
   @Test
-  void searchByDisplayName_shouldFindMatchingUsers() {
+  void searchByDisplayNameAndDomain_shouldFindMatchingUsers() {
     dataService.createUser("john@example.com", "John Doe");
     dataService.createUser("jane@example.com", "Jane Smith");
     dataService.createUser("bob@example.com", "Bob Johnson");
 
-    List<User> results = userRepository.searchByDisplayName("john", 10);
+    List<User> results = userRepository.searchByDisplayNameAndDomain(domain.getId(), "john", 10);
 
     assertEquals(2, results.size());
     assertTrue(results.stream().anyMatch(u -> u.getDisplayName().equals("John Doe")));
@@ -86,33 +92,33 @@ class UserRepositoryTest {
   }
 
   @Test
-  void searchByDisplayName_shouldBeCaseInsensitive() {
+  void searchByDisplayNameAndDomain_shouldBeCaseInsensitive() {
     dataService.createUser("alice@example.com", "Alice Wonder");
 
-    List<User> results = userRepository.searchByDisplayName("ALICE", 10);
+    List<User> results = userRepository.searchByDisplayNameAndDomain(domain.getId(), "ALICE", 10);
 
     assertEquals(1, results.size());
     assertEquals("Alice Wonder", results.get(0).getDisplayName());
   }
 
   @Test
-  void searchByDisplayName_shouldRespectLimit() {
+  void searchByDisplayNameAndDomain_shouldRespectLimit() {
     dataService.createUser("user1@example.com", "Smith One");
     dataService.createUser("user2@example.com", "Smith Two");
     dataService.createUser("user3@example.com", "Smith Three");
 
-    List<User> results = userRepository.searchByDisplayName("smith", 2);
+    List<User> results = userRepository.searchByDisplayNameAndDomain(domain.getId(), "smith", 2);
 
     assertEquals(2, results.size());
   }
 
   @Test
-  void searchByDisplayName_shouldIgnoreDeletedUsers() {
+  void searchByDisplayNameAndDomain_shouldIgnoreDeletedUsers() {
     dataService.createUser("visible@example.com", "Visible User");
     User deletedUser = dataService.createUser("hidden@example.com", "Hidden User");
     dataService.deleteUser(deletedUser);
 
-    List<User> results = userRepository.searchByDisplayName("user", 10);
+    List<User> results = userRepository.searchByDisplayNameAndDomain(domain.getId(), "user", 10);
 
     assertEquals(1, results.size());
     assertEquals("Visible User", results.get(0).getDisplayName());

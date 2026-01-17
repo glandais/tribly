@@ -24,12 +24,17 @@ import org.jspecify.annotations.Nullable;
 @ApplicationScoped
 public class TeamRepository implements BaseRepository<Team> {
 
-  public Optional<Team> findBySlug(String slug) {
-    return find("slug = ?1 and deleted = false", slug).firstResultOptional();
+  public Optional<Team> findBySlugAndDomain(Long domainId, String slug) {
+    return find("domain.id = ?1 and slug = ?2 and deleted = false", domainId, slug)
+        .firstResultOptional();
   }
 
-  public boolean existsBySlug(String slug) {
-    return count("slug = ?1 and deleted = false", slug) > 0;
+  public boolean existsBySlugAndDomain(Long domainId, String slug) {
+    return count("domain.id = ?1 and slug = ?2 and deleted = false", domainId, slug) > 0;
+  }
+
+  public boolean existsByDomain(Long domainId) {
+    return count("domain.id = ?1 and deleted = false", domainId) > 0;
   }
 
   public TriblyPage<TeamAndRole> find(TeamQuery teamQuery) {
@@ -39,6 +44,7 @@ public class TeamRepository implements BaseRepository<Team> {
                     + " AND ut3.deleted = false) from Team t left join UserTeam ut on ut.team.id ="
                     + " t.id AND ut.user.id = :userId AND ut.deleted = false WHERE")
             .and("t.deleted = false", Map.of())
+            .and("t.domain.id = :domainId", Map.of("domainId", teamQuery.domainId()))
             .order("name asc");
     triblyQuery.addParam("userId", teamQuery.userId());
     if (teamQuery.id() != null) {
@@ -81,9 +87,9 @@ public class TeamRepository implements BaseRepository<Team> {
     return getPage(panacheQuery, teamQuery.page(), teamQuery.size());
   }
 
-  public Optional<TeamAndRole> findOne(Long id, @Nullable Long userId) {
+  public Optional<TeamAndRole> findOne(Long domainId, Long id, @Nullable Long userId) {
     TriblyPage<TeamAndRole> page =
-        find(TeamQuery.builder().userId(userId).id(id).page(0).size(1).build());
+        find(TeamQuery.builder().domainId(domainId).userId(userId).id(id).page(0).size(1).build());
     if (page.items().isEmpty()) {
       return Optional.empty();
     } else {

@@ -6,6 +6,7 @@ import { IconPlus, IconUsersGroup } from '@tabler/icons-react'
 import { useListTeams, listTeams, getListTeamsQueryKey } from '@/api/endpoints/teams/teams'
 import { MinRole } from '@/api/dto'
 import { useAuth } from '../../hooks/useAuth'
+import { getAppConfig } from '../../config/appConfig'
 import { usePaginatedQuery } from '../../hooks/usePaginatedQuery'
 import { TeamCard, TeamCardSkeleton } from '../../components/card'
 import { Pagination } from '../../components/common/Pagination'
@@ -38,6 +39,7 @@ export function TeamListPage() {
   const { t } = useTranslation()
   const [search, setSearch] = useState('')
   const { isAuthenticated } = useAuth()
+  const config = getAppConfig()
 
   const [page, setPage] = useState(0)
   const pageSize = 12
@@ -81,6 +83,8 @@ export function TeamListPage() {
   })
 
   const teams = teamsData?.teams
+  const hasTeams = (teamsData?.total ?? 0) > 0
+  const canCreateTeam = isAuthenticated && (!config?.singleTeam || !hasTeams)
 
   const resetPage = () => setPage(0)
 
@@ -94,7 +98,7 @@ export function TeamListPage() {
               {t('teams.list.subtitle')}
             </Text>
           </div>
-          {isAuthenticated && (
+          {canCreateTeam && (
             <Button component={Link} to={paths.teamsNew()} leftSection={<IconPlus size={20} />}>
               {t('teams.create.title')}
             </Button>
@@ -161,7 +165,7 @@ export function TeamListPage() {
                 <IconUsersGroup size={48} color="var(--mantine-color-dimmed)" />
                 <Text fw={500}>{t('teams.list.empty.title')}</Text>
                 <Text c="dimmed">{t('teams.list.empty.publicTeams')}</Text>
-                {isAuthenticated && (
+                {canCreateTeam && (
                   <Button
                     component={Link}
                     to={paths.teamsNew()}

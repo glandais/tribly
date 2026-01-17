@@ -24,16 +24,17 @@ public interface TeamEntityRepository<T extends TeamEntity, Q extends TeamEntity
     return count("team.id = ?1 and slug = ?2", teamId, slug) > 0;
   }
 
-  Q getQuerySlug(Long teamId, @Nullable Long userId, String slug);
+  Q getQuerySlug(Long domainId, Long teamId, @Nullable Long userId, String slug);
 
-  Q getQueryId(Long teamId, @Nullable Long userId, Long id);
+  Q getQueryId(Long domainId, Long teamId, @Nullable Long userId, Long id);
 
-  default Optional<T> findByTeamAndSlug(Long teamId, @Nullable Long userId, String slug) {
-    return findOne(getQuerySlug(teamId, userId, slug));
+  default Optional<T> findByTeamAndSlug(
+      Long domainId, Long teamId, @Nullable Long userId, String slug) {
+    return findOne(getQuerySlug(domainId, teamId, userId, slug));
   }
 
-  default Optional<T> findByTeamAndId(Long teamId, @Nullable Long userId, Long id) {
-    return findOne(getQueryId(teamId, userId, id));
+  default Optional<T> findByTeamAndId(Long domainId, Long teamId, @Nullable Long userId, Long id) {
+    return findOne(getQueryId(domainId, teamId, userId, id));
   }
 
   TeamEntityType getEntityType();
@@ -131,6 +132,8 @@ public interface TeamEntityRepository<T extends TeamEntity, Q extends TeamEntity
 
     triblyQuery =
         triblyQuery
+            // filter by domain
+            .and("te.team.domain.id = :domainId", Map.of("domainId", query.domainId()))
             // entity not deleted
             .and("te.deleted = false", Map.of())
             // team not deleted

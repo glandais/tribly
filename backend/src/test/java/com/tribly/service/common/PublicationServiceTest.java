@@ -2,6 +2,7 @@ package com.tribly.service.common;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.tribly.domain.platform.Domain;
 import com.tribly.domain.ride.Ride;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
@@ -9,6 +10,7 @@ import com.tribly.dto.publications.response.PublicationListResponse;
 import com.tribly.enums.Status;
 import com.tribly.enums.TeamRole;
 import com.tribly.enums.Visibility;
+import com.tribly.service.security.DomainResolver;
 import com.tribly.service.security.TriblyQueryContext;
 import com.tribly.util.TestDataCleaner;
 import com.tribly.util.TestDataService;
@@ -29,7 +31,9 @@ class PublicationServiceTest {
   @Inject TestDataService dataService;
   @Inject TestDataCleaner dataCleaner;
   @Inject TriblyQueryContext queryContext;
+  @Inject DomainResolver domainResolver;
 
+  private Domain domain;
   private Team team;
   private Team privateTeam;
   private User admin;
@@ -45,6 +49,8 @@ class PublicationServiceTest {
   void setUp() {
     slugCounter.set(0);
     dataCleaner.cleanAll();
+    domain = dataService.getOrCreateDefaultDomain();
+    domainResolver.setDomainForTest(domain);
     admin = dataService.createUser("admin@example.com", "Admin");
     team = dataService.createTeam(admin, "Test Team", "test-team", Visibility.PUBLIC);
     privateTeam = dataService.createTeam(admin, "Private Team", "private-team", Visibility.TEAM);

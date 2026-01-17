@@ -5,6 +5,8 @@ import java.util.Set;
 import org.jspecify.annotations.Nullable;
 
 public interface TeamEntityQueryInterface extends PageInterface {
+  Long domainId();
+
   @Nullable Long id();
 
   @Nullable Long userId();

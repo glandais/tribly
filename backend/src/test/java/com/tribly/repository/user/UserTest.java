@@ -2,9 +2,11 @@ package com.tribly.repository.user;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.tribly.domain.platform.Domain;
 import com.tribly.domain.user.User;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -14,6 +16,13 @@ import org.junit.jupiter.api.Test;
  * No database required.
  */
 class UserTest {
+
+  private Domain testDomain;
+
+  @BeforeEach
+  void setUp() {
+    testDomain = new Domain("localhost", "Test Domain", "http://localhost:5173");
+  }
 
   @Nested
   @DisplayName("recordLogin")
@@ -79,10 +88,11 @@ class UserTest {
   class Constructor {
 
     @Test
-    @DisplayName("Should set email and displayName")
-    void constructor_shouldSetEmailAndDisplayName() {
-      User user = new User("test@example.com", "Test User");
+    @DisplayName("Should set domain, email and displayName")
+    void constructor_shouldSetDomainEmailAndDisplayName() {
+      User user = new User(testDomain, "test@example.com", "Test User");
 
+      assertSame(testDomain, user.getDomain());
       assertEquals("test@example.com", user.getEmail());
       assertEquals("Test User", user.getDisplayName());
     }
@@ -90,7 +100,7 @@ class UserTest {
     @Test
     @DisplayName("Should set createdBy to self")
     void constructor_shouldSetCreatedByToSelf() {
-      User user = new User("test@example.com", "Test User");
+      User user = new User(testDomain, "test@example.com", "Test User");
 
       assertSame(user, user.getCreatedBy());
     }
@@ -98,7 +108,7 @@ class UserTest {
     @Test
     @DisplayName("Should have null lastLoginAt initially")
     void constructor_shouldHaveNullLastLoginAt() {
-      User user = new User("test@example.com", "Test User");
+      User user = new User(testDomain, "test@example.com", "Test User");
 
       assertNull(user.getLastLoginAt());
     }
@@ -106,7 +116,7 @@ class UserTest {
     @Test
     @DisplayName("Should have null avatarUrl initially")
     void constructor_shouldHaveNullAvatarUrl() {
-      User user = new User("test@example.com", "Test User");
+      User user = new User(testDomain, "test@example.com", "Test User");
 
       assertNull(user.getAvatarUrl());
     }

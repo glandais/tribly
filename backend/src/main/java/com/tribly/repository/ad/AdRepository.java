@@ -15,13 +15,23 @@ import org.jspecify.annotations.Nullable;
 public class AdRepository implements TeamEntityRepository<Ad, AdQuery> {
 
   @Override
-  public AdQuery getQuerySlug(Long teamId, @Nullable Long userId, String slug) {
-    return AdQuery.builder().teamIds(Set.of(teamId)).userId(userId).slug(slug).build();
+  public AdQuery getQuerySlug(Long domainId, Long teamId, @Nullable Long userId, String slug) {
+    return AdQuery.builder()
+        .domainId(domainId)
+        .teamIds(Set.of(teamId))
+        .userId(userId)
+        .slug(slug)
+        .build();
   }
 
   @Override
-  public AdQuery getQueryId(Long teamId, @Nullable Long userId, Long id) {
-    return AdQuery.builder().teamIds(Set.of(teamId)).userId(userId).id(id).build();
+  public AdQuery getQueryId(Long domainId, Long teamId, @Nullable Long userId, Long id) {
+    return AdQuery.builder()
+        .domainId(domainId)
+        .teamIds(Set.of(teamId))
+        .userId(userId)
+        .id(id)
+        .build();
   }
 
   @Override

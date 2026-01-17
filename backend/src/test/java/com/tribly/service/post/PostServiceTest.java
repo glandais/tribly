@@ -3,6 +3,7 @@ package com.tribly.service.post;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.tribly.common.exception.TriblyException;
+import com.tribly.domain.platform.Domain;
 import com.tribly.domain.post.Post;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
@@ -12,6 +13,7 @@ import com.tribly.dto.posts.response.PostDto;
 import com.tribly.enums.Status;
 import com.tribly.enums.TeamRole;
 import com.tribly.enums.Visibility;
+import com.tribly.service.security.DomainResolver;
 import com.tribly.service.security.TriblyQueryContext;
 import com.tribly.util.TestDataCleaner;
 import com.tribly.util.TestDataService;
@@ -30,7 +32,9 @@ class PostServiceTest {
   @Inject TestDataService dataService;
   @Inject TestDataCleaner dataCleaner;
   @Inject TriblyQueryContext userService;
+  @Inject DomainResolver domainResolver;
 
+  private Domain domain;
   private Team publicTeam;
   private Team privateTeam;
   private User admin;
@@ -41,6 +45,8 @@ class PostServiceTest {
   @BeforeEach
   void setUp() {
     dataCleaner.cleanAll();
+    domain = dataService.getOrCreateDefaultDomain();
+    domainResolver.setDomainForTest(domain);
     admin = dataService.createUser("admin@example.com", "Admin");
     publicTeam = dataService.createTeam(admin, "Public Team", "public-team", Visibility.PUBLIC);
     privateTeam = dataService.createTeam(admin, "Private Team", "private-team", Visibility.TEAM);

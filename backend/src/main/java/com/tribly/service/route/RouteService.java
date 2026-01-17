@@ -224,6 +224,7 @@ public class RouteService extends TeamEntityService<Route, RouteRepository, Rout
     TriblyPage<Route> routes =
         routeRepository.find(
             RouteQuery.builder()
+                .domainId(triblyContext.getDomainId())
                 .userId(user == null ? null : user.getId())
                 .teamIds(teamIds)
                 .search(params.search())

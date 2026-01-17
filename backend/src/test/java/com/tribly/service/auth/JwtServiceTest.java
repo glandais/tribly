@@ -2,7 +2,9 @@ package com.tribly.service.auth;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.tribly.domain.platform.Domain;
 import com.tribly.domain.user.User;
+import com.tribly.service.security.DomainResolver;
 import com.tribly.util.TestDataCleaner;
 import com.tribly.util.TestDataService;
 import io.quarkus.test.junit.QuarkusTest;
@@ -16,12 +18,16 @@ class JwtServiceTest {
   @Inject JwtService jwtService;
   @Inject TestDataService dataService;
   @Inject TestDataCleaner dataCleaner;
+  @Inject DomainResolver domainResolver;
 
+  private Domain domain;
   private User user;
 
   @BeforeEach
   void setUp() {
     dataCleaner.cleanAll();
+    domain = dataService.getOrCreateDefaultDomain();
+    domainResolver.setDomainForTest(domain);
     user = dataService.createUser("test@example.com", "Test User");
   }
 

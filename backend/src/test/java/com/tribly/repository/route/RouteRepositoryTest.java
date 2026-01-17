@@ -2,6 +2,7 @@ package com.tribly.repository.route;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.tribly.domain.platform.Domain;
 import com.tribly.domain.route.Route;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
@@ -24,12 +25,14 @@ class RouteRepositoryTest {
   @Inject TestDataService dataService;
   @Inject TestDataCleaner dataCleaner;
 
+  private Domain domain;
   private Team team;
   private User user;
 
   @BeforeEach
   void setUp() {
     dataCleaner.cleanAll();
+    domain = dataService.getOrCreateDefaultDomain();
     user = dataService.createUser("test@example.com", "Test User");
     team = dataService.createTeam(user, "Test Team", "test-team", Visibility.PUBLIC);
   }
@@ -43,7 +46,7 @@ class RouteRepositoryTest {
       dataService.createRoute(team, user, "Route 1", Visibility.PUBLIC);
       dataService.createRoute(team, user, "Route 2", Visibility.PUBLIC);
 
-      RouteQuery query = RouteQuery.builder().build();
+      RouteQuery query = RouteQuery.builder().domainId(domain.getId()).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(2, result.items().size());
@@ -55,7 +58,8 @@ class RouteRepositoryTest {
       Route route1 = dataService.createRoute(team, user, "Route 1", Visibility.PUBLIC);
       dataService.createRoute(team, user, "Route 2", Visibility.PUBLIC);
 
-      RouteQuery query = RouteQuery.builder().slug(route1.getSlug()).build();
+      RouteQuery query =
+          RouteQuery.builder().domainId(domain.getId()).slug(route1.getSlug()).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(1, result.items().size());
@@ -67,7 +71,7 @@ class RouteRepositoryTest {
       dataService.createRoute(team, user, "Public Route", Visibility.PUBLIC);
       dataService.createRoute(team, user, "Team Route", Visibility.TEAM);
 
-      RouteQuery query = RouteQuery.builder().build();
+      RouteQuery query = RouteQuery.builder().domainId(domain.getId()).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(1, result.items().size());
@@ -80,7 +84,7 @@ class RouteRepositoryTest {
       Route deletedRoute = dataService.createRoute(team, user, "Deleted Route", Visibility.PUBLIC);
       dataService.deleteRoute(deletedRoute);
 
-      RouteQuery query = RouteQuery.builder().build();
+      RouteQuery query = RouteQuery.builder().domainId(domain.getId()).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(1, result.items().size());
@@ -92,7 +96,8 @@ class RouteRepositoryTest {
       dataService.createRoute(team, user, "Route 1", Visibility.PUBLIC);
       Team otherTeam = dataService.createTeam(user, "Other Team", "other-team", Visibility.PUBLIC);
 
-      RouteQuery query = RouteQuery.builder().teamIds(Set.of(otherTeam.getId())).build();
+      RouteQuery query =
+          RouteQuery.builder().domainId(domain.getId()).teamIds(Set.of(otherTeam.getId())).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(0, result.items().size());
@@ -104,7 +109,7 @@ class RouteRepositoryTest {
         dataService.createRoute(team, user, "Route " + i, Visibility.PUBLIC);
       }
 
-      RouteQuery query = RouteQuery.builder().size(2).build();
+      RouteQuery query = RouteQuery.builder().domainId(domain.getId()).size(2).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(2, result.items().size());
@@ -145,7 +150,8 @@ class RouteRepositoryTest {
           45.5,
           6.5);
 
-      RouteQuery query = RouteQuery.builder().minDistance(20000.0f).build();
+      RouteQuery query =
+          RouteQuery.builder().domainId(domain.getId()).minDistance(20000.0f).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(1, result.items().size());
@@ -181,7 +187,8 @@ class RouteRepositoryTest {
           45.5,
           6.5);
 
-      RouteQuery query = RouteQuery.builder().maxDistance(10000.0f).build();
+      RouteQuery query =
+          RouteQuery.builder().domainId(domain.getId()).maxDistance(10000.0f).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(1, result.items().size());
@@ -230,7 +237,12 @@ class RouteRepositoryTest {
           45.8,
           6.8);
 
-      RouteQuery query = RouteQuery.builder().minDistance(10000.0f).maxDistance(50000.0f).build();
+      RouteQuery query =
+          RouteQuery.builder()
+              .domainId(domain.getId())
+              .minDistance(10000.0f)
+              .maxDistance(50000.0f)
+              .build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(1, result.items().size());
@@ -271,7 +283,8 @@ class RouteRepositoryTest {
           45.5,
           6.5);
 
-      RouteQuery query = RouteQuery.builder().minElevationGain(500.0f).build();
+      RouteQuery query =
+          RouteQuery.builder().domainId(domain.getId()).minElevationGain(500.0f).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(1, result.items().size());
@@ -307,7 +320,8 @@ class RouteRepositoryTest {
           45.5,
           6.5);
 
-      RouteQuery query = RouteQuery.builder().maxElevationGain(500.0f).build();
+      RouteQuery query =
+          RouteQuery.builder().domainId(domain.getId()).maxElevationGain(500.0f).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(1, result.items().size());
@@ -350,7 +364,8 @@ class RouteRepositoryTest {
           45.5,
           6.5);
 
-      RouteQuery query = RouteQuery.builder().hilliness(Hilliness.FLAT).build();
+      RouteQuery query =
+          RouteQuery.builder().domainId(domain.getId()).hilliness(Hilliness.FLAT).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(1, result.items().size());
@@ -402,7 +417,8 @@ class RouteRepositoryTest {
           45.5,
           6.5);
 
-      RouteQuery query = RouteQuery.builder().hilliness(Hilliness.HILLY).build();
+      RouteQuery query =
+          RouteQuery.builder().domainId(domain.getId()).hilliness(Hilliness.HILLY).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(1, result.items().size());
@@ -440,7 +456,8 @@ class RouteRepositoryTest {
           45.5,
           6.5);
 
-      RouteQuery query = RouteQuery.builder().hilliness(Hilliness.MOUNTAINOUS).build();
+      RouteQuery query =
+          RouteQuery.builder().domainId(domain.getId()).hilliness(Hilliness.MOUNTAINOUS).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(1, result.items().size());
@@ -494,7 +511,8 @@ class RouteRepositoryTest {
           45.5,
           6.5);
 
-      RouteQuery query = RouteQuery.builder().surfaceType(SurfaceType.GRAVEL).build();
+      RouteQuery query =
+          RouteQuery.builder().domainId(domain.getId()).surfaceType(SurfaceType.GRAVEL).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(1, result.items().size());
@@ -535,7 +553,8 @@ class RouteRepositoryTest {
           45.5,
           6.5);
 
-      RouteQuery query = RouteQuery.builder().windDirection(WindDirection.NORTH).build();
+      RouteQuery query =
+          RouteQuery.builder().domainId(domain.getId()).windDirection(WindDirection.NORTH).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(1, result.items().size());
@@ -590,7 +609,11 @@ class RouteRepositoryTest {
           6.5);
 
       RouteQuery query =
-          RouteQuery.builder().sortBy(RouteSortBy.DISTANCE).sortDir(SortDirection.ASC).build();
+          RouteQuery.builder()
+              .domainId(domain.getId())
+              .sortBy(RouteSortBy.DISTANCE)
+              .sortDir(SortDirection.ASC)
+              .build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(3, result.items().size());
@@ -642,7 +665,11 @@ class RouteRepositoryTest {
           6.5);
 
       RouteQuery query =
-          RouteQuery.builder().sortBy(RouteSortBy.DISTANCE).sortDir(SortDirection.DESC).build();
+          RouteQuery.builder()
+              .domainId(domain.getId())
+              .sortBy(RouteSortBy.DISTANCE)
+              .sortDir(SortDirection.DESC)
+              .build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(3, result.items().size());
@@ -695,6 +722,7 @@ class RouteRepositoryTest {
 
       RouteQuery query =
           RouteQuery.builder()
+              .domainId(domain.getId())
               .sortBy(RouteSortBy.ELEVATION_GAIN)
               .sortDir(SortDirection.ASC)
               .build();
@@ -752,7 +780,11 @@ class RouteRepositoryTest {
           6.5);
 
       RouteQuery query =
-          RouteQuery.builder().sortBy(RouteSortBy.HILLINESS).sortDir(SortDirection.ASC).build();
+          RouteQuery.builder()
+              .domainId(domain.getId())
+              .sortBy(RouteSortBy.HILLINESS)
+              .sortDir(SortDirection.ASC)
+              .build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(3, result.items().size());
@@ -809,7 +841,11 @@ class RouteRepositoryTest {
           6.5);
 
       RouteQuery query =
-          RouteQuery.builder().minDistance(30000.0f).surfaceType(SurfaceType.GRAVEL).build();
+          RouteQuery.builder()
+              .domainId(domain.getId())
+              .minDistance(30000.0f)
+              .surfaceType(SurfaceType.GRAVEL)
+              .build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(1, result.items().size());

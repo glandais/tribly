@@ -2,6 +2,7 @@ package com.tribly.repository.common;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.tribly.domain.platform.Domain;
 import com.tribly.domain.route.Route;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.team.UserTeam;
@@ -36,6 +37,7 @@ class TeamEntityRepositoryFindTest {
   @Inject TestDataService dataService;
   @Inject TestDataCleaner dataCleaner;
 
+  private Domain domain;
   private User publicTeamOwner;
   private User privateTeamOwner;
   private User regularUser;
@@ -45,6 +47,7 @@ class TeamEntityRepositoryFindTest {
   @BeforeEach
   void setUp() {
     dataCleaner.cleanAll();
+    domain = dataService.getOrCreateDefaultDomain();
     publicTeamOwner = dataService.createUser("public-owner@example.com", "Public Team Owner");
     privateTeamOwner = dataService.createUser("private-owner@example.com", "Private Team Owner");
     regularUser = dataService.createUser("regular@example.com", "Regular User");
@@ -66,7 +69,7 @@ class TeamEntityRepositoryFindTest {
       dataService.createRoute(
           privateTeam, privateTeamOwner, "Private Team Route", Visibility.PUBLIC);
 
-      RouteQuery query = RouteQuery.builder().build();
+      RouteQuery query = RouteQuery.builder().domainId(domain.getId()).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(1, result.items().size());
@@ -78,7 +81,7 @@ class TeamEntityRepositoryFindTest {
     void find_anonymousUser_shouldNotReturnTeamVisibilityEntities() {
       dataService.createRoute(publicTeam, publicTeamOwner, "Team Only Route", Visibility.TEAM);
 
-      RouteQuery query = RouteQuery.builder().build();
+      RouteQuery query = RouteQuery.builder().domainId(domain.getId()).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(0, result.items().size());
@@ -90,7 +93,7 @@ class TeamEntityRepositoryFindTest {
       dataService.createRoute(
           privateTeam, privateTeamOwner, "Route in Private Team", Visibility.PUBLIC);
 
-      RouteQuery query = RouteQuery.builder().build();
+      RouteQuery query = RouteQuery.builder().domainId(domain.getId()).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(0, result.items().size());
@@ -102,7 +105,7 @@ class TeamEntityRepositoryFindTest {
       dataService.createRoute(
           publicTeam, publicTeamOwner, "Draft Route", Visibility.PUBLIC, Status.DRAFT, null, null);
 
-      RouteQuery query = RouteQuery.builder().build();
+      RouteQuery query = RouteQuery.builder().domainId(domain.getId()).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(0, result.items().size());
@@ -120,7 +123,7 @@ class TeamEntityRepositoryFindTest {
           null,
           null);
 
-      RouteQuery query = RouteQuery.builder().build();
+      RouteQuery query = RouteQuery.builder().domainId(domain.getId()).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(1, result.items().size());
@@ -137,7 +140,8 @@ class TeamEntityRepositoryFindTest {
     void find_authenticatedMember_shouldReturnPublicEntities() {
       dataService.createRoute(publicTeam, publicTeamOwner, "Public Route", Visibility.PUBLIC);
 
-      RouteQuery query = RouteQuery.builder().userId(regularUser.getId()).build();
+      RouteQuery query =
+          RouteQuery.builder().domainId(domain.getId()).userId(regularUser.getId()).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(1, result.items().size());
@@ -150,7 +154,8 @@ class TeamEntityRepositoryFindTest {
       dataService.addUserToTeam(regularUser, publicTeam, TeamRole.MEMBER);
       dataService.createRoute(publicTeam, publicTeamOwner, "Team Only Route", Visibility.TEAM);
 
-      RouteQuery query = RouteQuery.builder().userId(regularUser.getId()).build();
+      RouteQuery query =
+          RouteQuery.builder().domainId(domain.getId()).userId(regularUser.getId()).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(1, result.items().size());
@@ -162,7 +167,8 @@ class TeamEntityRepositoryFindTest {
     void find_authenticatedNonMember_shouldNotReturnTeamVisibilityEntities() {
       dataService.createRoute(publicTeam, publicTeamOwner, "Team Only Route", Visibility.TEAM);
 
-      RouteQuery query = RouteQuery.builder().userId(regularUser.getId()).build();
+      RouteQuery query =
+          RouteQuery.builder().domainId(domain.getId()).userId(regularUser.getId()).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(0, result.items().size());
@@ -175,7 +181,8 @@ class TeamEntityRepositoryFindTest {
       dataService.createRoute(
           privateTeam, privateTeamOwner, "Route in Private Team", Visibility.TEAM);
 
-      RouteQuery query = RouteQuery.builder().userId(regularUser.getId()).build();
+      RouteQuery query =
+          RouteQuery.builder().domainId(domain.getId()).userId(regularUser.getId()).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(1, result.items().size());
@@ -189,7 +196,8 @@ class TeamEntityRepositoryFindTest {
       dataService.createRoute(
           publicTeam, publicTeamOwner, "Draft Route", Visibility.PUBLIC, Status.DRAFT, null, null);
 
-      RouteQuery query = RouteQuery.builder().userId(regularUser.getId()).build();
+      RouteQuery query =
+          RouteQuery.builder().domainId(domain.getId()).userId(regularUser.getId()).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(0, result.items().size());
@@ -202,7 +210,8 @@ class TeamEntityRepositoryFindTest {
       dataService.createRoute(publicTeam, publicTeamOwner, "Team Only Route", Visibility.TEAM);
       dataService.deleteUserTeam(membership);
 
-      RouteQuery query = RouteQuery.builder().userId(regularUser.getId()).build();
+      RouteQuery query =
+          RouteQuery.builder().domainId(domain.getId()).userId(regularUser.getId()).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(0, result.items().size());
@@ -220,7 +229,8 @@ class TeamEntityRepositoryFindTest {
       dataService.createRoute(
           publicTeam, publicTeamOwner, "Draft Route", Visibility.PUBLIC, Status.DRAFT, null, null);
 
-      RouteQuery query = RouteQuery.builder().userId(regularUser.getId()).build();
+      RouteQuery query =
+          RouteQuery.builder().domainId(domain.getId()).userId(regularUser.getId()).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(1, result.items().size());
@@ -234,7 +244,8 @@ class TeamEntityRepositoryFindTest {
       dataService.createRoute(
           publicTeam, publicTeamOwner, "Draft Route", Visibility.PUBLIC, Status.DRAFT, null, null);
 
-      RouteQuery query = RouteQuery.builder().userId(regularUser.getId()).build();
+      RouteQuery query =
+          RouteQuery.builder().domainId(domain.getId()).userId(regularUser.getId()).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(1, result.items().size());
@@ -257,7 +268,8 @@ class TeamEntityRepositoryFindTest {
           null,
           null);
 
-      RouteQuery query = RouteQuery.builder().userId(regularUser.getId()).build();
+      RouteQuery query =
+          RouteQuery.builder().domainId(domain.getId()).userId(regularUser.getId()).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertTrue(result.items().stream().noneMatch(r -> "Draft Route".equals(r.getName())));
@@ -286,7 +298,8 @@ class TeamEntityRepositoryFindTest {
           null,
           null);
 
-      RouteQuery query = RouteQuery.builder().userId(regularUser.getId()).build();
+      RouteQuery query =
+          RouteQuery.builder().domainId(domain.getId()).userId(regularUser.getId()).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(3, result.items().size());
@@ -304,7 +317,7 @@ class TeamEntityRepositoryFindTest {
           dataService.createRoute(publicTeam, publicTeamOwner, "Deleted Route", Visibility.PUBLIC);
       dataService.deleteRoute(route);
 
-      RouteQuery query = RouteQuery.builder().build();
+      RouteQuery query = RouteQuery.builder().domainId(domain.getId()).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(0, result.items().size());
@@ -318,7 +331,8 @@ class TeamEntityRepositoryFindTest {
           dataService.createRoute(publicTeam, publicTeamOwner, "Deleted Route", Visibility.PUBLIC);
       dataService.deleteRoute(route);
 
-      RouteQuery query = RouteQuery.builder().userId(regularUser.getId()).build();
+      RouteQuery query =
+          RouteQuery.builder().domainId(domain.getId()).userId(regularUser.getId()).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(0, result.items().size());
@@ -331,7 +345,7 @@ class TeamEntityRepositoryFindTest {
           publicTeam, publicTeamOwner, "Route in Deleted Team", Visibility.PUBLIC);
       dataService.deleteTeam(publicTeam);
 
-      RouteQuery query = RouteQuery.builder().build();
+      RouteQuery query = RouteQuery.builder().domainId(domain.getId()).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(0, result.items().size());
@@ -352,7 +366,8 @@ class TeamEntityRepositoryFindTest {
       dataService.createRoute(
           anotherTeam, publicTeamOwner, "Another Team Route", Visibility.PUBLIC);
 
-      RouteQuery query = RouteQuery.builder().teamIds(Set.of(publicTeam.getId())).build();
+      RouteQuery query =
+          RouteQuery.builder().domainId(domain.getId()).teamIds(Set.of(publicTeam.getId())).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(1, result.items().size());
@@ -373,7 +388,10 @@ class TeamEntityRepositoryFindTest {
       dataService.createRoute(thirdTeam, publicTeamOwner, "Third Team Route", Visibility.PUBLIC);
 
       RouteQuery query =
-          RouteQuery.builder().teamIds(Set.of(publicTeam.getId(), anotherTeam.getId())).build();
+          RouteQuery.builder()
+              .domainId(domain.getId())
+              .teamIds(Set.of(publicTeam.getId(), anotherTeam.getId()))
+              .build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(2, result.items().size());
@@ -386,7 +404,7 @@ class TeamEntityRepositoryFindTest {
     void find_shouldReturnEmptyWhenTeamSlugDoesNotMatch() {
       dataService.createRoute(publicTeam, publicTeamOwner, "Route", Visibility.PUBLIC);
 
-      RouteQuery query = RouteQuery.builder().teamIds(Set.of(-1L)).build();
+      RouteQuery query = RouteQuery.builder().domainId(domain.getId()).teamIds(Set.of(-1L)).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(0, result.items().size());
@@ -397,7 +415,7 @@ class TeamEntityRepositoryFindTest {
     void find_shouldIgnoreEmptyTeamSlugsSet() {
       dataService.createRoute(publicTeam, publicTeamOwner, "Route", Visibility.PUBLIC);
 
-      RouteQuery query = RouteQuery.builder().teamIds(Set.of()).build();
+      RouteQuery query = RouteQuery.builder().domainId(domain.getId()).teamIds(Set.of()).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(1, result.items().size());
@@ -415,7 +433,8 @@ class TeamEntityRepositoryFindTest {
           dataService.createRoute(publicTeam, publicTeamOwner, "Route One", Visibility.PUBLIC);
       dataService.createRoute(publicTeam, publicTeamOwner, "Route Two", Visibility.PUBLIC);
 
-      RouteQuery query = RouteQuery.builder().slug(route1.getSlug()).build();
+      RouteQuery query =
+          RouteQuery.builder().domainId(domain.getId()).slug(route1.getSlug()).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(1, result.items().size());
@@ -427,7 +446,8 @@ class TeamEntityRepositoryFindTest {
     void find_shouldReturnEmptyWhenSlugDoesNotExist() {
       dataService.createRoute(publicTeam, publicTeamOwner, "Route", Visibility.PUBLIC);
 
-      RouteQuery query = RouteQuery.builder().slug("nonexistent-slug").build();
+      RouteQuery query =
+          RouteQuery.builder().domainId(domain.getId()).slug("nonexistent-slug").build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(0, result.items().size());
@@ -445,7 +465,7 @@ class TeamEntityRepositoryFindTest {
           dataService.createRoute(publicTeam, publicTeamOwner, "Route One", Visibility.PUBLIC);
       dataService.createRoute(publicTeam, publicTeamOwner, "Route Two", Visibility.PUBLIC);
 
-      RouteQuery query = RouteQuery.builder().id(route1.getId()).build();
+      RouteQuery query = RouteQuery.builder().domainId(domain.getId()).id(route1.getId()).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(1, result.items().size());
@@ -457,7 +477,7 @@ class TeamEntityRepositoryFindTest {
     void find_shouldReturnEmptyWhenIdDoesNotExist() {
       dataService.createRoute(publicTeam, publicTeamOwner, "Route", Visibility.PUBLIC);
 
-      RouteQuery query = RouteQuery.builder().id(999999L).build();
+      RouteQuery query = RouteQuery.builder().domainId(domain.getId()).id(999999L).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(0, result.items().size());
@@ -475,7 +495,7 @@ class TeamEntityRepositoryFindTest {
           publicTeam, publicTeamOwner, "Mountain Climb Route", Visibility.PUBLIC);
       dataService.createRoute(publicTeam, publicTeamOwner, "Flat Sprint Route", Visibility.PUBLIC);
 
-      RouteQuery query = RouteQuery.builder().search("Mountain").build();
+      RouteQuery query = RouteQuery.builder().domainId(domain.getId()).search("Mountain").build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(1, result.items().size());
@@ -502,7 +522,8 @@ class TeamEntityRepositoryFindTest {
           null,
           "This route is flat and fast");
 
-      RouteQuery query = RouteQuery.builder().search("challenging").build();
+      RouteQuery query =
+          RouteQuery.builder().domainId(domain.getId()).search("challenging").build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(1, result.items().size());
@@ -514,7 +535,7 @@ class TeamEntityRepositoryFindTest {
     void find_shouldSearchCaseInsensitively() {
       dataService.createRoute(publicTeam, publicTeamOwner, "MOUNTAIN Route", Visibility.PUBLIC);
 
-      RouteQuery query = RouteQuery.builder().search("mountain").build();
+      RouteQuery query = RouteQuery.builder().domainId(domain.getId()).search("mountain").build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(1, result.items().size());
@@ -525,7 +546,7 @@ class TeamEntityRepositoryFindTest {
     void find_shouldReturnEmptyWhenSearchDoesNotMatch() {
       dataService.createRoute(publicTeam, publicTeamOwner, "Coastal Route", Visibility.PUBLIC);
 
-      RouteQuery query = RouteQuery.builder().search("mountain").build();
+      RouteQuery query = RouteQuery.builder().domainId(domain.getId()).search("mountain").build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(0, result.items().size());
@@ -536,7 +557,7 @@ class TeamEntityRepositoryFindTest {
     void find_shouldIgnoreNullSearch() {
       dataService.createRoute(publicTeam, publicTeamOwner, "Route", Visibility.PUBLIC);
 
-      RouteQuery query = RouteQuery.builder().search(null).build();
+      RouteQuery query = RouteQuery.builder().domainId(domain.getId()).search(null).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(1, result.items().size());
@@ -547,7 +568,7 @@ class TeamEntityRepositoryFindTest {
     void find_shouldIgnoreEmptySearch() {
       dataService.createRoute(publicTeam, publicTeamOwner, "Route", Visibility.PUBLIC);
 
-      RouteQuery query = RouteQuery.builder().search("").build();
+      RouteQuery query = RouteQuery.builder().domainId(domain.getId()).search("").build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(1, result.items().size());
@@ -580,6 +601,7 @@ class TeamEntityRepositoryFindTest {
 
       RouteQuery query =
           RouteQuery.builder()
+              .domainId(domain.getId())
               .from(LocalDate.of(2025, 3, 1).atStartOfDay().toInstant(ZoneOffset.UTC))
               .build();
       TriblyPage<Route> result = routeRepository.find(query);
@@ -610,6 +632,7 @@ class TeamEntityRepositoryFindTest {
 
       RouteQuery query =
           RouteQuery.builder()
+              .domainId(domain.getId())
               .to(LocalDate.of(2025, 3, 1).atStartOfDay().toInstant(ZoneOffset.UTC))
               .build();
       TriblyPage<Route> result = routeRepository.find(query);
@@ -648,6 +671,7 @@ class TeamEntityRepositoryFindTest {
 
       RouteQuery query =
           RouteQuery.builder()
+              .domainId(domain.getId())
               .from(LocalDate.of(2025, 2, 1).atStartOfDay().toInstant(ZoneOffset.UTC))
               .to(LocalDate.of(2025, 5, 1).atStartOfDay().toInstant(ZoneOffset.UTC))
               .build();
@@ -670,7 +694,8 @@ class TeamEntityRepositoryFindTest {
           exactDate,
           null);
 
-      RouteQuery query = RouteQuery.builder().from(exactDate).to(exactDate).build();
+      RouteQuery query =
+          RouteQuery.builder().domainId(domain.getId()).from(exactDate).to(exactDate).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(1, result.items().size());
@@ -698,7 +723,7 @@ class TeamEntityRepositoryFindTest {
     @Test
     @DisplayName("Should return limited results by size")
     void find_shouldReturnLimitedResultsBySize() {
-      RouteQuery query = RouteQuery.builder().size(3).build();
+      RouteQuery query = RouteQuery.builder().domainId(domain.getId()).size(3).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(3, result.items().size());
@@ -708,7 +733,7 @@ class TeamEntityRepositoryFindTest {
     @Test
     @DisplayName("Should return correct page")
     void find_shouldReturnCorrectPage() {
-      RouteQuery query = RouteQuery.builder().page(1).size(3).build();
+      RouteQuery query = RouteQuery.builder().domainId(domain.getId()).page(1).size(3).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(3, result.items().size());
@@ -718,7 +743,7 @@ class TeamEntityRepositoryFindTest {
     @Test
     @DisplayName("Should return empty page when beyond results")
     void find_shouldReturnEmptyPageWhenBeyondResults() {
-      RouteQuery query = RouteQuery.builder().page(10).size(5).build();
+      RouteQuery query = RouteQuery.builder().domainId(domain.getId()).page(10).size(5).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(0, result.items().size());
@@ -728,7 +753,7 @@ class TeamEntityRepositoryFindTest {
     @Test
     @DisplayName("Should return all results when size is larger than total")
     void find_shouldReturnAllResultsWhenSizeIsLarger() {
-      RouteQuery query = RouteQuery.builder().size(100).build();
+      RouteQuery query = RouteQuery.builder().domainId(domain.getId()).size(100).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(10, result.items().size());
@@ -738,7 +763,7 @@ class TeamEntityRepositoryFindTest {
     @Test
     @DisplayName("Should use default pagination when not specified")
     void find_shouldUseDefaultPaginationWhenNotSpecified() {
-      RouteQuery query = RouteQuery.builder().build();
+      RouteQuery query = RouteQuery.builder().domainId(domain.getId()).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertTrue(result.items().size() <= 10);
@@ -760,7 +785,11 @@ class TeamEntityRepositoryFindTest {
       dataService.createRoute(anotherTeam, publicTeamOwner, "Mountain Trail", Visibility.PUBLIC);
 
       RouteQuery query =
-          RouteQuery.builder().teamIds(Set.of(publicTeam.getId())).search("Mountain").build();
+          RouteQuery.builder()
+              .domainId(domain.getId())
+              .teamIds(Set.of(publicTeam.getId()))
+              .search("Mountain")
+              .build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(1, result.items().size());
@@ -799,6 +828,7 @@ class TeamEntityRepositoryFindTest {
 
       RouteQuery query =
           RouteQuery.builder()
+              .domainId(domain.getId())
               .userId(regularUser.getId())
               .from(LocalDate.of(2025, 3, 1).atStartOfDay().toInstant(ZoneOffset.UTC))
               .build();
@@ -828,6 +858,7 @@ class TeamEntityRepositoryFindTest {
 
       RouteQuery query =
           RouteQuery.builder()
+              .domainId(domain.getId())
               .userId(regularUser.getId())
               .teamIds(Set.of(publicTeam.getId()))
               .search("Mountain")
@@ -851,7 +882,7 @@ class TeamEntityRepositoryFindTest {
       dataService.createRoute(publicTeam, publicTeamOwner, "Public Route", Visibility.PUBLIC);
       dataService.createRoute(publicTeam, publicTeamOwner, "Team Route", Visibility.TEAM);
 
-      RouteQuery query = RouteQuery.builder().userId(999999L).build();
+      RouteQuery query = RouteQuery.builder().domainId(domain.getId()).userId(999999L).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(1, result.items().size());
@@ -863,7 +894,7 @@ class TeamEntityRepositoryFindTest {
     void find_shouldHandleSpecialCharactersInSearch() {
       dataService.createRoute(publicTeam, publicTeamOwner, "Route (Test)", Visibility.PUBLIC);
 
-      RouteQuery query = RouteQuery.builder().search("(Test)").build();
+      RouteQuery query = RouteQuery.builder().domainId(domain.getId()).search("(Test)").build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(1, result.items().size());
@@ -879,7 +910,8 @@ class TeamEntityRepositoryFindTest {
         dataService.createRoute(publicTeam, publicTeamOwner, "Coastal " + i, Visibility.PUBLIC);
       }
 
-      RouteQuery query = RouteQuery.builder().search("Mountain").size(2).build();
+      RouteQuery query =
+          RouteQuery.builder().domainId(domain.getId()).search("Mountain").size(2).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(2, result.items().size());
@@ -898,7 +930,8 @@ class TeamEntityRepositoryFindTest {
       dataService.createRoute(team1, publicTeamOwner, "Team 1 - Public Route", Visibility.PUBLIC);
       dataService.createRoute(team2, publicTeamOwner, "Team 2 - Public Route", Visibility.PUBLIC);
 
-      RouteQuery query = RouteQuery.builder().userId(regularUser.getId()).build();
+      RouteQuery query =
+          RouteQuery.builder().domainId(domain.getId()).userId(regularUser.getId()).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(3, result.items().size());
@@ -943,7 +976,7 @@ class TeamEntityRepositoryFindTest {
           LocalDate.of(2025, 2, 1).atStartOfDay().toInstant(ZoneOffset.UTC),
           null);
 
-      RouteQuery query = RouteQuery.builder().build();
+      RouteQuery query = RouteQuery.builder().domainId(domain.getId()).build();
       TriblyPage<Route> result = routeRepository.find(query);
 
       assertEquals(3, result.items().size());
@@ -965,7 +998,7 @@ class TeamEntityRepositoryFindTest {
 
       var result =
           routeRepository.findByTeamAndSlug(
-              publicTeam.getId(), publicTeamOwner.getId(), route.getSlug());
+              domain.getId(), publicTeam.getId(), publicTeamOwner.getId(), route.getSlug());
 
       assertTrue(result.isPresent());
       assertEquals(route.getId(), result.get().getId());
@@ -980,7 +1013,7 @@ class TeamEntityRepositoryFindTest {
 
       var result =
           routeRepository.findByTeamAndSlug(
-              privateTeam.getId(), publicTeamOwner.getId(), route.getSlug());
+              domain.getId(), privateTeam.getId(), publicTeamOwner.getId(), route.getSlug());
 
       assertTrue(result.isEmpty());
     }
@@ -992,7 +1025,7 @@ class TeamEntityRepositoryFindTest {
 
       var result =
           routeRepository.findByTeamAndSlug(
-              publicTeam.getId(), publicTeamOwner.getId(), "nonexistent-slug");
+              domain.getId(), publicTeam.getId(), publicTeamOwner.getId(), "nonexistent-slug");
 
       assertTrue(result.isEmpty());
     }
@@ -1006,7 +1039,7 @@ class TeamEntityRepositoryFindTest {
 
       var result =
           routeRepository.findByTeamAndSlug(
-              publicTeam.getId(), publicTeamOwner.getId(), route.getSlug());
+              domain.getId(), publicTeam.getId(), publicTeamOwner.getId(), route.getSlug());
 
       assertTrue(result.isEmpty());
     }
@@ -1019,7 +1052,7 @@ class TeamEntityRepositoryFindTest {
 
       var result =
           routeRepository.findByTeamAndSlug(
-              publicTeam.getId(), publicTeamOwner.getId(), teamRoute.getSlug());
+              domain.getId(), publicTeam.getId(), publicTeamOwner.getId(), teamRoute.getSlug());
 
       assertTrue(result.isPresent());
       assertEquals("Team Route", result.get().getName());
@@ -1040,7 +1073,7 @@ class TeamEntityRepositoryFindTest {
 
       var result =
           routeRepository.findByTeamAndSlug(
-              publicTeam.getId(), publicTeamOwner.getId(), draftRoute.getSlug());
+              domain.getId(), publicTeam.getId(), publicTeamOwner.getId(), draftRoute.getSlug());
 
       assertTrue(result.isPresent());
       assertEquals("Draft Route", result.get().getName());
@@ -1056,7 +1089,7 @@ class TeamEntityRepositoryFindTest {
 
       var result =
           routeRepository.findByTeamAndSlug(
-              publicTeam.getId(), publicTeamOwner.getId(), route.getSlug());
+              domain.getId(), publicTeam.getId(), publicTeamOwner.getId(), route.getSlug());
 
       // Note: findByTeamAndSlug does NOT filter by team.deleted
       assertFalse(result.isPresent());
@@ -1075,10 +1108,10 @@ class TeamEntityRepositoryFindTest {
 
       var result1 =
           routeRepository.findByTeamAndSlug(
-              publicTeam.getId(), publicTeamOwner.getId(), route1.getSlug());
+              domain.getId(), publicTeam.getId(), publicTeamOwner.getId(), route1.getSlug());
       var result2 =
           routeRepository.findByTeamAndSlug(
-              anotherTeam.getId(), publicTeamOwner.getId(), route2.getSlug());
+              domain.getId(), anotherTeam.getId(), publicTeamOwner.getId(), route2.getSlug());
 
       assertTrue(result1.isPresent());
       assertTrue(result2.isPresent());

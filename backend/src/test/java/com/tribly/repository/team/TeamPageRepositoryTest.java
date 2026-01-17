@@ -2,6 +2,7 @@ package com.tribly.repository.team;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.tribly.domain.platform.Domain;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.team.TeamPage;
 import com.tribly.domain.user.User;
@@ -24,12 +25,14 @@ class TeamPageRepositoryTest {
   @Inject TestDataService dataService;
   @Inject TestDataCleaner dataCleaner;
 
+  private Domain domain;
   private Team team;
   private User user;
 
   @BeforeEach
   void setUp() {
     dataCleaner.cleanAll();
+    domain = dataService.getOrCreateDefaultDomain();
     user = dataService.createUser("test@example.com", "Test User");
     team = dataService.createTeam(user, "Test Team", "test-team", Visibility.PUBLIC);
   }
@@ -42,7 +45,8 @@ class TeamPageRepositoryTest {
     void find_shouldIncludeAboutPageByDefault() {
       dataService.createAdditionalPage(team, user, "Page 1", 0);
 
-      TeamPageQuery query = TeamPageQuery.builder().teamIds(Set.of(team.getId())).build();
+      TeamPageQuery query =
+          TeamPageQuery.builder().domainId(domain.getId()).teamIds(Set.of(team.getId())).build();
       TriblyPage<TeamPage> result = teamPageRepository.find(query);
 
       assertEquals(2, result.items().size());
@@ -54,7 +58,11 @@ class TeamPageRepositoryTest {
       dataService.createAdditionalPage(team, user, "Page 1", 0);
 
       TeamPageQuery query =
-          TeamPageQuery.builder().teamIds(Set.of(team.getId())).includeAbout(true).build();
+          TeamPageQuery.builder()
+              .domainId(domain.getId())
+              .teamIds(Set.of(team.getId()))
+              .includeAbout(true)
+              .build();
       TriblyPage<TeamPage> result = teamPageRepository.find(query);
 
       assertEquals(2, result.items().size());
@@ -68,7 +76,11 @@ class TeamPageRepositoryTest {
       dataService.createAdditionalPage(team, user, "Page 2", 1);
 
       TeamPageQuery query =
-          TeamPageQuery.builder().teamIds(Set.of(team.getId())).includeAbout(false).build();
+          TeamPageQuery.builder()
+              .domainId(domain.getId())
+              .teamIds(Set.of(team.getId()))
+              .includeAbout(false)
+              .build();
       TriblyPage<TeamPage> result = teamPageRepository.find(query);
 
       assertEquals(2, result.items().size());
@@ -78,7 +90,8 @@ class TeamPageRepositoryTest {
     @Test
     void find_shouldReturnOnlyAboutPageWhenNoAdditionalPages() {
 
-      TeamPageQuery query = TeamPageQuery.builder().teamIds(Set.of(team.getId())).build();
+      TeamPageQuery query =
+          TeamPageQuery.builder().domainId(domain.getId()).teamIds(Set.of(team.getId())).build();
       TriblyPage<TeamPage> result = teamPageRepository.find(query);
 
       assertEquals(1, result.items().size());
@@ -89,7 +102,11 @@ class TeamPageRepositoryTest {
     void find_shouldReturnEmptyWhenExcludingAboutAndNoAdditionalPages() {
 
       TeamPageQuery query =
-          TeamPageQuery.builder().teamIds(Set.of(team.getId())).includeAbout(false).build();
+          TeamPageQuery.builder()
+              .domainId(domain.getId())
+              .teamIds(Set.of(team.getId()))
+              .includeAbout(false)
+              .build();
       TriblyPage<TeamPage> result = teamPageRepository.find(query);
 
       assertEquals(0, result.items().size());

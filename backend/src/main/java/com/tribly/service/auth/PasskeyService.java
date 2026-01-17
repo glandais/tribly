@@ -5,6 +5,7 @@ import com.tribly.common.exception.ForbiddenException;
 import com.tribly.common.exception.NotFoundException;
 import com.tribly.domain.auth.Passkey;
 import com.tribly.domain.auth.WebAuthnChallenge;
+import com.tribly.domain.platform.Domain;
 import com.tribly.domain.user.User;
 import com.tribly.dto.auth.response.PasskeyDto;
 import com.tribly.dto.error.ErrorCode;
@@ -12,6 +13,7 @@ import com.tribly.enums.WebAuthnChallengeType;
 import com.tribly.repository.auth.PasskeyRepository;
 import com.tribly.repository.auth.WebAuthnChallengeRepository;
 import com.tribly.repository.user.UserRepository;
+import com.tribly.service.security.DomainResolver;
 import com.webauthn4j.WebAuthnManager;
 import com.webauthn4j.converter.AttestedCredentialDataConverter;
 import com.webauthn4j.converter.util.ObjectConverter;
@@ -48,15 +50,7 @@ public class PasskeyService {
   @Inject PasskeyRepository passkeyRepository;
   @Inject WebAuthnChallengeRepository challengeRepository;
   @Inject UserRepository userRepository;
-
-  @ConfigProperty(name = "tribly.auth.webauthn.rp-id")
-  String rpId;
-
-  @ConfigProperty(name = "tribly.auth.webauthn.rp-name", defaultValue = "Tribly")
-  String rpName;
-
-  @ConfigProperty(name = "tribly.auth.webauthn.origin")
-  String origin;
+  @Inject DomainResolver domainResolver;
 
   @ConfigProperty(name = "tribly.auth.webauthn.challenge-expiry-minutes", defaultValue = "5")
   int challengeExpiryMinutes;
@@ -96,13 +90,14 @@ public class PasskeyService {
             .toList();
 
     // Build registration options
+    var domain = domainResolver.getDomain();
     Map<String, Object> options = new LinkedHashMap<>();
     options.put("challenge", challengeBase64);
     options.put(
         "rp",
         Map.of(
-            "id", rpId,
-            "name", rpName));
+            "id", domain.getDomain(),
+            "name", domain.getName()));
     options.put(
         "user",
         Map.of(
@@ -162,13 +157,14 @@ public class PasskeyService {
       RegistrationData registrationData = webAuthnManager.parse(registrationRequest);
 
       // Verify the registration
+      var domain = domainResolver.getDomain();
       Challenge challenge =
           new DefaultChallenge(Base64.getUrlDecoder().decode(storedChallenge.getChallenge()));
-      Origin originObj = new Origin(origin);
+      Origin originObj = new Origin(domain.getBaseUrl());
       ServerProperty serverProperty =
           ServerProperty.builder()
               .origins(Set.of(originObj))
-              .rpId(rpId)
+              .rpId(domain.getDomain())
               .challenge(challenge)
               .build();
 
@@ -239,7 +235,8 @@ public class PasskeyService {
     User user = null;
 
     if (email != null) {
-      user = userRepository.findByEmail(email).orElse(null);
+      Domain domain = domainResolver.getDomain();
+      user = userRepository.findByEmailAndDomain(domain.getId(), email).orElse(null);
       if (user != null) {
         allowCredentials =
             passkeyRepository.findByUserId(user.getId()).stream()
@@ -269,10 +266,11 @@ public class PasskeyService {
     challengeRepository.persist(challenge);
 
     // Build authentication options
+    var domain = domainResolver.getDomain();
     Map<String, Object> options = new LinkedHashMap<>();
     options.put("challenge", challengeBase64);
     options.put("timeout", 60000);
-    options.put("rpId", rpId);
+    options.put("rpId", domain.getDomain());
     options.put("userVerification", "preferred");
     if (!allowCredentials.isEmpty()) {
       options.put("allowCredentials", allowCredentials);
@@ -350,13 +348,14 @@ public class PasskeyService {
               );
 
       // Verify the authentication
+      var domain = domainResolver.getDomain();
       Challenge challenge =
           new DefaultChallenge(Base64.getUrlDecoder().decode(storedChallenge.getChallenge()));
-      Origin originObj = new Origin(origin);
+      Origin originObj = new Origin(domain.getBaseUrl());
       ServerProperty serverProperty =
           ServerProperty.builder()
               .origins(Set.of(originObj))
-              .rpId(rpId)
+              .rpId(domain.getDomain())
               .challenge(challenge)
               .build();
 

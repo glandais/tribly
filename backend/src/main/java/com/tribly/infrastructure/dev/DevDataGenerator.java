@@ -3,6 +3,7 @@ package com.tribly.infrastructure.dev;
 import static org.geolatte.geom.crs.CoordinateReferenceSystems.WGS84;
 
 import com.tribly.common.GeoPoint;
+import com.tribly.domain.platform.Domain;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
 import com.tribly.dto.ads.request.AdRequest;
@@ -24,6 +25,7 @@ import com.tribly.dto.trips.request.StageRequest;
 import com.tribly.dto.trips.request.TripRequest;
 import com.tribly.dto.trips.response.TripDto;
 import com.tribly.enums.*;
+import com.tribly.repository.platform.DomainRepository;
 import com.tribly.repository.user.UserRepository;
 import com.tribly.service.ad.AdService;
 import com.tribly.service.comment.CommentService;
@@ -72,6 +74,7 @@ public class DevDataGenerator {
 
   @Inject TriblyQueryContext triblyContext;
   @Inject UserRepository userRepository;
+  @Inject DomainRepository domainRepository;
   @Inject RouteService routeService;
   @Inject TeamService teamService;
   @Inject TeamMembershipService teamMembershipService;
@@ -98,6 +101,9 @@ public class DevDataGenerator {
 
   @Transactional
   protected List<User> createUsers() {
+    // Get or create default domain
+    Domain domain = getOrCreateDefaultDomain();
+
     List<User> createdUsers = new ArrayList<>();
     String[][] userData = {
       {"admin@example.com", "Admin User"},
@@ -110,12 +116,23 @@ public class DevDataGenerator {
     };
 
     for (String[] data : userData) {
-      User user = new User(data[0], data[1]);
+      User user = new User(domain, data[0], data[1]);
       userRepository.persistAndFlush(user);
       createdUsers.add(user);
     }
     LOG.infof("Created %d users", createdUsers.size());
     return createdUsers;
+  }
+
+  private Domain getOrCreateDefaultDomain() {
+    return domainRepository
+        .findByDomain("localhost")
+        .orElseGet(
+            () -> {
+              Domain domain = new Domain("localhost", "Tribly", "http://localhost:5173");
+              domainRepository.persistAndFlush(domain);
+              return domain;
+            });
   }
 
   String[] teamPrefix = {"Cycling Club ", "Velo Team ", "Bike Club ", "Peloton ", "Riders "};

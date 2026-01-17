@@ -7,11 +7,13 @@ import com.tribly.common.exception.ForbiddenException;
 import com.tribly.common.exception.NotFoundException;
 import com.tribly.domain.auth.Passkey;
 import com.tribly.domain.auth.WebAuthnChallenge;
+import com.tribly.domain.platform.Domain;
 import com.tribly.domain.user.User;
 import com.tribly.dto.auth.response.PasskeyDto;
 import com.tribly.enums.WebAuthnChallengeType;
 import com.tribly.repository.auth.PasskeyRepository;
 import com.tribly.repository.auth.WebAuthnChallengeRepository;
+import com.tribly.service.security.DomainResolver;
 import com.tribly.util.TestDataCleaner;
 import com.tribly.util.TestDataService;
 import io.quarkus.test.junit.QuarkusTest;
@@ -33,12 +35,16 @@ class PasskeyServiceTest {
   @Inject WebAuthnChallengeRepository challengeRepository;
   @Inject TestDataService dataService;
   @Inject TestDataCleaner dataCleaner;
+  @Inject DomainResolver domainResolver;
 
+  private Domain domain;
   private User user;
 
   @BeforeEach
   void setUp() {
     dataCleaner.cleanAll();
+    domain = dataService.getOrCreateDefaultDomain();
+    domainResolver.setDomainForTest(domain);
     user = dataService.createVerifiedUser("passkey@example.com", "Passkey User");
   }
 

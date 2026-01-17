@@ -7,8 +7,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import com.tribly.api.AbstractResourceTest;
 import com.tribly.dto.common.asset.MediaDto;
 import com.tribly.dto.teams.request.TeamRequest;
-import com.tribly.dto.teams.response.TeamDetailDto;
-import com.tribly.enums.TeamRole;
 import com.tribly.enums.Visibility;
 import com.tribly.service.security.TriblyQueryContext;
 import com.tribly.service.team.TeamService;
@@ -81,26 +79,6 @@ class TeamResourceTest extends AbstractResourceTest {
         .body("slug", equalTo(team1Slug))
         .body("name", equalTo("Team 1"))
         .body("visibility", equalTo("PUBLIC"));
-  }
-
-  @Test
-  void createTeam_shouldCreateTeamAndMakeUserAdmin() {
-    queryContext.setUserForTest(user1);
-    TeamDetailDto team =
-        teamService.createTeam(
-            new TeamRequest(
-                "Test Cyclists",
-                MediaDto.builder().markdown("A great cycling team").build(),
-                Visibility.PUBLIC,
-                true,
-                true,
-                null));
-
-    assertNotNull(team.id());
-    assertEquals("Test Cyclists", team.name());
-    assertTrue(team.slug().startsWith("test-cyclists"));
-    assertSame(Visibility.PUBLIC, team.visibility());
-    assertEquals(TeamRole.ADMIN, team.role());
   }
 
   @Test

@@ -66,6 +66,7 @@ public class PublicationService {
     TriblyPage<Publication> publications =
         allPublicationRepository.find(
             PublicationQuery.builder()
+                .domainId(triblyQueryContext.getDomainId())
                 .userId(triblyQueryContext.getUserIdNullable())
                 .type(type)
                 .teamIds(teamIds)
