@@ -26,10 +26,17 @@ jobs:
         working-directory: ./backend
         run: mvn clean verify -DskipTests
 
+      - name: Generate JWT keys
+        working-directory: ./backend/keys
+        run: |
+          openssl genrsa -out privateKey.pem 2048
+          openssl rsa -in privateKey.pem -pubout -out publicKey.pem
+
       - name: Run backend tests
         working-directory: ./backend
         env:
           MAPBOX_API_KEY: ${{ secrets.MAPBOX_API_KEY }}
+          QUARKUS_HIBERNATE_ORM_LOG_SQL: false
         run: mvn test
 
   frontend:
