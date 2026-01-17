@@ -305,7 +305,7 @@ class AssetResourceTest extends AbstractResourceTest {
             .extract()
             .path("url");
 
-    // Download without auth should redirect to Keycloak
+    // Download without auth should return forbidden
     given().redirects().follow(false).when().get(assetUrl).then().statusCode(403);
   }
 
@@ -532,7 +532,7 @@ class AssetResourceTest extends AbstractResourceTest {
 
     String resizedUrl = imageUrl.replace("{size}", "200");
 
-    // Download without auth should redirect to Keycloak
+    // Download without auth should return forbidden
     given()
         .redirects()
         .follow(false)

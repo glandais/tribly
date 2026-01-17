@@ -11,8 +11,7 @@ import jakarta.transaction.Transactional;
 import org.jboss.logging.Logger;
 
 /**
- * Seeds test users on application startup in dev profile. These users match the users that were
- * previously in Keycloak's quarkus-realm.json.
+ * Seeds test users on application startup in dev profile
  */
 @ApplicationScoped
 @IfBuildProfile("dev")

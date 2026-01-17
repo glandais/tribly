@@ -31,9 +31,6 @@
     - Find Brouter used by gpx.studio, declared in RouterProfile Java enum
     - Configure brouter in docker compose to use profiles
 - [ ] A team can have its own domain name
-    - It has its own Keycloak Realm
-    - Quarkus Keycloak OIDC configuration depends of the domain name, with a default one
-    - Database/assets are multi domain
     - Filters are applied at SQL level (team.domainName = HTTP domain name or team.domainName is null)
 - [ ] Garmin upload
     - One click route upload to Garmin Connect

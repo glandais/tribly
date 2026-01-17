@@ -112,27 +112,4 @@ class UserResourceTest extends AbstractResourceTest {
         .body("[0]", not(hasKey("email"))); // Verify public DTO excludes email
   }
 
-  @Test
-  void getCurrentUser_shouldNotUpdateDisplayNameFromJwt() {
-    // Given: user1 exists in database with display name "Test User 1"
-    // (different from JWT which would have "User One" from Keycloak)
-    assertThat(user1.getDisplayName(), equalTo("Test User 1"));
-
-    // When: user1 calls getCurrentUser
-    given()
-        .auth()
-        .oauth2(getAccessToken(USER1))
-        .when()
-        .get("/api/users/me")
-        .then()
-        .statusCode(200)
-        .body("email", equalTo(EMAIL1))
-        // Display name should remain "Test User 1", NOT "User One" from JWT
-        .body("displayName", equalTo("Test User 1"));
-
-    // Then: display name in database should NOT be updated
-    Optional<User> refreshedUser = userRepository.findByEmail(EMAIL1);
-    assertTrue(refreshedUser.isPresent());
-    assertThat(refreshedUser.get().getDisplayName(), equalTo("Test User 1"));
-  }
 }

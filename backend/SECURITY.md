@@ -25,7 +25,7 @@ Tribly implements a **defense-in-depth** security model with three layers:
                               │
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
-│  Layer 1: Authentication (Keycloak OIDC)                    │
+│  Layer 1: Authentication (Database Auth + JWT)              │
 │  - JWT token validation                                      │
 │  - @RolesAllowed / @PermitAll annotations                   │
 └─────────────────────────────────────────────────────────────┘
@@ -50,9 +50,14 @@ Tribly implements a **defense-in-depth** security model with three layers:
 
 ## Authentication Layer
 
-### Keycloak OIDC Integration
+### Database Authentication with JWT
 
-Authentication is handled by Keycloak using OpenID Connect (OIDC). The backend validates JWT tokens on every request.
+Authentication is handled directly by the backend using database-stored credentials. Supported authentication methods:
+- **Password** - Traditional email/password authentication
+- **Magic Link** - Passwordless email-based login
+- **Passkeys/WebAuthn** - Biometric and hardware key authentication
+
+The backend issues and validates JWT tokens on every request.
 
 **Key Components:**
 - `SecurityIdentity` - Quarkus security context injected from JWT

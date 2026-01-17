@@ -90,7 +90,6 @@
 
 ### Authentication
 
-- Keycloak OIDC integration
 - Automatic user creation on first login
 - User profiles with avatars
 

@@ -87,7 +87,7 @@ Requires significant architecture work. Spike before committing.
 
 ### Multi-Tenancy
 - [ ] Team custom domains
-  - Own Keycloak realm per domain
+  - User linked to a domain
   - SQL-level domain filtering
   - SPIKE NEEDED: Estimate 2-4 weeks
 

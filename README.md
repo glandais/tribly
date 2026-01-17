@@ -69,7 +69,6 @@ Frontend available at http://localhost:5173
 tribly/
 ├── backend/          # Quarkus backend
 ├── frontend/         # React SPA
-├── e2e/              # Playwright E2E tests
 ├── contracts/        # OpenAPI specifications
 └── docker-compose.yml
 ```
@@ -91,9 +90,6 @@ cd backend && ./mvnw test
 
 # Frontend
 cd frontend && pnpm test
-
-# E2E
-cd e2e && pnpm test
 ```
 
 ### Code Quality
