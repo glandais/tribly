@@ -1,17 +1,14 @@
 package com.tribly.api.users;
 
 import static io.restassured.RestAssured.given;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.tribly.api.AbstractResourceTest;
 import com.tribly.common.TsidUtils;
-import com.tribly.domain.user.User;
 import com.tribly.repository.user.UserRepository;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
-import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -111,5 +108,4 @@ class UserResourceTest extends AbstractResourceTest {
         .body("[0].displayName", equalTo("Alice Johnson"))
         .body("[0]", not(hasKey("email"))); // Verify public DTO excludes email
   }
-
 }
