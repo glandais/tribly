@@ -8,6 +8,9 @@ const HomePage = lazy(() => import('../pages/home/HomePage').then((m) => ({ defa
 const LoginPage = lazy(() =>
   import('../pages/auth/LoginPage').then((m) => ({ default: m.LoginPage }))
 )
+const GarminLoginPage = lazy(() =>
+  import('../pages/garmin/GarminLoginPage').then((m) => ({ default: m.GarminLoginPage }))
+)
 const VerifyEmailPage = lazy(() =>
   import('../pages/auth/VerifyEmailPage').then((m) => ({ default: m.VerifyEmailPage }))
 )
@@ -164,6 +167,14 @@ export const routesConfig: RoutesConfig = [
     auth: 'unauthenticated',
     parentId: null,
     breadcrumb: { type: 'static', i18nKey: tRegister('auth.login.title') },
+  },
+  {
+    id: 'garmin-login',
+    path: paths.garminLogin(),
+    component: GarminLoginPage,
+    auth: 'public',
+    parentId: null,
+    breadcrumb: { type: 'static', i18nKey: tRegister('garmin.title') },
   },
   {
     id: 'verify-email',

@@ -1,0 +1,31 @@
+# Dockerfile for building Garmin Connect IQ apps
+# Requires SDK to be mounted from host at /root/.Garmin/ConnectIQ
+#
+# Usage:
+#   docker build -t tribly-garmin-builder -f Dockerfile.build .
+#   docker run --rm \
+#     -v ~/.Garmin/ConnectIQ:/root/.Garmin/ConnectIQ:ro \
+#     -v $(pwd):/app \
+#     -w /app \
+#     tribly-garmin-builder \
+#     make build
+
+FROM ubuntu:22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=UTC
+
+# Install Java and build tools
+RUN apt-get update && apt-get install -y \
+    openjdk-17-jdk \
+    make \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set Java home
+ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+ENV PATH="${JAVA_HOME}/bin:${PATH}"
+
+WORKDIR /app
+
+# Default command
+CMD ["make", "build"]

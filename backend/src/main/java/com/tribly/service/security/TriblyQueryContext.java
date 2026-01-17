@@ -35,6 +35,8 @@ public class TriblyQueryContext {
 
   @Inject DomainResolver domainResolver;
 
+  @Inject com.tribly.repository.platform.DomainRepository domainRepository;
+
   @Nullable User user;
 
   boolean initialized = false;
@@ -101,15 +103,23 @@ public class TriblyQueryContext {
 
   void doInit() {
     Domain domain = domainResolver.getDomainNullable();
-    if (domain == null) {
-      return;
-    }
 
     if (identity.getPrincipal() instanceof JsonWebToken jwt) {
       String email = jwt.getClaim("email");
-      // Lookup user by email AND domain - do NOT create/update
-      user = userService.lookupUserByEmailAndDomain(domain.getId(), email).orElse(null);
-    } else {
+      // For Garmin devices (or any client with domainId in JWT), use JWT's domainId
+      // when HTTP headers don't resolve a domain
+      if (domain == null) {
+        String domainIdStr = jwt.getClaim("domainId");
+        if (domainIdStr != null) {
+          Long domainId = com.tribly.common.TsidUtils.toLong(domainIdStr);
+          domain = domainRepository.findByIdOptional(domainId).orElse(null);
+        }
+      }
+      if (domain != null) {
+        // Lookup user by email AND domain - do NOT create/update
+        user = userService.lookupUserByEmailAndDomain(domain.getId(), email).orElse(null);
+      }
+    } else if (domain != null) {
       // Fallback to cookie-based auth for browser direct requests (downloads, images)
       user = getUserFromRefreshTokenCookie(domain.getId());
     }

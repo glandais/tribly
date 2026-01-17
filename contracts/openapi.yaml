@@ -429,6 +429,15 @@ components:
         teamFeedUrlTemplate:
           type: string
           description: Team-specific feed URL template
+    CallbackResponse:
+      description: OAuth callback response with redirect URL
+      type: object
+      required:
+      - redirectUrl
+      properties:
+        redirectUrl:
+          type: string
+          description: Redirect URL with auth code
     ClimbCategory:
       type: string
       enum:
@@ -667,6 +676,118 @@ components:
           description: Message
         rejectedValue:
           description: Rejected value
+    GarminCallbackRequest:
+      description: Garmin OAuth callback from frontend
+      type: object
+      required:
+      - accessToken
+      - redirectUri
+      properties:
+        accessToken:
+          type: string
+          description: User's access token from frontend auth
+          pattern: \S
+        redirectUri:
+          type: string
+          description: Original redirect URI from authorize request
+          pattern: \S
+        state:
+          type: string
+          description: State parameter from authorize request
+    GarminRouteDto:
+      description: Route information for Garmin device
+      type: object
+      required:
+      - teamSlug
+      - routeSlug
+      - name
+      - distance
+      - elevationGain
+      properties:
+        teamSlug:
+          type: string
+          description: Team slug
+        routeSlug:
+          type: string
+          description: Route slug
+        name:
+          type: string
+          description: Route name
+        label:
+          type: string
+          description: "Label (e.g., 'Rapides - Sam 18 Jan 09:00')"
+        rideDateTime:
+          description: Ride date/time if from a ride
+          type: string
+          $ref: "#/components/schemas/Instant"
+        distance:
+          type: number
+          format: float
+          description: Distance in meters
+        elevationGain:
+          type: number
+          format: float
+          description: Elevation gain in meters
+        startLat:
+          type: number
+          format: double
+          description: Start latitude
+        startLon:
+          type: number
+          format: double
+          description: Start longitude
+        distanceFromUser:
+          type: number
+          format: double
+          description: Distance from user in meters (if GPS provided)
+    GarminRoutesResponse:
+      description: List of routes for Garmin device
+      type: object
+      required:
+      - routes
+      properties:
+        routes:
+          type: array
+          items:
+            $ref: "#/components/schemas/GarminRouteDto"
+          description: Routes list
+    GarminTokenRequest:
+      description: Garmin OAuth token exchange request
+      type: object
+      required:
+      - grantType
+      properties:
+        grantType:
+          type: string
+          description: Grant type (authorization_code or refresh_token)
+          pattern: \S
+        code:
+          type: string
+          description: Authorization code (for authorization_code grant)
+        refreshToken:
+          type: string
+          description: Refresh token (for refresh_token grant)
+    GarminTokenResponse:
+      description: Garmin OAuth token response
+      type: object
+      required:
+      - accessToken
+      - tokenType
+      - expiresIn
+      properties:
+        accessToken:
+          type: string
+          description: Access token
+        tokenType:
+          type: string
+          description: Token type (always 'Bearer')
+        expiresIn:
+          type: integer
+          format: int32
+          description: Token expiry in seconds
+        refreshToken:
+          type: string
+          description: Refresh token
     GeoJsonLineString:
       type: object
       required:
@@ -2617,6 +2738,10 @@ tags:
   description: Team calendar operations
 - name: Configuration
   description: Application configuration endpoints
+- name: Garmin OAuth
+  description: OAuth 2.0 endpoints for Garmin Connect IQ devices
+- name: Garmin Routes
+  description: Route management for Garmin Connect IQ devices
 - name: Passkeys
   description: WebAuthn passkey management
 - name: Places
@@ -3149,6 +3274,180 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ConfigDto"
+  /api/garmin/oauth/authorize:
+    get:
+      summary: Start OAuth authorization
+      description: Redirects to frontend login page for Garmin OAuth flow
+      operationId: authorize
+      tags:
+      - Garmin OAuth
+      parameters:
+      - description: OAuth client ID (must be 'garmin-connect-iq')
+        name: client_id
+        in: query
+        schema:
+          type: string
+      - description: Redirect URI (connectiq://oauth)
+        name: redirect_uri
+        in: query
+        schema:
+          type: string
+      - description: Response type (must be 'code')
+        name: response_type
+        in: query
+        schema:
+          type: string
+      - description: State parameter for CSRF protection
+        name: state
+        in: query
+        schema:
+          type: string
+      responses:
+        "302":
+          description: Redirect to frontend login
+        "400":
+          description: Invalid request
+          content: {}
+  /api/garmin/oauth/complete:
+    post:
+      summary: Complete OAuth flow from frontend
+      description: Receives auth from frontend and returns redirect URL with auth
+        code
+      operationId: complete
+      tags:
+      - Garmin OAuth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GarminCallbackRequest"
+        required: true
+      responses:
+        "200":
+          description: Returns redirect URL with auth code
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CallbackResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Invalid access token
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/garmin/oauth/token:
+    post:
+      summary: Exchange code for tokens
+      description: Exchange authorization code or refresh token for access tokens
+      operationId: token
+      tags:
+      - Garmin OAuth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GarminTokenRequest"
+        required: true
+      responses:
+        "200":
+          description: Token response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GarminTokenResponse"
+        "400":
+          description: Invalid grant
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/garmin/routes:
+    get:
+      summary: List routes for user
+      description: "Get routes for authenticated user. Prioritizes routes from upcoming\
+        \ rides, then latest routes from user's teams."
+      operationId: getRoutes
+      tags:
+      - Garmin Routes
+      parameters:
+      - description: User's current latitude (for proximity sorting)
+        name: lat
+        in: query
+        schema:
+          type: number
+          format: double
+      - description: User's current longitude (for proximity sorting)
+        name: lon
+        in: query
+        schema:
+          type: number
+          format: double
+      responses:
+        "200":
+          description: Routes list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GarminRoutesResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - bearerAuth: []
+  /api/garmin/routes/{teamSlug}/{routeSlug}/fit:
+    get:
+      summary: Download FIT file
+      description: Download route as FIT file for Garmin GPS
+      operationId: downloadFit
+      tags:
+      - Garmin Routes
+      parameters:
+      - description: Route URL slug
+        required: true
+        name: routeSlug
+        in: path
+        schema:
+          type: string
+      - description: Team URL slug
+        required: true
+        name: teamSlug
+        in: path
+        schema:
+          type: string
+      responses:
+        "200":
+          description: FIT file download
+          content:
+            application/vnd.ant.fit: {}
+        "401":
+          description: Unauthorized
+          content:
+            application/vnd.ant.fit:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Access denied
+          content:
+            application/vnd.ant.fit:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Route not found
+          content:
+            application/vnd.ant.fit:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - bearerAuth: []
   /api/publications:
     get:
       summary: List all publications

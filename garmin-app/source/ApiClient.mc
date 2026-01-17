@@ -1,0 +1,285 @@
+using Toybox.Communications;
+using Toybox.Lang;
+using Toybox.System;
+using Toybox.Position;
+
+/**
+ * API client for Tribly backend.
+ * Handles all HTTP communication including authentication.
+ */
+class ApiClient {
+    // TODO: Update this URL for production
+    public static const API_BASE_URL = "https://tribly.app/api";
+
+    private var _authManager;
+    private var _routesCallback;
+    private var _downloadCallback;
+    private var _tokenCallback;
+    private var _pendingDownload;
+
+    function initialize(authManager) {
+        _authManager = authManager;
+        _routesCallback = null;
+        _downloadCallback = null;
+        _tokenCallback = null;
+        _pendingDownload = null;
+    }
+
+    /**
+     * Exchange authorization code for tokens.
+     */
+    function exchangeCode(code, callback) as Void {
+        _tokenCallback = callback;
+
+        var url = API_BASE_URL + "/garmin/oauth/token";
+        var params = {
+            "grant_type" => "authorization_code",
+            "code" => code
+        };
+
+        Communications.makeWebRequest(
+            url,
+            params,
+            {
+                :method => Communications.HTTP_REQUEST_METHOD_POST,
+                :headers => {
+                    "Content-Type" => Communications.REQUEST_CONTENT_TYPE_JSON
+                },
+                :responseType => Communications.HTTP_RESPONSE_CONTENT_TYPE_JSON
+            },
+            method(:onTokenResponse)
+        );
+    }
+
+    /**
+     * Refresh the access token using refresh token.
+     */
+    function refreshToken(callback) as Void {
+        _tokenCallback = callback;
+
+        var refreshToken = _authManager.getRefreshToken();
+        if (refreshToken == null) {
+            callback.invoke(false);
+            return;
+        }
+
+        var url = API_BASE_URL + "/garmin/oauth/token";
+        var params = {
+            "grant_type" => "refresh_token",
+            "refresh_token" => refreshToken
+        };
+
+        Communications.makeWebRequest(
+            url,
+            params,
+            {
+                :method => Communications.HTTP_REQUEST_METHOD_POST,
+                :headers => {
+                    "Content-Type" => Communications.REQUEST_CONTENT_TYPE_JSON
+                },
+                :responseType => Communications.HTTP_RESPONSE_CONTENT_TYPE_JSON
+            },
+            method(:onTokenResponse)
+        );
+    }
+
+    /**
+     * Handle token API response.
+     */
+    function onTokenResponse(responseCode as Lang.Number, data as Lang.Dictionary or Lang.String or Null) as Void {
+        var callback = _tokenCallback;
+        _tokenCallback = null;
+
+        if (responseCode == 200 && data != null && data instanceof Lang.Dictionary) {
+            var accessToken = (data as Lang.Dictionary).get("accessToken");
+            var refreshToken = (data as Lang.Dictionary).get("refreshToken");
+            var expiresIn = (data as Lang.Dictionary).get("expiresIn");
+
+            if (accessToken != null && expiresIn != null) {
+                _authManager.saveTokens(accessToken, refreshToken, expiresIn);
+                if (callback != null) {
+                    callback.invoke(true);
+                }
+                return;
+            }
+        }
+
+        System.println("Token response failed: " + responseCode);
+        if (callback != null) {
+            callback.invoke(false);
+        }
+    }
+
+    /**
+     * Fetch routes for the authenticated user.
+     */
+    function fetchRoutes(callback) as Void {
+        _routesCallback = callback;
+
+        // Check if we need to refresh token first
+        if (_authManager.needsRefresh()) {
+            refreshToken(method(:onRefreshForRoutes));
+            return;
+        }
+
+        doFetchRoutes();
+    }
+
+    /**
+     * Callback after refreshing token for routes fetch.
+     */
+    function onRefreshForRoutes(success) as Void {
+        if (success) {
+            doFetchRoutes();
+        } else {
+            var callback = _routesCallback;
+            _routesCallback = null;
+            if (callback != null) {
+                callback.invoke(null);
+            }
+        }
+    }
+
+    /**
+     * Actually fetch routes from API.
+     */
+    private function doFetchRoutes() as Void {
+        var url = API_BASE_URL + "/garmin/routes";
+
+        // Try to get current position for proximity sorting
+        var position = Position.getInfo();
+        if (position != null && position.accuracy != Position.QUALITY_NOT_AVAILABLE) {
+            var coords = position.position.toDegrees();
+            url = url + "?lat=" + coords[0] + "&lon=" + coords[1];
+        }
+
+        var accessToken = _authManager.getAccessToken();
+
+        Communications.makeWebRequest(
+            url,
+            null,
+            {
+                :method => Communications.HTTP_REQUEST_METHOD_GET,
+                :headers => {
+                    "Authorization" => "Bearer " + accessToken,
+                    "Accept" => "application/json"
+                },
+                :responseType => Communications.HTTP_RESPONSE_CONTENT_TYPE_JSON
+            },
+            method(:onRoutesResponse)
+        );
+    }
+
+    /**
+     * Handle routes API response.
+     */
+    function onRoutesResponse(responseCode as Lang.Number, data as Lang.Dictionary or Lang.String or Null) as Void {
+        var callback = _routesCallback;
+        _routesCallback = null;
+
+        if (responseCode == 200 && data != null && data instanceof Lang.Dictionary) {
+            var routes = (data as Lang.Dictionary).get("routes");
+            if (callback != null) {
+                callback.invoke(routes);
+            }
+            return;
+        }
+
+        System.println("Routes response failed: " + responseCode);
+
+        // If 401, clear tokens and force re-login
+        if (responseCode == 401) {
+            _authManager.clearTokens();
+        }
+
+        if (callback != null) {
+            callback.invoke(null);
+        }
+    }
+
+    /**
+     * Download FIT file for a route.
+     */
+    function downloadRoute(teamSlug, routeSlug, callback) as Void {
+        _downloadCallback = callback;
+
+        // Check if we need to refresh token first
+        if (_authManager.needsRefresh()) {
+            // Store params for after refresh
+            _pendingDownload = [teamSlug, routeSlug];
+            refreshToken(method(:onRefreshForDownload));
+            return;
+        }
+
+        doDownloadRoute(teamSlug, routeSlug);
+    }
+
+    /**
+     * Callback after refreshing token for download.
+     */
+    function onRefreshForDownload(success) as Void {
+        if (success && _pendingDownload != null) {
+            doDownloadRoute(_pendingDownload[0], _pendingDownload[1]);
+        } else {
+            var callback = _downloadCallback;
+            _downloadCallback = null;
+            _pendingDownload = null;
+            if (callback != null) {
+                callback.invoke(false);
+            }
+        }
+    }
+
+    /**
+     * Actually download the FIT file.
+     */
+    private function doDownloadRoute(teamSlug, routeSlug) as Void {
+        _pendingDownload = null;
+
+        var url = API_BASE_URL + "/garmin/routes/" + teamSlug + "/" + routeSlug + "/fit";
+        var accessToken = _authManager.getAccessToken();
+
+        // Use download to file for FIT files
+        var options = {
+            :method => Communications.HTTP_REQUEST_METHOD_GET,
+            :headers => {
+                "Authorization" => "Bearer " + accessToken
+            },
+            :responseType => Communications.HTTP_RESPONSE_CONTENT_TYPE_FIT
+        };
+
+        Communications.makeWebRequest(
+            url,
+            null,
+            options,
+            method(:onDownloadResponse)
+        );
+    }
+
+    /**
+     * Handle FIT download response.
+     */
+    function onDownloadResponse(responseCode as Lang.Number, data as Lang.Dictionary or Lang.String or Null) as Void {
+        var callback = _downloadCallback;
+        _downloadCallback = null;
+
+        if (responseCode == 200) {
+            System.println("FIT download successful");
+            if (callback != null) {
+                callback.invoke(true);
+            }
+            return;
+        }
+
+        System.println("FIT download failed: " + responseCode);
+
+        // If 401, clear tokens
+        if (responseCode == 401) {
+            _authManager.clearTokens();
+        }
+
+        if (callback != null) {
+            callback.invoke(false);
+        }
+    }
+}

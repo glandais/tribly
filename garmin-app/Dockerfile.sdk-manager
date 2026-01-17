@@ -1,0 +1,64 @@
+# Dockerfile for running Garmin Connect IQ SDK Manager
+# Uses Ubuntu 22.04 which has compatible webkit2gtk-4.0
+#
+# Usage:
+#   docker build -t garmin-sdk-manager -f Dockerfile.sdk-manager .
+#   xhost +local:docker
+#   docker run -it --rm \
+#     --ipc=host \
+#     -e DISPLAY=$DISPLAY \
+#     -e WEBKIT_DISABLE_DMABUF_RENDERER=1 \
+#     -v /tmp/.X11-unix:/tmp/.X11-unix \
+#     -v ~/.Garmin:/root/.Garmin \
+#     --security-opt label=disable \
+#     garmin-sdk-manager
+
+FROM ubuntu:22.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=UTC
+
+# Install dependencies for SDK Manager
+RUN apt-get update && apt-get install -y \
+    curl \
+    unzip \
+    openjdk-17-jdk \
+    libwebkit2gtk-4.0-37 \
+    libgtk-3-0 \
+    libjavascriptcoregtk-4.0-18 \
+    libsoup2.4-1 \
+    libglib2.0-0 \
+    libatk1.0-0 \
+    libatk-bridge2.0-0 \
+    libcups2 \
+    libdrm2 \
+    libxkbcommon0 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxfixes3 \
+    libxrandr2 \
+    libgbm1 \
+    libpango-1.0-0 \
+    libcairo2 \
+    libasound2 \
+    libnspr4 \
+    libnss3 \
+    libusb-1.0-0 \
+    dbus-x11 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Download and extract SDK Manager
+WORKDIR /opt/garmin
+
+RUN curl -L -o sdkmanager.zip "https://developer.garmin.com/downloads/connect-iq/sdk-manager/connectiq-sdk-manager-linux.zip" \
+    && unzip sdkmanager.zip \
+    && rm sdkmanager.zip \
+    && chmod +x bin/sdkmanager
+
+# Create Garmin directories
+RUN mkdir -p /root/.Garmin/ConnectIQ/Sdks
+
+ENV PATH="/opt/garmin/bin:${PATH}"
+
+# Default command: run SDK Manager
+CMD ["sdkmanager"]

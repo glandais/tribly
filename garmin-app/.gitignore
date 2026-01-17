@@ -1,0 +1,20 @@
+# Build artifacts
+bin/
+*.prg
+*.iq
+
+# Developer key (should not be committed)
+developer_key
+developer_key.pub
+*.der
+
+# IDE files
+.vscode/
+*.code-workspace
+
+# SDK cache
+.connectiq/
+
+# OS files
+.DS_Store
+Thumbs.db
