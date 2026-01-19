@@ -37,7 +37,7 @@ export const updateMeResponse = zod
       .array(
         zod
           .object({
-            serviceType: zod.enum(['HAMMERHEAD']),
+            serviceType: zod.enum(['HAMMERHEAD', 'GARMIN']),
             displayName: zod.string().describe('Display name of the service'),
             connectedAt: zod.iso.datetime({}),
           })
@@ -64,7 +64,7 @@ export const getMeResponse = zod
       .array(
         zod
           .object({
-            serviceType: zod.enum(['HAMMERHEAD']),
+            serviceType: zod.enum(['HAMMERHEAD', 'GARMIN']),
             displayName: zod.string().describe('Display name of the service'),
             connectedAt: zod.iso.datetime({}),
           })
@@ -95,7 +95,7 @@ export const uploadAvatarResponse = zod
       .array(
         zod
           .object({
-            serviceType: zod.enum(['HAMMERHEAD']),
+            serviceType: zod.enum(['HAMMERHEAD', 'GARMIN']),
             displayName: zod.string().describe('Display name of the service'),
             connectedAt: zod.iso.datetime({}),
           })
@@ -122,7 +122,7 @@ export const deleteAvatarResponse = zod
       .array(
         zod
           .object({
-            serviceType: zod.enum(['HAMMERHEAD']),
+            serviceType: zod.enum(['HAMMERHEAD', 'GARMIN']),
             displayName: zod.string().describe('Display name of the service'),
             connectedAt: zod.iso.datetime({}),
           })

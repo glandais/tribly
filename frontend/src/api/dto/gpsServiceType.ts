@@ -11,4 +11,5 @@ export type GpsServiceType = (typeof GpsServiceType)[keyof typeof GpsServiceType
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const GpsServiceType = {
   HAMMERHEAD: 'HAMMERHEAD',
+  GARMIN: 'GARMIN',
 } as const

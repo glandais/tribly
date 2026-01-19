@@ -51,6 +51,79 @@ class AllPublicationRepositoryTest {
   }
 
   @Nested
+  @DisplayName("Query Builder Methods")
+  class QueryBuilderMethods {
+
+    @Test
+    @DisplayName("getQuerySlug should build correct query")
+    void getQuerySlug_shouldBuildCorrectQuery() {
+      PublicationQuery query =
+          publicationRepository.getQuerySlug(
+              domain.getId(), team.getId(), user.getId(), "test-slug");
+
+      assertEquals(domain.getId(), query.domainId());
+      assertTrue(query.teamIds().contains(team.getId()));
+      assertEquals(user.getId(), query.userId());
+      assertEquals("test-slug", query.slug());
+    }
+
+    @Test
+    @DisplayName("getQuerySlug should work with null userId")
+    void getQuerySlug_shouldWorkWithNullUserId() {
+      PublicationQuery query =
+          publicationRepository.getQuerySlug(domain.getId(), team.getId(), null, "test-slug");
+
+      assertEquals(domain.getId(), query.domainId());
+      assertTrue(query.teamIds().contains(team.getId()));
+      assertNull(query.userId());
+      assertEquals("test-slug", query.slug());
+    }
+
+    @Test
+    @DisplayName("getQueryId should build correct query")
+    void getQueryId_shouldBuildCorrectQuery() {
+      PublicationQuery query =
+          publicationRepository.getQueryId(domain.getId(), team.getId(), user.getId(), 12345L);
+
+      assertEquals(domain.getId(), query.domainId());
+      assertTrue(query.teamIds().contains(team.getId()));
+      assertEquals(user.getId(), query.userId());
+      assertEquals(12345L, query.id());
+    }
+
+    @Test
+    @DisplayName("getQueryId should work with null userId")
+    void getQueryId_shouldWorkWithNullUserId() {
+      PublicationQuery query =
+          publicationRepository.getQueryId(domain.getId(), team.getId(), null, 12345L);
+
+      assertEquals(domain.getId(), query.domainId());
+      assertTrue(query.teamIds().contains(team.getId()));
+      assertNull(query.userId());
+      assertEquals(12345L, query.id());
+    }
+  }
+
+  @Nested
+  @DisplayName("Entity Type Methods")
+  class EntityTypeMethods {
+
+    @Test
+    @DisplayName("getEntityType should return PUBLICATION")
+    void getEntityType_shouldReturnPublication() {
+      assertEquals(
+          com.tribly.enums.TeamEntityType.PUBLICATION, publicationRepository.getEntityType());
+    }
+
+    @Test
+    @DisplayName("getAllEntityType should return PUBLICATION")
+    void getAllEntityType_shouldReturnPublication() {
+      assertEquals(
+          com.tribly.enums.EntityType.PUBLICATION, publicationRepository.getAllEntityType());
+    }
+  }
+
+  @Nested
   @DisplayName("find")
   class Find {
 

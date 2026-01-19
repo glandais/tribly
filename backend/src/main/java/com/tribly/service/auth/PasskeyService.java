@@ -14,6 +14,9 @@ import com.tribly.repository.auth.PasskeyRepository;
 import com.tribly.repository.auth.WebAuthnChallengeRepository;
 import com.tribly.repository.user.UserRepository;
 import com.tribly.service.security.DomainResolver;
+import com.tribly.service.security.TriblyQueryContext;
+import com.tribly.service.security.annotation.Logged;
+import com.tribly.service.security.annotation.Public;
 import com.webauthn4j.WebAuthnManager;
 import com.webauthn4j.converter.AttestedCredentialDataConverter;
 import com.webauthn4j.converter.util.ObjectConverter;
@@ -27,6 +30,7 @@ import com.webauthn4j.data.client.Origin;
 import com.webauthn4j.data.client.challenge.Challenge;
 import com.webauthn4j.data.client.challenge.DefaultChallenge;
 import com.webauthn4j.server.ServerProperty;
+import io.quarkus.narayana.jta.QuarkusTransaction;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -51,12 +55,15 @@ public class PasskeyService {
   @Inject WebAuthnChallengeRepository challengeRepository;
   @Inject UserRepository userRepository;
   @Inject DomainResolver domainResolver;
+  @Inject TriblyQueryContext triblyContext;
 
   @ConfigProperty(name = "tribly.auth.webauthn.challenge-expiry-minutes", defaultValue = "5")
   int challengeExpiryMinutes;
 
   @Transactional
-  public Map<String, Object> generateRegistrationOptions(User user) {
+  @Logged
+  public Map<String, Object> generateRegistrationOptions() {
+    User user = triblyContext.getUser();
     // Clean up old challenges
     challengeRepository.deleteByUserId(user.getId());
 
@@ -128,16 +135,19 @@ public class PasskeyService {
   }
 
   @Transactional
-  public PasskeyDto verifyRegistration(
-      User user, Map<String, Object> response, @Nullable String deviceName) {
+  @Logged
+  public PasskeyDto verifyRegistration(Map<String, Object> response, @Nullable String deviceName) {
+    User user = triblyContext.getUser();
     // Get stored challenge
     WebAuthnChallenge storedChallenge =
         challengeRepository
             .findValidByUserIdAndType(user.getId(), WebAuthnChallengeType.REGISTRATION)
             .orElseThrow(() -> new BadRequestException(ErrorCode.TOKEN_INVALID));
 
-    // Delete the challenge (single use)
-    challengeRepository.delete(storedChallenge);
+    // Delete the challenge in separate transaction (single use, survives verification failure)
+    String challengeValue = storedChallenge.getChallenge();
+    Long challengeId = storedChallenge.getId();
+    QuarkusTransaction.requiringNew().run(() -> challengeRepository.deleteById(challengeId));
 
     try {
       Map<String, Object> responseInner = (Map<String, Object>) response.get("response");
@@ -158,8 +168,7 @@ public class PasskeyService {
 
       // Verify the registration
       var domain = domainResolver.getDomain();
-      Challenge challenge =
-          new DefaultChallenge(Base64.getUrlDecoder().decode(storedChallenge.getChallenge()));
+      Challenge challenge = new DefaultChallenge(Base64.getUrlDecoder().decode(challengeValue));
       Origin originObj = new Origin(domain.getBaseUrl());
       ServerProperty serverProperty =
           ServerProperty.builder()
@@ -219,6 +228,7 @@ public class PasskeyService {
   }
 
   @Transactional
+  @Public
   public Map<String, Object> generateAuthenticationOptions(@Nullable String email) {
     // Clean up old challenges if email provided
     if (email != null) {
@@ -327,8 +337,10 @@ public class PasskeyService {
               .filter(c -> c.getChallengeType() == WebAuthnChallengeType.AUTHENTICATION)
               .orElseThrow(() -> new BadRequestException(ErrorCode.TOKEN_INVALID));
 
-      // Delete the challenge (single use)
-      challengeRepository.delete(storedChallenge);
+      // Delete the challenge in separate transaction (single use, survives verification failure)
+      String challengeValue = storedChallenge.getChallenge();
+      Long challengeId = storedChallenge.getId();
+      QuarkusTransaction.requiringNew().run(() -> challengeRepository.deleteById(challengeId));
 
       // Build credential record from stored data
       AttestedCredentialData credentialData =
@@ -349,8 +361,7 @@ public class PasskeyService {
 
       // Verify the authentication
       var domain = domainResolver.getDomain();
-      Challenge challenge =
-          new DefaultChallenge(Base64.getUrlDecoder().decode(storedChallenge.getChallenge()));
+      Challenge challenge = new DefaultChallenge(Base64.getUrlDecoder().decode(challengeValue));
       Origin originObj = new Origin(domain.getBaseUrl());
       ServerProperty serverProperty =
           ServerProperty.builder()
@@ -379,12 +390,16 @@ public class PasskeyService {
     }
   }
 
-  public List<PasskeyDto> listPasskeys(Long userId) {
+  @Logged
+  public List<PasskeyDto> listPasskeys() {
+    Long userId = triblyContext.getUserId();
     return passkeyRepository.findByUserId(userId).stream().map(PasskeyDto::from).toList();
   }
 
   @Transactional
-  public void deletePasskey(Long passkeyId, Long userId) {
+  @Logged
+  public void deletePasskey(Long passkeyId) {
+    Long userId = triblyContext.getUserId();
     Passkey passkey =
         passkeyRepository
             .findByIdAndUserId(passkeyId, userId)

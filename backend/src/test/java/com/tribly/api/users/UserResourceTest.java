@@ -9,6 +9,7 @@ import com.tribly.common.TsidUtils;
 import com.tribly.repository.user.UserRepository;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
+import java.io.File;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -107,5 +108,88 @@ class UserResourceTest extends AbstractResourceTest {
         .body("size()", equalTo(1))
         .body("[0].displayName", equalTo("Alice Johnson"))
         .body("[0]", not(hasKey("email"))); // Verify public DTO excludes email
+  }
+
+  // ==================== Upload Avatar Tests ====================
+
+  @Test
+  void uploadAvatar_withValidImage_shouldSucceed() {
+    File imageFile = new File("src/test/resources/image.png");
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .multiPart("file", imageFile, "image/png")
+        .when()
+        .post("/api/users/me/avatar")
+        .then()
+        .statusCode(200)
+        .body("avatarUrl", notNullValue());
+  }
+
+  @Test
+  void uploadAvatar_withoutAuth_shouldReturn401() {
+    File imageFile = new File("src/test/resources/image.png");
+
+    given()
+        .multiPart("file", imageFile, "image/png")
+        .when()
+        .post("/api/users/me/avatar")
+        .then()
+        .statusCode(401);
+  }
+
+  @Test
+  void uploadAvatar_withoutFile_shouldReturn400() {
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .contentType("multipart/form-data")
+        .when()
+        .post("/api/users/me/avatar")
+        .then()
+        .statusCode(400);
+  }
+
+  // ==================== Delete Avatar Tests ====================
+
+  @Test
+  void deleteAvatar_withAuth_shouldSucceed() {
+    // First upload an avatar
+    File imageFile = new File("src/test/resources/image.png");
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .multiPart("file", imageFile, "image/png")
+        .when()
+        .post("/api/users/me/avatar")
+        .then()
+        .statusCode(200);
+
+    // Then delete it
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .when()
+        .delete("/api/users/me/avatar")
+        .then()
+        .statusCode(200);
+  }
+
+  @Test
+  void deleteAvatar_withoutAuth_shouldReturn401() {
+    given().when().delete("/api/users/me/avatar").then().statusCode(401);
+  }
+
+  @Test
+  void deleteAvatar_whenNoAvatar_shouldSucceed() {
+    // Deleting when there's no avatar should still return 200
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER2))
+        .when()
+        .delete("/api/users/me/avatar")
+        .then()
+        .statusCode(200);
   }
 }

@@ -30,7 +30,7 @@ public class TeamPageAccessChecker implements AccessChecker {
     User user = context.user();
     TeamRole teamRole = context.teamRole();
 
-    if (team == null || user == null) {
+    if (team == null) {
       return false;
     }
     return switch (action) {

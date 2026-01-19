@@ -22,7 +22,10 @@ import com.tribly.repository.gps.GpsServiceConnectionRepository;
 import com.tribly.repository.user.UserRepository;
 import com.tribly.service.asset.AssetService;
 import com.tribly.service.route.RouteService;
+import com.tribly.service.security.DomainResolver;
 import com.tribly.service.security.TriblyQueryContext;
+import com.tribly.service.security.annotation.Logged;
+import com.tribly.service.security.annotation.Public;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -65,6 +68,10 @@ public class GpsService {
 
   @Inject AssetService assetService;
 
+  @Inject DomainGpsCredentialService credentialService;
+
+  @Inject DomainResolver domainResolver;
+
   /**
    * Get the appropriate client for a service type.
    */
@@ -79,7 +86,13 @@ public class GpsService {
    * Initiate OAuth flow for connecting a GPS service.
    * Returns the authorization URL to redirect the user to.
    */
+  @Logged
   public GpsOAuthUrlResponse initiateOAuth(GpsServiceType serviceType) {
+    // Check if GPS service is configured for this domain
+    if (!credentialService.isServiceAvailable(serviceType)) {
+      throw new BusinessException(ErrorCode.GPS_SERVICE_NOT_CONFIGURED);
+    }
+
     Long userId = triblyContext.getUserId();
 
     // Check if already connected
@@ -126,6 +139,7 @@ public class GpsService {
    * Exchanges code for tokens and stores the connection.
    */
   @Transactional
+  @Public
   public void handleCallback(GpsServiceType serviceType, String code, String state) {
     // Validate state
     OAuthState oauthState = pendingStates.remove(state);
@@ -183,6 +197,7 @@ public class GpsService {
    * Disconnect a GPS service.
    */
   @Transactional
+  @Logged
   public void disconnect(GpsServiceType serviceType) {
     Long userId = triblyContext.getUserId();
     GpsServiceConnection connection =
@@ -206,9 +221,18 @@ public class GpsService {
   }
 
   /**
+   * Get all GPS service types that are available (configured) for the current domain.
+   */
+  @Logged
+  public List<GpsServiceType> getAvailableServices() {
+    return credentialService.getAvailableServices();
+  }
+
+  /**
    * Upload a route to a connected GPS service.
    */
   @Transactional
+  @Logged
   public RouteUploadResponse uploadRoute(
       GpsServiceType serviceType, String teamSlug, String routeSlug) {
     Long userId = triblyContext.getUserId();
@@ -279,6 +303,11 @@ public class GpsService {
     } catch (IOException e) {
       throw new RuntimeException("Failed to read GPX file", e);
     }
+  }
+
+  @Public
+  public String getFrontendBaseUrl() {
+    return domainResolver.getDomain().getBaseUrl();
   }
 
   private record OAuthState(

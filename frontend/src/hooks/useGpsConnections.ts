@@ -5,6 +5,7 @@ import i18next from 'i18next'
 import { useAuth } from './useAuth'
 import { AXIOS_INSTANCE } from '@/lib/axiosInstance'
 import { getGetMeQueryKey } from '@/api/endpoints/users/users'
+import { useGetAvailableServices } from '@/api/endpoints/gps-services/gps-services'
 import type { GpsServiceType, GpsServiceConnectionDto } from '@/api/dto'
 
 interface GpsOAuthUrlResponse {
@@ -24,6 +25,9 @@ export function useGpsConnections() {
   const queryClient = useQueryClient()
   const { user, refetchUser } = useAuth()
 
+  // Fetch available services for this domain
+  const { data: availableServices = [], isLoading: isLoadingAvailable } = useGetAvailableServices()
+
   const connectedServices = user?.connectedServices ?? []
 
   const isConnected = useCallback(
@@ -38,6 +42,13 @@ export function useGpsConnections() {
       return connectedServices.find((s) => s.serviceType === serviceType)
     },
     [connectedServices]
+  )
+
+  const isServiceAvailable = useCallback(
+    (serviceType: GpsServiceType): boolean => {
+      return availableServices.includes(serviceType)
+    },
+    [availableServices]
   )
 
   /**
@@ -122,6 +133,9 @@ export function useGpsConnections() {
   })
 
   return {
+    availableServices,
+    isLoadingAvailable,
+    isServiceAvailable,
     connectedServices,
     isConnected,
     getConnection,

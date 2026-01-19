@@ -60,6 +60,7 @@ public class TeamPageService extends TeamEntityService<TeamPage, TeamPageReposit
     TriblyPage<TeamPage> teamPages =
         teamPageRepository.find(
             TeamPageQuery.builder()
+                .domainId(triblyContext.getDomainId())
                 .userId(triblyContext.getUserIdNullable())
                 .teamIds(Set.of(team.getId()))
                 .includeAbout(false)

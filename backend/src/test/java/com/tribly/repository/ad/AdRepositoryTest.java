@@ -7,6 +7,7 @@ import com.tribly.domain.platform.Domain;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
 import com.tribly.enums.AdType;
+import com.tribly.enums.EntityType;
 import com.tribly.enums.Visibility;
 import com.tribly.repository.common.TriblyPage;
 import com.tribly.util.TestDataCleaner;
@@ -35,6 +36,67 @@ class AdRepositoryTest {
     domain = dataService.getOrCreateDefaultDomain();
     user = dataService.createUser("test@example.com", "Test User");
     team = dataService.createTeam(user, "Test Team", "test-team", Visibility.PUBLIC);
+  }
+
+  @Nested
+  @DisplayName("Query Builder Methods")
+  class QueryBuilderMethods {
+
+    @Test
+    void getQuerySlug_shouldBuildCorrectQuery() {
+      AdQuery query =
+          adRepository.getQuerySlug(domain.getId(), team.getId(), user.getId(), "test-slug");
+
+      assertEquals(domain.getId(), query.domainId());
+      assertTrue(query.teamIds().contains(team.getId()));
+      assertEquals(user.getId(), query.userId());
+      assertEquals("test-slug", query.slug());
+    }
+
+    @Test
+    void getQuerySlug_shouldWorkWithNullUserId() {
+      AdQuery query = adRepository.getQuerySlug(domain.getId(), team.getId(), null, "test-slug");
+
+      assertEquals(domain.getId(), query.domainId());
+      assertTrue(query.teamIds().contains(team.getId()));
+      assertNull(query.userId());
+      assertEquals("test-slug", query.slug());
+    }
+
+    @Test
+    void getQueryId_shouldBuildCorrectQuery() {
+      AdQuery query = adRepository.getQueryId(domain.getId(), team.getId(), user.getId(), 12345L);
+
+      assertEquals(domain.getId(), query.domainId());
+      assertTrue(query.teamIds().contains(team.getId()));
+      assertEquals(user.getId(), query.userId());
+      assertEquals(12345L, query.id());
+    }
+
+    @Test
+    void getQueryId_shouldWorkWithNullUserId() {
+      AdQuery query = adRepository.getQueryId(domain.getId(), team.getId(), null, 12345L);
+
+      assertEquals(domain.getId(), query.domainId());
+      assertTrue(query.teamIds().contains(team.getId()));
+      assertNull(query.userId());
+      assertEquals(12345L, query.id());
+    }
+  }
+
+  @Nested
+  @DisplayName("Entity Type Methods")
+  class EntityTypeMethods {
+
+    @Test
+    void getEntityType_shouldReturnAd() {
+      assertEquals(com.tribly.enums.TeamEntityType.AD, adRepository.getEntityType());
+    }
+
+    @Test
+    void getAllEntityType_shouldReturnAd() {
+      assertEquals(EntityType.AD, adRepository.getAllEntityType());
+    }
   }
 
   @Nested

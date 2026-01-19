@@ -7,6 +7,7 @@ import com.tngtech.archunit.core.domain.JavaField;
 import com.tngtech.archunit.core.domain.JavaMethod;
 import com.tngtech.archunit.core.domain.JavaMethodCall;
 import com.tngtech.archunit.core.domain.JavaPackage;
+import com.tngtech.archunit.core.domain.JavaParameter;
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
@@ -20,6 +21,9 @@ import com.tribly.service.security.annotation.CheckAccess;
 import com.tribly.service.security.annotation.Logged;
 import com.tribly.service.security.annotation.Public;
 import jakarta.persistence.*;
+import jakarta.validation.Valid;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.Context;
 import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.Field;
 import java.util.HashSet;
@@ -28,6 +32,7 @@ import java.util.Set;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.jboss.resteasy.reactive.RestForm;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
@@ -99,6 +104,83 @@ class ArchitectureTest {
           .because(
               "API layer should only access common, dto, service and enums packages, not domain or"
                   + " infrastructure");
+
+  @ArchTest
+  static final ArchRule request_body_parameters_should_have_valid_annotation =
+      classes()
+          .that()
+          .resideInAPackage("com.tribly.api..")
+          .and()
+          .areAnnotatedWith(Path.class)
+          .should(haveValidAnnotationOnRequestBodyParameters())
+          .because("request body parameters must be annotated with @Valid for validation");
+
+  private static ArchCondition<JavaClass> haveValidAnnotationOnRequestBodyParameters() {
+    return new ArchCondition<>("have @Valid annotation on request body parameters") {
+      @Override
+      public void check(JavaClass javaClass, ConditionEvents events) {
+        for (JavaMethod method : javaClass.getMethods()) {
+          // Only check methods that are REST endpoints (have HTTP method annotations)
+          if (!isRestEndpoint(method)) {
+            continue;
+          }
+
+          for (JavaParameter parameter : method.getParameters()) {
+            // Skip parameters that are not request bodies
+            if (isJaxRsAnnotatedParameter(parameter)) {
+              continue;
+            }
+
+            // Skip primitive types and common non-DTO types
+            if (isPrimitiveOrCommonType(parameter)) {
+              continue;
+            }
+
+            // Check if parameter has @Valid annotation
+            if (!parameter.isAnnotatedWith(Valid.class)) {
+              String message =
+                  String.format(
+                      "Method %s.%s() has request body parameter '%s' of type '%s' without @Valid"
+                          + " annotation",
+                      javaClass.getSimpleName(),
+                      method.getName(),
+                      parameter.getIndex(),
+                      parameter.getRawType().getSimpleName());
+              events.add(SimpleConditionEvent.violated(javaClass, message));
+            }
+          }
+        }
+      }
+
+      private boolean isRestEndpoint(JavaMethod method) {
+        return method.isAnnotatedWith(GET.class)
+            || method.isAnnotatedWith(POST.class)
+            || method.isAnnotatedWith(PUT.class)
+            || method.isAnnotatedWith(DELETE.class)
+            || method.isAnnotatedWith(PATCH.class);
+      }
+
+      private boolean isJaxRsAnnotatedParameter(JavaParameter parameter) {
+        return parameter.isAnnotatedWith(PathParam.class)
+            || parameter.isAnnotatedWith(QueryParam.class)
+            || parameter.isAnnotatedWith(HeaderParam.class)
+            || parameter.isAnnotatedWith(CookieParam.class)
+            || parameter.isAnnotatedWith(MatrixParam.class)
+            || parameter.isAnnotatedWith(FormParam.class)
+            || parameter.isAnnotatedWith(BeanParam.class)
+            || parameter.isAnnotatedWith(Context.class)
+            || parameter.isAnnotatedWith(RestForm.class);
+      }
+
+      private boolean isPrimitiveOrCommonType(JavaParameter parameter) {
+        String typeName = parameter.getRawType().getName();
+        return typeName.startsWith("java.")
+            || typeName.startsWith("jakarta.ws.rs.")
+            || typeName.startsWith("jakarta.servlet.")
+            || typeName.startsWith("org.jboss.resteasy.");
+      }
+    };
+  }
 
   private static ArchCondition<JavaClass> onlyCallServiceMethodsWithCheckAccess() {
     return new ArchCondition<>("only call service methods annotated with @CheckAccess") {

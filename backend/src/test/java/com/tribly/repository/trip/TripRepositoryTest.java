@@ -141,4 +141,101 @@ class TripRepositoryTest {
       assertEquals("Trip", tripRepository.getEntityType().getTypeName());
     }
   }
+
+  @Nested
+  @DisplayName("findByTeamAndId")
+  class FindByTeamAndId {
+
+    @Test
+    @DisplayName("Should find trip by team and id")
+    void findByTeamAndId_shouldFindTrip() {
+      Trip trip = dataService.createTrip(team, user, "Test Trip", now);
+
+      Optional<Trip> result =
+          tripRepository.findByTeamAndId(domain.getId(), team.getId(), user.getId(), trip.getId());
+
+      assertTrue(result.isPresent());
+      assertEquals(trip.getId(), result.get().getId());
+    }
+
+    @Test
+    @DisplayName("Should return empty for non-existent id")
+    void findByTeamAndId_nonExistentId_shouldReturnEmpty() {
+      dataService.createTrip(team, user, "Test Trip", now);
+
+      Optional<Trip> result =
+          tripRepository.findByTeamAndId(domain.getId(), team.getId(), user.getId(), 999999L);
+
+      assertTrue(result.isEmpty());
+    }
+
+    @Test
+    @DisplayName("Should return empty for deleted trip")
+    void findByTeamAndId_deleted_shouldReturnEmpty() {
+      Trip trip = dataService.createTrip(team, user, "Test Trip", now);
+      dataService.deleteTrip(trip);
+
+      Optional<Trip> result =
+          tripRepository.findByTeamAndId(domain.getId(), team.getId(), user.getId(), trip.getId());
+
+      assertTrue(result.isEmpty());
+    }
+
+    @Test
+    @DisplayName("Should not find trip from different team")
+    void findByTeamAndId_differentTeam_shouldReturnEmpty() {
+      Team otherTeam = dataService.createTeam(user, "Other Team", "other-team", Visibility.PUBLIC);
+      Trip trip = dataService.createTrip(otherTeam, user, "Test Trip", now);
+
+      Optional<Trip> result =
+          tripRepository.findByTeamAndId(domain.getId(), team.getId(), user.getId(), trip.getId());
+
+      assertTrue(result.isEmpty());
+    }
+  }
+
+  @Nested
+  @DisplayName("Query Builder Methods")
+  class QueryBuilderMethods {
+
+    @Test
+    @DisplayName("getQuerySlug should build correct query")
+    void getQuerySlug_shouldBuildCorrectQuery() {
+      var query =
+          tripRepository.getQuerySlug(domain.getId(), team.getId(), user.getId(), "test-slug");
+
+      assertEquals(domain.getId(), query.domainId());
+      assertTrue(query.teamIds().contains(team.getId()));
+      assertEquals(user.getId(), query.userId());
+      assertEquals("test-slug", query.slug());
+    }
+
+    @Test
+    @DisplayName("getQueryId should build correct query")
+    void getQueryId_shouldBuildCorrectQuery() {
+      var query = tripRepository.getQueryId(domain.getId(), team.getId(), user.getId(), 12345L);
+
+      assertEquals(domain.getId(), query.domainId());
+      assertTrue(query.teamIds().contains(team.getId()));
+      assertEquals(user.getId(), query.userId());
+      assertEquals(12345L, query.id());
+    }
+  }
+
+  @Nested
+  @DisplayName("Entity Type Methods")
+  class EntityTypeMethods {
+
+    @Test
+    @DisplayName("getEntityType should return TRIP")
+    void getEntityType_shouldReturnTrip() {
+      assertEquals(com.tribly.enums.TeamEntityType.TRIP, tripRepository.getEntityType());
+    }
+
+    @Test
+    @DisplayName("getAllEntityType should return TRIP")
+    void getAllEntityType_shouldReturnTrip() {
+      assertEquals(com.tribly.enums.EntityType.TRIP, tripRepository.getAllEntityType());
+    }
+  }
 }

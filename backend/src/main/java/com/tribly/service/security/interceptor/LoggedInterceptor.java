@@ -1,8 +1,8 @@
 package com.tribly.service.security.interceptor;
 
 import com.tribly.common.exception.ForbiddenException;
+import com.tribly.service.security.TriblyQueryContext;
 import com.tribly.service.security.annotation.Logged;
-import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.interceptor.AroundInvoke;
@@ -14,15 +14,13 @@ import jakarta.interceptor.InvocationContext;
 @Priority(Interceptor.Priority.APPLICATION)
 public class LoggedInterceptor {
 
-  @Inject SecurityIdentity securityIdentity;
+  @Inject TriblyQueryContext triblyQueryContext;
 
   @AroundInvoke
   public Object check(InvocationContext ctx) throws Exception {
     Logged ann = ctx.getMethod().getAnnotation(Logged.class);
-    if (ann != null) {
-      if (securityIdentity.isAnonymous()) {
-        throw new ForbiddenException();
-      }
+    if (ann != null && triblyQueryContext.getUserNullable() == null) {
+      throw new ForbiddenException();
     }
     return ctx.proceed();
   }

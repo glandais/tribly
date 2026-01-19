@@ -8,7 +8,6 @@ import com.tribly.dto.auth.response.AuthResult;
 import com.tribly.dto.auth.response.MessageResponse;
 import com.tribly.dto.error.ErrorResponse;
 import com.tribly.service.auth.AuthService;
-import com.tribly.service.security.TriblyQueryContext;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
@@ -37,8 +36,6 @@ public class AuthResource {
   private static final String REFRESH_TOKEN_COOKIE = "refresh_token";
 
   @Inject AuthService authService;
-
-  @Inject TriblyQueryContext triblyContext;
 
   @ConfigProperty(name = "tribly.auth.refresh-token.expiry-days", defaultValue = "30")
   int refreshTokenExpiryDays;
@@ -201,7 +198,7 @@ public class AuthResource {
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
   public Response logoutAll() {
-    authService.logoutAll(triblyContext.getUserId());
+    authService.logoutAll();
     return Response.noContent().cookie(deleteRefreshTokenCookie()).build();
   }
 

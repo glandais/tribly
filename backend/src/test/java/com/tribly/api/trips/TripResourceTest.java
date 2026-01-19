@@ -5,6 +5,7 @@ import static org.hamcrest.Matchers.*;
 
 import com.tribly.api.AbstractResourceTest;
 import com.tribly.dto.common.asset.MediaDto;
+import com.tribly.dto.common.request.SlugChangeRequest;
 import com.tribly.dto.trips.request.StageRequest;
 import com.tribly.dto.trips.request.TripRequest;
 import com.tribly.enums.Status;
@@ -739,5 +740,67 @@ class TripResourceTest extends AbstractResourceTest {
         .post("/api/teams/" + team1Slug + "/trips/" + tripSlug + "/join")
         .then()
         .statusCode(201);
+  }
+
+  // ==================== Change Slug Tests ====================
+
+  @Test
+  void changeSlug_asAdmin_shouldSucceed() {
+    String tripSlug = createTestTrip("Slug Change Trip");
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .contentType("application/json")
+        .body(new SlugChangeRequest("new-trip-slug"))
+        .when()
+        .patch("/api/teams/" + team1Slug + "/trips/" + tripSlug + "/slug")
+        .then()
+        .statusCode(200)
+        .body("slug", equalTo("new-trip-slug"));
+  }
+
+  @Test
+  void changeSlug_asOrganizer_shouldSucceed() {
+    String tripSlug = createTestTrip("Organizer Slug Trip");
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER2))
+        .contentType("application/json")
+        .body(new SlugChangeRequest("organizer-slug"))
+        .when()
+        .patch("/api/teams/" + team1Slug + "/trips/" + tripSlug + "/slug")
+        .then()
+        .statusCode(200)
+        .body("slug", equalTo("organizer-slug"));
+  }
+
+  @Test
+  void changeSlug_asMember_shouldReturn404() {
+    String tripSlug = createTestTrip("Member Slug Trip");
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER3))
+        .contentType("application/json")
+        .body(new SlugChangeRequest("hacked-slug"))
+        .when()
+        .patch("/api/teams/" + team1Slug + "/trips/" + tripSlug + "/slug")
+        .then()
+        .statusCode(404);
+  }
+
+  @Test
+  void changeSlug_withoutAuth_shouldReturn401() {
+    String tripSlug = createTestTrip("Unauth Slug Trip");
+
+    given()
+        .contentType("application/json")
+        .body(new SlugChangeRequest("unauth-slug"))
+        .when()
+        .patch("/api/teams/" + team1Slug + "/trips/" + tripSlug + "/slug")
+        .then()
+        .statusCode(401);
   }
 }

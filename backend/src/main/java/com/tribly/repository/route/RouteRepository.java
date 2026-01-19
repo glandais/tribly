@@ -96,11 +96,11 @@ public class RouteRepository implements TeamEntityRepository<Route, RouteQuery> 
 
       String geoClause =
           switch (nearType) {
-            case START -> "st_dwithin(te.start, :nearPoint, :nearRadius)";
-            case END -> "st_dwithin(te.end, :nearPoint, :nearRadius)";
+            case START -> "st_distancesphere(te.start, :nearPoint) <= :nearRadius";
+            case END -> "st_distancesphere(te.end, :nearPoint) <= :nearRadius";
             case START_OR_END ->
-                "(st_dwithin(te.start, :nearPoint, :nearRadius) OR st_dwithin(te.end, :nearPoint,"
-                    + " :nearRadius))";
+                "(st_distancesphere(te.start, :nearPoint) <= :nearRadius OR"
+                    + " st_distancesphere(te.end, :nearPoint) <= :nearRadius)";
           };
       triblyQuery =
           triblyQuery.and(geoClause, Map.of("nearPoint", nearPoint, "nearRadius", radius));

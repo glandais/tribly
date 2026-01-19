@@ -1,6 +1,10 @@
 package com.tribly.infrastructure.gps;
 
+import com.tribly.common.exception.BusinessException;
+import com.tribly.domain.gps.DomainGpsCredential;
+import com.tribly.dto.error.ErrorCode;
 import com.tribly.enums.GpsServiceType;
+import com.tribly.service.gps.DomainGpsCredentialService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.io.IOException;
@@ -11,7 +15,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
 /**
@@ -28,13 +31,28 @@ public class HammerheadClient implements GpsServiceClient {
   private static final String ROUTE_UPLOAD_URL = "https://dashboard.hammerhead.io/v1/routes/file";
   private static final String SCOPE = "route:write";
 
-  @ConfigProperty(name = "tribly.gps.hammerhead.client-id", defaultValue = "")
-  String clientId;
-
-  @ConfigProperty(name = "tribly.gps.hammerhead.client-secret", defaultValue = "")
-  String clientSecret;
+  @Inject DomainGpsCredentialService credentialService;
 
   @Inject HttpClient httpClient;
+
+  private DomainGpsCredential getCredential() {
+    return credentialService
+        .getCredentials(GpsServiceType.HAMMERHEAD)
+        .orElseThrow(() -> new BusinessException(ErrorCode.GPS_SERVICE_NOT_CONFIGURED));
+  }
+
+  private String getClientId() {
+    return getCredential().getClientId();
+  }
+
+  private String getClientSecret() {
+    DomainGpsCredential credential = getCredential();
+    String secret = credentialService.getDecryptedClientSecret(credential);
+    if (secret == null) {
+      throw new BusinessException(ErrorCode.GPS_SERVICE_NOT_CONFIGURED);
+    }
+    return secret;
+  }
 
   @Override
   public GpsServiceType getServiceType() {
@@ -46,7 +64,7 @@ public class HammerheadClient implements GpsServiceClient {
     return AUTH_URL
         + "?response_type=code"
         + "&client_id="
-        + urlEncode(clientId)
+        + urlEncode(getClientId())
         + "&redirect_uri="
         + urlEncode(redirectUri)
         + "&scope="
@@ -64,9 +82,9 @@ public class HammerheadClient implements GpsServiceClient {
             + "&redirect_uri="
             + urlEncode(redirectUri)
             + "&client_id="
-            + urlEncode(clientId)
+            + urlEncode(getClientId())
             + "&client_secret="
-            + urlEncode(clientSecret);
+            + urlEncode(getClientSecret());
 
     return requestToken(body);
   }
@@ -78,9 +96,9 @@ public class HammerheadClient implements GpsServiceClient {
             + "&refresh_token="
             + urlEncode(refreshToken)
             + "&client_id="
-            + urlEncode(clientId)
+            + urlEncode(getClientId())
             + "&client_secret="
-            + urlEncode(clientSecret);
+            + urlEncode(getClientSecret());
 
     return requestToken(body);
   }

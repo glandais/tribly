@@ -50,7 +50,7 @@ export const authenticateResponse = zod
           .array(
             zod
               .object({
-                serviceType: zod.enum(['HAMMERHEAD']),
+                serviceType: zod.enum(['HAMMERHEAD', 'GARMIN']),
                 displayName: zod.string().describe('Display name of the service'),
                 connectedAt: zod.iso.datetime({}),
               })

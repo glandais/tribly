@@ -8,7 +8,6 @@ import com.tribly.dto.auth.response.PasskeyDto;
 import com.tribly.dto.error.ErrorResponse;
 import com.tribly.service.auth.AuthService;
 import com.tribly.service.auth.PasskeyService;
-import com.tribly.service.security.TriblyQueryContext;
 import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
@@ -40,7 +39,6 @@ public class PasskeyResource {
 
   @Inject PasskeyService passkeyService;
   @Inject AuthService authService;
-  @Inject TriblyQueryContext triblyContext;
 
   @ConfigProperty(name = "tribly.auth.refresh-token.expiry-days", defaultValue = "30")
   int refreshTokenExpiryDays;
@@ -65,8 +63,7 @@ public class PasskeyResource {
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
   public Response getRegistrationOptions() {
-    Map<String, Object> options =
-        passkeyService.generateRegistrationOptions(triblyContext.getUser());
+    Map<String, Object> options = passkeyService.generateRegistrationOptions();
     return Response.ok(options).build();
   }
 
@@ -92,8 +89,7 @@ public class PasskeyResource {
   })
   public Response registerPasskey(
       Map<String, Object> response, @QueryParam("deviceName") @Nullable String deviceName) {
-    PasskeyDto passkey =
-        passkeyService.verifyRegistration(triblyContext.getUser(), response, deviceName);
+    PasskeyDto passkey = passkeyService.verifyRegistration(response, deviceName);
     return Response.ok(passkey).build();
   }
 
@@ -154,7 +150,7 @@ public class PasskeyResource {
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
   public Response listPasskeys() {
-    List<PasskeyDto> passkeys = passkeyService.listPasskeys(triblyContext.getUserId());
+    List<PasskeyDto> passkeys = passkeyService.listPasskeys();
     return Response.ok(passkeys).build();
   }
 
@@ -174,7 +170,7 @@ public class PasskeyResource {
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
   public Response deletePasskey(@PathParam("id") String id) {
-    passkeyService.deletePasskey(TsidUtils.toLong(id), triblyContext.getUserId());
+    passkeyService.deletePasskey(TsidUtils.toLong(id));
     return Response.noContent().build();
   }
 

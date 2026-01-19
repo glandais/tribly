@@ -1,6 +1,10 @@
 package com.tribly.infrastructure.gps;
 
+import com.tribly.common.exception.BusinessException;
+import com.tribly.domain.gps.DomainGpsCredential;
+import com.tribly.dto.error.ErrorCode;
 import com.tribly.enums.GpsServiceType;
+import com.tribly.service.gps.DomainGpsCredentialService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.io.IOException;
@@ -10,7 +14,6 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
 /**
@@ -28,12 +31,19 @@ public class GarminClient implements GpsServiceClient {
       "https://apis.garmin.com/training-api/courses/v1/course";
   private static final String SCOPE = "COURSE_WRITE";
 
-  @ConfigProperty(name = "tribly.gps.garmin.client-id", defaultValue = "")
-  String clientId;
+  @Inject DomainGpsCredentialService credentialService;
 
   @Inject HttpClient httpClient;
 
   @Inject GarminCourseConverter courseConverter;
+
+  private String getClientId() {
+    DomainGpsCredential credential =
+        credentialService
+            .getCredentials(GpsServiceType.GARMIN)
+            .orElseThrow(() -> new BusinessException(ErrorCode.GPS_SERVICE_NOT_CONFIGURED));
+    return credential.getClientId();
+  }
 
   @Override
   public GpsServiceType getServiceType() {
@@ -56,7 +66,7 @@ public class GarminClient implements GpsServiceClient {
     return AUTH_URL
         + "?response_type=code"
         + "&client_id="
-        + urlEncode(clientId)
+        + urlEncode(getClientId())
         + "&redirect_uri="
         + urlEncode(redirectUri)
         + "&scope="
@@ -83,7 +93,7 @@ public class GarminClient implements GpsServiceClient {
             + "&redirect_uri="
             + urlEncode(redirectUri)
             + "&client_id="
-            + urlEncode(clientId)
+            + urlEncode(getClientId())
             + "&code_verifier="
             + urlEncode(codeVerifier);
 
@@ -97,7 +107,7 @@ public class GarminClient implements GpsServiceClient {
             + "&refresh_token="
             + urlEncode(refreshToken)
             + "&client_id="
-            + urlEncode(clientId);
+            + urlEncode(getClientId());
 
     return requestToken(body);
   }

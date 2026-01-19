@@ -35,6 +35,129 @@ import type { ErrorType } from '../../../lib/axiosInstance'
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1]
 
 /**
+ * Get list of GPS service types configured for this domain
+ * @summary Get available GPS services
+ */
+export const getAvailableServices = (
+  options?: SecondParameter<typeof axiosMutator>,
+  signal?: AbortSignal
+) => {
+  return axiosMutator<GpsServiceType[]>(
+    { url: `/api/gps/available`, method: 'GET', signal },
+    options
+  )
+}
+
+export const getGetAvailableServicesQueryKey = () => {
+  return [`/api/gps/available`] as const
+}
+
+export const getGetAvailableServicesQueryOptions = <
+  TData = Awaited<ReturnType<typeof getAvailableServices>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getAvailableServices>>, TError, TData>>
+  request?: SecondParameter<typeof axiosMutator>
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getGetAvailableServicesQueryKey()
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getAvailableServices>>> = ({ signal }) =>
+    getAvailableServices(requestOptions, signal)
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getAvailableServices>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type GetAvailableServicesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getAvailableServices>>
+>
+export type GetAvailableServicesQueryError = ErrorType<unknown>
+
+export function useGetAvailableServices<
+  TData = Awaited<ReturnType<typeof getAvailableServices>>,
+  TError = ErrorType<unknown>,
+>(
+  options: {
+    query: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getAvailableServices>>, TError, TData>
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAvailableServices>>,
+          TError,
+          Awaited<ReturnType<typeof getAvailableServices>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAvailableServices<
+  TData = Awaited<ReturnType<typeof getAvailableServices>>,
+  TError = ErrorType<unknown>,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getAvailableServices>>, TError, TData>
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof getAvailableServices>>,
+          TError,
+          Awaited<ReturnType<typeof getAvailableServices>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useGetAvailableServices<
+  TData = Awaited<ReturnType<typeof getAvailableServices>>,
+  TError = ErrorType<unknown>,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getAvailableServices>>, TError, TData>
+    >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary Get available GPS services
+ */
+
+export function useGetAvailableServices<
+  TData = Awaited<ReturnType<typeof getAvailableServices>>,
+  TError = ErrorType<unknown>,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getAvailableServices>>, TError, TData>
+    >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getGetAvailableServicesQueryOptions(options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  query.queryKey = queryOptions.queryKey
+
+  return query
+}
+
+/**
  * Handles OAuth callback from GPS service and redirects to frontend
  * @summary OAuth callback
  */

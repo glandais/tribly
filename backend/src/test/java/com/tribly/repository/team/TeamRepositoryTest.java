@@ -92,6 +92,43 @@ class TeamRepositoryTest {
   }
 
   @Test
+  void existsByDomain_shouldReturnTrueWhenTeamExists() {
+    dataService.createTeam(user1, "Test Team", "test-team", Visibility.PUBLIC);
+
+    boolean exists = teamRepository.existsByDomain(domain.getId());
+
+    assertTrue(exists);
+  }
+
+  @Test
+  void existsByDomain_shouldReturnFalseWhenNoTeams() {
+    boolean exists = teamRepository.existsByDomain(domain.getId());
+
+    assertFalse(exists);
+  }
+
+  @Test
+  void existsByDomain_shouldIgnoreDeletedTeams() {
+    Team team = dataService.createTeam(user1, "Deleted Team", "deleted-team", Visibility.PUBLIC);
+    dataService.deleteTeam(team);
+
+    boolean exists = teamRepository.existsByDomain(domain.getId());
+
+    assertFalse(exists);
+  }
+
+  @Test
+  void existsByDomain_shouldReturnFalseForDifferentDomain() {
+    dataService.createTeam(user1, "Test Team", "test-team", Visibility.PUBLIC);
+    Domain otherDomain =
+        dataService.createDomain("other.example.com", "Other Domain", "https://other.example.com");
+
+    boolean exists = teamRepository.existsByDomain(otherDomain.getId());
+
+    assertFalse(exists);
+  }
+
+  @Test
   void find_shouldReturnPublicTeamsForAnonymous() {
     dataService.createTeam(user1, "Public Team", "public-team", Visibility.PUBLIC);
     dataService.createTeam(user1, "Private Team", "private-team", Visibility.TEAM);

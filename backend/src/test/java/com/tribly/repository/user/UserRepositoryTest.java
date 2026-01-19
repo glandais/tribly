@@ -79,6 +79,45 @@ class UserRepositoryTest {
   }
 
   @Test
+  void findActiveByIdAndDomain_shouldReturnUser() {
+    User user = dataService.createUser("active@example.com", "Active User");
+
+    Optional<User> result = userRepository.findActiveByIdAndDomain(domain.getId(), user.getId());
+
+    assertTrue(result.isPresent());
+    assertEquals(user.getId(), result.get().getId());
+    assertEquals("Active User", result.get().getDisplayName());
+  }
+
+  @Test
+  void findActiveByIdAndDomain_shouldReturnEmptyForDeletedUser() {
+    User user = dataService.createUser("deleted@example.com", "Deleted User");
+    dataService.deleteUser(user);
+
+    Optional<User> result = userRepository.findActiveByIdAndDomain(domain.getId(), user.getId());
+
+    assertTrue(result.isEmpty());
+  }
+
+  @Test
+  void findActiveByIdAndDomain_shouldReturnEmptyForNonExistentUser() {
+    Optional<User> result = userRepository.findActiveByIdAndDomain(domain.getId(), 999999L);
+
+    assertTrue(result.isEmpty());
+  }
+
+  @Test
+  void findActiveByIdAndDomain_shouldReturnEmptyForWrongDomain() {
+    Domain otherDomain = dataService.createDomain("other.com", "Other Domain", "http://other.com");
+    User user = dataService.createUser("active@example.com", "Active User");
+
+    Optional<User> result =
+        userRepository.findActiveByIdAndDomain(otherDomain.getId(), user.getId());
+
+    assertTrue(result.isEmpty());
+  }
+
+  @Test
   void searchByDisplayNameAndDomain_shouldFindMatchingUsers() {
     dataService.createUser("john@example.com", "John Doe");
     dataService.createUser("jane@example.com", "Jane Smith");

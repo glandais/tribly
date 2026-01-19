@@ -620,6 +620,7 @@ components:
       - TEAM_CREATION_DISABLED
       - GPS_SERVICE_ALREADY_CONNECTED
       - GPS_SERVICE_NOT_CONNECTED
+      - GPS_SERVICE_NOT_CONFIGURED
       - GPS_INVALID_STATE
       - GPS_STATE_EXPIRED
       - GPX_NOT_FOUND
@@ -2796,6 +2797,8 @@ tags:
   description: Team calendar operations
 - name: Configuration
   description: Application configuration endpoints
+- name: GPS Services
+  description: GPS device integration operations
 - name: Garmin OAuth
   description: OAuth 2.0 endpoints for Garmin Connect IQ devices
 - name: Garmin Routes
@@ -3506,6 +3509,192 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
       security:
       - bearerAuth: []
+  /api/gps/available:
+    get:
+      summary: Get available GPS services
+      description: Get list of GPS service types configured for this domain
+      operationId: getAvailableServices
+      tags:
+      - GPS Services
+      responses:
+        "200":
+          description: List of available GPS service types
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/GpsServiceType"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme:
+        - user
+  /api/gps/callback/{serviceType}:
+    get:
+      summary: OAuth callback
+      description: Handles OAuth callback from GPS service and redirects to frontend
+      operationId: handleCallback
+      tags:
+      - GPS Services
+      parameters:
+      - description: GPS service type
+        name: serviceType
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/GpsServiceType"
+      - name: code
+        in: query
+        schema:
+          type: string
+      - name: error
+        in: query
+        schema:
+          type: string
+      - name: state
+        in: query
+        schema:
+          type: string
+      responses:
+        "302":
+          description: Redirects to frontend
+        "400":
+          description: Invalid state or code
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/gps/connect/{serviceType}:
+    get:
+      summary: Get OAuth authorization URL
+      description: Get the OAuth authorization URL to connect a GPS service
+      operationId: getConnectUrl
+      tags:
+      - GPS Services
+      parameters:
+      - description: GPS service type
+        name: serviceType
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/GpsServiceType"
+      responses:
+        "200":
+          description: Authorization URL
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GpsOAuthUrlResponse"
+        "400":
+          description: Service already connected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme:
+        - user
+  /api/gps/disconnect/{serviceType}:
+    delete:
+      summary: Disconnect GPS service
+      description: Disconnect a connected GPS service
+      operationId: disconnect
+      tags:
+      - GPS Services
+      parameters:
+      - description: GPS service type
+        name: serviceType
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/GpsServiceType"
+      responses:
+        "204":
+          description: Service disconnected
+        "400":
+          description: Service not connected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme:
+        - user
+  /api/gps/upload/{serviceType}/{teamSlug}/{routeSlug}:
+    post:
+      summary: Upload route to GPS service
+      description: Upload a route to a connected GPS service
+      operationId: uploadRoute
+      tags:
+      - GPS Services
+      parameters:
+      - description: Route URL slug
+        name: routeSlug
+        in: path
+        required: true
+        schema:
+          type: string
+      - description: GPS service type
+        name: serviceType
+        in: path
+        required: true
+        schema:
+          $ref: "#/components/schemas/GpsServiceType"
+      - description: Team URL slug
+        name: teamSlug
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Route uploaded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RouteUploadResponse"
+        "400":
+          description: Service not connected or upload failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Route not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme:
+        - user
   /api/publications:
     get:
       summary: List all publications

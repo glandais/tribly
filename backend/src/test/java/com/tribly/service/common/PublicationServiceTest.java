@@ -2,11 +2,13 @@ package com.tribly.service.common;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.tribly.common.exception.ForbiddenException;
 import com.tribly.domain.platform.Domain;
 import com.tribly.domain.ride.Ride;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
 import com.tribly.dto.publications.response.PublicationListResponse;
+import com.tribly.dto.publications.response.PublicationType;
 import com.tribly.enums.Status;
 import com.tribly.enums.TeamRole;
 import com.tribly.enums.Visibility;
@@ -255,6 +257,273 @@ class PublicationServiceTest {
       PublicationListResponse result = publicationService.list(null, null, null, null, null, 0, 10);
 
       assertEquals(2, result.publications().size());
+    }
+  }
+
+  @Nested
+  class ListAll {
+
+    @Test
+    void shouldListAllPublicationsForAnonymous() {
+      Instant now = Instant.now();
+      dataService.createRide(team, admin, "Ride 1", nextSlug(), now, Visibility.PUBLIC);
+      dataService.createPost(team, admin, "Post 1", now, Visibility.PUBLIC);
+
+      queryContext.setUserForTest(null);
+      PublicationListResponse result = publicationService.listAll(null, null, null, null, 0, 10);
+
+      assertEquals(2, result.publications().size());
+    }
+
+    @Test
+    void shouldListAllPublicationsForMember() {
+      Instant now = Instant.now();
+      dataService.createRide(team, admin, "Public Ride", nextSlug(), now, Visibility.PUBLIC);
+      dataService.createRide(team, admin, "Team Ride", nextSlug(), now, Visibility.TEAM);
+
+      queryContext.setUserForTest(member);
+      PublicationListResponse result = publicationService.listAll(null, null, null, null, 0, 10);
+
+      assertEquals(2, result.publications().size());
+    }
+
+    @Test
+    void shouldFilterByTypeRide() {
+      Instant now = Instant.now();
+      dataService.createRide(team, admin, "Test Ride", nextSlug(), now, Visibility.PUBLIC);
+      dataService.createPost(team, admin, "Test Post", now, Visibility.PUBLIC);
+
+      queryContext.setUserForTest(null);
+      PublicationListResponse result =
+          publicationService.listAll(PublicationType.RIDE, null, null, null, 0, 10);
+
+      assertEquals(1, result.publications().size());
+      assertEquals("Test Ride", result.publications().getFirst().getName());
+    }
+
+    @Test
+    void shouldFilterByTypePost() {
+      Instant now = Instant.now();
+      dataService.createRide(team, admin, "Test Ride", nextSlug(), now, Visibility.PUBLIC);
+      dataService.createPost(team, admin, "Test Post", now, Visibility.PUBLIC);
+
+      queryContext.setUserForTest(null);
+      PublicationListResponse result =
+          publicationService.listAll(PublicationType.POST, null, null, null, 0, 10);
+
+      assertEquals(1, result.publications().size());
+      assertEquals("Test Post", result.publications().getFirst().getName());
+    }
+
+    @Test
+    void shouldFilterBySearch() {
+      Instant now = Instant.now();
+      dataService.createRide(team, admin, "Mountain Ride", nextSlug(), now, Visibility.PUBLIC);
+      dataService.createRide(team, admin, "Beach Ride", nextSlug(), now, Visibility.PUBLIC);
+
+      queryContext.setUserForTest(null);
+      PublicationListResponse result =
+          publicationService.listAll(null, "Mountain", null, null, 0, 10);
+
+      assertEquals(1, result.publications().size());
+      assertEquals("Mountain Ride", result.publications().getFirst().getName());
+    }
+
+    @Test
+    void shouldFilterByDateRange() {
+      Instant now = Instant.now();
+      Instant yesterday = now.minus(1, ChronoUnit.DAYS);
+      Instant tomorrow = now.plus(1, ChronoUnit.DAYS);
+      Instant lastWeek = now.minus(7, ChronoUnit.DAYS);
+
+      dataService.createRide(team, admin, "Recent Ride", nextSlug(), now, Visibility.PUBLIC);
+      dataService.createRide(team, admin, "Old Ride", nextSlug(), lastWeek, Visibility.PUBLIC);
+
+      queryContext.setUserForTest(null);
+      PublicationListResponse result =
+          publicationService.listAll(null, null, yesterday, tomorrow, 0, 10);
+
+      assertEquals(1, result.publications().size());
+      assertEquals("Recent Ride", result.publications().getFirst().getName());
+    }
+
+    @Test
+    void shouldSupportPagination() {
+      Instant now = Instant.now();
+      for (int i = 1; i <= 5; i++) {
+        dataService.createRide(
+            team, admin, "Ride " + i, nextSlug(), now.plus(i, ChronoUnit.HOURS), Visibility.PUBLIC);
+      }
+
+      queryContext.setUserForTest(null);
+      PublicationListResponse result = publicationService.listAll(null, null, null, null, 0, 3);
+
+      assertEquals(3, result.publications().size());
+      assertEquals(5, result.total());
+    }
+
+    @Test
+    void shouldListFromMultipleTeams() {
+      Instant now = Instant.now();
+      Team team2 = dataService.createTeam(admin, "Team 2", "team-2", Visibility.PUBLIC);
+      dataService.createRide(team, admin, "Ride Team 1", nextSlug(), now, Visibility.PUBLIC);
+      dataService.createRide(team2, admin, "Ride Team 2", nextSlug(), now, Visibility.PUBLIC);
+
+      queryContext.setUserForTest(null);
+      PublicationListResponse result = publicationService.listAll(null, null, null, null, 0, 10);
+
+      assertEquals(2, result.publications().size());
+    }
+  }
+
+  @Nested
+  class ListTeam {
+
+    @Test
+    void shouldListTeamPublicationsForAnonymousPublicTeam() {
+      Instant now = Instant.now();
+      dataService.createRide(team, admin, "Public Ride", nextSlug(), now, Visibility.PUBLIC);
+      dataService.createPost(team, admin, "Public Post", now, Visibility.PUBLIC);
+
+      queryContext.setUserForTest(null);
+      PublicationListResponse result =
+          publicationService.listTeam(team.getSlug(), null, null, null, null, 0, 10);
+
+      assertEquals(2, result.publications().size());
+    }
+
+    @Test
+    void shouldListTeamPublicationsForMember() {
+      Instant now = Instant.now();
+      dataService.createRide(team, admin, "Public Ride", nextSlug(), now, Visibility.PUBLIC);
+      dataService.createRide(team, admin, "Team Ride", nextSlug(), now, Visibility.TEAM);
+
+      queryContext.setUserForTest(member);
+      PublicationListResponse result =
+          publicationService.listTeam(team.getSlug(), null, null, null, null, 0, 10);
+
+      assertEquals(2, result.publications().size());
+    }
+
+    @Test
+    void shouldHideTeamVisibilityFromAnonymous() {
+      Instant now = Instant.now();
+      dataService.createRide(team, admin, "Public Ride", nextSlug(), now, Visibility.PUBLIC);
+      dataService.createRide(team, admin, "Team Ride", nextSlug(), now, Visibility.TEAM);
+
+      queryContext.setUserForTest(null);
+      PublicationListResponse result =
+          publicationService.listTeam(team.getSlug(), null, null, null, null, 0, 10);
+
+      assertEquals(1, result.publications().size());
+      assertEquals("Public Ride", result.publications().getFirst().getName());
+    }
+
+    @Test
+    void shouldDenyAccessToPrivateTeamForNonMember() {
+      dataService.addUserToTeam(member, privateTeam, TeamRole.MEMBER);
+
+      Instant now = Instant.now();
+      dataService.createRide(
+          privateTeam, admin, "Private Ride", nextSlug(), now, Visibility.PUBLIC);
+
+      queryContext.setUserForTest(nonMember);
+      assertThrows(
+          ForbiddenException.class,
+          () -> publicationService.listTeam(privateTeam.getSlug(), null, null, null, null, 0, 10));
+    }
+
+    @Test
+    void shouldAllowAccessToPrivateTeamForMember() {
+      dataService.addUserToTeam(member, privateTeam, TeamRole.MEMBER);
+
+      Instant now = Instant.now();
+      dataService.createRide(
+          privateTeam, admin, "Private Ride", nextSlug(), now, Visibility.PUBLIC);
+
+      queryContext.setUserForTest(member);
+      PublicationListResponse result =
+          publicationService.listTeam(privateTeam.getSlug(), null, null, null, null, 0, 10);
+
+      assertEquals(1, result.publications().size());
+    }
+
+    @Test
+    void shouldFilterByType() {
+      Instant now = Instant.now();
+      dataService.createRide(team, admin, "Test Ride", nextSlug(), now, Visibility.PUBLIC);
+      dataService.createPost(team, admin, "Test Post", now, Visibility.PUBLIC);
+
+      queryContext.setUserForTest(null);
+      PublicationListResponse result =
+          publicationService.listTeam(
+              team.getSlug(), PublicationType.RIDE, null, null, null, 0, 10);
+
+      assertEquals(1, result.publications().size());
+      assertEquals("Test Ride", result.publications().getFirst().getName());
+    }
+
+    @Test
+    void shouldFilterBySearch() {
+      Instant now = Instant.now();
+      dataService.createRide(team, admin, "Mountain Ride", nextSlug(), now, Visibility.PUBLIC);
+      dataService.createRide(team, admin, "Beach Ride", nextSlug(), now, Visibility.PUBLIC);
+
+      queryContext.setUserForTest(null);
+      PublicationListResponse result =
+          publicationService.listTeam(team.getSlug(), null, "Mountain", null, null, 0, 10);
+
+      assertEquals(1, result.publications().size());
+      assertEquals("Mountain Ride", result.publications().getFirst().getName());
+    }
+
+    @Test
+    void shouldFilterByDateRange() {
+      Instant now = Instant.now();
+      Instant yesterday = now.minus(1, ChronoUnit.DAYS);
+      Instant tomorrow = now.plus(1, ChronoUnit.DAYS);
+      Instant lastWeek = now.minus(7, ChronoUnit.DAYS);
+
+      dataService.createRide(team, admin, "Recent Ride", nextSlug(), now, Visibility.PUBLIC);
+      dataService.createRide(team, admin, "Old Ride", nextSlug(), lastWeek, Visibility.PUBLIC);
+
+      queryContext.setUserForTest(null);
+      PublicationListResponse result =
+          publicationService.listTeam(team.getSlug(), null, null, yesterday, tomorrow, 0, 10);
+
+      assertEquals(1, result.publications().size());
+      assertEquals("Recent Ride", result.publications().getFirst().getName());
+    }
+
+    @Test
+    void shouldSupportPagination() {
+      Instant now = Instant.now();
+      for (int i = 1; i <= 5; i++) {
+        dataService.createRide(
+            team, admin, "Ride " + i, nextSlug(), now.plus(i, ChronoUnit.HOURS), Visibility.PUBLIC);
+      }
+
+      queryContext.setUserForTest(null);
+      PublicationListResponse result =
+          publicationService.listTeam(team.getSlug(), null, null, null, null, 0, 3);
+
+      assertEquals(3, result.publications().size());
+      assertEquals(5, result.total());
+    }
+
+    @Test
+    void shouldOnlyListFromSpecifiedTeam() {
+      Instant now = Instant.now();
+      Team team2 = dataService.createTeam(admin, "Team 2", "team-2", Visibility.PUBLIC);
+      dataService.createRide(team, admin, "Ride Team 1", nextSlug(), now, Visibility.PUBLIC);
+      dataService.createRide(team2, admin, "Ride Team 2", nextSlug(), now, Visibility.PUBLIC);
+
+      queryContext.setUserForTest(null);
+      PublicationListResponse result =
+          publicationService.listTeam(team.getSlug(), null, null, null, null, 0, 10);
+
+      assertEquals(1, result.publications().size());
+      assertEquals("Ride Team 1", result.publications().getFirst().getName());
     }
   }
 }

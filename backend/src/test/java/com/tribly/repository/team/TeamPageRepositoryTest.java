@@ -38,6 +38,70 @@ class TeamPageRepositoryTest {
   }
 
   @Nested
+  @DisplayName("Query Builder Methods")
+  class QueryBuilderMethods {
+
+    @Test
+    void getQuerySlug_shouldBuildCorrectQuery() {
+      TeamPageQuery query =
+          teamPageRepository.getQuerySlug(domain.getId(), team.getId(), user.getId(), "test-slug");
+
+      assertEquals(domain.getId(), query.domainId());
+      assertTrue(query.teamIds().contains(team.getId()));
+      assertEquals(user.getId(), query.userId());
+      assertEquals("test-slug", query.slug());
+    }
+
+    @Test
+    void getQuerySlug_shouldWorkWithNullUserId() {
+      TeamPageQuery query =
+          teamPageRepository.getQuerySlug(domain.getId(), team.getId(), null, "test-slug");
+
+      assertEquals(domain.getId(), query.domainId());
+      assertTrue(query.teamIds().contains(team.getId()));
+      assertNull(query.userId());
+      assertEquals("test-slug", query.slug());
+    }
+
+    @Test
+    void getQueryId_shouldBuildCorrectQuery() {
+      TeamPageQuery query =
+          teamPageRepository.getQueryId(domain.getId(), team.getId(), user.getId(), 12345L);
+
+      assertEquals(domain.getId(), query.domainId());
+      assertTrue(query.teamIds().contains(team.getId()));
+      assertEquals(user.getId(), query.userId());
+      assertEquals(12345L, query.id());
+    }
+
+    @Test
+    void getQueryId_shouldWorkWithNullUserId() {
+      TeamPageQuery query =
+          teamPageRepository.getQueryId(domain.getId(), team.getId(), null, 12345L);
+
+      assertEquals(domain.getId(), query.domainId());
+      assertTrue(query.teamIds().contains(team.getId()));
+      assertNull(query.userId());
+      assertEquals(12345L, query.id());
+    }
+  }
+
+  @Nested
+  @DisplayName("Entity Type Methods")
+  class EntityTypeMethods {
+
+    @Test
+    void getEntityType_shouldReturnTeamPage() {
+      assertEquals(com.tribly.enums.TeamEntityType.TEAM_PAGE, teamPageRepository.getEntityType());
+    }
+
+    @Test
+    void getAllEntityType_shouldReturnTeamPage() {
+      assertEquals(com.tribly.enums.EntityType.TEAM_PAGE, teamPageRepository.getAllEntityType());
+    }
+  }
+
+  @Nested
   @DisplayName("includeAbout parameter")
   class IncludeAboutParameter {
 

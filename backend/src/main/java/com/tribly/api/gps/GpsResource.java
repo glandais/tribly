@@ -5,13 +5,14 @@ import com.tribly.dto.gps.response.GpsOAuthUrlResponse;
 import com.tribly.dto.gps.response.RouteUploadResponse;
 import com.tribly.enums.GpsServiceType;
 import com.tribly.service.gps.GpsService;
+import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.net.URI;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
+import java.util.List;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
@@ -29,8 +30,22 @@ public class GpsResource {
 
   @Inject GpsService gpsService;
 
-  @ConfigProperty(name = "tribly.base-url", defaultValue = "http://localhost:5173")
-  String frontendBaseUrl;
+  @GET
+  @Path("/available")
+  @RolesAllowed("user")
+  @Operation(
+      summary = "Get available GPS services",
+      description = "Get list of GPS service types configured for this domain")
+  @APIResponses({
+    @APIResponse(
+        responseCode = "200",
+        description = "List of available GPS service types",
+        content = @Content(schema = @Schema(implementation = GpsServiceType[].class)))
+  })
+  public Response getAvailableServices() {
+    List<GpsServiceType> available = gpsService.getAvailableServices();
+    return Response.ok(available).build();
+  }
 
   @GET
   @Path("/connect/{serviceType}")
@@ -61,6 +76,7 @@ public class GpsResource {
 
   @GET
   @Path("/callback/{serviceType}")
+  @PermitAll
   @Operation(
       summary = "OAuth callback",
       description = "Handles OAuth callback from GPS service and redirects to frontend")
@@ -80,13 +96,14 @@ public class GpsResource {
 
     // Handle OAuth error
     if (error != null) {
-      return Response.temporaryRedirect(URI.create(frontendBaseUrl + "/profile?gps_error=" + error))
+      return Response.temporaryRedirect(
+              URI.create(gpsService.getFrontendBaseUrl() + "/profile?gps_error=" + error))
           .build();
     }
 
     if (code == null || state == null) {
       return Response.temporaryRedirect(
-              URI.create(frontendBaseUrl + "/profile?gps_error=missing_params"))
+              URI.create(gpsService.getFrontendBaseUrl() + "/profile?gps_error=missing_params"))
           .build();
     }
 
@@ -94,11 +111,13 @@ public class GpsResource {
       gpsService.handleCallback(serviceType, code, state);
       return Response.temporaryRedirect(
               URI.create(
-                  frontendBaseUrl + "/profile?gps_connected=" + serviceType.name().toLowerCase()))
+                  gpsService.getFrontendBaseUrl()
+                      + "/profile?gps_connected="
+                      + serviceType.name().toLowerCase()))
           .build();
     } catch (Exception e) {
       return Response.temporaryRedirect(
-              URI.create(frontendBaseUrl + "/profile?gps_error=connection_failed"))
+              URI.create(gpsService.getFrontendBaseUrl() + "/profile?gps_error=connection_failed"))
           .build();
     }
   }

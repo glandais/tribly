@@ -17,6 +17,7 @@ import com.tribly.repository.route.RouteRepository;
 import com.tribly.repository.team.UserTeamRepository;
 import com.tribly.service.route.GpxProcessingService;
 import com.tribly.service.security.TriblyQueryContext;
+import com.tribly.service.security.annotation.Logged;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.io.File;
@@ -42,7 +43,7 @@ public class GarminRouteService {
   private static final int MAX_ROUTES = 20;
   private static final int LATEST_ROUTES_PER_TEAM = 10;
   private static final DateTimeFormatter DATE_FORMAT =
-      DateTimeFormatter.ofPattern("EEE d MMM HH:mm").withZone(ZoneId.systemDefault());
+      DateTimeFormatter.ofPattern("dd/MM HH:mm").withZone(ZoneId.systemDefault());
 
   @Inject TriblyQueryContext triblyContext;
   @Inject UserTeamRepository userTeamRepository;
@@ -58,6 +59,7 @@ public class GarminRouteService {
    * @param lon User's longitude (optional, for proximity sorting)
    * @return List of routes suitable for Garmin device
    */
+  @Logged
   public GarminRoutesResponse getRoutesForUser(@Nullable Double lat, @Nullable Double lon) {
     Long userId = triblyContext.getUserId();
     List<UserTeam> memberships = userTeamRepository.findByUserId(userId);
@@ -123,6 +125,7 @@ public class GarminRouteService {
     // Query rides in date range
     TeamEntityQueryBasic query =
         TeamEntityQueryBasic.builder()
+            .domainId(triblyContext.getDomainId())
             .teamIds(teamIds)
             .userId(userId)
             .from(from)
@@ -173,6 +176,7 @@ public class GarminRouteService {
 
     RouteQuery query =
         RouteQuery.builder()
+            .domainId(triblyContext.getDomainId())
             .teamIds(teamIds)
             .userId(userId)
             .page(0)
@@ -231,6 +235,7 @@ public class GarminRouteService {
   /**
    * Get FIT file for a specific route.
    */
+  @Logged
   public File getFitFile(String teamSlug, String routeSlug) {
     Long userId = triblyContext.getUserId();
 

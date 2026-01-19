@@ -254,6 +254,7 @@
   "gps.notifications.uploadFailed": "Failed to upload route",
   "gps.services.hammerhead": "Hammerhead",
   "gps.services.garmin": "Garmin Connect",
+  "gps.noServicesConfigured": "No GPS services are configured for this platform.",
   "groups.add": "Add group",
   "groups.groupCount_one": "{{count}} group",
   "groups.groupCount_other": "{{count}} groups",

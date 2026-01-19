@@ -5,6 +5,7 @@ import static org.hamcrest.Matchers.*;
 
 import com.tribly.api.AbstractResourceTest;
 import com.tribly.dto.common.asset.MediaDto;
+import com.tribly.dto.common.request.SlugChangeRequest;
 import com.tribly.dto.posts.request.PostRequest;
 import com.tribly.enums.Status;
 import com.tribly.enums.Visibility;
@@ -442,5 +443,67 @@ class PostResourceTest extends AbstractResourceTest {
         .delete("/api/teams/" + team1Slug + "/posts/nonexistent-post")
         .then()
         .statusCode(404);
+  }
+
+  // ==================== Change Slug Tests ====================
+
+  @Test
+  void changeSlug_asAdmin_shouldSucceed() {
+    String postSlug = createTestPost("Slug Change Post");
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .contentType("application/json")
+        .body(new SlugChangeRequest("new-post-slug"))
+        .when()
+        .patch("/api/teams/" + team1Slug + "/posts/" + postSlug + "/slug")
+        .then()
+        .statusCode(200)
+        .body("slug", equalTo("new-post-slug"));
+  }
+
+  @Test
+  void changeSlug_asOrganizer_shouldSucceed() {
+    String postSlug = createTestPost("Organizer Slug Post");
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER2))
+        .contentType("application/json")
+        .body(new SlugChangeRequest("organizer-slug"))
+        .when()
+        .patch("/api/teams/" + team1Slug + "/posts/" + postSlug + "/slug")
+        .then()
+        .statusCode(200)
+        .body("slug", equalTo("organizer-slug"));
+  }
+
+  @Test
+  void changeSlug_asMember_shouldReturn403() {
+    String postSlug = createTestPost("Member Slug Post");
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER3))
+        .contentType("application/json")
+        .body(new SlugChangeRequest("hacked-slug"))
+        .when()
+        .patch("/api/teams/" + team1Slug + "/posts/" + postSlug + "/slug")
+        .then()
+        .statusCode(403);
+  }
+
+  @Test
+  void changeSlug_withoutAuth_shouldReturn401() {
+    String postSlug = createTestPost("Unauth Slug Post");
+
+    given()
+        .contentType("application/json")
+        .body(new SlugChangeRequest("unauth-slug"))
+        .when()
+        .patch("/api/teams/" + team1Slug + "/posts/" + postSlug + "/slug")
+        .then()
+        .statusCode(401);
   }
 }

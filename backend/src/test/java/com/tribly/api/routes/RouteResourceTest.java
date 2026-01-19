@@ -7,6 +7,7 @@ import com.tribly.api.AbstractResourceTest;
 import com.tribly.common.TsidUtils;
 import com.tribly.domain.route.Route;
 import com.tribly.dto.common.asset.MediaDto;
+import com.tribly.dto.common.request.SlugChangeRequest;
 import com.tribly.dto.routes.request.RouteRequest;
 import com.tribly.enums.SurfaceType;
 import com.tribly.enums.Visibility;
@@ -545,5 +546,68 @@ class RouteResourceTest extends AbstractResourceTest {
         .delete("/api/teams/" + team1Slug + "/routes/nonexistent-route")
         .then()
         .statusCode(404);
+  }
+
+  // ==================== Change Slug Tests ====================
+
+  @Test
+  void changeSlug_asAdmin_shouldSucceed() {
+    Route testRoute = dataService.createRoute(team1, user1, "Slug Change Route", Visibility.PUBLIC);
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .contentType("application/json")
+        .body(new SlugChangeRequest("new-route-slug"))
+        .when()
+        .patch("/api/teams/" + team1Slug + "/routes/" + testRoute.getSlug() + "/slug")
+        .then()
+        .statusCode(200)
+        .body("slug", equalTo("new-route-slug"));
+  }
+
+  @Test
+  void changeSlug_asOrganizer_shouldSucceed() {
+    Route testRoute =
+        dataService.createRoute(team1, user1, "Organizer Slug Route", Visibility.PUBLIC);
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER2))
+        .contentType("application/json")
+        .body(new SlugChangeRequest("organizer-slug"))
+        .when()
+        .patch("/api/teams/" + team1Slug + "/routes/" + testRoute.getSlug() + "/slug")
+        .then()
+        .statusCode(200)
+        .body("slug", equalTo("organizer-slug"));
+  }
+
+  @Test
+  void changeSlug_asMember_shouldReturn403() {
+    Route testRoute = dataService.createRoute(team1, user1, "Member Slug Route", Visibility.PUBLIC);
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER3))
+        .contentType("application/json")
+        .body(new SlugChangeRequest("hacked-slug"))
+        .when()
+        .patch("/api/teams/" + team1Slug + "/routes/" + testRoute.getSlug() + "/slug")
+        .then()
+        .statusCode(403);
+  }
+
+  @Test
+  void changeSlug_withoutAuth_shouldReturn401() {
+    Route testRoute = dataService.createRoute(team1, user1, "Unauth Slug Route", Visibility.PUBLIC);
+
+    given()
+        .contentType("application/json")
+        .body(new SlugChangeRequest("unauth-slug"))
+        .when()
+        .patch("/api/teams/" + team1Slug + "/routes/" + testRoute.getSlug() + "/slug")
+        .then()
+        .statusCode(401);
   }
 }

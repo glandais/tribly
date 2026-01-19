@@ -10,6 +10,7 @@ import com.tribly.service.comment.CommentService;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -66,7 +67,7 @@ public class PostCommentResource {
   public Response createPostComment(
       @Parameter(description = "Team URL slug") @PathParam("teamSlug") String teamSlug,
       @Parameter(description = "Post URL slug") @PathParam("entitySlug") String entitySlug,
-      CommentRequest request) {
+      @Valid CommentRequest request) {
     CommentDto comment =
         commentService.createComment(teamSlug, entitySlug, EntityType.POST, request);
     return Response.status(Response.Status.CREATED).entity(comment).build();

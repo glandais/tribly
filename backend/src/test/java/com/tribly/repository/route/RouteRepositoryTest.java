@@ -795,6 +795,188 @@ class RouteRepositoryTest {
   }
 
   @Nested
+  @DisplayName("Geographic Proximity Filter")
+  class GeographicProximityFilter {
+
+    @Test
+    void find_shouldFilterByNearStart() {
+      // Route starting near Paris (48.8566, 2.3522)
+      dataService.createRouteWithProperties(
+          team,
+          user,
+          "Paris Route",
+          Visibility.PUBLIC,
+          50000,
+          500,
+          SurfaceType.ROAD,
+          WindDirection.NORTH,
+          48.8566,
+          2.3522,
+          48.9,
+          2.4);
+      // Route starting near Lyon (45.7640, 4.8357) - ~400km from Paris
+      dataService.createRouteWithProperties(
+          team,
+          user,
+          "Lyon Route",
+          Visibility.PUBLIC,
+          50000,
+          500,
+          SurfaceType.ROAD,
+          WindDirection.NORTH,
+          45.7640,
+          4.8357,
+          45.8,
+          4.9);
+
+      // Search within 50km of Paris
+      RouteQuery query =
+          RouteQuery.builder()
+              .domainId(domain.getId())
+              .nearLat(48.8566)
+              .nearLon(2.3522)
+              .nearRadius(50000.0)
+              .nearType(NearType.START)
+              .build();
+      TriblyPage<Route> result = routeRepository.find(query);
+
+      assertEquals(1, result.items().size());
+      assertEquals("Paris Route", result.items().getFirst().getName());
+    }
+
+    @Test
+    void find_shouldFilterByNearEnd() {
+      // Route ending near Paris
+      dataService.createRouteWithProperties(
+          team,
+          user,
+          "To Paris",
+          Visibility.PUBLIC,
+          50000,
+          500,
+          SurfaceType.ROAD,
+          WindDirection.NORTH,
+          48.5,
+          2.0,
+          48.8566,
+          2.3522);
+      // Route ending near Lyon
+      dataService.createRouteWithProperties(
+          team,
+          user,
+          "To Lyon",
+          Visibility.PUBLIC,
+          50000,
+          500,
+          SurfaceType.ROAD,
+          WindDirection.NORTH,
+          45.5,
+          4.5,
+          45.7640,
+          4.8357);
+
+      // Search within 50km of Paris for routes ending there
+      RouteQuery query =
+          RouteQuery.builder()
+              .domainId(domain.getId())
+              .nearLat(48.8566)
+              .nearLon(2.3522)
+              .nearRadius(50000.0)
+              .nearType(NearType.END)
+              .build();
+      TriblyPage<Route> result = routeRepository.find(query);
+
+      assertEquals(1, result.items().size());
+      assertEquals("To Paris", result.items().getFirst().getName());
+    }
+
+    @Test
+    void find_shouldFilterByNearStartOrEnd() {
+      // Route starting near Paris, ending elsewhere
+      dataService.createRouteWithProperties(
+          team,
+          user,
+          "From Paris",
+          Visibility.PUBLIC,
+          50000,
+          500,
+          SurfaceType.ROAD,
+          WindDirection.NORTH,
+          48.8566,
+          2.3522,
+          49.0,
+          2.5);
+      // Route ending near Paris, starting elsewhere
+      dataService.createRouteWithProperties(
+          team,
+          user,
+          "To Paris",
+          Visibility.PUBLIC,
+          50000,
+          500,
+          SurfaceType.ROAD,
+          WindDirection.NORTH,
+          48.5,
+          2.0,
+          48.8566,
+          2.3522);
+      // Route far from Paris
+      dataService.createRouteWithProperties(
+          team,
+          user,
+          "Lyon Route",
+          Visibility.PUBLIC,
+          50000,
+          500,
+          SurfaceType.ROAD,
+          WindDirection.NORTH,
+          45.7640,
+          4.8357,
+          45.8,
+          4.9);
+
+      // Search within 50km of Paris for routes starting OR ending there
+      RouteQuery query =
+          RouteQuery.builder()
+              .domainId(domain.getId())
+              .nearLat(48.8566)
+              .nearLon(2.3522)
+              .nearRadius(50000.0)
+              .nearType(NearType.START_OR_END)
+              .build();
+      TriblyPage<Route> result = routeRepository.find(query);
+
+      assertEquals(2, result.items().size());
+    }
+
+    @Test
+    void find_shouldUseDefaultRadiusAndType() {
+      // Route starting near Paris
+      dataService.createRouteWithProperties(
+          team,
+          user,
+          "Paris Route",
+          Visibility.PUBLIC,
+          50000,
+          500,
+          SurfaceType.ROAD,
+          WindDirection.NORTH,
+          48.8566,
+          2.3522,
+          48.9,
+          2.4);
+
+      // Search near Paris without specifying radius/type (defaults: 25km, START_OR_END)
+      RouteQuery query =
+          RouteQuery.builder().domainId(domain.getId()).nearLat(48.8566).nearLon(2.3522).build();
+      TriblyPage<Route> result = routeRepository.find(query);
+
+      assertEquals(1, result.items().size());
+      assertEquals("Paris Route", result.items().getFirst().getName());
+    }
+  }
+
+  @Nested
   @DisplayName("Combined Filters")
   class CombinedFilters {
 
@@ -850,6 +1032,69 @@ class RouteRepositoryTest {
 
       assertEquals(1, result.items().size());
       assertEquals("Match", result.items().getFirst().getName());
+    }
+  }
+
+  @Nested
+  @DisplayName("Query Builder Methods")
+  class QueryBuilderMethods {
+
+    @Test
+    void getQuerySlug_shouldBuildCorrectQuery() {
+      RouteQuery query =
+          routeRepository.getQuerySlug(domain.getId(), team.getId(), user.getId(), "test-slug");
+
+      assertEquals(domain.getId(), query.domainId());
+      assertTrue(query.teamIds().contains(team.getId()));
+      assertEquals(user.getId(), query.userId());
+      assertEquals("test-slug", query.slug());
+    }
+
+    @Test
+    void getQuerySlug_shouldWorkWithNullUserId() {
+      RouteQuery query =
+          routeRepository.getQuerySlug(domain.getId(), team.getId(), null, "test-slug");
+
+      assertEquals(domain.getId(), query.domainId());
+      assertTrue(query.teamIds().contains(team.getId()));
+      assertNull(query.userId());
+      assertEquals("test-slug", query.slug());
+    }
+
+    @Test
+    void getQueryId_shouldBuildCorrectQuery() {
+      RouteQuery query =
+          routeRepository.getQueryId(domain.getId(), team.getId(), user.getId(), 12345L);
+
+      assertEquals(domain.getId(), query.domainId());
+      assertTrue(query.teamIds().contains(team.getId()));
+      assertEquals(user.getId(), query.userId());
+      assertEquals(12345L, query.id());
+    }
+
+    @Test
+    void getQueryId_shouldWorkWithNullUserId() {
+      RouteQuery query = routeRepository.getQueryId(domain.getId(), team.getId(), null, 12345L);
+
+      assertEquals(domain.getId(), query.domainId());
+      assertTrue(query.teamIds().contains(team.getId()));
+      assertNull(query.userId());
+      assertEquals(12345L, query.id());
+    }
+  }
+
+  @Nested
+  @DisplayName("Entity Type Methods")
+  class EntityTypeMethods {
+
+    @Test
+    void getEntityType_shouldReturnRoute() {
+      assertEquals(TeamEntityType.ROUTE, routeRepository.getEntityType());
+    }
+
+    @Test
+    void getAllEntityType_shouldReturnRoute() {
+      assertEquals(EntityType.ROUTE, routeRepository.getAllEntityType());
     }
   }
 }

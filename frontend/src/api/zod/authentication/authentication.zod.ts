@@ -70,7 +70,7 @@ export const verifyMagicLinkResponse = zod
           .array(
             zod
               .object({
-                serviceType: zod.enum(['HAMMERHEAD']),
+                serviceType: zod.enum(['HAMMERHEAD', 'GARMIN']),
                 displayName: zod.string().describe('Display name of the service'),
                 connectedAt: zod.iso.datetime({}),
               })
@@ -109,7 +109,7 @@ export const refreshResponse = zod
           .array(
             zod
               .object({
-                serviceType: zod.enum(['HAMMERHEAD']),
+                serviceType: zod.enum(['HAMMERHEAD', 'GARMIN']),
                 displayName: zod.string().describe('Display name of the service'),
                 connectedAt: zod.iso.datetime({}),
               })
@@ -195,7 +195,7 @@ export const verifyEmailResponse = zod
           .array(
             zod
               .object({
-                serviceType: zod.enum(['HAMMERHEAD']),
+                serviceType: zod.enum(['HAMMERHEAD', 'GARMIN']),
                 displayName: zod.string().describe('Display name of the service'),
                 connectedAt: zod.iso.datetime({}),
               })

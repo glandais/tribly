@@ -9,6 +9,8 @@ import com.tribly.dto.error.ErrorCode;
 import com.tribly.dto.garmin.response.GarminTokenResponse;
 import com.tribly.repository.auth.AuthSessionRepository;
 import com.tribly.repository.user.UserRepository;
+import com.tribly.service.security.DomainResolver;
+import com.tribly.service.security.annotation.Public;
 import io.smallrye.jwt.auth.principal.JWTParser;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -47,6 +49,12 @@ public class GarminAuthService {
   @Inject AuthSessionRepository authSessionRepository;
   @Inject UserRepository userRepository;
   @Inject JWTParser jwtParser;
+  @Inject DomainResolver domainResolver;
+
+  @Public
+  public String getFrontendBaseUrl() {
+    return domainResolver.getDomain().getBaseUrl();
+  }
 
   public record AuthCodeData(Long userId, Long domainId, Instant expiresAt, String redirectUri) {}
 
@@ -54,6 +62,7 @@ public class GarminAuthService {
    * Generate an authorization code for the OAuth flow. Called after user authenticates on frontend.
    */
   @Transactional
+  @Public
   public String generateAuthCode(String accessToken, String redirectUri) {
     // Validate the access token and extract user with domain
     UserWithDomain userWithDomain = validateAccessTokenAndGetUser(accessToken);
@@ -81,6 +90,7 @@ public class GarminAuthService {
 
   /** Exchange authorization code for access and refresh tokens. */
   @Transactional
+  @Public
   public GarminTokenResponse exchangeAuthCode(String code) {
     AuthCodeData codeData = authCodes.remove(code);
 
@@ -99,6 +109,7 @@ public class GarminAuthService {
 
   /** Refresh an access token using a refresh token. */
   @Transactional
+  @Public
   public GarminTokenResponse refreshToken(String refreshToken) {
     String tokenHash = hashToken(refreshToken);
     AuthSession session =

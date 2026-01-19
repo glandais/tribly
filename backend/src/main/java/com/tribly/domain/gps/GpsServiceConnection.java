@@ -33,7 +33,7 @@ public class GpsServiceConnection {
   private byte[] accessTokenEncrypted;
 
   @Column(name = "refresh_token_encrypted", columnDefinition = "bytea")
-  private @Nullable byte[] refreshTokenEncrypted;
+  private byte @Nullable [] refreshTokenEncrypted;
 
   @Column(name = "token_expires_at")
   private @Nullable Instant tokenExpiresAt;

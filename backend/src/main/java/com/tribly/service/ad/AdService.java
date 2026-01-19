@@ -68,6 +68,7 @@ public class AdService extends TeamEntityService<Ad, AdRepository, AdDto> {
     TriblyPage<Ad> ads =
         adRepository.find(
             AdQuery.builder()
+                .domainId(triblyContext.getDomainId())
                 .userId(triblyContext.getUserIdNullable())
                 .teamIds(Set.of(team.getId()))
                 .search(search)

@@ -4,6 +4,7 @@ import com.tribly.dto.error.ErrorResponse;
 import com.tribly.dto.garmin.request.GarminCallbackRequest;
 import com.tribly.dto.garmin.request.GarminTokenRequest;
 import com.tribly.dto.garmin.response.GarminTokenResponse;
+import com.tribly.dto.validation.ValidateSchema;
 import com.tribly.service.garmin.GarminAuthService;
 import jakarta.annotation.security.PermitAll;
 import jakarta.inject.Inject;
@@ -14,7 +15,6 @@ import jakarta.ws.rs.core.Response;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
@@ -38,9 +38,6 @@ public class GarminOAuthResource {
   private static final String GARMIN_CLIENT_ID = "garmin-connect-iq";
 
   @Inject GarminAuthService garminAuthService;
-
-  @ConfigProperty(name = "tribly.frontend.url", defaultValue = "http://localhost:5173")
-  String frontendUrl;
 
   @GET
   @Path("/authorize")
@@ -81,7 +78,7 @@ public class GarminOAuthResource {
     }
 
     // Build frontend URL with OAuth params
-    StringBuilder loginUrl = new StringBuilder(frontendUrl);
+    StringBuilder loginUrl = new StringBuilder(garminAuthService.getFrontendBaseUrl());
     loginUrl.append("/garmin/login");
     loginUrl.append("?client_id=").append(encode(clientId));
     loginUrl.append("&redirect_uri=").append(encode(redirectUri));
@@ -182,6 +179,7 @@ public class GarminOAuthResource {
   }
 
   @Schema(description = "OAuth callback response with redirect URL")
+  @ValidateSchema
   public record CallbackResponse(
       @Schema(description = "Redirect URL with auth code", required = true) String redirectUrl) {}
 }

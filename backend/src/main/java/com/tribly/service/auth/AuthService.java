@@ -21,6 +21,9 @@ import com.tribly.repository.auth.AuthSessionRepository;
 import com.tribly.repository.auth.AuthTokenRepository;
 import com.tribly.repository.user.UserRepository;
 import com.tribly.service.security.DomainResolver;
+import com.tribly.service.security.TriblyQueryContext;
+import com.tribly.service.security.annotation.Logged;
+import com.tribly.service.security.annotation.Public;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -42,6 +45,7 @@ public class AuthService {
   @Inject PasskeyService passkeyService;
   @Inject DomainResolver domainResolver;
   @Inject com.tribly.repository.platform.DomainRepository domainRepository;
+  @Inject TriblyQueryContext queryContext;
 
   @ConfigProperty(name = "tribly.auth.refresh-token.expiry-days", defaultValue = "30")
   int refreshTokenExpiryDays;
@@ -53,6 +57,7 @@ public class AuthService {
   int emailVerificationExpiryHours;
 
   @Transactional
+  @Public
   public void register(RegisterRequest request) {
     Domain domain = domainResolver.getDomain();
 
@@ -84,6 +89,7 @@ public class AuthService {
   }
 
   @Transactional
+  @Public
   public AuthResult verifyEmail(String token, String userAgent, String ipAddress) {
     String tokenHash = hashToken(token);
     AuthToken authToken =
@@ -119,6 +125,7 @@ public class AuthService {
   }
 
   @Transactional
+  @Public
   public void requestMagicLink(MagicLinkRequest request) {
     Domain domain = domainResolver.getDomain();
     User user = userRepository.findByEmailAndDomain(domain.getId(), request.email()).orElse(null);
@@ -149,6 +156,7 @@ public class AuthService {
   }
 
   @Transactional
+  @Public
   public AuthResult verifyMagicLink(String token, String userAgent, String ipAddress) {
     String tokenHash = hashToken(token);
     AuthToken authToken =
@@ -173,6 +181,7 @@ public class AuthService {
   }
 
   @Transactional
+  @Public
   public AuthResult authenticateWithPasskey(
       Map<String, Object> response, String userAgent, String ipAddress) {
     User user = passkeyService.verifyAuthentication(response);
@@ -181,6 +190,7 @@ public class AuthService {
   }
 
   @Transactional
+  @Public
   public AuthResponse refreshToken(String refreshToken) {
     Domain domain = domainResolver.getDomain();
     String tokenHash = hashToken(refreshToken);
@@ -216,6 +226,7 @@ public class AuthService {
   }
 
   @Transactional
+  @Public
   public void logout(@Nullable String refreshToken) {
     if (refreshToken == null || refreshToken.isBlank()) {
       return;
@@ -226,7 +237,9 @@ public class AuthService {
   }
 
   @Transactional
-  public void logoutAll(Long userId) {
+  @Logged
+  public void logoutAll() {
+    Long userId = queryContext.getUserId();
     authSessionRepository.revokeAllByUserId(userId);
   }
 

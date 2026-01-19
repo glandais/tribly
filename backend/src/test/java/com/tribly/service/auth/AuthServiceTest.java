@@ -17,6 +17,7 @@ import com.tribly.repository.auth.AuthSessionRepository;
 import com.tribly.repository.auth.AuthTokenRepository;
 import com.tribly.repository.user.UserRepository;
 import com.tribly.service.security.DomainResolver;
+import com.tribly.service.security.TriblyQueryContext;
 import com.tribly.util.TestDataCleaner;
 import com.tribly.util.TestDataService;
 import io.quarkus.mailer.MockMailbox;
@@ -39,6 +40,7 @@ class AuthServiceTest {
   @Inject TestDataCleaner dataCleaner;
   @Inject MockMailbox mailbox;
   @Inject DomainResolver domainResolver;
+  @Inject TriblyQueryContext triblyContext;
 
   private Domain domain;
 
@@ -244,10 +246,40 @@ class AuthServiceTest {
     String token1 = dataService.createRefreshTokenForUser(user);
     String token2 = dataService.createRefreshTokenForUser(user);
 
-    authService.logoutAll(user.getId());
+    triblyContext.setUserForTest(user);
+    authService.logoutAll();
 
     assertThrows(ForbiddenException.class, () -> authService.refreshToken(token1));
     assertThrows(ForbiddenException.class, () -> authService.refreshToken(token2));
+  }
+
+  // --- AuthenticateWithPasskey tests ---
+
+  @Test
+  void authenticateWithPasskey_shouldThrowForInvalidResponse() {
+    // Invalid passkey response (no valid credential)
+    var response =
+        java.util.Map.of(
+            "id",
+            "dW5rbm93bg", // "unknown" in base64
+            "response",
+            java.util.Map.of(
+                "clientDataJSON", "e30",
+                "authenticatorData", "AAAA",
+                "signature", "AAAA"));
+
+    assertThrows(
+        NotFoundException.class,
+        () -> authService.authenticateWithPasskey(response, "Test Agent", "127.0.0.1"));
+  }
+
+  @Test
+  void authenticateWithPasskey_shouldThrowForMalformedResponse() {
+    var response = java.util.Map.<String, Object>of("invalid", "data");
+
+    assertThrows(
+        ForbiddenException.class,
+        () -> authService.authenticateWithPasskey(response, "Test Agent", "127.0.0.1"));
   }
 
   // --- GetUserByEmail tests ---

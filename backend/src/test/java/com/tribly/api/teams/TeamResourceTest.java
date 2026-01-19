@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import com.tribly.api.AbstractResourceTest;
 import com.tribly.dto.common.asset.MediaDto;
+import com.tribly.dto.common.request.SlugChangeRequest;
 import com.tribly.dto.teams.request.TeamRequest;
 import com.tribly.enums.Visibility;
 import com.tribly.service.security.TriblyQueryContext;
@@ -255,6 +256,59 @@ class TeamResourceTest extends AbstractResourceTest {
         .oauth2(getAccessToken(USER2))
         .when()
         .delete("/api/teams/" + team2Slug)
+        .then()
+        .statusCode(403);
+  }
+
+  // ==================== Change Slug Tests ====================
+
+  @Test
+  void changeSlug_asAdmin_shouldSucceed() {
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .contentType("application/json")
+        .body(new SlugChangeRequest("new-team-slug"))
+        .when()
+        .patch("/api/teams/" + team1Slug + "/slug")
+        .then()
+        .statusCode(200)
+        .body("slug", equalTo("new-team-slug"));
+  }
+
+  @Test
+  void changeSlug_asNonAdmin_shouldReturn403() {
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER2))
+        .contentType("application/json")
+        .body(new SlugChangeRequest("hacked-slug"))
+        .when()
+        .patch("/api/teams/" + team1Slug + "/slug")
+        .then()
+        .statusCode(403);
+  }
+
+  @Test
+  void changeSlug_withoutAuth_shouldReturn401() {
+    given()
+        .contentType("application/json")
+        .body(new SlugChangeRequest("unauth-slug"))
+        .when()
+        .patch("/api/teams/" + team1Slug + "/slug")
+        .then()
+        .statusCode(401);
+  }
+
+  @Test
+  void changeSlug_asNonMember_shouldReturn403() {
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER4))
+        .contentType("application/json")
+        .body(new SlugChangeRequest("nonmember-slug"))
+        .when()
+        .patch("/api/teams/" + team1Slug + "/slug")
         .then()
         .statusCode(403);
   }

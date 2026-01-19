@@ -42,7 +42,7 @@ public class Passkey {
   private @Nullable String deviceName;
 
   @Column(name = "aaguid", columnDefinition = "bytea")
-  private @Nullable byte[] aaguid;
+  private byte @Nullable [] aaguid;
 
   @Column(name = "created_at", nullable = false)
   private Instant createdAt = Instant.now();

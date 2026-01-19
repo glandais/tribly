@@ -71,9 +71,24 @@ create table comments (
                           primary key (id)
 );
 
+create table domain_gps_credentials (
+                                        active boolean not null,
+                                        created_at timestamp(6) with time zone not null,
+                                        domain_id bigint not null,
+                                        id bigint not null,
+                                        updated_at timestamp(6) with time zone not null,
+                                        version bigint,
+                                        service_type varchar(20) not null check ((service_type in ('HAMMERHEAD','GARMIN'))),
+                                        client_id varchar(255) not null,
+                                        client_secret_encrypted bytea,
+                                        primary key (id),
+                                        unique (domain_id, service_type)
+);
+
 create table domains (
                          active boolean not null,
                          deleted boolean not null,
+                         single_team boolean not null,
                          created_at timestamp(6) with time zone not null,
                          id bigint not null,
                          updated_at timestamp(6) with time zone not null,
@@ -233,7 +248,7 @@ create table team_entities (
                                distance float4,
                                elevation_gain float4,
                                elevation_loss float4,
-                               entity_type integer not null check ((entity_type in (3,5,1,4,6,7,2))),
+                               entity_type integer not null check ((entity_type in (5,1,3,2,7,6,4))),
                                hilliness float4,
                                is_about_page boolean,
                                page_order integer,
@@ -266,8 +281,8 @@ create table team_entities (
                                "start" geometry(Point,4326),
                                primary key (id),
                                constraint uk_team_entity_slug unique (team_id, entity_type, slug),
-                               check (entity_type <> 4 or (is_about_page is not null)),
-                               check (entity_type <> 6 or (sort_order is not null))
+                               check (entity_type <> 6 or (sort_order is not null)),
+                               check (entity_type <> 4 or (is_about_page is not null))
 );
 
 create table team_entity_slug_redirects (
@@ -495,6 +510,11 @@ alter table if exists comments
     foreign key (team_entity_id)
     references team_entities;
 
+alter table if exists domain_gps_credentials
+    add constraint FKs6o8rrdgj12xogfnw41vcgagc
+    foreign key (domain_id)
+    references domains;
+
 alter table if exists gps_service_connections
     add constraint FKodkt0n82qo8nv4738hrkl8gur
     foreign key (user_id)
@@ -596,14 +616,14 @@ alter table if exists team_entities
     references teams;
 
 alter table if exists team_entities
-    add constraint FKsm0040p8exgxema0d3j4osclb
-    foreign key (route_id)
-    references team_entities;
-
-alter table if exists team_entities
     add constraint FKjukml9fp2eipuhmugtiaf12gs
     foreign key (place_end_id)
     references places;
+
+alter table if exists team_entities
+    add constraint FKsm0040p8exgxema0d3j4osclb
+    foreign key (route_id)
+    references team_entities;
 
 alter table if exists team_entities
     add constraint FKm7w1a9lbh6795ida5u4n95vdv

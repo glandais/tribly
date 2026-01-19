@@ -95,6 +95,12 @@ public class TestDataService {
   }
 
   @Transactional
+  public void deleteDomain(Domain domain) {
+    domain.setDeleted(true);
+    domainRepository.getEntityManager().merge(domain);
+  }
+
+  @Transactional
   public User createUser(Domain domain, String email, String displayName) {
     User user = new User(domain, email, displayName);
     userRepository.persistAndFlush(user);
@@ -139,6 +145,11 @@ public class TestDataService {
 
   public User findUserByEmail(Domain domain, String email) {
     return userRepository.findByEmailAndDomain(domain.getId(), email).orElseThrow();
+  }
+
+  @Transactional
+  public void updateUser(User user) {
+    userRepository.getEntityManager().merge(user);
   }
 
   @Transactional
@@ -261,6 +272,11 @@ public class TestDataService {
   public void deleteRide(Ride ride) {
     ride.setDeleted(true);
     rideRepository.getEntityManager().merge(ride);
+  }
+
+  @Transactional
+  public void updateRideGroup(RideGroup group) {
+    rideGroupRepository.getEntityManager().merge(group);
   }
 
   @Transactional
@@ -753,6 +769,8 @@ public class TestDataService {
   @Inject com.tribly.repository.auth.AuthTokenRepository authTokenRepository;
   @Inject com.tribly.repository.auth.PasskeyRepository passkeyRepository;
   @Inject com.tribly.repository.auth.WebAuthnChallengeRepository webAuthnChallengeRepository;
+  @Inject com.tribly.repository.gps.GpsServiceConnectionRepository gpsServiceConnectionRepository;
+  @Inject com.tribly.repository.gps.DomainGpsCredentialRepository domainGpsCredentialRepository;
 
   @Transactional
   public com.tribly.domain.auth.AuthSession createAuthSession(
@@ -871,5 +889,51 @@ public class TestDataService {
             user, email, challenge, challengeType, java.time.Instant.now().minusSeconds(3600));
     webAuthnChallengeRepository.persistAndFlush(webAuthnChallenge);
     return webAuthnChallenge;
+  }
+
+  // ===== GPS Service Connection entities =====
+
+  @Transactional
+  public com.tribly.domain.gps.GpsServiceConnection createGpsServiceConnection(
+      User user, GpsServiceType serviceType) {
+    var connection = new com.tribly.domain.gps.GpsServiceConnection(user, serviceType);
+    connection.setAccessTokenEncrypted(new byte[] {1, 2, 3, 4});
+    gpsServiceConnectionRepository.persistAndFlush(connection);
+    return connection;
+  }
+
+  @Transactional
+  public void deleteGpsServiceConnection(com.tribly.domain.gps.GpsServiceConnection connection) {
+    connection.softDelete();
+    gpsServiceConnectionRepository.getEntityManager().merge(connection);
+  }
+
+  @Transactional
+  public com.tribly.domain.gps.DomainGpsCredential createDomainGpsCredential(
+      Domain domain, GpsServiceType serviceType, String clientId) {
+    // Merge domain to ensure it's managed in current transaction
+    Domain managedDomain = domainGpsCredentialRepository.getEntityManager().merge(domain);
+    var credential =
+        new com.tribly.domain.gps.DomainGpsCredential(managedDomain, serviceType, clientId);
+    domainGpsCredentialRepository.persistAndFlush(credential);
+    return credential;
+  }
+
+  @Transactional
+  public com.tribly.domain.gps.DomainGpsCredential createDomainGpsCredential(
+      Domain domain, GpsServiceType serviceType, String clientId, byte[] clientSecretEncrypted) {
+    // Merge domain to ensure it's managed in current transaction
+    Domain managedDomain = domainGpsCredentialRepository.getEntityManager().merge(domain);
+    var credential =
+        new com.tribly.domain.gps.DomainGpsCredential(managedDomain, serviceType, clientId);
+    credential.setClientSecretEncrypted(clientSecretEncrypted);
+    domainGpsCredentialRepository.persistAndFlush(credential);
+    return credential;
+  }
+
+  @Transactional
+  public void deactivateDomainGpsCredential(com.tribly.domain.gps.DomainGpsCredential credential) {
+    credential.setActive(false);
+    domainGpsCredentialRepository.getEntityManager().merge(credential);
   }
 }

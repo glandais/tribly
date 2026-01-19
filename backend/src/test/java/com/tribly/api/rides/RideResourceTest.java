@@ -5,6 +5,7 @@ import static org.hamcrest.Matchers.*;
 
 import com.tribly.api.AbstractResourceTest;
 import com.tribly.dto.common.asset.MediaDto;
+import com.tribly.dto.common.request.SlugChangeRequest;
 import com.tribly.dto.rides.request.GroupRequest;
 import com.tribly.dto.rides.request.RideRequest;
 import com.tribly.dto.rides.response.RideDto;
@@ -528,6 +529,156 @@ class RideResourceTest extends AbstractResourceTest {
         .contentType("application/json")
         .when()
         .post("/api/teams/" + team1Slug + "/rides/" + rideSlug + "/groups/" + groupId + "/leave")
+        .then()
+        .statusCode(401);
+  }
+
+  // ==================== Change Slug Tests ====================
+
+  @Test
+  void changeSlug_asAdmin_shouldSucceed() {
+    String rideSlug =
+        given()
+            .auth()
+            .oauth2(getAccessToken(USER1))
+            .contentType("application/json")
+            .body(
+                new RideRequest(
+                    "Slug Change Ride",
+                    MediaDto.builder().build(),
+                    LocalDate.parse("2025-01-20").atTime(0, 0).toInstant(ZoneOffset.UTC),
+                    Status.DRAFT,
+                    Visibility.PUBLIC,
+                    null,
+                    null,
+                    null,
+                    null,
+                    List.of(new GroupRequest(null, "G1", null, null, null, null))))
+            .when()
+            .post("/api/teams/" + team1Slug + "/rides")
+            .then()
+            .statusCode(201)
+            .extract()
+            .path("slug");
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER1))
+        .contentType("application/json")
+        .body(new SlugChangeRequest("new-ride-slug"))
+        .when()
+        .patch("/api/teams/" + team1Slug + "/rides/" + rideSlug + "/slug")
+        .then()
+        .statusCode(200)
+        .body("slug", equalTo("new-ride-slug"));
+  }
+
+  @Test
+  void changeSlug_asOrganizer_shouldSucceed() {
+    String rideSlug =
+        given()
+            .auth()
+            .oauth2(getAccessToken(USER1))
+            .contentType("application/json")
+            .body(
+                new RideRequest(
+                    "Organizer Slug Ride",
+                    MediaDto.builder().build(),
+                    LocalDate.parse("2025-01-20").atTime(0, 0).toInstant(ZoneOffset.UTC),
+                    Status.DRAFT,
+                    Visibility.PUBLIC,
+                    null,
+                    null,
+                    null,
+                    null,
+                    List.of(new GroupRequest(null, "G1", null, null, null, null))))
+            .when()
+            .post("/api/teams/" + team1Slug + "/rides")
+            .then()
+            .statusCode(201)
+            .extract()
+            .path("slug");
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER2))
+        .contentType("application/json")
+        .body(new SlugChangeRequest("organizer-slug"))
+        .when()
+        .patch("/api/teams/" + team1Slug + "/rides/" + rideSlug + "/slug")
+        .then()
+        .statusCode(200)
+        .body("slug", equalTo("organizer-slug"));
+  }
+
+  @Test
+  void changeSlug_asMember_shouldReturn404() {
+    String rideSlug =
+        given()
+            .auth()
+            .oauth2(getAccessToken(USER1))
+            .contentType("application/json")
+            .body(
+                new RideRequest(
+                    "Member Slug Ride",
+                    MediaDto.builder().build(),
+                    LocalDate.parse("2025-01-20").atTime(0, 0).toInstant(ZoneOffset.UTC),
+                    Status.DRAFT,
+                    Visibility.PUBLIC,
+                    null,
+                    null,
+                    null,
+                    null,
+                    List.of(new GroupRequest(null, "G1", null, null, null, null))))
+            .when()
+            .post("/api/teams/" + team1Slug + "/rides")
+            .then()
+            .statusCode(201)
+            .extract()
+            .path("slug");
+
+    given()
+        .auth()
+        .oauth2(getAccessToken(USER3))
+        .contentType("application/json")
+        .body(new SlugChangeRequest("hacked-slug"))
+        .when()
+        .patch("/api/teams/" + team1Slug + "/rides/" + rideSlug + "/slug")
+        .then()
+        .statusCode(404);
+  }
+
+  @Test
+  void changeSlug_withoutAuth_shouldReturn401() {
+    String rideSlug =
+        given()
+            .auth()
+            .oauth2(getAccessToken(USER1))
+            .contentType("application/json")
+            .body(
+                new RideRequest(
+                    "Unauth Slug Ride",
+                    MediaDto.builder().build(),
+                    LocalDate.parse("2025-01-20").atTime(0, 0).toInstant(ZoneOffset.UTC),
+                    Status.DRAFT,
+                    Visibility.PUBLIC,
+                    null,
+                    null,
+                    null,
+                    null,
+                    List.of(new GroupRequest(null, "G1", null, null, null, null))))
+            .when()
+            .post("/api/teams/" + team1Slug + "/rides")
+            .then()
+            .statusCode(201)
+            .extract()
+            .path("slug");
+
+    given()
+        .contentType("application/json")
+        .body(new SlugChangeRequest("unauth-slug"))
+        .when()
+        .patch("/api/teams/" + team1Slug + "/rides/" + rideSlug + "/slug")
         .then()
         .statusCode(401);
   }

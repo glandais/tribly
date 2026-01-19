@@ -13,5 +13,6 @@ public class TestDataCleaner {
   @Transactional
   public void cleanAll() {
     entityManager.createNativeQuery("TRUNCATE TABLE users CASCADE").executeUpdate();
+    entityManager.createNativeQuery("TRUNCATE TABLE domains CASCADE").executeUpdate();
   }
 }

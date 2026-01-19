@@ -29,6 +29,19 @@ docker compose up -d               # PostgreSQL + imgproxy + brouter
 docker compose --profile tools up  # + pgAdmin + Mailhog
 ```
 
+## Code Coverage
+
+```bash
+# Run tests with coverage (backend/)
+mvn test
+# Reports in target/jacoco-report/ (csv, xml, html)
+
+# Readable coverage report
+./scripts/coverage-report.sh                              # All classes, sorted by coverage
+./scripts/coverage-report.sh 'com.tribly.service'         # Filter by package
+./scripts/coverage-report.sh 'com.tribly.repository' missed  # Sort by missed lines
+```
+
 ## Backend Services
 
 | Service | Port | Purpose |

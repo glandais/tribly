@@ -14,6 +14,7 @@ import com.tribly.enums.WebAuthnChallengeType;
 import com.tribly.repository.auth.PasskeyRepository;
 import com.tribly.repository.auth.WebAuthnChallengeRepository;
 import com.tribly.service.security.DomainResolver;
+import com.tribly.service.security.TriblyQueryContext;
 import com.tribly.util.TestDataCleaner;
 import com.tribly.util.TestDataService;
 import io.quarkus.test.junit.QuarkusTest;
@@ -36,6 +37,7 @@ class PasskeyServiceTest {
   @Inject TestDataService dataService;
   @Inject TestDataCleaner dataCleaner;
   @Inject DomainResolver domainResolver;
+  @Inject TriblyQueryContext triblyContext;
 
   private Domain domain;
   private User user;
@@ -46,13 +48,14 @@ class PasskeyServiceTest {
     domain = dataService.getOrCreateDefaultDomain();
     domainResolver.setDomainForTest(domain);
     user = dataService.createVerifiedUser("passkey@example.com", "Passkey User");
+    triblyContext.setUserForTest(user);
   }
 
   // --- generateRegistrationOptions tests ---
 
   @Test
   void generateRegistrationOptions_shouldReturnValidOptions() {
-    Map<String, Object> options = passkeyService.generateRegistrationOptions(user);
+    Map<String, Object> options = passkeyService.generateRegistrationOptions();
 
     assertNotNull(options.get("challenge"));
     assertNotNull(options.get("rp"));
@@ -74,7 +77,7 @@ class PasskeyServiceTest {
 
   @Test
   void generateRegistrationOptions_shouldCreateChallenge() {
-    passkeyService.generateRegistrationOptions(user);
+    passkeyService.generateRegistrationOptions();
 
     Optional<WebAuthnChallenge> challenge =
         challengeRepository.findValidByUserIdAndType(
@@ -93,7 +96,7 @@ class PasskeyServiceTest {
     dataService.createWebAuthnChallenge(
         user, user.getEmail(), "old-challenge", WebAuthnChallengeType.REGISTRATION, expiresAt);
 
-    passkeyService.generateRegistrationOptions(user);
+    passkeyService.generateRegistrationOptions();
 
     // Old challenge should be deleted, only new one exists
     List<WebAuthnChallenge> challenges = challengeRepository.listAll();
@@ -106,7 +109,7 @@ class PasskeyServiceTest {
     // Create existing passkey
     dataService.createPasskey(user, "existing-cred".getBytes(), "key".getBytes());
 
-    Map<String, Object> options = passkeyService.generateRegistrationOptions(user);
+    Map<String, Object> options = passkeyService.generateRegistrationOptions();
 
     @SuppressWarnings("unchecked")
     List<Map<String, Object>> excludeCredentials =
@@ -118,7 +121,7 @@ class PasskeyServiceTest {
 
   @Test
   void generateRegistrationOptions_shouldNotIncludeExcludeCredentialsIfEmpty() {
-    Map<String, Object> options = passkeyService.generateRegistrationOptions(user);
+    Map<String, Object> options = passkeyService.generateRegistrationOptions();
 
     assertNull(options.get("excludeCredentials"));
   }
@@ -184,7 +187,7 @@ class PasskeyServiceTest {
 
     assertThrows(
         BadRequestException.class,
-        () -> passkeyService.verifyRegistration(user, response, "Test Device"));
+        () -> passkeyService.verifyRegistration(response, "Test Device"));
   }
 
   @Test
@@ -195,7 +198,67 @@ class PasskeyServiceTest {
 
     assertThrows(
         BadRequestException.class,
-        () -> passkeyService.verifyRegistration(user, response, "Test Device"));
+        () -> passkeyService.verifyRegistration(response, "Test Device"));
+  }
+
+  @Test
+  void verifyRegistration_shouldThrowForWrongChallengeType() {
+    // Create authentication challenge instead of registration
+    dataService.createWebAuthnChallenge(
+        user,
+        user.getEmail(),
+        "auth-challenge",
+        WebAuthnChallengeType.AUTHENTICATION,
+        Instant.now().plus(5, ChronoUnit.MINUTES));
+    Map<String, Object> response = Map.of();
+
+    assertThrows(
+        BadRequestException.class,
+        () -> passkeyService.verifyRegistration(response, "Test Device"));
+  }
+
+  @Test
+  void verifyRegistration_shouldThrowForMalformedResponse() {
+    // Create valid challenge
+    dataService.createWebAuthnChallenge(
+        user,
+        user.getEmail(),
+        "valid-challenge",
+        WebAuthnChallengeType.REGISTRATION,
+        Instant.now().plus(5, ChronoUnit.MINUTES));
+    // Malformed response missing required fields
+    Map<String, Object> response = Map.of("response", Map.of());
+
+    assertThrows(
+        BadRequestException.class,
+        () -> passkeyService.verifyRegistration(response, "Test Device"));
+  }
+
+  @Test
+  void verifyRegistration_shouldDeleteChallengeAfterAttempt() {
+    dataService.createWebAuthnChallenge(
+        user,
+        user.getEmail(),
+        "one-time-challenge",
+        WebAuthnChallengeType.REGISTRATION,
+        Instant.now().plus(5, ChronoUnit.MINUTES));
+    Map<String, Object> response = Map.of("response", Map.of());
+
+    // First attempt - challenge exists but response is invalid
+    assertThrows(
+        BadRequestException.class,
+        () -> passkeyService.verifyRegistration(response, "Test Device"));
+
+    // Challenge should be deleted, so second attempt fails with "invalid challenge"
+    assertThrows(
+        BadRequestException.class,
+        () -> passkeyService.verifyRegistration(response, "Test Device"));
+
+    // Verify no registration challenges exist
+    assertTrue(
+        challengeRepository
+            .findValidByUserIdAndType(user.getId(), WebAuthnChallengeType.REGISTRATION)
+            .isEmpty());
   }
 
   // --- verifyAuthentication tests ---
@@ -204,10 +267,37 @@ class PasskeyServiceTest {
   void verifyAuthentication_shouldThrowForUnknownCredential() {
     Map<String, Object> response =
         Map.of(
-            "id", "dW5rbm93bg", // "unknown" in base64
-            "clientDataJSON", "e30", // "{}" in base64
-            "authenticatorData", "AAAA",
-            "signature", "AAAA");
+            "id",
+            "dW5rbm93bg", // "unknown" in base64
+            "response",
+            Map.of(
+                "clientDataJSON", "e30", // "{}" in base64
+                "authenticatorData", "AAAA",
+                "signature", "AAAA"));
+
+    assertThrows(NotFoundException.class, () -> passkeyService.verifyAuthentication(response));
+  }
+
+  @Test
+  void verifyAuthentication_shouldThrowForMalformedResponse() {
+    // Create passkey and challenge
+    dataService.createPasskey(user, "cred-id".getBytes(), "key".getBytes());
+    dataService.createWebAuthnChallenge(
+        user,
+        user.getEmail(),
+        "auth-challenge",
+        WebAuthnChallengeType.AUTHENTICATION,
+        Instant.now().plus(5, ChronoUnit.MINUTES));
+
+    // Malformed response
+    Map<String, Object> response = Map.of("id", "invalid");
+
+    assertThrows(ForbiddenException.class, () -> passkeyService.verifyAuthentication(response));
+  }
+
+  @Test
+  void verifyAuthentication_shouldThrowForMissingResponseField() {
+    Map<String, Object> response = Map.of("id", "dW5rbm93bg");
 
     assertThrows(ForbiddenException.class, () -> passkeyService.verifyAuthentication(response));
   }
@@ -219,14 +309,14 @@ class PasskeyServiceTest {
     dataService.createPasskey(user, "cred-1".getBytes(), "key-1".getBytes());
     dataService.createPasskey(user, "cred-2".getBytes(), "key-2".getBytes());
 
-    List<PasskeyDto> passkeys = passkeyService.listPasskeys(user.getId());
+    List<PasskeyDto> passkeys = passkeyService.listPasskeys();
 
     assertEquals(2, passkeys.size());
   }
 
   @Test
   void listPasskeys_shouldReturnEmptyForUserWithNoPasskeys() {
-    List<PasskeyDto> passkeys = passkeyService.listPasskeys(user.getId());
+    List<PasskeyDto> passkeys = passkeyService.listPasskeys();
 
     assertTrue(passkeys.isEmpty());
   }
@@ -238,7 +328,7 @@ class PasskeyServiceTest {
         dataService.createPasskey(user, "deleted".getBytes(), "key".getBytes());
     dataService.deletePasskey(deletedPasskey);
 
-    List<PasskeyDto> passkeys = passkeyService.listPasskeys(user.getId());
+    List<PasskeyDto> passkeys = passkeyService.listPasskeys();
 
     assertEquals(1, passkeys.size());
   }
@@ -249,15 +339,14 @@ class PasskeyServiceTest {
   void deletePasskey_shouldSoftDeletePasskey() {
     Passkey passkey = dataService.createPasskey(user, "to-delete".getBytes(), "key".getBytes());
 
-    passkeyService.deletePasskey(passkey.getId(), user.getId());
+    passkeyService.deletePasskey(passkey.getId());
 
     assertTrue(passkeyRepository.findByIdAndUserId(passkey.getId(), user.getId()).isEmpty());
   }
 
   @Test
   void deletePasskey_shouldThrowForNonexistentPasskey() {
-    assertThrows(
-        NotFoundException.class, () -> passkeyService.deletePasskey(999999L, user.getId()));
+    assertThrows(NotFoundException.class, () -> passkeyService.deletePasskey(999999L));
   }
 
   @Test
@@ -265,9 +354,8 @@ class PasskeyServiceTest {
     User otherUser = dataService.createVerifiedUser("other@example.com", "Other");
     Passkey passkey = dataService.createPasskey(user, "cred".getBytes(), "key".getBytes());
 
-    assertThrows(
-        NotFoundException.class,
-        () -> passkeyService.deletePasskey(passkey.getId(), otherUser.getId()));
+    triblyContext.setUserForTest(otherUser);
+    assertThrows(NotFoundException.class, () -> passkeyService.deletePasskey(passkey.getId()));
   }
 
   @Test
@@ -275,7 +363,6 @@ class PasskeyServiceTest {
     Passkey passkey = dataService.createPasskey(user, "deleted".getBytes(), "key".getBytes());
     dataService.deletePasskey(passkey);
 
-    assertThrows(
-        NotFoundException.class, () -> passkeyService.deletePasskey(passkey.getId(), user.getId()));
+    assertThrows(NotFoundException.class, () -> passkeyService.deletePasskey(passkey.getId()));
   }
 }
