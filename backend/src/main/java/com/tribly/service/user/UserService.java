@@ -1,10 +1,12 @@
 package com.tribly.service.user;
 
 import com.tribly.domain.user.User;
+import com.tribly.dto.gps.response.GpsServiceConnectionDto;
 import com.tribly.dto.users.request.UpdateUserRequest;
 import com.tribly.dto.users.response.PublicUserDto;
 import com.tribly.dto.users.response.UserDto;
 import com.tribly.enums.UnitSystem;
+import com.tribly.repository.gps.GpsServiceConnectionRepository;
 import com.tribly.repository.user.UserRepository;
 import com.tribly.service.security.TriblyQueryContext;
 import com.tribly.service.security.annotation.Logged;
@@ -22,9 +24,16 @@ public class UserService {
 
   @Inject TriblyQueryContext triblyContext;
 
+  @Inject GpsServiceConnectionRepository gpsConnectionRepository;
+
   @Logged
   public UserDto getUserDto() {
-    return UserDto.from(triblyContext.getUser());
+    User user = triblyContext.getUser();
+    List<GpsServiceConnectionDto> connections =
+        gpsConnectionRepository.findByUser(user.getId()).stream()
+            .map(GpsServiceConnectionDto::from)
+            .toList();
+    return UserDto.from(user, connections);
   }
 
   @Public

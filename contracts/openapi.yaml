@@ -618,6 +618,11 @@ components:
       - USER_NOT_FOUND
       - DOMAIN_NOT_FOUND
       - TEAM_CREATION_DISABLED
+      - GPS_SERVICE_ALREADY_CONNECTED
+      - GPS_SERVICE_NOT_CONNECTED
+      - GPS_INVALID_STATE
+      - GPS_STATE_EXPIRED
+      - GPX_NOT_FOUND
     ErrorDetails:
       oneOf:
       - $ref: "#/components/schemas/ErrorValidationDetails"
@@ -840,6 +845,39 @@ components:
         lat:
           type: number
           format: double
+    GpsOAuthUrlResponse:
+      description: OAuth authorization URL response
+      type: object
+      required:
+      - authorizationUrl
+      properties:
+        authorizationUrl:
+          type: string
+          description: URL to redirect user for OAuth authorization
+    GpsServiceConnectionDto:
+      type: object
+      description: GPS service connection information
+      required:
+      - serviceType
+      - displayName
+      - connectedAt
+      properties:
+        serviceType:
+          description: Service type identifier
+          type: string
+          $ref: "#/components/schemas/GpsServiceType"
+        displayName:
+          type: string
+          description: Display name of the service
+        connectedAt:
+          description: When the service was connected
+          type: string
+          $ref: "#/components/schemas/Instant"
+    GpsServiceType:
+      type: string
+      enum:
+      - HAMMERHEAD
+      - GARMIN
     GroupRequest:
       description: Ride group creation request
       type: object
@@ -2003,6 +2041,21 @@ components:
       - ELEVATION_GAIN
       - HILLINESS
       - DATE_TIME
+    RouteUploadResponse:
+      description: Result of uploading a route to a GPS service
+      type: object
+      required:
+      - success
+      properties:
+        success:
+          type: boolean
+          description: Whether the upload was successful
+        message:
+          type: string
+          description: Error message if upload failed
+        externalRouteId:
+          type: string
+          description: External route ID on the GPS service
     RouterProfile:
       type: string
       enum:
@@ -2684,6 +2737,11 @@ components:
           description: Preferred unit system (metric or imperial)
           type: string
           $ref: "#/components/schemas/UnitSystem"
+        connectedServices:
+          type: array
+          items:
+            $ref: "#/components/schemas/GpsServiceConnectionDto"
+          description: Connected GPS services
     VerifyTokenRequest:
       description: Token verification request
       type: object

@@ -46,6 +46,18 @@ export const authenticateResponse = zod
         avatarUrl: zod.string().optional().describe('User avatar URL'),
         createdAt: zod.iso.datetime({}).optional(),
         unitSystem: zod.enum(['METRIC', 'IMPERIAL']).optional(),
+        connectedServices: zod
+          .array(
+            zod
+              .object({
+                serviceType: zod.enum(['HAMMERHEAD']),
+                displayName: zod.string().describe('Display name of the service'),
+                connectedAt: zod.iso.datetime({}),
+              })
+              .describe('GPS service connection information')
+          )
+          .optional()
+          .describe('Connected GPS services'),
       })
       .optional()
       .describe('User profile data'),

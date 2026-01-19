@@ -229,7 +229,7 @@ export function StageDetailPage() {
                   {t('trips.stage.viewRouteDetails')}
                 </Button>
               </Group>
-              <RouteDetailView route={route} showInfo={false} />
+              <RouteDetailView route={route} teamSlug={teamSlug} showInfo={false} />
             </Box>
           )}
         </Stack>

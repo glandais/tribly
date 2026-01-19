@@ -7,6 +7,7 @@
  */
 import type { Instant } from './instant'
 import type { UnitSystem } from './unitSystem'
+import type { GpsServiceConnectionDto } from './gpsServiceConnectionDto'
 
 /**
  * User profile data
@@ -24,4 +25,6 @@ export interface UserDto {
   createdAt?: Instant
   /** Preferred unit system (metric or imperial) */
   unitSystem?: UnitSystem
+  /** Connected GPS services */
+  connectedServices?: GpsServiceConnectionDto[]
 }

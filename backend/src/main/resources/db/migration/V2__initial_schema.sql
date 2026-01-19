@@ -84,6 +84,23 @@ create table domains (
                          primary key (id)
 );
 
+create table gps_service_connections (
+                                         deleted boolean not null,
+                                         connected_at timestamp(6) with time zone not null,
+                                         created_at timestamp(6) with time zone not null,
+                                         id bigint not null,
+                                         last_used_at timestamp(6) with time zone,
+                                         token_expires_at timestamp(6) with time zone,
+                                         updated_at timestamp(6) with time zone not null,
+                                         user_id bigint not null,
+                                         version bigint,
+                                         service_type varchar(20) not null check ((service_type in ('HAMMERHEAD','GARMIN'))),
+                                         external_user_id varchar(100),
+                                         access_token_encrypted bytea not null,
+                                         refresh_token_encrypted bytea,
+                                         primary key (id)
+);
+
 create table gpx_tracks (
                             deleted boolean not null,
                             distance float4 not null,
@@ -477,6 +494,11 @@ alter table if exists comments
     add constraint FKfqa92uteymtldue3nchyl5q4o
     foreign key (team_entity_id)
     references team_entities;
+
+alter table if exists gps_service_connections
+    add constraint FKodkt0n82qo8nv4738hrkl8gur
+    foreign key (user_id)
+    references users;
 
 alter table if exists gpx_tracks
     add constraint FKlwsi0pakto3tlsgriae6exsqa

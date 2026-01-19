@@ -24,6 +24,7 @@ import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import { UserAvatar } from '../../components/common/UserAvatar'
 import { UnitSystemSwitcher } from '../../components/common/UnitSystemSwitcher'
 import { PasskeyManager } from '../../components/auth/PasskeyManager'
+import { GpsConnectionsManager } from '../../components/profile/GpsConnectionsManager'
 import { updateMeBody } from '@/api/zod/users/users.zod'
 import { UpdateUserRequest } from '@/api/dto'
 
@@ -218,6 +219,10 @@ export function UserProfilePage() {
           <Divider />
 
           <PasskeyManager />
+
+          <Divider />
+
+          <GpsConnectionsManager />
 
           <Divider />
 

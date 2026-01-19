@@ -118,7 +118,7 @@ export function RouteDetailPage() {
 
       {/* Route Details */}
       <Box>
-        <RouteDetailView route={route} />
+        <RouteDetailView route={route} teamSlug={teamSlug} />
       </Box>
 
       {/* Comments Section - only visible to team members */}

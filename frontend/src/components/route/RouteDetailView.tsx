@@ -1,12 +1,22 @@
 import { useTranslation } from 'react-i18next'
-import { IconMap, IconArrowUp, IconArrowDown, IconDownload } from '@tabler/icons-react'
-import { Box, Button, Group, Stack, Text, Title, Badge } from '@mantine/core'
-import type { RouteDetailDto } from '@/api/dto'
+import {
+  IconMap,
+  IconArrowUp,
+  IconArrowDown,
+  IconDownload,
+  IconDeviceMobile,
+} from '@tabler/icons-react'
+import { Box, Button, Group, Stack, Text, Title, Badge, Menu, Loader } from '@mantine/core'
+import type { RouteDetailDto, GpsServiceType } from '@/api/dto'
 import { RouteMapView } from './RouteMapView'
 import { useUnits } from '@/hooks/useUnits'
+import { useGpsConnections } from '@/hooks/useGpsConnections'
+import { useAuth } from '@/hooks/useAuth'
 
 interface RouteDetailViewProps {
   route: RouteDetailDto
+  /** Team slug for GPS upload functionality */
+  teamSlug?: string
   /** Show download buttons (default: true) */
   showDownload?: boolean
   /** Show route info section with visibility and surface type (default: true) */
@@ -36,11 +46,20 @@ const getClimbCategoryColor = (category: string): string => {
  */
 export function RouteDetailView({
   route,
+  teamSlug,
   showDownload = true,
   showInfo = true,
 }: RouteDetailViewProps) {
   const { t } = useTranslation()
   const { distance, elevation, formatDistance, config } = useUnits()
+  const { isAuthenticated } = useAuth()
+  const { connectedServices, uploadRoute, isUploading } = useGpsConnections()
+
+  const handleSendToDevice = (serviceType: GpsServiceType) => {
+    if (teamSlug && route.slug) {
+      uploadRoute({ serviceType, teamSlug, routeSlug: route.slug })
+    }
+  }
 
   return (
     <Stack>
@@ -73,6 +92,31 @@ export function RouteDetailView({
             >
               {t('routes.detail.download.fit')}
             </Button>
+          )}
+          {/* Send to Device - only show if authenticated with connected services */}
+          {isAuthenticated && teamSlug && connectedServices.length > 0 && (
+            <Menu shadow="md" width={200}>
+              <Menu.Target>
+                <Button
+                  variant="default"
+                  size="sm"
+                  leftSection={isUploading ? <Loader size={16} /> : <IconDeviceMobile size={16} />}
+                  disabled={isUploading}
+                >
+                  {t('routes.detail.sendToDevice')}
+                </Button>
+              </Menu.Target>
+              <Menu.Dropdown>
+                {connectedServices.map((service) => (
+                  <Menu.Item
+                    key={service.serviceType}
+                    onClick={() => handleSendToDevice(service.serviceType)}
+                  >
+                    {t(`gps.services.${service.serviceType.toLowerCase() as 'hammerhead'}`)}
+                  </Menu.Item>
+                ))}
+              </Menu.Dropdown>
+            </Menu>
           )}
         </Group>
       )}

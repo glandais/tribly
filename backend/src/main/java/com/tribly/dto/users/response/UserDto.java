@@ -2,9 +2,11 @@ package com.tribly.dto.users.response;
 
 import com.tribly.common.TsidUtils;
 import com.tribly.domain.user.User;
+import com.tribly.dto.gps.response.GpsServiceConnectionDto;
 import com.tribly.dto.validation.ValidateSchema;
 import com.tribly.enums.UnitSystem;
 import java.time.Instant;
+import java.util.List;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 import org.jspecify.annotations.Nullable;
 
@@ -17,14 +19,22 @@ public record UserDto(
     @Nullable @Schema(description = "User avatar URL") String avatarUrl,
     @Nullable @Schema(description = "Account creation timestamp") Instant createdAt,
     @Nullable @Schema(description = "Preferred unit system (metric or imperial)")
-        UnitSystem unitSystem) {
+        UnitSystem unitSystem,
+    @Schema(description = "Connected GPS services")
+        List<GpsServiceConnectionDto> connectedServices) {
+
   public static UserDto from(User user) {
+    return from(user, List.of());
+  }
+
+  public static UserDto from(User user, List<GpsServiceConnectionDto> connectedServices) {
     return new UserDto(
         TsidUtils.toString(user.getId()),
         user.getEmail(),
         user.getDisplayName(),
         user.getAvatarUrl(),
         user.getCreatedAt(),
-        user.getUnitSystem());
+        user.getUnitSystem(),
+        connectedServices);
   }
 }

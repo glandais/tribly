@@ -31,6 +31,17 @@ cp backend/.env.example backend/.env
 cp frontend/.env.example frontend/.env
 ```
 
+### Environment Variables
+
+Required environment variables for production:
+
+| Variable | Description |
+|----------|-------------|
+| `ENCRYPTION_KEY` | Base64-encoded 32-byte key for token encryption (generate with `openssl rand -base64 32`) |
+| `HAMMERHEAD_CLIENT_ID` | Hammerhead OAuth client ID (for GPS device integration) |
+| `HAMMERHEAD_CLIENT_SECRET` | Hammerhead OAuth client secret |
+| `GARMIN_CLIENT_ID` | Garmin Connect OAuth client ID (for GPS device integration) |
+
 ### 2. Start Infrastructure
 
 ```bash
@@ -72,6 +83,35 @@ tribly/
 ├── contracts/        # OpenAPI specifications
 └── docker-compose.yml
 ```
+
+## Features
+
+### GPS Device Integration
+
+Users can connect GPS devices from their profile to upload routes directly to their devices.
+
+**Supported devices:**
+- Hammerhead Karoo
+- Garmin Edge devices (via Garmin Connect)
+
+**Setup:**
+
+*Hammerhead:*
+1. Register your application with Hammerhead to obtain OAuth credentials
+2. Set `HAMMERHEAD_CLIENT_ID` and `HAMMERHEAD_CLIENT_SECRET` environment variables
+
+*Garmin Connect:*
+1. Register your application with Garmin Connect Developer Program
+2. Set `GARMIN_CLIENT_ID` environment variable
+
+*Common:*
+- Set `ENCRYPTION_KEY` for secure token storage (required in production)
+
+**Usage:**
+1. Navigate to Profile > GPS Devices
+2. Click "Connect" next to your device
+3. Authorize the application via OAuth
+4. On any route detail page, use "Send to Device" to upload routes
 
 ## Development
 
