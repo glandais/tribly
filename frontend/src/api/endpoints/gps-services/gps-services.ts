@@ -54,7 +54,7 @@ export const getGetAvailableServicesQueryKey = () => {
 
 export const getGetAvailableServicesQueryOptions = <
   TData = Awaited<ReturnType<typeof getAvailableServices>>,
-  TError = ErrorType<unknown>,
+  TError = ErrorType<void>,
 >(options?: {
   query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getAvailableServices>>, TError, TData>>
   request?: SecondParameter<typeof axiosMutator>
@@ -76,11 +76,11 @@ export const getGetAvailableServicesQueryOptions = <
 export type GetAvailableServicesQueryResult = NonNullable<
   Awaited<ReturnType<typeof getAvailableServices>>
 >
-export type GetAvailableServicesQueryError = ErrorType<unknown>
+export type GetAvailableServicesQueryError = ErrorType<void>
 
 export function useGetAvailableServices<
   TData = Awaited<ReturnType<typeof getAvailableServices>>,
-  TError = ErrorType<unknown>,
+  TError = ErrorType<void>,
 >(
   options: {
     query: Partial<
@@ -100,7 +100,7 @@ export function useGetAvailableServices<
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetAvailableServices<
   TData = Awaited<ReturnType<typeof getAvailableServices>>,
-  TError = ErrorType<unknown>,
+  TError = ErrorType<void>,
 >(
   options?: {
     query?: Partial<
@@ -120,7 +120,7 @@ export function useGetAvailableServices<
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
 export function useGetAvailableServices<
   TData = Awaited<ReturnType<typeof getAvailableServices>>,
-  TError = ErrorType<unknown>,
+  TError = ErrorType<void>,
 >(
   options?: {
     query?: Partial<
@@ -136,7 +136,7 @@ export function useGetAvailableServices<
 
 export function useGetAvailableServices<
   TData = Awaited<ReturnType<typeof getAvailableServices>>,
-  TError = ErrorType<unknown>,
+  TError = ErrorType<void>,
 >(
   options?: {
     query?: Partial<

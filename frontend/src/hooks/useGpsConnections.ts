@@ -1,4 +1,4 @@
-import { useCallback } from 'react'
+import { useCallback, useMemo } from 'react'
 import { useQueryClient, useMutation } from '@tanstack/react-query'
 import { notifications } from '@mantine/notifications'
 import i18next from 'i18next'
@@ -28,7 +28,7 @@ export function useGpsConnections() {
   // Fetch available services for this domain
   const { data: availableServices = [], isLoading: isLoadingAvailable } = useGetAvailableServices()
 
-  const connectedServices = user?.connectedServices ?? []
+  const connectedServices = useMemo(() => user?.connectedServices ?? [], [user?.connectedServices])
 
   const isConnected = useCallback(
     (serviceType: GpsServiceType) => {

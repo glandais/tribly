@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useForm } from '@mantine/form'
@@ -53,54 +53,57 @@ export function GarminLoginPage() {
     },
   })
 
-  // When user is already authenticated, complete the OAuth flow
-  useEffect(() => {
-    if (isAuthenticated && accessToken && !isRedirecting) {
-      completeOAuthFlow(accessToken)
-    }
-  }, [isAuthenticated, accessToken])
+  const completeOAuthFlow = useCallback(
+    async (token: string) => {
+      if (!clientId || !redirectUri) {
+        notifications.show({
+          message: t('garmin.errors.invalidRequest'),
+          color: 'red',
+        })
+        return
+      }
 
-  const completeOAuthFlow = async (token: string) => {
-    if (!clientId || !redirectUri) {
-      notifications.show({
-        message: t('garmin.errors.invalidRequest'),
-        color: 'red',
-      })
-      return
-    }
+      setIsRedirecting(true)
 
-    setIsRedirecting(true)
+      try {
+        const response = await fetch('/api/garmin/oauth/complete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            accessToken: token,
+            redirectUri,
+            state,
+          }),
+        })
 
-    try {
-      const response = await fetch('/api/garmin/oauth/complete', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          accessToken: token,
-          redirectUri,
-          state,
-        }),
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        // Redirect to Garmin app with auth code
-        window.location.href = data.redirectUrl
-      } else {
+        if (response.ok) {
+          const data = await response.json()
+          // Redirect to Garmin app with auth code
+          window.location.href = data.redirectUrl
+        } else {
+          setIsRedirecting(false)
+          notifications.show({
+            message: t('garmin.errors.callbackFailed'),
+            color: 'red',
+          })
+        }
+      } catch {
         setIsRedirecting(false)
         notifications.show({
           message: t('garmin.errors.callbackFailed'),
           color: 'red',
         })
       }
-    } catch {
-      setIsRedirecting(false)
-      notifications.show({
-        message: t('garmin.errors.callbackFailed'),
-        color: 'red',
-      })
+    },
+    [clientId, redirectUri, state, t]
+  )
+
+  // When user is already authenticated, complete the OAuth flow
+  useEffect(() => {
+    if (isAuthenticated && accessToken && !isRedirecting) {
+      completeOAuthFlow(accessToken)
     }
-  }
+  }, [isAuthenticated, accessToken, isRedirecting, completeOAuthFlow])
 
   const handlePasskeyLogin = async () => {
     setIsLoading(true)
