@@ -171,4 +171,22 @@ VALUES (
 | `name` | App name shown in emails, WebAuthn prompts, and UI |
 | `base_url` | Full URL with protocol, used in email links and calendar feeds |
 
-A default `localhost` domain is created automatically in dev mode.
+### Setting Up a Platform Admin
+
+To access the platform admin interface (`/admin`), a user must have the `PLATFORM_ADMIN` role:
+
+1. **Create a domain** (see above) and start the application
+2. **Register a user** through the normal signup flow
+3. **Grant platform admin role** via SQL:
+
+```sql
+UPDATE users
+SET platform_role = 'PLATFORM_ADMIN'
+WHERE email = 'your-email@example.com';
+```
+
+After this, the "Admin" link will appear in the header menu, providing access to:
+- **Dashboard**: Platform statistics
+- **Domains**: Manage domains (create, edit, activate/deactivate)
+- **Teams**: View all teams, archive/restore
+- **Users**: View all users, grant/revoke platform admin role
