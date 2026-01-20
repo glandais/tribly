@@ -132,3 +132,5 @@ export const selectIsAuthenticated = (state: AuthStore) => state.isAuthenticated
 export const selectIsInitialized = (state: AuthStore) => state.isInitialized
 export const selectIsLoading = (state: AuthStore) => state.isLoading
 export const selectError = (state: AuthStore) => state.error
+export const selectIsPlatformAdmin = (state: AuthStore) =>
+  state.user?.platformRole === 'PLATFORM_ADMIN'

@@ -2,6 +2,7 @@ package com.tribly.domain.user;
 
 import com.tribly.domain.common.BaseEntity;
 import com.tribly.domain.platform.Domain;
+import com.tribly.enums.PlatformRole;
 import com.tribly.enums.UnitSystem;
 import jakarta.persistence.*;
 import java.time.Instant;
@@ -49,6 +50,10 @@ public class User extends BaseEntity {
 
   @Column(name = "email_verified_at")
   private @Nullable Instant emailVerifiedAt;
+
+  @Enumerated(EnumType.STRING)
+  @Column(name = "platform_role", length = 20)
+  private @Nullable PlatformRole platformRole;
 
   public User(Domain domain, String email, String displayName) {
     super(null);

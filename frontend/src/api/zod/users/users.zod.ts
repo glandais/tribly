@@ -33,6 +33,7 @@ export const updateMeResponse = zod
     avatarUrl: zod.string().optional().describe('User avatar URL'),
     createdAt: zod.iso.datetime({}).optional(),
     unitSystem: zod.enum(['METRIC', 'IMPERIAL']).optional(),
+    platformRole: zod.enum(['PLATFORM_ADMIN']).optional(),
     connectedServices: zod
       .array(
         zod
@@ -60,6 +61,7 @@ export const getMeResponse = zod
     avatarUrl: zod.string().optional().describe('User avatar URL'),
     createdAt: zod.iso.datetime({}).optional(),
     unitSystem: zod.enum(['METRIC', 'IMPERIAL']).optional(),
+    platformRole: zod.enum(['PLATFORM_ADMIN']).optional(),
     connectedServices: zod
       .array(
         zod
@@ -91,6 +93,7 @@ export const uploadAvatarResponse = zod
     avatarUrl: zod.string().optional().describe('User avatar URL'),
     createdAt: zod.iso.datetime({}).optional(),
     unitSystem: zod.enum(['METRIC', 'IMPERIAL']).optional(),
+    platformRole: zod.enum(['PLATFORM_ADMIN']).optional(),
     connectedServices: zod
       .array(
         zod
@@ -118,6 +121,7 @@ export const deleteAvatarResponse = zod
     avatarUrl: zod.string().optional().describe('User avatar URL'),
     createdAt: zod.iso.datetime({}).optional(),
     unitSystem: zod.enum(['METRIC', 'IMPERIAL']).optional(),
+    platformRole: zod.enum(['PLATFORM_ADMIN']).optional(),
     connectedServices: zod
       .array(
         zod

@@ -263,6 +263,240 @@ components:
           description: Role to assign (defaults to MEMBER)
           type: string
           $ref: "#/components/schemas/TeamRole"
+    AdminDomainDto:
+      description: Admin domain view with statistics
+      type: object
+      required:
+      - id
+      - domain
+      - name
+      - baseUrl
+      - singleTeam
+      - active
+      - teamCount
+      - userCount
+      - createdAt
+      properties:
+        id:
+          type: string
+          description: Domain ID (TSID)
+          examples:
+          - 0h4a8xzk8jv80
+        domain:
+          type: string
+          description: Domain hostname
+        name:
+          type: string
+          description: Domain display name
+        baseUrl:
+          type: string
+          description: Base URL for the domain
+        singleTeam:
+          type: boolean
+          description: Whether domain is single-team mode
+        active:
+          type: boolean
+          description: Whether domain is active
+        teamCount:
+          type: integer
+          format: int64
+          description: Number of teams in this domain
+        userCount:
+          type: integer
+          format: int64
+          description: Number of users in this domain
+        createdAt:
+          description: Domain creation timestamp
+          type: string
+          $ref: "#/components/schemas/Instant"
+    AdminDomainListResponse:
+      description: Paginated admin domain list response
+      type: object
+      required:
+      - domains
+      - total
+      - page
+      - size
+      properties:
+        domains:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdminDomainDto"
+          description: List of domains
+        total:
+          type: integer
+          format: int64
+          description: Total number of domains
+        page:
+          type: integer
+          format: int32
+          description: Current page number
+        size:
+          type: integer
+          format: int32
+          description: Page size
+    AdminStatsDto:
+      description: Admin dashboard statistics
+      type: object
+      required:
+      - totalDomains
+      - totalTeams
+      - totalUsers
+      properties:
+        totalDomains:
+          type: integer
+          format: int64
+          description: Total number of domains
+        totalTeams:
+          type: integer
+          format: int64
+          description: Total number of teams
+        totalUsers:
+          type: integer
+          format: int64
+          description: Total number of users
+    AdminTeamDto:
+      description: Admin team view with domain info
+      type: object
+      required:
+      - id
+      - name
+      - slug
+      - domainId
+      - domainName
+      - visibility
+      - deleted
+      - memberCount
+      - createdAt
+      properties:
+        id:
+          type: string
+          description: Team ID (TSID)
+          examples:
+          - 0h4a8xzk8jv80
+        name:
+          type: string
+          description: Team name
+        slug:
+          type: string
+          description: Team URL slug
+        domainId:
+          type: string
+          description: Domain ID this team belongs to
+        domainName:
+          type: string
+          description: Domain hostname
+        visibility:
+          description: Team visibility
+          type: string
+          $ref: "#/components/schemas/Visibility"
+        deleted:
+          type: boolean
+          description: Is team soft-deleted
+        memberCount:
+          type: integer
+          format: int64
+          description: Number of members
+        createdAt:
+          description: Team creation timestamp
+          type: string
+          $ref: "#/components/schemas/Instant"
+    AdminTeamListResponse:
+      description: Paginated admin team list response
+      type: object
+      required:
+      - teams
+      - total
+      - page
+      - size
+      properties:
+        teams:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdminTeamDto"
+          description: List of teams
+        total:
+          type: integer
+          format: int64
+          description: Total number of teams
+        page:
+          type: integer
+          format: int32
+          description: Current page number
+        size:
+          type: integer
+          format: int32
+          description: Page size
+    AdminUserDto:
+      description: Admin user view with domain info
+      type: object
+      required:
+      - id
+      - email
+      - displayName
+      - domainId
+      - domainName
+      - emailVerified
+      - createdAt
+      properties:
+        id:
+          type: string
+          description: User ID (TSID)
+          examples:
+          - 0h4a8xzk8jv80
+        email:
+          type: string
+          description: User email address
+        displayName:
+          type: string
+          description: User display name
+        domainId:
+          type: string
+          description: Domain ID this user belongs to
+        domainName:
+          type: string
+          description: Domain hostname
+        platformRole:
+          description: Platform role (null if regular user)
+          type: string
+          $ref: "#/components/schemas/PlatformRole"
+        emailVerified:
+          type: boolean
+          description: Whether email is verified
+        createdAt:
+          description: User creation timestamp
+          type: string
+          $ref: "#/components/schemas/Instant"
+        lastLoginAt:
+          description: Last login timestamp
+          type: string
+          $ref: "#/components/schemas/Instant"
+    AdminUserListResponse:
+      description: Paginated admin user list response
+      type: object
+      required:
+      - users
+      - total
+      - page
+      - size
+      properties:
+        users:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdminUserDto"
+          description: List of users
+        total:
+          type: integer
+          format: int64
+          description: Total number of users
+        page:
+          type: integer
+          format: int32
+          description: Current page number
+        size:
+          type: integer
+          format: int32
+          description: Page size
     AssetDimensionsDto:
       type: object
       properties:
@@ -335,6 +569,14 @@ components:
       required:
       - images
       - attachments
+    AssignPlatformRoleRequest:
+      description: Request to assign or remove platform role
+      type: object
+      properties:
+        role:
+          description: Platform role to assign (null to remove)
+          type: string
+          $ref: "#/components/schemas/PlatformRole"
     AuthResponse:
       description: Authentication response
       type: object
@@ -557,6 +799,32 @@ components:
         singleTeam:
           type: boolean
           description: Single team mode - team creation disabled
+    CreateDomainRequest:
+      description: Request to create a new domain
+      type: object
+      required:
+      - domain
+      - name
+      - baseUrl
+      properties:
+        domain:
+          type: string
+          description: Domain hostname
+          pattern: \S
+          maxLength: 250
+        name:
+          type: string
+          description: Domain display name
+          pattern: \S
+          maxLength: 250
+        baseUrl:
+          type: string
+          description: Base URL for the domain
+          pattern: \S
+          maxLength: 500
+        singleTeam:
+          type: boolean
+          description: Whether domain is single-team mode
     EntityType:
       type: string
       enum:
@@ -617,6 +885,7 @@ components:
       - PASSKEY_NOT_FOUND
       - USER_NOT_FOUND
       - DOMAIN_NOT_FOUND
+      - TEAM_NOT_FOUND
       - TEAM_CREATION_DISABLED
       - GPS_SERVICE_ALREADY_CONNECTED
       - GPS_SERVICE_NOT_CONNECTED
@@ -1208,6 +1477,10 @@ components:
               examples:
               - - 2.3522
                 - 48.8566
+    PlatformRole:
+      type: string
+      enum:
+      - PLATFORM_ADMIN
     PostDto:
       description: Post summary data
       type: object
@@ -2681,6 +2954,26 @@ components:
       enum:
       - METRIC
       - IMPERIAL
+    UpdateDomainRequest:
+      description: Request to update a domain
+      type: object
+      required:
+      - name
+      - baseUrl
+      properties:
+        name:
+          type: string
+          description: Domain display name
+          pattern: \S
+          maxLength: 250
+        baseUrl:
+          type: string
+          description: Base URL for the domain
+          pattern: \S
+          maxLength: 500
+        singleTeam:
+          type: boolean
+          description: Whether domain is single-team mode
     UpdateMemberRoleRequest:
       description: Request to update a member's role
       type: object
@@ -2738,6 +3031,10 @@ components:
           description: Preferred unit system (metric or imperial)
           type: string
           $ref: "#/components/schemas/UnitSystem"
+        platformRole:
+          description: Platform role (null if regular user)
+          type: string
+          $ref: "#/components/schemas/PlatformRole"
         connectedServices:
           type: array
           items:
@@ -2787,6 +3084,12 @@ components:
       bearerFormat: JWT
       description: Authentication
 tags:
+- name: Admin - Domains
+  description: Platform admin domain management
+- name: Admin - Teams
+  description: Platform admin team management
+- name: Admin - Users
+  description: Platform admin user management
 - name: Ads
   description: Ad management operations
 - name: Assets
@@ -2838,6 +3141,488 @@ tags:
 - name: Users
   description: User profile management operations
 paths:
+  /api/admin/domains:
+    get:
+      summary: List all domains
+      description: Get a paginated list of all domains
+      operationId: listDomains
+      tags:
+      - Admin - Domains
+      parameters:
+      - description: Page number (0-indexed)
+        name: page
+        in: query
+        schema:
+          type: integer
+          format: int32
+          default: 0
+      - description: Page size
+        name: size
+        in: query
+        schema:
+          type: integer
+          format: int32
+          default: 20
+      responses:
+        "200":
+          description: Domains retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminDomainListResponse"
+        "403":
+          description: Forbidden - not a platform admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not Authorized
+      security:
+      - SecurityScheme:
+        - user
+    post:
+      summary: Create domain
+      description: Create a new domain
+      operationId: createDomain
+      tags:
+      - Admin - Domains
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateDomainRequest"
+        required: true
+      responses:
+        "201":
+          description: Domain created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminDomainDto"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden - not a platform admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not Authorized
+      security:
+      - SecurityScheme:
+        - user
+  /api/admin/domains/stats:
+    get:
+      summary: Get platform statistics
+      description: Get overall platform statistics
+      operationId: getStats
+      tags:
+      - Admin - Domains
+      responses:
+        "200":
+          description: Statistics retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminStatsDto"
+        "403":
+          description: Forbidden - not a platform admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not Authorized
+      security:
+      - SecurityScheme:
+        - user
+  /api/admin/domains/{domainId}:
+    put:
+      summary: Update domain
+      description: Update domain information
+      operationId: updateDomain
+      tags:
+      - Admin - Domains
+      parameters:
+      - description: Domain ID
+        name: domainId
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateDomainRequest"
+        required: true
+      responses:
+        "200":
+          description: Domain updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminDomainDto"
+        "404":
+          description: Domain not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden - not a platform admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not Authorized
+        "400":
+          description: Bad Request
+      security:
+      - SecurityScheme:
+        - user
+    get:
+      summary: Get domain details
+      description: Get detailed domain information
+      operationId: getDomain
+      tags:
+      - Admin - Domains
+      parameters:
+      - description: Domain ID
+        name: domainId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Domain retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminDomainDto"
+        "404":
+          description: Domain not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden - not a platform admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not Authorized
+      security:
+      - SecurityScheme:
+        - user
+  /api/admin/domains/{domainId}/toggle-active:
+    post:
+      summary: Toggle domain active status
+      description: Enable or disable a domain
+      operationId: toggleDomainActive
+      tags:
+      - Admin - Domains
+      parameters:
+      - description: Domain ID
+        name: domainId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Domain status toggled successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminDomainDto"
+        "404":
+          description: Domain not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden - not a platform admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not Authorized
+      security:
+      - SecurityScheme:
+        - user
+  /api/admin/teams:
+    get:
+      summary: List all teams
+      description: Get a paginated list of all teams
+      operationId: adminListTeams
+      tags:
+      - Admin - Teams
+      parameters:
+      - description: Filter by domain ID
+        name: domainId
+        in: query
+        schema:
+          type: string
+      - description: Page number (0-indexed)
+        name: page
+        in: query
+        schema:
+          type: integer
+          format: int32
+          default: 0
+      - description: Page size
+        name: size
+        in: query
+        schema:
+          type: integer
+          format: int32
+          default: 20
+      responses:
+        "200":
+          description: Teams retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminTeamListResponse"
+        "403":
+          description: Forbidden - not a platform admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not Authorized
+      security:
+      - SecurityScheme:
+        - user
+  /api/admin/teams/{teamId}:
+    get:
+      summary: Get team details
+      description: Get detailed team information
+      operationId: adminGetTeam
+      tags:
+      - Admin - Teams
+      parameters:
+      - description: Team ID
+        name: teamId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Team retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminTeamDto"
+        "404":
+          description: Team not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden - not a platform admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not Authorized
+      security:
+      - SecurityScheme:
+        - user
+  /api/admin/teams/{teamId}/toggle-deleted:
+    post:
+      summary: Toggle team deleted
+      description: Toggle team soft-delete status (archive/restore)
+      operationId: adminToggleTeamDeleted
+      tags:
+      - Admin - Teams
+      parameters:
+      - description: Team ID
+        name: teamId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Team deleted status toggled successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminTeamDto"
+        "404":
+          description: Team not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden - not a platform admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not Authorized
+      security:
+      - SecurityScheme:
+        - user
+  /api/admin/users:
+    get:
+      summary: List all users
+      description: Get a paginated list of all users
+      operationId: listUsers
+      tags:
+      - Admin - Users
+      parameters:
+      - description: Show only platform admins
+        name: adminOnly
+        in: query
+        schema:
+          type: boolean
+      - description: Filter by domain ID
+        name: domainId
+        in: query
+        schema:
+          type: string
+      - description: Page number (0-indexed)
+        name: page
+        in: query
+        schema:
+          type: integer
+          format: int32
+          default: 0
+      - description: Search by email or name
+        name: search
+        in: query
+        schema:
+          type: string
+      - description: Page size
+        name: size
+        in: query
+        schema:
+          type: integer
+          format: int32
+          default: 20
+      responses:
+        "200":
+          description: Users retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUserListResponse"
+        "403":
+          description: Forbidden - not a platform admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not Authorized
+      security:
+      - SecurityScheme:
+        - user
+  /api/admin/users/{userId}:
+    get:
+      summary: Get user details
+      description: Get detailed user information
+      operationId: getAdminUser
+      tags:
+      - Admin - Users
+      parameters:
+      - description: User ID
+        name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        "200":
+          description: User retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUserDto"
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden - not a platform admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not Authorized
+      security:
+      - SecurityScheme:
+        - user
+  /api/admin/users/{userId}/platform-role:
+    put:
+      summary: Assign platform role
+      description: Assign or remove a platform role from a user
+      operationId: assignPlatformRole
+      tags:
+      - Admin - Users
+      parameters:
+      - description: User ID
+        name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AssignPlatformRoleRequest"
+        required: true
+      responses:
+        "200":
+          description: Platform role updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUserDto"
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Forbidden - not a platform admin
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not Authorized
+        "400":
+          description: Bad Request
+      security:
+      - SecurityScheme:
+        - user
   /api/auth/logout:
     post:
       summary: Logout

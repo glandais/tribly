@@ -67,4 +67,10 @@ export const paths = {
   adNew: (teamSlug: string) => `/teams/${teamSlug}/ads/new`,
   ad: (teamSlug: string, adSlug: string) => `/teams/${teamSlug}/ads/${adSlug}`,
   adEdit: (teamSlug: string, adSlug: string) => `/teams/${teamSlug}/ads/${adSlug}/edit`,
+
+  // Platform Admin
+  admin: () => '/admin',
+  adminDomains: () => '/admin/domains',
+  adminTeams: () => '/admin/teams',
+  adminUsers: () => '/admin/users',
 } as const

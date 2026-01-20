@@ -66,6 +66,7 @@ export const verifyMagicLinkResponse = zod
         avatarUrl: zod.string().optional().describe('User avatar URL'),
         createdAt: zod.iso.datetime({}).optional(),
         unitSystem: zod.enum(['METRIC', 'IMPERIAL']).optional(),
+        platformRole: zod.enum(['PLATFORM_ADMIN']).optional(),
         connectedServices: zod
           .array(
             zod
@@ -105,6 +106,7 @@ export const refreshResponse = zod
         avatarUrl: zod.string().optional().describe('User avatar URL'),
         createdAt: zod.iso.datetime({}).optional(),
         unitSystem: zod.enum(['METRIC', 'IMPERIAL']).optional(),
+        platformRole: zod.enum(['PLATFORM_ADMIN']).optional(),
         connectedServices: zod
           .array(
             zod
@@ -191,6 +193,7 @@ export const verifyEmailResponse = zod
         avatarUrl: zod.string().optional().describe('User avatar URL'),
         createdAt: zod.iso.datetime({}).optional(),
         unitSystem: zod.enum(['METRIC', 'IMPERIAL']).optional(),
+        platformRole: zod.enum(['PLATFORM_ADMIN']).optional(),
         connectedServices: zod
           .array(
             zod

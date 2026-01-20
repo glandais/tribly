@@ -17,8 +17,9 @@ import {
   UnstyledButton,
 } from '@mantine/core'
 import { useDisclosure, useHeadroom } from '@mantine/hooks'
-import { IconUser, IconLogout } from '@tabler/icons-react'
+import { IconUser, IconLogout, IconShield } from '@tabler/icons-react'
 import { useAuth } from '../../hooks/useAuth'
+import { useAuthStore, selectIsPlatformAdmin } from '@/store/authStore'
 import { useBreadcrumb } from '../../hooks/useBreadcrumb'
 import { Breadcrumb } from './Breadcrumb'
 import { ColorSchemeSwitcher } from './ColorSchemeSwitcher'
@@ -28,6 +29,7 @@ import { paths } from '@/config/paths'
 export function Layout() {
   const { t } = useTranslation()
   const { user, isAuthenticated, logout } = useAuth()
+  const isPlatformAdmin = useAuthStore(selectIsPlatformAdmin)
   const { items: breadcrumbItems, showBackLink } = useBreadcrumb()
   const [opened, { toggle, close }] = useDisclosure(false)
   const { pathname } = useLocation()
@@ -97,6 +99,15 @@ export function Layout() {
                     >
                       {t('nav.profile')}
                     </Menu.Item>
+                    {isPlatformAdmin && (
+                      <Menu.Item
+                        leftSection={<IconShield size={14} />}
+                        component={Link}
+                        to={paths.admin()}
+                      >
+                        {t('nav.admin')}
+                      </Menu.Item>
+                    )}
                     <Menu.Divider />
                     <Menu.Item
                       leftSection={<IconLogout size={14} />}
@@ -142,6 +153,17 @@ export function Layout() {
                   <Text size="sm">{user?.displayName}</Text>
                 </Group>
               </UnstyledButton>
+              {isPlatformAdmin && (
+                <Button
+                  variant="subtle"
+                  leftSection={<IconShield size={16} />}
+                  component={Link}
+                  to={paths.admin()}
+                  onClick={close}
+                >
+                  {t('nav.admin')}
+                </Button>
+              )}
               <Button
                 variant="subtle"
                 color="danger"

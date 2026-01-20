@@ -136,6 +136,18 @@ const CreateAdPage = lazy(() =>
 const EditAdPage = lazy(() =>
   import('../pages/ad/EditAdPage').then((m) => ({ default: m.EditAdPage }))
 )
+const AdminDashboardPage = lazy(() =>
+  import('../pages/admin/AdminDashboardPage').then((m) => ({ default: m.AdminDashboardPage }))
+)
+const AdminDomainsPage = lazy(() =>
+  import('../pages/admin/AdminDomainsPage').then((m) => ({ default: m.AdminDomainsPage }))
+)
+const AdminTeamsPage = lazy(() =>
+  import('../pages/admin/AdminTeamsPage').then((m) => ({ default: m.AdminTeamsPage }))
+)
+const AdminUsersPage = lazy(() =>
+  import('../pages/admin/AdminUsersPage').then((m) => ({ default: m.AdminUsersPage }))
+)
 
 export const routesConfig: RoutesConfig = [
   // === Home ===
@@ -516,5 +528,40 @@ export const routesConfig: RoutesConfig = [
     parentId: 'ad-detail',
     breadcrumb: { type: 'static', i18nKey: tRegister('actions.edit') },
     showBackLink: true,
+  },
+
+  // === Platform Admin Routes ===
+  {
+    id: 'admin',
+    path: paths.admin(),
+    component: AdminDashboardPage,
+    auth: 'authenticated',
+    parentId: null,
+    index: true,
+    breadcrumb: { type: 'static', i18nKey: tRegister('admin.title') },
+  },
+  {
+    id: 'admin-domains',
+    path: paths.adminDomains(),
+    component: AdminDomainsPage,
+    auth: 'authenticated',
+    parentId: 'admin',
+    breadcrumb: { type: 'static', i18nKey: tRegister('admin.tabs.domains') },
+  },
+  {
+    id: 'admin-teams',
+    path: paths.adminTeams(),
+    component: AdminTeamsPage,
+    auth: 'authenticated',
+    parentId: 'admin',
+    breadcrumb: { type: 'static', i18nKey: tRegister('admin.tabs.teams') },
+  },
+  {
+    id: 'admin-users',
+    path: paths.adminUsers(),
+    component: AdminUsersPage,
+    auth: 'authenticated',
+    parentId: 'admin',
+    breadcrumb: { type: 'static', i18nKey: tRegister('admin.tabs.users') },
   },
 ]

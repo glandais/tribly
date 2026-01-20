@@ -4,6 +4,7 @@ import com.tribly.common.TsidUtils;
 import com.tribly.domain.user.User;
 import com.tribly.dto.gps.response.GpsServiceConnectionDto;
 import com.tribly.dto.validation.ValidateSchema;
+import com.tribly.enums.PlatformRole;
 import com.tribly.enums.UnitSystem;
 import java.time.Instant;
 import java.util.List;
@@ -20,6 +21,8 @@ public record UserDto(
     @Nullable @Schema(description = "Account creation timestamp") Instant createdAt,
     @Nullable @Schema(description = "Preferred unit system (metric or imperial)")
         UnitSystem unitSystem,
+    @Nullable @Schema(description = "Platform role (null if regular user)")
+        PlatformRole platformRole,
     @Schema(description = "Connected GPS services")
         List<GpsServiceConnectionDto> connectedServices) {
 
@@ -35,6 +38,7 @@ public record UserDto(
         user.getAvatarUrl(),
         user.getCreatedAt(),
         user.getUnitSystem(),
+        user.getPlatformRole(),
         connectedServices);
   }
 }
