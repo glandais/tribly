@@ -9,7 +9,7 @@ using Toybox.Position;
  */
 class ApiClient {
     // TODO: Update this URL for production
-    public static const API_BASE_URL = "https://tribly.app/api";
+    public static const API_BASE_URL = "https://www.pedalons.fr/api";
 
     private var _authManager;
     private var _routesCallback;
