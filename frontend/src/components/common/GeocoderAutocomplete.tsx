@@ -18,7 +18,6 @@ async function searchNominatim(query: string, signal: AbortSignal): Promise<Nomi
   const response = await fetch(
     `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`,
     {
-      headers: { 'User-Agent': 'Tribly/1.0' },
       signal,
     }
   )

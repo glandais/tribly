@@ -19,6 +19,7 @@ import {
 } from '@mantine/core'
 import { startAuthentication, browserSupportsWebAuthn } from '@simplewebauthn/browser'
 import { useAuth } from '../../hooks/useAuth'
+import { useAppName } from '../../hooks/useAppName'
 import { useAuthStore } from '../../store/authStore'
 import { paths } from '@/config/paths'
 
@@ -28,6 +29,7 @@ export function LoginPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
   const { isAuthenticated } = useAuth()
+  const appName = useAppName()
   const { setAccessToken, setUser } = useAuthStore()
 
   const [activeStep, setActiveStep] = useState(0)
@@ -179,7 +181,7 @@ export function LoginPage() {
   const renderMethodSelection = () => (
     <Stack>
       <Stack gap="xs" ta="center">
-        <Title order={1}>{t('welcome')}</Title>
+        <Title order={1}>{t('welcome', { appName })}</Title>
         <Text c="dimmed">{t('auth.login.subtitle')}</Text>
       </Stack>
 

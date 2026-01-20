@@ -13,6 +13,7 @@ import { Pagination } from '../../components/common/Pagination'
 import { usePaginatedQuery } from '../../hooks/usePaginatedQuery'
 import { SearchInput } from '../../components/common/SearchInput'
 import { HomeLayout } from '../../components/home/HomeLayout'
+import { useAppName } from '../../hooks/useAppName'
 
 type FilterValue = 'all' | 'ride' | 'post' | 'trip'
 
@@ -25,6 +26,7 @@ const filterToType: Record<FilterValue, PublicationType | undefined> = {
 
 export function HomePage() {
   const { t } = useTranslation()
+  const appName = useAppName()
   const [page, setPage] = useState(0)
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState<FilterValue>('all')
@@ -73,7 +75,7 @@ export function HomePage() {
     <HomeLayout currentTab="feed">
       <Stack>
         <Box>
-          <Title order={2}>{t('welcome')}</Title>
+          <Title order={2}>{t('welcome', { appName })}</Title>
           <Text c="dimmed" mt={4} mb="md">
             {t('home.subtitle')}
           </Text>

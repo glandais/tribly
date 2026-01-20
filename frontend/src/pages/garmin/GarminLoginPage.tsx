@@ -19,6 +19,7 @@ import {
 } from '@mantine/core'
 import { startAuthentication, browserSupportsWebAuthn } from '@simplewebauthn/browser'
 import { useAuth } from '../../hooks/useAuth'
+import { useAppName } from '../../hooks/useAppName'
 import { useAuthStore } from '../../store/authStore'
 
 type AuthMethod = 'magic-link' | null
@@ -27,6 +28,7 @@ export function GarminLoginPage() {
   const { t } = useTranslation()
   const [searchParams] = useSearchParams()
   const { isAuthenticated } = useAuth()
+  const appName = useAppName()
   const { accessToken, setAccessToken, setUser } = useAuthStore()
 
   const [activeStep, setActiveStep] = useState(0)
@@ -247,7 +249,7 @@ export function GarminLoginPage() {
       </Stack>
 
       <Text size="xs" c="dimmed" ta="center">
-        {t('garmin.notice')}
+        {t('garmin.notice', { appName })}
       </Text>
     </Stack>
   )

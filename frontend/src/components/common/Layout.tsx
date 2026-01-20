@@ -19,6 +19,7 @@ import {
 import { useDisclosure, useHeadroom } from '@mantine/hooks'
 import { IconUser, IconLogout, IconShield } from '@tabler/icons-react'
 import { useAuth } from '../../hooks/useAuth'
+import { useAppName } from '../../hooks/useAppName'
 import { useAuthStore, selectIsPlatformAdmin } from '@/store/authStore'
 import { useBreadcrumb } from '../../hooks/useBreadcrumb'
 import { Breadcrumb } from './Breadcrumb'
@@ -29,6 +30,7 @@ import { paths } from '@/config/paths'
 export function Layout() {
   const { t } = useTranslation()
   const { user, isAuthenticated, logout } = useAuth()
+  const appName = useAppName()
   const isPlatformAdmin = useAuthStore(selectIsPlatformAdmin)
   const { items: breadcrumbItems, showBackLink } = useBreadcrumb()
   const [opened, { toggle, close }] = useDisclosure(false)
@@ -63,7 +65,7 @@ export function Layout() {
           <Group h="100%" justify="space-between">
             <Anchor component={Link} to="/" underline="never">
               <Text size="xl" fw={700} c="primary">
-                {t('appName')}
+                {appName}
               </Text>
             </Anchor>
 
@@ -198,7 +200,7 @@ export function Layout() {
       >
         <Container size="lg">
           <Text ta="center" c="dimmed" size="sm">
-            {t('footer.copyright', { year: new Date().getFullYear() })}
+            {t('footer.copyright', { year: new Date().getFullYear(), appName })}
           </Text>
         </Container>
       </Box>
