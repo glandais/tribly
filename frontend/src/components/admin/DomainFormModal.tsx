@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useQueryClient } from '@tanstack/react-query'
 import { useForm } from '@mantine/form'
@@ -75,12 +75,24 @@ export function DomainFormModal({ isOpen, onClose, domain }: DomainFormModalProp
   // Domain form
   const domainForm = useForm<DomainFormValues>({
     initialValues: {
-      domain: domain?.domain ?? '',
-      name: domain?.name ?? '',
-      baseUrl: domain?.baseUrl ?? '',
-      singleTeam: domain?.singleTeam ?? false,
+      domain: '',
+      name: '',
+      baseUrl: '',
+      singleTeam: false,
     },
   })
+
+  // Reset form when domain changes (edit vs create mode)
+  useEffect(() => {
+    if (isOpen) {
+      domainForm.setValues({
+        domain: domain?.domain ?? '',
+        name: domain?.name ?? '',
+        baseUrl: domain?.baseUrl ?? '',
+        singleTeam: domain?.singleTeam ?? false,
+      })
+    }
+  }, [domain, isOpen])
 
   const handleDomainSubmit = async (values: DomainFormValues) => {
     if (isEditMode && domain) {
