@@ -6,6 +6,10 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type RegisterPasskeyParams = {
-deviceName?: string;
-};
+/**
+ * Device auth request
+ */
+export interface DeviceRequest {
+  /** Client ID (optional, defaults to 'karoo-device') */
+  clientId?: string
+}

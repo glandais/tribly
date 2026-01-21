@@ -872,9 +872,8 @@
             "description" : "User code from device display"
           },
           "userId" : {
-            "type" : "integer",
-            "format" : "int64",
-            "description" : "Authenticated user ID"
+            "type" : "string",
+            "description" : "Authenticated user ID (TSID string)"
           }
         }
       },

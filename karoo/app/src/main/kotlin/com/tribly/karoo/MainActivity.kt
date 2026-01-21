@@ -1,7 +1,9 @@
 package com.tribly.karoo
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.clickable
@@ -28,10 +30,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -141,29 +145,34 @@ private fun MainScreen(
     authManager: AuthManager,
     onConnect: () -> Unit
 ) {
-    var isAuthenticated by remember { mutableStateOf<Boolean?>(null) }
+    // Collect auth state - will update when tokens change
+    val isAuthenticated by authManager.isAuthenticated.collectAsState(initial = null)
     var routes by remember { mutableStateOf<List<Route>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     var error by remember { mutableStateOf<String?>(null) }
     var syncingRouteId by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
-    // Check authentication and load routes
-    LaunchedEffect(Unit) {
-        val authenticated = authManager.isAuthenticated.first()
-        isAuthenticated = authenticated
+    // Load routes when authenticated
+    LaunchedEffect(isAuthenticated) {
+        if (isAuthenticated == null) {
+            // Still loading auth state
+            return@LaunchedEffect
+        }
 
-        if (authenticated) {
+        if (isAuthenticated == true) {
+            isLoading = true
             loadRoutes(apiClient, authManager) { result ->
                 result.onSuccess {
                     routes = it
                     isLoading = false
+                    error = null
                 }.onFailure { e ->
                     if (e is UnauthorizedException) {
                         // Token invalid, clear and show connect screen
                         scope.launch {
                             authManager.clearTokens()
-                            isAuthenticated = false
                         }
                     } else {
                         error = e.message
@@ -173,23 +182,8 @@ private fun MainScreen(
             }
         } else {
             isLoading = false
-        }
-    }
-
-    // Observe authentication changes
-    LaunchedEffect(isAuthenticated) {
-        if (isAuthenticated == true) {
-            isLoading = true
-            loadRoutes(apiClient, authManager) { result ->
-                result.onSuccess {
-                    routes = it
-                    isLoading = false
-                    error = null
-                }.onFailure { e ->
-                    error = e.message
-                    isLoading = false
-                }
-            }
+            routes = emptyList()
+            error = null
         }
     }
 
@@ -233,7 +227,7 @@ private fun MainScreen(
                     syncingRouteId = syncingRouteId,
                     onSync = { route ->
                         scope.launch {
-                            syncRoute(apiClient, authManager, route) { syncing ->
+                            syncRoute(context, apiClient, authManager, route) { syncing ->
                                 syncingRouteId = if (syncing) "${route.teamSlug}/${route.routeSlug}" else null
                             }
                         }
@@ -384,72 +378,67 @@ private fun RouteItem(
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 4.dp),
+            .padding(horizontal = 8.dp, vertical = 4.dp)
+            .clickable(onClick = onSync),
         color = MaterialTheme.colorScheme.surfaceVariant,
         shape = MaterialTheme.shapes.medium
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
+                .padding(10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // Route info
             Column(modifier = Modifier.weight(1f)) {
+                // Line 1: label (or name if no label)
                 Text(
-                    text = route.name,
-                    style = MaterialTheme.typography.bodyLarge,
+                    text = route.label ?: route.name,
+                    style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Medium,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                route.label?.let { label ->
+                // Line 2: name (only if label present)
+                if (route.label != null) {
                     Text(
-                        text = label,
+                        text = route.name,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
                 }
-                Spacer(modifier = Modifier.height(4.dp))
-                Row {
+                // Line 3: distance and elevation
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
                     Text(
                         text = "%.1f km".format(route.distanceKm),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.primary
                     )
-                    Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        text = "${route.elevationGainInt} m",
+                        text = "↑${route.elevationGainInt}m",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.secondary
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.width(12.dp))
-
-            // Sync button
+            // Sync indicator
             if (isSyncing) {
                 CircularProgressIndicator(
-                    modifier = Modifier.size(24.dp),
+                    modifier = Modifier.size(20.dp),
                     strokeWidth = 2.dp,
                     color = MaterialTheme.colorScheme.primary
                 )
             } else {
-                Surface(
-                    modifier = Modifier.clickable(onClick = onSync),
-                    color = MaterialTheme.colorScheme.primary,
-                    shape = MaterialTheme.shapes.small
-                ) {
-                    Text(
-                        text = stringResource(R.string.route_sync),
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
-                    )
-                }
+                Text(
+                    text = "›",
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
             }
         }
     }
@@ -488,6 +477,7 @@ private suspend fun loadRoutes(
 }
 
 private suspend fun syncRoute(
+    context: Context,
     apiClient: TriblyApiClient,
     authManager: AuthManager,
     route: Route,
@@ -503,10 +493,10 @@ private suspend fun syncRoute(
 
     apiClient.syncRoute(accessToken, route.teamSlug, route.routeSlug)
         .onSuccess {
-            // Show toast or notification - in production use Snackbar
+            Toast.makeText(context, R.string.route_synced, Toast.LENGTH_SHORT).show()
         }
         .onFailure {
-            // Show error - in production use Snackbar
+            Toast.makeText(context, R.string.route_sync_error, Toast.LENGTH_SHORT).show()
         }
 
     onSyncing(false)

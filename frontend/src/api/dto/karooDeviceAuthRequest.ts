@@ -7,13 +7,9 @@
  */
 
 /**
- * Magic link request
+ * Karoo device code request (RFC 8628)
  */
-export interface MagicLinkRequest {
-  /**
-   * Email address
-   * @maxLength 250
-   * @pattern \S
-   */
-  email: string
+export interface KarooDeviceAuthRequest {
+  /** Client ID (must be 'karoo-device') */
+  clientId?: string
 }

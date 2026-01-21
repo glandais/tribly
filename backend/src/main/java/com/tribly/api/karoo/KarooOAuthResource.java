@@ -191,7 +191,8 @@ public class KarooOAuthResource {
   @ValidateSchema
   public record CompleteRequest(
       @Schema(description = "User code from device display", required = true) String userCode,
-      @Schema(description = "Authenticated user ID (TSID string)", required = true) String userId) {}
+      @Schema(description = "Authenticated user ID (TSID string)", required = true)
+          String userId) {}
 
   @Schema(description = "User code verification response")
   @ValidateSchema

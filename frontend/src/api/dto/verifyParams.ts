@@ -6,6 +6,6 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type RegisterPasskeyParams = {
-deviceName?: string;
-};
+export type VerifyParams = {
+  code?: string
+}
