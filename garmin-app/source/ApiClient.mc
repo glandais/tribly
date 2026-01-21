@@ -9,7 +9,8 @@ using Toybox.Position;
  */
 class ApiClient {
     // TODO: Update this URL for production
-    public static const API_BASE_URL = "https://localhost:5173/api";
+    public static const BASE_URL = "https://192.168.50.20:5173";
+    public static const API_BASE_URL = BASE_URL + "/api";
 
     private var _authManager;
     private var _routesCallback;

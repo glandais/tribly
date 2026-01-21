@@ -6,8 +6,8 @@ import { visualizer } from 'rollup-plugin-visualizer'
 
 // Load mkcert certificates if available (for Garmin simulator HTTPS testing)
 function loadHttpsCerts() {
-  const certPath = path.resolve(__dirname, 'localhost+1.pem')
-  const keyPath = path.resolve(__dirname, 'localhost+1-key.pem')
+  const certPath = path.resolve(__dirname, 'localhost+2.pem')
+  const keyPath = path.resolve(__dirname, 'localhost+2-key.pem')
   if (fs.existsSync(certPath) && fs.existsSync(keyPath)) {
     return {
       cert: fs.readFileSync(certPath),
@@ -195,7 +195,8 @@ export default defineConfig({
         configure: (proxy) => {
           proxy.on('proxyReq', (proxyReq, req) => {
             // Forward actual host for proper domain resolution
-            const host = req.headers.host || 'localhost:5173'
+            // HTTP/2 uses :authority instead of host header
+            const host = req.headers.host || req.headers[':authority'] || 'localhost:5173'
             proxyReq.setHeader('X-Forwarded-Host', host)
             // Use https if certs are loaded
             proxyReq.setHeader('X-Forwarded-Proto', loadHttpsCerts() ? 'https' : 'http')

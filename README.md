@@ -63,8 +63,8 @@ Generate certificates in the frontend folder:
 
 ```bash
 cd frontend
-mkcert localhost 127.0.0.1
-# Creates localhost+1.pem and localhost+1-key.pem
+mkcert localhost 127.0.0.1 192.168.50.20
+# Creates localhost+2.pem and localhost+2-key.pem
 ```
 
 
@@ -96,9 +96,9 @@ Backend available at:
 INSERT INTO domains (id, domain, name, base_url, single_team, active, deleted, created_at, updated_at, version)
 VALUES (
     (EXTRACT(EPOCH FROM NOW()) * 1000)::BIGINT * 1000000 + (RANDOM() * 999999)::INT,
-    'localhost',
+    '192.168.50.20',
     'Tribly',
-    'https://localhost:5173',
+    'https://192.168.50.20:5173',
     false,
     true,
     false,

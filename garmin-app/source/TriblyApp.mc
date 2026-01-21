@@ -58,23 +58,24 @@ class TriblyApp extends Application.AppBase {
      */
     function startOAuthFlow() {
         System.println("startOAuthFlow called");
+
+        var redirectUri = ApiClient.BASE_URL + "/garmin/success";
         var params = {
             "client_id" => "garmin-connect-iq",
             "response_type" => "code",
-            "redirect_uri" => "connectiq://oauth"
+            "redirect_uri" => redirectUri
         };
 
-        var oauthUrl = ApiClient.API_BASE_URL + "/garmin/oauth/authorize" +
+        var oauthUrl =  ApiClient.BASE_URL + "/garmin/login" +
             "?client_id=" + params["client_id"] +
             "&response_type=" + params["response_type"] +
             "&redirect_uri=" + params["redirect_uri"];
         System.println("OAuth URL: " + oauthUrl);
 
         Communications.makeOAuthRequest(
-            "https://localhost:5173/",
-            // ApiClient.API_BASE_URL + "/garmin/oauth/authorize",
+            ApiClient.BASE_URL + "/garmin/login",
             params,
-            "connectiq://oauth",
+            redirectUri,
             Communications.OAUTH_RESULT_TYPE_URL,
             {"code" => "code"}
         );
