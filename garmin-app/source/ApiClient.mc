@@ -9,7 +9,7 @@ using Toybox.Position;
  */
 class ApiClient {
     // TODO: Update this URL for production
-    public static const BASE_URL = "https://192.168.50.20:5173";
+    public static const BASE_URL = "https://www.pedalons.fr";
     public static const API_BASE_URL = BASE_URL + "/api";
 
     private var _authManager;
@@ -34,7 +34,7 @@ class ApiClient {
 
         var url = API_BASE_URL + "/garmin/oauth/token";
         var params = {
-            "grant_type" => "authorization_code",
+            "grantType" => "authorization_code",
             "code" => code
         };
 
@@ -66,8 +66,8 @@ class ApiClient {
 
         var url = API_BASE_URL + "/garmin/oauth/token";
         var params = {
-            "grant_type" => "refresh_token",
-            "refresh_token" => refreshToken
+            "grantType" => "refresh_token",
+            "refreshToken" => refreshToken
         };
 
         Communications.makeWebRequest(
@@ -105,7 +105,7 @@ class ApiClient {
             }
         }
 
-        System.println("Token response failed: " + responseCode);
+        // System.println("Token response failed: " + responseCode);
         if (callback != null) {
             callback.invoke(false);
         }
@@ -186,7 +186,7 @@ class ApiClient {
             return;
         }
 
-        System.println("Routes response failed: " + responseCode);
+        // System.println("Routes response failed: " + responseCode);
 
         // If 401, clear tokens and force re-login
         if (responseCode == 401) {
@@ -265,14 +265,14 @@ class ApiClient {
         _downloadCallback = null;
 
         if (responseCode == 200) {
-            System.println("FIT download successful");
+            // System.println("FIT download successful");
             if (callback != null) {
                 callback.invoke(true);
             }
             return;
         }
 
-        System.println("FIT download failed: " + responseCode);
+        // System.println("FIT download failed: " + responseCode);
 
         // If 401, clear tokens
         if (responseCode == 401) {

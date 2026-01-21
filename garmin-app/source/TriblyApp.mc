@@ -57,7 +57,7 @@ class TriblyApp extends Application.AppBase {
      * Initiate OAuth flow by opening browser on phone.
      */
     function startOAuthFlow() {
-        System.println("startOAuthFlow called");
+        // System.println("startOAuthFlow called");
 
         var redirectUri = ApiClient.BASE_URL + "/garmin/success";
         var params = {
@@ -70,7 +70,7 @@ class TriblyApp extends Application.AppBase {
             "?client_id=" + params["client_id"] +
             "&response_type=" + params["response_type"] +
             "&redirect_uri=" + params["redirect_uri"];
-        System.println("OAuth URL: " + oauthUrl);
+        // System.println("OAuth URL: " + oauthUrl);
 
         Communications.makeOAuthRequest(
             ApiClient.BASE_URL + "/garmin/login",
@@ -85,22 +85,22 @@ class TriblyApp extends Application.AppBase {
      * Handle OAuth callback from phone browser.
      */
     function onOAuthMessage(message as Communications.OAuthMessage) as Void {
-        System.println("onOAuthMessage called");
-        System.println("responseCode: " + message.responseCode);
+        // System.println("onOAuthMessage called");
+        // System.println("responseCode: " + message.responseCode);
         var data = message.data;
-        System.println("data: " + data);
+        // System.println("data: " + data);
         if (data != null && data instanceof Lang.Dictionary) {
             var dict = data as Lang.Dictionary;
-            System.println("dict keys: " + dict.keys());
+            // System.println("dict keys: " + dict.keys());
             if (dict.hasKey("code")) {
                 var code = dict.get("code");
-                System.println("Got auth code: " + code);
+                // System.println("Got auth code: " + code);
                 exchangeCodeForTokens(code);
                 return;
             }
         }
         // OAuth failed, show error
-        System.println("OAuth failed - no code in response");
+        // System.println("OAuth failed - no code in response");
         WatchUi.switchToView(
             new ErrorView(WatchUi.loadResource(Rez.Strings.ConnectionError)),
             new ErrorDelegate(self),

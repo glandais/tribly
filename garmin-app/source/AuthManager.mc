@@ -68,7 +68,7 @@ class AuthManager {
         var expiry = Time.now().value() + expiresIn;
         Storage.setValue(TOKEN_EXPIRY_KEY, expiry);
 
-        System.println("Tokens saved, expires at: " + expiry);
+        // System.println("Tokens saved, expires at: " + expiry);
     }
 
     /**
@@ -78,7 +78,7 @@ class AuthManager {
         Storage.deleteValue(ACCESS_TOKEN_KEY);
         Storage.deleteValue(REFRESH_TOKEN_KEY);
         Storage.deleteValue(TOKEN_EXPIRY_KEY);
-        System.println("Tokens cleared");
+        // System.println("Tokens cleared");
     }
 
     /**
