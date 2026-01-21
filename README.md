@@ -20,7 +20,7 @@ Multi-tenant web platform for cycling teams to organize rides, trips, manage GPX
 - Docker 24+
 - Docker Compose 2.20+
 
-### 1. Clone and Setup
+### Clone and Setup
 
 ```bash
 git clone https://github.com/your-org/tribly.git
@@ -38,9 +38,35 @@ Required environment variables for production:
 | Variable | Description |
 |----------|-------------|
 | `ENCRYPTION_KEY` | Base64-encoded 32-byte key for token encryption (generate with `openssl rand -base64 32`) |
-| `HAMMERHEAD_CLIENT_ID` | Hammerhead OAuth client ID (for GPS device integration) |
-| `HAMMERHEAD_CLIENT_SECRET` | Hammerhead OAuth client secret |
-| `GARMIN_CLIENT_ID` | Garmin Connect OAuth client ID (for GPS device integration) |
+
+
+### Install and configure mkcert
+
+```bash
+# Windows (chocolatey)
+choco install mkcert
+
+# Windows (scoop)
+scoop install mkcert
+
+# macOS
+brew install mkcert
+```
+
+Install local CA (one time):
+
+```bash
+mkcert -install
+```
+
+Generate certificates in the frontend folder:
+
+```bash
+cd frontend
+mkcert localhost 127.0.0.1
+# Creates localhost+1.pem and localhost+1-key.pem
+```
+
 
 ### 2. Start Infrastructure
 
@@ -64,7 +90,25 @@ Backend available at:
 - Swagger UI: http://localhost:8080/q/swagger-ui
 - Health: http://localhost:8080/q/health
 
-### 4. Start Frontend
+### Create a domain for localhost
+
+```sql
+INSERT INTO domains (id, domain, name, base_url, single_team, active, deleted, created_at, updated_at, version)
+VALUES (
+    (EXTRACT(EPOCH FROM NOW()) * 1000)::BIGINT * 1000000 + (RANDOM() * 999999)::INT,
+    'localhost',
+    'Tribly',
+    'https://localhost:5173',
+    false,
+    true,
+    false,
+    NOW(),
+    NOW(),
+    0
+);
+```
+
+### Start Frontend
 
 ```bash
 cd frontend
@@ -72,7 +116,7 @@ pnpm install
 pnpm dev
 ```
 
-Frontend available at http://localhost:5173
+Frontend available at https://localhost:5173
 
 ## Project Structure
 
@@ -151,12 +195,13 @@ Tribly is multi-tenant: each domain (hostname) has isolated teams and users. The
 No admin UI yet. Create domains directly in PostgreSQL:
 
 ```sql
-INSERT INTO domains (id, domain, name, base_url, active, deleted, created_at, updated_at, version)
+INSERT INTO domains (id, domain, name, base_url, single_team, active, deleted, created_at, updated_at, version)
 VALUES (
     (EXTRACT(EPOCH FROM NOW()) * 1000)::BIGINT * 1000000 + (RANDOM() * 999999)::INT,
     'monclub.fr',                    -- domain: hostname used to access the site
     'Mon Club Cycliste',             -- name: displayed in emails, UI, WebAuthn prompts
     'https://monclub.fr',            -- base_url: full URL for email/calendar links
+    false,                           -- single_team: if true, domain has only one team
     true,                            -- active
     false,                           -- deleted
     NOW(),
@@ -190,3 +235,7 @@ After this, the "Admin" link will appear in the header menu, providing access to
 - **Domains**: Manage domains (create, edit, activate/deactivate)
 - **Teams**: View all teams, archive/restore
 - **Users**: View all users, grant/revoke platform admin role
+
+## Garmin Connect IQ App Development
+
+The Garmin app (`garmin-app/`) allows users to browse and download routes directly to their Garmin devices. See README inside `garmin-app/` folder

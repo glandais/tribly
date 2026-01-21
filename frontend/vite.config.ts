@@ -1,10 +1,39 @@
-import { defineConfig } from 'vite'
+import { defineConfig, PluginOption } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
+import fs from 'fs'
 import { visualizer } from 'rollup-plugin-visualizer'
+
+// Load mkcert certificates if available (for Garmin simulator HTTPS testing)
+function loadHttpsCerts() {
+  const certPath = path.resolve(__dirname, 'localhost+1.pem')
+  const keyPath = path.resolve(__dirname, 'localhost+1-key.pem')
+  if (fs.existsSync(certPath) && fs.existsSync(keyPath)) {
+    return {
+      cert: fs.readFileSync(certPath),
+      key: fs.readFileSync(keyPath),
+    }
+  }
+  return false
+}
+
+// Request logger plugin for debugging
+function requestLogger(): PluginOption {
+  return {
+    name: 'request-logger',
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        const timestamp = new Date().toISOString()
+        console.log(`[${timestamp}] ${req.method} ${req.url} (from: ${req.headers['host']})`)
+        next()
+      })
+    },
+  }
+}
 
 export default defineConfig({
   plugins: [
+    requestLogger(),
     react(),
     visualizer({
       open: false,
@@ -157,14 +186,20 @@ export default defineConfig({
   },
   server: {
     port: 5173,
+    https: loadHttpsCerts(),
     proxy: {
       '/api': {
         target: 'http://localhost:8080',
         changeOrigin: true,
         secure: false,
-        headers: {
-          'X-Forwarded-Host': 'localhost:5173',
-          'X-Forwarded-Proto': 'http',
+        configure: (proxy) => {
+          proxy.on('proxyReq', (proxyReq, req) => {
+            // Forward actual host for proper domain resolution
+            const host = req.headers.host || 'localhost:5173'
+            proxyReq.setHeader('X-Forwarded-Host', host)
+            // Use https if certs are loaded
+            proxyReq.setHeader('X-Forwarded-Proto', loadHttpsCerts() ? 'https' : 'http')
+          })
         },
       },
     },

@@ -62,7 +62,6 @@ class TriblyDelegate extends WatchUi.BehaviorDelegate {
     function onBack() {
         // Exit app
         System.exit();
-        return true;
     }
 }
 

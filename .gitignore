@@ -82,3 +82,6 @@ backend/keys/*.pem
 data/keys/*
 !data/keys/.gitkeep
 !data/keys/*.sh
+
+# mkcert certificates for local HTTPS development
+frontend/*.pem
