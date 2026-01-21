@@ -94,8 +94,7 @@ public class KarooAuthService {
 
     // Store device code with expiry
     Instant expiresAt = Instant.now().plus(Duration.ofMinutes(DEVICE_CODE_EXPIRY_MINUTES));
-    deviceCodes.put(
-        deviceCode, new DeviceCodeData(userCode, domainId, expiresAt, null, false));
+    deviceCodes.put(deviceCode, new DeviceCodeData(userCode, domainId, expiresAt, null, false));
 
     // Also index by user code for lookup during verification
     userCodeToDeviceCode.put(userCode, deviceCode);

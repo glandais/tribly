@@ -102,11 +102,15 @@ public class KarooRouteService {
                         ? Math.abs(r.dto().rideDateTime().toEpochMilli() - sortNow.toEpochMilli())
                         : Long.MAX_VALUE)
             // Then by distance from user (if provided)
-            .thenComparingDouble(r -> r.distanceFromUser() != null ? r.distanceFromUser() : Double.MAX_VALUE));
+            .thenComparingDouble(
+                r -> r.distanceFromUser() != null ? r.distanceFromUser() : Double.MAX_VALUE));
 
     // Limit results and extract DTOs (dropping distanceFromUser to save bytes)
     List<KarooRouteDto> routes =
-        allRoutes.stream().limit(MAX_ROUTES).map(RouteWithDistance::dto).collect(Collectors.toList());
+        allRoutes.stream()
+            .limit(MAX_ROUTES)
+            .map(RouteWithDistance::dto)
+            .collect(Collectors.toList());
 
     return KarooRoutesResponse.builder().routes(routes).build();
   }

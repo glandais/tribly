@@ -17,7 +17,8 @@ public record KarooTokenRequest(
         @NotBlank
         String grantType,
     @Schema(description = "Device code (for device_code grant)") @Nullable String deviceCode,
-    @Schema(description = "Refresh token (for refresh_token grant)") @Nullable String refreshToken) {
+    @Schema(description = "Refresh token (for refresh_token grant)")
+        @Nullable String refreshToken) {
 
   public static final String DEVICE_CODE_GRANT = "urn:ietf:params:oauth:grant-type:device_code";
   public static final String REFRESH_TOKEN_GRANT = "refresh_token";

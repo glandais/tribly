@@ -85,3 +85,5 @@ data/keys/*
 
 # mkcert certificates for local HTTPS development
 frontend/*.pem
+
+.playwright-mcp

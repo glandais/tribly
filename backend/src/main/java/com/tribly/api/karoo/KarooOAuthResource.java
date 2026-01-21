@@ -68,7 +68,9 @@ public class KarooOAuthResource {
     if (request != null
         && request.clientId() != null
         && !KAROO_CLIENT_ID.equals(request.clientId())) {
-      return Response.status(Response.Status.BAD_REQUEST).entity(ErrorResponse.badRequest()).build();
+      return Response.status(Response.Status.BAD_REQUEST)
+          .entity(ErrorResponse.badRequest())
+          .build();
     }
 
     KarooDeviceCodeResponse response = karooAuthService.initiateDeviceCodeFlow();
