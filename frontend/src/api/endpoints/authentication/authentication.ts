@@ -16,9 +16,10 @@ import type {
 import type {
   AuthResponse,
   ErrorResponse,
-  MagicLinkRequest,
   MessageResponse,
+  OtpRequest,
   RegisterRequest,
+  VerifyOtpRequest,
   VerifyTokenRequest,
 } from '../../dto'
 
@@ -122,44 +123,44 @@ export const useLogoutAll = <TError = ErrorType<ErrorResponse | void>, TContext 
   return useMutation(mutationOptions, queryClient)
 }
 /**
- * Send a magic link to the user's email for passwordless login
- * @summary Request magic link
+ * Send a 6-digit OTP code to the user's email for passwordless login
+ * @summary Request OTP
  */
-export const requestMagicLink = (
-  magicLinkRequest: BodyType<MagicLinkRequest>,
+export const requestOtp = (
+  otpRequest: BodyType<OtpRequest>,
   options?: SecondParameter<typeof axiosMutator>,
   signal?: AbortSignal
 ) => {
   return axiosMutator<MessageResponse>(
     {
-      url: `/api/auth/magic-link`,
+      url: `/api/auth/otp`,
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      data: magicLinkRequest,
+      data: otpRequest,
       signal,
     },
     options
   )
 }
 
-export const getRequestMagicLinkMutationOptions = <
+export const getRequestOtpMutationOptions = <
   TError = ErrorType<void>,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof requestMagicLink>>,
+    Awaited<ReturnType<typeof requestOtp>>,
     TError,
-    { data: BodyType<MagicLinkRequest> },
+    { data: BodyType<OtpRequest> },
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
-  Awaited<ReturnType<typeof requestMagicLink>>,
+  Awaited<ReturnType<typeof requestOtp>>,
   TError,
-  { data: BodyType<MagicLinkRequest> },
+  { data: BodyType<OtpRequest> },
   TContext
 > => {
-  const mutationKey = ['requestMagicLink']
+  const mutationKey = ['requestOtp']
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -167,86 +168,84 @@ export const getRequestMagicLinkMutationOptions = <
     : { mutation: { mutationKey }, request: undefined }
 
   const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof requestMagicLink>>,
-    { data: BodyType<MagicLinkRequest> }
+    Awaited<ReturnType<typeof requestOtp>>,
+    { data: BodyType<OtpRequest> }
   > = (props) => {
     const { data } = props ?? {}
 
-    return requestMagicLink(data, requestOptions)
+    return requestOtp(data, requestOptions)
   }
 
   return { mutationFn, ...mutationOptions }
 }
 
-export type RequestMagicLinkMutationResult = NonNullable<
-  Awaited<ReturnType<typeof requestMagicLink>>
->
-export type RequestMagicLinkMutationBody = BodyType<MagicLinkRequest>
-export type RequestMagicLinkMutationError = ErrorType<void>
+export type RequestOtpMutationResult = NonNullable<Awaited<ReturnType<typeof requestOtp>>>
+export type RequestOtpMutationBody = BodyType<OtpRequest>
+export type RequestOtpMutationError = ErrorType<void>
 
 /**
- * @summary Request magic link
+ * @summary Request OTP
  */
-export const useRequestMagicLink = <TError = ErrorType<void>, TContext = unknown>(
+export const useRequestOtp = <TError = ErrorType<void>, TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof requestMagicLink>>,
+      Awaited<ReturnType<typeof requestOtp>>,
       TError,
-      { data: BodyType<MagicLinkRequest> },
+      { data: BodyType<OtpRequest> },
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
   },
   queryClient?: QueryClient
 ): UseMutationResult<
-  Awaited<ReturnType<typeof requestMagicLink>>,
+  Awaited<ReturnType<typeof requestOtp>>,
   TError,
-  { data: BodyType<MagicLinkRequest> },
+  { data: BodyType<OtpRequest> },
   TContext
 > => {
-  const mutationOptions = getRequestMagicLinkMutationOptions(options)
+  const mutationOptions = getRequestOtpMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }
 /**
- * Verify magic link token and authenticate
- * @summary Verify magic link
+ * Verify OTP code and authenticate
+ * @summary Verify OTP
  */
-export const verifyMagicLink = (
-  verifyTokenRequest: BodyType<VerifyTokenRequest>,
+export const verifyOtp = (
+  verifyOtpRequest: BodyType<VerifyOtpRequest>,
   options?: SecondParameter<typeof axiosMutator>,
   signal?: AbortSignal
 ) => {
   return axiosMutator<AuthResponse>(
     {
-      url: `/api/auth/magic-link/verify`,
+      url: `/api/auth/otp/verify`,
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      data: verifyTokenRequest,
+      data: verifyOtpRequest,
       signal,
     },
     options
   )
 }
 
-export const getVerifyMagicLinkMutationOptions = <
+export const getVerifyOtpMutationOptions = <
   TError = ErrorType<ErrorResponse>,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
-    Awaited<ReturnType<typeof verifyMagicLink>>,
+    Awaited<ReturnType<typeof verifyOtp>>,
     TError,
-    { data: BodyType<VerifyTokenRequest> },
+    { data: BodyType<VerifyOtpRequest> },
     TContext
   >
   request?: SecondParameter<typeof axiosMutator>
 }): UseMutationOptions<
-  Awaited<ReturnType<typeof verifyMagicLink>>,
+  Awaited<ReturnType<typeof verifyOtp>>,
   TError,
-  { data: BodyType<VerifyTokenRequest> },
+  { data: BodyType<VerifyOtpRequest> },
   TContext
 > => {
-  const mutationKey = ['verifyMagicLink']
+  const mutationKey = ['verifyOtp']
   const { mutation: mutationOptions, request: requestOptions } = options
     ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
       ? options
@@ -254,42 +253,42 @@ export const getVerifyMagicLinkMutationOptions = <
     : { mutation: { mutationKey }, request: undefined }
 
   const mutationFn: MutationFunction<
-    Awaited<ReturnType<typeof verifyMagicLink>>,
-    { data: BodyType<VerifyTokenRequest> }
+    Awaited<ReturnType<typeof verifyOtp>>,
+    { data: BodyType<VerifyOtpRequest> }
   > = (props) => {
     const { data } = props ?? {}
 
-    return verifyMagicLink(data, requestOptions)
+    return verifyOtp(data, requestOptions)
   }
 
   return { mutationFn, ...mutationOptions }
 }
 
-export type VerifyMagicLinkMutationResult = NonNullable<Awaited<ReturnType<typeof verifyMagicLink>>>
-export type VerifyMagicLinkMutationBody = BodyType<VerifyTokenRequest>
-export type VerifyMagicLinkMutationError = ErrorType<ErrorResponse>
+export type VerifyOtpMutationResult = NonNullable<Awaited<ReturnType<typeof verifyOtp>>>
+export type VerifyOtpMutationBody = BodyType<VerifyOtpRequest>
+export type VerifyOtpMutationError = ErrorType<ErrorResponse>
 
 /**
- * @summary Verify magic link
+ * @summary Verify OTP
  */
-export const useVerifyMagicLink = <TError = ErrorType<ErrorResponse>, TContext = unknown>(
+export const useVerifyOtp = <TError = ErrorType<ErrorResponse>, TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<
-      Awaited<ReturnType<typeof verifyMagicLink>>,
+      Awaited<ReturnType<typeof verifyOtp>>,
       TError,
-      { data: BodyType<VerifyTokenRequest> },
+      { data: BodyType<VerifyOtpRequest> },
       TContext
     >
     request?: SecondParameter<typeof axiosMutator>
   },
   queryClient?: QueryClient
 ): UseMutationResult<
-  Awaited<ReturnType<typeof verifyMagicLink>>,
+  Awaited<ReturnType<typeof verifyOtp>>,
   TError,
-  { data: BodyType<VerifyTokenRequest> },
+  { data: BodyType<VerifyOtpRequest> },
   TContext
 > => {
-  const mutationOptions = getVerifyMagicLinkMutationOptions(options)
+  const mutationOptions = getVerifyOtpMutationOptions(options)
 
   return useMutation(mutationOptions, queryClient)
 }

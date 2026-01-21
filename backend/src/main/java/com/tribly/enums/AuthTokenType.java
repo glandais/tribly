@@ -2,6 +2,6 @@ package com.tribly.enums;
 
 public enum AuthTokenType {
   EMAIL_VERIFICATION,
-  MAGIC_LINK,
+  OTP,
   PASSWORD_RESET
 }

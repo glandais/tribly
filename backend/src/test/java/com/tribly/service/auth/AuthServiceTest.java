@@ -8,7 +8,7 @@ import com.tribly.common.exception.NotFoundException;
 import com.tribly.domain.auth.AuthToken;
 import com.tribly.domain.platform.Domain;
 import com.tribly.domain.user.User;
-import com.tribly.dto.auth.request.MagicLinkRequest;
+import com.tribly.dto.auth.request.OtpRequest;
 import com.tribly.dto.auth.request.RegisterRequest;
 import com.tribly.dto.auth.response.AuthResponse;
 import com.tribly.dto.auth.response.AuthResult;
@@ -134,58 +134,61 @@ class AuthServiceTest {
         BadRequestException.class, () -> authService.verifyEmail("expired-token", "Agent", "IP"));
   }
 
-  // --- RequestMagicLink tests ---
+  // --- RequestOtp tests ---
 
   @Test
-  void requestMagicLink_shouldCreateTokenAndSendEmail() {
-    dataService.createVerifiedUser("magic@example.com", "Magic User");
-    MagicLinkRequest request = new MagicLinkRequest("magic@example.com");
+  void requestOtp_shouldCreateTokenAndSendEmail() {
+    dataService.createVerifiedUser("otp@example.com", "OTP User");
+    OtpRequest request = new OtpRequest("otp@example.com");
 
-    authService.requestMagicLink(request);
+    authService.requestOtp(request);
 
-    var tokens =
-        authTokenRepository.findValidByEmailAndType("magic@example.com", AuthTokenType.MAGIC_LINK);
+    var tokens = authTokenRepository.findValidByEmailAndType("otp@example.com", AuthTokenType.OTP);
     assertTrue(tokens.isPresent());
 
-    assertEquals(1, mailbox.getMailsSentTo("magic@example.com").size());
+    assertEquals(1, mailbox.getMailsSentTo("otp@example.com").size());
   }
 
   @Test
-  void requestMagicLink_shouldNotThrowForNonexistentUser() {
-    MagicLinkRequest request = new MagicLinkRequest("nonexistent@example.com");
+  void requestOtp_shouldNotThrowForNonexistentUser() {
+    OtpRequest request = new OtpRequest("nonexistent@example.com");
 
     // Should not throw - prevents email enumeration
-    assertDoesNotThrow(() -> authService.requestMagicLink(request));
+    assertDoesNotThrow(() -> authService.requestOtp(request));
     assertEquals(0, mailbox.getTotalMessagesSent());
   }
 
   @Test
-  void requestMagicLink_shouldNotSendForUnverifiedUser() {
+  void requestOtp_shouldNotSendForUnverifiedUser() {
     dataService.createUser("unverified@example.com", "Unverified User");
-    MagicLinkRequest request = new MagicLinkRequest("unverified@example.com");
+    OtpRequest request = new OtpRequest("unverified@example.com");
 
-    authService.requestMagicLink(request);
+    authService.requestOtp(request);
 
     assertEquals(0, mailbox.getTotalMessagesSent());
   }
 
-  // --- VerifyMagicLink tests ---
+  // --- VerifyOtp tests ---
 
   @Test
-  void verifyMagicLink_shouldReturnAuthResult() {
-    User user = dataService.createVerifiedUser("magic@example.com", "Magic User");
-    createMagicLinkToken(user, "magic-token");
+  void verifyOtp_shouldReturnAuthResult() {
+    User user = dataService.createVerifiedUser("otp@example.com", "OTP User");
+    createOtpToken(user, "123456");
 
-    AuthResult result = authService.verifyMagicLink("magic-token", "Agent", "IP");
+    AuthResult result = authService.verifyOtp("otp@example.com", "123456", "Agent", "IP");
 
     assertNotNull(result.response().accessToken());
-    assertEquals("magic@example.com", result.response().user().email());
+    assertEquals("otp@example.com", result.response().user().email());
   }
 
   @Test
-  void verifyMagicLink_shouldThrowForInvalidToken() {
+  void verifyOtp_shouldThrowForInvalidCode() {
+    User user = dataService.createVerifiedUser("otp@example.com", "OTP User");
+    createOtpToken(user, "123456");
+
     assertThrows(
-        BadRequestException.class, () -> authService.verifyMagicLink("invalid", "Agent", "IP"));
+        BadRequestException.class,
+        () -> authService.verifyOtp("otp@example.com", "000000", "Agent", "IP"));
   }
 
   // --- RefreshToken tests ---
@@ -329,15 +332,15 @@ class AuthServiceTest {
   }
 
   @Transactional
-  void createMagicLinkToken(User user, String token) {
-    String tokenHash = hashToken(token);
+  void createOtpToken(User user, String code) {
+    String tokenHash = hashToken(code);
     AuthToken authToken =
         new AuthToken(
             user,
             user.getEmail(),
             tokenHash,
-            AuthTokenType.MAGIC_LINK,
-            Instant.now().plus(15, ChronoUnit.MINUTES));
+            AuthTokenType.OTP,
+            Instant.now().plus(5, ChronoUnit.MINUTES));
     authTokenRepository.persist(authToken);
   }
 

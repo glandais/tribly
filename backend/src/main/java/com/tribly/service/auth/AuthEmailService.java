@@ -39,27 +39,26 @@ public class AuthEmailService {
     mailer.send(Mail.withText(email, subject, body));
   }
 
-  public void sendMagicLinkEmail(String email, String token) {
+  public void sendOtpEmail(String email, String code) {
     Domain domain = domainResolver.getDomain();
     String appName = domain.getName();
-    String loginUrl = domain.getBaseUrl() + "/magic-link/verify?token=" + token;
-    String subject = "Connexion à " + appName;
+    String subject = "Votre code de connexion - " + appName;
     String body =
         """
         Bonjour,
 
-        Cliquez sur le lien ci-dessous pour vous connecter à %s :
+        Votre code de connexion à %s est :
 
-        %s
+            %s
 
-        Ce lien expirera dans 15 minutes et ne peut être utilisé qu'une seule fois.
+        Ce code expire dans 5 minutes et ne peut être utilisé qu'une seule fois.
 
-        Si vous n'avez pas demandé ce lien, vous pouvez ignorer cet email.
+        Si vous n'avez pas demandé ce code, vous pouvez ignorer cet email.
 
         Cordialement,
         L'équipe %s
         """
-            .formatted(appName, loginUrl, appName);
+            .formatted(appName, code, appName);
 
     mailer.send(Mail.withText(email, subject, body));
   }

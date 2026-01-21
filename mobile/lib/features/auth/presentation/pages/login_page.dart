@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -7,7 +6,9 @@ import '../../../../config/paths.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/passkey_service.dart';
 
-enum AuthMethod { passkey, magicLink, register }
+enum AuthMethod { passkey, otp, register }
+
+enum LoginStep { methodSelection, emailEntry, otpEntry }
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -18,14 +19,18 @@ class LoginPage extends ConsumerStatefulWidget {
 
 class _LoginPageState extends ConsumerState<LoginPage> {
   AuthMethod? _selectedMethod;
+  LoginStep _currentStep = LoginStep.methodSelection;
   final _emailController = TextEditingController();
   final _displayNameController = TextEditingController();
+  final _otpController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
   bool _passkeySupported = false;
   String? _successMessage;
   String? _errorMessage;
-  bool _showPasteLink = false;
+  String? _otpEmail;
+  bool _canResendOtp = false;
+  int _resendCountdown = 0;
 
   @override
   void initState() {
@@ -45,7 +50,29 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   void dispose() {
     _emailController.dispose();
     _displayNameController.dispose();
+    _otpController.dispose();
     super.dispose();
+  }
+
+  void _startResendCountdown() {
+    setState(() {
+      _resendCountdown = 30;
+      _canResendOtp = false;
+    });
+    _tickCountdown();
+  }
+
+  void _tickCountdown() {
+    if (_resendCountdown > 0) {
+      Future.delayed(const Duration(seconds: 1), () {
+        if (mounted && _resendCountdown > 0) {
+          setState(() => _resendCountdown--);
+          _tickCountdown();
+        } else if (mounted) {
+          setState(() => _canResendOtp = true);
+        }
+      });
+    }
   }
 
   Future<void> _handlePasskeyLogin() async {
@@ -71,7 +98,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     }
   }
 
-  Future<void> _handleMagicLink() async {
+  Future<void> _handleRequestOtp() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() {
@@ -81,13 +108,67 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
     try {
       final authNotifier = ref.read(authProvider.notifier);
-      await authNotifier.requestMagicLink(_emailController.text.trim());
+      await authNotifier.requestOtp(_emailController.text.trim());
       if (mounted) {
         setState(() {
-          _successMessage =
-              'Un lien de connexion a été envoyé à ${_emailController.text}';
-          _showPasteLink = true;
+          _otpEmail = _emailController.text.trim();
+          _currentStep = LoginStep.otpEntry;
+          _otpController.clear();
         });
+        _startResendCountdown();
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _errorMessage = 'Erreur: $e');
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  Future<void> _handleVerifyOtp(String code) async {
+    if (code.length != 6 || _otpEmail == null) return;
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final authNotifier = ref.read(authProvider.notifier);
+      await authNotifier.verifyOtp(_otpEmail!, code);
+      if (mounted) {
+        context.go(Paths.home());
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _errorMessage = 'Code invalide ou expiré';
+          _otpController.clear();
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  Future<void> _handleResendOtp() async {
+    if (!_canResendOtp || _otpEmail == null) return;
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final authNotifier = ref.read(authProvider.notifier);
+      await authNotifier.requestOtp(_otpEmail!);
+      if (mounted) {
+        _startResendCountdown();
       }
     } catch (e) {
       if (mounted) {
@@ -118,7 +199,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         setState(() {
           _successMessage =
               'Un email de vérification a été envoyé à ${_emailController.text}';
-          _showPasteLink = true;
         });
       }
     } catch (e) {
@@ -132,61 +212,18 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     }
   }
 
-  Future<void> _handlePasteLink() async {
-    try {
-      final clipboardData = await Clipboard.getData(Clipboard.kTextPlain);
-      final link = clipboardData?.text;
-
-      if (link == null || link.isEmpty) {
-        setState(() => _errorMessage = 'Aucun lien dans le presse-papiers');
-        return;
+  void _goBack() {
+    setState(() {
+      if (_currentStep == LoginStep.otpEntry) {
+        _currentStep = LoginStep.emailEntry;
+        _otpEmail = null;
+        _otpController.clear();
+      } else if (_currentStep == LoginStep.emailEntry) {
+        _currentStep = LoginStep.methodSelection;
+        _selectedMethod = null;
       }
-
-      // Extract token from magic link or verify email link
-      String? token;
-      final uri = Uri.tryParse(link);
-      if (uri != null) {
-        token = uri.queryParameters['token'];
-      }
-
-      if (token == null || token.isEmpty) {
-        setState(() => _errorMessage = 'Lien invalide: token non trouvé');
-        return;
-      }
-
-      setState(() {
-        _isLoading = true;
-        _errorMessage = null;
-      });
-
-      final authNotifier = ref.read(authProvider.notifier);
-
-      // Determine if it's a magic link or verify email based on the path
-      if (link.contains('magic-link')) {
-        await authNotifier.verifyMagicLink(token);
-      } else if (link.contains('verify-email')) {
-        await authNotifier.verifyEmail(token);
-      } else {
-        // Try magic link first, then verify email
-        try {
-          await authNotifier.verifyMagicLink(token);
-        } catch (_) {
-          await authNotifier.verifyEmail(token);
-        }
-      }
-
-      if (mounted) {
-        context.go(Paths.home());
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() => _errorMessage = 'Erreur de vérification: $e');
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
-    }
+      _errorMessage = null;
+    });
   }
 
   @override
@@ -197,6 +234,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       appBar: AppBar(
         title: const Text('Connexion'),
         centerTitle: true,
+        leading: _currentStep != LoginStep.methodSelection
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: _goBack,
+              )
+            : null,
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -229,7 +272,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               ),
               const SizedBox(height: 48),
 
-              // Success message
+              // Success message (for registration)
               if (_successMessage != null) ...[
                 Card(
                   color: Colors.green.shade50,
@@ -237,43 +280,21 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     padding: const EdgeInsets.all(16),
                     child: Column(
                       children: [
-                        const Icon(Icons.check_circle, color: Colors.green, size: 48),
+                        const Icon(Icons.check_circle,
+                            color: Colors.green, size: 48),
                         const SizedBox(height: 16),
                         Text(
                           _successMessage!,
                           textAlign: TextAlign.center,
                           style: const TextStyle(color: Colors.green),
                         ),
-                        if (_showPasteLink) ...[
-                          const SizedBox(height: 16),
-                          const Text(
-                            'Consultez votre email, copiez le lien et collez-le ci-dessous:',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 12),
-                          ),
-                          const SizedBox(height: 12),
-                          FilledButton.icon(
-                            onPressed: _isLoading ? null : _handlePasteLink,
-                            icon: _isLoading
-                                ? const SizedBox(
-                                    height: 16,
-                                    width: 16,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: Colors.white,
-                                    ),
-                                  )
-                                : const Icon(Icons.content_paste),
-                            label: const Text('Coller le lien'),
-                          ),
-                        ],
                         const SizedBox(height: 16),
                         TextButton(
                           onPressed: () {
                             setState(() {
                               _successMessage = null;
                               _selectedMethod = null;
-                              _showPasteLink = false;
+                              _currentStep = LoginStep.methodSelection;
                             });
                           },
                           child: const Text('Retour'),
@@ -301,7 +322,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           ),
                           IconButton(
                             icon: const Icon(Icons.close),
-                            onPressed: () => setState(() => _errorMessage = null),
+                            onPressed: () =>
+                                setState(() => _errorMessage = null),
                           ),
                         ],
                       ),
@@ -310,159 +332,254 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   const SizedBox(height: 16),
                 ],
 
-                // Method selection
-                if (_selectedMethod == null) ...[
-                  // Passkey button
-                  if (_passkeySupported) ...[
-                    FilledButton.icon(
-                      onPressed: _isLoading ? null : _handlePasskeyLogin,
-                      icon: const Icon(Icons.fingerprint),
-                      label: const Text('Connexion avec Passkey'),
-                      style: FilledButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    const Row(
-                      children: [
-                        Expanded(child: Divider()),
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 16),
-                          child: Text('ou'),
-                        ),
-                        Expanded(child: Divider()),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                  ],
-
-                  // Magic link button
-                  OutlinedButton.icon(
-                    onPressed: _isLoading
-                        ? null
-                        : () => setState(() => _selectedMethod = AuthMethod.magicLink),
-                    icon: const Icon(Icons.email),
-                    label: const Text('Connexion par email'),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Register button
-                  TextButton(
-                    onPressed: _isLoading
-                        ? null
-                        : () => setState(() => _selectedMethod = AuthMethod.register),
-                    child: const Text('Créer un compte'),
-                  ),
-                ] else ...[
-                  // Form for magic link or registration
-                  Form(
-                    key: _formKey,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        // Back button
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: TextButton.icon(
-                            onPressed: () => setState(() => _selectedMethod = null),
-                            icon: const Icon(Icons.arrow_back),
-                            label: const Text('Retour'),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-
-                        Text(
-                          _selectedMethod == AuthMethod.register
-                              ? 'Créer un compte'
-                              : 'Connexion par email',
-                          style: theme.textTheme.titleLarge,
-                        ),
-                        const SizedBox(height: 24),
-
-                        // Email field
-                        TextFormField(
-                          controller: _emailController,
-                          keyboardType: TextInputType.emailAddress,
-                          autofillHints: const [AutofillHints.email],
-                          decoration: const InputDecoration(
-                            labelText: 'Email',
-                            prefixIcon: Icon(Icons.email),
-                            border: OutlineInputBorder(),
-                          ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'L\'email est requis';
-                            }
-                            if (!value.contains('@')) {
-                              return 'Email invalide';
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 16),
-
-                        // Display name field (only for registration)
-                        if (_selectedMethod == AuthMethod.register) ...[
-                          TextFormField(
-                            controller: _displayNameController,
-                            autofillHints: const [AutofillHints.name],
-                            decoration: const InputDecoration(
-                              labelText: 'Nom d\'affichage',
-                              prefixIcon: Icon(Icons.person),
-                              border: OutlineInputBorder(),
-                            ),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Le nom d\'affichage est requis';
-                              }
-                              if (value.length < 2) {
-                                return 'Au moins 2 caractères';
-                              }
-                              if (value.length > 100) {
-                                return '100 caractères maximum';
-                              }
-                              return null;
-                            },
-                          ),
-                          const SizedBox(height: 16),
-                        ],
-
-                        // Submit button
-                        FilledButton(
-                          onPressed: _isLoading
-                              ? null
-                              : () {
-                                  if (_selectedMethod == AuthMethod.register) {
-                                    _handleRegister();
-                                  } else {
-                                    _handleMagicLink();
-                                  }
-                                },
-                          style: FilledButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                          ),
-                          child: _isLoading
-                              ? const SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
-                                )
-                              : Text(_selectedMethod == AuthMethod.register
-                                  ? 'Créer mon compte'
-                                  : 'Envoyer le lien'),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+                // Content based on current step
+                if (_currentStep == LoginStep.methodSelection)
+                  _buildMethodSelection()
+                else if (_currentStep == LoginStep.emailEntry)
+                  _buildEmailForm()
+                else if (_currentStep == LoginStep.otpEntry)
+                  _buildOtpEntry(),
               ],
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildMethodSelection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // Passkey button
+        if (_passkeySupported) ...[
+          FilledButton.icon(
+            onPressed: _isLoading ? null : _handlePasskeyLogin,
+            icon: const Icon(Icons.fingerprint),
+            label: const Text('Connexion avec Passkey'),
+            style: FilledButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+            ),
+          ),
+          const SizedBox(height: 16),
+          const Row(
+            children: [
+              Expanded(child: Divider()),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                child: Text('ou'),
+              ),
+              Expanded(child: Divider()),
+            ],
+          ),
+          const SizedBox(height: 16),
+        ],
+
+        // Email OTP button
+        OutlinedButton.icon(
+          onPressed: _isLoading
+              ? null
+              : () => setState(() {
+                    _selectedMethod = AuthMethod.otp;
+                    _currentStep = LoginStep.emailEntry;
+                  }),
+          icon: const Icon(Icons.email),
+          label: const Text('Connexion par email'),
+          style: OutlinedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+          ),
+        ),
+        const SizedBox(height: 16),
+
+        // Register button
+        TextButton(
+          onPressed: _isLoading
+              ? null
+              : () => setState(() {
+                    _selectedMethod = AuthMethod.register;
+                    _currentStep = LoginStep.emailEntry;
+                  }),
+          child: const Text('Créer un compte'),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEmailForm() {
+    final theme = Theme.of(context);
+    final isRegistration = _selectedMethod == AuthMethod.register;
+
+    return Form(
+      key: _formKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            isRegistration ? 'Créer un compte' : 'Connexion par email',
+            style: theme.textTheme.titleLarge,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            isRegistration
+                ? 'Créez votre compte pour rejoindre les équipes cyclistes'
+                : 'Un code à 6 chiffres sera envoyé à votre email',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // Email field
+          TextFormField(
+            controller: _emailController,
+            keyboardType: TextInputType.emailAddress,
+            autofillHints: const [AutofillHints.email],
+            decoration: const InputDecoration(
+              labelText: 'Email',
+              prefixIcon: Icon(Icons.email),
+              border: OutlineInputBorder(),
+            ),
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'L\'email est requis';
+              }
+              if (!value.contains('@')) {
+                return 'Email invalide';
+              }
+              return null;
+            },
+          ),
+          const SizedBox(height: 16),
+
+          // Display name field (only for registration)
+          if (isRegistration) ...[
+            TextFormField(
+              controller: _displayNameController,
+              autofillHints: const [AutofillHints.name],
+              decoration: const InputDecoration(
+                labelText: 'Nom d\'affichage',
+                prefixIcon: Icon(Icons.person),
+                border: OutlineInputBorder(),
+              ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Le nom d\'affichage est requis';
+                }
+                if (value.length < 2) {
+                  return 'Au moins 2 caractères';
+                }
+                if (value.length > 100) {
+                  return '100 caractères maximum';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 16),
+          ],
+
+          // Submit button
+          FilledButton(
+            onPressed: _isLoading
+                ? null
+                : () {
+                    if (isRegistration) {
+                      _handleRegister();
+                    } else {
+                      _handleRequestOtp();
+                    }
+                  },
+            style: FilledButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+            ),
+            child: _isLoading
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : Text(isRegistration ? 'Créer mon compte' : 'Envoyer le code'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOtpEntry() {
+    final theme = Theme.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const Icon(
+          Icons.email_outlined,
+          size: 64,
+          color: Colors.blue,
+        ),
+        const SizedBox(height: 16),
+        Text(
+          'Entrez votre code',
+          style: theme.textTheme.titleLarge,
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Un code à 6 chiffres a été envoyé à\n$_otpEmail',
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 24),
+
+        // Simple 6-digit text field for OTP
+        TextField(
+          controller: _otpController,
+          keyboardType: TextInputType.number,
+          maxLength: 6,
+          textAlign: TextAlign.center,
+          style: theme.textTheme.headlineMedium?.copyWith(
+            letterSpacing: 16,
+            fontWeight: FontWeight.bold,
+          ),
+          decoration: InputDecoration(
+            hintText: '000000',
+            counterText: '',
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+          onChanged: (value) {
+            if (value.length == 6) {
+              _handleVerifyOtp(value);
+            }
+          },
+          enabled: !_isLoading,
+        ),
+
+        const SizedBox(height: 8),
+        Text(
+          'Ce code expire dans 5 minutes',
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 24),
+
+        // Resend button
+        TextButton.icon(
+          onPressed: _canResendOtp && !_isLoading ? _handleResendOtp : null,
+          icon: const Icon(Icons.refresh),
+          label: Text(_canResendOtp
+              ? 'Renvoyer le code'
+              : 'Renvoyer dans ${_resendCountdown}s'),
+        ),
+
+        if (_isLoading) ...[
+          const SizedBox(height: 16),
+          const Center(child: CircularProgressIndicator()),
+        ],
+      ],
     );
   }
 }

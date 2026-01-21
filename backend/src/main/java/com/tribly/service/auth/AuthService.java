@@ -1,5 +1,6 @@
 package com.tribly.service.auth;
 
+import static com.tribly.common.TokenUtils.generateOtpCode;
 import static com.tribly.common.TokenUtils.generateSecureToken;
 import static com.tribly.common.TokenUtils.hashToken;
 
@@ -10,7 +11,7 @@ import com.tribly.domain.auth.AuthSession;
 import com.tribly.domain.auth.AuthToken;
 import com.tribly.domain.platform.Domain;
 import com.tribly.domain.user.User;
-import com.tribly.dto.auth.request.MagicLinkRequest;
+import com.tribly.dto.auth.request.OtpRequest;
 import com.tribly.dto.auth.request.RegisterRequest;
 import com.tribly.dto.auth.response.AuthResponse;
 import com.tribly.dto.auth.response.AuthResult;
@@ -50,8 +51,14 @@ public class AuthService {
   @ConfigProperty(name = "tribly.auth.refresh-token.expiry-days", defaultValue = "30")
   int refreshTokenExpiryDays;
 
-  @ConfigProperty(name = "tribly.auth.magic-link.expiry-minutes", defaultValue = "15")
-  int magicLinkExpiryMinutes;
+  @ConfigProperty(name = "tribly.auth.otp.expiry-minutes", defaultValue = "5")
+  int otpExpiryMinutes;
+
+  @ConfigProperty(name = "tribly.auth.otp.max-attempts", defaultValue = "3")
+  int otpMaxAttempts;
+
+  @ConfigProperty(name = "tribly.auth.otp.rate-limit-window-minutes", defaultValue = "5")
+  int otpRateLimitWindowMinutes;
 
   @ConfigProperty(name = "tribly.auth.email-verification.expiry-hours", defaultValue = "24")
   int emailVerificationExpiryHours;
@@ -126,7 +133,7 @@ public class AuthService {
 
   @Transactional
   @Public
-  public void requestMagicLink(MagicLinkRequest request) {
+  public void requestOtp(OtpRequest request) {
     Domain domain = domainResolver.getDomain();
     User user = userRepository.findByEmailAndDomain(domain.getId(), request.email()).orElse(null);
 
@@ -135,36 +142,46 @@ public class AuthService {
       return;
     }
 
-    // Invalidate any existing magic links for this email
-    authTokenRepository.invalidateByEmailAndType(request.email(), AuthTokenType.MAGIC_LINK);
+    // Rate limiting: check if too many OTP requests in the window
+    long recentCount =
+        authTokenRepository.countRecentByEmailAndType(
+            request.email(), AuthTokenType.OTP, otpRateLimitWindowMinutes);
+    if (recentCount >= otpMaxAttempts) {
+      // Silent return to prevent enumeration - rate limited
+      return;
+    }
 
-    // Generate magic link token
-    String token = generateSecureToken();
-    String tokenHash = hashToken(token);
+    // Invalidate any existing OTPs for this email
+    authTokenRepository.invalidateByEmailAndType(request.email(), AuthTokenType.OTP);
+
+    // Generate 6-digit OTP code
+    String otpCode = generateOtpCode();
+    String tokenHash = hashToken(otpCode);
 
     AuthToken authToken =
         new AuthToken(
             user,
             request.email(),
             tokenHash,
-            AuthTokenType.MAGIC_LINK,
-            Instant.now().plus(Duration.ofMinutes(magicLinkExpiryMinutes)));
+            AuthTokenType.OTP,
+            Instant.now().plus(Duration.ofMinutes(otpExpiryMinutes)));
     authTokenRepository.persist(authToken);
 
-    // Send magic link email
-    authEmailService.sendMagicLinkEmail(request.email(), token);
+    // Send OTP email
+    authEmailService.sendOtpEmail(request.email(), otpCode);
   }
 
   @Transactional
   @Public
-  public AuthResult verifyMagicLink(String token, String userAgent, String ipAddress) {
-    String tokenHash = hashToken(token);
+  public AuthResult verifyOtp(String email, String code, String userAgent, String ipAddress) {
+    String tokenHash = hashToken(code);
     AuthToken authToken =
         authTokenRepository
-            .findValidByTokenHash(tokenHash)
+            .findValidByEmailAndType(email, AuthTokenType.OTP)
             .orElseThrow(() -> new BadRequestException(ErrorCode.TOKEN_INVALID));
 
-    if (authToken.getTokenType() != AuthTokenType.MAGIC_LINK) {
+    // Verify the code matches
+    if (!authToken.getTokenHash().equals(tokenHash)) {
       throw new BadRequestException(ErrorCode.TOKEN_INVALID);
     }
 

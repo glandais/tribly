@@ -31,6 +31,15 @@ public final class TokenUtils {
   }
 
   /**
+   * Generates a 6-digit OTP code for authentication.
+   *
+   * @return a zero-padded 6-digit string
+   */
+  public static String generateOtpCode() {
+    return String.format("%06d", SECURE_RANDOM.nextInt(1_000_000));
+  }
+
+  /**
    * Hashes a token using SHA-256 for secure storage.
    *
    * @param token the raw token to hash

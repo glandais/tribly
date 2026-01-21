@@ -6,6 +6,14 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type RegisterPasskeyParams = {
-  deviceName?: string
+/**
+ * OTP request
+ */
+export interface OtpRequest {
+  /**
+   * Email address
+   * @maxLength 250
+   * @pattern \S
+   */
+  email: string
 }

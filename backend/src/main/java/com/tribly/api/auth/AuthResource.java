@@ -1,7 +1,8 @@
 package com.tribly.api.auth;
 
-import com.tribly.dto.auth.request.MagicLinkRequest;
+import com.tribly.dto.auth.request.OtpRequest;
 import com.tribly.dto.auth.request.RegisterRequest;
+import com.tribly.dto.auth.request.VerifyOtpRequest;
 import com.tribly.dto.auth.request.VerifyTokenRequest;
 import com.tribly.dto.auth.response.AuthResponse;
 import com.tribly.dto.auth.response.AuthResult;
@@ -98,29 +99,26 @@ public class AuthResource {
   }
 
   @POST
-  @Path("/magic-link")
+  @Path("/otp")
   @PermitAll
   @Operation(
-      summary = "Request magic link",
-      description = "Send a magic link to the user's email for passwordless login")
+      summary = "Request OTP",
+      description = "Send a 6-digit OTP code to the user's email for passwordless login")
   @APIResponses({
     @APIResponse(
         responseCode = "200",
-        description = "Magic link sent (if email exists)",
+        description = "OTP sent (if email exists)",
         content = @Content(schema = @Schema(implementation = MessageResponse.class)))
   })
-  public Response requestMagicLink(@Valid MagicLinkRequest request) {
-    authService.requestMagicLink(request);
-    return Response.ok(new MessageResponse("If the email exists, a login link has been sent"))
-        .build();
+  public Response requestOtp(@Valid OtpRequest request) {
+    authService.requestOtp(request);
+    return Response.ok(new MessageResponse("If the email exists, a code has been sent")).build();
   }
 
   @POST
-  @Path("/magic-link/verify")
+  @Path("/otp/verify")
   @PermitAll
-  @Operation(
-      summary = "Verify magic link",
-      description = "Verify magic link token and authenticate")
+  @Operation(summary = "Verify OTP", description = "Verify OTP code and authenticate")
   @APIResponses({
     @APIResponse(
         responseCode = "200",
@@ -128,18 +126,19 @@ public class AuthResource {
         content = @Content(schema = @Schema(implementation = AuthResponse.class))),
     @APIResponse(
         responseCode = "400",
-        description = "Invalid or expired token",
+        description = "Invalid or expired code",
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
-  public Response verifyMagicLink(
-      @Valid VerifyTokenRequest request,
+  public Response verifyOtp(
+      @Valid VerifyOtpRequest request,
       @Context HttpHeaders headers,
       @HeaderParam("X-Forwarded-For") @Nullable String forwardedFor,
       @HeaderParam("X-Real-IP") @Nullable String realIp) {
     String userAgent = headers.getHeaderString(HttpHeaders.USER_AGENT);
     String ipAddress = getClientIp(forwardedFor, realIp);
 
-    AuthResult result = authService.verifyMagicLink(request.token(), userAgent, ipAddress);
+    AuthResult result =
+        authService.verifyOtp(request.email(), request.code(), userAgent, ipAddress);
     return Response.ok(result.response())
         .cookie(createRefreshTokenCookie(result.refreshToken()))
         .build();

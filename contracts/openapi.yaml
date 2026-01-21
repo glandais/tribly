@@ -1329,6 +1329,19 @@ components:
         id:
           type: string
           description: id/slug
+    OtpRequest:
+      description: OTP request
+      type: object
+      required:
+      - email
+      properties:
+        email:
+          type: string
+          description: Email address
+          examples:
+          - user@example.com
+          pattern: \S
+          maxLength: 250
     PasskeyAuthenticationRequest:
       description: Request for passkey authentication options
       type: object
@@ -3043,6 +3056,26 @@ components:
           items:
             $ref: "#/components/schemas/GpsServiceConnectionDto"
           description: Connected GPS services
+    VerifyOtpRequest:
+      description: OTP verification request
+      type: object
+      required:
+      - email
+      - code
+      properties:
+        email:
+          type: string
+          description: Email address
+          examples:
+          - user@example.com
+          pattern: \S
+          maxLength: 250
+        code:
+          type: string
+          description: 6-digit OTP code
+          examples:
+          - "123456"
+          pattern: "^\\d{6}$"
     VerifyTokenRequest:
       description: Token verification request
       type: object
@@ -3662,33 +3695,33 @@ paths:
       security:
       - SecurityScheme:
         - user
-  /api/auth/magic-link:
+  /api/auth/otp:
     post:
-      summary: Request magic link
-      description: Send a magic link to the user's email for passwordless login
-      operationId: requestMagicLink
+      summary: Request OTP
+      description: Send a 6-digit OTP code to the user's email for passwordless login
+      operationId: requestOtp
       tags:
       - Authentication
       requestBody:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/MagicLinkRequest"
+              $ref: "#/components/schemas/OtpRequest"
         required: true
       responses:
         "200":
-          description: Magic link sent (if email exists)
+          description: OTP sent (if email exists)
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/MessageResponse"
         "400":
           description: Bad Request
-  /api/auth/magic-link/verify:
+  /api/auth/otp/verify:
     post:
-      summary: Verify magic link
-      description: Verify magic link token and authenticate
-      operationId: verifyMagicLink
+      summary: Verify OTP
+      description: Verify OTP code and authenticate
+      operationId: verifyOtp
       tags:
       - Authentication
       parameters:
@@ -3704,7 +3737,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/VerifyTokenRequest"
+              $ref: "#/components/schemas/VerifyOtpRequest"
         required: true
       responses:
         "200":
@@ -3714,7 +3747,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/AuthResponse"
         "400":
-          description: Invalid or expired token
+          description: Invalid or expired code
           content:
             application/json:
               schema:

@@ -7,9 +7,10 @@ import 'package:retrofit/retrofit.dart';
 import 'package:retrofit/error_logger.dart';
 
 import '../models/auth_response.dart';
-import '../models/magic_link_request.dart';
 import '../models/message_response.dart';
+import '../models/otp_request.dart';
 import '../models/register_request.dart';
+import '../models/verify_otp_request.dart';
 import '../models/verify_token_request.dart';
 
 part 'authentication_client.g.dart';
@@ -31,24 +32,24 @@ abstract class AuthenticationClient {
   @POST('/api/auth/logout-all')
   Future<void> logoutAll();
 
-  /// Request magic link.
+  /// Request OTP.
   ///
-  /// Send a magic link to the user's email for passwordless login.
+  /// Send a 6-digit OTP code to the user's email for passwordless login.
   ///
   /// [body] - Name not received - field will be skipped.
-  @POST('/api/auth/magic-link')
-  Future<MessageResponse> requestMagicLink({
-    @Body() required MagicLinkRequest body,
+  @POST('/api/auth/otp')
+  Future<MessageResponse> requestOtp({
+    @Body() required OtpRequest body,
   });
 
-  /// Verify magic link.
+  /// Verify OTP.
   ///
-  /// Verify magic link token and authenticate.
+  /// Verify OTP code and authenticate.
   ///
   /// [body] - Name not received - field will be skipped.
-  @POST('/api/auth/magic-link/verify')
-  Future<AuthResponse> verifyMagicLink({
-    @Body() required VerifyTokenRequest body,
+  @POST('/api/auth/otp/verify')
+  Future<AuthResponse> verifyOtp({
+    @Body() required VerifyOtpRequest body,
     @Header('X-Forwarded-For') String? xForwardedFor,
     @Header('X-Real-IP') String? xRealIp,
   });

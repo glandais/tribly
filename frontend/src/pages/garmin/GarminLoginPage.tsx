@@ -1,9 +1,16 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { useTranslation } from 'react-i18next'
+import { useTranslation, Trans } from 'react-i18next'
 import { useForm } from '@mantine/form'
 import { notifications } from '@mantine/notifications'
-import { IconFingerprint, IconMail, IconDeviceWatch, IconCheck } from '@tabler/icons-react'
+import {
+  IconFingerprint,
+  IconMail,
+  IconDeviceWatch,
+  IconCheck,
+  IconArrowLeft,
+  IconRefresh,
+} from '@tabler/icons-react'
 import {
   Center,
   Paper,
@@ -16,13 +23,14 @@ import {
   Alert,
   Group,
   ThemeIcon,
+  PinInput,
 } from '@mantine/core'
 import { startAuthentication, browserSupportsWebAuthn } from '@simplewebauthn/browser'
 import { useAuth } from '../../hooks/useAuth'
 import { useAppName } from '../../hooks/useAppName'
 import { useAuthStore } from '../../store/authStore'
 
-type AuthMethod = 'magic-link' | null
+type AuthMethod = 'otp' | null
 
 export function GarminLoginPage() {
   const { t } = useTranslation()
@@ -35,11 +43,10 @@ export function GarminLoginPage() {
   const [selectedMethod, setSelectedMethod] = useState<AuthMethod>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [isRedirecting, setIsRedirecting] = useState(false)
-  const [completedMessage, setCompletedMessage] = useState<{
-    title: string
-    message: string
-    email?: string
-  } | null>(null)
+  const [otpEmail, setOtpEmail] = useState<string | null>(null)
+  const [otpCode, setOtpCode] = useState('')
+  const [canResend, setCanResend] = useState(false)
+  const [resendCountdown, setResendCountdown] = useState(0)
   const [passkeySupported] = useState(() => browserSupportsWebAuthn())
 
   // OAuth params from URL
@@ -47,7 +54,7 @@ export function GarminLoginPage() {
   const redirectUri = searchParams.get('redirect_uri')
   const state = searchParams.get('state')
 
-  const magicLinkForm = useForm({
+  const otpForm = useForm({
     initialValues: { email: '' },
     validate: {
       email: (v) =>
@@ -107,6 +114,16 @@ export function GarminLoginPage() {
     }
   }, [isAuthenticated, accessToken, isRedirecting, completeOAuthFlow])
 
+  // Countdown timer for resend button
+  useEffect(() => {
+    if (resendCountdown > 0) {
+      const timer = setTimeout(() => setResendCountdown(resendCountdown - 1), 1000)
+      return () => clearTimeout(timer)
+    } else if (otpEmail) {
+      setCanResend(true)
+    }
+  }, [resendCountdown, otpEmail])
+
   const handlePasskeyLogin = async () => {
     setIsLoading(true)
     try {
@@ -149,35 +166,79 @@ export function GarminLoginPage() {
     }
   }
 
-  const handleMagicLinkRequest = async (values: { email: string }) => {
+  const handleOtpRequest = async (values: { email: string }) => {
     setIsLoading(true)
     try {
-      const response = await fetch('/api/auth/magic-link', {
+      const response = await fetch('/api/auth/otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(values),
       })
 
       if (response.ok) {
-        setCompletedMessage({
-          title: t('auth.magicLink.sent.title'),
-          message: t('garmin.magicLink.sent.message'),
-          email: values.email,
-        })
+        setOtpEmail(values.email)
+        setOtpCode('')
+        setCanResend(false)
+        setResendCountdown(30)
         setActiveStep(2)
       } else {
-        notifications.show({ message: t('auth.errors.magicLinkFailed'), color: 'red' })
+        notifications.show({ message: t('auth.errors.otpFailed'), color: 'red' })
       }
     } catch {
-      notifications.show({ message: t('auth.errors.magicLinkFailed'), color: 'red' })
+      notifications.show({ message: t('auth.errors.otpFailed'), color: 'red' })
     } finally {
       setIsLoading(false)
     }
   }
 
+  const handleOtpVerify = async (code: string) => {
+    if (code.length !== 6 || !otpEmail) return
+
+    setIsLoading(true)
+    try {
+      const response = await fetch('/api/auth/otp/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ email: otpEmail, code }),
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setAccessToken(data.accessToken)
+        setUser(data.user)
+        // OAuth flow will be completed by useEffect
+      } else {
+        notifications.show({ message: t('auth.errors.otpInvalid'), color: 'red' })
+        setOtpCode('')
+      }
+    } catch {
+      notifications.show({ message: t('auth.errors.otpVerifyFailed'), color: 'red' })
+      setOtpCode('')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleResendOtp = async () => {
+    if (!otpEmail || !canResend) return
+    await handleOtpRequest({ email: otpEmail })
+  }
+
   const selectMethod = (method: AuthMethod) => {
     setSelectedMethod(method)
     setActiveStep(1)
+  }
+
+  const goBack = () => {
+    if (activeStep === 2) {
+      setActiveStep(1)
+      setOtpEmail(null)
+      setOtpCode('')
+    } else {
+      setActiveStep(0)
+      setSelectedMethod(null)
+    }
   }
 
   // Show loading while redirecting
@@ -242,9 +303,9 @@ export function GarminLoginPage() {
           variant="light"
           size="lg"
           leftSection={<IconMail size={24} />}
-          onClick={() => selectMethod('magic-link')}
+          onClick={() => selectMethod('otp')}
         >
-          {t('auth.login.methods.magicLink')}
+          {t('auth.login.methods.otp')}
         </Button>
       </Stack>
 
@@ -255,18 +316,18 @@ export function GarminLoginPage() {
   )
 
   const renderForm = () => {
-    if (selectedMethod === 'magic-link') {
+    if (selectedMethod === 'otp') {
       return (
-        <form onSubmit={magicLinkForm.onSubmit(handleMagicLinkRequest)}>
+        <form onSubmit={otpForm.onSubmit(handleOtpRequest)}>
           <Stack>
             <Text size="sm" c="dimmed">
-              {t('auth.magicLink.description')}
+              {t('auth.otp.description')}
             </Text>
             <TextInput
               label={t('auth.form.email')}
               placeholder="email@example.com"
               autoComplete="email"
-              {...magicLinkForm.getInputProps('email')}
+              {...otpForm.getInputProps('email')}
             />
             <Button
               type="submit"
@@ -274,7 +335,7 @@ export function GarminLoginPage() {
               loading={isLoading}
               leftSection={<IconMail size={20} />}
             >
-              {t('auth.magicLink.send')}
+              {t('auth.otp.send')}
             </Button>
           </Stack>
         </form>
@@ -283,15 +344,57 @@ export function GarminLoginPage() {
     return null
   }
 
-  const renderCompleted = () => (
+  const renderOtpVerification = () => (
     <Stack ta="center">
-      <IconMail size={48} style={{ margin: '0 auto' }} color="var(--mantine-color-green-6)" />
-      <Title order={2}>{completedMessage?.title}</Title>
+      <IconMail size={48} style={{ margin: '0 auto' }} color="var(--mantine-color-blue-6)" />
+      <Title order={2}>{t('auth.otp.verify.title')}</Title>
+      {otpEmail && (
+        <Text c="dimmed">
+          <Trans
+            i18nKey="auth.otp.verify.sentTo"
+            values={{ email: otpEmail }}
+            components={{ strong: <Text span fw={500} /> }}
+          />
+        </Text>
+      )}
       <Alert color="blue" variant="light">
-        <Text size="sm">{completedMessage?.message}</Text>
+        <Text size="sm">{t('auth.otp.verify.instruction')}</Text>
       </Alert>
+      <PinInput
+        length={6}
+        type="number"
+        value={otpCode}
+        onChange={(value) => {
+          setOtpCode(value)
+          if (value.length === 6) {
+            handleOtpVerify(value)
+          }
+        }}
+        disabled={isLoading}
+        size="xl"
+        style={{ justifyContent: 'center' }}
+      />
+      <Group justify="center" gap="xs">
+        <Button
+          variant="subtle"
+          size="compact-sm"
+          leftSection={<IconArrowLeft size={16} />}
+          onClick={goBack}
+        >
+          {t('common.back')}
+        </Button>
+        <Button
+          variant="subtle"
+          size="compact-sm"
+          leftSection={<IconRefresh size={16} />}
+          onClick={handleResendOtp}
+          disabled={!canResend || isLoading}
+        >
+          {canResend ? t('auth.otp.resend') : t('auth.otp.resendIn', { seconds: resendCountdown })}
+        </Button>
+      </Group>
       <Text size="sm" c="dimmed">
-        {t('garmin.magicLink.afterVerify')}
+        {t('garmin.otp.afterVerify')}
       </Text>
     </Stack>
   )
@@ -307,21 +410,19 @@ export function GarminLoginPage() {
                 <Button
                   variant="subtle"
                   size="compact-sm"
-                  onClick={() => {
-                    setActiveStep(0)
-                    setSelectedMethod(null)
-                  }}
+                  leftSection={<IconArrowLeft size={16} />}
+                  onClick={goBack}
                 >
                   {t('common.back')}
                 </Button>
               </Group>
               <Title order={2} ta="center">
-                {t('auth.magicLink.title')}
+                {t('auth.otp.title')}
               </Title>
               {renderForm()}
             </Stack>
           </Stepper.Step>
-          <Stepper.Completed>{renderCompleted()}</Stepper.Completed>
+          <Stepper.Completed>{renderOtpVerification()}</Stepper.Completed>
         </Stepper>
       </Paper>
     </Center>

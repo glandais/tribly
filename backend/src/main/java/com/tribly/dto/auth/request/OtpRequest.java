@@ -7,10 +7,10 @@ import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
 
-@Schema(description = "Magic link request")
+@Schema(description = "OTP request")
 @ValidateSchema
 @Builder
-public record MagicLinkRequest(
+public record OtpRequest(
     @NotBlank
         @Email
         @Size(max = 250)

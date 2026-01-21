@@ -74,12 +74,11 @@ class AuthCleanupSchedulerTest {
     @Test
     void shouldDeleteExpiredTokens() {
       // Create expired token
-      dataService.createExpiredAuthToken(
-          "expired@example.com", "expired-hash", AuthTokenType.MAGIC_LINK);
+      dataService.createExpiredAuthToken("expired@example.com", "expired-hash", AuthTokenType.OTP);
       // Create valid token
       Instant futureExpiry = Instant.now().plus(24, ChronoUnit.HOURS);
       dataService.createAuthToken(
-          "valid@example.com", "valid-hash", AuthTokenType.MAGIC_LINK, futureExpiry);
+          "valid@example.com", "valid-hash", AuthTokenType.OTP, futureExpiry);
 
       authCleanupScheduler.cleanupExpiredAuthData();
 
@@ -92,11 +91,11 @@ class AuthCleanupSchedulerTest {
       Instant futureExpiry = Instant.now().plus(24, ChronoUnit.HOURS);
       AuthToken usedToken =
           dataService.createAuthToken(
-              "used@example.com", "used-hash", AuthTokenType.MAGIC_LINK, futureExpiry);
+              "used@example.com", "used-hash", AuthTokenType.OTP, futureExpiry);
       dataService.markAuthTokenUsed(usedToken);
       // Create valid token
       dataService.createAuthToken(
-          "valid@example.com", "valid-hash", AuthTokenType.MAGIC_LINK, futureExpiry);
+          "valid@example.com", "valid-hash", AuthTokenType.OTP, futureExpiry);
 
       authCleanupScheduler.cleanupExpiredAuthData();
 
@@ -137,8 +136,7 @@ class AuthCleanupSchedulerTest {
     @Test
     void shouldNotDeleteValidTokens() {
       Instant futureExpiry = Instant.now().plus(24, ChronoUnit.HOURS);
-      dataService.createAuthToken(
-          "user1@example.com", "hash-1", AuthTokenType.MAGIC_LINK, futureExpiry);
+      dataService.createAuthToken("user1@example.com", "hash-1", AuthTokenType.OTP, futureExpiry);
       dataService.createAuthToken(
           "user2@example.com", "hash-2", AuthTokenType.EMAIL_VERIFICATION, futureExpiry);
 

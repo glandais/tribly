@@ -3,7 +3,13 @@ import { useNavigate } from 'react-router-dom'
 import { useTranslation, Trans } from 'react-i18next'
 import { useForm } from '@mantine/form'
 import { notifications } from '@mantine/notifications'
-import { IconFingerprint, IconMail, IconUserPlus, IconArrowLeft } from '@tabler/icons-react'
+import {
+  IconFingerprint,
+  IconMail,
+  IconUserPlus,
+  IconArrowLeft,
+  IconRefresh,
+} from '@tabler/icons-react'
 import {
   Center,
   Paper,
@@ -16,6 +22,7 @@ import {
   Stepper,
   Alert,
   Group,
+  PinInput,
 } from '@mantine/core'
 import { startAuthentication, browserSupportsWebAuthn } from '@simplewebauthn/browser'
 import { useAuth } from '../../hooks/useAuth'
@@ -23,7 +30,7 @@ import { useAppName } from '../../hooks/useAppName'
 import { useAuthStore } from '../../store/authStore'
 import { paths } from '@/config/paths'
 
-type AuthMethod = 'magic-link' | 'register' | null
+type AuthMethod = 'otp' | 'register' | null
 
 export function LoginPage() {
   const { t } = useTranslation()
@@ -35,14 +42,13 @@ export function LoginPage() {
   const [activeStep, setActiveStep] = useState(0)
   const [selectedMethod, setSelectedMethod] = useState<AuthMethod>(null)
   const [isLoading, setIsLoading] = useState(false)
-  const [completedMessage, setCompletedMessage] = useState<{
-    title: string
-    message: string
-    email?: string
-  } | null>(null)
+  const [otpEmail, setOtpEmail] = useState<string | null>(null)
+  const [otpCode, setOtpCode] = useState('')
+  const [canResend, setCanResend] = useState(false)
+  const [resendCountdown, setResendCountdown] = useState(0)
   const [passkeySupported] = useState(() => browserSupportsWebAuthn())
 
-  const magicLinkForm = useForm({
+  const otpForm = useForm({
     initialValues: { email: '' },
     validate: {
       email: (v) =>
@@ -69,6 +75,16 @@ export function LoginPage() {
       navigate(paths.home())
     }
   }, [isAuthenticated, navigate])
+
+  // Countdown timer for resend button
+  useEffect(() => {
+    if (resendCountdown > 0) {
+      const timer = setTimeout(() => setResendCountdown(resendCountdown - 1), 1000)
+      return () => clearTimeout(timer)
+    } else if (otpEmail) {
+      setCanResend(true)
+    }
+  }, [resendCountdown, otpEmail])
 
   const handlePasskeyLogin = async () => {
     setIsLoading(true)
@@ -112,30 +128,63 @@ export function LoginPage() {
     }
   }
 
-  const handleMagicLinkRequest = async (values: { email: string }) => {
+  const handleOtpRequest = async (values: { email: string }) => {
     setIsLoading(true)
     try {
-      const response = await fetch('/api/auth/magic-link', {
+      const response = await fetch('/api/auth/otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(values),
       })
 
       if (response.ok) {
-        setCompletedMessage({
-          title: t('auth.magicLink.sent.title'),
-          message: t('auth.magicLink.sent.message'),
-          email: values.email,
-        })
+        setOtpEmail(values.email)
+        setOtpCode('')
+        setCanResend(false)
+        setResendCountdown(30) // 30 seconds before allowing resend
         setActiveStep(2)
       } else {
-        notifications.show({ message: t('auth.errors.magicLinkFailed'), color: 'red' })
+        notifications.show({ message: t('auth.errors.otpFailed'), color: 'red' })
       }
     } catch {
-      notifications.show({ message: t('auth.errors.magicLinkFailed'), color: 'red' })
+      notifications.show({ message: t('auth.errors.otpFailed'), color: 'red' })
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const handleOtpVerify = async (code: string) => {
+    if (code.length !== 6 || !otpEmail) return
+
+    setIsLoading(true)
+    try {
+      const response = await fetch('/api/auth/otp/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ email: otpEmail, code }),
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setAccessToken(data.accessToken)
+        setUser(data.user)
+        navigate(paths.home())
+      } else {
+        notifications.show({ message: t('auth.errors.otpInvalid'), color: 'red' })
+        setOtpCode('')
+      }
+    } catch {
+      notifications.show({ message: t('auth.errors.otpVerifyFailed'), color: 'red' })
+      setOtpCode('')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleResendOtp = async () => {
+    if (!otpEmail || !canResend) return
+    await handleOtpRequest({ email: otpEmail })
   }
 
   const handleRegister = async (values: { email: string; displayName: string }) => {
@@ -148,11 +197,7 @@ export function LoginPage() {
       })
 
       if (response.ok) {
-        setCompletedMessage({
-          title: t('auth.register.success.title'),
-          message: t('auth.register.success.checkEmail'),
-          email: values.email,
-        })
+        setOtpEmail(values.email)
         setActiveStep(2)
       } else {
         const error = await response.json()
@@ -174,8 +219,14 @@ export function LoginPage() {
   }
 
   const goBack = () => {
-    setActiveStep(0)
-    setSelectedMethod(null)
+    if (activeStep === 2) {
+      setActiveStep(1)
+      setOtpEmail(null)
+      setOtpCode('')
+    } else {
+      setActiveStep(0)
+      setSelectedMethod(null)
+    }
   }
 
   const renderMethodSelection = () => (
@@ -201,9 +252,9 @@ export function LoginPage() {
           variant="light"
           size="lg"
           leftSection={<IconMail size={24} />}
-          onClick={() => selectMethod('magic-link')}
+          onClick={() => selectMethod('otp')}
         >
-          {t('auth.login.methods.magicLink')}
+          {t('auth.login.methods.otp')}
         </Button>
         <Button
           variant="subtle"
@@ -229,18 +280,18 @@ export function LoginPage() {
 
   const renderForm = () => {
     switch (selectedMethod) {
-      case 'magic-link':
+      case 'otp':
         return (
-          <form onSubmit={magicLinkForm.onSubmit(handleMagicLinkRequest)}>
+          <form onSubmit={otpForm.onSubmit(handleOtpRequest)}>
             <Stack>
               <Text size="sm" c="dimmed">
-                {t('auth.magicLink.description')}
+                {t('auth.otp.description')}
               </Text>
               <TextInput
                 label={t('auth.form.email')}
                 placeholder="email@example.com"
                 autoComplete="email"
-                {...magicLinkForm.getInputProps('email')}
+                {...otpForm.getInputProps('email')}
               />
               <Button
                 type="submit"
@@ -248,7 +299,7 @@ export function LoginPage() {
                 loading={isLoading}
                 leftSection={<IconMail size={20} />}
               >
-                {t('auth.magicLink.send')}
+                {t('auth.otp.send')}
               </Button>
             </Stack>
           </form>
@@ -287,24 +338,83 @@ export function LoginPage() {
     }
   }
 
-  const renderCompleted = () => (
+  const renderOtpVerification = () => (
     <Stack ta="center">
-      <IconMail size={48} style={{ margin: '0 auto' }} color="var(--mantine-color-green-6)" />
-      <Title order={2}>{completedMessage?.title}</Title>
-      {completedMessage?.email && (
+      <IconMail size={48} style={{ margin: '0 auto' }} color="var(--mantine-color-blue-6)" />
+      <Title order={2}>{t('auth.otp.verify.title')}</Title>
+      {otpEmail && (
         <Text c="dimmed">
           <Trans
-            i18nKey="auth.register.success.message"
-            values={{ email: completedMessage.email }}
+            i18nKey="auth.otp.verify.sentTo"
+            values={{ email: otpEmail }}
             components={{ strong: <Text span fw={500} /> }}
           />
         </Text>
       )}
       <Alert color="blue" variant="light">
-        <Text size="sm">{completedMessage?.message}</Text>
+        <Text size="sm">{t('auth.otp.verify.instruction')}</Text>
+      </Alert>
+      <PinInput
+        length={6}
+        type="number"
+        value={otpCode}
+        onChange={(value) => {
+          setOtpCode(value)
+          if (value.length === 6) {
+            handleOtpVerify(value)
+          }
+        }}
+        disabled={isLoading}
+        size="xl"
+        style={{ justifyContent: 'center' }}
+      />
+      <Group justify="center" gap="xs">
+        <Button
+          variant="subtle"
+          size="compact-sm"
+          leftSection={<IconArrowLeft size={16} />}
+          onClick={goBack}
+        >
+          {t('common.back')}
+        </Button>
+        <Button
+          variant="subtle"
+          size="compact-sm"
+          leftSection={<IconRefresh size={16} />}
+          onClick={handleResendOtp}
+          disabled={!canResend || isLoading}
+        >
+          {canResend ? t('auth.otp.resend') : t('auth.otp.resendIn', { seconds: resendCountdown })}
+        </Button>
+      </Group>
+    </Stack>
+  )
+
+  const renderRegistrationSuccess = () => (
+    <Stack ta="center">
+      <IconMail size={48} style={{ margin: '0 auto' }} color="var(--mantine-color-green-6)" />
+      <Title order={2}>{t('auth.register.success.title')}</Title>
+      {otpEmail && (
+        <Text c="dimmed">
+          <Trans
+            i18nKey="auth.register.success.message"
+            values={{ email: otpEmail }}
+            components={{ strong: <Text span fw={500} /> }}
+          />
+        </Text>
+      )}
+      <Alert color="blue" variant="light">
+        <Text size="sm">{t('auth.register.success.checkEmail')}</Text>
       </Alert>
     </Stack>
   )
+
+  const renderCompleted = () => {
+    if (selectedMethod === 'register') {
+      return renderRegistrationSuccess()
+    }
+    return renderOtpVerification()
+  }
 
   return (
     <Center mih="70vh">
@@ -324,9 +434,7 @@ export function LoginPage() {
                 </Button>
               </Group>
               <Title order={2} ta="center">
-                {selectedMethod === 'register'
-                  ? t('auth.register.title')
-                  : t('auth.magicLink.title')}
+                {selectedMethod === 'register' ? t('auth.register.title') : t('auth.otp.title')}
               </Title>
               {renderForm()}
             </Stack>

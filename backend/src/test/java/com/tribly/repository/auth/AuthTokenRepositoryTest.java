@@ -73,21 +73,19 @@ class AuthTokenRepositoryTest {
   @Test
   void findValidByEmailAndType_shouldReturnValidToken() {
     Instant expiresAt = Instant.now().plus(24, ChronoUnit.HOURS);
-    dataService.createAuthToken(
-        "test@example.com", "magic-hash", AuthTokenType.MAGIC_LINK, expiresAt);
+    dataService.createAuthToken("test@example.com", "magic-hash", AuthTokenType.OTP, expiresAt);
 
     Optional<AuthToken> result =
-        authTokenRepository.findValidByEmailAndType("test@example.com", AuthTokenType.MAGIC_LINK);
+        authTokenRepository.findValidByEmailAndType("test@example.com", AuthTokenType.OTP);
 
     assertTrue(result.isPresent());
-    assertEquals(AuthTokenType.MAGIC_LINK, result.get().getTokenType());
+    assertEquals(AuthTokenType.OTP, result.get().getTokenType());
   }
 
   @Test
   void findValidByEmailAndType_shouldReturnEmptyForDifferentType() {
     Instant expiresAt = Instant.now().plus(24, ChronoUnit.HOURS);
-    dataService.createAuthToken(
-        "test@example.com", "magic-hash", AuthTokenType.MAGIC_LINK, expiresAt);
+    dataService.createAuthToken("test@example.com", "magic-hash", AuthTokenType.OTP, expiresAt);
 
     Optional<AuthToken> result =
         authTokenRepository.findValidByEmailAndType(
@@ -98,11 +96,10 @@ class AuthTokenRepositoryTest {
 
   @Test
   void findValidByEmailAndType_shouldIgnoreExpiredTokens() {
-    dataService.createExpiredAuthToken(
-        "test@example.com", "expired-hash", AuthTokenType.MAGIC_LINK);
+    dataService.createExpiredAuthToken("test@example.com", "expired-hash", AuthTokenType.OTP);
 
     Optional<AuthToken> result =
-        authTokenRepository.findValidByEmailAndType("test@example.com", AuthTokenType.MAGIC_LINK);
+        authTokenRepository.findValidByEmailAndType("test@example.com", AuthTokenType.OTP);
 
     assertTrue(result.isEmpty());
   }
@@ -111,16 +108,16 @@ class AuthTokenRepositoryTest {
   @Transactional
   void invalidateByEmailAndType_shouldMarkTokensAsUsed() {
     Instant expiresAt = Instant.now().plus(24, ChronoUnit.HOURS);
-    dataService.createAuthToken("test@example.com", "token-1", AuthTokenType.MAGIC_LINK, expiresAt);
-    dataService.createAuthToken("test@example.com", "token-2", AuthTokenType.MAGIC_LINK, expiresAt);
+    dataService.createAuthToken("test@example.com", "token-1", AuthTokenType.OTP, expiresAt);
+    dataService.createAuthToken("test@example.com", "token-2", AuthTokenType.OTP, expiresAt);
 
     int invalidatedCount =
-        authTokenRepository.invalidateByEmailAndType("test@example.com", AuthTokenType.MAGIC_LINK);
+        authTokenRepository.invalidateByEmailAndType("test@example.com", AuthTokenType.OTP);
 
     assertEquals(2, invalidatedCount);
     assertTrue(
         authTokenRepository
-            .findValidByEmailAndType("test@example.com", AuthTokenType.MAGIC_LINK)
+            .findValidByEmailAndType("test@example.com", AuthTokenType.OTP)
             .isEmpty());
   }
 
@@ -128,12 +125,11 @@ class AuthTokenRepositoryTest {
   @Transactional
   void invalidateByEmailAndType_shouldNotAffectOtherTypes() {
     Instant expiresAt = Instant.now().plus(24, ChronoUnit.HOURS);
-    dataService.createAuthToken(
-        "test@example.com", "magic-hash", AuthTokenType.MAGIC_LINK, expiresAt);
+    dataService.createAuthToken("test@example.com", "magic-hash", AuthTokenType.OTP, expiresAt);
     dataService.createAuthToken(
         "test@example.com", "verify-hash", AuthTokenType.EMAIL_VERIFICATION, expiresAt);
 
-    authTokenRepository.invalidateByEmailAndType("test@example.com", AuthTokenType.MAGIC_LINK);
+    authTokenRepository.invalidateByEmailAndType("test@example.com", AuthTokenType.OTP);
 
     assertTrue(
         authTokenRepository
@@ -147,11 +143,9 @@ class AuthTokenRepositoryTest {
     Instant expiresAt = Instant.now().plus(24, ChronoUnit.HOURS);
     dataService.createAuthToken(
         "test@example.com", "valid-hash", AuthTokenType.EMAIL_VERIFICATION, expiresAt);
-    dataService.createExpiredAuthToken(
-        "test@example.com", "expired-hash", AuthTokenType.MAGIC_LINK);
+    dataService.createExpiredAuthToken("test@example.com", "expired-hash", AuthTokenType.OTP);
     AuthToken usedToken =
-        dataService.createAuthToken(
-            "test@example.com", "used-hash", AuthTokenType.MAGIC_LINK, expiresAt);
+        dataService.createAuthToken("test@example.com", "used-hash", AuthTokenType.OTP, expiresAt);
     dataService.markAuthTokenUsed(usedToken);
 
     long deletedCount = authTokenRepository.deleteExpiredTokens();

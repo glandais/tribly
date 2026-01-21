@@ -46,16 +46,16 @@ class AuthEmailServiceTest {
   }
 
   @Test
-  void sendMagicLinkEmail_shouldSendEmail() {
-    authEmailService.sendMagicLinkEmail("magic@example.com", "magic-token-456");
+  void sendOtpEmail_shouldSendEmail() {
+    authEmailService.sendOtpEmail("otp@example.com", "123456");
 
-    var sent = mailbox.getMailsSentTo("magic@example.com");
+    var sent = mailbox.getMailsSentTo("otp@example.com");
     assertEquals(1, sent.size());
 
     var mail = sent.getFirst();
-    assertTrue(mail.getSubject().contains("Connexion"));
-    assertTrue(mail.getText().contains("magic-link/verify?token=magic-token-456"));
-    assertTrue(mail.getText().contains("15 minutes"));
+    assertTrue(mail.getSubject().contains("code de connexion"));
+    assertTrue(mail.getText().contains("123456"));
+    assertTrue(mail.getText().contains("5 minutes"));
   }
 
   @Test

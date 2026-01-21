@@ -155,58 +155,61 @@ class AuthResourceTest {
         .body("code", equalTo("TOKEN_INVALID"));
   }
 
-  // --- Magic Link tests ---
+  // --- OTP tests ---
 
   @Test
-  void requestMagicLink_shouldReturn200() {
-    dataService.createVerifiedUser("magic@example.com", "Magic User");
+  void requestOtp_shouldReturn200() {
+    dataService.createVerifiedUser("otp@example.com", "OTP User");
 
     given()
         .contentType(ContentType.JSON)
-        .body("{\"email\": \"magic@example.com\"}")
+        .body("{\"email\": \"otp@example.com\"}")
         .when()
-        .post("/api/auth/magic-link")
+        .post("/api/auth/otp")
         .then()
         .statusCode(200)
-        .body("message", containsString("link"));
+        .body("message", containsString("code"));
   }
 
   @Test
-  void requestMagicLink_withNonexistentEmail_shouldStillReturn200() {
+  void requestOtp_withNonexistentEmail_shouldStillReturn200() {
     // Should not reveal if email exists
     given()
         .contentType(ContentType.JSON)
         .body("{\"email\": \"nonexistent@example.com\"}")
         .when()
-        .post("/api/auth/magic-link")
+        .post("/api/auth/otp")
         .then()
         .statusCode(200);
   }
 
   @Test
-  void verifyMagicLink_withValidToken_shouldReturn200() {
-    User user = dataService.createVerifiedUser("magic@example.com", "Magic User");
-    createMagicLinkToken(user, "magic-token");
+  void verifyOtp_withValidCode_shouldReturn200() {
+    User user = dataService.createVerifiedUser("otp@example.com", "OTP User");
+    createOtpToken(user, "123456");
 
     given()
         .contentType(ContentType.JSON)
-        .body("{\"token\": \"magic-token\"}")
+        .body("{\"email\": \"otp@example.com\", \"code\": \"123456\"}")
         .when()
-        .post("/api/auth/magic-link/verify")
+        .post("/api/auth/otp/verify")
         .then()
         .statusCode(200)
         .body("accessToken", is(notNullValue()))
-        .body("user.email", equalTo("magic@example.com"))
+        .body("user.email", equalTo("otp@example.com"))
         .cookie("refresh_token", is(notNullValue()));
   }
 
   @Test
-  void verifyMagicLink_withInvalidToken_shouldReturn400() {
+  void verifyOtp_withInvalidCode_shouldReturn400() {
+    User user = dataService.createVerifiedUser("otp@example.com", "OTP User");
+    createOtpToken(user, "123456");
+
     given()
         .contentType(ContentType.JSON)
-        .body("{\"token\": \"invalid-token\"}")
+        .body("{\"email\": \"otp@example.com\", \"code\": \"000000\"}")
         .when()
-        .post("/api/auth/magic-link/verify")
+        .post("/api/auth/otp/verify")
         .then()
         .statusCode(400)
         .body("code", equalTo("TOKEN_INVALID"));
@@ -385,15 +388,15 @@ class AuthResourceTest {
   }
 
   @Transactional
-  void createMagicLinkToken(User user, String token) {
-    String tokenHash = hashToken(token);
+  void createOtpToken(User user, String code) {
+    String tokenHash = hashToken(code);
     AuthToken authToken =
         new AuthToken(
             user,
             user.getEmail(),
             tokenHash,
-            AuthTokenType.MAGIC_LINK,
-            Instant.now().plus(15, ChronoUnit.MINUTES));
+            AuthTokenType.OTP,
+            Instant.now().plus(5, ChronoUnit.MINUTES));
     authTokenRepository.persist(authToken);
   }
 

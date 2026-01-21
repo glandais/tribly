@@ -62,6 +62,7 @@ export const authenticateResponse = zod
       })
       .optional()
       .describe('User profile data'),
+    refreshToken: zod.string().optional().describe('Refresh token (for mobile clients)'),
   })
   .describe('Authentication response')
 

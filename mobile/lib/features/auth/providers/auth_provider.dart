@@ -118,11 +118,11 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
-  /// Request magic link
-  Future<MessageResponse> requestMagicLink(String email) async {
+  /// Request OTP code
+  Future<MessageResponse> requestOtp(String email) async {
     state = state.copyWith(isLoading: true, error: null);
     try {
-      final response = await _repository.requestMagicLink(email);
+      final response = await _repository.requestOtp(email);
       state = state.copyWith(isLoading: false);
       return response;
     } catch (e) {
@@ -131,11 +131,11 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
-  /// Verify magic link token
-  Future<void> verifyMagicLink(String token) async {
+  /// Verify OTP code
+  Future<void> verifyOtp(String email, String code) async {
     state = state.copyWith(isLoading: true, error: null);
     try {
-      final response = await _repository.verifyMagicLink(token);
+      final response = await _repository.verifyOtp(email, code);
       await _handleAuthSuccess(response);
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());

@@ -17,4 +17,6 @@ export interface AuthResponse {
   expiresIn?: number
   /** Authenticated user */
   user?: UserDto
+  /** Refresh token (for mobile clients) */
+  refreshToken?: string
 }

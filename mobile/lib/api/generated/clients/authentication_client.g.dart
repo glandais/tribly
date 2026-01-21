@@ -58,9 +58,7 @@ class _AuthenticationClient implements AuthenticationClient {
   }
 
   @override
-  Future<MessageResponse> requestMagicLink({
-    required MagicLinkRequest body,
-  }) async {
+  Future<MessageResponse> requestOtp({required OtpRequest body}) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
@@ -70,7 +68,7 @@ class _AuthenticationClient implements AuthenticationClient {
       Options(method: 'POST', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
-            '/api/auth/magic-link',
+            '/api/auth/otp',
             queryParameters: queryParameters,
             data: _data,
           )
@@ -88,8 +86,8 @@ class _AuthenticationClient implements AuthenticationClient {
   }
 
   @override
-  Future<AuthResponse> verifyMagicLink({
-    required VerifyTokenRequest body,
+  Future<AuthResponse> verifyOtp({
+    required VerifyOtpRequest body,
     String? xForwardedFor,
     String? xRealIp,
   }) async {
@@ -107,7 +105,7 @@ class _AuthenticationClient implements AuthenticationClient {
       Options(method: 'POST', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
-            '/api/auth/magic-link/verify',
+            '/api/auth/otp/verify',
             queryParameters: queryParameters,
             data: _data,
           )

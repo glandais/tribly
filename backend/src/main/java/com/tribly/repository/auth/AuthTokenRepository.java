@@ -32,4 +32,17 @@ public class AuthTokenRepository implements PanacheRepository<AuthToken> {
   public long deleteExpiredTokens() {
     return delete("expiresAt < CURRENT_TIMESTAMP or usedAt is not null");
   }
+
+  /**
+   * Counts recent OTP tokens created for a given email within a time window. Used for rate
+   * limiting.
+   */
+  public long countRecentByEmailAndType(String email, AuthTokenType tokenType, int minutes) {
+    return count(
+        "email = ?1 and tokenType = ?2 and createdAt > (CURRENT_TIMESTAMP - make_interval(mins =>"
+            + " ?3))",
+        email,
+        tokenType,
+        minutes);
+  }
 }

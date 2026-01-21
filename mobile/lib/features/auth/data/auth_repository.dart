@@ -31,14 +31,14 @@ class AuthRepository {
     return _authClient.verifyEmail(body: VerifyTokenRequest(token: token));
   }
 
-  /// Request magic link
-  Future<MessageResponse> requestMagicLink(String email) {
-    return _authClient.requestMagicLink(body: MagicLinkRequest(email: email));
+  /// Request OTP
+  Future<MessageResponse> requestOtp(String email) {
+    return _authClient.requestOtp(body: OtpRequest(email: email));
   }
 
-  /// Verify magic link token
-  Future<AuthResponse> verifyMagicLink(String token) {
-    return _authClient.verifyMagicLink(body: VerifyTokenRequest(token: token));
+  /// Verify OTP code
+  Future<AuthResponse> verifyOtp(String email, String code) {
+    return _authClient.verifyOtp(body: VerifyOtpRequest(email: email, code: code));
   }
 
   /// Refresh access token

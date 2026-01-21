@@ -8,53 +8,55 @@
 import * as zod from 'zod'
 
 /**
- * Send a magic link to the user's email for passwordless login
- * @summary Request magic link
+ * Send a 6-digit OTP code to the user's email for passwordless login
+ * @summary Request OTP
  */
-export const requestMagicLinkBodyEmailMax = 250
+export const requestOtpBodyEmailMax = 250
 
-export const requestMagicLinkBodyEmailRegExp = new RegExp('\\S')
+export const requestOtpBodyEmailRegExp = new RegExp('\\S')
 
-export const requestMagicLinkBody = zod
+export const requestOtpBody = zod
   .object({
     email: zod
       .string()
-      .max(requestMagicLinkBodyEmailMax)
-      .regex(requestMagicLinkBodyEmailRegExp)
+      .max(requestOtpBodyEmailMax)
+      .regex(requestOtpBodyEmailRegExp)
       .describe('Email address'),
   })
-  .describe('Magic link request')
+  .describe('OTP request')
 
-export const requestMagicLinkResponse = zod
+export const requestOtpResponse = zod
   .object({
     message: zod.string().optional().describe('Response message'),
   })
   .describe('Simple message response')
 
 /**
- * Verify magic link token and authenticate
- * @summary Verify magic link
+ * Verify OTP code and authenticate
+ * @summary Verify OTP
  */
-export const verifyMagicLinkHeader = zod.object({
+export const verifyOtpHeader = zod.object({
   'X-Forwarded-For': zod.string().optional(),
   'X-Real-IP': zod.string().optional(),
 })
 
-export const verifyMagicLinkBodyTokenMax = 100
+export const verifyOtpBodyEmailMax = 250
 
-export const verifyMagicLinkBodyTokenRegExp = new RegExp('\\S')
+export const verifyOtpBodyEmailRegExp = new RegExp('\\S')
+export const verifyOtpBodyCodeRegExp = new RegExp('^\\d{6}$')
 
-export const verifyMagicLinkBody = zod
+export const verifyOtpBody = zod
   .object({
-    token: zod
+    email: zod
       .string()
-      .max(verifyMagicLinkBodyTokenMax)
-      .regex(verifyMagicLinkBodyTokenRegExp)
-      .describe('Verification token'),
+      .max(verifyOtpBodyEmailMax)
+      .regex(verifyOtpBodyEmailRegExp)
+      .describe('Email address'),
+    code: zod.string().regex(verifyOtpBodyCodeRegExp).describe('6-digit OTP code'),
   })
-  .describe('Token verification request')
+  .describe('OTP verification request')
 
-export const verifyMagicLinkResponse = zod
+export const verifyOtpResponse = zod
   .object({
     accessToken: zod.string().optional().describe('JWT access token'),
     expiresIn: zod.number().optional().describe('Token expiry in seconds'),
@@ -82,6 +84,7 @@ export const verifyMagicLinkResponse = zod
       })
       .optional()
       .describe('User profile data'),
+    refreshToken: zod.string().optional().describe('Refresh token (for mobile clients)'),
   })
   .describe('Authentication response')
 
@@ -122,6 +125,7 @@ export const refreshResponse = zod
       })
       .optional()
       .describe('User profile data'),
+    refreshToken: zod.string().optional().describe('Refresh token (for mobile clients)'),
   })
   .describe('Authentication response')
 
@@ -209,5 +213,6 @@ export const verifyEmailResponse = zod
       })
       .optional()
       .describe('User profile data'),
+    refreshToken: zod.string().optional().describe('Refresh token (for mobile clients)'),
   })
   .describe('Authentication response')
