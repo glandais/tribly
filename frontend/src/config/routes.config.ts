@@ -537,7 +537,6 @@ export const routesConfig: RoutesConfig = [
     component: AdminDashboardPage,
     auth: 'authenticated',
     parentId: null,
-    index: true,
     breadcrumb: { type: 'static', i18nKey: tRegister('admin.title') },
   },
   {
