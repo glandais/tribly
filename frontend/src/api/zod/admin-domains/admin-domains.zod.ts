@@ -159,6 +159,104 @@ export const getDomainResponse = zod
   .describe('Admin domain view with statistics')
 
 /**
+ * Get all GPS credentials for a domain
+ * @summary List GPS credentials
+ */
+export const listDomainGpsCredentialsParams = zod.object({
+  domainId: zod.string().describe('Domain ID'),
+})
+
+export const listDomainGpsCredentialsResponseItem = zod
+  .object({
+    id: zod.string().describe('Credential ID (TSID)'),
+    serviceType: zod.enum(['HAMMERHEAD', 'GARMIN']),
+    clientId: zod.string().describe('OAuth client ID'),
+    active: zod.boolean().describe('Whether credential is active'),
+    createdAt: zod.iso.datetime({}),
+  })
+  .describe('Admin GPS credential view (without secret)')
+export const listDomainGpsCredentialsResponse = zod.array(listDomainGpsCredentialsResponseItem)
+
+/**
+ * Create a new GPS credential for a domain
+ * @summary Create GPS credential
+ */
+export const createDomainGpsCredentialParams = zod.object({
+  domainId: zod.string().describe('Domain ID'),
+})
+
+export const createDomainGpsCredentialBodyClientIdMax = 255
+
+export const createDomainGpsCredentialBodyClientIdRegExp = new RegExp('\\S')
+export const createDomainGpsCredentialBodyClientSecretMax = 500
+
+export const createDomainGpsCredentialBody = zod
+  .object({
+    serviceType: zod.enum(['HAMMERHEAD', 'GARMIN']),
+    clientId: zod
+      .string()
+      .max(createDomainGpsCredentialBodyClientIdMax)
+      .regex(createDomainGpsCredentialBodyClientIdRegExp)
+      .describe('OAuth client ID'),
+    clientSecret: zod
+      .string()
+      .max(createDomainGpsCredentialBodyClientSecretMax)
+      .optional()
+      .describe('OAuth client secret (nullable for PKCE services)'),
+    active: zod.boolean().optional().describe('Whether credential is active'),
+  })
+  .describe('Request to create a new GPS credential')
+
+/**
+ * Update a GPS credential for a domain
+ * @summary Update GPS credential
+ */
+export const updateDomainGpsCredentialParams = zod.object({
+  credentialId: zod.string().describe('Credential ID'),
+  domainId: zod.string().describe('Domain ID'),
+})
+
+export const updateDomainGpsCredentialBodyClientIdMax = 255
+
+export const updateDomainGpsCredentialBodyClientIdRegExp = new RegExp('\\S')
+export const updateDomainGpsCredentialBodyClientSecretMax = 500
+
+export const updateDomainGpsCredentialBody = zod
+  .object({
+    clientId: zod
+      .string()
+      .max(updateDomainGpsCredentialBodyClientIdMax)
+      .regex(updateDomainGpsCredentialBodyClientIdRegExp)
+      .describe('OAuth client ID'),
+    clientSecret: zod
+      .string()
+      .max(updateDomainGpsCredentialBodyClientSecretMax)
+      .optional()
+      .describe('OAuth client secret (null = keep current)'),
+    active: zod.boolean().optional().describe('Whether credential is active'),
+  })
+  .describe('Request to update a GPS credential')
+
+export const updateDomainGpsCredentialResponse = zod
+  .object({
+    id: zod.string().describe('Credential ID (TSID)'),
+    serviceType: zod.enum(['HAMMERHEAD', 'GARMIN']),
+    clientId: zod.string().describe('OAuth client ID'),
+    active: zod.boolean().describe('Whether credential is active'),
+    createdAt: zod.iso.datetime({}),
+  })
+  .describe('Admin GPS credential view (without secret)')
+
+/**
+ * Delete a GPS credential for a domain
+ * @summary Delete GPS credential
+ */
+export const deleteDomainGpsCredentialParams = zod.object({
+  credentialId: zod.string().describe('Credential ID'),
+  domainId: zod.string().describe('Domain ID'),
+})
+
+/**
  * Enable or disable a domain
  * @summary Toggle domain active status
  */

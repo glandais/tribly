@@ -47,5 +47,7 @@ public enum ErrorCode {
   GPS_STATE_EXPIRED,
   GPX_NOT_FOUND,
   // Device code flow errors (RFC 8628)
-  AUTHORIZATION_PENDING
+  AUTHORIZATION_PENDING,
+  // Admin errors
+  GPS_CREDENTIAL_ALREADY_EXISTS
 }

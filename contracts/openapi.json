@@ -355,6 +355,36 @@
           }
         }
       },
+      "AdminGpsCredentialDto" : {
+        "description" : "Admin GPS credential view (without secret)",
+        "type" : "object",
+        "required" : [ "id", "serviceType", "clientId", "active", "createdAt" ],
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "description" : "Credential ID (TSID)",
+            "examples" : [ "0h4a8xzk8jv80" ]
+          },
+          "serviceType" : {
+            "description" : "GPS service type",
+            "type" : "string",
+            "$ref" : "#/components/schemas/GpsServiceType"
+          },
+          "clientId" : {
+            "type" : "string",
+            "description" : "OAuth client ID"
+          },
+          "active" : {
+            "type" : "boolean",
+            "description" : "Whether credential is active"
+          },
+          "createdAt" : {
+            "description" : "Credential creation timestamp",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Instant"
+          }
+        }
+      },
       "AdminStatsDto" : {
         "description" : "Admin dashboard statistics",
         "type" : "object",
@@ -925,6 +955,33 @@
           }
         }
       },
+      "CreateGpsCredentialRequest" : {
+        "description" : "Request to create a new GPS credential",
+        "type" : "object",
+        "required" : [ "serviceType", "clientId" ],
+        "properties" : {
+          "serviceType" : {
+            "description" : "GPS service type",
+            "type" : "string",
+            "$ref" : "#/components/schemas/GpsServiceType"
+          },
+          "clientId" : {
+            "type" : "string",
+            "description" : "OAuth client ID",
+            "pattern" : "\\S",
+            "maxLength" : 255
+          },
+          "clientSecret" : {
+            "type" : "string",
+            "description" : "OAuth client secret (nullable for PKCE services)",
+            "maxLength" : 500
+          },
+          "active" : {
+            "type" : "boolean",
+            "description" : "Whether credential is active"
+          }
+        }
+      },
       "DeviceRequest" : {
         "description" : "Device auth request",
         "type" : "object",
@@ -941,7 +998,7 @@
       },
       "ErrorCode" : {
         "type" : "string",
-        "enum" : [ "BAD_REQUEST", "NOT_FOUND", "UNAUTHORIZED", "FORBIDDEN", "INTERNAL_ERROR", "UNKNOWN", "VALIDATION", "BUSINESS_RULE", "LAST_ADMIN", "ALREADY_REGISTERED", "NOT_REGISTERED", "INVALID_SLUG", "SLUG_TAKEN", "USER_NOT_SYNCED", "GROUP_FULL", "INVALID_VISIBILITY", "PUBLIC_TRIP_PRIVATE_ROUTE", "GPX_FAILURE", "FILE_REQUIRED", "TOO_MANY_TEAM_PAGES", "GPX_EMPTY", "INVALID_FORMAT", "RENTAL_PERIOD_MISSING", "STATUS_INVALID", "PUBLIC_RIDE_PRIVATE_ROUTE", "INVALID_CREDENTIALS", "EMAIL_NOT_VERIFIED", "EMAIL_ALREADY_EXISTS", "TOKEN_INVALID", "TOKEN_EXPIRED", "SESSION_EXPIRED", "PASSWORD_NOT_SET", "PASSKEY_NOT_FOUND", "USER_NOT_FOUND", "DOMAIN_NOT_FOUND", "TEAM_NOT_FOUND", "TEAM_CREATION_DISABLED", "GPS_SERVICE_ALREADY_CONNECTED", "GPS_SERVICE_NOT_CONNECTED", "GPS_SERVICE_NOT_CONFIGURED", "GPS_INVALID_STATE", "GPS_STATE_EXPIRED", "GPX_NOT_FOUND", "AUTHORIZATION_PENDING" ]
+        "enum" : [ "BAD_REQUEST", "NOT_FOUND", "UNAUTHORIZED", "FORBIDDEN", "INTERNAL_ERROR", "UNKNOWN", "VALIDATION", "BUSINESS_RULE", "LAST_ADMIN", "ALREADY_REGISTERED", "NOT_REGISTERED", "INVALID_SLUG", "SLUG_TAKEN", "USER_NOT_SYNCED", "GROUP_FULL", "INVALID_VISIBILITY", "PUBLIC_TRIP_PRIVATE_ROUTE", "GPX_FAILURE", "FILE_REQUIRED", "TOO_MANY_TEAM_PAGES", "GPX_EMPTY", "INVALID_FORMAT", "RENTAL_PERIOD_MISSING", "STATUS_INVALID", "PUBLIC_RIDE_PRIVATE_ROUTE", "INVALID_CREDENTIALS", "EMAIL_NOT_VERIFIED", "EMAIL_ALREADY_EXISTS", "TOKEN_INVALID", "TOKEN_EXPIRED", "SESSION_EXPIRED", "PASSWORD_NOT_SET", "PASSKEY_NOT_FOUND", "USER_NOT_FOUND", "DOMAIN_NOT_FOUND", "TEAM_NOT_FOUND", "TEAM_CREATION_DISABLED", "GPS_SERVICE_ALREADY_CONNECTED", "GPS_SERVICE_NOT_CONNECTED", "GPS_SERVICE_NOT_CONFIGURED", "GPS_INVALID_STATE", "GPS_STATE_EXPIRED", "GPX_NOT_FOUND", "AUTHORIZATION_PENDING", "GPS_CREDENTIAL_ALREADY_EXISTS" ]
       },
       "ErrorDetails" : {
         "oneOf" : [ {
@@ -3373,6 +3430,28 @@
           }
         }
       },
+      "UpdateGpsCredentialRequest" : {
+        "description" : "Request to update a GPS credential",
+        "type" : "object",
+        "required" : [ "clientId" ],
+        "properties" : {
+          "clientId" : {
+            "type" : "string",
+            "description" : "OAuth client ID",
+            "pattern" : "\\S",
+            "maxLength" : 255
+          },
+          "clientSecret" : {
+            "type" : "string",
+            "description" : "OAuth client secret (null = keep current)",
+            "maxLength" : 500
+          },
+          "active" : {
+            "type" : "boolean",
+            "description" : "Whether credential is active"
+          }
+        }
+      },
       "UpdateMemberRoleRequest" : {
         "description" : "Request to update a member's role",
         "type" : "object",
@@ -3860,6 +3939,284 @@
           },
           "404" : {
             "description" : "Domain not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Forbidden - not a platform admin",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
+    "/api/admin/domains/{domainId}/gps-credentials" : {
+      "get" : {
+        "summary" : "List GPS credentials",
+        "description" : "Get all GPS credentials for a domain",
+        "operationId" : "listDomainGpsCredentials",
+        "tags" : [ "Admin - Domains" ],
+        "parameters" : [ {
+          "description" : "Domain ID",
+          "name" : "domainId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Credentials retrieved successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/AdminGpsCredentialDto"
+                  }
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Domain not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Forbidden - not a platform admin",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      },
+      "post" : {
+        "summary" : "Create GPS credential",
+        "description" : "Create a new GPS credential for a domain",
+        "operationId" : "createDomainGpsCredential",
+        "tags" : [ "Admin - Domains" ],
+        "parameters" : [ {
+          "description" : "Domain ID",
+          "name" : "domainId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CreateGpsCredentialRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "description" : "Credential created successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AdminGpsCredentialDto"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Invalid request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Domain not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409" : {
+            "description" : "Credential already exists for this service type",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Forbidden - not a platform admin",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
+    "/api/admin/domains/{domainId}/gps-credentials/{credentialId}" : {
+      "put" : {
+        "summary" : "Update GPS credential",
+        "description" : "Update a GPS credential for a domain",
+        "operationId" : "updateDomainGpsCredential",
+        "tags" : [ "Admin - Domains" ],
+        "parameters" : [ {
+          "description" : "Credential ID",
+          "name" : "credentialId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Domain ID",
+          "name" : "domainId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/UpdateGpsCredentialRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Credential updated successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AdminGpsCredentialDto"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Invalid request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Domain or credential not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Forbidden - not a platform admin",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      },
+      "delete" : {
+        "summary" : "Delete GPS credential",
+        "description" : "Delete a GPS credential for a domain",
+        "operationId" : "deleteDomainGpsCredential",
+        "tags" : [ "Admin - Domains" ],
+        "parameters" : [ {
+          "description" : "Credential ID",
+          "name" : "credentialId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Domain ID",
+          "name" : "domainId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "Credential deleted successfully"
+          },
+          "404" : {
+            "description" : "Domain or credential not found",
             "content" : {
               "application/json" : {
                 "schema" : {

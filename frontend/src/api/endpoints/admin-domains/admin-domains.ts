@@ -24,11 +24,14 @@ import type {
 import type {
   AdminDomainDto,
   AdminDomainListResponse,
+  AdminGpsCredentialDto,
   AdminStatsDto,
   CreateDomainRequest,
+  CreateGpsCredentialRequest,
   ErrorResponse,
   ListDomainsParams,
   UpdateDomainRequest,
+  UpdateGpsCredentialRequest,
 } from '../../dto'
 
 import { axiosMutator } from '../../../lib/axiosInstance'
@@ -557,6 +560,405 @@ export function useGetDomain<
   return query
 }
 
+/**
+ * Get all GPS credentials for a domain
+ * @summary List GPS credentials
+ */
+export const listDomainGpsCredentials = (
+  domainId: string,
+  options?: SecondParameter<typeof axiosMutator>,
+  signal?: AbortSignal
+) => {
+  return axiosMutator<AdminGpsCredentialDto[]>(
+    { url: `/api/admin/domains/${domainId}/gps-credentials`, method: 'GET', signal },
+    options
+  )
+}
+
+export const getListDomainGpsCredentialsQueryKey = (domainId?: string) => {
+  return [`/api/admin/domains/${domainId}/gps-credentials`] as const
+}
+
+export const getListDomainGpsCredentialsQueryOptions = <
+  TData = Awaited<ReturnType<typeof listDomainGpsCredentials>>,
+  TError = ErrorType<void | ErrorResponse>,
+>(
+  domainId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof listDomainGpsCredentials>>, TError, TData>
+    >
+    request?: SecondParameter<typeof axiosMutator>
+  }
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {}
+
+  const queryKey = queryOptions?.queryKey ?? getListDomainGpsCredentialsQueryKey(domainId)
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof listDomainGpsCredentials>>> = ({
+    signal,
+  }) => listDomainGpsCredentials(domainId, requestOptions, signal)
+
+  return { queryKey, queryFn, enabled: !!domainId, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listDomainGpsCredentials>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> }
+}
+
+export type ListDomainGpsCredentialsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listDomainGpsCredentials>>
+>
+export type ListDomainGpsCredentialsQueryError = ErrorType<void | ErrorResponse>
+
+export function useListDomainGpsCredentials<
+  TData = Awaited<ReturnType<typeof listDomainGpsCredentials>>,
+  TError = ErrorType<void | ErrorResponse>,
+>(
+  domainId: string,
+  options: {
+    query: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof listDomainGpsCredentials>>, TError, TData>
+    > &
+      Pick<
+        DefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listDomainGpsCredentials>>,
+          TError,
+          Awaited<ReturnType<typeof listDomainGpsCredentials>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListDomainGpsCredentials<
+  TData = Awaited<ReturnType<typeof listDomainGpsCredentials>>,
+  TError = ErrorType<void | ErrorResponse>,
+>(
+  domainId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof listDomainGpsCredentials>>, TError, TData>
+    > &
+      Pick<
+        UndefinedInitialDataOptions<
+          Awaited<ReturnType<typeof listDomainGpsCredentials>>,
+          TError,
+          Awaited<ReturnType<typeof listDomainGpsCredentials>>
+        >,
+        'initialData'
+      >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+export function useListDomainGpsCredentials<
+  TData = Awaited<ReturnType<typeof listDomainGpsCredentials>>,
+  TError = ErrorType<void | ErrorResponse>,
+>(
+  domainId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof listDomainGpsCredentials>>, TError, TData>
+    >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+/**
+ * @summary List GPS credentials
+ */
+
+export function useListDomainGpsCredentials<
+  TData = Awaited<ReturnType<typeof listDomainGpsCredentials>>,
+  TError = ErrorType<void | ErrorResponse>,
+>(
+  domainId: string,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof listDomainGpsCredentials>>, TError, TData>
+    >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+  const queryOptions = getListDomainGpsCredentialsQueryOptions(domainId, options)
+
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+    queryKey: DataTag<QueryKey, TData, TError>
+  }
+
+  query.queryKey = queryOptions.queryKey
+
+  return query
+}
+
+/**
+ * Create a new GPS credential for a domain
+ * @summary Create GPS credential
+ */
+export const createDomainGpsCredential = (
+  domainId: string,
+  createGpsCredentialRequest: BodyType<CreateGpsCredentialRequest>,
+  options?: SecondParameter<typeof axiosMutator>,
+  signal?: AbortSignal
+) => {
+  return axiosMutator<AdminGpsCredentialDto>(
+    {
+      url: `/api/admin/domains/${domainId}/gps-credentials`,
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      data: createGpsCredentialRequest,
+      signal,
+    },
+    options
+  )
+}
+
+export const getCreateDomainGpsCredentialMutationOptions = <
+  TError = ErrorType<ErrorResponse | void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createDomainGpsCredential>>,
+    TError,
+    { domainId: string; data: BodyType<CreateGpsCredentialRequest> },
+    TContext
+  >
+  request?: SecondParameter<typeof axiosMutator>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createDomainGpsCredential>>,
+  TError,
+  { domainId: string; data: BodyType<CreateGpsCredentialRequest> },
+  TContext
+> => {
+  const mutationKey = ['createDomainGpsCredential']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createDomainGpsCredential>>,
+    { domainId: string; data: BodyType<CreateGpsCredentialRequest> }
+  > = (props) => {
+    const { domainId, data } = props ?? {}
+
+    return createDomainGpsCredential(domainId, data, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type CreateDomainGpsCredentialMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createDomainGpsCredential>>
+>
+export type CreateDomainGpsCredentialMutationBody = BodyType<CreateGpsCredentialRequest>
+export type CreateDomainGpsCredentialMutationError = ErrorType<ErrorResponse | void>
+
+/**
+ * @summary Create GPS credential
+ */
+export const useCreateDomainGpsCredential = <
+  TError = ErrorType<ErrorResponse | void>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof createDomainGpsCredential>>,
+      TError,
+      { domainId: string; data: BodyType<CreateGpsCredentialRequest> },
+      TContext
+    >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof createDomainGpsCredential>>,
+  TError,
+  { domainId: string; data: BodyType<CreateGpsCredentialRequest> },
+  TContext
+> => {
+  const mutationOptions = getCreateDomainGpsCredentialMutationOptions(options)
+
+  return useMutation(mutationOptions, queryClient)
+}
+/**
+ * Update a GPS credential for a domain
+ * @summary Update GPS credential
+ */
+export const updateDomainGpsCredential = (
+  domainId: string,
+  credentialId: string,
+  updateGpsCredentialRequest: BodyType<UpdateGpsCredentialRequest>,
+  options?: SecondParameter<typeof axiosMutator>
+) => {
+  return axiosMutator<AdminGpsCredentialDto>(
+    {
+      url: `/api/admin/domains/${domainId}/gps-credentials/${credentialId}`,
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      data: updateGpsCredentialRequest,
+    },
+    options
+  )
+}
+
+export const getUpdateDomainGpsCredentialMutationOptions = <
+  TError = ErrorType<ErrorResponse | void>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateDomainGpsCredential>>,
+    TError,
+    { domainId: string; credentialId: string; data: BodyType<UpdateGpsCredentialRequest> },
+    TContext
+  >
+  request?: SecondParameter<typeof axiosMutator>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateDomainGpsCredential>>,
+  TError,
+  { domainId: string; credentialId: string; data: BodyType<UpdateGpsCredentialRequest> },
+  TContext
+> => {
+  const mutationKey = ['updateDomainGpsCredential']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateDomainGpsCredential>>,
+    { domainId: string; credentialId: string; data: BodyType<UpdateGpsCredentialRequest> }
+  > = (props) => {
+    const { domainId, credentialId, data } = props ?? {}
+
+    return updateDomainGpsCredential(domainId, credentialId, data, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type UpdateDomainGpsCredentialMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateDomainGpsCredential>>
+>
+export type UpdateDomainGpsCredentialMutationBody = BodyType<UpdateGpsCredentialRequest>
+export type UpdateDomainGpsCredentialMutationError = ErrorType<ErrorResponse | void>
+
+/**
+ * @summary Update GPS credential
+ */
+export const useUpdateDomainGpsCredential = <
+  TError = ErrorType<ErrorResponse | void>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof updateDomainGpsCredential>>,
+      TError,
+      { domainId: string; credentialId: string; data: BodyType<UpdateGpsCredentialRequest> },
+      TContext
+    >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof updateDomainGpsCredential>>,
+  TError,
+  { domainId: string; credentialId: string; data: BodyType<UpdateGpsCredentialRequest> },
+  TContext
+> => {
+  const mutationOptions = getUpdateDomainGpsCredentialMutationOptions(options)
+
+  return useMutation(mutationOptions, queryClient)
+}
+/**
+ * Delete a GPS credential for a domain
+ * @summary Delete GPS credential
+ */
+export const deleteDomainGpsCredential = (
+  domainId: string,
+  credentialId: string,
+  options?: SecondParameter<typeof axiosMutator>
+) => {
+  return axiosMutator<void>(
+    { url: `/api/admin/domains/${domainId}/gps-credentials/${credentialId}`, method: 'DELETE' },
+    options
+  )
+}
+
+export const getDeleteDomainGpsCredentialMutationOptions = <
+  TError = ErrorType<void | ErrorResponse>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteDomainGpsCredential>>,
+    TError,
+    { domainId: string; credentialId: string },
+    TContext
+  >
+  request?: SecondParameter<typeof axiosMutator>
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteDomainGpsCredential>>,
+  TError,
+  { domainId: string; credentialId: string },
+  TContext
+> => {
+  const mutationKey = ['deleteDomainGpsCredential']
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined }
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteDomainGpsCredential>>,
+    { domainId: string; credentialId: string }
+  > = (props) => {
+    const { domainId, credentialId } = props ?? {}
+
+    return deleteDomainGpsCredential(domainId, credentialId, requestOptions)
+  }
+
+  return { mutationFn, ...mutationOptions }
+}
+
+export type DeleteDomainGpsCredentialMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteDomainGpsCredential>>
+>
+
+export type DeleteDomainGpsCredentialMutationError = ErrorType<void | ErrorResponse>
+
+/**
+ * @summary Delete GPS credential
+ */
+export const useDeleteDomainGpsCredential = <
+  TError = ErrorType<void | ErrorResponse>,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof deleteDomainGpsCredential>>,
+      TError,
+      { domainId: string; credentialId: string },
+      TContext
+    >
+    request?: SecondParameter<typeof axiosMutator>
+  },
+  queryClient?: QueryClient
+): UseMutationResult<
+  Awaited<ReturnType<typeof deleteDomainGpsCredential>>,
+  TError,
+  { domainId: string; credentialId: string },
+  TContext
+> => {
+  const mutationOptions = getDeleteDomainGpsCredentialMutationOptions(options)
+
+  return useMutation(mutationOptions, queryClient)
+}
 /**
  * Enable or disable a domain
  * @summary Toggle domain active status

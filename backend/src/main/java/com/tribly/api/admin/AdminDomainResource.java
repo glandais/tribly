@@ -2,14 +2,18 @@ package com.tribly.api.admin;
 
 import com.tribly.dto.admin.AdminDomainDto;
 import com.tribly.dto.admin.AdminDomainListResponse;
+import com.tribly.dto.admin.AdminGpsCredentialDto;
 import com.tribly.dto.admin.AdminStatsDto;
 import com.tribly.dto.admin.CreateDomainRequest;
+import com.tribly.dto.admin.CreateGpsCredentialRequest;
 import com.tribly.dto.admin.UpdateDomainRequest;
+import com.tribly.dto.admin.UpdateGpsCredentialRequest;
 import com.tribly.dto.error.ErrorResponse;
 import com.tribly.repository.common.TriblyPage;
 import com.tribly.repository.platform.DomainRepository;
 import com.tribly.repository.team.TeamRepository;
 import com.tribly.repository.user.UserRepository;
+import com.tribly.service.admin.AdminDomainGpsCredentialService;
 import com.tribly.service.admin.AdminDomainService;
 import com.tribly.service.security.annotation.Admin;
 import jakarta.annotation.security.RolesAllowed;
@@ -18,6 +22,7 @@ import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import java.util.List;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
@@ -34,6 +39,8 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 public class AdminDomainResource {
 
   @Inject AdminDomainService adminDomainService;
+
+  @Inject AdminDomainGpsCredentialService gpsCredentialService;
 
   @Inject DomainRepository domainRepository;
 
@@ -206,5 +213,138 @@ public class AdminDomainResource {
 
     AdminDomainDto domain = adminDomainService.toggleDomainActive(domainId);
     return Response.ok(domain).build();
+  }
+
+  // GPS Credentials endpoints
+
+  @GET
+  @Path("/{domainId}/gps-credentials")
+  @Admin
+  @Operation(
+      operationId = "listDomainGpsCredentials",
+      summary = "List GPS credentials",
+      description = "Get all GPS credentials for a domain")
+  @APIResponses({
+    @APIResponse(
+        responseCode = "200",
+        description = "Credentials retrieved successfully",
+        content =
+            @Content(
+                schema =
+                    @Schema(
+                        type = org.eclipse.microprofile.openapi.annotations.enums.SchemaType.ARRAY,
+                        implementation = AdminGpsCredentialDto.class))),
+    @APIResponse(
+        responseCode = "404",
+        description = "Domain not found",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "403",
+        description = "Forbidden - not a platform admin",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  })
+  public Response listDomainGpsCredentials(
+      @Parameter(description = "Domain ID") @PathParam("domainId") String domainId) {
+
+    List<AdminGpsCredentialDto> credentials = gpsCredentialService.listCredentials(domainId);
+    return Response.ok(credentials).build();
+  }
+
+  @POST
+  @Path("/{domainId}/gps-credentials")
+  @Admin
+  @Operation(
+      operationId = "createDomainGpsCredential",
+      summary = "Create GPS credential",
+      description = "Create a new GPS credential for a domain")
+  @APIResponses({
+    @APIResponse(
+        responseCode = "201",
+        description = "Credential created successfully",
+        content = @Content(schema = @Schema(implementation = AdminGpsCredentialDto.class))),
+    @APIResponse(
+        responseCode = "400",
+        description = "Invalid request",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "404",
+        description = "Domain not found",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "409",
+        description = "Credential already exists for this service type",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "403",
+        description = "Forbidden - not a platform admin",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  })
+  public Response createDomainGpsCredential(
+      @Parameter(description = "Domain ID") @PathParam("domainId") String domainId,
+      @Valid CreateGpsCredentialRequest request) {
+
+    AdminGpsCredentialDto credential = gpsCredentialService.createCredential(domainId, request);
+    return Response.status(Response.Status.CREATED).entity(credential).build();
+  }
+
+  @PUT
+  @Path("/{domainId}/gps-credentials/{credentialId}")
+  @Admin
+  @Operation(
+      operationId = "updateDomainGpsCredential",
+      summary = "Update GPS credential",
+      description = "Update a GPS credential for a domain")
+  @APIResponses({
+    @APIResponse(
+        responseCode = "200",
+        description = "Credential updated successfully",
+        content = @Content(schema = @Schema(implementation = AdminGpsCredentialDto.class))),
+    @APIResponse(
+        responseCode = "400",
+        description = "Invalid request",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "404",
+        description = "Domain or credential not found",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "403",
+        description = "Forbidden - not a platform admin",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  })
+  public Response updateDomainGpsCredential(
+      @Parameter(description = "Domain ID") @PathParam("domainId") String domainId,
+      @Parameter(description = "Credential ID") @PathParam("credentialId") String credentialId,
+      @Valid UpdateGpsCredentialRequest request) {
+
+    AdminGpsCredentialDto credential =
+        gpsCredentialService.updateCredential(domainId, credentialId, request);
+    return Response.ok(credential).build();
+  }
+
+  @DELETE
+  @Path("/{domainId}/gps-credentials/{credentialId}")
+  @Admin
+  @Operation(
+      operationId = "deleteDomainGpsCredential",
+      summary = "Delete GPS credential",
+      description = "Delete a GPS credential for a domain")
+  @APIResponses({
+    @APIResponse(responseCode = "204", description = "Credential deleted successfully"),
+    @APIResponse(
+        responseCode = "404",
+        description = "Domain or credential not found",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class))),
+    @APIResponse(
+        responseCode = "403",
+        description = "Forbidden - not a platform admin",
+        content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+  })
+  public Response deleteDomainGpsCredential(
+      @Parameter(description = "Domain ID") @PathParam("domainId") String domainId,
+      @Parameter(description = "Credential ID") @PathParam("credentialId") String credentialId) {
+
+    gpsCredentialService.deleteCredential(domainId, credentialId);
+    return Response.noContent().build();
   }
 }

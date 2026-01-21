@@ -7,5 +7,5 @@
  */
 
 export type VerifyParams = {
-  code?: string
-}
+code?: string;
+};

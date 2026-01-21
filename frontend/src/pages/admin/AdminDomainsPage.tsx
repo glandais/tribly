@@ -12,9 +12,17 @@ import {
   Tooltip,
   Paper,
   Center,
+  Button,
 } from '@mantine/core'
-import { IconWorld, IconToggleLeft, IconToggleRight } from '@tabler/icons-react'
+import {
+  IconWorld,
+  IconToggleLeft,
+  IconToggleRight,
+  IconPlus,
+  IconPencil,
+} from '@tabler/icons-react'
 import { AdminLayout } from '@/components/admin/AdminLayout'
+import { DomainFormModal } from '@/components/admin/DomainFormModal'
 import { Pagination } from '@/components/common/Pagination'
 import { useListDomains, useToggleDomainActive } from '@/api/endpoints/admin-domains/admin-domains'
 import type { AdminDomainDto } from '@/api/dto'
@@ -23,6 +31,8 @@ export function AdminDomainsPage() {
   const { t } = useTranslation()
   const [page, setPage] = useState(0)
   const pageSize = 20
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [editingDomain, setEditingDomain] = useState<AdminDomainDto | undefined>(undefined)
 
   const { data, isLoading, error } = useListDomains({ page, size: pageSize })
   const toggleMutation = useToggleDomainActive()
@@ -31,11 +41,32 @@ export function AdminDomainsPage() {
     toggleMutation.mutate({ domainId })
   }
 
+  const handleCreateDomain = () => {
+    setEditingDomain(undefined)
+    setIsModalOpen(true)
+  }
+
+  const handleEditDomain = (domain: AdminDomainDto) => {
+    setEditingDomain(domain)
+    setIsModalOpen(true)
+  }
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false)
+    setEditingDomain(undefined)
+  }
+
   const totalPages = data ? Math.ceil(data.total / pageSize) : 0
 
   return (
     <AdminLayout currentTab="domains">
       <Stack mt="lg">
+        <Group justify="flex-end">
+          <Button leftSection={<IconPlus size={16} />} onClick={handleCreateDomain}>
+            {t('admin.domains.create.button')}
+          </Button>
+        </Group>
+
         {error && (
           <Alert color="red">
             {error instanceof Error ? error.message : t('errors.api.failedToLoad')}
@@ -94,25 +125,32 @@ export function AdminDomainsPage() {
                         </Badge>
                       </Table.Td>
                       <Table.Td ta="center">
-                        <Tooltip
-                          label={
-                            domain.active
-                              ? t('admin.domains.deactivate')
-                              : t('admin.domains.activate')
-                          }
-                        >
-                          <ActionIcon
-                            variant="subtle"
-                            onClick={() => handleToggleActive(domain.id)}
-                            loading={toggleMutation.isPending}
+                        <Group gap="xs" justify="center">
+                          <Tooltip label={t('actions.edit')}>
+                            <ActionIcon variant="subtle" onClick={() => handleEditDomain(domain)}>
+                              <IconPencil size={18} />
+                            </ActionIcon>
+                          </Tooltip>
+                          <Tooltip
+                            label={
+                              domain.active
+                                ? t('admin.domains.deactivate')
+                                : t('admin.domains.activate')
+                            }
                           >
-                            {domain.active ? (
-                              <IconToggleRight size={20} />
-                            ) : (
-                              <IconToggleLeft size={20} />
-                            )}
-                          </ActionIcon>
-                        </Tooltip>
+                            <ActionIcon
+                              variant="subtle"
+                              onClick={() => handleToggleActive(domain.id)}
+                              loading={toggleMutation.isPending}
+                            >
+                              {domain.active ? (
+                                <IconToggleRight size={20} />
+                              ) : (
+                                <IconToggleLeft size={20} />
+                              )}
+                            </ActionIcon>
+                          </Tooltip>
+                        </Group>
                       </Table.Td>
                     </Table.Tr>
                   ))}
@@ -129,11 +167,16 @@ export function AdminDomainsPage() {
                 <IconWorld size={48} color="var(--mantine-color-dimmed)" />
                 <Text fw={500}>{t('admin.domains.empty.title')}</Text>
                 <Text c="dimmed">{t('admin.domains.empty.description')}</Text>
+                <Button leftSection={<IconPlus size={16} />} onClick={handleCreateDomain} mt="sm">
+                  {t('admin.domains.create.button')}
+                </Button>
               </Stack>
             </Center>
           </Paper>
         )}
       </Stack>
+
+      <DomainFormModal isOpen={isModalOpen} onClose={handleCloseModal} domain={editingDomain} />
     </AdminLayout>
   )
 }
