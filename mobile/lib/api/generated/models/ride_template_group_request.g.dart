@@ -1,0 +1,27 @@
+// GENERATED CODE - DO NOT MODIFY BY HAND
+
+part of 'ride_template_group_request.dart';
+
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
+
+_RideTemplateGroupRequest _$RideTemplateGroupRequestFromJson(
+  Map<String, dynamic> json,
+) => _RideTemplateGroupRequest(
+  name: json['name'] as String,
+  id: json['id'] as String?,
+  time: json['time'] as String?,
+  averageSpeed: (json['averageSpeed'] as num?)?.toDouble(),
+  maxParticipants: (json['maxParticipants'] as num?)?.toInt(),
+);
+
+Map<String, dynamic> _$RideTemplateGroupRequestToJson(
+  _RideTemplateGroupRequest instance,
+) => <String, dynamic>{
+  'name': instance.name,
+  'id': instance.id,
+  'time': instance.time,
+  'averageSpeed': instance.averageSpeed,
+  'maxParticipants': instance.maxParticipants,
+};

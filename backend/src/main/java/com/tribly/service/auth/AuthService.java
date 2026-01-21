@@ -272,6 +272,7 @@ public class AuthService {
             .accessToken(accessToken)
             .expiresIn(jwtService.getAccessTokenExpirySeconds())
             .user(UserDto.from(user))
+            .refreshToken(refreshToken)
             .build();
 
     return new AuthResult(response, refreshToken);

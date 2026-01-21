@@ -1,0 +1,22 @@
+global_options:
+  freezed:
+    runs_before:
+      - json_serializable
+  json_serializable:
+    runs_before:
+      - retrofit_generator
+
+targets:
+  $default:
+    builders:
+      freezed:
+        generate_for:
+          - lib/**/*.dart
+      json_serializable:
+        generate_for:
+          - lib/**/*.dart
+        options:
+          explicit_to_json: true
+      retrofit_generator:
+        generate_for:
+          - lib/**/*.dart

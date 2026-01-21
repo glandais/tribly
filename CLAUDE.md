@@ -8,6 +8,7 @@ Tribly: multi-tenant cycling team platform (rides, routes with GPX/maps, posts).
 |-------|-------------|
 | Backend | Java 21, Quarkus 3.30.x, PostgreSQL 17 + PostGIS, Hibernate/Panache, Flyway |
 | Frontend | TypeScript 5, React 19, Vite, Mantine UI, Zustand, React Query |
+| Mobile | Flutter, Dart (see `mobile/rules.md` for detailed guidelines) |
 | Auth | Database auth with JWT (password, magic link, passkeys/WebAuthn) |
 | IDs | TSID via hypersistence-utils (Long internally, lowercase string in API) |
 | API | OpenAPI 3.1 contract-first with code generation |
@@ -23,6 +24,12 @@ mvn test                           # Tests
 pnpm dev                           # Dev server
 pnpm build                         # Type check + build
 pnpm generate-api                  # Generate API client from OpenAPI
+
+# Mobile (mobile/)
+flutter pub get                    # Install dependencies
+flutter run                        # Run on connected device/emulator
+flutter test                       # Run tests
+dart run build_runner build --delete-conflicting-outputs  # Code generation
 
 # Infrastructure
 docker compose up -d               # PostgreSQL + imgproxy + brouter
@@ -77,6 +84,13 @@ frontend/src/
 ├── store/            # Zustand stores
 ├── types/            # TypeScript type definitions
 └── utils/            # Utility functions
+
+mobile/lib/
+├── main.dart         # Application entry point
+├── presentation/     # Widgets and screens
+├── domain/           # Business logic
+├── data/             # Models and API clients
+└── core/             # Shared utilities and extensions
 ```
 
 ## Contract-First Workflow
@@ -123,6 +137,12 @@ frontend/src/
 - Never use SVG for icons, use `@tabler/icons-react`
 - Never use hard coded links, use paths.XXX(YYYslug) from `config/paths.ts`
 - Templated i18n keys must use type annotations: `t(\`status.\${x satisfies 'DRAFT' | 'PUBLISHED'}\`)` (validated by `pnpm i18n:lint`)
+
+**Mobile**:
+- See `mobile/rules.md` for comprehensive Flutter/Dart guidelines
+- Use `go_router` for navigation, `json_serializable` for JSON parsing
+- Prefer Flutter's built-in state management (ValueNotifier, ChangeNotifier) over third-party packages
+- Run `dart run build_runner build --delete-conflicting-outputs` after modifying serializable models
 
 ## Dev URLs
 

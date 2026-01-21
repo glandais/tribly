@@ -592,6 +592,9 @@ components:
           description: Authenticated user
           type: object
           $ref: "#/components/schemas/UserDto"
+        refreshToken:
+          type: string
+          description: Refresh token (for mobile clients)
     CalendarEventDto:
       description: Calendar event data
       type: object

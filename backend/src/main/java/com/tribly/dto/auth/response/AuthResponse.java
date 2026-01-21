@@ -11,4 +11,5 @@ import org.eclipse.microprofile.openapi.annotations.media.Schema;
 public record AuthResponse(
     @Schema(description = "JWT access token") String accessToken,
     @Schema(description = "Token expiry in seconds") int expiresIn,
-    @Schema(description = "Authenticated user") UserDto user) {}
+    @Schema(description = "Authenticated user") UserDto user,
+    @Schema(description = "Refresh token (for mobile clients)") String refreshToken) {}

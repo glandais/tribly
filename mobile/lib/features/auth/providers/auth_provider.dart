@@ -1,0 +1,205 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
+
+import '../../../api/generated/export.dart';
+import '../../../api/tribly_api_client.dart';
+import '../data/auth_repository.dart';
+import '../data/secure_storage.dart';
+import '../domain/auth_state.dart';
+
+/// Provider for auth state
+final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
+  return AuthNotifier(
+    ref.watch(authRepositoryProvider),
+    ref.watch(secureStorageProvider),
+    ref,
+  );
+});
+
+/// Auth state notifier
+/// Mirrors frontend/src/store/authStore.ts
+class AuthNotifier extends StateNotifier<AuthState> {
+  final AuthRepository _repository;
+  final SecureTokenStorage _storage;
+  final Ref _ref;
+
+  AuthNotifier(this._repository, this._storage, this._ref)
+      : super(const AuthState());
+
+  /// Get the current access token
+  String? get accessToken => state.accessToken;
+
+  /// Sync token to the holder for interceptor use
+  void _syncTokenToHolder(String? token) {
+    _ref.read(accessTokenHolderProvider.notifier).state = token;
+  }
+
+  /// Initialize auth state by attempting to refresh from stored token
+  Future<void> initialize() async {
+    if (state.isInitialized || state.isInitializing) return;
+
+    state = state.copyWith(isInitializing: true, error: null);
+
+    try {
+      final refreshToken = await _storage.getRefreshToken();
+      if (refreshToken != null) {
+        final response = await _repository.refreshToken(refreshToken);
+        await _handleAuthSuccess(response);
+      }
+    } catch (e) {
+      // Refresh failed, clear stored token
+      await _storage.deleteRefreshToken();
+      _syncTokenToHolder(null);
+    } finally {
+      state = state.copyWith(
+        isInitialized: true,
+        isInitializing: false,
+      );
+    }
+  }
+
+  /// Handle successful authentication
+  Future<void> _handleAuthSuccess(AuthResponse response) async {
+    // Save refresh token if provided
+    if (response.refreshToken != null) {
+      await _storage.saveRefreshToken(response.refreshToken!);
+    }
+
+    // Sync token to holder for interceptor
+    _syncTokenToHolder(response.accessToken);
+
+    // Check if user has passkeys
+    bool hasPasskeys = false;
+    if (response.accessToken != null) {
+      try {
+        final passkeys = await _repository.listPasskeys(response.accessToken!);
+        hasPasskeys = passkeys.isNotEmpty;
+      } catch (_) {
+        // Ignore passkey check errors
+      }
+    }
+
+    state = state.copyWith(
+      user: response.user,
+      accessToken: response.accessToken,
+      hasPasskeys: hasPasskeys,
+      isLoading: false,
+      error: null,
+    );
+  }
+
+  /// Register a new user
+  Future<MessageResponse> register({
+    required String email,
+    required String displayName,
+  }) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final response = await _repository.register(
+        RegisterRequest(email: email, displayName: displayName),
+      );
+      state = state.copyWith(isLoading: false);
+      return response;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+      rethrow;
+    }
+  }
+
+  /// Verify email with token
+  Future<void> verifyEmail(String token) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final response = await _repository.verifyEmail(token);
+      await _handleAuthSuccess(response);
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+      rethrow;
+    }
+  }
+
+  /// Request magic link
+  Future<MessageResponse> requestMagicLink(String email) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final response = await _repository.requestMagicLink(email);
+      state = state.copyWith(isLoading: false);
+      return response;
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+      rethrow;
+    }
+  }
+
+  /// Verify magic link token
+  Future<void> verifyMagicLink(String token) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final response = await _repository.verifyMagicLink(token);
+      await _handleAuthSuccess(response);
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+      rethrow;
+    }
+  }
+
+  /// Authenticate with passkey
+  Future<void> authenticateWithPasskey(Map<String, dynamic> credential) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final response = await _repository.authenticateWithPasskey(credential);
+      await _handleAuthSuccess(response);
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+      rethrow;
+    }
+  }
+
+  /// Set access token (called by auth interceptor on refresh)
+  void setAccessToken(String token) {
+    state = state.copyWith(accessToken: token);
+    _syncTokenToHolder(token);
+  }
+
+  /// Set user (called by auth interceptor on refresh)
+  void setUser(UserDto user) {
+    state = state.copyWith(user: user);
+  }
+
+  /// Update hasPasskeys flag
+  void setHasPasskeys(bool value) {
+    state = state.copyWith(hasPasskeys: value);
+  }
+
+  /// Logout
+  Future<void> logout() async {
+    try {
+      final refreshToken = await _storage.getRefreshToken();
+      await _repository.logout(refreshToken);
+    } catch (_) {
+      // Ignore logout errors
+    } finally {
+      await _storage.deleteRefreshToken();
+      _syncTokenToHolder(null);
+      state = const AuthState(isInitialized: true);
+    }
+  }
+
+  /// Logout from all devices
+  Future<void> logoutAll() async {
+    try {
+      await _repository.logoutAll();
+    } catch (_) {
+      // Ignore logout errors
+    } finally {
+      await _storage.deleteRefreshToken();
+      _syncTokenToHolder(null);
+      state = const AuthState(isInitialized: true);
+    }
+  }
+
+  /// Clear error
+  void clearError() {
+    state = state.copyWith(error: null);
+  }
+}

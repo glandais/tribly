@@ -1,0 +1,54 @@
+{
+  "app": {
+    "name": "Tribly",
+    "tagline": "Platform for cycling teams"
+  },
+  "auth": {
+    "login": "Login",
+    "register": "Create account",
+    "logout": "Logout",
+    "email": "Email",
+    "displayName": "Display name",
+    "passkey": {
+      "login": "Login with Passkey",
+      "register": "Add Passkey",
+      "prompt": "Add a Passkey?",
+      "description": "Login faster with your fingerprint or Face ID."
+    },
+    "magicLink": {
+      "title": "Login by email",
+      "send": "Send link",
+      "sent": "A login link has been sent to {email}"
+    },
+    "verifyEmail": {
+      "title": "Email verification",
+      "verifying": "Verifying...",
+      "success": "Email verified!",
+      "accountCreated": "Your account has been created successfully."
+    },
+    "errors": {
+      "emailRequired": "Email is required",
+      "emailInvalid": "Invalid email",
+      "displayNameRequired": "Display name is required",
+      "displayNameTooShort": "At least 2 characters",
+      "displayNameTooLong": "100 characters maximum",
+      "tokenMissing": "Token missing",
+      "authFailed": "Authentication failed"
+    }
+  },
+  "common": {
+    "continue": "Continue",
+    "back": "Back",
+    "later": "Later",
+    "or": "or",
+    "error": "Error",
+    "loading": "Loading..."
+  },
+  "home": {
+    "welcome": "Welcome!",
+    "appInDevelopment": "The Tribly mobile app is under development. Soon, you'll be able to access your teams, rides, routes and more.",
+    "myTeams": "My teams",
+    "calendar": "Calendar",
+    "routes": "Routes"
+  }
+}

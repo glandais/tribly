@@ -1,6 +1,7 @@
 services:
   postgres:
     image: postgis/postgis:17-3.5-alpine
+    platform: linux/x86_64
     container_name: tribly-dev-postgres
     restart: unless-stopped
     networks:

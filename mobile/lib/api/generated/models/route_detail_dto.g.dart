@@ -1,0 +1,59 @@
+// GENERATED CODE - DO NOT MODIFY BY HAND
+
+part of 'route_detail_dto.dart';
+
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
+
+_RouteDetailDto _$RouteDetailDtoFromJson(Map<String, dynamic> json) =>
+    _RouteDetailDto(
+      id: json['id'] as String,
+      slug: json['slug'] as String,
+      team: TeamPublicationDto.fromJson(json['team'] as Map<String, dynamic>),
+      name: json['name'] as String,
+      media: MediaDto.fromJson(json['media'] as Map<String, dynamic>),
+      distance: (json['distance'] as num).toDouble(),
+      elevationGain: (json['elevationGain'] as num).toDouble(),
+      elevationLoss: (json['elevationLoss'] as num).toDouble(),
+      surfaceType: json['surfaceType'] as String,
+      visibility: json['visibility'] as String,
+      createdBy: PublicUserDto.fromJson(
+        json['createdBy'] as Map<String, dynamic>,
+      ),
+      createdAt: json['createdAt'] as String,
+      updatedAt: json['updatedAt'] as String,
+      tracks: (json['tracks'] as List<dynamic>)
+          .map((e) => TrackDto.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      waypoints: (json['waypoints'] as List<dynamic>)
+          .map((e) => WaypointDto.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      start: json['start'] == null
+          ? null
+          : GeoJsonPoint.fromJson(json['start'] as Map<String, dynamic>),
+      end: json['end'] == null
+          ? null
+          : GeoJsonPoint.fromJson(json['end'] as Map<String, dynamic>),
+    );
+
+Map<String, dynamic> _$RouteDetailDtoToJson(_RouteDetailDto instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'slug': instance.slug,
+      'team': instance.team.toJson(),
+      'name': instance.name,
+      'media': instance.media.toJson(),
+      'distance': instance.distance,
+      'elevationGain': instance.elevationGain,
+      'elevationLoss': instance.elevationLoss,
+      'surfaceType': instance.surfaceType,
+      'visibility': instance.visibility,
+      'createdBy': instance.createdBy.toJson(),
+      'createdAt': instance.createdAt,
+      'updatedAt': instance.updatedAt,
+      'tracks': instance.tracks.map((e) => e.toJson()).toList(),
+      'waypoints': instance.waypoints.map((e) => e.toJson()).toList(),
+      'start': instance.start?.toJson(),
+      'end': instance.end?.toJson(),
+    };

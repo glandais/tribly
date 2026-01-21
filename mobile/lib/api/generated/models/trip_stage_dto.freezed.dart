@@ -1,0 +1,385 @@
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// coverage:ignore-file
+// ignore_for_file: type=lint
+// ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
+
+part of 'trip_stage_dto.dart';
+
+// **************************************************************************
+// FreezedGenerator
+// **************************************************************************
+
+// dart format off
+T _$identity<T>(T value) => value;
+
+/// @nodoc
+mixin _$TripStageDto {
+
+/// Stage ID (TSID)
+ String get id;/// Stage slug
+ String get slug;/// Stage name
+ String get name;/// Stage date/time
+ String get dateTime;/// Stage media
+ MediaDto get media;/// Sort order
+ int get sortOrder;/// Route slug
+ String? get routeSlug;/// Start place
+ PlaceDetailDto? get startPlace;/// End place
+ PlaceDetailDto? get endPlace;
+/// Create a copy of TripStageDto
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$TripStageDtoCopyWith<TripStageDto> get copyWith => _$TripStageDtoCopyWithImpl<TripStageDto>(this as TripStageDto, _$identity);
+
+  /// Serializes this TripStageDto to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is TripStageDto&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&(identical(other.dateTime, dateTime) || other.dateTime == dateTime)&&(identical(other.media, media) || other.media == media)&&(identical(other.sortOrder, sortOrder) || other.sortOrder == sortOrder)&&(identical(other.routeSlug, routeSlug) || other.routeSlug == routeSlug)&&(identical(other.startPlace, startPlace) || other.startPlace == startPlace)&&(identical(other.endPlace, endPlace) || other.endPlace == endPlace));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,slug,name,dateTime,media,sortOrder,routeSlug,startPlace,endPlace);
+
+@override
+String toString() {
+  return 'TripStageDto(id: $id, slug: $slug, name: $name, dateTime: $dateTime, media: $media, sortOrder: $sortOrder, routeSlug: $routeSlug, startPlace: $startPlace, endPlace: $endPlace)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $TripStageDtoCopyWith<$Res>  {
+  factory $TripStageDtoCopyWith(TripStageDto value, $Res Function(TripStageDto) _then) = _$TripStageDtoCopyWithImpl;
+@useResult
+$Res call({
+ String id, String slug, String name, String dateTime, MediaDto media, int sortOrder, String? routeSlug, PlaceDetailDto? startPlace, PlaceDetailDto? endPlace
+});
+
+
+$MediaDtoCopyWith<$Res> get media;$PlaceDetailDtoCopyWith<$Res>? get startPlace;$PlaceDetailDtoCopyWith<$Res>? get endPlace;
+
+}
+/// @nodoc
+class _$TripStageDtoCopyWithImpl<$Res>
+    implements $TripStageDtoCopyWith<$Res> {
+  _$TripStageDtoCopyWithImpl(this._self, this._then);
+
+  final TripStageDto _self;
+  final $Res Function(TripStageDto) _then;
+
+/// Create a copy of TripStageDto
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? slug = null,Object? name = null,Object? dateTime = null,Object? media = null,Object? sortOrder = null,Object? routeSlug = freezed,Object? startPlace = freezed,Object? endPlace = freezed,}) {
+  return _then(_self.copyWith(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,slug: null == slug ? _self.slug : slug // ignore: cast_nullable_to_non_nullable
+as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,dateTime: null == dateTime ? _self.dateTime : dateTime // ignore: cast_nullable_to_non_nullable
+as String,media: null == media ? _self.media : media // ignore: cast_nullable_to_non_nullable
+as MediaDto,sortOrder: null == sortOrder ? _self.sortOrder : sortOrder // ignore: cast_nullable_to_non_nullable
+as int,routeSlug: freezed == routeSlug ? _self.routeSlug : routeSlug // ignore: cast_nullable_to_non_nullable
+as String?,startPlace: freezed == startPlace ? _self.startPlace : startPlace // ignore: cast_nullable_to_non_nullable
+as PlaceDetailDto?,endPlace: freezed == endPlace ? _self.endPlace : endPlace // ignore: cast_nullable_to_non_nullable
+as PlaceDetailDto?,
+  ));
+}
+/// Create a copy of TripStageDto
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$MediaDtoCopyWith<$Res> get media {
+  
+  return $MediaDtoCopyWith<$Res>(_self.media, (value) {
+    return _then(_self.copyWith(media: value));
+  });
+}/// Create a copy of TripStageDto
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$PlaceDetailDtoCopyWith<$Res>? get startPlace {
+    if (_self.startPlace == null) {
+    return null;
+  }
+
+  return $PlaceDetailDtoCopyWith<$Res>(_self.startPlace!, (value) {
+    return _then(_self.copyWith(startPlace: value));
+  });
+}/// Create a copy of TripStageDto
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$PlaceDetailDtoCopyWith<$Res>? get endPlace {
+    if (_self.endPlace == null) {
+    return null;
+  }
+
+  return $PlaceDetailDtoCopyWith<$Res>(_self.endPlace!, (value) {
+    return _then(_self.copyWith(endPlace: value));
+  });
+}
+}
+
+
+/// Adds pattern-matching-related methods to [TripStageDto].
+extension TripStageDtoPatterns on TripStageDto {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _TripStageDto value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _TripStageDto() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _TripStageDto value)  $default,){
+final _that = this;
+switch (_that) {
+case _TripStageDto():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _TripStageDto value)?  $default,){
+final _that = this;
+switch (_that) {
+case _TripStageDto() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String slug,  String name,  String dateTime,  MediaDto media,  int sortOrder,  String? routeSlug,  PlaceDetailDto? startPlace,  PlaceDetailDto? endPlace)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _TripStageDto() when $default != null:
+return $default(_that.id,_that.slug,_that.name,_that.dateTime,_that.media,_that.sortOrder,_that.routeSlug,_that.startPlace,_that.endPlace);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String slug,  String name,  String dateTime,  MediaDto media,  int sortOrder,  String? routeSlug,  PlaceDetailDto? startPlace,  PlaceDetailDto? endPlace)  $default,) {final _that = this;
+switch (_that) {
+case _TripStageDto():
+return $default(_that.id,_that.slug,_that.name,_that.dateTime,_that.media,_that.sortOrder,_that.routeSlug,_that.startPlace,_that.endPlace);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String slug,  String name,  String dateTime,  MediaDto media,  int sortOrder,  String? routeSlug,  PlaceDetailDto? startPlace,  PlaceDetailDto? endPlace)?  $default,) {final _that = this;
+switch (_that) {
+case _TripStageDto() when $default != null:
+return $default(_that.id,_that.slug,_that.name,_that.dateTime,_that.media,_that.sortOrder,_that.routeSlug,_that.startPlace,_that.endPlace);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _TripStageDto implements TripStageDto {
+  const _TripStageDto({required this.id, required this.slug, required this.name, required this.dateTime, required this.media, required this.sortOrder, this.routeSlug, this.startPlace, this.endPlace});
+  factory _TripStageDto.fromJson(Map<String, dynamic> json) => _$TripStageDtoFromJson(json);
+
+/// Stage ID (TSID)
+@override final  String id;
+/// Stage slug
+@override final  String slug;
+/// Stage name
+@override final  String name;
+/// Stage date/time
+@override final  String dateTime;
+/// Stage media
+@override final  MediaDto media;
+/// Sort order
+@override final  int sortOrder;
+/// Route slug
+@override final  String? routeSlug;
+/// Start place
+@override final  PlaceDetailDto? startPlace;
+/// End place
+@override final  PlaceDetailDto? endPlace;
+
+/// Create a copy of TripStageDto
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$TripStageDtoCopyWith<_TripStageDto> get copyWith => __$TripStageDtoCopyWithImpl<_TripStageDto>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$TripStageDtoToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TripStageDto&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&(identical(other.dateTime, dateTime) || other.dateTime == dateTime)&&(identical(other.media, media) || other.media == media)&&(identical(other.sortOrder, sortOrder) || other.sortOrder == sortOrder)&&(identical(other.routeSlug, routeSlug) || other.routeSlug == routeSlug)&&(identical(other.startPlace, startPlace) || other.startPlace == startPlace)&&(identical(other.endPlace, endPlace) || other.endPlace == endPlace));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,id,slug,name,dateTime,media,sortOrder,routeSlug,startPlace,endPlace);
+
+@override
+String toString() {
+  return 'TripStageDto(id: $id, slug: $slug, name: $name, dateTime: $dateTime, media: $media, sortOrder: $sortOrder, routeSlug: $routeSlug, startPlace: $startPlace, endPlace: $endPlace)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$TripStageDtoCopyWith<$Res> implements $TripStageDtoCopyWith<$Res> {
+  factory _$TripStageDtoCopyWith(_TripStageDto value, $Res Function(_TripStageDto) _then) = __$TripStageDtoCopyWithImpl;
+@override @useResult
+$Res call({
+ String id, String slug, String name, String dateTime, MediaDto media, int sortOrder, String? routeSlug, PlaceDetailDto? startPlace, PlaceDetailDto? endPlace
+});
+
+
+@override $MediaDtoCopyWith<$Res> get media;@override $PlaceDetailDtoCopyWith<$Res>? get startPlace;@override $PlaceDetailDtoCopyWith<$Res>? get endPlace;
+
+}
+/// @nodoc
+class __$TripStageDtoCopyWithImpl<$Res>
+    implements _$TripStageDtoCopyWith<$Res> {
+  __$TripStageDtoCopyWithImpl(this._self, this._then);
+
+  final _TripStageDto _self;
+  final $Res Function(_TripStageDto) _then;
+
+/// Create a copy of TripStageDto
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? slug = null,Object? name = null,Object? dateTime = null,Object? media = null,Object? sortOrder = null,Object? routeSlug = freezed,Object? startPlace = freezed,Object? endPlace = freezed,}) {
+  return _then(_TripStageDto(
+id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
+as String,slug: null == slug ? _self.slug : slug // ignore: cast_nullable_to_non_nullable
+as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,dateTime: null == dateTime ? _self.dateTime : dateTime // ignore: cast_nullable_to_non_nullable
+as String,media: null == media ? _self.media : media // ignore: cast_nullable_to_non_nullable
+as MediaDto,sortOrder: null == sortOrder ? _self.sortOrder : sortOrder // ignore: cast_nullable_to_non_nullable
+as int,routeSlug: freezed == routeSlug ? _self.routeSlug : routeSlug // ignore: cast_nullable_to_non_nullable
+as String?,startPlace: freezed == startPlace ? _self.startPlace : startPlace // ignore: cast_nullable_to_non_nullable
+as PlaceDetailDto?,endPlace: freezed == endPlace ? _self.endPlace : endPlace // ignore: cast_nullable_to_non_nullable
+as PlaceDetailDto?,
+  ));
+}
+
+/// Create a copy of TripStageDto
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$MediaDtoCopyWith<$Res> get media {
+  
+  return $MediaDtoCopyWith<$Res>(_self.media, (value) {
+    return _then(_self.copyWith(media: value));
+  });
+}/// Create a copy of TripStageDto
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$PlaceDetailDtoCopyWith<$Res>? get startPlace {
+    if (_self.startPlace == null) {
+    return null;
+  }
+
+  return $PlaceDetailDtoCopyWith<$Res>(_self.startPlace!, (value) {
+    return _then(_self.copyWith(startPlace: value));
+  });
+}/// Create a copy of TripStageDto
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$PlaceDetailDtoCopyWith<$Res>? get endPlace {
+    if (_self.endPlace == null) {
+    return null;
+  }
+
+  return $PlaceDetailDtoCopyWith<$Res>(_self.endPlace!, (value) {
+    return _then(_self.copyWith(endPlace: value));
+  });
+}
+}
+
+// dart format on
