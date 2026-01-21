@@ -35,6 +35,7 @@ public class KarooRoutesResource {
   @GET
   @RolesAllowed("user")
   @Operation(
+      operationId = "karooListRoutes",
       summary = "List routes",
       description = "Get routes from user's teams, prioritizing upcoming rides")
   @APIResponses({

@@ -83,6 +83,7 @@ public class KarooOAuthResource {
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Operation(
+      operationId = "karooComplete",
       summary = "Complete device authorization",
       description = "Called by frontend after user authenticates via OTP")
   @APIResponses({
@@ -104,6 +105,7 @@ public class KarooOAuthResource {
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Operation(
+      operationId = "karooToken",
       summary = "Exchange code for tokens",
       description =
           "Exchange device code or refresh token for access tokens. "
