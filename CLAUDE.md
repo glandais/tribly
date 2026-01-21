@@ -124,13 +124,6 @@ frontend/src/
 - Never use hard coded links, use paths.XXX(YYYslug) from `config/paths.ts`
 - Templated i18n keys must use type annotations: `t(\`status.\${x satisfies 'DRAFT' | 'PUBLISHED'}\`)` (validated by `pnpm i18n:lint`)
 
-## Test Users (dev mode only, seeded by TestUserSeeder)
-
-| Email | Password |
-|-------|----------|
-| admin@example.com | admin |
-| user1@example.com - user6@example.com | user1 - user6 |
-
 ## Dev URLs
 
 | Service | URL |
