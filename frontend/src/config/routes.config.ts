@@ -11,6 +11,9 @@ const LoginPage = lazy(() =>
 const GarminLoginPage = lazy(() =>
   import('../pages/garmin/GarminLoginPage').then((m) => ({ default: m.GarminLoginPage }))
 )
+const KarooVerifyPage = lazy(() =>
+  import('../pages/karoo/KarooVerifyPage').then((m) => ({ default: m.KarooVerifyPage }))
+)
 const VerifyEmailPage = lazy(() =>
   import('../pages/auth/VerifyEmailPage').then((m) => ({ default: m.VerifyEmailPage }))
 )
@@ -187,6 +190,14 @@ export const routesConfig: RoutesConfig = [
     auth: 'public',
     parentId: null,
     breadcrumb: { type: 'static', i18nKey: tRegister('garmin.title') },
+  },
+  {
+    id: 'karoo-verify',
+    path: paths.karooVerify(),
+    component: KarooVerifyPage,
+    auth: 'public',
+    parentId: null,
+    breadcrumb: { type: 'static', i18nKey: tRegister('karoo.title') },
   },
   {
     id: 'verify-email',

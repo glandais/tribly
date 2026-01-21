@@ -9,6 +9,7 @@ Tribly: multi-tenant cycling team platform (rides, routes with GPX/maps, posts).
 | Backend | Java 21, Quarkus 3.30.x, PostgreSQL 17 + PostGIS, Hibernate/Panache, Flyway |
 | Frontend | TypeScript 5, React 19, Vite, Mantine UI, Zustand, React Query |
 | Mobile | Flutter, Dart (see `mobile/rules.md` for detailed guidelines) |
+| Karoo | Kotlin, Jetpack Compose, karoo-ext SDK, ktor-client-karoo |
 | Auth | Database auth with JWT (password, magic link, passkeys/WebAuthn) |
 | IDs | TSID via hypersistence-utils (Long internally, lowercase string in API) |
 | API | OpenAPI 3.1 contract-first with code generation |
@@ -30,6 +31,11 @@ flutter pub get                    # Install dependencies
 flutter run                        # Run on connected device/emulator
 flutter test                       # Run tests
 dart run build_runner build --delete-conflicting-outputs  # Code generation
+
+# Karoo Extension (karoo/)
+./gradlew assembleDebug            # Build debug APK
+./gradlew installDebug             # Install on connected Karoo device
+./gradlew assembleRelease          # Build release APK (requires signing)
 
 # Infrastructure
 docker compose up -d               # PostgreSQL + imgproxy + brouter
@@ -91,6 +97,18 @@ mobile/lib/
 ├── domain/           # Business logic
 ├── data/             # Models and API clients
 └── core/             # Shared utilities and extensions
+
+karoo/app/src/main/kotlin/com/tribly/karoo/
+├── TriblyExtension.kt    # KarooExtension service (entry point)
+├── MainActivity.kt       # Route browser (Compose UI)
+├── auth/
+│   ├── AuthActivity.kt   # Device code flow (QR + polling)
+│   └── AuthManager.kt    # Token storage (DataStore)
+├── api/
+│   ├── TriblyApiClient.kt  # Ktor HTTP client
+│   └── Models.kt           # API data classes
+└── ui/theme/
+    └── Theme.kt          # Dark theme for outdoor visibility
 ```
 
 ## Contract-First Workflow
@@ -143,6 +161,15 @@ mobile/lib/
 - Use `go_router` for navigation, `json_serializable` for JSON parsing
 - Prefer Flutter's built-in state management (ValueNotifier, ChangeNotifier) over third-party packages
 - Run `dart run build_runner build --delete-conflicting-outputs` after modifying serializable models
+
+**Karoo Extension**:
+- Follow Hammerhead SDK guidelines: no wildcard imports, Java 11 target
+- Uses `ktor-client-karoo` which routes HTTP through Karoo System Service
+- Response size limit: 100KB (keep route DTOs lightweight ~200 bytes each)
+- Only works on new Karoo (not Karoo 2) due to ktor-client-karoo limitation
+- Dark theme required for outdoor visibility on Karoo display
+- Device code flow for auth (no keyboard on device)
+- ADB install: `adb install -r karoo/app/build/outputs/apk/debug/app-debug.apk`
 
 ## Dev URLs
 

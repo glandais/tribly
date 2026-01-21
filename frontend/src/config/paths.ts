@@ -6,6 +6,7 @@ export const paths = {
   home: () => '/',
   login: () => '/login',
   garminLogin: () => '/garmin/login',
+  karooVerify: () => '/karoo/verify',
   verifyEmail: () => '/verify-email',
   magicLink: () => '/magic-link',
   magicLinkVerify: () => '/magic-link/verify',

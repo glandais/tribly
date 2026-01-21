@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@drawable/ic_tribly"
+        android:label="@string/app_name"
+        android:roundIcon="@drawable/ic_tribly"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.TriblyKaroo">
+
+        <!-- Karoo Extension Service -->
+        <service
+            android:name=".TriblyExtension"
+            android:exported="true"
+            android:permission="io.hammerhead.permission.KAROO_EXT">
+            <intent-filter>
+                <action android:name="io.hammerhead.karooext.KAROO_EXTENSION" />
+            </intent-filter>
+            <meta-data
+                android:name="io.hammerhead.karooext.EXTENSION_INFO"
+                android:resource="@xml/extension_info" />
+        </service>
+
+        <!-- Main Activity for route browsing -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="true"
+            android:theme="@style/Theme.TriblyKaroo">
+            <intent-filter>
+                <action android:name="io.hammerhead.karooext.KAROO_EXTENSION" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
+        <!-- Auth Activity for device code flow -->
+        <activity
+            android:name=".auth.AuthActivity"
+            android:exported="false"
+            android:theme="@style/Theme.TriblyKaroo" />
+
+    </application>
+
+</manifest>

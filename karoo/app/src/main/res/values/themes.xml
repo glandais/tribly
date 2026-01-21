@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dark theme optimized for outdoor visibility on Karoo display -->
+    <style name="Theme.TriblyKaroo" parent="android:Theme.Material.NoActionBar">
+        <item name="android:colorBackground">@android:color/black</item>
+        <item name="android:textColorPrimary">@android:color/white</item>
+        <item name="android:textColorSecondary">#B0B0B0</item>
+        <item name="android:colorAccent">#4FC3F7</item>
+        <item name="android:windowBackground">@android:color/black</item>
+    </style>
+</resources>

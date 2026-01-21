@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Tribly</string>
+
+    <!-- Auth -->
+    <string name="auth_connect_title">Connect to Tribly</string>
+    <string name="auth_connect_subtitle">Scan the QR code with your phone to authenticate</string>
+    <string name="auth_connect_button">Connect</string>
+    <string name="auth_code_label">Or enter this code:</string>
+    <string name="auth_waiting">Waiting for authentication…</string>
+    <string name="auth_success">Connected!</string>
+    <string name="auth_error">Authentication failed</string>
+    <string name="auth_expired">Code expired. Please try again.</string>
+
+    <!-- Routes -->
+    <string name="routes_title">Routes</string>
+    <string name="routes_empty">No routes available</string>
+    <string name="routes_upcoming">Upcoming Rides</string>
+    <string name="routes_recent">Recent Routes</string>
+    <string name="route_sync">Sync to Karoo</string>
+    <string name="route_syncing">Syncing…</string>
+    <string name="route_synced">Route synced!</string>
+    <string name="route_sync_error">Sync failed</string>
+
+    <!-- General -->
+    <string name="loading">Loading…</string>
+    <string name="error_network">Network error</string>
+    <string name="error_unknown">An error occurred</string>
+    <string name="disconnect">Disconnect</string>
+    <string name="settings">Settings</string>
+</resources>
