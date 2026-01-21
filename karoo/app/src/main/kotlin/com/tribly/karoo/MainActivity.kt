@@ -43,6 +43,8 @@ import com.tribly.karoo.api.UnauthorizedException
 import com.tribly.karoo.auth.AuthActivity
 import com.tribly.karoo.auth.AuthManager
 import com.tribly.karoo.ui.theme.TriblyKarooTheme
+import io.hammerhead.karooext.KarooSystemService
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
@@ -54,33 +56,66 @@ class MainActivity : ComponentActivity() {
     companion object {
         private const val REQUEST_AUTH = 100
         // TODO: Make this configurable
-        private const val BASE_URL = "https://tribly.app"
+        private const val BASE_URL = "https://www.pedalons.fr"
     }
 
-    private lateinit var apiClient: TriblyApiClient
+    private var apiClient: TriblyApiClient? = null
     private lateinit var authManager: AuthManager
+    private lateinit var karooSystem: KarooSystemService
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        apiClient = TriblyApiClient(BASE_URL)
         authManager = AuthManager(this)
+        karooSystem = KarooSystemService(applicationContext)
 
         setContent {
+            var isConnected by remember { mutableStateOf(false) }
+
+            LaunchedEffect(Unit) {
+                karooSystem.connect { }
+                // Poll for connection status
+                while (!karooSystem.connected) {
+                    delay(100)
+                }
+                apiClient = TriblyApiClient(BASE_URL, karooSystem)
+                isConnected = true
+            }
+
             TriblyKarooTheme {
-                MainScreen(
-                    apiClient = apiClient,
-                    authManager = authManager,
-                    onConnect = { startAuthFlow() }
-                )
+                if (isConnected && apiClient != null) {
+                    MainScreen(
+                        apiClient = apiClient!!,
+                        authManager = authManager,
+                        onConnect = { startAuthFlow() }
+                    )
+                } else {
+                    // Show loading while connecting to Karoo System Service
+                    Surface(
+                        modifier = Modifier.fillMaxSize(),
+                        color = MaterialTheme.colorScheme.background
+                    ) {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                CircularProgressIndicator()
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Text(stringResource(R.string.connecting))
+                            }
+                        }
+                    }
+                }
             }
         }
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        if (::apiClient.isInitialized) {
-            apiClient.close()
+        apiClient?.close()
+        if (::karooSystem.isInitialized) {
+            karooSystem.disconnect()
         }
     }
 

@@ -785,6 +785,20 @@ components:
         parentId:
           type: string
           description: Parent comment ID for replies (optional)
+    CompleteRequest:
+      description: Complete device authorization request
+      type: object
+      required:
+      - userCode
+      - userId
+      properties:
+        userCode:
+          type: string
+          description: User code from device display
+        userId:
+          type: integer
+          format: int64
+          description: Authenticated user ID
     ConfigDto:
       description: Application configuration
       type: object
@@ -828,6 +842,13 @@ components:
         singleTeam:
           type: boolean
           description: Whether domain is single-team mode
+    DeviceRequest:
+      description: Device auth request
+      type: object
+      properties:
+        clientId:
+          type: string
+          description: "Client ID (optional, defaults to 'karoo-device')"
     EntityType:
       type: string
       enum:
@@ -896,6 +917,7 @@ components:
       - GPS_INVALID_STATE
       - GPS_STATE_EXPIRED
       - GPX_NOT_FOUND
+      - AUTHORIZATION_PENDING
     ErrorDetails:
       oneOf:
       - $ref: "#/components/schemas/ErrorValidationDetails"
@@ -1198,6 +1220,135 @@ components:
       format: date-time
       examples:
       - 2022-03-10T16:15:50Z
+    KarooDeviceAuthRequest:
+      description: Karoo device code request (RFC 8628)
+      type: object
+      properties:
+        clientId:
+          type: string
+          description: Client ID (must be 'karoo-device')
+    KarooDeviceCodeResponse:
+      description: Karoo device code response (RFC 8628)
+      type: object
+      required:
+      - deviceCode
+      - userCode
+      - verificationUri
+      - verificationUriComplete
+      - expiresIn
+      - interval
+      properties:
+        deviceCode:
+          type: string
+          description: Device code for polling
+        userCode:
+          type: string
+          description: "User code to display (e.g., 'ABCD12')"
+        verificationUri:
+          type: string
+          description: Verification URL for user to visit
+        verificationUriComplete:
+          type: string
+          description: Verification URL with user code embedded
+        expiresIn:
+          type: integer
+          format: int32
+          description: Code expiry in seconds
+        interval:
+          type: integer
+          format: int32
+          description: Minimum polling interval in seconds
+    KarooRouteDto:
+      description: Route information for Karoo device (lightweight)
+      type: object
+      required:
+      - teamSlug
+      - routeSlug
+      - name
+      - distance
+      - elevationGain
+      properties:
+        teamSlug:
+          type: string
+          description: Team slug
+        routeSlug:
+          type: string
+          description: Route slug
+        name:
+          type: string
+          description: Route name
+        label:
+          type: string
+          description: "Label (e.g., 'Rapides - Sam 18 Jan 09:00')"
+        rideDateTime:
+          description: Ride date/time if from a ride
+          type: string
+          $ref: "#/components/schemas/Instant"
+        distance:
+          type: number
+          format: float
+          description: Distance in meters
+        elevationGain:
+          type: number
+          format: float
+          description: Elevation gain in meters
+        startLat:
+          type: number
+          format: double
+          description: Start latitude
+        startLon:
+          type: number
+          format: double
+          description: Start longitude
+    KarooRoutesResponse:
+      description: List of routes for Karoo device
+      type: object
+      required:
+      - routes
+      properties:
+        routes:
+          type: array
+          items:
+            $ref: "#/components/schemas/KarooRouteDto"
+          description: Available routes
+    KarooTokenRequest:
+      description: Karoo OAuth token request
+      type: object
+      required:
+      - grantType
+      properties:
+        grantType:
+          type: string
+          description: "Grant type: 'urn:ietf:params:oauth:grant-type:device_code'\
+            \ or 'refresh_token'"
+          pattern: \S
+        deviceCode:
+          type: string
+          description: Device code (for device_code grant)
+        refreshToken:
+          type: string
+          description: Refresh token (for refresh_token grant)
+    KarooTokenResponse:
+      description: Karoo OAuth token response
+      type: object
+      required:
+      - accessToken
+      - tokenType
+      - expiresIn
+      properties:
+        accessToken:
+          type: string
+          description: Access token
+        tokenType:
+          type: string
+          description: Token type (always 'Bearer')
+        expiresIn:
+          type: integer
+          format: int32
+          description: Token expiry in seconds
+        refreshToken:
+          type: string
+          description: Refresh token
     LocalTime:
       type: string
       format: local-time
@@ -1206,19 +1357,6 @@ components:
       externalDocs:
         description: As defined by 'partial-time' in RFC3339
         url: https://www.rfc-editor.org/rfc/rfc3339.html#section-5.6
-    MagicLinkRequest:
-      description: Magic link request
-      type: object
-      required:
-      - email
-      properties:
-        email:
-          type: string
-          description: Email address
-          examples:
-          - user@example.com
-          pattern: \S
-          maxLength: 250
     MediaDto:
       type: object
       required:
@@ -3076,6 +3214,18 @@ components:
           examples:
           - "123456"
           pattern: "^\\d{6}$"
+    VerifyResponse:
+      description: User code verification response
+      type: object
+      required:
+      - userCode
+      properties:
+        userCode:
+          type: string
+          description: User code
+        authorized:
+          type: boolean
+          description: Whether authorization is already completed
     VerifyTokenRequest:
       description: Token verification request
       type: object
@@ -3142,6 +3292,10 @@ tags:
   description: OAuth 2.0 endpoints for Garmin Connect IQ devices
 - name: Garmin Routes
   description: Route management for Garmin Connect IQ devices
+- name: Karoo OAuth
+  description: OAuth 2.0 Device Code endpoints for Karoo devices
+- name: Karoo Routes
+  description: Route browsing and sync endpoints for Karoo devices
 - name: Passkeys
   description: WebAuthn passkey management
 - name: Places
@@ -4511,6 +4665,194 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme:
+        - user
+  /api/karoo/oauth/complete:
+    post:
+      summary: Complete device authorization
+      description: Called by frontend after user authenticates via OTP
+      operationId: karooComplete
+      tags:
+      - Karoo OAuth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CompleteRequest"
+        required: true
+      responses:
+        "200":
+          description: Authorization completed
+          content:
+            application/json:
+              schema: {}
+        "400":
+          description: Invalid or expired code
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/karoo/oauth/device:
+    post:
+      summary: Request device code
+      description: Start device code flow - returns user code and verification URL
+      operationId: device
+      tags:
+      - Karoo OAuth
+      requestBody:
+        description: Device auth request (optional client_id)
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeviceRequest"
+        required: true
+      responses:
+        "200":
+          description: Device code response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KarooDeviceCodeResponse"
+        "400":
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/karoo/oauth/token:
+    post:
+      summary: Exchange code for tokens
+      description: Exchange device code or refresh token for access tokens. Returns
+        'authorization_pending' error while waiting for user.
+      operationId: karooToken
+      tags:
+      - Karoo OAuth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/KarooTokenRequest"
+        required: true
+      responses:
+        "200":
+          description: Token response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KarooTokenResponse"
+        "400":
+          description: "authorization_pending, expired_token, or invalid_grant"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/karoo/oauth/verify:
+    get:
+      summary: Check user code validity
+      description: Frontend uses this to verify user code before showing auth flow
+      operationId: verify
+      tags:
+      - Karoo OAuth
+      parameters:
+      - name: code
+        in: query
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Code is valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VerifyResponse"
+        "404":
+          description: Code not found or expired
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/karoo/routes:
+    get:
+      summary: List routes
+      description: "Get routes from user's teams, prioritizing upcoming rides"
+      operationId: karooListRoutes
+      tags:
+      - Karoo Routes
+      parameters:
+      - description: User's latitude for proximity sorting
+        name: lat
+        in: query
+        schema:
+          type: number
+          format: double
+      - description: User's longitude for proximity sorting
+        name: lon
+        in: query
+        schema:
+          type: number
+          format: double
+      responses:
+        "200":
+          description: Route list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/KarooRoutesResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme:
+        - user
+  /api/karoo/routes/{teamSlug}/{routeSlug}/sync:
+    post:
+      summary: Sync route to Hammerhead
+      description: Upload route GPX to user's Hammerhead cloud account
+      operationId: syncRoute
+      tags:
+      - Karoo Routes
+      parameters:
+      - description: Route slug
+        required: true
+        name: routeSlug
+        in: path
+        schema:
+          type: string
+      - description: Team slug
+        required: true
+        name: teamSlug
+        in: path
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Route synced successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RouteUploadResponse"
+        "400":
+          description: Not connected to Hammerhead
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Route not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not Authorized
         "403":
           description: Not Allowed
       security:

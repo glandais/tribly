@@ -1,9 +1,9 @@
 package com.tribly.karoo.api
 
 import de.jonasfranz.ktor.client.karoo.Karoo
+import io.hammerhead.karooext.KarooSystemService
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.bearerAuth
@@ -24,20 +24,17 @@ import kotlinx.serialization.json.Json
  * which handles network connectivity on Karoo devices.
  */
 class TriblyApiClient(
-    private val baseUrl: String
+    private val baseUrl: String,
+    karooSystemService: KarooSystemService
 ) {
     private val json = Json {
         ignoreUnknownKeys = true
         isLenient = true
     }
 
-    private val client = HttpClient(Karoo) {
+    private val client = HttpClient(Karoo(karooSystemService)) {
         install(ContentNegotiation) {
             json(json)
-        }
-        install(HttpTimeout) {
-            requestTimeoutMillis = 30_000
-            connectTimeoutMillis = 15_000
         }
         defaultRequest {
             contentType(ContentType.Application.Json)

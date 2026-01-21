@@ -104,7 +104,7 @@ export function KarooVerifyPage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             userCode,
-            userId: parseInt(userId, 10),
+            userId,
           }),
         })
 

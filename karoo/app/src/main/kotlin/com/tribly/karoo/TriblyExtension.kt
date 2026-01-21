@@ -1,8 +1,7 @@
 package com.tribly.karoo
 
 import android.content.Intent
-import io.hammerhead.karooext.KarooExtension
-import io.hammerhead.karooext.models.BonusActionResult
+import io.hammerhead.karooext.extension.KarooExtension
 
 /**
  * Tribly Karoo Extension service.
@@ -20,17 +19,15 @@ class TriblyExtension : KarooExtension("tribly", "1.0.0") {
         // Extension destroyed
     }
 
-    override fun startBonusAction(actionId: String): BonusActionResult {
-        return when (actionId) {
+    override fun onBonusAction(actionId: String) {
+        when (actionId) {
             "sync-routes" -> {
                 // Launch the main activity for route browsing
                 val intent = Intent(this, MainActivity::class.java).apply {
-                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 }
                 startActivity(intent)
-                BonusActionResult.Success
             }
-            else -> BonusActionResult.UnknownAction
         }
     }
 }

@@ -23,6 +23,7 @@
     <string name="route_sync_error">Sync failed</string>
 
     <!-- General -->
+    <string name="connecting">Connecting to Karoo…</string>
     <string name="loading">Loading…</string>
     <string name="error_network">Network error</string>
     <string name="error_unknown">An error occurred</string>

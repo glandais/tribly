@@ -14,8 +14,7 @@
         <!-- Karoo Extension Service -->
         <service
             android:name=".TriblyExtension"
-            android:exported="true"
-            android:permission="io.hammerhead.permission.KAROO_EXT">
+            android:exported="true">
             <intent-filter>
                 <action android:name="io.hammerhead.karooext.KAROO_EXTENSION" />
             </intent-filter>

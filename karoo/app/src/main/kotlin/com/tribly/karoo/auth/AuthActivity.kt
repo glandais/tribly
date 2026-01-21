@@ -28,6 +28,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.res.stringResource
@@ -43,6 +44,7 @@ import com.tribly.karoo.api.DeviceCodeResponse
 import com.tribly.karoo.api.TokenExpiredException
 import com.tribly.karoo.api.TriblyApiClient
 import com.tribly.karoo.ui.theme.TriblyKarooTheme
+import io.hammerhead.karooext.KarooSystemService
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -59,43 +61,77 @@ class AuthActivity : ComponentActivity() {
         const val RESULT_ERROR = -1
     }
 
-    private lateinit var apiClient: TriblyApiClient
+    private var apiClient: TriblyApiClient? = null
     private lateinit var authManager: AuthManager
+    private lateinit var karooSystem: KarooSystemService
+    private var baseUrl: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val baseUrl = intent.getStringExtra(EXTRA_BASE_URL) ?: run {
+        baseUrl = intent.getStringExtra(EXTRA_BASE_URL) ?: run {
             setResult(RESULT_ERROR)
             finish()
             return
         }
 
-        apiClient = TriblyApiClient(baseUrl)
         authManager = AuthManager(this)
+        karooSystem = KarooSystemService(applicationContext)
 
         setContent {
+            var isConnected by remember { mutableStateOf(false) }
+
+            LaunchedEffect(Unit) {
+                karooSystem.connect { }
+                // Poll for connection status
+                while (!karooSystem.connected) {
+                    delay(100)
+                }
+                apiClient = TriblyApiClient(baseUrl!!, karooSystem)
+                isConnected = true
+            }
+
             TriblyKarooTheme {
-                AuthScreen(
-                    apiClient = apiClient,
-                    authManager = authManager,
-                    onSuccess = {
-                        setResult(RESULT_SUCCESS)
-                        finish()
-                    },
-                    onCancel = {
-                        setResult(RESULT_CANCELLED)
-                        finish()
+                if (isConnected && apiClient != null) {
+                    AuthScreen(
+                        apiClient = apiClient!!,
+                        authManager = authManager,
+                        onSuccess = {
+                            setResult(RESULT_SUCCESS)
+                            finish()
+                        },
+                        onCancel = {
+                            setResult(RESULT_CANCELLED)
+                            finish()
+                        }
+                    )
+                } else {
+                    // Show loading while connecting to Karoo System Service
+                    Surface(
+                        modifier = Modifier.fillMaxSize(),
+                        color = MaterialTheme.colorScheme.background
+                    ) {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                CircularProgressIndicator()
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Text(stringResource(R.string.connecting))
+                            }
+                        }
                     }
-                )
+                }
             }
         }
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        if (::apiClient.isInitialized) {
-            apiClient.close()
+        apiClient?.close()
+        if (::karooSystem.isInitialized) {
+            karooSystem.disconnect()
         }
     }
 }
@@ -162,64 +198,48 @@ private fun LoadingContent() {
 @Composable
 private fun CodeContent(deviceCode: DeviceCodeResponse) {
     val qrBitmap = remember(deviceCode.verificationUriComplete) {
-        generateQrCode(deviceCode.verificationUriComplete, 200)
+        generateQrCode(deviceCode.verificationUriComplete, 140)
     }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp),
+            .padding(12.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.SpaceEvenly
     ) {
         Text(
             text = stringResource(R.string.auth_connect_title),
-            style = MaterialTheme.typography.headlineMedium,
+            style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center
         )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text(
-            text = stringResource(R.string.auth_connect_subtitle),
-            style = MaterialTheme.typography.bodyMedium,
-            textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
 
         // QR Code
         qrBitmap?.let { bitmap ->
             Image(
                 bitmap = bitmap.asImageBitmap(),
                 contentDescription = "QR Code",
-                modifier = Modifier.size(200.dp)
+                modifier = Modifier.size(140.dp)
             )
         }
 
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // User code
-        Text(
-            text = stringResource(R.string.auth_code_label),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text(
-            text = deviceCode.userCode,
-            style = MaterialTheme.typography.displaySmall.copy(
-                letterSpacing = 4.sp,
-                fontWeight = FontWeight.Bold
-            ),
-            color = MaterialTheme.colorScheme.primary
-        )
-
-        Spacer(modifier = Modifier.height(24.dp))
+        // User code section
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(
+                text = stringResource(R.string.auth_code_label),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                text = deviceCode.userCode,
+                style = MaterialTheme.typography.headlineMedium.copy(
+                    letterSpacing = 4.sp,
+                    fontWeight = FontWeight.Bold
+                ),
+                color = Color.White
+            )
+        }
 
         // Polling indicator
         Row(
@@ -227,11 +247,11 @@ private fun CodeContent(deviceCode: DeviceCodeResponse) {
             horizontalArrangement = Arrangement.Center
         ) {
             CircularProgressIndicator(
-                modifier = Modifier.size(16.dp),
+                modifier = Modifier.size(14.dp),
                 strokeWidth = 2.dp,
                 color = MaterialTheme.colorScheme.primary
             )
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.width(6.dp))
             Text(
                 text = stringResource(R.string.auth_waiting),
                 style = MaterialTheme.typography.bodySmall,

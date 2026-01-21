@@ -4,6 +4,11 @@
 # Ktor
 -keep class io.ktor.** { *; }
 -keep class kotlinx.coroutines.** { *; }
+-dontwarn io.ktor.util.KtorDsl
+-dontwarn io.ktor.utils.io.core.ByteReadPacket
+-dontwarn io.ktor.utils.io.core.Input
+-dontwarn java.lang.management.ManagementFactory
+-dontwarn java.lang.management.RuntimeMXBean
 
 # Kotlinx Serialization
 -keepattributes *Annotation*, InnerClasses

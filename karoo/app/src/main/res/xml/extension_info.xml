@@ -1,14 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ExtensionInfo
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    app:id="tribly"
-    app:displayName="Tribly"
-    app:icon="@drawable/ic_tribly"
-    app:scansDevices="false">
+    id="tribly"
+    displayName="Tribly"
+    icon="@drawable/ic_tribly"
+    scansDevices="false">
 
     <!-- Bonus action for quick sync -->
     <BonusAction
-        app:actionId="sync-routes"
-        app:displayName="Sync Routes" />
+        actionId="sync-routes"
+        displayName="Sync Routes" />
 
 </ExtensionInfo>

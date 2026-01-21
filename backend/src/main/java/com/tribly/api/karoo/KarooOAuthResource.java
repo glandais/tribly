@@ -1,5 +1,6 @@
 package com.tribly.api.karoo;
 
+import com.tribly.common.TsidUtils;
 import com.tribly.dto.error.ErrorResponse;
 import com.tribly.dto.karoo.request.KarooTokenRequest;
 import com.tribly.dto.karoo.response.KarooDeviceCodeResponse;
@@ -95,7 +96,8 @@ public class KarooOAuthResource {
   })
   public Response complete(@Valid CompleteRequest request) {
     Long domainId = domainResolver.getDomain().getId();
-    karooAuthService.completeDeviceCodeFlow(request.userCode(), request.userId(), domainId);
+    Long userId = TsidUtils.toLong(request.userId());
+    karooAuthService.completeDeviceCodeFlow(request.userCode(), userId, domainId);
     return Response.ok().build();
   }
 
@@ -189,7 +191,7 @@ public class KarooOAuthResource {
   @ValidateSchema
   public record CompleteRequest(
       @Schema(description = "User code from device display", required = true) String userCode,
-      @Schema(description = "Authenticated user ID", required = true) Long userId) {}
+      @Schema(description = "Authenticated user ID (TSID string)", required = true) String userId) {}
 
   @Schema(description = "User code verification response")
   @ValidateSchema
