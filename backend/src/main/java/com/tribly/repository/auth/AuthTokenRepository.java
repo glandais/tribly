@@ -4,6 +4,8 @@ import com.tribly.domain.auth.AuthToken;
 import com.tribly.enums.AuthTokenType;
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import jakarta.enterprise.context.ApplicationScoped;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 
 @ApplicationScoped
@@ -38,11 +40,7 @@ public class AuthTokenRepository implements PanacheRepository<AuthToken> {
    * limiting.
    */
   public long countRecentByEmailAndType(String email, AuthTokenType tokenType, int minutes) {
-    return count(
-        "email = ?1 and tokenType = ?2 and createdAt > (CURRENT_TIMESTAMP - make_interval(mins =>"
-            + " ?3))",
-        email,
-        tokenType,
-        minutes);
+    Instant cutoff = Instant.now().minus(minutes, ChronoUnit.MINUTES);
+    return count("email = ?1 and tokenType = ?2 and createdAt > ?3", email, tokenType, cutoff);
   }
 }
