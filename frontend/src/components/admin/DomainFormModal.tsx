@@ -351,44 +351,48 @@ function GpsCredentialsSection({ domainId }: { domainId: string }) {
 
       {isAddingCredential && (
         <Paper withBorder p="sm">
-          <form onSubmit={addForm.onSubmit(handleAddCredential)}>
-            <Stack gap="sm">
-              <Select
-                label={t('admin.domains.gpsCredentials.serviceType')}
-                data={availableServiceTypes}
-                required
-                {...addForm.getInputProps('serviceType')}
-              />
-              <TextInput
-                label={t('admin.domains.gpsCredentials.clientId')}
-                required
-                {...addForm.getInputProps('clientId')}
-              />
-              <PasswordInput
-                label={t('admin.domains.gpsCredentials.clientSecret')}
-                {...addForm.getInputProps('clientSecret')}
-              />
-              <Switch
-                label={t('admin.status.active')}
-                {...addForm.getInputProps('active', { type: 'checkbox' })}
-              />
-              <Group justify="flex-end">
-                <Button
-                  size="xs"
-                  variant="default"
-                  onClick={() => {
-                    setIsAddingCredential(false)
-                    addForm.reset()
-                  }}
-                >
-                  {t('actions.cancelAction')}
-                </Button>
-                <Button size="xs" type="submit" loading={createMutation.isPending}>
-                  {t('actions.save')}
-                </Button>
-              </Group>
-            </Stack>
-          </form>
+          <Stack gap="sm">
+            <Select
+              label={t('admin.domains.gpsCredentials.serviceType')}
+              data={availableServiceTypes}
+              required
+              {...addForm.getInputProps('serviceType')}
+            />
+            <TextInput
+              label={t('admin.domains.gpsCredentials.clientId')}
+              required
+              {...addForm.getInputProps('clientId')}
+            />
+            <PasswordInput
+              label={t('admin.domains.gpsCredentials.clientSecret')}
+              {...addForm.getInputProps('clientSecret')}
+            />
+            <Switch
+              label={t('admin.status.active')}
+              {...addForm.getInputProps('active', { type: 'checkbox' })}
+            />
+            <Group justify="flex-end">
+              <Button
+                size="xs"
+                variant="default"
+                type="button"
+                onClick={() => {
+                  setIsAddingCredential(false)
+                  addForm.reset()
+                }}
+              >
+                {t('actions.cancelAction')}
+              </Button>
+              <Button
+                size="xs"
+                type="button"
+                loading={createMutation.isPending}
+                onClick={() => addForm.onSubmit(handleAddCredential)()}
+              >
+                {t('actions.save')}
+              </Button>
+            </Group>
+          </Stack>
         </Paper>
       )}
 
@@ -408,54 +412,54 @@ function GpsCredentialsSection({ domainId }: { domainId: string }) {
                 editingCredentialId === credential.id ? (
                   <Table.Tr key={credential.id}>
                     <Table.Td colSpan={4}>
-                      <form
-                        onSubmit={editForm.onSubmit((values) =>
-                          handleUpdateCredential(credential.id, values)
-                        )}
-                      >
-                        <Stack gap="xs">
-                          <Group grow>
-                            <TextInput
-                              label={t('admin.domains.gpsCredentials.clientId')}
-                              size="xs"
-                              required
-                              {...editForm.getInputProps('clientId')}
-                            />
-                            <PasswordInput
-                              label={t('admin.domains.gpsCredentials.clientSecret')}
-                              size="xs"
-                              placeholder={t(
-                                'admin.domains.gpsCredentials.clientSecretPlaceholder'
-                              )}
-                              {...editForm.getInputProps('clientSecret')}
-                            />
+                      <Stack gap="xs">
+                        <Group grow>
+                          <TextInput
+                            label={t('admin.domains.gpsCredentials.clientId')}
+                            size="xs"
+                            required
+                            {...editForm.getInputProps('clientId')}
+                          />
+                          <PasswordInput
+                            label={t('admin.domains.gpsCredentials.clientSecret')}
+                            size="xs"
+                            placeholder={t(
+                              'admin.domains.gpsCredentials.clientSecretPlaceholder'
+                            )}
+                            {...editForm.getInputProps('clientSecret')}
+                          />
+                        </Group>
+                        <Group justify="space-between">
+                          <Switch
+                            label={t('admin.status.active')}
+                            size="xs"
+                            {...editForm.getInputProps('active', { type: 'checkbox' })}
+                          />
+                          <Group>
+                            <ActionIcon
+                              variant="subtle"
+                              color="gray"
+                              type="button"
+                              onClick={() => setEditingCredentialId(null)}
+                            >
+                              <IconX size={16} />
+                            </ActionIcon>
+                            <ActionIcon
+                              variant="subtle"
+                              color="green"
+                              type="button"
+                              loading={updateMutation.isPending}
+                              onClick={() =>
+                                editForm.onSubmit((values) =>
+                                  handleUpdateCredential(credential.id, values)
+                                )()
+                              }
+                            >
+                              <IconCheck size={16} />
+                            </ActionIcon>
                           </Group>
-                          <Group justify="space-between">
-                            <Switch
-                              label={t('admin.status.active')}
-                              size="xs"
-                              {...editForm.getInputProps('active', { type: 'checkbox' })}
-                            />
-                            <Group>
-                              <ActionIcon
-                                variant="subtle"
-                                color="gray"
-                                onClick={() => setEditingCredentialId(null)}
-                              >
-                                <IconX size={16} />
-                              </ActionIcon>
-                              <ActionIcon
-                                variant="subtle"
-                                color="green"
-                                type="submit"
-                                loading={updateMutation.isPending}
-                              >
-                                <IconCheck size={16} />
-                              </ActionIcon>
-                            </Group>
-                          </Group>
-                        </Stack>
-                      </form>
+                        </Group>
+                      </Stack>
                     </Table.Td>
                   </Table.Tr>
                 ) : (
