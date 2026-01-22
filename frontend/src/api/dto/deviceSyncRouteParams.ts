@@ -6,13 +6,9 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type KarooListRoutesParams = {
+export type DeviceSyncRouteParams = {
   /**
-   * User's latitude for proximity sorting
+   * GPS service type (hammerhead, garmin)
    */
-  lat?: number
-  /**
-   * User's longitude for proximity sorting
-   */
-  lon?: number
+  type: string
 }

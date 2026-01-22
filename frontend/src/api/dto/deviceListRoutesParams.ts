@@ -6,7 +6,7 @@
  * OpenAPI spec version: 1.0.0
  */
 
-export type GetRoutesParams = {
+export type DeviceListRoutesParams = {
   /**
    * User's current latitude (for proximity sorting)
    */

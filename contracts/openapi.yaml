@@ -922,6 +922,59 @@ components:
         clientId:
           type: string
           description: "Client ID (e.g., 'karoo', 'garmin')"
+    DeviceRouteDto:
+      description: Route information for device applications
+      type: object
+      required:
+      - teamSlug
+      - routeSlug
+      - name
+      - distance
+      - elevationGain
+      properties:
+        teamSlug:
+          type: string
+          description: Team slug
+        routeSlug:
+          type: string
+          description: Route slug
+        name:
+          type: string
+          description: Route name
+        label:
+          type: string
+          description: "Label (e.g., 'Rapides - 18/01 09:00')"
+        rideDateTime:
+          description: Ride date/time if from a ride
+          type: string
+          $ref: "#/components/schemas/Instant"
+        distance:
+          type: number
+          format: float
+          description: Distance in meters
+        elevationGain:
+          type: number
+          format: float
+          description: Elevation gain in meters
+        startLat:
+          type: number
+          format: double
+          description: Start latitude
+        startLon:
+          type: number
+          format: double
+          description: Start longitude
+    DeviceRoutesResponse:
+      description: Response containing routes for device applications
+      type: object
+      required:
+      - routes
+      properties:
+        routes:
+          type: array
+          items:
+            $ref: "#/components/schemas/DeviceRouteDto"
+          description: List of routes
     DeviceTokenRequest:
       description: Device OAuth token request
       type: object
@@ -3287,12 +3340,10 @@ tags:
   description: Application configuration endpoints
 - name: Device OAuth
   description: OAuth 2.0 Device Code endpoints for GPS devices
+- name: Device Routes
+  description: Route management for device applications
 - name: GPS Services
   description: GPS device integration operations
-- name: Garmin Routes
-  description: Route management for Garmin Connect IQ devices
-- name: Karoo Routes
-  description: Route browsing and sync endpoints for Karoo devices
 - name: Passkeys
   description: WebAuthn passkey management
 - name: Places
@@ -4601,14 +4652,14 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-  /api/garmin/routes:
+  /api/device/routes:
     get:
       summary: List routes for user
       description: "Get routes for authenticated user. Prioritizes routes from upcoming\
         \ rides, then latest routes from user's teams."
-      operationId: getRoutes
+      operationId: deviceListRoutes
       tags:
-      - Garmin Routes
+      - Device Routes
       parameters:
       - description: User's current latitude (for proximity sorting)
         name: lat
@@ -4628,7 +4679,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/GarminRoutesResponse"
+                $ref: "#/components/schemas/DeviceRoutesResponse"
         "401":
           description: Unauthorized
           content:
@@ -4637,13 +4688,13 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
       security:
       - bearerAuth: []
-  /api/garmin/routes/{teamSlug}/{routeSlug}/fit:
+  /api/device/routes/{teamSlug}/{routeSlug}/fit:
     get:
       summary: Download FIT file
-      description: Download route as FIT file for Garmin GPS
-      operationId: downloadFit
+      description: Download route as FIT file for GPS devices
+      operationId: deviceDownloadFit
       tags:
-      - Garmin Routes
+      - Device Routes
       parameters:
       - description: Route URL slug
         required: true
@@ -4678,6 +4729,99 @@ paths:
           description: Route not found
           content:
             application/vnd.ant.fit:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - bearerAuth: []
+  /api/device/routes/{teamSlug}/{routeSlug}/gpx:
+    get:
+      summary: Download GPX file
+      description: Download route as GPX file for GPS devices
+      operationId: deviceDownloadGpx
+      tags:
+      - Device Routes
+      parameters:
+      - description: Route URL slug
+        required: true
+        name: routeSlug
+        in: path
+        schema:
+          type: string
+      - description: Team URL slug
+        required: true
+        name: teamSlug
+        in: path
+        schema:
+          type: string
+      responses:
+        "200":
+          description: GPX file download
+          content:
+            application/gpx+xml: {}
+        "401":
+          description: Unauthorized
+          content:
+            application/gpx+xml:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: Access denied
+          content:
+            application/gpx+xml:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Route not found
+          content:
+            application/gpx+xml:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - bearerAuth: []
+  /api/device/routes/{teamSlug}/{routeSlug}/sync:
+    post:
+      summary: Sync route to cloud service
+      description: "Upload route to a cloud GPS service (e.g., Hammerhead, Garmin\
+        \ Connect)"
+      operationId: deviceSyncRoute
+      tags:
+      - Device Routes
+      parameters:
+      - description: Route slug
+        required: true
+        name: routeSlug
+        in: path
+        schema:
+          type: string
+      - description: Team slug
+        required: true
+        name: teamSlug
+        in: path
+        schema:
+          type: string
+      - description: "GPS service type (hammerhead, garmin)"
+        required: true
+        name: type
+        in: query
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Route synced successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RouteUploadResponse"
+        "400":
+          description: Not connected to GPS service or invalid type
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Route not found
+          content:
+            application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
       security:
@@ -4863,90 +5007,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-        "403":
-          description: Not Allowed
-      security:
-      - SecurityScheme:
-        - user
-  /api/karoo/routes:
-    get:
-      summary: List routes
-      description: "Get routes from user's teams, prioritizing upcoming rides"
-      operationId: karooListRoutes
-      tags:
-      - Karoo Routes
-      parameters:
-      - description: User's latitude for proximity sorting
-        name: lat
-        in: query
-        schema:
-          type: number
-          format: double
-      - description: User's longitude for proximity sorting
-        name: lon
-        in: query
-        schema:
-          type: number
-          format: double
-      responses:
-        "200":
-          description: Route list
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/KarooRoutesResponse"
-        "401":
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "403":
-          description: Not Allowed
-      security:
-      - SecurityScheme:
-        - user
-  /api/karoo/routes/{teamSlug}/{routeSlug}/sync:
-    post:
-      summary: Sync route to Hammerhead
-      description: Upload route GPX to user's Hammerhead cloud account
-      operationId: syncRoute
-      tags:
-      - Karoo Routes
-      parameters:
-      - description: Route slug
-        required: true
-        name: routeSlug
-        in: path
-        schema:
-          type: string
-      - description: Team slug
-        required: true
-        name: teamSlug
-        in: path
-        schema:
-          type: string
-      responses:
-        "200":
-          description: Route synced successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/RouteUploadResponse"
-        "400":
-          description: Not connected to Hammerhead
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "404":
-          description: Route not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "401":
-          description: Not Authorized
         "403":
           description: Not Allowed
       security:

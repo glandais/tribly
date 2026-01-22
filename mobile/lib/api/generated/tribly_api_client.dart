@@ -12,9 +12,8 @@ import 'clients/passkeys_client.dart';
 import 'clients/calendar_client.dart';
 import 'clients/configuration_client.dart';
 import 'clients/device_o_auth_client.dart';
-import 'clients/garmin_routes_client.dart';
+import 'clients/device_routes_client.dart';
 import 'clients/gps_services_client.dart';
-import 'clients/karoo_routes_client.dart';
 import 'clients/publications_client.dart';
 import 'clients/router_client.dart';
 import 'clients/routes_client.dart';
@@ -57,9 +56,8 @@ class TriblyApiClient {
   CalendarClient? _calendar;
   ConfigurationClient? _configuration;
   DeviceOAuthClient? _deviceOAuth;
-  GarminRoutesClient? _garminRoutes;
+  DeviceRoutesClient? _deviceRoutes;
   GpsServicesClient? _gpsServices;
-  KarooRoutesClient? _karooRoutes;
   PublicationsClient? _publications;
   RouterClient? _router;
   RoutesClient? _routes;
@@ -103,14 +101,11 @@ class TriblyApiClient {
   DeviceOAuthClient get deviceOAuth =>
       _deviceOAuth ??= DeviceOAuthClient(_dio, baseUrl: _baseUrl);
 
-  GarminRoutesClient get garminRoutes =>
-      _garminRoutes ??= GarminRoutesClient(_dio, baseUrl: _baseUrl);
+  DeviceRoutesClient get deviceRoutes =>
+      _deviceRoutes ??= DeviceRoutesClient(_dio, baseUrl: _baseUrl);
 
   GpsServicesClient get gpsServices =>
       _gpsServices ??= GpsServicesClient(_dio, baseUrl: _baseUrl);
-
-  KarooRoutesClient get karooRoutes =>
-      _karooRoutes ??= KarooRoutesClient(_dio, baseUrl: _baseUrl);
 
   PublicationsClient get publications =>
       _publications ??= PublicationsClient(_dio, baseUrl: _baseUrl);

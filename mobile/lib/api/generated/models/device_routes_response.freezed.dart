@@ -1,0 +1,286 @@
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// coverage:ignore-file
+// ignore_for_file: type=lint
+// ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
+
+part of 'device_routes_response.dart';
+
+// **************************************************************************
+// FreezedGenerator
+// **************************************************************************
+
+// dart format off
+T _$identity<T>(T value) => value;
+
+/// @nodoc
+mixin _$DeviceRoutesResponse {
+
+/// List of routes
+ List<DeviceRouteDto> get routes;
+/// Create a copy of DeviceRoutesResponse
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$DeviceRoutesResponseCopyWith<DeviceRoutesResponse> get copyWith => _$DeviceRoutesResponseCopyWithImpl<DeviceRoutesResponse>(this as DeviceRoutesResponse, _$identity);
+
+  /// Serializes this DeviceRoutesResponse to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DeviceRoutesResponse&&const DeepCollectionEquality().equals(other.routes, routes));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(routes));
+
+@override
+String toString() {
+  return 'DeviceRoutesResponse(routes: $routes)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $DeviceRoutesResponseCopyWith<$Res>  {
+  factory $DeviceRoutesResponseCopyWith(DeviceRoutesResponse value, $Res Function(DeviceRoutesResponse) _then) = _$DeviceRoutesResponseCopyWithImpl;
+@useResult
+$Res call({
+ List<DeviceRouteDto> routes
+});
+
+
+
+
+}
+/// @nodoc
+class _$DeviceRoutesResponseCopyWithImpl<$Res>
+    implements $DeviceRoutesResponseCopyWith<$Res> {
+  _$DeviceRoutesResponseCopyWithImpl(this._self, this._then);
+
+  final DeviceRoutesResponse _self;
+  final $Res Function(DeviceRoutesResponse) _then;
+
+/// Create a copy of DeviceRoutesResponse
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? routes = null,}) {
+  return _then(_self.copyWith(
+routes: null == routes ? _self.routes : routes // ignore: cast_nullable_to_non_nullable
+as List<DeviceRouteDto>,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [DeviceRoutesResponse].
+extension DeviceRoutesResponsePatterns on DeviceRoutesResponse {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _DeviceRoutesResponse value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _DeviceRoutesResponse() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _DeviceRoutesResponse value)  $default,){
+final _that = this;
+switch (_that) {
+case _DeviceRoutesResponse():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _DeviceRoutesResponse value)?  $default,){
+final _that = this;
+switch (_that) {
+case _DeviceRoutesResponse() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<DeviceRouteDto> routes)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _DeviceRoutesResponse() when $default != null:
+return $default(_that.routes);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<DeviceRouteDto> routes)  $default,) {final _that = this;
+switch (_that) {
+case _DeviceRoutesResponse():
+return $default(_that.routes);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<DeviceRouteDto> routes)?  $default,) {final _that = this;
+switch (_that) {
+case _DeviceRoutesResponse() when $default != null:
+return $default(_that.routes);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _DeviceRoutesResponse implements DeviceRoutesResponse {
+  const _DeviceRoutesResponse({required final  List<DeviceRouteDto> routes}): _routes = routes;
+  factory _DeviceRoutesResponse.fromJson(Map<String, dynamic> json) => _$DeviceRoutesResponseFromJson(json);
+
+/// List of routes
+ final  List<DeviceRouteDto> _routes;
+/// List of routes
+@override List<DeviceRouteDto> get routes {
+  if (_routes is EqualUnmodifiableListView) return _routes;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_routes);
+}
+
+
+/// Create a copy of DeviceRoutesResponse
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$DeviceRoutesResponseCopyWith<_DeviceRoutesResponse> get copyWith => __$DeviceRoutesResponseCopyWithImpl<_DeviceRoutesResponse>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$DeviceRoutesResponseToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DeviceRoutesResponse&&const DeepCollectionEquality().equals(other._routes, _routes));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_routes));
+
+@override
+String toString() {
+  return 'DeviceRoutesResponse(routes: $routes)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$DeviceRoutesResponseCopyWith<$Res> implements $DeviceRoutesResponseCopyWith<$Res> {
+  factory _$DeviceRoutesResponseCopyWith(_DeviceRoutesResponse value, $Res Function(_DeviceRoutesResponse) _then) = __$DeviceRoutesResponseCopyWithImpl;
+@override @useResult
+$Res call({
+ List<DeviceRouteDto> routes
+});
+
+
+
+
+}
+/// @nodoc
+class __$DeviceRoutesResponseCopyWithImpl<$Res>
+    implements _$DeviceRoutesResponseCopyWith<$Res> {
+  __$DeviceRoutesResponseCopyWithImpl(this._self, this._then);
+
+  final _DeviceRoutesResponse _self;
+  final $Res Function(_DeviceRoutesResponse) _then;
+
+/// Create a copy of DeviceRoutesResponse
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? routes = null,}) {
+  return _then(_DeviceRoutesResponse(
+routes: null == routes ? _self._routes : routes // ignore: cast_nullable_to_non_nullable
+as List<DeviceRouteDto>,
+  ));
+}
+
+
+}
+
+// dart format on

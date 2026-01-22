@@ -8,6 +8,7 @@ import com.tribly.domain.team.UserTeam;
 import com.tribly.dto.karoo.response.KarooRouteDto;
 import com.tribly.dto.karoo.response.KarooRoutesResponse;
 import com.tribly.enums.Status;
+import com.tribly.infrastructure.timezone.TimezoneService;
 import com.tribly.repository.common.TeamEntityQueryBasic;
 import com.tribly.repository.ride.RideRepository;
 import com.tribly.repository.route.RouteQuery;
@@ -41,13 +42,13 @@ public class KarooRouteService {
   private static final Logger LOG = Logger.getLogger(KarooRouteService.class);
   private static final int MAX_ROUTES = 20;
   private static final int LATEST_ROUTES_PER_TEAM = 10;
-  private static final DateTimeFormatter DATE_FORMAT =
-      DateTimeFormatter.ofPattern("dd/MM HH:mm").withZone(ZoneId.systemDefault());
+  private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("dd/MM HH:mm");
 
   @Inject TriblyQueryContext triblyContext;
   @Inject UserTeamRepository userTeamRepository;
   @Inject RideRepository rideRepository;
   @Inject RouteRepository routeRepository;
+  @Inject TimezoneService timezoneService;
 
   /**
    * Get routes for the authenticated user. Prioritizes routes from upcoming rides, then latest
@@ -154,15 +155,16 @@ public class KarooRouteService {
         }
 
         if (route != null && !route.isDeleted()) {
-          String label = formatRideLabel(group.getName(), ride.getDateTime());
+          String label = formatRideLabel(group.getName(), ride.getDateTime(), route);
           RouteWithDistance rwd = toDto(route, label, ride.getDateTime(), lat, lon);
           routes.add(rwd);
         }
       }
 
       if (routes.isEmpty() && ride.getRoute() != null && !ride.getRoute().isDeleted()) {
-        String label = formatRideLabel(ride.getName(), ride.getDateTime());
-        RouteWithDistance rwd = toDto(ride.getRoute(), label, ride.getDateTime(), lat, lon);
+        Route route = ride.getRoute();
+        String label = formatRideLabel(ride.getName(), ride.getDateTime(), route);
+        RouteWithDistance rwd = toDto(route, label, ride.getDateTime(), lat, lon);
         routes.add(rwd);
       }
     }
@@ -228,8 +230,13 @@ public class KarooRouteService {
     return new RouteWithDistance(dto, distanceFromUser);
   }
 
-  private String formatRideLabel(String groupName, Instant dateTime) {
-    String date = DATE_FORMAT.format(dateTime);
+  private String formatRideLabel(String groupName, Instant dateTime, Route route) {
+    Point<G2D> start = route.getStart();
+    ZoneId zoneId =
+        start != null
+            ? timezoneService.getZoneId(start.getPosition().getLat(), start.getPosition().getLon())
+            : ZoneId.systemDefault();
+    String date = DATE_FORMAT.withZone(zoneId).format(dateTime);
     return groupName + " - " + date;
   }
 

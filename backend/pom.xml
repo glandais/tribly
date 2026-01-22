@@ -127,6 +127,13 @@
             </exclusions>
         </dependency>
 
+        <!-- Timezone lookup from GPS coordinates -->
+        <dependency>
+            <groupId>net.iakovlev</groupId>
+            <artifactId>timeshape</artifactId>
+            <version>2025b.28</version>
+        </dependency>
+
         <!-- Validation -->
         <dependency>
             <groupId>io.quarkus</groupId>

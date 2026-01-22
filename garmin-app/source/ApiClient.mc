@@ -272,7 +272,7 @@ class ApiClient {
      * Actually fetch routes from API.
      */
     private function doFetchRoutes() as Void {
-        var url = API_BASE_URL + "/garmin/routes";
+        var url = API_BASE_URL + "/device/routes";
 
         // Try to get current position for proximity sorting
         var position = Position.getInfo();
@@ -364,7 +364,7 @@ class ApiClient {
     private function doDownloadRoute(teamSlug, routeSlug) as Void {
         _pendingDownload = null;
 
-        var url = API_BASE_URL + "/garmin/routes/" + teamSlug + "/" + routeSlug + "/fit";
+        var url = API_BASE_URL + "/device/routes/" + teamSlug + "/" + routeSlug + "/fit";
         var accessToken = _authManager.getAccessToken();
 
         // Use download to file for FIT files

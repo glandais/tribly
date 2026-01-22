@@ -1,12 +1,12 @@
-package com.tribly.service.garmin;
+package com.tribly.service.device;
 
 import com.tribly.domain.ride.Ride;
 import com.tribly.domain.ride.RideGroup;
 import com.tribly.domain.route.Route;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.team.UserTeam;
-import com.tribly.dto.garmin.response.GarminRouteDto;
-import com.tribly.dto.garmin.response.GarminRoutesResponse;
+import com.tribly.dto.device.response.DeviceRouteDto;
+import com.tribly.dto.device.response.DeviceRoutesResponse;
 import com.tribly.enums.EntityType;
 import com.tribly.enums.Status;
 import com.tribly.infrastructure.exception.NotFoundException;
@@ -26,7 +26,10 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.geolatte.geom.G2D;
 import org.geolatte.geom.Point;
@@ -34,13 +37,13 @@ import org.jboss.logging.Logger;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Service for aggregating routes for Garmin devices. Prioritizes routes from upcoming rides, then
- * falls back to latest published routes.
+ * Unified service for aggregating routes for device applications (Garmin, Karoo, etc.).
+ * Prioritizes routes from upcoming rides, then falls back to latest published routes.
  */
 @ApplicationScoped
-public class GarminRouteService {
+public class DeviceRouteService {
 
-  private static final Logger LOG = Logger.getLogger(GarminRouteService.class);
+  private static final Logger LOG = Logger.getLogger(DeviceRouteService.class);
   private static final int MAX_ROUTES = 20;
   private static final int LATEST_ROUTES_PER_TEAM = 10;
   private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("dd/MM HH:mm");
@@ -53,23 +56,28 @@ public class GarminRouteService {
   @Inject TimezoneService timezoneService;
 
   /**
+   * Internal record for sorting routes by distance while keeping DTO separate.
+   */
+  private record RouteWithDistance(DeviceRouteDto dto, @Nullable Double distanceFromUser) {}
+
+  /**
    * Get routes for the authenticated user. Prioritizes routes from upcoming rides, then latest
    * routes.
    *
    * @param lat User's latitude (optional, for proximity sorting)
    * @param lon User's longitude (optional, for proximity sorting)
-   * @return List of routes suitable for Garmin device
+   * @return List of routes suitable for device applications
    */
   @Logged
-  public GarminRoutesResponse getRoutesForUser(@Nullable Double lat, @Nullable Double lon) {
+  public DeviceRoutesResponse getRoutesForUser(@Nullable Double lat, @Nullable Double lon) {
     Long userId = triblyContext.getUserId();
     List<UserTeam> memberships = userTeamRepository.findByUserId(userId);
 
     if (memberships.isEmpty()) {
-      return GarminRoutesResponse.builder().routes(List.of()).build();
+      return DeviceRoutesResponse.builder().routes(List.of()).build();
     }
 
-    List<GarminRouteDto> allRoutes = new ArrayList<>();
+    List<RouteWithDistance> allRoutes = new ArrayList<>();
     Instant now = Instant.now();
     Instant from = now.minus(1, ChronoUnit.DAYS);
     Instant to = now.plus(7, ChronoUnit.DAYS);
@@ -80,14 +88,14 @@ public class GarminRouteService {
       Set<Long> teamIds = Set.of(teamId);
 
       // Find upcoming rides with routes
-      List<GarminRouteDto> rideRoutes =
+      List<RouteWithDistance> rideRoutes =
           getRoutesFromRides(teamId, teamIds, userId, from, to, lat, lon);
 
       if (!rideRoutes.isEmpty()) {
         allRoutes.addAll(rideRoutes);
       } else {
         // No upcoming rides, get latest routes
-        List<GarminRouteDto> latestRoutes = getLatestRoutes(team, teamIds, userId, lat, lon);
+        List<RouteWithDistance> latestRoutes = getLatestRoutes(team, teamIds, userId, lat, lon);
         allRoutes.addAll(latestRoutes);
       }
     }
@@ -97,24 +105,28 @@ public class GarminRouteService {
     allRoutes.sort(
         Comparator
             // Rides first (those with rideDateTime)
-            .<GarminRouteDto>comparingInt(r -> r.rideDateTime() == null ? 1 : 0)
+            .<RouteWithDistance>comparingInt(r -> r.dto().rideDateTime() == null ? 1 : 0)
             // Then by proximity to current time
             .thenComparingLong(
                 r ->
-                    r.rideDateTime() != null
-                        ? Math.abs(r.rideDateTime().toEpochMilli() - sortNow.toEpochMilli())
+                    r.dto().rideDateTime() != null
+                        ? Math.abs(r.dto().rideDateTime().toEpochMilli() - sortNow.toEpochMilli())
                         : Long.MAX_VALUE)
             // Then by distance from user (if provided)
             .thenComparingDouble(
                 r -> r.distanceFromUser() != null ? r.distanceFromUser() : Double.MAX_VALUE));
 
-    // Limit results
-    List<GarminRouteDto> routes = allRoutes.stream().limit(MAX_ROUTES).collect(Collectors.toList());
+    // Limit results and extract DTOs
+    List<DeviceRouteDto> routes =
+        allRoutes.stream()
+            .limit(MAX_ROUTES)
+            .map(RouteWithDistance::dto)
+            .collect(Collectors.toList());
 
-    return GarminRoutesResponse.builder().routes(routes).build();
+    return DeviceRoutesResponse.builder().routes(routes).build();
   }
 
-  private List<GarminRouteDto> getRoutesFromRides(
+  private List<RouteWithDistance> getRoutesFromRides(
       Long teamId,
       Set<Long> teamIds,
       Long userId,
@@ -123,7 +135,6 @@ public class GarminRouteService {
       @Nullable Double lat,
       @Nullable Double lon) {
 
-    // Query rides in date range
     TeamEntityQueryBasic query =
         TeamEntityQueryBasic.builder()
             .domainId(triblyContext.getDomainId())
@@ -137,43 +148,39 @@ public class GarminRouteService {
 
     List<Ride> rides = rideRepository.findAll(query);
 
-    // Filter to published rides only
     List<Ride> publishedRides =
         rides.stream().filter(r -> r.getStatus() == Status.PUBLISHED).toList();
 
-    List<GarminRouteDto> routes = new ArrayList<>();
+    List<RouteWithDistance> routes = new ArrayList<>();
 
     for (Ride ride : publishedRides) {
-      // Get routes from ride groups
       for (RideGroup group : ride.getGroups()) {
         if (group.isDeleted()) continue;
 
         Route route = group.getRoute();
         if (route == null || route.isDeleted()) {
-          // Fall back to ride-level route
           route = ride.getRoute();
         }
 
         if (route != null && !route.isDeleted()) {
           String label = formatRideLabel(group.getName(), ride.getDateTime(), route);
-          GarminRouteDto dto = toDto(route, label, ride.getDateTime(), lat, lon);
-          routes.add(dto);
+          RouteWithDistance rwd = toRouteWithDistance(route, label, ride.getDateTime(), lat, lon);
+          routes.add(rwd);
         }
       }
 
-      // If ride has no groups with routes, check ride-level route
       if (routes.isEmpty() && ride.getRoute() != null && !ride.getRoute().isDeleted()) {
         Route route = ride.getRoute();
         String label = formatRideLabel(ride.getName(), ride.getDateTime(), route);
-        GarminRouteDto dto = toDto(route, label, ride.getDateTime(), lat, lon);
-        routes.add(dto);
+        RouteWithDistance rwd = toRouteWithDistance(route, label, ride.getDateTime(), lat, lon);
+        routes.add(rwd);
       }
     }
 
     return routes;
   }
 
-  private List<GarminRouteDto> getLatestRoutes(
+  private List<RouteWithDistance> getLatestRoutes(
       Team team, Set<Long> teamIds, Long userId, @Nullable Double lat, @Nullable Double lon) {
 
     RouteQuery query =
@@ -189,11 +196,11 @@ public class GarminRouteService {
 
     return routes.stream()
         .filter(r -> r.getStatus() == Status.PUBLISHED)
-        .map(route -> toDto(route, null, null, lat, lon))
+        .map(route -> toRouteWithDistance(route, null, null, lat, lon))
         .toList();
   }
 
-  private GarminRouteDto toDto(
+  private RouteWithDistance toRouteWithDistance(
       Route route,
       @Nullable String label,
       @Nullable Instant rideDateTime,
@@ -215,18 +222,20 @@ public class GarminRouteService {
       }
     }
 
-    return GarminRouteDto.builder()
-        .teamSlug(route.getTeam().getSlug())
-        .routeSlug(route.getSlug())
-        .name(route.getName())
-        .label(label)
-        .rideDateTime(rideDateTime)
-        .distance(route.getDistance() != null ? route.getDistance() : 0f)
-        .elevationGain(route.getElevationGain() != null ? route.getElevationGain() : 0f)
-        .startLat(startLat)
-        .startLon(startLon)
-        .distanceFromUser(distanceFromUser)
-        .build();
+    DeviceRouteDto dto =
+        DeviceRouteDto.builder()
+            .teamSlug(route.getTeam().getSlug())
+            .routeSlug(route.getSlug())
+            .name(route.getName())
+            .label(label)
+            .rideDateTime(rideDateTime)
+            .distance(route.getDistance() != null ? route.getDistance() : 0f)
+            .elevationGain(route.getElevationGain() != null ? route.getElevationGain() : 0f)
+            .startLat(startLat)
+            .startLon(startLon)
+            .build();
+
+    return new RouteWithDistance(dto, distanceFromUser);
   }
 
   private String formatRideLabel(String groupName, Instant dateTime, Route route) {
@@ -244,9 +253,26 @@ public class GarminRouteService {
    */
   @Logged
   public File getFitFile(String teamSlug, String routeSlug) {
+    Route route = findRouteBySlug(teamSlug, routeSlug);
+    return gpxProcessingService.getFitFile(route);
+  }
+
+  /**
+   * Get filtered GPX file for a specific route.
+   */
+  @Logged
+  public File getGpxFile(String teamSlug, String routeSlug) {
+    Route route = findRouteBySlug(teamSlug, routeSlug);
+    return gpxProcessingService.getFilteredGpxFile(route);
+  }
+
+  /**
+   * Find a route by team and route slugs, verifying user membership.
+   */
+  private Route findRouteBySlug(String teamSlug, String routeSlug) {
     Long userId = triblyContext.getUserId();
 
-    // Find team by slug
+    // Find team by slug from user's memberships
     List<UserTeam> memberships = userTeamRepository.findByUserId(userId);
     Team team =
         memberships.stream()
@@ -257,12 +283,9 @@ public class GarminRouteService {
 
     // Find route (domainId from team for multi-tenant isolation)
     Long domainId = team.getDomain().getId();
-    Route route =
-        routeRepository
-            .findByTeamAndSlug(domainId, team.getId(), userId, routeSlug)
-            .orElseThrow(() -> new NotFoundException(EntityType.ROUTE, routeSlug));
-
-    return gpxProcessingService.getFitFile(route);
+    return routeRepository
+        .findByTeamAndSlug(domainId, team.getId(), userId, routeSlug)
+        .orElseThrow(() -> new NotFoundException(EntityType.ROUTE, routeSlug));
   }
 
   /**

@@ -28,6 +28,7 @@ release/
 # Secrets
 *.jks
 *.keystore
+keystore.properties
 
 # Mac
 .DS_Store

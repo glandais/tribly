@@ -96,7 +96,7 @@ class TriblyApiClient(
         lat: Double? = null,
         lon: Double? = null
     ): Result<RoutesResponse> = runCatching {
-        val response = client.get("$baseUrl/api/karoo/routes") {
+        val response = client.get("$baseUrl/api/device/routes") {
             bearerAuth(accessToken)
             if (lat != null && lon != null) {
                 parameter("lat", lat)
@@ -117,7 +117,7 @@ class TriblyApiClient(
         teamSlug: String,
         routeSlug: String
     ): Result<SyncResponse> = runCatching {
-        val response = client.post("$baseUrl/api/karoo/routes/$teamSlug/$routeSlug/sync") {
+        val response = client.post("$baseUrl/api/device/routes/$teamSlug/$routeSlug/sync?type=hammerhead") {
             bearerAuth(accessToken)
         }
         if (response.status.isSuccess()) {
