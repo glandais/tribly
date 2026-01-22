@@ -37,12 +37,23 @@ public class GarminClient implements GpsServiceClient {
 
   @Inject GarminCourseConverter courseConverter;
 
+  private DomainGpsCredential getCredential() {
+    return credentialService
+        .getCredentials(GpsServiceType.GARMIN)
+        .orElseThrow(() -> new BusinessException(ErrorCode.GPS_SERVICE_NOT_CONFIGURED));
+  }
+
   private String getClientId() {
-    DomainGpsCredential credential =
-        credentialService
-            .getCredentials(GpsServiceType.GARMIN)
-            .orElseThrow(() -> new BusinessException(ErrorCode.GPS_SERVICE_NOT_CONFIGURED));
-    return credential.getClientId();
+    return getCredential().getClientId();
+  }
+
+  private String getClientSecret() {
+    DomainGpsCredential credential = getCredential();
+    String secret = credentialService.getDecryptedClientSecret(credential);
+    if (secret == null) {
+      throw new BusinessException(ErrorCode.GPS_SERVICE_NOT_CONFIGURED);
+    }
+    return secret;
   }
 
   @Override
@@ -94,6 +105,8 @@ public class GarminClient implements GpsServiceClient {
             + urlEncode(redirectUri)
             + "&client_id="
             + urlEncode(getClientId())
+            + "&client_secret="
+            + urlEncode(getClientSecret())
             + "&code_verifier="
             + urlEncode(codeVerifier);
 
@@ -107,7 +120,9 @@ public class GarminClient implements GpsServiceClient {
             + "&refresh_token="
             + urlEncode(refreshToken)
             + "&client_id="
-            + urlEncode(getClientId());
+            + urlEncode(getClientId())
+            + "&client_secret="
+            + urlEncode(getClientSecret());
 
     return requestToken(body);
   }

@@ -26,9 +26,9 @@ public class HammerheadClient implements GpsServiceClient {
 
   private static final Logger LOG = Logger.getLogger(HammerheadClient.class);
 
-  private static final String AUTH_URL = "https://dashboard.hammerhead.io/v1/oauth/authorize";
-  private static final String TOKEN_URL = "https://dashboard.hammerhead.io/v1/oauth/token";
-  private static final String ROUTE_UPLOAD_URL = "https://dashboard.hammerhead.io/v1/routes/file";
+  private static final String AUTH_URL = "https://api.hammerhead.io/v1/auth/oauth/authorize";
+  private static final String TOKEN_URL = "https://api.hammerhead.io/v1/auth/oauth/token";
+  private static final String ROUTE_UPLOAD_URL = "https://api.hammerhead.io/v1/api/routes/file";
   private static final String SCOPE = "route:write";
 
   @Inject DomainGpsCredentialService credentialService;
