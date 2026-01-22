@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useTranslation, Trans } from 'react-i18next'
 import { useForm } from '@mantine/form'
 import { notifications } from '@mantine/notifications'
@@ -35,9 +35,16 @@ type AuthMethod = 'otp' | 'register' | null
 export function LoginPage() {
   const { t } = useTranslation()
   const navigate = useNavigate()
+  const location = useLocation()
   const { isAuthenticated } = useAuth()
   const appName = useAppName()
   const { setAccessToken, setUser } = useAuthStore()
+
+  // Get redirect target from location state (preserving query params)
+  const fromLocation = location.state?.from
+  const redirectTo = fromLocation
+    ? `${fromLocation.pathname}${fromLocation.search || ''}`
+    : paths.home()
 
   const [activeStep, setActiveStep] = useState(0)
   const [selectedMethod, setSelectedMethod] = useState<AuthMethod>(null)
@@ -72,7 +79,7 @@ export function LoginPage() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate(paths.home())
+      navigate(redirectTo)
     }
   }, [isAuthenticated, navigate])
 
@@ -114,7 +121,7 @@ export function LoginPage() {
         const data = await authResponse.json()
         setAccessToken(data.accessToken)
         setUser(data.user)
-        navigate(paths.home())
+        navigate(redirectTo)
       } else {
         notifications.show({ message: t('auth.errors.passkeyFailed'), color: 'red' })
       }
@@ -169,7 +176,7 @@ export function LoginPage() {
         const data = await response.json()
         setAccessToken(data.accessToken)
         setUser(data.user)
-        navigate(paths.home())
+        navigate(redirectTo)
       } else {
         notifications.show({ message: t('auth.errors.otpInvalid'), color: 'red' })
         setOtpCode('')

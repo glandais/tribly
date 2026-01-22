@@ -28,7 +28,10 @@ export function ProtectedRoute({
   }
 
   if (!requireAuth && isAuthenticated) {
-    const from = location.state?.from?.pathname || paths.home()
+    const fromLocation = location.state?.from
+    const from = fromLocation
+      ? `${fromLocation.pathname}${fromLocation.search || ''}`
+      : paths.home()
     return <Navigate to={from} replace />
   }
 
