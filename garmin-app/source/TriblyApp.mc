@@ -117,7 +117,7 @@ class TriblyApp extends Application.AppBase {
      * Poll for token authorization.
      * Called periodically by the timer.
      */
-    function pollForToken() {
+    function pollForToken() as Void {
         // System.println("pollForToken");
 
         // Check if device code expired

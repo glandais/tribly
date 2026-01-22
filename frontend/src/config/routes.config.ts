@@ -181,8 +181,16 @@ export const routesConfig: RoutesConfig = [
     breadcrumb: { type: 'static', i18nKey: tRegister('auth.login.title') },
   },
   {
-    id: 'device-verify',
-    path: paths.deviceVerify(),
+    id: 'device-verify-garmin',
+    path: paths.deviceVerifyGarmin(),
+    component: DeviceVerifyPage,
+    auth: 'public',
+    parentId: null,
+    breadcrumb: { type: 'static', i18nKey: tRegister('device.title') },
+  },
+  {
+    id: 'device-verify-karoo',
+    path: paths.deviceVerifyKaroo(),
     component: DeviceVerifyPage,
     auth: 'public',
     parentId: null,

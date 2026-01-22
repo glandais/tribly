@@ -32,7 +32,7 @@ import org.eclipse.microprofile.openapi.annotations.tags.Tag;
  * <ol>
  *   <li>POST /device → device_code + user_code + verification_uri
  *   <li>Device displays QR code with verification_uri_complete
- *   <li>User scans QR, authenticates on /device/verify
+ *   <li>User scans QR, authenticates on /karoo
  *   <li>POST /token (polling) until authorized → access_token + refresh_token
  * </ol>
  */

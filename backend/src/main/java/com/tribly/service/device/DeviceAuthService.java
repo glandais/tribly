@@ -33,7 +33,7 @@ import org.jspecify.annotations.Nullable;
  * <ol>
  *   <li>Device calls POST /api/device/oauth/device → gets device_code + user_code
  *   <li>Device displays user_code and QR for verification_uri_complete
- *   <li>User scans QR → opens /device/verify?code=ABC123 on phone
+ *   <li>User scans QR → opens /karoo?code=ABC123 on phone
  *   <li>User authenticates via OTP email on frontend
  *   <li>Frontend calls POST /api/device/oauth/complete to mark code as authorized
  *   <li>Device polls POST /api/device/oauth/token until authorized
@@ -94,7 +94,7 @@ public class DeviceAuthService {
 
     // Build verification URLs
     String baseUrl = getFrontendBaseUrl();
-    String verificationUri = baseUrl + "/device/verify";
+    String verificationUri = baseUrl + "/karoo";
     String verificationUriComplete = verificationUri + "?code=" + userCode;
 
     // Store device code with expiry

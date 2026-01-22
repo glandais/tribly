@@ -5,7 +5,8 @@
 export const paths = {
   home: () => '/',
   login: () => '/login',
-  deviceVerify: () => '/device/verify',
+  deviceVerifyGarmin: () => '/garmin',
+  deviceVerifyKaroo: () => '/karoo',
   verifyEmail: () => '/verify-email',
   magicLink: () => '/magic-link',
   magicLinkVerify: () => '/magic-link/verify',

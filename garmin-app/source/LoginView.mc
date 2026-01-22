@@ -75,7 +75,7 @@ class LoginView extends WatchUi.View {
                 centerX,
                 centerY - 45,
                 Graphics.FONT_SMALL,
-                "pedalons.fr/device",
+                "pedalons.fr/garmin",
                 Graphics.TEXT_JUSTIFY_CENTER
             );
 

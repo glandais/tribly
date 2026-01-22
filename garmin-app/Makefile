@@ -1,8 +1,20 @@
 # Makefile for Tribly Garmin Connect IQ App
 
 # SDK configuration - auto-detect if not set
-CIQ_HOME ?= $(shell ls -d $(HOME)/.Garmin/ConnectIQ/Sdks/connectiq-sdk-*/ 2>/dev/null | head -1)
-DEVELOPER_KEY ?= $(HOME)/.Garmin/ConnectIQ/developer_key
+# Check macOS location first, then Linux location
+CIQ_HOME ?= $(shell ls -d "$(HOME)/Library/Application Support/Garmin/ConnectIQ/Sdks/connectiq-sdk-"*/ 2>/dev/null | sort -r | head -1)
+ifeq ($(CIQ_HOME),)
+CIQ_HOME := $(shell ls -d $(HOME)/.Garmin/ConnectIQ/Sdks/connectiq-sdk-*/ 2>/dev/null | sort -r | head -1)
+endif
+# Developer key - check macOS location first, then Linux location
+DEVELOPER_KEY ?= $(shell \
+	if [ -f "$(HOME)/Library/Application Support/Garmin/ConnectIQ/developer_key" ]; then \
+		echo "$(HOME)/Library/Application Support/Garmin/ConnectIQ/developer_key"; \
+	elif [ -f "$(HOME)/.Garmin/ConnectIQ/developer_key" ]; then \
+		echo "$(HOME)/.Garmin/ConnectIQ/developer_key"; \
+	else \
+		echo "$(HOME)/.Garmin/ConnectIQ/developer_key"; \
+	fi)
 
 # Build tools
 MONKEYC = $(CIQ_HOME)bin/monkeybrains.jar
@@ -19,8 +31,8 @@ RESOURCE_DIR = resources
 # Output directory
 BIN_DIR = bin
 
-# Supported devices (from manifest.xml, API 3.2.0+)
-DEVICES = edge530 edge540 edge830 edge840 edge1030 edge1030plus edge1040
+# Supported devices (from manifest.xml, API 3.3.0+)
+DEVICES = edge530 edge540 edge550 edge830 edge840 edge850 edge1030 edge1030bontrager edge1030plus edge1040 edge1050 edgeexplore2 edgemtb
 
 # Default device for single builds
 DEVICE ?= edge1040
@@ -93,7 +105,7 @@ clean:
 # Start simulator (native - requires webkit2gtk-4.0)
 simulator: check-sdk
 	@echo "Starting simulator..."
-	$(SIMULATOR) &
+	"$(SIMULATOR)" &
 
 # Start simulator via Docker (for Ubuntu 24.04+)
 simulator-docker:
@@ -115,7 +127,7 @@ simulator-docker:
 # Run app in simulator (native - requires simulator to be running)
 run: build
 	@echo "Loading $(PROJECT_NAME) into simulator..."
-	$(MONKEYDO) "$(BIN_DIR)/$(PROJECT_NAME)-$(DEVICE).prg" $(DEVICE)
+	"$(MONKEYDO)" "$(BIN_DIR)/$(PROJECT_NAME)-$(DEVICE).prg" $(DEVICE)
 
 # Run app in simulator via Docker (for Ubuntu 24.04+)
 run-docker: build
