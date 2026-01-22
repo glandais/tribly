@@ -5,7 +5,7 @@ using Toybox.Position;
 
 /**
  * API client for Tribly backend.
- * Handles all HTTP communication including authentication.
+ * Handles all HTTP communication including authentication via Device Code Flow.
  */
 class ApiClient {
     // TODO: Update this URL for production
@@ -16,6 +16,7 @@ class ApiClient {
     private var _routesCallback;
     private var _downloadCallback;
     private var _tokenCallback;
+    private var _deviceCodeCallback;
     private var _pendingDownload;
 
     function initialize(authManager) {
@@ -23,19 +24,19 @@ class ApiClient {
         _routesCallback = null;
         _downloadCallback = null;
         _tokenCallback = null;
+        _deviceCodeCallback = null;
         _pendingDownload = null;
     }
 
     /**
-     * Exchange authorization code for tokens.
+     * Request a device code for Device Code Flow authentication.
      */
-    function exchangeCode(code, callback) as Void {
-        _tokenCallback = callback;
+    function requestDeviceCode(callback) as Void {
+        _deviceCodeCallback = callback;
 
-        var url = API_BASE_URL + "/garmin/oauth/token";
+        var url = API_BASE_URL + "/device/oauth/device";
         var params = {
-            "grantType" => "authorization_code",
-            "code" => code
+            "clientId" => "garmin"
         };
 
         Communications.makeWebRequest(
@@ -48,8 +49,132 @@ class ApiClient {
                 },
                 :responseType => Communications.HTTP_RESPONSE_CONTENT_TYPE_JSON
             },
-            method(:onTokenResponse)
+            method(:onDeviceCodeResponse)
         );
+    }
+
+    /**
+     * Handle device code API response.
+     */
+    function onDeviceCodeResponse(responseCode as Lang.Number, data as Lang.Dictionary or Lang.String or Null) as Void {
+        var callback = _deviceCodeCallback;
+        _deviceCodeCallback = null;
+
+        if (responseCode == 200 && data != null && data instanceof Lang.Dictionary) {
+            var dict = data as Lang.Dictionary;
+            var deviceCode = dict.get("deviceCode");
+            var userCode = dict.get("userCode");
+            var verificationUri = dict.get("verificationUri");
+            var expiresIn = dict.get("expiresIn");
+            var interval = dict.get("interval");
+
+            if (deviceCode != null && userCode != null) {
+                if (callback != null) {
+                    callback.invoke({
+                        "success" => true,
+                        "deviceCode" => deviceCode,
+                        "userCode" => userCode,
+                        "verificationUri" => verificationUri,
+                        "expiresIn" => expiresIn,
+                        "interval" => interval
+                    });
+                }
+                return;
+            }
+        }
+
+        // System.println("Device code response failed: " + responseCode);
+        if (callback != null) {
+            callback.invoke({
+                "success" => false
+            });
+        }
+    }
+
+    /**
+     * Poll for token using device code.
+     */
+    function pollForToken(deviceCode, callback) as Void {
+        _tokenCallback = callback;
+
+        var url = API_BASE_URL + "/device/oauth/token";
+        var params = {
+            "grantType" => "urn:ietf:params:oauth:grant-type:device_code",
+            "deviceCode" => deviceCode
+        };
+
+        Communications.makeWebRequest(
+            url,
+            params,
+            {
+                :method => Communications.HTTP_REQUEST_METHOD_POST,
+                :headers => {
+                    "Content-Type" => Communications.REQUEST_CONTENT_TYPE_JSON
+                },
+                :responseType => Communications.HTTP_RESPONSE_CONTENT_TYPE_JSON
+            },
+            method(:onPollTokenResponse)
+        );
+    }
+
+    /**
+     * Handle polling token response.
+     */
+    function onPollTokenResponse(responseCode as Lang.Number, data as Lang.Dictionary or Lang.String or Null) as Void {
+        var callback = _tokenCallback;
+        _tokenCallback = null;
+
+        if (responseCode == 200 && data != null && data instanceof Lang.Dictionary) {
+            var dict = data as Lang.Dictionary;
+            var accessToken = dict.get("accessToken");
+            var refreshToken = dict.get("refreshToken");
+            var expiresIn = dict.get("expiresIn");
+
+            if (accessToken != null && expiresIn != null) {
+                _authManager.saveTokens(accessToken, refreshToken, expiresIn);
+                if (callback != null) {
+                    callback.invoke({
+                        "success" => true
+                    });
+                }
+                return;
+            }
+        }
+
+        // Check for specific error codes
+        if (responseCode == 400 && data != null && data instanceof Lang.Dictionary) {
+            var dict = data as Lang.Dictionary;
+            var errorCode = dict.get("code");
+
+            if (errorCode != null && errorCode.equals("AUTHORIZATION_PENDING")) {
+                // Normal state - authorization pending
+                if (callback != null) {
+                    callback.invoke({
+                        "success" => false,
+                        "pending" => true
+                    });
+                }
+                return;
+            }
+
+            if (errorCode != null && errorCode.equals("TOKEN_EXPIRED")) {
+                // Device code expired
+                if (callback != null) {
+                    callback.invoke({
+                        "success" => false,
+                        "expired" => true
+                    });
+                }
+                return;
+            }
+        }
+
+        // System.println("Token poll failed: " + responseCode);
+        if (callback != null) {
+            callback.invoke({
+                "success" => false
+            });
+        }
     }
 
     /**
@@ -60,11 +185,13 @@ class ApiClient {
 
         var refreshToken = _authManager.getRefreshToken();
         if (refreshToken == null) {
-            callback.invoke(false);
+            if (callback != null) {
+                callback.invoke(false);
+            }
             return;
         }
 
-        var url = API_BASE_URL + "/garmin/oauth/token";
+        var url = API_BASE_URL + "/device/oauth/token";
         var params = {
             "grantType" => "refresh_token",
             "refreshToken" => refreshToken
@@ -85,7 +212,7 @@ class ApiClient {
     }
 
     /**
-     * Handle token API response.
+     * Handle token API response (for refresh).
      */
     function onTokenResponse(responseCode as Lang.Number, data as Lang.Dictionary or Lang.String or Null) as Void {
         var callback = _tokenCallback;

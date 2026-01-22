@@ -133,10 +133,10 @@ check_dependencies() {
         exit 1
     fi
 
-    # Check for md5sum (needed for delta updates)
+    # Check for md5sum or md5 (needed for delta updates)
     if [ "$USE_DELTA" = "true" ]; then
-        if ! command -v md5sum >/dev/null 2>&1; then
-            log_warn "md5sum not found, disabling delta updates"
+        if ! command -v md5sum >/dev/null 2>&1 && ! command -v md5 >/dev/null 2>&1; then
+            log_warn "md5sum/md5 not found, disabling delta updates"
             USE_DELTA="false"
         fi
     fi
@@ -157,7 +157,7 @@ find_brouter_jar() {
     # Try to find in source checkout
     local pattern="$SCRIPT_DIR/../../../brouter-server/build/libs/brouter-*-all.jar"
     local found
-    found=$(ls $pattern 2>/dev/null | sort --reverse --version-sort | head -n 1 || true)
+    found=$(ls $pattern 2>/dev/null | sort -r | head -n 1 || true)
     if [ -n "$found" ] && [ -f "$found" ]; then
         BROUTER_JAR="$found"
         return 0
@@ -189,8 +189,8 @@ parse_directory_listing() {
     local url="$1"
 
     curl -sS "$url" | \
-        grep -oP '<a href="[EWew][0-9]+_[NSns][0-9]+\.rd5">[^<]+</a>\s+[0-9]{2}-[A-Za-z]{3}-[0-9]{4}\s+[0-9]{2}:[0-9]{2}\s+[0-9]+' | \
-        sed -E 's/<a href="([^"]+)">[^<]+<\/a>\s+([0-9]{2}-[A-Za-z]{3}-[0-9]{4})\s+([0-9]{2}:[0-9]{2})\s+([0-9]+)/\1 \2 \3 \4/' | \
+        grep -oE '<a href="[EWew][0-9]+_[NSns][0-9]+\.rd5">[^<]+</a>[[:space:]]+[0-9]{2}-[A-Za-z]{3}-[0-9]{4}[[:space:]]+[0-9]{2}:[0-9]{2}[[:space:]]+[0-9]+' | \
+        sed -E 's/<a href="([^"]+)">[^<]+<\/a>[[:space:]]+([0-9]{2}-[A-Za-z]{3}-[0-9]{4})[[:space:]]+([0-9]{2}:[0-9]{2})[[:space:]]+([0-9]+)/\1 \2 \3 \4/' | \
         while read -r filename date time size; do
             # Apply filter
             local basename="${filename%.rd5}"
@@ -203,7 +203,12 @@ parse_directory_listing() {
 # Calculate MD5 hash of a file
 calc_md5() {
     local file="$1"
-    md5sum "$file" | awk '{print $1}'
+    if command -v md5sum >/dev/null 2>&1; then
+        md5sum "$file" | awk '{print $1}'
+    else
+        # macOS uses md5 command with different output format
+        md5 -q "$file"
+    fi
 }
 
 # Check if delta file exists on server
@@ -349,12 +354,12 @@ process_downloads() {
         # Wait if we have too many parallel jobs
         while [ ${#pids[@]} -ge "$PARALLEL" ]; do
             local new_pids=()
-            for pid in "${pids[@]}"; do
+            for pid in "${pids[@]+"${pids[@]}"}"; do
                 if kill -0 "$pid" 2>/dev/null; then
                     new_pids+=("$pid")
                 fi
             done
-            pids=("${new_pids[@]}")
+            pids=("${new_pids[@]+"${new_pids[@]}"}")
             if [ ${#pids[@]} -ge "$PARALLEL" ]; then
                 sleep 0.5
             fi
@@ -367,7 +372,7 @@ process_downloads() {
     done < "$listing_file"
 
     # Wait for remaining downloads
-    for pid in "${pids[@]}"; do
+    for pid in "${pids[@]+"${pids[@]}"}"; do
         wait "$pid" 2>/dev/null || true
     done
 }

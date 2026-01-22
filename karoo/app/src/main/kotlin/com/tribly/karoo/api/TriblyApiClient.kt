@@ -44,8 +44,8 @@ class TriblyApiClient(
     // === Device Code Flow ===
 
     suspend fun requestDeviceCode(): Result<DeviceCodeResponse> = runCatching {
-        val response = client.post("$baseUrl/api/karoo/oauth/device") {
-            setBody(DeviceCodeRequest())
+        val response = client.post("$baseUrl/api/device/oauth/device") {
+            setBody(DeviceCodeRequest(clientId = "karoo"))
         }
         if (response.status.isSuccess()) {
             response.body<DeviceCodeResponse>()
@@ -55,7 +55,7 @@ class TriblyApiClient(
     }
 
     suspend fun pollForToken(deviceCode: String): Result<TokenResponse> = runCatching {
-        val response = client.post("$baseUrl/api/karoo/oauth/token") {
+        val response = client.post("$baseUrl/api/device/oauth/token") {
             setBody(TokenRequest(
                 grantType = TokenRequest.GRANT_TYPE_DEVICE_CODE,
                 deviceCode = deviceCode
@@ -76,7 +76,7 @@ class TriblyApiClient(
     }
 
     suspend fun refreshToken(refreshToken: String): Result<TokenResponse> = runCatching {
-        val response = client.post("$baseUrl/api/karoo/oauth/token") {
+        val response = client.post("$baseUrl/api/device/oauth/token") {
             setBody(TokenRequest(
                 grantType = TokenRequest.GRANT_TYPE_REFRESH,
                 refreshToken = refreshToken

@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 // Device Code Flow
 @Serializable
 data class DeviceCodeRequest(
-    @SerialName("clientId") val clientId: String = "karoo-device"
+    @SerialName("clientId") val clientId: String = "karoo"
 )
 
 @Serializable

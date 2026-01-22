@@ -1,7 +1,7 @@
 import { defineConfig } from 'orval';
 
 export default defineConfig({
-  petstore: {
+  tribly: {
     input: {
       target: '../contracts/openapi.json',
     },
@@ -19,7 +19,7 @@ export default defineConfig({
       },
     },
   },
-  petstoreZod: {
+  triblyZod: {
     input: {
       target: '../contracts/openapi.json',
     },

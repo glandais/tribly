@@ -21,8 +21,8 @@ fi
 
 echo "Generating RSA key pair for JWT authentication..."
 
-# Generate 2048-bit RSA private key
-openssl genrsa -out "$PRIVATE_KEY" 2048
+# Generate 2048-bit RSA private key in PKCS#8 format (required by SmallRye JWT)
+openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out "$PRIVATE_KEY"
 
 # Extract public key from private key
 openssl rsa -in "$PRIVATE_KEY" -pubout -out "$PUBLIC_KEY"

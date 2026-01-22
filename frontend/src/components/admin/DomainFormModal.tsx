@@ -423,9 +423,7 @@ function GpsCredentialsSection({ domainId }: { domainId: string }) {
                           <PasswordInput
                             label={t('admin.domains.gpsCredentials.clientSecret')}
                             size="xs"
-                            placeholder={t(
-                              'admin.domains.gpsCredentials.clientSecretPlaceholder'
-                            )}
+                            placeholder={t('admin.domains.gpsCredentials.clientSecretPlaceholder')}
                             {...editForm.getInputProps('clientSecret')}
                           />
                         </Group>
@@ -474,9 +472,7 @@ function GpsCredentialsSection({ domainId }: { domainId: string }) {
                     </Table.Td>
                     <Table.Td ta="center">
                       <Badge color={credential.active ? 'green' : 'gray'} size="sm">
-                        {credential.active
-                          ? t('admin.status.active')
-                          : t('admin.status.inactive')}
+                        {credential.active ? t('admin.status.active') : t('admin.status.inactive')}
                       </Badge>
                     </Table.Td>
                     <Table.Td ta="center">

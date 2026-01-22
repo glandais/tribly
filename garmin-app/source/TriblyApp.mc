@@ -2,28 +2,39 @@ using Toybox.Application;
 using Toybox.Communications;
 using Toybox.Lang;
 using Toybox.System;
+using Toybox.Timer;
 using Toybox.WatchUi;
 
 /**
  * Main Tribly application for Garmin Connect IQ.
  * Allows users to browse and download routes from their Tribly teams.
+ * Uses Device Code Flow (RFC 8628) for authentication.
  */
 class TriblyApp extends Application.AppBase {
     private var _authManager;
     private var _apiClient;
+    private var _loginView;
+    private var _pollTimer;
+    private var _deviceCode;
 
     function initialize() {
         AppBase.initialize();
         _authManager = new AuthManager();
         _apiClient = new ApiClient(_authManager);
+        _loginView = null;
+        _pollTimer = null;
+        _deviceCode = null;
     }
 
     function onStart(state) {
-        // Register for OAuth messages from phone
-        Communications.registerForOAuthMessages(method(:onOAuthMessage));
     }
 
     function onStop(state) {
+        // Stop polling if active
+        if (_pollTimer != null) {
+            _pollTimer.stop();
+            _pollTimer = null;
+        }
     }
 
     function getInitialView() {
@@ -39,97 +50,141 @@ class TriblyApp extends Application.AppBase {
      * Show the login view prompting user to authenticate.
      */
     function showLoginView() {
-        var view = new LoginView();
+        _loginView = new LoginView();
         var delegate = new LoginDelegate(self);
-        return [view, delegate];
+        return [_loginView, delegate];
     }
 
     /**
      * Show the route list view.
      */
     function showRouteList() {
+        _loginView = null;
         var view = new TriblyView(_apiClient);
         var delegate = new TriblyDelegate(view, _apiClient);
         return [view, delegate];
     }
 
     /**
-     * Initiate OAuth flow by opening browser on phone.
+     * Start the Device Code Flow.
+     * Requests a device code, displays it, and starts polling.
      */
-    function startOAuthFlow() {
-        // System.println("startOAuthFlow called");
-
-        var redirectUri = ApiClient.BASE_URL + "/garmin/success";
-        var params = {
-            "client_id" => "garmin-connect-iq",
-            "response_type" => "code",
-            "redirect_uri" => redirectUri
-        };
-
-        var oauthUrl =  ApiClient.BASE_URL + "/garmin/login" +
-            "?client_id=" + params["client_id"] +
-            "&response_type=" + params["response_type"] +
-            "&redirect_uri=" + params["redirect_uri"];
-        // System.println("OAuth URL: " + oauthUrl);
-
-        Communications.makeOAuthRequest(
-            ApiClient.BASE_URL + "/garmin/login",
-            params,
-            redirectUri,
-            Communications.OAUTH_RESULT_TYPE_URL,
-            {"code" => "code"}
-        );
+    function startDeviceCodeFlow() {
+        // System.println("startDeviceCodeFlow called");
+        _apiClient.requestDeviceCode(method(:onDeviceCodeReceived));
     }
 
     /**
-     * Handle OAuth callback from phone browser.
+     * Callback when device code is received.
      */
-    function onOAuthMessage(message as Communications.OAuthMessage) as Void {
-        // System.println("onOAuthMessage called");
-        // System.println("responseCode: " + message.responseCode);
-        var data = message.data;
-        // System.println("data: " + data);
-        if (data != null && data instanceof Lang.Dictionary) {
-            var dict = data as Lang.Dictionary;
-            // System.println("dict keys: " + dict.keys());
-            if (dict.hasKey("code")) {
-                var code = dict.get("code");
-                // System.println("Got auth code: " + code);
-                exchangeCodeForTokens(code);
-                return;
+    function onDeviceCodeReceived(result) {
+        // System.println("onDeviceCodeReceived");
+
+        if (result.get("success") == true) {
+            _deviceCode = result.get("deviceCode");
+            var userCode = result.get("userCode");
+            var expiresIn = result.get("expiresIn");
+            var interval = result.get("interval");
+
+            // Save device code for potential resume
+            _authManager.saveDeviceCode(_deviceCode, userCode, expiresIn);
+
+            // Update the login view to show the code
+            if (_loginView != null) {
+                _loginView.setUserCode(userCode);
             }
-        }
-        // OAuth failed, show error
-        // System.println("OAuth failed - no code in response");
-        WatchUi.switchToView(
-            new ErrorView(WatchUi.loadResource(Rez.Strings.ConnectionError)),
-            new ErrorDelegate(self),
-            WatchUi.SLIDE_IMMEDIATE
-        );
-    }
 
-    /**
-     * Exchange authorization code for access and refresh tokens.
-     */
-    function exchangeCodeForTokens(code) {
-        _apiClient.exchangeCode(code, method(:onTokenExchange));
-    }
+            // Start polling timer
+            // Connect IQ Timer expects milliseconds
+            var pollInterval = interval * 1000;
+            if (pollInterval < 5000) {
+                pollInterval = 5000; // Minimum 5 seconds per RFC 8628
+            }
 
-    /**
-     * Callback when token exchange completes.
-     */
-    function onTokenExchange(success) {
-        if (success) {
-            // Token saved, show route list
-            var viewPair = showRouteList();
-            WatchUi.switchToView(viewPair[0], viewPair[1], WatchUi.SLIDE_IMMEDIATE);
+            _pollTimer = new Timer.Timer();
+            _pollTimer.start(method(:pollForToken), pollInterval, true);
         } else {
-            // Token exchange failed
+            // Request failed, show error
             WatchUi.switchToView(
                 new ErrorView(WatchUi.loadResource(Rez.Strings.ConnectionError)),
                 new ErrorDelegate(self),
                 WatchUi.SLIDE_IMMEDIATE
             );
+        }
+    }
+
+    /**
+     * Poll for token authorization.
+     * Called periodically by the timer.
+     */
+    function pollForToken() {
+        // System.println("pollForToken");
+
+        // Check if device code expired
+        if (_authManager.isDeviceCodeExpired()) {
+            // System.println("Device code expired");
+            stopPolling();
+            _authManager.clearDeviceCode();
+
+            if (_loginView != null) {
+                _loginView.setStatus(WatchUi.loadResource(Rez.Strings.CodeExpired));
+            }
+            return;
+        }
+
+        // Poll for token
+        _apiClient.pollForToken(_deviceCode, method(:onPollResponse));
+    }
+
+    /**
+     * Callback when poll response is received.
+     */
+    function onPollResponse(result) {
+        // System.println("onPollResponse");
+
+        if (result.get("success") == true) {
+            // Success! Tokens received and saved
+            stopPolling();
+            _authManager.clearDeviceCode();
+
+            // Switch to route list
+            var viewPair = showRouteList();
+            WatchUi.switchToView(viewPair[0], viewPair[1], WatchUi.SLIDE_IMMEDIATE);
+            return;
+        }
+
+        if (result.get("pending") == true) {
+            // Normal state - authorization pending, keep polling
+            // System.println("Authorization pending, continuing poll...");
+            return;
+        }
+
+        if (result.get("expired") == true) {
+            // Device code expired
+            stopPolling();
+            _authManager.clearDeviceCode();
+
+            if (_loginView != null) {
+                _loginView.setStatus(WatchUi.loadResource(Rez.Strings.CodeExpired));
+            }
+            return;
+        }
+
+        // Other error - stop polling and show error
+        stopPolling();
+
+        if (_loginView != null) {
+            _loginView.setStatus(WatchUi.loadResource(Rez.Strings.AuthError));
+        }
+    }
+
+    /**
+     * Stop the polling timer.
+     */
+    private function stopPolling() {
+        if (_pollTimer != null) {
+            _pollTimer.stop();
+            _pollTimer = null;
         }
     }
 

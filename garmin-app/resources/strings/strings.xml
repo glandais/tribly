@@ -2,7 +2,11 @@
 <strings>
     <string id="AppName">Tribly</string>
     <string id="LoginRequired">Login required</string>
-    <string id="LoginInstructions">Open Garmin Connect on your phone to log in</string>
+    <string id="LoginInstructions">Press SELECT to start login</string>
+    <string id="GoTo">Go to</string>
+    <string id="Waiting">Waiting...</string>
+    <string id="CodeExpired">Code expired</string>
+    <string id="AuthError">Auth error</string>
     <string id="LoadingRoutes">Loading routes...</string>
     <string id="NoRoutes">No routes available</string>
     <string id="Download">Download</string>

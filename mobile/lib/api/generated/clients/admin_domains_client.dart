@@ -8,9 +8,12 @@ import 'package:retrofit/error_logger.dart';
 
 import '../models/admin_domain_dto.dart';
 import '../models/admin_domain_list_response.dart';
+import '../models/admin_gps_credential_dto.dart';
 import '../models/admin_stats_dto.dart';
 import '../models/create_domain_request.dart';
+import '../models/create_gps_credential_request.dart';
 import '../models/update_domain_request.dart';
+import '../models/update_gps_credential_request.dart';
 
 part 'admin_domains_client.g.dart';
 
@@ -67,6 +70,58 @@ abstract class AdminDomainsClient {
   /// [domainId] - Domain ID.
   @GET('/api/admin/domains/{domainId}')
   Future<AdminDomainDto> getDomain({
+    @Path('domainId') required String domainId,
+  });
+
+  /// List GPS credentials.
+  ///
+  /// Get all GPS credentials for a domain.
+  ///
+  /// [domainId] - Domain ID.
+  @GET('/api/admin/domains/{domainId}/gps-credentials')
+  Future<List<AdminGpsCredentialDto>> listDomainGpsCredentials({
+    @Path('domainId') required String domainId,
+  });
+
+  /// Create GPS credential.
+  ///
+  /// Create a new GPS credential for a domain.
+  ///
+  /// [domainId] - Domain ID.
+  ///
+  /// [body] - Name not received - field will be skipped.
+  @POST('/api/admin/domains/{domainId}/gps-credentials')
+  Future<AdminGpsCredentialDto> createDomainGpsCredential({
+    @Path('domainId') required String domainId,
+    @Body() required CreateGpsCredentialRequest body,
+  });
+
+  /// Update GPS credential.
+  ///
+  /// Update a GPS credential for a domain.
+  ///
+  /// [credentialId] - Credential ID.
+  ///
+  /// [domainId] - Domain ID.
+  ///
+  /// [body] - Name not received - field will be skipped.
+  @PUT('/api/admin/domains/{domainId}/gps-credentials/{credentialId}')
+  Future<AdminGpsCredentialDto> updateDomainGpsCredential({
+    @Path('credentialId') required String credentialId,
+    @Path('domainId') required String domainId,
+    @Body() required UpdateGpsCredentialRequest body,
+  });
+
+  /// Delete GPS credential.
+  ///
+  /// Delete a GPS credential for a domain.
+  ///
+  /// [credentialId] - Credential ID.
+  ///
+  /// [domainId] - Domain ID.
+  @DELETE('/api/admin/domains/{domainId}/gps-credentials/{credentialId}')
+  Future<void> deleteDomainGpsCredential({
+    @Path('credentialId') required String credentialId,
     @Path('domainId') required String domainId,
   });
 

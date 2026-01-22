@@ -92,6 +92,10 @@ enum ErrorCode {
   gpsStateExpired('GPS_STATE_EXPIRED'),
   @JsonValue('GPX_NOT_FOUND')
   gpxNotFound('GPX_NOT_FOUND'),
+  @JsonValue('AUTHORIZATION_PENDING')
+  authorizationPending('AUTHORIZATION_PENDING'),
+  @JsonValue('GPS_CREDENTIAL_ALREADY_EXISTS')
+  gpsCredentialAlreadyExists('GPS_CREDENTIAL_ALREADY_EXISTS'),
 
   /// Default value for all unparsed values, allows backward compatibility when adding new values on the backend.
   $unknown(null)

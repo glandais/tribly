@@ -703,15 +703,6 @@ components:
         teamFeedUrlTemplate:
           type: string
           description: Team-specific feed URL template
-    CallbackResponse:
-      description: OAuth callback response with redirect URL
-      type: object
-      required:
-      - redirectUrl
-      properties:
-        redirectUrl:
-          type: string
-          description: Redirect URL with auth code
     ClimbCategory:
       type: string
       enum:
@@ -893,13 +884,82 @@ components:
         active:
           type: boolean
           description: Whether credential is active
+    DeviceCodeResponse:
+      description: Device code response (RFC 8628)
+      type: object
+      required:
+      - deviceCode
+      - userCode
+      - verificationUri
+      - verificationUriComplete
+      - expiresIn
+      - interval
+      properties:
+        deviceCode:
+          type: string
+          description: Device code for polling
+        userCode:
+          type: string
+          description: "User code to display (e.g., 'ABCD12')"
+        verificationUri:
+          type: string
+          description: Verification URL for user to visit
+        verificationUriComplete:
+          type: string
+          description: Verification URL with user code embedded
+        expiresIn:
+          type: integer
+          format: int32
+          description: Code expiry in seconds
+        interval:
+          type: integer
+          format: int32
+          description: Minimum polling interval in seconds
     DeviceRequest:
       description: Device auth request
       type: object
       properties:
         clientId:
           type: string
-          description: "Client ID (optional, defaults to 'karoo-device')"
+          description: "Client ID (e.g., 'karoo', 'garmin')"
+    DeviceTokenRequest:
+      description: Device OAuth token request
+      type: object
+      required:
+      - grantType
+      properties:
+        grantType:
+          type: string
+          description: "Grant type: 'urn:ietf:params:oauth:grant-type:device_code'\
+            \ or 'refresh_token'"
+          pattern: \S
+        deviceCode:
+          type: string
+          description: Device code (for device_code grant)
+        refreshToken:
+          type: string
+          description: Refresh token (for refresh_token grant)
+    DeviceTokenResponse:
+      description: Device OAuth token response
+      type: object
+      required:
+      - accessToken
+      - tokenType
+      - expiresIn
+      properties:
+        accessToken:
+          type: string
+          description: Access token
+        tokenType:
+          type: string
+          description: Token type (always 'Bearer')
+        expiresIn:
+          type: integer
+          format: int32
+          description: Token expiry in seconds
+        refreshToken:
+          type: string
+          description: Refresh token
     EntityType:
       type: string
       enum:
@@ -1028,24 +1088,6 @@ components:
           description: Message
         rejectedValue:
           description: Rejected value
-    GarminCallbackRequest:
-      description: Garmin OAuth callback from frontend
-      type: object
-      required:
-      - accessToken
-      - redirectUri
-      properties:
-        accessToken:
-          type: string
-          description: User's access token from frontend auth
-          pattern: \S
-        redirectUri:
-          type: string
-          description: Original redirect URI from authorize request
-          pattern: \S
-        state:
-          type: string
-          description: State parameter from authorize request
     GarminRouteDto:
       description: Route information for Garmin device
       type: object
@@ -1103,43 +1145,6 @@ components:
           items:
             $ref: "#/components/schemas/GarminRouteDto"
           description: Routes list
-    GarminTokenRequest:
-      description: Garmin OAuth token exchange request
-      type: object
-      required:
-      - grantType
-      properties:
-        grantType:
-          type: string
-          description: Grant type (authorization_code or refresh_token)
-          pattern: \S
-        code:
-          type: string
-          description: Authorization code (for authorization_code grant)
-        refreshToken:
-          type: string
-          description: Refresh token (for refresh_token grant)
-    GarminTokenResponse:
-      description: Garmin OAuth token response
-      type: object
-      required:
-      - accessToken
-      - tokenType
-      - expiresIn
-      properties:
-        accessToken:
-          type: string
-          description: Access token
-        tokenType:
-          type: string
-          description: Token type (always 'Bearer')
-        expiresIn:
-          type: integer
-          format: int32
-          description: Token expiry in seconds
-        refreshToken:
-          type: string
-          description: Refresh token
     GeoJsonLineString:
       type: object
       required:
@@ -1272,44 +1277,6 @@ components:
       format: date-time
       examples:
       - 2022-03-10T16:15:50Z
-    KarooDeviceAuthRequest:
-      description: Karoo device code request (RFC 8628)
-      type: object
-      properties:
-        clientId:
-          type: string
-          description: Client ID (must be 'karoo-device')
-    KarooDeviceCodeResponse:
-      description: Karoo device code response (RFC 8628)
-      type: object
-      required:
-      - deviceCode
-      - userCode
-      - verificationUri
-      - verificationUriComplete
-      - expiresIn
-      - interval
-      properties:
-        deviceCode:
-          type: string
-          description: Device code for polling
-        userCode:
-          type: string
-          description: "User code to display (e.g., 'ABCD12')"
-        verificationUri:
-          type: string
-          description: Verification URL for user to visit
-        verificationUriComplete:
-          type: string
-          description: Verification URL with user code embedded
-        expiresIn:
-          type: integer
-          format: int32
-          description: Code expiry in seconds
-        interval:
-          type: integer
-          format: int32
-          description: Minimum polling interval in seconds
     KarooRouteDto:
       description: Route information for Karoo device (lightweight)
       type: object
@@ -1363,44 +1330,6 @@ components:
           items:
             $ref: "#/components/schemas/KarooRouteDto"
           description: Available routes
-    KarooTokenRequest:
-      description: Karoo OAuth token request
-      type: object
-      required:
-      - grantType
-      properties:
-        grantType:
-          type: string
-          description: "Grant type: 'urn:ietf:params:oauth:grant-type:device_code'\
-            \ or 'refresh_token'"
-          pattern: \S
-        deviceCode:
-          type: string
-          description: Device code (for device_code grant)
-        refreshToken:
-          type: string
-          description: Refresh token (for refresh_token grant)
-    KarooTokenResponse:
-      description: Karoo OAuth token response
-      type: object
-      required:
-      - accessToken
-      - tokenType
-      - expiresIn
-      properties:
-        accessToken:
-          type: string
-          description: Access token
-        tokenType:
-          type: string
-          description: Token type (always 'Bearer')
-        expiresIn:
-          type: integer
-          format: int32
-          description: Token expiry in seconds
-        refreshToken:
-          type: string
-          description: Refresh token
     LocalTime:
       type: string
       format: local-time
@@ -3356,14 +3285,12 @@ tags:
   description: Team calendar operations
 - name: Configuration
   description: Application configuration endpoints
+- name: Device OAuth
+  description: OAuth 2.0 Device Code endpoints for GPS devices
 - name: GPS Services
   description: GPS device integration operations
-- name: Garmin OAuth
-  description: OAuth 2.0 endpoints for Garmin Connect IQ devices
 - name: Garmin Routes
   description: Route management for Garmin Connect IQ devices
-- name: Karoo OAuth
-  description: OAuth 2.0 Device Code endpoints for Karoo devices
 - name: Karoo Routes
   description: Route browsing and sync endpoints for Karoo devices
 - name: Passkeys
@@ -4570,85 +4497,71 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ConfigDto"
-  /api/garmin/oauth/authorize:
-    get:
-      summary: Start OAuth authorization
-      description: Redirects to frontend login page for Garmin OAuth flow
-      operationId: authorize
-      tags:
-      - Garmin OAuth
-      parameters:
-      - description: OAuth client ID (must be 'garmin-connect-iq')
-        name: client_id
-        in: query
-        schema:
-          type: string
-      - description: Redirect URI (connectiq://oauth)
-        name: redirect_uri
-        in: query
-        schema:
-          type: string
-      - description: Response type (must be 'code')
-        name: response_type
-        in: query
-        schema:
-          type: string
-      - description: State parameter for CSRF protection
-        name: state
-        in: query
-        schema:
-          type: string
-      responses:
-        "302":
-          description: Redirect to frontend login
-        "400":
-          description: Invalid request
-          content: {}
-  /api/garmin/oauth/complete:
+  /api/device/oauth/complete:
     post:
-      summary: Complete OAuth flow from frontend
-      description: Receives auth from frontend and returns redirect URL with auth
-        code
-      operationId: complete
+      summary: Complete device authorization
+      description: Called by frontend after user authenticates via OTP
+      operationId: deviceComplete
       tags:
-      - Garmin OAuth
+      - Device OAuth
       requestBody:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/GarminCallbackRequest"
+              $ref: "#/components/schemas/CompleteRequest"
         required: true
       responses:
         "200":
-          description: Returns redirect URL with auth code
+          description: Authorization completed
+          content:
+            application/json:
+              schema: {}
+        "400":
+          description: Invalid or expired code
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CallbackResponse"
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/device/oauth/device:
+    post:
+      summary: Request device code
+      description: Start device code flow - returns user code and verification URL
+      operationId: device
+      tags:
+      - Device OAuth
+      requestBody:
+        description: Device auth request (optional client_id)
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeviceRequest"
+        required: true
+      responses:
+        "200":
+          description: Device code response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeviceCodeResponse"
         "400":
           description: Invalid request
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
-        "403":
-          description: Invalid access token
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-  /api/garmin/oauth/token:
+  /api/device/oauth/token:
     post:
       summary: Exchange code for tokens
-      description: Exchange authorization code or refresh token for access tokens
-      operationId: token
+      description: Exchange device code or refresh token for access tokens. Returns
+        'authorization_pending' error while waiting for user.
+      operationId: deviceToken
       tags:
-      - Garmin OAuth
+      - Device OAuth
       requestBody:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/GarminTokenRequest"
+              $ref: "#/components/schemas/DeviceTokenRequest"
         required: true
       responses:
         "200":
@@ -4656,9 +4569,34 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/GarminTokenResponse"
+                $ref: "#/components/schemas/DeviceTokenResponse"
         "400":
-          description: Invalid grant
+          description: "authorization_pending, expired_token, or invalid_grant"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/device/oauth/verify:
+    get:
+      summary: Check user code validity
+      description: Frontend uses this to verify user code before showing auth flow
+      operationId: verify
+      tags:
+      - Device OAuth
+      parameters:
+      - name: code
+        in: query
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Code is valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VerifyResponse"
+        "404":
+          description: Code not found or expired
           content:
             application/json:
               schema:
@@ -4930,110 +4868,6 @@ paths:
       security:
       - SecurityScheme:
         - user
-  /api/karoo/oauth/complete:
-    post:
-      summary: Complete device authorization
-      description: Called by frontend after user authenticates via OTP
-      operationId: karooComplete
-      tags:
-      - Karoo OAuth
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/CompleteRequest"
-        required: true
-      responses:
-        "200":
-          description: Authorization completed
-          content:
-            application/json:
-              schema: {}
-        "400":
-          description: Invalid or expired code
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-  /api/karoo/oauth/device:
-    post:
-      summary: Request device code
-      description: Start device code flow - returns user code and verification URL
-      operationId: device
-      tags:
-      - Karoo OAuth
-      requestBody:
-        description: Device auth request (optional client_id)
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/DeviceRequest"
-        required: true
-      responses:
-        "200":
-          description: Device code response
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/KarooDeviceCodeResponse"
-        "400":
-          description: Invalid request
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-  /api/karoo/oauth/token:
-    post:
-      summary: Exchange code for tokens
-      description: Exchange device code or refresh token for access tokens. Returns
-        'authorization_pending' error while waiting for user.
-      operationId: karooToken
-      tags:
-      - Karoo OAuth
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/KarooTokenRequest"
-        required: true
-      responses:
-        "200":
-          description: Token response
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/KarooTokenResponse"
-        "400":
-          description: "authorization_pending, expired_token, or invalid_grant"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-  /api/karoo/oauth/verify:
-    get:
-      summary: Check user code validity
-      description: Frontend uses this to verify user code before showing auth flow
-      operationId: verify
-      tags:
-      - Karoo OAuth
-      parameters:
-      - name: code
-        in: query
-        schema:
-          type: string
-      responses:
-        "200":
-          description: Code is valid
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/VerifyResponse"
-        "404":
-          description: Code not found or expired
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
   /api/karoo/routes:
     get:
       summary: List routes

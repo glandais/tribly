@@ -10,6 +10,6 @@
  * Device auth request
  */
 export interface DeviceRequest {
-  /** Client ID (optional, defaults to 'karoo-device') */
+  /** Client ID (e.g., 'karoo', 'garmin') */
   clientId?: string
 }

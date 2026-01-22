@@ -8,11 +8,8 @@ const HomePage = lazy(() => import('../pages/home/HomePage').then((m) => ({ defa
 const LoginPage = lazy(() =>
   import('../pages/auth/LoginPage').then((m) => ({ default: m.LoginPage }))
 )
-const GarminLoginPage = lazy(() =>
-  import('../pages/garmin/GarminLoginPage').then((m) => ({ default: m.GarminLoginPage }))
-)
-const KarooVerifyPage = lazy(() =>
-  import('../pages/karoo/KarooVerifyPage').then((m) => ({ default: m.KarooVerifyPage }))
+const DeviceVerifyPage = lazy(() =>
+  import('../pages/device/DeviceVerifyPage').then((m) => ({ default: m.DeviceVerifyPage }))
 )
 const VerifyEmailPage = lazy(() =>
   import('../pages/auth/VerifyEmailPage').then((m) => ({ default: m.VerifyEmailPage }))
@@ -184,20 +181,12 @@ export const routesConfig: RoutesConfig = [
     breadcrumb: { type: 'static', i18nKey: tRegister('auth.login.title') },
   },
   {
-    id: 'garmin-login',
-    path: paths.garminLogin(),
-    component: GarminLoginPage,
+    id: 'device-verify',
+    path: paths.deviceVerify(),
+    component: DeviceVerifyPage,
     auth: 'public',
     parentId: null,
-    breadcrumb: { type: 'static', i18nKey: tRegister('garmin.title') },
-  },
-  {
-    id: 'karoo-verify',
-    path: paths.karooVerify(),
-    component: KarooVerifyPage,
-    auth: 'public',
-    parentId: null,
-    breadcrumb: { type: 'static', i18nKey: tRegister('karoo.title') },
+    breadcrumb: { type: 'static', i18nKey: tRegister('device.title') },
   },
   {
     id: 'verify-email',
