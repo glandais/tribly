@@ -4,6 +4,9 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../api/generated/export.dart';
 import '../../../../config/paths.dart';
+import '../../../../core/adaptive/adaptive.dart';
+import '../../../../core/utils/formatters.dart';
+import '../../../../core/utils/safe_string.dart';
 import '../../data/team_repository.dart';
 
 final myTeamsProvider = FutureProvider<List<TeamDetailDto>>((ref) async {
@@ -64,9 +67,10 @@ class TeamsPage extends ConsumerWidget {
 
           return RefreshIndicator(
             onRefresh: () => ref.refresh(myTeamsProvider.future),
-            child: ListView.builder(
+            child: ResponsiveGrid(
               padding: const EdgeInsets.all(16),
               itemCount: teams.length,
+              childAspectRatio: 2.5,
               itemBuilder: (context, index) {
                 final team = teams[index];
                 return _TeamCard(team: team);
@@ -105,7 +109,6 @@ class _TeamCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.only(bottom: 12),
       child: InkWell(
         onTap: () => context.push(Paths.team(team.slug)),
         borderRadius: BorderRadius.circular(12),
@@ -120,7 +123,7 @@ class _TeamCard extends StatelessWidget {
                     _logoUrl != null ? NetworkImage(_logoUrl!) : null,
                 child: _logoUrl == null
                     ? Text(
-                        team.name.substring(0, 1).toUpperCase(),
+                        team.name.safeFirstUpper(),
                         style: const TextStyle(fontSize: 20),
                       )
                     : null,
@@ -164,7 +167,7 @@ class _TeamCard extends StatelessWidget {
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Text(
-                              _getRoleName(team.role!),
+                              AppFormatters.roleName(team.role!),
                               style: TextStyle(
                                 fontSize: 10,
                                 color: Theme.of(context)
@@ -187,16 +190,4 @@ class _TeamCard extends StatelessWidget {
     );
   }
 
-  String _getRoleName(String role) {
-    switch (role) {
-      case 'OWNER':
-        return 'Propriétaire';
-      case 'ADMIN':
-        return 'Admin';
-      case 'MEMBER':
-        return 'Membre';
-      default:
-        return role;
-    }
-  }
 }

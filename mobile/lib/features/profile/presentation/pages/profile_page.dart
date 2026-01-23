@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../config/paths.dart';
+import '../../../../core/utils/safe_string.dart';
 import '../../../auth/providers/auth_provider.dart';
 import '../../../auth/services/passkey_service.dart';
-import '../../../../config/paths.dart';
 
 class ProfilePage extends ConsumerWidget {
   const ProfilePage({super.key});
@@ -49,9 +50,12 @@ class ProfilePage extends ConsumerWidget {
           ),
         ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
+      body: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 600),
+          child: ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
           // User avatar and info
           Center(
             child: Column(
@@ -63,7 +67,7 @@ class ProfilePage extends ConsumerWidget {
                       : null,
                   child: user?.avatarUrl == null
                       ? Text(
-                          user?.displayName.substring(0, 1).toUpperCase() ?? '?',
+                          (user?.displayName).safeFirstUpper(),
                           style: const TextStyle(fontSize: 32),
                         )
                       : null,
@@ -102,7 +106,7 @@ class ProfilePage extends ConsumerWidget {
                   leading: Icon(
                     Icons.fingerprint,
                     color: authState.hasPasskeys
-                        ? Colors.green
+                        ? theme.colorScheme.primary
                         : theme.colorScheme.outline,
                   ),
                   title: const Text('Passkeys'),
@@ -112,7 +116,7 @@ class ProfilePage extends ConsumerWidget {
                         : 'Non configuré',
                   ),
                   trailing: authState.hasPasskeys
-                      ? const Icon(Icons.check_circle, color: Colors.green)
+                      ? Icon(Icons.check_circle, color: theme.colorScheme.primary)
                       : FilledButton.tonal(
                           onPressed: () => _registerPasskey(context, ref),
                           child: const Text('Ajouter'),
@@ -126,7 +130,7 @@ class ProfilePage extends ConsumerWidget {
                   ),
                   title: const Text('Magic Link'),
                   subtitle: const Text('Connexion par email'),
-                  trailing: const Icon(Icons.check_circle, color: Colors.green),
+                  trailing: Icon(Icons.check_circle, color: theme.colorScheme.primary),
                 ),
               ],
             ),
@@ -240,6 +244,8 @@ class ProfilePage extends ConsumerWidget {
             label: const Text('Supprimer mon compte'),
           ),
         ],
+      ),
+        ),
       ),
     );
   }

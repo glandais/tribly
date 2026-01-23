@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../api/generated/export.dart';
+import '../../../../core/adaptive/adaptive.dart';
+import '../../../../core/utils/formatters.dart';
+import '../../../../core/utils/safe_string.dart';
 import '../../data/ride_repository.dart';
 
 final rideDetailProvider =
@@ -209,6 +212,7 @@ class _RideDetailContent extends StatelessWidget {
                   ? Image.network(
                       ride.routeThumbnailUrl!,
                       fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
                     )
                   : Container(
                       decoration: BoxDecoration(
@@ -227,34 +231,36 @@ class _RideDetailContent extends StatelessWidget {
 
           // Date and time
           SliverToBoxAdapter(
-            child: Card(
-              margin: const EdgeInsets.all(16),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.calendar_today,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                    const SizedBox(width: 16),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          _formatFullDate(DateTime.parse(ride.dateTime)),
-                          style:
-                              Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                        ),
-                        Text(
-                          _formatTime(DateTime.parse(ride.dateTime)),
-                          style: Theme.of(context).textTheme.bodyLarge,
-                        ),
-                      ],
-                    ),
-                  ],
+            child: ContentWidthConstraint(
+              padding: const EdgeInsets.all(16),
+              child: Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.calendar_today,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                      const SizedBox(width: 16),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            AppFormatters.formatFullDate(DateTime.parse(ride.dateTime)),
+                            style:
+                                Theme.of(context).textTheme.titleMedium?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                          ),
+                          Text(
+                            AppFormatters.formatTime(DateTime.parse(ride.dateTime)),
+                            style: Theme.of(context).textTheme.bodyLarge,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -263,24 +269,26 @@ class _RideDetailContent extends StatelessWidget {
           // Start place
           if (ride.startPlace != null)
             SliverToBoxAdapter(
-              child: Card(
-                margin: const EdgeInsets.symmetric(horizontal: 16),
-                child: ListTile(
-                  leading: Icon(
-                    Icons.location_on,
-                    color: Theme.of(context).colorScheme.primary,
+              child: ContentWidthConstraint(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Card(
+                  child: ListTile(
+                    leading: Icon(
+                      Icons.location_on,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    title: Text(ride.startPlace!.name),
+                    subtitle: ride.startPlace!.address != null
+                        ? Text(ride.startPlace!.address!)
+                        : null,
                   ),
-                  title: Text(ride.startPlace!.name),
-                  subtitle: ride.startPlace!.address != null
-                      ? Text(ride.startPlace!.address!)
-                      : null,
                 ),
               ),
             ),
 
           // Participants count
           SliverToBoxAdapter(
-            child: Padding(
+            child: ContentWidthConstraint(
               padding: const EdgeInsets.all(16),
               child: Row(
                 children: [
@@ -305,7 +313,7 @@ class _RideDetailContent extends StatelessWidget {
                                 : null,
                             child: p.avatarUrl == null
                                 ? Text(
-                                    p.displayName.substring(0, 1).toUpperCase(),
+                                    p.displayName.safeFirstUpper(),
                                     style: const TextStyle(fontSize: 10),
                                   )
                                 : null,
@@ -320,7 +328,7 @@ class _RideDetailContent extends StatelessWidget {
           // Groups
           if (ride.groups.isNotEmpty) ...[
             SliverToBoxAdapter(
-              child: Padding(
+              child: ContentWidthConstraint(
                 padding: const EdgeInsets.all(16),
                 child: Text(
                   'Groupes',
@@ -332,19 +340,20 @@ class _RideDetailContent extends StatelessWidget {
               delegate: SliverChildBuilderDelegate(
                 (context, index) {
                   final group = ride.groups[index];
-                  return Card(
-                    margin:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                    child: ListTile(
-                      title: Text(group.name),
-                      subtitle: Text(
-                        [
-                          if (group.time != null) 'Départ: ${group.time}',
-                          if (group.averageSpeed != null)
-                            '${group.averageSpeed!.toStringAsFixed(0)} km/h',
-                        ].join(' • '),
+                  return ContentWidthConstraint(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                    child: Card(
+                      child: ListTile(
+                        title: Text(group.name),
+                        subtitle: Text(
+                          [
+                            if (group.time != null) 'Départ: ${group.time}',
+                            if (group.averageSpeed != null)
+                              '${group.averageSpeed!.toStringAsFixed(0)} km/h',
+                          ].join(' • '),
+                        ),
+                        trailing: Text('${group.countParticipants}'),
                       ),
-                      trailing: Text('${group.countParticipants}'),
                     ),
                   );
                 },
@@ -356,20 +365,22 @@ class _RideDetailContent extends StatelessWidget {
           // Description
           if (ride.media.markdown.isNotEmpty)
             SliverToBoxAdapter(
-              child: Card(
-                margin: const EdgeInsets.all(16),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Description',
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(ride.media.markdown),
-                    ],
+              child: ContentWidthConstraint(
+                padding: const EdgeInsets.all(16),
+                child: Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Description',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(ride.media.markdown),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -379,7 +390,7 @@ class _RideDetailContent extends StatelessWidget {
         ],
       ),
       bottomNavigationBar: SafeArea(
-        child: Padding(
+        child: ContentWidthConstraint(
           padding: const EdgeInsets.all(16),
           child: FilledButton.icon(
             onPressed: isJoining ? null : onJoin,
@@ -395,36 +406,5 @@ class _RideDetailContent extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  String _formatFullDate(DateTime date) {
-    const days = [
-      'Lundi',
-      'Mardi',
-      'Mercredi',
-      'Jeudi',
-      'Vendredi',
-      'Samedi',
-      'Dimanche'
-    ];
-    const months = [
-      'janvier',
-      'février',
-      'mars',
-      'avril',
-      'mai',
-      'juin',
-      'juillet',
-      'août',
-      'septembre',
-      'octobre',
-      'novembre',
-      'décembre'
-    ];
-    return '${days[date.weekday - 1]} ${date.day} ${months[date.month - 1]}';
-  }
-
-  String _formatTime(DateTime date) {
-    return '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
   }
 }

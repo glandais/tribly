@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../api/generated/export.dart';
+import '../../../../core/adaptive/adaptive.dart';
+import '../../../../core/utils/formatters.dart';
+import '../../../../core/utils/safe_string.dart';
 import '../../data/route_repository.dart';
 
 final routeDetailProvider = FutureProvider.family<RouteDetailDto,
@@ -75,6 +78,7 @@ class _RouteDetailContent extends StatelessWidget {
                   ? Image.network(
                       route.media.assets.thumbnail!.url,
                       fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
                     )
                   : Container(
                       decoration: BoxDecoration(
@@ -100,7 +104,7 @@ class _RouteDetailContent extends StatelessWidget {
 
           // Stats
           SliverToBoxAdapter(
-            child: Padding(
+            child: ContentWidthConstraint(
               padding: const EdgeInsets.all(16),
               child: Card(
                 child: Padding(
@@ -133,16 +137,16 @@ class _RouteDetailContent extends StatelessWidget {
 
           // Surface type
           SliverToBoxAdapter(
-            child: Padding(
+            child: ContentWidthConstraint(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Card(
                 child: ListTile(
                   leading: Icon(
-                    _getSurfaceIcon(route.surfaceType),
+                    AppFormatters.surfaceIcon(route.surfaceType),
                     color: Theme.of(context).colorScheme.primary,
                   ),
                   title: const Text('Type de surface'),
-                  subtitle: Text(_getSurfaceName(route.surfaceType)),
+                  subtitle: Text(AppFormatters.surfaceName(route.surfaceType)),
                 ),
               ),
             ),
@@ -151,7 +155,7 @@ class _RouteDetailContent extends StatelessWidget {
           // Description
           if (route.media.markdown.isNotEmpty)
             SliverToBoxAdapter(
-              child: Padding(
+              child: ContentWidthConstraint(
                 padding: const EdgeInsets.all(16),
                 child: Card(
                   child: Padding(
@@ -174,7 +178,7 @@ class _RouteDetailContent extends StatelessWidget {
 
           // Created by
           SliverToBoxAdapter(
-            child: Padding(
+            child: ContentWidthConstraint(
               padding: const EdgeInsets.all(16),
               child: Row(
                 children: [
@@ -185,9 +189,7 @@ class _RouteDetailContent extends StatelessWidget {
                         : null,
                     child: route.createdBy.avatarUrl == null
                         ? Text(
-                            route.createdBy.displayName
-                                .substring(0, 1)
-                                .toUpperCase(),
+                            route.createdBy.displayName.safeFirstUpper(),
                             style: const TextStyle(fontSize: 12),
                           )
                         : null,
@@ -204,7 +206,7 @@ class _RouteDetailContent extends StatelessWidget {
 
           // Map placeholder
           SliverToBoxAdapter(
-            child: Padding(
+            child: ContentWidthConstraint(
               padding: const EdgeInsets.all(16),
               child: Card(
                 child: Container(
@@ -241,7 +243,7 @@ class _RouteDetailContent extends StatelessWidget {
         ],
       ),
       bottomNavigationBar: SafeArea(
-        child: Padding(
+        child: ContentWidthConstraint(
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
@@ -269,32 +271,6 @@ class _RouteDetailContent extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  IconData _getSurfaceIcon(String surface) {
-    switch (surface.toUpperCase()) {
-      case 'ROAD':
-        return Icons.add_road;
-      case 'GRAVEL':
-        return Icons.terrain;
-      case 'MTB':
-        return Icons.landscape;
-      default:
-        return Icons.help_outline;
-    }
-  }
-
-  String _getSurfaceName(String surface) {
-    switch (surface.toUpperCase()) {
-      case 'ROAD':
-        return 'Route';
-      case 'GRAVEL':
-        return 'Gravel';
-      case 'MTB':
-        return 'VTT';
-      default:
-        return surface;
-    }
   }
 }
 

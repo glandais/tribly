@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../api/generated/export.dart';
 import '../../../../config/paths.dart';
+import '../../../../core/adaptive/adaptive.dart';
 import '../../data/route_repository.dart';
 
 final teamRoutesPageProvider =
@@ -49,11 +50,12 @@ class RoutesPage extends ConsumerWidget {
 
           return RefreshIndicator(
             onRefresh: () => ref.refresh(teamRoutesPageProvider(teamSlug).future),
-            child: ListView.builder(
+            child: ResponsiveGrid(
               padding: const EdgeInsets.all(16),
               itemCount: routes.length,
+              childAspectRatio: 1.2,
               itemBuilder: (context, index) {
-                return _RouteListItem(route: routes[index]);
+                return _RouteGridItem(route: routes[index]);
               },
             ),
           );
@@ -80,75 +82,78 @@ class RoutesPage extends ConsumerWidget {
   }
 }
 
-class _RouteListItem extends StatelessWidget {
+/// Route grid item - works both for list and grid views.
+class _RouteGridItem extends StatelessWidget {
   final RouteDto route;
 
-  const _RouteListItem({required this.route});
+  const _RouteGridItem({required this.route});
 
   @override
   Widget build(BuildContext context) {
     return Card(
-      margin: const EdgeInsets.only(bottom: 12),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () => context.push(Paths.route(route.team.slug, route.slug)),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Thumbnail
-            Container(
-              height: 120,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primaryContainer,
-                image: route.media.assets.thumbnail?.url != null
-                    ? DecorationImage(
-                        image: NetworkImage(route.media.assets.thumbnail!.url),
-                        fit: BoxFit.cover,
+            // Thumbnail - use Expanded for grid, fixed height for list
+            Expanded(
+              flex: 3,
+              child: Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                  image: route.media.assets.thumbnail?.url != null
+                      ? DecorationImage(
+                          image: NetworkImage(route.media.assets.thumbnail!.url),
+                          fit: BoxFit.cover,
+                        )
+                      : null,
+                ),
+                child: route.media.assets.thumbnail?.url == null
+                    ? Center(
+                        child: Icon(
+                          Icons.route,
+                          size: 48,
+                          color: Theme.of(context).colorScheme.onPrimaryContainer,
+                        ),
                       )
                     : null,
               ),
-              child: route.media.assets.thumbnail?.url == null
-                  ? Center(
-                      child: Icon(
-                        Icons.route,
-                        size: 48,
-                        color: Theme.of(context).colorScheme.onPrimaryContainer,
-                      ),
-                    )
-                  : null,
             ),
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    route.name,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
+            Expanded(
+              flex: 2,
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      route.name,
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    Wrap(
+                      spacing: 8,
+                      children: [
+                        _StatChip(
+                          icon: Icons.straighten,
+                          value: '${(route.distance / 1000).toStringAsFixed(1)} km',
                         ),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      _StatChip(
-                        icon: Icons.straighten,
-                        value: '${(route.distance / 1000).toStringAsFixed(1)} km',
-                      ),
-                      const SizedBox(width: 12),
-                      _StatChip(
-                        icon: Icons.trending_up,
-                        value: '${route.elevationGain.toInt()} m',
-                      ),
-                      const SizedBox(width: 12),
-                      _StatChip(
-                        icon: Icons.trending_down,
-                        value: '${route.elevationLoss.toInt()} m',
-                      ),
-                    ],
-                  ),
-                ],
+                        _StatChip(
+                          icon: Icons.trending_up,
+                          value: '${route.elevationGain.toInt()} m',
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ],

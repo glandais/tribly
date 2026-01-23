@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../api/generated/export.dart';
 import '../../../../config/paths.dart';
+import '../../../../core/adaptive/adaptive.dart';
+import '../../../../core/utils/formatters.dart';
 import '../../data/calendar_repository.dart';
 
 final calendarEventsProvider = FutureProvider.family<List<CalendarEventDto>,
@@ -39,20 +41,22 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
       body: Column(
         children: [
           // Month selector
-          _MonthSelector(
-            selectedMonth: _selectedMonth,
-            onPreviousMonth: () {
-              setState(() {
-                _selectedMonth =
-                    DateTime(_selectedMonth.year, _selectedMonth.month - 1, 1);
-              });
-            },
-            onNextMonth: () {
-              setState(() {
-                _selectedMonth =
-                    DateTime(_selectedMonth.year, _selectedMonth.month + 1, 1);
-              });
-            },
+          ContentWidthConstraint(
+            child: _MonthSelector(
+              selectedMonth: _selectedMonth,
+              onPreviousMonth: () {
+                setState(() {
+                  _selectedMonth =
+                      DateTime(_selectedMonth.year, _selectedMonth.month - 1, 1);
+                });
+              },
+              onNextMonth: () {
+                setState(() {
+                  _selectedMonth =
+                      DateTime(_selectedMonth.year, _selectedMonth.month + 1, 1);
+                });
+              },
+            ),
           ),
 
           // Events list
@@ -101,7 +105,9 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
                     itemBuilder: (context, index) {
                       final date = sortedDates[index];
                       final dayEvents = groupedEvents[date]!;
-                      return _DaySection(date: date, events: dayEvents);
+                      return ContentWidthConstraint(
+                        child: _DaySection(date: date, events: dayEvents),
+                      );
                     },
                   ),
                 );
@@ -144,21 +150,6 @@ class _MonthSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const months = [
-      'Janvier',
-      'Février',
-      'Mars',
-      'Avril',
-      'Mai',
-      'Juin',
-      'Juillet',
-      'Août',
-      'Septembre',
-      'Octobre',
-      'Novembre',
-      'Décembre'
-    ];
-
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
@@ -169,7 +160,7 @@ class _MonthSelector extends StatelessWidget {
             icon: const Icon(Icons.chevron_left),
           ),
           Text(
-            '${months[selectedMonth.month - 1]} ${selectedMonth.year}',
+            AppFormatters.formatMonthYear(selectedMonth),
             style: Theme.of(context).textTheme.titleLarge,
           ),
           IconButton(
@@ -190,7 +181,6 @@ class _DaySection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const days = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
     final isToday = _isToday(date);
 
     return Column(
@@ -213,7 +203,7 @@ class _DaySection extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      days[date.weekday - 1],
+                      AppFormatters.dayAbbrev(date.weekday),
                       style: TextStyle(
                         fontSize: 10,
                         color: isToday
@@ -236,13 +226,13 @@ class _DaySection extends StatelessWidget {
               ),
               const SizedBox(width: 12),
               Text(
-                isToday ? "Aujourd'hui" : _formatDate(date),
+                isToday ? "Aujourd'hui" : AppFormatters.formatDayMonth(date),
                 style: Theme.of(context).textTheme.titleSmall,
               ),
             ],
           ),
         ),
-        ...events.map((event) => _EventCard(event: event)),
+        ...events.map((event) => _EventCard(key: ValueKey(event.entitySlug), event: event)),
         const SizedBox(height: 8),
       ],
     );
@@ -254,30 +244,12 @@ class _DaySection extends StatelessWidget {
         date.month == now.month &&
         date.day == now.day;
   }
-
-  String _formatDate(DateTime date) {
-    const months = [
-      'janvier',
-      'février',
-      'mars',
-      'avril',
-      'mai',
-      'juin',
-      'juillet',
-      'août',
-      'septembre',
-      'octobre',
-      'novembre',
-      'décembre'
-    ];
-    return '${date.day} ${months[date.month - 1]}';
-  }
 }
 
 class _EventCard extends StatelessWidget {
   final CalendarEventDto event;
 
-  const _EventCard({required this.event});
+  const _EventCard({super.key, required this.event});
 
   DateTime get _startDate => DateTime.parse(event.start);
 
@@ -328,7 +300,7 @@ class _EventCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      '${event.teamName} • ${_formatTime(_startDate)}',
+                      '${event.teamName} • ${AppFormatters.formatTime(_startDate)}',
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                   ],
@@ -340,9 +312,5 @@ class _EventCard extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  String _formatTime(DateTime date) {
-    return '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
   }
 }

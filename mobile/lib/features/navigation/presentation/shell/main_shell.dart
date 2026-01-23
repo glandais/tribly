@@ -2,7 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-/// Main shell widget providing bottom navigation
+import '../../../../core/adaptive/adaptive.dart';
+
+/// Main shell widget providing adaptive navigation.
+///
+/// - Compact screens: Bottom NavigationBar
+/// - Medium screens: Side NavigationRail
+/// - Expanded screens: Extended NavigationRail
 class MainShell extends ConsumerStatefulWidget {
   final Widget child;
   final GoRouterState state;
@@ -20,13 +26,6 @@ class MainShell extends ConsumerStatefulWidget {
 class _MainShellState extends ConsumerState<MainShell> {
   int _currentIndex = 0;
 
-  static const _tabs = [
-    '/home',
-    '/teams',
-    '/calendar',
-    '/profile',
-  ];
-
   @override
   void didUpdateWidget(covariant MainShell oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -41,55 +40,25 @@ class _MainShellState extends ConsumerState<MainShell> {
 
   void _updateIndex() {
     final location = widget.state.matchedLocation;
-    int newIndex = 0;
-
-    if (location.startsWith('/teams')) {
-      newIndex = 1;
-    } else if (location.startsWith('/calendar')) {
-      newIndex = 2;
-    } else if (location.startsWith('/profile')) {
-      newIndex = 3;
-    }
+    final newIndex = getDestinationIndex(location);
 
     if (newIndex != _currentIndex) {
       setState(() => _currentIndex = newIndex);
     }
   }
 
+  void _onDestinationSelected(int index) {
+    if (index != _currentIndex) {
+      context.go(kAppDestinations[index].path);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: widget.child,
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _currentIndex,
-        onDestinationSelected: (index) {
-          if (index != _currentIndex) {
-            context.go(_tabs[index]);
-          }
-        },
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home),
-            label: 'Accueil',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.group_outlined),
-            selectedIcon: Icon(Icons.group),
-            label: 'Équipes',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.calendar_today_outlined),
-            selectedIcon: Icon(Icons.calendar_today),
-            label: 'Calendrier',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.person_outlined),
-            selectedIcon: Icon(Icons.person),
-            label: 'Profil',
-          ),
-        ],
-      ),
+    return AdaptiveScaffold(
+      selectedIndex: _currentIndex,
+      onDestinationSelected: _onDestinationSelected,
+      child: widget.child,
     );
   }
 }

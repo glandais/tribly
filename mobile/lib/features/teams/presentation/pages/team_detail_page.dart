@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../api/generated/export.dart';
 import '../../../../config/paths.dart';
+import '../../../../core/adaptive/adaptive.dart';
+import '../../../../core/utils/safe_string.dart';
 import '../../../rides/data/ride_repository.dart';
 import '../../../routes/data/route_repository.dart';
 import '../../data/team_repository.dart';
@@ -104,11 +106,12 @@ class _TeamDetailContent extends ConsumerWidget {
                         ? CircleAvatar(
                             radius: 40,
                             backgroundImage: NetworkImage(team.about.assets.logo!.url),
+                            onBackgroundImageError: (exception, stackTrace) {},
                           )
                         : CircleAvatar(
                             radius: 40,
                             child: Text(
-                              team.name.substring(0, 1).toUpperCase(),
+                              team.name.safeFirstUpper(),
                               style: const TextStyle(fontSize: 32),
                             ),
                           ),
@@ -119,7 +122,7 @@ class _TeamDetailContent extends ConsumerWidget {
 
             // Team stats
             SliverToBoxAdapter(
-              child: Padding(
+              child: ContentWidthConstraint(
                 padding: const EdgeInsets.all(16),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -171,7 +174,7 @@ class _TeamDetailContent extends ConsumerWidget {
             // About section
             if (team.about.markdown.isNotEmpty)
               SliverToBoxAdapter(
-                child: Padding(
+                child: ContentWidthConstraint(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Card(
                     child: Padding(
@@ -194,7 +197,7 @@ class _TeamDetailContent extends ConsumerWidget {
 
             // Upcoming rides section
             SliverToBoxAdapter(
-              child: Padding(
+              child: ContentWidthConstraint(
                 padding: const EdgeInsets.all(16),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -217,10 +220,10 @@ class _TeamDetailContent extends ConsumerWidget {
             ridesAsync.when(
               data: (rides) {
                 if (rides.isEmpty) {
-                  return const SliverToBoxAdapter(
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 16),
-                      child: Card(
+                  return SliverToBoxAdapter(
+                    child: ContentWidthConstraint(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: const Card(
                         child: Padding(
                           padding: EdgeInsets.all(24),
                           child: Center(
@@ -237,7 +240,7 @@ class _TeamDetailContent extends ConsumerWidget {
                       if (index >= rides.length || index >= 3) {
                         return null;
                       }
-                      return Padding(
+                      return ContentWidthConstraint(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 4,
@@ -253,7 +256,7 @@ class _TeamDetailContent extends ConsumerWidget {
                 child: Center(child: CircularProgressIndicator()),
               ),
               error: (_, __) => const SliverToBoxAdapter(
-                child: Padding(
+                child: ContentWidthConstraint(
                   padding: EdgeInsets.all(16),
                   child: Text('Erreur de chargement'),
                 ),
@@ -262,7 +265,7 @@ class _TeamDetailContent extends ConsumerWidget {
 
             // Routes section
             SliverToBoxAdapter(
-              child: Padding(
+              child: ContentWidthConstraint(
                 padding: const EdgeInsets.all(16),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -283,10 +286,10 @@ class _TeamDetailContent extends ConsumerWidget {
             routesAsync.when(
               data: (routes) {
                 if (routes.isEmpty) {
-                  return const SliverToBoxAdapter(
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 16),
-                      child: Card(
+                  return SliverToBoxAdapter(
+                    child: ContentWidthConstraint(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: const Card(
                         child: Padding(
                           padding: EdgeInsets.all(24),
                           child: Center(
@@ -298,24 +301,14 @@ class _TeamDetailContent extends ConsumerWidget {
                   );
                 }
                 return SliverToBoxAdapter(
-                  child: SizedBox(
-                    height: 160,
-                    child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      itemCount: routes.length > 5 ? 5 : routes.length,
-                      itemBuilder: (context, index) {
-                        return _RouteCard(route: routes[index]);
-                      },
-                    ),
-                  ),
+                  child: _AdaptiveRouteCards(routes: routes),
                 );
               },
               loading: () => const SliverToBoxAdapter(
                 child: Center(child: CircularProgressIndicator()),
               ),
               error: (_, __) => const SliverToBoxAdapter(
-                child: Padding(
+                child: ContentWidthConstraint(
                   padding: EdgeInsets.all(16),
                   child: Text('Erreur de chargement'),
                 ),
@@ -528,6 +521,51 @@ class _RouteCard extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Adaptive route cards that use horizontal scroll on compact and grid on larger screens.
+class _AdaptiveRouteCards extends StatelessWidget {
+  final List<RouteDto> routes;
+
+  const _AdaptiveRouteCards({required this.routes});
+
+  @override
+  Widget build(BuildContext context) {
+    final width = MediaQuery.sizeOf(context).width;
+    final sizeClass = Breakpoints.getWindowSizeClass(width);
+    final displayRoutes = routes.length > 5 ? routes.sublist(0, 5) : routes;
+
+    // On compact screens, use horizontal scroll
+    if (sizeClass == WindowSizeClass.compact) {
+      return SizedBox(
+        height: 160,
+        child: ListView.builder(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          itemCount: displayRoutes.length,
+          itemBuilder: (context, index) => _RouteCard(route: displayRoutes[index]),
+        ),
+      );
+    }
+
+    // On larger screens, use wrap/grid layout
+    final columns = Breakpoints.gridColumns(sizeClass);
+    return ContentWidthConstraint(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: GridView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: columns,
+          crossAxisSpacing: 12,
+          mainAxisSpacing: 12,
+          childAspectRatio: 1.3,
+        ),
+        itemCount: displayRoutes.length,
+        itemBuilder: (context, index) => _RouteCard(route: displayRoutes[index]),
       ),
     );
   }

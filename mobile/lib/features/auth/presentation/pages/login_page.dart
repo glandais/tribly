@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -31,6 +33,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   String? _otpEmail;
   bool _canResendOtp = false;
   int _resendCountdown = 0;
+  Timer? _countdownTimer;
 
   @override
   void initState() {
@@ -48,6 +51,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
   @override
   void dispose() {
+    _countdownTimer?.cancel();
     _emailController.dispose();
     _displayNameController.dispose();
     _otpController.dispose();
@@ -55,24 +59,19 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   }
 
   void _startResendCountdown() {
+    _countdownTimer?.cancel();
     setState(() {
       _resendCountdown = 30;
       _canResendOtp = false;
     });
-    _tickCountdown();
-  }
-
-  void _tickCountdown() {
-    if (_resendCountdown > 0) {
-      Future.delayed(const Duration(seconds: 1), () {
-        if (mounted && _resendCountdown > 0) {
-          setState(() => _resendCountdown--);
-          _tickCountdown();
-        } else if (mounted) {
-          setState(() => _canResendOtp = true);
-        }
-      });
-    }
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (_resendCountdown > 0) {
+        setState(() => _resendCountdown--);
+      } else {
+        _countdownTimer?.cancel();
+        setState(() => _canResendOtp = true);
+      }
+    });
   }
 
   Future<void> _handlePasskeyLogin() async {
@@ -242,9 +241,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             : null,
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Column(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 400),
+              child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // Logo/Title
@@ -275,18 +277,18 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               // Success message (for registration)
               if (_successMessage != null) ...[
                 Card(
-                  color: Colors.green.shade50,
+                  color: theme.colorScheme.primaryContainer,
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: Column(
                       children: [
-                        const Icon(Icons.check_circle,
-                            color: Colors.green, size: 48),
+                        Icon(Icons.check_circle,
+                            color: theme.colorScheme.primary, size: 48),
                         const SizedBox(height: 16),
                         Text(
                           _successMessage!,
                           textAlign: TextAlign.center,
-                          style: const TextStyle(color: Colors.green),
+                          style: TextStyle(color: theme.colorScheme.onPrimaryContainer),
                         ),
                         const SizedBox(height: 16),
                         TextButton(
@@ -307,17 +309,17 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 // Error message
                 if (_errorMessage != null) ...[
                   Card(
-                    color: Colors.red.shade50,
+                    color: theme.colorScheme.errorContainer,
                     child: Padding(
                       padding: const EdgeInsets.all(16),
                       child: Row(
                         children: [
-                          const Icon(Icons.error, color: Colors.red),
+                          Icon(Icons.error, color: theme.colorScheme.error),
                           const SizedBox(width: 16),
                           Expanded(
                             child: Text(
                               _errorMessage!,
-                              style: const TextStyle(color: Colors.red),
+                              style: TextStyle(color: theme.colorScheme.onErrorContainer),
                             ),
                           ),
                           IconButton(
@@ -342,6 +344,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               ],
             ],
           ),
+        ),
+        ),
         ),
       ),
     );

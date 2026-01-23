@@ -4,6 +4,9 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../api/generated/export.dart';
 import '../../../../config/paths.dart';
+import '../../../../core/adaptive/adaptive.dart';
+import '../../../../core/utils/formatters.dart';
+import '../../../../core/utils/safe_string.dart';
 import '../../../auth/providers/auth_provider.dart';
 import '../../../auth/services/passkey_service.dart';
 import '../../../calendar/data/calendar_repository.dart';
@@ -48,7 +51,7 @@ class HomePage extends ConsumerWidget {
               pinned: true,
               flexibleSpace: FlexibleSpaceBar(
                 title: Text(
-                  'Bonjour, ${authState.user?.displayName.split(' ').first ?? 'Cycliste'}!',
+                  'Bonjour, ${authState.user?.displayName.split(' ').firstOrNull ?? 'Cycliste'}!',
                   style: const TextStyle(fontSize: 18),
                 ),
                 background: Container(
@@ -69,7 +72,7 @@ class HomePage extends ConsumerWidget {
             // Passkey prompt if not configured
             if (!authState.hasPasskeys)
               SliverToBoxAdapter(
-                child: Padding(
+                child: ContentWidthConstraint(
                   padding: const EdgeInsets.all(16),
                   child: Card(
                     color: theme.colorScheme.primaryContainer,
@@ -114,7 +117,7 @@ class HomePage extends ConsumerWidget {
 
             // Upcoming events section
             SliverToBoxAdapter(
-              child: Padding(
+              child: ContentWidthConstraint(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -138,7 +141,7 @@ class HomePage extends ConsumerWidget {
               data: (events) {
                 if (events.isEmpty) {
                   return SliverToBoxAdapter(
-                    child: Padding(
+                    child: ContentWidthConstraint(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: Card(
                         child: Padding(
@@ -165,12 +168,12 @@ class HomePage extends ConsumerWidget {
                     (context, index) {
                       if (index >= events.length || index >= 3) return null;
                       final event = events[index];
-                      return Padding(
+                      return ContentWidthConstraint(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 4,
                         ),
-                        child: _EventCard(event: event),
+                        child: _EventCard(key: ValueKey(event.entitySlug), event: event),
                       );
                     },
                     childCount: events.length > 3 ? 3 : events.length,
@@ -186,7 +189,7 @@ class HomePage extends ConsumerWidget {
                 ),
               ),
               error: (_, __) => SliverToBoxAdapter(
-                child: Padding(
+                child: ContentWidthConstraint(
                   padding: const EdgeInsets.all(16),
                   child: Card(
                     child: Padding(
@@ -210,7 +213,7 @@ class HomePage extends ConsumerWidget {
 
             // My teams section
             SliverToBoxAdapter(
-              child: Padding(
+              child: ContentWidthConstraint(
                 padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -234,7 +237,7 @@ class HomePage extends ConsumerWidget {
               data: (teamList) {
                 if (teamList.isEmpty) {
                   return SliverToBoxAdapter(
-                    child: Padding(
+                    child: ContentWidthConstraint(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: Card(
                         child: Padding(
@@ -263,18 +266,7 @@ class HomePage extends ConsumerWidget {
                 }
 
                 return SliverToBoxAdapter(
-                  child: SizedBox(
-                    height: 100,
-                    child: ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      itemCount: teamList.length > 5 ? 5 : teamList.length,
-                      itemBuilder: (context, index) {
-                        final team = teamList[index];
-                        return _TeamChip(team: team);
-                      },
-                    ),
-                  ),
+                  child: _AdaptiveTeamChips(teams: teamList),
                 );
               },
               loading: () => const SliverToBoxAdapter(
@@ -286,7 +278,7 @@ class HomePage extends ConsumerWidget {
                 ),
               ),
               error: (_, __) => const SliverToBoxAdapter(
-                child: Padding(
+                child: ContentWidthConstraint(
                   padding: EdgeInsets.all(16),
                   child: Text('Erreur de chargement'),
                 ),
@@ -323,7 +315,7 @@ class HomePage extends ConsumerWidget {
 class _EventCard extends StatelessWidget {
   final CalendarEventDto event;
 
-  const _EventCard({required this.event});
+  const _EventCard({super.key, required this.event});
 
   DateTime get _startDate => DateTime.parse(event.start);
 
@@ -357,7 +349,7 @@ class _EventCard extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      _getDayName(startDate.weekday),
+                      AppFormatters.dayAbbrev(startDate.weekday),
                       style: TextStyle(
                         fontSize: 10,
                         color: theme.colorScheme.onPrimaryContainer,
@@ -390,7 +382,7 @@ class _EventCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      '${event.teamName} • ${_formatTime(startDate)}',
+                      '${event.teamName} • ${AppFormatters.formatTime(startDate)}',
                       style: theme.textTheme.bodySmall,
                     ),
                   ],
@@ -407,20 +399,12 @@ class _EventCard extends StatelessWidget {
     );
   }
 
-  String _getDayName(int weekday) {
-    const days = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
-    return days[weekday - 1];
-  }
-
-  String _formatTime(DateTime date) {
-    return '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
-  }
 }
 
 class _TeamChip extends StatelessWidget {
   final TeamDetailDto team;
 
-  const _TeamChip({required this.team});
+  const _TeamChip({super.key, required this.team});
 
   String? get _logoUrl => team.about.assets.logo?.url;
 
@@ -444,7 +428,7 @@ class _TeamChip extends StatelessWidget {
                     _logoUrl != null ? NetworkImage(_logoUrl!) : null,
                 child: _logoUrl == null
                     ? Text(
-                        team.name.substring(0, 1).toUpperCase(),
+                        team.name.safeFirstUpper(),
                         style: const TextStyle(fontSize: 16),
                       )
                     : null,
@@ -463,6 +447,43 @@ class _TeamChip extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Adaptive team chips that wrap on larger screens instead of horizontal scroll.
+class _AdaptiveTeamChips extends StatelessWidget {
+  final List<TeamDetailDto> teams;
+
+  const _AdaptiveTeamChips({required this.teams});
+
+  @override
+  Widget build(BuildContext context) {
+    final width = MediaQuery.sizeOf(context).width;
+    final sizeClass = Breakpoints.getWindowSizeClass(width);
+    final displayTeams = teams.length > 5 ? teams.sublist(0, 5) : teams;
+
+    // On compact screens, use horizontal scroll
+    if (sizeClass == WindowSizeClass.compact) {
+      return SizedBox(
+        height: 100,
+        child: ListView.builder(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          itemCount: displayTeams.length,
+          itemBuilder: (context, index) => _TeamChip(key: ValueKey(displayTeams[index].slug), team: displayTeams[index]),
+        ),
+      );
+    }
+
+    // On larger screens, use wrap layout
+    return ContentWidthConstraint(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Wrap(
+        spacing: 12,
+        runSpacing: 12,
+        children: displayTeams.map((team) => _TeamChip(key: ValueKey(team.slug), team: team)).toList(),
       ),
     );
   }
