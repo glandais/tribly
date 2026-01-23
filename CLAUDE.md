@@ -1,5 +1,7 @@
 # CLAUDE.md
 
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
 Tribly: multi-tenant cycling team platform (rides, routes with GPX/maps, posts). Contract-first API development.
 
 ## Tech Stack
@@ -19,23 +21,37 @@ Tribly: multi-tenant cycling team platform (rides, routes with GPX/maps, posts).
 ```bash
 # Backend (backend/)
 mvn quarkus:dev                    # Dev mode (requires docker-compose up)
-mvn test                           # Tests
+mvn test                           # All tests
+mvn test -Dtest=RideResourceTest   # Single test class
+mvn test -Dtest="RideResourceTest#testCreateRide"  # Single test method
+mvn spotless:apply                 # Format code (Google Java Format)
+mvn checkstyle:check               # Lint check
 
 # Frontend (frontend/)
 pnpm dev                           # Dev server
 pnpm build                         # Type check + build
 pnpm generate-api                  # Generate API client from OpenAPI
+pnpm lint                          # ESLint
+pnpm format                        # Prettier format
+pnpm test                          # Run tests
+pnpm i18n:lint                     # Validate i18n keys
 
 # Mobile (mobile/)
 flutter pub get                    # Install dependencies
 flutter run                        # Run on connected device/emulator
 flutter test                       # Run tests
+flutter analyze                    # Static analysis
 dart run build_runner build --delete-conflicting-outputs  # Code generation
 
 # Karoo Extension (karoo/)
 ./gradlew assembleDebug            # Build debug APK
 ./gradlew installDebug             # Install on connected Karoo device
-./gradlew assembleRelease          # Build release APK (requires signing)
+adb install -r app/build/outputs/apk/debug/app-debug.apk  # ADB install
+
+# Garmin Connect IQ App (garmin-app/)
+make build DEVICE=edge1040         # Build for specific device
+make build-all                     # Build for all devices
+make simulator-docker && make run-docker DEVICE=edge1040  # Run in simulator
 
 # Infrastructure
 docker compose up -d               # PostgreSQL + imgproxy + brouter
@@ -109,6 +125,14 @@ karoo/app/src/main/kotlin/com/tribly/karoo/
 │   └── Models.kt           # API data classes
 └── ui/theme/
     └── Theme.kt          # Dark theme for outdoor visibility
+
+garmin-app/source/
+├── TriblyApp.mc          # Main app entry, Device Code Flow
+├── AuthManager.mc        # Token storage (Toybox.Storage)
+├── ApiClient.mc          # HTTP client, token refresh
+├── LoginView.mc          # Device code display
+├── TriblyView.mc         # Route list (scrollable)
+└── RouteDetailView.mc    # Route details + FIT download
 ```
 
 ## Contract-First Workflow
@@ -169,7 +193,13 @@ karoo/app/src/main/kotlin/com/tribly/karoo/
 - Only works on new Karoo (not Karoo 2) due to ktor-client-karoo limitation
 - Dark theme required for outdoor visibility on Karoo display
 - Device code flow for auth (no keyboard on device)
-- ADB install: `adb install -r karoo/app/build/outputs/apk/debug/app-debug.apk`
+
+**Garmin Connect IQ App**:
+- Language: Monkey C (Connect IQ SDK 3.3.0+)
+- Requires Docker on Ubuntu 24.04+ (webkit2gtk-4.0 incompatibility)
+- Device code flow for auth (RFC 8628), minimum 5s poll interval
+- Supported: edge530, edge540, edge830, edge840, edge1030, edge1030plus, edge1040, edge1050, edgeexplore2
+- See `garmin-app/BUILD.md` for SDK setup
 
 ## Dev URLs
 

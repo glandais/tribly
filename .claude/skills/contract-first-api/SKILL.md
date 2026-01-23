@@ -1,0 +1,65 @@
+---
+name: contract-first-api
+description: Generate OpenAPI contract from backend and regenerate frontend/mobile API clients
+disable-model-invocation: true
+---
+
+# Contract-First API Workflow
+
+Run this skill after modifying backend REST resources or DTOs to sync the OpenAPI contract and regenerate clients.
+
+## Steps
+
+### 1. Generate OpenAPI Contract
+
+```bash
+cd backend && mvn package -DskipTests
+```
+
+This generates:
+- `contracts/openapi.yaml`
+- `contracts/openapi.json`
+
+### 2. Regenerate Frontend Client
+
+```bash
+cd frontend && pnpm generate-api
+```
+
+This runs Orval to generate:
+- `src/api/dto/` - TypeScript DTOs
+- `src/api/endpoints/` - API functions
+- `src/api/zod/` - Zod validation schemas
+
+Then verify no TypeScript errors:
+
+```bash
+cd frontend && pnpm build
+```
+
+### 3. Regenerate Mobile Client (if mobile app is being developed)
+
+```bash
+cd mobile && dart run openapi_retrofit_generator && dart run build_runner build --delete-conflicting-outputs
+```
+
+This generates:
+- `lib/api/generated/clients/` - Retrofit API clients
+- `lib/api/generated/models/` - Freezed DTOs
+
+Then verify no Dart errors:
+
+```bash
+cd mobile && flutter analyze
+```
+
+## After Running
+
+1. Report any errors from the generation or verification steps
+2. If there are TypeScript or Dart errors, help fix them
+
+## Common Issues
+
+- **Empty schemas in OpenAPI**: Missing `@Schema(implementation = ...)` in `@APIResponse` annotations
+- **Orval errors**: Usually caused by invalid OpenAPI spec - check backend annotations
+- **Mobile build_runner conflicts**: Use `--delete-conflicting-outputs` flag (already included above)
