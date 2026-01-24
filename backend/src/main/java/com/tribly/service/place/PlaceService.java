@@ -2,13 +2,13 @@ package com.tribly.service.place;
 
 import com.tribly.common.TsidUtils;
 import com.tribly.domain.place.Place;
+import com.tribly.dto.common.TriblyPage;
 import com.tribly.dto.places.request.PlaceRequest;
 import com.tribly.dto.places.response.PlaceDetailDto;
 import com.tribly.dto.places.response.PlaceListResponse;
 import com.tribly.enums.ActionType;
 import com.tribly.enums.EntityType;
 import com.tribly.infrastructure.exception.NotFoundException;
-import com.tribly.repository.common.TriblyPage;
 import com.tribly.repository.place.PlaceRepository;
 import com.tribly.service.security.TriblyQueryContext;
 import com.tribly.service.security.annotation.CheckAccess;

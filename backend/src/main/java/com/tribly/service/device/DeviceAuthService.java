@@ -261,6 +261,21 @@ public class DeviceAuthService {
     return data;
   }
 
+  /**
+   * Check if a user code exists and get its authorization status.
+   *
+   * @param userCode The user code to verify
+   * @return Optional containing the authorization status if code is valid, empty if not found
+   */
+  @Public
+  public java.util.Optional<Boolean> isUserCodeAuthorized(String userCode) {
+    DeviceCodeData data = getDeviceCodeByUserCode(userCode);
+    if (data == null) {
+      return java.util.Optional.empty();
+    }
+    return java.util.Optional.of(data.authorized());
+  }
+
   private DeviceTokenResponse createTokenResponse(User user, String clientId) {
     // Generate tokens
     String accessToken = deviceJwtService.generateAccessToken(user, clientId);

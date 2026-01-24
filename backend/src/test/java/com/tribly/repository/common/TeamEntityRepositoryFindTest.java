@@ -7,6 +7,7 @@ import com.tribly.domain.route.Route;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.team.UserTeam;
 import com.tribly.domain.user.User;
+import com.tribly.dto.common.TriblyPage;
 import com.tribly.enums.Status;
 import com.tribly.enums.TeamRole;
 import com.tribly.enums.Visibility;

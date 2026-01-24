@@ -64,7 +64,7 @@ public class DeviceOAuthResource {
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
   public Response device(
-      @RequestBody(description = "Device auth request (optional client_id)")
+      @RequestBody(description = "Device auth request (optional client_id)") @Valid
           DeviceRequest request) {
 
     String clientId = DEFAULT_CLIENT_ID;
@@ -93,7 +93,7 @@ public class DeviceOAuthResource {
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
   public Response complete(@Valid CompleteRequest request) {
-    Long domainId = domainResolver.getDomain().getId();
+    Long domainId = domainResolver.getDomainId();
     Long userId = TsidUtils.toLong(request.userId());
     deviceAuthService.completeDeviceCodeFlow(request.userCode(), userId, domainId);
     return Response.ok().build();
@@ -175,12 +175,12 @@ public class DeviceOAuthResource {
       return Response.status(Response.Status.NOT_FOUND).entity(ErrorResponse.notFound()).build();
     }
 
-    var codeData = deviceAuthService.getDeviceCodeByUserCode(userCode);
-    if (codeData == null) {
+    var authorizedOpt = deviceAuthService.isUserCodeAuthorized(userCode);
+    if (authorizedOpt.isEmpty()) {
       return Response.status(Response.Status.NOT_FOUND).entity(ErrorResponse.notFound()).build();
     }
 
-    return Response.ok(new VerifyResponse(userCode.toUpperCase(), codeData.authorized())).build();
+    return Response.ok(new VerifyResponse(userCode.toUpperCase(), authorizedOpt.get())).build();
   }
 
   @Schema(description = "Device auth request")

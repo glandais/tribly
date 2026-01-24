@@ -1,4 +1,4 @@
-package com.tribly.repository.common;
+package com.tribly.dto.common;
 
 import java.util.List;
 

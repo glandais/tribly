@@ -17,6 +17,7 @@ import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
 import com.tribly.domain.common.NotNullableDbValue;
 import com.tribly.dto.validation.ValidateSchema;
+import com.tribly.service.security.annotation.Admin;
 import com.tribly.service.security.annotation.CheckAccess;
 import com.tribly.service.security.annotation.Logged;
 import com.tribly.service.security.annotation.Public;
@@ -205,7 +206,8 @@ class ArchitectureTest {
 
           // Check if method or its declaring class has @CheckAccess
           boolean hasCheckAccess =
-              targetMethod.isAnnotatedWith(CheckAccess.class)
+              targetMethod.isAnnotatedWith(Admin.class)
+                  || targetMethod.isAnnotatedWith(CheckAccess.class)
                   || targetMethod.isAnnotatedWith(Logged.class)
                   || targetMethod.isAnnotatedWith(Public.class);
 
@@ -213,7 +215,7 @@ class ArchitectureTest {
             String message =
                 String.format(
                     "Method %s.%s() in API class %s calls service method %s.%s() which is not"
-                        + " annotated with @CheckAccess/@Logged/@Public",
+                        + " annotated with @Admin/@CheckAccess/@Logged/@Public",
                     call.getOriginOwner().getSimpleName(),
                     call.getOrigin().getName(),
                     apiClass.getSimpleName(),

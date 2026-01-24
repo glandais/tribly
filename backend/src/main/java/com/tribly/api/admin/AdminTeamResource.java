@@ -2,8 +2,8 @@ package com.tribly.api.admin;
 
 import com.tribly.dto.admin.AdminTeamDto;
 import com.tribly.dto.admin.AdminTeamListResponse;
+import com.tribly.dto.common.TriblyPage;
 import com.tribly.dto.error.ErrorResponse;
-import com.tribly.repository.common.TriblyPage;
 import com.tribly.service.admin.AdminTeamService;
 import com.tribly.service.security.annotation.Admin;
 import jakarta.annotation.security.RolesAllowed;

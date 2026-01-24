@@ -1,6 +1,7 @@
 package com.tribly.service.common;
 
 import com.tribly.domain.common.Publication;
+import com.tribly.dto.common.TriblyPage;
 import com.tribly.dto.publications.response.PublicationDto;
 import com.tribly.dto.publications.response.PublicationListResponse;
 import com.tribly.dto.publications.response.PublicationType;
@@ -8,7 +9,6 @@ import com.tribly.enums.ActionType;
 import com.tribly.enums.EntityType;
 import com.tribly.repository.common.AllPublicationRepository;
 import com.tribly.repository.common.PublicationQuery;
-import com.tribly.repository.common.TriblyPage;
 import com.tribly.service.asset.AssetService;
 import com.tribly.service.security.TriblyQueryContext;
 import com.tribly.service.security.annotation.CheckAccess;

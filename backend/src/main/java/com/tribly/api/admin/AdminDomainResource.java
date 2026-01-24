@@ -8,11 +8,8 @@ import com.tribly.dto.admin.CreateDomainRequest;
 import com.tribly.dto.admin.CreateGpsCredentialRequest;
 import com.tribly.dto.admin.UpdateDomainRequest;
 import com.tribly.dto.admin.UpdateGpsCredentialRequest;
+import com.tribly.dto.common.TriblyPage;
 import com.tribly.dto.error.ErrorResponse;
-import com.tribly.repository.common.TriblyPage;
-import com.tribly.repository.platform.DomainRepository;
-import com.tribly.repository.team.TeamRepository;
-import com.tribly.repository.user.UserRepository;
 import com.tribly.service.admin.AdminDomainGpsCredentialService;
 import com.tribly.service.admin.AdminDomainService;
 import com.tribly.service.security.annotation.Admin;
@@ -42,12 +39,6 @@ public class AdminDomainResource {
 
   @Inject AdminDomainGpsCredentialService gpsCredentialService;
 
-  @Inject DomainRepository domainRepository;
-
-  @Inject TeamRepository teamRepository;
-
-  @Inject UserRepository userRepository;
-
   @GET
   @Path("/stats")
   @Admin
@@ -66,10 +57,7 @@ public class AdminDomainResource {
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
   public Response getStats() {
-    long totalDomains = domainRepository.count("deleted = false");
-    long totalTeams = teamRepository.count("deleted = false");
-    long totalUsers = userRepository.count("deleted = false");
-    AdminStatsDto stats = new AdminStatsDto(totalDomains, totalTeams, totalUsers);
+    AdminStatsDto stats = adminDomainService.getStats();
     return Response.ok(stats).build();
   }
 

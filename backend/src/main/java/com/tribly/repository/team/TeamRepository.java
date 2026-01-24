@@ -2,10 +2,10 @@ package com.tribly.repository.team;
 
 import com.tribly.domain.common.SearchClause;
 import com.tribly.domain.team.Team;
+import com.tribly.dto.common.TriblyPage;
 import com.tribly.enums.TeamRole;
 import com.tribly.enums.Visibility;
 import com.tribly.repository.common.BaseRepository;
-import com.tribly.repository.common.TriblyPage;
 import com.tribly.repository.query.OrClause;
 import com.tribly.repository.query.SimpleClause;
 import com.tribly.repository.query.TriblyQuery;

@@ -4,7 +4,8 @@ import com.tribly.common.TsidUtils;
 import com.tribly.common.exception.NotFoundException;
 import com.tribly.domain.platform.Domain;
 import com.tribly.dto.admin.AdminDomainDto;
-import com.tribly.repository.common.TriblyPage;
+import com.tribly.dto.admin.AdminStatsDto;
+import com.tribly.dto.common.TriblyPage;
 import com.tribly.repository.platform.DomainRepository;
 import com.tribly.repository.team.TeamRepository;
 import com.tribly.repository.user.UserRepository;
@@ -22,6 +23,14 @@ public class AdminDomainService {
   @Inject TeamRepository teamRepository;
 
   @Inject UserRepository userRepository;
+
+  @Admin
+  public AdminStatsDto getStats() {
+    long totalDomains = domainRepository.count("deleted = false");
+    long totalTeams = teamRepository.count("deleted = false");
+    long totalUsers = userRepository.count("deleted = false");
+    return new AdminStatsDto(totalDomains, totalTeams, totalUsers);
+  }
 
   @Admin
   public TriblyPage<AdminDomainDto> listDomains(int page, int size) {

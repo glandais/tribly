@@ -9,6 +9,7 @@ import com.tribly.domain.ride.Ride;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.trip.Trip;
 import com.tribly.domain.user.User;
+import com.tribly.dto.common.TriblyPage;
 import com.tribly.dto.publications.response.PublicationType;
 import com.tribly.enums.Status;
 import com.tribly.enums.TeamRole;

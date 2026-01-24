@@ -1,8 +1,8 @@
 package com.tribly.repository.ridetemplate;
 
 import com.tribly.domain.ridetemplate.RideTemplate;
+import com.tribly.dto.common.TriblyPage;
 import com.tribly.repository.common.BaseRepository;
-import com.tribly.repository.common.TriblyPage;
 import com.tribly.repository.query.TriblyQuery;
 import jakarta.enterprise.context.ApplicationScoped;
 import java.util.Map;

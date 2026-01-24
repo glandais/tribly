@@ -2,6 +2,7 @@ package com.tribly.repository.common;
 
 import com.tribly.domain.common.SearchClause;
 import com.tribly.domain.common.TeamEntity;
+import com.tribly.dto.common.TriblyPage;
 import com.tribly.enums.EntityType;
 import com.tribly.enums.TeamEntityType;
 import com.tribly.repository.query.AndClause;

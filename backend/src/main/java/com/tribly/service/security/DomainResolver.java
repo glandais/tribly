@@ -4,6 +4,7 @@ import com.tribly.common.exception.NotFoundException;
 import com.tribly.domain.platform.Domain;
 import com.tribly.dto.error.ErrorCode;
 import com.tribly.repository.platform.DomainRepository;
+import com.tribly.service.security.annotation.Public;
 import io.vertx.core.http.HttpServerRequest;
 import io.vertx.ext.web.RoutingContext;
 import jakarta.enterprise.context.RequestScoped;
@@ -20,6 +21,7 @@ public class DomainResolver {
   private @Nullable Domain domain;
   private boolean initialized = false;
 
+  @Public
   public Domain getDomain() {
     init();
     if (domain == null) {
@@ -28,10 +30,12 @@ public class DomainResolver {
     return domain;
   }
 
+  @Public
   public Long getDomainId() {
     return getDomain().getId();
   }
 
+  @Public
   public @Nullable Domain getDomainNullable() {
     init();
     return domain;
