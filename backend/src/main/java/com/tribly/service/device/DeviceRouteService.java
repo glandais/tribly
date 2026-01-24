@@ -53,8 +53,7 @@ public class DeviceRouteService {
   /**
    * Internal record for sorting routes by distance while keeping DTO separate.
    */
-  private record RouteWithDistance(
-      DeviceRouteDto dto, @Nullable Instant start, @Nullable Double distanceFromUser) {}
+  private record RouteWithDistance(DeviceRouteDto dto, @Nullable Double distanceFromUser) {}
 
   /**
    * Get routes for the authenticated user. Prioritizes routes from upcoming rides, then latest
@@ -99,12 +98,12 @@ public class DeviceRouteService {
     allRoutes.sort(
         Comparator
             // Rides first (those with rideDateTime)
-            .<RouteWithDistance>comparingInt(r -> r.start() == null ? 1 : 0)
+            .<RouteWithDistance>comparingInt(r -> r.dto().startDateTime() == null ? 1 : 0)
             // Then by proximity to current time
             .thenComparingLong(
                 r ->
-                    r.start() != null
-                        ? Math.abs(r.start().toEpochMilli() - now.toEpochMilli())
+                    r.dto().startDateTime() != null
+                        ? Math.abs(r.dto().startDateTime().toEpochMilli() - now.toEpochMilli())
                         : Long.MAX_VALUE)
             // Then by distance from user (if provided)
             .thenComparingDouble(
@@ -211,7 +210,6 @@ public class DeviceRouteService {
       distanceFromUser = haversineDistance(userLat, userLon, startLat, startLon);
     }
 
-    LocalDateTime startDateTime = null;
     Instant startInstant = null;
     if (ride != null) {
       ZoneId zoneId =
@@ -222,7 +220,6 @@ public class DeviceRouteService {
         zonedDateTime =
             zonedDateTime.withHour(groupTime.getHour()).withMinute(groupTime.getMinute());
       }
-      startDateTime = zonedDateTime.toLocalDateTime();
       startInstant = zonedDateTime.toInstant();
     }
 
@@ -233,14 +230,14 @@ public class DeviceRouteService {
             .routeName(route.getName())
             .rideName(ride == null ? null : ride.getName())
             .groupName(rideGroup == null ? null : rideGroup.getName())
-            .startDateTime(startDateTime)
+            .startDateTime(startInstant)
             .distance(route.getDistance())
             .elevationGain(route.getElevationGain())
             .startLat(startLat)
             .startLon(startLon)
             .build();
 
-    return new RouteWithDistance(dto, startInstant, distanceFromUser);
+    return new RouteWithDistance(dto, distanceFromUser);
   }
 
   /**

@@ -952,7 +952,7 @@ components:
         startDateTime:
           description: Start date/time
           type: string
-          $ref: "#/components/schemas/LocalDateTime"
+          $ref: "#/components/schemas/Instant"
         distance:
           type: number
           format: float
@@ -1388,11 +1388,6 @@ components:
           items:
             $ref: "#/components/schemas/KarooRouteDto"
           description: Available routes
-    LocalDateTime:
-      type: string
-      format: date-time
-      examples:
-      - 2022-03-10T12:15:50
     LocalTime:
       type: string
       format: local-time
