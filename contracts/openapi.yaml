@@ -946,17 +946,13 @@ components:
         rideName:
           type: string
           description: Ride name
-        rideDateTime:
-          description: Ride date/time
-          type: string
-          $ref: "#/components/schemas/Instant"
         groupName:
           type: string
           description: Group name
-        groupTime:
-          description: Group time
+        startDateTime:
+          description: Start date/time
           type: string
-          $ref: "#/components/schemas/LocalTime"
+          $ref: "#/components/schemas/LocalDateTime"
         distance:
           type: number
           format: float
@@ -1392,6 +1388,11 @@ components:
           items:
             $ref: "#/components/schemas/KarooRouteDto"
           description: Available routes
+    LocalDateTime:
+      type: string
+      format: date-time
+      examples:
+      - 2022-03-10T12:15:50
     LocalTime:
       type: string
       format: local-time

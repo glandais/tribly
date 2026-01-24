@@ -22,8 +22,7 @@ import com.tribly.service.security.annotation.Logged;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.io.InputStream;
-import java.time.Instant;
-import java.time.format.DateTimeFormatter;
+import java.time.*;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -32,7 +31,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.geolatte.geom.G2D;
 import org.geolatte.geom.Point;
-import org.jboss.logging.Logger;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -42,10 +40,8 @@ import org.jspecify.annotations.Nullable;
 @ApplicationScoped
 public class DeviceRouteService {
 
-  private static final Logger LOG = Logger.getLogger(DeviceRouteService.class);
   private static final int MAX_ROUTES = 20;
   private static final int LATEST_ROUTES_PER_TEAM = 10;
-  private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("dd/MM HH:mm");
 
   @Inject TriblyQueryContext triblyContext;
   @Inject UserTeamRepository userTeamRepository;
@@ -57,7 +53,8 @@ public class DeviceRouteService {
   /**
    * Internal record for sorting routes by distance while keeping DTO separate.
    */
-  private record RouteWithDistance(DeviceRouteDto dto, @Nullable Double distanceFromUser) {}
+  private record RouteWithDistance(
+      DeviceRouteDto dto, @Nullable Instant start, @Nullable Double distanceFromUser) {}
 
   /**
    * Get routes for the authenticated user. Prioritizes routes from upcoming rides, then latest
@@ -87,14 +84,13 @@ public class DeviceRouteService {
       Set<Long> teamIds = Set.of(teamId);
 
       // Find upcoming rides with routes
-      List<RouteWithDistance> rideRoutes =
-          getRoutesFromRides(teamId, teamIds, userId, from, to, lat, lon);
+      List<RouteWithDistance> rideRoutes = getRoutesFromRides(teamIds, userId, from, to, lat, lon);
 
       if (!rideRoutes.isEmpty()) {
         allRoutes.addAll(rideRoutes);
       } else {
         // No upcoming rides, get latest routes
-        List<RouteWithDistance> latestRoutes = getLatestRoutes(team, teamIds, userId, lat, lon);
+        List<RouteWithDistance> latestRoutes = getLatestRoutes(teamIds, userId, lat, lon);
         allRoutes.addAll(latestRoutes);
       }
     }
@@ -103,12 +99,12 @@ public class DeviceRouteService {
     allRoutes.sort(
         Comparator
             // Rides first (those with rideDateTime)
-            .<RouteWithDistance>comparingInt(r -> r.dto().rideDateTime() == null ? 1 : 0)
+            .<RouteWithDistance>comparingInt(r -> r.start() == null ? 1 : 0)
             // Then by proximity to current time
             .thenComparingLong(
                 r ->
-                    r.dto().rideDateTime() != null
-                        ? Math.abs(r.dto().rideDateTime().toEpochMilli() - now.toEpochMilli())
+                    r.start() != null
+                        ? Math.abs(r.start().toEpochMilli() - now.toEpochMilli())
                         : Long.MAX_VALUE)
             // Then by distance from user (if provided)
             .thenComparingDouble(
@@ -125,7 +121,6 @@ public class DeviceRouteService {
   }
 
   private List<RouteWithDistance> getRoutesFromRides(
-      Long teamId,
       Set<Long> teamIds,
       Long userId,
       Instant from,
@@ -179,7 +174,7 @@ public class DeviceRouteService {
   }
 
   private List<RouteWithDistance> getLatestRoutes(
-      Team team, Set<Long> teamIds, Long userId, @Nullable Double lat, @Nullable Double lon) {
+      Set<Long> teamIds, Long userId, @Nullable Double lat, @Nullable Double lon) {
 
     RouteQuery query =
         RouteQuery.builder()
@@ -216,22 +211,36 @@ public class DeviceRouteService {
       distanceFromUser = haversineDistance(userLat, userLon, startLat, startLon);
     }
 
+    LocalDateTime startDateTime = null;
+    Instant startInstant = null;
+    if (ride != null) {
+      ZoneId zoneId =
+          timezoneService.getZoneId(start.getPosition().getLat(), start.getPosition().getLon());
+      ZonedDateTime zonedDateTime = ride.getDateTime().atZone(zoneId);
+      if (rideGroup != null && rideGroup.getTime() != null) {
+        LocalTime groupTime = rideGroup.getTime();
+        zonedDateTime =
+            zonedDateTime.withHour(groupTime.getHour()).withMinute(groupTime.getMinute());
+      }
+      startDateTime = zonedDateTime.toLocalDateTime();
+      startInstant = zonedDateTime.toInstant();
+    }
+
     DeviceRouteDto dto =
         DeviceRouteDto.builder()
             .teamSlug(route.getTeam().getSlug())
             .routeSlug(route.getSlug())
             .routeName(route.getName())
             .rideName(ride == null ? null : ride.getName())
-            .rideDateTime(ride == null ? null : ride.getDateTime())
             .groupName(rideGroup == null ? null : rideGroup.getName())
-            .groupTime(rideGroup == null ? null : rideGroup.getTime())
+            .startDateTime(startDateTime)
             .distance(route.getDistance())
             .elevationGain(route.getElevationGain())
             .startLat(startLat)
             .startLon(startLon)
             .build();
 
-    return new RouteWithDistance(dto, distanceFromUser);
+    return new RouteWithDistance(dto, startInstant, distanceFromUser);
   }
 
   /**
