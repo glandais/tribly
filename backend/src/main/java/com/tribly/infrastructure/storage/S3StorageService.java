@@ -1,5 +1,6 @@
 package com.tribly.infrastructure.storage;
 
+import io.quarkus.runtime.Startup;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -19,6 +20,7 @@ import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 /** S3-based implementation of {@link StorageService} for MinIO/S3 storage. */
+@Startup
 @ApplicationScoped
 public class S3StorageService implements StorageService {
 
