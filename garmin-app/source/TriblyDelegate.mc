@@ -48,7 +48,7 @@ class TriblyDelegate extends WatchUi.BehaviorDelegate {
 
     function onMenu() {
         // Show menu with refresh option
-        var menu = new WatchUi.Menu2({:title => "Tribly"});
+        var menu = new WatchUi.Menu2({:title => WatchUi.loadResource(Rez.Strings.MenuTitle)});
         menu.addItem(new WatchUi.MenuItem(
             WatchUi.loadResource(Rez.Strings.RefreshRoutes),
             null,

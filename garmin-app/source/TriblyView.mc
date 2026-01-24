@@ -189,14 +189,14 @@ class TriblyView extends WatchUi.View {
             padding,
             y + 5,
             Graphics.FONT_SMALL,
-            title != null ? title : "Unknown",
+            title != null ? title : WatchUi.loadResource(Rez.Strings.Unknown),
             Graphics.TEXT_JUSTIFY_LEFT
         );
 
         // Draw stats on second line
-        var distanceKm = (distance != null) ? (distance / 1000.0).format("%.1f") + "km" : "";
-        var elevation = (elevationGain != null) ? elevationGain.format("%.0f") + "m" : "";
-        var stats = distanceKm + " | " + elevation + " D+";
+        var distanceKm = (distance != null) ? (distance / 1000.0).format("%.1f") + WatchUi.loadResource(Rez.Strings.UnitKm) : "";
+        var elevation = (elevationGain != null) ? elevationGain.format("%.0f") + WatchUi.loadResource(Rez.Strings.UnitM) : "";
+        var stats = distanceKm + " | " + elevation + " " + WatchUi.loadResource(Rez.Strings.UnitDPlus);
 
         dc.setColor(isSelected ? Graphics.COLOR_LT_GRAY : Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
         dc.drawText(

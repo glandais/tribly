@@ -42,7 +42,7 @@ class ErrorView extends WatchUi.View {
             centerX,
             centerY + 20,
             Graphics.FONT_TINY,
-            WatchUi.loadResource(Rez.Strings.Retry) + " - SELECT",
+            WatchUi.loadResource(Rez.Strings.Retry) + WatchUi.loadResource(Rez.Strings.SelectHint),
             Graphics.TEXT_JUSTIFY_CENTER
         );
     }

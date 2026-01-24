@@ -19,4 +19,13 @@
     <string id="Distance">Distance</string>
     <string id="Elevation">Elevation</string>
     <string id="RefreshRoutes">Refresh</string>
+    <string id="VerificationUrl">pedalons.fr/garmin</string>
+    <string id="PressSelectToLogin">Press SELECT to login</string>
+    <string id="PressSelect">Press SELECT</string>
+    <string id="Unknown">Unknown</string>
+    <string id="UnitKm">km</string>
+    <string id="UnitM">m</string>
+    <string id="UnitDPlus">D+</string>
+    <string id="MenuTitle">Tribly</string>
+    <string id="SelectHint"> - SELECT</string>
 </strings>

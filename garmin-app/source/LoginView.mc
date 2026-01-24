@@ -75,7 +75,7 @@ class LoginView extends WatchUi.View {
                 centerX,
                 centerY - 45,
                 Graphics.FONT_SMALL,
-                "pedalons.fr/garmin",
+                WatchUi.loadResource(Rez.Strings.VerificationUrl),
                 Graphics.TEXT_JUSTIFY_CENTER
             );
 
@@ -126,7 +126,7 @@ class LoginView extends WatchUi.View {
                 centerX,
                 centerY + 60,
                 Graphics.FONT_TINY,
-                "Press SELECT to login",
+                WatchUi.loadResource(Rez.Strings.PressSelectToLogin),
                 Graphics.TEXT_JUSTIFY_CENTER
             );
         }

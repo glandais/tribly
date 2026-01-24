@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Tribly</string>
+
+    <!-- Auth -->
+    <string name="auth_connect_title">Connexion à Tribly</string>
+    <string name="auth_connect_subtitle">Scannez le QR code avec votre téléphone pour vous authentifier</string>
+    <string name="auth_connect_button">Connexion</string>
+    <string name="auth_code_label">Ou entrez ce code :</string>
+    <string name="auth_waiting">En attente d\'authentification…</string>
+    <string name="auth_success">Connecté !</string>
+    <string name="auth_error">Échec de l\'authentification</string>
+    <string name="auth_expired">Code expiré. Veuillez réessayer.</string>
+
+    <!-- Routes -->
+    <string name="routes_title">Parcours</string>
+    <string name="routes_empty">Aucun parcours disponible</string>
+    <string name="routes_upcoming">Prochaines sorties</string>
+    <string name="routes_recent">Parcours récents</string>
+    <string name="route_sync">Sync vers Karoo</string>
+    <string name="route_syncing">Synchronisation…</string>
+    <string name="route_synced">Parcours synchronisé !</string>
+    <string name="route_sync_error">Échec de la synchronisation</string>
+
+    <!-- General -->
+    <string name="connecting">Connexion au Karoo…</string>
+    <string name="loading">Chargement…</string>
+    <string name="error_network">Erreur réseau</string>
+    <string name="error_unknown">Une erreur est survenue</string>
+    <string name="disconnect">Déconnexion</string>
+    <string name="settings">Paramètres</string>
+    <string name="close">Fermer</string>
+
+    <!-- Formatting -->
+    <string name="distance_format">%.1f km</string>
+    <string name="elevation_format">↑%1$dm</string>
+    <string name="nav_arrow">›</string>
+    <string name="success_checkmark">✓</string>
+</resources>

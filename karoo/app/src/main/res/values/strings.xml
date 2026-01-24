@@ -29,4 +29,11 @@
     <string name="error_unknown">An error occurred</string>
     <string name="disconnect">Disconnect</string>
     <string name="settings">Settings</string>
+    <string name="close">Close</string>
+
+    <!-- Formatting -->
+    <string name="distance_format">%.1f km</string>
+    <string name="elevation_format">↑%1$dm</string>
+    <string name="nav_arrow">›</string>
+    <string name="success_checkmark">✓</string>
 </resources>

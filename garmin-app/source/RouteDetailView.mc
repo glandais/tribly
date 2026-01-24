@@ -57,7 +57,7 @@ class RouteDetailView extends WatchUi.View {
             centerX,
             y,
             Graphics.FONT_SMALL,
-            title != null ? title : "Unknown",
+            title != null ? title : WatchUi.loadResource(Rez.Strings.Unknown),
             Graphics.TEXT_JUSTIFY_CENTER
         );
         y += 30;
@@ -85,7 +85,7 @@ class RouteDetailView extends WatchUi.View {
                 centerX,
                 y,
                 Graphics.FONT_TINY,
-                WatchUi.loadResource(Rez.Strings.Distance) + ": " + distanceKm + " km",
+                WatchUi.loadResource(Rez.Strings.Distance) + ": " + distanceKm + " " + WatchUi.loadResource(Rez.Strings.UnitKm),
                 Graphics.TEXT_JUSTIFY_CENTER
             );
         }
@@ -99,7 +99,7 @@ class RouteDetailView extends WatchUi.View {
                 centerX,
                 y,
                 Graphics.FONT_TINY,
-                WatchUi.loadResource(Rez.Strings.Elevation) + ": " + elevationGain.format("%.0f") + " m",
+                WatchUi.loadResource(Rez.Strings.Elevation) + ": " + elevationGain.format("%.0f") + " " + WatchUi.loadResource(Rez.Strings.UnitM),
                 Graphics.TEXT_JUSTIFY_CENTER
             );
         }
@@ -143,7 +143,7 @@ class RouteDetailView extends WatchUi.View {
                 centerX,
                 y + 25,
                 Graphics.FONT_TINY,
-                "Press SELECT",
+                WatchUi.loadResource(Rez.Strings.PressSelect),
                 Graphics.TEXT_JUSTIFY_CENTER
             );
         }

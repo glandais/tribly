@@ -295,7 +295,7 @@ private fun SuccessContent() {
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
-                text = "✓",
+                text = stringResource(R.string.success_checkmark),
                 style = MaterialTheme.typography.displayLarge,
                 color = MaterialTheme.colorScheme.primary
             )
@@ -330,7 +330,7 @@ private fun ErrorContent(message: String, onRetry: () -> Unit) {
             )
             Spacer(modifier = Modifier.height(24.dp))
             Button(onClick = onRetry) {
-                Text("Close")
+                Text(stringResource(R.string.close))
             }
         }
     }
@@ -350,7 +350,7 @@ private fun ExpiredContent(onClose: () -> Unit) {
             )
             Spacer(modifier = Modifier.height(24.dp))
             Button(onClick = onClose) {
-                Text("Close")
+                Text(stringResource(R.string.close))
             }
         }
     }

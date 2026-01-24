@@ -414,12 +414,12 @@ private fun RouteItem(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
-                        text = "%.1f km".format(route.distanceKm),
+                        text = stringResource(R.string.distance_format, route.distanceKm),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.primary
                     )
                     Text(
-                        text = "↑${route.elevationGainInt}m",
+                        text = stringResource(R.string.elevation_format, route.elevationGainInt),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.secondary
                     )
@@ -435,7 +435,7 @@ private fun RouteItem(
                 )
             } else {
                 Text(
-                    text = "›",
+                    text = stringResource(R.string.nav_arrow),
                     style = MaterialTheme.typography.headlineMedium,
                     color = MaterialTheme.colorScheme.primary
                 )
