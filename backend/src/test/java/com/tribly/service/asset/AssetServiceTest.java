@@ -134,7 +134,8 @@ class AssetServiceTest {
       assertNotNull(result.asset());
       assertNotNull(result.file());
       assertEquals("image.png", result.asset().getFileName());
-      assertTrue(result.file().exists());
+      // Temp file is deleted after S3 upload when content is provided
+      assertFalse(result.file().exists());
     }
 
     @Test
@@ -186,7 +187,7 @@ class AssetServiceTest {
       DownloadableAsset result = assetService.getDownloadableAsset(team.getSlug(), assetId);
 
       assertNotNull(result);
-      assertNotNull(result.file());
+      assertNotNull(result.content());
       assertEquals("application/gpx+xml", result.contentType());
     }
 
@@ -271,17 +272,18 @@ class AssetServiceTest {
   class DeleteAsset {
 
     @Test
-    void shouldDeleteExistingFile() throws Exception {
+    void shouldDeleteFromS3() throws Exception {
       InputStream content = new ByteArrayInputStream("to delete".getBytes());
       queryContext.setUserForTest(organizer);
       AssetWithFile assetWithFile =
           assetService.addAssetStream(team, AssetType.IMAGE, null, content, "delete-me.txt");
-      assertTrue(assetWithFile.file().exists());
+      // Temp file is deleted after S3 upload
+      assertFalse(assetWithFile.file().exists());
 
       queryContext.setUserForTest(organizer);
-      assetService.deleteAsset(team.getSlug(), assetWithFile.asset().getId());
-
-      assertFalse(assetWithFile.file().exists());
+      // Should not throw - deletes from S3
+      assertDoesNotThrow(
+          () -> assetService.deleteAsset(team.getSlug(), assetWithFile.asset().getId()));
     }
 
     @Test

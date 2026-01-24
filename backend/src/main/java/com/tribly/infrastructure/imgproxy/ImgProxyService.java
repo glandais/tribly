@@ -1,5 +1,6 @@
 package com.tribly.infrastructure.imgproxy;
 
+import com.tribly.infrastructure.storage.StorageService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
@@ -11,12 +12,15 @@ public class ImgProxyService {
 
   @Inject @RestClient ImgProxyClient imgProxyClient;
 
-  public Response getPhoto(String accept, String fullPath, Integer width, Integer height) {
-    return imgProxyClient.getImage(accept, width, height, "local:///" + fullPath);
+  @Inject StorageService storageService;
+
+  public Response getPhoto(String accept, String key, Integer width, Integer height) {
+    String s3Path = storageService.getS3Path(key);
+    return imgProxyClient.getImage(accept, width, height, s3Path);
   }
 
-  public InputStream getPhotoContent(
-      String accept, String fullPath, Integer width, Integer height) {
-    return imgProxyClient.getImageContent(accept, width, height, "local:///" + fullPath);
+  public InputStream getPhotoContent(String accept, String key, Integer width, Integer height) {
+    String s3Path = storageService.getS3Path(key);
+    return imgProxyClient.getImageContent(accept, width, height, s3Path);
   }
 }

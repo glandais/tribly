@@ -1,4 +1,4 @@
-package com.tribly.api.garmin;
+package com.tribly.api.device;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
@@ -15,7 +15,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
-class GarminRoutesResourceTest extends AbstractResourceTest {
+class DeviceRoutesResourceTest extends AbstractResourceTest {
 
   private String routeSlug;
 
@@ -63,7 +63,7 @@ class GarminRoutesResourceTest extends AbstractResourceTest {
         .auth()
         .oauth2(getAccessToken(USER1))
         .when()
-        .get("/api/garmin/routes")
+        .get("/api/device/routes")
         .then()
         .statusCode(200)
         .body("routes", notNullValue());
@@ -77,7 +77,7 @@ class GarminRoutesResourceTest extends AbstractResourceTest {
         .queryParam("lat", 48.8566)
         .queryParam("lon", 2.3522)
         .when()
-        .get("/api/garmin/routes")
+        .get("/api/device/routes")
         .then()
         .statusCode(200)
         .body("routes", notNullValue());
@@ -85,7 +85,7 @@ class GarminRoutesResourceTest extends AbstractResourceTest {
 
   @Test
   void getRoutes_withoutAuth_shouldReturn401() {
-    given().when().get("/api/garmin/routes").then().statusCode(401);
+    given().when().get("/api/device/routes").then().statusCode(401);
   }
 
   // ==================== Download FIT ====================
@@ -96,7 +96,7 @@ class GarminRoutesResourceTest extends AbstractResourceTest {
         .auth()
         .oauth2(getAccessToken(USER3))
         .when()
-        .get("/api/garmin/routes/" + team1Slug + "/" + routeSlug + "/fit")
+        .get("/api/device/routes/" + team1Slug + "/" + routeSlug + "/fit")
         .then()
         .statusCode(200)
         .contentType("application/vnd.ant.fit")
@@ -109,7 +109,7 @@ class GarminRoutesResourceTest extends AbstractResourceTest {
         .auth()
         .oauth2(getAccessToken(USER1))
         .when()
-        .get("/api/garmin/routes/" + team1Slug + "/" + routeSlug + "/fit")
+        .get("/api/device/routes/" + team1Slug + "/" + routeSlug + "/fit")
         .then()
         .statusCode(200)
         .contentType("application/vnd.ant.fit");
@@ -119,7 +119,7 @@ class GarminRoutesResourceTest extends AbstractResourceTest {
   void downloadFit_withoutAuth_shouldReturn401() {
     given()
         .when()
-        .get("/api/garmin/routes/" + team1Slug + "/" + routeSlug + "/fit")
+        .get("/api/device/routes/" + team1Slug + "/" + routeSlug + "/fit")
         .then()
         .statusCode(401);
   }
@@ -130,7 +130,7 @@ class GarminRoutesResourceTest extends AbstractResourceTest {
         .auth()
         .oauth2(getAccessToken(USER4))
         .when()
-        .get("/api/garmin/routes/" + team1Slug + "/" + routeSlug + "/fit")
+        .get("/api/device/routes/" + team1Slug + "/" + routeSlug + "/fit")
         .then()
         .statusCode(404);
   }
@@ -141,7 +141,7 @@ class GarminRoutesResourceTest extends AbstractResourceTest {
         .auth()
         .oauth2(getAccessToken(USER1))
         .when()
-        .get("/api/garmin/routes/" + team1Slug + "/nonexistent-route/fit")
+        .get("/api/device/routes/" + team1Slug + "/nonexistent-route/fit")
         .then()
         .statusCode(404);
   }
@@ -152,7 +152,7 @@ class GarminRoutesResourceTest extends AbstractResourceTest {
         .auth()
         .oauth2(getAccessToken(USER1))
         .when()
-        .get("/api/garmin/routes/nonexistent-team/" + routeSlug + "/fit")
+        .get("/api/device/routes/nonexistent-team/" + routeSlug + "/fit")
         .then()
         .statusCode(404);
   }
@@ -166,7 +166,7 @@ class GarminRoutesResourceTest extends AbstractResourceTest {
         .auth()
         .oauth2(getAccessToken(USER3))
         .when()
-        .get("/api/garmin/routes/" + team2Slug + "/" + privateRouteSlug + "/fit")
+        .get("/api/device/routes/" + team2Slug + "/" + privateRouteSlug + "/fit")
         .then()
         .statusCode(200)
         .contentType("application/vnd.ant.fit");
@@ -181,7 +181,7 @@ class GarminRoutesResourceTest extends AbstractResourceTest {
         .auth()
         .oauth2(getAccessToken(USER4))
         .when()
-        .get("/api/garmin/routes/" + team2Slug + "/" + privateRouteSlug + "/fit")
+        .get("/api/device/routes/" + team2Slug + "/" + privateRouteSlug + "/fit")
         .then()
         .statusCode(404);
   }

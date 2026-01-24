@@ -200,7 +200,7 @@ class GarminRouteServiceTest {
 
       assertThrows(
           NotFoundException.class,
-          () -> garminRouteService.getFitFile(team.getSlug(), route.getSlug()));
+          () -> garminRouteService.getFitContent(team.getSlug(), route.getSlug()));
     }
 
     @Test
@@ -209,7 +209,7 @@ class GarminRouteServiceTest {
 
       assertThrows(
           NotFoundException.class,
-          () -> garminRouteService.getFitFile(team.getSlug(), "nonexistent-route"));
+          () -> garminRouteService.getFitContent(team.getSlug(), "nonexistent-route"));
     }
 
     @Test
@@ -218,7 +218,7 @@ class GarminRouteServiceTest {
 
       assertThrows(
           NotFoundException.class,
-          () -> garminRouteService.getFitFile("nonexistent-team", "some-route"));
+          () -> garminRouteService.getFitContent("nonexistent-team", "some-route"));
     }
   }
 }

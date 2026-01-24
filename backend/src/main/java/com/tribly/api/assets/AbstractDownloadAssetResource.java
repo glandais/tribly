@@ -28,7 +28,7 @@ public class AbstractDownloadAssetResource {
     DownloadableAsset downloadableAsset =
         assetService.getDownloadableAsset(teamSlug, TsidUtils.toLong(assetId));
 
-    return Response.ok(downloadableAsset.file())
+    return Response.ok(downloadableAsset.content())
         .type(downloadableAsset.contentType())
         .header("Content-Disposition", "inline")
         .build();

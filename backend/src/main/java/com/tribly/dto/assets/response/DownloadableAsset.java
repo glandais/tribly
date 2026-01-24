@@ -1,5 +1,5 @@
 package com.tribly.dto.assets.response;
 
-import java.io.File;
+import java.io.InputStream;
 
-public record DownloadableAsset(File file, String contentType) {}
+public record DownloadableAsset(InputStream content, String contentType) {}

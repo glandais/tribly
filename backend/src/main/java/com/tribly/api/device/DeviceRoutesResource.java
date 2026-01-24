@@ -11,7 +11,7 @@ import jakarta.inject.Inject;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import java.io.File;
+import java.io.InputStream;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.Schema;
@@ -91,10 +91,10 @@ public class DeviceRoutesResource {
       @Parameter(description = "Route URL slug", required = true) @PathParam("routeSlug")
           String routeSlug) {
 
-    File fitFile = deviceRouteService.getFitFile(teamSlug, routeSlug);
+    InputStream fitContent = deviceRouteService.getFitContent(teamSlug, routeSlug);
 
     String fileName = routeSlug + ".fit";
-    return Response.ok(fitFile)
+    return Response.ok(fitContent)
         .header("Content-Disposition", "attachment; filename=\"" + fileName + "\"")
         .header("Content-Type", "application/vnd.ant.fit")
         .build();
@@ -129,10 +129,10 @@ public class DeviceRoutesResource {
       @Parameter(description = "Route URL slug", required = true) @PathParam("routeSlug")
           String routeSlug) {
 
-    File gpxFile = deviceRouteService.getGpxFile(teamSlug, routeSlug);
+    InputStream gpxContent = deviceRouteService.getGpxContent(teamSlug, routeSlug);
 
     String fileName = routeSlug + ".gpx";
-    return Response.ok(gpxFile)
+    return Response.ok(gpxContent)
         .header("Content-Disposition", "attachment; filename=\"" + fileName + "\"")
         .header("Content-Type", "application/gpx+xml")
         .build();

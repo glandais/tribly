@@ -21,7 +21,7 @@ import com.tribly.service.security.TriblyQueryContext;
 import com.tribly.service.security.annotation.Logged;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import java.io.File;
+import java.io.InputStream;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -240,10 +240,10 @@ public class GarminRouteService {
   }
 
   /**
-   * Get FIT file for a specific route.
+   * Get FIT content for a specific route.
    */
   @Logged
-  public File getFitFile(String teamSlug, String routeSlug) {
+  public InputStream getFitContent(String teamSlug, String routeSlug) {
     Long userId = triblyContext.getUserId();
 
     // Find team by slug
@@ -262,7 +262,7 @@ public class GarminRouteService {
             .findByTeamAndSlug(domainId, team.getId(), userId, routeSlug)
             .orElseThrow(() -> new NotFoundException(EntityType.ROUTE, routeSlug));
 
-    return gpxProcessingService.getFitFile(route);
+    return gpxProcessingService.getFitContent(route);
   }
 
   /**

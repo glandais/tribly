@@ -79,8 +79,8 @@ services:
     restart: unless-stopped
     networks:
       - tribly
-    volumes:
-      - "./data/storage:/mnt/storage:ro"
+    depends_on:
+      - minio
     environment:
       IMGPROXY_AUTO_WEBP: "true"
       IMGPROXY_AUTO_AVIF: "true"
@@ -88,8 +88,12 @@ services:
       IMGPROXY_QUALITY: "85"
       IMGPROXY_MAX_SRC_RESOLUTION: "50000000"
       IMGPROXY_MAX_ANIMATION_FRAMES: "100"
-      IMGPROXY_LOCAL_FILESYSTEM_ROOT: "/mnt/storage"
       IMGPROXY_USE_ETAG: "true"
+      IMGPROXY_USE_S3: "true"
+      AWS_ACCESS_KEY_ID: ${MINIO_ROOT_USER}
+      AWS_SECRET_ACCESS_KEY: ${MINIO_ROOT_PASSWORD}
+      IMGPROXY_S3_ENDPOINT: http://minio:9000
+      AWS_REGION: us-east-1
 
   varnish:
     image: varnish:6.0.14
@@ -116,8 +120,22 @@ services:
     environment:
       BROUTER_THREADS: "8"
 
+  minio:
+    image: minio/minio:RELEASE.2025-01-20T14-49-07Z
+    container_name: tribly-minio
+    command: server /data --console-address ":9001"
+    restart: unless-stopped
+    networks:
+      - tribly
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    volumes:
+      - minio_data:/data
+
 volumes:
   postgres_data:
+  minio_data:
 
 networks:
   tribly:

@@ -20,6 +20,7 @@ import io.github.glandais.gpx.data.GPX;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import java.io.File;
+import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
@@ -160,7 +161,7 @@ class GpxProcessingServiceTest {
   }
 
   @Test
-  void createTracks_shouldCreateFiles() {
+  void createTracks_shouldUploadFilesToS3() {
     Path gpxPath = getExampleGpxPath();
 
     GPX gpx = gpxProcessingService.parseGpx(gpxPath);
@@ -170,8 +171,17 @@ class GpxProcessingServiceTest {
     Set<Asset> assets = route.getAssets();
     assertFalse(assets.isEmpty(), "Route should have assets");
     for (Asset asset : assets) {
-      File file = assetService.getAssetFile(asset);
-      assertTrue(file.exists(), "File should exist: " + asset.getType());
+      // Verify content is retrievable from S3
+      try (InputStream content = assetService.getAssetContent(asset)) {
+        assertNotNull(content, "Content should be retrievable from S3: " + asset.getType());
+        assertTrue(content.available() > 0, "Content should not be empty: " + asset.getType());
+      } catch (Exception e) {
+        fail(
+            "Failed to retrieve asset content from S3: "
+                + asset.getType()
+                + " - "
+                + e.getMessage());
+      }
     }
   }
 
@@ -266,44 +276,42 @@ class GpxProcessingServiceTest {
   // ==================== File Management ====================
 
   @Test
-  void getFilteredGpxFile_shouldReturnFileIfExists() {
+  void getFilteredGpxContent_shouldReturnStreamIfExists() {
     Path gpxPath = getExampleGpxPath();
     GPX gpx = gpxProcessingService.parseGpx(gpxPath);
     context.setUserForTest(user);
     gpxProcessingService.createTracks(route, gpx);
 
-    File result = gpxProcessingService.getFilteredGpxFile(route);
+    InputStream result = gpxProcessingService.getFilteredGpxContent(route);
 
     assertNotNull(result);
-    assertTrue(result.exists());
   }
 
   @Test
-  void getFilteredGpxFile_shouldThrowIfNotExists() {
-    assertThrows(TriblyException.class, () -> gpxProcessingService.getFilteredGpxFile(route));
+  void getFilteredGpxContent_shouldThrowIfNotExists() {
+    assertThrows(TriblyException.class, () -> gpxProcessingService.getFilteredGpxContent(route));
   }
 
   @Test
-  void getFitFile_shouldReturnFileIfExists() {
+  void getFitContent_shouldReturnStreamIfExists() {
     Path gpxPath = getExampleGpxPath();
     GPX gpx = gpxProcessingService.parseGpx(gpxPath);
     context.setUserForTest(user);
     gpxProcessingService.createTracks(route, gpx);
 
-    File result = gpxProcessingService.getFitFile(route);
+    InputStream result = gpxProcessingService.getFitContent(route);
 
     assertNotNull(result);
-    assertTrue(result.exists());
   }
 
   @Test
-  void getFitFile_shouldThrowIfNotExists() {
-    assertThrows(TriblyException.class, () -> gpxProcessingService.getFitFile(route));
+  void getFitContent_shouldThrowIfNotExists() {
+    assertThrows(TriblyException.class, () -> gpxProcessingService.getFitContent(route));
   }
 
   @Test
-  void getThumbnailFile_shouldThrowIfNotExists() {
-    assertThrows(TriblyException.class, () -> gpxProcessingService.getThumbnailFile(route));
+  void getThumbnailContent_shouldThrowIfNotExists() {
+    assertThrows(TriblyException.class, () -> gpxProcessingService.getThumbnailContent(route));
   }
 
   @Test

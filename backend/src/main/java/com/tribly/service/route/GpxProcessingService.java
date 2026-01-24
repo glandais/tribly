@@ -37,6 +37,7 @@ import jakarta.transaction.Transactional;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -121,7 +122,8 @@ public class GpxProcessingService {
       AssetWithFile gpxAssetFile = createAsset(route, AssetType.ROUTE_ORIGINAL_GPX, "original.gpx");
       File originalFile = gpxAssetFile.file();
       gpxFileWriter.writeGPX(gpx, originalFile, false);
-      LOG.infov("Saved original GPX to {0}", originalFile);
+      assetService.uploadAssetFile(gpxAssetFile.asset());
+      LOG.infov("Saved original GPX to S3");
 
       for (GPXWaypoint waypoint : gpx.waypoints()) {
         GpxWaypoint gpxWaypoint =
@@ -187,13 +189,15 @@ public class GpxProcessingService {
           createAsset(route, AssetType.ROUTE_FILTERED_GPX, "filtered.gpx");
       File filteredFile = filteredAssetFile.file();
       gpxFileWriter.writeGPX(gpx, filteredFile, true);
-      LOG.infov("Saved filtered GPX to {0}", filteredFile);
+      assetService.uploadAssetFile(filteredAssetFile.asset());
+      LOG.infov("Saved filtered GPX to S3");
 
       // Save FIT file
       AssetWithFile fitAssetFile = createAsset(route, AssetType.ROUTE_FIT, "route.fit");
       File fitFile = fitAssetFile.file();
       fitFileWriter.writeGPX(gpx, fitFile);
-      LOG.infov("Saved FIT file to {0}", fitFile);
+      assetService.uploadAssetFile(fitAssetFile.asset());
+      LOG.infov("Saved FIT file to S3");
 
       // Generate thumbnail map
       AssetWithFile thumbnailAssetFile =
@@ -209,7 +213,8 @@ public class GpxProcessingService {
             0.1,
             512,
             512);
-        LOG.infov("Generated thumbnail to {0}", thumbnailFile);
+        assetService.uploadAssetFile(thumbnailAssetFile.asset());
+        LOG.infov("Generated and saved thumbnail to S3");
       } catch (Exception e) {
         LOG.warnv("Thumbnail generation failed for route {0}: {1}", routeId, e);
       }
@@ -330,30 +335,30 @@ public class GpxProcessingService {
   }
 
   /**
-   * Get file path for filtered GPX download.
+   * Get InputStream for filtered GPX download.
    */
-  public File getFilteredGpxFile(Route route) {
-    return getFile(route, AssetType.ROUTE_FILTERED_GPX);
+  public InputStream getFilteredGpxContent(Route route) {
+    return getAssetContent(route, AssetType.ROUTE_FILTERED_GPX);
   }
 
   /**
-   * Get file path for FIT download.
+   * Get InputStream for FIT download.
    */
-  public File getFitFile(Route route) {
-    return getFile(route, AssetType.ROUTE_FIT);
+  public InputStream getFitContent(Route route) {
+    return getAssetContent(route, AssetType.ROUTE_FIT);
   }
 
   /**
-   * Get file path for thumbnail image.
+   * Get InputStream for thumbnail image.
    */
-  public File getThumbnailFile(Route route) {
-    return getFile(route, AssetType.ROUTE_THUMBNAIL);
+  public InputStream getThumbnailContent(Route route) {
+    return getAssetContent(route, AssetType.ROUTE_THUMBNAIL);
   }
 
-  private File getFile(Route route, AssetType assetType) {
+  private InputStream getAssetContent(Route route, AssetType assetType) {
     Asset matching = getAsset(route, assetType);
     if (matching != null) {
-      return assetService.getAssetFile(matching);
+      return assetService.getAssetContent(matching);
     } else {
       throw new NotFoundException(EntityType.ASSET, "forRoute-" + route.getId());
     }

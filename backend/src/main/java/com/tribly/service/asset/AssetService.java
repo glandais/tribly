@@ -12,6 +12,7 @@ import com.tribly.dto.common.asset.AssetsDto;
 import com.tribly.enums.*;
 import com.tribly.infrastructure.exception.NotFoundException;
 import com.tribly.infrastructure.imgproxy.ImgProxyService;
+import com.tribly.infrastructure.storage.StorageService;
 import com.tribly.repository.asset.AssetRepository;
 import com.tribly.service.asset.response.AssetWithFile;
 import com.tribly.service.security.TriblyQueryContext;
@@ -25,23 +26,21 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.FileOutputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.attribute.PosixFilePermission;
-import java.nio.file.attribute.PosixFilePermissions;
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.imageio.ImageIO;
-import org.apache.commons.io.IOUtils;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jspecify.annotations.Nullable;
 
 @ApplicationScoped
 public class AssetService {
+
+  private static final String ASSETS_PREFIX = "assets";
 
   @Inject AssetRepository assetRepository;
 
@@ -51,8 +50,7 @@ public class AssetService {
 
   @Inject TeamService teamService;
 
-  @ConfigProperty(name = "storage.path")
-  String storagePath = "/tmp";
+  @Inject StorageService storageService;
 
   @CheckAccess(entityType = EntityType.ASSET, action = ActionType.CREATE)
   public AssetDto createAsset(String teamSlug, InputStream inputStream, String fileName)
@@ -63,6 +61,10 @@ public class AssetService {
     return map(assetFile.asset());
   }
 
+  /**
+   * Creates an asset with a temp file for external libraries to write to. After writing, call
+   * {@link #uploadAssetFile(Asset)} to upload the file to S3.
+   */
   public AssetWithFile addAsset(TeamEntity teamEntity, AssetType type, String fileName)
       throws IOException {
     return addAssetStream(teamEntity.getTeam(), type, teamEntity, null, fileName);
@@ -79,25 +81,39 @@ public class AssetService {
     User creator = triblyContext.getUser();
     long fileId = TSID.Factory.getTsid().toLong();
 
-    File file = getAssetFile(team, fileId);
-    Files.createDirectories(file.getParentFile().toPath());
+    // Create temp file for content type detection and possible external writing
+    File tempFile = createTempFile(fileId);
+    String contentType;
+
     if (content != null) {
-      try (FileOutputStream fos = new FileOutputStream(file)) {
-        IOUtils.copy(content, fos);
+      // Copy content to temp file for content type detection
+      Files.copy(content, tempFile.toPath());
+      contentType = getContentType(tempFile, fileName);
+
+      // Upload to S3 with metadata
+      String key = getAssetKey(team, fileId);
+      Map<String, String> metadata =
+          Map.of(
+              "file-id", TsidUtils.toString(fileId),
+              "team-id", TsidUtils.toString(team.getId()),
+              "file-name", fileName);
+      try (InputStream fis = new FileInputStream(tempFile)) {
+        storageService.store(key, fis, contentType, tempFile.length(), metadata);
       }
 
-      Set<PosixFilePermission> ownerWritable = PosixFilePermissions.fromString("rw-r--r--");
-      Files.setPosixFilePermissions(file.toPath(), ownerWritable);
+      // Clean up temp file after upload
+      tempFile.delete();
+    } else {
+      // No content - create temp file for external writing
+      contentType = getContentTypeFromFileName(fileName);
     }
-    String contentType = getContentType(file, fileName);
 
     Asset asset = new Asset(creator, team, type, fileId, fileName, contentType);
     asset.setTeamEntity(teamEntity);
 
     if (content != null && contentType.startsWith("image/")) {
       try (InputStream is =
-          imgProxyService.getPhotoContent(
-              "image/jpeg", getRelativeAssetFile(team, fileId), 4096, 4096)) {
+          imgProxyService.getPhotoContent("image/jpeg", getAssetKey(team, fileId), 4096, 4096)) {
         BufferedImage read = ImageIO.read(is);
         asset.setWidth(read.getWidth());
         asset.setHeight(read.getHeight());
@@ -108,39 +124,82 @@ public class AssetService {
 
     assetRepository.persistAndFlush(asset);
 
-    return new AssetWithFile(asset, file);
+    return new AssetWithFile(asset, tempFile);
   }
 
+  /**
+   * Uploads an asset file from temp location to S3. Call this after external libraries have
+   * written to the temp file returned by {@link #addAsset(TeamEntity, AssetType, String)}.
+   */
+  public void uploadAssetFile(Asset asset) throws IOException {
+    File tempFile = getTempFile(asset.getFileId());
+    if (!tempFile.exists()) {
+      throw new IOException("Temp file not found for asset: " + asset.getId());
+    }
+
+    String contentType = getContentType(tempFile, asset.getFileName());
+    asset.setContentType(contentType);
+
+    String key = getAssetKey(asset.getTeam(), asset.getFileId());
+    Map<String, String> metadata =
+        Map.of(
+            "asset-id", TsidUtils.toString(asset.getId()),
+            "file-id", TsidUtils.toString(asset.getFileId()),
+            "team-id", TsidUtils.toString(asset.getTeam().getId()),
+            "file-name", asset.getFileName());
+    try (InputStream fis = new FileInputStream(tempFile)) {
+      storageService.store(key, fis, contentType, tempFile.length(), metadata);
+    }
+
+    // Clean up temp file
+    tempFile.delete();
+  }
+
+  /**
+   * Gets the temp file for an asset (for external libraries to write to).
+   */
   public File getAssetFile(Asset asset) {
-    return getAssetFile(asset.getTeam(), asset.getFileId());
+    return getTempFile(asset.getFileId());
   }
 
-  private File getAssetFile(Team team, long fileId) {
-    String idString = TsidUtils.toString(fileId);
-    String subPath = idString.substring(0, 4);
-    Path assetDirectory = Path.of(storagePath, TsidUtils.toString(team.getId()), subPath);
-    return new File(assetDirectory.toFile(), idString);
+  /**
+   * Retrieves asset content as an InputStream from S3.
+   */
+  public InputStream getAssetContent(Asset asset) {
+    String key = getAssetKey(asset.getTeam(), asset.getFileId());
+    return storageService.retrieve(key);
   }
 
-  private String getRelativeAssetFile(Team team, long fileId) {
+  private File createTempFile(long fileId) throws IOException {
+    Path tempDir = Path.of(System.getProperty("java.io.tmpdir"), "tribly-assets");
+    Files.createDirectories(tempDir);
+    return new File(tempDir.toFile(), TsidUtils.toString(fileId));
+  }
+
+  private File getTempFile(long fileId) {
+    String idString = TsidUtils.toString(fileId);
+    return Path.of(System.getProperty("java.io.tmpdir"), "tribly-assets", idString).toFile();
+  }
+
+  private String getAssetKey(Team team, long fileId) {
+    String teamId = TsidUtils.toString(team.getId());
     String idString = TsidUtils.toString(fileId);
     String subPath = idString.substring(0, 4);
-    return TsidUtils.toString(team.getId()) + "/" + subPath + "/" + idString;
+    return ASSETS_PREFIX + "/" + teamId + "/" + subPath + "/" + idString;
   }
 
   @CheckAccess(entityType = EntityType.ASSET, action = ActionType.READ)
   public DownloadableAsset getDownloadableAsset(String teamSlug, Long assetId) {
     Asset asset = getAsset(assetId);
-    File file = getAssetFile(asset);
-    return new DownloadableAsset(file, asset.getContentType());
+    InputStream content = getAssetContent(asset);
+    return new DownloadableAsset(content, asset.getContentType());
   }
 
   @CheckAccess(entityType = EntityType.ASSET, action = ActionType.READ)
   public Response getImage(String teamSlug, Long assetId, int size, String accept) {
     Asset asset = getAsset(assetId);
-    String relativeAssetFile = getRelativeAssetFile(asset.getTeam(), asset.getFileId());
-    return Response.fromResponse(imgProxyService.getPhoto(accept, relativeAssetFile, size, size))
-        .build();
+    String key = getAssetKey(asset.getTeam(), asset.getFileId());
+    return Response.fromResponse(imgProxyService.getPhoto(accept, key, size, size)).build();
   }
 
   private String getContentType(File file, String fileName) {
@@ -162,7 +221,10 @@ public class AssetService {
       }
     }
 
-    // Fall back to filename-based detection
+    return getContentTypeFromFileName(fileName);
+  }
+
+  private String getContentTypeFromFileName(String fileName) {
     String guessed = URLConnection.guessContentTypeFromName(fileName);
     return guessed != null ? guessed : MediaType.APPLICATION_OCTET_STREAM;
   }
@@ -196,16 +258,12 @@ public class AssetService {
 
   @CheckAccess(entityType = EntityType.ASSET, action = ActionType.DELETE)
   protected void deleteAsset(String teamSlug, Long id) {
-    // FIXME auto delete files on cascade ?
     Asset asset =
         assetRepository
             .findByIdOptional(id)
             .orElseThrow(() -> new NotFoundException(EntityType.ASSET, id));
-    File file = getAssetFile(asset);
-    if (file.exists()) {
-      file.delete();
-    }
-    // FIXME delete if parent directory is empty
+    String key = getAssetKey(asset.getTeam(), asset.getFileId());
+    storageService.delete(key);
   }
 
   protected AssetDto map(Asset asset) {

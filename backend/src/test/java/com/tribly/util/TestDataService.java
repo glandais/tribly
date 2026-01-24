@@ -4,6 +4,7 @@ import static com.tribly.common.TokenUtils.generateSecureToken;
 import static com.tribly.common.TokenUtils.hashToken;
 import static org.geolatte.geom.crs.CoordinateReferenceSystems.WGS84;
 
+import com.tribly.common.TsidUtils;
 import com.tribly.domain.ad.Ad;
 import com.tribly.domain.asset.Asset;
 import com.tribly.domain.calendar.CalendarToken;
@@ -27,6 +28,7 @@ import com.tribly.domain.trip.TripParticipation;
 import com.tribly.domain.trip.TripStage;
 import com.tribly.domain.user.User;
 import com.tribly.enums.*;
+import com.tribly.infrastructure.storage.StorageService;
 import com.tribly.repository.ad.AdRepository;
 import com.tribly.repository.asset.AssetRepository;
 import com.tribly.repository.calendar.CalendarTokenRepository;
@@ -56,6 +58,8 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.core.MediaType;
+import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.List;
 import org.geolatte.geom.G2D;
@@ -500,13 +504,31 @@ public class TestDataService {
   }
 
   @Inject AssetRepository assetRepository;
+  @Inject StorageService storageService;
+
+  private static final String ASSETS_PREFIX = "assets";
 
   @Transactional
   public Asset createAsset(Team team, User createdBy, AssetType type, String fileName) {
     String contentType = guessContentType(fileName);
-    Asset asset = new Asset(createdBy, team, type, TSID.fast().toLong(), fileName, contentType);
+    long fileId = TSID.fast().toLong();
+    Asset asset = new Asset(createdBy, team, type, fileId, fileName, contentType);
     assetRepository.persistAndFlush(asset);
+
+    // Upload dummy content to S3 so the asset can be retrieved
+    String key = getAssetKey(team, fileId);
+    byte[] dummyContent = ("test content for " + fileName).getBytes(StandardCharsets.UTF_8);
+    storageService.store(
+        key, new ByteArrayInputStream(dummyContent), contentType, dummyContent.length);
+
     return asset;
+  }
+
+  private String getAssetKey(Team team, long fileId) {
+    String teamId = TsidUtils.toString(team.getId());
+    String idString = TsidUtils.toString(fileId);
+    String subPath = idString.substring(0, 4);
+    return ASSETS_PREFIX + "/" + teamId + "/" + subPath + "/" + idString;
   }
 
   private String guessContentType(String fileName) {

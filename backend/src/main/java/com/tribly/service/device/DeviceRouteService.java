@@ -21,7 +21,7 @@ import com.tribly.service.security.TriblyQueryContext;
 import com.tribly.service.security.annotation.Logged;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import java.io.File;
+import java.io.InputStream;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -249,21 +249,21 @@ public class DeviceRouteService {
   }
 
   /**
-   * Get FIT file for a specific route.
+   * Get FIT content for a specific route.
    */
   @Logged
-  public File getFitFile(String teamSlug, String routeSlug) {
+  public InputStream getFitContent(String teamSlug, String routeSlug) {
     Route route = findRouteBySlug(teamSlug, routeSlug);
-    return gpxProcessingService.getFitFile(route);
+    return gpxProcessingService.getFitContent(route);
   }
 
   /**
-   * Get filtered GPX file for a specific route.
+   * Get filtered GPX content for a specific route.
    */
   @Logged
-  public File getGpxFile(String teamSlug, String routeSlug) {
+  public InputStream getGpxContent(String teamSlug, String routeSlug) {
     Route route = findRouteBySlug(teamSlug, routeSlug);
-    return gpxProcessingService.getFilteredGpxFile(route);
+    return gpxProcessingService.getFilteredGpxContent(route);
   }
 
   /**
