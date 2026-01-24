@@ -14,11 +14,11 @@
 
     <properties>
         <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
-        <quarkus.platform.version>3.30.6</quarkus.platform.version>
+        <quarkus.platform.version>3.30.8</quarkus.platform.version>
         <compiler-plugin.version>3.14.1</compiler-plugin.version>
         <surefire-plugin.version>3.5.4</surefire-plugin.version>
         <checkstyle-plugin.version>3.6.0</checkstyle-plugin.version>
-        <spotless-plugin.version>3.1.0</spotless-plugin.version>
+        <spotless-plugin.version>3.2.0</spotless-plugin.version>
         <hypersistence-utils-hibernate.version>3.14.1</hypersistence-utils-hibernate.version>
         <gpx.version>1.2.7</gpx.version>
         <lombok.version>1.18.42</lombok.version>
@@ -27,7 +27,9 @@
         <geolatte-geojson.version>1.10</geolatte-geojson.version>
         <archunit-junit5.version>1.4.1</archunit-junit5.version>
         <webauthn4j-core.version>0.30.2.RELEASE</webauthn4j-core.version>
-        <quarkus-amazon-services.version>3.13.0</quarkus-amazon-services.version>
+        <quarkus-amazon-services.version>3.14.0</quarkus-amazon-services.version>
+        <hibernate-spatial.version>7.2.0.Final</hibernate-spatial.version>
+        <timeshape.version>2025b.28</timeshape.version>
     </properties>
 
     <dependencyManagement>
@@ -92,7 +94,7 @@
         <dependency>
             <groupId>org.hibernate.orm</groupId>
             <artifactId>hibernate-spatial</artifactId>
-            <version>7.2.0.Final</version>
+            <version>${hibernate-spatial.version}</version>
         </dependency>
 
         <!-- Security - JWT -->
@@ -128,10 +130,6 @@
                     <groupId>com.github.haifengl</groupId>
                     <artifactId>smile-core</artifactId>
                 </exclusion>
-                <exclusion>
-                    <groupId>net.iakovlev</groupId>
-                    <artifactId>timeshape</artifactId>
-                </exclusion>
             </exclusions>
         </dependency>
 
@@ -139,7 +137,7 @@
         <dependency>
             <groupId>net.iakovlev</groupId>
             <artifactId>timeshape</artifactId>
-            <version>2025b.28</version>
+            <version>${timeshape.version}</version>
         </dependency>
 
         <!-- Validation -->
@@ -302,6 +300,7 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${surefire-plugin.version}</version>
                 <configuration>
+                    <argLine>@{argLine}</argLine>
                     <systemPropertyVariables>
                         <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
                         <maven.home>${maven.home}</maven.home>
@@ -381,18 +380,4 @@
             </plugin>
         </plugins>
     </build>
-
-    <profiles>
-        <profile>
-            <id>native</id>
-            <activation>
-                <property>
-                    <name>native</name>
-                </property>
-            </activation>
-            <properties>
-                <quarkus.native.enabled>true</quarkus.native.enabled>
-            </properties>
-        </profile>
-    </profiles>
 </project>
