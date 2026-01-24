@@ -23,7 +23,6 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.io.InputStream;
 import java.time.Instant;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -101,7 +100,6 @@ public class DeviceRouteService {
     }
 
     // Sort: rides first (by dateTime proximity), then by distance
-    Instant sortNow = now;
     allRoutes.sort(
         Comparator
             // Rides first (those with rideDateTime)
@@ -110,7 +108,7 @@ public class DeviceRouteService {
             .thenComparingLong(
                 r ->
                     r.dto().rideDateTime() != null
-                        ? Math.abs(r.dto().rideDateTime().toEpochMilli() - sortNow.toEpochMilli())
+                        ? Math.abs(r.dto().rideDateTime().toEpochMilli() - now.toEpochMilli())
                         : Long.MAX_VALUE)
             // Then by distance from user (if provided)
             .thenComparingDouble(
@@ -154,6 +152,7 @@ public class DeviceRouteService {
     List<RouteWithDistance> routes = new ArrayList<>();
 
     for (Ride ride : publishedRides) {
+      boolean oneWithoutGroup = true;
       for (RideGroup group : ride.getGroups()) {
         if (group.isDeleted()) continue;
 
@@ -163,16 +162,15 @@ public class DeviceRouteService {
         }
 
         if (route != null && !route.isDeleted()) {
-          String label = formatRideLabel(group.getName(), ride.getDateTime(), route);
-          RouteWithDistance rwd = toRouteWithDistance(route, label, ride.getDateTime(), lat, lon);
+          RouteWithDistance rwd = toRouteWithDistance(route, ride, group, lat, lon);
           routes.add(rwd);
+          oneWithoutGroup = false;
         }
       }
 
-      if (routes.isEmpty() && ride.getRoute() != null && !ride.getRoute().isDeleted()) {
+      if (oneWithoutGroup && ride.getRoute() != null && !ride.getRoute().isDeleted()) {
         Route route = ride.getRoute();
-        String label = formatRideLabel(ride.getName(), ride.getDateTime(), route);
-        RouteWithDistance rwd = toRouteWithDistance(route, label, ride.getDateTime(), lat, lon);
+        RouteWithDistance rwd = toRouteWithDistance(route, ride, null, lat, lon);
         routes.add(rwd);
       }
     }
@@ -202,50 +200,38 @@ public class DeviceRouteService {
 
   private RouteWithDistance toRouteWithDistance(
       Route route,
-      @Nullable String label,
-      @Nullable Instant rideDateTime,
+      @Nullable Ride ride,
+      @Nullable RideGroup rideGroup,
       @Nullable Double userLat,
       @Nullable Double userLon) {
 
-    Double startLat = null;
-    Double startLon = null;
     Double distanceFromUser = null;
 
     Point<G2D> start = route.getStart();
-    if (start != null) {
-      G2D position = start.getPosition();
-      startLat = position.getLat();
-      startLon = position.getLon();
+    G2D position = start.getPosition();
+    double startLat = position.getLat();
+    double startLon = position.getLon();
 
-      if (userLat != null && userLon != null) {
-        distanceFromUser = haversineDistance(userLat, userLon, startLat, startLon);
-      }
+    if (userLat != null && userLon != null) {
+      distanceFromUser = haversineDistance(userLat, userLon, startLat, startLon);
     }
 
     DeviceRouteDto dto =
         DeviceRouteDto.builder()
             .teamSlug(route.getTeam().getSlug())
             .routeSlug(route.getSlug())
-            .name(route.getName())
-            .label(label)
-            .rideDateTime(rideDateTime)
-            .distance(route.getDistance() != null ? route.getDistance() : 0f)
-            .elevationGain(route.getElevationGain() != null ? route.getElevationGain() : 0f)
+            .routeName(route.getName())
+            .rideName(ride == null ? null : ride.getName())
+            .rideDateTime(ride == null ? null : ride.getDateTime())
+            .groupName(rideGroup == null ? null : rideGroup.getName())
+            .groupTime(rideGroup == null ? null : rideGroup.getTime())
+            .distance(route.getDistance())
+            .elevationGain(route.getElevationGain())
             .startLat(startLat)
             .startLon(startLon)
             .build();
 
     return new RouteWithDistance(dto, distanceFromUser);
-  }
-
-  private String formatRideLabel(String groupName, Instant dateTime, Route route) {
-    Point<G2D> start = route.getStart();
-    ZoneId zoneId =
-        start != null
-            ? timezoneService.getZoneId(start.getPosition().getLat(), start.getPosition().getLon())
-            : ZoneId.systemDefault();
-    String date = DATE_FORMAT.withZone(zoneId).format(dateTime);
-    return groupName + " - " + date;
   }
 
   /**

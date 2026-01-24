@@ -928,9 +928,11 @@ components:
       required:
       - teamSlug
       - routeSlug
-      - name
+      - routeName
       - distance
       - elevationGain
+      - startLat
+      - startLon
       properties:
         teamSlug:
           type: string
@@ -938,16 +940,23 @@ components:
         routeSlug:
           type: string
           description: Route slug
-        name:
+        routeName:
           type: string
           description: Route name
-        label:
+        rideName:
           type: string
-          description: "Label (e.g., 'Rapides - 18/01 09:00')"
+          description: Ride name
         rideDateTime:
-          description: Ride date/time if from a ride
+          description: Ride date/time
           type: string
           $ref: "#/components/schemas/Instant"
+        groupName:
+          type: string
+          description: Group name
+        groupTime:
+          description: Group time
+          type: string
+          $ref: "#/components/schemas/LocalTime"
         distance:
           type: number
           format: float
