@@ -1,4 +1,4 @@
-# Makefile for Tribly Garmin Connect IQ App
+# Makefile for Pédalons Garmin Connect IQ App
 
 # SDK configuration - auto-detect if not set
 # Check macOS location first, then Linux location
@@ -22,7 +22,7 @@ SIMULATOR = $(CIQ_HOME)bin/simulator
 MONKEYDO = $(CIQ_HOME)bin/monkeydo
 
 # Project configuration
-PROJECT_NAME = Tribly
+PROJECT_NAME = Pedalons
 MANIFEST = manifest.xml
 JUNGLE = monkey.jungle
 SOURCE_DIR = source
@@ -168,7 +168,7 @@ package: build-all
 
 # Help
 help:
-	@echo "Tribly Garmin Connect IQ App Build System"
+	@echo "Pédalons Garmin Connect IQ App Build System"
 	@echo ""
 	@echo "Usage: make [target] [DEVICE=device_id]"
 	@echo ""

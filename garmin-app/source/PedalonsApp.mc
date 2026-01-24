@@ -6,11 +6,11 @@ using Toybox.Timer;
 using Toybox.WatchUi;
 
 /**
- * Main Tribly application for Garmin Connect IQ.
- * Allows users to browse and download routes from their Tribly teams.
+ * Main Pédalons application for Garmin Connect IQ.
+ * Allows users to browse and download routes from their teams.
  * Uses Device Code Flow (RFC 8628) for authentication.
  */
-class TriblyApp extends Application.AppBase {
+class PedalonsApp extends Application.AppBase {
     private var _authManager;
     private var _apiClient;
     private var _loginView;
@@ -60,8 +60,8 @@ class TriblyApp extends Application.AppBase {
      */
     function showRouteList() {
         _loginView = null;
-        var view = new TriblyView(_apiClient);
-        var delegate = new TriblyDelegate(view, _apiClient);
+        var view = new PedalonsView(_apiClient);
+        var delegate = new PedalonsDelegate(view);
         return [view, delegate];
     }
 

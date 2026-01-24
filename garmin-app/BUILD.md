@@ -1,8 +1,8 @@
-# Tribly Garmin Connect IQ App - Build Instructions
+# Pédalons Garmin Connect IQ App - Build Instructions
 
 ## Overview
 
-This document describes how to build the Tribly Connect IQ app for Garmin Edge cycling computers.
+This document describes how to build the Pédalons Connect IQ app for Garmin Edge cycling computers.
 
 ## Prerequisites
 
@@ -82,14 +82,14 @@ This creates `~/.Garmin/ConnectIQ/developer_key` (DER format, used for signing b
 cd garmin-app
 
 # Build the app container
-docker build -t tribly-garmin-builder -f Dockerfile.build .
+docker build -t pedalons-garmin-builder -f Dockerfile.build .
 
 # Build the app
 docker run --rm \
   -v ~/.Garmin/ConnectIQ:/root/.Garmin/ConnectIQ:ro \
   -v $(pwd):/app \
   -w /app \
-  tribly-garmin-builder \
+  pedalons-garmin-builder \
   make build
 ```
 
@@ -185,7 +185,7 @@ docker run --rm \
   -v $(pwd):/app \
   -w /app \
   garmin-sdk-manager \
-  /root/.Garmin/ConnectIQ/Sdks/connectiq-sdk-lin-8.4.0-2025-12-03-5122605dc/bin/monkeydo bin/Tribly-edge1040.prg edge1040
+  /root/.Garmin/ConnectIQ/Sdks/connectiq-sdk-lin-8.4.0-2025-12-03-5122605dc/bin/monkeydo bin/Pedalons-edge1040.prg edge1040
 ```
 
 ### Native Simulator (if webkit2gtk-4.0 is available)
@@ -204,7 +204,7 @@ The OAuth flow requires the Garmin Connect Mobile simulator or a physical device
 
 1. Start the app
 2. Select "Login"
-3. The simulated phone browser will open to the Tribly login page
+3. The simulated phone browser will open to the Pédalons login page
 4. Complete authentication
 5. The app receives the OAuth callback
 
@@ -277,12 +277,12 @@ garmin-app/
 ├── Dockerfile.sdk-manager # Docker image for SDK Manager
 ├── Dockerfile.build      # Docker image for building
 ├── source/
-│   ├── TriblyApp.mc      # Main app entry
+│   ├── PedalonsApp.mc    # Main app entry
 │   ├── AuthManager.mc    # OAuth token management
 │   ├── ApiClient.mc      # HTTP API client
 │   ├── LoginView.mc      # Login screen
-│   ├── TriblyView.mc     # Route list view
-│   ├── TriblyDelegate.mc # Route list input
+│   ├── PedalonsView.mc   # Route list view
+│   ├── PedalonsDelegate.mc # Route list input
 │   ├── RouteDetailView.mc    # Route detail
 │   ├── RouteDetailDelegate.mc # Route detail input
 │   └── ErrorView.mc      # Error display

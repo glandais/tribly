@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <strings>
-    <string id="AppName">Tribly</string>
+    <string id="AppName">Pédalons</string>
     <string id="LoginRequired">Connexion requise</string>
     <string id="LoginInstructions">Appuyez sur SELECT pour vous connecter</string>
     <string id="GoTo">Allez sur</string>
@@ -26,6 +26,8 @@
     <string id="UnitKm">km</string>
     <string id="UnitM">m</string>
     <string id="UnitDPlus">D+</string>
-    <string id="MenuTitle">Tribly</string>
+    <string id="MenuTitle">Pédalons</string>
     <string id="SelectHint"> - SELECT</string>
+    <string id="RoutesTitle">Pédalons</string>
+    <string id="Logout">Déconnexion</string>
 </strings>

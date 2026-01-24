@@ -4,7 +4,7 @@ using Toybox.System;
 using Toybox.Position;
 
 /**
- * API client for Tribly backend.
+ * API client for Pédalons backend.
  * Handles all HTTP communication including authentication via Device Code Flow.
  */
 class ApiClient {

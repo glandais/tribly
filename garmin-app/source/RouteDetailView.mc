@@ -11,6 +11,16 @@ class RouteDetailView extends WatchUi.View {
 
     function initialize(route) {
         View.initialize();
+        if (View has :setActionMenuIndicator) {
+            setActionMenuIndicator({:enabled => false});
+        }
+        if (View has :setControlBar) {
+            setControlBar({
+                :leftButton => WatchUi.CONTROL_BAR_LEFT_BUTTON_BACK,
+                :rightButton => WatchUi.CONTROL_BAR_RIGHT_BUTTON_ACCEPT,
+                :title => WatchUi.loadResource(Rez.Strings.Download)
+            });
+        }
         _route = route;
         _downloadStatus = null;
     }

@@ -18,3 +18,4 @@ developer_key.pub
 # OS files
 .DS_Store
 Thumbs.db
+docs/samples

@@ -1,2 +1,5 @@
-# Tribly Garmin Connect IQ App
+# Pédalons Garmin Connect IQ App
 project.manifest = manifest.xml
+
+# Only include source files from source/ directory
+base.sourcePath = source

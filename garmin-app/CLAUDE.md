@@ -2,7 +2,7 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-Tribly Garmin Connect IQ app for Garmin Edge cycling computers. Allows users to browse and download routes from their Tribly teams.
+Pédalons Garmin Connect IQ app for Garmin Edge cycling computers. Allows users to browse and download routes from their teams.
 
 ## Tech Stack
 
@@ -47,12 +47,12 @@ make keygen
 
 ```
 source/
-├── TriblyApp.mc          # Main app entry, Device Code Flow orchestration
+├── PedalonsApp.mc        # Main app entry, Device Code Flow orchestration
 ├── AuthManager.mc        # Token storage (Toybox.Storage), expiry management
 ├── ApiClient.mc          # HTTP client, all API calls, token refresh
 ├── LoginView.mc          # Device code display (user code + verification URL)
-├── TriblyView.mc         # Route list (scrollable, location-sorted)
-├── TriblyDelegate.mc     # Route list navigation input
+├── PedalonsView.mc       # Route list (scrollable, location-sorted)
+├── PedalonsDelegate.mc   # Route list navigation input
 ├── RouteDetailView.mc    # Single route details
 ├── RouteDetailDelegate.mc # Route detail input + download
 └── ErrorView.mc          # Error display
@@ -62,7 +62,7 @@ source/
 
 Uses Device Code Flow (RFC 8628) since Edge devices have no keyboard:
 
-1. User presses SELECT on LoginView → `TriblyApp.startDeviceCodeFlow()`
+1. User presses SELECT on LoginView → `PedalonsApp.startDeviceCodeFlow()`
 2. App calls `/api/device/oauth/device` with `clientId=garmin`
 3. Displays 6-char user code and `pedalons.fr/device` URL
 4. Polls `/api/device/oauth/token` until user authenticates on phone/computer

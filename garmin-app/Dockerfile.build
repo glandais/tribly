@@ -2,12 +2,12 @@
 # Requires SDK to be mounted from host at /root/.Garmin/ConnectIQ
 #
 # Usage:
-#   docker build -t tribly-garmin-builder -f Dockerfile.build .
+#   docker build -t pedalons-garmin-builder -f Dockerfile.build .
 #   docker run --rm \
 #     -v ~/.Garmin/ConnectIQ:/root/.Garmin/ConnectIQ:ro \
 #     -v $(pwd):/app \
 #     -w /app \
-#     tribly-garmin-builder \
+#     pedalons-garmin-builder \
 #     make build
 
 FROM ubuntu:22.04

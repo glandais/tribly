@@ -1,10 +1,10 @@
-# Tribly Garmin Connect IQ App
+# Pédalons Garmin Connect IQ App
 
-A Garmin Connect IQ app for Edge cycling computers that allows users to browse and download routes from their Tribly teams.
+A Garmin Connect IQ app for Edge cycling computers that allows users to browse and download routes from their teams.
 
 ## Features
 
-- Browse routes from all your Tribly teams
+- Browse routes from all your teams
 - Routes sorted by proximity to current location
 - Download routes as FIT files directly to your Garmin
 - Device Code Flow authentication (no keyboard needed)
@@ -103,7 +103,7 @@ docker run --rm \
   -v $(pwd):/app \
   -w /app \
   garmin-sdk-manager \
-  /root/.Garmin/ConnectIQ/Sdks/connectiq-sdk-lin-8.4.0-2025-12-03-5122605dc/bin/monkeydo bin/Tribly-edge1040.prg edge1040
+  /root/.Garmin/ConnectIQ/Sdks/connectiq-sdk-lin-8.4.0-2025-12-03-5122605dc/bin/monkeydo bin/Pedalons-edge1040.prg edge1040
 
 # When done, revoke X11 access
 xhost -local:docker
@@ -118,7 +118,7 @@ xhost -local:docker
 ### Deploy to Device
 
 1. Connect your Edge device via USB
-2. Copy `bin/Tribly-{device}.prg` to `GARMIN/Apps/` on the device
+2. Copy `bin/Pedalons-{device}.prg` to `GARMIN/Apps/` on the device
 3. Safely eject the device
 
 ## Authentication
@@ -129,7 +129,7 @@ The app uses Device Code Flow (RFC 8628) since Edge devices don't have keyboards
 2. Press SELECT to start login
 3. Note the 6-character code displayed
 4. On your phone or computer, go to `pedalons.fr/device`
-5. Enter the code and log in with your Tribly account
+5. Enter the code and log in with your Pédalons account
 6. The app automatically detects authentication and shows your routes
 
 ## Project Structure
@@ -140,11 +140,11 @@ garmin-app/
 ├── monkey.jungle         # Build configuration
 ├── Makefile              # Build automation
 ├── source/
-│   ├── TriblyApp.mc      # Main app entry
+│   ├── PedalonsApp.mc    # Main app entry
 │   ├── AuthManager.mc    # Token management
 │   ├── ApiClient.mc      # HTTP API client
 │   ├── LoginView.mc      # Login/auth screen
-│   ├── TriblyView.mc     # Route list
+│   ├── PedalonsView.mc   # Route list
 │   └── ...
 └── resources/
     └── strings/          # Localized strings (en, fr)
@@ -164,4 +164,4 @@ garmin-app/
 
 ## License
 
-Proprietary - Tribly
+Proprietary - Pédalons

@@ -3,7 +3,7 @@ using Toybox.Time;
 using Toybox.System;
 
 /**
- * Manages authentication tokens for Tribly API.
+ * Manages authentication tokens for Pédalons API.
  * Handles token storage, retrieval, and refresh.
  * Also manages device code flow state.
  */
