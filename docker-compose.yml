@@ -96,7 +96,7 @@ services:
       AWS_REGION: us-east-1
 
   varnish:
-    image: varnish:6.0.14
+    image: varnish:8.0.0
     container_name: tribly-varnish
     restart: unless-stopped
     networks:
