@@ -300,17 +300,28 @@ class ApiClient {
 
     /**
      * Handle routes API response.
+     * Parses the DeviceRouteDto fields into route dictionaries.
      */
     function onRoutesResponse(responseCode as Lang.Number, data as Lang.Dictionary or Lang.String or Null) as Void {
         var callback = _routesCallback;
         _routesCallback = null;
 
         if (responseCode == 200 && data != null && data instanceof Lang.Dictionary) {
-            var routes = (data as Lang.Dictionary).get("routes");
-            if (callback != null) {
-                callback.invoke(routes);
+            var rawRoutes = (data as Lang.Dictionary).get("routes");
+            if (rawRoutes != null && rawRoutes instanceof Lang.Array) {
+                var routes = [];
+                for (var i = 0; i < rawRoutes.size(); i++) {
+                    var raw = rawRoutes[i];
+                    if (raw instanceof Lang.Dictionary) {
+                        var route = parseRouteDto(raw as Lang.Dictionary);
+                        routes.add(route);
+                    }
+                }
+                if (callback != null) {
+                    callback.invoke(routes);
+                }
+                return;
             }
-            return;
         }
 
         // System.println("Routes response failed: " + responseCode);
@@ -323,6 +334,24 @@ class ApiClient {
         if (callback != null) {
             callback.invoke(null);
         }
+    }
+
+    /**
+     * Parse a single DeviceRouteDto from the API response.
+     */
+    private function parseRouteDto(raw as Lang.Dictionary) as Lang.Dictionary {
+        return {
+            "teamSlug" => raw.get("teamSlug"),
+            "routeSlug" => raw.get("routeSlug"),
+            "routeName" => raw.get("routeName"),
+            "rideName" => raw.get("rideName"),
+            "groupName" => raw.get("groupName"),
+            "startDateTime" => raw.get("startDateTime"),
+            "distance" => raw.get("distance"),
+            "elevationGain" => raw.get("elevationGain"),
+            "startLat" => raw.get("startLat"),
+            "startLon" => raw.get("startLon")
+        };
     }
 
     /**

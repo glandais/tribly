@@ -17,34 +17,17 @@ class ErrorView extends WatchUi.View {
     }
 
     function onUpdate(dc) {
-        // Clear screen
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
         dc.clear();
 
-        var width = dc.getWidth();
-        var height = dc.getHeight();
-        var centerX = width / 2;
-        var centerY = height / 2;
+        var centerX = dc.getWidth() / 2;
+        var centerY = dc.getHeight() / 2;
+        var layout = new VerticalLayout(centerY - 30, 8);
 
-        // Draw error message
-        dc.setColor(Graphics.COLOR_RED, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(
-            centerX,
-            centerY - 20,
-            Graphics.FONT_SMALL,
-            _message,
-            Graphics.TEXT_JUSTIFY_CENTER
-        );
-
-        // Draw retry hint
-        dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(
-            centerX,
-            centerY + 20,
-            Graphics.FONT_TINY,
+        layout.draw(dc, centerX, Graphics.FONT_SMALL, _message, null, Graphics.COLOR_RED);
+        layout.draw(dc, centerX, Graphics.FONT_TINY,
             WatchUi.loadResource(Rez.Strings.Retry) + WatchUi.loadResource(Rez.Strings.SelectHint),
-            Graphics.TEXT_JUSTIFY_CENTER
-        );
+            null, Graphics.COLOR_LT_GRAY);
     }
 }
 

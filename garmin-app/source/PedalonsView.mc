@@ -9,11 +9,13 @@ class PedalonsView extends WatchUi.View {
     private var _apiClient;
     private var _isLoading = true;
     private var _error;
+    private var _formatUtils;
 
     function initialize(apiClient) {
         View.initialize();
         _apiClient = apiClient;
         _error = null;
+        _formatUtils = new FormatUtils();
     }
 
     function onShow() {
@@ -43,31 +45,16 @@ class PedalonsView extends WatchUi.View {
             }
             if (menu has :setControlBar) {
                 menu.setControlBar({
-                    :leftButton => WatchUi.CONTROL_BAR_LEFT_BUTTON_BACK,
-                    :rightButton => WatchUi.CONTROL_BAR_RIGHT_BUTTON_ACCEPT
+                    :leftButton => WatchUi.CONTROL_BAR_LEFT_BUTTON_BACK
                 });
             }
 
             for (var i = 0; i < routes.size(); i++) {
                 var route = routes[i];
-                var name = route.get("name");
-                var label = route.get("label");
-                var distance = route.get("distance");
-                var elevationGain = route.get("elevationGain");
-
-                // Use label if present, otherwise name
-                var title = (label != null && label.length() > 0) ? label : name;
-                if (title == null) {
-                    title = WatchUi.loadResource(Rez.Strings.Unknown);
-                }
-
-                // Format stats as sublabel
-                var distanceKm = (distance != null) ? (distance / 1000.0).format("%.1f") + WatchUi.loadResource(Rez.Strings.UnitKm) : "";
-                var elevation = (elevationGain != null) ? elevationGain.format("%.0f") + WatchUi.loadResource(Rez.Strings.UnitM) + " " + WatchUi.loadResource(Rez.Strings.UnitDPlus) : "";
-                var sublabel = distanceKm + " | " + elevation;
+                var titleAndSublabel = formatRouteMenuItem(route);
 
                 // Use index as ID, store route in menu item
-                menu.addItem(new WatchUi.MenuItem(title, sublabel, i, {}));
+                menu.addItem(new WatchUi.MenuItem(titleAndSublabel[0], titleAndSublabel[1], i, {}));
             }
 
             // Switch to menu view
@@ -79,6 +66,47 @@ class PedalonsView extends WatchUi.View {
             _error = WatchUi.loadResource(Rez.Strings.ConnectionError);
             WatchUi.requestUpdate();
         }
+    }
+
+    /**
+     * Format route menu item based on route type.
+     * @param route Route dictionary
+     * @return Array [title, sublabel]
+     *
+     * Route types and formatting:
+     * - Standalone route: Route name | Distance / Elevation
+     * - Ride route: Ride name - Date | Ride time
+     * - Group route: Group name - Date | Group time
+     */
+    private function formatRouteMenuItem(route) {
+        var routeName = route.get("routeName");
+        var rideName = route.get("rideName");
+        var startDateTime = route.get("startDateTime");
+        var groupName = route.get("groupName");
+        var distance = route.get("distance");
+        var elevationGain = route.get("elevationGain");
+
+        var title;
+        var sublabel;
+
+        var withGroup = groupName != null && groupName.length() > 0;
+        var withRide = rideName != null && rideName.length() > 0;
+
+        if (withGroup && withRide) {
+            title = groupName + " - " + rideName;
+        } else if (withRide) {
+            title = rideName;
+        } else {
+            // Standalone route: Route name | Distance / Elevation
+            title = (routeName != null && routeName.length() > 0) ? routeName : WatchUi.loadResource(Rez.Strings.Unknown);
+        }
+        if (startDateTime != null && startDateTime.length() > 0) {
+            sublabel = _formatUtils.formatDateTime(startDateTime);
+        } else {
+            sublabel = _formatUtils.formatDistanceElevation(distance, elevationGain);
+        }
+
+        return [title, sublabel];
     }
 
     function getApiClient() {

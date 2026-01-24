@@ -2,7 +2,6 @@
 <strings>
     <string id="AppName">Pédalons</string>
     <string id="LoginRequired">Connexion requise</string>
-    <string id="LoginInstructions">Appuyez sur SELECT pour vous connecter</string>
     <string id="GoTo">Allez sur</string>
     <string id="Waiting">En attente...</string>
     <string id="CodeExpired">Code expiré</string>
@@ -25,7 +24,11 @@
     <string id="Unknown">Inconnu</string>
     <string id="UnitKm">km</string>
     <string id="UnitM">m</string>
+    <string id="UnitMi">mi</string>
+    <string id="UnitFt">ft</string>
     <string id="UnitDPlus">D+</string>
+    <string id="AM">AM</string>
+    <string id="PM">PM</string>
     <string id="MenuTitle">Pédalons</string>
     <string id="SelectHint"> - SELECT</string>
     <string id="RoutesTitle">Pédalons</string>
