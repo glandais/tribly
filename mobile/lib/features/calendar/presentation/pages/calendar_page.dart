@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -36,7 +37,7 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Calendrier'),
+        title: Text('calendar.title'.tr()),
       ),
       body: Column(
         children: [
@@ -75,7 +76,7 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'Aucun événement ce mois-ci',
+                          'calendar.noEvents'.tr(),
                           style: Theme.of(context).textTheme.titleMedium,
                         ),
                       ],
@@ -119,12 +120,12 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
                   children: [
                     const Icon(Icons.error_outline, size: 48, color: Colors.red),
                     const SizedBox(height: 16),
-                    Text('Erreur: $error'),
+                    Text('common.errorPrefix'.tr(args: [error.toString()])),
                     const SizedBox(height: 16),
                     FilledButton(
                       onPressed: () =>
                           ref.invalidate(calendarEventsProvider(params)),
-                      child: const Text('Réessayer'),
+                      child: Text('common.retry'.tr()),
                     ),
                   ],
                 ),
@@ -226,7 +227,7 @@ class _DaySection extends StatelessWidget {
               ),
               const SizedBox(width: 12),
               Text(
-                isToday ? "Aujourd'hui" : AppFormatters.formatDayMonth(date),
+                isToday ? AppFormatters.today : AppFormatters.formatDayMonth(date),
                 style: Theme.of(context).textTheme.titleSmall,
               ),
             ],

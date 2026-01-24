@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -37,6 +38,9 @@ class HomePage extends ConsumerWidget {
     final upcomingEvents = ref.watch(homeUpcomingEventsProvider);
     final teams = ref.watch(homeTeamsProvider);
 
+    final userName = authState.user?.displayName.split(' ').firstOrNull ??
+        'home.defaultGreeting'.tr();
+
     return Scaffold(
       body: RefreshIndicator(
         onRefresh: () async {
@@ -51,7 +55,7 @@ class HomePage extends ConsumerWidget {
               pinned: true,
               flexibleSpace: FlexibleSpaceBar(
                 title: Text(
-                  'Bonjour, ${authState.user?.displayName.split(' ').firstOrNull ?? 'Cycliste'}!',
+                  'home.greeting'.tr(args: [userName]),
                   style: const TextStyle(fontSize: 18),
                 ),
                 background: Container(
@@ -90,13 +94,13 @@ class HomePage extends ConsumerWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Connexion simplifiée',
+                                  'auth.passkey.simplifiedLogin'.tr(),
                                   style: theme.textTheme.titleSmall?.copyWith(
                                     color: theme.colorScheme.onPrimaryContainer,
                                   ),
                                 ),
                                 Text(
-                                  'Activez Passkey pour vous connecter avec votre empreinte',
+                                  'auth.passkey.enablePrompt'.tr(),
                                   style: theme.textTheme.bodySmall?.copyWith(
                                     color: theme.colorScheme.onPrimaryContainer,
                                   ),
@@ -106,7 +110,7 @@ class HomePage extends ConsumerWidget {
                           ),
                           TextButton(
                             onPressed: () => _registerPasskey(context, ref),
-                            child: const Text('Activer'),
+                            child: Text('auth.passkey.enable'.tr()),
                           ),
                         ],
                       ),
@@ -123,14 +127,14 @@ class HomePage extends ConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Prochaines sorties',
+                      'home.upcomingRides'.tr(),
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     TextButton(
                       onPressed: () => context.go(Paths.calendar()),
-                      child: const Text('Voir tout'),
+                      child: Text('common.viewAll'.tr()),
                     ),
                   ],
                 ),
@@ -154,7 +158,7 @@ class HomePage extends ConsumerWidget {
                                 color: theme.colorScheme.outline,
                               ),
                               const SizedBox(height: 8),
-                              const Text('Aucune sortie prévue cette semaine'),
+                              Text('home.noUpcomingRides'.tr()),
                             ],
                           ),
                         ),
@@ -198,10 +202,10 @@ class HomePage extends ConsumerWidget {
                         children: [
                           const Icon(Icons.error_outline, color: Colors.orange),
                           const SizedBox(width: 12),
-                          const Expanded(child: Text('Impossible de charger les événements')),
+                          Expanded(child: Text('home.unableToLoadEvents'.tr())),
                           TextButton(
                             onPressed: () => ref.invalidate(homeUpcomingEventsProvider),
-                            child: const Text('Réessayer'),
+                            child: Text('common.retry'.tr()),
                           ),
                         ],
                       ),
@@ -219,14 +223,14 @@ class HomePage extends ConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Mes équipes',
+                      'home.myTeams'.tr(),
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     TextButton(
                       onPressed: () => context.go(Paths.teams()),
-                      child: const Text('Voir tout'),
+                      child: Text('common.viewAll'.tr()),
                     ),
                   ],
                 ),
@@ -250,12 +254,12 @@ class HomePage extends ConsumerWidget {
                                 color: theme.colorScheme.outline,
                               ),
                               const SizedBox(height: 8),
-                              const Text('Rejoignez une équipe pour commencer'),
+                              Text('home.joinTeamPrompt'.tr()),
                               const SizedBox(height: 16),
                               FilledButton.icon(
                                 onPressed: () => context.go(Paths.teams()),
                                 icon: const Icon(Icons.search),
-                                label: const Text('Découvrir'),
+                                label: Text('common.discover'.tr()),
                               ),
                             ],
                           ),
@@ -277,10 +281,10 @@ class HomePage extends ConsumerWidget {
                   ),
                 ),
               ),
-              error: (_, __) => const SliverToBoxAdapter(
+              error: (_, __) => SliverToBoxAdapter(
                 child: ContentWidthConstraint(
-                  padding: EdgeInsets.all(16),
-                  child: Text('Erreur de chargement'),
+                  padding: const EdgeInsets.all(16),
+                  child: Text('common.loadError'.tr()),
                 ),
               ),
             ),
@@ -298,14 +302,14 @@ class HomePage extends ConsumerWidget {
       await passkeyService.register(deviceName: 'Mobile');
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Passkey ajouté avec succès!')),
+          SnackBar(content: Text('auth.passkey.success'.tr())),
         );
         ref.invalidate(authProvider);
       }
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: $e')),
+          SnackBar(content: Text('auth.errors.generic'.tr(args: [e.toString()]))),
         );
       }
     }

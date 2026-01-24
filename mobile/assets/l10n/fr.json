@@ -3,6 +3,12 @@
     "name": "Tribly",
     "tagline": "Plateforme pour équipes cyclistes"
   },
+  "nav": {
+    "home": "Accueil",
+    "teams": "Équipes",
+    "calendar": "Calendrier",
+    "profile": "Profil"
+  },
   "auth": {
     "login": "Connexion",
     "register": "Créer un compte",
@@ -13,18 +19,38 @@
       "login": "Connexion avec Passkey",
       "register": "Ajouter Passkey",
       "prompt": "Ajouter un Passkey?",
-      "description": "Connectez-vous plus rapidement avec votre empreinte digitale ou Face ID."
+      "description": "Connectez-vous plus rapidement avec votre empreinte digitale ou Face ID.",
+      "success": "Passkey ajouté avec succès!",
+      "simplifiedLogin": "Connexion simplifiée",
+      "enablePrompt": "Activez Passkey pour vous connecter avec votre empreinte",
+      "enable": "Activer"
     },
     "magicLink": {
       "title": "Connexion par email",
       "send": "Envoyer le lien",
-      "sent": "Un lien de connexion a été envoyé à {email}"
+      "sent": "Un lien de connexion a été envoyé à {email}",
+      "codePrompt": "Un code à 6 chiffres sera envoyé à votre email",
+      "registerPrompt": "Créez votre compte pour rejoindre les équipes cyclistes"
+    },
+    "otp": {
+      "title": "Entrez votre code",
+      "sent": "Un code à 6 chiffres a été envoyé à",
+      "expires": "Ce code expire dans 5 minutes",
+      "resend": "Renvoyer le code",
+      "resendIn": "Renvoyer dans {seconds}s",
+      "invalid": "Code invalide ou expiré",
+      "sendCode": "Envoyer le code",
+      "createAccount": "Créer mon compte"
     },
     "verifyEmail": {
       "title": "Vérification email",
       "verifying": "Vérification en cours...",
       "success": "Email vérifié!",
-      "accountCreated": "Votre compte a été créé avec succès."
+      "accountCreated": "Votre compte a été créé avec succès.",
+      "tokenMissing": "Token de vérification manquant",
+      "backToLogin": "Retour à la connexion",
+      "registerError": "Erreur lors de l'enregistrement du passkey: {error}",
+      "verificationSent": "Un email de vérification a été envoyé à {email}"
     },
     "errors": {
       "emailRequired": "L'email est requis",
@@ -33,7 +59,8 @@
       "displayNameTooShort": "Au moins 2 caractères",
       "displayNameTooLong": "100 caractères maximum",
       "tokenMissing": "Token manquant",
-      "authFailed": "Erreur lors de l'authentification"
+      "authFailed": "Erreur lors de l'authentification",
+      "generic": "Erreur: {error}"
     }
   },
   "common": {
@@ -42,13 +69,123 @@
     "later": "Plus tard",
     "or": "ou",
     "error": "Erreur",
-    "loading": "Chargement..."
+    "loading": "Chargement...",
+    "retry": "Réessayer",
+    "cancel": "Annuler",
+    "viewAll": "Voir tout",
+    "discover": "Découvrir",
+    "loadError": "Erreur de chargement",
+    "errorPrefix": "Erreur: {error}",
+    "user": "Utilisateur"
+  },
+  "dates": {
+    "daysShort": ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"],
+    "daysFull": ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"],
+    "monthsFull": ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"],
+    "monthsLower": ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"],
+    "today": "Aujourd'hui",
+    "tomorrow": "Demain",
+    "departure": "Départ: {time}"
+  },
+  "roles": {
+    "owner": "Propriétaire",
+    "admin": "Admin",
+    "member": "Membre"
+  },
+  "surfaces": {
+    "road": "Route",
+    "gravel": "Gravel",
+    "mtb": "VTT"
   },
   "home": {
+    "greeting": "Bonjour, {name}!",
+    "defaultGreeting": "Cycliste",
     "welcome": "Bienvenue!",
     "appInDevelopment": "L'application mobile Tribly est en cours de développement. Bientôt, vous pourrez accéder à vos équipes, sorties, itinéraires et plus encore.",
     "myTeams": "Mes équipes",
     "calendar": "Calendrier",
-    "routes": "Itinéraires"
+    "routes": "Itinéraires",
+    "upcomingRides": "Prochaines sorties",
+    "noUpcomingRides": "Aucune sortie prévue cette semaine",
+    "unableToLoadEvents": "Impossible de charger les événements",
+    "joinTeamPrompt": "Rejoignez une équipe pour commencer"
+  },
+  "teams": {
+    "title": "Mes équipes",
+    "empty": "Aucune équipe",
+    "joinPrompt": "Rejoignez une équipe pour commencer",
+    "discover": "Découvrir des équipes",
+    "members": "{count} membres",
+    "membersLabel": "Membres",
+    "about": "À propos"
+  },
+  "rides": {
+    "title": "Sorties",
+    "upcoming": "Prochaines sorties",
+    "noUpcoming": "Aucune sortie à venir",
+    "participants": "{count} participants",
+    "groups": "Groupes",
+    "join": "Participer",
+    "leave": "Se désinscrire",
+    "joinSuccess": "Inscription confirmée!",
+    "leaveSuccess": "Désinscription confirmée",
+    "noGroupAvailable": "Aucun groupe disponible",
+    "selectGroup": "Choisir un groupe",
+    "description": "Description"
+  },
+  "routes": {
+    "title": "Itinéraires",
+    "empty": "Aucun itinéraire",
+    "distance": "Distance",
+    "elevation": "D+",
+    "elevationDown": "D-",
+    "surface": "Type de surface",
+    "description": "Description",
+    "createdBy": "Créé par {name}",
+    "share": "Partager",
+    "exportGpx": "GPX",
+    "mapPlaceholder": "Carte (à implémenter)"
+  },
+  "calendar": {
+    "title": "Calendrier",
+    "noEvents": "Aucun événement ce mois-ci"
+  },
+  "profile": {
+    "title": "Profil",
+    "security": "Sécurité",
+    "preferences": "Préférences",
+    "about": "À propos",
+    "passkeys": {
+      "title": "Passkeys",
+      "enabled": "Connexion biométrique activée",
+      "notConfigured": "Non configuré",
+      "add": "Ajouter"
+    },
+    "magicLink": {
+      "title": "Magic Link",
+      "description": "Connexion par email"
+    },
+    "notifications": "Notifications",
+    "language": "Langue",
+    "version": "Version",
+    "privacy": "Politique de confidentialité",
+    "terms": "Conditions d'utilisation",
+    "deleteAccount": "Supprimer mon compte"
+  },
+  "dialog": {
+    "logout": {
+      "title": "Déconnexion",
+      "message": "Voulez-vous vraiment vous déconnecter?",
+      "cancel": "Annuler",
+      "confirm": "Déconnexion"
+    },
+    "selectGroup": {
+      "title": "Choisir un groupe",
+      "cancel": "Annuler"
+    }
+  },
+  "languages": {
+    "fr": "Français",
+    "en": "English"
   }
 }

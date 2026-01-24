@@ -1,8 +1,10 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../api/generated/export.dart';
+import '../../../../core/utils/formatters.dart';
 import '../../../../config/paths.dart';
 import '../../../../core/adaptive/adaptive.dart';
 import '../../../../core/utils/safe_string.dart';
@@ -51,11 +53,11 @@ class TeamDetailPage extends ConsumerWidget {
             children: [
               const Icon(Icons.error_outline, size: 48, color: Colors.red),
               const SizedBox(height: 16),
-              Text('Erreur: $error'),
+              Text('common.errorPrefix'.tr(args: [error.toString()])),
               const SizedBox(height: 16),
               FilledButton(
                 onPressed: () => ref.invalidate(teamDetailProvider(teamSlug)),
-                child: const Text('Réessayer'),
+                child: Text('common.retry'.tr()),
               ),
             ],
           ),
@@ -130,40 +132,40 @@ class _TeamDetailContent extends ConsumerWidget {
                     _StatItem(
                       icon: Icons.people,
                       value: '${team.memberCount}',
-                      label: 'Membres',
+                      label: 'teams.membersLabel'.tr(),
                     ),
                     ridesAsync.when(
                       data: (rides) => _StatItem(
                         icon: Icons.directions_bike,
                         value: '${rides.length}',
-                        label: 'Sorties',
+                        label: 'rides.title'.tr(),
                       ),
-                      loading: () => const _StatItem(
+                      loading: () => _StatItem(
                         icon: Icons.directions_bike,
                         value: '-',
-                        label: 'Sorties',
+                        label: 'rides.title'.tr(),
                       ),
-                      error: (_, __) => const _StatItem(
+                      error: (_, __) => _StatItem(
                         icon: Icons.directions_bike,
                         value: '?',
-                        label: 'Sorties',
+                        label: 'rides.title'.tr(),
                       ),
                     ),
                     routesAsync.when(
                       data: (routes) => _StatItem(
                         icon: Icons.route,
                         value: '${routes.length}',
-                        label: 'Itinéraires',
+                        label: 'routes.title'.tr(),
                       ),
-                      loading: () => const _StatItem(
+                      loading: () => _StatItem(
                         icon: Icons.route,
                         value: '-',
-                        label: 'Itinéraires',
+                        label: 'routes.title'.tr(),
                       ),
-                      error: (_, __) => const _StatItem(
+                      error: (_, __) => _StatItem(
                         icon: Icons.route,
                         value: '?',
-                        label: 'Itinéraires',
+                        label: 'routes.title'.tr(),
                       ),
                     ),
                   ],
@@ -183,7 +185,7 @@ class _TeamDetailContent extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'À propos',
+                            'teams.about'.tr(),
                             style: Theme.of(context).textTheme.titleMedium,
                           ),
                           const SizedBox(height: 8),
@@ -203,14 +205,14 @@ class _TeamDetailContent extends ConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Prochaines sorties',
+                      'rides.upcoming'.tr(),
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     TextButton(
                       onPressed: () {
                         // TODO: Navigate to all rides
                       },
-                      child: const Text('Voir tout'),
+                      child: Text('common.viewAll'.tr()),
                     ),
                   ],
                 ),
@@ -223,11 +225,11 @@ class _TeamDetailContent extends ConsumerWidget {
                   return SliverToBoxAdapter(
                     child: ContentWidthConstraint(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: const Card(
+                      child: Card(
                         child: Padding(
-                          padding: EdgeInsets.all(24),
+                          padding: const EdgeInsets.all(24),
                           child: Center(
-                            child: Text('Aucune sortie à venir'),
+                            child: Text('rides.noUpcoming'.tr()),
                           ),
                         ),
                       ),
@@ -255,10 +257,10 @@ class _TeamDetailContent extends ConsumerWidget {
               loading: () => const SliverToBoxAdapter(
                 child: Center(child: CircularProgressIndicator()),
               ),
-              error: (_, __) => const SliverToBoxAdapter(
+              error: (_, __) => SliverToBoxAdapter(
                 child: ContentWidthConstraint(
-                  padding: EdgeInsets.all(16),
-                  child: Text('Erreur de chargement'),
+                  padding: const EdgeInsets.all(16),
+                  child: Text('common.loadError'.tr()),
                 ),
               ),
             ),
@@ -271,12 +273,12 @@ class _TeamDetailContent extends ConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Itinéraires',
+                      'routes.title'.tr(),
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     TextButton(
                       onPressed: () => context.push(Paths.routes(team.slug)),
-                      child: const Text('Voir tout'),
+                      child: Text('common.viewAll'.tr()),
                     ),
                   ],
                 ),
@@ -289,11 +291,11 @@ class _TeamDetailContent extends ConsumerWidget {
                   return SliverToBoxAdapter(
                     child: ContentWidthConstraint(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: const Card(
+                      child: Card(
                         child: Padding(
-                          padding: EdgeInsets.all(24),
+                          padding: const EdgeInsets.all(24),
                           child: Center(
-                            child: Text('Aucun itinéraire'),
+                            child: Text('routes.empty'.tr()),
                           ),
                         ),
                       ),
@@ -307,10 +309,10 @@ class _TeamDetailContent extends ConsumerWidget {
               loading: () => const SliverToBoxAdapter(
                 child: Center(child: CircularProgressIndicator()),
               ),
-              error: (_, __) => const SliverToBoxAdapter(
+              error: (_, __) => SliverToBoxAdapter(
                 child: ContentWidthConstraint(
-                  padding: EdgeInsets.all(16),
-                  child: Text('Erreur de chargement'),
+                  padding: const EdgeInsets.all(16),
+                  child: Text('common.loadError'.tr()),
                 ),
               ),
             ),
@@ -429,7 +431,7 @@ class _RideCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          '${ride.participantCount} participants',
+                          'rides.participants'.tr(args: [ride.participantCount.toString()]),
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
                       ],
@@ -448,12 +450,13 @@ class _RideCard extends StatelessWidget {
   String _formatDate(DateTime date) {
     final now = DateTime.now();
     final diff = date.difference(now);
+    final time = "${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}";
     if (diff.inDays == 0) {
-      return "Aujourd'hui ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}";
+      return "${AppFormatters.today} $time";
     } else if (diff.inDays == 1) {
-      return "Demain ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}";
+      return "${AppFormatters.tomorrow} $time";
     }
-    return "${date.day}/${date.month} ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}";
+    return "${date.day}/${date.month} $time";
   }
 }
 

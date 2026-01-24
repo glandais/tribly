@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -18,7 +19,7 @@ class ProfilePage extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Profil'),
+        title: Text('profile.title'.tr()),
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
@@ -26,16 +27,16 @@ class ProfilePage extends ConsumerWidget {
               final confirmed = await showDialog<bool>(
                 context: context,
                 builder: (context) => AlertDialog(
-                  title: const Text('Déconnexion'),
-                  content: const Text('Voulez-vous vraiment vous déconnecter?'),
+                  title: Text('dialog.logout.title'.tr()),
+                  content: Text('dialog.logout.message'.tr()),
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.of(context).pop(false),
-                      child: const Text('Annuler'),
+                      child: Text('dialog.logout.cancel'.tr()),
                     ),
                     FilledButton(
                       onPressed: () => Navigator.of(context).pop(true),
-                      child: const Text('Déconnexion'),
+                      child: Text('dialog.logout.confirm'.tr()),
                     ),
                   ],
                 ),
@@ -74,7 +75,7 @@ class ProfilePage extends ConsumerWidget {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  user?.displayName ?? 'Utilisateur',
+                  user?.displayName ?? 'common.user'.tr(),
                   style: theme.textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -93,7 +94,7 @@ class ProfilePage extends ConsumerWidget {
 
           // Security section
           Text(
-            'Sécurité',
+            'profile.security'.tr(),
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.bold,
             ),
@@ -109,17 +110,17 @@ class ProfilePage extends ConsumerWidget {
                         ? theme.colorScheme.primary
                         : theme.colorScheme.outline,
                   ),
-                  title: const Text('Passkeys'),
+                  title: Text('profile.passkeys.title'.tr()),
                   subtitle: Text(
                     authState.hasPasskeys
-                        ? 'Connexion biométrique activée'
-                        : 'Non configuré',
+                        ? 'profile.passkeys.enabled'.tr()
+                        : 'profile.passkeys.notConfigured'.tr(),
                   ),
                   trailing: authState.hasPasskeys
                       ? Icon(Icons.check_circle, color: theme.colorScheme.primary)
                       : FilledButton.tonal(
                           onPressed: () => _registerPasskey(context, ref),
-                          child: const Text('Ajouter'),
+                          child: Text('profile.passkeys.add'.tr()),
                         ),
                 ),
                 const Divider(height: 1),
@@ -128,8 +129,8 @@ class ProfilePage extends ConsumerWidget {
                     Icons.email,
                     color: theme.colorScheme.outline,
                   ),
-                  title: const Text('Magic Link'),
-                  subtitle: const Text('Connexion par email'),
+                  title: Text('profile.magicLink.title'.tr()),
+                  subtitle: Text('profile.magicLink.description'.tr()),
                   trailing: Icon(Icons.check_circle, color: theme.colorScheme.primary),
                 ),
               ],
@@ -139,7 +140,7 @@ class ProfilePage extends ConsumerWidget {
 
           // Preferences section
           Text(
-            'Préférences',
+            'profile.preferences'.tr(),
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.bold,
             ),
@@ -153,7 +154,7 @@ class ProfilePage extends ConsumerWidget {
                     Icons.notifications_outlined,
                     color: theme.colorScheme.outline,
                   ),
-                  title: const Text('Notifications'),
+                  title: Text('profile.notifications'.tr()),
                   trailing: Switch(
                     value: true,
                     onChanged: (value) {
@@ -167,12 +168,14 @@ class ProfilePage extends ConsumerWidget {
                     Icons.language,
                     color: theme.colorScheme.outline,
                   ),
-                  title: const Text('Langue'),
-                  subtitle: const Text('Français'),
+                  title: Text('profile.language'.tr()),
+                  subtitle: Text(
+                    context.locale.languageCode == 'fr'
+                        ? 'languages.fr'.tr()
+                        : 'languages.en'.tr(),
+                  ),
                   trailing: const Icon(Icons.chevron_right),
-                  onTap: () {
-                    // TODO: Language picker
-                  },
+                  onTap: () => _showLanguagePicker(context),
                 ),
               ],
             ),
@@ -181,7 +184,7 @@ class ProfilePage extends ConsumerWidget {
 
           // About section
           Text(
-            'À propos',
+            'profile.about'.tr(),
             style: theme.textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.bold,
             ),
@@ -195,7 +198,7 @@ class ProfilePage extends ConsumerWidget {
                     Icons.info_outline,
                     color: theme.colorScheme.outline,
                   ),
-                  title: const Text('Version'),
+                  title: Text('profile.version'.tr()),
                   trailing: Text(
                     '1.0.0',
                     style: theme.textTheme.bodyMedium?.copyWith(
@@ -209,7 +212,7 @@ class ProfilePage extends ConsumerWidget {
                     Icons.policy_outlined,
                     color: theme.colorScheme.outline,
                   ),
-                  title: const Text('Politique de confidentialité'),
+                  title: Text('profile.privacy'.tr()),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () {
                     // TODO: Open privacy policy
@@ -221,7 +224,7 @@ class ProfilePage extends ConsumerWidget {
                     Icons.description_outlined,
                     color: theme.colorScheme.outline,
                   ),
-                  title: const Text('Conditions d\'utilisation'),
+                  title: Text('profile.terms'.tr()),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () {
                     // TODO: Open terms
@@ -241,10 +244,43 @@ class ProfilePage extends ConsumerWidget {
               foregroundColor: theme.colorScheme.error,
             ),
             icon: const Icon(Icons.delete_forever),
-            label: const Text('Supprimer mon compte'),
+            label: Text('profile.deleteAccount'.tr()),
           ),
         ],
       ),
+        ),
+      ),
+    );
+  }
+
+  void _showLanguagePicker(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              title: Text('languages.fr'.tr()),
+              trailing: context.locale.languageCode == 'fr'
+                  ? const Icon(Icons.check)
+                  : null,
+              onTap: () {
+                context.setLocale(const Locale('fr'));
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              title: Text('languages.en'.tr()),
+              trailing: context.locale.languageCode == 'en'
+                  ? const Icon(Icons.check)
+                  : null,
+              onTap: () {
+                context.setLocale(const Locale('en'));
+                Navigator.pop(context);
+              },
+            ),
+          ],
         ),
       ),
     );
@@ -256,7 +292,7 @@ class ProfilePage extends ConsumerWidget {
       await passkeyService.register(deviceName: 'Mobile');
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Passkey ajouté avec succès!')),
+          SnackBar(content: Text('auth.passkey.success'.tr())),
         );
         // Refresh auth state to update passkey status
         ref.invalidate(authProvider);
@@ -264,7 +300,7 @@ class ProfilePage extends ConsumerWidget {
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: $e')),
+          SnackBar(content: Text('auth.errors.generic'.tr(args: [e.toString()]))),
         );
       }
     }

@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -31,7 +32,7 @@ class _VerifyEmailPageState extends ConsumerState<VerifyEmailPage> {
     if (widget.token == null || widget.token!.isEmpty) {
       setState(() {
         _isLoading = false;
-        _errorMessage = 'Token de vérification manquant';
+        _errorMessage = 'auth.verifyEmail.tokenMissing'.tr();
       });
       return;
     }
@@ -55,7 +56,7 @@ class _VerifyEmailPageState extends ConsumerState<VerifyEmailPage> {
       if (mounted) {
         setState(() {
           _isLoading = false;
-          _errorMessage = 'Erreur lors de la vérification: $e';
+          _errorMessage = 'auth.verifyEmail.registerError'.tr(args: [e.toString()]);
         });
       }
     }
@@ -74,7 +75,7 @@ class _VerifyEmailPageState extends ConsumerState<VerifyEmailPage> {
       if (mounted) {
         setState(() {
           _isLoading = false;
-          _errorMessage = 'Erreur lors de l\'enregistrement du passkey: $e';
+          _errorMessage = 'auth.verifyEmail.registerError'.tr(args: [e.toString()]);
         });
       }
     }
@@ -86,7 +87,7 @@ class _VerifyEmailPageState extends ConsumerState<VerifyEmailPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Vérification email'),
+        title: Text('auth.verifyEmail.title'.tr()),
         centerTitle: true,
       ),
       body: SafeArea(
@@ -99,7 +100,7 @@ class _VerifyEmailPageState extends ConsumerState<VerifyEmailPage> {
                 if (_isLoading) ...[
                   const CircularProgressIndicator(),
                   const SizedBox(height: 24),
-                  const Text('Vérification en cours...'),
+                  Text('auth.verifyEmail.verifying'.tr()),
                 ] else if (_errorMessage != null) ...[
                   Icon(
                     Icons.error_outline,
@@ -108,7 +109,7 @@ class _VerifyEmailPageState extends ConsumerState<VerifyEmailPage> {
                   ),
                   const SizedBox(height: 24),
                   Text(
-                    'Erreur',
+                    'common.error'.tr(),
                     style: theme.textTheme.headlineSmall,
                   ),
                   const SizedBox(height: 16),
@@ -120,7 +121,7 @@ class _VerifyEmailPageState extends ConsumerState<VerifyEmailPage> {
                   const SizedBox(height: 24),
                   FilledButton(
                     onPressed: () => context.go(Paths.login()),
-                    child: const Text('Retour à la connexion'),
+                    child: Text('auth.verifyEmail.backToLogin'.tr()),
                   ),
                 ] else if (_isSuccess) ...[
                   if (_showPasskeyPrompt) ...[
@@ -131,12 +132,12 @@ class _VerifyEmailPageState extends ConsumerState<VerifyEmailPage> {
                     ),
                     const SizedBox(height: 24),
                     Text(
-                      'Email vérifié!',
+                      'auth.verifyEmail.success'.tr(),
                       style: theme.textTheme.headlineSmall,
                     ),
                     const SizedBox(height: 16),
-                    const Text(
-                      'Votre compte a été créé avec succès.',
+                    Text(
+                      'auth.verifyEmail.accountCreated'.tr(),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 32),
@@ -152,24 +153,24 @@ class _VerifyEmailPageState extends ConsumerState<VerifyEmailPage> {
                             ),
                             const SizedBox(height: 16),
                             Text(
-                              'Ajouter un Passkey?',
+                              'auth.passkey.prompt'.tr(),
                               style: theme.textTheme.titleMedium,
                             ),
                             const SizedBox(height: 8),
-                            const Text(
-                              'Connectez-vous plus rapidement avec votre empreinte digitale ou Face ID.',
+                            Text(
+                              'auth.passkey.description'.tr(),
                               textAlign: TextAlign.center,
                             ),
                             const SizedBox(height: 16),
                             FilledButton.icon(
                               onPressed: _registerPasskey,
                               icon: const Icon(Icons.fingerprint),
-                              label: const Text('Ajouter Passkey'),
+                              label: Text('auth.passkey.register'.tr()),
                             ),
                             const SizedBox(height: 8),
                             TextButton(
                               onPressed: () => context.go(Paths.home()),
-                              child: const Text('Plus tard'),
+                              child: Text('common.later'.tr()),
                             ),
                           ],
                         ),
@@ -183,18 +184,18 @@ class _VerifyEmailPageState extends ConsumerState<VerifyEmailPage> {
                     ),
                     const SizedBox(height: 24),
                     Text(
-                      'Email vérifié!',
+                      'auth.verifyEmail.success'.tr(),
                       style: theme.textTheme.headlineSmall,
                     ),
                     const SizedBox(height: 16),
-                    const Text(
-                      'Votre compte a été créé avec succès.',
+                    Text(
+                      'auth.verifyEmail.accountCreated'.tr(),
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 24),
                     FilledButton(
                       onPressed: () => context.go(Paths.home()),
-                      child: const Text('Continuer'),
+                      child: Text('common.continue'.tr()),
                     ),
                   ],
                 ],

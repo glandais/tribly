@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 /// Centralized formatting utilities for the Tribly app.
@@ -8,109 +9,57 @@ class AppFormatters {
   AppFormatters._();
 
   // ─────────────────────────────────────────────────────────────────────────
-  // Day names
+  // Day names - using translations
   // ─────────────────────────────────────────────────────────────────────────
 
-  /// Short French day names (Mon-Sun), 1-indexed by weekday.
-  static const dayNamesShort = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
-
-  /// Full French day names, 1-indexed by weekday.
-  static const dayNamesFull = [
-    'Lundi',
-    'Mardi',
-    'Mercredi',
-    'Jeudi',
-    'Vendredi',
-    'Samedi',
-    'Dimanche',
-  ];
-
   /// Returns the short day name for a weekday (1=Monday, 7=Sunday).
-  static String dayAbbrev(int weekday) {
+  static String dayAbbrev(int weekday, {BuildContext? context}) {
     if (weekday < 1 || weekday > 7) return '?';
-    return dayNamesShort[weekday - 1];
+    final List<dynamic> days = tr('dates.daysShort') as List<dynamic>;
+    return days[weekday - 1] as String;
   }
 
   /// Returns the full day name for a weekday (1=Monday, 7=Sunday).
-  static String dayFull(int weekday) {
+  static String dayFull(int weekday, {BuildContext? context}) {
     if (weekday < 1 || weekday > 7) return '?';
-    return dayNamesFull[weekday - 1];
+    final List<dynamic> days = tr('dates.daysFull') as List<dynamic>;
+    return days[weekday - 1] as String;
   }
 
   // ─────────────────────────────────────────────────────────────────────────
-  // Month names
+  // Month names - using translations
   // ─────────────────────────────────────────────────────────────────────────
 
-  /// French month names (capitalized), 1-indexed.
-  static const monthNamesCapitalized = [
-    'Janvier',
-    'Février',
-    'Mars',
-    'Avril',
-    'Mai',
-    'Juin',
-    'Juillet',
-    'Août',
-    'Septembre',
-    'Octobre',
-    'Novembre',
-    'Décembre',
-  ];
-
-  /// French month names (lowercase), 1-indexed.
-  static const monthNamesLower = [
-    'janvier',
-    'février',
-    'mars',
-    'avril',
-    'mai',
-    'juin',
-    'juillet',
-    'août',
-    'septembre',
-    'octobre',
-    'novembre',
-    'décembre',
-  ];
-
   /// Returns the capitalized month name (1=January, 12=December).
-  static String monthCapitalized(int month) {
+  static String monthCapitalized(int month, {BuildContext? context}) {
     if (month < 1 || month > 12) return '?';
-    return monthNamesCapitalized[month - 1];
+    final List<dynamic> months = tr('dates.monthsFull') as List<dynamic>;
+    return months[month - 1] as String;
   }
 
   /// Returns the lowercase month name (1=January, 12=December).
-  static String monthLower(int month) {
+  static String monthLower(int month, {BuildContext? context}) {
     if (month < 1 || month > 12) return '?';
-    return monthNamesLower[month - 1];
+    final List<dynamic> months = tr('dates.monthsLower') as List<dynamic>;
+    return months[month - 1] as String;
   }
 
   // ─────────────────────────────────────────────────────────────────────────
-  // Role names
+  // Role names - using translations
   // ─────────────────────────────────────────────────────────────────────────
 
   /// Returns the localized display name for a team role.
   static String roleName(String role) {
-    return switch (role.toUpperCase()) {
-      'OWNER' => 'Propriétaire',
-      'ADMIN' => 'Admin',
-      'MEMBER' => 'Membre',
-      _ => role,
-    };
+    return tr('roles.${role.toLowerCase()}');
   }
 
   // ─────────────────────────────────────────────────────────────────────────
-  // Surface types
+  // Surface types - using translations
   // ─────────────────────────────────────────────────────────────────────────
 
   /// Returns the localized display name for a surface type.
   static String surfaceName(String surface) {
-    return switch (surface.toUpperCase()) {
-      'ROAD' => 'Route',
-      'GRAVEL' => 'Gravel',
-      'MTB' => 'VTT',
-      _ => surface,
-    };
+    return tr('surfaces.${surface.toLowerCase()}');
   }
 
   /// Returns the icon for a surface type.
@@ -124,15 +73,15 @@ class AppFormatters {
   }
 
   // ─────────────────────────────────────────────────────────────────────────
-  // Date/time formatting
+  // Date/time formatting - using intl for locale-aware formatting
   // ─────────────────────────────────────────────────────────────────────────
 
-  /// Formats time as HH:mm.
+  /// Formats time as HH:mm using current locale.
   static String formatTime(DateTime date) {
-    return '${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+    return DateFormat.Hm().format(date);
   }
 
-  /// Formats a date as "day month" (e.g., "15 janvier").
+  /// Formats a date as "day month" (e.g., "15 janvier" in French, "January 15" in English).
   static String formatDayMonth(DateTime date) {
     return '${date.day} ${monthLower(date.month)}';
   }
@@ -146,4 +95,10 @@ class AppFormatters {
   static String formatMonthYear(DateTime date) {
     return '${monthCapitalized(date.month)} ${date.year}';
   }
+
+  /// Returns "Today" translation
+  static String get today => tr('dates.today');
+
+  /// Returns "Tomorrow" translation
+  static String get tomorrow => tr('dates.tomorrow');
 }

@@ -3,6 +3,12 @@
     "name": "Tribly",
     "tagline": "Platform for cycling teams"
   },
+  "nav": {
+    "home": "Home",
+    "teams": "Teams",
+    "calendar": "Calendar",
+    "profile": "Profile"
+  },
   "auth": {
     "login": "Login",
     "register": "Create account",
@@ -13,18 +19,38 @@
       "login": "Login with Passkey",
       "register": "Add Passkey",
       "prompt": "Add a Passkey?",
-      "description": "Login faster with your fingerprint or Face ID."
+      "description": "Login faster with your fingerprint or Face ID.",
+      "success": "Passkey added successfully!",
+      "simplifiedLogin": "Simplified login",
+      "enablePrompt": "Enable Passkey to login with your fingerprint",
+      "enable": "Enable"
     },
     "magicLink": {
       "title": "Login by email",
       "send": "Send link",
-      "sent": "A login link has been sent to {email}"
+      "sent": "A login link has been sent to {email}",
+      "codePrompt": "A 6-digit code will be sent to your email",
+      "registerPrompt": "Create your account to join cycling teams"
+    },
+    "otp": {
+      "title": "Enter your code",
+      "sent": "A 6-digit code has been sent to",
+      "expires": "This code expires in 5 minutes",
+      "resend": "Resend code",
+      "resendIn": "Resend in {seconds}s",
+      "invalid": "Invalid or expired code",
+      "sendCode": "Send code",
+      "createAccount": "Create my account"
     },
     "verifyEmail": {
       "title": "Email verification",
       "verifying": "Verifying...",
       "success": "Email verified!",
-      "accountCreated": "Your account has been created successfully."
+      "accountCreated": "Your account has been created successfully.",
+      "tokenMissing": "Verification token missing",
+      "backToLogin": "Back to login",
+      "registerError": "Error registering passkey: {error}",
+      "verificationSent": "A verification email has been sent to {email}"
     },
     "errors": {
       "emailRequired": "Email is required",
@@ -33,7 +59,8 @@
       "displayNameTooShort": "At least 2 characters",
       "displayNameTooLong": "100 characters maximum",
       "tokenMissing": "Token missing",
-      "authFailed": "Authentication failed"
+      "authFailed": "Authentication failed",
+      "generic": "Error: {error}"
     }
   },
   "common": {
@@ -42,13 +69,123 @@
     "later": "Later",
     "or": "or",
     "error": "Error",
-    "loading": "Loading..."
+    "loading": "Loading...",
+    "retry": "Retry",
+    "cancel": "Cancel",
+    "viewAll": "View all",
+    "discover": "Discover",
+    "loadError": "Loading error",
+    "errorPrefix": "Error: {error}",
+    "user": "User"
+  },
+  "dates": {
+    "daysShort": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+    "daysFull": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+    "monthsFull": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+    "monthsLower": ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"],
+    "today": "Today",
+    "tomorrow": "Tomorrow",
+    "departure": "Departure: {time}"
+  },
+  "roles": {
+    "owner": "Owner",
+    "admin": "Admin",
+    "member": "Member"
+  },
+  "surfaces": {
+    "road": "Road",
+    "gravel": "Gravel",
+    "mtb": "MTB"
   },
   "home": {
+    "greeting": "Hello, {name}!",
+    "defaultGreeting": "Cyclist",
     "welcome": "Welcome!",
     "appInDevelopment": "The Tribly mobile app is under development. Soon, you'll be able to access your teams, rides, routes and more.",
     "myTeams": "My teams",
     "calendar": "Calendar",
-    "routes": "Routes"
+    "routes": "Routes",
+    "upcomingRides": "Upcoming rides",
+    "noUpcomingRides": "No rides planned this week",
+    "unableToLoadEvents": "Unable to load events",
+    "joinTeamPrompt": "Join a team to get started"
+  },
+  "teams": {
+    "title": "My teams",
+    "empty": "No teams",
+    "joinPrompt": "Join a team to get started",
+    "discover": "Discover teams",
+    "members": "{count} members",
+    "membersLabel": "Members",
+    "about": "About"
+  },
+  "rides": {
+    "title": "Rides",
+    "upcoming": "Upcoming rides",
+    "noUpcoming": "No upcoming rides",
+    "participants": "{count} participants",
+    "groups": "Groups",
+    "join": "Join",
+    "leave": "Leave",
+    "joinSuccess": "Registration confirmed!",
+    "leaveSuccess": "Unregistered successfully",
+    "noGroupAvailable": "No group available",
+    "selectGroup": "Select a group",
+    "description": "Description"
+  },
+  "routes": {
+    "title": "Routes",
+    "empty": "No routes",
+    "distance": "Distance",
+    "elevation": "Elevation",
+    "elevationDown": "Descent",
+    "surface": "Surface type",
+    "description": "Description",
+    "createdBy": "Created by {name}",
+    "share": "Share",
+    "exportGpx": "GPX",
+    "mapPlaceholder": "Map (to be implemented)"
+  },
+  "calendar": {
+    "title": "Calendar",
+    "noEvents": "No events this month"
+  },
+  "profile": {
+    "title": "Profile",
+    "security": "Security",
+    "preferences": "Preferences",
+    "about": "About",
+    "passkeys": {
+      "title": "Passkeys",
+      "enabled": "Biometric login enabled",
+      "notConfigured": "Not configured",
+      "add": "Add"
+    },
+    "magicLink": {
+      "title": "Magic Link",
+      "description": "Login by email"
+    },
+    "notifications": "Notifications",
+    "language": "Language",
+    "version": "Version",
+    "privacy": "Privacy policy",
+    "terms": "Terms of use",
+    "deleteAccount": "Delete my account"
+  },
+  "dialog": {
+    "logout": {
+      "title": "Logout",
+      "message": "Are you sure you want to logout?",
+      "cancel": "Cancel",
+      "confirm": "Logout"
+    },
+    "selectGroup": {
+      "title": "Select a group",
+      "cancel": "Cancel"
+    }
+  },
+  "languages": {
+    "fr": "Français",
+    "en": "English"
   }
 }

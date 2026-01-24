@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -23,7 +24,7 @@ class TeamsPage extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Mes équipes'),
+        title: Text('teams.title'.tr()),
         actions: [
           IconButton(
             icon: const Icon(Icons.search),
@@ -47,18 +48,18 @@ class TeamsPage extends ConsumerWidget {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Aucune équipe',
+                    'teams.empty'.tr(),
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   const SizedBox(height: 8),
-                  const Text('Rejoignez une équipe pour commencer'),
+                  Text('teams.joinPrompt'.tr()),
                   const SizedBox(height: 24),
                   FilledButton.icon(
                     onPressed: () {
                       // TODO: Navigate to discover teams
                     },
                     icon: const Icon(Icons.search),
-                    label: const Text('Découvrir des équipes'),
+                    label: Text('teams.discover'.tr()),
                   ),
                 ],
               ),
@@ -85,11 +86,11 @@ class TeamsPage extends ConsumerWidget {
             children: [
               const Icon(Icons.error_outline, size: 48, color: Colors.red),
               const SizedBox(height: 16),
-              Text('Erreur: $error'),
+              Text('common.errorPrefix'.tr(args: [error.toString()])),
               const SizedBox(height: 16),
               FilledButton(
                 onPressed: () => ref.invalidate(myTeamsProvider),
-                child: const Text('Réessayer'),
+                child: Text('common.retry'.tr()),
               ),
             ],
           ),
@@ -150,7 +151,7 @@ class _TeamCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          '${team.memberCount} membres',
+                          'teams.members'.tr(args: [team.memberCount.toString()]),
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
                         if (team.role != null) ...[

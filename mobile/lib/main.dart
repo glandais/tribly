@@ -1,4 +1,5 @@
 import 'package:app_links/app_links.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -7,6 +8,7 @@ import 'config/router.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await EasyLocalization.ensureInitialized();
 
   // Handle deep links
   final appLinks = AppLinks();
@@ -18,14 +20,19 @@ void main() async {
   }
 
   runApp(
-    ProviderScope(
-      overrides: [
-        // If there's an initial deep link, we could pass it here
-        // For now, GoRouter handles it via the URL
-      ],
-      child: _DeepLinkHandler(
-        appLinks: appLinks,
-        child: const TriblyApp(),
+    EasyLocalization(
+      supportedLocales: const [Locale('en'), Locale('fr')],
+      path: 'assets/l10n',
+      fallbackLocale: const Locale('fr'),
+      child: ProviderScope(
+        overrides: [
+          // If there's an initial deep link, we could pass it here
+          // For now, GoRouter handles it via the URL
+        ],
+        child: _DeepLinkHandler(
+          appLinks: appLinks,
+          child: const TriblyApp(),
+        ),
       ),
     ),
   );

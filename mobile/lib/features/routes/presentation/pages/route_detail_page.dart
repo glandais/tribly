@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -42,11 +43,11 @@ class RouteDetailPage extends ConsumerWidget {
             children: [
               const Icon(Icons.error_outline, size: 48, color: Colors.red),
               const SizedBox(height: 16),
-              Text('Erreur: $error'),
+              Text('common.errorPrefix'.tr(args: [error.toString()])),
               const SizedBox(height: 16),
               FilledButton(
                 onPressed: () => ref.invalidate(routeDetailProvider(params)),
-                child: const Text('Réessayer'),
+                child: Text('common.retry'.tr()),
               ),
             ],
           ),
@@ -116,17 +117,17 @@ class _RouteDetailContent extends StatelessWidget {
                         icon: Icons.straighten,
                         value:
                             '${(route.distance / 1000).toStringAsFixed(1)} km',
-                        label: 'Distance',
+                        label: 'routes.distance'.tr(),
                       ),
                       _StatItem(
                         icon: Icons.trending_up,
                         value: '${route.elevationGain.toInt()} m',
-                        label: 'D+',
+                        label: 'routes.elevation'.tr(),
                       ),
                       _StatItem(
                         icon: Icons.trending_down,
                         value: '${route.elevationLoss.toInt()} m',
-                        label: 'D-',
+                        label: 'routes.elevationDown'.tr(),
                       ),
                     ],
                   ),
@@ -145,7 +146,7 @@ class _RouteDetailContent extends StatelessWidget {
                     AppFormatters.surfaceIcon(route.surfaceType),
                     color: Theme.of(context).colorScheme.primary,
                   ),
-                  title: const Text('Type de surface'),
+                  title: Text('routes.surface'.tr()),
                   subtitle: Text(AppFormatters.surfaceName(route.surfaceType)),
                 ),
               ),
@@ -164,7 +165,7 @@ class _RouteDetailContent extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Description',
+                          'routes.description'.tr(),
                           style: Theme.of(context).textTheme.titleMedium,
                         ),
                         const SizedBox(height: 8),
@@ -196,7 +197,7 @@ class _RouteDetailContent extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    'Créé par ${route.createdBy.displayName}',
+                    'routes.createdBy'.tr(args: [route.createdBy.displayName]),
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                 ],
@@ -226,7 +227,7 @@ class _RouteDetailContent extends StatelessWidget {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Carte (à implémenter)',
+                          'routes.mapPlaceholder'.tr(),
                           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                 color: Theme.of(context).colorScheme.outline,
                               ),
@@ -253,7 +254,7 @@ class _RouteDetailContent extends StatelessWidget {
                     // TODO: Share route
                   },
                   icon: const Icon(Icons.share),
-                  label: const Text('Partager'),
+                  label: Text('routes.share'.tr()),
                 ),
               ),
               const SizedBox(width: 12),
@@ -263,7 +264,7 @@ class _RouteDetailContent extends StatelessWidget {
                     // TODO: Export GPX
                   },
                   icon: const Icon(Icons.download),
-                  label: const Text('GPX'),
+                  label: Text('routes.exportGpx'.tr()),
                 ),
               ),
             ],

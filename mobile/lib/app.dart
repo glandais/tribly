@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -32,6 +33,9 @@ class _TriblyAppState extends ConsumerState<TriblyApp> {
         title: 'Tribly',
         theme: _buildTheme(Brightness.light),
         darkTheme: _buildTheme(Brightness.dark),
+        localizationsDelegates: context.localizationDelegates,
+        supportedLocales: context.supportedLocales,
+        locale: context.locale,
         home: const Scaffold(
           body: Center(
             child: CircularProgressIndicator(),
@@ -44,6 +48,9 @@ class _TriblyAppState extends ConsumerState<TriblyApp> {
       title: 'Tribly',
       theme: _buildTheme(Brightness.light),
       darkTheme: _buildTheme(Brightness.dark),
+      localizationsDelegates: context.localizationDelegates,
+      supportedLocales: context.supportedLocales,
+      locale: context.locale,
       routerConfig: router,
       debugShowCheckedModeBanner: false,
     );

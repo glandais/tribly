@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -24,7 +25,7 @@ class RoutesPage extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Itinéraires'),
+        title: Text('routes.title'.tr()),
       ),
       body: routesAsync.when(
         data: (routes) {
@@ -40,7 +41,7 @@ class RoutesPage extends ConsumerWidget {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'Aucun itinéraire',
+                    'routes.empty'.tr(),
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                 ],
@@ -67,12 +68,12 @@ class RoutesPage extends ConsumerWidget {
             children: [
               const Icon(Icons.error_outline, size: 48, color: Colors.red),
               const SizedBox(height: 16),
-              Text('Erreur: $error'),
+              Text('common.errorPrefix'.tr(args: [error.toString()])),
               const SizedBox(height: 16),
               FilledButton(
                 onPressed: () =>
                     ref.invalidate(teamRoutesPageProvider(teamSlug)),
-                child: const Text('Réessayer'),
+                child: Text('common.retry'.tr()),
               ),
             ],
           ),

@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -55,11 +56,11 @@ class _RideDetailPageState extends ConsumerState<RideDetailPage> {
             children: [
               const Icon(Icons.error_outline, size: 48, color: Colors.red),
               const SizedBox(height: 16),
-              Text('Erreur: $error'),
+              Text('common.errorPrefix'.tr(args: [error.toString()])),
               const SizedBox(height: 16),
               FilledButton(
                 onPressed: () => ref.invalidate(rideDetailProvider(params)),
-                child: const Text('Réessayer'),
+                child: Text('common.retry'.tr()),
               ),
             ],
           ),
@@ -73,7 +74,7 @@ class _RideDetailPageState extends ConsumerState<RideDetailPage> {
     if (ride.groups.isEmpty) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Aucun groupe disponible')),
+          SnackBar(content: Text('rides.noGroupAvailable'.tr())),
         );
       }
       return;
@@ -98,13 +99,13 @@ class _RideDetailPageState extends ConsumerState<RideDetailPage> {
           (teamSlug: widget.teamSlug, rideSlug: widget.rideSlug)));
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Inscription confirmée!')),
+          SnackBar(content: Text('rides.joinSuccess'.tr())),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: $e')),
+          SnackBar(content: Text('common.errorPrefix'.tr(args: [e.toString()]))),
         );
       }
     } finally {
@@ -116,7 +117,7 @@ class _RideDetailPageState extends ConsumerState<RideDetailPage> {
     return showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Choisir un groupe'),
+        title: Text('rides.selectGroup'.tr()),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -125,7 +126,7 @@ class _RideDetailPageState extends ConsumerState<RideDetailPage> {
                 title: Text(group.name),
                 subtitle: Text(
                   [
-                    if (group.time != null) 'Départ: ${group.time}',
+                    if (group.time != null) 'dates.departure'.tr(args: [group.time!]),
                     if (group.averageSpeed != null)
                       '${group.averageSpeed!.toStringAsFixed(0)} km/h',
                   ].join(' • '),
@@ -139,7 +140,7 @@ class _RideDetailPageState extends ConsumerState<RideDetailPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Annuler'),
+            child: Text('common.cancel'.tr()),
           ),
         ],
       ),
@@ -167,13 +168,13 @@ class _RideDetailPageState extends ConsumerState<RideDetailPage> {
           (teamSlug: widget.teamSlug, rideSlug: widget.rideSlug)));
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Désinscription confirmée')),
+          SnackBar(content: Text('rides.leaveSuccess'.tr())),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: $e')),
+          SnackBar(content: Text('common.errorPrefix'.tr(args: [e.toString()]))),
         );
       }
     } finally {
@@ -298,7 +299,7 @@ class _RideDetailContent extends StatelessWidget {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    '${ride.participantCount} participants',
+                    'rides.participants'.tr(args: [ride.participantCount.toString()]),
                     style: Theme.of(context).textTheme.titleSmall,
                   ),
                   const Spacer(),
@@ -331,7 +332,7 @@ class _RideDetailContent extends StatelessWidget {
               child: ContentWidthConstraint(
                 padding: const EdgeInsets.all(16),
                 child: Text(
-                  'Groupes',
+                  'rides.groups'.tr(),
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
               ),
@@ -347,7 +348,7 @@ class _RideDetailContent extends StatelessWidget {
                         title: Text(group.name),
                         subtitle: Text(
                           [
-                            if (group.time != null) 'Départ: ${group.time}',
+                            if (group.time != null) 'dates.departure'.tr(args: [group.time!]),
                             if (group.averageSpeed != null)
                               '${group.averageSpeed!.toStringAsFixed(0)} km/h',
                           ].join(' • '),
@@ -374,7 +375,7 @@ class _RideDetailContent extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Description',
+                          'rides.description'.tr(),
                           style: Theme.of(context).textTheme.titleMedium,
                         ),
                         const SizedBox(height: 8),
@@ -401,7 +402,7 @@ class _RideDetailContent extends StatelessWidget {
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 : const Icon(Icons.check),
-            label: const Text('Participer'),
+            label: Text('rides.join'.tr()),
           ),
         ),
       ),

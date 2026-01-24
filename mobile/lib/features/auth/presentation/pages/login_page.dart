@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -88,7 +89,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       }
     } catch (e) {
       if (mounted) {
-        setState(() => _errorMessage = 'Erreur lors de l\'authentification: $e');
+        setState(() => _errorMessage = 'auth.errors.authFailed'.tr());
       }
     } finally {
       if (mounted) {
@@ -118,7 +119,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       }
     } catch (e) {
       if (mounted) {
-        setState(() => _errorMessage = 'Erreur: $e');
+        setState(() => _errorMessage = 'auth.errors.generic'.tr(args: [e.toString()]));
       }
     } finally {
       if (mounted) {
@@ -144,7 +145,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _errorMessage = 'Code invalide ou expiré';
+          _errorMessage = 'auth.otp.invalid'.tr();
           _otpController.clear();
         });
       }
@@ -171,7 +172,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       }
     } catch (e) {
       if (mounted) {
-        setState(() => _errorMessage = 'Erreur: $e');
+        setState(() => _errorMessage = 'auth.errors.generic'.tr(args: [e.toString()]));
       }
     } finally {
       if (mounted) {
@@ -196,13 +197,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       );
       if (mounted) {
         setState(() {
-          _successMessage =
-              'Un email de vérification a été envoyé à ${_emailController.text}';
+          _successMessage = 'auth.verifyEmail.verificationSent'
+              .tr(args: [_emailController.text]);
         });
       }
     } catch (e) {
       if (mounted) {
-        setState(() => _errorMessage = 'Erreur: $e');
+        setState(() => _errorMessage = 'auth.errors.generic'.tr(args: [e.toString()]));
       }
     } finally {
       if (mounted) {
@@ -231,7 +232,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Connexion'),
+        title: Text('auth.login'.tr()),
         centerTitle: true,
         leading: _currentStep != LoginStep.methodSelection
             ? IconButton(
@@ -258,7 +259,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               ),
               const SizedBox(height: 16),
               Text(
-                'Tribly',
+                'app.name'.tr(),
                 style: theme.textTheme.headlineLarge?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
@@ -266,7 +267,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Plateforme pour équipes cyclistes',
+                'app.tagline'.tr(),
                 style: theme.textTheme.bodyLarge?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -299,7 +300,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                               _currentStep = LoginStep.methodSelection;
                             });
                           },
-                          child: const Text('Retour'),
+                          child: Text('common.back'.tr()),
                         ),
                       ],
                     ),
@@ -360,20 +361,20 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           FilledButton.icon(
             onPressed: _isLoading ? null : _handlePasskeyLogin,
             icon: const Icon(Icons.fingerprint),
-            label: const Text('Connexion avec Passkey'),
+            label: Text('auth.passkey.login'.tr()),
             style: FilledButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 16),
             ),
           ),
           const SizedBox(height: 16),
-          const Row(
+          Row(
             children: [
-              Expanded(child: Divider()),
+              const Expanded(child: Divider()),
               Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16),
-                child: Text('ou'),
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Text('common.or'.tr()),
               ),
-              Expanded(child: Divider()),
+              const Expanded(child: Divider()),
             ],
           ),
           const SizedBox(height: 16),
@@ -388,7 +389,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     _currentStep = LoginStep.emailEntry;
                   }),
           icon: const Icon(Icons.email),
-          label: const Text('Connexion par email'),
+          label: Text('auth.magicLink.title'.tr()),
           style: OutlinedButton.styleFrom(
             padding: const EdgeInsets.symmetric(vertical: 16),
           ),
@@ -403,7 +404,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     _selectedMethod = AuthMethod.register;
                     _currentStep = LoginStep.emailEntry;
                   }),
-          child: const Text('Créer un compte'),
+          child: Text('auth.register'.tr()),
         ),
       ],
     );
@@ -419,14 +420,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            isRegistration ? 'Créer un compte' : 'Connexion par email',
+            isRegistration ? 'auth.register'.tr() : 'auth.magicLink.title'.tr(),
             style: theme.textTheme.titleLarge,
           ),
           const SizedBox(height: 8),
           Text(
             isRegistration
-                ? 'Créez votre compte pour rejoindre les équipes cyclistes'
-                : 'Un code à 6 chiffres sera envoyé à votre email',
+                ? 'auth.magicLink.registerPrompt'.tr()
+                : 'auth.magicLink.codePrompt'.tr(),
             style: theme.textTheme.bodyMedium?.copyWith(
               color: theme.colorScheme.onSurfaceVariant,
             ),
@@ -438,17 +439,17 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             controller: _emailController,
             keyboardType: TextInputType.emailAddress,
             autofillHints: const [AutofillHints.email],
-            decoration: const InputDecoration(
-              labelText: 'Email',
-              prefixIcon: Icon(Icons.email),
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              labelText: 'auth.email'.tr(),
+              prefixIcon: const Icon(Icons.email),
+              border: const OutlineInputBorder(),
             ),
             validator: (value) {
               if (value == null || value.isEmpty) {
-                return 'L\'email est requis';
+                return 'auth.errors.emailRequired'.tr();
               }
               if (!value.contains('@')) {
-                return 'Email invalide';
+                return 'auth.errors.emailInvalid'.tr();
               }
               return null;
             },
@@ -460,20 +461,20 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             TextFormField(
               controller: _displayNameController,
               autofillHints: const [AutofillHints.name],
-              decoration: const InputDecoration(
-                labelText: 'Nom d\'affichage',
-                prefixIcon: Icon(Icons.person),
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: 'auth.displayName'.tr(),
+                prefixIcon: const Icon(Icons.person),
+                border: const OutlineInputBorder(),
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Le nom d\'affichage est requis';
+                  return 'auth.errors.displayNameRequired'.tr();
                 }
                 if (value.length < 2) {
-                  return 'Au moins 2 caractères';
+                  return 'auth.errors.displayNameTooShort'.tr();
                 }
                 if (value.length > 100) {
-                  return '100 caractères maximum';
+                  return 'auth.errors.displayNameTooLong'.tr();
                 }
                 return null;
               },
@@ -501,7 +502,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     width: 20,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
-                : Text(isRegistration ? 'Créer mon compte' : 'Envoyer le code'),
+                : Text(isRegistration
+                    ? 'auth.otp.createAccount'.tr()
+                    : 'auth.otp.sendCode'.tr()),
           ),
         ],
       ),
@@ -521,13 +524,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         ),
         const SizedBox(height: 16),
         Text(
-          'Entrez votre code',
+          'auth.otp.title'.tr(),
           style: theme.textTheme.titleLarge,
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 8),
         Text(
-          'Un code à 6 chiffres a été envoyé à\n$_otpEmail',
+          '${'auth.otp.sent'.tr()}\n$_otpEmail',
           style: theme.textTheme.bodyMedium?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
           ),
@@ -562,7 +565,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
         const SizedBox(height: 8),
         Text(
-          'Ce code expire dans 5 minutes',
+          'auth.otp.expires'.tr(),
           style: theme.textTheme.bodySmall?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
           ),
@@ -575,8 +578,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           onPressed: _canResendOtp && !_isLoading ? _handleResendOtp : null,
           icon: const Icon(Icons.refresh),
           label: Text(_canResendOtp
-              ? 'Renvoyer le code'
-              : 'Renvoyer dans ${_resendCountdown}s'),
+              ? 'auth.otp.resend'.tr()
+              : 'auth.otp.resendIn'.tr(args: [_resendCountdown.toString()])),
         ),
 
         if (_isLoading) ...[
