@@ -4,7 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../api/generated/export.dart';
+import '../../../../api/tribly_api_client.dart';
 import '../../../../config/paths.dart';
+import '../../../../core/widgets/authenticated_image.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../data/route_repository.dart';
 
@@ -96,13 +98,15 @@ class RoutesPage extends ConsumerWidget {
 }
 
 /// Route grid item - works both for list and grid views.
-class _RouteGridItem extends StatelessWidget {
+class _RouteGridItem extends ConsumerWidget {
   final RouteDto route;
 
   const _RouteGridItem({required this.route});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final token = ref.watch(accessTokenHolderProvider);
+
     return AnimatedCard(
       onTap: () => context.push(Paths.route(route.team.slug, route.slug)),
       child: ClipRRect(
@@ -121,7 +125,10 @@ class _RouteGridItem extends StatelessWidget {
                     color: Theme.of(context).colorScheme.primaryContainer,
                     image: route.media.assets.thumbnail?.url != null
                         ? DecorationImage(
-                            image: NetworkImage(route.media.assets.thumbnail!.url),
+                            image: AuthenticatedDecorationImage.fromUrl(
+                              route.media.assets.thumbnail!.url,
+                              token,
+                            )!,
                             fit: BoxFit.cover,
                           )
                         : null,

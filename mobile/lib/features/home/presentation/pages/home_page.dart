@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../api/generated/export.dart';
 import '../../../../config/paths.dart';
 import '../../../../core/adaptive/adaptive.dart';
+import '../../../../core/widgets/authenticated_image.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/utils/safe_string.dart';
@@ -418,7 +419,7 @@ class _EventCard extends StatelessWidget {
 
 }
 
-class _TeamChip extends StatelessWidget {
+class _TeamChip extends ConsumerWidget {
   final TeamDetailDto team;
 
   const _TeamChip({super.key, required this.team});
@@ -426,7 +427,7 @@ class _TeamChip extends StatelessWidget {
   String? get _logoUrl => team.about.assets.logo?.url;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
 
     return Padding(
@@ -441,16 +442,11 @@ class _TeamChip extends StatelessWidget {
               // Hero animation for team logo
               Hero(
                 tag: 'team-logo-${team.slug}',
-                child: CircleAvatar(
+                child: AuthenticatedCircleAvatar(
+                  imageUrl: _logoUrl,
+                  fallbackText: team.name.safeFirstUpper(),
                   radius: 20,
-                  backgroundImage:
-                      _logoUrl != null ? NetworkImage(_logoUrl!) : null,
-                  child: _logoUrl == null
-                      ? Text(
-                          team.name.safeFirstUpper(),
-                          style: const TextStyle(fontSize: 16),
-                        )
-                      : null,
+                  fontSize: 16,
                 ),
               ),
               const SizedBox(height: 8),

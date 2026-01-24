@@ -4,9 +4,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../api/generated/export.dart';
+import '../../../../api/tribly_api_client.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../config/paths.dart';
 import '../../../../core/adaptive/adaptive.dart';
+import '../../../../core/widgets/authenticated_image.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../../../core/utils/safe_string.dart';
 import '../../../rides/data/ride_repository.dart';
@@ -108,19 +110,12 @@ class _TeamDetailContent extends ConsumerWidget {
                     // Hero animation for team logo
                     child: Hero(
                       tag: 'team-logo-${team.slug}',
-                      child: team.about.assets.logo != null
-                          ? CircleAvatar(
-                              radius: 40,
-                              backgroundImage: NetworkImage(team.about.assets.logo!.url),
-                              onBackgroundImageError: (exception, stackTrace) {},
-                            )
-                          : CircleAvatar(
-                              radius: 40,
-                              child: Text(
-                                team.name.safeFirstUpper(),
-                                style: const TextStyle(fontSize: 32),
-                              ),
-                            ),
+                      child: AuthenticatedCircleAvatar(
+                        imageUrl: team.about.assets.logo?.url,
+                        fallbackText: team.name.safeFirstUpper(),
+                        radius: 40,
+                        fontSize: 32,
+                      ),
                     ),
                   ),
                 ),
@@ -375,13 +370,15 @@ class _StatItem extends StatelessWidget {
   }
 }
 
-class _RideCard extends StatelessWidget {
+class _RideCard extends ConsumerWidget {
   final RideDto ride;
 
   const _RideCard({required this.ride});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final token = ref.watch(accessTokenHolderProvider);
+
     return AnimatedCard(
       onTap: () => context.push(Paths.ride(ride.team.slug, ride.slug)),
       child: Padding(
@@ -399,7 +396,10 @@ class _RideCard extends StatelessWidget {
                   color: Theme.of(context).colorScheme.primaryContainer,
                   image: ride.routeThumbnailUrl != null
                       ? DecorationImage(
-                          image: NetworkImage(ride.routeThumbnailUrl!),
+                          image: AuthenticatedDecorationImage.fromUrl(
+                            ride.routeThumbnailUrl,
+                            token,
+                          )!,
                           fit: BoxFit.cover,
                         )
                       : null,
@@ -478,13 +478,15 @@ class _RideCard extends StatelessWidget {
   }
 }
 
-class _RouteCard extends StatelessWidget {
+class _RouteCard extends ConsumerWidget {
   final RouteDto route;
 
   const _RouteCard({required this.route});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final token = ref.watch(accessTokenHolderProvider);
+
     return Padding(
       padding: const EdgeInsets.only(right: 12),
       child: AnimatedCard(
@@ -505,7 +507,10 @@ class _RouteCard extends StatelessWidget {
                       color: Theme.of(context).colorScheme.primaryContainer,
                       image: route.media.assets.thumbnail != null
                           ? DecorationImage(
-                              image: NetworkImage(route.media.assets.thumbnail!.url),
+                              image: AuthenticatedDecorationImage.fromUrl(
+                                route.media.assets.thumbnail!.url,
+                                token,
+                              )!,
                               fit: BoxFit.cover,
                             )
                           : null,

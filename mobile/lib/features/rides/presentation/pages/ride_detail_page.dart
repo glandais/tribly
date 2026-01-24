@@ -6,6 +6,7 @@ import '../../../../api/generated/export.dart';
 import '../../../../core/adaptive/adaptive.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/utils/safe_string.dart';
+import '../../../../core/widgets/authenticated_image.dart';
 import '../../data/ride_repository.dart';
 
 final rideDetailProvider =
@@ -183,7 +184,7 @@ class _RideDetailPageState extends ConsumerState<RideDetailPage> {
   }
 }
 
-class _RideDetailContent extends StatelessWidget {
+class _RideDetailContent extends ConsumerWidget {
   final RideDto ride;
   final bool isJoining;
   final VoidCallback onJoin;
@@ -197,7 +198,7 @@ class _RideDetailContent extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       body: CustomScrollView(
         slivers: [
@@ -213,10 +214,10 @@ class _RideDetailContent extends StatelessWidget {
               background: Hero(
                 tag: 'ride-thumbnail-${ride.slug}',
                 child: ride.routeThumbnailUrl != null
-                    ? Image.network(
-                        ride.routeThumbnailUrl!,
+                    ? AuthenticatedImage(
+                        imageUrl: ride.routeThumbnailUrl!,
                         fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
+                        errorWidget: const SizedBox.shrink(),
                       )
                     : Container(
                         decoration: BoxDecoration(
@@ -311,17 +312,11 @@ class _RideDetailContent extends StatelessWidget {
                   ...ride.topParticipants.take(5).map(
                         (p) => Padding(
                           padding: const EdgeInsets.only(left: 4),
-                          child: CircleAvatar(
+                          child: AuthenticatedCircleAvatar(
+                            imageUrl: p.avatarUrl,
+                            fallbackText: p.displayName.safeFirstUpper(),
                             radius: 14,
-                            backgroundImage: p.avatarUrl != null
-                                ? NetworkImage(p.avatarUrl!)
-                                : null,
-                            child: p.avatarUrl == null
-                                ? Text(
-                                    p.displayName.safeFirstUpper(),
-                                    style: const TextStyle(fontSize: 10),
-                                  )
-                                : null,
+                            fontSize: 10,
                           ),
                         ),
                       ),

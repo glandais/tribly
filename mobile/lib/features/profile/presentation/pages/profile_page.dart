@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../config/paths.dart';
 import '../../../../core/utils/safe_string.dart';
+import '../../../../core/widgets/authenticated_image.dart';
 import '../../../auth/providers/auth_provider.dart';
 import '../../../auth/services/passkey_service.dart';
 
@@ -61,17 +62,11 @@ class ProfilePage extends ConsumerWidget {
           Center(
             child: Column(
               children: [
-                CircleAvatar(
+                AuthenticatedCircleAvatar(
+                  imageUrl: user?.avatarUrl,
+                  fallbackText: (user?.displayName).safeFirstUpper(),
                   radius: 50,
-                  backgroundImage: user?.avatarUrl != null
-                      ? NetworkImage(user!.avatarUrl!)
-                      : null,
-                  child: user?.avatarUrl == null
-                      ? Text(
-                          (user?.displayName).safeFirstUpper(),
-                          style: const TextStyle(fontSize: 32),
-                        )
-                      : null,
+                  fontSize: 32,
                 ),
                 const SizedBox(height: 16),
                 Text(

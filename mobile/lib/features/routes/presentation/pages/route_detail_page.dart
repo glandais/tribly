@@ -6,6 +6,7 @@ import '../../../../api/generated/export.dart';
 import '../../../../core/adaptive/adaptive.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/utils/safe_string.dart';
+import '../../../../core/widgets/authenticated_image.dart';
 import '../../data/route_repository.dart';
 
 final routeDetailProvider = FutureProvider.family<RouteDetailDto,
@@ -57,13 +58,13 @@ class RouteDetailPage extends ConsumerWidget {
   }
 }
 
-class _RouteDetailContent extends StatelessWidget {
+class _RouteDetailContent extends ConsumerWidget {
   final RouteDetailDto route;
 
   const _RouteDetailContent({required this.route});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       body: CustomScrollView(
         slivers: [
@@ -79,10 +80,10 @@ class _RouteDetailContent extends StatelessWidget {
               background: Hero(
                 tag: 'route-thumbnail-${route.slug}',
                 child: route.media.assets.thumbnail != null
-                    ? Image.network(
-                        route.media.assets.thumbnail!.url,
+                    ? AuthenticatedImage(
+                        imageUrl: route.media.assets.thumbnail!.url,
                         fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
+                        errorWidget: const SizedBox.shrink(),
                       )
                     : Container(
                         decoration: BoxDecoration(
@@ -187,17 +188,11 @@ class _RouteDetailContent extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               child: Row(
                 children: [
-                  CircleAvatar(
+                  AuthenticatedCircleAvatar(
+                    imageUrl: route.createdBy.avatarUrl,
+                    fallbackText: route.createdBy.displayName.safeFirstUpper(),
                     radius: 16,
-                    backgroundImage: route.createdBy.avatarUrl != null
-                        ? NetworkImage(route.createdBy.avatarUrl!)
-                        : null,
-                    child: route.createdBy.avatarUrl == null
-                        ? Text(
-                            route.createdBy.displayName.safeFirstUpper(),
-                            style: const TextStyle(fontSize: 12),
-                          )
-                        : null,
+                    fontSize: 12,
                   ),
                   const SizedBox(width: 8),
                   Text(

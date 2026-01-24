@@ -43,6 +43,9 @@ dependencies:
   flutter_hooks: ^0.21.0
   hooks_riverpod: ^3.0.0
 
+  # Image caching with auth headers support
+  cached_network_image: ^3.4.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

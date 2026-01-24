@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../api/generated/export.dart';
 import '../../../../config/paths.dart';
+import '../../../../core/widgets/authenticated_image.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/utils/safe_string.dart';
@@ -113,7 +114,7 @@ class TeamsPage extends ConsumerWidget {
   }
 }
 
-class _TeamCard extends StatelessWidget {
+class _TeamCard extends ConsumerWidget {
   final TeamDetailDto team;
 
   const _TeamCard({required this.team});
@@ -121,7 +122,7 @@ class _TeamCard extends StatelessWidget {
   String? get _logoUrl => team.about.assets.logo?.url;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return AnimatedCard(
       onTap: () => context.push(Paths.team(team.slug)),
       child: Padding(
@@ -131,16 +132,11 @@ class _TeamCard extends StatelessWidget {
             // Team logo/avatar with Hero animation
             Hero(
               tag: 'team-logo-${team.slug}',
-              child: CircleAvatar(
+              child: AuthenticatedCircleAvatar(
+                imageUrl: _logoUrl,
+                fallbackText: team.name.safeFirstUpper(),
                 radius: 28,
-                backgroundImage:
-                    _logoUrl != null ? NetworkImage(_logoUrl!) : null,
-                child: _logoUrl == null
-                    ? Text(
-                        team.name.safeFirstUpper(),
-                        style: const TextStyle(fontSize: 20),
-                      )
-                    : null,
+                fontSize: 20,
               ),
             ),
             const SizedBox(width: 16),
