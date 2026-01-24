@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../api/generated/export.dart';
 import '../../../../config/paths.dart';
-import '../../../../core/adaptive/adaptive.dart';
+import '../../../../core/widgets/widgets.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/utils/safe_string.dart';
 import '../../data/team_repository.dart';
@@ -41,10 +41,12 @@ class TeamsPage extends ConsumerWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.group_off,
-                    size: 64,
-                    color: Theme.of(context).colorScheme.outline,
+                  AnimatedEmptyState(
+                    child: Icon(
+                      Icons.group_off,
+                      size: 64,
+                      color: Theme.of(context).colorScheme.outline,
+                    ),
                   ),
                   const SizedBox(height: 16),
                   Text(
@@ -68,7 +70,7 @@ class TeamsPage extends ConsumerWidget {
 
           return RefreshIndicator(
             onRefresh: () => ref.refresh(myTeamsProvider.future),
-            child: ResponsiveGrid(
+            child: AnimatedResponsiveGrid(
               padding: const EdgeInsets.all(16),
               itemCount: teams.length,
               childAspectRatio: 2.5,
@@ -79,7 +81,18 @@ class TeamsPage extends ConsumerWidget {
             ),
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: List.generate(
+              3,
+              (index) => const Padding(
+                padding: EdgeInsets.only(bottom: 12),
+                child: ShimmerTeamCard(),
+              ),
+            ),
+          ),
+        ),
         error: (error, stack) => Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -109,16 +122,16 @@ class _TeamCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: InkWell(
-        onTap: () => context.push(Paths.team(team.slug)),
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              // Team logo/avatar
-              CircleAvatar(
+    return AnimatedCard(
+      onTap: () => context.push(Paths.team(team.slug)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            // Team logo/avatar with Hero animation
+            Hero(
+              tag: 'team-logo-${team.slug}',
+              child: CircleAvatar(
                 radius: 28,
                 backgroundImage:
                     _logoUrl != null ? NetworkImage(_logoUrl!) : null,
@@ -129,66 +142,65 @@ class _TeamCard extends StatelessWidget {
                       )
                     : null,
               ),
-              const SizedBox(width: 16),
-              // Team info
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      team.name,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
+            ),
+            const SizedBox(width: 16),
+            // Team info
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    team.name,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.people,
+                        size: 16,
+                        color: Theme.of(context).colorScheme.outline,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        'teams.members'.tr(args: [team.memberCount.toString()]),
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                      if (team.role != null) ...[
+                        const SizedBox(width: 12),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2,
                           ),
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.people,
-                          size: 16,
-                          color: Theme.of(context).colorScheme.outline,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          'teams.members'.tr(args: [team.memberCount.toString()]),
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                        if (team.role != null) ...[
-                          const SizedBox(width: 12),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
+                          decoration: BoxDecoration(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .primaryContainer,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            AppFormatters.roleName(team.role!),
+                            style: TextStyle(
+                              fontSize: 10,
                               color: Theme.of(context)
                                   .colorScheme
-                                  .primaryContainer,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Text(
-                              AppFormatters.roleName(team.role!),
-                              style: TextStyle(
-                                fontSize: 10,
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onPrimaryContainer,
-                              ),
+                                  .onPrimaryContainer,
                             ),
                           ),
-                        ],
+                        ),
                       ],
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
+                ],
               ),
-              const Icon(Icons.chevron_right),
-            ],
-          ),
+            ),
+            const Icon(Icons.chevron_right),
+          ],
         ),
       ),
     );
   }
-
 }

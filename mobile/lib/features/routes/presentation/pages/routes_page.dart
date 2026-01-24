@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../api/generated/export.dart';
 import '../../../../config/paths.dart';
-import '../../../../core/adaptive/adaptive.dart';
+import '../../../../core/widgets/widgets.dart';
 import '../../data/route_repository.dart';
 
 final teamRoutesPageProvider =
@@ -34,10 +34,12 @@ class RoutesPage extends ConsumerWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    Icons.route,
-                    size: 64,
-                    color: Theme.of(context).colorScheme.outline,
+                  AnimatedEmptyState(
+                    child: Icon(
+                      Icons.route,
+                      size: 64,
+                      color: Theme.of(context).colorScheme.outline,
+                    ),
                   ),
                   const SizedBox(height: 16),
                   Text(
@@ -51,7 +53,7 @@ class RoutesPage extends ConsumerWidget {
 
           return RefreshIndicator(
             onRefresh: () => ref.refresh(teamRoutesPageProvider(teamSlug).future),
-            child: ResponsiveGrid(
+            child: AnimatedResponsiveGrid(
               padding: const EdgeInsets.all(16),
               itemCount: routes.length,
               childAspectRatio: 1.2,
@@ -61,7 +63,17 @@ class RoutesPage extends ConsumerWidget {
             ),
           );
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => GridView.builder(
+          padding: const EdgeInsets.all(16),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: 1.2,
+          ),
+          itemCount: 4,
+          itemBuilder: (context, index) => const ShimmerRouteGridItem(),
+        ),
         error: (error, stack) => Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -91,36 +103,39 @@ class _RouteGridItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: () => context.push(Paths.route(route.team.slug, route.slug)),
+    return AnimatedCard(
+      onTap: () => context.push(Paths.route(route.team.slug, route.slug)),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Thumbnail - use Expanded for grid, fixed height for list
+            // Thumbnail with Hero animation - use Expanded for grid, fixed height for list
             Expanded(
               flex: 3,
-              child: Container(
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primaryContainer,
-                  image: route.media.assets.thumbnail?.url != null
-                      ? DecorationImage(
-                          image: NetworkImage(route.media.assets.thumbnail!.url),
-                          fit: BoxFit.cover,
+              child: Hero(
+                tag: 'route-thumbnail-${route.slug}',
+                child: Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primaryContainer,
+                    image: route.media.assets.thumbnail?.url != null
+                        ? DecorationImage(
+                            image: NetworkImage(route.media.assets.thumbnail!.url),
+                            fit: BoxFit.cover,
+                          )
+                        : null,
+                  ),
+                  child: route.media.assets.thumbnail?.url == null
+                      ? Center(
+                          child: Icon(
+                            Icons.route,
+                            size: 48,
+                            color: Theme.of(context).colorScheme.onPrimaryContainer,
+                          ),
                         )
                       : null,
                 ),
-                child: route.media.assets.thumbnail?.url == null
-                    ? Center(
-                        child: Icon(
-                          Icons.route,
-                          size: 48,
-                          color: Theme.of(context).colorScheme.onPrimaryContainer,
-                        ),
-                      )
-                    : null,
               ),
             ),
             Expanded(

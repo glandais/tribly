@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../api/generated/export.dart';
 import '../../../../config/paths.dart';
 import '../../../../core/adaptive/adaptive.dart';
+import '../../../../core/widgets/widgets.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../data/calendar_repository.dart';
 
@@ -69,10 +70,12 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(
-                          Icons.event_busy,
-                          size: 64,
-                          color: Theme.of(context).colorScheme.outline,
+                        AnimatedEmptyState(
+                          child: Icon(
+                            Icons.event_busy,
+                            size: 64,
+                            color: Theme.of(context).colorScheme.outline,
+                          ),
                         ),
                         const SizedBox(height: 16),
                         Text(
@@ -100,7 +103,7 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
 
                 return RefreshIndicator(
                   onRefresh: () => ref.refresh(calendarEventsProvider(params).future),
-                  child: ListView.builder(
+                  child: StaggeredListView(
                     padding: const EdgeInsets.all(16),
                     itemCount: sortedDates.length,
                     itemBuilder: (context, index) {
@@ -113,7 +116,35 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
                   ),
                 );
               },
-              loading: () => const Center(child: CircularProgressIndicator()),
+              loading: () => Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Day header placeholder
+                    Row(
+                      children: [
+                        ShimmerPlaceholder(
+                          width: 48,
+                          height: 48,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        const SizedBox(width: 12),
+                        ShimmerPlaceholder.text(width: 100, height: 16),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    // Event card placeholders
+                    ...List.generate(
+                      3,
+                      (index) => const Padding(
+                        padding: EdgeInsets.only(left: 60, bottom: 8),
+                        child: ShimmerEventCard(),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
               error: (error, stack) => Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -258,15 +289,12 @@ class _EventCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isRide = event.type == 'RIDE';
 
-    return Card(
-      margin: const EdgeInsets.only(left: 60, bottom: 8),
-      child: InkWell(
-        onTap: () {
-          if (isRide) {
-            context.push(Paths.ride(event.teamSlug, event.entitySlug));
-          }
-        },
-        borderRadius: BorderRadius.circular(12),
+    return Padding(
+      padding: const EdgeInsets.only(left: 60, bottom: 8),
+      child: AnimatedCard(
+        onTap: isRide
+            ? () => context.push(Paths.ride(event.teamSlug, event.entitySlug))
+            : null,
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Row(

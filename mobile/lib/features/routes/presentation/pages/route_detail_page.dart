@@ -75,31 +75,35 @@ class _RouteDetailContent extends StatelessWidget {
                 route.name,
                 style: const TextStyle(fontSize: 16),
               ),
-              background: route.media.assets.thumbnail != null
-                  ? Image.network(
-                      route.media.assets.thumbnail!.url,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
-                    )
-                  : Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            Theme.of(context).colorScheme.primary,
-                            Theme.of(context).colorScheme.primaryContainer,
-                          ],
+              // Hero animation for route thumbnail
+              background: Hero(
+                tag: 'route-thumbnail-${route.slug}',
+                child: route.media.assets.thumbnail != null
+                    ? Image.network(
+                        route.media.assets.thumbnail!.url,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
+                      )
+                    : Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Theme.of(context).colorScheme.primary,
+                              Theme.of(context).colorScheme.primaryContainer,
+                            ],
+                          ),
+                        ),
+                        child: const Center(
+                          child: Icon(
+                            Icons.route,
+                            size: 64,
+                            color: Colors.white54,
+                          ),
                         ),
                       ),
-                      child: const Center(
-                        child: Icon(
-                          Icons.route,
-                          size: 64,
-                          color: Colors.white54,
-                        ),
-                      ),
-                    ),
+              ),
             ),
           ),
 

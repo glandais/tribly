@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../api/generated/export.dart';
 import '../../../../config/paths.dart';
 import '../../../../core/adaptive/adaptive.dart';
+import '../../../../core/widgets/widgets.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/utils/safe_string.dart';
 import '../../../auth/providers/auth_provider.dart';
@@ -152,10 +153,12 @@ class HomePage extends ConsumerWidget {
                           padding: const EdgeInsets.all(24),
                           child: Column(
                             children: [
-                              Icon(
-                                Icons.event_available,
-                                size: 48,
-                                color: theme.colorScheme.outline,
+                              AnimatedEmptyState(
+                                child: Icon(
+                                  Icons.event_available,
+                                  size: 48,
+                                  color: theme.colorScheme.outline,
+                                ),
                               ),
                               const SizedBox(height: 8),
                               Text('home.noUpcomingRides'.tr()),
@@ -167,28 +170,38 @@ class HomePage extends ConsumerWidget {
                   );
                 }
 
+                final displayCount = events.length > 3 ? 3 : events.length;
                 return SliverList(
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
-                      if (index >= events.length || index >= 3) return null;
+                      if (index >= displayCount) return null;
                       final event = events[index];
                       return ContentWidthConstraint(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 4,
                         ),
-                        child: _EventCard(key: ValueKey(event.entitySlug), event: event),
+                        child: StaggeredListItem(
+                          index: index,
+                          child: _EventCard(key: ValueKey(event.entitySlug), event: event),
+                        ),
                       );
                     },
-                    childCount: events.length > 3 ? 3 : events.length,
+                    childCount: displayCount,
                   ),
                 );
               },
-              loading: () => const SliverToBoxAdapter(
-                child: Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(24),
-                    child: CircularProgressIndicator(),
+              loading: () => SliverToBoxAdapter(
+                child: ContentWidthConstraint(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Column(
+                    children: List.generate(
+                      3,
+                      (index) => const Padding(
+                        padding: EdgeInsets.only(bottom: 8),
+                        child: ShimmerEventCard(),
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -248,10 +261,12 @@ class HomePage extends ConsumerWidget {
                           padding: const EdgeInsets.all(24),
                           child: Column(
                             children: [
-                              Icon(
-                                Icons.group_add,
-                                size: 48,
-                                color: theme.colorScheme.outline,
+                              AnimatedEmptyState(
+                                child: Icon(
+                                  Icons.group_add,
+                                  size: 48,
+                                  color: theme.colorScheme.outline,
+                                ),
                               ),
                               const SizedBox(height: 8),
                               Text('home.joinTeamPrompt'.tr()),
@@ -273,11 +288,14 @@ class HomePage extends ConsumerWidget {
                   child: _AdaptiveTeamChips(teams: teamList),
                 );
               },
-              loading: () => const SliverToBoxAdapter(
-                child: Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(24),
-                    child: CircularProgressIndicator(),
+              loading: () => SliverToBoxAdapter(
+                child: SizedBox(
+                  height: 100,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: 4,
+                    itemBuilder: (context, index) => const ShimmerTeamChip(),
                   ),
                 ),
               ),
@@ -329,75 +347,70 @@ class _EventCard extends StatelessWidget {
     final theme = Theme.of(context);
     final startDate = _startDate;
 
-    return Card(
-      child: InkWell(
-        onTap: () {
-          if (isRide) {
-            context.push(Paths.ride(event.teamSlug, event.entitySlug));
-          }
-        },
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Row(
-            children: [
-              // Date badge
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      AppFormatters.dayAbbrev(startDate.weekday),
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: theme.colorScheme.onPrimaryContainer,
-                      ),
-                    ),
-                    Text(
-                      '${startDate.day}',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: theme.colorScheme.onPrimaryContainer,
-                      ),
-                    ),
-                  ],
-                ),
+    return AnimatedCard(
+      onTap: isRide
+          ? () => context.push(Paths.ride(event.teamSlug, event.entitySlug))
+          : null,
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          children: [
+            // Date badge
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primaryContainer,
+                borderRadius: BorderRadius.circular(8),
               ),
-              const SizedBox(width: 12),
-              // Event info
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      event.title,
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    AppFormatters.dayAbbrev(startDate.weekday),
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: theme.colorScheme.onPrimaryContainer,
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      '${event.teamName} • ${AppFormatters.formatTime(startDate)}',
-                      style: theme.textTheme.bodySmall,
+                  ),
+                  Text(
+                    '${startDate.day}',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: theme.colorScheme.onPrimaryContainer,
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-              Icon(
-                isRide ? Icons.directions_bike : Icons.event,
-                color: theme.colorScheme.primary,
+            ),
+            const SizedBox(width: 12),
+            // Event info
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    event.title,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '${event.teamName} • ${AppFormatters.formatTime(startDate)}',
+                    style: theme.textTheme.bodySmall,
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+            Icon(
+              isRide ? Icons.directions_bike : Icons.event,
+              color: theme.colorScheme.primary,
+            ),
+          ],
         ),
       ),
     );
@@ -416,26 +429,29 @@ class _TeamChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Card(
-      margin: const EdgeInsets.only(right: 12),
-      child: InkWell(
+    return Padding(
+      padding: const EdgeInsets.only(right: 12),
+      child: AnimatedCard(
         onTap: () => context.push(Paths.team(team.slug)),
-        borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              CircleAvatar(
-                radius: 20,
-                backgroundImage:
-                    _logoUrl != null ? NetworkImage(_logoUrl!) : null,
-                child: _logoUrl == null
-                    ? Text(
-                        team.name.safeFirstUpper(),
-                        style: const TextStyle(fontSize: 16),
-                      )
-                    : null,
+              // Hero animation for team logo
+              Hero(
+                tag: 'team-logo-${team.slug}',
+                child: CircleAvatar(
+                  radius: 20,
+                  backgroundImage:
+                      _logoUrl != null ? NetworkImage(_logoUrl!) : null,
+                  child: _logoUrl == null
+                      ? Text(
+                          team.name.safeFirstUpper(),
+                          style: const TextStyle(fontSize: 16),
+                        )
+                      : null,
+                ),
               ),
               const SizedBox(height: 8),
               SizedBox(
@@ -468,7 +484,7 @@ class _AdaptiveTeamChips extends StatelessWidget {
     final sizeClass = Breakpoints.getWindowSizeClass(width);
     final displayTeams = teams.length > 5 ? teams.sublist(0, 5) : teams;
 
-    // On compact screens, use horizontal scroll
+    // On compact screens, use horizontal scroll with staggered animation
     if (sizeClass == WindowSizeClass.compact) {
       return SizedBox(
         height: 100,
@@ -476,18 +492,24 @@ class _AdaptiveTeamChips extends StatelessWidget {
           scrollDirection: Axis.horizontal,
           padding: const EdgeInsets.symmetric(horizontal: 16),
           itemCount: displayTeams.length,
-          itemBuilder: (context, index) => _TeamChip(key: ValueKey(displayTeams[index].slug), team: displayTeams[index]),
+          itemBuilder: (context, index) => StaggeredListItem(
+            index: index,
+            child: _TeamChip(key: ValueKey(displayTeams[index].slug), team: displayTeams[index]),
+          ),
         ),
       );
     }
 
-    // On larger screens, use wrap layout
+    // On larger screens, use wrap layout with staggered animation
     return ContentWidthConstraint(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Wrap(
         spacing: 12,
         runSpacing: 12,
-        children: displayTeams.map((team) => _TeamChip(key: ValueKey(team.slug), team: team)).toList(),
+        children: displayTeams.asMap().entries.map((entry) => StaggeredListItem(
+          index: entry.key,
+          child: _TeamChip(key: ValueKey(entry.value.slug), team: entry.value),
+        )).toList(),
       ),
     );
   }

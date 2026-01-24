@@ -7,6 +7,7 @@ import '../../../../api/generated/export.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../config/paths.dart';
 import '../../../../core/adaptive/adaptive.dart';
+import '../../../../core/widgets/widgets.dart';
 import '../../../../core/utils/safe_string.dart';
 import '../../../rides/data/ride_repository.dart';
 import '../../../routes/data/route_repository.dart';
@@ -104,19 +105,23 @@ class _TeamDetailContent extends ConsumerWidget {
                     ),
                   ),
                   child: Center(
-                    child: team.about.assets.logo != null
-                        ? CircleAvatar(
-                            radius: 40,
-                            backgroundImage: NetworkImage(team.about.assets.logo!.url),
-                            onBackgroundImageError: (exception, stackTrace) {},
-                          )
-                        : CircleAvatar(
-                            radius: 40,
-                            child: Text(
-                              team.name.safeFirstUpper(),
-                              style: const TextStyle(fontSize: 32),
+                    // Hero animation for team logo
+                    child: Hero(
+                      tag: 'team-logo-${team.slug}',
+                      child: team.about.assets.logo != null
+                          ? CircleAvatar(
+                              radius: 40,
+                              backgroundImage: NetworkImage(team.about.assets.logo!.url),
+                              onBackgroundImageError: (exception, stackTrace) {},
+                            )
+                          : CircleAvatar(
+                              radius: 40,
+                              child: Text(
+                                team.name.safeFirstUpper(),
+                                style: const TextStyle(fontSize: 32),
+                              ),
                             ),
-                          ),
+                    ),
                   ),
                 ),
               ),
@@ -236,26 +241,25 @@ class _TeamDetailContent extends ConsumerWidget {
                     ),
                   );
                 }
-                return SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      if (index >= rides.length || index >= 3) {
-                        return null;
-                      }
-                      return ContentWidthConstraint(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 4,
-                        ),
-                        child: _RideCard(ride: rides[index]),
-                      );
-                    },
-                    childCount: rides.length > 3 ? 3 : rides.length,
-                  ),
+                final displayCount = rides.length > 3 ? 3 : rides.length;
+                return StaggeredSliverList(
+                  itemCount: displayCount,
+                  itemBuilder: (context, index) {
+                    return ContentWidthConstraint(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 4,
+                      ),
+                      child: _RideCard(ride: rides[index]),
+                    );
+                  },
                 );
               },
-              loading: () => const SliverToBoxAdapter(
-                child: Center(child: CircularProgressIndicator()),
+              loading: () => SliverToBoxAdapter(
+                child: ContentWidthConstraint(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: const ShimmerCardList(itemCount: 2),
+                ),
               ),
               error: (_, __) => SliverToBoxAdapter(
                 child: ContentWidthConstraint(
@@ -306,8 +310,22 @@ class _TeamDetailContent extends ConsumerWidget {
                   child: _AdaptiveRouteCards(routes: routes),
                 );
               },
-              loading: () => const SliverToBoxAdapter(
-                child: Center(child: CircularProgressIndicator()),
+              loading: () => SliverToBoxAdapter(
+                child: SizedBox(
+                  height: 160,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: 3,
+                    itemBuilder: (context, index) => const Padding(
+                      padding: EdgeInsets.only(right: 12),
+                      child: SizedBox(
+                        width: 200,
+                        child: ShimmerRouteGridItem(),
+                      ),
+                    ),
+                  ),
+                ),
               ),
               error: (_, __) => SliverToBoxAdapter(
                 child: ContentWidthConstraint(
@@ -364,16 +382,16 @@ class _RideCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: InkWell(
-        onTap: () => context.push(Paths.ride(ride.team.slug, ride.slug)),
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Row(
-            children: [
-              // Thumbnail or icon
-              Container(
+    return AnimatedCard(
+      onTap: () => context.push(Paths.ride(ride.team.slug, ride.slug)),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          children: [
+            // Thumbnail or icon with Hero animation
+            Hero(
+              tag: 'ride-thumbnail-${ride.slug}',
+              child: Container(
                 width: 60,
                 height: 60,
                 decoration: BoxDecoration(
@@ -393,55 +411,55 @@ class _RideCard extends StatelessWidget {
                       )
                     : null,
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      ride.name,
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.calendar_today,
-                          size: 14,
-                          color: Theme.of(context).colorScheme.outline,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    ride.name,
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
                         ),
-                        const SizedBox(width: 4),
-                        Text(
-                          _formatDate(DateTime.parse(ride.dateTime)),
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 2),
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.people,
-                          size: 14,
-                          color: Theme.of(context).colorScheme.outline,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          'rides.participants'.tr(args: [ride.participantCount.toString()]),
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.calendar_today,
+                        size: 14,
+                        color: Theme.of(context).colorScheme.outline,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        _formatDate(DateTime.parse(ride.dateTime)),
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.people,
+                        size: 14,
+                        color: Theme.of(context).colorScheme.outline,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        'rides.participants'.tr(args: [ride.participantCount.toString()]),
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
+                ],
               ),
-              const Icon(Icons.chevron_right),
-            ],
-          ),
+            ),
+            const Icon(Icons.chevron_right),
+          ],
         ),
       ),
     );
@@ -467,61 +485,64 @@ class _RouteCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.only(right: 12),
-      child: InkWell(
+    return Padding(
+      padding: const EdgeInsets.only(right: 12),
+      child: AnimatedCard(
         onTap: () => context.push(Paths.route(route.team.slug, route.slug)),
-        borderRadius: BorderRadius.circular(12),
         child: SizedBox(
           width: 200,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Thumbnail
-              Container(
-                height: 80,
-                decoration: BoxDecoration(
-                  borderRadius:
-                      const BorderRadius.vertical(top: Radius.circular(12)),
-                  color: Theme.of(context).colorScheme.primaryContainer,
-                  image: route.media.assets.thumbnail != null
-                      ? DecorationImage(
-                          image: NetworkImage(route.media.assets.thumbnail!.url),
-                          fit: BoxFit.cover,
-                        )
-                      : null,
-                ),
-                child: route.media.assets.thumbnail == null
-                    ? Center(
-                        child: Icon(
-                          Icons.route,
-                          size: 32,
-                          color:
-                              Theme.of(context).colorScheme.onPrimaryContainer,
-                        ),
-                      )
-                    : null,
-              ),
-              Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      route.name,
-                      style: Theme.of(context).textTheme.titleSmall,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Thumbnail with Hero animation
+                Hero(
+                  tag: 'route-thumbnail-${route.slug}',
+                  child: Container(
+                    height: 80,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primaryContainer,
+                      image: route.media.assets.thumbnail != null
+                          ? DecorationImage(
+                              image: NetworkImage(route.media.assets.thumbnail!.url),
+                              fit: BoxFit.cover,
+                            )
+                          : null,
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${(route.distance / 1000).toStringAsFixed(1)} km • ${route.elevationGain.toInt()} m D+',
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  ],
+                    child: route.media.assets.thumbnail == null
+                        ? Center(
+                            child: Icon(
+                              Icons.route,
+                              size: 32,
+                              color:
+                                  Theme.of(context).colorScheme.onPrimaryContainer,
+                            ),
+                          )
+                        : null,
+                  ),
                 ),
-              ),
-            ],
+                Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        route.name,
+                        style: Theme.of(context).textTheme.titleSmall,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${(route.distance / 1000).toStringAsFixed(1)} km • ${route.elevationGain.toInt()} m D+',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -541,7 +562,7 @@ class _AdaptiveRouteCards extends StatelessWidget {
     final sizeClass = Breakpoints.getWindowSizeClass(width);
     final displayRoutes = routes.length > 5 ? routes.sublist(0, 5) : routes;
 
-    // On compact screens, use horizontal scroll
+    // On compact screens, use horizontal scroll with staggered animation
     if (sizeClass == WindowSizeClass.compact) {
       return SizedBox(
         height: 160,
@@ -549,16 +570,19 @@ class _AdaptiveRouteCards extends StatelessWidget {
           scrollDirection: Axis.horizontal,
           padding: const EdgeInsets.symmetric(horizontal: 16),
           itemCount: displayRoutes.length,
-          itemBuilder: (context, index) => _RouteCard(route: displayRoutes[index]),
+          itemBuilder: (context, index) => StaggeredListItem(
+            index: index,
+            child: _RouteCard(route: displayRoutes[index]),
+          ),
         ),
       );
     }
 
-    // On larger screens, use wrap/grid layout
+    // On larger screens, use wrap/grid layout with staggered animation
     final columns = Breakpoints.gridColumns(sizeClass);
     return ContentWidthConstraint(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: GridView.builder(
+      child: StaggeredGridView(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(

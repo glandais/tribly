@@ -209,24 +209,28 @@ class _RideDetailContent extends StatelessWidget {
                 ride.name,
                 style: const TextStyle(fontSize: 16),
               ),
-              background: ride.routeThumbnailUrl != null
-                  ? Image.network(
-                      ride.routeThumbnailUrl!,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
-                    )
-                  : Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            Theme.of(context).colorScheme.primary,
-                            Theme.of(context).colorScheme.primaryContainer,
-                          ],
+              // Hero animation for ride thumbnail
+              background: Hero(
+                tag: 'ride-thumbnail-${ride.slug}',
+                child: ride.routeThumbnailUrl != null
+                    ? Image.network(
+                        ride.routeThumbnailUrl!,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
+                      )
+                    : Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Theme.of(context).colorScheme.primary,
+                              Theme.of(context).colorScheme.primaryContainer,
+                            ],
+                          ),
                         ),
                       ),
-                    ),
+              ),
             ),
           ),
 
