@@ -32,8 +32,12 @@
     <string name="close">Close</string>
 
     <!-- Formatting -->
-    <string name="distance_format">%.1f km</string>
-    <string name="elevation_format">↑%1$dm</string>
+    <string name="distance_format_km">%.1f km</string>
+    <string name="distance_format_mi">%.1f mi</string>
+    <string name="elevation_format_m">↑%1$dm</string>
+    <string name="elevation_format_ft">↑%1$dft</string>
+    <string name="elevation_dplus_m">%1$dm D+</string>
+    <string name="elevation_dplus_ft">%1$dft D+</string>
     <string name="nav_arrow">›</string>
     <string name="success_checkmark">✓</string>
 </resources>

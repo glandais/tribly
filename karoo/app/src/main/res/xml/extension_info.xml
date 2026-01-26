@@ -4,10 +4,4 @@
     displayName="Pédalons"
     icon="@drawable/ic_pedalons"
     scansDevices="false">
-
-    <!-- Bonus action for quick sync -->
-    <BonusAction
-        actionId="sync-routes"
-        displayName="Sync Routes" />
-
 </ExtensionInfo>

@@ -49,16 +49,20 @@ data class RoutesResponse(
 data class Route(
     @SerialName("teamSlug") val teamSlug: String,
     @SerialName("routeSlug") val routeSlug: String,
-    @SerialName("name") val name: String,
-    @SerialName("label") val label: String? = null,
-    @SerialName("rideDateTime") val rideDateTime: String? = null,
+    @SerialName("routeName") val routeName: String,
+    @SerialName("rideName") val rideName: String? = null,
+    @SerialName("groupName") val groupName: String? = null,
+    @SerialName("startDateTime") val startDateTime: String? = null,
     @SerialName("distance") val distance: Float,
     @SerialName("elevationGain") val elevationGain: Float,
     @SerialName("startLat") val startLat: Double? = null,
     @SerialName("startLon") val startLon: Double? = null
 ) {
-    val distanceKm: Float get() = distance / 1000f
-    val elevationGainInt: Int get() = elevationGain.toInt()
+    /** True if this route is associated with a group event */
+    val hasGroup: Boolean get() = !groupName.isNullOrBlank()
+
+    /** True if this route is associated with a ride */
+    val hasRide: Boolean get() = !rideName.isNullOrBlank()
 }
 
 @Serializable
