@@ -9,10 +9,13 @@ import android.view.KeyEvent
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -25,13 +28,24 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -43,6 +57,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -52,6 +67,7 @@ import fr.pedalons.karoo.api.PedalonsApiClient
 import fr.pedalons.karoo.api.UnauthorizedException
 import fr.pedalons.karoo.auth.AuthActivity
 import fr.pedalons.karoo.auth.AuthManager
+import fr.pedalons.karoo.auth.GpsConnectActivity
 import fr.pedalons.karoo.ui.theme.PedalonsKarooTheme
 import io.hammerhead.karooext.KarooSystemService
 import io.hammerhead.karooext.models.UserProfile
@@ -77,6 +93,7 @@ class MainActivity : ComponentActivity() {
 
     companion object {
         private const val REQUEST_AUTH = 100
+        private const val REQUEST_GPS_CONNECT = 101
         // TODO: Make this configurable
         private const val BASE_URL = "https://www.pedalons.fr"
     }
@@ -128,22 +145,8 @@ class MainActivity : ComponentActivity() {
                         onConnect = { startAuthFlow() }
                     )
                 } else {
-                    // Show loading while connecting to Karoo System Service
-                    Surface(
-                        modifier = Modifier.fillMaxSize(),
-                        color = MaterialTheme.colorScheme.background
-                    ) {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                CircularProgressIndicator()
-                                Spacer(modifier = Modifier.height(16.dp))
-                                Text(stringResource(R.string.connecting))
-                            }
-                        }
-                    }
+                    // Show skeleton screen while connecting to Karoo System Service
+                    RouteListSkeletonScreen(onBack = { finish() })
                 }
             }
         }
@@ -165,13 +168,33 @@ class MainActivity : ComponentActivity() {
         startActivityForResult(intent, REQUEST_AUTH)
     }
 
+    internal fun startGpsConnectFlow() {
+        val intent = Intent(this, GpsConnectActivity::class.java).apply {
+            putExtra(GpsConnectActivity.EXTRA_BASE_URL, BASE_URL)
+        }
+        startActivityForResult(intent, REQUEST_GPS_CONNECT)
+    }
+
     @Deprecated("Deprecated in Java")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == REQUEST_AUTH && resultCode == AuthActivity.RESULT_SUCCESS) {
-            // Refresh the UI - will be handled by LaunchedEffect
+        when (requestCode) {
+            REQUEST_AUTH -> {
+                if (resultCode == AuthActivity.RESULT_SUCCESS) {
+                    // Will trigger GPS check in MainScreen via gpsCheckPending state
+                    onAuthSuccess?.invoke()
+                }
+            }
+            REQUEST_GPS_CONNECT -> {
+                // GPS connect completed (success or skipped), proceed to load routes
+                onGpsConnectComplete?.invoke()
+            }
         }
     }
+
+    // Callbacks for activity results
+    internal var onAuthSuccess: (() -> Unit)? = null
+    internal var onGpsConnectComplete: (() -> Unit)? = null
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         when (keyCode) {
@@ -218,6 +241,10 @@ private fun MainScreen(
     var error by remember { mutableStateOf<String?>(null) }
     var syncingRouteId by remember { mutableStateOf<String?>(null) }
     var selectedIndex by remember { mutableStateOf(0) }
+    // Track if we need to check GPS after fresh auth
+    var gpsCheckPending by remember { mutableStateOf(false) }
+    // Track if GPS check was already done this session (to avoid checking on every auth state change)
+    var gpsCheckDone by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val listState = rememberLazyListState()
@@ -233,6 +260,15 @@ private fun MainScreen(
                     syncingRouteId = if (syncing) "${route.teamSlug}/${route.routeSlug}" else null
                 }
             }
+        }
+        // Register auth success callback
+        activity.onAuthSuccess = {
+            gpsCheckPending = true
+        }
+        // Register GPS connect complete callback
+        activity.onGpsConnectComplete = {
+            gpsCheckDone = true
+            gpsCheckPending = false
         }
     }
 
@@ -250,14 +286,64 @@ private fun MainScreen(
         }
     }
 
-    // Load routes when authenticated
-    LaunchedEffect(isAuthenticated) {
+    // Check GPS connection after fresh auth
+    LaunchedEffect(gpsCheckPending, isAuthenticated) {
+        if (gpsCheckPending && isAuthenticated == true) {
+            isLoading = true
+            checkAndPromptGpsConnection(apiClient, authManager, activity) { shouldLoadRoutes ->
+                if (shouldLoadRoutes) {
+                    gpsCheckDone = true
+                    gpsCheckPending = false
+                }
+                // If not shouldLoadRoutes, the activity was launched and will callback via onGpsConnectComplete
+            }
+        }
+    }
+
+    // Load routes when authenticated and GPS check is done (or was already done)
+    LaunchedEffect(isAuthenticated, gpsCheckDone, gpsCheckPending) {
         if (isAuthenticated == null) {
             // Still loading auth state
             return@LaunchedEffect
         }
 
         if (isAuthenticated == true) {
+            // If GPS check is pending, wait for it to complete
+            if (gpsCheckPending) {
+                return@LaunchedEffect
+            }
+
+            // On first load (not after fresh auth), check GPS then load routes
+            if (!gpsCheckDone) {
+                isLoading = true
+                checkAndPromptGpsConnection(apiClient, authManager, activity) { shouldLoadRoutes ->
+                    if (shouldLoadRoutes) {
+                        gpsCheckDone = true
+                        scope.launch {
+                            loadRoutes(apiClient, authManager) { result ->
+                                result.onSuccess {
+                                    routes = it
+                                    isLoading = false
+                                    error = null
+                                }.onFailure { e ->
+                                    if (e is UnauthorizedException) {
+                                        scope.launch {
+                                            authManager.clearTokens()
+                                        }
+                                    } else {
+                                        error = e.message
+                                    }
+                                    isLoading = false
+                                }
+                            }
+                        }
+                    }
+                    // If not shouldLoadRoutes, the activity was launched
+                }
+                return@LaunchedEffect
+            }
+
+            // GPS check done, load routes
             isLoading = true
             loadRoutes(apiClient, authManager) { result ->
                 result.onSuccess {
@@ -280,21 +366,21 @@ private fun MainScreen(
             isLoading = false
             routes = emptyList()
             error = null
+            gpsCheckDone = false
         }
     }
+
+    val onBack = { activity.finish() }
 
     Surface(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
     ) {
         when {
-            isAuthenticated == null || isLoading -> {
-                LoadingScreen()
-            }
             isAuthenticated == false -> {
-                ConnectScreen(onConnect = onConnect)
+                ConnectScreen(onConnect = onConnect, onBack = onBack)
             }
-            error != null -> {
+            error != null && !isLoading -> {
                 ErrorScreen(
                     message = error!!,
                     onRetry = {
@@ -311,24 +397,60 @@ private fun MainScreen(
                                 }
                             }
                         }
-                    }
+                    },
+                    onBack = onBack
                 )
             }
-            routes.isEmpty() -> {
-                EmptyScreen()
+            routes.isEmpty() && !isLoading && isAuthenticated == true -> {
+                EmptyScreen(onBack = onBack)
             }
             else -> {
+                // Show RouteListScreen with skeletons during initial load or refresh
+                val showLoading = isAuthenticated == null || isLoading
                 RouteListScreen(
                     routes = routes,
                     userProfile = userProfile,
                     syncingRouteId = syncingRouteId,
                     selectedIndex = selectedIndex,
                     listState = listState,
+                    isLoading = showLoading,
                     onSync = { route ->
                         scope.launch {
                             syncRoute(context, apiClient, authManager, route) { syncing ->
                                 syncingRouteId = if (syncing) "${route.teamSlug}/${route.routeSlug}" else null
                             }
+                        }
+                    },
+                    onBack = onBack,
+                    onSyncSelected = {
+                        if (routes.isNotEmpty() && selectedIndex in routes.indices) {
+                            val route = routes[selectedIndex]
+                            scope.launch {
+                                syncRoute(context, apiClient, authManager, route) { syncing ->
+                                    syncingRouteId = if (syncing) "${route.teamSlug}/${route.routeSlug}" else null
+                                }
+                            }
+                        }
+                    },
+                    onRefresh = {
+                        isLoading = true
+                        scope.launch {
+                            loadRoutes(apiClient, authManager) { result ->
+                                result.onSuccess {
+                                    routes = it
+                                    isLoading = false
+                                    error = null
+                                }.onFailure { e ->
+                                    error = e.message
+                                    isLoading = false
+                                }
+                            }
+                        }
+                    },
+                    onDisconnect = {
+                        scope.launch {
+                            authManager.clearTokens()
+                            routes = emptyList()
                         }
                     }
                 )
@@ -338,100 +460,184 @@ private fun MainScreen(
 }
 
 @Composable
-private fun LoadingScreen() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = stringResource(R.string.loading),
-                style = MaterialTheme.typography.bodyMedium
-            )
-        }
-    }
-}
-
-@Composable
-private fun ConnectScreen(onConnect: () -> Unit) {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(24.dp)
+private fun ConnectScreen(onConnect: () -> Unit, onBack: () -> Unit) {
+    ScreenWithOverlay(onBack = onBack) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
         ) {
-            Text(
-                text = stringResource(R.string.app_name),
-                style = MaterialTheme.typography.displaySmall,
-                fontWeight = FontWeight.Bold
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                text = stringResource(R.string.auth_connect_subtitle),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Spacer(modifier = Modifier.height(32.dp))
-            Button(
-                onClick = onConnect,
-                modifier = Modifier.fillMaxWidth(0.7f)
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.padding(24.dp)
             ) {
                 Text(
-                    text = stringResource(R.string.auth_connect_button),
-                    style = MaterialTheme.typography.labelLarge
+                    text = stringResource(R.string.app_name),
+                    style = MaterialTheme.typography.displaySmall,
+                    fontWeight = FontWeight.Bold
                 )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = stringResource(R.string.auth_connect_subtitle),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(32.dp))
+                Button(
+                    onClick = onConnect,
+                    modifier = Modifier.fillMaxWidth(0.7f)
+                ) {
+                    Text(
+                        text = stringResource(R.string.auth_connect_button),
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                }
             }
         }
     }
 }
 
 @Composable
-private fun ErrorScreen(message: String, onRetry: () -> Unit) {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(24.dp)
+private fun ErrorScreen(message: String, onRetry: () -> Unit, onBack: () -> Unit) {
+    ScreenWithOverlay(onBack = onBack) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.padding(24.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.error_unknown),
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = MaterialTheme.colorScheme.error
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = message,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Spacer(modifier = Modifier.height(24.dp))
+                Button(onClick = onRetry) {
+                    Text(stringResource(R.string.loading))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun EmptyScreen(onBack: () -> Unit) {
+    ScreenWithOverlay(onBack = onBack) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
         ) {
             Text(
-                text = stringResource(R.string.error_unknown),
-                style = MaterialTheme.typography.headlineSmall,
-                color = MaterialTheme.colorScheme.error
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = message,
-                style = MaterialTheme.typography.bodyMedium,
+                text = stringResource(R.string.routes_empty),
+                style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            Spacer(modifier = Modifier.height(24.dp))
-            Button(onClick = onRetry) {
-                Text(stringResource(R.string.loading))
-            }
         }
     }
 }
 
 @Composable
-private fun EmptyScreen() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(
-            text = stringResource(R.string.routes_empty),
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+private fun BackButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Image(
+        painter = painterResource(id = R.drawable.back),
+        contentDescription = stringResource(R.string.back),
+        modifier = modifier
+            .size(54.dp)
+            .clickable(onClick = onClick)
+    )
+}
+
+@Composable
+private fun SyncButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Image(
+        painter = painterResource(id = R.drawable.sync),
+        contentDescription = stringResource(R.string.sync),
+        modifier = modifier
+            .size(54.dp)
+            .clickable(onClick = onClick)
+    )
+}
+
+@Composable
+private fun ScreenWithOverlay(
+    onBack: () -> Unit,
+    showSync: Boolean = false,
+    onSync: (() -> Unit)? = null,
+    content: @Composable BoxScope.() -> Unit
+) {
+    Box(modifier = Modifier.fillMaxSize()) {
+        content()
+
+        BackButton(
+            onClick = onBack,
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .padding(bottom = 10.dp)
         )
+
+        if (showSync && onSync != null) {
+            SyncButton(
+                onClick = onSync,
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(bottom = 10.dp)
+            )
+        }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun RouteListSkeletonScreen(onBack: () -> Unit) {
+    ScreenWithOverlay(onBack = onBack, showSync = false) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = stringResource(R.string.routes_title),
+                        fontWeight = FontWeight.Bold
+                    )
+                },
+                actions = {
+                    CircularProgressIndicator(
+                        modifier = Modifier
+                            .size(24.dp)
+                            .padding(end = 12.dp),
+                        strokeWidth = 2.dp,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
+            )
+
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(vertical = 8.dp)
+            ) {
+                items(5) {
+                    RouteItemSkeleton()
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun RouteListScreen(
     routes: List<Route>,
@@ -439,36 +645,94 @@ private fun RouteListScreen(
     syncingRouteId: String?,
     selectedIndex: Int,
     listState: LazyListState,
-    onSync: (Route) -> Unit
+    isLoading: Boolean,
+    onSync: (Route) -> Unit,
+    onBack: () -> Unit,
+    onSyncSelected: () -> Unit,
+    onRefresh: () -> Unit,
+    onDisconnect: () -> Unit
 ) {
-    Column(modifier = Modifier.fillMaxSize()) {
-        // Header
-        Surface(
-            color = MaterialTheme.colorScheme.surface,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(
-                text = stringResource(R.string.routes_title),
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(16.dp)
-            )
-        }
+    var showMenu by remember { mutableStateOf(false) }
 
-        // Route list
-        LazyColumn(
-            state = listState,
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(vertical = 8.dp)
-        ) {
-            itemsIndexed(routes, key = { _, route -> "${route.teamSlug}/${route.routeSlug}" }) { index, route ->
-                RouteItem(
-                    route = route,
-                    userProfile = userProfile,
-                    isSelected = index == selectedIndex,
-                    isSyncing = syncingRouteId == "${route.teamSlug}/${route.routeSlug}",
-                    onSync = { onSync(route) }
+    ScreenWithOverlay(
+        onBack = onBack,
+        showSync = !isLoading,
+        onSync = onSyncSelected
+    ) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            // Header
+            TopAppBar(
+                title = {
+                    Text(
+                        text = stringResource(R.string.routes_title),
+                        fontWeight = FontWeight.Bold
+                    )
+                },
+                actions = {
+                    if (isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier
+                                .size(24.dp)
+                                .padding(end = 12.dp),
+                            strokeWidth = 2.dp,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    } else {
+                        IconButton(onClick = onRefresh) {
+                            Icon(
+                                imageVector = Icons.Filled.Refresh,
+                                contentDescription = stringResource(R.string.loading)
+                            )
+                        }
+                    }
+
+                    Box {
+                        IconButton(onClick = { showMenu = true }) {
+                            Icon(
+                                imageVector = Icons.Filled.MoreVert,
+                                contentDescription = stringResource(R.string.settings)
+                            )
+                        }
+                        DropdownMenu(
+                            expanded = showMenu,
+                            onDismissRequest = { showMenu = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.disconnect)) },
+                                onClick = {
+                                    showMenu = false
+                                    onDisconnect()
+                                }
+                            )
+                        }
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface
                 )
+            )
+
+            // Route list or skeletons
+            LazyColumn(
+                state = listState,
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(vertical = 8.dp)
+            ) {
+                if (isLoading) {
+                    items(5) {
+                        RouteItemSkeleton()
+                    }
+                } else {
+                    itemsIndexed(routes, key = { _, route -> "${route.teamSlug}/${route.routeSlug}" }) { index, route ->
+                        RouteItem(
+                            route = route,
+                            userProfile = userProfile,
+                            isSelected = index == selectedIndex,
+                            isSyncing = syncingRouteId == "${route.teamSlug}/${route.routeSlug}",
+                            onSync = { onSync(route) }
+                        )
+                    }
+                }
             }
         }
     }
@@ -666,6 +930,70 @@ private fun RouteItem(
     }
 }
 
+@Composable
+private fun RouteItemSkeleton() {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp, vertical = 4.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        shape = MaterialTheme.shapes.medium
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(10.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                // Title skeleton
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(0.7f)
+                        .height(16.dp)
+                        .background(
+                            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f),
+                            MaterialTheme.shapes.small
+                        )
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                // Sublabel skeleton
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(0.5f)
+                        .height(12.dp)
+                        .background(
+                            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.15f),
+                            MaterialTheme.shapes.small
+                        )
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                // Stats skeleton
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Box(
+                        modifier = Modifier
+                            .width(50.dp)
+                            .height(12.dp)
+                            .background(
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
+                                MaterialTheme.shapes.small
+                            )
+                    )
+                    Box(
+                        modifier = Modifier
+                            .width(50.dp)
+                            .height(12.dp)
+                            .background(
+                                MaterialTheme.colorScheme.secondary.copy(alpha = 0.2f),
+                                MaterialTheme.shapes.small
+                            )
+                    )
+                }
+            }
+        }
+    }
+}
+
 private suspend fun loadRoutes(
     apiClient: PedalonsApiClient,
     authManager: AuthManager,
@@ -722,4 +1050,56 @@ private suspend fun syncRoute(
         }
 
     onSyncing(false)
+}
+
+/**
+ * Check if Hammerhead is connected and prompt user to connect if not.
+ * @param onResult callback with true if should proceed to load routes immediately,
+ *                 false if GPS connect activity was launched (will callback via activity result)
+ */
+private suspend fun checkAndPromptGpsConnection(
+    apiClient: PedalonsApiClient,
+    authManager: AuthManager,
+    activity: MainActivity,
+    onResult: (Boolean) -> Unit
+) {
+    // Get access token, refresh if needed
+    var accessToken = authManager.getValidAccessToken()
+    if (accessToken == null && authManager.needsRefresh()) {
+        val refreshToken = authManager.getRefreshToken()
+        if (refreshToken != null) {
+            apiClient.refreshToken(refreshToken)
+                .onSuccess { tokenResponse ->
+                    authManager.updateAccessToken(tokenResponse.accessToken, tokenResponse.expiresIn)
+                    accessToken = tokenResponse.accessToken
+                }
+                .onFailure {
+                    // Can't check, proceed anyway
+                    onResult(true)
+                    return
+                }
+        }
+    }
+
+    if (accessToken == null) {
+        // Can't check, proceed anyway
+        onResult(true)
+        return
+    }
+
+    apiClient.getUserStatus(accessToken!!)
+        .onSuccess { status ->
+            if (status.isHammerheadConnected()) {
+                // Already connected, proceed to load routes
+                onResult(true)
+            } else {
+                // Not connected, launch GPS connect activity
+                activity.startGpsConnectFlow()
+                onResult(false)
+            }
+        }
+        .onFailure {
+            // Error checking, proceed anyway
+            onResult(true)
+        }
 }

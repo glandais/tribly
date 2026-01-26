@@ -245,6 +245,8 @@
   "device.subtitle": "Log in to authorize your GPS device",
   "device.success.message": "Your device has been successfully authorized.",
   "device.success.returnToDevice": "You can now return to your device. It should connect automatically.",
+  "device.success.hammerheadRequired": "To receive routes on your Karoo, you need to connect your Hammerhead account.",
+  "device.success.connectHammerhead": "Connect Hammerhead",
   "device.success.title": "Login successful!",
   "device.title": "Device Login",
   "device.verifying": "Verifying code...",

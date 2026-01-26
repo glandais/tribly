@@ -16,17 +16,19 @@ export interface DeviceRouteDto {
   /** Route slug */
   routeSlug: string
   /** Route name */
-  name: string
-  /** Label (e.g., 'Rapides - 18/01 09:00') */
-  label?: string
-  /** Ride date/time if from a ride */
-  rideDateTime?: Instant
+  routeName: string
+  /** Ride name */
+  rideName?: string
+  /** Group name */
+  groupName?: string
+  /** Start date/time */
+  startDateTime?: Instant
   /** Distance in meters */
   distance: number
   /** Elevation gain in meters */
   elevationGain: number
   /** Start latitude */
-  startLat?: number
+  startLat: number
   /** Start longitude */
-  startLon?: number
+  startLon: number
 }

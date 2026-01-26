@@ -1124,6 +1124,20 @@
           }
         }
       },
+      "DeviceUserStatusResponse" : {
+        "description" : "Response containing user's device connection status",
+        "type" : "object",
+        "required" : [ "connectedGpsServices" ],
+        "properties" : {
+          "connectedGpsServices" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/GpsServiceType"
+            },
+            "description" : "List of connected GPS services"
+          }
+        }
+      },
       "EntityType" : {
         "type" : "string",
         "enum" : [ "TEAM", "USER", "USER_TEAM", "RIDE_TEMPLATE", "RIDE_TEMPLATE_GROUP", "PLACE", "COMMENT", "ASSET", "TRIP", "TRIP_STAGE", "ROUTE", "RIDE", "RIDE_GROUP", "AD", "POST", "TEAM_PAGE", "CALENDAR", "PUBLICATION", "ANY" ]
@@ -3619,6 +3633,9 @@
     "name" : "Device Routes",
     "description" : "Route management for device applications"
   }, {
+    "name" : "Device User",
+    "description" : "User status for device applications"
+  }, {
     "name" : "GPS Services",
     "description" : "GPS device integration operations"
   }, {
@@ -5368,6 +5385,39 @@
             }
           }
         }
+      }
+    },
+    "/api/device/me" : {
+      "get" : {
+        "summary" : "Get current user status",
+        "description" : "Get authenticated user's status including connected GPS services",
+        "operationId" : "deviceGetMe",
+        "tags" : [ "Device User" ],
+        "responses" : {
+          "200" : {
+            "description" : "User status",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/DeviceUserStatusResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ]
       }
     },
     "/api/device/oauth/complete" : {

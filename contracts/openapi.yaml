@@ -1018,6 +1018,17 @@ components:
         refreshToken:
           type: string
           description: Refresh token
+    DeviceUserStatusResponse:
+      description: Response containing user's device connection status
+      type: object
+      required:
+      - connectedGpsServices
+      properties:
+        connectedGpsServices:
+          type: array
+          items:
+            $ref: "#/components/schemas/GpsServiceType"
+          description: List of connected GPS services
     EntityType:
       type: string
       enum:
@@ -3347,6 +3358,8 @@ tags:
   description: OAuth 2.0 Device Code endpoints for GPS devices
 - name: Device Routes
   description: Route management for device applications
+- name: Device User
+  description: User status for device applications
 - name: GPS Services
   description: GPS device integration operations
 - name: Passkeys
@@ -4553,6 +4566,28 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ConfigDto"
+  /api/device/me:
+    get:
+      summary: Get current user status
+      description: Get authenticated user's status including connected GPS services
+      operationId: deviceGetMe
+      tags:
+      - Device User
+      responses:
+        "200":
+          description: User status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeviceUserStatusResponse"
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      security:
+      - bearerAuth: []
   /api/device/oauth/complete:
     post:
       summary: Complete device authorization

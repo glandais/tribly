@@ -37,7 +37,7 @@ Then verify no TypeScript errors:
 cd frontend && pnpm build
 ```
 
-### 3. Regenerate Mobile Client (if mobile app is being developed)
+### 3. Regenerate Mobile Client
 
 ```bash
 cd mobile && dart run openapi_retrofit_generator && dart run build_runner build --delete-conflicting-outputs

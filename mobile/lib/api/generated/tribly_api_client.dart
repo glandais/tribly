@@ -11,6 +11,7 @@ import 'clients/authentication_client.dart';
 import 'clients/passkeys_client.dart';
 import 'clients/calendar_client.dart';
 import 'clients/configuration_client.dart';
+import 'clients/device_user_client.dart';
 import 'clients/device_o_auth_client.dart';
 import 'clients/device_routes_client.dart';
 import 'clients/gps_services_client.dart';
@@ -55,6 +56,7 @@ class TriblyApiClient {
   PasskeysClient? _passkeys;
   CalendarClient? _calendar;
   ConfigurationClient? _configuration;
+  DeviceUserClient? _deviceUser;
   DeviceOAuthClient? _deviceOAuth;
   DeviceRoutesClient? _deviceRoutes;
   GpsServicesClient? _gpsServices;
@@ -97,6 +99,9 @@ class TriblyApiClient {
 
   ConfigurationClient get configuration =>
       _configuration ??= ConfigurationClient(_dio, baseUrl: _baseUrl);
+
+  DeviceUserClient get deviceUser =>
+      _deviceUser ??= DeviceUserClient(_dio, baseUrl: _baseUrl);
 
   DeviceOAuthClient get deviceOAuth =>
       _deviceOAuth ??= DeviceOAuthClient(_dio, baseUrl: _baseUrl);

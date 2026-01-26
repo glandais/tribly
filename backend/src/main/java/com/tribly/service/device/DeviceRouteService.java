@@ -1,5 +1,6 @@
 package com.tribly.service.device;
 
+import com.tribly.domain.gps.GpsServiceConnection;
 import com.tribly.domain.ride.Ride;
 import com.tribly.domain.ride.RideGroup;
 import com.tribly.domain.route.Route;
@@ -7,11 +8,14 @@ import com.tribly.domain.team.Team;
 import com.tribly.domain.team.UserTeam;
 import com.tribly.dto.device.response.DeviceRouteDto;
 import com.tribly.dto.device.response.DeviceRoutesResponse;
+import com.tribly.dto.device.response.DeviceUserStatusResponse;
 import com.tribly.enums.EntityType;
+import com.tribly.enums.GpsServiceType;
 import com.tribly.enums.Status;
 import com.tribly.infrastructure.exception.NotFoundException;
 import com.tribly.infrastructure.timezone.TimezoneService;
 import com.tribly.repository.common.TeamEntityQueryBasic;
+import com.tribly.repository.gps.GpsServiceConnectionRepository;
 import com.tribly.repository.ride.RideRepository;
 import com.tribly.repository.route.RouteQuery;
 import com.tribly.repository.route.RouteRepository;
@@ -47,6 +51,7 @@ public class DeviceRouteService {
   @Inject UserTeamRepository userTeamRepository;
   @Inject RideRepository rideRepository;
   @Inject RouteRepository routeRepository;
+  @Inject GpsServiceConnectionRepository gpsServiceConnectionRepository;
   @Inject GpxProcessingService gpxProcessingService;
   @Inject TimezoneService timezoneService;
 
@@ -117,6 +122,21 @@ public class DeviceRouteService {
             .collect(Collectors.toList());
 
     return DeviceRoutesResponse.builder().routes(routes).build();
+  }
+
+  /**
+   * Get user status including connected GPS services.
+   *
+   * @return User status with list of connected GPS services
+   */
+  @Logged
+  public DeviceUserStatusResponse getUserStatus() {
+    Long userId = triblyContext.getUserId();
+    List<GpsServiceType> connectedServices =
+        gpsServiceConnectionRepository.findByUser(userId).stream()
+            .map(GpsServiceConnection::getServiceType)
+            .toList();
+    return DeviceUserStatusResponse.builder().connectedGpsServices(connectedServices).build();
   }
 
   private List<RouteWithDistance> getRoutesFromRides(

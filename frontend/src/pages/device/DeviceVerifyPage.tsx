@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useSearchParams, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { notifications } from '@mantine/notifications'
-import { IconDeviceDesktop, IconCheck, IconX, IconArrowLeft } from '@tabler/icons-react'
+import { IconDeviceDesktop, IconCheck, IconX, IconArrowLeft, IconLink } from '@tabler/icons-react'
 import {
   Center,
   Paper,
@@ -16,11 +16,17 @@ import {
   PinInput,
 } from '@mantine/core'
 import { useAuth } from '../../hooks/useAuth'
+import { useGpsConnections } from '../../hooks/useGpsConnections'
+import { GpsServiceType } from '../../api/dto'
 
 export function DeviceVerifyPage() {
   const { t } = useTranslation()
   const [searchParams, setSearchParams] = useSearchParams()
+  const location = useLocation()
   const { user } = useAuth()
+  const { isConnected, isServiceAvailable, initiateConnect } = useGpsConnections()
+
+  const isKarooPage = location.pathname === '/karoo'
 
   const [isVerifying, setIsVerifying] = useState(true)
   const [codeValid, setCodeValid] = useState(false)
@@ -36,6 +42,10 @@ export function DeviceVerifyPage() {
       setIsVerifying(false)
       return
     }
+
+    // Reset state when code changes (important for manual entry)
+    setIsVerifying(true)
+    setCodeValid(false)
 
     const verifyCode = async () => {
       try {
@@ -182,6 +192,10 @@ export function DeviceVerifyPage() {
 
   // Authorization completed
   if (completed) {
+    const hammerheadAvailable = isServiceAvailable(GpsServiceType.HAMMERHEAD)
+    const hammerheadConnected = isConnected(GpsServiceType.HAMMERHEAD)
+    const needsHammerheadConnection = isKarooPage && hammerheadAvailable && !hammerheadConnected
+
     return (
       <Center mih="70vh">
         <Paper shadow="lg" radius="lg" p="xl" w="100%" maw={420}>
@@ -195,9 +209,23 @@ export function DeviceVerifyPage() {
             <Text c="dimmed" ta="center">
               {t('device.success.message')}
             </Text>
-            <Alert color="blue" variant="light">
-              <Text size="sm">{t('device.success.returnToDevice')}</Text>
-            </Alert>
+            {needsHammerheadConnection ? (
+              <>
+                <Alert color="orange" variant="light">
+                  <Text size="sm">{t('device.success.hammerheadRequired')}</Text>
+                </Alert>
+                <Button
+                  leftSection={<IconLink size={16} />}
+                  onClick={() => initiateConnect(GpsServiceType.HAMMERHEAD)}
+                >
+                  {t('device.success.connectHammerhead')}
+                </Button>
+              </>
+            ) : (
+              <Alert color="blue" variant="light">
+                <Text size="sm">{t('device.success.returnToDevice')}</Text>
+              </Alert>
+            )}
           </Stack>
         </Paper>
       </Center>

@@ -41,6 +41,12 @@
             android:exported="false"
             android:theme="@style/Theme.PedalonsKaroo" />
 
+        <!-- GPS Connect Activity for Hammerhead OAuth -->
+        <activity
+            android:name=".auth.GpsConnectActivity"
+            android:exported="false"
+            android:theme="@style/Theme.PedalonsKaroo" />
+
     </application>
 
 </manifest>

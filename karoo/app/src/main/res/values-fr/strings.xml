@@ -22,6 +22,16 @@
     <string name="route_synced">Parcours synchronisé !</string>
     <string name="route_sync_error">Échec de la synchronisation</string>
 
+    <!-- GPS Connect -->
+    <string name="gps_connect_title">Connecter Hammerhead</string>
+    <string name="gps_connect_subtitle">Pour synchroniser les parcours vers votre Karoo</string>
+    <string name="gps_connect_scan">Scannez pour connecter</string>
+    <string name="gps_connect_done">J\'ai connecté</string>
+    <string name="gps_connect_skip">Ignorer</string>
+    <string name="gps_connect_success">Hammerhead connecté !</string>
+    <string name="gps_connect_not_detected">Hammerhead non détecté, veuillez réessayer</string>
+    <string name="gps_connect_checking">Vérification de la connexion…</string>
+
     <!-- General -->
     <string name="connecting">Connexion au Karoo…</string>
     <string name="loading">Chargement…</string>
@@ -30,6 +40,8 @@
     <string name="disconnect">Déconnexion</string>
     <string name="settings">Paramètres</string>
     <string name="close">Fermer</string>
+    <string name="back">Retour</string>
+    <string name="sync">Synchroniser</string>
 
     <!-- Formatting -->
     <string name="distance_format_km">%.1f km</string>

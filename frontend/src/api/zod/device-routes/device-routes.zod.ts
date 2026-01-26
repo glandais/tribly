@@ -24,13 +24,14 @@ export const deviceListRoutesResponse = zod
           .object({
             teamSlug: zod.string().describe('Team slug'),
             routeSlug: zod.string().describe('Route slug'),
-            name: zod.string().describe('Route name'),
-            label: zod.string().optional().describe("Label (e.g., 'Rapides - 18/01 09:00')"),
-            rideDateTime: zod.iso.datetime({}).optional(),
+            routeName: zod.string().describe('Route name'),
+            rideName: zod.string().optional().describe('Ride name'),
+            groupName: zod.string().optional().describe('Group name'),
+            startDateTime: zod.iso.datetime({}).optional(),
             distance: zod.number().describe('Distance in meters'),
             elevationGain: zod.number().describe('Elevation gain in meters'),
-            startLat: zod.number().optional().describe('Start latitude'),
-            startLon: zod.number().optional().describe('Start longitude'),
+            startLat: zod.number().describe('Start latitude'),
+            startLon: zod.number().describe('Start longitude'),
           })
           .describe('Route information for device applications')
       )

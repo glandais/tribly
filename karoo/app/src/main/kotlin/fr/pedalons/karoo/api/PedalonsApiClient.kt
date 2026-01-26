@@ -89,6 +89,21 @@ class PedalonsApiClient(
         }
     }
 
+    // === User Status ===
+
+    suspend fun getUserStatus(accessToken: String): Result<UserStatusResponse> = runCatching {
+        val response = client.get("$baseUrl/api/device/me") {
+            bearerAuth(accessToken)
+        }
+        if (response.status.isSuccess()) {
+            response.body<UserStatusResponse>()
+        } else if (response.status.value == 401) {
+            throw UnauthorizedException()
+        } else {
+            throw ApiException(response.status.value, response.bodyAsText())
+        }
+    }
+
     // === Routes ===
 
     suspend fun getRoutes(

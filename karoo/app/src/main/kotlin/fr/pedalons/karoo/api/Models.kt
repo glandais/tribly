@@ -72,6 +72,14 @@ data class SyncResponse(
     @SerialName("externalRouteId") val externalRouteId: String? = null
 )
 
+// User Status
+@Serializable
+data class UserStatusResponse(
+    @SerialName("connectedGpsServices") val connectedGpsServices: List<String>
+) {
+    fun isHammerheadConnected(): Boolean = connectedGpsServices.contains("HAMMERHEAD")
+}
+
 // Error
 @Serializable
 data class ErrorResponse(

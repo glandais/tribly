@@ -2,11 +2,13 @@ package com.tribly.service.device;
 
 import com.tribly.common.exception.BadRequestException;
 import com.tribly.domain.auth.AuthSession;
+import com.tribly.domain.auth.DeviceCode;
 import com.tribly.domain.user.User;
 import com.tribly.dto.device.response.DeviceCodeResponse;
 import com.tribly.dto.device.response.DeviceTokenResponse;
 import com.tribly.dto.error.ErrorCode;
 import com.tribly.repository.auth.AuthSessionRepository;
+import com.tribly.repository.auth.DeviceCodeRepository;
 import com.tribly.repository.user.UserRepository;
 import com.tribly.service.security.DomainResolver;
 import com.tribly.service.security.annotation.Public;
@@ -20,10 +22,8 @@ import java.security.SecureRandom;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Base64;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Optional;
 import org.jboss.logging.Logger;
-import org.jspecify.annotations.Nullable;
 
 /**
  * Service handling device code OAuth flow (RFC 8628) for GPS devices (Karoo, Garmin, etc.).
@@ -51,25 +51,11 @@ public class DeviceAuthService {
   private static final String USER_CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   private static final int USER_CODE_LENGTH = 6;
 
-  // In-memory store for device codes (10 min expiry)
-  private final Map<String, DeviceCodeData> deviceCodes = new ConcurrentHashMap<>();
-
-  // Index user code → device code for verification lookup
-  private final Map<String, String> userCodeToDeviceCode = new ConcurrentHashMap<>();
-
   @Inject DeviceJwtService deviceJwtService;
   @Inject AuthSessionRepository authSessionRepository;
+  @Inject DeviceCodeRepository deviceCodeRepository;
   @Inject UserRepository userRepository;
   @Inject DomainResolver domainResolver;
-
-  /** Data associated with a device code. */
-  public record DeviceCodeData(
-      String userCode,
-      String clientId,
-      Long domainId,
-      Instant expiresAt,
-      @Nullable Long userId,
-      boolean authorized) {}
 
   @Public
   public String getFrontendBaseUrl() {
@@ -83,11 +69,13 @@ public class DeviceAuthService {
    * @return Device code response with user code and verification URLs
    */
   @Public
+  @Transactional
   public DeviceCodeResponse initiateDeviceCodeFlow(String clientId) {
     Long domainId = domainResolver.getDomain().getId();
 
     // Generate device code (long, for polling)
     String deviceCode = generateSecureToken();
+    String deviceCodeHash = hashToken(deviceCode);
 
     // Generate user code (short, human-readable)
     String userCode = generateUserCode();
@@ -97,16 +85,10 @@ public class DeviceAuthService {
     String verificationUri = baseUrl + "/karoo";
     String verificationUriComplete = verificationUri + "?code=" + userCode;
 
-    // Store device code with expiry
+    // Store device code in database
     Instant expiresAt = Instant.now().plus(Duration.ofMinutes(DEVICE_CODE_EXPIRY_MINUTES));
-    deviceCodes.put(
-        deviceCode, new DeviceCodeData(userCode, clientId, domainId, expiresAt, null, false));
-
-    // Also index by user code for lookup during verification
-    userCodeToDeviceCode.put(userCode, deviceCode);
-
-    // Clean up expired codes periodically
-    cleanupExpiredCodes();
+    DeviceCode entity = new DeviceCode(deviceCodeHash, userCode, clientId, domainId, expiresAt);
+    deviceCodeRepository.persist(entity);
 
     LOG.infov("Initiated device code flow for client={0}, user_code={1}", clientId, userCode);
 
@@ -131,78 +113,66 @@ public class DeviceAuthService {
   @Transactional
   @Public
   public void completeDeviceCodeFlow(String userCode, Long userId, Long domainId) {
-    String deviceCode = userCodeToDeviceCode.get(userCode.toUpperCase());
-    if (deviceCode == null) {
-      throw new BadRequestException(ErrorCode.TOKEN_INVALID);
-    }
+    DeviceCode deviceCode =
+        deviceCodeRepository
+            .findValidByUserCode(userCode)
+            .orElseThrow(() -> new BadRequestException(ErrorCode.TOKEN_INVALID));
 
-    DeviceCodeData codeData = deviceCodes.get(deviceCode);
-    if (codeData == null || codeData.expiresAt().isBefore(Instant.now())) {
-      userCodeToDeviceCode.remove(userCode.toUpperCase());
+    if (!deviceCode.isValid()) {
       throw new BadRequestException(ErrorCode.TOKEN_EXPIRED);
     }
 
     // Verify domain matches
-    if (!codeData.domainId().equals(domainId)) {
+    if (!deviceCode.getDomainId().equals(domainId)) {
       throw new BadRequestException(ErrorCode.TOKEN_INVALID);
     }
 
-    // Update device code as authorized with user ID
-    deviceCodes.put(
-        deviceCode,
-        new DeviceCodeData(
-            codeData.userCode(),
-            codeData.clientId(),
-            codeData.domainId(),
-            codeData.expiresAt(),
-            userId,
-            true));
+    // Get user and authorize device code
+    User user =
+        userRepository
+            .findActiveByIdAndDomain(domainId, userId)
+            .orElseThrow(() -> new BadRequestException(ErrorCode.TOKEN_INVALID));
+
+    deviceCode.authorize(user);
 
     LOG.infov(
         "Device code authorized for user {0}, client={1}, user_code={2}",
-        userId, codeData.clientId(), userCode);
+        userId, deviceCode.getClientId(), userCode);
   }
 
   /**
    * Exchange device code for tokens. Returns error codes per RFC 8628 if not yet authorized.
    *
-   * @param deviceCode The device code to exchange
+   * @param deviceCodeValue The device code to exchange
    * @return Token response if authorized
    * @throws BadRequestException with specific error codes for polling states
    */
   @Transactional
   @Public
-  public DeviceTokenResponse exchangeDeviceCode(String deviceCode) {
-    DeviceCodeData codeData = deviceCodes.get(deviceCode);
+  public DeviceTokenResponse exchangeDeviceCode(String deviceCodeValue) {
+    String deviceCodeHash = hashToken(deviceCodeValue);
+    DeviceCode deviceCode =
+        deviceCodeRepository
+            .findByDeviceCodeHash(deviceCodeHash)
+            .orElseThrow(() -> new BadRequestException(ErrorCode.TOKEN_INVALID));
 
-    if (codeData == null) {
-      // Invalid or already used
-      throw new BadRequestException(ErrorCode.TOKEN_INVALID);
-    }
-
-    if (codeData.expiresAt().isBefore(Instant.now())) {
-      // Expired
-      deviceCodes.remove(deviceCode);
-      userCodeToDeviceCode.remove(codeData.userCode());
+    if (!deviceCode.isValid()) {
+      // Expired - delete it
+      deviceCodeRepository.delete(deviceCode);
       throw new BadRequestException(ErrorCode.TOKEN_EXPIRED);
     }
 
-    if (!codeData.authorized() || codeData.userId() == null) {
+    if (!deviceCode.isAuthorized() || deviceCode.getUser() == null) {
       // Not yet authorized - return authorization_pending error per RFC 8628
       throw new BadRequestException(ErrorCode.AUTHORIZATION_PENDING);
     }
 
-    // Authorization successful - remove codes
-    deviceCodes.remove(deviceCode);
-    userCodeToDeviceCode.remove(codeData.userCode());
+    // Authorization successful - get user and delete code
+    User user = deviceCode.getUser();
+    String clientId = deviceCode.getClientId();
+    deviceCodeRepository.delete(deviceCode);
 
-    // Get user with domain verification
-    User user =
-        userRepository
-            .findActiveByIdAndDomain(codeData.domainId(), codeData.userId())
-            .orElseThrow(() -> new BadRequestException(ErrorCode.TOKEN_INVALID));
-
-    return createTokenResponse(user, codeData.clientId());
+    return createTokenResponse(user, clientId);
   }
 
   /**
@@ -243,22 +213,14 @@ public class DeviceAuthService {
   }
 
   /**
-   * Look up device code data by user code (for frontend display during verification).
+   * Look up device code by user code (for frontend display during verification).
    *
    * @param userCode The user code
-   * @return Device code data if valid, null otherwise
+   * @return Device code entity if valid, empty otherwise
    */
   @Public
-  public @Nullable DeviceCodeData getDeviceCodeByUserCode(String userCode) {
-    String deviceCode = userCodeToDeviceCode.get(userCode.toUpperCase());
-    if (deviceCode == null) {
-      return null;
-    }
-    DeviceCodeData data = deviceCodes.get(deviceCode);
-    if (data == null || data.expiresAt().isBefore(Instant.now())) {
-      return null;
-    }
-    return data;
+  public Optional<DeviceCode> getDeviceCodeByUserCode(String userCode) {
+    return deviceCodeRepository.findValidByUserCode(userCode);
   }
 
   /**
@@ -268,12 +230,8 @@ public class DeviceAuthService {
    * @return Optional containing the authorization status if code is valid, empty if not found
    */
   @Public
-  public java.util.Optional<Boolean> isUserCodeAuthorized(String userCode) {
-    DeviceCodeData data = getDeviceCodeByUserCode(userCode);
-    if (data == null) {
-      return java.util.Optional.empty();
-    }
-    return java.util.Optional.of(data.authorized());
+  public Optional<Boolean> isUserCodeAuthorized(String userCode) {
+    return deviceCodeRepository.findValidByUserCode(userCode).map(DeviceCode::isAuthorized);
   }
 
   private DeviceTokenResponse createTokenResponse(User user, String clientId) {
@@ -300,20 +258,6 @@ public class DeviceAuthService {
         .expiresIn(deviceJwtService.getAccessTokenExpirySeconds())
         .refreshToken(refreshToken)
         .build();
-  }
-
-  private void cleanupExpiredCodes() {
-    Instant now = Instant.now();
-    deviceCodes
-        .entrySet()
-        .removeIf(
-            entry -> {
-              if (entry.getValue().expiresAt().isBefore(now)) {
-                userCodeToDeviceCode.remove(entry.getValue().userCode());
-                return true;
-              }
-              return false;
-            });
   }
 
   private String generateSecureToken() {
