@@ -29,9 +29,8 @@ import com.tribly.service.security.annotation.Public;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
+import java.io.InputStream;
 import java.security.SecureRandom;
 import java.time.Instant;
 import java.util.Base64;
@@ -297,9 +296,8 @@ public class GpsService {
                         .findFirst()
                         .orElseThrow(() -> new BusinessException(ErrorCode.GPX_NOT_FOUND)));
 
-    File file = assetService.getAssetFile(gpxAsset);
-    try {
-      return Files.readAllBytes(file.toPath());
+    try (InputStream is = assetService.getAssetContent(gpxAsset)) {
+      return is.readAllBytes();
     } catch (IOException e) {
       throw new RuntimeException("Failed to read GPX file", e);
     }
