@@ -16,11 +16,11 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
-    namespace = "com.tribly.karoo"
+    namespace = "fr.pedalons.karoo"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.tribly.karoo"
+        applicationId = "fr.pedalons.karoo"
         minSdk = 26
         targetSdk = 34
         versionCode = 1

@@ -1,4 +1,4 @@
-package com.tribly.karoo.api
+package fr.pedalons.karoo.api
 
 import de.jonasfranz.ktor.client.karoo.Karoo
 import io.hammerhead.karooext.KarooSystemService
@@ -19,11 +19,11 @@ import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 
 /**
- * HTTP client for Tribly API using Ktor with Karoo engine.
+ * HTTP client for Pédalons API using Ktor with Karoo engine.
  * The Karoo engine routes HTTP requests through the Karoo System Service,
  * which handles network connectivity on Karoo devices.
  */
-class TriblyApiClient(
+class PedalonsApiClient(
     private val baseUrl: String,
     karooSystemService: KarooSystemService
 ) {

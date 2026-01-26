@@ -1,4 +1,4 @@
-package com.tribly.karoo
+package fr.pedalons.karoo
 
 import android.content.Context
 import android.content.Intent
@@ -41,12 +41,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.tribly.karoo.api.Route
-import com.tribly.karoo.api.TriblyApiClient
-import com.tribly.karoo.api.UnauthorizedException
-import com.tribly.karoo.auth.AuthActivity
-import com.tribly.karoo.auth.AuthManager
-import com.tribly.karoo.ui.theme.TriblyKarooTheme
+import fr.pedalons.karoo.api.Route
+import fr.pedalons.karoo.api.PedalonsApiClient
+import fr.pedalons.karoo.api.UnauthorizedException
+import fr.pedalons.karoo.auth.AuthActivity
+import fr.pedalons.karoo.auth.AuthManager
+import fr.pedalons.karoo.ui.theme.PedalonsKarooTheme
 import io.hammerhead.karooext.KarooSystemService
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
@@ -63,7 +63,7 @@ class MainActivity : ComponentActivity() {
         private const val BASE_URL = "https://www.pedalons.fr"
     }
 
-    private var apiClient: TriblyApiClient? = null
+    private var apiClient: PedalonsApiClient? = null
     private lateinit var authManager: AuthManager
     private lateinit var karooSystem: KarooSystemService
 
@@ -82,11 +82,11 @@ class MainActivity : ComponentActivity() {
                 while (!karooSystem.connected) {
                     delay(100)
                 }
-                apiClient = TriblyApiClient(BASE_URL, karooSystem)
+                apiClient = PedalonsApiClient(BASE_URL, karooSystem)
                 isConnected = true
             }
 
-            TriblyKarooTheme {
+            PedalonsKarooTheme {
                 if (isConnected && apiClient != null) {
                     MainScreen(
                         apiClient = apiClient!!,
@@ -141,7 +141,7 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 private fun MainScreen(
-    apiClient: TriblyApiClient,
+    apiClient: PedalonsApiClient,
     authManager: AuthManager,
     onConnect: () -> Unit
 ) {
@@ -445,7 +445,7 @@ private fun RouteItem(
 }
 
 private suspend fun loadRoutes(
-    apiClient: TriblyApiClient,
+    apiClient: PedalonsApiClient,
     authManager: AuthManager,
     onResult: (Result<List<Route>>) -> Unit
 ) {
@@ -478,7 +478,7 @@ private suspend fun loadRoutes(
 
 private suspend fun syncRoute(
     context: Context,
-    apiClient: TriblyApiClient,
+    apiClient: PedalonsApiClient,
     authManager: AuthManager,
     route: Route,
     onSyncing: (Boolean) -> Unit

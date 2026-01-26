@@ -20,7 +20,7 @@ abstract class DeviceRouteDto with _$DeviceRouteDto {
     required String routeSlug,
 
     /// Route name
-    required String name,
+    required String routeName,
 
     /// Distance in meters
     required double distance,
@@ -28,17 +28,20 @@ abstract class DeviceRouteDto with _$DeviceRouteDto {
     /// Elevation gain in meters
     required double elevationGain,
 
-    /// Label (e.g., 'Rapides - 18/01 09:00')
-    String? label,
-
-    /// Ride date/time if from a ride
-    String? rideDateTime,
-
     /// Start latitude
-    double? startLat,
+    required double startLat,
 
     /// Start longitude
-    double? startLon,
+    required double startLon,
+
+    /// Ride name
+    String? rideName,
+
+    /// Group name
+    String? groupName,
+
+    /// Start date/time
+    String? startDateTime,
   }) = _DeviceRouteDto;
 
   factory DeviceRouteDto.fromJson(Map<String, Object?> json) =>

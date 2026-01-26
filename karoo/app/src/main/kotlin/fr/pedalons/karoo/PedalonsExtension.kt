@@ -1,13 +1,13 @@
-package com.tribly.karoo
+package fr.pedalons.karoo
 
 import android.content.Intent
 import io.hammerhead.karooext.extension.KarooExtension
 
 /**
- * Tribly Karoo Extension service.
- * Provides integration with Tribly for route syncing.
+ * Pédalons Karoo Extension service.
+ * Provides integration with Pédalons for route syncing.
  */
-class TriblyExtension : KarooExtension("tribly", "1.0.0") {
+class PedalonsExtension : KarooExtension("pedalons", "1.0.0") {
 
     override fun onCreate() {
         super.onCreate()

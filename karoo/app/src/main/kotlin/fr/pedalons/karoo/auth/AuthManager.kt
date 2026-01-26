@@ -1,4 +1,4 @@
-package com.tribly.karoo.auth
+package fr.pedalons.karoo.auth
 
 import android.content.Context
 import androidx.datastore.core.DataStore
@@ -7,12 +7,12 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
-import com.tribly.karoo.api.TokenResponse
+import fr.pedalons.karoo.api.TokenResponse
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
-private val Context.authDataStore: DataStore<Preferences> by preferencesDataStore(name = "tribly_auth")
+private val Context.authDataStore: DataStore<Preferences> by preferencesDataStore(name = "pedalons_auth")
 
 /**
  * Manages authentication tokens using DataStore.

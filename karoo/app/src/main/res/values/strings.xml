@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Tribly</string>
+    <string name="app_name">Pédalons</string>
 
     <!-- Auth -->
-    <string name="auth_connect_title">Connect to Tribly</string>
+    <string name="auth_connect_title">Connect to Pédalons</string>
     <string name="auth_connect_subtitle">Scan the QR code with your phone to authenticate</string>
     <string name="auth_connect_button">Connect</string>
     <string name="auth_code_label">Or enter this code:</string>

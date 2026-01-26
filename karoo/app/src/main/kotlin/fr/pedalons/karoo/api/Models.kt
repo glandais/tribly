@@ -1,4 +1,4 @@
-package com.tribly.karoo.api
+package fr.pedalons.karoo.api
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

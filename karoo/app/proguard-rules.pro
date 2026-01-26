@@ -19,11 +19,11 @@
 -keepclasseswithmembers class kotlinx.serialization.json.** {
     kotlinx.serialization.KSerializer serializer(...);
 }
--keep,includedescriptorclasses class com.tribly.karoo.**$$serializer { *; }
--keepclassmembers class com.tribly.karoo.** {
+-keep,includedescriptorclasses class fr.pedalons.karoo.**$$serializer { *; }
+-keepclassmembers class fr.pedalons.karoo.** {
     *** Companion;
 }
--keepclasseswithmembers class com.tribly.karoo.** {
+-keepclasseswithmembers class fr.pedalons.karoo.** {
     kotlinx.serialization.KSerializer serializer(...);
 }
 

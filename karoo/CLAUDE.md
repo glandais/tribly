@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-Karoo extension for the Tribly cycling team platform. Allows Hammerhead Karoo device users to browse and sync routes from their Tribly teams directly to their device.
+Karoo extension for the Pédalons cycling team platform. Allows Hammerhead Karoo device users to browse and sync routes from their Pédalons teams directly to their device.
 
 ## Commands
 
@@ -24,15 +24,15 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk  # Manual install
 ## Architecture
 
 ```
-app/src/main/kotlin/com/tribly/karoo/
-├── TriblyExtension.kt    # KarooExtension service entry point (bonus action handler)
+app/src/main/kotlin/fr/pedalons/karoo/
+├── PedalonsExtension.kt  # KarooExtension service entry point (bonus action handler)
 ├── MainActivity.kt       # Route browser UI (Compose)
 ├── auth/
 │   ├── AuthActivity.kt   # Device code flow UI (QR code + polling)
 │   └── AuthManager.kt    # Token storage via DataStore
 ├── api/
-│   ├── TriblyApiClient.kt  # Ktor HTTP client with Karoo engine
-│   └── Models.kt           # Kotlinx serialization data classes
+│   ├── PedalonsApiClient.kt  # Ktor HTTP client with Karoo engine
+│   └── Models.kt             # Kotlinx serialization data classes
 └── ui/theme/
     └── Theme.kt          # Dark theme for outdoor visibility
 ```
@@ -85,8 +85,8 @@ gprkey=YOUR_GITHUB_TOKEN
 |----------|---------|
 | `POST /api/device/oauth/device` | Request device code for auth |
 | `POST /api/device/oauth/token` | Poll for tokens / refresh token |
-| `GET /api/karoo/routes` | Get routes for authenticated user |
-| `POST /api/karoo/routes/{teamSlug}/{routeSlug}/sync` | Sync route to Karoo |
+| `GET /api/device/routes` | Get routes for authenticated user |
+| `POST /api/device/routes/{teamSlug}/{routeSlug}/sync` | Sync route to Karoo |
 
 ## String Resources
 

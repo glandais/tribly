@@ -1,4 +1,4 @@
-package com.tribly.karoo.auth
+package fr.pedalons.karoo.auth
 
 import android.graphics.Bitmap
 import android.os.Bundle
@@ -38,12 +38,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.qrcode.QRCodeWriter
-import com.tribly.karoo.R
-import com.tribly.karoo.api.AuthorizationPendingException
-import com.tribly.karoo.api.DeviceCodeResponse
-import com.tribly.karoo.api.TokenExpiredException
-import com.tribly.karoo.api.TriblyApiClient
-import com.tribly.karoo.ui.theme.TriblyKarooTheme
+import fr.pedalons.karoo.R
+import fr.pedalons.karoo.api.AuthorizationPendingException
+import fr.pedalons.karoo.api.DeviceCodeResponse
+import fr.pedalons.karoo.api.TokenExpiredException
+import fr.pedalons.karoo.api.PedalonsApiClient
+import fr.pedalons.karoo.ui.theme.PedalonsKarooTheme
 import io.hammerhead.karooext.KarooSystemService
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -61,7 +61,7 @@ class AuthActivity : ComponentActivity() {
         const val RESULT_ERROR = -1
     }
 
-    private var apiClient: TriblyApiClient? = null
+    private var apiClient: PedalonsApiClient? = null
     private lateinit var authManager: AuthManager
     private lateinit var karooSystem: KarooSystemService
     private var baseUrl: String? = null
@@ -87,11 +87,11 @@ class AuthActivity : ComponentActivity() {
                 while (!karooSystem.connected) {
                     delay(100)
                 }
-                apiClient = TriblyApiClient(baseUrl!!, karooSystem)
+                apiClient = PedalonsApiClient(baseUrl!!, karooSystem)
                 isConnected = true
             }
 
-            TriblyKarooTheme {
+            PedalonsKarooTheme {
                 if (isConnected && apiClient != null) {
                     AuthScreen(
                         apiClient = apiClient!!,
@@ -138,7 +138,7 @@ class AuthActivity : ComponentActivity() {
 
 @Composable
 private fun AuthScreen(
-    apiClient: TriblyApiClient,
+    apiClient: PedalonsApiClient,
     authManager: AuthManager,
     onSuccess: () -> Unit,
     onCancel: () -> Unit
@@ -366,7 +366,7 @@ private sealed class AuthState {
 }
 
 private suspend fun pollForToken(
-    apiClient: TriblyApiClient,
+    apiClient: PedalonsApiClient,
     authManager: AuthManager,
     deviceCode: DeviceCodeResponse,
     onSuccess: () -> Unit,

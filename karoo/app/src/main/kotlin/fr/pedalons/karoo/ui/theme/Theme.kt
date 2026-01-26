@@ -1,4 +1,4 @@
-package com.tribly.karoo.ui.theme
+package fr.pedalons.karoo.ui.theme
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
@@ -65,7 +65,7 @@ private val AppTypography = Typography(
 )
 
 @Composable
-fun TriblyKarooTheme(
+fun PedalonsKarooTheme(
     content: @Composable () -> Unit
 ) {
     MaterialTheme(

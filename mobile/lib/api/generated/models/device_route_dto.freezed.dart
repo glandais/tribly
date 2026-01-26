@@ -18,13 +18,14 @@ mixin _$DeviceRouteDto {
 /// Team slug
  String get teamSlug;/// Route slug
  String get routeSlug;/// Route name
- String get name;/// Distance in meters
+ String get routeName;/// Distance in meters
  double get distance;/// Elevation gain in meters
- double get elevationGain;/// Label (e.g., 'Rapides - 18/01 09:00')
- String? get label;/// Ride date/time if from a ride
- String? get rideDateTime;/// Start latitude
- double? get startLat;/// Start longitude
- double? get startLon;
+ double get elevationGain;/// Start latitude
+ double get startLat;/// Start longitude
+ double get startLon;/// Ride name
+ String? get rideName;/// Group name
+ String? get groupName;/// Start date/time
+ String? get startDateTime;
 /// Create a copy of DeviceRouteDto
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -37,16 +38,16 @@ $DeviceRouteDtoCopyWith<DeviceRouteDto> get copyWith => _$DeviceRouteDtoCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is DeviceRouteDto&&(identical(other.teamSlug, teamSlug) || other.teamSlug == teamSlug)&&(identical(other.routeSlug, routeSlug) || other.routeSlug == routeSlug)&&(identical(other.name, name) || other.name == name)&&(identical(other.distance, distance) || other.distance == distance)&&(identical(other.elevationGain, elevationGain) || other.elevationGain == elevationGain)&&(identical(other.label, label) || other.label == label)&&(identical(other.rideDateTime, rideDateTime) || other.rideDateTime == rideDateTime)&&(identical(other.startLat, startLat) || other.startLat == startLat)&&(identical(other.startLon, startLon) || other.startLon == startLon));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DeviceRouteDto&&(identical(other.teamSlug, teamSlug) || other.teamSlug == teamSlug)&&(identical(other.routeSlug, routeSlug) || other.routeSlug == routeSlug)&&(identical(other.routeName, routeName) || other.routeName == routeName)&&(identical(other.distance, distance) || other.distance == distance)&&(identical(other.elevationGain, elevationGain) || other.elevationGain == elevationGain)&&(identical(other.startLat, startLat) || other.startLat == startLat)&&(identical(other.startLon, startLon) || other.startLon == startLon)&&(identical(other.rideName, rideName) || other.rideName == rideName)&&(identical(other.groupName, groupName) || other.groupName == groupName)&&(identical(other.startDateTime, startDateTime) || other.startDateTime == startDateTime));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,teamSlug,routeSlug,name,distance,elevationGain,label,rideDateTime,startLat,startLon);
+int get hashCode => Object.hash(runtimeType,teamSlug,routeSlug,routeName,distance,elevationGain,startLat,startLon,rideName,groupName,startDateTime);
 
 @override
 String toString() {
-  return 'DeviceRouteDto(teamSlug: $teamSlug, routeSlug: $routeSlug, name: $name, distance: $distance, elevationGain: $elevationGain, label: $label, rideDateTime: $rideDateTime, startLat: $startLat, startLon: $startLon)';
+  return 'DeviceRouteDto(teamSlug: $teamSlug, routeSlug: $routeSlug, routeName: $routeName, distance: $distance, elevationGain: $elevationGain, startLat: $startLat, startLon: $startLon, rideName: $rideName, groupName: $groupName, startDateTime: $startDateTime)';
 }
 
 
@@ -57,7 +58,7 @@ abstract mixin class $DeviceRouteDtoCopyWith<$Res>  {
   factory $DeviceRouteDtoCopyWith(DeviceRouteDto value, $Res Function(DeviceRouteDto) _then) = _$DeviceRouteDtoCopyWithImpl;
 @useResult
 $Res call({
- String teamSlug, String routeSlug, String name, double distance, double elevationGain, String? label, String? rideDateTime, double? startLat, double? startLon
+ String teamSlug, String routeSlug, String routeName, double distance, double elevationGain, double startLat, double startLon, String? rideName, String? groupName, String? startDateTime
 });
 
 
@@ -74,18 +75,19 @@ class _$DeviceRouteDtoCopyWithImpl<$Res>
 
 /// Create a copy of DeviceRouteDto
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? teamSlug = null,Object? routeSlug = null,Object? name = null,Object? distance = null,Object? elevationGain = null,Object? label = freezed,Object? rideDateTime = freezed,Object? startLat = freezed,Object? startLon = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? teamSlug = null,Object? routeSlug = null,Object? routeName = null,Object? distance = null,Object? elevationGain = null,Object? startLat = null,Object? startLon = null,Object? rideName = freezed,Object? groupName = freezed,Object? startDateTime = freezed,}) {
   return _then(_self.copyWith(
 teamSlug: null == teamSlug ? _self.teamSlug : teamSlug // ignore: cast_nullable_to_non_nullable
 as String,routeSlug: null == routeSlug ? _self.routeSlug : routeSlug // ignore: cast_nullable_to_non_nullable
-as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,routeName: null == routeName ? _self.routeName : routeName // ignore: cast_nullable_to_non_nullable
 as String,distance: null == distance ? _self.distance : distance // ignore: cast_nullable_to_non_nullable
 as double,elevationGain: null == elevationGain ? _self.elevationGain : elevationGain // ignore: cast_nullable_to_non_nullable
-as double,label: freezed == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
-as String?,rideDateTime: freezed == rideDateTime ? _self.rideDateTime : rideDateTime // ignore: cast_nullable_to_non_nullable
-as String?,startLat: freezed == startLat ? _self.startLat : startLat // ignore: cast_nullable_to_non_nullable
-as double?,startLon: freezed == startLon ? _self.startLon : startLon // ignore: cast_nullable_to_non_nullable
-as double?,
+as double,startLat: null == startLat ? _self.startLat : startLat // ignore: cast_nullable_to_non_nullable
+as double,startLon: null == startLon ? _self.startLon : startLon // ignore: cast_nullable_to_non_nullable
+as double,rideName: freezed == rideName ? _self.rideName : rideName // ignore: cast_nullable_to_non_nullable
+as String?,groupName: freezed == groupName ? _self.groupName : groupName // ignore: cast_nullable_to_non_nullable
+as String?,startDateTime: freezed == startDateTime ? _self.startDateTime : startDateTime // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 
@@ -170,10 +172,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String teamSlug,  String routeSlug,  String name,  double distance,  double elevationGain,  String? label,  String? rideDateTime,  double? startLat,  double? startLon)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String teamSlug,  String routeSlug,  String routeName,  double distance,  double elevationGain,  double startLat,  double startLon,  String? rideName,  String? groupName,  String? startDateTime)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _DeviceRouteDto() when $default != null:
-return $default(_that.teamSlug,_that.routeSlug,_that.name,_that.distance,_that.elevationGain,_that.label,_that.rideDateTime,_that.startLat,_that.startLon);case _:
+return $default(_that.teamSlug,_that.routeSlug,_that.routeName,_that.distance,_that.elevationGain,_that.startLat,_that.startLon,_that.rideName,_that.groupName,_that.startDateTime);case _:
   return orElse();
 
 }
@@ -191,10 +193,10 @@ return $default(_that.teamSlug,_that.routeSlug,_that.name,_that.distance,_that.e
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String teamSlug,  String routeSlug,  String name,  double distance,  double elevationGain,  String? label,  String? rideDateTime,  double? startLat,  double? startLon)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String teamSlug,  String routeSlug,  String routeName,  double distance,  double elevationGain,  double startLat,  double startLon,  String? rideName,  String? groupName,  String? startDateTime)  $default,) {final _that = this;
 switch (_that) {
 case _DeviceRouteDto():
-return $default(_that.teamSlug,_that.routeSlug,_that.name,_that.distance,_that.elevationGain,_that.label,_that.rideDateTime,_that.startLat,_that.startLon);case _:
+return $default(_that.teamSlug,_that.routeSlug,_that.routeName,_that.distance,_that.elevationGain,_that.startLat,_that.startLon,_that.rideName,_that.groupName,_that.startDateTime);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -211,10 +213,10 @@ return $default(_that.teamSlug,_that.routeSlug,_that.name,_that.distance,_that.e
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String teamSlug,  String routeSlug,  String name,  double distance,  double elevationGain,  String? label,  String? rideDateTime,  double? startLat,  double? startLon)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String teamSlug,  String routeSlug,  String routeName,  double distance,  double elevationGain,  double startLat,  double startLon,  String? rideName,  String? groupName,  String? startDateTime)?  $default,) {final _that = this;
 switch (_that) {
 case _DeviceRouteDto() when $default != null:
-return $default(_that.teamSlug,_that.routeSlug,_that.name,_that.distance,_that.elevationGain,_that.label,_that.rideDateTime,_that.startLat,_that.startLon);case _:
+return $default(_that.teamSlug,_that.routeSlug,_that.routeName,_that.distance,_that.elevationGain,_that.startLat,_that.startLon,_that.rideName,_that.groupName,_that.startDateTime);case _:
   return null;
 
 }
@@ -226,7 +228,7 @@ return $default(_that.teamSlug,_that.routeSlug,_that.name,_that.distance,_that.e
 @JsonSerializable()
 
 class _DeviceRouteDto implements DeviceRouteDto {
-  const _DeviceRouteDto({required this.teamSlug, required this.routeSlug, required this.name, required this.distance, required this.elevationGain, this.label, this.rideDateTime, this.startLat, this.startLon});
+  const _DeviceRouteDto({required this.teamSlug, required this.routeSlug, required this.routeName, required this.distance, required this.elevationGain, required this.startLat, required this.startLon, this.rideName, this.groupName, this.startDateTime});
   factory _DeviceRouteDto.fromJson(Map<String, dynamic> json) => _$DeviceRouteDtoFromJson(json);
 
 /// Team slug
@@ -234,19 +236,21 @@ class _DeviceRouteDto implements DeviceRouteDto {
 /// Route slug
 @override final  String routeSlug;
 /// Route name
-@override final  String name;
+@override final  String routeName;
 /// Distance in meters
 @override final  double distance;
 /// Elevation gain in meters
 @override final  double elevationGain;
-/// Label (e.g., 'Rapides - 18/01 09:00')
-@override final  String? label;
-/// Ride date/time if from a ride
-@override final  String? rideDateTime;
 /// Start latitude
-@override final  double? startLat;
+@override final  double startLat;
 /// Start longitude
-@override final  double? startLon;
+@override final  double startLon;
+/// Ride name
+@override final  String? rideName;
+/// Group name
+@override final  String? groupName;
+/// Start date/time
+@override final  String? startDateTime;
 
 /// Create a copy of DeviceRouteDto
 /// with the given fields replaced by the non-null parameter values.
@@ -261,16 +265,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DeviceRouteDto&&(identical(other.teamSlug, teamSlug) || other.teamSlug == teamSlug)&&(identical(other.routeSlug, routeSlug) || other.routeSlug == routeSlug)&&(identical(other.name, name) || other.name == name)&&(identical(other.distance, distance) || other.distance == distance)&&(identical(other.elevationGain, elevationGain) || other.elevationGain == elevationGain)&&(identical(other.label, label) || other.label == label)&&(identical(other.rideDateTime, rideDateTime) || other.rideDateTime == rideDateTime)&&(identical(other.startLat, startLat) || other.startLat == startLat)&&(identical(other.startLon, startLon) || other.startLon == startLon));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DeviceRouteDto&&(identical(other.teamSlug, teamSlug) || other.teamSlug == teamSlug)&&(identical(other.routeSlug, routeSlug) || other.routeSlug == routeSlug)&&(identical(other.routeName, routeName) || other.routeName == routeName)&&(identical(other.distance, distance) || other.distance == distance)&&(identical(other.elevationGain, elevationGain) || other.elevationGain == elevationGain)&&(identical(other.startLat, startLat) || other.startLat == startLat)&&(identical(other.startLon, startLon) || other.startLon == startLon)&&(identical(other.rideName, rideName) || other.rideName == rideName)&&(identical(other.groupName, groupName) || other.groupName == groupName)&&(identical(other.startDateTime, startDateTime) || other.startDateTime == startDateTime));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,teamSlug,routeSlug,name,distance,elevationGain,label,rideDateTime,startLat,startLon);
+int get hashCode => Object.hash(runtimeType,teamSlug,routeSlug,routeName,distance,elevationGain,startLat,startLon,rideName,groupName,startDateTime);
 
 @override
 String toString() {
-  return 'DeviceRouteDto(teamSlug: $teamSlug, routeSlug: $routeSlug, name: $name, distance: $distance, elevationGain: $elevationGain, label: $label, rideDateTime: $rideDateTime, startLat: $startLat, startLon: $startLon)';
+  return 'DeviceRouteDto(teamSlug: $teamSlug, routeSlug: $routeSlug, routeName: $routeName, distance: $distance, elevationGain: $elevationGain, startLat: $startLat, startLon: $startLon, rideName: $rideName, groupName: $groupName, startDateTime: $startDateTime)';
 }
 
 
@@ -281,7 +285,7 @@ abstract mixin class _$DeviceRouteDtoCopyWith<$Res> implements $DeviceRouteDtoCo
   factory _$DeviceRouteDtoCopyWith(_DeviceRouteDto value, $Res Function(_DeviceRouteDto) _then) = __$DeviceRouteDtoCopyWithImpl;
 @override @useResult
 $Res call({
- String teamSlug, String routeSlug, String name, double distance, double elevationGain, String? label, String? rideDateTime, double? startLat, double? startLon
+ String teamSlug, String routeSlug, String routeName, double distance, double elevationGain, double startLat, double startLon, String? rideName, String? groupName, String? startDateTime
 });
 
 
@@ -298,18 +302,19 @@ class __$DeviceRouteDtoCopyWithImpl<$Res>
 
 /// Create a copy of DeviceRouteDto
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? teamSlug = null,Object? routeSlug = null,Object? name = null,Object? distance = null,Object? elevationGain = null,Object? label = freezed,Object? rideDateTime = freezed,Object? startLat = freezed,Object? startLon = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? teamSlug = null,Object? routeSlug = null,Object? routeName = null,Object? distance = null,Object? elevationGain = null,Object? startLat = null,Object? startLon = null,Object? rideName = freezed,Object? groupName = freezed,Object? startDateTime = freezed,}) {
   return _then(_DeviceRouteDto(
 teamSlug: null == teamSlug ? _self.teamSlug : teamSlug // ignore: cast_nullable_to_non_nullable
 as String,routeSlug: null == routeSlug ? _self.routeSlug : routeSlug // ignore: cast_nullable_to_non_nullable
-as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,routeName: null == routeName ? _self.routeName : routeName // ignore: cast_nullable_to_non_nullable
 as String,distance: null == distance ? _self.distance : distance // ignore: cast_nullable_to_non_nullable
 as double,elevationGain: null == elevationGain ? _self.elevationGain : elevationGain // ignore: cast_nullable_to_non_nullable
-as double,label: freezed == label ? _self.label : label // ignore: cast_nullable_to_non_nullable
-as String?,rideDateTime: freezed == rideDateTime ? _self.rideDateTime : rideDateTime // ignore: cast_nullable_to_non_nullable
-as String?,startLat: freezed == startLat ? _self.startLat : startLat // ignore: cast_nullable_to_non_nullable
-as double?,startLon: freezed == startLon ? _self.startLon : startLon // ignore: cast_nullable_to_non_nullable
-as double?,
+as double,startLat: null == startLat ? _self.startLat : startLat // ignore: cast_nullable_to_non_nullable
+as double,startLon: null == startLon ? _self.startLon : startLon // ignore: cast_nullable_to_non_nullable
+as double,rideName: freezed == rideName ? _self.rideName : rideName // ignore: cast_nullable_to_non_nullable
+as String?,groupName: freezed == groupName ? _self.groupName : groupName // ignore: cast_nullable_to_non_nullable
+as String?,startDateTime: freezed == startDateTime ? _self.startDateTime : startDateTime // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 
