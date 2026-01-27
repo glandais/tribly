@@ -57,7 +57,7 @@ class _RideDetailPageState extends ConsumerState<RideDetailPage> {
             children: [
               const Icon(Icons.error_outline, size: 48, color: Colors.red),
               const SizedBox(height: 16),
-              Text('common.errorPrefix'.tr(args: [error.toString()])),
+              Text('common.errorPrefix'.tr(namedArgs: {'error': error.toString()})),
               const SizedBox(height: 16),
               FilledButton(
                 onPressed: () => ref.invalidate(rideDetailProvider(params)),
@@ -106,7 +106,7 @@ class _RideDetailPageState extends ConsumerState<RideDetailPage> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('common.errorPrefix'.tr(args: [e.toString()]))),
+          SnackBar(content: Text('common.errorPrefix'.tr(namedArgs: {'error': e.toString()}))),
         );
       }
     } finally {
@@ -127,7 +127,7 @@ class _RideDetailPageState extends ConsumerState<RideDetailPage> {
                 title: Text(group.name),
                 subtitle: Text(
                   [
-                    if (group.time != null) 'dates.departure'.tr(args: [group.time!]),
+                    if (group.time != null) 'dates.departure'.tr(namedArgs: {'time': group.time!}),
                     if (group.averageSpeed != null)
                       '${group.averageSpeed!.toStringAsFixed(0)} km/h',
                   ].join(' • '),
@@ -175,7 +175,7 @@ class _RideDetailPageState extends ConsumerState<RideDetailPage> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('common.errorPrefix'.tr(args: [e.toString()]))),
+          SnackBar(content: Text('common.errorPrefix'.tr(namedArgs: {'error': e.toString()}))),
         );
       }
     } finally {
@@ -203,36 +203,25 @@ class _RideDetailContent extends ConsumerWidget {
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
-            expandedHeight: ride.routeThumbnailUrl != null ? 200 : 120,
+            expandedHeight: ride.routeThumbnailUrl != null ? 200 : null,
             pinned: true,
-            flexibleSpace: FlexibleSpaceBar(
-              title: Text(
-                ride.name,
-                style: const TextStyle(fontSize: 16),
-              ),
-              // Hero animation for ride thumbnail
-              background: Hero(
-                tag: 'ride-thumbnail-${ride.slug}',
-                child: ride.routeThumbnailUrl != null
-                    ? AuthenticatedImage(
+            flexibleSpace: ride.routeThumbnailUrl != null
+                ? FlexibleSpaceBar(
+                    title: Text(
+                      ride.name,
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                    background: Hero(
+                      tag: 'ride-thumbnail-${ride.slug}',
+                      child: AuthenticatedImage(
                         imageUrl: ride.routeThumbnailUrl!,
                         fit: BoxFit.cover,
                         errorWidget: const SizedBox.shrink(),
-                      )
-                    : Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              Theme.of(context).colorScheme.primary,
-                              Theme.of(context).colorScheme.primaryContainer,
-                            ],
-                          ),
-                        ),
                       ),
-              ),
-            ),
+                    ),
+                  )
+                : null,
+            title: ride.routeThumbnailUrl == null ? Text(ride.name) : null,
           ),
 
           // Date and time
@@ -304,7 +293,7 @@ class _RideDetailContent extends ConsumerWidget {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    'rides.participants'.tr(args: [ride.participantCount.toString()]),
+                    'rides.participants'.tr(namedArgs: {'count': ride.participantCount.toString()}),
                     style: Theme.of(context).textTheme.titleSmall,
                   ),
                   const Spacer(),
@@ -347,7 +336,7 @@ class _RideDetailContent extends ConsumerWidget {
                         title: Text(group.name),
                         subtitle: Text(
                           [
-                            if (group.time != null) 'dates.departure'.tr(args: [group.time!]),
+                            if (group.time != null) 'dates.departure'.tr(namedArgs: {'time': group.time!}),
                             if (group.averageSpeed != null)
                               '${group.averageSpeed!.toStringAsFixed(0)} km/h',
                           ].join(' • '),

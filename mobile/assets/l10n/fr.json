@@ -79,10 +79,6 @@
     "user": "Utilisateur"
   },
   "dates": {
-    "daysShort": ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"],
-    "daysFull": ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"],
-    "monthsFull": ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"],
-    "monthsLower": ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"],
     "today": "Aujourd'hui",
     "tomorrow": "Demain",
     "departure": "Départ: {time}"

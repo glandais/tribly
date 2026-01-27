@@ -82,7 +82,7 @@ class RoutesPage extends ConsumerWidget {
             children: [
               const Icon(Icons.error_outline, size: 48, color: Colors.red),
               const SizedBox(height: 16),
-              Text('common.errorPrefix'.tr(args: [error.toString()])),
+              Text('common.errorPrefix'.tr(namedArgs: {'error': error.toString()})),
               const SizedBox(height: 16),
               FilledButton(
                 onPressed: () =>

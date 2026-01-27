@@ -119,7 +119,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       }
     } catch (e) {
       if (mounted) {
-        setState(() => _errorMessage = 'auth.errors.generic'.tr(args: [e.toString()]));
+        setState(() => _errorMessage = 'auth.errors.generic'.tr(namedArgs: {'error': e.toString()}));
       }
     } finally {
       if (mounted) {
@@ -172,7 +172,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       }
     } catch (e) {
       if (mounted) {
-        setState(() => _errorMessage = 'auth.errors.generic'.tr(args: [e.toString()]));
+        setState(() => _errorMessage = 'auth.errors.generic'.tr(namedArgs: {'error': e.toString()}));
       }
     } finally {
       if (mounted) {
@@ -198,12 +198,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       if (mounted) {
         setState(() {
           _successMessage = 'auth.verifyEmail.verificationSent'
-              .tr(args: [_emailController.text]);
+              .tr(namedArgs: {'email': _emailController.text});
         });
       }
     } catch (e) {
       if (mounted) {
-        setState(() => _errorMessage = 'auth.errors.generic'.tr(args: [e.toString()]));
+        setState(() => _errorMessage = 'auth.errors.generic'.tr(namedArgs: {'error': e.toString()}));
       }
     } finally {
       if (mounted) {
@@ -579,7 +579,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           icon: const Icon(Icons.refresh),
           label: Text(_canResendOtp
               ? 'auth.otp.resend'.tr()
-              : 'auth.otp.resendIn'.tr(args: [_resendCountdown.toString()])),
+              : 'auth.otp.resendIn'.tr(namedArgs: {'seconds': _resendCountdown.toString()})),
         ),
 
         if (_isLoading) ...[

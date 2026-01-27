@@ -3,14 +3,32 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../api/tribly_api_client.dart';
+import '../../config/app_config.dart';
+
+/// Resolves a URL to an absolute URL if it's relative.
+String _resolveUrl(String url) {
+  if (url.startsWith('/')) {
+    return '${AppConfig.apiBaseUrl}$url';
+  }
+  return url;
+}
+
+/// Resolves an image URL, replacing {size} placeholder with pixel size.
+String resolveImageUrl(String url, {int size = 400}) {
+  final resolvedSize = url.replaceAll('{size}', size.toString());
+  return _resolveUrl(resolvedSize);
+}
 
 /// A general-purpose image widget that includes the Authorization header.
 ///
 /// Uses [CachedNetworkImage] for caching and the [accessTokenHolderProvider]
 /// to add the Bearer token to requests.
 class AuthenticatedImage extends ConsumerWidget {
-  /// The URL of the image to display.
+  /// The URL of the image to display (can be a template with {size}).
   final String imageUrl;
+
+  /// The image size in pixels when URL contains {size} placeholder.
+  final int size;
 
   /// How to inscribe the image into the space allocated.
   final BoxFit? fit;
@@ -30,6 +48,7 @@ class AuthenticatedImage extends ConsumerWidget {
   const AuthenticatedImage({
     super.key,
     required this.imageUrl,
+    this.size = 400,
     this.fit,
     this.width,
     this.height,
@@ -42,7 +61,7 @@ class AuthenticatedImage extends ConsumerWidget {
     final token = ref.watch(accessTokenHolderProvider);
 
     return CachedNetworkImage(
-      imageUrl: imageUrl,
+      imageUrl: resolveImageUrl(imageUrl, size: size),
       httpHeaders: token != null ? {'Authorization': 'Bearer $token'} : null,
       fit: fit,
       width: width,
@@ -64,8 +83,11 @@ class AuthenticatedImage extends ConsumerWidget {
 ///
 /// Similar to [SafeCircleAvatar] but with authenticated image loading.
 class AuthenticatedCircleAvatar extends ConsumerWidget {
-  /// The URL of the image to display.
+  /// The URL of the image to display (can be a template with {size}).
   final String? imageUrl;
+
+  /// The image size in pixels when URL contains {size} placeholder.
+  final int size;
 
   /// The text to display when no image is available or the image fails to load.
   /// Typically the first letter of a name.
@@ -83,6 +105,7 @@ class AuthenticatedCircleAvatar extends ConsumerWidget {
   const AuthenticatedCircleAvatar({
     super.key,
     this.imageUrl,
+    this.size = 100,
     required this.fallbackText,
     this.radius = 20,
     this.fontSize,
@@ -98,7 +121,7 @@ class AuthenticatedCircleAvatar extends ConsumerWidget {
     final token = ref.watch(accessTokenHolderProvider);
 
     return CachedNetworkImage(
-      imageUrl: imageUrl!,
+      imageUrl: resolveImageUrl(imageUrl!, size: size),
       httpHeaders: token != null ? {'Authorization': 'Bearer $token'} : null,
       imageBuilder: (context, imageProvider) => CircleAvatar(
         radius: radius,
@@ -134,10 +157,10 @@ class AuthenticatedDecorationImage {
   /// Creates a [CachedNetworkImageProvider] from a network URL with auth headers.
   ///
   /// Returns null if [url] is null.
-  static ImageProvider? fromUrl(String? url, String? token) {
+  static ImageProvider? fromUrl(String? url, String? token, {int size = 400}) {
     if (url == null) return null;
     return CachedNetworkImageProvider(
-      url,
+      resolveImageUrl(url, size: size),
       headers: token != null ? {'Authorization': 'Bearer $token'} : null,
     );
   }

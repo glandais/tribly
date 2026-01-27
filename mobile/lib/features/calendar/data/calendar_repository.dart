@@ -18,8 +18,8 @@ class CalendarRepository {
     required DateTime end,
   }) async {
     final response = await _calendarClient.getEvents(
-      from: start.toIso8601String(),
-      to: end.toIso8601String(),
+      from: start.toUtc().toIso8601String(),
+      to: end.toUtc().toIso8601String(),
     );
     return response.events;
   }
@@ -32,8 +32,8 @@ class CalendarRepository {
   }) async {
     final response = await _calendarClient.getTeamEvents(
       teamSlug: teamSlug,
-      from: start.toIso8601String(),
-      to: end.toIso8601String(),
+      from: start.toUtc().toIso8601String(),
+      to: end.toUtc().toIso8601String(),
     );
     return response.events;
   }

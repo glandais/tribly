@@ -57,7 +57,7 @@ class HomePage extends ConsumerWidget {
               pinned: true,
               flexibleSpace: FlexibleSpaceBar(
                 title: Text(
-                  'home.greeting'.tr(args: [userName]),
+                  'home.greeting'.tr(namedArgs: {'name': userName}),
                   style: const TextStyle(fontSize: 18),
                 ),
                 background: Container(
@@ -328,7 +328,7 @@ class HomePage extends ConsumerWidget {
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('auth.errors.generic'.tr(args: [e.toString()]))),
+          SnackBar(content: Text('auth.errors.generic'.tr(namedArgs: {'error': e.toString()}))),
         );
       }
     }

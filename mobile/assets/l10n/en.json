@@ -79,10 +79,6 @@
     "user": "User"
   },
   "dates": {
-    "daysShort": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-    "daysFull": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
-    "monthsFull": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
-    "monthsLower": ["january", "february", "march", "april", "may", "june", "july", "august", "september", "october", "november", "december"],
     "today": "Today",
     "tomorrow": "Tomorrow",
     "departure": "Departure: {time}"

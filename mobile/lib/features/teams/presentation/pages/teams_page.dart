@@ -100,7 +100,7 @@ class TeamsPage extends ConsumerWidget {
             children: [
               const Icon(Icons.error_outline, size: 48, color: Colors.red),
               const SizedBox(height: 16),
-              Text('common.errorPrefix'.tr(args: [error.toString()])),
+              Text('common.errorPrefix'.tr(namedArgs: {'error': error.toString()})),
               const SizedBox(height: 16),
               FilledButton(
                 onPressed: () => ref.invalidate(myTeamsProvider),
@@ -161,7 +161,7 @@ class _TeamCard extends ConsumerWidget {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        'teams.members'.tr(args: [team.memberCount.toString()]),
+                        'teams.members'.tr(namedArgs: {'count': team.memberCount.toString()}),
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                       if (team.role != null) ...[

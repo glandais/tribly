@@ -1,5 +1,21 @@
 import 'package:flutter/material.dart';
 
+import '../../config/app_config.dart';
+
+/// Resolves a URL to an absolute URL if it's relative.
+String _resolveUrl(String url) {
+  if (url.startsWith('/')) {
+    return '${AppConfig.apiBaseUrl}$url';
+  }
+  return url;
+}
+
+/// Resolves an image URL, replacing {size} placeholder with pixel size.
+String _resolveImageUrl(String url, {int size = 400}) {
+  final resolvedSize = url.replaceAll('{size}', size.toString());
+  return _resolveUrl(resolvedSize);
+}
+
 /// A CircleAvatar that safely handles network images with error fallbacks.
 ///
 /// When the image fails to load, it displays the [fallbackText] (typically
@@ -43,14 +59,15 @@ class SafeCircleAvatar extends StatelessWidget {
       );
     }
 
+    final resolvedUrl = _resolveImageUrl(imageUrl!, size: (radius * 2).toInt());
     return CircleAvatar(
       radius: radius,
       backgroundColor: backgroundColor,
-      backgroundImage: NetworkImage(imageUrl!),
+      backgroundImage: NetworkImage(resolvedUrl),
       onBackgroundImageError: (exception, stackTrace) {},
       child: ClipOval(
         child: Image.network(
-          imageUrl!,
+          resolvedUrl,
           width: radius * 2,
           height: radius * 2,
           fit: BoxFit.cover,
@@ -78,7 +95,7 @@ class SafeDecorationImage {
   }) {
     if (url == null) return null;
     return DecorationImage(
-      image: NetworkImage(url),
+      image: NetworkImage(_resolveImageUrl(url)),
       fit: fit,
       onError: (exception, stackTrace) {},
     );

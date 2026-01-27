@@ -15,15 +15,17 @@ class AppFormatters {
   /// Returns the short day name for a weekday (1=Monday, 7=Sunday).
   static String dayAbbrev(int weekday, {BuildContext? context}) {
     if (weekday < 1 || weekday > 7) return '?';
-    final List<dynamic> days = tr('dates.daysShort') as List<dynamic>;
-    return days[weekday - 1] as String;
+    // Create a date with the target weekday (2026-01-05 is a Monday)
+    final date = DateTime(2026, 1, 4 + weekday);
+    return DateFormat.E().format(date);
   }
 
   /// Returns the full day name for a weekday (1=Monday, 7=Sunday).
   static String dayFull(int weekday, {BuildContext? context}) {
     if (weekday < 1 || weekday > 7) return '?';
-    final List<dynamic> days = tr('dates.daysFull') as List<dynamic>;
-    return days[weekday - 1] as String;
+    // Create a date with the target weekday (2026-01-05 is a Monday)
+    final date = DateTime(2026, 1, 4 + weekday);
+    return DateFormat.EEEE().format(date);
   }
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -33,15 +35,16 @@ class AppFormatters {
   /// Returns the capitalized month name (1=January, 12=December).
   static String monthCapitalized(int month, {BuildContext? context}) {
     if (month < 1 || month > 12) return '?';
-    final List<dynamic> months = tr('dates.monthsFull') as List<dynamic>;
-    return months[month - 1] as String;
+    final date = DateTime(2026, month);
+    final name = DateFormat.MMMM().format(date);
+    return name[0].toUpperCase() + name.substring(1);
   }
 
   /// Returns the lowercase month name (1=January, 12=December).
   static String monthLower(int month, {BuildContext? context}) {
     if (month < 1 || month > 12) return '?';
-    final List<dynamic> months = tr('dates.monthsLower') as List<dynamic>;
-    return months[month - 1] as String;
+    final date = DateTime(2026, month);
+    return DateFormat.MMMM().format(date).toLowerCase();
   }
 
   // ─────────────────────────────────────────────────────────────────────────

@@ -56,7 +56,7 @@ class TeamDetailPage extends ConsumerWidget {
             children: [
               const Icon(Icons.error_outline, size: 48, color: Colors.red),
               const SizedBox(height: 16),
-              Text('common.errorPrefix'.tr(args: [error.toString()])),
+              Text('common.errorPrefix'.tr(namedArgs: {'error': error.toString()})),
               const SizedBox(height: 16),
               FilledButton(
                 onPressed: () => ref.invalidate(teamDetailProvider(teamSlug)),
@@ -450,7 +450,7 @@ class _RideCard extends ConsumerWidget {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        'rides.participants'.tr(args: [ride.participantCount.toString()]),
+                        'rides.participants'.tr(namedArgs: {'count': ride.participantCount.toString()}),
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                     ],

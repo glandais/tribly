@@ -302,14 +302,15 @@ class ShimmerRouteGridItem extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  ShimmerPlaceholder.text(width: 120, height: 16),
-                  const SizedBox(height: 8),
+                  ShimmerPlaceholder.text(width: 120, height: 14),
+                  const SizedBox(height: 6),
                   Row(
                     children: [
-                      ShimmerPlaceholder.text(width: 60, height: 12),
+                      ShimmerPlaceholder.text(width: 60, height: 10),
                       const SizedBox(width: 12),
-                      ShimmerPlaceholder.text(width: 60, height: 12),
+                      ShimmerPlaceholder.text(width: 60, height: 10),
                     ],
                   ),
                 ],

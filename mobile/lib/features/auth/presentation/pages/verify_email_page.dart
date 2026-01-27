@@ -56,7 +56,7 @@ class _VerifyEmailPageState extends ConsumerState<VerifyEmailPage> {
       if (mounted) {
         setState(() {
           _isLoading = false;
-          _errorMessage = 'auth.verifyEmail.registerError'.tr(args: [e.toString()]);
+          _errorMessage = 'auth.verifyEmail.registerError'.tr(namedArgs: {'error': e.toString()});
         });
       }
     }
@@ -75,7 +75,7 @@ class _VerifyEmailPageState extends ConsumerState<VerifyEmailPage> {
       if (mounted) {
         setState(() {
           _isLoading = false;
-          _errorMessage = 'auth.verifyEmail.registerError'.tr(args: [e.toString()]);
+          _errorMessage = 'auth.verifyEmail.registerError'.tr(namedArgs: {'error': e.toString()});
         });
       }
     }

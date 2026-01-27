@@ -44,7 +44,7 @@ class RouteDetailPage extends ConsumerWidget {
             children: [
               const Icon(Icons.error_outline, size: 48, color: Colors.red),
               const SizedBox(height: 16),
-              Text('common.errorPrefix'.tr(args: [error.toString()])),
+              Text('common.errorPrefix'.tr(namedArgs: {'error': error.toString()})),
               const SizedBox(height: 16),
               FilledButton(
                 onPressed: () => ref.invalidate(routeDetailProvider(params)),
@@ -196,7 +196,7 @@ class _RouteDetailContent extends ConsumerWidget {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    'routes.createdBy'.tr(args: [route.createdBy.displayName]),
+                    'routes.createdBy'.tr(namedArgs: {'name': route.createdBy.displayName}),
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                 ],
