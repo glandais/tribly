@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../api/generated/export.dart';
+import '../../../../api/tribly_api_client.dart';
 import '../../../../config/paths.dart';
 import '../../../../core/adaptive/adaptive.dart';
 import '../../../../core/widgets/authenticated_image.dart';
@@ -12,16 +13,41 @@ import '../../../../core/utils/formatters.dart';
 import '../../../../core/utils/safe_string.dart';
 import '../../../auth/providers/auth_provider.dart';
 import '../../../auth/services/passkey_service.dart';
-import '../../../calendar/data/calendar_repository.dart';
 import '../../../teams/data/team_repository.dart';
 
-/// Provider for upcoming events on home page
-final homeUpcomingEventsProvider =
-    FutureProvider<List<CalendarEventDto>>((ref) async {
-  final repository = ref.watch(calendarRepositoryProvider);
-  final now = DateTime.now();
-  final end = now.add(const Duration(days: 7));
-  return repository.getMyCalendarEvents(start: now, end: end);
+/// Provider for upcoming rides on home page (via publications endpoint)
+final homeUpcomingRidesProvider =
+    FutureProvider<List<RideDto>>((ref) async {
+  final client = ref.watch(publicationsClientProvider);
+  final response = await client.listAllPublications(
+    type: PublicationType.ride,
+    from: DateTime.now().toUtc().toIso8601String(),
+    size: 5,
+  );
+  return response.publications
+      .whereType<PublicationDtoRide>()
+      .map((p) => RideDto(
+            type: 'RIDE',
+            team: p.team,
+            id: p.id,
+            slug: p.slug,
+            name: p.name,
+            media: p.media,
+            dateTime: p.dateTime,
+            status: p.status,
+            visibility: p.visibility,
+            participantCount: p.participantCount,
+            groupCount: p.groupCount,
+            groups: p.groups,
+            topParticipants: p.topParticipants,
+            publishAt: p.publishAt,
+            createdAt: p.createdAt,
+            routeSlug: p.routeSlug,
+            startPlace: p.startPlace,
+            endPlace: p.endPlace,
+            routeThumbnailUrl: p.routeThumbnailUrl,
+          ))
+      .toList();
 });
 
 /// Provider for user's teams on home page
@@ -37,7 +63,7 @@ class HomePage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authProvider);
     final theme = Theme.of(context);
-    final upcomingEvents = ref.watch(homeUpcomingEventsProvider);
+    final upcomingRides = ref.watch(homeUpcomingRidesProvider);
     final teams = ref.watch(homeTeamsProvider);
 
     final userName = authState.user?.displayName.split(' ').firstOrNull ??
@@ -46,7 +72,7 @@ class HomePage extends ConsumerWidget {
     return Scaffold(
       body: RefreshIndicator(
         onRefresh: () async {
-          ref.invalidate(homeUpcomingEventsProvider);
+          ref.invalidate(homeUpcomingRidesProvider);
           ref.invalidate(homeTeamsProvider);
         },
         child: CustomScrollView(
@@ -143,9 +169,9 @@ class HomePage extends ConsumerWidget {
               ),
             ),
 
-            upcomingEvents.when(
-              data: (events) {
-                if (events.isEmpty) {
+            upcomingRides.when(
+              data: (rides) {
+                if (rides.isEmpty) {
                   return SliverToBoxAdapter(
                     child: ContentWidthConstraint(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -171,12 +197,12 @@ class HomePage extends ConsumerWidget {
                   );
                 }
 
-                final displayCount = events.length > 3 ? 3 : events.length;
+                final displayCount = rides.length > 3 ? 3 : rides.length;
                 return SliverList(
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
                       if (index >= displayCount) return null;
-                      final event = events[index];
+                      final ride = rides[index];
                       return ContentWidthConstraint(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 16,
@@ -184,7 +210,7 @@ class HomePage extends ConsumerWidget {
                         ),
                         child: StaggeredListItem(
                           index: index,
-                          child: _EventCard(key: ValueKey(event.entitySlug), event: event),
+                          child: _RideCard(key: ValueKey(ride.slug), ride: ride),
                         ),
                       );
                     },
@@ -218,7 +244,7 @@ class HomePage extends ConsumerWidget {
                           const SizedBox(width: 12),
                           Expanded(child: Text('home.unableToLoadEvents'.tr())),
                           TextButton(
-                            onPressed: () => ref.invalidate(homeUpcomingEventsProvider),
+                            onPressed: () => ref.invalidate(homeUpcomingRidesProvider),
                             child: Text('common.retry'.tr()),
                           ),
                         ],
@@ -335,88 +361,115 @@ class HomePage extends ConsumerWidget {
   }
 }
 
-class _EventCard extends StatelessWidget {
-  final CalendarEventDto event;
+class _RideCard extends ConsumerWidget {
+  final RideDto ride;
 
-  const _EventCard({super.key, required this.event});
-
-  DateTime get _startDate => DateTime.parse(event.start);
+  const _RideCard({super.key, required this.ride});
 
   @override
-  Widget build(BuildContext context) {
-    final isRide = event.type == 'RIDE';
+  Widget build(BuildContext context, WidgetRef ref) {
+    final token = ref.watch(accessTokenHolderProvider);
     final theme = Theme.of(context);
-    final startDate = _startDate;
 
     return AnimatedCard(
-      onTap: isRide
-          ? () => context.push(Paths.ride(event.teamSlug, event.entitySlug))
-          : null,
+      onTap: () => context.push(Paths.ride(ride.team.slug, ride.slug)),
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Row(
           children: [
-            // Date badge
-            Container(
-              width: 48,
-              height: 48,
+            // Thumbnail or icon with Hero animation
+            Hero(
+              tag: 'ride-thumbnail-${ride.slug}',
+              child: Container(
+              width: 60,
+              height: 60,
               decoration: BoxDecoration(
-                color: theme.colorScheme.primaryContainer,
                 borderRadius: BorderRadius.circular(8),
+                color: theme.colorScheme.primaryContainer,
+                image: ride.routeThumbnailUrl != null
+                    ? DecorationImage(
+                        image: AuthenticatedDecorationImage.fromUrl(
+                          ride.routeThumbnailUrl,
+                          token,
+                        )!,
+                        fit: BoxFit.cover,
+                      )
+                    : null,
               ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    AppFormatters.dayAbbrev(startDate.weekday),
-                    style: TextStyle(
-                      fontSize: 10,
+              child: ride.routeThumbnailUrl == null
+                  ? Icon(
+                      Icons.directions_bike,
                       color: theme.colorScheme.onPrimaryContainer,
-                    ),
-                  ),
-                  Text(
-                    '${startDate.day}',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: theme.colorScheme.onPrimaryContainer,
-                    ),
-                  ),
-                ],
+                    )
+                  : null,
               ),
             ),
             const SizedBox(width: 12),
-            // Event info
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    event.title,
+                    ride.name,
                     style: theme.textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.calendar_today,
+                        size: 14,
+                        color: theme.colorScheme.outline,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        _formatDate(DateTime.parse(ride.dateTime)),
+                        style: theme.textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: 2),
-                  Text(
-                    '${event.teamName} • ${AppFormatters.formatTime(startDate)}',
-                    style: theme.textTheme.bodySmall,
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.people,
+                        size: 14,
+                        color: theme.colorScheme.outline,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${ride.team.name} • ${'rides.participants'.tr(namedArgs: {'count': ride.participantCount.toString()})}',
+                        style: theme.textTheme.bodySmall,
+                      ),
+                    ],
                   ),
                 ],
               ),
             ),
-            Icon(
-              isRide ? Icons.directions_bike : Icons.event,
-              color: theme.colorScheme.primary,
-            ),
+            const Icon(Icons.chevron_right),
           ],
         ),
       ),
     );
   }
 
+  String _formatDate(DateTime date) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final dateDay = DateTime(date.year, date.month, date.day);
+    final dayDiff = dateDay.difference(today).inDays;
+    final time = AppFormatters.formatTime(date);
+    if (dayDiff == 0) {
+      return "${AppFormatters.today} $time";
+    } else if (dayDiff == 1) {
+      return "${AppFormatters.tomorrow} $time";
+    }
+    return "${AppFormatters.formatFullDate(date)} $time";
+  }
 }
 
 class _TeamChip extends ConsumerWidget {

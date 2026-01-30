@@ -209,9 +209,7 @@ class _TeamDetailContent extends ConsumerWidget {
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     TextButton(
-                      onPressed: () {
-                        // TODO: Navigate to all rides
-                      },
+                      onPressed: () => context.push(Paths.teamCalendar(team.slug)),
                       child: Text('common.viewAll'.tr()),
                     ),
                   ],
@@ -467,14 +465,16 @@ class _RideCard extends ConsumerWidget {
 
   String _formatDate(DateTime date) {
     final now = DateTime.now();
-    final diff = date.difference(now);
-    final time = "${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}";
-    if (diff.inDays == 0) {
+    final today = DateTime(now.year, now.month, now.day);
+    final dateDay = DateTime(date.year, date.month, date.day);
+    final dayDiff = dateDay.difference(today).inDays;
+    final time = AppFormatters.formatTime(date);
+    if (dayDiff == 0) {
       return "${AppFormatters.today} $time";
-    } else if (diff.inDays == 1) {
+    } else if (dayDiff == 1) {
       return "${AppFormatters.tomorrow} $time";
     }
-    return "${date.day}/${date.month} $time";
+    return "${AppFormatters.formatFullDate(date)} $time";
   }
 }
 

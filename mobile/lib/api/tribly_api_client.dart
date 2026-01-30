@@ -121,3 +121,7 @@ final configurationClientProvider = Provider<ConfigurationClient>((ref) {
 final publicationsClientProvider = Provider<PublicationsClient>((ref) {
   return ref.watch(apiClientProvider).publications;
 });
+
+final gpsServicesClientProvider = Provider<GpsServicesClient>((ref) {
+  return ref.watch(apiClientProvider).gpsServices;
+});

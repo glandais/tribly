@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
@@ -44,21 +43,17 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
     try {
       final refreshToken = await _storage.getRefreshToken();
-      debugPrint('[Auth] initialize: refreshToken ${refreshToken != null ? 'found' : 'NOT found'} in storage');
       if (refreshToken != null) {
         final response = await _repository.refreshToken(refreshToken);
-        debugPrint('[Auth] initialize: refresh succeeded, user=${response.user?.displayName}');
         await _handleAuthSuccess(response);
       }
     } catch (e) {
-      debugPrint('[Auth] initialize: refresh failed: $e');
       // Only clear stored token if the server explicitly rejected it (401/403).
       // On network errors, keep the token so we can retry next launch.
       final isAuthError = e is DioException &&
           e.response != null &&
           (e.response!.statusCode == 401 || e.response!.statusCode == 403);
       if (isAuthError) {
-        debugPrint('[Auth] initialize: auth error ${e.response!.statusCode}, deleting refresh token');
         await _storage.deleteRefreshToken();
       }
       _syncTokenToHolder(null);
@@ -80,6 +75,16 @@ class AuthNotifier extends StateNotifier<AuthState> {
     // Sync token to holder for interceptor
     _syncTokenToHolder(response.accessToken);
 
+    // Fetch full user profile (includes connectedServices, etc.)
+    UserDto? user = response.user;
+    if (response.accessToken != null) {
+      try {
+        user = await _ref.read(usersClientProvider).getMe();
+      } catch (_) {
+        // Fall back to auth response user
+      }
+    }
+
     // Check if user has passkeys
     bool hasPasskeys = false;
     if (response.accessToken != null) {
@@ -92,7 +97,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
 
     state = state.copyWith(
-      user: response.user,
+      user: user,
       accessToken: response.accessToken,
       hasPasskeys: hasPasskeys,
       isLoading: false,

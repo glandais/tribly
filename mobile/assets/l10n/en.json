@@ -140,7 +140,15 @@
     "createdBy": "Created by {name}",
     "share": "Share",
     "exportGpx": "GPX",
-    "mapPlaceholder": "Map (to be implemented)"
+    "mapPlaceholder": "Map (to be implemented)",
+    "download": "Download",
+    "downloadGpx": "Download GPX",
+    "downloadFit": "Download FIT",
+    "sendToDevice": "Send to device",
+    "uploadSuccess": "Route uploaded successfully!",
+    "uploadError": "Upload error: {error}",
+    "noDownload": "No files available",
+    "route": "Route"
   },
   "calendar": {
     "title": "Calendar",

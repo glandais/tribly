@@ -141,6 +141,13 @@ final routerProvider = Provider<GoRouter>((ref) {
               rideSlug: state.pathParameters['rideSlug']!,
             ),
           ),
+          // Team calendar
+          GoRoute(
+            path: 'calendar',
+            builder: (context, state) => CalendarPage(
+              teamSlug: state.pathParameters['teamSlug']!,
+            ),
+          ),
         ],
       ),
 

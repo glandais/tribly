@@ -100,7 +100,7 @@
     "appInDevelopment": "L'application mobile Tribly est en cours de développement. Bientôt, vous pourrez accéder à vos équipes, sorties, itinéraires et plus encore.",
     "myTeams": "Mes équipes",
     "calendar": "Calendrier",
-    "routes": "Itinéraires",
+    "routes": "Parcours",
     "upcomingRides": "Prochaines sorties",
     "noUpcomingRides": "Aucune sortie prévue cette semaine",
     "unableToLoadEvents": "Impossible de charger les événements",
@@ -130,8 +130,8 @@
     "description": "Description"
   },
   "routes": {
-    "title": "Itinéraires",
-    "empty": "Aucun itinéraire",
+    "title": "parcours",
+    "empty": "Aucun parcours",
     "distance": "Distance",
     "elevation": "D+",
     "elevationDown": "D-",
@@ -140,7 +140,15 @@
     "createdBy": "Créé par {name}",
     "share": "Partager",
     "exportGpx": "GPX",
-    "mapPlaceholder": "Carte (à implémenter)"
+    "mapPlaceholder": "Carte (à implémenter)",
+    "download": "Télécharger",
+    "downloadGpx": "Télécharger GPX",
+    "downloadFit": "Télécharger FIT",
+    "sendToDevice": "Envoyer vers un appareil",
+    "uploadSuccess": "Parcours envoyé avec succès!",
+    "uploadError": "Erreur lors de l'envoi: {error}",
+    "noDownload": "Aucun fichier disponible",
+    "route": "Parcours"
   },
   "calendar": {
     "title": "Calendrier",

@@ -1,12 +1,16 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../api/generated/export.dart';
+import '../../../../config/paths.dart';
 import '../../../../core/adaptive/adaptive.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/utils/safe_string.dart';
 import '../../../../core/widgets/authenticated_image.dart';
+import '../../../../core/widgets/team_banner.dart';
+import '../../../auth/providers/auth_provider.dart';
 import '../../data/ride_repository.dart';
 
 final rideDetailProvider =
@@ -127,7 +131,7 @@ class _RideDetailPageState extends ConsumerState<RideDetailPage> {
                 title: Text(group.name),
                 subtitle: Text(
                   [
-                    if (group.time != null) 'dates.departure'.tr(namedArgs: {'time': group.time!}),
+                    if (group.time != null) 'dates.departure'.tr(namedArgs: {'time': AppFormatters.formatLocalTime(group.time!)}),
                     if (group.averageSpeed != null)
                       '${group.averageSpeed!.toStringAsFixed(0)} km/h',
                   ].join(' • '),
@@ -224,6 +228,14 @@ class _RideDetailContent extends ConsumerWidget {
             title: ride.routeThumbnailUrl == null ? Text(ride.name) : null,
           ),
 
+          // Team
+          SliverToBoxAdapter(
+            child: ContentWidthConstraint(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+              child: TeamBanner(team: ride.team),
+            ),
+          ),
+
           // Date and time
           SliverToBoxAdapter(
             child: ContentWidthConstraint(
@@ -276,6 +288,27 @@ class _RideDetailContent extends ConsumerWidget {
                     subtitle: ride.startPlace!.address != null
                         ? Text(ride.startPlace!.address!)
                         : null,
+                  ),
+                ),
+              ),
+            ),
+
+          // Route
+          if (ride.routeSlug != null)
+            SliverToBoxAdapter(
+              child: ContentWidthConstraint(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                child: Card(
+                  child: ListTile(
+                    leading: Icon(
+                      Icons.route,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    title: Text('routes.route'.tr()),
+                    trailing: const Icon(Icons.chevron_right),
+                    onTap: () => context.push(
+                      Paths.route(ride.team.slug, ride.routeSlug!),
+                    ),
                   ),
                 ),
               ),
@@ -336,12 +369,30 @@ class _RideDetailContent extends ConsumerWidget {
                         title: Text(group.name),
                         subtitle: Text(
                           [
-                            if (group.time != null) 'dates.departure'.tr(namedArgs: {'time': group.time!}),
+                            if (group.time != null) 'dates.departure'.tr(namedArgs: {'time': AppFormatters.formatLocalTime(group.time!)}),
                             if (group.averageSpeed != null)
                               '${group.averageSpeed!.toStringAsFixed(0)} km/h',
                           ].join(' • '),
                         ),
-                        trailing: Text('${group.countParticipants}'),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text('${group.countParticipants}'),
+                            if ((group.routeSlug ?? ride.routeSlug) != null) ...[
+                              const SizedBox(width: 8),
+                              Icon(
+                                Icons.route,
+                                size: 20,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                            ],
+                          ],
+                        ),
+                        onTap: (group.routeSlug ?? ride.routeSlug) != null
+                            ? () => context.push(
+                                  Paths.route(ride.team.slug, (group.routeSlug ?? ride.routeSlug)!),
+                                )
+                            : null,
                       ),
                     ),
                   );
@@ -378,21 +429,47 @@ class _RideDetailContent extends ConsumerWidget {
           const SliverPadding(padding: EdgeInsets.only(bottom: 100)),
         ],
       ),
-      bottomNavigationBar: SafeArea(
-        child: ContentWidthConstraint(
-          padding: const EdgeInsets.all(16),
-          child: FilledButton.icon(
-            onPressed: isJoining ? null : onJoin,
-            icon: isJoining
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.check),
-            label: Text('rides.join'.tr()),
-          ),
-        ),
+      bottomNavigationBar: _buildBottomBar(ref),
+    );
+  }
+
+  bool _isCurrentUserParticipant(WidgetRef ref) {
+    final currentUser = ref.watch(authProvider).user;
+    if (currentUser == null) return false;
+    return ride.groups.any(
+      (group) => group.participants.any((p) => p.id == currentUser.id),
+    );
+  }
+
+  Widget _buildBottomBar(WidgetRef ref) {
+    final isParticipant = _isCurrentUserParticipant(ref);
+
+    return SafeArea(
+      child: ContentWidthConstraint(
+        padding: const EdgeInsets.all(16),
+        child: isParticipant
+            ? OutlinedButton.icon(
+                onPressed: isJoining ? null : onLeave,
+                icon: isJoining
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.close),
+                label: Text('rides.leave'.tr()),
+              )
+            : FilledButton.icon(
+                onPressed: isJoining ? null : onJoin,
+                icon: isJoining
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.check),
+                label: Text('rides.join'.tr()),
+              ),
       ),
     );
   }

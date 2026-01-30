@@ -11,13 +11,22 @@ import '../../../../core/utils/formatters.dart';
 import '../../data/calendar_repository.dart';
 
 final calendarEventsProvider = FutureProvider.family<List<CalendarEventDto>,
-    ({DateTime start, DateTime end})>((ref, params) async {
+    ({DateTime start, DateTime end, String? teamSlug})>((ref, params) async {
   final repository = ref.watch(calendarRepositoryProvider);
+  if (params.teamSlug != null) {
+    return repository.getTeamCalendarEvents(
+      params.teamSlug!,
+      start: params.start,
+      end: params.end,
+    );
+  }
   return repository.getMyCalendarEvents(start: params.start, end: params.end);
 });
 
 class CalendarPage extends ConsumerStatefulWidget {
-  const CalendarPage({super.key});
+  final String? teamSlug;
+
+  const CalendarPage({super.key, this.teamSlug});
 
   @override
   ConsumerState<CalendarPage> createState() => _CalendarPageState();
@@ -25,6 +34,7 @@ class CalendarPage extends ConsumerStatefulWidget {
 
 class _CalendarPageState extends ConsumerState<CalendarPage> {
   DateTime _selectedMonth = DateTime.now();
+  bool _initialMonthResolved = false;
 
   DateTime get _monthStart =>
       DateTime(_selectedMonth.year, _selectedMonth.month, 1);
@@ -32,8 +42,55 @@ class _CalendarPageState extends ConsumerState<CalendarPage> {
       DateTime(_selectedMonth.year, _selectedMonth.month + 1, 0, 23, 59, 59);
 
   @override
+  void initState() {
+    super.initState();
+    _findFirstMonthWithEvents();
+  }
+
+  Future<void> _findFirstMonthWithEvents() async {
+    final now = DateTime.now();
+    final repository = ref.read(calendarRepositoryProvider);
+
+    for (int i = 0; i < 6; i++) {
+      final month = DateTime(now.year, now.month + i, 1);
+      final start = i == 0 ? now : month;
+      final end = DateTime(month.year, month.month + 1, 0, 23, 59, 59);
+
+      try {
+        final List<CalendarEventDto> events;
+        if (widget.teamSlug != null) {
+          events = await repository.getTeamCalendarEvents(
+            widget.teamSlug!,
+            start: start,
+            end: end,
+          );
+        } else {
+          events = await repository.getMyCalendarEvents(
+            start: start,
+            end: end,
+          );
+        }
+        if (events.isNotEmpty) {
+          if (mounted && !_initialMonthResolved) {
+            setState(() {
+              _selectedMonth = month;
+              _initialMonthResolved = true;
+            });
+          }
+          return;
+        }
+      } catch (_) {
+        break;
+      }
+    }
+    if (mounted) {
+      setState(() => _initialMonthResolved = true);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final params = (start: _monthStart, end: _monthEnd);
+    final params = (start: _monthStart, end: _monthEnd, teamSlug: widget.teamSlug);
     final eventsAsync = ref.watch(calendarEventsProvider(params));
 
     return Scaffold(

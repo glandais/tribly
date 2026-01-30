@@ -1,12 +1,17 @@
+import 'package:dio/dio.dart' show Dio;
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../../../api/generated/export.dart';
+import '../../../../api/tribly_api_client.dart';
 import '../../../../core/adaptive/adaptive.dart';
 import '../../../../core/utils/formatters.dart';
-import '../../../../core/utils/safe_string.dart';
 import '../../../../core/widgets/authenticated_image.dart';
+import '../../../../core/widgets/team_banner.dart';
+import '../../../auth/providers/auth_provider.dart';
 import '../../data/route_repository.dart';
 
 final routeDetailProvider = FutureProvider.family<RouteDetailDto,
@@ -108,6 +113,14 @@ class _RouteDetailContent extends ConsumerWidget {
             ),
           ),
 
+          // Team
+          SliverToBoxAdapter(
+            child: ContentWidthConstraint(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+              child: TeamBanner(team: route.team),
+            ),
+          ),
+
           // Stats
           SliverToBoxAdapter(
             child: ContentWidthConstraint(
@@ -182,28 +195,6 @@ class _RouteDetailContent extends ConsumerWidget {
               ),
             ),
 
-          // Created by
-          SliverToBoxAdapter(
-            child: ContentWidthConstraint(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  AuthenticatedCircleAvatar(
-                    imageUrl: route.createdBy.avatarUrl,
-                    fallbackText: route.createdBy.displayName.safeFirstUpper(),
-                    radius: 16,
-                    fontSize: 12,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'routes.createdBy'.tr(namedArgs: {'name': route.createdBy.displayName}),
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                ],
-              ),
-            ),
-          ),
-
           // Map placeholder
           SliverToBoxAdapter(
             child: ContentWidthConstraint(
@@ -242,35 +233,219 @@ class _RouteDetailContent extends ConsumerWidget {
           const SliverPadding(padding: EdgeInsets.only(bottom: 100)),
         ],
       ),
-      bottomNavigationBar: SafeArea(
-        child: ContentWidthConstraint(
-          padding: const EdgeInsets.all(16),
-          child: Row(
+      bottomNavigationBar: _buildBottomBar(context, ref),
+    );
+  }
+  Widget _buildBottomBar(BuildContext context, WidgetRef ref) {
+    final hasDownloads =
+        route.media.assets.gpx != null || route.media.assets.fit != null;
+    final connectedServices =
+        ref.watch(authProvider).user?.connectedServices ?? [];
+    final hasActions = hasDownloads || connectedServices.isNotEmpty;
+
+    if (!hasActions) return const SizedBox.shrink();
+
+    return SafeArea(
+      child: ContentWidthConstraint(
+        padding: const EdgeInsets.all(16),
+        child: FilledButton.icon(
+          onPressed: () => _showDownloadSheet(context, ref),
+          icon: const Icon(Icons.download),
+          label: Text('routes.download'.tr()),
+        ),
+      ),
+    );
+  }
+
+  void _showDownloadSheet(BuildContext context, WidgetRef ref) {
+    final connectedServices =
+        ref.read(authProvider).user?.connectedServices ?? [];
+
+    showModalBottomSheet(
+      context: context,
+      builder: (sheetContext) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: () {
-                    // TODO: Share route
-                  },
-                  icon: const Icon(Icons.share),
-                  label: Text('routes.share'.tr()),
+              // GPX download
+              if (route.media.assets.gpx != null)
+                _FileDownloadTile(
+                  asset: route.media.assets.gpx!,
+                  label: 'routes.downloadGpx'.tr(),
+                  dio: ref.read(dioProvider),
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: FilledButton.icon(
-                  onPressed: () {
-                    // TODO: Export GPX
-                  },
-                  icon: const Icon(Icons.download),
-                  label: Text('routes.exportGpx'.tr()),
+              // FIT download
+              if (route.media.assets.fit != null)
+                _FileDownloadTile(
+                  asset: route.media.assets.fit!,
+                  label: 'routes.downloadFit'.tr(),
+                  dio: ref.read(dioProvider),
                 ),
-              ),
+              // Send to connected devices
+              if (connectedServices.isNotEmpty) ...[
+                const Divider(),
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'routes.sendToDevice'.tr(),
+                      style: Theme.of(sheetContext).textTheme.titleSmall,
+                    ),
+                  ),
+                ),
+                ...connectedServices.map(
+                  (service) => _DeviceUploadTile(
+                    service: service,
+                    teamSlug: route.team.slug,
+                    routeSlug: route.slug,
+                  ),
+                ),
+              ],
             ],
           ),
         ),
       ),
     );
+  }
+}
+
+class _FileDownloadTile extends StatefulWidget {
+  final AssetDto asset;
+  final String label;
+  final Dio dio;
+
+  const _FileDownloadTile({
+    required this.asset,
+    required this.label,
+    required this.dio,
+  });
+
+  @override
+  State<_FileDownloadTile> createState() => _FileDownloadTileState();
+}
+
+class _FileDownloadTileState extends State<_FileDownloadTile> {
+  bool _isDownloading = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      leading: _isDownloading
+          ? const SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : const Icon(Icons.download),
+      title: Text(widget.label),
+      onTap: _isDownloading ? null : _download,
+    );
+  }
+
+  Future<void> _download() async {
+    setState(() => _isDownloading = true);
+    try {
+      final dir = await getTemporaryDirectory();
+      final filePath = '${dir.path}/${widget.asset.fileName}';
+      await widget.dio.download(widget.asset.url, filePath);
+      if (mounted) {
+        final box = context.findRenderObject() as RenderBox?;
+        final origin = box != null
+            ? box.localToGlobal(Offset.zero) & box.size
+            : Rect.zero;
+        Navigator.pop(context);
+        await Share.shareXFiles(
+          [XFile(filePath)],
+          sharePositionOrigin: origin,
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'common.errorPrefix'.tr(namedArgs: {'error': e.toString()}),
+            ),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isDownloading = false);
+      }
+    }
+  }
+}
+
+class _DeviceUploadTile extends ConsumerStatefulWidget {
+  final GpsServiceConnectionDto service;
+  final String teamSlug;
+  final String routeSlug;
+
+  const _DeviceUploadTile({
+    required this.service,
+    required this.teamSlug,
+    required this.routeSlug,
+  });
+
+  @override
+  ConsumerState<_DeviceUploadTile> createState() => _DeviceUploadTileState();
+}
+
+class _DeviceUploadTileState extends ConsumerState<_DeviceUploadTile> {
+  bool _isUploading = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      leading: _isUploading
+          ? const SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : const Icon(Icons.smartphone),
+      title: Text(widget.service.displayName),
+      onTap: _isUploading ? null : _upload,
+    );
+  }
+
+  Future<void> _upload() async {
+    setState(() => _isUploading = true);
+    try {
+      final client = ref.read(gpsServicesClientProvider);
+      await client.uploadRoute(
+        serviceType: GpsServiceType.fromJson(widget.service.serviceType),
+        teamSlug: widget.teamSlug,
+        routeSlug: widget.routeSlug,
+      );
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('routes.uploadSuccess'.tr())),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'routes.uploadError'.tr(namedArgs: {'error': e.toString()}),
+            ),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isUploading = false);
+      }
+    }
   }
 }
 

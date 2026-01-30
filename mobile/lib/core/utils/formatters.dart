@@ -84,6 +84,15 @@ class AppFormatters {
     return DateFormat.Hm().format(date);
   }
 
+  /// Formats a LocalTime string (e.g. "08:30:00") as HH:mm, stripping seconds.
+  static String formatLocalTime(String localTime) {
+    final parts = localTime.split(':');
+    if (parts.length >= 2) {
+      return '${parts[0]}:${parts[1]}';
+    }
+    return localTime;
+  }
+
   /// Formats a date as "day month" (e.g., "15 janvier" in French, "January 15" in English).
   static String formatDayMonth(DateTime date) {
     return '${date.day} ${monthLower(date.month)}';
