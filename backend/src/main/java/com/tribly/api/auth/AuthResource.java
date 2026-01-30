@@ -161,10 +161,16 @@ public class AuthResource {
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
   public Response refresh(
-      @CookieParam(REFRESH_TOKEN_COOKIE) @Nullable String refreshToken,
+      @CookieParam(REFRESH_TOKEN_COOKIE) @Nullable String refreshTokenCookie,
+      @HeaderParam("X-Refresh-Token") @Nullable String refreshTokenHeader,
       @Context HttpHeaders headers,
       @HeaderParam("X-Forwarded-For") @Nullable String forwardedFor,
       @HeaderParam("X-Real-IP") @Nullable String realIp) {
+    // Cookie (web) or header (mobile) — cookie takes priority
+    String refreshToken =
+        (refreshTokenCookie != null && !refreshTokenCookie.isBlank())
+            ? refreshTokenCookie
+            : refreshTokenHeader;
     if (refreshToken == null || refreshToken.isBlank()) {
       return Response.status(Response.Status.FORBIDDEN).build();
     }
@@ -178,7 +184,13 @@ public class AuthResource {
   @PermitAll
   @Operation(summary = "Logout", description = "Logout and invalidate the refresh token")
   @APIResponses({@APIResponse(responseCode = "204", description = "Logged out successfully")})
-  public Response logout(@CookieParam(REFRESH_TOKEN_COOKIE) @Nullable String refreshToken) {
+  public Response logout(
+      @CookieParam(REFRESH_TOKEN_COOKIE) @Nullable String refreshTokenCookie,
+      @HeaderParam("X-Refresh-Token") @Nullable String refreshTokenHeader) {
+    String refreshToken =
+        (refreshTokenCookie != null && !refreshTokenCookie.isBlank())
+            ? refreshTokenCookie
+            : refreshTokenHeader;
     authService.logout(refreshToken);
     return Response.noContent().cookie(deleteRefreshTokenCookie()).build();
   }

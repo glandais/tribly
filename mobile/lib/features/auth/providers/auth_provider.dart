@@ -1,3 +1,5 @@
+import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
@@ -42,13 +44,23 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
     try {
       final refreshToken = await _storage.getRefreshToken();
+      debugPrint('[Auth] initialize: refreshToken ${refreshToken != null ? 'found' : 'NOT found'} in storage');
       if (refreshToken != null) {
         final response = await _repository.refreshToken(refreshToken);
+        debugPrint('[Auth] initialize: refresh succeeded, user=${response.user?.displayName}');
         await _handleAuthSuccess(response);
       }
     } catch (e) {
-      // Refresh failed, clear stored token
-      await _storage.deleteRefreshToken();
+      debugPrint('[Auth] initialize: refresh failed: $e');
+      // Only clear stored token if the server explicitly rejected it (401/403).
+      // On network errors, keep the token so we can retry next launch.
+      final isAuthError = e is DioException &&
+          e.response != null &&
+          (e.response!.statusCode == 401 || e.response!.statusCode == 403);
+      if (isAuthError) {
+        debugPrint('[Auth] initialize: auth error ${e.response!.statusCode}, deleting refresh token');
+        await _storage.deleteRefreshToken();
+      }
       _syncTokenToHolder(null);
     } finally {
       state = state.copyWith(
