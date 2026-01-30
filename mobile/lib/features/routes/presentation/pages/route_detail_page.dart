@@ -7,12 +7,10 @@ import 'package:share_plus/share_plus.dart';
 
 import '../../../../api/generated/export.dart';
 import '../../../../api/tribly_api_client.dart';
-import '../../../../core/adaptive/adaptive.dart';
 import '../../../../core/utils/formatters.dart';
-import '../../../../core/widgets/authenticated_image.dart';
-import '../../../../core/widgets/team_banner.dart';
 import '../../../auth/providers/auth_provider.dart';
 import '../../data/route_repository.dart';
+import '../widgets/route_map.dart';
 
 final routeDetailProvider = FutureProvider.family<RouteDetailDto,
     ({String teamSlug, String routeSlug})>((ref, params) async {
@@ -71,172 +69,190 @@ class _RouteDetailContent extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            expandedHeight: 200,
-            pinned: true,
-            flexibleSpace: FlexibleSpaceBar(
-              title: Text(
-                route.name,
-                style: const TextStyle(fontSize: 16),
-              ),
-              // Hero animation for route thumbnail
-              background: Hero(
-                tag: 'route-thumbnail-${route.slug}',
-                child: route.media.assets.thumbnail != null
-                    ? AuthenticatedImage(
-                        imageUrl: route.media.assets.thumbnail!.url,
-                        fit: BoxFit.cover,
-                        errorWidget: const SizedBox.shrink(),
-                      )
-                    : Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              Theme.of(context).colorScheme.primary,
-                              Theme.of(context).colorScheme.primaryContainer,
-                            ],
-                          ),
-                        ),
-                        child: const Center(
-                          child: Icon(
-                            Icons.route,
-                            size: 64,
-                            color: Colors.white54,
+      body: Stack(
+        children: [
+          // Full-screen map
+          RouteMap(route: route),
+
+          // Top bar overlay
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: SafeArea(
+              bottom: false,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                child: Row(
+                  children: [
+                    Material(
+                      color: Theme.of(context)
+                          .colorScheme
+                          .surface
+                          .withValues(alpha: 0.8),
+                      shape: const CircleBorder(),
+                      child: IconButton(
+                        icon: const Icon(Icons.arrow_back),
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Material(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .surface
+                            .withValues(alpha: 0.8),
+                        borderRadius: BorderRadius.circular(20),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 8),
+                          child: Text(
+                            route.name,
+                            style: Theme.of(context).textTheme.titleMedium,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
 
-          // Team
-          SliverToBoxAdapter(
-            child: ContentWidthConstraint(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-              child: TeamBanner(team: route.team),
-            ),
-          ),
-
-          // Stats
-          SliverToBoxAdapter(
-            child: ContentWidthConstraint(
-              padding: const EdgeInsets.all(16),
-              child: Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+          // Bottom sheet
+          DraggableScrollableSheet(
+            initialChildSize: 0.15,
+            minChildSize: 0.1,
+            maxChildSize: 0.7,
+            snap: true,
+            snapSizes: const [0.15, 0.45],
+            builder: (context, scrollController) {
+              return Container(
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  borderRadius:
+                      const BorderRadius.vertical(top: Radius.circular(16)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.2),
+                      blurRadius: 10,
+                      offset: const Offset(0, -2),
+                    ),
+                  ],
+                ),
+                child: SingleChildScrollView(
+                  controller: scrollController,
+                  child: Column(
                     children: [
-                      _StatItem(
-                        icon: Icons.straighten,
-                        value:
-                            '${(route.distance / 1000).toStringAsFixed(1)} km',
-                        label: 'routes.distance'.tr(),
+                      // Drag handle
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: Container(
+                          width: 40,
+                          height: 4,
+                          decoration: BoxDecoration(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurfaceVariant
+                                .withValues(alpha: 0.4),
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
                       ),
-                      _StatItem(
-                        icon: Icons.trending_up,
-                        value: '${route.elevationGain.toInt()} m',
-                        label: 'routes.elevation'.tr(),
+
+                      // Stats row
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            _StatItem(
+                              icon: Icons.straighten,
+                              value:
+                                  '${(route.distance / 1000).toStringAsFixed(1)} km',
+                              label: 'routes.distance'.tr(),
+                            ),
+                            _StatItem(
+                              icon: Icons.trending_up,
+                              value: '${route.elevationGain.toInt()} m',
+                              label: 'routes.elevation'.tr(),
+                            ),
+                            _StatItem(
+                              icon: Icons.trending_down,
+                              value: '${route.elevationLoss.toInt()} m',
+                              label: 'routes.elevationDown'.tr(),
+                            ),
+                          ],
+                        ),
                       ),
-                      _StatItem(
-                        icon: Icons.trending_down,
-                        value: '${route.elevationLoss.toInt()} m',
-                        label: 'routes.elevationDown'.tr(),
+
+                      const SizedBox(height: 16),
+
+                      // Surface type
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Card(
+                          child: ListTile(
+                            leading: Icon(
+                              AppFormatters.surfaceIcon(route.surfaceType),
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                            title: Text('routes.surface'.tr()),
+                            subtitle: Text(
+                                AppFormatters.surfaceName(route.surfaceType)),
+                          ),
+                        ),
                       ),
+
+                      // Description
+                      if (route.media.markdown.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Card(
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'routes.description'.tr(),
+                                    style:
+                                        Theme.of(context).textTheme.titleMedium,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(route.media.markdown),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+
+                      // Download button
+                      _DownloadButton(route: route),
+
+                      const SizedBox(height: 16),
                     ],
                   ),
                 ),
-              ),
-            ),
+              );
+            },
           ),
-
-          // Surface type
-          SliverToBoxAdapter(
-            child: ContentWidthConstraint(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Card(
-                child: ListTile(
-                  leading: Icon(
-                    AppFormatters.surfaceIcon(route.surfaceType),
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                  title: Text('routes.surface'.tr()),
-                  subtitle: Text(AppFormatters.surfaceName(route.surfaceType)),
-                ),
-              ),
-            ),
-          ),
-
-          // Description
-          if (route.media.markdown.isNotEmpty)
-            SliverToBoxAdapter(
-              child: ContentWidthConstraint(
-                padding: const EdgeInsets.all(16),
-                child: Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'routes.description'.tr(),
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
-                        const SizedBox(height: 8),
-                        Text(route.media.markdown),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-
-          // Map placeholder
-          SliverToBoxAdapter(
-            child: ContentWidthConstraint(
-              padding: const EdgeInsets.all(16),
-              child: Card(
-                child: Container(
-                  height: 200,
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.map,
-                          size: 48,
-                          color: Theme.of(context).colorScheme.outline,
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'routes.mapPlaceholder'.tr(),
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                color: Theme.of(context).colorScheme.outline,
-                              ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-
-          const SliverPadding(padding: EdgeInsets.only(bottom: 100)),
         ],
       ),
-      bottomNavigationBar: _buildBottomBar(context, ref),
     );
   }
-  Widget _buildBottomBar(BuildContext context, WidgetRef ref) {
+
+}
+
+class _DownloadButton extends ConsumerWidget {
+  final RouteDetailDto route;
+
+  const _DownloadButton({required this.route});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
     final hasDownloads =
         route.media.assets.gpx != null || route.media.assets.fit != null;
     final connectedServices =
@@ -245,9 +261,10 @@ class _RouteDetailContent extends ConsumerWidget {
 
     if (!hasActions) return const SizedBox.shrink();
 
-    return SafeArea(
-      child: ContentWidthConstraint(
-        padding: const EdgeInsets.all(16),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: SizedBox(
+        width: double.infinity,
         child: FilledButton.icon(
           onPressed: () => _showDownloadSheet(context, ref),
           icon: const Icon(Icons.download),
@@ -269,21 +286,18 @@ class _RouteDetailContent extends ConsumerWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // GPX download
               if (route.media.assets.gpx != null)
                 _FileDownloadTile(
                   asset: route.media.assets.gpx!,
                   label: 'routes.downloadGpx'.tr(),
                   dio: ref.read(dioProvider),
                 ),
-              // FIT download
               if (route.media.assets.fit != null)
                 _FileDownloadTile(
                   asset: route.media.assets.fit!,
                   label: 'routes.downloadFit'.tr(),
                   dio: ref.read(dioProvider),
                 ),
-              // Send to connected devices
               if (connectedServices.isNotEmpty) ...[
                 const Divider(),
                 Padding(

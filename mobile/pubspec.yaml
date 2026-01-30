@@ -46,6 +46,9 @@ dependencies:
   # Image caching with auth headers support
   cached_network_image: ^3.4.1
 
+  # Maps
+  maplibre: ^0.3.0
+
   # Share files (for route downloads)
   share_plus: ^10.0.0
   path_provider: ^2.1.0
