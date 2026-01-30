@@ -1,6 +1,6 @@
 [versions]
-agp = "8.5.2"
-kotlin = "2.0.20"
+agp = "9.0.0"
+kotlin = "2.2.10"
 karoo-ext = "1.1.8"
 ktor = "3.0.3"
 ktor-client-karoo = "1.0.1"
@@ -12,6 +12,7 @@ navigation-compose = "2.8.0"
 datastore = "1.1.1"
 zxing = "4.3.0"
 kotlinx-serialization = "1.7.1"
+ben-manes-versions = "0.53.0"
 
 [libraries]
 karoo-ext = { module = "io.hammerhead:karoo-ext", version.ref = "karoo-ext" }
@@ -39,3 +40,4 @@ android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+ben-manes-versions = { id = "com.github.ben-manes.versions", version.ref = "ben-manes-versions" }

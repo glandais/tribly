@@ -224,6 +224,13 @@ private fun CodeContent(deviceCode: DeviceCodeResponse) {
             )
         }
 
+        // Manual URL
+        Text(
+            text = stringResource(R.string.auth_url_label),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
         // User code section
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(

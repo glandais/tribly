@@ -250,6 +250,7 @@ AccessCheckers resolve their own security context by injecting `TriblyQueryConte
 | COMMENT | CommentAccessChecker | `service/comment/` |
 | PLACE | PlaceAccessChecker | `service/place/` |
 | RIDE_TEMPLATE | RideTemplateAccessChecker | `service/ridetemplate/` |
+| CALENDAR | CalendarAccessChecker | `service/calendar/` |
 | PUBLICATION | AllPublicationAccessChecker | `service/common/` |
 
 ### Action Types
@@ -299,8 +300,7 @@ The `TeamEntityRepository` interface implements SQL-level security filtering for
 
 ```java
 public enum Visibility {
-    PRIVATE,    // Only creator can see
-    TEAM_ONLY,  // Team members only
+    TEAM,       // Team members only
     PUBLIC      // Anyone can see
 }
 ```
@@ -316,6 +316,7 @@ SELECT te FROM [Entity] te WHERE
     AND te.visibility = 'PUBLIC'
     AND te.status IN ('PUBLISHED', 'CANCELLED')
     AND TYPE(te) <> Ad  -- Ads require membership
+    AND te.team.domain.id = :domainId  -- Multi-tenant isolation
     AND te.deleted = false
     AND te.team.deleted = false
 ```
@@ -328,6 +329,13 @@ The query uses OR clauses to allow access if ANY condition is met:
 3. **Ad Creator:** Own ads (regardless of status)
 4. **Organizer:** Team content except DRAFT TeamPages and Ads
 5. **Admin:** All team content except DRAFT Ads
+
+### Domain Isolation
+
+All queries enforce multi-tenant isolation by filtering on the current domain:
+```sql
+AND te.team.domain.id = :domainId
+```
 
 ### Soft Delete Enforcement
 
@@ -384,6 +392,9 @@ AND (TYPE(te) <> Ad OR te.team.enableAds = true)
 | | UPDATE/DELETE | No | No | Yes | Yes |
 | **Comment** | LIST/CREATE | No | Yes | Yes | Yes |
 | | UPDATE/DELETE | No | Own only | Yes | Yes |
+| **Calendar** | LIST_ALL_TEAMS | No | Yes (or token) | Yes (or token) | Yes (or token) |
+| | LIST | No | Yes (or token) | Yes (or token) | Yes (or token) |
+| | READ/CREATE/UPDATE/DELETE | No | Yes | Yes | Yes |
 
 ### Status-Based Access
 
@@ -577,6 +588,6 @@ For security vulnerabilities or concerns, contact the development team directly.
 
 ---
 
-*Document Version: 1.1*
-*Last Updated: January 2025*
-*Updated to reflect security architecture refactoring (Context record, simplified interfaces)*
+*Document Version: 1.2*
+*Last Updated: January 2026*
+*Updated: fixed Visibility enum values, added CalendarAccessChecker, added domain isolation to SQL examples*
