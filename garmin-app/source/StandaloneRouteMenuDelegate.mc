@@ -1,11 +1,10 @@
 using Toybox.WatchUi;
-using Toybox.System;
 
 /**
- * Input delegate for the route list Menu2.
- * Handles item selection and navigation.
+ * Input delegate for the standalone route list Menu2.
+ * Handles item selection and navigation to RouteDetailView.
  */
-class RouteMenuDelegate extends WatchUi.Menu2InputDelegate {
+class StandaloneRouteMenuDelegate extends WatchUi.Menu2InputDelegate {
     private var _routes;
     private var _apiClient;
 
@@ -29,9 +28,9 @@ class RouteMenuDelegate extends WatchUi.Menu2InputDelegate {
     }
 
     /**
-     * Handle back button - exit app.
+     * Handle back button - go back to home menu.
      */
     function onBack() {
-        System.exit();
+        WatchUi.popView(WatchUi.SLIDE_RIGHT);
     }
 }

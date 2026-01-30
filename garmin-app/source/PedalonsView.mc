@@ -3,7 +3,7 @@ using Toybox.Graphics;
 
 /**
  * Main route list view.
- * Shows loading/error states, then switches to Menu2 when routes are loaded.
+ * Shows loading/error states, then switches to Home Menu when data is loaded.
  */
 class PedalonsView extends WatchUi.View {
     private var _apiClient;
@@ -31,11 +31,23 @@ class PedalonsView extends WatchUi.View {
         _apiClient.fetchRoutes(method(:onRoutesLoaded));
     }
 
-    function onRoutesLoaded(routes) {
+    function onRoutesLoaded(result) {
         _isLoading = false;
 
-        if (routes != null && routes.size() > 0) {
-            // Create Menu2 with routes
+        if (result != null && result instanceof Toybox.Lang.Dictionary) {
+            var rides = result.get("rides");
+            var routes = result.get("routes");
+
+            if (rides == null) { rides = []; }
+            if (routes == null) { routes = []; }
+
+            if (rides.size() == 0 && routes.size() == 0) {
+                _error = WatchUi.loadResource(Rez.Strings.NoRoutes);
+                WatchUi.requestUpdate();
+                return;
+            }
+
+            // Build Home Menu with 2 entries: Rides and Routes
             var menu = new WatchUi.Menu2({
                 :title => WatchUi.loadResource(Rez.Strings.RoutesTitle)
             });
@@ -49,64 +61,27 @@ class PedalonsView extends WatchUi.View {
                 });
             }
 
-            for (var i = 0; i < routes.size(); i++) {
-                var route = routes[i];
-                var titleAndSublabel = formatRouteMenuItem(route);
-
-                // Use index as ID, store route in menu item
-                menu.addItem(new WatchUi.MenuItem(titleAndSublabel[0], titleAndSublabel[1], i, {}));
+            // Rides entry
+            var ridesLabel = WatchUi.loadResource(Rez.Strings.Rides);
+            var ridesSublabel = rides.size() + " " + ridesLabel.toLower();
+            if (rides.size() == 0) {
+                ridesSublabel = WatchUi.loadResource(Rez.Strings.NoRides);
             }
+            menu.addItem(new WatchUi.MenuItem(ridesLabel, ridesSublabel, "rides", {}));
 
-            // Switch to menu view
-            WatchUi.switchToView(menu, new RouteMenuDelegate(routes, _apiClient), WatchUi.SLIDE_IMMEDIATE);
-        } else if (routes != null && routes.size() == 0) {
-            _error = WatchUi.loadResource(Rez.Strings.NoRoutes);
-            WatchUi.requestUpdate();
+            // Routes entry
+            var routesLabel = WatchUi.loadResource(Rez.Strings.Routes);
+            var routesSublabel = routes.size() + " " + routesLabel.toLower();
+            if (routes.size() == 0) {
+                routesSublabel = WatchUi.loadResource(Rez.Strings.NoRoutes);
+            }
+            menu.addItem(new WatchUi.MenuItem(routesLabel, routesSublabel, "routes", {}));
+
+            WatchUi.switchToView(menu, new HomeMenuDelegate(rides, routes, _apiClient, _formatUtils), WatchUi.SLIDE_IMMEDIATE);
         } else {
             _error = WatchUi.loadResource(Rez.Strings.ConnectionError);
             WatchUi.requestUpdate();
         }
-    }
-
-    /**
-     * Format route menu item based on route type.
-     * @param route Route dictionary
-     * @return Array [title, sublabel]
-     *
-     * Route types and formatting:
-     * - Standalone route: Route name | Distance / Elevation
-     * - Ride route: Ride name - Date | Ride time
-     * - Group route: Group name - Date | Group time
-     */
-    private function formatRouteMenuItem(route) {
-        var routeName = route.get("routeName");
-        var rideName = route.get("rideName");
-        var startDateTime = route.get("startDateTime");
-        var groupName = route.get("groupName");
-        var distance = route.get("distance");
-        var elevationGain = route.get("elevationGain");
-
-        var title;
-        var sublabel;
-
-        var withGroup = groupName != null && groupName.length() > 0;
-        var withRide = rideName != null && rideName.length() > 0;
-
-        if (withGroup && withRide) {
-            title = groupName + " - " + rideName;
-        } else if (withRide) {
-            title = rideName;
-        } else {
-            // Standalone route: Route name | Distance / Elevation
-            title = (routeName != null && routeName.length() > 0) ? routeName : WatchUi.loadResource(Rez.Strings.Unknown);
-        }
-        if (startDateTime != null && startDateTime.length() > 0) {
-            sublabel = _formatUtils.formatDateTime(startDateTime);
-        } else {
-            sublabel = _formatUtils.formatDistanceElevation(distance, elevationGain);
-        }
-
-        return [title, sublabel];
     }
 
     function getApiClient() {

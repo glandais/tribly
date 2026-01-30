@@ -32,5 +32,8 @@
     <string id="MenuTitle">Pédalons</string>
     <string id="SelectHint"> - SELECT</string>
     <string id="RoutesTitle">Pédalons</string>
+    <string id="Rides">Sorties</string>
+    <string id="Routes">Parcours</string>
+    <string id="NoRides">Aucune sortie</string>
     <string id="Logout">Déconnexion</string>
 </strings>

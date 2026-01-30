@@ -39,31 +39,43 @@ data class TokenResponse(
     @SerialName("refreshToken") val refreshToken: String? = null
 )
 
-// Routes
+// Routes response with rides and standalone routes
 @Serializable
 data class RoutesResponse(
-    @SerialName("routes") val routes: List<Route>
+    @SerialName("rides") val rides: List<DeviceRide>,
+    @SerialName("routes") val routes: List<DeviceRoute>
 )
 
 @Serializable
-data class Route(
+data class DeviceRide(
     @SerialName("teamSlug") val teamSlug: String,
+    @SerialName("rideSlug") val rideSlug: String,
+    @SerialName("rideName") val rideName: String,
+    @SerialName("startDateTime") val startDateTime: String? = null,
+    @SerialName("entries") val entries: List<DeviceRideEntry>
+)
+
+@Serializable
+data class DeviceRideEntry(
     @SerialName("routeSlug") val routeSlug: String,
     @SerialName("routeName") val routeName: String,
-    @SerialName("rideName") val rideName: String? = null,
     @SerialName("groupName") val groupName: String? = null,
-    @SerialName("startDateTime") val startDateTime: String? = null,
     @SerialName("distance") val distance: Float,
     @SerialName("elevationGain") val elevationGain: Float,
     @SerialName("startLat") val startLat: Double? = null,
     @SerialName("startLon") val startLon: Double? = null
-) {
-    /** True if this route is associated with a group event */
-    val hasGroup: Boolean get() = !groupName.isNullOrBlank()
+)
 
-    /** True if this route is associated with a ride */
-    val hasRide: Boolean get() = !rideName.isNullOrBlank()
-}
+@Serializable
+data class DeviceRoute(
+    @SerialName("teamSlug") val teamSlug: String,
+    @SerialName("routeSlug") val routeSlug: String,
+    @SerialName("routeName") val routeName: String,
+    @SerialName("distance") val distance: Float,
+    @SerialName("elevationGain") val elevationGain: Float,
+    @SerialName("startLat") val startLat: Double? = null,
+    @SerialName("startLon") val startLon: Double? = null
+)
 
 @Serializable
 data class SyncResponse(

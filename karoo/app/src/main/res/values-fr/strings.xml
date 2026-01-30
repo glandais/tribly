@@ -44,6 +44,15 @@
     <string name="back">Retour</string>
     <string name="sync">Synchroniser</string>
 
+    <!-- Navigation -->
+    <string name="nav_rides">Sorties</string>
+    <string name="nav_routes">Parcours</string>
+    <string name="rides_count">%d sorties</string>
+    <string name="routes_count">%d parcours</string>
+    <string name="no_rides">Aucune sortie à venir</string>
+    <string name="no_routes">Aucun parcours disponible</string>
+    <string name="route_detail_sync">Sync vers Karoo</string>
+
     <!-- Formatting -->
     <string name="distance_format_km">%.1f km</string>
     <string name="distance_format_mi">%.1f mi</string>

@@ -3,7 +3,7 @@ using Toybox.System;
 
 /**
  * Input delegate for the loading/error view.
- * Once routes are loaded, RouteMenuDelegate handles the CustomMenu.
+ * Once routes are loaded, HomeMenuDelegate handles the navigation menus.
  */
 class PedalonsDelegate extends WatchUi.BehaviorDelegate {
     private var _view;

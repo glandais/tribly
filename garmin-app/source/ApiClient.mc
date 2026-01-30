@@ -300,31 +300,50 @@ class ApiClient {
 
     /**
      * Handle routes API response.
-     * Parses the DeviceRouteDto fields into route dictionaries.
+     * Parses the new structured response with rides and routes.
      */
     function onRoutesResponse(responseCode as Lang.Number, data as Lang.Dictionary or Lang.String or Null) as Void {
         var callback = _routesCallback;
         _routesCallback = null;
 
         if (responseCode == 200 && data != null && data instanceof Lang.Dictionary) {
-            var rawRoutes = (data as Lang.Dictionary).get("routes");
+            var dict = data as Lang.Dictionary;
+            var result = {
+                "rides" => [],
+                "routes" => []
+            };
+
+            // Parse rides
+            var rawRides = dict.get("rides");
+            if (rawRides != null && rawRides instanceof Lang.Array) {
+                var rides = [];
+                for (var i = 0; i < rawRides.size(); i++) {
+                    var raw = rawRides[i];
+                    if (raw instanceof Lang.Dictionary) {
+                        rides.add(parseRideDto(raw as Lang.Dictionary));
+                    }
+                }
+                result.put("rides", rides);
+            }
+
+            // Parse standalone routes
+            var rawRoutes = dict.get("routes");
             if (rawRoutes != null && rawRoutes instanceof Lang.Array) {
                 var routes = [];
                 for (var i = 0; i < rawRoutes.size(); i++) {
                     var raw = rawRoutes[i];
                     if (raw instanceof Lang.Dictionary) {
-                        var route = parseRouteDto(raw as Lang.Dictionary);
-                        routes.add(route);
+                        routes.add(parseStandaloneRouteDto(raw as Lang.Dictionary));
                     }
                 }
-                if (callback != null) {
-                    callback.invoke(routes);
-                }
-                return;
+                result.put("routes", routes);
             }
-        }
 
-        // System.println("Routes response failed: " + responseCode);
+            if (callback != null) {
+                callback.invoke(result);
+            }
+            return;
+        }
 
         // If 401, clear tokens and force re-login
         if (responseCode == 401) {
@@ -337,16 +356,45 @@ class ApiClient {
     }
 
     /**
-     * Parse a single DeviceRouteDto from the API response.
+     * Parse a DeviceRideDto with its entries.
      */
-    private function parseRouteDto(raw as Lang.Dictionary) as Lang.Dictionary {
+    private function parseRideDto(raw as Lang.Dictionary) as Lang.Dictionary {
+        var entries = [];
+        var rawEntries = raw.get("entries");
+        if (rawEntries != null && rawEntries instanceof Lang.Array) {
+            for (var i = 0; i < rawEntries.size(); i++) {
+                var rawEntry = rawEntries[i];
+                if (rawEntry instanceof Lang.Dictionary) {
+                    var entryDict = rawEntry as Lang.Dictionary;
+                    entries.add({
+                        "routeSlug" => entryDict.get("routeSlug"),
+                        "routeName" => entryDict.get("routeName"),
+                        "groupName" => entryDict.get("groupName"),
+                        "distance" => entryDict.get("distance"),
+                        "elevationGain" => entryDict.get("elevationGain"),
+                        "startLat" => entryDict.get("startLat"),
+                        "startLon" => entryDict.get("startLon")
+                    });
+                }
+            }
+        }
+        return {
+            "teamSlug" => raw.get("teamSlug"),
+            "rideSlug" => raw.get("rideSlug"),
+            "rideName" => raw.get("rideName"),
+            "startDateTime" => raw.get("startDateTime"),
+            "entries" => entries
+        };
+    }
+
+    /**
+     * Parse a standalone DeviceRouteDto.
+     */
+    private function parseStandaloneRouteDto(raw as Lang.Dictionary) as Lang.Dictionary {
         return {
             "teamSlug" => raw.get("teamSlug"),
             "routeSlug" => raw.get("routeSlug"),
             "routeName" => raw.get("routeName"),
-            "rideName" => raw.get("rideName"),
-            "groupName" => raw.get("groupName"),
-            "startDateTime" => raw.get("startDateTime"),
             "distance" => raw.get("distance"),
             "elevationGain" => raw.get("elevationGain"),
             "startLat" => raw.get("startLat"),

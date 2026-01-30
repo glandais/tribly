@@ -6,6 +6,8 @@ import com.tribly.domain.ride.RideGroup;
 import com.tribly.domain.route.Route;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.team.UserTeam;
+import com.tribly.dto.device.response.DeviceRideDto;
+import com.tribly.dto.device.response.DeviceRideEntryDto;
 import com.tribly.dto.device.response.DeviceRouteDto;
 import com.tribly.dto.device.response.DeviceRoutesResponse;
 import com.tribly.dto.device.response.DeviceUserStatusResponse;
@@ -38,13 +40,12 @@ import org.geolatte.geom.Point;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Unified service for aggregating routes for device applications (Garmin, Karoo, etc.).
- * Prioritizes routes from upcoming rides, then falls back to latest published routes.
+ * Unified service for aggregating routes for device applications (Garmin, Karoo, etc.). Returns
+ * upcoming rides (D-1 to D+7) with their route entries, and latest standalone routes independently.
  */
 @ApplicationScoped
 public class DeviceRouteService {
 
-  private static final int MAX_ROUTES = 20;
   private static final int LATEST_ROUTES_PER_TEAM = 10;
 
   @Inject TriblyQueryContext triblyContext;
@@ -55,18 +56,16 @@ public class DeviceRouteService {
   @Inject GpxProcessingService gpxProcessingService;
   @Inject TimezoneService timezoneService;
 
-  /**
-   * Internal record for sorting routes by distance while keeping DTO separate.
-   */
+  /** Internal record for sorting routes by distance while keeping DTO separate. */
   private record RouteWithDistance(DeviceRouteDto dto, @Nullable Double distanceFromUser) {}
 
   /**
-   * Get routes for the authenticated user. Prioritizes routes from upcoming rides, then latest
-   * routes.
+   * Get rides and routes for the authenticated user. Rides contain route entries from upcoming rides
+   * (D-1 to D+7). Routes are the latest standalone routes per team. Both lists are independent.
    *
    * @param lat User's latitude (optional, for proximity sorting)
    * @param lon User's longitude (optional, for proximity sorting)
-   * @return List of routes suitable for device applications
+   * @return Response with rides and routes lists
    */
   @Logged
   public DeviceRoutesResponse getRoutesForUser(@Nullable Double lat, @Nullable Double lon) {
@@ -74,54 +73,47 @@ public class DeviceRouteService {
     List<UserTeam> memberships = userTeamRepository.findByUserId(userId);
 
     if (memberships.isEmpty()) {
-      return DeviceRoutesResponse.builder().routes(List.of()).build();
+      return DeviceRoutesResponse.builder().rides(List.of()).routes(List.of()).build();
     }
 
-    List<RouteWithDistance> allRoutes = new ArrayList<>();
     Instant now = Instant.now();
     Instant from = now.minus(1, ChronoUnit.DAYS);
     Instant to = now.plus(7, ChronoUnit.DAYS);
+
+    List<DeviceRideDto> allRides = new ArrayList<>();
+    List<RouteWithDistance> allRoutes = new ArrayList<>();
 
     for (UserTeam membership : memberships) {
       Team team = membership.getTeam();
       Long teamId = team.getId();
       Set<Long> teamIds = Set.of(teamId);
 
-      // Find upcoming rides with routes
-      List<RouteWithDistance> rideRoutes = getRoutesFromRides(teamIds, userId, from, to, lat, lon);
+      // Rides: D-1 to D+7 with route entries
+      List<DeviceRideDto> teamRides = getRidesWithEntries(teamIds, userId, from, to);
+      allRides.addAll(teamRides);
 
-      if (!rideRoutes.isEmpty()) {
-        allRoutes.addAll(rideRoutes);
-      } else {
-        // No upcoming rides, get latest routes
-        List<RouteWithDistance> latestRoutes = getLatestRoutes(teamIds, userId, lat, lon);
-        allRoutes.addAll(latestRoutes);
-      }
+      // Routes: latest per team (independent of rides)
+      List<RouteWithDistance> teamRoutes = getLatestRoutes(teamIds, userId, lat, lon);
+      allRoutes.addAll(teamRoutes);
     }
 
-    // Sort: rides first (by dateTime proximity), then by distance
+    // Sort rides by proximity to current time
+    allRides.sort(
+        Comparator.comparingLong(
+            r ->
+                r.startDateTime() != null
+                    ? Math.abs(r.startDateTime().toEpochMilli() - now.toEpochMilli())
+                    : Long.MAX_VALUE));
+
+    // Sort routes by distance from user
     allRoutes.sort(
-        Comparator
-            // Rides first (those with rideDateTime)
-            .<RouteWithDistance>comparingInt(r -> r.dto().startDateTime() == null ? 1 : 0)
-            // Then by proximity to current time
-            .thenComparingLong(
-                r ->
-                    r.dto().startDateTime() != null
-                        ? Math.abs(r.dto().startDateTime().toEpochMilli() - now.toEpochMilli())
-                        : Long.MAX_VALUE)
-            // Then by distance from user (if provided)
-            .thenComparingDouble(
-                r -> r.distanceFromUser() != null ? r.distanceFromUser() : Double.MAX_VALUE));
+        Comparator.comparingDouble(
+            r -> r.distanceFromUser() != null ? r.distanceFromUser() : Double.MAX_VALUE));
 
-    // Limit results and extract DTOs
     List<DeviceRouteDto> routes =
-        allRoutes.stream()
-            .limit(MAX_ROUTES)
-            .map(RouteWithDistance::dto)
-            .collect(Collectors.toList());
+        allRoutes.stream().map(RouteWithDistance::dto).collect(Collectors.toList());
 
-    return DeviceRoutesResponse.builder().routes(routes).build();
+    return DeviceRoutesResponse.builder().rides(allRides).routes(routes).build();
   }
 
   /**
@@ -139,13 +131,8 @@ public class DeviceRouteService {
     return DeviceUserStatusResponse.builder().connectedGpsServices(connectedServices).build();
   }
 
-  private List<RouteWithDistance> getRoutesFromRides(
-      Set<Long> teamIds,
-      Long userId,
-      Instant from,
-      Instant to,
-      @Nullable Double lat,
-      @Nullable Double lon) {
+  private List<DeviceRideDto> getRidesWithEntries(
+      Set<Long> teamIds, Long userId, Instant from, Instant to) {
 
     TeamEntityQueryBasic query =
         TeamEntityQueryBasic.builder()
@@ -163,33 +150,82 @@ public class DeviceRouteService {
     List<Ride> publishedRides =
         rides.stream().filter(r -> r.getStatus() == Status.PUBLISHED).toList();
 
-    List<RouteWithDistance> routes = new ArrayList<>();
+    List<DeviceRideDto> result = new ArrayList<>();
 
     for (Ride ride : publishedRides) {
-      boolean oneWithoutGroup = true;
-      for (RideGroup group : ride.getGroups()) {
-        if (group.isDeleted()) continue;
+      List<DeviceRideEntryDto> entries = new ArrayList<>();
 
-        Route route = group.getRoute();
-        if (route == null || route.isDeleted()) {
-          route = ride.getRoute();
-        }
-
-        if (route != null && !route.isDeleted()) {
-          RouteWithDistance rwd = toRouteWithDistance(route, ride, group, lat, lon);
-          routes.add(rwd);
-          oneWithoutGroup = false;
-        }
+      // Ride-level route (groupName = null)
+      if (ride.getRoute() != null && !ride.getRoute().isDeleted()) {
+        entries.add(toRideEntry(ride.getRoute(), null));
       }
 
-      if (oneWithoutGroup && ride.getRoute() != null && !ride.getRoute().isDeleted()) {
-        Route route = ride.getRoute();
-        RouteWithDistance rwd = toRouteWithDistance(route, ride, null, lat, lon);
-        routes.add(rwd);
+      // Group-level routes
+      for (RideGroup group : ride.getGroups()) {
+        if (group.isDeleted()) {
+          continue;
+        }
+
+        Route groupRoute = group.getRoute();
+        if (groupRoute == null || groupRoute.isDeleted()) {
+          continue;
+        }
+
+        entries.add(toRideEntry(groupRoute, group.getName()));
+      }
+
+      // Only include rides that have at least one route entry
+      if (!entries.isEmpty()) {
+        Instant startInstant = computeRideStartInstant(ride);
+        result.add(
+            DeviceRideDto.builder()
+                .teamSlug(ride.getTeam().getSlug())
+                .rideSlug(ride.getSlug())
+                .rideName(ride.getName())
+                .startDateTime(startInstant)
+                .entries(entries)
+                .build());
       }
     }
 
-    return routes;
+    return result;
+  }
+
+  private DeviceRideEntryDto toRideEntry(Route route, @Nullable String groupName) {
+    Point<G2D> start = route.getStart();
+    G2D position = start.getPosition();
+
+    return DeviceRideEntryDto.builder()
+        .routeSlug(route.getSlug())
+        .routeName(route.getName())
+        .groupName(groupName)
+        .distance(route.getDistance())
+        .elevationGain(route.getElevationGain())
+        .startLat(position.getLat())
+        .startLon(position.getLon())
+        .build();
+  }
+
+  @Nullable
+  private Instant computeRideStartInstant(Ride ride) {
+    Route route = ride.getRoute();
+    if (route == null || route.isDeleted()) {
+      // Use first group's route for timezone
+      for (RideGroup group : ride.getGroups()) {
+        if (!group.isDeleted() && group.getRoute() != null && !group.getRoute().isDeleted()) {
+          route = group.getRoute();
+          break;
+        }
+      }
+    }
+    if (route == null) {
+      return null;
+    }
+    Point<G2D> start = route.getStart();
+    ZoneId zoneId =
+        timezoneService.getZoneId(start.getPosition().getLat(), start.getPosition().getLon());
+    ZonedDateTime zonedDateTime = ride.getDateTime().atZone(zoneId);
+    return zonedDateTime.toInstant();
   }
 
   private List<RouteWithDistance> getLatestRoutes(
@@ -208,39 +244,21 @@ public class DeviceRouteService {
 
     return routes.stream()
         .filter(r -> r.getStatus() == Status.PUBLISHED)
-        .map(route -> toRouteWithDistance(route, null, null, lat, lon))
+        .map(route -> toRouteWithDistance(route, lat, lon))
         .toList();
   }
 
   private RouteWithDistance toRouteWithDistance(
-      Route route,
-      @Nullable Ride ride,
-      @Nullable RideGroup rideGroup,
-      @Nullable Double userLat,
-      @Nullable Double userLon) {
-
-    Double distanceFromUser = null;
+      Route route, @Nullable Double userLat, @Nullable Double userLon) {
 
     Point<G2D> start = route.getStart();
     G2D position = start.getPosition();
     double startLat = position.getLat();
     double startLon = position.getLon();
 
+    Double distanceFromUser = null;
     if (userLat != null && userLon != null) {
       distanceFromUser = haversineDistance(userLat, userLon, startLat, startLon);
-    }
-
-    Instant startInstant = null;
-    if (ride != null) {
-      ZoneId zoneId =
-          timezoneService.getZoneId(start.getPosition().getLat(), start.getPosition().getLon());
-      ZonedDateTime zonedDateTime = ride.getDateTime().atZone(zoneId);
-      if (rideGroup != null && rideGroup.getTime() != null) {
-        LocalTime groupTime = rideGroup.getTime();
-        zonedDateTime =
-            zonedDateTime.withHour(groupTime.getHour()).withMinute(groupTime.getMinute());
-      }
-      startInstant = zonedDateTime.toInstant();
     }
 
     DeviceRouteDto dto =
@@ -248,9 +266,6 @@ public class DeviceRouteService {
             .teamSlug(route.getTeam().getSlug())
             .routeSlug(route.getSlug())
             .routeName(route.getName())
-            .rideName(ride == null ? null : ride.getName())
-            .groupName(rideGroup == null ? null : rideGroup.getName())
-            .startDateTime(startInstant)
             .distance(route.getDistance())
             .elevationGain(route.getElevationGain())
             .startLat(startLat)
@@ -260,27 +275,21 @@ public class DeviceRouteService {
     return new RouteWithDistance(dto, distanceFromUser);
   }
 
-  /**
-   * Get FIT content for a specific route.
-   */
+  /** Get FIT content for a specific route. */
   @Logged
   public InputStream getFitContent(String teamSlug, String routeSlug) {
     Route route = findRouteBySlug(teamSlug, routeSlug);
     return gpxProcessingService.getFitContent(route);
   }
 
-  /**
-   * Get filtered GPX content for a specific route.
-   */
+  /** Get filtered GPX content for a specific route. */
   @Logged
   public InputStream getGpxContent(String teamSlug, String routeSlug) {
     Route route = findRouteBySlug(teamSlug, routeSlug);
     return gpxProcessingService.getFilteredGpxContent(route);
   }
 
-  /**
-   * Find a route by team and route slugs, verifying user membership.
-   */
+  /** Find a route by team and route slugs, verifying user membership. */
   private Route findRouteBySlug(String teamSlug, String routeSlug) {
     Long userId = triblyContext.getUserId();
 
@@ -300,9 +309,7 @@ public class DeviceRouteService {
         .orElseThrow(() -> new NotFoundException(EntityType.ROUTE, routeSlug));
   }
 
-  /**
-   * Calculate Haversine distance between two points in meters.
-   */
+  /** Calculate Haversine distance between two points in meters. */
   private double haversineDistance(double lat1, double lon1, double lat2, double lon2) {
     final double R = 6371000; // Earth radius in meters
 

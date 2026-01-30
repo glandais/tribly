@@ -1014,10 +1014,80 @@
           }
         }
       },
-      "DeviceRouteDto" : {
-        "description" : "Route information for device applications",
+      "DeviceRideDto" : {
+        "description" : "Ride information for device applications",
         "type" : "object",
-        "required" : [ "teamSlug", "routeSlug", "routeName", "distance", "elevationGain", "startLat", "startLon" ],
+        "required" : [ "teamSlug", "rideSlug", "rideName", "entries" ],
+        "properties" : {
+          "teamSlug" : {
+            "type" : "string",
+            "description" : "Team slug"
+          },
+          "rideSlug" : {
+            "type" : "string",
+            "description" : "Ride slug"
+          },
+          "rideName" : {
+            "type" : "string",
+            "description" : "Ride name"
+          },
+          "startDateTime" : {
+            "description" : "Start date/time",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Instant"
+          },
+          "entries" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/DeviceRideEntryDto"
+            },
+            "description" : "Route entries for this ride"
+          }
+        }
+      },
+      "DeviceRideEntryDto" : {
+        "type" : "object",
+        "description" : "Route entry within a ride for device applications",
+        "required" : [ "routeSlug", "routeName", "distance", "elevationGain" ],
+        "properties" : {
+          "routeSlug" : {
+            "type" : "string",
+            "description" : "Route slug"
+          },
+          "routeName" : {
+            "type" : "string",
+            "description" : "Route name"
+          },
+          "groupName" : {
+            "type" : "string",
+            "description" : "Group name (null for ride-level route)"
+          },
+          "distance" : {
+            "type" : "number",
+            "format" : "float",
+            "description" : "Distance in meters"
+          },
+          "elevationGain" : {
+            "type" : "number",
+            "format" : "float",
+            "description" : "Elevation gain in meters"
+          },
+          "startLat" : {
+            "type" : "number",
+            "format" : "double",
+            "description" : "Start latitude"
+          },
+          "startLon" : {
+            "type" : "number",
+            "format" : "double",
+            "description" : "Start longitude"
+          }
+        }
+      },
+      "DeviceRouteDto" : {
+        "description" : "Standalone route information for device applications",
+        "type" : "object",
+        "required" : [ "teamSlug", "routeSlug", "routeName", "distance", "elevationGain" ],
         "properties" : {
           "teamSlug" : {
             "type" : "string",
@@ -1030,19 +1100,6 @@
           "routeName" : {
             "type" : "string",
             "description" : "Route name"
-          },
-          "rideName" : {
-            "type" : "string",
-            "description" : "Ride name"
-          },
-          "groupName" : {
-            "type" : "string",
-            "description" : "Group name"
-          },
-          "startDateTime" : {
-            "description" : "Start date/time",
-            "type" : "string",
-            "$ref" : "#/components/schemas/Instant"
           },
           "distance" : {
             "type" : "number",
@@ -1067,16 +1124,23 @@
         }
       },
       "DeviceRoutesResponse" : {
-        "description" : "Response containing routes for device applications",
+        "description" : "Response containing rides and routes for device applications",
         "type" : "object",
-        "required" : [ "routes" ],
+        "required" : [ "rides", "routes" ],
         "properties" : {
+          "rides" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/DeviceRideDto"
+            },
+            "description" : "Upcoming rides with route entries"
+          },
           "routes" : {
             "type" : "array",
             "items" : {
               "$ref" : "#/components/schemas/DeviceRouteDto"
             },
-            "description" : "List of routes"
+            "description" : "Latest standalone routes"
           }
         }
       },
@@ -4539,6 +4603,12 @@
         "operationId" : "logout",
         "tags" : [ "Authentication" ],
         "parameters" : [ {
+          "name" : "X-Refresh-Token",
+          "in" : "header",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
           "name" : "refresh_token",
           "in" : "cookie",
           "schema" : {
@@ -4953,6 +5023,12 @@
           }
         }, {
           "name" : "X-Real-IP",
+          "in" : "header",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "X-Refresh-Token",
           "in" : "header",
           "schema" : {
             "type" : "string"

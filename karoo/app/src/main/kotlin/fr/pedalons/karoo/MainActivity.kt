@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.text.format.DateFormat
-import android.util.Log
 import android.view.KeyEvent
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -28,7 +27,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Button
@@ -62,8 +60,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import fr.pedalons.karoo.api.Route
+import fr.pedalons.karoo.api.DeviceRide
+import fr.pedalons.karoo.api.DeviceRideEntry
+import fr.pedalons.karoo.api.DeviceRoute
 import fr.pedalons.karoo.api.PedalonsApiClient
+import fr.pedalons.karoo.api.RoutesResponse
 import fr.pedalons.karoo.api.UnauthorizedException
 import fr.pedalons.karoo.auth.AuthActivity
 import fr.pedalons.karoo.auth.AuthManager
@@ -71,10 +72,7 @@ import fr.pedalons.karoo.auth.GpsConnectActivity
 import fr.pedalons.karoo.ui.theme.PedalonsKarooTheme
 import io.hammerhead.karooext.KarooSystemService
 import io.hammerhead.karooext.models.UserProfile
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.ZoneId
@@ -86,6 +84,21 @@ private const val METERS_PER_MILE = 1609.344
 private const val METERS_PER_FOOT = 0.3048
 private const val METERS_PER_KM = 1000.0
 
+// Navigation state machine
+sealed class NavState {
+    object Home : NavState()
+    data class RideList(val rides: List<DeviceRide>) : NavState()
+    data class RideEntries(val ride: DeviceRide) : NavState()
+    data class RouteList(val routes: List<DeviceRoute>) : NavState()
+    data class RouteDetail(
+        val teamSlug: String,
+        val routeSlug: String,
+        val routeName: String,
+        val distance: Float,
+        val elevationGain: Float
+    ) : NavState()
+}
+
 /**
  * Main activity for browsing and syncing routes.
  */
@@ -94,7 +107,6 @@ class MainActivity : ComponentActivity() {
     companion object {
         private const val REQUEST_AUTH = 100
         private const val REQUEST_GPS_CONNECT = 101
-        // TODO: Make this configurable
         private const val BASE_URL = "https://www.pedalons.fr"
     }
 
@@ -104,10 +116,11 @@ class MainActivity : ComponentActivity() {
     private var userProfileConsumerId: String? = null
 
     // Navigation state accessible from key events
-    internal var routes: List<Route> = emptyList()
+    internal var navState: NavState = NavState.Home
     internal var selectedIndex: Int = 0
     internal var onNavigationChanged: ((Int) -> Unit)? = null
-    internal var onSyncRequested: ((Route) -> Unit)? = null
+    internal var onSelectRequested: (() -> Unit)? = null
+    internal var onBackRequested: (() -> Unit)? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -146,7 +159,7 @@ class MainActivity : ComponentActivity() {
                     )
                 } else {
                     // Show skeleton screen while connecting to Karoo System Service
-                    RouteListSkeletonScreen(onBack = { finish() })
+                    SkeletonScreen(onBack = { finish() })
                 }
             }
         }
@@ -181,12 +194,10 @@ class MainActivity : ComponentActivity() {
         when (requestCode) {
             REQUEST_AUTH -> {
                 if (resultCode == AuthActivity.RESULT_SUCCESS) {
-                    // Will trigger GPS check in MainScreen via gpsCheckPending state
                     onAuthSuccess?.invoke()
                 }
             }
             REQUEST_GPS_CONNECT -> {
-                // GPS connect completed (success or skipped), proceed to load routes
                 onGpsConnectComplete?.invoke()
             }
         }
@@ -199,26 +210,19 @@ class MainActivity : ComponentActivity() {
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         when (keyCode) {
             KeyEvent.KEYCODE_NAVIGATE_NEXT -> {
-                // Move to next route
-                if (routes.isNotEmpty() && selectedIndex < routes.size - 1) {
-                    selectedIndex++
-                    onNavigationChanged?.invoke(selectedIndex)
-                }
+                onNavigationChanged?.invoke(1) // delta +1
                 return true
             }
             KeyEvent.KEYCODE_NAVIGATE_PREVIOUS -> {
-                // Move to previous route
-                if (routes.isNotEmpty() && selectedIndex > 0) {
-                    selectedIndex--
-                    onNavigationChanged?.invoke(selectedIndex)
-                }
+                onNavigationChanged?.invoke(-1) // delta -1
                 return true
             }
             KeyEvent.KEYCODE_NAVIGATE_IN -> {
-                // Sync selected route
-                if (routes.isNotEmpty() && selectedIndex in routes.indices) {
-                    onSyncRequested?.invoke(routes[selectedIndex])
-                }
+                onSelectRequested?.invoke()
+                return true
+            }
+            KeyEvent.KEYCODE_BACK -> {
+                onBackRequested?.invoke()
                 return true
             }
         }
@@ -234,54 +238,136 @@ private fun MainScreen(
     activity: MainActivity,
     onConnect: () -> Unit
 ) {
-    // Collect auth state - will update when tokens change
+    // Collect auth state
     val isAuthenticated by authManager.isAuthenticated.collectAsState(initial = null)
-    var routes by remember { mutableStateOf<List<Route>>(emptyList()) }
+    var routesResponse by remember { mutableStateOf<RoutesResponse?>(null) }
     var isLoading by remember { mutableStateOf(true) }
     var error by remember { mutableStateOf<String?>(null) }
     var syncingRouteId by remember { mutableStateOf<String?>(null) }
+
+    // Navigation state
+    var navState by remember { mutableStateOf<NavState>(NavState.Home) }
     var selectedIndex by remember { mutableStateOf(0) }
-    // Track if we need to check GPS after fresh auth
+    val navStack = remember { mutableListOf<NavState>() }
+
     var gpsCheckPending by remember { mutableStateOf(false) }
-    // Track if GPS check was already done this session (to avoid checking on every auth state change)
     var gpsCheckDone by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
-    val context = LocalContext.current
     val listState = rememberLazyListState()
+
+    // Navigation helpers
+    val navigateTo: (NavState) -> Unit = { target ->
+        navStack.add(navState)
+        navState = target
+        selectedIndex = 0
+    }
+    val navigateBack: () -> Unit = {
+        if (navStack.isNotEmpty()) {
+            navState = navStack.removeLast()
+            selectedIndex = 0
+        } else {
+            activity.finish()
+        }
+    }
+
+    // Compute item count for current nav state
+    val itemCount = when (val state = navState) {
+        is NavState.Home -> 2
+        is NavState.RideList -> state.rides.size
+        is NavState.RideEntries -> state.ride.entries.size
+        is NavState.RouteList -> state.routes.size
+        is NavState.RouteDetail -> 0
+    }
 
     // Register navigation callbacks with Activity
     LaunchedEffect(Unit) {
-        activity.onNavigationChanged = { newIndex ->
+        activity.onNavigationChanged = { delta ->
+            val newIndex = (selectedIndex + delta).coerceIn(0, (itemCount - 1).coerceAtLeast(0))
             selectedIndex = newIndex
         }
-        activity.onSyncRequested = { route ->
-            scope.launch {
-                syncRoute(context, apiClient, authManager, route) { syncing ->
-                    syncingRouteId = if (syncing) "${route.teamSlug}/${route.routeSlug}" else null
+        activity.onSelectRequested = {
+            when (val state = navState) {
+                is NavState.Home -> {
+                    val response = routesResponse
+                    if (response != null) {
+                        when (selectedIndex) {
+                            0 -> navigateTo(NavState.RideList(response.rides))
+                            1 -> navigateTo(NavState.RouteList(response.routes))
+                        }
+                    }
+                }
+                is NavState.RideList -> {
+                    if (selectedIndex in state.rides.indices) {
+                        val ride = state.rides[selectedIndex]
+                        if (ride.entries.size == 1) {
+                            // Bonus: skip entries screen if single entry
+                            val entry = ride.entries[0]
+                            navigateTo(NavState.RouteDetail(
+                                teamSlug = ride.teamSlug,
+                                routeSlug = entry.routeSlug,
+                                routeName = entry.routeName,
+                                distance = entry.distance,
+                                elevationGain = entry.elevationGain
+                            ))
+                        } else {
+                            navigateTo(NavState.RideEntries(ride))
+                        }
+                    }
+                }
+                is NavState.RideEntries -> {
+                    if (selectedIndex in state.ride.entries.indices) {
+                        val entry = state.ride.entries[selectedIndex]
+                        navigateTo(NavState.RouteDetail(
+                            teamSlug = state.ride.teamSlug,
+                            routeSlug = entry.routeSlug,
+                            routeName = entry.routeName,
+                            distance = entry.distance,
+                            elevationGain = entry.elevationGain
+                        ))
+                    }
+                }
+                is NavState.RouteList -> {
+                    if (selectedIndex in state.routes.indices) {
+                        val route = state.routes[selectedIndex]
+                        navigateTo(NavState.RouteDetail(
+                            teamSlug = route.teamSlug,
+                            routeSlug = route.routeSlug,
+                            routeName = route.routeName,
+                            distance = route.distance,
+                            elevationGain = route.elevationGain
+                        ))
+                    }
+                }
+                is NavState.RouteDetail -> {
+                    // Sync route
+                    scope.launch {
+                        syncRoute(activity, apiClient, authManager, state.teamSlug, state.routeSlug) { syncing ->
+                            syncingRouteId = if (syncing) "${state.teamSlug}/${state.routeSlug}" else null
+                        }
+                    }
                 }
             }
         }
-        // Register auth success callback
+        activity.onBackRequested = {
+            navigateBack()
+        }
         activity.onAuthSuccess = {
             gpsCheckPending = true
         }
-        // Register GPS connect complete callback
         activity.onGpsConnectComplete = {
             gpsCheckDone = true
             gpsCheckPending = false
         }
     }
 
-    // Update Activity's routes list when routes change
-    LaunchedEffect(routes) {
-        activity.routes = routes
-        activity.selectedIndex = 0
+    // Update item count for key navigation when navState changes
+    LaunchedEffect(navState) {
         selectedIndex = 0
     }
 
     // Auto-scroll when selection changes
     LaunchedEffect(selectedIndex) {
-        if (routes.isNotEmpty() && selectedIndex in routes.indices) {
+        if (itemCount > 0 && selectedIndex in 0 until itemCount) {
             listState.animateScrollToItem(selectedIndex)
         }
     }
@@ -295,41 +381,31 @@ private fun MainScreen(
                     gpsCheckDone = true
                     gpsCheckPending = false
                 }
-                // If not shouldLoadRoutes, the activity was launched and will callback via onGpsConnectComplete
             }
         }
     }
 
-    // Load routes when authenticated and GPS check is done (or was already done)
+    // Load routes when authenticated and GPS check is done
     LaunchedEffect(isAuthenticated, gpsCheckDone, gpsCheckPending) {
-        if (isAuthenticated == null) {
-            // Still loading auth state
-            return@LaunchedEffect
-        }
+        if (isAuthenticated == null) return@LaunchedEffect
 
         if (isAuthenticated == true) {
-            // If GPS check is pending, wait for it to complete
-            if (gpsCheckPending) {
-                return@LaunchedEffect
-            }
+            if (gpsCheckPending) return@LaunchedEffect
 
-            // On first load (not after fresh auth), check GPS then load routes
             if (!gpsCheckDone) {
                 isLoading = true
                 checkAndPromptGpsConnection(apiClient, authManager, activity) { shouldLoadRoutes ->
                     if (shouldLoadRoutes) {
                         gpsCheckDone = true
                         scope.launch {
-                            loadRoutes(apiClient, authManager) { result ->
+                            loadRoutesResponse(apiClient, authManager) { result ->
                                 result.onSuccess {
-                                    routes = it
+                                    routesResponse = it
                                     isLoading = false
                                     error = null
                                 }.onFailure { e ->
                                     if (e is UnauthorizedException) {
-                                        scope.launch {
-                                            authManager.clearTokens()
-                                        }
+                                        scope.launch { authManager.clearTokens() }
                                     } else {
                                         error = e.message
                                     }
@@ -338,24 +414,19 @@ private fun MainScreen(
                             }
                         }
                     }
-                    // If not shouldLoadRoutes, the activity was launched
                 }
                 return@LaunchedEffect
             }
 
-            // GPS check done, load routes
             isLoading = true
-            loadRoutes(apiClient, authManager) { result ->
+            loadRoutesResponse(apiClient, authManager) { result ->
                 result.onSuccess {
-                    routes = it
+                    routesResponse = it
                     isLoading = false
                     error = null
                 }.onFailure { e ->
                     if (e is UnauthorizedException) {
-                        // Token invalid, clear and show connect screen
-                        scope.launch {
-                            authManager.clearTokens()
-                        }
+                        scope.launch { authManager.clearTokens() }
                     } else {
                         error = e.message
                     }
@@ -364,13 +435,11 @@ private fun MainScreen(
             }
         } else {
             isLoading = false
-            routes = emptyList()
+            routesResponse = null
             error = null
             gpsCheckDone = false
         }
     }
-
-    val onBack = { activity.finish() }
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -378,7 +447,7 @@ private fun MainScreen(
     ) {
         when {
             isAuthenticated == false -> {
-                ConnectScreen(onConnect = onConnect, onBack = onBack)
+                ConnectScreen(onConnect = onConnect, onBack = { activity.finish() })
             }
             error != null && !isLoading -> {
                 ErrorScreen(
@@ -387,9 +456,9 @@ private fun MainScreen(
                         isLoading = true
                         error = null
                         scope.launch {
-                            loadRoutes(apiClient, authManager) { result ->
+                            loadRoutesResponse(apiClient, authManager) { result ->
                                 result.onSuccess {
-                                    routes = it
+                                    routesResponse = it
                                     isLoading = false
                                 }.onFailure { e ->
                                     error = e.message
@@ -398,66 +467,701 @@ private fun MainScreen(
                             }
                         }
                     },
-                    onBack = onBack
+                    onBack = { activity.finish() }
                 )
             }
-            routes.isEmpty() && !isLoading && isAuthenticated == true -> {
-                EmptyScreen(onBack = onBack)
+            isLoading || isAuthenticated == null -> {
+                SkeletonScreen(onBack = { activity.finish() })
             }
             else -> {
-                // Show RouteListScreen with skeletons during initial load or refresh
-                val showLoading = isAuthenticated == null || isLoading
-                RouteListScreen(
-                    routes = routes,
-                    userProfile = userProfile,
-                    syncingRouteId = syncingRouteId,
-                    selectedIndex = selectedIndex,
-                    listState = listState,
-                    isLoading = showLoading,
-                    onSync = { route ->
-                        scope.launch {
-                            syncRoute(context, apiClient, authManager, route) { syncing ->
-                                syncingRouteId = if (syncing) "${route.teamSlug}/${route.routeSlug}" else null
-                            }
-                        }
-                    },
-                    onBack = onBack,
-                    onSyncSelected = {
-                        if (routes.isNotEmpty() && selectedIndex in routes.indices) {
-                            val route = routes[selectedIndex]
+                val response = routesResponse
+                if (response == null) {
+                    EmptyScreen(onBack = { activity.finish() })
+                } else {
+                    NavigationContent(
+                        navState = navState,
+                        selectedIndex = selectedIndex,
+                        listState = listState,
+                        response = response,
+                        userProfile = userProfile,
+                        syncingRouteId = syncingRouteId,
+                        onNavigateTo = navigateTo,
+                        onBack = navigateBack,
+                        onSync = { teamSlug, routeSlug ->
                             scope.launch {
-                                syncRoute(context, apiClient, authManager, route) { syncing ->
-                                    syncingRouteId = if (syncing) "${route.teamSlug}/${route.routeSlug}" else null
+                                syncRoute(activity, apiClient, authManager, teamSlug, routeSlug) { syncing ->
+                                    syncingRouteId = if (syncing) "$teamSlug/$routeSlug" else null
                                 }
                             }
-                        }
-                    },
-                    onRefresh = {
-                        isLoading = true
-                        scope.launch {
-                            loadRoutes(apiClient, authManager) { result ->
-                                result.onSuccess {
-                                    routes = it
-                                    isLoading = false
-                                    error = null
-                                }.onFailure { e ->
-                                    error = e.message
-                                    isLoading = false
+                        },
+                        onRefresh = {
+                            isLoading = true
+                            scope.launch {
+                                loadRoutesResponse(apiClient, authManager) { result ->
+                                    result.onSuccess {
+                                        routesResponse = it
+                                        navState = NavState.Home
+                                        navStack.clear()
+                                        isLoading = false
+                                        error = null
+                                    }.onFailure { e ->
+                                        error = e.message
+                                        isLoading = false
+                                    }
                                 }
                             }
+                        },
+                        onDisconnect = {
+                            scope.launch {
+                                authManager.clearTokens()
+                                routesResponse = null
+                                navState = NavState.Home
+                                navStack.clear()
+                            }
                         }
-                    },
-                    onDisconnect = {
-                        scope.launch {
-                            authManager.clearTokens()
-                            routes = emptyList()
-                        }
-                    }
-                )
+                    )
+                }
             }
         }
     }
 }
+
+@Composable
+private fun NavigationContent(
+    navState: NavState,
+    selectedIndex: Int,
+    listState: LazyListState,
+    response: RoutesResponse,
+    userProfile: UserProfile?,
+    syncingRouteId: String?,
+    onNavigateTo: (NavState) -> Unit,
+    onBack: () -> Unit,
+    onSync: (String, String) -> Unit,
+    onRefresh: () -> Unit,
+    onDisconnect: () -> Unit
+) {
+    when (navState) {
+        is NavState.Home -> {
+            HomeScreen(
+                ridesCount = response.rides.size,
+                routesCount = response.routes.size,
+                selectedIndex = selectedIndex,
+                listState = listState,
+                onSelectRides = { onNavigateTo(NavState.RideList(response.rides)) },
+                onSelectRoutes = { onNavigateTo(NavState.RouteList(response.routes)) },
+                onBack = onBack,
+                onRefresh = onRefresh,
+                onDisconnect = onDisconnect
+            )
+        }
+        is NavState.RideList -> {
+            RideListScreen(
+                rides = navState.rides,
+                selectedIndex = selectedIndex,
+                listState = listState,
+                onSelectRide = { ride ->
+                    if (ride.entries.size == 1) {
+                        val entry = ride.entries[0]
+                        onNavigateTo(NavState.RouteDetail(
+                            teamSlug = ride.teamSlug,
+                            routeSlug = entry.routeSlug,
+                            routeName = entry.routeName,
+                            distance = entry.distance,
+                            elevationGain = entry.elevationGain
+                        ))
+                    } else {
+                        onNavigateTo(NavState.RideEntries(ride))
+                    }
+                },
+                onBack = onBack
+            )
+        }
+        is NavState.RideEntries -> {
+            RideEntriesScreen(
+                ride = navState.ride,
+                userProfile = userProfile,
+                selectedIndex = selectedIndex,
+                listState = listState,
+                onSelectEntry = { entry ->
+                    onNavigateTo(NavState.RouteDetail(
+                        teamSlug = navState.ride.teamSlug,
+                        routeSlug = entry.routeSlug,
+                        routeName = entry.routeName,
+                        distance = entry.distance,
+                        elevationGain = entry.elevationGain
+                    ))
+                },
+                onBack = onBack
+            )
+        }
+        is NavState.RouteList -> {
+            StandaloneRouteListScreen(
+                routes = navState.routes,
+                userProfile = userProfile,
+                selectedIndex = selectedIndex,
+                listState = listState,
+                onSelectRoute = { route ->
+                    onNavigateTo(NavState.RouteDetail(
+                        teamSlug = route.teamSlug,
+                        routeSlug = route.routeSlug,
+                        routeName = route.routeName,
+                        distance = route.distance,
+                        elevationGain = route.elevationGain
+                    ))
+                },
+                onBack = onBack
+            )
+        }
+        is NavState.RouteDetail -> {
+            RouteDetailScreen(
+                detail = navState,
+                userProfile = userProfile,
+                isSyncing = syncingRouteId == "${navState.teamSlug}/${navState.routeSlug}",
+                onSync = { onSync(navState.teamSlug, navState.routeSlug) },
+                onBack = onBack
+            )
+        }
+    }
+}
+
+// === Home Screen ===
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun HomeScreen(
+    ridesCount: Int,
+    routesCount: Int,
+    selectedIndex: Int,
+    listState: LazyListState,
+    onSelectRides: () -> Unit,
+    onSelectRoutes: () -> Unit,
+    onBack: () -> Unit,
+    onRefresh: () -> Unit,
+    onDisconnect: () -> Unit
+) {
+    var showMenu by remember { mutableStateOf(false) }
+
+    ScreenWithOverlay(onBack = onBack) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = stringResource(R.string.app_name),
+                        fontWeight = FontWeight.Bold
+                    )
+                },
+                actions = {
+                    IconButton(onClick = onRefresh) {
+                        Icon(
+                            imageVector = Icons.Filled.Refresh,
+                            contentDescription = stringResource(R.string.loading)
+                        )
+                    }
+                    Box {
+                        IconButton(onClick = { showMenu = true }) {
+                            Icon(
+                                imageVector = Icons.Filled.MoreVert,
+                                contentDescription = stringResource(R.string.settings)
+                            )
+                        }
+                        DropdownMenu(
+                            expanded = showMenu,
+                            onDismissRequest = { showMenu = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.disconnect)) },
+                                onClick = {
+                                    showMenu = false
+                                    onDisconnect()
+                                }
+                            )
+                        }
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
+            )
+
+            LazyColumn(
+                state = listState,
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(vertical = 8.dp)
+            ) {
+                // Rides entry
+                item {
+                    HomeMenuItem(
+                        title = stringResource(R.string.nav_rides),
+                        subtitle = stringResource(R.string.rides_count, ridesCount),
+                        isSelected = selectedIndex == 0,
+                        isEmpty = ridesCount == 0,
+                        emptyText = stringResource(R.string.no_rides),
+                        onClick = onSelectRides
+                    )
+                }
+                // Routes entry
+                item {
+                    HomeMenuItem(
+                        title = stringResource(R.string.nav_routes),
+                        subtitle = stringResource(R.string.routes_count, routesCount),
+                        isSelected = selectedIndex == 1,
+                        isEmpty = routesCount == 0,
+                        emptyText = stringResource(R.string.no_routes),
+                        onClick = onSelectRoutes
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun HomeMenuItem(
+    title: String,
+    subtitle: String,
+    isSelected: Boolean,
+    isEmpty: Boolean,
+    emptyText: String,
+    onClick: () -> Unit
+) {
+    val borderModifier = if (isSelected) {
+        Modifier.border(
+            width = 2.dp,
+            color = MaterialTheme.colorScheme.primary,
+            shape = MaterialTheme.shapes.medium
+        )
+    } else {
+        Modifier
+    }
+
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp, vertical = 4.dp)
+            .then(borderModifier)
+            .clickable(onClick = onClick),
+        color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
+        shape = MaterialTheme.shapes.medium
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = if (isEmpty) emptyText else subtitle,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (isEmpty) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.primary
+                )
+            }
+            Text(
+                text = stringResource(R.string.nav_arrow),
+                style = MaterialTheme.typography.headlineMedium,
+                color = MaterialTheme.colorScheme.primary
+            )
+        }
+    }
+}
+
+// === Ride List Screen ===
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun RideListScreen(
+    rides: List<DeviceRide>,
+    selectedIndex: Int,
+    listState: LazyListState,
+    onSelectRide: (DeviceRide) -> Unit,
+    onBack: () -> Unit
+) {
+    val context = LocalContext.current
+
+    ScreenWithOverlay(onBack = onBack) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = stringResource(R.string.nav_rides),
+                        fontWeight = FontWeight.Bold
+                    )
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
+            )
+
+            if (rides.isEmpty()) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = stringResource(R.string.no_rides),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            } else {
+                LazyColumn(
+                    state = listState,
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(vertical = 8.dp)
+                ) {
+                    itemsIndexed(rides, key = { _, ride -> "${ride.teamSlug}/${ride.rideSlug}" }) { index, ride ->
+                        val isSelected = index == selectedIndex
+                        val borderModifier = if (isSelected) {
+                            Modifier.border(
+                                width = 2.dp,
+                                color = MaterialTheme.colorScheme.primary,
+                                shape = MaterialTheme.shapes.medium
+                            )
+                        } else {
+                            Modifier
+                        }
+
+                        Surface(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                                .then(borderModifier)
+                                .clickable { onSelectRide(ride) },
+                            color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
+                            shape = MaterialTheme.shapes.medium
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(10.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = ride.rideName,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = FontWeight.Medium,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                    val dateStr = formatDateTime(context, ride.startDateTime)
+                                    if (dateStr != null) {
+                                        Text(
+                                            text = dateStr,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                    Text(
+                                        text = stringResource(R.string.routes_count, ride.entries.size),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                                Text(
+                                    text = stringResource(R.string.nav_arrow),
+                                    style = MaterialTheme.typography.headlineMedium,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// === Ride Entries Screen ===
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun RideEntriesScreen(
+    ride: DeviceRide,
+    userProfile: UserProfile?,
+    selectedIndex: Int,
+    listState: LazyListState,
+    onSelectEntry: (DeviceRideEntry) -> Unit,
+    onBack: () -> Unit
+) {
+    val context = LocalContext.current
+
+    ScreenWithOverlay(onBack = onBack) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = ride.rideName,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
+            )
+
+            LazyColumn(
+                state = listState,
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(vertical = 8.dp)
+            ) {
+                itemsIndexed(ride.entries, key = { _, entry -> entry.routeSlug }) { index, entry ->
+                    val isSelected = index == selectedIndex
+                    val borderModifier = if (isSelected) {
+                        Modifier.border(
+                            width = 2.dp,
+                            color = MaterialTheme.colorScheme.primary,
+                            shape = MaterialTheme.shapes.medium
+                        )
+                    } else {
+                        Modifier
+                    }
+
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                            .then(borderModifier)
+                            .clickable { onSelectEntry(entry) },
+                        color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
+                        shape = MaterialTheme.shapes.medium
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(10.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = entry.groupName ?: entry.routeName,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Medium,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    Text(
+                                        text = formatDistance(context, entry.distance, userProfile),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                    Text(
+                                        text = formatElevation(context, entry.elevationGain, userProfile),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.secondary
+                                    )
+                                }
+                            }
+                            Text(
+                                text = stringResource(R.string.nav_arrow),
+                                style = MaterialTheme.typography.headlineMedium,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// === Standalone Route List Screen ===
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun StandaloneRouteListScreen(
+    routes: List<DeviceRoute>,
+    userProfile: UserProfile?,
+    selectedIndex: Int,
+    listState: LazyListState,
+    onSelectRoute: (DeviceRoute) -> Unit,
+    onBack: () -> Unit
+) {
+    val context = LocalContext.current
+
+    ScreenWithOverlay(onBack = onBack) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = stringResource(R.string.nav_routes),
+                        fontWeight = FontWeight.Bold
+                    )
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
+            )
+
+            if (routes.isEmpty()) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = stringResource(R.string.no_routes),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            } else {
+                LazyColumn(
+                    state = listState,
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(vertical = 8.dp)
+                ) {
+                    itemsIndexed(routes, key = { _, route -> "${route.teamSlug}/${route.routeSlug}" }) { index, route ->
+                        val isSelected = index == selectedIndex
+                        val borderModifier = if (isSelected) {
+                            Modifier.border(
+                                width = 2.dp,
+                                color = MaterialTheme.colorScheme.primary,
+                                shape = MaterialTheme.shapes.medium
+                            )
+                        } else {
+                            Modifier
+                        }
+
+                        Surface(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                                .then(borderModifier)
+                                .clickable { onSelectRoute(route) },
+                            color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
+                            shape = MaterialTheme.shapes.medium
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(10.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = route.routeName,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = FontWeight.Medium,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                        Text(
+                                            text = formatDistance(context, route.distance, userProfile),
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.primary
+                                        )
+                                        Text(
+                                            text = formatElevation(context, route.elevationGain, userProfile),
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.secondary
+                                        )
+                                    }
+                                }
+                                Text(
+                                    text = stringResource(R.string.nav_arrow),
+                                    style = MaterialTheme.typography.headlineMedium,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// === Route Detail Screen ===
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun RouteDetailScreen(
+    detail: NavState.RouteDetail,
+    userProfile: UserProfile?,
+    isSyncing: Boolean,
+    onSync: () -> Unit,
+    onBack: () -> Unit
+) {
+    val context = LocalContext.current
+
+    ScreenWithOverlay(
+        onBack = onBack,
+        showSync = true,
+        onSync = onSync
+    ) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = detail.routeName,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
+            )
+
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.padding(24.dp)
+                ) {
+                    Text(
+                        text = detail.routeName,
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                        Text(
+                            text = formatDistance(context, detail.distance, userProfile),
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = formatElevation(context, detail.elevationGain, userProfile),
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(24.dp))
+                    if (isSyncing) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(32.dp),
+                            strokeWidth = 3.dp,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    } else {
+                        Text(
+                            text = stringResource(R.string.route_detail_sync),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+// === Shared Screens ===
 
 @Composable
 private fun ConnectScreen(onConnect: () -> Unit, onBack: () -> Unit) {
@@ -601,13 +1305,13 @@ private fun ScreenWithOverlay(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun RouteListSkeletonScreen(onBack: () -> Unit) {
+private fun SkeletonScreen(onBack: () -> Unit) {
     ScreenWithOverlay(onBack = onBack, showSync = false) {
         Column(modifier = Modifier.fillMaxSize()) {
             TopAppBar(
                 title = {
                     Text(
-                        text = stringResource(R.string.routes_title),
+                        text = stringResource(R.string.app_name),
                         fontWeight = FontWeight.Bold
                     )
                 },
@@ -629,309 +1333,16 @@ private fun RouteListSkeletonScreen(onBack: () -> Unit) {
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(vertical = 8.dp)
             ) {
-                items(5) {
-                    RouteItemSkeleton()
+                items(3) {
+                    ItemSkeleton()
                 }
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun RouteListScreen(
-    routes: List<Route>,
-    userProfile: UserProfile?,
-    syncingRouteId: String?,
-    selectedIndex: Int,
-    listState: LazyListState,
-    isLoading: Boolean,
-    onSync: (Route) -> Unit,
-    onBack: () -> Unit,
-    onSyncSelected: () -> Unit,
-    onRefresh: () -> Unit,
-    onDisconnect: () -> Unit
-) {
-    var showMenu by remember { mutableStateOf(false) }
-
-    ScreenWithOverlay(
-        onBack = onBack,
-        showSync = !isLoading,
-        onSync = onSyncSelected
-    ) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            // Header
-            TopAppBar(
-                title = {
-                    Text(
-                        text = stringResource(R.string.routes_title),
-                        fontWeight = FontWeight.Bold
-                    )
-                },
-                actions = {
-                    if (isLoading) {
-                        CircularProgressIndicator(
-                            modifier = Modifier
-                                .size(24.dp)
-                                .padding(end = 12.dp),
-                            strokeWidth = 2.dp,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    } else {
-                        IconButton(onClick = onRefresh) {
-                            Icon(
-                                imageVector = Icons.Filled.Refresh,
-                                contentDescription = stringResource(R.string.loading)
-                            )
-                        }
-                    }
-
-                    Box {
-                        IconButton(onClick = { showMenu = true }) {
-                            Icon(
-                                imageVector = Icons.Filled.MoreVert,
-                                contentDescription = stringResource(R.string.settings)
-                            )
-                        }
-                        DropdownMenu(
-                            expanded = showMenu,
-                            onDismissRequest = { showMenu = false }
-                        ) {
-                            DropdownMenuItem(
-                                text = { Text(stringResource(R.string.disconnect)) },
-                                onClick = {
-                                    showMenu = false
-                                    onDisconnect()
-                                }
-                            )
-                        }
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                )
-            )
-
-            // Route list or skeletons
-            LazyColumn(
-                state = listState,
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(vertical = 8.dp)
-            ) {
-                if (isLoading) {
-                    items(5) {
-                        RouteItemSkeleton()
-                    }
-                } else {
-                    itemsIndexed(routes, key = { _, route -> "${route.teamSlug}/${route.routeSlug}" }) { index, route ->
-                        RouteItem(
-                            route = route,
-                            userProfile = userProfile,
-                            isSelected = index == selectedIndex,
-                            isSyncing = syncingRouteId == "${route.teamSlug}/${route.routeSlug}",
-                            onSync = { onSync(route) }
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-/**
- * Formats an ISO 8601 datetime string to a localized date/time display.
- * Uses the device's locale and 12/24h preference.
- */
-private fun formatDateTime(context: Context, isoDateTime: String?): String? {
-    if (isoDateTime.isNullOrBlank()) return null
-
-    return try {
-        val instant = Instant.parse(isoDateTime)
-        val localDateTime = instant.atZone(ZoneId.systemDefault()).toLocalDateTime()
-
-        // Use device's locale and time format preference
-        val dateFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT)
-        val timeFormatter = if (DateFormat.is24HourFormat(context)) {
-            DateTimeFormatter.ofPattern("HH:mm")
-        } else {
-            DateTimeFormatter.ofPattern("h:mm a")
-        }
-
-        "${localDateTime.format(dateFormatter)} ${localDateTime.format(timeFormatter)}"
-    } catch (e: Exception) {
-        null
-    }
-}
-
-/**
- * Formats distance in meters according to user's preferred unit.
- * Returns formatted string like "87.5 km" or "54.4 mi".
- */
-private fun formatDistance(context: Context, distanceMeters: Float, userProfile: UserProfile?): String {
-    val isImperial = userProfile?.preferredUnit?.distance == UserProfile.PreferredUnit.UnitType.IMPERIAL
-    return if (isImperial) {
-        val miles = distanceMeters / METERS_PER_MILE
-        context.getString(R.string.distance_format_mi, miles)
-    } else {
-        val km = distanceMeters / METERS_PER_KM
-        context.getString(R.string.distance_format_km, km)
-    }
-}
-
-/**
- * Formats elevation in meters according to user's preferred unit.
- * Returns formatted string like "1250m" or "4101ft".
- */
-private fun formatElevation(context: Context, elevationMeters: Float, userProfile: UserProfile?): String {
-    val isImperial = userProfile?.preferredUnit?.elevation == UserProfile.PreferredUnit.UnitType.IMPERIAL
-    return if (isImperial) {
-        val feet = (elevationMeters / METERS_PER_FOOT).toInt()
-        context.getString(R.string.elevation_format_ft, feet)
-    } else {
-        context.getString(R.string.elevation_format_m, elevationMeters.toInt())
-    }
-}
-
-/**
- * Formats combined distance and elevation stats for route sublabel.
- */
-private fun formatRouteStats(context: Context, route: Route, userProfile: UserProfile?): String {
-    val isImperialDist = userProfile?.preferredUnit?.distance == UserProfile.PreferredUnit.UnitType.IMPERIAL
-    val isImperialElev = userProfile?.preferredUnit?.elevation == UserProfile.PreferredUnit.UnitType.IMPERIAL
-
-    val distanceStr = if (isImperialDist) {
-        val miles = route.distance / METERS_PER_MILE
-        context.getString(R.string.distance_format_mi, miles)
-    } else {
-        val km = route.distance / METERS_PER_KM
-        context.getString(R.string.distance_format_km, km)
-    }
-
-    val elevationStr = if (isImperialElev) {
-        val feet = (route.elevationGain / METERS_PER_FOOT).toInt()
-        context.getString(R.string.elevation_dplus_ft, feet)
-    } else {
-        context.getString(R.string.elevation_dplus_m, route.elevationGain.toInt())
-    }
-
-    return "$distanceStr / $elevationStr"
-}
-
-@Composable
-private fun RouteItem(
-    route: Route,
-    userProfile: UserProfile?,
-    isSelected: Boolean,
-    isSyncing: Boolean,
-    onSync: () -> Unit
-) {
-    val context = LocalContext.current
-
-    // Determine display type based on Garmin app logic:
-    // 1. Group + Ride: Title = "Group - Ride", Sublabel = date/time
-    // 2. Ride only: Title = "Ride", Sublabel = date/time
-    // 3. Standalone: Title = "Route", Sublabel = "distance / elevation D+"
-    val (title, sublabel) = when {
-        route.hasGroup && route.hasRide -> {
-            val title = "${route.groupName} - ${route.rideName}"
-            val sublabel = formatDateTime(context, route.startDateTime)
-            title to sublabel
-        }
-        route.hasRide -> {
-            val title = route.rideName ?: route.routeName
-            val sublabel = formatDateTime(context, route.startDateTime)
-            title to sublabel
-        }
-        else -> {
-            // Standalone route - show distance/elevation as sublabel
-            val title = route.routeName
-            val sublabel = formatRouteStats(context, route, userProfile)
-            title to sublabel
-        }
-    }
-
-    val borderModifier = if (isSelected) {
-        Modifier.border(
-            width = 2.dp,
-            color = MaterialTheme.colorScheme.primary,
-            shape = MaterialTheme.shapes.medium
-        )
-    } else {
-        Modifier
-    }
-
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 4.dp)
-            .then(borderModifier)
-            .clickable(onClick = onSync),
-        color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
-        shape = MaterialTheme.shapes.medium
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(10.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Route info
-            Column(modifier = Modifier.weight(1f)) {
-                // Line 1: Title (group-ride, ride, or route name)
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Medium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                // Line 2: Sublabel (date/time or stats)
-                if (sublabel != null) {
-                    Text(
-                        text = sublabel,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-                // Line 3: Distance and elevation (always shown for context)
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Text(
-                        text = formatDistance(context, route.distance, userProfile),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    Text(
-                        text = formatElevation(context, route.elevationGain, userProfile),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.secondary
-                    )
-                }
-            }
-
-            // Sync indicator
-            if (isSyncing) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(20.dp),
-                    strokeWidth = 2.dp,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            } else {
-                Text(
-                    text = stringResource(R.string.nav_arrow),
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = MaterialTheme.colorScheme.primary
-                )
             }
         }
     }
 }
 
 @Composable
-private fun RouteItemSkeleton() {
+private fun ItemSkeleton() {
     Surface(
         modifier = Modifier
             .fillMaxWidth()
@@ -946,7 +1357,6 @@ private fun RouteItemSkeleton() {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                // Title skeleton
                 Box(
                     modifier = Modifier
                         .fillMaxWidth(0.7f)
@@ -957,7 +1367,6 @@ private fun RouteItemSkeleton() {
                         )
                 )
                 Spacer(modifier = Modifier.height(6.dp))
-                // Sublabel skeleton
                 Box(
                     modifier = Modifier
                         .fillMaxWidth(0.5f)
@@ -967,39 +1376,61 @@ private fun RouteItemSkeleton() {
                             MaterialTheme.shapes.small
                         )
                 )
-                Spacer(modifier = Modifier.height(6.dp))
-                // Stats skeleton
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Box(
-                        modifier = Modifier
-                            .width(50.dp)
-                            .height(12.dp)
-                            .background(
-                                MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
-                                MaterialTheme.shapes.small
-                            )
-                    )
-                    Box(
-                        modifier = Modifier
-                            .width(50.dp)
-                            .height(12.dp)
-                            .background(
-                                MaterialTheme.colorScheme.secondary.copy(alpha = 0.2f),
-                                MaterialTheme.shapes.small
-                            )
-                    )
-                }
             }
         }
     }
 }
 
-private suspend fun loadRoutes(
+// === Formatting utilities ===
+
+private fun formatDateTime(context: Context, isoDateTime: String?): String? {
+    if (isoDateTime.isNullOrBlank()) return null
+
+    return try {
+        val instant = Instant.parse(isoDateTime)
+        val localDateTime = instant.atZone(ZoneId.systemDefault()).toLocalDateTime()
+
+        val dateFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT)
+        val timeFormatter = if (DateFormat.is24HourFormat(context)) {
+            DateTimeFormatter.ofPattern("HH:mm")
+        } else {
+            DateTimeFormatter.ofPattern("h:mm a")
+        }
+
+        "${localDateTime.format(dateFormatter)} ${localDateTime.format(timeFormatter)}"
+    } catch (e: Exception) {
+        null
+    }
+}
+
+private fun formatDistance(context: Context, distanceMeters: Float, userProfile: UserProfile?): String {
+    val isImperial = userProfile?.preferredUnit?.distance == UserProfile.PreferredUnit.UnitType.IMPERIAL
+    return if (isImperial) {
+        val miles = distanceMeters / METERS_PER_MILE
+        context.getString(R.string.distance_format_mi, miles)
+    } else {
+        val km = distanceMeters / METERS_PER_KM
+        context.getString(R.string.distance_format_km, km)
+    }
+}
+
+private fun formatElevation(context: Context, elevationMeters: Float, userProfile: UserProfile?): String {
+    val isImperial = userProfile?.preferredUnit?.elevation == UserProfile.PreferredUnit.UnitType.IMPERIAL
+    return if (isImperial) {
+        val feet = (elevationMeters / METERS_PER_FOOT).toInt()
+        context.getString(R.string.elevation_format_ft, feet)
+    } else {
+        context.getString(R.string.elevation_format_m, elevationMeters.toInt())
+    }
+}
+
+// === Data loading ===
+
+private suspend fun loadRoutesResponse(
     apiClient: PedalonsApiClient,
     authManager: AuthManager,
-    onResult: (Result<List<Route>>) -> Unit
+    onResult: (Result<RoutesResponse>) -> Unit
 ) {
-    // Get access token, refresh if needed
     var accessToken = authManager.getValidAccessToken()
     if (accessToken == null && authManager.needsRefresh()) {
         val refreshToken = authManager.getRefreshToken()
@@ -1022,7 +1453,6 @@ private suspend fun loadRoutes(
     }
 
     apiClient.getRoutes(accessToken!!)
-        .map { it.routes }
         .let { onResult(it) }
 }
 
@@ -1030,7 +1460,8 @@ private suspend fun syncRoute(
     context: Context,
     apiClient: PedalonsApiClient,
     authManager: AuthManager,
-    route: Route,
+    teamSlug: String,
+    routeSlug: String,
     onSyncing: (Boolean) -> Unit
 ) {
     onSyncing(true)
@@ -1041,7 +1472,7 @@ private suspend fun syncRoute(
         return
     }
 
-    apiClient.syncRoute(accessToken, route.teamSlug, route.routeSlug)
+    apiClient.syncRoute(accessToken, teamSlug, routeSlug)
         .onSuccess {
             Toast.makeText(context, R.string.route_synced, Toast.LENGTH_SHORT).show()
         }
@@ -1052,18 +1483,12 @@ private suspend fun syncRoute(
     onSyncing(false)
 }
 
-/**
- * Check if Hammerhead is connected and prompt user to connect if not.
- * @param onResult callback with true if should proceed to load routes immediately,
- *                 false if GPS connect activity was launched (will callback via activity result)
- */
 private suspend fun checkAndPromptGpsConnection(
     apiClient: PedalonsApiClient,
     authManager: AuthManager,
     activity: MainActivity,
     onResult: (Boolean) -> Unit
 ) {
-    // Get access token, refresh if needed
     var accessToken = authManager.getValidAccessToken()
     if (accessToken == null && authManager.needsRefresh()) {
         val refreshToken = authManager.getRefreshToken()
@@ -1074,7 +1499,6 @@ private suspend fun checkAndPromptGpsConnection(
                     accessToken = tokenResponse.accessToken
                 }
                 .onFailure {
-                    // Can't check, proceed anyway
                     onResult(true)
                     return
                 }
@@ -1082,7 +1506,6 @@ private suspend fun checkAndPromptGpsConnection(
     }
 
     if (accessToken == null) {
-        // Can't check, proceed anyway
         onResult(true)
         return
     }
@@ -1090,16 +1513,13 @@ private suspend fun checkAndPromptGpsConnection(
     apiClient.getUserStatus(accessToken!!)
         .onSuccess { status ->
             if (status.isHammerheadConnected()) {
-                // Already connected, proceed to load routes
                 onResult(true)
             } else {
-                // Not connected, launch GPS connect activity
                 activity.startGpsConnectFlow()
                 onResult(false)
             }
         }
         .onFailure {
-            // Error checking, proceed anyway
             onResult(true)
         }
 }
