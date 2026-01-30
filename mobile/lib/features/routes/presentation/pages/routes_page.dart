@@ -113,10 +113,11 @@ class _RouteGridItem extends ConsumerWidget {
         borderRadius: BorderRadius.circular(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            // Thumbnail with Hero animation - use Expanded for grid, fixed height for list
-            Expanded(
-              flex: 3,
+            // Thumbnail with Hero animation
+            AspectRatio(
+              aspectRatio: 16 / 9,
               child: Hero(
                 tag: 'route-thumbnail-${route.slug}',
                 child: Container(
@@ -145,38 +146,34 @@ class _RouteGridItem extends ConsumerWidget {
                 ),
               ),
             ),
-            Expanded(
-              flex: 2,
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      route.name,
-                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-                    Wrap(
-                      spacing: 8,
-                      children: [
-                        _StatChip(
-                          icon: Icons.straighten,
-                          value: '${(route.distance / 1000).toStringAsFixed(1)} km',
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    route.name,
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
                         ),
-                        _StatChip(
-                          icon: Icons.trending_up,
-                          value: '${route.elevationGain.toInt()} m',
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Wrap(
+                    spacing: 8,
+                    children: [
+                      _StatChip(
+                        icon: Icons.straighten,
+                        value: '${(route.distance / 1000).toStringAsFixed(1)} km',
+                      ),
+                      _StatChip(
+                        icon: Icons.trending_up,
+                        value: '${route.elevationGain.toInt()} m',
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
           ],

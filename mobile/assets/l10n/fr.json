@@ -130,7 +130,7 @@
     "description": "Description"
   },
   "routes": {
-    "title": "parcours",
+    "title": "Parcours",
     "empty": "Aucun parcours",
     "distance": "Distance",
     "elevation": "D+",
