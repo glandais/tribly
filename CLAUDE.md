@@ -24,7 +24,7 @@ mvn quarkus:dev                    # Dev mode (requires docker-compose up)
 mvn test                           # All tests
 mvn test -Dtest=RideResourceTest   # Single test class
 mvn test -Dtest="RideResourceTest#testCreateRide"  # Single test method
-mvn spotless:apply                 # Format code (Google Java Format)
+mvn spotless:apply                 # Format code (Google Java Format, runs automatically on build)
 mvn checkstyle:check               # Lint check
 
 # Frontend (frontend/)
@@ -32,9 +32,13 @@ pnpm dev                           # Dev server
 pnpm build                         # Type check + build
 pnpm generate-api                  # Generate API client from OpenAPI
 pnpm lint                          # ESLint
+pnpm lint:fix                      # ESLint with auto-fix
 pnpm format                        # Prettier format
+pnpm format:check                  # Check formatting without applying
 pnpm test                          # Run tests
+pnpm test:coverage                 # Run tests with coverage
 pnpm i18n:lint                     # Validate i18n keys
+pnpm i18n:status                   # Check translation status
 
 # Mobile (mobile/)
 flutter pub get                    # Install dependencies
@@ -134,6 +138,10 @@ garmin-app/source/
 ├── TriblyView.mc         # Route list (scrollable)
 └── RouteDetailView.mc    # Route details + FIT download
 ```
+
+## Flyway Migrations
+
+Backend database migrations live in `backend/src/main/resources/db/migration/`. Naming convention: `V{number}__{description}.sql` (double underscore separator, sequential numbering).
 
 ## Contract-First Workflow
 

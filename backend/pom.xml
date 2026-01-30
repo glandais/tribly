@@ -208,12 +208,6 @@
             <artifactId>quarkus-rest-client-jackson</artifactId>
         </dependency>
 
-        <!-- Reactive DB Client (used for async operations) -->
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-reactive-pg-client</artifactId>
-        </dependency>
-
         <!-- Container -->
         <dependency>
             <groupId>io.quarkus</groupId>
