@@ -30,8 +30,11 @@ abstract class AssetsDto with _$AssetsDto {
     /// FIT
     AssetDto? fit,
 
-    /// Thumbnail
-    AssetDto? thumbnail,
+    /// Light thumbnail
+    AssetDto? thumbnailLight,
+
+    /// Dark thumbnail
+    AssetDto? thumbnailDark,
   }) = _AssetsDto;
 
   factory AssetsDto.fromJson(Map<String, Object?> json) =>

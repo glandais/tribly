@@ -310,11 +310,6 @@ class GpxProcessingServiceTest {
   }
 
   @Test
-  void getThumbnailContent_shouldThrowIfNotExists() {
-    assertThrows(TriblyException.class, () -> gpxProcessingService.getThumbnailContent(route));
-  }
-
-  @Test
   void deleteRouteFiles_shouldNotThrowIfDirectoryNotExists() {
     assertDoesNotThrow(() -> gpxProcessingService.deleteRouteFiles(route));
   }

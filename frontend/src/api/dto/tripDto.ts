@@ -49,6 +49,8 @@ export interface TripDto {
   stages: TripStageDto[]
   /** Trip participants */
   participants: PublicUserDto[]
-  /** Route thumbnail URL */
-  routeThumbnailUrl?: string
+  /** Route thumbnail URL (light) */
+  routeThumbnailLightUrl?: string
+  /** Route thumbnail URL (dark) */
+  routeThumbnailDarkUrl?: string
 }

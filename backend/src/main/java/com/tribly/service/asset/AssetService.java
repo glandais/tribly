@@ -336,7 +336,8 @@ public class AssetService {
         getAssetDto(assets, AssetType.ROUTE_ORIGINAL_GPX),
         getAssetDto(assets, AssetType.ROUTE_FILTERED_GPX),
         getAssetDto(assets, AssetType.ROUTE_FIT),
-        getAssetDto(assets, AssetType.ROUTE_THUMBNAIL));
+        getAssetDto(assets, AssetType.ROUTE_THUMBNAIL_LIGHT),
+        getAssetDto(assets, AssetType.ROUTE_THUMBNAIL_DARK));
   }
 
   private @Nullable AssetDto getAssetDto(Map<AssetType, List<Asset>> assets, AssetType assetType) {

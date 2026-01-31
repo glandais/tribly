@@ -21,8 +21,9 @@ mixin _$AssetsDto {
  AssetDto? get logo;/// Original GPX
  AssetDto? get originalGpx;/// GPX
  AssetDto? get gpx;/// FIT
- AssetDto? get fit;/// Thumbnail
- AssetDto? get thumbnail;
+ AssetDto? get fit;/// Light thumbnail
+ AssetDto? get thumbnailLight;/// Dark thumbnail
+ AssetDto? get thumbnailDark;
 /// Create a copy of AssetsDto
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -35,16 +36,16 @@ $AssetsDtoCopyWith<AssetsDto> get copyWith => _$AssetsDtoCopyWithImpl<AssetsDto>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is AssetsDto&&const DeepCollectionEquality().equals(other.images, images)&&const DeepCollectionEquality().equals(other.attachments, attachments)&&(identical(other.logo, logo) || other.logo == logo)&&(identical(other.originalGpx, originalGpx) || other.originalGpx == originalGpx)&&(identical(other.gpx, gpx) || other.gpx == gpx)&&(identical(other.fit, fit) || other.fit == fit)&&(identical(other.thumbnail, thumbnail) || other.thumbnail == thumbnail));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is AssetsDto&&const DeepCollectionEquality().equals(other.images, images)&&const DeepCollectionEquality().equals(other.attachments, attachments)&&(identical(other.logo, logo) || other.logo == logo)&&(identical(other.originalGpx, originalGpx) || other.originalGpx == originalGpx)&&(identical(other.gpx, gpx) || other.gpx == gpx)&&(identical(other.fit, fit) || other.fit == fit)&&(identical(other.thumbnailLight, thumbnailLight) || other.thumbnailLight == thumbnailLight)&&(identical(other.thumbnailDark, thumbnailDark) || other.thumbnailDark == thumbnailDark));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(images),const DeepCollectionEquality().hash(attachments),logo,originalGpx,gpx,fit,thumbnail);
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(images),const DeepCollectionEquality().hash(attachments),logo,originalGpx,gpx,fit,thumbnailLight,thumbnailDark);
 
 @override
 String toString() {
-  return 'AssetsDto(images: $images, attachments: $attachments, logo: $logo, originalGpx: $originalGpx, gpx: $gpx, fit: $fit, thumbnail: $thumbnail)';
+  return 'AssetsDto(images: $images, attachments: $attachments, logo: $logo, originalGpx: $originalGpx, gpx: $gpx, fit: $fit, thumbnailLight: $thumbnailLight, thumbnailDark: $thumbnailDark)';
 }
 
 
@@ -55,11 +56,11 @@ abstract mixin class $AssetsDtoCopyWith<$Res>  {
   factory $AssetsDtoCopyWith(AssetsDto value, $Res Function(AssetsDto) _then) = _$AssetsDtoCopyWithImpl;
 @useResult
 $Res call({
- List<AssetDto> images, List<AssetDto> attachments, AssetDto? logo, AssetDto? originalGpx, AssetDto? gpx, AssetDto? fit, AssetDto? thumbnail
+ List<AssetDto> images, List<AssetDto> attachments, AssetDto? logo, AssetDto? originalGpx, AssetDto? gpx, AssetDto? fit, AssetDto? thumbnailLight, AssetDto? thumbnailDark
 });
 
 
-$AssetDtoCopyWith<$Res>? get logo;$AssetDtoCopyWith<$Res>? get originalGpx;$AssetDtoCopyWith<$Res>? get gpx;$AssetDtoCopyWith<$Res>? get fit;$AssetDtoCopyWith<$Res>? get thumbnail;
+$AssetDtoCopyWith<$Res>? get logo;$AssetDtoCopyWith<$Res>? get originalGpx;$AssetDtoCopyWith<$Res>? get gpx;$AssetDtoCopyWith<$Res>? get fit;$AssetDtoCopyWith<$Res>? get thumbnailLight;$AssetDtoCopyWith<$Res>? get thumbnailDark;
 
 }
 /// @nodoc
@@ -72,7 +73,7 @@ class _$AssetsDtoCopyWithImpl<$Res>
 
 /// Create a copy of AssetsDto
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? images = null,Object? attachments = null,Object? logo = freezed,Object? originalGpx = freezed,Object? gpx = freezed,Object? fit = freezed,Object? thumbnail = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? images = null,Object? attachments = null,Object? logo = freezed,Object? originalGpx = freezed,Object? gpx = freezed,Object? fit = freezed,Object? thumbnailLight = freezed,Object? thumbnailDark = freezed,}) {
   return _then(_self.copyWith(
 images: null == images ? _self.images : images // ignore: cast_nullable_to_non_nullable
 as List<AssetDto>,attachments: null == attachments ? _self.attachments : attachments // ignore: cast_nullable_to_non_nullable
@@ -80,7 +81,8 @@ as List<AssetDto>,logo: freezed == logo ? _self.logo : logo // ignore: cast_null
 as AssetDto?,originalGpx: freezed == originalGpx ? _self.originalGpx : originalGpx // ignore: cast_nullable_to_non_nullable
 as AssetDto?,gpx: freezed == gpx ? _self.gpx : gpx // ignore: cast_nullable_to_non_nullable
 as AssetDto?,fit: freezed == fit ? _self.fit : fit // ignore: cast_nullable_to_non_nullable
-as AssetDto?,thumbnail: freezed == thumbnail ? _self.thumbnail : thumbnail // ignore: cast_nullable_to_non_nullable
+as AssetDto?,thumbnailLight: freezed == thumbnailLight ? _self.thumbnailLight : thumbnailLight // ignore: cast_nullable_to_non_nullable
+as AssetDto?,thumbnailDark: freezed == thumbnailDark ? _self.thumbnailDark : thumbnailDark // ignore: cast_nullable_to_non_nullable
 as AssetDto?,
   ));
 }
@@ -136,13 +138,25 @@ $AssetDtoCopyWith<$Res>? get fit {
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$AssetDtoCopyWith<$Res>? get thumbnail {
-    if (_self.thumbnail == null) {
+$AssetDtoCopyWith<$Res>? get thumbnailLight {
+    if (_self.thumbnailLight == null) {
     return null;
   }
 
-  return $AssetDtoCopyWith<$Res>(_self.thumbnail!, (value) {
-    return _then(_self.copyWith(thumbnail: value));
+  return $AssetDtoCopyWith<$Res>(_self.thumbnailLight!, (value) {
+    return _then(_self.copyWith(thumbnailLight: value));
+  });
+}/// Create a copy of AssetsDto
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$AssetDtoCopyWith<$Res>? get thumbnailDark {
+    if (_self.thumbnailDark == null) {
+    return null;
+  }
+
+  return $AssetDtoCopyWith<$Res>(_self.thumbnailDark!, (value) {
+    return _then(_self.copyWith(thumbnailDark: value));
   });
 }
 }
@@ -226,10 +240,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<AssetDto> images,  List<AssetDto> attachments,  AssetDto? logo,  AssetDto? originalGpx,  AssetDto? gpx,  AssetDto? fit,  AssetDto? thumbnail)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<AssetDto> images,  List<AssetDto> attachments,  AssetDto? logo,  AssetDto? originalGpx,  AssetDto? gpx,  AssetDto? fit,  AssetDto? thumbnailLight,  AssetDto? thumbnailDark)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _AssetsDto() when $default != null:
-return $default(_that.images,_that.attachments,_that.logo,_that.originalGpx,_that.gpx,_that.fit,_that.thumbnail);case _:
+return $default(_that.images,_that.attachments,_that.logo,_that.originalGpx,_that.gpx,_that.fit,_that.thumbnailLight,_that.thumbnailDark);case _:
   return orElse();
 
 }
@@ -247,10 +261,10 @@ return $default(_that.images,_that.attachments,_that.logo,_that.originalGpx,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<AssetDto> images,  List<AssetDto> attachments,  AssetDto? logo,  AssetDto? originalGpx,  AssetDto? gpx,  AssetDto? fit,  AssetDto? thumbnail)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<AssetDto> images,  List<AssetDto> attachments,  AssetDto? logo,  AssetDto? originalGpx,  AssetDto? gpx,  AssetDto? fit,  AssetDto? thumbnailLight,  AssetDto? thumbnailDark)  $default,) {final _that = this;
 switch (_that) {
 case _AssetsDto():
-return $default(_that.images,_that.attachments,_that.logo,_that.originalGpx,_that.gpx,_that.fit,_that.thumbnail);case _:
+return $default(_that.images,_that.attachments,_that.logo,_that.originalGpx,_that.gpx,_that.fit,_that.thumbnailLight,_that.thumbnailDark);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -267,10 +281,10 @@ return $default(_that.images,_that.attachments,_that.logo,_that.originalGpx,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<AssetDto> images,  List<AssetDto> attachments,  AssetDto? logo,  AssetDto? originalGpx,  AssetDto? gpx,  AssetDto? fit,  AssetDto? thumbnail)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<AssetDto> images,  List<AssetDto> attachments,  AssetDto? logo,  AssetDto? originalGpx,  AssetDto? gpx,  AssetDto? fit,  AssetDto? thumbnailLight,  AssetDto? thumbnailDark)?  $default,) {final _that = this;
 switch (_that) {
 case _AssetsDto() when $default != null:
-return $default(_that.images,_that.attachments,_that.logo,_that.originalGpx,_that.gpx,_that.fit,_that.thumbnail);case _:
+return $default(_that.images,_that.attachments,_that.logo,_that.originalGpx,_that.gpx,_that.fit,_that.thumbnailLight,_that.thumbnailDark);case _:
   return null;
 
 }
@@ -282,7 +296,7 @@ return $default(_that.images,_that.attachments,_that.logo,_that.originalGpx,_tha
 @JsonSerializable()
 
 class _AssetsDto implements AssetsDto {
-  const _AssetsDto({required final  List<AssetDto> images, required final  List<AssetDto> attachments, this.logo, this.originalGpx, this.gpx, this.fit, this.thumbnail}): _images = images,_attachments = attachments;
+  const _AssetsDto({required final  List<AssetDto> images, required final  List<AssetDto> attachments, this.logo, this.originalGpx, this.gpx, this.fit, this.thumbnailLight, this.thumbnailDark}): _images = images,_attachments = attachments;
   factory _AssetsDto.fromJson(Map<String, dynamic> json) => _$AssetsDtoFromJson(json);
 
 /// Images
@@ -311,8 +325,10 @@ class _AssetsDto implements AssetsDto {
 @override final  AssetDto? gpx;
 /// FIT
 @override final  AssetDto? fit;
-/// Thumbnail
-@override final  AssetDto? thumbnail;
+/// Light thumbnail
+@override final  AssetDto? thumbnailLight;
+/// Dark thumbnail
+@override final  AssetDto? thumbnailDark;
 
 /// Create a copy of AssetsDto
 /// with the given fields replaced by the non-null parameter values.
@@ -327,16 +343,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AssetsDto&&const DeepCollectionEquality().equals(other._images, _images)&&const DeepCollectionEquality().equals(other._attachments, _attachments)&&(identical(other.logo, logo) || other.logo == logo)&&(identical(other.originalGpx, originalGpx) || other.originalGpx == originalGpx)&&(identical(other.gpx, gpx) || other.gpx == gpx)&&(identical(other.fit, fit) || other.fit == fit)&&(identical(other.thumbnail, thumbnail) || other.thumbnail == thumbnail));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _AssetsDto&&const DeepCollectionEquality().equals(other._images, _images)&&const DeepCollectionEquality().equals(other._attachments, _attachments)&&(identical(other.logo, logo) || other.logo == logo)&&(identical(other.originalGpx, originalGpx) || other.originalGpx == originalGpx)&&(identical(other.gpx, gpx) || other.gpx == gpx)&&(identical(other.fit, fit) || other.fit == fit)&&(identical(other.thumbnailLight, thumbnailLight) || other.thumbnailLight == thumbnailLight)&&(identical(other.thumbnailDark, thumbnailDark) || other.thumbnailDark == thumbnailDark));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_images),const DeepCollectionEquality().hash(_attachments),logo,originalGpx,gpx,fit,thumbnail);
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_images),const DeepCollectionEquality().hash(_attachments),logo,originalGpx,gpx,fit,thumbnailLight,thumbnailDark);
 
 @override
 String toString() {
-  return 'AssetsDto(images: $images, attachments: $attachments, logo: $logo, originalGpx: $originalGpx, gpx: $gpx, fit: $fit, thumbnail: $thumbnail)';
+  return 'AssetsDto(images: $images, attachments: $attachments, logo: $logo, originalGpx: $originalGpx, gpx: $gpx, fit: $fit, thumbnailLight: $thumbnailLight, thumbnailDark: $thumbnailDark)';
 }
 
 
@@ -347,11 +363,11 @@ abstract mixin class _$AssetsDtoCopyWith<$Res> implements $AssetsDtoCopyWith<$Re
   factory _$AssetsDtoCopyWith(_AssetsDto value, $Res Function(_AssetsDto) _then) = __$AssetsDtoCopyWithImpl;
 @override @useResult
 $Res call({
- List<AssetDto> images, List<AssetDto> attachments, AssetDto? logo, AssetDto? originalGpx, AssetDto? gpx, AssetDto? fit, AssetDto? thumbnail
+ List<AssetDto> images, List<AssetDto> attachments, AssetDto? logo, AssetDto? originalGpx, AssetDto? gpx, AssetDto? fit, AssetDto? thumbnailLight, AssetDto? thumbnailDark
 });
 
 
-@override $AssetDtoCopyWith<$Res>? get logo;@override $AssetDtoCopyWith<$Res>? get originalGpx;@override $AssetDtoCopyWith<$Res>? get gpx;@override $AssetDtoCopyWith<$Res>? get fit;@override $AssetDtoCopyWith<$Res>? get thumbnail;
+@override $AssetDtoCopyWith<$Res>? get logo;@override $AssetDtoCopyWith<$Res>? get originalGpx;@override $AssetDtoCopyWith<$Res>? get gpx;@override $AssetDtoCopyWith<$Res>? get fit;@override $AssetDtoCopyWith<$Res>? get thumbnailLight;@override $AssetDtoCopyWith<$Res>? get thumbnailDark;
 
 }
 /// @nodoc
@@ -364,7 +380,7 @@ class __$AssetsDtoCopyWithImpl<$Res>
 
 /// Create a copy of AssetsDto
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? images = null,Object? attachments = null,Object? logo = freezed,Object? originalGpx = freezed,Object? gpx = freezed,Object? fit = freezed,Object? thumbnail = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? images = null,Object? attachments = null,Object? logo = freezed,Object? originalGpx = freezed,Object? gpx = freezed,Object? fit = freezed,Object? thumbnailLight = freezed,Object? thumbnailDark = freezed,}) {
   return _then(_AssetsDto(
 images: null == images ? _self._images : images // ignore: cast_nullable_to_non_nullable
 as List<AssetDto>,attachments: null == attachments ? _self._attachments : attachments // ignore: cast_nullable_to_non_nullable
@@ -372,7 +388,8 @@ as List<AssetDto>,logo: freezed == logo ? _self.logo : logo // ignore: cast_null
 as AssetDto?,originalGpx: freezed == originalGpx ? _self.originalGpx : originalGpx // ignore: cast_nullable_to_non_nullable
 as AssetDto?,gpx: freezed == gpx ? _self.gpx : gpx // ignore: cast_nullable_to_non_nullable
 as AssetDto?,fit: freezed == fit ? _self.fit : fit // ignore: cast_nullable_to_non_nullable
-as AssetDto?,thumbnail: freezed == thumbnail ? _self.thumbnail : thumbnail // ignore: cast_nullable_to_non_nullable
+as AssetDto?,thumbnailLight: freezed == thumbnailLight ? _self.thumbnailLight : thumbnailLight // ignore: cast_nullable_to_non_nullable
+as AssetDto?,thumbnailDark: freezed == thumbnailDark ? _self.thumbnailDark : thumbnailDark // ignore: cast_nullable_to_non_nullable
 as AssetDto?,
   ));
 }
@@ -429,13 +446,25 @@ $AssetDtoCopyWith<$Res>? get fit {
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$AssetDtoCopyWith<$Res>? get thumbnail {
-    if (_self.thumbnail == null) {
+$AssetDtoCopyWith<$Res>? get thumbnailLight {
+    if (_self.thumbnailLight == null) {
     return null;
   }
 
-  return $AssetDtoCopyWith<$Res>(_self.thumbnail!, (value) {
-    return _then(_self.copyWith(thumbnail: value));
+  return $AssetDtoCopyWith<$Res>(_self.thumbnailLight!, (value) {
+    return _then(_self.copyWith(thumbnailLight: value));
+  });
+}/// Create a copy of AssetsDto
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$AssetDtoCopyWith<$Res>? get thumbnailDark {
+    if (_self.thumbnailDark == null) {
+    return null;
+  }
+
+  return $AssetDtoCopyWith<$Res>(_self.thumbnailDark!, (value) {
+    return _then(_self.copyWith(thumbnailDark: value));
   });
 }
 }

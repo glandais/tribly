@@ -20,10 +20,12 @@ class _AuthenticationClient implements AuthenticationClient {
   final ParseErrorLogger? errorLogger;
 
   @override
-  Future<void> logout() async {
+  Future<void> logout({String? xRefreshToken}) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
-    final _headers = <String, dynamic>{};
+    queryParameters.removeWhere((k, v) => v == null);
+    final _headers = <String, dynamic>{r'X-Refresh-Token': xRefreshToken};
+    _headers.removeWhere((k, v) => v == null);
     const Map<String, dynamic>? _data = null;
     final _options = _setStreamType<void>(
       Options(method: 'POST', headers: _headers, extra: _extra)
@@ -123,13 +125,18 @@ class _AuthenticationClient implements AuthenticationClient {
   }
 
   @override
-  Future<AuthResponse> refresh({String? xForwardedFor, String? xRealIp}) async {
+  Future<AuthResponse> refresh({
+    String? xForwardedFor,
+    String? xRealIp,
+    String? xRefreshToken,
+  }) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{
       r'X-Forwarded-For': xForwardedFor,
       r'X-Real-IP': xRealIp,
+      r'X-Refresh-Token': xRefreshToken,
     };
     _headers.removeWhere((k, v) => v == null);
     const Map<String, dynamic>? _data = null;

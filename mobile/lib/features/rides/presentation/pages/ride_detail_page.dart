@@ -203,13 +203,16 @@ class _RideDetailContent extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final thumbnailUrl = Theme.of(context).brightness == Brightness.dark
+        ? ride.routeThumbnailDarkUrl
+        : ride.routeThumbnailLightUrl;
     return Scaffold(
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
-            expandedHeight: ride.routeThumbnailUrl != null ? 200 : null,
+            expandedHeight: thumbnailUrl != null ? 200 : null,
             pinned: true,
-            flexibleSpace: ride.routeThumbnailUrl != null
+            flexibleSpace: thumbnailUrl != null
                 ? FlexibleSpaceBar(
                     title: Text(
                       ride.name,
@@ -218,14 +221,14 @@ class _RideDetailContent extends ConsumerWidget {
                     background: Hero(
                       tag: 'ride-thumbnail-${ride.slug}',
                       child: AuthenticatedImage(
-                        imageUrl: ride.routeThumbnailUrl!,
+                        imageUrl: thumbnailUrl,
                         fit: BoxFit.cover,
                         errorWidget: const SizedBox.shrink(),
                       ),
                     ),
                   )
                 : null,
-            title: ride.routeThumbnailUrl == null ? Text(ride.name) : null,
+            title: thumbnailUrl == null ? Text(ride.name) : null,
           ),
 
           // Team

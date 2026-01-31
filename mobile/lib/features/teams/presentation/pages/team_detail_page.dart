@@ -377,6 +377,10 @@ class _RideCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final token = ref.watch(accessTokenHolderProvider);
 
+    final thumbnailUrl = Theme.of(context).brightness == Brightness.dark
+        ? ride.routeThumbnailDarkUrl
+        : ride.routeThumbnailLightUrl;
+
     return AnimatedCard(
       onTap: () => context.push(Paths.ride(ride.team.slug, ride.slug)),
       child: Padding(
@@ -392,17 +396,17 @@ class _RideCard extends ConsumerWidget {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8),
                   color: Theme.of(context).colorScheme.primaryContainer,
-                  image: ride.routeThumbnailUrl != null
+                  image: thumbnailUrl != null
                       ? DecorationImage(
                           image: AuthenticatedDecorationImage.fromUrl(
-                            ride.routeThumbnailUrl,
+                            thumbnailUrl,
                             token,
                           )!,
                           fit: BoxFit.cover,
                         )
                       : null,
                 ),
-                child: ride.routeThumbnailUrl == null
+                child: thumbnailUrl == null
                     ? Icon(
                         Icons.directions_bike,
                         color: Theme.of(context).colorScheme.onPrimaryContainer,
@@ -487,6 +491,10 @@ class _RouteCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final token = ref.watch(accessTokenHolderProvider);
 
+    final thumbnail = Theme.of(context).brightness == Brightness.dark
+        ? route.media.assets.thumbnailDark
+        : route.media.assets.thumbnailLight;
+
     return Padding(
       padding: const EdgeInsets.only(right: 12),
       child: AnimatedCard(
@@ -505,17 +513,17 @@ class _RouteCard extends ConsumerWidget {
                     height: 80,
                     decoration: BoxDecoration(
                       color: Theme.of(context).colorScheme.primaryContainer,
-                      image: route.media.assets.thumbnail != null
+                      image: thumbnail != null
                           ? DecorationImage(
                               image: AuthenticatedDecorationImage.fromUrl(
-                                route.media.assets.thumbnail!.url,
+                                thumbnail.url,
                                 token,
                               )!,
                               fit: BoxFit.cover,
                             )
                           : null,
                     ),
-                    child: route.media.assets.thumbnail == null
+                    child: thumbnail == null
                         ? Center(
                             child: Icon(
                               Icons.route,

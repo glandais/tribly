@@ -5,22 +5,17 @@
  * API for Tribly Cycling Team Management Platform
  * OpenAPI spec version: 1.0.0
  */
-import type { Instant } from './instant'
 
 /**
- * Route information for Karoo device (lightweight)
+ * Route entry within a ride for device applications
  */
-export interface KarooRouteDto {
-  /** Team slug */
-  teamSlug: string
+export interface DeviceRideEntryDto {
   /** Route slug */
   routeSlug: string
   /** Route name */
-  name: string
-  /** Label (e.g., 'Rapides - Sam 18 Jan 09:00') */
-  label?: string
-  /** Ride date/time if from a ride */
-  rideDateTime?: Instant
+  routeName: string
+  /** Group name (null for ride-level route) */
+  groupName?: string
   /** Distance in meters */
   distance: number
   /** Elevation gain in meters */

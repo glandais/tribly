@@ -5,12 +5,15 @@
  * API for Tribly Cycling Team Management Platform
  * OpenAPI spec version: 1.0.0
  */
+import type { DeviceRideDto } from './deviceRideDto'
 import type { DeviceRouteDto } from './deviceRouteDto'
 
 /**
- * Response containing routes for device applications
+ * Response containing rides and routes for device applications
  */
 export interface DeviceRoutesResponse {
-  /** List of routes */
+  /** Upcoming rides with route entries */
+  rides: DeviceRideDto[]
+  /** Latest standalone routes */
   routes: DeviceRouteDto[]
 }

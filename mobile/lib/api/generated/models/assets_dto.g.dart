@@ -25,9 +25,12 @@ _AssetsDto _$AssetsDtoFromJson(Map<String, dynamic> json) => _AssetsDto(
   fit: json['fit'] == null
       ? null
       : AssetDto.fromJson(json['fit'] as Map<String, dynamic>),
-  thumbnail: json['thumbnail'] == null
+  thumbnailLight: json['thumbnailLight'] == null
       ? null
-      : AssetDto.fromJson(json['thumbnail'] as Map<String, dynamic>),
+      : AssetDto.fromJson(json['thumbnailLight'] as Map<String, dynamic>),
+  thumbnailDark: json['thumbnailDark'] == null
+      ? null
+      : AssetDto.fromJson(json['thumbnailDark'] as Map<String, dynamic>),
 );
 
 Map<String, dynamic> _$AssetsDtoToJson(_AssetsDto instance) =>
@@ -38,5 +41,6 @@ Map<String, dynamic> _$AssetsDtoToJson(_AssetsDto instance) =>
       'originalGpx': instance.originalGpx?.toJson(),
       'gpx': instance.gpx?.toJson(),
       'fit': instance.fit?.toJson(),
-      'thumbnail': instance.thumbnail?.toJson(),
+      'thumbnailLight': instance.thumbnailLight?.toJson(),
+      'thumbnailDark': instance.thumbnailDark?.toJson(),
     };

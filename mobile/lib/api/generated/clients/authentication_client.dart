@@ -24,7 +24,9 @@ abstract class AuthenticationClient {
   ///
   /// Logout and invalidate the refresh token.
   @POST('/api/auth/logout')
-  Future<void> logout();
+  Future<void> logout({
+    @Header('X-Refresh-Token') String? xRefreshToken,
+  });
 
   /// Logout all sessions.
   ///
@@ -61,6 +63,7 @@ abstract class AuthenticationClient {
   Future<AuthResponse> refresh({
     @Header('X-Forwarded-For') String? xForwardedFor,
     @Header('X-Real-IP') String? xRealIp,
+    @Header('X-Refresh-Token') String? xRefreshToken,
   });
 
   /// Register new user.

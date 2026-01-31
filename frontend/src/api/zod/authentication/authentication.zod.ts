@@ -8,6 +8,14 @@
 import * as zod from 'zod'
 
 /**
+ * Logout and invalidate the refresh token
+ * @summary Logout
+ */
+export const logoutHeader = zod.object({
+  'X-Refresh-Token': zod.string().optional(),
+})
+
+/**
  * Send a 6-digit OTP code to the user's email for passwordless login
  * @summary Request OTP
  */
@@ -95,6 +103,7 @@ export const verifyOtpResponse = zod
 export const refreshHeader = zod.object({
   'X-Forwarded-For': zod.string().optional(),
   'X-Real-IP': zod.string().optional(),
+  'X-Refresh-Token': zod.string().optional(),
 })
 
 export const refreshResponse = zod

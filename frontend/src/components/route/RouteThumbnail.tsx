@@ -1,8 +1,10 @@
 import { Image, Box } from '@mantine/core'
+import { useComputedColorScheme } from '@mantine/core'
 import { IconRoute } from '@tabler/icons-react'
 
 interface RouteThumbnailProps {
-  thumbnailUrl?: string
+  thumbnailLightUrl?: string
+  thumbnailDarkUrl?: string
   size?: 'sm' | 'md'
 }
 
@@ -11,15 +13,24 @@ const sizes = {
   md: 120,
 }
 
-export function RouteThumbnail({ thumbnailUrl, size = 'sm' }: RouteThumbnailProps) {
-  if (!thumbnailUrl) {
+export function RouteThumbnail({
+  thumbnailLightUrl,
+  thumbnailDarkUrl,
+  size = 'sm',
+}: RouteThumbnailProps) {
+  const colorScheme = useComputedColorScheme('light')
+
+  // Pick the right thumbnail based on color scheme, with fallback to legacy
+  const selectedUrl = colorScheme === 'dark' ? thumbnailDarkUrl : thumbnailLightUrl
+
+  if (!selectedUrl) {
     return null
   }
 
   const pixelSize = sizes[size]
   // Request 2x size for high-DPI displays
   const requestSize = pixelSize * 2
-  const imageUrl = thumbnailUrl.replace('{size}', String(requestSize))
+  const imageUrl = selectedUrl.replace('{size}', String(requestSize))
 
   return (
     <Box

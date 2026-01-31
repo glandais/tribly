@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { IconArrowsMaximize, IconArrowUp } from '@tabler/icons-react'
-import { Paper, Group, Text, Image, Stack, Loader } from '@mantine/core'
+import { Paper, Group, Text, Image, Stack, Loader, useComputedColorScheme } from '@mantine/core'
 import { useGetRoute } from '@/api/endpoints/routes/routes'
 import { useUnits } from '@/hooks/useUnits'
 
@@ -12,6 +12,7 @@ interface RoutePreviewProps {
 export function RoutePreview({ routeSlug, teamSlug }: RoutePreviewProps) {
   const { t } = useTranslation()
   const { distance, elevation } = useUnits()
+  const colorScheme = useComputedColorScheme('light')
   const { data: route, isLoading } = useGetRoute(teamSlug, routeSlug)
 
   if (isLoading)
@@ -35,7 +36,10 @@ export function RoutePreview({ routeSlug, teamSlug }: RoutePreviewProps) {
     <Paper withBorder p="sm" bg="var(--mantine-color-body)">
       <Group wrap="nowrap">
         <Image
-          src={route.media.assets.thumbnail?.imageUrl?.replace('{size}', '128')}
+          src={(colorScheme === 'dark'
+            ? route.media.assets.thumbnailDark
+            : route.media.assets.thumbnailLight
+          )?.imageUrl?.replace('{size}', '128')}
           alt={route.name}
           w={64}
           h={64}

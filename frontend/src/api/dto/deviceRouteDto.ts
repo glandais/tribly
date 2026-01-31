@@ -5,10 +5,9 @@
  * API for Tribly Cycling Team Management Platform
  * OpenAPI spec version: 1.0.0
  */
-import type { Instant } from './instant'
 
 /**
- * Route information for device applications
+ * Standalone route information for device applications
  */
 export interface DeviceRouteDto {
   /** Team slug */
@@ -17,18 +16,12 @@ export interface DeviceRouteDto {
   routeSlug: string
   /** Route name */
   routeName: string
-  /** Ride name */
-  rideName?: string
-  /** Group name */
-  groupName?: string
-  /** Start date/time */
-  startDateTime?: Instant
   /** Distance in meters */
   distance: number
   /** Elevation gain in meters */
   elevationGain: number
   /** Start latitude */
-  startLat: number
+  startLat?: number
   /** Start longitude */
-  startLon: number
+  startLon?: number
 }

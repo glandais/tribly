@@ -171,7 +171,22 @@ export const listAllRoutesResponse = zod
                       .optional(),
                   })
                   .optional(),
-                thumbnail: zod
+                thumbnailLight: zod
+                  .object({
+                    id: zod.string().describe('ID (TSID)'),
+                    fileName: zod.string().describe('Filename'),
+                    contentType: zod.string().describe('Content-Type'),
+                    url: zod.string().describe('url'),
+                    imageUrl: zod.string().optional().describe('image template url'),
+                    imageDimensions: zod
+                      .object({
+                        width: zod.number().optional(),
+                        height: zod.number().optional(),
+                      })
+                      .optional(),
+                  })
+                  .optional(),
+                thumbnailDark: zod
                   .object({
                     id: zod.string().describe('ID (TSID)'),
                     fileName: zod.string().describe('Filename'),
@@ -372,7 +387,22 @@ export const listRoutesResponse = zod
                       .optional(),
                   })
                   .optional(),
-                thumbnail: zod
+                thumbnailLight: zod
+                  .object({
+                    id: zod.string().describe('ID (TSID)'),
+                    fileName: zod.string().describe('Filename'),
+                    contentType: zod.string().describe('Content-Type'),
+                    url: zod.string().describe('url'),
+                    imageUrl: zod.string().optional().describe('image template url'),
+                    imageDimensions: zod
+                      .object({
+                        width: zod.number().optional(),
+                        height: zod.number().optional(),
+                      })
+                      .optional(),
+                  })
+                  .optional(),
+                thumbnailDark: zod
                   .object({
                     id: zod.string().describe('ID (TSID)'),
                     fileName: zod.string().describe('Filename'),
@@ -524,7 +554,22 @@ export const createRouteBody = zod.object({
                 .optional(),
             })
             .optional(),
-          thumbnail: zod
+          thumbnailLight: zod
+            .object({
+              id: zod.string().describe('ID (TSID)'),
+              fileName: zod.string().describe('Filename'),
+              contentType: zod.string().describe('Content-Type'),
+              url: zod.string().describe('url'),
+              imageUrl: zod.string().optional().describe('image template url'),
+              imageDimensions: zod
+                .object({
+                  width: zod.number().optional(),
+                  height: zod.number().optional(),
+                })
+                .optional(),
+            })
+            .optional(),
+          thumbnailDark: zod
             .object({
               id: zod.string().describe('ID (TSID)'),
               fileName: zod.string().describe('Filename'),
@@ -678,7 +723,22 @@ export const updateRouteBody = zod.object({
                 .optional(),
             })
             .optional(),
-          thumbnail: zod
+          thumbnailLight: zod
+            .object({
+              id: zod.string().describe('ID (TSID)'),
+              fileName: zod.string().describe('Filename'),
+              contentType: zod.string().describe('Content-Type'),
+              url: zod.string().describe('url'),
+              imageUrl: zod.string().optional().describe('image template url'),
+              imageDimensions: zod
+                .object({
+                  width: zod.number().optional(),
+                  height: zod.number().optional(),
+                })
+                .optional(),
+            })
+            .optional(),
+          thumbnailDark: zod
             .object({
               id: zod.string().describe('ID (TSID)'),
               fileName: zod.string().describe('Filename'),
@@ -822,7 +882,22 @@ export const updateRouteResponse = zod
               .optional(),
           })
           .optional(),
-        thumbnail: zod
+        thumbnailLight: zod
+          .object({
+            id: zod.string().describe('ID (TSID)'),
+            fileName: zod.string().describe('Filename'),
+            contentType: zod.string().describe('Content-Type'),
+            url: zod.string().describe('url'),
+            imageUrl: zod.string().optional().describe('image template url'),
+            imageDimensions: zod
+              .object({
+                width: zod.number().optional(),
+                height: zod.number().optional(),
+              })
+              .optional(),
+          })
+          .optional(),
+        thumbnailDark: zod
           .object({
             id: zod.string().describe('ID (TSID)'),
             fileName: zod.string().describe('Filename'),
@@ -967,7 +1042,22 @@ export const getRouteResponse = zod
               .optional(),
           })
           .optional(),
-        thumbnail: zod
+        thumbnailLight: zod
+          .object({
+            id: zod.string().describe('ID (TSID)'),
+            fileName: zod.string().describe('Filename'),
+            contentType: zod.string().describe('Content-Type'),
+            url: zod.string().describe('url'),
+            imageUrl: zod.string().optional().describe('image template url'),
+            imageDimensions: zod
+              .object({
+                width: zod.number().optional(),
+                height: zod.number().optional(),
+              })
+              .optional(),
+          })
+          .optional(),
+        thumbnailDark: zod
           .object({
             id: zod.string().describe('ID (TSID)'),
             fileName: zod.string().describe('Filename'),
@@ -1200,7 +1290,22 @@ export const changeRouteSlugResponse = zod
               .optional(),
           })
           .optional(),
-        thumbnail: zod
+        thumbnailLight: zod
+          .object({
+            id: zod.string().describe('ID (TSID)'),
+            fileName: zod.string().describe('Filename'),
+            contentType: zod.string().describe('Content-Type'),
+            url: zod.string().describe('url'),
+            imageUrl: zod.string().optional().describe('image template url'),
+            imageDimensions: zod
+              .object({
+                width: zod.number().optional(),
+                height: zod.number().optional(),
+              })
+              .optional(),
+          })
+          .optional(),
+        thumbnailDark: zod
           .object({
             id: zod.string().describe('ID (TSID)'),
             fileName: zod.string().describe('Filename'),

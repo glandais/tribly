@@ -79,8 +79,8 @@ public class GpxProcessingService {
 
   @Inject TriblyQueryContext triblyContext;
 
-  @ConfigProperty(name = "mapbox.api.key")
-  private String mapboxApiKey;
+  @ConfigProperty(name = "tileserver.url")
+  private String tileserverUrl;
 
   public GPX parseGpx(Path path) {
     // Step 1: Parse GPX
@@ -199,25 +199,11 @@ public class GpxProcessingService {
       assetService.uploadAssetFile(fitAssetFile.asset());
       LOG.infov("Saved FIT file to S3");
 
-      // Generate thumbnail map
-      AssetWithFile thumbnailAssetFile =
-          createAsset(route, AssetType.ROUTE_THUMBNAIL, "thumbnail.png");
-      File thumbnailFile = thumbnailAssetFile.file();
-      try {
-        // Use OpenStreetMap tiles, 512x512 max size, 0.1 margin
-        tileMapProducer.createTileMap(
-            thumbnailFile,
-            gpx,
-            "https://api.mapbox.com/styles/v1/mapbox/outdoors-v11/tiles/256/{z}/{x}/{y}?access_token="
-                + mapboxApiKey,
-            0.1,
-            512,
-            512);
-        assetService.uploadAssetFile(thumbnailAssetFile.asset());
-        LOG.infov("Generated and saved thumbnail to S3");
-      } catch (Exception e) {
-        LOG.warnv("Thumbnail generation failed for route {0}: {1}", routeId, e);
-      }
+      // Generate thumbnail maps (light + dark)
+      generateThumbnail(
+          route, gpx, routeId, "colorful", AssetType.ROUTE_THUMBNAIL_LIGHT, "thumbnail-light.png");
+      generateThumbnail(
+          route, gpx, routeId, "eclipse", AssetType.ROUTE_THUMBNAIL_DARK, "thumbnail-dark.png");
 
       LOG.infov("GPX processing complete for route}");
 
@@ -237,6 +223,20 @@ public class GpxProcessingService {
     } catch (Exception e) {
       LOG.errorv("GPX processing failed for route", e);
       throw new BusinessException(ErrorCode.GPX_FAILURE, e);
+    }
+  }
+
+  private void generateThumbnail(
+      Route route, GPX gpx, Long routeId, String style, AssetType assetType, String fileName) {
+    try {
+      AssetWithFile assetFile = createAsset(route, assetType, fileName);
+      File file = assetFile.file();
+      String tileUrl = tileserverUrl + "/styles/" + style + "/256/{z}/{x}/{y}.png";
+      tileMapProducer.createTileMap(file, gpx, tileUrl, 0.1, 512, 512);
+      assetService.uploadAssetFile(assetFile.asset());
+      LOG.infov("Generated and saved {0} thumbnail to S3", style);
+    } catch (Exception e) {
+      LOG.warnv("Thumbnail generation ({0}) failed for route {1}: {2}", style, routeId, e);
     }
   }
 
@@ -346,13 +346,6 @@ public class GpxProcessingService {
    */
   public InputStream getFitContent(Route route) {
     return getAssetContent(route, AssetType.ROUTE_FIT);
-  }
-
-  /**
-   * Get InputStream for thumbnail image.
-   */
-  public InputStream getThumbnailContent(Route route) {
-    return getAssetContent(route, AssetType.ROUTE_THUMBNAIL);
   }
 
   private InputStream getAssetContent(Route route, AssetType assetType) {

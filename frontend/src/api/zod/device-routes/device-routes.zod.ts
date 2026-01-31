@@ -18,6 +18,36 @@ export const deviceListRoutesQueryParams = zod.object({
 
 export const deviceListRoutesResponse = zod
   .object({
+    rides: zod
+      .array(
+        zod
+          .object({
+            teamSlug: zod.string().describe('Team slug'),
+            rideSlug: zod.string().describe('Ride slug'),
+            rideName: zod.string().describe('Ride name'),
+            startDateTime: zod.iso.datetime({}).optional(),
+            entries: zod
+              .array(
+                zod
+                  .object({
+                    routeSlug: zod.string().describe('Route slug'),
+                    routeName: zod.string().describe('Route name'),
+                    groupName: zod
+                      .string()
+                      .optional()
+                      .describe('Group name (null for ride-level route)'),
+                    distance: zod.number().describe('Distance in meters'),
+                    elevationGain: zod.number().describe('Elevation gain in meters'),
+                    startLat: zod.number().optional().describe('Start latitude'),
+                    startLon: zod.number().optional().describe('Start longitude'),
+                  })
+                  .describe('Route entry within a ride for device applications')
+              )
+              .describe('Route entries for this ride'),
+          })
+          .describe('Ride information for device applications')
+      )
+      .describe('Upcoming rides with route entries'),
     routes: zod
       .array(
         zod
@@ -25,19 +55,16 @@ export const deviceListRoutesResponse = zod
             teamSlug: zod.string().describe('Team slug'),
             routeSlug: zod.string().describe('Route slug'),
             routeName: zod.string().describe('Route name'),
-            rideName: zod.string().optional().describe('Ride name'),
-            groupName: zod.string().optional().describe('Group name'),
-            startDateTime: zod.iso.datetime({}).optional(),
             distance: zod.number().describe('Distance in meters'),
             elevationGain: zod.number().describe('Elevation gain in meters'),
-            startLat: zod.number().describe('Start latitude'),
-            startLon: zod.number().describe('Start longitude'),
+            startLat: zod.number().optional().describe('Start latitude'),
+            startLon: zod.number().optional().describe('Start longitude'),
           })
-          .describe('Route information for device applications')
+          .describe('Standalone route information for device applications')
       )
-      .describe('List of routes'),
+      .describe('Latest standalone routes'),
   })
-  .describe('Response containing routes for device applications')
+  .describe('Response containing rides and routes for device applications')
 
 /**
  * Download route as FIT file for GPS devices

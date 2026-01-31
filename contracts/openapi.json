@@ -640,8 +640,13 @@
             "type" : "object",
             "$ref" : "#/components/schemas/AssetDto"
           },
-          "thumbnail" : {
-            "description" : "Thumbnail",
+          "thumbnailLight" : {
+            "description" : "Light thumbnail",
+            "type" : "object",
+            "$ref" : "#/components/schemas/AssetDto"
+          },
+          "thumbnailDark" : {
+            "description" : "Dark thumbnail",
             "type" : "object",
             "$ref" : "#/components/schemas/AssetDto"
           }
@@ -2088,9 +2093,13 @@
             },
             "description" : "Preview of first participants (max 5)"
           },
-          "routeThumbnailUrl" : {
+          "routeThumbnailLightUrl" : {
             "type" : "string",
-            "description" : "Route thumbnail URL"
+            "description" : "Route thumbnail URL (light)"
+          },
+          "routeThumbnailDarkUrl" : {
+            "type" : "string",
+            "description" : "Route thumbnail URL (dark)"
           }
         }
       },
@@ -3178,9 +3187,13 @@
             },
             "description" : "Trip participants"
           },
-          "routeThumbnailUrl" : {
+          "routeThumbnailLightUrl" : {
             "type" : "string",
-            "description" : "Route thumbnail URL"
+            "description" : "Route thumbnail URL (light)"
+          },
+          "routeThumbnailDarkUrl" : {
+            "type" : "string",
+            "description" : "Route thumbnail URL (dark)"
           }
         }
       },

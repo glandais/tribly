@@ -33,7 +33,8 @@ _RideDto _$RideDtoFromJson(Map<String, dynamic> json) => _RideDto(
   endPlace: json['endPlace'] == null
       ? null
       : PlaceDetailDto.fromJson(json['endPlace'] as Map<String, dynamic>),
-  routeThumbnailUrl: json['routeThumbnailUrl'] as String?,
+  routeThumbnailLightUrl: json['routeThumbnailLightUrl'] as String?,
+  routeThumbnailDarkUrl: json['routeThumbnailDarkUrl'] as String?,
 );
 
 Map<String, dynamic> _$RideDtoToJson(_RideDto instance) => <String, dynamic>{
@@ -55,5 +56,6 @@ Map<String, dynamic> _$RideDtoToJson(_RideDto instance) => <String, dynamic>{
   'routeSlug': instance.routeSlug,
   'startPlace': instance.startPlace?.toJson(),
   'endPlace': instance.endPlace?.toJson(),
-  'routeThumbnailUrl': instance.routeThumbnailUrl,
+  'routeThumbnailLightUrl': instance.routeThumbnailLightUrl,
+  'routeThumbnailDarkUrl': instance.routeThumbnailDarkUrl,
 };

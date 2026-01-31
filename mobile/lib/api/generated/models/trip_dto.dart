@@ -69,8 +69,11 @@ abstract class TripDto with _$TripDto {
     /// Route slug
     String? routeSlug,
 
-    /// Route thumbnail URL
-    String? routeThumbnailUrl,
+    /// Route thumbnail URL (light)
+    String? routeThumbnailLightUrl,
+
+    /// Route thumbnail URL (dark)
+    String? routeThumbnailDarkUrl,
   }) = _TripDto;
 
   factory TripDto.fromJson(Map<String, Object?> json) =>

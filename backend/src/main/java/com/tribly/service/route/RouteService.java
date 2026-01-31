@@ -273,7 +273,8 @@ public class RouteService extends TeamEntityService<Route, RouteRepository, Rout
       switch (asset.getType()) {
         case ROUTE_ORIGINAL_GPX, ROUTE_FILTERED_GPX -> asset.setFileName(route.getSlug() + ".gpx");
         case ROUTE_FIT -> asset.setFileName(route.getSlug() + ".fit");
-        case ROUTE_THUMBNAIL -> asset.setFileName(route.getSlug() + ".png");
+        case ROUTE_THUMBNAIL_LIGHT, ROUTE_THUMBNAIL_DARK ->
+            asset.setFileName(route.getSlug() + ".png");
       }
       assetRepository.persist(asset);
     }

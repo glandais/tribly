@@ -4,16 +4,20 @@
 
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import 'device_ride_dto.dart';
 import 'device_route_dto.dart';
 
 part 'device_routes_response.freezed.dart';
 part 'device_routes_response.g.dart';
 
-/// Response containing routes for device applications
+/// Response containing rides and routes for device applications
 @Freezed()
 abstract class DeviceRoutesResponse with _$DeviceRoutesResponse {
   const factory DeviceRoutesResponse({
-    /// List of routes
+    /// Upcoming rides with route entries
+    required List<DeviceRideDto> rides,
+
+    /// Latest standalone routes
     required List<DeviceRouteDto> routes,
   }) = _DeviceRoutesResponse;
 

@@ -15,7 +15,8 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$DeviceRoutesResponse {
 
-/// List of routes
+/// Upcoming rides with route entries
+ List<DeviceRideDto> get rides;/// Latest standalone routes
  List<DeviceRouteDto> get routes;
 /// Create a copy of DeviceRoutesResponse
 /// with the given fields replaced by the non-null parameter values.
@@ -29,16 +30,16 @@ $DeviceRoutesResponseCopyWith<DeviceRoutesResponse> get copyWith => _$DeviceRout
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is DeviceRoutesResponse&&const DeepCollectionEquality().equals(other.routes, routes));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is DeviceRoutesResponse&&const DeepCollectionEquality().equals(other.rides, rides)&&const DeepCollectionEquality().equals(other.routes, routes));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(routes));
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(rides),const DeepCollectionEquality().hash(routes));
 
 @override
 String toString() {
-  return 'DeviceRoutesResponse(routes: $routes)';
+  return 'DeviceRoutesResponse(rides: $rides, routes: $routes)';
 }
 
 
@@ -49,7 +50,7 @@ abstract mixin class $DeviceRoutesResponseCopyWith<$Res>  {
   factory $DeviceRoutesResponseCopyWith(DeviceRoutesResponse value, $Res Function(DeviceRoutesResponse) _then) = _$DeviceRoutesResponseCopyWithImpl;
 @useResult
 $Res call({
- List<DeviceRouteDto> routes
+ List<DeviceRideDto> rides, List<DeviceRouteDto> routes
 });
 
 
@@ -66,9 +67,10 @@ class _$DeviceRoutesResponseCopyWithImpl<$Res>
 
 /// Create a copy of DeviceRoutesResponse
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? routes = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? rides = null,Object? routes = null,}) {
   return _then(_self.copyWith(
-routes: null == routes ? _self.routes : routes // ignore: cast_nullable_to_non_nullable
+rides: null == rides ? _self.rides : rides // ignore: cast_nullable_to_non_nullable
+as List<DeviceRideDto>,routes: null == routes ? _self.routes : routes // ignore: cast_nullable_to_non_nullable
 as List<DeviceRouteDto>,
   ));
 }
@@ -154,10 +156,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<DeviceRouteDto> routes)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<DeviceRideDto> rides,  List<DeviceRouteDto> routes)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _DeviceRoutesResponse() when $default != null:
-return $default(_that.routes);case _:
+return $default(_that.rides,_that.routes);case _:
   return orElse();
 
 }
@@ -175,10 +177,10 @@ return $default(_that.routes);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<DeviceRouteDto> routes)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<DeviceRideDto> rides,  List<DeviceRouteDto> routes)  $default,) {final _that = this;
 switch (_that) {
 case _DeviceRoutesResponse():
-return $default(_that.routes);case _:
+return $default(_that.rides,_that.routes);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -195,10 +197,10 @@ return $default(_that.routes);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<DeviceRouteDto> routes)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<DeviceRideDto> rides,  List<DeviceRouteDto> routes)?  $default,) {final _that = this;
 switch (_that) {
 case _DeviceRoutesResponse() when $default != null:
-return $default(_that.routes);case _:
+return $default(_that.rides,_that.routes);case _:
   return null;
 
 }
@@ -210,12 +212,21 @@ return $default(_that.routes);case _:
 @JsonSerializable()
 
 class _DeviceRoutesResponse implements DeviceRoutesResponse {
-  const _DeviceRoutesResponse({required final  List<DeviceRouteDto> routes}): _routes = routes;
+  const _DeviceRoutesResponse({required final  List<DeviceRideDto> rides, required final  List<DeviceRouteDto> routes}): _rides = rides,_routes = routes;
   factory _DeviceRoutesResponse.fromJson(Map<String, dynamic> json) => _$DeviceRoutesResponseFromJson(json);
 
-/// List of routes
+/// Upcoming rides with route entries
+ final  List<DeviceRideDto> _rides;
+/// Upcoming rides with route entries
+@override List<DeviceRideDto> get rides {
+  if (_rides is EqualUnmodifiableListView) return _rides;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_rides);
+}
+
+/// Latest standalone routes
  final  List<DeviceRouteDto> _routes;
-/// List of routes
+/// Latest standalone routes
 @override List<DeviceRouteDto> get routes {
   if (_routes is EqualUnmodifiableListView) return _routes;
   // ignore: implicit_dynamic_type
@@ -236,16 +247,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DeviceRoutesResponse&&const DeepCollectionEquality().equals(other._routes, _routes));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _DeviceRoutesResponse&&const DeepCollectionEquality().equals(other._rides, _rides)&&const DeepCollectionEquality().equals(other._routes, _routes));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_routes));
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_rides),const DeepCollectionEquality().hash(_routes));
 
 @override
 String toString() {
-  return 'DeviceRoutesResponse(routes: $routes)';
+  return 'DeviceRoutesResponse(rides: $rides, routes: $routes)';
 }
 
 
@@ -256,7 +267,7 @@ abstract mixin class _$DeviceRoutesResponseCopyWith<$Res> implements $DeviceRout
   factory _$DeviceRoutesResponseCopyWith(_DeviceRoutesResponse value, $Res Function(_DeviceRoutesResponse) _then) = __$DeviceRoutesResponseCopyWithImpl;
 @override @useResult
 $Res call({
- List<DeviceRouteDto> routes
+ List<DeviceRideDto> rides, List<DeviceRouteDto> routes
 });
 
 
@@ -273,9 +284,10 @@ class __$DeviceRoutesResponseCopyWithImpl<$Res>
 
 /// Create a copy of DeviceRoutesResponse
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? routes = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? rides = null,Object? routes = null,}) {
   return _then(_DeviceRoutesResponse(
-routes: null == routes ? _self._routes : routes // ignore: cast_nullable_to_non_nullable
+rides: null == rides ? _self._rides : rides // ignore: cast_nullable_to_non_nullable
+as List<DeviceRideDto>,routes: null == routes ? _self._routes : routes // ignore: cast_nullable_to_non_nullable
 as List<DeviceRouteDto>,
   ));
 }

@@ -20,6 +20,8 @@ export interface AssetsDto {
   gpx?: AssetDto
   /** FIT */
   fit?: AssetDto
-  /** Thumbnail */
-  thumbnail?: AssetDto
+  /** Light thumbnail */
+  thumbnailLight?: AssetDto
+  /** Dark thumbnail */
+  thumbnailDark?: AssetDto
 }

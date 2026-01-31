@@ -1,7 +1,6 @@
 ---
 name: contract-first-api
 description: Generate OpenAPI contract from backend and regenerate frontend/mobile API clients
-disable-model-invocation: true
 ---
 
 # Contract-First API Workflow

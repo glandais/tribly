@@ -1,0 +1,15 @@
+{
+  "options": {
+    "paths": {
+      "styles": "styles"
+    }
+  },
+  "styles": {
+    "colorful": {
+      "style": "colorful.json"
+    },
+    "eclipse": {
+      "style": "eclipse.json"
+    }
+  }
+}

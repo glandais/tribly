@@ -45,7 +45,8 @@ final homeUpcomingRidesProvider =
             routeSlug: p.routeSlug,
             startPlace: p.startPlace,
             endPlace: p.endPlace,
-            routeThumbnailUrl: p.routeThumbnailUrl,
+            routeThumbnailLightUrl: p.routeThumbnailLightUrl,
+            routeThumbnailDarkUrl: p.routeThumbnailDarkUrl,
           ))
       .toList();
 });
@@ -371,6 +372,10 @@ class _RideCard extends ConsumerWidget {
     final token = ref.watch(accessTokenHolderProvider);
     final theme = Theme.of(context);
 
+    final thumbnailUrl = theme.brightness == Brightness.dark
+        ? ride.routeThumbnailDarkUrl
+        : ride.routeThumbnailLightUrl;
+
     return AnimatedCard(
       onTap: () => context.push(Paths.ride(ride.team.slug, ride.slug)),
       child: Padding(
@@ -386,17 +391,17 @@ class _RideCard extends ConsumerWidget {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(8),
                 color: theme.colorScheme.primaryContainer,
-                image: ride.routeThumbnailUrl != null
+                image: thumbnailUrl != null
                     ? DecorationImage(
                         image: AuthenticatedDecorationImage.fromUrl(
-                          ride.routeThumbnailUrl,
+                          thumbnailUrl,
                           token,
                         )!,
                         fit: BoxFit.cover,
                       )
                     : null,
               ),
-              child: ride.routeThumbnailUrl == null
+              child: thumbnailUrl == null
                   ? Icon(
                       Icons.directions_bike,
                       color: theme.colorScheme.onPrimaryContainer,

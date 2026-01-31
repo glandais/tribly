@@ -33,7 +33,8 @@ PublicationDtoRide _$PublicationDtoRideFromJson(Map<String, dynamic> json) =>
       endPlace: json['endPlace'] == null
           ? null
           : PlaceDetailDto.fromJson(json['endPlace'] as Map<String, dynamic>),
-      routeThumbnailUrl: json['routeThumbnailUrl'] as String?,
+      routeThumbnailLightUrl: json['routeThumbnailLightUrl'] as String?,
+      routeThumbnailDarkUrl: json['routeThumbnailDarkUrl'] as String?,
       $type: json['type'] as String?,
     );
 
@@ -57,7 +58,8 @@ Map<String, dynamic> _$PublicationDtoRideToJson(
   'routeSlug': instance.routeSlug,
   'startPlace': instance.startPlace?.toJson(),
   'endPlace': instance.endPlace?.toJson(),
-  'routeThumbnailUrl': instance.routeThumbnailUrl,
+  'routeThumbnailLightUrl': instance.routeThumbnailLightUrl,
+  'routeThumbnailDarkUrl': instance.routeThumbnailDarkUrl,
   'type': instance.$type,
 };
 
@@ -112,7 +114,8 @@ PublicationDtoTrip _$PublicationDtoTripFromJson(Map<String, dynamic> json) =>
       publishAt: json['publishAt'] as String?,
       createdAt: json['createdAt'] as String?,
       routeSlug: json['routeSlug'] as String?,
-      routeThumbnailUrl: json['routeThumbnailUrl'] as String?,
+      routeThumbnailLightUrl: json['routeThumbnailLightUrl'] as String?,
+      routeThumbnailDarkUrl: json['routeThumbnailDarkUrl'] as String?,
       $type: json['type'] as String?,
     );
 
@@ -133,6 +136,7 @@ Map<String, dynamic> _$PublicationDtoTripToJson(PublicationDtoTrip instance) =>
       'publishAt': instance.publishAt,
       'createdAt': instance.createdAt,
       'routeSlug': instance.routeSlug,
-      'routeThumbnailUrl': instance.routeThumbnailUrl,
+      'routeThumbnailLightUrl': instance.routeThumbnailLightUrl,
+      'routeThumbnailDarkUrl': instance.routeThumbnailDarkUrl,
       'type': instance.$type,
     };

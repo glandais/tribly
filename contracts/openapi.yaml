@@ -591,8 +591,12 @@ components:
           description: FIT
           type: object
           $ref: "#/components/schemas/AssetDto"
-        thumbnail:
-          description: Thumbnail
+        thumbnailLight:
+          description: Light thumbnail
+          type: object
+          $ref: "#/components/schemas/AssetDto"
+        thumbnailDark:
+          description: Dark thumbnail
           type: object
           $ref: "#/components/schemas/AssetDto"
       required:
@@ -1944,9 +1948,12 @@ components:
           items:
             $ref: "#/components/schemas/PublicUserDto"
           description: Preview of first participants (max 5)
-        routeThumbnailUrl:
+        routeThumbnailLightUrl:
           type: string
-          description: Route thumbnail URL
+          description: Route thumbnail URL (light)
+        routeThumbnailDarkUrl:
+          type: string
+          description: Route thumbnail URL (dark)
     RideGroupDto:
       type: object
       description: Ride group information
@@ -2962,9 +2969,12 @@ components:
           items:
             $ref: "#/components/schemas/PublicUserDto"
           description: Trip participants
-        routeThumbnailUrl:
+        routeThumbnailLightUrl:
           type: string
-          description: Route thumbnail URL
+          description: Route thumbnail URL (light)
+        routeThumbnailDarkUrl:
+          type: string
+          description: Route thumbnail URL (dark)
     TripListResponse:
       description: Paginated trip list response
       type: object

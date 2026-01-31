@@ -12,7 +12,8 @@ public enum AssetType {
   ROUTE_ORIGINAL_GPX(true),
   ROUTE_FILTERED_GPX(true),
   ROUTE_FIT(true),
-  ROUTE_THUMBNAIL(true);
+  ROUTE_THUMBNAIL_LIGHT(true),
+  ROUTE_THUMBNAIL_DARK(true);
 
   final boolean system;
 }

@@ -13,6 +13,7 @@ import {
   Loader,
   Modal,
   Box,
+  useComputedColorScheme,
 } from '@mantine/core'
 import { useListRoutes } from '@/api/endpoints/routes/routes'
 import type { RouteDto } from '@/api/dto'
@@ -42,6 +43,7 @@ export function RoutePickerModal({
 }: RoutePickerModalProps) {
   const { t } = useTranslation()
   const { distance, elevation } = useUnits()
+  const colorScheme = useComputedColorScheme('light')
   const [page, setPage] = useState(0)
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
@@ -143,7 +145,10 @@ export function RoutePickerModal({
               >
                 <Stack gap="xs" w="100%">
                   <Image
-                    src={route.media.assets.thumbnail?.imageUrl?.replace('{size}', '256')}
+                    src={(colorScheme === 'dark'
+                      ? route.media.assets.thumbnailDark
+                      : route.media.assets.thumbnailLight
+                    )?.imageUrl?.replace('{size}', '256')}
                     alt={route.name}
                     h={128}
                     fit="cover"

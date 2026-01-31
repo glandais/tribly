@@ -107,6 +107,10 @@ class _RouteGridItem extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final token = ref.watch(accessTokenHolderProvider);
 
+    final thumbnail = Theme.of(context).brightness == Brightness.dark
+        ? route.media.assets.thumbnailDark
+        : route.media.assets.thumbnailLight;
+
     return AnimatedCard(
       onTap: () => context.push(Paths.route(route.team.slug, route.slug)),
       child: ClipRRect(
@@ -124,17 +128,17 @@ class _RouteGridItem extends ConsumerWidget {
                   width: double.infinity,
                   decoration: BoxDecoration(
                     color: Theme.of(context).colorScheme.primaryContainer,
-                    image: route.media.assets.thumbnail?.url != null
+                    image: thumbnail?.url != null
                         ? DecorationImage(
                             image: AuthenticatedDecorationImage.fromUrl(
-                              route.media.assets.thumbnail!.url,
+                              thumbnail!.url,
                               token,
                             )!,
                             fit: BoxFit.cover,
                           )
                         : null,
                   ),
-                  child: route.media.assets.thumbnail?.url == null
+                  child: thumbnail?.url == null
                       ? Center(
                           child: Icon(
                             Icons.route,

@@ -1,4 +1,5 @@
 import { Image, Box, Center } from '@mantine/core'
+import { useComputedColorScheme } from '@mantine/core'
 import { IconBike, IconArticle, IconRoute } from '@tabler/icons-react'
 import type { MediaDto } from '@/api/dto'
 
@@ -25,6 +26,7 @@ const typeGradients: Record<PublicationType, string> = {
 
 export function CardImage({ media, alt, height = 160, type }: CardImageProps) {
   const { assets } = media
+  const colorScheme = useComputedColorScheme('light')
 
   // Priority 1: First image from images array
   const firstImage = assets.images?.[0]
@@ -39,11 +41,12 @@ export function CardImage({ media, alt, height = 160, type }: CardImageProps) {
     )
   }
 
-  // Priority 2: Thumbnail
-  if (assets.thumbnail?.imageUrl) {
+  // Priority 2: Thumbnail (color scheme aware)
+  const thumbnail = colorScheme === 'dark' ? assets.thumbnailDark : assets.thumbnailLight
+  if (thumbnail?.imageUrl) {
     return (
       <Image
-        src={assets.thumbnail.imageUrl.replace('{size}', String(height * 2))}
+        src={thumbnail.imageUrl.replace('{size}', String(height * 2))}
         alt={alt}
         h={height}
         fit="contain"

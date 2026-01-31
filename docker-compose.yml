@@ -133,6 +133,15 @@ services:
     volumes:
       - minio_data:/data
 
+  tileserver:
+    image: maptiler/tileserver-gl:v4.13.1
+    container_name: tribly-tileserver
+    restart: unless-stopped
+    networks:
+      - tribly
+    volumes:
+      - ./data/tileserver:/data
+
 volumes:
   postgres_data:
   minio_data:

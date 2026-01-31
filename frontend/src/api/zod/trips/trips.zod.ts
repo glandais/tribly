@@ -127,7 +127,22 @@ export const createTripBody = zod
               .optional(),
           })
           .optional(),
-        thumbnail: zod
+        thumbnailLight: zod
+          .object({
+            id: zod.string().describe('ID (TSID)'),
+            fileName: zod.string().describe('Filename'),
+            contentType: zod.string().describe('Content-Type'),
+            url: zod.string().describe('url'),
+            imageUrl: zod.string().optional().describe('image template url'),
+            imageDimensions: zod
+              .object({
+                width: zod.number().optional(),
+                height: zod.number().optional(),
+              })
+              .optional(),
+          })
+          .optional(),
+        thumbnailDark: zod
           .object({
             id: zod.string().describe('ID (TSID)'),
             fileName: zod.string().describe('Filename'),
@@ -261,7 +276,22 @@ export const createTripBody = zod
                       .optional(),
                   })
                   .optional(),
-                thumbnail: zod
+                thumbnailLight: zod
+                  .object({
+                    id: zod.string().describe('ID (TSID)'),
+                    fileName: zod.string().describe('Filename'),
+                    contentType: zod.string().describe('Content-Type'),
+                    url: zod.string().describe('url'),
+                    imageUrl: zod.string().optional().describe('image template url'),
+                    imageDimensions: zod
+                      .object({
+                        width: zod.number().optional(),
+                        height: zod.number().optional(),
+                      })
+                      .optional(),
+                  })
+                  .optional(),
+                thumbnailDark: zod
                   .object({
                     id: zod.string().describe('ID (TSID)'),
                     fileName: zod.string().describe('Filename'),
@@ -406,7 +436,22 @@ export const updateTripBody = zod
               .optional(),
           })
           .optional(),
-        thumbnail: zod
+        thumbnailLight: zod
+          .object({
+            id: zod.string().describe('ID (TSID)'),
+            fileName: zod.string().describe('Filename'),
+            contentType: zod.string().describe('Content-Type'),
+            url: zod.string().describe('url'),
+            imageUrl: zod.string().optional().describe('image template url'),
+            imageDimensions: zod
+              .object({
+                width: zod.number().optional(),
+                height: zod.number().optional(),
+              })
+              .optional(),
+          })
+          .optional(),
+        thumbnailDark: zod
           .object({
             id: zod.string().describe('ID (TSID)'),
             fileName: zod.string().describe('Filename'),
@@ -540,7 +585,22 @@ export const updateTripBody = zod
                       .optional(),
                   })
                   .optional(),
-                thumbnail: zod
+                thumbnailLight: zod
+                  .object({
+                    id: zod.string().describe('ID (TSID)'),
+                    fileName: zod.string().describe('Filename'),
+                    contentType: zod.string().describe('Content-Type'),
+                    url: zod.string().describe('url'),
+                    imageUrl: zod.string().optional().describe('image template url'),
+                    imageDimensions: zod
+                      .object({
+                        width: zod.number().optional(),
+                        height: zod.number().optional(),
+                      })
+                      .optional(),
+                  })
+                  .optional(),
+                thumbnailDark: zod
                   .object({
                     id: zod.string().describe('ID (TSID)'),
                     fileName: zod.string().describe('Filename'),
@@ -675,7 +735,22 @@ export const updateTripResponse = zod
               .optional(),
           })
           .optional(),
-        thumbnail: zod
+        thumbnailLight: zod
+          .object({
+            id: zod.string().describe('ID (TSID)'),
+            fileName: zod.string().describe('Filename'),
+            contentType: zod.string().describe('Content-Type'),
+            url: zod.string().describe('url'),
+            imageUrl: zod.string().optional().describe('image template url'),
+            imageDimensions: zod
+              .object({
+                width: zod.number().optional(),
+                height: zod.number().optional(),
+              })
+              .optional(),
+          })
+          .optional(),
+        thumbnailDark: zod
           .object({
             id: zod.string().describe('ID (TSID)'),
             fileName: zod.string().describe('Filename'),
@@ -844,7 +919,22 @@ export const updateTripResponse = zod
                       .optional(),
                   })
                   .optional(),
-                thumbnail: zod
+                thumbnailLight: zod
+                  .object({
+                    id: zod.string().describe('ID (TSID)'),
+                    fileName: zod.string().describe('Filename'),
+                    contentType: zod.string().describe('Content-Type'),
+                    url: zod.string().describe('url'),
+                    imageUrl: zod.string().optional().describe('image template url'),
+                    imageDimensions: zod
+                      .object({
+                        width: zod.number().optional(),
+                        height: zod.number().optional(),
+                      })
+                      .optional(),
+                  })
+                  .optional(),
+                thumbnailDark: zod
                   .object({
                     id: zod.string().describe('ID (TSID)'),
                     fileName: zod.string().describe('Filename'),
@@ -877,7 +967,8 @@ export const updateTripResponse = zod
           .describe('Public user information (limited fields)')
       )
       .describe('Trip participants'),
-    routeThumbnailUrl: zod.string().optional().describe('Route thumbnail URL'),
+    routeThumbnailLightUrl: zod.string().optional().describe('Route thumbnail URL (light)'),
+    routeThumbnailDarkUrl: zod.string().optional().describe('Route thumbnail URL (dark)'),
   })
   .describe('Trip data')
 
@@ -1001,7 +1092,22 @@ export const getTripResponse = zod
               .optional(),
           })
           .optional(),
-        thumbnail: zod
+        thumbnailLight: zod
+          .object({
+            id: zod.string().describe('ID (TSID)'),
+            fileName: zod.string().describe('Filename'),
+            contentType: zod.string().describe('Content-Type'),
+            url: zod.string().describe('url'),
+            imageUrl: zod.string().optional().describe('image template url'),
+            imageDimensions: zod
+              .object({
+                width: zod.number().optional(),
+                height: zod.number().optional(),
+              })
+              .optional(),
+          })
+          .optional(),
+        thumbnailDark: zod
           .object({
             id: zod.string().describe('ID (TSID)'),
             fileName: zod.string().describe('Filename'),
@@ -1170,7 +1276,22 @@ export const getTripResponse = zod
                       .optional(),
                   })
                   .optional(),
-                thumbnail: zod
+                thumbnailLight: zod
+                  .object({
+                    id: zod.string().describe('ID (TSID)'),
+                    fileName: zod.string().describe('Filename'),
+                    contentType: zod.string().describe('Content-Type'),
+                    url: zod.string().describe('url'),
+                    imageUrl: zod.string().optional().describe('image template url'),
+                    imageDimensions: zod
+                      .object({
+                        width: zod.number().optional(),
+                        height: zod.number().optional(),
+                      })
+                      .optional(),
+                  })
+                  .optional(),
+                thumbnailDark: zod
                   .object({
                     id: zod.string().describe('ID (TSID)'),
                     fileName: zod.string().describe('Filename'),
@@ -1203,7 +1324,8 @@ export const getTripResponse = zod
           .describe('Public user information (limited fields)')
       )
       .describe('Trip participants'),
-    routeThumbnailUrl: zod.string().optional().describe('Route thumbnail URL'),
+    routeThumbnailLightUrl: zod.string().optional().describe('Route thumbnail URL (light)'),
+    routeThumbnailDarkUrl: zod.string().optional().describe('Route thumbnail URL (dark)'),
   })
   .describe('Trip data')
 
@@ -1368,7 +1490,22 @@ export const changeTripSlugResponse = zod
               .optional(),
           })
           .optional(),
-        thumbnail: zod
+        thumbnailLight: zod
+          .object({
+            id: zod.string().describe('ID (TSID)'),
+            fileName: zod.string().describe('Filename'),
+            contentType: zod.string().describe('Content-Type'),
+            url: zod.string().describe('url'),
+            imageUrl: zod.string().optional().describe('image template url'),
+            imageDimensions: zod
+              .object({
+                width: zod.number().optional(),
+                height: zod.number().optional(),
+              })
+              .optional(),
+          })
+          .optional(),
+        thumbnailDark: zod
           .object({
             id: zod.string().describe('ID (TSID)'),
             fileName: zod.string().describe('Filename'),
@@ -1537,7 +1674,22 @@ export const changeTripSlugResponse = zod
                       .optional(),
                   })
                   .optional(),
-                thumbnail: zod
+                thumbnailLight: zod
+                  .object({
+                    id: zod.string().describe('ID (TSID)'),
+                    fileName: zod.string().describe('Filename'),
+                    contentType: zod.string().describe('Content-Type'),
+                    url: zod.string().describe('url'),
+                    imageUrl: zod.string().optional().describe('image template url'),
+                    imageDimensions: zod
+                      .object({
+                        width: zod.number().optional(),
+                        height: zod.number().optional(),
+                      })
+                      .optional(),
+                  })
+                  .optional(),
+                thumbnailDark: zod
                   .object({
                     id: zod.string().describe('ID (TSID)'),
                     fileName: zod.string().describe('Filename'),
@@ -1570,6 +1722,7 @@ export const changeTripSlugResponse = zod
           .describe('Public user information (limited fields)')
       )
       .describe('Trip participants'),
-    routeThumbnailUrl: zod.string().optional().describe('Route thumbnail URL'),
+    routeThumbnailLightUrl: zod.string().optional().describe('Route thumbnail URL (light)'),
+    routeThumbnailDarkUrl: zod.string().optional().describe('Route thumbnail URL (dark)'),
   })
   .describe('Trip data')

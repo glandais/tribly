@@ -15,7 +15,8 @@ public record AssetsDto(
     @Nullable @Schema(description = "Original GPX") AssetDto originalGpx,
     @Nullable @Schema(description = "GPX") AssetDto gpx,
     @Nullable @Schema(description = "FIT") AssetDto fit,
-    @Nullable @Schema(description = "Thumbnail") AssetDto thumbnail) {
+    @Nullable @Schema(description = "Light thumbnail") AssetDto thumbnailLight,
+    @Nullable @Schema(description = "Dark thumbnail") AssetDto thumbnailDark) {
 
   public static class AssetsDtoBuilder {
     AssetsDtoBuilder() {

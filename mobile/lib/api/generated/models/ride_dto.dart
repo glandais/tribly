@@ -76,8 +76,11 @@ abstract class RideDto with _$RideDto {
     /// End place
     PlaceDetailDto? endPlace,
 
-    /// Route thumbnail URL
-    String? routeThumbnailUrl,
+    /// Route thumbnail URL (light)
+    String? routeThumbnailLightUrl,
+
+    /// Route thumbnail URL (dark)
+    String? routeThumbnailDarkUrl,
   }) = _RideDto;
 
   factory RideDto.fromJson(Map<String, Object?> json) =>

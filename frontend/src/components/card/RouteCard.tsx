@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { IconMap, IconArrowUp } from '@tabler/icons-react'
 import { useUnits } from '@/hooks/useUnits'
-import { Group, Image, Box } from '@mantine/core'
+import { Group, Image, Box, useComputedColorScheme } from '@mantine/core'
 import type { RouteDto } from '@/api/dto'
 import { Card, CardContent, CardTitle, CardDescription, CardTeamLink } from './common'
 import { Badge, VisibilityBadge, Stat, StatGroup, CardSkeleton } from './common'
@@ -16,13 +16,13 @@ interface RouteCardProps {
 export function RouteCard({ route, showTeam }: RouteCardProps) {
   const { t } = useTranslation()
   const { distance, elevation } = useUnits()
+  const colorScheme = useComputedColorScheme('light')
+  const thumbnail =
+    colorScheme === 'dark' ? route.media.assets.thumbnailDark : route.media.assets.thumbnailLight
 
   return (
     <Card to={paths.route(route.team.slug, route.slug)}>
-      <Image
-        src={route.media.assets.thumbnail?.imageUrl?.replace('{size}', '400')}
-        alt={route.name}
-      />
+      <Image src={thumbnail?.imageUrl?.replace('{size}', '400')} alt={route.name} />
 
       <CardContent>
         {showTeam && <CardTeamLink teamSlug={route.team.slug} teamName={route.team.name} />}

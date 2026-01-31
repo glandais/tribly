@@ -10,7 +10,6 @@ import com.tribly.dto.publications.response.PublicationType;
 import com.tribly.dto.publications.response.TeamPublicationDto;
 import com.tribly.dto.users.response.PublicUserDto;
 import com.tribly.dto.validation.ValidateSchema;
-import com.tribly.enums.AssetType;
 import com.tribly.enums.Status;
 import com.tribly.enums.Visibility;
 import com.tribly.service.asset.AssetService;
@@ -78,8 +77,12 @@ public class TripDto implements PublicationDto {
   final List<PublicUserDto> participants;
 
   @Nullable
-  @Schema(description = "Route thumbnail URL")
-  final String routeThumbnailUrl;
+  @Schema(description = "Route thumbnail URL (light)")
+  final String routeThumbnailLightUrl;
+
+  @Nullable
+  @Schema(description = "Route thumbnail URL (dark)")
+  final String routeThumbnailDarkUrl;
 
   public TripDto(
       TeamPublicationDto team,
@@ -97,7 +100,8 @@ public class TripDto implements PublicationDto {
       int stageCount,
       List<TripStageDto> stages,
       List<PublicUserDto> participants,
-      @Nullable String routeThumbnailUrl) {
+      @Nullable String routeThumbnailLightUrl,
+      @Nullable String routeThumbnailDarkUrl) {
     super();
     this.team = team;
     this.id = id;
@@ -114,7 +118,8 @@ public class TripDto implements PublicationDto {
     this.stageCount = stageCount;
     this.stages = stages;
     this.participants = participants;
-    this.routeThumbnailUrl = routeThumbnailUrl;
+    this.routeThumbnailLightUrl = routeThumbnailLightUrl;
+    this.routeThumbnailDarkUrl = routeThumbnailDarkUrl;
   }
 
   public static TripDto from(Trip trip, boolean stageDetails, AssetService assetService) {
@@ -135,15 +140,17 @@ public class TripDto implements PublicationDto {
                 .toList()
             : List.of();
 
-    // Get route thumbnail URL if route exists
-    String routeThumbnailUrl = null;
+    // Get route thumbnail URLs if route exists
+    String routeThumbnailLightUrl = null;
+    String routeThumbnailDarkUrl = null;
     if (trip.getRoute() != null) {
-      routeThumbnailUrl =
-          trip.getRoute().getAssets().stream()
-              .filter(a -> a.getType() == AssetType.ROUTE_THUMBNAIL)
-              .findFirst()
-              .map(assetService::getImageUrl)
-              .orElse(null);
+      for (var asset : trip.getRoute().getAssets()) {
+        switch (asset.getType()) {
+          case ROUTE_THUMBNAIL_LIGHT -> routeThumbnailLightUrl = assetService.getImageUrl(asset);
+          case ROUTE_THUMBNAIL_DARK -> routeThumbnailDarkUrl = assetService.getImageUrl(asset);
+          default -> {}
+        }
+      }
     }
 
     return new TripDto(
@@ -162,6 +169,7 @@ public class TripDto implements PublicationDto {
         trip.getStageCount(),
         stageDtos,
         participantDtos,
-        routeThumbnailUrl);
+        routeThumbnailLightUrl,
+        routeThumbnailDarkUrl);
   }
 }

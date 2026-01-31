@@ -141,7 +141,22 @@ export const listAdsResponse = zod
                       .optional(),
                   })
                   .optional(),
-                thumbnail: zod
+                thumbnailLight: zod
+                  .object({
+                    id: zod.string().describe('ID (TSID)'),
+                    fileName: zod.string().describe('Filename'),
+                    contentType: zod.string().describe('Content-Type'),
+                    url: zod.string().describe('url'),
+                    imageUrl: zod.string().optional().describe('image template url'),
+                    imageDimensions: zod
+                      .object({
+                        width: zod.number().optional(),
+                        height: zod.number().optional(),
+                      })
+                      .optional(),
+                  })
+                  .optional(),
+                thumbnailDark: zod
                   .object({
                     id: zod.string().describe('ID (TSID)'),
                     fileName: zod.string().describe('Filename'),
@@ -295,7 +310,22 @@ export const createAdBody = zod
               .optional(),
           })
           .optional(),
-        thumbnail: zod
+        thumbnailLight: zod
+          .object({
+            id: zod.string().describe('ID (TSID)'),
+            fileName: zod.string().describe('Filename'),
+            contentType: zod.string().describe('Content-Type'),
+            url: zod.string().describe('url'),
+            imageUrl: zod.string().optional().describe('image template url'),
+            imageDimensions: zod
+              .object({
+                width: zod.number().optional(),
+                height: zod.number().optional(),
+              })
+              .optional(),
+          })
+          .optional(),
+        thumbnailDark: zod
           .object({
             id: zod.string().describe('ID (TSID)'),
             fileName: zod.string().describe('Filename'),
@@ -450,7 +480,22 @@ export const updateAdBody = zod
               .optional(),
           })
           .optional(),
-        thumbnail: zod
+        thumbnailLight: zod
+          .object({
+            id: zod.string().describe('ID (TSID)'),
+            fileName: zod.string().describe('Filename'),
+            contentType: zod.string().describe('Content-Type'),
+            url: zod.string().describe('url'),
+            imageUrl: zod.string().optional().describe('image template url'),
+            imageDimensions: zod
+              .object({
+                width: zod.number().optional(),
+                height: zod.number().optional(),
+              })
+              .optional(),
+          })
+          .optional(),
+        thumbnailDark: zod
           .object({
             id: zod.string().describe('ID (TSID)'),
             fileName: zod.string().describe('Filename'),
@@ -596,7 +641,22 @@ export const updateAdResponse = zod
               .optional(),
           })
           .optional(),
-        thumbnail: zod
+        thumbnailLight: zod
+          .object({
+            id: zod.string().describe('ID (TSID)'),
+            fileName: zod.string().describe('Filename'),
+            contentType: zod.string().describe('Content-Type'),
+            url: zod.string().describe('url'),
+            imageUrl: zod.string().optional().describe('image template url'),
+            imageDimensions: zod
+              .object({
+                width: zod.number().optional(),
+                height: zod.number().optional(),
+              })
+              .optional(),
+          })
+          .optional(),
+        thumbnailDark: zod
           .object({
             id: zod.string().describe('ID (TSID)'),
             fileName: zod.string().describe('Filename'),
@@ -744,7 +804,22 @@ export const getAdResponse = zod
               .optional(),
           })
           .optional(),
-        thumbnail: zod
+        thumbnailLight: zod
+          .object({
+            id: zod.string().describe('ID (TSID)'),
+            fileName: zod.string().describe('Filename'),
+            contentType: zod.string().describe('Content-Type'),
+            url: zod.string().describe('url'),
+            imageUrl: zod.string().optional().describe('image template url'),
+            imageDimensions: zod
+              .object({
+                width: zod.number().optional(),
+                height: zod.number().optional(),
+              })
+              .optional(),
+          })
+          .optional(),
+        thumbnailDark: zod
           .object({
             id: zod.string().describe('ID (TSID)'),
             fileName: zod.string().describe('Filename'),
@@ -901,7 +976,22 @@ export const getAdEditResponse = zod
               .optional(),
           })
           .optional(),
-        thumbnail: zod
+        thumbnailLight: zod
+          .object({
+            id: zod.string().describe('ID (TSID)'),
+            fileName: zod.string().describe('Filename'),
+            contentType: zod.string().describe('Content-Type'),
+            url: zod.string().describe('url'),
+            imageUrl: zod.string().optional().describe('image template url'),
+            imageDimensions: zod
+              .object({
+                width: zod.number().optional(),
+                height: zod.number().optional(),
+              })
+              .optional(),
+          })
+          .optional(),
+        thumbnailDark: zod
           .object({
             id: zod.string().describe('ID (TSID)'),
             fileName: zod.string().describe('Filename'),
@@ -1070,7 +1160,22 @@ export const changeAdSlugResponse = zod
               .optional(),
           })
           .optional(),
-        thumbnail: zod
+        thumbnailLight: zod
+          .object({
+            id: zod.string().describe('ID (TSID)'),
+            fileName: zod.string().describe('Filename'),
+            contentType: zod.string().describe('Content-Type'),
+            url: zod.string().describe('url'),
+            imageUrl: zod.string().optional().describe('image template url'),
+            imageDimensions: zod
+              .object({
+                width: zod.number().optional(),
+                height: zod.number().optional(),
+              })
+              .optional(),
+          })
+          .optional(),
+        thumbnailDark: zod
           .object({
             id: zod.string().describe('ID (TSID)'),
             fileName: zod.string().describe('Filename'),
