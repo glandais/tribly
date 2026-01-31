@@ -150,9 +150,7 @@ Configuration uses Quarkus profiles (`%dev`, `%test`, `%prod`) in `application.p
 | `IMGPROXY_URL` | Image proxy |
 | `BROUTER_URL` | Route engine |
 | `ENCRYPTION_KEY` | Token encryption (base64-encoded 32-byte key) |
-| `MAPBOX_API_KEY` | Map tiles |
-| `HAMMERHEAD_CLIENT_ID`, `HAMMERHEAD_CLIENT_SECRET` | Hammerhead GPS integration |
-| `GARMIN_CLIENT_ID` | Garmin GPS integration |
+| `TILESERVER_URL` | Tile server for map thumbnails |
 
 ## Contract-First Workflow
 

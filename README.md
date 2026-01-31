@@ -140,15 +140,6 @@ Users can connect GPS devices from their profile to upload routes directly to th
 
 **Setup:**
 
-*Hammerhead:*
-1. Register your application with Hammerhead to obtain OAuth credentials
-2. Set `HAMMERHEAD_CLIENT_ID` and `HAMMERHEAD_CLIENT_SECRET` environment variables
-
-*Garmin Connect:*
-1. Register your application with Garmin Connect Developer Program
-2. Set `GARMIN_CLIENT_ID` environment variable
-
-*Common:*
 - Set `ENCRYPTION_KEY` for secure token storage (required in production)
 
 **Usage:**

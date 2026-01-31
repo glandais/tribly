@@ -35,7 +35,6 @@ jobs:
       - name: Run backend tests
         working-directory: ./backend
         env:
-          MAPBOX_API_KEY: ${{ secrets.MAPBOX_API_KEY }}
           QUARKUS_HIBERNATE_ORM_LOG_SQL: false
         run: mvn -B test
 
