@@ -7,5 +7,5 @@
  */
 
 export type RegisterPasskeyParams = {
-deviceName?: string;
-};
+  deviceName?: string
+}

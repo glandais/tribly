@@ -13,12 +13,13 @@ import maplibregl from 'maplibre-gl'
 import { IconTrash } from '@tabler/icons-react'
 import { ActionIcon, Box, Group, Loader, Stack, Text, useComputedColorScheme } from '@mantine/core'
 import { MapStyleSwitcher } from '../map/MapStyleSwitcher'
+import { UndoRedoControl } from './UndoRedoControl'
 import { useMapStyle } from '../../hooks/useMapStyle'
 import { useUnits } from '../../hooks/useUnits'
-import { useRoutePlanner } from '../../hooks/useRoutePlanner'
+import { useRoutePlanner, findBboxStartPoint, findBboxEndPoint } from '../../hooks/useRoutePlanner'
 import type { GeoPoint } from '@/api/dto'
 // maplibre-gl CSS is provided by maplibre-theme in index.css
-import { findPreviousControlPointIndex } from '@/lib/planner'
+import { RoutePoint } from '@/lib/planner'
 import { getOverlayBg } from '@/lib/colors'
 import { around } from 'geokdbush'
 
@@ -49,9 +50,14 @@ export function RoutePlanner({ onPointsChange, initialTrack, teamLocation }: Rou
     insertControlPoint,
     updateControlPoint,
     removeControlPoint,
-    updateZoom,
     clearRoute,
+    canUndo,
+    canRedo,
+    undo,
+    redo,
   } = useRoutePlanner({ initialTrack })
+
+  const getMapBounds = useCallback(() => mapRef.current?.getBounds() ?? null, [])
 
   // Calculate initial view state from track bounds or team location
   const initialViewState = useMemo(() => {
@@ -112,6 +118,12 @@ export function RoutePlanner({ onPointsChange, initialTrack, teamLocation }: Rou
     onPointsChange(allPoints)
   }, [routeGeoJson, onPointsChange])
 
+  // State for effective start on edition
+  const [startDragPoint, setStartDragPoint] = useState<RoutePoint | undefined>(undefined)
+
+  // State for effective end on edition
+  const [endDragPoint, setEndDragPoint] = useState<RoutePoint | undefined>(undefined)
+
   // State for hover marker on route segments
   const [hoverPoint, setHoverPoint] = useState<{
     lng: number
@@ -128,20 +140,24 @@ export function RoutePlanner({ onPointsChange, initialTrack, teamLocation }: Rou
 
   // Track which marker is being dragged and its current position
   const [draggingMarker, setDraggingMarker] = useState<{
-    index: number
     lng: number
     lat: number
+    idx: number
   } | null>(null)
 
-  // Track current map zoom level
-  const [currentZoom, setCurrentZoom] = useState(initialViewState.zoom)
-  useEffect(() => updateZoom(currentZoom), [currentZoom, updateZoom])
-
-  // Track Ctrl key state for direct line mode
+  // Track Ctrl key state for direct line mode + undo/redo shortcuts
   const ctrlKeyRef = useRef(false)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Control') ctrlKeyRef.current = true
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault()
+        undo()
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && e.shiftKey) {
+        e.preventDefault()
+        redo()
+      }
     }
     const handleKeyUp = (e: KeyboardEvent) => {
       if (e.key === 'Control') ctrlKeyRef.current = false
@@ -152,45 +168,49 @@ export function RoutePlanner({ onPointsChange, initialTrack, teamLocation }: Rou
       window.removeEventListener('keydown', handleKeyDown)
       window.removeEventListener('keyup', handleKeyUp)
     }
-  }, [])
+  }, [undo, redo])
 
   const handleMarkerDragStart = useCallback(
-    (index: number) => (event: MarkerDragEvent) => {
-      setDraggingMarker({ index, lng: event.lngLat.lng, lat: event.lngLat.lat })
+    (idx: number) => (event: MarkerDragEvent) => {
+      setDraggingMarker({ idx, lng: event.lngLat.lng, lat: event.lngLat.lat })
+      const bounds = getMapBounds()
+      setStartDragPoint(findBboxStartPoint(route, idx, bounds))
+      setEndDragPoint(findBboxEndPoint(route, idx, bounds))
       setHoverPoint(null)
     },
-    []
+    [route, getMapBounds]
   )
 
   const handleMarkerDrag = useCallback(
-    (index: number) => (event: MarkerDragEvent) => {
+    (idx: number) => (event: MarkerDragEvent) => {
       setDraggingMarker((prev) =>
-        prev && prev.index === index
-          ? { index, lng: event.lngLat.lng, lat: event.lngLat.lat }
-          : prev
+        prev && prev.idx === idx ? { idx, lng: event.lngLat.lng, lat: event.lngLat.lat } : prev
       )
     },
     []
   )
 
   const handleMarkerDragEnd = useCallback(
-    (index: number) => (event: MarkerDragEvent) => {
+    () => (event: MarkerDragEvent) => {
       updateControlPoint(
-        index,
+        startDragPoint,
         { lng: event.lngLat.lng, lat: event.lngLat.lat },
+        endDragPoint,
         ctrlKeyRef.current
       )
       setDraggingMarker(null)
+      setStartDragPoint(undefined)
+      setEndDragPoint(undefined)
     },
-    [updateControlPoint]
+    [updateControlPoint, startDragPoint, endDragPoint]
   )
 
   const handleMarkerRightClick = useCallback(
     (index: number) => (event: React.MouseEvent) => {
       event.preventDefault()
-      removeControlPoint(index, ctrlKeyRef.current)
+      removeControlPoint(index, ctrlKeyRef.current, getMapBounds())
     },
-    [removeControlPoint]
+    [removeControlPoint, getMapBounds]
   )
 
   const handleMapClick = useCallback(
@@ -269,43 +289,47 @@ export function RoutePlanner({ onPointsChange, initialTrack, teamLocation }: Rou
         lat: hoverPoint.lat,
         idx: hoverPoint.idx,
       })
+      const bounds = getMapBounds()
+      setStartDragPoint(findBboxStartPoint(route, hoverPoint.idx, bounds))
+      setEndDragPoint(findBboxEndPoint(route, hoverPoint.idx, bounds))
       setHoverPoint(null)
     },
-    [hoverPoint]
+    [hoverPoint, getMapBounds, route]
   )
 
   const handleMouseUp = useCallback(() => {
     if (draggingGhost) {
       insertControlPoint(
-        draggingGhost.idx,
+        startDragPoint,
         { lng: draggingGhost.lng, lat: draggingGhost.lat },
+        endDragPoint,
         ctrlKeyRef.current
       )
       setDraggingGhost(null)
+      setStartDragPoint(undefined)
+      setEndDragPoint(undefined)
     }
-  }, [draggingGhost, insertControlPoint])
+  }, [insertControlPoint, draggingGhost, startDragPoint, endDragPoint])
 
   const routeStats = {
     distance: 0,
     ascend: 0,
   }
 
-  // Compute connection lines when dragging
-  const dragConnectionLines = useMemo(() => {
+  // Compute connection lines and boundary points when dragging
+  const { dragConnectionLines } = useMemo(() => {
     // Connection lines for dragging existing marker
-    if (draggingMarker) {
-      const { index, lng, lat } = draggingMarker
+    if (draggingMarker || draggingGhost) {
+      const { lng, lat } = (draggingMarker || draggingGhost)!
       const features: GeoJSON.Feature<GeoJSON.LineString>[] = []
 
-      // Connect to previous point
-      if (index > 0) {
-        const prev = controlPoints[index - 1]
+      if (startDragPoint) {
         features.push({
           type: 'Feature',
           geometry: {
             type: 'LineString',
             coordinates: [
-              [prev.lng, prev.lat],
+              [startDragPoint.lng, startDragPoint.lat],
               [lng, lat],
             ],
           },
@@ -313,16 +337,14 @@ export function RoutePlanner({ onPointsChange, initialTrack, teamLocation }: Rou
         })
       }
 
-      // Connect to next point
-      if (index < controlPoints.length - 1) {
-        const next = controlPoints[index + 1]
+      if (endDragPoint) {
         features.push({
           type: 'Feature',
           geometry: {
             type: 'LineString',
             coordinates: [
               [lng, lat],
-              [next.lng, next.lat],
+              [endDragPoint.lng, endDragPoint.lat],
             ],
           },
           properties: {},
@@ -330,58 +352,12 @@ export function RoutePlanner({ onPointsChange, initialTrack, teamLocation }: Rou
       }
 
       return {
-        type: 'FeatureCollection' as const,
-        features,
+        dragConnectionLines: { type: 'FeatureCollection' as const, features },
       }
     }
 
-    // Connection lines for dragging ghost (new point being inserted)
-    if (draggingGhost) {
-      const { idx, lng, lat } = draggingGhost
-      const features: GeoJSON.Feature<GeoJSON.LineString>[] = []
-
-      const cpIdx = findPreviousControlPointIndex(idx, controlPoints)
-
-      // Connect to point before insertion
-      if (cpIdx < controlPoints.length) {
-        const prev = controlPoints[cpIdx]
-        features.push({
-          type: 'Feature',
-          geometry: {
-            type: 'LineString',
-            coordinates: [
-              [prev.lng, prev.lat],
-              [lng, lat],
-            ],
-          },
-          properties: {},
-        })
-      }
-
-      // Connect to point after insertion
-      if (cpIdx + 1 < controlPoints.length) {
-        const next = controlPoints[cpIdx + 1]
-        features.push({
-          type: 'Feature',
-          geometry: {
-            type: 'LineString',
-            coordinates: [
-              [lng, lat],
-              [next.lng, next.lat],
-            ],
-          },
-          properties: {},
-        })
-      }
-
-      return {
-        type: 'FeatureCollection' as const,
-        features,
-      }
-    }
-
-    return null
-  }, [draggingMarker, draggingGhost, controlPoints])
+    return { dragConnectionLines: null }
+  }, [draggingMarker, draggingGhost, startDragPoint, endDragPoint])
 
   return (
     <Stack gap={0} h="100%">
@@ -447,9 +423,15 @@ export function RoutePlanner({ onPointsChange, initialTrack, teamLocation }: Rou
           onMouseUp={handleMouseUp}
           interactiveLayerIds={routeGeoJson ? ['route-line'] : []}
           cursor={draggingGhost ? 'grabbing' : hoverPoint ? 'pointer' : 'crosshair'}
-          onZoom={(e) => setCurrentZoom(e.viewState.zoom)}
         >
           <NavigationControl position="top-left" />
+          <UndoRedoControl
+            position="top-left"
+            canUndo={canUndo}
+            canRedo={canRedo}
+            onUndo={undo}
+            onRedo={redo}
+          />
           <MapStyleSwitcher
             position="top-right"
             currentStyleId={styleId}
@@ -491,15 +473,13 @@ export function RoutePlanner({ onPointsChange, initialTrack, teamLocation }: Rou
           {controlPoints.map((point, index) => {
             const isFirst = index === 0
             const isLast = index === controlPoints.length - 1 && controlPoints.length > 1
-            const isManual = point.manual
 
-            let markerColor = 'var(--mantine-color-yellow-filled)'
+            let markerColor = 'var(--mantine-color-blue-filled)'
             if (isFirst) markerColor = 'var(--mantine-color-green-filled)'
             else if (isLast) markerColor = 'var(--mantine-color-red-filled)'
-            else if (isManual) markerColor = 'var(--mantine-color-blue-filled)'
 
             // Use dragging position if this marker is being dragged
-            const isDragging = draggingMarker?.index === index
+            const isDragging = draggingMarker?.idx === point.idx
             const lng = isDragging ? draggingMarker.lng : point.lng
             const lat = isDragging ? draggingMarker.lat : point.lat
 
@@ -510,13 +490,13 @@ export function RoutePlanner({ onPointsChange, initialTrack, teamLocation }: Rou
                 latitude={lat}
                 anchor="center"
                 draggable
-                onDragStart={handleMarkerDragStart(index)}
-                onDrag={handleMarkerDrag(index)}
-                onDragEnd={handleMarkerDragEnd(index)}
+                onDragStart={handleMarkerDragStart(point.idx)}
+                onDrag={handleMarkerDrag(point.idx)}
+                onDragEnd={handleMarkerDragEnd()}
               >
                 <Box
                   style={{ display: 'flex', alignItems: 'center', cursor: 'grab' }}
-                  onContextMenu={handleMarkerRightClick(index)}
+                  onContextMenu={handleMarkerRightClick(point.idx)}
                 >
                   <Box
                     w={24}
@@ -553,6 +533,48 @@ export function RoutePlanner({ onPointsChange, initialTrack, teamLocation }: Rou
                   opacity: draggingGhost ? 1 : 0.7,
                   pointerEvents: 'none',
                   transition: 'opacity 150ms',
+                }}
+              />
+            </Marker>
+          )}
+
+          {/* Bbox boundary markers showing effective start/end during drag */}
+          {startDragPoint && (
+            <Marker
+              key={`bbox-boundary-start`}
+              longitude={startDragPoint.lng}
+              latitude={startDragPoint.lat}
+              anchor="center"
+            >
+              <Box
+                w={14}
+                h={14}
+                style={{
+                  backgroundColor: '#10B981',
+                  border: '2px solid white',
+                  borderRadius: '50%',
+                  boxShadow: 'var(--mantine-shadow-sm)',
+                  pointerEvents: 'none',
+                }}
+              />
+            </Marker>
+          )}
+          {endDragPoint && (
+            <Marker
+              key={`bbox-boundary-end`}
+              longitude={endDragPoint.lng}
+              latitude={endDragPoint.lat}
+              anchor="center"
+            >
+              <Box
+                w={14}
+                h={14}
+                style={{
+                  backgroundColor: '#10B981',
+                  border: '2px solid white',
+                  borderRadius: '50%',
+                  boxShadow: 'var(--mantine-shadow-sm)',
+                  pointerEvents: 'none',
                 }}
               />
             </Marker>

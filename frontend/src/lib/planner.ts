@@ -14,8 +14,6 @@ export interface RoutePoint {
   lng: number
   lat: number
   manual: boolean
-  anchor: boolean
-  zoom?: number
 }
 
 export interface Route {
@@ -48,7 +46,6 @@ function createPoint(lng: number, lat: number): RoutePoint {
     lng,
     lat,
     manual: false,
-    anchor: false,
   }
 }
 
@@ -60,9 +57,7 @@ export function computeRoute(input: RoutePoint[]): Route {
   const points = ramerDouglasPeucker(input, 5)
   points.forEach((p, idx) => {
     p.idx = idx
-    p.anchor = p.manual
   })
-  ramerDouglasPeucker(points, 20)
   const index = new KDBush(points.length)
   for (const { lng, lat } of points) index.add(lng, lat)
   return {
@@ -70,15 +65,6 @@ export function computeRoute(input: RoutePoint[]): Route {
     dist: getDist(points),
     index: index.finish(),
   }
-}
-
-export function findPreviousControlPointIndex(idx: number, controlPoints: RoutePoint[]): number {
-  for (let i = 1; i < controlPoints.length; i++) {
-    if (idx < controlPoints[i].idx) {
-      return i - 1
-    }
-  }
-  return controlPoints.length - 1
 }
 
 // add points between route end and p
@@ -202,19 +188,6 @@ async function router(
   return createPoints(response.route.coordinates)
 }
 
-const earthRadius = 6371008.8
-
-function getZoomLevelForDistance(latitude: number, distance?: number): number {
-  if (distance === undefined) {
-    return 0
-  }
-
-  const rad = Math.PI / 180
-  const lat = latitude * rad
-
-  return Math.min(22, Math.max(0, Math.log2((earthRadius * Math.cos(lat)) / distance)))
-}
-
 function ramerDouglasPeucker(points: RoutePoint[], epsilon: number = 50): RoutePoint[] {
   if (points.length === 0) {
     return []
@@ -222,14 +195,10 @@ function ramerDouglasPeucker(points: RoutePoint[], epsilon: number = 50): RouteP
     return points
   }
 
-  points[0].anchor = true
   points[0].manual = true
-  points[0].zoom = 0
   const filtered = [points[0]]
   ramerDouglasPeuckerRecursive(points, filtered, epsilon, 0, points.length - 1)
-  points[points.length - 1].anchor = true
   points[points.length - 1].manual = true
-  points[points.length - 1].zoom = 0
   filtered.push(points[points.length - 1])
   return filtered
 }
@@ -257,11 +226,6 @@ function ramerDouglasPeuckerRecursive(
 
   if (largest.distance > epsilon && largest.index != 0) {
     ramerDouglasPeuckerRecursive(points, filtered, epsilon, start, largest.index)
-    points[largest.index].anchor = true
-    points[largest.index].zoom = getZoomLevelForDistance(
-      points[largest.index].lat,
-      largest.distance
-    )
     filtered.push(points[largest.index])
     ramerDouglasPeuckerRecursive(points, filtered, epsilon, largest.index, end)
   }
