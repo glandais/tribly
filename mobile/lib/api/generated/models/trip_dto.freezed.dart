@@ -31,9 +31,9 @@ mixin _$TripDto {
  List<PublicUserDto> get participants;/// Publication timestamp
  String? get publishAt;/// Creation timestamp
  String? get createdAt;/// Route slug
- String? get routeSlug;/// Route thumbnail URL (light)
- String? get routeThumbnailLightUrl;/// Route thumbnail URL (dark)
- String? get routeThumbnailDarkUrl;
+ String? get routeSlug;/// Thumbnail URL (light)
+ String? get thumbnailLightUrl;/// Thumbnail URL (dark)
+ String? get thumbnailDarkUrl;
 /// Create a copy of TripDto
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -46,16 +46,16 @@ $TripDtoCopyWith<TripDto> get copyWith => _$TripDtoCopyWithImpl<TripDto>(this as
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is TripDto&&(identical(other.type, type) || other.type == type)&&(identical(other.team, team) || other.team == team)&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&(identical(other.media, media) || other.media == media)&&(identical(other.dateTime, dateTime) || other.dateTime == dateTime)&&(identical(other.status, status) || other.status == status)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.participantCount, participantCount) || other.participantCount == participantCount)&&(identical(other.stageCount, stageCount) || other.stageCount == stageCount)&&const DeepCollectionEquality().equals(other.stages, stages)&&const DeepCollectionEquality().equals(other.participants, participants)&&(identical(other.publishAt, publishAt) || other.publishAt == publishAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.routeSlug, routeSlug) || other.routeSlug == routeSlug)&&(identical(other.routeThumbnailLightUrl, routeThumbnailLightUrl) || other.routeThumbnailLightUrl == routeThumbnailLightUrl)&&(identical(other.routeThumbnailDarkUrl, routeThumbnailDarkUrl) || other.routeThumbnailDarkUrl == routeThumbnailDarkUrl));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is TripDto&&(identical(other.type, type) || other.type == type)&&(identical(other.team, team) || other.team == team)&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&(identical(other.media, media) || other.media == media)&&(identical(other.dateTime, dateTime) || other.dateTime == dateTime)&&(identical(other.status, status) || other.status == status)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.participantCount, participantCount) || other.participantCount == participantCount)&&(identical(other.stageCount, stageCount) || other.stageCount == stageCount)&&const DeepCollectionEquality().equals(other.stages, stages)&&const DeepCollectionEquality().equals(other.participants, participants)&&(identical(other.publishAt, publishAt) || other.publishAt == publishAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.routeSlug, routeSlug) || other.routeSlug == routeSlug)&&(identical(other.thumbnailLightUrl, thumbnailLightUrl) || other.thumbnailLightUrl == thumbnailLightUrl)&&(identical(other.thumbnailDarkUrl, thumbnailDarkUrl) || other.thumbnailDarkUrl == thumbnailDarkUrl));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,type,team,id,slug,name,media,dateTime,status,visibility,participantCount,stageCount,const DeepCollectionEquality().hash(stages),const DeepCollectionEquality().hash(participants),publishAt,createdAt,routeSlug,routeThumbnailLightUrl,routeThumbnailDarkUrl);
+int get hashCode => Object.hash(runtimeType,type,team,id,slug,name,media,dateTime,status,visibility,participantCount,stageCount,const DeepCollectionEquality().hash(stages),const DeepCollectionEquality().hash(participants),publishAt,createdAt,routeSlug,thumbnailLightUrl,thumbnailDarkUrl);
 
 @override
 String toString() {
-  return 'TripDto(type: $type, team: $team, id: $id, slug: $slug, name: $name, media: $media, dateTime: $dateTime, status: $status, visibility: $visibility, participantCount: $participantCount, stageCount: $stageCount, stages: $stages, participants: $participants, publishAt: $publishAt, createdAt: $createdAt, routeSlug: $routeSlug, routeThumbnailLightUrl: $routeThumbnailLightUrl, routeThumbnailDarkUrl: $routeThumbnailDarkUrl)';
+  return 'TripDto(type: $type, team: $team, id: $id, slug: $slug, name: $name, media: $media, dateTime: $dateTime, status: $status, visibility: $visibility, participantCount: $participantCount, stageCount: $stageCount, stages: $stages, participants: $participants, publishAt: $publishAt, createdAt: $createdAt, routeSlug: $routeSlug, thumbnailLightUrl: $thumbnailLightUrl, thumbnailDarkUrl: $thumbnailDarkUrl)';
 }
 
 
@@ -66,7 +66,7 @@ abstract mixin class $TripDtoCopyWith<$Res>  {
   factory $TripDtoCopyWith(TripDto value, $Res Function(TripDto) _then) = _$TripDtoCopyWithImpl;
 @useResult
 $Res call({
- String type, TeamPublicationDto team, String id, String slug, String name, MediaDto media, String dateTime, String status, String visibility, int participantCount, int stageCount, List<TripStageDto> stages, List<PublicUserDto> participants, String? publishAt, String? createdAt, String? routeSlug, String? routeThumbnailLightUrl, String? routeThumbnailDarkUrl
+ String type, TeamPublicationDto team, String id, String slug, String name, MediaDto media, String dateTime, String status, String visibility, int participantCount, int stageCount, List<TripStageDto> stages, List<PublicUserDto> participants, String? publishAt, String? createdAt, String? routeSlug, String? thumbnailLightUrl, String? thumbnailDarkUrl
 });
 
 
@@ -83,7 +83,7 @@ class _$TripDtoCopyWithImpl<$Res>
 
 /// Create a copy of TripDto
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? type = null,Object? team = null,Object? id = null,Object? slug = null,Object? name = null,Object? media = null,Object? dateTime = null,Object? status = null,Object? visibility = null,Object? participantCount = null,Object? stageCount = null,Object? stages = null,Object? participants = null,Object? publishAt = freezed,Object? createdAt = freezed,Object? routeSlug = freezed,Object? routeThumbnailLightUrl = freezed,Object? routeThumbnailDarkUrl = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? type = null,Object? team = null,Object? id = null,Object? slug = null,Object? name = null,Object? media = null,Object? dateTime = null,Object? status = null,Object? visibility = null,Object? participantCount = null,Object? stageCount = null,Object? stages = null,Object? participants = null,Object? publishAt = freezed,Object? createdAt = freezed,Object? routeSlug = freezed,Object? thumbnailLightUrl = freezed,Object? thumbnailDarkUrl = freezed,}) {
   return _then(_self.copyWith(
 type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as String,team: null == team ? _self.team : team // ignore: cast_nullable_to_non_nullable
@@ -101,8 +101,8 @@ as List<TripStageDto>,participants: null == participants ? _self.participants : 
 as List<PublicUserDto>,publishAt: freezed == publishAt ? _self.publishAt : publishAt // ignore: cast_nullable_to_non_nullable
 as String?,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as String?,routeSlug: freezed == routeSlug ? _self.routeSlug : routeSlug // ignore: cast_nullable_to_non_nullable
-as String?,routeThumbnailLightUrl: freezed == routeThumbnailLightUrl ? _self.routeThumbnailLightUrl : routeThumbnailLightUrl // ignore: cast_nullable_to_non_nullable
-as String?,routeThumbnailDarkUrl: freezed == routeThumbnailDarkUrl ? _self.routeThumbnailDarkUrl : routeThumbnailDarkUrl // ignore: cast_nullable_to_non_nullable
+as String?,thumbnailLightUrl: freezed == thumbnailLightUrl ? _self.thumbnailLightUrl : thumbnailLightUrl // ignore: cast_nullable_to_non_nullable
+as String?,thumbnailDarkUrl: freezed == thumbnailDarkUrl ? _self.thumbnailDarkUrl : thumbnailDarkUrl // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }
@@ -206,10 +206,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String type,  TeamPublicationDto team,  String id,  String slug,  String name,  MediaDto media,  String dateTime,  String status,  String visibility,  int participantCount,  int stageCount,  List<TripStageDto> stages,  List<PublicUserDto> participants,  String? publishAt,  String? createdAt,  String? routeSlug,  String? routeThumbnailLightUrl,  String? routeThumbnailDarkUrl)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String type,  TeamPublicationDto team,  String id,  String slug,  String name,  MediaDto media,  String dateTime,  String status,  String visibility,  int participantCount,  int stageCount,  List<TripStageDto> stages,  List<PublicUserDto> participants,  String? publishAt,  String? createdAt,  String? routeSlug,  String? thumbnailLightUrl,  String? thumbnailDarkUrl)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _TripDto() when $default != null:
-return $default(_that.type,_that.team,_that.id,_that.slug,_that.name,_that.media,_that.dateTime,_that.status,_that.visibility,_that.participantCount,_that.stageCount,_that.stages,_that.participants,_that.publishAt,_that.createdAt,_that.routeSlug,_that.routeThumbnailLightUrl,_that.routeThumbnailDarkUrl);case _:
+return $default(_that.type,_that.team,_that.id,_that.slug,_that.name,_that.media,_that.dateTime,_that.status,_that.visibility,_that.participantCount,_that.stageCount,_that.stages,_that.participants,_that.publishAt,_that.createdAt,_that.routeSlug,_that.thumbnailLightUrl,_that.thumbnailDarkUrl);case _:
   return orElse();
 
 }
@@ -227,10 +227,10 @@ return $default(_that.type,_that.team,_that.id,_that.slug,_that.name,_that.media
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String type,  TeamPublicationDto team,  String id,  String slug,  String name,  MediaDto media,  String dateTime,  String status,  String visibility,  int participantCount,  int stageCount,  List<TripStageDto> stages,  List<PublicUserDto> participants,  String? publishAt,  String? createdAt,  String? routeSlug,  String? routeThumbnailLightUrl,  String? routeThumbnailDarkUrl)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String type,  TeamPublicationDto team,  String id,  String slug,  String name,  MediaDto media,  String dateTime,  String status,  String visibility,  int participantCount,  int stageCount,  List<TripStageDto> stages,  List<PublicUserDto> participants,  String? publishAt,  String? createdAt,  String? routeSlug,  String? thumbnailLightUrl,  String? thumbnailDarkUrl)  $default,) {final _that = this;
 switch (_that) {
 case _TripDto():
-return $default(_that.type,_that.team,_that.id,_that.slug,_that.name,_that.media,_that.dateTime,_that.status,_that.visibility,_that.participantCount,_that.stageCount,_that.stages,_that.participants,_that.publishAt,_that.createdAt,_that.routeSlug,_that.routeThumbnailLightUrl,_that.routeThumbnailDarkUrl);case _:
+return $default(_that.type,_that.team,_that.id,_that.slug,_that.name,_that.media,_that.dateTime,_that.status,_that.visibility,_that.participantCount,_that.stageCount,_that.stages,_that.participants,_that.publishAt,_that.createdAt,_that.routeSlug,_that.thumbnailLightUrl,_that.thumbnailDarkUrl);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -247,10 +247,10 @@ return $default(_that.type,_that.team,_that.id,_that.slug,_that.name,_that.media
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String type,  TeamPublicationDto team,  String id,  String slug,  String name,  MediaDto media,  String dateTime,  String status,  String visibility,  int participantCount,  int stageCount,  List<TripStageDto> stages,  List<PublicUserDto> participants,  String? publishAt,  String? createdAt,  String? routeSlug,  String? routeThumbnailLightUrl,  String? routeThumbnailDarkUrl)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String type,  TeamPublicationDto team,  String id,  String slug,  String name,  MediaDto media,  String dateTime,  String status,  String visibility,  int participantCount,  int stageCount,  List<TripStageDto> stages,  List<PublicUserDto> participants,  String? publishAt,  String? createdAt,  String? routeSlug,  String? thumbnailLightUrl,  String? thumbnailDarkUrl)?  $default,) {final _that = this;
 switch (_that) {
 case _TripDto() when $default != null:
-return $default(_that.type,_that.team,_that.id,_that.slug,_that.name,_that.media,_that.dateTime,_that.status,_that.visibility,_that.participantCount,_that.stageCount,_that.stages,_that.participants,_that.publishAt,_that.createdAt,_that.routeSlug,_that.routeThumbnailLightUrl,_that.routeThumbnailDarkUrl);case _:
+return $default(_that.type,_that.team,_that.id,_that.slug,_that.name,_that.media,_that.dateTime,_that.status,_that.visibility,_that.participantCount,_that.stageCount,_that.stages,_that.participants,_that.publishAt,_that.createdAt,_that.routeSlug,_that.thumbnailLightUrl,_that.thumbnailDarkUrl);case _:
   return null;
 
 }
@@ -262,7 +262,7 @@ return $default(_that.type,_that.team,_that.id,_that.slug,_that.name,_that.media
 @JsonSerializable()
 
 class _TripDto implements TripDto {
-  const _TripDto({required this.type, required this.team, required this.id, required this.slug, required this.name, required this.media, required this.dateTime, required this.status, required this.visibility, required this.participantCount, required this.stageCount, required final  List<TripStageDto> stages, required final  List<PublicUserDto> participants, this.publishAt, this.createdAt, this.routeSlug, this.routeThumbnailLightUrl, this.routeThumbnailDarkUrl}): _stages = stages,_participants = participants;
+  const _TripDto({required this.type, required this.team, required this.id, required this.slug, required this.name, required this.media, required this.dateTime, required this.status, required this.visibility, required this.participantCount, required this.stageCount, required final  List<TripStageDto> stages, required final  List<PublicUserDto> participants, this.publishAt, this.createdAt, this.routeSlug, this.thumbnailLightUrl, this.thumbnailDarkUrl}): _stages = stages,_participants = participants;
   factory _TripDto.fromJson(Map<String, dynamic> json) => _$TripDtoFromJson(json);
 
 /// Type
@@ -311,10 +311,10 @@ class _TripDto implements TripDto {
 @override final  String? createdAt;
 /// Route slug
 @override final  String? routeSlug;
-/// Route thumbnail URL (light)
-@override final  String? routeThumbnailLightUrl;
-/// Route thumbnail URL (dark)
-@override final  String? routeThumbnailDarkUrl;
+/// Thumbnail URL (light)
+@override final  String? thumbnailLightUrl;
+/// Thumbnail URL (dark)
+@override final  String? thumbnailDarkUrl;
 
 /// Create a copy of TripDto
 /// with the given fields replaced by the non-null parameter values.
@@ -329,16 +329,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TripDto&&(identical(other.type, type) || other.type == type)&&(identical(other.team, team) || other.team == team)&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&(identical(other.media, media) || other.media == media)&&(identical(other.dateTime, dateTime) || other.dateTime == dateTime)&&(identical(other.status, status) || other.status == status)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.participantCount, participantCount) || other.participantCount == participantCount)&&(identical(other.stageCount, stageCount) || other.stageCount == stageCount)&&const DeepCollectionEquality().equals(other._stages, _stages)&&const DeepCollectionEquality().equals(other._participants, _participants)&&(identical(other.publishAt, publishAt) || other.publishAt == publishAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.routeSlug, routeSlug) || other.routeSlug == routeSlug)&&(identical(other.routeThumbnailLightUrl, routeThumbnailLightUrl) || other.routeThumbnailLightUrl == routeThumbnailLightUrl)&&(identical(other.routeThumbnailDarkUrl, routeThumbnailDarkUrl) || other.routeThumbnailDarkUrl == routeThumbnailDarkUrl));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TripDto&&(identical(other.type, type) || other.type == type)&&(identical(other.team, team) || other.team == team)&&(identical(other.id, id) || other.id == id)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.name, name) || other.name == name)&&(identical(other.media, media) || other.media == media)&&(identical(other.dateTime, dateTime) || other.dateTime == dateTime)&&(identical(other.status, status) || other.status == status)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.participantCount, participantCount) || other.participantCount == participantCount)&&(identical(other.stageCount, stageCount) || other.stageCount == stageCount)&&const DeepCollectionEquality().equals(other._stages, _stages)&&const DeepCollectionEquality().equals(other._participants, _participants)&&(identical(other.publishAt, publishAt) || other.publishAt == publishAt)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&(identical(other.routeSlug, routeSlug) || other.routeSlug == routeSlug)&&(identical(other.thumbnailLightUrl, thumbnailLightUrl) || other.thumbnailLightUrl == thumbnailLightUrl)&&(identical(other.thumbnailDarkUrl, thumbnailDarkUrl) || other.thumbnailDarkUrl == thumbnailDarkUrl));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,type,team,id,slug,name,media,dateTime,status,visibility,participantCount,stageCount,const DeepCollectionEquality().hash(_stages),const DeepCollectionEquality().hash(_participants),publishAt,createdAt,routeSlug,routeThumbnailLightUrl,routeThumbnailDarkUrl);
+int get hashCode => Object.hash(runtimeType,type,team,id,slug,name,media,dateTime,status,visibility,participantCount,stageCount,const DeepCollectionEquality().hash(_stages),const DeepCollectionEquality().hash(_participants),publishAt,createdAt,routeSlug,thumbnailLightUrl,thumbnailDarkUrl);
 
 @override
 String toString() {
-  return 'TripDto(type: $type, team: $team, id: $id, slug: $slug, name: $name, media: $media, dateTime: $dateTime, status: $status, visibility: $visibility, participantCount: $participantCount, stageCount: $stageCount, stages: $stages, participants: $participants, publishAt: $publishAt, createdAt: $createdAt, routeSlug: $routeSlug, routeThumbnailLightUrl: $routeThumbnailLightUrl, routeThumbnailDarkUrl: $routeThumbnailDarkUrl)';
+  return 'TripDto(type: $type, team: $team, id: $id, slug: $slug, name: $name, media: $media, dateTime: $dateTime, status: $status, visibility: $visibility, participantCount: $participantCount, stageCount: $stageCount, stages: $stages, participants: $participants, publishAt: $publishAt, createdAt: $createdAt, routeSlug: $routeSlug, thumbnailLightUrl: $thumbnailLightUrl, thumbnailDarkUrl: $thumbnailDarkUrl)';
 }
 
 
@@ -349,7 +349,7 @@ abstract mixin class _$TripDtoCopyWith<$Res> implements $TripDtoCopyWith<$Res> {
   factory _$TripDtoCopyWith(_TripDto value, $Res Function(_TripDto) _then) = __$TripDtoCopyWithImpl;
 @override @useResult
 $Res call({
- String type, TeamPublicationDto team, String id, String slug, String name, MediaDto media, String dateTime, String status, String visibility, int participantCount, int stageCount, List<TripStageDto> stages, List<PublicUserDto> participants, String? publishAt, String? createdAt, String? routeSlug, String? routeThumbnailLightUrl, String? routeThumbnailDarkUrl
+ String type, TeamPublicationDto team, String id, String slug, String name, MediaDto media, String dateTime, String status, String visibility, int participantCount, int stageCount, List<TripStageDto> stages, List<PublicUserDto> participants, String? publishAt, String? createdAt, String? routeSlug, String? thumbnailLightUrl, String? thumbnailDarkUrl
 });
 
 
@@ -366,7 +366,7 @@ class __$TripDtoCopyWithImpl<$Res>
 
 /// Create a copy of TripDto
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? type = null,Object? team = null,Object? id = null,Object? slug = null,Object? name = null,Object? media = null,Object? dateTime = null,Object? status = null,Object? visibility = null,Object? participantCount = null,Object? stageCount = null,Object? stages = null,Object? participants = null,Object? publishAt = freezed,Object? createdAt = freezed,Object? routeSlug = freezed,Object? routeThumbnailLightUrl = freezed,Object? routeThumbnailDarkUrl = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? type = null,Object? team = null,Object? id = null,Object? slug = null,Object? name = null,Object? media = null,Object? dateTime = null,Object? status = null,Object? visibility = null,Object? participantCount = null,Object? stageCount = null,Object? stages = null,Object? participants = null,Object? publishAt = freezed,Object? createdAt = freezed,Object? routeSlug = freezed,Object? thumbnailLightUrl = freezed,Object? thumbnailDarkUrl = freezed,}) {
   return _then(_TripDto(
 type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
 as String,team: null == team ? _self.team : team // ignore: cast_nullable_to_non_nullable
@@ -384,8 +384,8 @@ as List<TripStageDto>,participants: null == participants ? _self._participants :
 as List<PublicUserDto>,publishAt: freezed == publishAt ? _self.publishAt : publishAt // ignore: cast_nullable_to_non_nullable
 as String?,createdAt: freezed == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as String?,routeSlug: freezed == routeSlug ? _self.routeSlug : routeSlug // ignore: cast_nullable_to_non_nullable
-as String?,routeThumbnailLightUrl: freezed == routeThumbnailLightUrl ? _self.routeThumbnailLightUrl : routeThumbnailLightUrl // ignore: cast_nullable_to_non_nullable
-as String?,routeThumbnailDarkUrl: freezed == routeThumbnailDarkUrl ? _self.routeThumbnailDarkUrl : routeThumbnailDarkUrl // ignore: cast_nullable_to_non_nullable
+as String?,thumbnailLightUrl: freezed == thumbnailLightUrl ? _self.thumbnailLightUrl : thumbnailLightUrl // ignore: cast_nullable_to_non_nullable
+as String?,thumbnailDarkUrl: freezed == thumbnailDarkUrl ? _self.thumbnailDarkUrl : thumbnailDarkUrl // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }

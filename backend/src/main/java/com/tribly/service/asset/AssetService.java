@@ -329,6 +329,16 @@ public class AssetService {
   public AssetsDto getAssetsDto(TeamEntity teamEntity) {
     Map<AssetType, List<Asset>> assets =
         teamEntity.getAssets().stream().collect(Collectors.groupingBy(Asset::getType));
+    AssetDto thumbnailLight =
+        coalesce(
+            getAssetDto(assets, AssetType.RIDE_THUMBNAIL_LIGHT),
+            getAssetDto(assets, AssetType.TRIP_THUMBNAIL_LIGHT),
+            getAssetDto(assets, AssetType.ROUTE_THUMBNAIL_LIGHT));
+    AssetDto thumbnailDark =
+        coalesce(
+            getAssetDto(assets, AssetType.RIDE_THUMBNAIL_DARK),
+            getAssetDto(assets, AssetType.TRIP_THUMBNAIL_DARK),
+            getAssetDto(assets, AssetType.ROUTE_THUMBNAIL_DARK));
     return new AssetsDto(
         getAssetDto(assets, AssetType.LOGO),
         getAssetDtoList(assets, AssetType.IMAGE),
@@ -336,8 +346,18 @@ public class AssetService {
         getAssetDto(assets, AssetType.ROUTE_ORIGINAL_GPX),
         getAssetDto(assets, AssetType.ROUTE_FILTERED_GPX),
         getAssetDto(assets, AssetType.ROUTE_FIT),
-        getAssetDto(assets, AssetType.ROUTE_THUMBNAIL_LIGHT),
-        getAssetDto(assets, AssetType.ROUTE_THUMBNAIL_DARK));
+        thumbnailLight,
+        thumbnailDark);
+  }
+
+  @SafeVarargs
+  private static <T> @Nullable T coalesce(@Nullable T... values) {
+    for (T value : values) {
+      if (value != null) {
+        return value;
+      }
+    }
+    return null;
   }
 
   private @Nullable AssetDto getAssetDto(Map<AssetType, List<Asset>> assets, AssetType assetType) {

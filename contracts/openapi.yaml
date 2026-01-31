@@ -1948,12 +1948,12 @@ components:
           items:
             $ref: "#/components/schemas/PublicUserDto"
           description: Preview of first participants (max 5)
-        routeThumbnailLightUrl:
+        thumbnailLightUrl:
           type: string
-          description: Route thumbnail URL (light)
-        routeThumbnailDarkUrl:
+          description: Thumbnail URL (light)
+        thumbnailDarkUrl:
           type: string
-          description: Route thumbnail URL (dark)
+          description: Thumbnail URL (dark)
     RideGroupDto:
       type: object
       description: Ride group information
@@ -2969,12 +2969,12 @@ components:
           items:
             $ref: "#/components/schemas/PublicUserDto"
           description: Trip participants
-        routeThumbnailLightUrl:
+        thumbnailLightUrl:
           type: string
-          description: Route thumbnail URL (light)
-        routeThumbnailDarkUrl:
+          description: Thumbnail URL (light)
+        thumbnailDarkUrl:
           type: string
-          description: Route thumbnail URL (dark)
+          description: Thumbnail URL (dark)
     TripListResponse:
       description: Paginated trip list response
       type: object

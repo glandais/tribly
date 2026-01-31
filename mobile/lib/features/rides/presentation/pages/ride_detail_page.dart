@@ -204,8 +204,8 @@ class _RideDetailContent extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final thumbnailUrl = Theme.of(context).brightness == Brightness.dark
-        ? ride.routeThumbnailDarkUrl
-        : ride.routeThumbnailLightUrl;
+        ? ride.thumbnailDarkUrl
+        : ride.thumbnailLightUrl;
     return Scaffold(
       body: CustomScrollView(
         slivers: [

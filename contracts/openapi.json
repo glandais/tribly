@@ -2093,13 +2093,13 @@
             },
             "description" : "Preview of first participants (max 5)"
           },
-          "routeThumbnailLightUrl" : {
+          "thumbnailLightUrl" : {
             "type" : "string",
-            "description" : "Route thumbnail URL (light)"
+            "description" : "Thumbnail URL (light)"
           },
-          "routeThumbnailDarkUrl" : {
+          "thumbnailDarkUrl" : {
             "type" : "string",
-            "description" : "Route thumbnail URL (dark)"
+            "description" : "Thumbnail URL (dark)"
           }
         }
       },
@@ -3187,13 +3187,13 @@
             },
             "description" : "Trip participants"
           },
-          "routeThumbnailLightUrl" : {
+          "thumbnailLightUrl" : {
             "type" : "string",
-            "description" : "Route thumbnail URL (light)"
+            "description" : "Thumbnail URL (light)"
           },
-          "routeThumbnailDarkUrl" : {
+          "thumbnailDarkUrl" : {
             "type" : "string",
-            "description" : "Route thumbnail URL (dark)"
+            "description" : "Thumbnail URL (dark)"
           }
         }
       },

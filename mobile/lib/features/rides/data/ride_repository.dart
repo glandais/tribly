@@ -51,8 +51,8 @@ class RideRepository {
               routeSlug: p.routeSlug,
               startPlace: p.startPlace,
               endPlace: p.endPlace,
-              routeThumbnailLightUrl: p.routeThumbnailLightUrl,
-              routeThumbnailDarkUrl: p.routeThumbnailDarkUrl,
+              thumbnailLightUrl: p.thumbnailLightUrl,
+              thumbnailDarkUrl: p.thumbnailDarkUrl,
             ))
         .toList();
   }

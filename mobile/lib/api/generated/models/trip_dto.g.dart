@@ -27,8 +27,8 @@ _TripDto _$TripDtoFromJson(Map<String, dynamic> json) => _TripDto(
   publishAt: json['publishAt'] as String?,
   createdAt: json['createdAt'] as String?,
   routeSlug: json['routeSlug'] as String?,
-  routeThumbnailLightUrl: json['routeThumbnailLightUrl'] as String?,
-  routeThumbnailDarkUrl: json['routeThumbnailDarkUrl'] as String?,
+  thumbnailLightUrl: json['thumbnailLightUrl'] as String?,
+  thumbnailDarkUrl: json['thumbnailDarkUrl'] as String?,
 );
 
 Map<String, dynamic> _$TripDtoToJson(_TripDto instance) => <String, dynamic>{
@@ -48,6 +48,6 @@ Map<String, dynamic> _$TripDtoToJson(_TripDto instance) => <String, dynamic>{
   'publishAt': instance.publishAt,
   'createdAt': instance.createdAt,
   'routeSlug': instance.routeSlug,
-  'routeThumbnailLightUrl': instance.routeThumbnailLightUrl,
-  'routeThumbnailDarkUrl': instance.routeThumbnailDarkUrl,
+  'thumbnailLightUrl': instance.thumbnailLightUrl,
+  'thumbnailDarkUrl': instance.thumbnailDarkUrl,
 };

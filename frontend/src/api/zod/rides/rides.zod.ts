@@ -595,8 +595,8 @@ export const updateRideResponse = zod
           .describe('Public user information (limited fields)')
       )
       .describe('Preview of first participants (max 5)'),
-    routeThumbnailLightUrl: zod.string().optional().describe('Route thumbnail URL (light)'),
-    routeThumbnailDarkUrl: zod.string().optional().describe('Route thumbnail URL (dark)'),
+    thumbnailLightUrl: zod.string().optional().describe('Thumbnail URL (light)'),
+    thumbnailDarkUrl: zod.string().optional().describe('Thumbnail URL (dark)'),
   })
   .describe('Ride summary data')
 
@@ -832,8 +832,8 @@ export const getRideResponse = zod
           .describe('Public user information (limited fields)')
       )
       .describe('Preview of first participants (max 5)'),
-    routeThumbnailLightUrl: zod.string().optional().describe('Route thumbnail URL (light)'),
-    routeThumbnailDarkUrl: zod.string().optional().describe('Route thumbnail URL (dark)'),
+    thumbnailLightUrl: zod.string().optional().describe('Thumbnail URL (light)'),
+    thumbnailDarkUrl: zod.string().optional().describe('Thumbnail URL (dark)'),
   })
   .describe('Ride summary data')
 
@@ -1112,7 +1112,7 @@ export const changeRideSlugResponse = zod
           .describe('Public user information (limited fields)')
       )
       .describe('Preview of first participants (max 5)'),
-    routeThumbnailLightUrl: zod.string().optional().describe('Route thumbnail URL (light)'),
-    routeThumbnailDarkUrl: zod.string().optional().describe('Route thumbnail URL (dark)'),
+    thumbnailLightUrl: zod.string().optional().describe('Thumbnail URL (light)'),
+    thumbnailDarkUrl: zod.string().optional().describe('Thumbnail URL (dark)'),
   })
   .describe('Ride summary data')

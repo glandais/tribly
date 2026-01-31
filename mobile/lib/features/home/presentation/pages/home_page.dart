@@ -45,8 +45,8 @@ final homeUpcomingRidesProvider =
             routeSlug: p.routeSlug,
             startPlace: p.startPlace,
             endPlace: p.endPlace,
-            routeThumbnailLightUrl: p.routeThumbnailLightUrl,
-            routeThumbnailDarkUrl: p.routeThumbnailDarkUrl,
+            thumbnailLightUrl: p.thumbnailLightUrl,
+            thumbnailDarkUrl: p.thumbnailDarkUrl,
           ))
       .toList();
 });
@@ -373,8 +373,8 @@ class _RideCard extends ConsumerWidget {
     final theme = Theme.of(context);
 
     final thumbnailUrl = theme.brightness == Brightness.dark
-        ? ride.routeThumbnailDarkUrl
-        : ride.routeThumbnailLightUrl;
+        ? ride.thumbnailDarkUrl
+        : ride.thumbnailLightUrl;
 
     return AnimatedCard(
       onTap: () => context.push(Paths.ride(ride.team.slug, ride.slug)),

@@ -54,8 +54,8 @@ export interface RideDto {
   endPlace?: PlaceDetailDto
   /** Preview of first participants (max 5) */
   topParticipants: PublicUserDto[]
-  /** Route thumbnail URL (light) */
-  routeThumbnailLightUrl?: string
-  /** Route thumbnail URL (dark) */
-  routeThumbnailDarkUrl?: string
+  /** Thumbnail URL (light) */
+  thumbnailLightUrl?: string
+  /** Thumbnail URL (dark) */
+  thumbnailDarkUrl?: string
 }

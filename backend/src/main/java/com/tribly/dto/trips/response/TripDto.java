@@ -77,12 +77,12 @@ public class TripDto implements PublicationDto {
   final List<PublicUserDto> participants;
 
   @Nullable
-  @Schema(description = "Route thumbnail URL (light)")
-  final String routeThumbnailLightUrl;
+  @Schema(description = "Thumbnail URL (light)")
+  final String thumbnailLightUrl;
 
   @Nullable
-  @Schema(description = "Route thumbnail URL (dark)")
-  final String routeThumbnailDarkUrl;
+  @Schema(description = "Thumbnail URL (dark)")
+  final String thumbnailDarkUrl;
 
   public TripDto(
       TeamPublicationDto team,
@@ -100,8 +100,8 @@ public class TripDto implements PublicationDto {
       int stageCount,
       List<TripStageDto> stages,
       List<PublicUserDto> participants,
-      @Nullable String routeThumbnailLightUrl,
-      @Nullable String routeThumbnailDarkUrl) {
+      @Nullable String thumbnailLightUrl,
+      @Nullable String thumbnailDarkUrl) {
     super();
     this.team = team;
     this.id = id;
@@ -118,8 +118,8 @@ public class TripDto implements PublicationDto {
     this.stageCount = stageCount;
     this.stages = stages;
     this.participants = participants;
-    this.routeThumbnailLightUrl = routeThumbnailLightUrl;
-    this.routeThumbnailDarkUrl = routeThumbnailDarkUrl;
+    this.thumbnailLightUrl = thumbnailLightUrl;
+    this.thumbnailDarkUrl = thumbnailDarkUrl;
   }
 
   public static TripDto from(Trip trip, boolean stageDetails, AssetService assetService) {
@@ -140,14 +140,22 @@ public class TripDto implements PublicationDto {
                 .toList()
             : List.of();
 
-    // Get route thumbnail URLs if route exists
-    String routeThumbnailLightUrl = null;
-    String routeThumbnailDarkUrl = null;
-    if (trip.getRoute() != null) {
+    // Get thumbnail URLs from trip's own assets
+    String thumbnailLightUrl = null;
+    String thumbnailDarkUrl = null;
+    for (var asset : trip.getAssets()) {
+      switch (asset.getType()) {
+        case TRIP_THUMBNAIL_LIGHT -> thumbnailLightUrl = assetService.getImageUrl(asset);
+        case TRIP_THUMBNAIL_DARK -> thumbnailDarkUrl = assetService.getImageUrl(asset);
+        default -> {}
+      }
+    }
+    // Fallback to route thumbnail if trip has no own thumbnails
+    if (thumbnailLightUrl == null && thumbnailDarkUrl == null && trip.getRoute() != null) {
       for (var asset : trip.getRoute().getAssets()) {
         switch (asset.getType()) {
-          case ROUTE_THUMBNAIL_LIGHT -> routeThumbnailLightUrl = assetService.getImageUrl(asset);
-          case ROUTE_THUMBNAIL_DARK -> routeThumbnailDarkUrl = assetService.getImageUrl(asset);
+          case ROUTE_THUMBNAIL_LIGHT -> thumbnailLightUrl = assetService.getImageUrl(asset);
+          case ROUTE_THUMBNAIL_DARK -> thumbnailDarkUrl = assetService.getImageUrl(asset);
           default -> {}
         }
       }
@@ -169,7 +177,7 @@ public class TripDto implements PublicationDto {
         trip.getStageCount(),
         stageDtos,
         participantDtos,
-        routeThumbnailLightUrl,
-        routeThumbnailDarkUrl);
+        thumbnailLightUrl,
+        thumbnailDarkUrl);
   }
 }

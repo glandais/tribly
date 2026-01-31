@@ -90,12 +90,12 @@ public class RideDto implements PublicationDto {
   final List<PublicUserDto> topParticipants;
 
   @Nullable
-  @Schema(description = "Route thumbnail URL (light)")
-  final String routeThumbnailLightUrl;
+  @Schema(description = "Thumbnail URL (light)")
+  final String thumbnailLightUrl;
 
   @Nullable
-  @Schema(description = "Route thumbnail URL (dark)")
-  final String routeThumbnailDarkUrl;
+  @Schema(description = "Thumbnail URL (dark)")
+  final String thumbnailDarkUrl;
 
   public RideDto(
       TeamPublicationDto team,
@@ -115,8 +115,8 @@ public class RideDto implements PublicationDto {
       @Nullable PlaceDetailDto startPlace,
       @Nullable PlaceDetailDto endPlace,
       List<PublicUserDto> topParticipants,
-      @Nullable String routeThumbnailLightUrl,
-      @Nullable String routeThumbnailDarkUrl) {
+      @Nullable String thumbnailLightUrl,
+      @Nullable String thumbnailDarkUrl) {
     super();
     this.team = team;
     this.id = id;
@@ -135,8 +135,8 @@ public class RideDto implements PublicationDto {
     this.startPlace = startPlace;
     this.endPlace = endPlace;
     this.topParticipants = topParticipants;
-    this.routeThumbnailLightUrl = routeThumbnailLightUrl;
-    this.routeThumbnailDarkUrl = routeThumbnailDarkUrl;
+    this.thumbnailLightUrl = thumbnailLightUrl;
+    this.thumbnailDarkUrl = thumbnailDarkUrl;
   }
 
   public static RideDto from(Ride ride, boolean groupDetails, AssetService assetService) {
@@ -165,14 +165,22 @@ public class RideDto implements PublicationDto {
             .map(PublicUserDto::from)
             .toList();
 
-    // Get route thumbnail URLs if route exists
-    String routeThumbnailLightUrl = null;
-    String routeThumbnailDarkUrl = null;
-    if (ride.getRoute() != null) {
+    // Get thumbnail URLs from ride's own assets
+    String thumbnailLightUrl = null;
+    String thumbnailDarkUrl = null;
+    for (var asset : ride.getAssets()) {
+      switch (asset.getType()) {
+        case RIDE_THUMBNAIL_LIGHT -> thumbnailLightUrl = assetService.getImageUrl(asset);
+        case RIDE_THUMBNAIL_DARK -> thumbnailDarkUrl = assetService.getImageUrl(asset);
+        default -> {}
+      }
+    }
+    // Fallback to route thumbnail if ride has no own thumbnails
+    if (thumbnailLightUrl == null && thumbnailDarkUrl == null && ride.getRoute() != null) {
       for (var asset : ride.getRoute().getAssets()) {
         switch (asset.getType()) {
-          case ROUTE_THUMBNAIL_LIGHT -> routeThumbnailLightUrl = assetService.getImageUrl(asset);
-          case ROUTE_THUMBNAIL_DARK -> routeThumbnailDarkUrl = assetService.getImageUrl(asset);
+          case ROUTE_THUMBNAIL_LIGHT -> thumbnailLightUrl = assetService.getImageUrl(asset);
+          case ROUTE_THUMBNAIL_DARK -> thumbnailDarkUrl = assetService.getImageUrl(asset);
           default -> {}
         }
       }
@@ -196,7 +204,7 @@ public class RideDto implements PublicationDto {
         startPlace != null ? PlaceDetailDto.from(startPlace) : null,
         endPlace != null ? PlaceDetailDto.from(endPlace) : null,
         topParticipants,
-        routeThumbnailLightUrl,
-        routeThumbnailDarkUrl);
+        thumbnailLightUrl,
+        thumbnailDarkUrl);
   }
 }

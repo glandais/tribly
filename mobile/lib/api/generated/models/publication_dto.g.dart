@@ -33,8 +33,8 @@ PublicationDtoRide _$PublicationDtoRideFromJson(Map<String, dynamic> json) =>
       endPlace: json['endPlace'] == null
           ? null
           : PlaceDetailDto.fromJson(json['endPlace'] as Map<String, dynamic>),
-      routeThumbnailLightUrl: json['routeThumbnailLightUrl'] as String?,
-      routeThumbnailDarkUrl: json['routeThumbnailDarkUrl'] as String?,
+      thumbnailLightUrl: json['thumbnailLightUrl'] as String?,
+      thumbnailDarkUrl: json['thumbnailDarkUrl'] as String?,
       $type: json['type'] as String?,
     );
 
@@ -58,8 +58,8 @@ Map<String, dynamic> _$PublicationDtoRideToJson(
   'routeSlug': instance.routeSlug,
   'startPlace': instance.startPlace?.toJson(),
   'endPlace': instance.endPlace?.toJson(),
-  'routeThumbnailLightUrl': instance.routeThumbnailLightUrl,
-  'routeThumbnailDarkUrl': instance.routeThumbnailDarkUrl,
+  'thumbnailLightUrl': instance.thumbnailLightUrl,
+  'thumbnailDarkUrl': instance.thumbnailDarkUrl,
   'type': instance.$type,
 };
 
@@ -114,8 +114,8 @@ PublicationDtoTrip _$PublicationDtoTripFromJson(Map<String, dynamic> json) =>
       publishAt: json['publishAt'] as String?,
       createdAt: json['createdAt'] as String?,
       routeSlug: json['routeSlug'] as String?,
-      routeThumbnailLightUrl: json['routeThumbnailLightUrl'] as String?,
-      routeThumbnailDarkUrl: json['routeThumbnailDarkUrl'] as String?,
+      thumbnailLightUrl: json['thumbnailLightUrl'] as String?,
+      thumbnailDarkUrl: json['thumbnailDarkUrl'] as String?,
       $type: json['type'] as String?,
     );
 
@@ -136,7 +136,7 @@ Map<String, dynamic> _$PublicationDtoTripToJson(PublicationDtoTrip instance) =>
       'publishAt': instance.publishAt,
       'createdAt': instance.createdAt,
       'routeSlug': instance.routeSlug,
-      'routeThumbnailLightUrl': instance.routeThumbnailLightUrl,
-      'routeThumbnailDarkUrl': instance.routeThumbnailDarkUrl,
+      'thumbnailLightUrl': instance.thumbnailLightUrl,
+      'thumbnailDarkUrl': instance.thumbnailDarkUrl,
       'type': instance.$type,
     };

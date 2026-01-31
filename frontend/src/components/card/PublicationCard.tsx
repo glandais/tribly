@@ -115,28 +115,27 @@ export function PublicationCard({ publication, showTeam }: PublicationCardProps)
     return []
   }
 
-  // Get route thumbnail URLs for rides and trips
-  const getRouteThumbnailUrls = () => {
+  // Get thumbnail URLs for rides and trips
+  const getThumbnailUrls = () => {
     if (publication.type === 'RIDE') {
       const ride = publication as RideDto
       return {
-        lightUrl: ride.routeThumbnailLightUrl,
-        darkUrl: ride.routeThumbnailDarkUrl,
+        lightUrl: ride.thumbnailLightUrl,
+        darkUrl: ride.thumbnailDarkUrl,
       }
     }
     if (publication.type === 'TRIP') {
       const trip = publication as TripDto
       return {
-        lightUrl: trip.routeThumbnailLightUrl,
-        darkUrl: trip.routeThumbnailDarkUrl,
+        lightUrl: trip.thumbnailLightUrl,
+        darkUrl: trip.thumbnailDarkUrl,
       }
     }
-    return { url: undefined, lightUrl: undefined, darkUrl: undefined }
+    return { lightUrl: undefined, darkUrl: undefined }
   }
 
   const participants = getParticipants()
-  const { lightUrl: routeThumbnailLightUrl, darkUrl: routeThumbnailDarkUrl } =
-    getRouteThumbnailUrls()
+  const { lightUrl: thumbnailLightUrl, darkUrl: thumbnailDarkUrl } = getThumbnailUrls()
 
   return (
     <Card to={getPublicationPath()}>
@@ -171,8 +170,8 @@ export function PublicationCard({ publication, showTeam }: PublicationCardProps)
         {/* Participants section - avatars, progress, and route thumbnail */}
         {(participants.length > 0 ||
           publication.type === 'RIDE' ||
-          routeThumbnailLightUrl ||
-          routeThumbnailDarkUrl) && (
+          thumbnailLightUrl ||
+          thumbnailDarkUrl) && (
           <Group justify="space-between" align="center" mb="md" wrap="nowrap">
             <Group style={{ flex: 1 }}>
               {participants.length > 0 && (
@@ -182,10 +181,10 @@ export function PublicationCard({ publication, showTeam }: PublicationCardProps)
                 <PublicationCardProgress ride={publication as RideDto} />
               )}
             </Group>
-            {(routeThumbnailLightUrl || routeThumbnailDarkUrl) && (
+            {(thumbnailLightUrl || thumbnailDarkUrl) && (
               <RouteThumbnail
-                thumbnailLightUrl={routeThumbnailLightUrl}
-                thumbnailDarkUrl={routeThumbnailDarkUrl}
+                thumbnailLightUrl={thumbnailLightUrl}
+                thumbnailDarkUrl={thumbnailDarkUrl}
                 size="sm"
               />
             )}

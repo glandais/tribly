@@ -378,8 +378,8 @@ class _RideCard extends ConsumerWidget {
     final token = ref.watch(accessTokenHolderProvider);
 
     final thumbnailUrl = Theme.of(context).brightness == Brightness.dark
-        ? ride.routeThumbnailDarkUrl
-        : ride.routeThumbnailLightUrl;
+        ? ride.thumbnailDarkUrl
+        : ride.thumbnailLightUrl;
 
     return AnimatedCard(
       onTap: () => context.push(Paths.ride(ride.team.slug, ride.slug)),

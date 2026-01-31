@@ -77,11 +77,11 @@ sealed class PublicationDto with _$PublicationDto {
     /// End place
     PlaceDetailDto? endPlace,
 
-    /// Route thumbnail URL (light)
-    String? routeThumbnailLightUrl,
+    /// Thumbnail URL (light)
+    String? thumbnailLightUrl,
 
-    /// Route thumbnail URL (dark)
-    String? routeThumbnailDarkUrl,
+    /// Thumbnail URL (dark)
+    String? thumbnailDarkUrl,
   }) = PublicationDtoRide;
 
   @FreezedUnionValue('POST')
@@ -164,11 +164,11 @@ sealed class PublicationDto with _$PublicationDto {
     /// Route slug
     String? routeSlug,
 
-    /// Route thumbnail URL (light)
-    String? routeThumbnailLightUrl,
+    /// Thumbnail URL (light)
+    String? thumbnailLightUrl,
 
-    /// Route thumbnail URL (dark)
-    String? routeThumbnailDarkUrl,
+    /// Thumbnail URL (dark)
+    String? thumbnailDarkUrl,
   }) = PublicationDtoTrip;
 
   factory PublicationDto.fromJson(Map<String, Object?> json) =>

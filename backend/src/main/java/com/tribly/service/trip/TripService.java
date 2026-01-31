@@ -27,6 +27,7 @@ import com.tribly.repository.trip.TripStageRepository;
 import com.tribly.service.common.TeamEntityService;
 import com.tribly.service.route.RouteService;
 import com.tribly.service.security.annotation.CheckAccess;
+import com.tribly.service.thumbnail.ThumbnailService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -48,6 +49,8 @@ public class TripService extends TeamEntityService<Trip, TripRepository, TripDto
   @Inject RouteService routeService;
 
   @Inject PlaceRepository placeRepository;
+
+  @Inject ThumbnailService thumbnailService;
 
   @Override
   protected TripRepository getRepository() {
@@ -103,6 +106,8 @@ public class TripService extends TeamEntityService<Trip, TripRepository, TripDto
       createTripStage(teamSlug, creator, trip, stageRequest, sortOrder);
       sortOrder++;
     }
+
+    thumbnailService.generateTripThumbnails(trip);
 
     return TripDto.from(trip, true, assetService);
   }
@@ -211,6 +216,8 @@ public class TripService extends TeamEntityService<Trip, TripRepository, TripDto
     }
 
     tripRepository.persist(trip);
+
+    thumbnailService.generateTripThumbnails(trip);
 
     return TripDto.from(trip, true, assetService);
   }

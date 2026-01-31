@@ -279,6 +279,286 @@
           }
         }
       },
+      "AdminDomainDto" : {
+        "description" : "Admin domain view with statistics",
+        "type" : "object",
+        "required" : [ "id", "domain", "name", "baseUrl", "singleTeam", "active", "teamCount", "userCount", "createdAt" ],
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "description" : "Domain ID (TSID)",
+            "examples" : [ "0h4a8xzk8jv80" ]
+          },
+          "domain" : {
+            "type" : "string",
+            "description" : "Domain hostname"
+          },
+          "name" : {
+            "type" : "string",
+            "description" : "Domain display name"
+          },
+          "baseUrl" : {
+            "type" : "string",
+            "description" : "Base URL for the domain"
+          },
+          "singleTeam" : {
+            "type" : "boolean",
+            "description" : "Whether domain is single-team mode"
+          },
+          "active" : {
+            "type" : "boolean",
+            "description" : "Whether domain is active"
+          },
+          "teamCount" : {
+            "type" : "integer",
+            "format" : "int64",
+            "description" : "Number of teams in this domain"
+          },
+          "userCount" : {
+            "type" : "integer",
+            "format" : "int64",
+            "description" : "Number of users in this domain"
+          },
+          "createdAt" : {
+            "description" : "Domain creation timestamp",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Instant"
+          }
+        }
+      },
+      "AdminDomainListResponse" : {
+        "description" : "Paginated admin domain list response",
+        "type" : "object",
+        "required" : [ "domains", "total", "page", "size" ],
+        "properties" : {
+          "domains" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/AdminDomainDto"
+            },
+            "description" : "List of domains"
+          },
+          "total" : {
+            "type" : "integer",
+            "format" : "int64",
+            "description" : "Total number of domains"
+          },
+          "page" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Current page number"
+          },
+          "size" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Page size"
+          }
+        }
+      },
+      "AdminGpsCredentialDto" : {
+        "description" : "Admin GPS credential view (without secret)",
+        "type" : "object",
+        "required" : [ "id", "serviceType", "clientId", "active", "createdAt" ],
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "description" : "Credential ID (TSID)",
+            "examples" : [ "0h4a8xzk8jv80" ]
+          },
+          "serviceType" : {
+            "description" : "GPS service type",
+            "type" : "string",
+            "$ref" : "#/components/schemas/GpsServiceType"
+          },
+          "clientId" : {
+            "type" : "string",
+            "description" : "OAuth client ID"
+          },
+          "active" : {
+            "type" : "boolean",
+            "description" : "Whether credential is active"
+          },
+          "createdAt" : {
+            "description" : "Credential creation timestamp",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Instant"
+          }
+        }
+      },
+      "AdminStatsDto" : {
+        "description" : "Admin dashboard statistics",
+        "type" : "object",
+        "required" : [ "totalDomains", "totalTeams", "totalUsers" ],
+        "properties" : {
+          "totalDomains" : {
+            "type" : "integer",
+            "format" : "int64",
+            "description" : "Total number of domains"
+          },
+          "totalTeams" : {
+            "type" : "integer",
+            "format" : "int64",
+            "description" : "Total number of teams"
+          },
+          "totalUsers" : {
+            "type" : "integer",
+            "format" : "int64",
+            "description" : "Total number of users"
+          }
+        }
+      },
+      "AdminTeamDto" : {
+        "description" : "Admin team view with domain info",
+        "type" : "object",
+        "required" : [ "id", "name", "slug", "domainId", "domainName", "visibility", "deleted", "memberCount", "createdAt" ],
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "description" : "Team ID (TSID)",
+            "examples" : [ "0h4a8xzk8jv80" ]
+          },
+          "name" : {
+            "type" : "string",
+            "description" : "Team name"
+          },
+          "slug" : {
+            "type" : "string",
+            "description" : "Team URL slug"
+          },
+          "domainId" : {
+            "type" : "string",
+            "description" : "Domain ID this team belongs to"
+          },
+          "domainName" : {
+            "type" : "string",
+            "description" : "Domain hostname"
+          },
+          "visibility" : {
+            "description" : "Team visibility",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Visibility"
+          },
+          "deleted" : {
+            "type" : "boolean",
+            "description" : "Is team soft-deleted"
+          },
+          "memberCount" : {
+            "type" : "integer",
+            "format" : "int64",
+            "description" : "Number of members"
+          },
+          "createdAt" : {
+            "description" : "Team creation timestamp",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Instant"
+          }
+        }
+      },
+      "AdminTeamListResponse" : {
+        "description" : "Paginated admin team list response",
+        "type" : "object",
+        "required" : [ "teams", "total", "page", "size" ],
+        "properties" : {
+          "teams" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/AdminTeamDto"
+            },
+            "description" : "List of teams"
+          },
+          "total" : {
+            "type" : "integer",
+            "format" : "int64",
+            "description" : "Total number of teams"
+          },
+          "page" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Current page number"
+          },
+          "size" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Page size"
+          }
+        }
+      },
+      "AdminUserDto" : {
+        "description" : "Admin user view with domain info",
+        "type" : "object",
+        "required" : [ "id", "email", "displayName", "domainId", "domainName", "emailVerified", "createdAt" ],
+        "properties" : {
+          "id" : {
+            "type" : "string",
+            "description" : "User ID (TSID)",
+            "examples" : [ "0h4a8xzk8jv80" ]
+          },
+          "email" : {
+            "type" : "string",
+            "description" : "User email address"
+          },
+          "displayName" : {
+            "type" : "string",
+            "description" : "User display name"
+          },
+          "domainId" : {
+            "type" : "string",
+            "description" : "Domain ID this user belongs to"
+          },
+          "domainName" : {
+            "type" : "string",
+            "description" : "Domain hostname"
+          },
+          "platformRole" : {
+            "description" : "Platform role (null if regular user)",
+            "type" : "string",
+            "$ref" : "#/components/schemas/PlatformRole"
+          },
+          "emailVerified" : {
+            "type" : "boolean",
+            "description" : "Whether email is verified"
+          },
+          "createdAt" : {
+            "description" : "User creation timestamp",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Instant"
+          },
+          "lastLoginAt" : {
+            "description" : "Last login timestamp",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Instant"
+          }
+        }
+      },
+      "AdminUserListResponse" : {
+        "description" : "Paginated admin user list response",
+        "type" : "object",
+        "required" : [ "users", "total", "page", "size" ],
+        "properties" : {
+          "users" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/AdminUserDto"
+            },
+            "description" : "List of users"
+          },
+          "total" : {
+            "type" : "integer",
+            "format" : "int64",
+            "description" : "Total number of users"
+          },
+          "page" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Current page number"
+          },
+          "size" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Page size"
+          }
+        }
+      },
       "AssetDimensionsDto" : {
         "type" : "object",
         "properties" : {
@@ -360,13 +640,29 @@
             "type" : "object",
             "$ref" : "#/components/schemas/AssetDto"
           },
-          "thumbnail" : {
-            "description" : "Thumbnail",
+          "thumbnailLight" : {
+            "description" : "Light thumbnail",
+            "type" : "object",
+            "$ref" : "#/components/schemas/AssetDto"
+          },
+          "thumbnailDark" : {
+            "description" : "Dark thumbnail",
             "type" : "object",
             "$ref" : "#/components/schemas/AssetDto"
           }
         },
         "required" : [ "images", "attachments" ]
+      },
+      "AssignPlatformRoleRequest" : {
+        "description" : "Request to assign or remove platform role",
+        "type" : "object",
+        "properties" : {
+          "role" : {
+            "description" : "Platform role to assign (null to remove)",
+            "type" : "string",
+            "$ref" : "#/components/schemas/PlatformRole"
+          }
+        }
       },
       "AuthResponse" : {
         "description" : "Authentication response",
@@ -590,10 +886,25 @@
           }
         }
       },
+      "CompleteRequest" : {
+        "description" : "Complete device authorization request",
+        "type" : "object",
+        "required" : [ "userCode", "userId" ],
+        "properties" : {
+          "userCode" : {
+            "type" : "string",
+            "description" : "User code from device display"
+          },
+          "userId" : {
+            "type" : "string",
+            "description" : "Authenticated user ID (TSID string)"
+          }
+        }
+      },
       "ConfigDto" : {
         "description" : "Application configuration",
         "type" : "object",
-        "required" : [ "webAuthnRpId", "appName" ],
+        "required" : [ "webAuthnRpId", "appName", "singleTeam" ],
         "properties" : {
           "webAuthnRpId" : {
             "type" : "string",
@@ -602,6 +913,297 @@
           "appName" : {
             "type" : "string",
             "description" : "Application name"
+          },
+          "singleTeam" : {
+            "type" : "boolean",
+            "description" : "Single team mode - team creation disabled"
+          }
+        }
+      },
+      "CreateDomainRequest" : {
+        "description" : "Request to create a new domain",
+        "type" : "object",
+        "required" : [ "domain", "name", "baseUrl" ],
+        "properties" : {
+          "domain" : {
+            "type" : "string",
+            "description" : "Domain hostname",
+            "pattern" : "\\S",
+            "maxLength" : 250
+          },
+          "name" : {
+            "type" : "string",
+            "description" : "Domain display name",
+            "pattern" : "\\S",
+            "maxLength" : 250
+          },
+          "baseUrl" : {
+            "type" : "string",
+            "description" : "Base URL for the domain",
+            "pattern" : "\\S",
+            "maxLength" : 500
+          },
+          "singleTeam" : {
+            "type" : "boolean",
+            "description" : "Whether domain is single-team mode"
+          }
+        }
+      },
+      "CreateGpsCredentialRequest" : {
+        "description" : "Request to create a new GPS credential",
+        "type" : "object",
+        "required" : [ "serviceType", "clientId" ],
+        "properties" : {
+          "serviceType" : {
+            "description" : "GPS service type",
+            "type" : "string",
+            "$ref" : "#/components/schemas/GpsServiceType"
+          },
+          "clientId" : {
+            "type" : "string",
+            "description" : "OAuth client ID",
+            "pattern" : "\\S",
+            "maxLength" : 255
+          },
+          "clientSecret" : {
+            "type" : "string",
+            "description" : "OAuth client secret (nullable for PKCE services)",
+            "maxLength" : 500
+          },
+          "active" : {
+            "type" : "boolean",
+            "description" : "Whether credential is active"
+          }
+        }
+      },
+      "DeviceCodeResponse" : {
+        "description" : "Device code response (RFC 8628)",
+        "type" : "object",
+        "required" : [ "deviceCode", "userCode", "verificationUri", "verificationUriComplete", "expiresIn", "interval" ],
+        "properties" : {
+          "deviceCode" : {
+            "type" : "string",
+            "description" : "Device code for polling"
+          },
+          "userCode" : {
+            "type" : "string",
+            "description" : "User code to display (e.g., 'ABCD12')"
+          },
+          "verificationUri" : {
+            "type" : "string",
+            "description" : "Verification URL for user to visit"
+          },
+          "verificationUriComplete" : {
+            "type" : "string",
+            "description" : "Verification URL with user code embedded"
+          },
+          "expiresIn" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Code expiry in seconds"
+          },
+          "interval" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Minimum polling interval in seconds"
+          }
+        }
+      },
+      "DeviceRequest" : {
+        "description" : "Device auth request",
+        "type" : "object",
+        "properties" : {
+          "clientId" : {
+            "type" : "string",
+            "description" : "Client ID (e.g., 'karoo', 'garmin')"
+          }
+        }
+      },
+      "DeviceRideDto" : {
+        "description" : "Ride information for device applications",
+        "type" : "object",
+        "required" : [ "teamSlug", "rideSlug", "rideName", "entries" ],
+        "properties" : {
+          "teamSlug" : {
+            "type" : "string",
+            "description" : "Team slug"
+          },
+          "rideSlug" : {
+            "type" : "string",
+            "description" : "Ride slug"
+          },
+          "rideName" : {
+            "type" : "string",
+            "description" : "Ride name"
+          },
+          "startDateTime" : {
+            "description" : "Start date/time",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Instant"
+          },
+          "entries" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/DeviceRideEntryDto"
+            },
+            "description" : "Route entries for this ride"
+          }
+        }
+      },
+      "DeviceRideEntryDto" : {
+        "type" : "object",
+        "description" : "Route entry within a ride for device applications",
+        "required" : [ "routeSlug", "routeName", "distance", "elevationGain" ],
+        "properties" : {
+          "routeSlug" : {
+            "type" : "string",
+            "description" : "Route slug"
+          },
+          "routeName" : {
+            "type" : "string",
+            "description" : "Route name"
+          },
+          "groupName" : {
+            "type" : "string",
+            "description" : "Group name (null for ride-level route)"
+          },
+          "distance" : {
+            "type" : "number",
+            "format" : "float",
+            "description" : "Distance in meters"
+          },
+          "elevationGain" : {
+            "type" : "number",
+            "format" : "float",
+            "description" : "Elevation gain in meters"
+          },
+          "startLat" : {
+            "type" : "number",
+            "format" : "double",
+            "description" : "Start latitude"
+          },
+          "startLon" : {
+            "type" : "number",
+            "format" : "double",
+            "description" : "Start longitude"
+          }
+        }
+      },
+      "DeviceRouteDto" : {
+        "description" : "Standalone route information for device applications",
+        "type" : "object",
+        "required" : [ "teamSlug", "routeSlug", "routeName", "distance", "elevationGain" ],
+        "properties" : {
+          "teamSlug" : {
+            "type" : "string",
+            "description" : "Team slug"
+          },
+          "routeSlug" : {
+            "type" : "string",
+            "description" : "Route slug"
+          },
+          "routeName" : {
+            "type" : "string",
+            "description" : "Route name"
+          },
+          "distance" : {
+            "type" : "number",
+            "format" : "float",
+            "description" : "Distance in meters"
+          },
+          "elevationGain" : {
+            "type" : "number",
+            "format" : "float",
+            "description" : "Elevation gain in meters"
+          },
+          "startLat" : {
+            "type" : "number",
+            "format" : "double",
+            "description" : "Start latitude"
+          },
+          "startLon" : {
+            "type" : "number",
+            "format" : "double",
+            "description" : "Start longitude"
+          }
+        }
+      },
+      "DeviceRoutesResponse" : {
+        "description" : "Response containing rides and routes for device applications",
+        "type" : "object",
+        "required" : [ "rides", "routes" ],
+        "properties" : {
+          "rides" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/DeviceRideDto"
+            },
+            "description" : "Upcoming rides with route entries"
+          },
+          "routes" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/DeviceRouteDto"
+            },
+            "description" : "Latest standalone routes"
+          }
+        }
+      },
+      "DeviceTokenRequest" : {
+        "description" : "Device OAuth token request",
+        "type" : "object",
+        "required" : [ "grantType" ],
+        "properties" : {
+          "grantType" : {
+            "type" : "string",
+            "description" : "Grant type: 'urn:ietf:params:oauth:grant-type:device_code' or 'refresh_token'",
+            "pattern" : "\\S"
+          },
+          "deviceCode" : {
+            "type" : "string",
+            "description" : "Device code (for device_code grant)"
+          },
+          "refreshToken" : {
+            "type" : "string",
+            "description" : "Refresh token (for refresh_token grant)"
+          }
+        }
+      },
+      "DeviceTokenResponse" : {
+        "description" : "Device OAuth token response",
+        "type" : "object",
+        "required" : [ "accessToken", "tokenType", "expiresIn" ],
+        "properties" : {
+          "accessToken" : {
+            "type" : "string",
+            "description" : "Access token"
+          },
+          "tokenType" : {
+            "type" : "string",
+            "description" : "Token type (always 'Bearer')"
+          },
+          "expiresIn" : {
+            "type" : "integer",
+            "format" : "int32",
+            "description" : "Token expiry in seconds"
+          },
+          "refreshToken" : {
+            "type" : "string",
+            "description" : "Refresh token"
+          }
+        }
+      },
+      "DeviceUserStatusResponse" : {
+        "description" : "Response containing user's device connection status",
+        "type" : "object",
+        "required" : [ "connectedGpsServices" ],
+        "properties" : {
+          "connectedGpsServices" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/GpsServiceType"
+            },
+            "description" : "List of connected GPS services"
           }
         }
       },
@@ -611,7 +1213,7 @@
       },
       "ErrorCode" : {
         "type" : "string",
-        "enum" : [ "BAD_REQUEST", "NOT_FOUND", "UNAUTHORIZED", "FORBIDDEN", "INTERNAL_ERROR", "UNKNOWN", "VALIDATION", "BUSINESS_RULE", "LAST_ADMIN", "ALREADY_REGISTERED", "NOT_REGISTERED", "INVALID_SLUG", "SLUG_TAKEN", "USER_NOT_SYNCED", "GROUP_FULL", "INVALID_VISIBILITY", "PUBLIC_TRIP_PRIVATE_ROUTE", "GPX_FAILURE", "FILE_REQUIRED", "TOO_MANY_TEAM_PAGES", "GPX_EMPTY", "INVALID_FORMAT", "RENTAL_PERIOD_MISSING", "STATUS_INVALID", "PUBLIC_RIDE_PRIVATE_ROUTE", "INVALID_CREDENTIALS", "EMAIL_NOT_VERIFIED", "EMAIL_ALREADY_EXISTS", "TOKEN_INVALID", "TOKEN_EXPIRED", "SESSION_EXPIRED", "PASSWORD_NOT_SET", "PASSKEY_NOT_FOUND", "USER_NOT_FOUND" ]
+        "enum" : [ "BAD_REQUEST", "NOT_FOUND", "UNAUTHORIZED", "FORBIDDEN", "INTERNAL_ERROR", "UNKNOWN", "VALIDATION", "BUSINESS_RULE", "LAST_ADMIN", "ALREADY_REGISTERED", "NOT_REGISTERED", "INVALID_SLUG", "SLUG_TAKEN", "USER_NOT_SYNCED", "GROUP_FULL", "INVALID_VISIBILITY", "PUBLIC_TRIP_PRIVATE_ROUTE", "GPX_FAILURE", "FILE_REQUIRED", "TOO_MANY_TEAM_PAGES", "GPX_EMPTY", "INVALID_FORMAT", "RENTAL_PERIOD_MISSING", "STATUS_INVALID", "PUBLIC_RIDE_PRIVATE_ROUTE", "INVALID_CREDENTIALS", "EMAIL_NOT_VERIFIED", "EMAIL_ALREADY_EXISTS", "TOKEN_INVALID", "TOKEN_EXPIRED", "SESSION_EXPIRED", "PASSWORD_NOT_SET", "PASSKEY_NOT_FOUND", "USER_NOT_FOUND", "DOMAIN_NOT_FOUND", "TEAM_NOT_FOUND", "TEAM_CREATION_DISABLED", "GPS_SERVICE_ALREADY_CONNECTED", "GPS_SERVICE_NOT_CONNECTED", "GPS_SERVICE_NOT_CONFIGURED", "GPS_INVALID_STATE", "GPS_STATE_EXPIRED", "GPX_NOT_FOUND", "AUTHORIZATION_PENDING", "GPS_CREDENTIAL_ALREADY_EXISTS" ]
       },
       "ErrorDetails" : {
         "oneOf" : [ {
@@ -742,6 +1344,42 @@
           }
         }
       },
+      "GpsOAuthUrlResponse" : {
+        "description" : "OAuth authorization URL response",
+        "type" : "object",
+        "required" : [ "authorizationUrl" ],
+        "properties" : {
+          "authorizationUrl" : {
+            "type" : "string",
+            "description" : "URL to redirect user for OAuth authorization"
+          }
+        }
+      },
+      "GpsServiceConnectionDto" : {
+        "type" : "object",
+        "description" : "GPS service connection information",
+        "required" : [ "serviceType", "displayName", "connectedAt" ],
+        "properties" : {
+          "serviceType" : {
+            "description" : "Service type identifier",
+            "type" : "string",
+            "$ref" : "#/components/schemas/GpsServiceType"
+          },
+          "displayName" : {
+            "type" : "string",
+            "description" : "Display name of the service"
+          },
+          "connectedAt" : {
+            "description" : "When the service was connected",
+            "type" : "string",
+            "$ref" : "#/components/schemas/Instant"
+          }
+        }
+      },
+      "GpsServiceType" : {
+        "type" : "string",
+        "enum" : [ "HAMMERHEAD", "GARMIN" ]
+      },
       "GroupRequest" : {
         "description" : "Ride group creation request",
         "type" : "object",
@@ -798,20 +1436,6 @@
         "externalDocs" : {
           "description" : "As defined by 'partial-time' in RFC3339",
           "url" : "https://www.rfc-editor.org/rfc/rfc3339.html#section-5.6"
-        }
-      },
-      "MagicLinkRequest" : {
-        "description" : "Magic link request",
-        "type" : "object",
-        "required" : [ "email" ],
-        "properties" : {
-          "email" : {
-            "type" : "string",
-            "description" : "Email address",
-            "examples" : [ "user@example.com" ],
-            "pattern" : "\\S",
-            "maxLength" : 250
-          }
         }
       },
       "MediaDto" : {
@@ -929,6 +1553,20 @@
           "id" : {
             "type" : "string",
             "description" : "id/slug"
+          }
+        }
+      },
+      "OtpRequest" : {
+        "description" : "OTP request",
+        "type" : "object",
+        "required" : [ "email" ],
+        "properties" : {
+          "email" : {
+            "type" : "string",
+            "description" : "Email address",
+            "examples" : [ "user@example.com" ],
+            "pattern" : "\\S",
+            "maxLength" : 250
           }
         }
       },
@@ -1105,6 +1743,10 @@
             }
           }
         }
+      },
+      "PlatformRole" : {
+        "type" : "string",
+        "enum" : [ "PLATFORM_ADMIN" ]
       },
       "PostDto" : {
         "description" : "Post summary data",
@@ -1451,9 +2093,13 @@
             },
             "description" : "Preview of first participants (max 5)"
           },
-          "routeThumbnailUrl" : {
+          "thumbnailLightUrl" : {
             "type" : "string",
-            "description" : "Route thumbnail URL"
+            "description" : "Thumbnail URL (light)"
+          },
+          "thumbnailDarkUrl" : {
+            "type" : "string",
+            "description" : "Thumbnail URL (dark)"
           }
         }
       },
@@ -2023,6 +2669,25 @@
         "type" : "string",
         "enum" : [ "DISTANCE", "ELEVATION_GAIN", "HILLINESS", "DATE_TIME" ]
       },
+      "RouteUploadResponse" : {
+        "description" : "Result of uploading a route to a GPS service",
+        "type" : "object",
+        "required" : [ "success" ],
+        "properties" : {
+          "success" : {
+            "type" : "boolean",
+            "description" : "Whether the upload was successful"
+          },
+          "message" : {
+            "type" : "string",
+            "description" : "Error message if upload failed"
+          },
+          "externalRouteId" : {
+            "type" : "string",
+            "description" : "External route ID on the GPS service"
+          }
+        }
+      },
       "RouterProfile" : {
         "type" : "string",
         "enum" : [ "BIKE", "FASTBIKE", "GRAVEL", "MTB", "RUN_HIKE", "MOTORCYCLE" ]
@@ -2522,9 +3187,13 @@
             },
             "description" : "Trip participants"
           },
-          "routeThumbnailUrl" : {
+          "thumbnailLightUrl" : {
             "type" : "string",
-            "description" : "Route thumbnail URL"
+            "description" : "Thumbnail URL (light)"
+          },
+          "thumbnailDarkUrl" : {
+            "type" : "string",
+            "description" : "Thumbnail URL (dark)"
           }
         }
       },
@@ -2680,6 +3349,51 @@
         "type" : "string",
         "enum" : [ "METRIC", "IMPERIAL" ]
       },
+      "UpdateDomainRequest" : {
+        "description" : "Request to update a domain",
+        "type" : "object",
+        "required" : [ "name", "baseUrl" ],
+        "properties" : {
+          "name" : {
+            "type" : "string",
+            "description" : "Domain display name",
+            "pattern" : "\\S",
+            "maxLength" : 250
+          },
+          "baseUrl" : {
+            "type" : "string",
+            "description" : "Base URL for the domain",
+            "pattern" : "\\S",
+            "maxLength" : 500
+          },
+          "singleTeam" : {
+            "type" : "boolean",
+            "description" : "Whether domain is single-team mode"
+          }
+        }
+      },
+      "UpdateGpsCredentialRequest" : {
+        "description" : "Request to update a GPS credential",
+        "type" : "object",
+        "required" : [ "clientId" ],
+        "properties" : {
+          "clientId" : {
+            "type" : "string",
+            "description" : "OAuth client ID",
+            "pattern" : "\\S",
+            "maxLength" : 255
+          },
+          "clientSecret" : {
+            "type" : "string",
+            "description" : "OAuth client secret (null = keep current)",
+            "maxLength" : 500
+          },
+          "active" : {
+            "type" : "boolean",
+            "description" : "Whether credential is active"
+          }
+        }
+      },
       "UpdateMemberRoleRequest" : {
         "description" : "Request to update a member's role",
         "type" : "object",
@@ -2742,6 +3456,53 @@
             "description" : "Preferred unit system (metric or imperial)",
             "type" : "string",
             "$ref" : "#/components/schemas/UnitSystem"
+          },
+          "platformRole" : {
+            "description" : "Platform role (null if regular user)",
+            "type" : "string",
+            "$ref" : "#/components/schemas/PlatformRole"
+          },
+          "connectedServices" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/GpsServiceConnectionDto"
+            },
+            "description" : "Connected GPS services"
+          }
+        }
+      },
+      "VerifyOtpRequest" : {
+        "description" : "OTP verification request",
+        "type" : "object",
+        "required" : [ "email", "code" ],
+        "properties" : {
+          "email" : {
+            "type" : "string",
+            "description" : "Email address",
+            "examples" : [ "user@example.com" ],
+            "pattern" : "\\S",
+            "maxLength" : 250
+          },
+          "code" : {
+            "type" : "string",
+            "description" : "6-digit OTP code",
+            "examples" : [ "123456" ],
+            "pattern" : "^\\d{6}$"
+          }
+        }
+      },
+      "VerifyResponse" : {
+        "description" : "User code verification response",
+        "type" : "object",
+        "required" : [ "userCode" ],
+        "properties" : {
+          "userCode" : {
+            "type" : "string",
+            "description" : "User code"
+          },
+          "authorized" : {
+            "type" : "boolean",
+            "description" : "Whether authorization is already completed"
           }
         }
       },
@@ -2790,6 +3551,15 @@
     }
   },
   "tags" : [ {
+    "name" : "Admin - Domains",
+    "description" : "Platform admin domain management"
+  }, {
+    "name" : "Admin - Teams",
+    "description" : "Platform admin team management"
+  }, {
+    "name" : "Admin - Users",
+    "description" : "Platform admin user management"
+  }, {
     "name" : "Ads",
     "description" : "Ad management operations"
   }, {
@@ -2804,6 +3574,18 @@
   }, {
     "name" : "Configuration",
     "description" : "Application configuration endpoints"
+  }, {
+    "name" : "Device OAuth",
+    "description" : "OAuth 2.0 Device Code endpoints for GPS devices"
+  }, {
+    "name" : "Device Routes",
+    "description" : "Route management for device applications"
+  }, {
+    "name" : "Device User",
+    "description" : "User status for device applications"
+  }, {
+    "name" : "GPS Services",
+    "description" : "GPS device integration operations"
   }, {
     "name" : "Passkeys",
     "description" : "WebAuthn passkey management"
@@ -2857,6 +3639,976 @@
     "description" : "User profile management operations"
   } ],
   "paths" : {
+    "/api/admin/domains" : {
+      "get" : {
+        "summary" : "List all domains",
+        "description" : "Get a paginated list of all domains",
+        "operationId" : "listDomains",
+        "tags" : [ "Admin - Domains" ],
+        "parameters" : [ {
+          "description" : "Page number (0-indexed)",
+          "name" : "page",
+          "in" : "query",
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 0
+          }
+        }, {
+          "description" : "Page size",
+          "name" : "size",
+          "in" : "query",
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 20
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Domains retrieved successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AdminDomainListResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Forbidden - not a platform admin",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      },
+      "post" : {
+        "summary" : "Create domain",
+        "description" : "Create a new domain",
+        "operationId" : "createDomain",
+        "tags" : [ "Admin - Domains" ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CreateDomainRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "description" : "Domain created successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AdminDomainDto"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Invalid request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Forbidden - not a platform admin",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
+    "/api/admin/domains/stats" : {
+      "get" : {
+        "summary" : "Get platform statistics",
+        "description" : "Get overall platform statistics",
+        "operationId" : "getStats",
+        "tags" : [ "Admin - Domains" ],
+        "responses" : {
+          "200" : {
+            "description" : "Statistics retrieved successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AdminStatsDto"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Forbidden - not a platform admin",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
+    "/api/admin/domains/{domainId}" : {
+      "put" : {
+        "summary" : "Update domain",
+        "description" : "Update domain information",
+        "operationId" : "updateDomain",
+        "tags" : [ "Admin - Domains" ],
+        "parameters" : [ {
+          "description" : "Domain ID",
+          "name" : "domainId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/UpdateDomainRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Domain updated successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AdminDomainDto"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Domain not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Forbidden - not a platform admin",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "400" : {
+            "description" : "Bad Request"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      },
+      "get" : {
+        "summary" : "Get domain details",
+        "description" : "Get detailed domain information",
+        "operationId" : "getDomain",
+        "tags" : [ "Admin - Domains" ],
+        "parameters" : [ {
+          "description" : "Domain ID",
+          "name" : "domainId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Domain retrieved successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AdminDomainDto"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Domain not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Forbidden - not a platform admin",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
+    "/api/admin/domains/{domainId}/gps-credentials" : {
+      "get" : {
+        "summary" : "List GPS credentials",
+        "description" : "Get all GPS credentials for a domain",
+        "operationId" : "listDomainGpsCredentials",
+        "tags" : [ "Admin - Domains" ],
+        "parameters" : [ {
+          "description" : "Domain ID",
+          "name" : "domainId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Credentials retrieved successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/AdminGpsCredentialDto"
+                  }
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Domain not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Forbidden - not a platform admin",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      },
+      "post" : {
+        "summary" : "Create GPS credential",
+        "description" : "Create a new GPS credential for a domain",
+        "operationId" : "createDomainGpsCredential",
+        "tags" : [ "Admin - Domains" ],
+        "parameters" : [ {
+          "description" : "Domain ID",
+          "name" : "domainId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CreateGpsCredentialRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "description" : "Credential created successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AdminGpsCredentialDto"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Invalid request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Domain not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409" : {
+            "description" : "Credential already exists for this service type",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Forbidden - not a platform admin",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
+    "/api/admin/domains/{domainId}/gps-credentials/{credentialId}" : {
+      "put" : {
+        "summary" : "Update GPS credential",
+        "description" : "Update a GPS credential for a domain",
+        "operationId" : "updateDomainGpsCredential",
+        "tags" : [ "Admin - Domains" ],
+        "parameters" : [ {
+          "description" : "Credential ID",
+          "name" : "credentialId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Domain ID",
+          "name" : "domainId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/UpdateGpsCredentialRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Credential updated successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AdminGpsCredentialDto"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Invalid request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Domain or credential not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Forbidden - not a platform admin",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      },
+      "delete" : {
+        "summary" : "Delete GPS credential",
+        "description" : "Delete a GPS credential for a domain",
+        "operationId" : "deleteDomainGpsCredential",
+        "tags" : [ "Admin - Domains" ],
+        "parameters" : [ {
+          "description" : "Credential ID",
+          "name" : "credentialId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Domain ID",
+          "name" : "domainId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "Credential deleted successfully"
+          },
+          "404" : {
+            "description" : "Domain or credential not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Forbidden - not a platform admin",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
+    "/api/admin/domains/{domainId}/toggle-active" : {
+      "post" : {
+        "summary" : "Toggle domain active status",
+        "description" : "Enable or disable a domain",
+        "operationId" : "toggleDomainActive",
+        "tags" : [ "Admin - Domains" ],
+        "parameters" : [ {
+          "description" : "Domain ID",
+          "name" : "domainId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Domain status toggled successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AdminDomainDto"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Domain not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Forbidden - not a platform admin",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
+    "/api/admin/teams" : {
+      "get" : {
+        "summary" : "List all teams",
+        "description" : "Get a paginated list of all teams",
+        "operationId" : "adminListTeams",
+        "tags" : [ "Admin - Teams" ],
+        "parameters" : [ {
+          "description" : "Filter by domain ID",
+          "name" : "domainId",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Page number (0-indexed)",
+          "name" : "page",
+          "in" : "query",
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 0
+          }
+        }, {
+          "description" : "Page size",
+          "name" : "size",
+          "in" : "query",
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 20
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Teams retrieved successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AdminTeamListResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Forbidden - not a platform admin",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
+    "/api/admin/teams/{teamId}" : {
+      "get" : {
+        "summary" : "Get team details",
+        "description" : "Get detailed team information",
+        "operationId" : "adminGetTeam",
+        "tags" : [ "Admin - Teams" ],
+        "parameters" : [ {
+          "description" : "Team ID",
+          "name" : "teamId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Team retrieved successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AdminTeamDto"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Team not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Forbidden - not a platform admin",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
+    "/api/admin/teams/{teamId}/toggle-deleted" : {
+      "post" : {
+        "summary" : "Toggle team deleted",
+        "description" : "Toggle team soft-delete status (archive/restore)",
+        "operationId" : "adminToggleTeamDeleted",
+        "tags" : [ "Admin - Teams" ],
+        "parameters" : [ {
+          "description" : "Team ID",
+          "name" : "teamId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Team deleted status toggled successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AdminTeamDto"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Team not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Forbidden - not a platform admin",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
+    "/api/admin/users" : {
+      "get" : {
+        "summary" : "List all users",
+        "description" : "Get a paginated list of all users",
+        "operationId" : "listUsers",
+        "tags" : [ "Admin - Users" ],
+        "parameters" : [ {
+          "description" : "Show only platform admins",
+          "name" : "adminOnly",
+          "in" : "query",
+          "schema" : {
+            "type" : "boolean"
+          }
+        }, {
+          "description" : "Filter by domain ID",
+          "name" : "domainId",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Page number (0-indexed)",
+          "name" : "page",
+          "in" : "query",
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 0
+          }
+        }, {
+          "description" : "Search by email or name",
+          "name" : "search",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Page size",
+          "name" : "size",
+          "in" : "query",
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 20
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Users retrieved successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AdminUserListResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Forbidden - not a platform admin",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
+    "/api/admin/users/{userId}" : {
+      "get" : {
+        "summary" : "Get user details",
+        "description" : "Get detailed user information",
+        "operationId" : "getAdminUser",
+        "tags" : [ "Admin - Users" ],
+        "parameters" : [ {
+          "description" : "User ID",
+          "name" : "userId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "User retrieved successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AdminUserDto"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "User not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Forbidden - not a platform admin",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
+    "/api/admin/users/{userId}/platform-role" : {
+      "put" : {
+        "summary" : "Assign platform role",
+        "description" : "Assign or remove a platform role from a user",
+        "operationId" : "assignPlatformRole",
+        "tags" : [ "Admin - Users" ],
+        "parameters" : [ {
+          "description" : "User ID",
+          "name" : "userId",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/AssignPlatformRoleRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Platform role updated successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/AdminUserDto"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "User not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Forbidden - not a platform admin",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "400" : {
+            "description" : "Bad Request"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
     "/api/auth/logout" : {
       "post" : {
         "summary" : "Logout",
@@ -2864,6 +4616,12 @@
         "operationId" : "logout",
         "tags" : [ "Authentication" ],
         "parameters" : [ {
+          "name" : "X-Refresh-Token",
+          "in" : "header",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
           "name" : "refresh_token",
           "in" : "cookie",
           "schema" : {
@@ -2906,17 +4664,17 @@
         } ]
       }
     },
-    "/api/auth/magic-link" : {
+    "/api/auth/otp" : {
       "post" : {
-        "summary" : "Request magic link",
-        "description" : "Send a magic link to the user's email for passwordless login",
-        "operationId" : "requestMagicLink",
+        "summary" : "Request OTP",
+        "description" : "Send a 6-digit OTP code to the user's email for passwordless login",
+        "operationId" : "requestOtp",
         "tags" : [ "Authentication" ],
         "requestBody" : {
           "content" : {
             "application/json" : {
               "schema" : {
-                "$ref" : "#/components/schemas/MagicLinkRequest"
+                "$ref" : "#/components/schemas/OtpRequest"
               }
             }
           },
@@ -2924,7 +4682,7 @@
         },
         "responses" : {
           "200" : {
-            "description" : "Magic link sent (if email exists)",
+            "description" : "OTP sent (if email exists)",
             "content" : {
               "application/json" : {
                 "schema" : {
@@ -2939,11 +4697,11 @@
         }
       }
     },
-    "/api/auth/magic-link/verify" : {
+    "/api/auth/otp/verify" : {
       "post" : {
-        "summary" : "Verify magic link",
-        "description" : "Verify magic link token and authenticate",
-        "operationId" : "verifyMagicLink",
+        "summary" : "Verify OTP",
+        "description" : "Verify OTP code and authenticate",
+        "operationId" : "verifyOtp",
         "tags" : [ "Authentication" ],
         "parameters" : [ {
           "name" : "X-Forwarded-For",
@@ -2962,7 +4720,7 @@
           "content" : {
             "application/json" : {
               "schema" : {
-                "$ref" : "#/components/schemas/VerifyTokenRequest"
+                "$ref" : "#/components/schemas/VerifyOtpRequest"
               }
             }
           },
@@ -2980,7 +4738,7 @@
             }
           },
           "400" : {
-            "description" : "Invalid or expired token",
+            "description" : "Invalid or expired code",
             "content" : {
               "application/json" : {
                 "schema" : {
@@ -3278,6 +5036,12 @@
           }
         }, {
           "name" : "X-Real-IP",
+          "in" : "header",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "X-Refresh-Token",
           "in" : "header",
           "schema" : {
             "type" : "string"
@@ -3581,6 +5345,711 @@
             }
           }
         }
+      }
+    },
+    "/api/device/me" : {
+      "get" : {
+        "summary" : "Get current user status",
+        "description" : "Get authenticated user's status including connected GPS services",
+        "operationId" : "deviceGetMe",
+        "tags" : [ "Device User" ],
+        "responses" : {
+          "200" : {
+            "description" : "User status",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/DeviceUserStatusResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ]
+      }
+    },
+    "/api/device/oauth/complete" : {
+      "post" : {
+        "summary" : "Complete device authorization",
+        "description" : "Called by frontend after user authenticates via OTP",
+        "operationId" : "deviceComplete",
+        "tags" : [ "Device OAuth" ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/CompleteRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Authorization completed",
+            "content" : {
+              "application/json" : {
+                "schema" : { }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Invalid or expired code",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/device/oauth/device" : {
+      "post" : {
+        "summary" : "Request device code",
+        "description" : "Start device code flow - returns user code and verification URL",
+        "operationId" : "device",
+        "tags" : [ "Device OAuth" ],
+        "requestBody" : {
+          "description" : "Device auth request (optional client_id)",
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/DeviceRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Device code response",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/DeviceCodeResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Invalid request",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/device/oauth/token" : {
+      "post" : {
+        "summary" : "Exchange code for tokens",
+        "description" : "Exchange device code or refresh token for access tokens. Returns 'authorization_pending' error while waiting for user.",
+        "operationId" : "deviceToken",
+        "tags" : [ "Device OAuth" ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/DeviceTokenRequest"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "Token response",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/DeviceTokenResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "authorization_pending, expired_token, or invalid_grant",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/device/oauth/verify" : {
+      "get" : {
+        "summary" : "Check user code validity",
+        "description" : "Frontend uses this to verify user code before showing auth flow",
+        "operationId" : "verify",
+        "tags" : [ "Device OAuth" ],
+        "parameters" : [ {
+          "name" : "code",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Code is valid",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/VerifyResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Code not found or expired",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/device/routes" : {
+      "get" : {
+        "summary" : "List routes for user",
+        "description" : "Get routes for authenticated user. Prioritizes routes from upcoming rides, then latest routes from user's teams.",
+        "operationId" : "deviceListRoutes",
+        "tags" : [ "Device Routes" ],
+        "parameters" : [ {
+          "description" : "User's current latitude (for proximity sorting)",
+          "name" : "lat",
+          "in" : "query",
+          "schema" : {
+            "type" : "number",
+            "format" : "double"
+          }
+        }, {
+          "description" : "User's current longitude (for proximity sorting)",
+          "name" : "lon",
+          "in" : "query",
+          "schema" : {
+            "type" : "number",
+            "format" : "double"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Routes list",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/DeviceRoutesResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ]
+      }
+    },
+    "/api/device/routes/{teamSlug}/{routeSlug}/fit" : {
+      "get" : {
+        "summary" : "Download FIT file",
+        "description" : "Download route as FIT file for GPS devices",
+        "operationId" : "deviceDownloadFit",
+        "tags" : [ "Device Routes" ],
+        "parameters" : [ {
+          "description" : "Route URL slug",
+          "required" : true,
+          "name" : "routeSlug",
+          "in" : "path",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Team URL slug",
+          "required" : true,
+          "name" : "teamSlug",
+          "in" : "path",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "FIT file download",
+            "content" : {
+              "application/vnd.ant.fit" : { }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/vnd.ant.fit" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Access denied",
+            "content" : {
+              "application/vnd.ant.fit" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Route not found",
+            "content" : {
+              "application/vnd.ant.fit" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ]
+      }
+    },
+    "/api/device/routes/{teamSlug}/{routeSlug}/gpx" : {
+      "get" : {
+        "summary" : "Download GPX file",
+        "description" : "Download route as GPX file for GPS devices",
+        "operationId" : "deviceDownloadGpx",
+        "tags" : [ "Device Routes" ],
+        "parameters" : [ {
+          "description" : "Route URL slug",
+          "required" : true,
+          "name" : "routeSlug",
+          "in" : "path",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Team URL slug",
+          "required" : true,
+          "name" : "teamSlug",
+          "in" : "path",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "GPX file download",
+            "content" : {
+              "application/gpx+xml" : { }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/gpx+xml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Access denied",
+            "content" : {
+              "application/gpx+xml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Route not found",
+            "content" : {
+              "application/gpx+xml" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ]
+      }
+    },
+    "/api/device/routes/{teamSlug}/{routeSlug}/sync" : {
+      "post" : {
+        "summary" : "Sync route to cloud service",
+        "description" : "Upload route to a cloud GPS service (e.g., Hammerhead, Garmin Connect)",
+        "operationId" : "deviceSyncRoute",
+        "tags" : [ "Device Routes" ],
+        "parameters" : [ {
+          "description" : "Route slug",
+          "required" : true,
+          "name" : "routeSlug",
+          "in" : "path",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "Team slug",
+          "required" : true,
+          "name" : "teamSlug",
+          "in" : "path",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "GPS service type (hammerhead, garmin)",
+          "required" : true,
+          "name" : "type",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Route synced successfully",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/RouteUploadResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Not connected to GPS service or invalid type",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Route not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security" : [ {
+          "bearerAuth" : [ ]
+        } ]
+      }
+    },
+    "/api/gps/available" : {
+      "get" : {
+        "summary" : "Get available GPS services",
+        "description" : "Get list of GPS service types configured for this domain",
+        "operationId" : "getAvailableServices",
+        "tags" : [ "GPS Services" ],
+        "responses" : {
+          "200" : {
+            "description" : "List of available GPS service types",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/GpsServiceType"
+                  }
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
+    "/api/gps/callback/{serviceType}" : {
+      "get" : {
+        "summary" : "OAuth callback",
+        "description" : "Handles OAuth callback from GPS service and redirects to frontend",
+        "operationId" : "handleCallback",
+        "tags" : [ "GPS Services" ],
+        "parameters" : [ {
+          "description" : "GPS service type",
+          "name" : "serviceType",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "$ref" : "#/components/schemas/GpsServiceType"
+          }
+        }, {
+          "name" : "code",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "error",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "name" : "state",
+          "in" : "query",
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "302" : {
+            "description" : "Redirects to frontend"
+          },
+          "400" : {
+            "description" : "Invalid state or code",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/gps/connect/{serviceType}" : {
+      "get" : {
+        "summary" : "Get OAuth authorization URL",
+        "description" : "Get the OAuth authorization URL to connect a GPS service",
+        "operationId" : "getConnectUrl",
+        "tags" : [ "GPS Services" ],
+        "parameters" : [ {
+          "description" : "GPS service type",
+          "name" : "serviceType",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "$ref" : "#/components/schemas/GpsServiceType"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Authorization URL",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/GpsOAuthUrlResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Service already connected",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
+    "/api/gps/disconnect/{serviceType}" : {
+      "delete" : {
+        "summary" : "Disconnect GPS service",
+        "description" : "Disconnect a connected GPS service",
+        "operationId" : "disconnect",
+        "tags" : [ "GPS Services" ],
+        "parameters" : [ {
+          "description" : "GPS service type",
+          "name" : "serviceType",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "$ref" : "#/components/schemas/GpsServiceType"
+          }
+        } ],
+        "responses" : {
+          "204" : {
+            "description" : "Service disconnected"
+          },
+          "400" : {
+            "description" : "Service not connected",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
+      }
+    },
+    "/api/gps/upload/{serviceType}/{teamSlug}/{routeSlug}" : {
+      "post" : {
+        "summary" : "Upload route to GPS service",
+        "description" : "Upload a route to a connected GPS service",
+        "operationId" : "uploadRoute",
+        "tags" : [ "GPS Services" ],
+        "parameters" : [ {
+          "description" : "Route URL slug",
+          "name" : "routeSlug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "description" : "GPS service type",
+          "name" : "serviceType",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "$ref" : "#/components/schemas/GpsServiceType"
+          }
+        }, {
+          "description" : "Team URL slug",
+          "name" : "teamSlug",
+          "in" : "path",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "Route uploaded",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/RouteUploadResponse"
+                }
+              }
+            }
+          },
+          "400" : {
+            "description" : "Service not connected or upload failed",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401" : {
+            "description" : "Unauthorized",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404" : {
+            "description" : "Route not found",
+            "content" : {
+              "application/json" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403" : {
+            "description" : "Not Allowed"
+          }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
       }
     },
     "/api/publications" : {

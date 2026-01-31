@@ -967,8 +967,8 @@ export const updateTripResponse = zod
           .describe('Public user information (limited fields)')
       )
       .describe('Trip participants'),
-    routeThumbnailLightUrl: zod.string().optional().describe('Route thumbnail URL (light)'),
-    routeThumbnailDarkUrl: zod.string().optional().describe('Route thumbnail URL (dark)'),
+    thumbnailLightUrl: zod.string().optional().describe('Thumbnail URL (light)'),
+    thumbnailDarkUrl: zod.string().optional().describe('Thumbnail URL (dark)'),
   })
   .describe('Trip data')
 
@@ -1324,8 +1324,8 @@ export const getTripResponse = zod
           .describe('Public user information (limited fields)')
       )
       .describe('Trip participants'),
-    routeThumbnailLightUrl: zod.string().optional().describe('Route thumbnail URL (light)'),
-    routeThumbnailDarkUrl: zod.string().optional().describe('Route thumbnail URL (dark)'),
+    thumbnailLightUrl: zod.string().optional().describe('Thumbnail URL (light)'),
+    thumbnailDarkUrl: zod.string().optional().describe('Thumbnail URL (dark)'),
   })
   .describe('Trip data')
 
@@ -1722,7 +1722,7 @@ export const changeTripSlugResponse = zod
           .describe('Public user information (limited fields)')
       )
       .describe('Trip participants'),
-    routeThumbnailLightUrl: zod.string().optional().describe('Route thumbnail URL (light)'),
-    routeThumbnailDarkUrl: zod.string().optional().describe('Route thumbnail URL (dark)'),
+    thumbnailLightUrl: zod.string().optional().describe('Thumbnail URL (light)'),
+    thumbnailDarkUrl: zod.string().optional().describe('Thumbnail URL (dark)'),
   })
   .describe('Trip data')
