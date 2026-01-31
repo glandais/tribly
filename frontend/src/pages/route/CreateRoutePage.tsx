@@ -5,7 +5,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { notifications } from '@mantine/notifications'
 import i18next from 'i18next'
 import { paths } from '../../config/paths'
-import { Box, Stack, Text, Title } from '@mantine/core'
+import { Stack, Text, Title } from '@mantine/core'
 import { useGetTeam } from '@/api/endpoints/teams/teams'
 import { LoadingPage } from '../../components/common/LoadingSpinner'
 import { RouteEditor } from '../../components/route/RouteEditor'
@@ -76,7 +76,7 @@ export function CreateRoutePage() {
   }
 
   return (
-    <Box maw={768} mx="auto" px="md" py="xl">
+    <Stack>
       <Stack gap="xs">
         <Title order={1}>{t('routes.create.title')}</Title>
         <Text c="dimmed">{t('routes.create.subtitle')}</Text>
@@ -93,6 +93,6 @@ export function CreateRoutePage() {
         error={createRouteMutation.error}
         submitButtonText={t('routes.create.submit')}
       />
-    </Box>
+    </Stack>
   )
 }

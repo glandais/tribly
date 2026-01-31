@@ -51,7 +51,7 @@ services:
     ports:
       - "127.0.0.1:17777:17777"
     volumes:
-      - ../data/segments4:/segments4:ro
+      - ../data/segments4:/opt/brouter/segments4:ro
     environment:
       BROUTER_THREADS: "8"
 

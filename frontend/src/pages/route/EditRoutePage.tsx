@@ -119,7 +119,7 @@ export function EditRoutePage() {
   }
 
   return (
-    <Box maw={768} mx="auto" px="md" py="xl">
+    <Stack>
       <Stack gap="xs">
         <Title order={1}>{t('routes.edit.title')}</Title>
         <Text c="dimmed">{t('routes.edit.subtitle')}</Text>
@@ -139,6 +139,6 @@ export function EditRoutePage() {
         onSlugChange={handleSlugChange}
         canEditSlug={canEdit}
       />
-    </Box>
+    </Stack>
   )
 }
