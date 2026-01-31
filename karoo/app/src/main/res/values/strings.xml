@@ -6,7 +6,7 @@
     <string name="auth_connect_title">Connect to Pédalons</string>
     <string name="auth_connect_subtitle">Scan the QR code with your phone to authenticate</string>
     <string name="auth_connect_button">Connect</string>
-    <string name="auth_url_label">Go to pedalons.fr/device</string>
+    <string name="auth_url_label">Go to pedalons.fr/karoo</string>
     <string name="auth_code_label">Or enter this code:</string>
     <string name="auth_waiting">Waiting for authentication…</string>
     <string name="auth_success">Connected!</string>
