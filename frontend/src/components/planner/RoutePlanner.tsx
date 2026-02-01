@@ -39,6 +39,7 @@ export function RoutePlanner({ onPointsChange, initialTrack, teamLocation }: Rou
   const colorScheme = useComputedColorScheme('light')
   const { styleId, setStyleId, style } = useMapStyle()
   const mapRef = useRef<MapRef>(null)
+  const mapContainerRef = useRef<HTMLDivElement>(null)
 
   const {
     route,
@@ -145,6 +146,64 @@ export function RoutePlanner({ onPointsChange, initialTrack, teamLocation }: Rou
     idx: number
   } | null>(null)
 
+  // Touch device detection
+  const [isTouchDevice] = useState(() => 'ontouchstart' in window)
+
+  // Long-press context menu state
+  const [contextMenu, setContextMenu] = useState<{
+    x: number
+    y: number
+    idx: number
+  } | null>(null)
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const longPressTouchStart = useRef<{ x: number; y: number } | null>(null)
+
+  const clearLongPress = useCallback(() => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current)
+      longPressTimer.current = null
+    }
+    longPressTouchStart.current = null
+  }, [])
+
+  const handleMarkerTouchStart = useCallback(
+    (idx: number) => (event: React.TouchEvent) => {
+      const touch = event.touches[0]
+      longPressTouchStart.current = { x: touch.clientX, y: touch.clientY }
+      longPressTimer.current = setTimeout(() => {
+        const rect = mapContainerRef.current?.getBoundingClientRect()
+        const x = rect ? touch.clientX - rect.left : touch.clientX
+        const y = rect ? touch.clientY - rect.top : touch.clientY
+        setContextMenu({ x, y, idx })
+        longPressTimer.current = null
+      }, 500)
+    },
+    []
+  )
+
+  const handleMarkerTouchMove = useCallback(
+    (event: React.TouchEvent) => {
+      if (!longPressTouchStart.current) return
+      const touch = event.touches[0]
+      const dx = touch.clientX - longPressTouchStart.current.x
+      const dy = touch.clientY - longPressTouchStart.current.y
+      if (Math.sqrt(dx * dx + dy * dy) > 10) {
+        clearLongPress()
+      }
+    },
+    [clearLongPress]
+  )
+
+  const handleMarkerTouchEnd = useCallback(() => {
+    clearLongPress()
+  }, [clearLongPress])
+
+  const handleContextMenuDelete = useCallback(() => {
+    if (!contextMenu) return
+    removeControlPoint(contextMenu.idx, ctrlKeyRef.current, getMapBounds())
+    setContextMenu(null)
+  }, [contextMenu, removeControlPoint, getMapBounds])
+
   // Track Ctrl key state for direct line mode + undo/redo shortcuts
   const ctrlKeyRef = useRef(false)
   useEffect(() => {
@@ -215,10 +274,45 @@ export function RoutePlanner({ onPointsChange, initialTrack, teamLocation }: Rou
 
   const handleMapClick = useCallback(
     (event: MapMouseEvent) => {
+      // Close context menu on any map click
+      if (contextMenu) {
+        setContextMenu(null)
+        return
+      }
+
       if (hoverPoint) return
+
+      // On touch: check if tap is near the route line for insertion
+      if (isTouchDevice && mapRef.current && routeGeoJson && route.points.length > 0) {
+        const TOUCH_BUFFER_PX = 25
+        const bbox: [[number, number], [number, number]] = [
+          [event.point.x - TOUCH_BUFFER_PX, event.point.y - TOUCH_BUFFER_PX],
+          [event.point.x + TOUCH_BUFFER_PX, event.point.y + TOUCH_BUFFER_PX],
+        ]
+        const features = mapRef.current.queryRenderedFeatures(bbox, {
+          layers: ['route-line'],
+        })
+        if (features.length > 0) {
+          const nearestIds = around(route.index, event.lngLat.lng, event.lngLat.lat, 1, 1)
+          if (nearestIds.length === 1) {
+            const nearestId = nearestIds[0]
+            const bounds = getMapBounds()
+            const start = findBboxStartPoint(route, nearestId, bounds)
+            const end = findBboxEndPoint(route, nearestId, bounds)
+            insertControlPoint(
+              start,
+              { lng: event.lngLat.lng, lat: event.lngLat.lat },
+              end,
+              false
+            )
+            return
+          }
+        }
+      }
+
       addControlPoint({ lng: event.lngLat.lng, lat: event.lngLat.lat }, ctrlKeyRef.current)
     },
-    [addControlPoint, hoverPoint]
+    [addControlPoint, hoverPoint, contextMenu, routeGeoJson, route, insertControlPoint, getMapBounds, isTouchDevice]
   )
 
   const handleMouseMove = useCallback(
@@ -406,6 +500,7 @@ export function RoutePlanner({ onPointsChange, initialTrack, teamLocation }: Rou
 
       {/* Map */}
       <Box
+        ref={mapContainerRef}
         pos="relative"
         className={colorScheme === 'dark' ? 'dark' : undefined}
         style={{ flex: 1 }}
@@ -495,8 +590,19 @@ export function RoutePlanner({ onPointsChange, initialTrack, teamLocation }: Rou
                 onDragEnd={handleMarkerDragEnd()}
               >
                 <Box
-                  style={{ display: 'flex', alignItems: 'center', cursor: 'grab' }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'grab',
+                    width: 44,
+                    height: 44,
+                    pointerEvents: 'auto',
+                  }}
                   onContextMenu={handleMarkerRightClick(point.idx)}
+                  onTouchStart={handleMarkerTouchStart(point.idx)}
+                  onTouchMove={handleMarkerTouchMove}
+                  onTouchEnd={handleMarkerTouchEnd}
                 >
                   <Box
                     w={24}
@@ -581,6 +687,37 @@ export function RoutePlanner({ onPointsChange, initialTrack, teamLocation }: Rou
           )}
         </Map>
 
+        {/* Long-press context menu for touch devices */}
+        {contextMenu && (
+          <Box
+            pos="absolute"
+            px="xs"
+            py={4}
+            bg="var(--mantine-color-body)"
+            style={{
+              left: contextMenu.x,
+              top: contextMenu.y,
+              transform: 'translate(-50%, -120%)',
+              zIndex: 10,
+              borderRadius: 'var(--mantine-radius-md)',
+              boxShadow: 'var(--mantine-shadow-md)',
+              border: '1px solid var(--mantine-color-default-border)',
+            }}
+          >
+            <Group
+              gap="xs"
+              style={{ cursor: 'pointer' }}
+              c="red"
+              onClick={handleContextMenuDelete}
+              px="xs"
+              py={6}
+            >
+              <IconTrash size={16} />
+              <Text size="sm">{t('planner.menu.delete')}</Text>
+            </Group>
+          </Box>
+        )}
+
         {/* Instructions overlay */}
         {controlPoints.length === 0 && (
           <Box
@@ -597,7 +734,7 @@ export function RoutePlanner({ onPointsChange, initialTrack, teamLocation }: Rou
             }}
           >
             <Text size="sm" c="dimmed">
-              {t('planner.instructions')}
+              {isTouchDevice ? t('planner.instructions.touch') : t('planner.instructions')}
             </Text>
           </Box>
         )}

@@ -342,6 +342,8 @@
   "planner.calculating": "Calcul de l'itinéraire...",
   "planner.clear": "Effacer",
   "planner.instructions": "Cliquer pour ajouter, glisser pour déplacer, clic droit pour supprimer",
+  "planner.instructions.touch": "Appuyer pour ajouter, glisser pour déplacer, appui long pour supprimer",
+  "planner.menu.delete": "Supprimer le point",
   "planner.pointCount_one": "{{count}} point",
   "planner.pointCount_many": "{{count}} points",
   "planner.pointCount_other": "{{count}} points",
