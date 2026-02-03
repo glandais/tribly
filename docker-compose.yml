@@ -134,7 +134,7 @@ services:
       - minio_data:/data
 
   tileserver:
-    image: maptiler/tileserver-gl:v4.13.1
+    image: maptiler/tileserver-gl:v5.5.0
     container_name: tribly-tileserver
     restart: unless-stopped
     networks:
