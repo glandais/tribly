@@ -299,12 +299,7 @@ export function RoutePlanner({ onPointsChange, initialTrack, teamLocation }: Rou
             const bounds = getMapBounds()
             const start = findBboxStartPoint(route, nearestId, bounds)
             const end = findBboxEndPoint(route, nearestId, bounds)
-            insertControlPoint(
-              start,
-              { lng: event.lngLat.lng, lat: event.lngLat.lat },
-              end,
-              false
-            )
+            insertControlPoint(start, { lng: event.lngLat.lng, lat: event.lngLat.lat }, end, false)
             return
           }
         }
@@ -312,7 +307,16 @@ export function RoutePlanner({ onPointsChange, initialTrack, teamLocation }: Rou
 
       addControlPoint({ lng: event.lngLat.lng, lat: event.lngLat.lat }, ctrlKeyRef.current)
     },
-    [addControlPoint, hoverPoint, contextMenu, routeGeoJson, route, insertControlPoint, getMapBounds, isTouchDevice]
+    [
+      addControlPoint,
+      hoverPoint,
+      contextMenu,
+      routeGeoJson,
+      route,
+      insertControlPoint,
+      getMapBounds,
+      isTouchDevice,
+    ]
   )
 
   const handleMouseMove = useCallback(

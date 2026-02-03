@@ -185,18 +185,18 @@ export function PublicationCard({ publication, showTeam }: PublicationCardProps)
               <RouteThumbnail
                 thumbnailLightUrl={thumbnailLightUrl}
                 thumbnailDarkUrl={thumbnailDarkUrl}
-                size="sm"
+                size="md"
               />
             )}
           </Group>
         )}
 
-        {renderStats()}
+        <Box mt="auto">{renderStats()}</Box>
       </CardContent>
     </Card>
   )
 }
 
 export function PublicationCardSkeleton() {
-  return <CardSkeleton count={1} statCount={3} badgeCount={2} />
+  return <CardSkeleton count={1} hasImage={true} imageHeight="160px" statCount={3} badgeCount={2} />
 }

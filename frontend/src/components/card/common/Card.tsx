@@ -41,7 +41,11 @@ interface CardContentProps {
 }
 
 export function CardContent({ children }: CardContentProps) {
-  return <Box p="md">{children}</Box>
+  return (
+    <Box p="md" style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+      {children}
+    </Box>
+  )
 }
 
 interface CardHeaderProps {
