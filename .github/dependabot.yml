@@ -15,7 +15,6 @@ updates:
       prefix: "deps(maven)"
       include: "scope"
     groups:
-      # Group all minor and patch updates together
       minor-and-patch:
         update-types:
           - "minor"
@@ -36,15 +35,99 @@ updates:
       prefix: "deps(npm)"
       include: "scope"
     groups:
-      # Group all minor and patch updates together
       minor-and-patch:
         update-types:
           - "minor"
           - "patch"
 
-  # Docker Compose dependencies
+  # Gradle dependencies (Karoo Extension)
+  - package-ecosystem: "gradle"
+    directory: "/karoo"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Europe/Paris"
+    open-pull-requests-limit: 5
+    assignees:
+      - "glandais"
+    commit-message:
+      prefix: "deps(gradle)"
+      include: "scope"
+    groups:
+      minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
+
+  # Dart/Flutter dependencies (Mobile)
+  - package-ecosystem: "pub"
+    directory: "/mobile"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Europe/Paris"
+    open-pull-requests-limit: 5
+    assignees:
+      - "glandais"
+    commit-message:
+      prefix: "deps(pub)"
+      include: "scope"
+    groups:
+      minor-and-patch:
+        update-types:
+          - "minor"
+          - "patch"
+
+  # Docker dependencies (Frontend)
+  - package-ecosystem: "docker"
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "10:00"
+      timezone: "Europe/Paris"
+    open-pull-requests-limit: 3
+    assignees:
+      - "glandais"
+    commit-message:
+      prefix: "deps(docker)"
+      include: "scope"
+
+  # Docker dependencies (BRouter service)
+  - package-ecosystem: "docker"
+    directory: "/services/brouter"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "10:00"
+      timezone: "Europe/Paris"
+    open-pull-requests-limit: 3
+    assignees:
+      - "glandais"
+    commit-message:
+      prefix: "deps(docker)"
+      include: "scope"
+
+  # Docker Compose dependencies (root)
   - package-ecosystem: "docker-compose"
     directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "10:00"
+      timezone: "Europe/Paris"
+    open-pull-requests-limit: 3
+    assignees:
+      - "glandais"
+    commit-message:
+      prefix: "deps(docker-compose)"
+      include: "scope"
+
+  # Docker Compose dependencies (backend)
+  - package-ecosystem: "docker-compose"
+    directory: "/backend"
     schedule:
       interval: "weekly"
       day: "tuesday"
