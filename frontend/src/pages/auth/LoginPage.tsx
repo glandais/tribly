@@ -81,7 +81,7 @@ export function LoginPage() {
     if (isAuthenticated) {
       navigate(redirectTo)
     }
-  }, [isAuthenticated, navigate])
+  }, [isAuthenticated, navigate, redirectTo])
 
   // Countdown timer for resend button
   useEffect(() => {

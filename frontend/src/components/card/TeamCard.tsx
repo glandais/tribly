@@ -1,21 +1,15 @@
 import { useTranslation } from 'react-i18next'
 import { IconUsers } from '@tabler/icons-react'
-import { Group } from '@mantine/core'
+import { Group, Box } from '@mantine/core'
 import type { TeamDetailDto } from '@/api/dto'
-import { Card, CardContent, CardTitle, CardDescription } from './common'
-import { Badge, VisibilityBadge, Stat, CardSkeleton } from './common'
+import { Card, CardContent, CardTitle, CardDescription, CardImage } from './common'
+import { VisibilityBadge, Stat, CardSkeleton, RoleBadge } from './common'
 import { TeamAvatar } from '../team/TeamAvatar'
 import { paths } from '@/config/paths'
 
 interface TeamCardProps {
   team: TeamDetailDto
   showRole?: boolean
-}
-
-const roleBadgeVariants: Record<string, 'purple' | 'blue' | 'gray'> = {
-  ADMIN: 'purple',
-  ORGANIZER: 'blue',
-  MEMBER: 'gray',
 }
 
 export function TeamCard({ team, showRole = false }: TeamCardProps) {
@@ -25,11 +19,18 @@ export function TeamCard({ team, showRole = false }: TeamCardProps) {
 
   return (
     <Card to={paths.team(team.slug)}>
+      {/* Header image */}
+      <CardImage media={team.about} alt={team.name} height={120} type="TEAM" />
+
       <CardContent>
-        <Group gap="sm" mb="xs">
-          <TeamAvatar team={team} size="lg" />
-          <CardTitle>{team.name}</CardTitle>
+        {/* Title row with avatar */}
+        <Group gap="sm" mb="xs" wrap="nowrap">
+          <TeamAvatar team={team} size="md" />
+          <Box style={{ flex: 1, minWidth: 0 }}>
+            <CardTitle>{team.name}</CardTitle>
+          </Box>
         </Group>
+
         <CardDescription markdown={true} media={team.about} />
 
         <Group justify="space-between" mt="md">
@@ -40,9 +41,9 @@ export function TeamCard({ team, showRole = false }: TeamCardProps) {
               <VisibilityBadge visibility={team.visibility} showIcon={false} />
             )}
             {showRole && team.role && (
-              <Badge variant={roleBadgeVariants[team.role]}>
+              <RoleBadge role={team.role}>
                 {t(`roles.${team.role satisfies 'ADMIN' | 'ORGANIZER' | 'MEMBER'}`)}
-              </Badge>
+              </RoleBadge>
             )}
           </Group>
         </Group>
@@ -56,5 +57,7 @@ interface TeamCardSkeletonProps {
 }
 
 export function TeamCardSkeleton({ count = 1 }: TeamCardSkeletonProps) {
-  return <CardSkeleton count={count} hasImage imageHeight="h-32" statCount={1} badgeCount={1} />
+  return (
+    <CardSkeleton count={count} hasImage imageHeight="120px" hasLogo statCount={1} badgeCount={1} />
+  )
 }

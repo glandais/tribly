@@ -28,7 +28,7 @@ import { paths } from '@/config/paths'
 import { AdType } from '../../api/dto'
 import { useCanonicalPath } from '../../hooks/useCanonicalPath'
 
-const PAGE_SIZE = 20
+const PAGE_SIZE = 12
 
 export function AdListPage() {
   const { t } = useTranslation()
@@ -145,8 +145,8 @@ export function AdListPage() {
 
       {/* Content */}
       {isLoadingAds ? (
-        <SimpleGrid cols={{ base: 1, md: 2 }} spacing="md">
-          {Array.from({ length: 4 }).map((_, i) => (
+        <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="lg">
+          {Array.from({ length: 6 }).map((_, i) => (
             <AdCardSkeleton key={i} />
           ))}
         </SimpleGrid>
@@ -164,8 +164,8 @@ export function AdListPage() {
       ) : (
         <Stack>
           <SimpleGrid
-            cols={{ base: 1, md: 2 }}
-            spacing="md"
+            cols={{ base: 1, sm: 2, lg: 3 }}
+            spacing="lg"
             style={{ opacity: isFetching ? 0.5 : 1 }}
           >
             {ads.map((ad) => (

@@ -92,7 +92,7 @@ export function DomainFormModal({ isOpen, onClose, domain }: DomainFormModalProp
         singleTeam: domain?.singleTeam ?? false,
       })
     }
-  }, [domain, isOpen])
+  }, [domain, isOpen, domainForm])
 
   const handleDomainSubmit = async (values: DomainFormValues) => {
     if (isEditMode && domain) {

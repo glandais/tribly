@@ -1,23 +1,19 @@
 import { useTranslation } from 'react-i18next'
 import { IconCalendar, IconMapPin, IconCurrencyEuro } from '@tabler/icons-react'
 import { Group, Box, Stack } from '@mantine/core'
-import { Card, CardContent, CardTitle, CardDescription } from './common'
-import { Badge, VisibilityBadge, Stat, StatGroup, CardSkeleton } from './common'
+import { Card, CardContent, CardTitle, CardDescription, CardImage } from './common'
+import { TypeBadge, StatusBadge, VisibilityBadge, Stat, StatGroup, CardSkeleton } from './common'
+import { TYPE_COLORS } from './common'
 import { EntityLogo } from '../common/EntityLogo'
 import { useFormattedDate } from '../../utils/dateFormat'
 import { paths } from '@/config/paths'
 import { AdDto, AdType, RentalPeriod } from '@/api/dto'
 
-const statusVariants: Record<string, 'gray' | 'green' | 'red'> = {
-  DRAFT: 'gray',
-  PUBLISHED: 'green',
-  CANCELLED: 'red',
-}
-
-const adTypeBadgeVariants: Record<AdType, 'primary' | 'purple' | 'orange'> = {
-  [AdType.SALE]: 'primary',
-  [AdType.RENTAL]: 'purple',
-  [AdType.WANTED]: 'orange',
+// Map ad types to TypeBadge type keys
+const adTypeToTypeKey: Record<AdType, keyof typeof TYPE_COLORS> = {
+  [AdType.SALE]: 'SALE',
+  [AdType.RENTAL]: 'RENTAL',
+  [AdType.WANTED]: 'WANTED',
 }
 
 interface AdCardProps {
@@ -50,42 +46,46 @@ export function AdCard({ ad }: AdCardProps) {
 
   return (
     <Card to={paths.ad(ad.team.slug, ad.slug)}>
-      <CardContent>
-        <Stack gap="md">
-          <Group justify="space-between" mb="md" align="flex-start">
-            <Group gap="sm" wrap="nowrap" style={{ flex: 1, minWidth: 0 }}>
-              <EntityLogo logo={ad.media.assets.logo} alt={ad.name} size="md" />
-              <Box style={{ flex: 1, minWidth: 0 }}>
-                <CardTitle>{ad.name}</CardTitle>
-                <CardDescription markdown={true} media={ad.media} />
-              </Box>
-            </Group>
-            <Stack gap="xs" align="flex-end">
-              <Badge variant={adTypeBadgeVariants[ad.adType]}>
-                {t(`ads.adType.${ad.adType satisfies 'SALE' | 'RENTAL' | 'WANTED'}`)}
-              </Badge>
-              <Badge variant={statusVariants[ad.status] || 'gray'}>
-                {t(`status.${ad.status satisfies 'DRAFT' | 'PUBLISHED' | 'CANCELLED'}`)}
-              </Badge>
-              <VisibilityBadge visibility={ad.visibility} />
-            </Stack>
-          </Group>
+      {/* Header image */}
+      <CardImage media={ad.media} alt={ad.name} height={120} type="AD" />
 
-          <StatGroup>
-            <Stat icon={<IconCurrencyEuro size={16} />}>
-              {formatPrice(ad.price, ad.adType, ad.rentalPeriod)}
-            </Stat>
-            <Stat icon={<IconCalendar size={16} />}>{formattedDate}</Stat>
-            {ad.locationDescription && (
-              <Stat icon={<IconMapPin size={16} />}>{ad.locationDescription}</Stat>
-            )}
-          </StatGroup>
-        </Stack>
+      <CardContent>
+        {/* Title row with logo */}
+        <Group justify="space-between" mb="md" align="flex-start" wrap="nowrap">
+          <Group gap="sm" wrap="nowrap" style={{ flex: 1, minWidth: 0 }}>
+            <EntityLogo logo={ad.media.assets.logo} alt={ad.name} size="md" />
+            <Box style={{ flex: 1, minWidth: 0 }}>
+              <CardTitle>{ad.name}</CardTitle>
+              <CardDescription markdown={true} media={ad.media} />
+            </Box>
+          </Group>
+          <Stack gap={4} align="flex-end" ml="sm">
+            <TypeBadge type={adTypeToTypeKey[ad.adType]}>
+              {t(`ads.adType.${ad.adType satisfies 'SALE' | 'RENTAL' | 'WANTED'}`)}
+            </TypeBadge>
+            <StatusBadge status={ad.status}>
+              {t(`status.${ad.status satisfies 'DRAFT' | 'PUBLISHED' | 'CANCELLED'}`)}
+            </StatusBadge>
+            <VisibilityBadge visibility={ad.visibility} />
+          </Stack>
+        </Group>
+
+        <StatGroup>
+          <Stat icon={<IconCurrencyEuro size={16} />}>
+            {formatPrice(ad.price, ad.adType, ad.rentalPeriod)}
+          </Stat>
+          <Stat icon={<IconCalendar size={16} />}>{formattedDate}</Stat>
+          {ad.locationDescription && (
+            <Stat icon={<IconMapPin size={16} />}>{ad.locationDescription}</Stat>
+          )}
+        </StatGroup>
       </CardContent>
     </Card>
   )
 }
 
 export function AdCardSkeleton() {
-  return <CardSkeleton count={1} statCount={3} badgeCount={3} />
+  return (
+    <CardSkeleton count={1} hasImage imageHeight="120px" hasLogo statCount={3} badgeCount={3} />
+  )
 }

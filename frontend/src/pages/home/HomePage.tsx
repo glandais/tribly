@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Box, Select, Stack, Title, Group, Paper, Text, Center } from '@mantine/core'
+import { Box, Select, Stack, Title, Group, Paper, Text, Center, SimpleGrid } from '@mantine/core'
 import { IconNews } from '@tabler/icons-react'
 import {
   useListAllPublications,
@@ -30,7 +30,7 @@ export function HomePage() {
   const [page, setPage] = useState(0)
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState<FilterValue>('all')
-  const pageSize = 20
+  const pageSize = 12
 
   const {
     data: publicationsData,
@@ -118,11 +118,11 @@ export function HomePage() {
 
         {/* Loading State */}
         {isLoading ? (
-          <Stack>
+          <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="lg">
             {[...Array(6)].map((_, i) => (
               <PublicationCardSkeleton key={i} />
             ))}
-          </Stack>
+          </SimpleGrid>
         ) : isError ? (
           /* Error State */
           <Paper withBorder p="xl" radius="md">
@@ -134,11 +134,13 @@ export function HomePage() {
             </Center>
           </Paper>
         ) : publicationsData?.publications && publicationsData.publications.length > 0 ? (
-          /* Publications List */
+          /* Publications Grid */
           <Stack>
-            {publicationsData.publications.map((publication) => (
-              <PublicationCard key={publication.id} publication={publication} showTeam={true} />
-            ))}
+            <SimpleGrid cols={{ base: 1, sm: 2, lg: 3 }} spacing="lg">
+              {publicationsData.publications.map((publication) => (
+                <PublicationCard key={publication.id} publication={publication} showTeam={true} />
+              ))}
+            </SimpleGrid>
 
             <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
           </Stack>

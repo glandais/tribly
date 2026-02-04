@@ -4,7 +4,7 @@ import { useUnits } from '@/hooks/useUnits'
 import { Group, Image, Box, useComputedColorScheme } from '@mantine/core'
 import type { RouteDto } from '@/api/dto'
 import { Card, CardContent, CardTitle, CardDescription, CardTeamLink } from './common'
-import { Badge, VisibilityBadge, Stat, StatGroup, CardSkeleton } from './common'
+import { SurfaceBadge, VisibilityBadge, Stat, StatGroup, CardSkeleton } from './common'
 import { EntityLogo } from '../common/EntityLogo'
 import { paths } from '@/config/paths'
 
@@ -42,11 +42,11 @@ export function RouteCard({ route, showTeam }: RouteCardProps) {
 
         <Group gap="xs">
           {route.surfaceType && (
-            <Badge variant="green">
+            <SurfaceBadge surface={route.surfaceType}>
               {t(
                 `routes.surfaceType.${route.surfaceType satisfies 'ROAD' | 'GRAVEL' | 'MTB' | 'MIXED'}`
               )}
-            </Badge>
+            </SurfaceBadge>
           )}
           <VisibilityBadge visibility={route.visibility} />
         </Group>
@@ -60,5 +60,7 @@ interface RouteCardSkeletonProps {
 }
 
 export function RouteCardSkeleton({ count = 1 }: RouteCardSkeletonProps) {
-  return <CardSkeleton count={count} hasImage imageHeight="200px" statCount={2} badgeCount={3} />
+  return (
+    <CardSkeleton count={count} hasImage imageHeight="200px" hasLogo statCount={2} badgeCount={2} />
+  )
 }

@@ -2,27 +2,14 @@ import { useTranslation } from 'react-i18next'
 import { IconCalendar, IconUsers, IconStack2 } from '@tabler/icons-react'
 import { Group, Box, Stack } from '@mantine/core'
 import { Card, CardContent, CardTitle, CardDescription, CardImage, CardTeamLink } from './common'
-import { Badge, VisibilityBadge, Stat, StatGroup, CardSkeleton } from './common'
+import { TypeBadge, StatusBadge, VisibilityBadge, Stat, StatGroup, CardSkeleton } from './common'
+import { EntityLogo } from '../common/EntityLogo'
 import { UserAvatarGroup } from '../common/UserAvatar'
 import { useFormattedDate } from '../../utils/dateFormat'
 import { paths } from '@/config/paths'
 import { PublicationCardProgress } from './PublicationCardProgress'
 import { RouteThumbnail } from '../route/RouteThumbnail'
 import type { PublicationDto, RideDto, TripDto } from '@/api/dto'
-
-// Status variants for badges
-const statusVariants: Record<string, 'gray' | 'green' | 'red'> = {
-  DRAFT: 'gray',
-  PUBLISHED: 'green',
-  CANCELLED: 'red',
-}
-
-// Type badge variants
-const typeBadgeVariants: Record<string, 'primary' | 'purple'> = {
-  RIDE: 'primary',
-  POST: 'purple',
-  TRIP: 'primary',
-}
 
 interface PublicationCardProps {
   publication: PublicationDto
@@ -152,17 +139,18 @@ export function PublicationCard({ publication, showTeam }: PublicationCardProps)
           <CardTeamLink teamSlug={publication.team.slug} teamName={publication.team.name} />
         )}
 
-        {/* Main content - title, description, badges */}
+        {/* Main content - title with logo, description, badges */}
         <Group align="flex-start" justify="space-between" mb="md" wrap="nowrap">
-          <Box style={{ flex: 1, minWidth: 0 }}>
-            <CardTitle>{publication.name}</CardTitle>
-            <CardDescription markdown={true} media={publication.media} />
-          </Box>
+          <Group gap="sm" wrap="nowrap" style={{ flex: 1, minWidth: 0 }}>
+            <EntityLogo logo={publication.media.assets.logo} alt={publication.name} size="sm" />
+            <Box style={{ flex: 1, minWidth: 0 }}>
+              <CardTitle>{publication.name}</CardTitle>
+              <CardDescription markdown={true} media={publication.media} />
+            </Box>
+          </Group>
           <Stack gap={4} align="flex-end" ml="sm">
-            <Badge variant={typeBadgeVariants[publication.type] || 'primary'}>
-              {getTypeLabel()}
-            </Badge>
-            <Badge variant={statusVariants[publication.status] || 'gray'}>{getStatusLabel()}</Badge>
+            <TypeBadge type={publication.type}>{getTypeLabel()}</TypeBadge>
+            <StatusBadge status={publication.status}>{getStatusLabel()}</StatusBadge>
             <VisibilityBadge visibility={publication.visibility} />
           </Stack>
         </Group>
@@ -185,7 +173,7 @@ export function PublicationCard({ publication, showTeam }: PublicationCardProps)
               <RouteThumbnail
                 thumbnailLightUrl={thumbnailLightUrl}
                 thumbnailDarkUrl={thumbnailDarkUrl}
-                size="md"
+                size="lg"
               />
             )}
           </Group>
@@ -198,5 +186,14 @@ export function PublicationCard({ publication, showTeam }: PublicationCardProps)
 }
 
 export function PublicationCardSkeleton() {
-  return <CardSkeleton count={1} hasImage={true} imageHeight="160px" statCount={3} badgeCount={2} />
+  return (
+    <CardSkeleton
+      count={1}
+      hasImage={true}
+      imageHeight="160px"
+      hasLogo={true}
+      statCount={3}
+      badgeCount={3}
+    />
+  )
 }

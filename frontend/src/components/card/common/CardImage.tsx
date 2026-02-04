@@ -1,34 +1,36 @@
 import { Image, Box, Center } from '@mantine/core'
-import { useComputedColorScheme } from '@mantine/core'
-import { IconBike, IconArticle, IconRoute } from '@tabler/icons-react'
+import { IconBike, IconArticle, IconRoute, IconUsersGroup, IconTag } from '@tabler/icons-react'
 import type { MediaDto } from '@/api/dto'
 
-type PublicationType = 'RIDE' | 'POST' | 'TRIP'
+type CardType = 'RIDE' | 'POST' | 'TRIP' | 'TEAM' | 'AD'
 
 interface CardImageProps {
   media: MediaDto
   alt: string
   height?: number
-  type?: PublicationType
+  type?: CardType
 }
 
-const typeIcons: Record<PublicationType, typeof IconBike> = {
+const typeIcons: Record<CardType, typeof IconBike> = {
   RIDE: IconBike,
   POST: IconArticle,
   TRIP: IconRoute,
+  TEAM: IconUsersGroup,
+  AD: IconTag,
 }
 
-const typeGradients: Record<PublicationType, string> = {
+const typeGradients: Record<CardType, string> = {
   RIDE: 'linear-gradient(135deg, var(--mantine-color-blue-6) 0%, var(--mantine-color-cyan-5) 100%)',
   POST: 'linear-gradient(135deg, var(--mantine-color-grape-6) 0%, var(--mantine-color-pink-5) 100%)',
   TRIP: 'linear-gradient(135deg, var(--mantine-color-teal-6) 0%, var(--mantine-color-green-5) 100%)',
+  TEAM: 'linear-gradient(135deg, var(--mantine-color-violet-6) 0%, var(--mantine-color-indigo-5) 100%)',
+  AD: 'linear-gradient(135deg, var(--mantine-color-orange-5) 0%, var(--mantine-color-yellow-4) 100%)',
 }
 
 export function CardImage({ media, alt, height = 160, type }: CardImageProps) {
   const { assets } = media
-  const colorScheme = useComputedColorScheme('light')
 
-  // Priority 1: First image from images array
+  // Priority 1: First image from images array (actual photos)
   const firstImage = assets.images?.[0]
   if (firstImage?.imageUrl) {
     return (
@@ -41,44 +43,9 @@ export function CardImage({ media, alt, height = 160, type }: CardImageProps) {
     )
   }
 
-  // Priority 2: Thumbnail (color scheme aware)
-  const thumbnail = colorScheme === 'dark' ? assets.thumbnailDark : assets.thumbnailLight
-  if (thumbnail?.imageUrl) {
-    return (
-      <Image
-        src={thumbnail.imageUrl.replace('{size}', String(height * 2))}
-        alt={alt}
-        h={height}
-        fit="contain"
-      />
-    )
-  }
-
-  // Priority 3: Logo centered on muted background
-  if (assets.logo?.imageUrl) {
-    return (
-      <Box
-        h={height}
-        style={{
-          backgroundColor: 'var(--mantine-color-gray-1)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <Image
-          src={assets.logo.imageUrl?.replace('{size}', String(160))}
-          alt={alt}
-          w={80}
-          h={80}
-          fit="contain"
-          radius="md"
-        />
-      </Box>
-    )
-  }
-
-  // Priority 4: Gradient background with type icon
+  // Priority 2: Gradient background with type icon
+  // Logos are shown inline with titles via EntityLogo, not as headers
+  // Route thumbnails are shown via RouteThumbnail component
   if (type) {
     const Icon = typeIcons[type]
     const gradient = typeGradients[type]

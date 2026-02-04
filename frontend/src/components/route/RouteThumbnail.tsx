@@ -5,12 +5,13 @@ import { IconRoute } from '@tabler/icons-react'
 interface RouteThumbnailProps {
   thumbnailLightUrl?: string
   thumbnailDarkUrl?: string
-  size?: 'sm' | 'md'
+  size?: 'sm' | 'md' | 'lg'
 }
 
 const sizes = {
   sm: 80,
   md: 120,
+  lg: 160,
 }
 
 export function RouteThumbnail({
@@ -56,7 +57,7 @@ export function RouteThumbnail({
 }
 
 // Placeholder component for when route data is being loaded
-export function RouteThumbnailPlaceholder({ size = 'sm' }: { size?: 'sm' | 'md' }) {
+export function RouteThumbnailPlaceholder({ size = 'sm' }: { size?: 'sm' | 'md' | 'lg' }) {
   const pixelSize = sizes[size]
 
   return (

@@ -6,6 +6,8 @@ interface CardSkeletonProps {
   imageHeight?: string
   statCount?: number
   badgeCount?: number
+  hasLogo?: boolean
+  hasAction?: boolean
 }
 
 export function CardSkeleton({
@@ -14,6 +16,8 @@ export function CardSkeleton({
   imageHeight = '128px',
   statCount = 2,
   badgeCount = 3,
+  hasLogo = false,
+  hasAction = false,
 }: CardSkeletonProps) {
   return (
     <>
@@ -31,7 +35,15 @@ export function CardSkeleton({
           )}
           <Box p="md">
             <Stack gap="xs">
-              <Skeleton h={20} w="75%" radius="sm" />
+              {/* Title row with optional logo */}
+              {hasLogo ? (
+                <Group gap="sm" wrap="nowrap">
+                  <Skeleton h={32} w={32} radius="md" />
+                  <Skeleton h={20} w="60%" radius="sm" />
+                </Group>
+              ) : (
+                <Skeleton h={20} w="75%" radius="sm" />
+              )}
               <Skeleton h={16} w="100%" radius="sm" />
               <Skeleton h={16} w="66%" radius="sm" />
             </Stack>
@@ -44,13 +56,16 @@ export function CardSkeleton({
               </Group>
             )}
 
-            {badgeCount > 0 && (
-              <Group gap="xs" mt="sm">
-                {Array.from({ length: badgeCount }).map((_, j) => (
-                  <Skeleton key={j} h={20} w={64} radius="xl" />
-                ))}
-              </Group>
-            )}
+            <Group gap="xs" mt="sm" justify={hasAction ? 'space-between' : 'flex-start'}>
+              {badgeCount > 0 && (
+                <Group gap="xs">
+                  {Array.from({ length: badgeCount }).map((_, j) => (
+                    <Skeleton key={j} h={20} w={64} radius="xl" />
+                  ))}
+                </Group>
+              )}
+              {hasAction && <Skeleton h={30} w={80} radius="sm" />}
+            </Group>
           </Box>
         </Paper>
       ))}
