@@ -33,7 +33,7 @@ public class Asset extends BaseEntity {
   protected TeamEntity teamEntity;
 
   @Enumerated(EnumType.STRING)
-  @Column(name = "type", nullable = false, length = 20)
+  @Column(name = "type", nullable = false, length = 25)
   protected AssetType type;
 
   @Column(name = "file_id", nullable = false)

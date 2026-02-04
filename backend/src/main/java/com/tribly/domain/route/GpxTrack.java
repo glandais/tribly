@@ -6,6 +6,7 @@ import com.tribly.domain.user.User;
 import io.github.glandais.gpx.climb.Climb;
 import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.*;
+import java.io.Serializable;
 import java.util.List;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -85,5 +86,5 @@ public class GpxTrack extends BaseEntity {
       double lng,
       double ele, // Elevation in meters
       double dist // Cumulative distance from start in meters
-      ) {}
+      ) implements Serializable {}
 }
