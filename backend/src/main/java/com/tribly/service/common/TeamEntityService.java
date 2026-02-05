@@ -44,9 +44,7 @@ public abstract class TeamEntityService<
   }
 
   protected void updateMedia(TeamEntity teamEntity, @Valid MediaDto mediaDto) {
-    teamEntity.setMarkdown(mediaDto.markdown());
-
-    assetService.updateAssets(teamEntity, mediaDto.assets());
+    assetService.updateAssets(teamEntity, mediaDto);
   }
 
   protected void validateVisibility(Team team, WithVisibility request) {

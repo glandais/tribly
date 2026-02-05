@@ -9,6 +9,7 @@ import com.tribly.dto.assets.response.DownloadableAsset;
 import com.tribly.dto.common.asset.AssetDimensionsDto;
 import com.tribly.dto.common.asset.AssetDto;
 import com.tribly.dto.common.asset.AssetsDto;
+import com.tribly.dto.common.asset.MediaDto;
 import com.tribly.enums.*;
 import com.tribly.infrastructure.exception.NotFoundException;
 import com.tribly.infrastructure.imgproxy.ImgProxyService;
@@ -33,6 +34,8 @@ import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.imageio.ImageIO;
 import org.jspecify.annotations.Nullable;
@@ -41,6 +44,10 @@ import org.jspecify.annotations.Nullable;
 public class AssetService {
 
   private static final String ASSETS_PREFIX = "assets";
+
+  /** Matches ::asset{...id="ASSET_ID"...} directives in markdown */
+  private static final Pattern ASSET_DIRECTIVE_PATTERN =
+      Pattern.compile("::asset\\{[^}]*id=\"([^\"]+)\"[^}]*\\}");
 
   @Inject AssetRepository assetRepository;
 
@@ -256,14 +263,14 @@ public class AssetService {
         .orElseThrow(() -> new NotFoundException(EntityType.ASSET, id));
   }
 
+  @Transactional
   @CheckAccess(entityType = EntityType.ASSET, action = ActionType.DELETE)
   protected void deleteAsset(String teamSlug, Long id) {
     Asset asset =
         assetRepository
             .findByIdOptional(id)
             .orElseThrow(() -> new NotFoundException(EntityType.ASSET, id));
-    String key = getAssetKey(asset.getTeam(), asset.getFileId());
-    storageService.delete(key);
+    assetRepository.delete(asset);
   }
 
   protected AssetDto map(Asset asset) {
@@ -382,13 +389,26 @@ public class AssetService {
   /**
    * Called in service having MediaDto
    * @param teamEntity
-   * @param assets
+   * @param mediaRequest
    */
-  public void updateAssets(TeamEntity teamEntity, AssetsDto assets) {
+  public void updateAssets(TeamEntity teamEntity, MediaDto mediaRequest) {
+    teamEntity.setMarkdown(mediaRequest.markdown());
+    AssetsDto assets = mediaRequest.assets();
+
+    // Parse markdown to find which image assets are actually referenced
+    Set<String> referencedAssetIds = extractAssetIdsFromMarkdown(mediaRequest.markdown());
+
+    // Only keep images that are referenced in the markdown
+    List<AssetDto> usedImages =
+        assets.images().stream()
+            .filter(img -> referencedAssetIds.contains(img.id()))
+            .toList();
+
     Set<Asset> unmodifiable =
         teamEntity.getAssets().stream()
             .filter(s -> s.getType().isSystem())
             .collect(Collectors.toSet());
+    // orphanRemoval deletes removed assets from DB; AssetRemoveListener handles S3 cleanup
     teamEntity.getAssets().clear();
     int order = 0;
     for (Asset asset : unmodifiable) {
@@ -397,8 +417,20 @@ public class AssetService {
     }
 
     order = addAssetToEntity(order, teamEntity, AssetType.LOGO, assets.logo());
-    order = addAssetsToEntity(order, teamEntity, AssetType.IMAGE, assets.images());
+    order = addAssetsToEntity(order, teamEntity, AssetType.IMAGE, usedImages);
     addAssetsToEntity(order, teamEntity, AssetType.ATTACHMENT, assets.attachments());
+  }
+
+  private Set<String> extractAssetIdsFromMarkdown(String markdown) {
+    Set<String> assetIds = new HashSet<>();
+    if (markdown.isEmpty()) {
+      return assetIds;
+    }
+    Matcher matcher = ASSET_DIRECTIVE_PATTERN.matcher(markdown);
+    while (matcher.find()) {
+      assetIds.add(matcher.group(1));
+    }
+    return assetIds;
   }
 
   private int addAssetsToEntity(

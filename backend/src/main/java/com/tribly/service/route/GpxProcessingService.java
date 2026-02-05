@@ -327,11 +327,20 @@ public class GpxProcessingService {
     return (1000.0f * elevationGain) / distance;
   }
 
+  private static final List<AssetType> ROUTE_ASSET_TYPES =
+      List.of(
+          AssetType.ROUTE_ORIGINAL_GPX,
+          AssetType.ROUTE_FILTERED_GPX,
+          AssetType.ROUTE_FIT,
+          AssetType.ROUTE_THUMBNAIL_LIGHT,
+          AssetType.ROUTE_THUMBNAIL_DARK);
+
   /**
    * Delete all files for a route (cleanup on error or deletion).
+   * S3 cleanup is handled automatically by AssetRemoveListener via orphanRemoval.
    */
   public void deleteRouteFiles(Route route) {
-    // FIXME
+    route.getAssets().removeIf(asset -> ROUTE_ASSET_TYPES.contains(asset.getType()));
   }
 
   /**

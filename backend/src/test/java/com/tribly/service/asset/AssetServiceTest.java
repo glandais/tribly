@@ -12,16 +12,21 @@ import com.tribly.domain.user.User;
 import com.tribly.dto.assets.response.DownloadableAsset;
 import com.tribly.dto.common.asset.AssetDto;
 import com.tribly.dto.common.asset.AssetsDto;
+import com.tribly.dto.common.asset.MediaDto;
 import com.tribly.enums.AssetType;
 import com.tribly.enums.TeamRole;
 import com.tribly.enums.Visibility;
+import com.tribly.repository.post.PostRepository;
 import com.tribly.service.asset.response.AssetWithFile;
 import com.tribly.service.security.DomainResolver;
 import com.tribly.service.security.TriblyQueryContext;
 import com.tribly.util.TestDataCleaner;
 import com.tribly.util.TestDataService;
+import com.tribly.infrastructure.storage.StorageService;
+import com.tribly.repository.asset.AssetRepository;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
@@ -42,6 +47,10 @@ class AssetServiceTest {
   @Inject TestDataCleaner dataCleaner;
   @Inject TriblyQueryContext queryContext;
   @Inject DomainResolver domainResolver;
+  @Inject StorageService storageService;
+  @Inject AssetRepository assetRepository;
+  @Inject
+  PostRepository postRepository;
 
   private Domain domain;
   private Team team;
@@ -85,6 +94,13 @@ class AssetServiceTest {
     InputStream resourceAsStream = getClass().getClassLoader().getResourceAsStream("image.png");
     assertNotNull(resourceAsStream, "image.png not found in test resources");
     return resourceAsStream;
+  }
+
+  private String getAssetKey(Team t, long fileId) {
+    String teamId = TsidUtils.toString(t.getId());
+    String idString = TsidUtils.toString(fileId);
+    String subPath = idString.substring(0, 4);
+    return "assets/" + teamId + "/" + subPath + "/" + idString;
   }
 
   @Nested
@@ -545,8 +561,10 @@ class AssetServiceTest {
 
       AssetsDto assetsDto =
           AssetsDto.builder().images(List.of(AssetDto.builder().id(imageId).build())).build();
+      String markdown = "Some text\n::asset{id=\"" + imageId + "\" size=\"medium\"}\nMore text";
+      MediaDto mediaDto = new MediaDto(markdown, assetsDto);
 
-      assetService.updateAssets(post, assetsDto);
+      assetService.updateAssets(post, mediaDto);
 
       assertTrue(post.getAssets().stream().anyMatch(a -> a.getId().equals(image.getId())));
     }
@@ -562,7 +580,8 @@ class AssetServiceTest {
       post.getAssets().add(systemAsset);
 
       // Update with null assets should preserve system assets
-      assetService.updateAssets(post, AssetsDto.builder().build());
+      MediaDto mediaDto = new MediaDto("markdown", AssetsDto.builder().build());
+      assetService.updateAssets(post, mediaDto);
 
       assertTrue(post.getAssets().stream().anyMatch(a -> a.getType().isSystem()));
     }
@@ -571,9 +590,10 @@ class AssetServiceTest {
     void shouldHandleNullAssets() {
       Post post =
           dataService.createPost(team, admin, "Test Post", Instant.now(), Visibility.PUBLIC);
+      MediaDto mediaDto = new MediaDto("markdown", AssetsDto.builder().build());
 
       // Should not throw
-      assertDoesNotThrow(() -> assetService.updateAssets(post, AssetsDto.builder().build()));
+      assertDoesNotThrow(() -> assetService.updateAssets(post, mediaDto));
     }
 
     @Test
@@ -586,8 +606,9 @@ class AssetServiceTest {
 
       AssetsDto assetsDto =
           AssetsDto.builder().logo(AssetDto.builder().id(foreignId).build()).build();
+      MediaDto mediaDto = new MediaDto("markdown", assetsDto);
 
-      assetService.updateAssets(post, assetsDto);
+      assetService.updateAssets(post, mediaDto);
 
       // Foreign asset should not be added
       assertFalse(post.getAssets().stream().anyMatch(a -> a.getId().equals(foreignAsset.getId())));
@@ -605,8 +626,10 @@ class AssetServiceTest {
 
       AssetsDto assetsDto =
           AssetsDto.builder().images(List.of(AssetDto.builder().id(imageId).build())).build();
+      String markdown = "::asset{id=\"" + imageId + "\"}";
+      MediaDto mediaDto = new MediaDto(markdown, assetsDto);
 
-      assetService.updateAssets(post, assetsDto);
+      assetService.updateAssets(post, mediaDto);
 
       assertTrue(post.getAssets().stream().anyMatch(a -> a.getId().equals(image.getId())));
     }
@@ -623,11 +646,236 @@ class AssetServiceTest {
 
       AssetsDto assetsDto =
           AssetsDto.builder().images(List.of(AssetDto.builder().id(imageId).build())).build();
+      String markdown = "::asset{id=\"" + imageId + "\"}";
+      MediaDto mediaDto = new MediaDto(markdown, assetsDto);
 
-      assetService.updateAssets(post2, assetsDto);
+      assetService.updateAssets(post2, mediaDto);
 
       // Asset assigned to post1 should not be added to post2
       assertFalse(post2.getAssets().stream().anyMatch(a -> a.getId().equals(image.getId())));
     }
+
+    @Test
+    void shouldRemoveImagesNotReferencedInMarkdown() {
+      Post post =
+          dataService.createPost(team, admin, "Test Post", Instant.now(), Visibility.PUBLIC);
+      Asset usedImage = dataService.createAsset(team, admin, AssetType.IMAGE, "used.png");
+      Asset unusedImage = dataService.createAsset(team, admin, AssetType.IMAGE, "unused.png");
+      String usedId = TsidUtils.toString(usedImage.getId());
+      String unusedId = TsidUtils.toString(unusedImage.getId());
+
+      // Both images in DTO, but only one referenced in markdown
+      AssetsDto assetsDto =
+          AssetsDto.builder()
+              .images(
+                  List.of(
+                      AssetDto.builder().id(usedId).build(),
+                      AssetDto.builder().id(unusedId).build()))
+              .build();
+      String markdown = "Some text ::asset{id=\"" + usedId + "\"} more text";
+      MediaDto mediaDto = new MediaDto(markdown, assetsDto);
+
+      assetService.updateAssets(post, mediaDto);
+
+      assertTrue(
+          post.getAssets().stream().anyMatch(a -> a.getId().equals(usedImage.getId())),
+          "Image referenced in markdown should be kept");
+      assertFalse(
+          post.getAssets().stream().anyMatch(a -> a.getId().equals(unusedImage.getId())),
+          "Image not referenced in markdown should be removed");
+    }
+
+    @Test
+    void shouldRemoveOldAssetFromCollection() {
+      Post post =
+          dataService.createPost(team, admin, "Test Post", Instant.now(), Visibility.PUBLIC);
+
+      Asset image = dataService.createAsset(team, admin, AssetType.IMAGE, "to-remove.png");
+      image.setTeamEntity(post);
+      dataService.updateAsset(image);
+      post.getAssets().add(image);
+
+      // Update without the image → removed from collection
+      MediaDto mediaDto = new MediaDto("no images here", AssetsDto.builder().build());
+
+      assetService.updateAssets(post, mediaDto);
+
+      assertFalse(
+          post.getAssets().stream().anyMatch(a -> a.getId().equals(image.getId())),
+          "Image should be removed from entity");
+    }
+
+    @Test
+    void shouldKeepReferencedImageInCollection() {
+      Post post =
+          dataService.createPost(team, admin, "Test Post", Instant.now(), Visibility.PUBLIC);
+      Asset image = dataService.createAsset(team, admin, AssetType.IMAGE, "kept.png");
+      String imageId = TsidUtils.toString(image.getId());
+
+      image.setTeamEntity(post);
+      dataService.updateAsset(image);
+      post.getAssets().add(image);
+
+      AssetsDto assetsDto =
+          AssetsDto.builder().images(List.of(AssetDto.builder().id(imageId).build())).build();
+      String markdown = "::asset{id=\"" + imageId + "\"}";
+      MediaDto mediaDto = new MediaDto(markdown, assetsDto);
+
+      assetService.updateAssets(post, mediaDto);
+
+      assertTrue(
+          post.getAssets().stream().anyMatch(a -> a.getId().equals(image.getId())),
+          "Image should still be on entity");
+    }
+
+    @Test
+    void shouldRemoveImageInDtoButNotInMarkdown() {
+      Post post =
+          dataService.createPost(team, admin, "Test Post", Instant.now(), Visibility.PUBLIC);
+      Asset image = dataService.createAsset(team, admin, AssetType.IMAGE, "orphaned.png");
+      String imageId = TsidUtils.toString(image.getId());
+
+      image.setTeamEntity(post);
+      dataService.updateAsset(image);
+      post.getAssets().add(image);
+
+      // Image in DTO but NOT in markdown
+      AssetsDto assetsDto =
+          AssetsDto.builder().images(List.of(AssetDto.builder().id(imageId).build())).build();
+      MediaDto mediaDto = new MediaDto("text without any asset directives", assetsDto);
+
+      assetService.updateAssets(post, mediaDto);
+
+      assertFalse(
+          post.getAssets().stream().anyMatch(a -> a.getId().equals(image.getId())),
+          "Image not in markdown should be removed from entity");
+    }
+
+    @Test
+    void shouldHandleEmptyMarkdown() {
+      Post post =
+          dataService.createPost(team, admin, "Test Post", Instant.now(), Visibility.PUBLIC);
+      Asset image = dataService.createAsset(team, admin, AssetType.IMAGE, "img.png");
+      String imageId = TsidUtils.toString(image.getId());
+
+      AssetsDto assetsDto =
+          AssetsDto.builder().images(List.of(AssetDto.builder().id(imageId).build())).build();
+      MediaDto mediaDto = new MediaDto("", assetsDto);
+
+      assetService.updateAssets(post, mediaDto);
+
+      assertFalse(
+          post.getAssets().stream().anyMatch(a -> a.getId().equals(image.getId())),
+          "No images should be kept when markdown is empty");
+    }
+
+    @Test
+    void shouldHandleMultipleAssetDirectivesInMarkdown() {
+      Post post =
+          dataService.createPost(team, admin, "Test Post", Instant.now(), Visibility.PUBLIC);
+      Asset img1 = dataService.createAsset(team, admin, AssetType.IMAGE, "img1.png");
+      Asset img2 = dataService.createAsset(team, admin, AssetType.IMAGE, "img2.png");
+      Asset img3 = dataService.createAsset(team, admin, AssetType.IMAGE, "img3.png");
+      String id1 = TsidUtils.toString(img1.getId());
+      String id2 = TsidUtils.toString(img2.getId());
+      String id3 = TsidUtils.toString(img3.getId());
+
+      AssetsDto assetsDto =
+          AssetsDto.builder()
+              .images(
+                  List.of(
+                      AssetDto.builder().id(id1).build(),
+                      AssetDto.builder().id(id2).build(),
+                      AssetDto.builder().id(id3).build()))
+              .build();
+      String markdown =
+          "Intro\n::asset{id=\""
+              + id1
+              + "\" size=\"full\"}\nMiddle\n::asset{id=\""
+              + id3
+              + "\" alt=\"photo\"}\nEnd";
+      MediaDto mediaDto = new MediaDto(markdown, assetsDto);
+
+      assetService.updateAssets(post, mediaDto);
+
+      assertTrue(post.getAssets().stream().anyMatch(a -> a.getId().equals(img1.getId())));
+      assertFalse(
+          post.getAssets().stream().anyMatch(a -> a.getId().equals(img2.getId())),
+          "img2 not in markdown should be removed");
+      assertTrue(post.getAssets().stream().anyMatch(a -> a.getId().equals(img3.getId())));
+    }
+
+    @Test
+    void shouldPreserveLogoAndAttachmentsRegardlessOfMarkdown() {
+      Post post =
+          dataService.createPost(team, admin, "Test Post", Instant.now(), Visibility.PUBLIC);
+      Asset logo = dataService.createAsset(team, admin, AssetType.IMAGE, "logo.png");
+      Asset attachment = dataService.createAsset(team, admin, AssetType.IMAGE, "doc.pdf");
+      String logoId = TsidUtils.toString(logo.getId());
+      String attachmentId = TsidUtils.toString(attachment.getId());
+
+      // Logo and attachments are not filtered by markdown references
+      AssetsDto assetsDto =
+          AssetsDto.builder()
+              .logo(AssetDto.builder().id(logoId).build())
+              .attachments(List.of(AssetDto.builder().id(attachmentId).build()))
+              .build();
+      MediaDto mediaDto = new MediaDto("no directives here", assetsDto);
+
+      assetService.updateAssets(post, mediaDto);
+
+      assertTrue(
+          post.getAssets().stream().anyMatch(a -> a.getId().equals(logo.getId())),
+          "Logo should be kept regardless of markdown");
+      assertTrue(
+          post.getAssets().stream().anyMatch(a -> a.getId().equals(attachment.getId())),
+          "Attachment should be kept regardless of markdown");
+    }
   }
+
+    @Test
+    @Transactional
+    void shouldDeleteS3WhenAssetIsDeleted() {
+      Asset asset = dataService.createAsset(team, admin, AssetType.IMAGE, "file.png");
+      String s3Key = getAssetKey(team, asset.getFileId());
+      assertTrue(storageService.exists(s3Key), "S3 file should exist before delete");
+
+      Asset managed = assetRepository.findById(asset.getId());
+      assetRepository.delete(managed);
+      assetRepository.flush();
+
+      assertFalse(storageService.exists(s3Key), "S3 file should be deleted by @PreRemove listener");
+    }
+
+    @Test
+    @Transactional
+    void shouldDeleteS3WhenOrphanRemoved() {
+      Post post =
+          dataService.createPost(team, admin, "Test Post", Instant.now(), Visibility.PUBLIC);
+      Asset image = dataService.createAsset(team, admin, AssetType.IMAGE, "orphan.png");
+      String s3Key = getAssetKey(team, image.getFileId());
+
+      post.getAssets().add(image);
+      dataService.updatePost(post);
+
+      postRepository.flush();
+      assetRepository.flush();
+
+      // Re-fetch managed post to have a proper managed collection
+      Post managed = dataService.getPost(post.getId());
+      assertTrue(
+          managed.getAssets().stream().anyMatch(a -> a.getId().equals(image.getId())),
+          "Image should be in collection before removal");
+
+      // Remove from collection → orphanRemoval triggers @PreRemove
+      managed.getAssets().removeIf(a -> a.getId().equals(image.getId()));
+      dataService.updatePost(managed);
+
+      postRepository.flush();
+      assetRepository.flush();
+
+      assertFalse(
+          storageService.exists(s3Key), "S3 file should be deleted by orphanRemoval + @PreRemove");
+    }
+
 }

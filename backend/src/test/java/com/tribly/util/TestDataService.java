@@ -503,6 +503,11 @@ public class TestDataService {
     postRepository.getEntityManager().merge(post);
   }
 
+  @Transactional
+  public Post getPost(Long id) {
+    return postRepository.findById(id);
+  }
+
   @Inject AssetRepository assetRepository;
   @Inject StorageService storageService;
 
@@ -550,6 +555,16 @@ public class TestDataService {
   @Transactional
   public void updateAsset(Asset asset) {
     assetRepository.getEntityManager().merge(asset);
+  }
+
+  @Transactional
+  public void backdateAssetUpdatedAt(Asset asset, java.time.Instant updatedAt) {
+    assetRepository
+        .getEntityManager()
+        .createNativeQuery("UPDATE assets SET updated_at = ?1 WHERE id = ?2")
+        .setParameter(1, updatedAt)
+        .setParameter(2, asset.getId())
+        .executeUpdate();
   }
 
   @Inject TripRepository tripRepository;
@@ -958,4 +973,5 @@ public class TestDataService {
     credential.setActive(false);
     domainGpsCredentialRepository.getEntityManager().merge(credential);
   }
+
 }

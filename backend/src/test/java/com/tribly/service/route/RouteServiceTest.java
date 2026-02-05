@@ -25,7 +25,6 @@ import jakarta.inject.Inject;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.List;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -59,14 +58,6 @@ class RouteServiceTest {
     dataService.addUserToTeam(organizer, team, TeamRole.ORGANIZER);
     dataService.addUserToTeam(member, team, TeamRole.MEMBER);
     user2 = dataService.createUser("user2@example.com", "user2");
-  }
-
-  @AfterEach
-  void cleanup() {
-    if (createdRoute != null) {
-      // FIXME
-      //      gpxProcessingService.deleteRouteFiles(createdRoute);
-    }
   }
 
   private String getCreatedRouteSlug() {

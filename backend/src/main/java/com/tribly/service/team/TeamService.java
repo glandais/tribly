@@ -6,14 +6,12 @@ import static com.tribly.dto.error.ErrorCode.TEAM_CREATION_DISABLED;
 
 import com.tribly.common.exception.BusinessException;
 import com.tribly.common.exception.ConflictException;
-import com.tribly.domain.common.TeamEntity;
 import com.tribly.domain.platform.Domain;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.team.TeamSlugRedirect;
 import com.tribly.domain.team.UserTeam;
 import com.tribly.domain.user.User;
 import com.tribly.dto.common.TriblyPage;
-import com.tribly.dto.common.asset.MediaDto;
 import com.tribly.dto.teams.request.TeamRequest;
 import com.tribly.dto.teams.response.TeamDetailDto;
 import com.tribly.dto.teams.response.TeamListResponse;
@@ -33,7 +31,6 @@ import com.tribly.service.team.response.TeamAndRole;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
-import jakarta.validation.Valid;
 import java.util.List;
 import java.util.Optional;
 import org.jspecify.annotations.Nullable;
@@ -89,7 +86,7 @@ public class TeamService {
     team.setGeometry(request.geometry());
 
     teamRepository.persistAndFlush(team);
-    updateMedia(team.getAboutPage(), request.media());
+    assetService.updateAssets(team.getAboutPage(), request.media());
     teamRepository.persist(team);
 
     UserTeam membership = new UserTeam(creator, creator, team, TeamRole.ADMIN);
@@ -135,7 +132,7 @@ public class TeamService {
     team.setEnableTrips(request.enableTrips());
     team.setEnableAds(request.enableAds());
     team.setGeometry(request.geometry());
-    updateMedia(team.getAboutPage(), request.media());
+    assetService.updateAssets(team.getAboutPage(), request.media());
 
     teamRepository.persist(team);
     return getTeamDetailDto(teamSlug);
@@ -181,11 +178,5 @@ public class TeamService {
     teamRepository.persist(team);
 
     return getTeamDetailDto(teamSlug);
-  }
-
-  protected void updateMedia(TeamEntity teamEntity, @Valid MediaDto mediaRequest) {
-    // FIXME MediaService
-    teamEntity.setMarkdown(mediaRequest.markdown());
-    assetService.updateAssets(teamEntity, mediaRequest.assets());
   }
 }

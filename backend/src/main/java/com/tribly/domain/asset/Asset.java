@@ -14,6 +14,7 @@ import org.jspecify.annotations.Nullable;
 @Setter
 @Getter
 @Entity
+@EntityListeners(AssetRemoveListener.class)
 @Table(
     name = "assets",
     indexes = {
