@@ -1216,12 +1216,6 @@ private fun ErrorScreen(message: String, onRetry: () -> Unit, onBack: () -> Unit
                     style = MaterialTheme.typography.headlineSmall,
                     color = MaterialTheme.colorScheme.error
                 )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = message,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
                 Spacer(modifier = Modifier.height(24.dp))
                 Button(onClick = onRetry) {
                     Text(stringResource(R.string.loading))

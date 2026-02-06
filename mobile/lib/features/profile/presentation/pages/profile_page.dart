@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../config/paths.dart';
+import '../../../../core/utils/api_error_handler.dart';
 import '../../../../core/utils/safe_string.dart';
 import '../../../../core/widgets/authenticated_image.dart';
 import '../../../auth/providers/auth_provider.dart';
@@ -295,7 +296,7 @@ class ProfilePage extends ConsumerWidget {
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('auth.errors.generic'.tr(namedArgs: {'error': e.toString()}))),
+          SnackBar(content: Text(getErrorMessage(e))),
         );
       }
     }

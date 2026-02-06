@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/legacy.dart';
 
 import '../../../api/generated/export.dart';
 import '../../../api/tribly_api_client.dart';
+import '../../../core/utils/api_error_handler.dart';
 import '../data/auth_repository.dart';
 import '../data/secure_storage.dart';
 import '../domain/auth_state.dart';
@@ -118,7 +119,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       state = state.copyWith(isLoading: false);
       return response;
     } catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString());
+      state = state.copyWith(isLoading: false, error: getErrorMessage(e));
       rethrow;
     }
   }
@@ -130,7 +131,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       final response = await _repository.verifyEmail(token);
       await _handleAuthSuccess(response);
     } catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString());
+      state = state.copyWith(isLoading: false, error: getErrorMessage(e));
       rethrow;
     }
   }
@@ -143,7 +144,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       state = state.copyWith(isLoading: false);
       return response;
     } catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString());
+      state = state.copyWith(isLoading: false, error: getErrorMessage(e));
       rethrow;
     }
   }
@@ -155,7 +156,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       final response = await _repository.verifyOtp(email, code);
       await _handleAuthSuccess(response);
     } catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString());
+      state = state.copyWith(isLoading: false, error: getErrorMessage(e));
       rethrow;
     }
   }
@@ -167,7 +168,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       final response = await _repository.authenticateWithPasskey(credential);
       await _handleAuthSuccess(response);
     } catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString());
+      state = state.copyWith(isLoading: false, error: getErrorMessage(e));
       rethrow;
     }
   }

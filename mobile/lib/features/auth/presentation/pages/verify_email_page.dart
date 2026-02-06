@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../config/paths.dart';
+import '../../../../core/utils/api_error_handler.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/passkey_service.dart';
 
@@ -56,7 +57,7 @@ class _VerifyEmailPageState extends ConsumerState<VerifyEmailPage> {
       if (mounted) {
         setState(() {
           _isLoading = false;
-          _errorMessage = 'auth.verifyEmail.registerError'.tr(namedArgs: {'error': e.toString()});
+          _errorMessage = getErrorMessage(e);
         });
       }
     }
@@ -75,7 +76,7 @@ class _VerifyEmailPageState extends ConsumerState<VerifyEmailPage> {
       if (mounted) {
         setState(() {
           _isLoading = false;
-          _errorMessage = 'auth.verifyEmail.registerError'.tr(namedArgs: {'error': e.toString()});
+          _errorMessage = getErrorMessage(e);
         });
       }
     }

@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../api/generated/export.dart';
 import '../../../../config/paths.dart';
 import '../../../../core/adaptive/adaptive.dart';
+import '../../../../core/utils/api_error_handler.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/utils/safe_string.dart';
 import '../../../../core/widgets/authenticated_image.dart';
@@ -61,7 +62,7 @@ class _RideDetailPageState extends ConsumerState<RideDetailPage> {
             children: [
               const Icon(Icons.error_outline, size: 48, color: Colors.red),
               const SizedBox(height: 16),
-              Text('common.errorPrefix'.tr(namedArgs: {'error': error.toString()})),
+              Text(getErrorMessage(error)),
               const SizedBox(height: 16),
               FilledButton(
                 onPressed: () => ref.invalidate(rideDetailProvider(params)),
@@ -110,7 +111,7 @@ class _RideDetailPageState extends ConsumerState<RideDetailPage> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('common.errorPrefix'.tr(namedArgs: {'error': e.toString()}))),
+          SnackBar(content: Text(getErrorMessage(e))),
         );
       }
     } finally {
@@ -179,7 +180,7 @@ class _RideDetailPageState extends ConsumerState<RideDetailPage> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('common.errorPrefix'.tr(namedArgs: {'error': e.toString()}))),
+          SnackBar(content: Text(getErrorMessage(e))),
         );
       }
     } finally {

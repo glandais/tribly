@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../config/paths.dart';
+import '../../../../core/utils/api_error_handler.dart';
 import '../../providers/auth_provider.dart';
 import '../../services/passkey_service.dart';
 
@@ -119,7 +120,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       }
     } catch (e) {
       if (mounted) {
-        setState(() => _errorMessage = 'auth.errors.generic'.tr(namedArgs: {'error': e.toString()}));
+        setState(() => _errorMessage = getErrorMessage(e));
       }
     } finally {
       if (mounted) {
@@ -172,7 +173,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       }
     } catch (e) {
       if (mounted) {
-        setState(() => _errorMessage = 'auth.errors.generic'.tr(namedArgs: {'error': e.toString()}));
+        setState(() => _errorMessage = getErrorMessage(e));
       }
     } finally {
       if (mounted) {
@@ -203,7 +204,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       }
     } catch (e) {
       if (mounted) {
-        setState(() => _errorMessage = 'auth.errors.generic'.tr(namedArgs: {'error': e.toString()}));
+        setState(() => _errorMessage = getErrorMessage(e));
       }
     } finally {
       if (mounted) {

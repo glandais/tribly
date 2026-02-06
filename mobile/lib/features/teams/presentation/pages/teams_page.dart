@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../api/generated/export.dart';
 import '../../../../config/paths.dart';
+import '../../../../core/utils/api_error_handler.dart';
 import '../../../../core/widgets/authenticated_image.dart';
 import '../../../../core/widgets/widgets.dart';
 import '../../../../core/utils/formatters.dart';
@@ -100,7 +101,7 @@ class TeamsPage extends ConsumerWidget {
             children: [
               const Icon(Icons.error_outline, size: 48, color: Colors.red),
               const SizedBox(height: 16),
-              Text('common.errorPrefix'.tr(namedArgs: {'error': error.toString()})),
+              Text(getErrorMessage(error)),
               const SizedBox(height: 16),
               FilledButton(
                 onPressed: () => ref.invalidate(myTeamsProvider),

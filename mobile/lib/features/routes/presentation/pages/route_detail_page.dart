@@ -7,6 +7,7 @@ import 'package:share_plus/share_plus.dart';
 
 import '../../../../api/generated/export.dart';
 import '../../../../api/tribly_api_client.dart';
+import '../../../../core/utils/api_error_handler.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../auth/providers/auth_provider.dart';
 import '../../data/route_repository.dart';
@@ -47,7 +48,7 @@ class RouteDetailPage extends ConsumerWidget {
             children: [
               const Icon(Icons.error_outline, size: 48, color: Colors.red),
               const SizedBox(height: 16),
-              Text('common.errorPrefix'.tr(namedArgs: {'error': error.toString()})),
+              Text(getErrorMessage(error)),
               const SizedBox(height: 16),
               FilledButton(
                 onPressed: () => ref.invalidate(routeDetailProvider(params)),
@@ -383,7 +384,7 @@ class _FileDownloadTileState extends State<_FileDownloadTile> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'common.errorPrefix'.tr(namedArgs: {'error': e.toString()}),
+              getErrorMessage(e),
             ),
           ),
         );
@@ -450,7 +451,7 @@ class _DeviceUploadTileState extends ConsumerState<_DeviceUploadTile> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'routes.uploadError'.tr(namedArgs: {'error': e.toString()}),
+              getErrorMessage(e),
             ),
           ),
         );
