@@ -15,7 +15,7 @@ import org.jspecify.annotations.Nullable;
 @Table(
     name = "ride_template_groups",
     indexes = {
-      @Index(columnList = "template_id, deleted"),
+      @Index(columnList = "template_id"),
     })
 @NoArgsConstructor
 public class RideTemplateGroup extends BaseEntity {

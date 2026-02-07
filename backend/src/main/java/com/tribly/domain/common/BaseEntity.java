@@ -33,9 +33,6 @@ public abstract class BaseEntity {
   @Column(name = "updated_at", nullable = false)
   private Instant updatedAt = Instant.now();
 
-  @Column(name = "deleted", nullable = false)
-  private boolean deleted = false;
-
   @Version private Long version = 0L;
 
   public BaseEntity(@Nullable User createdBy) {

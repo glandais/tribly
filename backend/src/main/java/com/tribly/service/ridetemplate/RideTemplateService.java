@@ -128,15 +128,12 @@ public class RideTemplateService {
     template.setVisibility(request.visibility());
     template.setStatus(request.status());
 
-    // Update groups - mark all as deleted first, then restore/create
+    // Update groups - clear and re-add existing or create new
     Map<Long, RideTemplateGroup> existingGroups =
         template.getGroups().stream()
             .collect(Collectors.toMap(RideTemplateGroup::getId, Function.identity()));
 
-    for (RideTemplateGroup group : template.getGroups()) {
-      group.setDeleted(true);
-      group.setSortOrder(0);
-    }
+    template.getGroups().clear();
 
     int sortOrder = 0;
     for (RideTemplateGroupRequest groupRequest : request.groups()) {
@@ -146,12 +143,12 @@ public class RideTemplateService {
       } else {
         RideTemplateGroup existingGroup = existingGroups.remove(groupId);
         if (existingGroup != null) {
-          existingGroup.setDeleted(false);
           existingGroup.setName(groupRequest.name());
           existingGroup.setTime(groupRequest.time());
           existingGroup.setAverageSpeed(groupRequest.averageSpeed());
           existingGroup.setMaxParticipants(groupRequest.maxParticipants());
           existingGroup.setSortOrder(sortOrder);
+          template.getGroups().add(existingGroup);
         } else {
           throw new NotFoundException(EntityType.RIDE_TEMPLATE_GROUP, groupRequest.id());
         }
@@ -172,7 +169,6 @@ public class RideTemplateService {
         templateRepository
             .findByTeamAndSlug(team.getId(), templateSlug)
             .orElseThrow(() -> new NotFoundException(EntityType.RIDE_TEMPLATE, templateSlug));
-    template.setDeleted(true);
-    templateRepository.persist(template);
+    templateRepository.delete(template);
   }
 }

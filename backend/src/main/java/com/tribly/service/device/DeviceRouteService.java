@@ -162,10 +162,6 @@ public class DeviceRouteService {
 
       // Group-level routes
       for (RideGroup group : ride.getGroups()) {
-        if (group.isDeleted()) {
-          continue;
-        }
-
         Route groupRoute = group.getRoute();
         if (groupRoute == null || groupRoute.isDeleted()) {
           continue;
@@ -212,7 +208,7 @@ public class DeviceRouteService {
     if (route == null || route.isDeleted()) {
       // Use first group's route for timezone
       for (RideGroup group : ride.getGroups()) {
-        if (!group.isDeleted() && group.getRoute() != null && !group.getRoute().isDeleted()) {
+        if (group.getRoute() != null && !group.getRoute().isDeleted()) {
           route = group.getRoute();
           break;
         }

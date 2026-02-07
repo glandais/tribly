@@ -14,10 +14,7 @@ import org.jspecify.annotations.Nullable;
 @Entity
 @Table(
     name = "comments",
-    indexes = {
-      @Index(columnList = "team_entity_id, deleted, created_at"),
-      @Index(columnList = "parent_id, deleted")
-    })
+    indexes = {@Index(columnList = "team_entity_id, created_at"), @Index(columnList = "parent_id")})
 @NoArgsConstructor
 public class Comment extends BaseEntity {
 

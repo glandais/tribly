@@ -10,19 +10,18 @@ import java.util.Optional;
 public class PasskeyRepository implements PanacheRepository<Passkey> {
 
   public Optional<Passkey> findByCredentialId(byte[] credentialId) {
-    return find("credentialId = ?1 and deleted = false", (Object) credentialId)
-        .firstResultOptional();
+    return find("credentialId = ?1", (Object) credentialId).firstResultOptional();
   }
 
   public List<Passkey> findByUserId(Long userId) {
-    return find("user.id = ?1 and deleted = false", userId).list();
+    return find("user.id = ?1", userId).list();
   }
 
   public Optional<Passkey> findByIdAndUserId(Long id, Long userId) {
-    return find("id = ?1 and user.id = ?2 and deleted = false", id, userId).firstResultOptional();
+    return find("id = ?1 and user.id = ?2", id, userId).firstResultOptional();
   }
 
   public int countByUserId(Long userId) {
-    return (int) count("user.id = ?1 and deleted = false", userId);
+    return (int) count("user.id = ?1", userId);
   }
 }

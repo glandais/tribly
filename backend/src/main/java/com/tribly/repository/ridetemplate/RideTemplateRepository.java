@@ -13,8 +13,7 @@ import org.jspecify.annotations.Nullable;
 public class RideTemplateRepository implements BaseRepository<RideTemplate> {
 
   public Optional<RideTemplate> findByTeamAndSlug(Long teamId, String slug) {
-    return find("team.id = ?1 AND slug = ?2 AND deleted = false", teamId, slug)
-        .firstResultOptional();
+    return find("team.id = ?1 AND slug = ?2", teamId, slug).firstResultOptional();
   }
 
   public boolean existsByTeamAndSlug(Long teamId, String slug) {
@@ -24,10 +23,7 @@ public class RideTemplateRepository implements BaseRepository<RideTemplate> {
   public TriblyPage<RideTemplate> findByTeam(
       Long teamId, @Nullable String search, int page, int size) {
     TriblyQuery triblyQuery =
-        new TriblyQuery()
-            .and("team.id = :teamId", Map.of("teamId", teamId))
-            .and("deleted = false", Map.of())
-            .order("name ASC");
+        new TriblyQuery().and("team.id = :teamId", Map.of("teamId", teamId)).order("name ASC");
 
     if (search != null && !search.isBlank()) {
       triblyQuery.and(

@@ -405,6 +405,6 @@ public class PasskeyService {
             .findByIdAndUserId(passkeyId, userId)
             .orElseThrow(() -> new NotFoundException(ErrorCode.PASSKEY_NOT_FOUND));
 
-    passkey.softDelete();
+    passkeyRepository.delete(passkey);
   }
 }

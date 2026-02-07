@@ -23,8 +23,8 @@ import lombok.Setter;
           columnNames = {"team_id", "slug"})
     },
     indexes = {
-      @Index(columnList = "team_id, deleted"),
-      @Index(columnList = "team_id, slug, deleted"),
+      @Index(columnList = "team_id"),
+      @Index(columnList = "team_id, slug"),
     })
 @NoArgsConstructor
 public class RideTemplate extends BaseEntity {

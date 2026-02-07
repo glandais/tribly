@@ -186,7 +186,6 @@ public class GpsService {
     }
     connection.setExternalUserId(tokens.userId());
     connection.setConnectedAt(Instant.now());
-    connection.setDeleted(false);
 
     connectionRepository.persist(connection);
     LOG.infof("User %d connected to %s", userId, serviceType);
@@ -204,8 +203,7 @@ public class GpsService {
             .findByUserAndService(userId, serviceType)
             .orElseThrow(() -> new BusinessException(ErrorCode.GPS_SERVICE_NOT_CONNECTED));
 
-    connection.softDelete();
-    connectionRepository.persist(connection);
+    connectionRepository.delete(connection);
     LOG.infof("User %d disconnected from %s", userId, serviceType);
   }
 

@@ -26,7 +26,6 @@ public record RideGroupDto(
   public static RideGroupDto from(RideGroup group) {
     List<PublicUserDto> participantDtos =
         group.getParticipations().stream()
-            .filter(p -> !p.isDeleted())
             .map(RideParticipation::getUser)
             .map(PublicUserDto::from)
             .toList();

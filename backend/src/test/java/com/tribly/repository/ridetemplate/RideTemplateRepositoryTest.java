@@ -114,15 +114,15 @@ class RideTemplateRepositoryTest {
     }
 
     @Test
-    @DisplayName("Should return true even for deleted templates (for slug uniqueness)")
-    void existsByTeamAndSlug_shouldReturnTrueForDeletedTemplates() {
+    @DisplayName("Should return false for deleted templates")
+    void existsByTeamAndSlug_shouldReturnFalseForDeletedTemplates() {
       RideTemplate template =
           dataService.createRideTemplate(team, user, "Deleted Template", "deleted-template");
       dataService.deleteRideTemplate(template);
 
       boolean exists = templateRepository.existsByTeamAndSlug(team.getId(), "deleted-template");
 
-      assertTrue(exists);
+      assertFalse(exists);
     }
 
     @Test

@@ -9,10 +9,10 @@ import java.util.Optional;
 public class CalendarTokenRepository implements BaseRepository<CalendarToken> {
 
   public Optional<CalendarToken> findByToken(String token) {
-    return find("token = ?1 and deleted = false", token).firstResultOptional();
+    return find("token = ?1", token).firstResultOptional();
   }
 
   public Optional<CalendarToken> findByUserId(Long userId) {
-    return find("user.id = ?1 and deleted = false", userId).firstResultOptional();
+    return find("user.id = ?1", userId).firstResultOptional();
   }
 }

@@ -69,6 +69,9 @@ public class Team extends BaseEntity {
   @Nullable
   private Point<G2D> geometry;
 
+  @Column(name = "deleted", nullable = false)
+  private boolean deleted = false;
+
   public Team(Domain domain, User creator, String name, String slug, Visibility visibility) {
     super(creator);
     this.domain = domain;

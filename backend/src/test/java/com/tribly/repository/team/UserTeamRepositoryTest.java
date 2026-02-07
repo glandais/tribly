@@ -42,25 +42,12 @@ class UserTeamRepositoryTest {
   void findByUserAndTeamIncludingDeleted_shouldReturnMembershipWhenExists() {
     dataService.addUserToTeam(user2, team, TeamRole.MEMBER);
 
-    Optional<UserTeam> result =
-        userTeamRepository.findByUserAndTeamIncludingDeleted(user2.getId(), team.getId());
+    Optional<UserTeam> result = userTeamRepository.findByUserAndTeam(user2.getId(), team.getId());
 
     assertTrue(result.isPresent());
     assertEquals(user2.getId(), result.get().getUser().getId());
     assertEquals(team.getId(), result.get().getTeam().getId());
     assertEquals(TeamRole.MEMBER, result.get().getRole());
-  }
-
-  @Test
-  void findByUserAndTeamIncludingDeleted_shouldReturnDeletedMembership() {
-    UserTeam userTeam = dataService.addUserToTeam(user2, team, TeamRole.MEMBER);
-    dataService.deleteUserTeam(userTeam);
-
-    Optional<UserTeam> result =
-        userTeamRepository.findByUserAndTeamIncludingDeleted(user2.getId(), team.getId());
-
-    assertTrue(result.isPresent());
-    assertTrue(result.get().isDeleted());
   }
 
   @Test

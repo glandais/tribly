@@ -67,8 +67,7 @@ class AssetCleanupSchedulerTest {
 
   @Test
   void shouldNotDeleteAssetsAttachedToEntity() {
-    Post post =
-        dataService.createPost(team, admin, "Test Post", Instant.now(), Visibility.PUBLIC);
+    Post post = dataService.createPost(team, admin, "Test Post", Instant.now(), Visibility.PUBLIC);
     Asset attached = dataService.createAsset(team, admin, AssetType.IMAGE, "attached.png");
     attached.setTeamEntity(post);
     dataService.updateAsset(attached);
@@ -96,8 +95,7 @@ class AssetCleanupSchedulerTest {
     Asset recentOrphan = dataService.createAsset(team, admin, AssetType.IMAGE, "recent-orphan.png");
 
     // Old attached → keep
-    Post post =
-        dataService.createPost(team, admin, "Post", Instant.now(), Visibility.PUBLIC);
+    Post post = dataService.createPost(team, admin, "Post", Instant.now(), Visibility.PUBLIC);
     Asset oldAttached = dataService.createAsset(team, admin, AssetType.IMAGE, "old-attached.png");
     oldAttached.setTeamEntity(post);
     dataService.updateAsset(oldAttached);
@@ -105,11 +103,14 @@ class AssetCleanupSchedulerTest {
 
     assetCleanupScheduler.cleanupOrphanedAssets();
 
-    assertFalse(assetRepository.findByIdOptional(oldOrphan.getId()).isPresent(),
+    assertFalse(
+        assetRepository.findByIdOptional(oldOrphan.getId()).isPresent(),
         "Old orphan should be deleted");
-    assertTrue(assetRepository.findByIdOptional(recentOrphan.getId()).isPresent(),
+    assertTrue(
+        assetRepository.findByIdOptional(recentOrphan.getId()).isPresent(),
         "Recent orphan should be kept");
-    assertTrue(assetRepository.findByIdOptional(oldAttached.getId()).isPresent(),
+    assertTrue(
+        assetRepository.findByIdOptional(oldAttached.getId()).isPresent(),
         "Old attached asset should be kept");
   }
 }

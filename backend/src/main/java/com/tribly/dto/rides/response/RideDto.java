@@ -143,7 +143,6 @@ public class RideDto implements PublicationDto {
     List<RideGroupDto> groupDtos =
         groupDetails
             ? ride.getGroups().stream()
-                .filter(g -> !g.isDeleted())
                 .sorted(Comparator.comparing(RideGroup::getSortOrder))
                 .map(RideGroupDto::from)
                 .toList()
@@ -155,9 +154,7 @@ public class RideDto implements PublicationDto {
     Set<Long> seenUserIds = new HashSet<>();
     List<PublicUserDto> topParticipants =
         ride.getGroups().stream()
-            .filter(g -> !g.isDeleted())
             .flatMap(g -> g.getParticipations().stream())
-            .filter(p -> !p.isDeleted())
             .sorted(Comparator.comparing(RideParticipation::getRegisteredAt))
             .map(RideParticipation::getUser)
             .filter(user -> seenUserIds.add(user.getId()))

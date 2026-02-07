@@ -12,11 +12,10 @@ public class GpsServiceConnectionRepository implements PanacheRepository<GpsServ
 
   public Optional<GpsServiceConnection> findByUserAndService(
       Long userId, GpsServiceType serviceType) {
-    return find("user.id = ?1 and serviceType = ?2 and deleted = false", userId, serviceType)
-        .firstResultOptional();
+    return find("user.id = ?1 and serviceType = ?2", userId, serviceType).firstResultOptional();
   }
 
   public List<GpsServiceConnection> findByUser(Long userId) {
-    return find("user.id = ?1 and deleted = false", userId).list();
+    return find("user.id = ?1", userId).list();
   }
 }

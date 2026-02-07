@@ -22,7 +22,7 @@ import org.jspecify.annotations.Nullable;
 @Entity
 @Table(
     name = "places",
-    indexes = {@Index(name = "idx_places_team_deleted", columnList = "team_id, deleted")})
+    indexes = {@Index(name = "idx_places_team", columnList = "team_id")})
 @NoArgsConstructor
 public class Place extends BaseEntity {
 

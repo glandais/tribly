@@ -84,8 +84,7 @@ public class PlaceService {
             .findByIdAndTeam(TsidUtils.toLong(placeId), teamId)
             .orElseThrow(() -> new NotFoundException(EntityType.PLACE, placeId));
 
-    place.setDeleted(true);
-    placeRepository.persist(place);
+    placeRepository.delete(place);
   }
 
   private void updatePlaceFromRequest(Place place, PlaceRequest request) {

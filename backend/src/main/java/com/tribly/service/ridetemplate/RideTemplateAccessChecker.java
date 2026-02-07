@@ -45,7 +45,7 @@ public class RideTemplateAccessChecker implements AccessChecker {
         }
         RideTemplate template =
             rideTemplateRepository.findByTeamAndSlug(team.getId(), slug).orElse(null);
-        yield template != null && !template.isDeleted();
+        yield template != null;
       }
       case LIST_ALL_TEAMS, JOIN, LEAVE -> false;
     };

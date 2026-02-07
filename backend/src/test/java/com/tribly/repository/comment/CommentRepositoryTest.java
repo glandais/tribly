@@ -11,8 +11,6 @@ import com.tribly.util.TestDataCleaner;
 import com.tribly.util.TestDataService;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
-import jakarta.persistence.EntityManager;
-import jakarta.transaction.Transactional;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -27,8 +25,6 @@ class CommentRepositoryTest {
   @Inject CommentRepository commentRepository;
   @Inject TestDataService dataService;
   @Inject TestDataCleaner dataCleaner;
-  @Inject EntityManager entityManager;
-
   private Team team;
   private User user;
   private Post post;
@@ -203,59 +199,6 @@ class CommentRepositoryTest {
       assertEquals(1, result.size());
       assertEquals("Reply to Parent 1", result.getFirst().getContent());
     }
-  }
-
-  @Test
-  @Transactional
-  void shouldSoftDeleteAllReplies() {
-    Comment parent = dataService.createComment(user, post, "Parent");
-    dataService.createReply(user, post, parent, "Reply 1");
-    dataService.createReply(user, post, parent, "Reply 2");
-    dataService.createReply(user, post, parent, "Reply 3");
-
-    int deletedCount = commentRepository.softDeleteReplies(parent.getId());
-
-    assertEquals(3, deletedCount);
-    assertEquals(0, commentRepository.findReplies(parent.getId()).size());
-  }
-
-  @Test
-  @Transactional
-  void shouldReturnZeroWhenNoReplies() {
-    Comment parent = dataService.createComment(user, post, "Parent without replies");
-
-    int deletedCount = commentRepository.softDeleteReplies(parent.getId());
-
-    assertEquals(0, deletedCount);
-  }
-
-  @Test
-  @Transactional
-  void shouldNotDeleteRepliesFromOtherParents() {
-    Comment parent1 = dataService.createComment(user, post, "Parent 1");
-    Comment parent2 = dataService.createComment(user, post, "Parent 2");
-    dataService.createReply(user, post, parent1, "Reply to Parent 1");
-    dataService.createReply(user, post, parent2, "Reply to Parent 2");
-
-    commentRepository.softDeleteReplies(parent1.getId());
-
-    assertEquals(0, commentRepository.findReplies(parent1.getId()).size());
-    assertEquals(1, commentRepository.findReplies(parent2.getId()).size());
-  }
-
-  @Test
-  @Transactional
-  void shouldNotAffectAlreadyDeletedReplies() {
-    Comment parent = dataService.createComment(user, post, "Parent");
-    dataService.createReply(user, post, parent, "Active Reply");
-    Comment deletedReply = dataService.createReply(user, post, parent, "Already Deleted Reply");
-    dataService.deleteComment(deletedReply);
-
-    entityManager.flush();
-
-    int deletedCount = commentRepository.softDeleteReplies(parent.getId());
-
-    assertEquals(1, deletedCount);
   }
 
   @Nested

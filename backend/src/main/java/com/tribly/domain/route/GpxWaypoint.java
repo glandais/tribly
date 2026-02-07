@@ -14,7 +14,7 @@ import org.geolatte.geom.Point;
 @Entity
 @Table(
     name = "gpx_waypoints",
-    indexes = {@Index(name = "idx_gpx_waypoints_route_deleted", columnList = "route_id, deleted")})
+    indexes = {@Index(name = "idx_gpx_waypoints_route", columnList = "route_id")})
 @NoArgsConstructor
 public class GpxWaypoint extends BaseEntity {
 

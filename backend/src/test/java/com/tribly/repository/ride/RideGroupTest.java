@@ -83,31 +83,6 @@ class RideGroupTest {
 
       assertEquals(2, group.getCurrentParticipants());
     }
-
-    @Test
-    @DisplayName("Should exclude deleted participations")
-    void getCurrentParticipants_shouldExcludeDeleted() {
-      RideParticipation active = new RideParticipation();
-      RideParticipation deleted = new RideParticipation();
-      deleted.setDeleted(true);
-      group.addParticipation(active);
-      group.addParticipation(deleted);
-
-      assertEquals(1, group.getCurrentParticipants());
-    }
-
-    @Test
-    @DisplayName("Should return 0 when all participations are deleted")
-    void getCurrentParticipants_allDeleted_shouldReturnZero() {
-      RideParticipation p1 = new RideParticipation();
-      RideParticipation p2 = new RideParticipation();
-      p1.setDeleted(true);
-      p2.setDeleted(true);
-      group.addParticipation(p1);
-      group.addParticipation(p2);
-
-      assertEquals(0, group.getCurrentParticipants());
-    }
   }
 
   @Nested
@@ -158,19 +133,6 @@ class RideGroupTest {
       group.setMaxParticipants(10);
 
       assertTrue(group.hasCapacity());
-    }
-
-    @Test
-    @DisplayName("Should not count deleted participations toward capacity")
-    void hasCapacity_shouldNotCountDeleted() {
-      group.setMaxParticipants(2);
-      RideParticipation active = new RideParticipation();
-      RideParticipation deleted = new RideParticipation();
-      deleted.setDeleted(true);
-      group.addParticipation(active);
-      group.addParticipation(deleted);
-
-      assertTrue(group.hasCapacity()); // 1 active < 2 max
     }
 
     @Test

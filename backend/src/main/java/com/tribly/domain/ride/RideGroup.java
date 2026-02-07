@@ -18,7 +18,7 @@ import org.jspecify.annotations.Nullable;
 @Table(
     name = "ride_groups",
     indexes = {
-      @Index(columnList = "ride_id, deleted"),
+      @Index(columnList = "ride_id"),
     })
 @NoArgsConstructor
 public class RideGroup extends BaseEntity {
@@ -65,8 +65,7 @@ public class RideGroup extends BaseEntity {
   }
 
   public int getCurrentParticipants() {
-    // FIXME
-    return (int) participations.stream().filter(p -> !p.isDeleted()).count();
+    return participations.size();
   }
 
   public boolean hasCapacity() {

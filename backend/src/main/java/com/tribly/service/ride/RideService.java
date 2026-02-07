@@ -190,10 +190,7 @@ public class RideService extends TeamEntityService<Ride, RideRepository, RideDto
 
     Map<Long, RideGroup> existingGroups =
         ride.getGroups().stream().collect(Collectors.toMap(RideGroup::getId, Function.identity()));
-    for (RideGroup group : ride.getGroups()) {
-      group.setDeleted(true);
-      group.setSortOrder(0);
-    }
+    ride.getGroups().clear();
     int sortOrder = 0;
     for (GroupRequest groupRequest : request.groups()) {
       Long groupId = TsidUtils.toLongNullable(groupRequest.id());
@@ -202,8 +199,8 @@ public class RideService extends TeamEntityService<Ride, RideRepository, RideDto
       } else {
         RideGroup existingRideGroup = existingGroups.remove(groupId);
         if (existingRideGroup != null) {
-          existingRideGroup.setDeleted(false);
           setProperties(teamSlug, ride, existingRideGroup, groupRequest, sortOrder, user);
+          ride.getGroups().add(existingRideGroup);
         } else {
           throw new NotFoundException(EntityType.RIDE_GROUP, groupRequest.id());
         }
@@ -247,20 +244,10 @@ public class RideService extends TeamEntityService<Ride, RideRepository, RideDto
             .orElseThrow(() -> new NotFoundException(EntityType.RIDE_GROUP, groupId));
 
     Optional<RideParticipation> existingParticipation =
-        participationRepository.findByUserAndRideIncludingDeleted(
-            triblyContext.getUserId(), ride.getId());
+        participationRepository.findByUserAndRide(triblyContext.getUserId(), ride.getId());
 
     if (existingParticipation.isPresent()) {
-      RideParticipation rideParticipation = existingParticipation.get();
-      if (!rideParticipation.isDeleted()) {
-        throw new ConflictException(ALREADY_REGISTERED);
-      }
-      checkCapacity(group);
-      // Restore soft-deleted membership and update group if changed
-      rideParticipation.setRideGroup(group);
-      rideParticipation.setDeleted(false);
-      participationRepository.persist(rideParticipation);
-      return RideParticipationDto.from(rideParticipation);
+      throw new ConflictException(ALREADY_REGISTERED);
     }
 
     checkCapacity(group);
@@ -287,7 +274,6 @@ public class RideService extends TeamEntityService<Ride, RideRepository, RideDto
             .findByUserAndGroup(triblyContext.getUserId(), groupId)
             .orElseThrow(() -> new BusinessException(NOT_REGISTERED));
 
-    participation.setDeleted(true);
-    participationRepository.persist(participation);
+    participationRepository.delete(participation);
   }
 }

@@ -128,11 +128,11 @@ public class CommentService {
         commentRepository
             .findByTeamIdAndId(team.getId(), commentId)
             .orElseThrow(() -> new NotFoundException(EntityType.COMMENT, commentId));
-    // Soft delete the comment
-    comment.setDeleted(true);
-    commentRepository.persist(comment);
+    deleteRecursive(comment);
+  }
 
-    // Cascade soft delete to replies
-    commentRepository.softDeleteReplies(commentId);
+  private void deleteRecursive(Comment comment) {
+    commentRepository.findReplies(comment.getId()).forEach(this::deleteRecursive);
+    commentRepository.delete(comment);
   }
 }

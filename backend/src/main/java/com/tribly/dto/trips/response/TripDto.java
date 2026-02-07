@@ -134,7 +134,6 @@ public class TripDto implements PublicationDto {
     List<PublicUserDto> participantDtos =
         stageDetails
             ? trip.getParticipations().stream()
-                .filter(p -> !p.isDeleted())
                 .map(TripParticipation::getUser)
                 .map(PublicUserDto::from)
                 .toList()

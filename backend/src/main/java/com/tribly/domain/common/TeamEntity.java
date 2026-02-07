@@ -70,6 +70,9 @@ public abstract class TeamEntity extends BaseEntity {
   @OneToMany(mappedBy = "teamEntity", cascade = CascadeType.ALL, orphanRemoval = true)
   private Set<Asset> assets = new HashSet<>();
 
+  @Column(name = "deleted", nullable = false)
+  private boolean deleted = false;
+
   public TeamEntity(
       User createdBy,
       Team team,

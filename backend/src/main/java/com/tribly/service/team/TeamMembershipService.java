@@ -22,7 +22,6 @@ import com.tribly.service.security.annotation.CheckAccess;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
-import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -71,21 +70,12 @@ public class TeamMembershipService {
 
   private MemberDto doAddMember(Team team, TeamRole role, User user) {
     User creator = triblyContext.getUser();
-    // Check for existing membership (including soft-deleted)
+    // Check for existing membership
     Optional<UserTeam> existingMembership =
-        userTeamRepository.findByUserAndTeamIncludingDeleted(user.getId(), team.getId());
+        userTeamRepository.findByUserAndTeam(user.getId(), team.getId());
 
     if (existingMembership.isPresent()) {
-      UserTeam membership = existingMembership.get();
-      if (!membership.isDeleted()) {
-        throw new ConflictException(ErrorCode.ALREADY_REGISTERED);
-      }
-      // Restore soft-deleted membership
-      membership.setDeleted(false);
-      membership.setRole(role);
-      membership.setJoinedAt(Instant.now());
-      userTeamRepository.persist(membership);
-      return MemberDto.from(membership);
+      throw new ConflictException(ErrorCode.ALREADY_REGISTERED);
     }
 
     // Create new membership
@@ -137,8 +127,7 @@ public class TeamMembershipService {
 
     requireNotLastAdmin(team, targetMembership);
 
-    targetMembership.setDeleted(true);
-    userTeamRepository.persist(targetMembership);
+    userTeamRepository.delete(targetMembership);
   }
 
   void requireCanRemoveMember(User actor, TeamRole teamRole, User target) {

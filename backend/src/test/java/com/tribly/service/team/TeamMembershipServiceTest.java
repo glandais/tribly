@@ -109,14 +109,14 @@ class TeamMembershipServiceTest {
   }
 
   @Test
-  void joinTeam_shouldRestoreSoftDeletedMembership() {
+  void joinTeam_shouldAllowRejoinAfterDeletion() {
     UserTeam membership = dataService.addUserToTeam(user1, team, TeamRole.MEMBER);
     dataService.deleteUserTeam(membership);
 
     queryContext.setUserForTest(user1);
     MemberDto result = membershipService.joinTeam(team.getSlug());
 
-    assertEquals(membership.getId(), TsidUtils.toLong(result.id()));
+    assertNotEquals(membership.getId(), TsidUtils.toLong(result.id()));
     assertEquals(TeamRole.MEMBER, result.role());
   }
 
@@ -157,7 +157,7 @@ class TeamMembershipServiceTest {
   }
 
   @Test
-  void addMember_shouldRestoreSoftDeletedMembership() {
+  void addMember_shouldAllowReaddAfterDeletion() {
     UserTeam membership = dataService.addUserToTeam(user1, team, TeamRole.MEMBER);
     dataService.deleteUserTeam(membership);
 
@@ -165,7 +165,7 @@ class TeamMembershipServiceTest {
     MemberDto result =
         membershipService.addMember(team.getSlug(), user1.getId(), TeamRole.ORGANIZER);
 
-    assertEquals(membership.getId(), TsidUtils.toLong(result.id()));
+    assertNotEquals(membership.getId(), TsidUtils.toLong(result.id()));
     assertEquals(TeamRole.ORGANIZER, result.role());
   }
 

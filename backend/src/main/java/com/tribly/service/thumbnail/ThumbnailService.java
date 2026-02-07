@@ -72,7 +72,6 @@ public class ThumbnailService {
     }
 
     ride.getGroups().stream()
-        .filter(g -> !g.isDeleted())
         .sorted(Comparator.comparing(RideGroup::getSortOrder))
         .map(RideGroup::getRoute)
         .filter(r -> r != null && seenIds.add(r.getId()))
@@ -113,9 +112,6 @@ public class ThumbnailService {
     List<GPXPath> paths = new ArrayList<>();
     for (Route route : routes) {
       for (GpxTrack track : route.getTracks()) {
-        if (track.isDeleted()) {
-          continue;
-        }
         GPXPath gpxPath = new GPXPath(track.getName(), GPXPathType.TRACK);
         for (GpxTrack.TrackPoint tp : track.getTrackPoints()) {
           Point p = new Point();

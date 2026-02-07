@@ -55,9 +55,6 @@ public class GpsServiceConnection {
   @Column(name = "updated_at", nullable = false)
   private Instant updatedAt;
 
-  @Column(name = "deleted", nullable = false)
-  private boolean deleted = false;
-
   @Version private Long version;
 
   public GpsServiceConnection(User user, GpsServiceType serviceType) {
@@ -76,9 +73,5 @@ public class GpsServiceConnection {
 
   public void markUsed() {
     this.lastUsedAt = Instant.now();
-  }
-
-  public void softDelete() {
-    this.deleted = true;
   }
 }

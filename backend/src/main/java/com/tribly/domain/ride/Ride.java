@@ -57,15 +57,11 @@ public class Ride extends Publication {
   }
 
   public int getParticipantCount() {
-    // FIXME
-    return groups.stream()
-        .filter(g -> !g.isDeleted())
-        .mapToInt(RideGroup::getCurrentParticipants)
-        .sum();
+    return groups.stream().mapToInt(RideGroup::getCurrentParticipants).sum();
   }
 
   public int getGroupCount() {
-    return (int) groups.stream().filter(g -> !g.isDeleted()).count();
+    return groups.size();
   }
 
   @Override

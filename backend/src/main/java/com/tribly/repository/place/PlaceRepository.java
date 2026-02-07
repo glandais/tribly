@@ -12,14 +12,11 @@ import java.util.Optional;
 public class PlaceRepository implements BaseRepository<Place> {
 
   public Optional<Place> findByIdAndTeam(Long id, Long teamId) {
-    return find("id = ?1 AND team.id = ?2 AND deleted = false", id, teamId).firstResultOptional();
+    return find("id = ?1 AND team.id = ?2", id, teamId).firstResultOptional();
   }
 
   public TriblyPage<Place> findByTeam(Long teamId, int page, int size) {
-    TriblyQuery triblyQuery =
-        new TriblyQuery()
-            .and("team.id = :teamId", Map.of("teamId", teamId))
-            .and("deleted = false", Map.of());
+    TriblyQuery triblyQuery = new TriblyQuery().and("team.id = :teamId", Map.of("teamId", teamId));
     return getPage(triblyQuery, page, size);
   }
 }

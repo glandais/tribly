@@ -40,9 +40,9 @@ public class TeamRepository implements BaseRepository<Team> {
   public TriblyPage<TeamAndRole> find(TeamQuery teamQuery) {
     TriblyQuery triblyQuery =
         new TriblyQuery(
-                "select t, ut.role,(SELECT COUNT(ut3) FROM UserTeam ut3 WHERE ut3.team.id = t.id"
-                    + " AND ut3.deleted = false) from Team t left join UserTeam ut on ut.team.id ="
-                    + " t.id AND ut.user.id = :userId AND ut.deleted = false WHERE")
+                "select t, ut.role,(SELECT COUNT(ut3) FROM UserTeam ut3 WHERE ut3.team.id ="
+                    + " t.id) from Team t left join UserTeam ut on ut.team.id ="
+                    + " t.id AND ut.user.id = :userId WHERE")
             .and("t.deleted = false", Map.of())
             .and("t.domain.id = :domainId", Map.of("domainId", teamQuery.domainId()))
             .order("name asc");
@@ -59,9 +59,9 @@ public class TeamRepository implements BaseRepository<Team> {
 
         or.add(
             new SimpleClause(
-                "(t.visibility = :visibility OR ut.deleted = false)",
+                "(t.visibility = :visibility OR ut IS NOT NULL)",
                 Map.of("visibility", Visibility.PUBLIC)));
-        or.add(new SimpleClause("ut.deleted = false", Map.of()));
+        or.add(new SimpleClause("ut IS NOT NULL", Map.of()));
 
         triblyQuery.and(or);
 
@@ -74,7 +74,6 @@ public class TeamRepository implements BaseRepository<Team> {
               default ->
                   throw new IllegalStateException("Unexpected value: " + teamQuery.minRole());
             };
-        triblyQuery.and("ut.deleted = false", Map.of());
         triblyQuery.and("ut.role in (:userRoles)", Map.of("userRoles", roles));
       }
     } else {

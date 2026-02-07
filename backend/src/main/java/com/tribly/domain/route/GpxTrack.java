@@ -24,7 +24,7 @@ import org.hibernate.annotations.Type;
 @Entity
 @Table(
     name = "gpx_tracks",
-    indexes = {@Index(name = "idx_gpx_tracks_route_deleted", columnList = "route_id, deleted")})
+    indexes = {@Index(name = "idx_gpx_tracks_route", columnList = "route_id")})
 @NoArgsConstructor
 public class GpxTrack extends BaseEntity {
 

@@ -54,7 +54,7 @@ public class Trip extends Publication {
   }
 
   public int getParticipantCount() {
-    return (int) participations.stream().filter(p -> !p.isDeleted()).count();
+    return participations.size();
   }
 
   public int getStageCount() {

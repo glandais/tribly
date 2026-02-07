@@ -50,9 +50,6 @@ public class Passkey {
   @Column(name = "last_used_at")
   private @Nullable Instant lastUsedAt;
 
-  @Column(name = "deleted", nullable = false)
-  private boolean deleted = false;
-
   public Passkey(User user, byte[] credentialId, byte[] publicKey) {
     this.user = user;
     this.credentialId = credentialId;
@@ -62,9 +59,5 @@ public class Passkey {
   public void recordUsage(long newSignCount) {
     this.signCount = newSignCount;
     this.lastUsedAt = Instant.now();
-  }
-
-  public void softDelete() {
-    this.deleted = true;
   }
 }

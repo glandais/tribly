@@ -41,8 +41,7 @@ public class AdminTeamService {
         teams.stream()
             .map(
                 team -> {
-                  long memberCount =
-                      userTeamRepository.count("team.id = ?1 and deleted = false", team.getId());
+                  long memberCount = userTeamRepository.count("team.id = ?1", team.getId());
                   return AdminTeamDto.from(team, memberCount);
                 })
             .toList();
@@ -53,7 +52,7 @@ public class AdminTeamService {
   @Admin
   public AdminTeamDto getTeam(String teamId) {
     Team team = findTeam(teamId);
-    long memberCount = userTeamRepository.count("team.id = ?1 and deleted = false", team.getId());
+    long memberCount = userTeamRepository.count("team.id = ?1", team.getId());
     return AdminTeamDto.from(team, memberCount);
   }
 
@@ -64,7 +63,7 @@ public class AdminTeamService {
     // Toggle soft-delete
     team.setDeleted(!team.isDeleted());
     teamRepository.persist(team);
-    long memberCount = userTeamRepository.count("team.id = ?1 and deleted = false", team.getId());
+    long memberCount = userTeamRepository.count("team.id = ?1", team.getId());
     return AdminTeamDto.from(team, memberCount);
   }
 

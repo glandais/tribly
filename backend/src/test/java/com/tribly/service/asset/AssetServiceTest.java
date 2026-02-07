@@ -16,14 +16,14 @@ import com.tribly.dto.common.asset.MediaDto;
 import com.tribly.enums.AssetType;
 import com.tribly.enums.TeamRole;
 import com.tribly.enums.Visibility;
+import com.tribly.infrastructure.storage.StorageService;
+import com.tribly.repository.asset.AssetRepository;
 import com.tribly.repository.post.PostRepository;
 import com.tribly.service.asset.response.AssetWithFile;
 import com.tribly.service.security.DomainResolver;
 import com.tribly.service.security.TriblyQueryContext;
 import com.tribly.util.TestDataCleaner;
 import com.tribly.util.TestDataService;
-import com.tribly.infrastructure.storage.StorageService;
-import com.tribly.repository.asset.AssetRepository;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -49,8 +49,7 @@ class AssetServiceTest {
   @Inject DomainResolver domainResolver;
   @Inject StorageService storageService;
   @Inject AssetRepository assetRepository;
-  @Inject
-  PostRepository postRepository;
+  @Inject PostRepository postRepository;
 
   private Domain domain;
   private Team team;
@@ -833,49 +832,47 @@ class AssetServiceTest {
     }
   }
 
-    @Test
-    @Transactional
-    void shouldDeleteS3WhenAssetIsDeleted() {
-      Asset asset = dataService.createAsset(team, admin, AssetType.IMAGE, "file.png");
-      String s3Key = getAssetKey(team, asset.getFileId());
-      assertTrue(storageService.exists(s3Key), "S3 file should exist before delete");
+  @Test
+  @Transactional
+  void shouldDeleteS3WhenAssetIsDeleted() {
+    Asset asset = dataService.createAsset(team, admin, AssetType.IMAGE, "file.png");
+    String s3Key = getAssetKey(team, asset.getFileId());
+    assertTrue(storageService.exists(s3Key), "S3 file should exist before delete");
 
-      Asset managed = assetRepository.findById(asset.getId());
-      assetRepository.delete(managed);
-      assetRepository.flush();
+    Asset managed = assetRepository.findById(asset.getId());
+    assetRepository.delete(managed);
+    assetRepository.flush();
 
-      assertFalse(storageService.exists(s3Key), "S3 file should be deleted by @PreRemove listener");
-    }
+    assertFalse(storageService.exists(s3Key), "S3 file should be deleted by @PreRemove listener");
+  }
 
-    @Test
-    @Transactional
-    void shouldDeleteS3WhenOrphanRemoved() {
-      Post post =
-          dataService.createPost(team, admin, "Test Post", Instant.now(), Visibility.PUBLIC);
-      Asset image = dataService.createAsset(team, admin, AssetType.IMAGE, "orphan.png");
-      String s3Key = getAssetKey(team, image.getFileId());
+  @Test
+  @Transactional
+  void shouldDeleteS3WhenOrphanRemoved() {
+    Post post = dataService.createPost(team, admin, "Test Post", Instant.now(), Visibility.PUBLIC);
+    Asset image = dataService.createAsset(team, admin, AssetType.IMAGE, "orphan.png");
+    String s3Key = getAssetKey(team, image.getFileId());
 
-      post.getAssets().add(image);
-      dataService.updatePost(post);
+    post.getAssets().add(image);
+    dataService.updatePost(post);
 
-      postRepository.flush();
-      assetRepository.flush();
+    postRepository.flush();
+    assetRepository.flush();
 
-      // Re-fetch managed post to have a proper managed collection
-      Post managed = dataService.getPost(post.getId());
-      assertTrue(
-          managed.getAssets().stream().anyMatch(a -> a.getId().equals(image.getId())),
-          "Image should be in collection before removal");
+    // Re-fetch managed post to have a proper managed collection
+    Post managed = dataService.getPost(post.getId());
+    assertTrue(
+        managed.getAssets().stream().anyMatch(a -> a.getId().equals(image.getId())),
+        "Image should be in collection before removal");
 
-      // Remove from collection → orphanRemoval triggers @PreRemove
-      managed.getAssets().removeIf(a -> a.getId().equals(image.getId()));
-      dataService.updatePost(managed);
+    // Remove from collection → orphanRemoval triggers @PreRemove
+    managed.getAssets().removeIf(a -> a.getId().equals(image.getId()));
+    dataService.updatePost(managed);
 
-      postRepository.flush();
-      assetRepository.flush();
+    postRepository.flush();
+    assetRepository.flush();
 
-      assertFalse(
-          storageService.exists(s3Key), "S3 file should be deleted by orphanRemoval + @PreRemove");
-    }
-
+    assertFalse(
+        storageService.exists(s3Key), "S3 file should be deleted by orphanRemoval + @PreRemove");
+  }
 }

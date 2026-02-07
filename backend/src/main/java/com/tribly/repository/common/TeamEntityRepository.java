@@ -80,8 +80,9 @@ public interface TeamEntityRepository<T extends TeamEntity, Q extends TeamEntity
           new TriblyQuery(
                   "select te from "
                       + getEntityType().getTypeName()
-                      + " te left join UserTeam ut on ut.team.id = te.team.id and ut.user.id ="
-                      + " :userId and ut.deleted = false where")
+                      + " te left join UserTeam ut on "
+                      + "ut.team.id = te.team.id and ut.user.id = :userId "
+                      + "where")
               .addParam("userId", query.userId());
 
       OrClause visibilityFilter = new OrClause();
@@ -93,7 +94,7 @@ public interface TeamEntityRepository<T extends TeamEntity, Q extends TeamEntity
 
       // team member and PUBLISHED/CANCELLED
       AndClause teamEntity = new AndClause();
-      teamEntity.add(new SimpleClause("ut.deleted = false", Map.of()));
+      teamEntity.add(new SimpleClause("ut IS NOT NULL", Map.of()));
       teamEntity.add(new SimpleClause("te.status IN ('PUBLISHED', 'CANCELLED')", Map.of()));
       visibilityFilter.add(teamEntity);
 
@@ -102,7 +103,7 @@ public interface TeamEntityRepository<T extends TeamEntity, Q extends TeamEntity
       // ad creator
       AndClause adCreator = new AndClause();
       // still member
-      adCreator.add(new SimpleClause("ut.deleted = false", Map.of()));
+      adCreator.add(new SimpleClause("ut IS NOT NULL", Map.of()));
       adCreator.add(new SimpleClause("TYPE(te) = Ad", Map.of()));
       // userId already defined
       adCreator.add(new SimpleClause("te.createdBy.id = :userId", Map.of()));

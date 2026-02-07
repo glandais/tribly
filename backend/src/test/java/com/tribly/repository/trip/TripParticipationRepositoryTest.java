@@ -106,25 +106,10 @@ class TripParticipationRepositoryTest {
       TripParticipation participation = dataService.createTripParticipation(trip, user1);
 
       Optional<TripParticipation> result =
-          participationRepository.findByUserAndTripIncludingDeleted(user1.getId(), trip.getId());
+          participationRepository.findByUserAndTrip(user1.getId(), trip.getId());
 
       assertTrue(result.isPresent());
       assertEquals(participation.getId(), result.get().getId());
-      assertFalse(result.get().isDeleted());
-    }
-
-    @Test
-    @DisplayName("Should find deleted participation")
-    void findByUserAndTripIncludingDeleted_deleted_shouldFind() {
-      TripParticipation participation = dataService.createTripParticipation(trip, user1);
-      dataService.deleteTripParticipation(participation);
-
-      Optional<TripParticipation> result =
-          participationRepository.findByUserAndTripIncludingDeleted(user1.getId(), trip.getId());
-
-      assertTrue(result.isPresent());
-      assertEquals(participation.getId(), result.get().getId());
-      assertTrue(result.get().isDeleted());
     }
 
     @Test
@@ -133,7 +118,7 @@ class TripParticipationRepositoryTest {
       dataService.createTripParticipation(trip, user1);
 
       Optional<TripParticipation> result =
-          participationRepository.findByUserAndTripIncludingDeleted(user2.getId(), trip.getId());
+          participationRepository.findByUserAndTrip(user2.getId(), trip.getId());
 
       assertTrue(result.isEmpty());
     }
@@ -145,7 +130,7 @@ class TripParticipationRepositoryTest {
       dataService.createTripParticipation(otherTrip, user1);
 
       Optional<TripParticipation> result =
-          participationRepository.findByUserAndTripIncludingDeleted(user1.getId(), trip.getId());
+          participationRepository.findByUserAndTrip(user1.getId(), trip.getId());
 
       assertTrue(result.isEmpty());
     }
@@ -236,21 +221,10 @@ class TripParticipationRepositoryTest {
 
       dataService.deleteTripParticipation(participation);
 
-      TripParticipation found = participationRepository.findById(participation.getId());
-      assertNotNull(found);
-      assertTrue(found.isDeleted());
+      Optional<TripParticipation> found =
+          participationRepository.findByIdOptional(participation.getId());
+      assertTrue(found.isEmpty());
     }
 
-    @Test
-    @DisplayName("Soft deleted participation should still be findable by id")
-    void deletedParticipation_shouldStillBeFindableById() {
-      TripParticipation participation = dataService.createTripParticipation(trip, user1);
-      dataService.deleteTripParticipation(participation);
-
-      TripParticipation found = participationRepository.findById(participation.getId());
-
-      assertNotNull(found);
-      assertEquals(participation.getId(), found.getId());
-    }
   }
 }

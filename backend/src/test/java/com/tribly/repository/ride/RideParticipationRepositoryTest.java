@@ -152,7 +152,7 @@ class RideParticipationRepositoryTest {
     dataService.createParticipation(group, user1);
 
     Optional<RideParticipation> result =
-        participationRepository.findByUserAndRideIncludingDeleted(user1.getId(), ride.getId());
+        participationRepository.findByUserAndRide(user1.getId(), ride.getId());
 
     assertTrue(result.isPresent());
     assertEquals(user1.getId(), result.get().getUser().getId());
@@ -161,7 +161,7 @@ class RideParticipationRepositoryTest {
   @Test
   void findByUserAndRideIncludingDeleted_shouldReturnEmptyWhenNotExists() {
     Optional<RideParticipation> result =
-        participationRepository.findByUserAndRideIncludingDeleted(user1.getId(), ride.getId());
+        participationRepository.findByUserAndRide(user1.getId(), ride.getId());
 
     assertTrue(result.isEmpty());
   }
@@ -172,11 +172,9 @@ class RideParticipationRepositoryTest {
     dataService.deleteParticipation(participation);
 
     Optional<RideParticipation> result =
-        participationRepository.findByUserAndRideIncludingDeleted(user1.getId(), ride.getId());
+        participationRepository.findByUserAndRide(user1.getId(), ride.getId());
 
-    assertTrue(result.isPresent());
-    assertTrue(result.get().isDeleted());
-    assertEquals(user1.getId(), result.get().getUser().getId());
+    assertTrue(result.isEmpty());
   }
 
   @Test
@@ -184,7 +182,7 @@ class RideParticipationRepositoryTest {
     dataService.createParticipation(group, user1);
 
     Optional<RideParticipation> result =
-        participationRepository.findByUserAndRideIncludingDeleted(user2.getId(), ride.getId());
+        participationRepository.findByUserAndRide(user2.getId(), ride.getId());
 
     assertTrue(result.isEmpty());
   }
@@ -201,7 +199,7 @@ class RideParticipationRepositoryTest {
             LocalDate.of(2025, 1, 20).atTime(0, 0).toInstant(ZoneOffset.UTC));
 
     Optional<RideParticipation> result =
-        participationRepository.findByUserAndRideIncludingDeleted(user1.getId(), otherRide.getId());
+        participationRepository.findByUserAndRide(user1.getId(), otherRide.getId());
 
     assertTrue(result.isEmpty());
   }
@@ -212,7 +210,7 @@ class RideParticipationRepositoryTest {
     dataService.createParticipation(group2, user1);
 
     Optional<RideParticipation> result =
-        participationRepository.findByUserAndRideIncludingDeleted(user1.getId(), ride.getId());
+        participationRepository.findByUserAndRide(user1.getId(), ride.getId());
 
     assertTrue(result.isPresent());
     assertEquals("Slow Group", result.get().getRideGroup().getName());

@@ -45,7 +45,7 @@ public class PlaceAccessChecker implements AccessChecker {
         }
         Place place =
             placeRepository.findByIdAndTeam(TsidUtils.toLong(placeId), team.getId()).orElse(null);
-        yield place != null && !place.isDeleted();
+        yield place != null;
       }
       case LIST_ALL_TEAMS, JOIN, LEAVE -> false;
     };

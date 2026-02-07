@@ -55,6 +55,9 @@ public class User extends BaseEntity {
   @Column(name = "platform_role", length = 20)
   private @Nullable PlatformRole platformRole;
 
+  @Column(name = "deleted", nullable = false)
+  private boolean deleted = false;
+
   public User(Domain domain, String email, String displayName) {
     super(null);
     this.domain = domain;

@@ -27,10 +27,7 @@ public record RideTemplateDto(
 
   public static RideTemplateDto from(RideTemplate template) {
     List<RideTemplateGroupDto> groupDtos =
-        template.getGroups().stream()
-            .filter(g -> !g.isDeleted())
-            .map(RideTemplateGroupDto::from)
-            .toList();
+        template.getGroups().stream().map(RideTemplateGroupDto::from).toList();
 
     return new RideTemplateDto(
         TeamPublicationDto.from(template.getTeam()),

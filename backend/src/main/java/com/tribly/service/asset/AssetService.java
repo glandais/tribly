@@ -400,9 +400,7 @@ public class AssetService {
 
     // Only keep images that are referenced in the markdown
     List<AssetDto> usedImages =
-        assets.images().stream()
-            .filter(img -> referencedAssetIds.contains(img.id()))
-            .toList();
+        assets.images().stream().filter(img -> referencedAssetIds.contains(img.id())).toList();
 
     Set<Asset> unmodifiable =
         teamEntity.getAssets().stream()

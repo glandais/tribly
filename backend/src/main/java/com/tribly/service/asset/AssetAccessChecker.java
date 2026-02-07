@@ -46,7 +46,7 @@ public class AssetAccessChecker implements AccessChecker {
           yield false;
         }
         Asset asset = assetRepository.findByIdOptional(assetId).orElse(null);
-        if (asset == null || asset.isDeleted()) {
+        if (asset == null) {
           yield false;
         }
         team = asset.getTeam();

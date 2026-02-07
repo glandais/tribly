@@ -247,17 +247,10 @@ public class TripService extends TeamEntityService<Trip, TripRepository, TripDto
     User user = triblyContext.getUser();
 
     Optional<TripParticipation> existingParticipation =
-        participationRepository.findByUserAndTripIncludingDeleted(user.getId(), trip.getId());
+        participationRepository.findByUserAndTrip(user.getId(), trip.getId());
 
     if (existingParticipation.isPresent()) {
-      TripParticipation tripParticipation = existingParticipation.get();
-      if (!tripParticipation.isDeleted()) {
-        throw new ConflictException(ErrorCode.ALREADY_REGISTERED);
-      }
-      // Restore soft-deleted participation
-      tripParticipation.setDeleted(false);
-      participationRepository.persist(tripParticipation);
-      return TripParticipationDto.from(tripParticipation);
+      throw new ConflictException(ErrorCode.ALREADY_REGISTERED);
     }
 
     TripParticipation participation = new TripParticipation(trip, user);
@@ -279,7 +272,6 @@ public class TripService extends TeamEntityService<Trip, TripRepository, TripDto
             .findByUserAndTrip(triblyContext.getUserId(), trip.getId())
             .orElseThrow(() -> new BusinessException(ErrorCode.NOT_REGISTERED));
 
-    participation.setDeleted(true);
-    participationRepository.persist(participation);
+    participationRepository.delete(participation);
   }
 }

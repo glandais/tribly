@@ -285,14 +285,12 @@ public class TestDataService {
 
   @Transactional
   public void deleteRideGroup(RideGroup group) {
-    group.setDeleted(true);
-    rideGroupRepository.getEntityManager().merge(group);
+    rideGroupRepository.delete(group);
   }
 
   @Transactional
   public void deleteParticipation(RideParticipation participation) {
-    participation.setDeleted(true);
-    participationRepository.getEntityManager().merge(participation);
+    participationRepository.delete(participation);
   }
 
   @Transactional
@@ -422,8 +420,7 @@ public class TestDataService {
 
   @Transactional
   public void deleteUserTeam(UserTeam userTeam) {
-    userTeam.setDeleted(true);
-    userTeamRepository.getEntityManager().merge(userTeam);
+    userTeamRepository.delete(userTeam);
   }
 
   @Transactional
@@ -448,8 +445,7 @@ public class TestDataService {
 
   @Transactional
   public void deletePlace(Place place) {
-    place.setDeleted(true);
-    placeRepository.getEntityManager().merge(place);
+    placeRepository.delete(place);
   }
 
   @Inject PostRepository postRepository;
@@ -548,8 +544,7 @@ public class TestDataService {
 
   @Transactional
   public void deleteAsset(Asset asset) {
-    asset.setDeleted(true);
-    assetRepository.getEntityManager().merge(asset);
+    assetRepository.delete(asset);
   }
 
   @Transactional
@@ -645,8 +640,7 @@ public class TestDataService {
 
   @Transactional
   public void deleteTripParticipation(TripParticipation participation) {
-    participation.setDeleted(true);
-    tripParticipationRepository.getEntityManager().merge(participation);
+    tripParticipationRepository.delete(participation);
   }
 
   @Inject RideTemplateRepository rideTemplateRepository;
@@ -667,8 +661,7 @@ public class TestDataService {
 
   @Transactional
   public void deleteRideTemplate(RideTemplate template) {
-    template.setDeleted(true);
-    rideTemplateRepository.getEntityManager().merge(template);
+    rideTemplateRepository.delete(template);
   }
 
   @Transactional
@@ -695,8 +688,7 @@ public class TestDataService {
 
   @Transactional
   public void deleteRideTemplateGroup(RideTemplateGroup group) {
-    group.setDeleted(true);
-    rideTemplateGroupRepository.getEntityManager().merge(group);
+    rideTemplateGroupRepository.delete(group);
   }
 
   @Inject AdRepository adRepository;
@@ -738,8 +730,7 @@ public class TestDataService {
 
   @Transactional
   public void deleteComment(Comment comment) {
-    comment.setDeleted(true);
-    commentRepository.getEntityManager().merge(comment);
+    commentRepository.delete(comment);
   }
 
   @Inject TeamPageRepository teamPageRepository;
@@ -796,8 +787,7 @@ public class TestDataService {
 
   @Transactional
   public void deleteCalendarToken(CalendarToken token) {
-    token.setDeleted(true);
-    calendarTokenRepository.getEntityManager().merge(token);
+    calendarTokenRepository.delete(token);
   }
 
   // ===== Auth entities =====
@@ -897,8 +887,7 @@ public class TestDataService {
 
   @Transactional
   public void deletePasskey(com.tribly.domain.auth.Passkey passkey) {
-    passkey.softDelete();
-    passkeyRepository.getEntityManager().merge(passkey);
+    passkeyRepository.delete(passkey);
   }
 
   @Transactional
@@ -941,8 +930,7 @@ public class TestDataService {
 
   @Transactional
   public void deleteGpsServiceConnection(com.tribly.domain.gps.GpsServiceConnection connection) {
-    connection.softDelete();
-    gpsServiceConnectionRepository.getEntityManager().merge(connection);
+    gpsServiceConnectionRepository.delete(connection);
   }
 
   @Transactional
@@ -973,5 +961,4 @@ public class TestDataService {
     credential.setActive(false);
     domainGpsCredentialRepository.getEntityManager().merge(credential);
   }
-
 }

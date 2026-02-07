@@ -170,44 +170,5 @@ class TripTest {
 
       assertEquals(2, trip.getParticipantCount());
     }
-
-    @Test
-    @DisplayName("Should exclude deleted participations")
-    void getParticipantCount_shouldExcludeDeleted() {
-      TripParticipation active = new TripParticipation();
-      TripParticipation deleted = new TripParticipation();
-      deleted.setDeleted(true);
-      trip.addParticipation(active);
-      trip.addParticipation(deleted);
-
-      assertEquals(1, trip.getParticipantCount());
-    }
-
-    @Test
-    @DisplayName("Should return 0 when all participations are deleted")
-    void getParticipantCount_allDeleted_shouldReturnZero() {
-      TripParticipation p1 = new TripParticipation();
-      TripParticipation p2 = new TripParticipation();
-      p1.setDeleted(true);
-      p2.setDeleted(true);
-      trip.addParticipation(p1);
-      trip.addParticipation(p2);
-
-      assertEquals(0, trip.getParticipantCount());
-    }
-
-    @Test
-    @DisplayName("Should handle mixed deleted states")
-    void getParticipantCount_mixedDeletedStates() {
-      TripParticipation p1 = new TripParticipation();
-      TripParticipation p2 = new TripParticipation();
-      TripParticipation p3 = new TripParticipation();
-      p2.setDeleted(true);
-      trip.addParticipation(p1);
-      trip.addParticipation(p2);
-      trip.addParticipation(p3);
-
-      assertEquals(2, trip.getParticipantCount()); // p1 and p3
-    }
   }
 }

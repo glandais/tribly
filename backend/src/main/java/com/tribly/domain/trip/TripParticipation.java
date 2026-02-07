@@ -14,11 +14,7 @@ import lombok.Setter;
 @Table(
     name = "trip_participations",
     uniqueConstraints = {@UniqueConstraint(columnNames = {"trip_id", "user_id"})},
-    indexes = {
-      @Index(
-          name = "idx_trip_participations_user_trip_deleted",
-          columnList = "user_id, trip_id, deleted")
-    })
+    indexes = {@Index(name = "idx_trip_participations_user_trip", columnList = "user_id, trip_id")})
 @NoArgsConstructor
 public class TripParticipation extends BaseEntity {
 

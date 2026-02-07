@@ -9,7 +9,6 @@ import java.util.Optional;
 public class RideGroupRepository implements BaseRepository<RideGroup> {
 
   public Optional<RideGroup> findByIdAndRide(Long groupId, Long rideId) {
-    return find("id = ?1 and ride.id = ?2 and deleted = false", groupId, rideId)
-        .firstResultOptional();
+    return find("id = ?1 and ride.id = ?2", groupId, rideId).firstResultOptional();
   }
 }

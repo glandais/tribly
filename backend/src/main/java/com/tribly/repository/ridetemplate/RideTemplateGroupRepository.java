@@ -9,7 +9,6 @@ import java.util.Optional;
 public class RideTemplateGroupRepository implements BaseRepository<RideTemplateGroup> {
 
   public Optional<RideTemplateGroup> findByIdAndTemplate(Long groupId, Long templateId) {
-    return find("id = ?1 AND template.id = ?2 AND deleted = false", groupId, templateId)
-        .firstResultOptional();
+    return find("id = ?1 AND template.id = ?2", groupId, templateId).firstResultOptional();
   }
 }
