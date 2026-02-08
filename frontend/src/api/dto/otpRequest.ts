@@ -15,5 +15,5 @@ export interface OtpRequest {
    * @maxLength 250
    * @pattern \S
    */
-  email: string
+  email: string;
 }

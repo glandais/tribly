@@ -11,5 +11,5 @@
  */
 export interface GpsOAuthUrlResponse {
   /** URL to redirect user for OAuth authorization */
-  authorizationUrl: string
+  authorizationUrl: string;
 }

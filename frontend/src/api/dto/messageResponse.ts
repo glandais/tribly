@@ -11,5 +11,5 @@
  */
 export interface MessageResponse {
   /** Response message */
-  message?: string
+  message?: string;
 }

@@ -14,5 +14,5 @@ export interface PasskeyRegisterRequest {
    * Optional device name for this passkey
    * @maxLength 250
    */
-  deviceName?: string
+  deviceName?: string;
 }

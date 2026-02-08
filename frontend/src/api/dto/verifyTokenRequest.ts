@@ -15,5 +15,5 @@ export interface VerifyTokenRequest {
    * @maxLength 100
    * @pattern \S
    */
-  token: string
+  token: string;
 }

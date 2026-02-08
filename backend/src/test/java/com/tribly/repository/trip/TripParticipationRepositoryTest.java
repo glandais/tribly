@@ -225,6 +225,5 @@ class TripParticipationRepositoryTest {
           participationRepository.findByIdOptional(participation.getId());
       assertTrue(found.isEmpty());
     }
-
   }
 }
