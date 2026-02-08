@@ -1,7 +1,5 @@
 PODS:
   - Flutter (1.0.0)
-  - flutter_secure_storage (6.0.0):
-    - Flutter
   - passkeys_darwin (0.0.1):
     - Flutter
     - FlutterMacOS
@@ -10,15 +8,12 @@ PODS:
 
 DEPENDENCIES:
   - Flutter (from `Flutter`)
-  - flutter_secure_storage (from `.symlinks/plugins/flutter_secure_storage/ios`)
   - passkeys_darwin (from `.symlinks/plugins/passkeys_darwin/darwin`)
   - ua_client_hints (from `.symlinks/plugins/ua_client_hints/ios`)
 
 EXTERNAL SOURCES:
   Flutter:
     :path: Flutter
-  flutter_secure_storage:
-    :path: ".symlinks/plugins/flutter_secure_storage/ios"
   passkeys_darwin:
     :path: ".symlinks/plugins/passkeys_darwin/darwin"
   ua_client_hints:
@@ -26,7 +21,6 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
-  flutter_secure_storage: 1ed9476fba7e7a782b22888f956cce43e2c62f13
   passkeys_darwin: 0a09d3b26cea8de1ec3bb8f8c7c159981f63bbc7
   ua_client_hints: 92fe0d139619b73ec9fcb46cc7e079a26178f586
 
