@@ -4,12 +4,12 @@ import { zodFormValidator } from '@/lib/formUtils'
 import { useTranslation } from 'react-i18next'
 import { TextInput, Radio, Stack, Group, Button, Text, Select, NumberInput } from '@mantine/core'
 import { AdRequest, AdType, RentalPeriod, GeoJsonPoint } from '@/api/dto'
-import { createAdBody } from '@/api/zod/ads/ads.zod'
+import { CreateAdBody } from '@/api/zod/ads/ads.zod'
 import { MediaEditor } from '../common/MediaEditor'
 import { SlugEditor } from '../common/SlugEditor'
 import { GeocoderAutocomplete } from '../common/GeocoderAutocomplete'
 
-const adSchema = createAdBody.refine(
+const adSchema = CreateAdBody.refine(
   (data) => {
     if (data.adType === AdType.RENTAL) {
       return data.rentalPeriod !== undefined

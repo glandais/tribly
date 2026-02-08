@@ -25,10 +25,10 @@ import { UserAvatar } from '../../components/common/UserAvatar'
 import { UnitSystemSwitcher } from '../../components/common/UnitSystemSwitcher'
 import { PasskeyManager } from '../../components/auth/PasskeyManager'
 import { GpsConnectionsManager } from '../../components/profile/GpsConnectionsManager'
-import { updateMeBody } from '@/api/zod/users/users.zod'
+import { UpdateMeBody } from '@/api/zod/users/users.zod'
 import { UpdateUserRequest } from '@/api/dto'
 
-const profileSchema = updateMeBody
+const profileSchema = UpdateMeBody
 
 export function UserProfilePage() {
   const { t } = useTranslation()

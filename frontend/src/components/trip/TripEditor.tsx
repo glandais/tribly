@@ -27,9 +27,9 @@ import { PlaceAutocomplete } from '../common/PlaceAutocomplete'
 import type { RouteDto, TeamDetailDto, TripRequest } from '@/api/dto'
 import { Status } from '@/api/dto'
 import { defaultMedia } from '@/lib/apiUtils'
-import { createTripBody } from '@/api/zod/trips/trips.zod'
+import { CreateTripBody } from '@/api/zod/trips/trips.zod'
 
-const tripSchema = createTripBody.refine(
+const tripSchema = CreateTripBody.refine(
   (data) => {
     if (data.status === Status.DRAFT && data.publishAt) {
       return new Date(data.publishAt) > new Date()

@@ -19,11 +19,11 @@ import type { TeamDetailDto, GeoPoint } from '@/api/dto'
 import { MediaEditor } from '../common/MediaEditor'
 import { SlugEditor } from '../common/SlugEditor'
 import { RoutePlanner } from '../planner/RoutePlanner'
-import { createRouteBody } from '@/api/zod/routes/routes.zod'
+import { CreateRouteBody } from '@/api/zod/routes/routes.zod'
 
 export type RouteSourceMode = 'gpx' | 'planner'
 
-const routeSchema = createRouteBody.shape.route.unwrap()
+const routeSchema = CreateRouteBody.shape.route.unwrap()
 
 interface RouteEditorProps {
   team: TeamDetailDto

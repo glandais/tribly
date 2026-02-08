@@ -8,9 +8,9 @@ import type { TeamDetailDto } from '@/api/dto'
 import { MediaEditor } from '../common/MediaEditor'
 import { SlugEditor } from '../common/SlugEditor'
 import { Status, PostRequest } from '@/api/dto'
-import { createPostBody } from '@/api/zod/posts/posts.zod'
+import { CreatePostBody } from '@/api/zod/posts/posts.zod'
 
-const postSchema = createPostBody.refine(
+const postSchema = CreatePostBody.refine(
   (data) => {
     if (data.status === Status.DRAFT && data.publishAt) {
       return new Date(data.publishAt) > new Date()

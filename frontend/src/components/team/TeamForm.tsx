@@ -17,9 +17,9 @@ import { Visibility, TeamDetailDto, TeamRequest, GeoJsonPoint } from '@/api/dto'
 import { MediaEditor } from '../common/MediaEditor'
 import { GeocoderAutocomplete } from '../common/GeocoderAutocomplete'
 import { paths } from '@/config/paths'
-import { createTeamBody } from '@/api/zod/teams/teams.zod'
+import { CreateTeamBody } from '@/api/zod/teams/teams.zod'
 
-const teamSchema = createTeamBody
+const teamSchema = CreateTeamBody
 
 interface TeamFormProps {
   teamSlug?: string

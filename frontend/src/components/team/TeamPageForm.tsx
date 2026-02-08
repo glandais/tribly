@@ -18,9 +18,9 @@ import { SlugEditor } from '../common/SlugEditor'
 import { Visibility, TeamPageRequest } from '@/api/dto'
 import { MediaEditor } from '../common/MediaEditor'
 import { paths } from '@/config/paths'
-import { createPageBody } from '@/api/zod/team-pages/team-pages.zod'
+import { CreatePageBody } from '@/api/zod/team-pages/team-pages.zod'
 
-const teamPageSchema = createPageBody
+const teamPageSchema = CreatePageBody
 
 interface TeamPageFormProps {
   teamSlug: string

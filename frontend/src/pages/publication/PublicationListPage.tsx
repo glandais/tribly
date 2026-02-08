@@ -66,7 +66,7 @@ export function PublicationListPage() {
 
   const prefetchPage = useCallback(
     (prefetchPageNum: number) => ({
-      queryKey: getListPublicationsQueryKey(teamSlug, {
+      queryKey: getListPublicationsQueryKey(teamSlug!, {
         search: search || undefined,
         page: prefetchPageNum,
         size: pageSize,

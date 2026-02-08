@@ -11,11 +11,11 @@ import {
   getListPlacesQueryKey,
   getGetPlaceQueryKey,
 } from '../../api/endpoints/places/places'
-import { createPlaceBody } from '../../api/zod/places/places.zod'
+import { CreatePlaceBody } from '../../api/zod/places/places.zod'
 import type { PlaceDetailDto, PlaceRequest, GeoJsonPoint } from '../../api/dto'
 import { GeocoderAutocomplete } from '../common/GeocoderAutocomplete'
 
-const placeSchema = createPlaceBody
+const placeSchema = CreatePlaceBody
 
 interface PlaceFormProps {
   teamSlug: string

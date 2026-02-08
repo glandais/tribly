@@ -57,7 +57,7 @@ export function AdListPage() {
 
   const prefetchPage = useCallback(
     (prefetchPageNum: number) => ({
-      queryKey: getListAdsQueryKey(teamSlug, {
+      queryKey: getListAdsQueryKey(teamSlug!, {
         search: search || undefined,
         adType,
         page: prefetchPageNum,

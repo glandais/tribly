@@ -28,9 +28,9 @@ import { MediaEditor } from '../common/MediaEditor'
 import { PlaceAutocomplete } from '../common/PlaceAutocomplete'
 import type { RouteDto, TeamDetailDto, RideRequest } from '@/api/dto'
 import { Status } from '@/api/dto'
-import { createRideBody } from '@/api/zod/rides/rides.zod'
+import { CreateRideBody } from '@/api/zod/rides/rides.zod'
 
-const rideSchema = createRideBody.refine(
+const rideSchema = CreateRideBody.refine(
   (data) => {
     if (data.status === Status.DRAFT && data.publishAt) {
       return new Date(data.publishAt) > new Date()

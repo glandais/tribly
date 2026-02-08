@@ -40,7 +40,7 @@ export function RouteListPage() {
 
   const prefetchPage = useCallback(
     (prefetchPageNum: number) => ({
-      queryKey: getListRoutesQueryKey(teamSlug, { ...filters, page: prefetchPageNum }),
+      queryKey: getListRoutesQueryKey(teamSlug!, { ...filters, page: prefetchPageNum }),
       queryFn: () => listRoutes(teamSlug!, { ...filters, page: prefetchPageNum }),
     }),
     [teamSlug, filters]

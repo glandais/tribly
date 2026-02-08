@@ -48,7 +48,7 @@ export function TeamMembersPage() {
 
   const prefetchPage = useCallback(
     (prefetchPageNum: number) => ({
-      queryKey: getGetMembersQueryKey(teamSlug, { page: prefetchPageNum, size: pageSize }),
+      queryKey: getGetMembersQueryKey(teamSlug!, { page: prefetchPageNum, size: pageSize }),
       queryFn: () => getMembers(teamSlug!, { page: prefetchPageNum, size: pageSize }),
     }),
     [teamSlug, pageSize]

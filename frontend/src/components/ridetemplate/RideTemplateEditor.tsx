@@ -20,7 +20,7 @@ import { IconX } from '@tabler/icons-react'
 import { ReorderControls } from '../common/ReorderControls'
 import { MarkdownEditor } from '../common/MarkdownEditor'
 import type { RideTemplateRequest, TeamDetailDto } from '@/api/dto'
-import { createTemplateBody } from '@/api/zod/ride-templates/ride-templates.zod'
+import { CreateTemplateBody } from '@/api/zod/ride-templates/ride-templates.zod'
 
 interface RideTemplateEditorProps {
   team: TeamDetailDto
@@ -45,7 +45,7 @@ export function RideTemplateEditor({
   const { config, speedToDisplay, speedFromDisplay } = useUnits()
 
   const form = useForm<RideTemplateRequest>({
-    validate: zodFormValidator<RideTemplateRequest>(createTemplateBody),
+    validate: zodFormValidator<RideTemplateRequest>(CreateTemplateBody),
     initialValues,
     validateInputOnChange: true,
   })

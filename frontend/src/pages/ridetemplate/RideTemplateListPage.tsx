@@ -60,7 +60,7 @@ export function RideTemplateListPage() {
 
   const prefetchPage = useCallback(
     (prefetchPageNum: number) => ({
-      queryKey: getListTemplatesQueryKey(teamSlug, {
+      queryKey: getListTemplatesQueryKey(teamSlug!, {
         search: search || undefined,
         page: prefetchPageNum,
         size: pageSize,
