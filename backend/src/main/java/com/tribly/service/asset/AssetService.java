@@ -38,6 +38,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.imageio.ImageIO;
+import org.apache.tika.Tika;
+import org.apache.tika.io.TikaInputStream;
+import org.apache.tika.metadata.Metadata;
+import org.apache.tika.metadata.TikaCoreProperties;
 import org.jspecify.annotations.Nullable;
 
 @ApplicationScoped
@@ -58,6 +62,8 @@ public class AssetService {
   @Inject TeamService teamService;
 
   @Inject StorageService storageService;
+
+  private final Tika tika = new Tika();
 
   @CheckAccess(entityType = EntityType.ASSET, action = ActionType.CREATE)
   public AssetDto createAsset(String teamSlug, InputStream inputStream, String fileName)
@@ -210,25 +216,25 @@ public class AssetService {
   }
 
   private String getContentType(File file, String fileName) {
-    // First check for known overrides based on extension
+    Metadata metadata = new Metadata();
+    metadata.set(TikaCoreProperties.RESOURCE_NAME_KEY, fileName);
     String contentTypeOverride = getContentTypeOverride(fileName);
     if (contentTypeOverride != null) {
-      return contentTypeOverride;
+      metadata.set(TikaCoreProperties.CONTENT_TYPE_USER_OVERRIDE, contentTypeOverride);
     }
-
-    // Try to probe content type from file content
-    if (file.exists()) {
+    if (!file.exists()) {
       try {
-        String probed = Files.probeContentType(file.toPath());
-        if (probed != null) {
-          return probed;
-        }
-      } catch (IOException ignored) {
-        // Fall through to filename-based detection
+        return tika.detect(null, metadata);
+      } catch (IOException e) {
+        return MediaType.APPLICATION_OCTET_STREAM;
+      }
+    } else {
+      try (TikaInputStream fis = TikaInputStream.get(file.toPath(), metadata)) {
+        return tika.detect(fis, metadata);
+      } catch (IOException e) {
+        return MediaType.APPLICATION_OCTET_STREAM;
       }
     }
-
-    return getContentTypeFromFileName(fileName);
   }
 
   private String getContentTypeFromFileName(String fileName) {
