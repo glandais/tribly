@@ -1,7 +1,7 @@
-import { colorful, graybeard, eclipse, neutrino, shadow } from '@versatiles/style'
+import { colorful, graybeard, eclipse, neutrino, shadow, satellite } from '@versatiles/style'
 import { StyleSpecification } from 'react-map-gl/maplibre'
 
-export type MapStyleId = 'colorful' | 'graybeard' | 'eclipse' | 'neutrino' | 'shadow'
+export type MapStyleId = 'colorful' | 'graybeard' | 'eclipse' | 'neutrino' | 'shadow' | 'satellite'
 
 export interface MapStyle {
   id: MapStyleId
@@ -45,6 +45,12 @@ export const MAP_STYLES: Record<MapStyleId, MapStyle> = {
     name: 'Shadow',
     style: shadow(layerOptions),
     isDark: true,
+  },
+  satellite: {
+    id: 'satellite',
+    name: 'Satellite',
+    style: satellite(layerOptions),
+    isDark: false,
   },
 }
 

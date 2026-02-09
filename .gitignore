@@ -88,3 +88,4 @@ data/keys/*
 frontend/*.pem
 
 .playwright-mcp
+.superdesign
