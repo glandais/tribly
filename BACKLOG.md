@@ -79,11 +79,11 @@ Requires significant architecture work. Spike before committing.
   - Dispatchers: webhook, email, in-app
 
 ### Administration
-- [ ] System admin panel
+- [X] System admin panel
   - Manage all users/teams
   - Promote/demote admins
   - Recover deleted items
-  - Configure legal pages
+  - [ ] Configure legal pages
 
 ### Multi-Tenancy
 - [ ] Team custom domains
@@ -97,16 +97,14 @@ Requires significant architecture work. Spike before committing.
 Validated interest required before prioritization.
 
 ### Device Integrations
-- [ ] Garmin Connect upload (one-click route sync)
-- [ ] Hammerhead Karoo upload
-- [ ] Garmin GPS (iq store) app (route download for current ride)
-- [ ] Karoo app (route download)
+- [X] Garmin Connect upload (one-click route sync)
+- [X] Hammerhead Karoo upload
+- [X] Garmin GPS (iq store) app (route download for current ride)
+- [X] Karoo app (route download)
 - [ ] Weather for ride/trip
 
 ### Mobile
-- [ ] Mobile application (iOS/Android)
-  - Consider PWA first
-  - Public app vs dedicated per-domain app
+- [X] Mobile application (iOS/Android) — Flutter app with auth, teams, rides, routes, calendar
 
 ### Other
 - [ ] User dedicated team (personal workspace)

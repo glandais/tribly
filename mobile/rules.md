@@ -164,42 +164,36 @@ linter:
 ```
 
 ### State Management
-* **Built-in Solutions:** Prefer Flutter's built-in state management solutions.
-  Do not use a third-party package unless explicitly requested.
-* **Streams:** Use `Streams` and `StreamBuilder` for handling a sequence of
-  asynchronous events.
-* **Futures:** Use `Futures` and `FutureBuilder` for handling a single
-  asynchronous operation that will complete in the future.
-* **ValueNotifier:** Use `ValueNotifier` with `ValueListenableBuilder` for
-  simple, local state that involves a single value.
+* **Riverpod 3:** This project uses Riverpod for state management and dependency
+  injection. All widgets use `ConsumerWidget` or `ConsumerStatefulWidget`.
+* **StateNotifierProvider:** Use for complex state with multiple fields (e.g.,
+  `AuthNotifier` with `AuthState`).
+* **FutureProvider / FutureProvider.family:** Use for async data loading from
+  repositories.
+* **Provider:** Use for dependency injection (repositories, API clients).
+* **ref.watch:** Use in `build()` to reactively rebuild on state changes.
+* **ref.read:** Use in callbacks/event handlers for one-time reads.
+* **ref.invalidate:** Use to force a provider to re-fetch data.
 
   ```dart
-  // Define a ValueNotifier to hold the state.
-  final ValueNotifier<int> _counter = ValueNotifier<int>(0);
-
-  // Use ValueListenableBuilder to listen and rebuild.
-  ValueListenableBuilder<int>(
-    valueListenable: _counter,
-    builder: (context, value, child) {
-      return Text('Count: $value');
-    },
+  // Provider definition
+  final authProvider = StateNotifierProvider<AuthNotifier, AuthState>(
+    (ref) => AuthNotifier(ref.watch(authRepositoryProvider)),
   );
-    ```
 
-* **ChangeNotifier:** For state that is more complex or shared across multiple
-  widgets, use `ChangeNotifier`.
-* **ListenableBuilder:** Use `ListenableBuilder` to listen to changes from a
-  `ChangeNotifier` or other `Listenable`.
-* **MVVM:** When a more robust solution is needed, structure the app using the
-  Model-View-ViewModel (MVVM) pattern.
-* **Dependency Injection:** Use simple manual constructor dependency injection
-  to make a class's dependencies explicit in its API, and to manage dependencies
-  between different layers of the application.
-* **Provider:** If a dependency injection solution beyond manual constructor
-  injection is explicitly requested, `provider` can be used to make services,
-  repositories, or complex state objects available to the UI layer without tight
-  coupling (note: this document generally defaults against third-party packages
-  for state management unless explicitly requested).
+  // Usage in widgets
+  class MyWidget extends ConsumerWidget {
+    @override
+    Widget build(BuildContext context, WidgetRef ref) {
+      final state = ref.watch(authProvider);
+      final notifier = ref.read(authProvider.notifier);
+      return Text(state.isAuthenticated ? 'Logged in' : 'Logged out');
+    }
+  }
+  ```
+
+* **Local ephemeral state:** For simple widget-local state (toggles, animation
+  controllers), use `StatefulWidget` or Flutter's built-in `ValueNotifier`.
 
 ### Data Flow
 * **Data Structures:** Define data structures (classes) to represent the data
@@ -261,28 +255,29 @@ linter:
   ```
 
 ### Data Handling & Serialization
-* **JSON Serialization:** Use `json_serializable` and `json_annotation` for
-  parsing and encoding JSON data.
-* **Field Renaming:** When encoding data, use `fieldRename: FieldRename.snake`
-  to convert Dart's camelCase fields to snake_case JSON keys.
+* **Freezed:** This project uses `freezed` for immutable model classes with
+  JSON serialization. Models are auto-generated from the OpenAPI contract.
+* **Generated code:** API models live in `lib/api/generated/models/` and should
+  never be edited manually. Run generators after OpenAPI changes.
 
   ```dart
-  // In your model file
-  import 'package:json_annotation/json_annotation.dart';
+  // Generated Freezed model example
+  @freezed
+  class TeamDto with _$TeamDto {
+    const factory TeamDto({
+      required String id,
+      required String name,
+      required String slug,
+    }) = _TeamDto;
 
-  part 'user.g.dart';
-
-  @JsonSerializable(fieldRename: FieldRename.snake)
-  class User {
-    final String firstName;
-    final String lastName;
-
-    User({required this.firstName, required this.lastName});
-
-    factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
-    Map<String, dynamic> toJson() => _$UserToJson(this);
+    factory TeamDto.fromJson(Map<String, dynamic> json) =>
+        _$TeamDtoFromJson(json);
   }
   ```
+
+* **Build order:** freezed -> json_serializable -> retrofit_generator
+  (configured in `build.yaml`).
+* **Regenerate:** `dart run build_runner build --delete-conflicting-outputs`
 
 
 ### Logging

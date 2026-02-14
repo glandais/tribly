@@ -90,6 +90,9 @@
 
 ### Authentication
 
+- Email + OTP (one-time password sent by email)
+- Passkeys / WebAuthn support
+- Device Code Flow (RFC 8628) for GPS devices (Karoo, Garmin)
 - Automatic user creation on first login
 - User profiles with avatars
 
@@ -97,10 +100,11 @@
 
 ### Key Technical Features
 
-- Soft delete for data preservation
 - TSID (time-sortable unique IDs)
-- Auto-generated URL slugs
+- Auto-generated URL slugs with redirect on change
 - Multi-language support (EN/FR)
+- Dark mode
+- Platform admin panel
 
 ---
 
@@ -115,14 +119,19 @@
 
 ---
 
+## Implemented Integrations
+
+- **Mobile app** (Flutter, iOS/Android) — teams, rides, routes, calendar
+- **Garmin Connect IQ app** — route browsing and FIT download on Edge devices
+- **Hammerhead Karoo extension** — route browsing and sync
+- **GPS device sync** — upload routes to Garmin Connect and Karoo
+- **Calendar sync** — iCal feed export
+
 ## Roadmap Potential
 
-- Mobile applications (iOS/Android)
-- Strava/Garmin integration
-- Weather forecasts
+- Weather forecasts for rides
 - Live tracking during rides
 - Push notifications
-- Calendar sync (iCal)
 - Statistics and analytics
 
 ---

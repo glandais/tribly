@@ -4,10 +4,13 @@ Multi-tenant web platform for cycling teams to organize rides, trips, manage GPX
 
 ## Tech Stack
 
-- **Backend**: Java 21, Quarkus 3.x, PostgreSQL 16 with PostGIS
-- **Frontend**: TypeScript 5.x, React 18+, Vite
+- **Backend**: Java 21, Quarkus 3.31.x, PostgreSQL 17 with PostGIS
+- **Frontend**: TypeScript 5.9, React 19, Vite 7, Mantine UI 8
+- **Mobile**: Flutter, Dart, Riverpod 3
+- **Karoo**: Kotlin, Jetpack Compose, ktor-client-karoo
+- **Garmin**: Monkey C, Connect IQ SDK
 - **API**: OpenAPI 3.1 contract-driven development
-- **Testing**: JUnit 5, REST Assured, Vitest, Playwright
+- **Testing**: JUnit 5, REST Assured, Vitest
 
 ## Quick Start
 
@@ -16,7 +19,7 @@ Multi-tenant web platform for cycling teams to organize rides, trips, manage GPX
 - Java 21+
 - Maven 3.9+
 - Node.js 20+
-- pnpm 8+
+- pnpm 10+
 - Docker 24+
 - Docker Compose 2.20+
 
@@ -26,9 +29,8 @@ Multi-tenant web platform for cycling teams to organize rides, trips, manage GPX
 git clone https://github.com/your-org/tribly.git
 cd tribly
 
-# Copy environment templates
-cp backend/.env.example backend/.env
-cp frontend/.env.example frontend/.env
+# Copy environment template
+cp .env.example .env
 ```
 
 ### Environment Variables
@@ -71,8 +73,9 @@ mkcert localhost 127.0.0.1 192.168.50.20
 ### 2. Start Infrastructure
 
 ```bash
-# Start PostgreSQL
-docker compose up -d postgres
+# Start dev services (PostgreSQL, MinIO, imgproxy, brouter, tileserver, mailhog)
+cd backend
+docker compose up -d
 
 # Wait for PostgreSQL to be ready
 docker compose exec postgres pg_isready -U tribly
@@ -86,7 +89,7 @@ cd backend
 ```
 
 Backend available at:
-- API: http://localhost:8080/v1
+- API: http://localhost:8080/api
 - Swagger UI: http://localhost:8080/q/swagger-ui
 - Health: http://localhost:8080/q/health
 
@@ -122,10 +125,16 @@ Frontend available at https://localhost:5173
 
 ```
 tribly/
-├── backend/          # Quarkus backend
-├── frontend/         # React SPA
+├── backend/          # Quarkus backend (Java 21)
+├── frontend/         # React 19 SPA (Mantine UI)
+├── mobile/           # Flutter mobile app (iOS/Android)
+├── karoo/            # Hammerhead Karoo extension (Kotlin/Compose)
+├── garmin-app/       # Garmin Connect IQ app (Monkey C)
 ├── contracts/        # OpenAPI specifications
-└── docker-compose.yml
+├── services/         # Docker service configs (BRouter, Varnish)
+├── scripts/          # Utility scripts
+├── data/             # Runtime data (segments, tileserver, keys)
+└── docker-compose.yml  # Production deployment
 ```
 
 ## Features
@@ -145,7 +154,7 @@ Users can connect GPS devices from their profile to upload routes directly to th
 **Usage:**
 1. Navigate to Profile > GPS Devices
 2. Click "Connect" next to your device
-3. Authorize the application via OAuth
+3. Authorize the application via Device Code Flow (QR code or URL)
 4. On any route detail page, use "Send to Device" to upload routes
 
 ## Development
