@@ -11,8 +11,8 @@ dependencies:
     sdk: flutter
 
   # State management
-  flutter_riverpod: ^3.0.0
-  riverpod_annotation: ^3.0.0
+  flutter_riverpod: ^3.2.1
+  riverpod_annotation: ^4.0.2
 
   # Routing
   go_router: ^17.1.0
@@ -23,7 +23,7 @@ dependencies:
 
   # JSON serialization
   freezed_annotation: ^3.1.0
-  json_annotation: ^4.9.0
+  json_annotation: ^4.11.0
 
 
   # WebAuthn/Passkeys
@@ -41,13 +41,13 @@ dependencies:
 
   # UI utilities
   flutter_hooks: ^0.21.0
-  hooks_riverpod: ^3.0.0
+  hooks_riverpod: ^3.2.1
 
   # Image caching with auth headers support
   cached_network_image: ^3.4.1
 
   # Maps
-  maplibre: ^0.3.0
+  maplibre: ^0.3.4
 
   # Share files (for route downloads)
   share_plus: ^12.0.1
@@ -59,10 +59,10 @@ dev_dependencies:
   flutter_lints: ^6.0.0
 
   # Code generation
-  build_runner: ^2.10.0
-  freezed: ^3.1.0
-  json_serializable: ^6.11.0
-  riverpod_generator: ^3.0.0
+  build_runner: ^2.11.1
+  freezed: ^3.2.5
+  json_serializable: ^6.11.4
+  riverpod_generator: ^4.0.3
   retrofit_generator: ^10.1.0
   openapi_retrofit_generator: ^2.0.0
 
