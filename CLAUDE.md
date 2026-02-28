@@ -151,7 +151,7 @@ Backend database migrations live in `backend/src/main/resources/db/migration/`. 
 
 ## Key Patterns
 
-- **Base entities**: `BaseEntity` (TSID, timestamps, soft delete), `TeamEntity` (adds slug, visibility, status) in `domain/common/`
+- **Base entities**: `BaseEntity` (TSID, timestamps), `TeamEntity` (adds slug, visibility, status, soft delete via `deleted` field) in `domain/common/`
 - **Publications**: `Publication` is an abstract @Entity extending TeamEntity (single-table inheritance). Rides and Posts extend it.
 - **Slugs**: Unique per team, auto-generated from title → see `SlugService.generateSlug()`
 - **TSID conversion**: `TsidUtils.toString()` / `TsidUtils.toLong()` in `common/` package
@@ -177,6 +177,10 @@ Backend database migrations live in `backend/src/main/resources/db/migration/`. 
 - See test examples in `backend/src/test/`
 - Do not update entities without saving them with a transaction in TestDataService
 - Never run backend tests by yourself, give instructions to user. You're bad at fixing tests from tests outcomes
+
+**JPQL/HQL**:
+- Use `IS NOT NULL` / `IS NULL` — never use `<> null` or `= null` (always evaluates to UNKNOWN/FALSE due to SQL null semantics)
+- Example: After left join, check `ut IS NOT NULL` to verify the join produced a match
 
 **Frontend**:
 - Uses Mantine UI as component library → check https://mantine.dev/llms.txt for docs
