@@ -16,8 +16,7 @@ T _$identity<T>(T value) => value;
 mixin _$CompleteRequest {
 
 /// User code from device display
- String get userCode;/// Authenticated user ID (TSID string)
- String get userId;
+ String get userCode;
 /// Create a copy of CompleteRequest
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -30,16 +29,16 @@ $CompleteRequestCopyWith<CompleteRequest> get copyWith => _$CompleteRequestCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CompleteRequest&&(identical(other.userCode, userCode) || other.userCode == userCode)&&(identical(other.userId, userId) || other.userId == userId));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is CompleteRequest&&(identical(other.userCode, userCode) || other.userCode == userCode));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,userCode,userId);
+int get hashCode => Object.hash(runtimeType,userCode);
 
 @override
 String toString() {
-  return 'CompleteRequest(userCode: $userCode, userId: $userId)';
+  return 'CompleteRequest(userCode: $userCode)';
 }
 
 
@@ -50,7 +49,7 @@ abstract mixin class $CompleteRequestCopyWith<$Res>  {
   factory $CompleteRequestCopyWith(CompleteRequest value, $Res Function(CompleteRequest) _then) = _$CompleteRequestCopyWithImpl;
 @useResult
 $Res call({
- String userCode, String userId
+ String userCode
 });
 
 
@@ -67,10 +66,9 @@ class _$CompleteRequestCopyWithImpl<$Res>
 
 /// Create a copy of CompleteRequest
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? userCode = null,Object? userId = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? userCode = null,}) {
   return _then(_self.copyWith(
 userCode: null == userCode ? _self.userCode : userCode // ignore: cast_nullable_to_non_nullable
-as String,userId: null == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
 as String,
   ));
 }
@@ -156,10 +154,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String userCode,  String userId)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String userCode)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _CompleteRequest() when $default != null:
-return $default(_that.userCode,_that.userId);case _:
+return $default(_that.userCode);case _:
   return orElse();
 
 }
@@ -177,10 +175,10 @@ return $default(_that.userCode,_that.userId);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String userCode,  String userId)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String userCode)  $default,) {final _that = this;
 switch (_that) {
 case _CompleteRequest():
-return $default(_that.userCode,_that.userId);case _:
+return $default(_that.userCode);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -197,10 +195,10 @@ return $default(_that.userCode,_that.userId);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String userCode,  String userId)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String userCode)?  $default,) {final _that = this;
 switch (_that) {
 case _CompleteRequest() when $default != null:
-return $default(_that.userCode,_that.userId);case _:
+return $default(_that.userCode);case _:
   return null;
 
 }
@@ -212,13 +210,11 @@ return $default(_that.userCode,_that.userId);case _:
 @JsonSerializable()
 
 class _CompleteRequest implements CompleteRequest {
-  const _CompleteRequest({required this.userCode, required this.userId});
+  const _CompleteRequest({required this.userCode});
   factory _CompleteRequest.fromJson(Map<String, dynamic> json) => _$CompleteRequestFromJson(json);
 
 /// User code from device display
 @override final  String userCode;
-/// Authenticated user ID (TSID string)
-@override final  String userId;
 
 /// Create a copy of CompleteRequest
 /// with the given fields replaced by the non-null parameter values.
@@ -233,16 +229,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CompleteRequest&&(identical(other.userCode, userCode) || other.userCode == userCode)&&(identical(other.userId, userId) || other.userId == userId));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _CompleteRequest&&(identical(other.userCode, userCode) || other.userCode == userCode));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,userCode,userId);
+int get hashCode => Object.hash(runtimeType,userCode);
 
 @override
 String toString() {
-  return 'CompleteRequest(userCode: $userCode, userId: $userId)';
+  return 'CompleteRequest(userCode: $userCode)';
 }
 
 
@@ -253,7 +249,7 @@ abstract mixin class _$CompleteRequestCopyWith<$Res> implements $CompleteRequest
   factory _$CompleteRequestCopyWith(_CompleteRequest value, $Res Function(_CompleteRequest) _then) = __$CompleteRequestCopyWithImpl;
 @override @useResult
 $Res call({
- String userCode, String userId
+ String userCode
 });
 
 
@@ -270,10 +266,9 @@ class __$CompleteRequestCopyWithImpl<$Res>
 
 /// Create a copy of CompleteRequest
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? userCode = null,Object? userId = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? userCode = null,}) {
   return _then(_CompleteRequest(
 userCode: null == userCode ? _self.userCode : userCode // ignore: cast_nullable_to_non_nullable
-as String,userId: null == userId ? _self.userId : userId // ignore: cast_nullable_to_non_nullable
 as String,
   ));
 }

@@ -1,14 +1,13 @@
 package com.tribly.api.device;
 
-import com.tribly.common.TsidUtils;
 import com.tribly.dto.device.request.DeviceTokenRequest;
 import com.tribly.dto.device.response.DeviceCodeResponse;
 import com.tribly.dto.device.response.DeviceTokenResponse;
 import com.tribly.dto.error.ErrorResponse;
 import com.tribly.dto.validation.ValidateSchema;
 import com.tribly.service.device.DeviceAuthService;
-import com.tribly.service.security.DomainResolver;
 import jakarta.annotation.security.PermitAll;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
@@ -43,7 +42,6 @@ public class DeviceOAuthResource {
   private static final String DEFAULT_CLIENT_ID = "device";
 
   @Inject DeviceAuthService deviceAuthService;
-  @Inject DomainResolver domainResolver;
 
   @POST
   @Path("/device")
@@ -78,7 +76,7 @@ public class DeviceOAuthResource {
 
   @POST
   @Path("/complete")
-  @PermitAll
+  @RolesAllowed("user")
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   @Operation(
@@ -93,9 +91,7 @@ public class DeviceOAuthResource {
         content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
   })
   public Response complete(@Valid CompleteRequest request) {
-    Long domainId = domainResolver.getDomainId();
-    Long userId = TsidUtils.toLong(request.userId());
-    deviceAuthService.completeDeviceCodeFlow(request.userCode(), userId, domainId);
+    deviceAuthService.completeDeviceCodeFlow(request.userCode());
     return Response.ok().build();
   }
 
@@ -191,9 +187,7 @@ public class DeviceOAuthResource {
   @Schema(description = "Complete device authorization request")
   @ValidateSchema
   public record CompleteRequest(
-      @Schema(description = "User code from device display", required = true) String userCode,
-      @Schema(description = "Authenticated user ID (TSID string)", required = true)
-          String userId) {}
+      @Schema(description = "User code from device display", required = true) String userCode) {}
 
   @Schema(description = "User code verification response")
   @ValidateSchema

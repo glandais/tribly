@@ -889,15 +889,11 @@
       "CompleteRequest" : {
         "description" : "Complete device authorization request",
         "type" : "object",
-        "required" : [ "userCode", "userId" ],
+        "required" : [ "userCode" ],
         "properties" : {
           "userCode" : {
             "type" : "string",
             "description" : "User code from device display"
-          },
-          "userId" : {
-            "type" : "string",
-            "description" : "Authenticated user ID (TSID string)"
           }
         }
       },
@@ -5414,8 +5410,17 @@
                 }
               }
             }
+          },
+          "401" : {
+            "description" : "Not Authorized"
+          },
+          "403" : {
+            "description" : "Not Allowed"
           }
-        }
+        },
+        "security" : [ {
+          "SecurityScheme" : [ "user" ]
+        } ]
       }
     },
     "/api/device/oauth/device" : {

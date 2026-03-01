@@ -7,10 +7,7 @@ part of 'complete_request.dart';
 // **************************************************************************
 
 _CompleteRequest _$CompleteRequestFromJson(Map<String, dynamic> json) =>
-    _CompleteRequest(
-      userCode: json['userCode'] as String,
-      userId: json['userId'] as String,
-    );
+    _CompleteRequest(userCode: json['userCode'] as String);
 
 Map<String, dynamic> _$CompleteRequestToJson(_CompleteRequest instance) =>
-    <String, dynamic>{'userCode': instance.userCode, 'userId': instance.userId};
+    <String, dynamic>{'userCode': instance.userCode};

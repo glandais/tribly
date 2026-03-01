@@ -52,7 +52,7 @@ export const deviceComplete = (
 }
 
 export const getDeviceCompleteMutationOptions = <
-  TError = ErrorType<ErrorResponse>,
+  TError = ErrorType<ErrorResponse | void>,
   TContext = unknown,
 >(options?: {
   mutation?: UseMutationOptions<
@@ -89,12 +89,12 @@ export const getDeviceCompleteMutationOptions = <
 
 export type DeviceCompleteMutationResult = NonNullable<Awaited<ReturnType<typeof deviceComplete>>>
 export type DeviceCompleteMutationBody = BodyType<CompleteRequest>
-export type DeviceCompleteMutationError = ErrorType<ErrorResponse>
+export type DeviceCompleteMutationError = ErrorType<ErrorResponse | void>
 
 /**
  * @summary Complete device authorization
  */
-export const useDeviceComplete = <TError = ErrorType<ErrorResponse>, TContext = unknown>(
+export const useDeviceComplete = <TError = ErrorType<ErrorResponse | void>, TContext = unknown>(
   options?: {
     mutation?: UseMutationOptions<
       Awaited<ReturnType<typeof deviceComplete>>,

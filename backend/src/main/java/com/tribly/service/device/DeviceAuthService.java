@@ -11,6 +11,8 @@ import com.tribly.repository.auth.AuthSessionRepository;
 import com.tribly.repository.auth.DeviceCodeRepository;
 import com.tribly.repository.user.UserRepository;
 import com.tribly.service.security.DomainResolver;
+import com.tribly.service.security.TriblyQueryContext;
+import com.tribly.service.security.annotation.Logged;
 import com.tribly.service.security.annotation.Public;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -56,6 +58,7 @@ public class DeviceAuthService {
   @Inject DeviceCodeRepository deviceCodeRepository;
   @Inject UserRepository userRepository;
   @Inject DomainResolver domainResolver;
+  @Inject TriblyQueryContext triblyQueryContext;
 
   @Public
   public String getFrontendBaseUrl() {
@@ -107,12 +110,13 @@ public class DeviceAuthService {
    * verification.
    *
    * @param userCode The user code displayed on device
-   * @param userId The authenticated user's ID
-   * @param domainId The domain ID for verification
    */
   @Transactional
-  @Public
-  public void completeDeviceCodeFlow(String userCode, Long userId, Long domainId) {
+  @Logged
+  public void completeDeviceCodeFlow(String userCode) {
+    Long userId = triblyQueryContext.getUserId();
+    Long domainId = domainResolver.getDomainId();
+
     DeviceCode deviceCode =
         deviceCodeRepository
             .findValidByUserCode(userCode)

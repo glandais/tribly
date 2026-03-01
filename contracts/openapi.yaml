@@ -814,14 +814,10 @@ components:
       type: object
       required:
       - userCode
-      - userId
       properties:
         userCode:
           type: string
           description: User code from device display
-        userId:
-          type: string
-          description: Authenticated user ID (TSID string)
     ConfigDto:
       description: Application configuration
       type: object
@@ -4576,6 +4572,13 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Not Authorized
+        "403":
+          description: Not Allowed
+      security:
+      - SecurityScheme:
+        - user
   /api/device/oauth/device:
     post:
       summary: Request device code

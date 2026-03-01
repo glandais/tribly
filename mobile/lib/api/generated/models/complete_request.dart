@@ -13,9 +13,6 @@ abstract class CompleteRequest with _$CompleteRequest {
   const factory CompleteRequest({
     /// User code from device display
     required String userCode,
-
-    /// Authenticated user ID (TSID string)
-    required String userId,
   }) = _CompleteRequest;
 
   factory CompleteRequest.fromJson(Map<String, Object?> json) =>

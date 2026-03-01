@@ -14,7 +14,6 @@ import * as zod from 'zod'
 export const DeviceCompleteBody = zod
   .object({
     userCode: zod.string().describe('User code from device display'),
-    userId: zod.string().describe('Authenticated user ID (TSID string)'),
   })
   .describe('Complete device authorization request')
 

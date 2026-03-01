@@ -18,6 +18,7 @@ import {
 import { useAuth } from '../../hooks/useAuth'
 import { useGpsConnections } from '../../hooks/useGpsConnections'
 import { GpsServiceType } from '../../api/dto'
+import { AXIOS_INSTANCE } from '../../lib/axiosInstance'
 
 export function DeviceVerifyPage() {
   const { t } = useTranslation()
@@ -67,46 +68,28 @@ export function DeviceVerifyPage() {
     verifyCode()
   }, [userCode])
 
-  const completeAuthorization = useCallback(
-    async (userId: string) => {
-      if (!userCode) return
+  const completeAuthorization = useCallback(async () => {
+    if (!userCode) return
 
-      setIsCompleting(true)
+    setIsCompleting(true)
 
-      try {
-        const response = await fetch('/api/device/oauth/complete', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            userCode,
-            userId,
-          }),
-        })
-
-        if (response.ok) {
-          setCompleted(true)
-        } else {
-          notifications.show({
-            message: t('device.errors.authorizationFailed'),
-            color: 'red',
-          })
-        }
-      } catch {
-        notifications.show({
-          message: t('device.errors.authorizationFailed'),
-          color: 'red',
-        })
-      } finally {
-        setIsCompleting(false)
-      }
-    },
-    [userCode, t]
-  )
+    try {
+      await AXIOS_INSTANCE.post('/api/device/oauth/complete', { userCode })
+      setCompleted(true)
+    } catch {
+      notifications.show({
+        message: t('device.errors.authorizationFailed'),
+        color: 'red',
+      })
+    } finally {
+      setIsCompleting(false)
+    }
+  }, [userCode, t])
 
   // Auto-complete authorization when code is valid (user is already authenticated)
   useEffect(() => {
     if (user && codeValid && !completed && !isCompleting) {
-      completeAuthorization(user.id)
+      completeAuthorization()
     }
   }, [user, codeValid, completed, isCompleting, completeAuthorization])
 
