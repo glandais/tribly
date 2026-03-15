@@ -12,6 +12,7 @@ export default defineConfig({
       target: 'src/api/endpoints',
       schemas: 'src/api/dto',
       override: {
+        header: false,
         mutator: {
           path: './src/lib/axiosInstance.ts',
           name: 'axiosMutator',
