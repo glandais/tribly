@@ -8,7 +8,8 @@ See also the root `../CLAUDE.md` for full-stack context (backend, mobile, karoo,
 
 ```bash
 pnpm dev                           # Dev server (localhost:5173, proxies /api to :8080)
-pnpm build                         # TypeScript check + Vite build
+pnpm build                         # Vite build (no type checking)
+pnpm typecheck                     # Type checking via tsgo (typescript-go)
 pnpm generate-api                  # Regenerate API client from ../contracts/openapi.json
 pnpm lint                          # ESLint (includes i18next/no-literal-string)
 pnpm lint:fix                      # ESLint with auto-fix

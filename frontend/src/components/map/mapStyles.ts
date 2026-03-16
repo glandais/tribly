@@ -49,10 +49,15 @@ export const MAP_STYLES: Record<MapStyleId, MapStyle> = {
   satellite: {
     id: 'satellite',
     name: 'Satellite',
-    style: satellite(layerOptions),
+    style: graybeard(layerOptions), // placeholder until async style loads
     isDark: false,
   },
 }
+
+// satellite() returns a Promise in @versatiles/style v5 — resolve it eagerly
+satellite(layerOptions).then((style: StyleSpecification) => {
+  MAP_STYLES.satellite.style = style
+})
 
 export const DEFAULT_STYLE_ID: MapStyleId = 'graybeard'
 export const STYLE_IDS = Object.keys(MAP_STYLES) as MapStyleId[]

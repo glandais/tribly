@@ -9,7 +9,7 @@ Tribly: multi-tenant cycling team platform (rides, routes with GPX/maps, posts).
 | Layer | Technologies |
 |-------|-------------|
 | Backend | Java 21, Quarkus 3.30.x, PostgreSQL 17 + PostGIS, Hibernate/Panache, Flyway |
-| Frontend | TypeScript 5, React 19, Vite, Mantine UI, Zustand, React Query |
+| Frontend | TypeScript 5 (tsgo for type checking), React 19, Vite 8, Mantine UI, Zustand, React Query |
 | Mobile | Flutter, Dart (see `mobile/rules.md` for detailed guidelines) |
 | Karoo | Kotlin, Jetpack Compose, karoo-ext SDK, ktor-client-karoo |
 | Auth | Database auth with JWT (password, magic link, passkeys/WebAuthn) |
@@ -29,7 +29,8 @@ mvn checkstyle:check               # Lint check
 
 # Frontend (frontend/)
 pnpm dev                           # Dev server
-pnpm build                         # Type check + build
+pnpm build                         # Vite build (no type checking)
+pnpm typecheck                     # Type checking via tsgo (typescript-go)
 pnpm generate-api                  # Generate API client from OpenAPI
 pnpm lint                          # ESLint
 pnpm lint:fix                      # ESLint with auto-fix

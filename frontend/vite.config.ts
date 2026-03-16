@@ -2,7 +2,7 @@ import { defineConfig, PluginOption } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
 import fs from 'fs'
-import { visualizer } from 'rollup-plugin-visualizer'
+// import { visualizer } from 'rollup-plugin-visualizer'
 
 // Load mkcert certificates if available (for Garmin simulator HTTPS testing)
 function loadHttpsCerts() {
@@ -35,10 +35,12 @@ export default defineConfig({
   plugins: [
     requestLogger(),
     react(),
+    /*
     visualizer({
       open: false,
       template: 'flamegraph',
     }),
+    */
   ],
   resolve: {
     alias: {
@@ -46,7 +48,7 @@ export default defineConfig({
     },
   },
   build: {
-    rollupOptions: {
+    rolldownOptions: {
       output: {
         // Order matters: specific checks MUST come before broad ones
         manualChunks(id) {
