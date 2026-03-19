@@ -6,10 +6,13 @@ import com.tribly.domain.user.User;
 import com.tribly.enums.TeamRole;
 import com.tribly.enums.Visibility;
 import com.tribly.service.auth.JwtService;
+import com.tribly.util.MinioTestResource;
 import com.tribly.util.TestDataCleaner;
 import com.tribly.util.TestDataService;
+import io.quarkus.test.common.WithTestResource;
 import jakarta.inject.Inject;
 
+@WithTestResource(MinioTestResource.class)
 public abstract class AbstractResourceTest {
 
   protected static final String USER1 = "user1";

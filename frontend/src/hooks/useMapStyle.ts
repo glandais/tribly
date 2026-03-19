@@ -40,31 +40,29 @@ export function useMapStyle() {
   const currentStyle: MapStyle = useMemo(() => MAP_STYLES[styleId], [styleId])
 
   // Resolve async styles (e.g. satellite) into a sync value
-  const [resolvedStyle, setResolvedStyle] = useState<string | StyleSpecification | undefined>(() => {
-    const s = currentStyle.style
-    return s instanceof Promise ? undefined : s
-  })
+  const [asyncStyle, setAsyncStyle] = useState<StyleSpecification | undefined>(undefined)
+
+  const rawStyle = currentStyle.style
+  const isAsync = rawStyle instanceof Promise
 
   useEffect(() => {
-    const s = currentStyle.style
-    if (s instanceof Promise) {
-      let cancelled = false
-      s.then((resolved) => {
-        if (!cancelled) setResolvedStyle(resolved)
-      })
-      return () => {
-        cancelled = true
-      }
-    } else {
-      setResolvedStyle(s)
+    if (!isAsync) return
+    let cancelled = false
+    rawStyle.then((resolved) => {
+      if (!cancelled) setAsyncStyle(resolved)
+    })
+    return () => {
+      cancelled = true
     }
-  }, [currentStyle.style])
+  }, [rawStyle, isAsync])
+
+  const style = isAsync ? asyncStyle : rawStyle
 
   return {
     styleId,
     setStyleId,
     clearPreference,
     currentStyle,
-    style: resolvedStyle,
+    style,
   }
 }
