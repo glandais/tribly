@@ -3,6 +3,7 @@ package com.tribly.api.auth;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
+import com.tribly.api.AbstractResourceTest;
 import com.tribly.common.TsidUtils;
 import com.tribly.domain.auth.Passkey;
 import com.tribly.domain.user.User;
@@ -16,7 +17,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
-class PasskeyResourceTest {
+class PasskeyResourceTest extends AbstractResourceTest {
 
   @Inject TestDataService dataService;
   @Inject TestDataCleaner dataCleaner;
@@ -26,8 +27,8 @@ class PasskeyResourceTest {
   private String accessToken;
 
   @BeforeEach
-  void setUp() {
-    dataCleaner.cleanAll();
+  protected void setUp() {
+    super.setUp();
     user = dataService.createVerifiedUser("passkey@example.com", "Passkey User");
     accessToken = jwtService.generateAccessToken(user);
   }
