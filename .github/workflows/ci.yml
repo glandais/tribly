@@ -1,19 +1,51 @@
-name: CI Build
+name: CI
 
 on:
   push:
-    branches: [ 'tmp' ]
+    branches: [develop]
   pull_request:
-    branches: [ 'tmp' ]
+    branches: [develop]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  backend:
-    name: Backend Build
+  changes:
+    name: Detect changes
     runs-on: ubuntu-latest
-
+    permissions:
+      pull-requests: read
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+      frontend: ${{ steps.filter.outputs.frontend }}
+      mobile: ${{ steps.filter.outputs.mobile }}
+      karoo: ${{ steps.filter.outputs.karoo }}
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          base: develop
+          filters: |
+            backend:
+              - 'backend/**'
+              - 'pom.xml'
+            frontend:
+              - 'frontend/**'
+              - 'contracts/**'
+            mobile:
+              - 'mobile/**'
+            karoo:
+              - 'karoo/**'
+
+  backend:
+    name: Backend
+    needs: [changes]
+    if: needs.changes.outputs.backend == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
 
       - name: Set up JDK 21
         uses: actions/setup-java@v4
@@ -22,66 +54,130 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
-      - name: Build backend
+      - name: Build backend (skip tests)
         working-directory: ./backend
         run: mvn -B clean verify -DskipTests
 
-      - name: Generate JWT keys
-        working-directory: ./backend/keys
+      - name: Generate JWT keys for tests
         run: |
-          openssl genrsa -out privateKey.pem 2048
-          openssl rsa -in privateKey.pem -pubout -out publicKey.pem
+          mkdir -p backend/keys
+          openssl genrsa -out backend/keys/privateKey.pem 2048
+          openssl rsa -in backend/keys/privateKey.pem -pubout -out backend/keys/publicKey.pem
 
       - name: Run backend tests
         working-directory: ./backend
         env:
-          QUARKUS_HIBERNATE_ORM_LOG_SQL: false
+          QUARKUS_HIBERNATE_ORM_LOG_SQL: 'false'
         run: mvn -B test
 
   frontend:
-    name: Frontend Build
+    name: Frontend
+    needs: [changes]
+    if: needs.changes.outputs.frontend == 'true'
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v3
+        uses: pnpm/action-setup@v4
         with:
           package_json_file: frontend/package.json
 
       - name: Get pnpm store directory
         shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+        run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
 
-      - name: Setup pnpm cache
+      - name: Cache pnpm store
         uses: actions/cache@v4
         with:
           path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('frontend/pnpm-lock.yaml') }}
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
 
-      - name: Install frontend dependencies
+      - name: Install dependencies
         working-directory: ./frontend
         run: pnpm install --frozen-lockfile
 
-      - name: Lint frontend
+      - name: Lint
         working-directory: ./frontend
         run: pnpm run lint
 
-      - name: Build frontend (includes type check)
+      - name: Build (includes type check)
         working-directory: ./frontend
         run: pnpm run build
 
-      # TODO: Re-enable when frontend tests are added
-      # - name: Run frontend tests
-      #   working-directory: ./frontend
-      #   run: pnpm test run
+      - name: Run tests
+        working-directory: ./frontend
+        run: pnpm test run
+
+  mobile:
+    name: Mobile (Flutter)
+    needs: [changes]
+    if: needs.changes.outputs.mobile == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        working-directory: ./mobile
+        run: flutter pub get
+
+      - name: Run code generation
+        working-directory: ./mobile
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: Analyze
+        working-directory: ./mobile
+        run: flutter analyze
+
+      - name: Run tests
+        working-directory: ./mobile
+        run: |
+          if [ -d "test" ]; then
+            flutter test
+          else
+            echo "No test directory found, skipping tests"
+          fi
+
+  karoo:
+    name: Karoo Extension
+    needs: [changes]
+    if: needs.changes.outputs.karoo == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build Karoo extension
+        working-directory: ./karoo
+        env:
+          USERNAME: ${{ secrets.GPR_USER }}
+          TOKEN: ${{ secrets.GPR_KEY }}
+        run: ./gradlew assembleDebug
+
+  # Garmin Connect IQ : exclu du CI
+  # Le SDK Connect IQ nécessite un SDK Manager GUI et ne peut pas être
+  # facilement automatisé. Pour l'ajouter, envisager :
+  #   1. Publier une image Docker avec le SDK pré-installé
+  #   2. Utiliser le cache d'artifacts GitHub Actions pour le SDK
+  #   3. Trouver une action communautaire pour les builds Connect IQ
