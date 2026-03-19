@@ -283,7 +283,7 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>${compiler-plugin.version}</version>
                 <configuration>
-                    <release>25</release>
+                    <release>21</release>
                     <parameters>true</parameters>
                     <annotationProcessorPaths>
                         <path>

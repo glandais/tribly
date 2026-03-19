@@ -42,7 +42,7 @@ class ResponsiveGrid extends StatelessWidget {
             physics: physics,
             padding: padding,
             itemCount: itemCount,
-            separatorBuilder: (_, __) => SizedBox(height: spacing),
+            separatorBuilder: (_, _) => SizedBox(height: spacing),
             itemBuilder: itemBuilder,
           );
         }

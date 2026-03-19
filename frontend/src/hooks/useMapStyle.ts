@@ -1,5 +1,6 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useEffect } from 'react'
 import { useComputedColorScheme } from '@mantine/core'
+import type { StyleSpecification } from 'react-map-gl/maplibre'
 import { MAP_STYLES, type MapStyleId, type MapStyle } from '../components/map/mapStyles'
 
 const STORAGE_KEY = 'tribly-map-style'
@@ -38,11 +39,32 @@ export function useMapStyle() {
 
   const currentStyle: MapStyle = useMemo(() => MAP_STYLES[styleId], [styleId])
 
+  // Resolve async styles (e.g. satellite) into a sync value
+  const [resolvedStyle, setResolvedStyle] = useState<string | StyleSpecification | undefined>(() => {
+    const s = currentStyle.style
+    return s instanceof Promise ? undefined : s
+  })
+
+  useEffect(() => {
+    const s = currentStyle.style
+    if (s instanceof Promise) {
+      let cancelled = false
+      s.then((resolved) => {
+        if (!cancelled) setResolvedStyle(resolved)
+      })
+      return () => {
+        cancelled = true
+      }
+    } else {
+      setResolvedStyle(s)
+    }
+  }, [currentStyle.style])
+
   return {
     styleId,
     setStyleId,
     clearPreference,
     currentStyle,
-    style: currentStyle.style,
+    style: resolvedStyle,
   }
 }

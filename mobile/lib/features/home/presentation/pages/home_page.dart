@@ -234,7 +234,7 @@ class HomePage extends ConsumerWidget {
                   ),
                 ),
               ),
-              error: (_, __) => SliverToBoxAdapter(
+              error: (_, _) => SliverToBoxAdapter(
                 child: ContentWidthConstraint(
                   padding: const EdgeInsets.all(16),
                   child: Card(
@@ -328,7 +328,7 @@ class HomePage extends ConsumerWidget {
                   ),
                 ),
               ),
-              error: (_, __) => SliverToBoxAdapter(
+              error: (_, _) => SliverToBoxAdapter(
                 child: ContentWidthConstraint(
                   padding: const EdgeInsets.all(16),
                   child: Text('common.loadError'.tr()),

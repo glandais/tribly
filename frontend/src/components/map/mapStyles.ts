@@ -6,7 +6,7 @@ export type MapStyleId = 'colorful' | 'graybeard' | 'eclipse' | 'neutrino' | 'sh
 export interface MapStyle {
   id: MapStyleId
   name: string
-  style: string | StyleSpecification
+  style: string | StyleSpecification | Promise<StyleSpecification>
   isDark: boolean
 }
 

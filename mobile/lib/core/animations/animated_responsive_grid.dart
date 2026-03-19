@@ -53,7 +53,7 @@ class _AnimatedResponsiveGridState extends State<AnimatedResponsiveGrid> {
             physics: widget.physics,
             padding: widget.padding,
             itemCount: widget.itemCount,
-            separatorBuilder: (_, __) => SizedBox(height: widget.spacing),
+            separatorBuilder: (_, _) => SizedBox(height: widget.spacing),
             itemBuilder: (context, index) => _buildAnimatedItem(context, index),
           );
         }

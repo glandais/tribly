@@ -373,9 +373,11 @@ class _FileDownloadTileState extends State<_FileDownloadTile> {
             ? box.localToGlobal(Offset.zero) & box.size
             : Rect.zero;
         Navigator.pop(context);
-        await Share.shareXFiles(
-          [XFile(filePath)],
-          sharePositionOrigin: origin,
+        await SharePlus.instance.share(
+          ShareParams(
+            files: [XFile(filePath)],
+            sharePositionOrigin: origin,
+          ),
         );
       }
     } catch (e) {

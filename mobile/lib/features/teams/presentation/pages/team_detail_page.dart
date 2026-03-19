@@ -146,7 +146,7 @@ class _TeamDetailContent extends ConsumerWidget {
                         value: '-',
                         label: 'rides.title'.tr(),
                       ),
-                      error: (_, __) => _StatItem(
+                      error: (_, _) => _StatItem(
                         icon: Icons.directions_bike,
                         value: '?',
                         label: 'rides.title'.tr(),
@@ -163,7 +163,7 @@ class _TeamDetailContent extends ConsumerWidget {
                         value: '-',
                         label: 'routes.title'.tr(),
                       ),
-                      error: (_, __) => _StatItem(
+                      error: (_, _) => _StatItem(
                         icon: Icons.route,
                         value: '?',
                         label: 'routes.title'.tr(),
@@ -255,7 +255,7 @@ class _TeamDetailContent extends ConsumerWidget {
                   child: const ShimmerCardList(itemCount: 2),
                 ),
               ),
-              error: (_, __) => SliverToBoxAdapter(
+              error: (_, _) => SliverToBoxAdapter(
                 child: ContentWidthConstraint(
                   padding: const EdgeInsets.all(16),
                   child: Text('common.loadError'.tr()),
@@ -321,7 +321,7 @@ class _TeamDetailContent extends ConsumerWidget {
                   ),
                 ),
               ),
-              error: (_, __) => SliverToBoxAdapter(
+              error: (_, _) => SliverToBoxAdapter(
                 child: ContentWidthConstraint(
                   padding: const EdgeInsets.all(16),
                   child: Text('common.loadError'.tr()),
