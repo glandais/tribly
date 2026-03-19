@@ -3,6 +3,7 @@ package com.tribly.api.auth;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.*;
 
+import com.tribly.api.AbstractResourceTest;
 import com.tribly.domain.auth.AuthToken;
 import com.tribly.domain.platform.Domain;
 import com.tribly.domain.user.User;
@@ -26,7 +27,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
-class AuthResourceTest {
+class AuthResourceTest extends AbstractResourceTest {
 
   @Inject TestDataService dataService;
   @Inject TestDataCleaner dataCleaner;
@@ -37,8 +38,8 @@ class AuthResourceTest {
   private Domain domain;
 
   @BeforeEach
-  void setUp() {
-    dataCleaner.cleanAll();
+  protected void setUp() {
+    super.setUp();
     domain = dataService.getOrCreateDefaultDomain();
     mailbox.clear();
   }

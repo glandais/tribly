@@ -74,7 +74,7 @@ public class UserAvatarService {
     } catch (Exception e) {
       tempFile.delete();
       storageService.delete(tempKey);
-      throw new BusinessException(ErrorCode.INVALID_FORMAT);
+      throw new BusinessException(ErrorCode.INVALID_FORMAT, e);
     }
 
     // Upload resized avatar to S3
