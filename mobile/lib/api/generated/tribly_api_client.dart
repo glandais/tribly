@@ -34,9 +34,9 @@ import 'clients/trips_client.dart';
 import 'clients/trip_comments_client.dart';
 import 'clients/users_client.dart';
 
-/// Tribly API `v1.0.0`.
+/// Pedalons API `v1.0.0`.
 ///
-/// API for Tribly Cycling Team Management Platform.
+/// API for Pedalons Cycling Team Management Platform.
 class TriblyApiClient {
   TriblyApiClient(
     Dio dio, {
