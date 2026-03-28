@@ -2,6 +2,7 @@ package com.tribly.service.auth;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.tribly.AbstractBaseTest;
 import com.tribly.domain.platform.Domain;
 import com.tribly.service.security.DomainResolver;
 import com.tribly.util.TestDataCleaner;
@@ -13,7 +14,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
-class AuthEmailServiceTest {
+class AuthEmailServiceTest extends AbstractBaseTest {
 
   @Inject AuthEmailService authEmailService;
   @Inject MockMailbox mailbox;

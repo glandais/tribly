@@ -2,6 +2,7 @@ package com.tribly.repository.common;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.tribly.AbstractBaseTest;
 import com.tribly.domain.common.TeamEntitySlugRedirect;
 import com.tribly.domain.post.Post;
 import com.tribly.domain.ride.Ride;
@@ -22,7 +23,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
-class TeamEntitySlugRedirectRepositoryTest {
+class TeamEntitySlugRedirectRepositoryTest extends AbstractBaseTest {
 
   @Inject TeamEntitySlugRedirectRepository repository;
   @Inject TestDataService dataService;

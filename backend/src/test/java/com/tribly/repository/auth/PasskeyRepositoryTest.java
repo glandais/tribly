@@ -2,6 +2,7 @@ package com.tribly.repository.auth;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.tribly.AbstractBaseTest;
 import com.tribly.domain.auth.Passkey;
 import com.tribly.domain.user.User;
 import com.tribly.util.TestDataCleaner;
@@ -14,7 +15,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
-class PasskeyRepositoryTest {
+class PasskeyRepositoryTest extends AbstractBaseTest {
 
   @Inject PasskeyRepository passkeyRepository;
   @Inject TestDataService dataService;

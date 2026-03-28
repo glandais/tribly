@@ -2,6 +2,7 @@ package com.tribly.service.asset;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.tribly.AbstractBaseTest;
 import com.tribly.common.TsidUtils;
 import com.tribly.common.exception.TriblyException;
 import com.tribly.domain.asset.Asset;
@@ -40,7 +41,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
-class AssetServiceTest {
+class AssetServiceTest extends AbstractBaseTest {
 
   @Inject AssetService assetService;
   @Inject TestDataService dataService;

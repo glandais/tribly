@@ -2,6 +2,7 @@ package com.tribly.service.auth;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.tribly.AbstractBaseTest;
 import com.tribly.common.exception.BadRequestException;
 import com.tribly.common.exception.ForbiddenException;
 import com.tribly.common.exception.NotFoundException;
@@ -30,7 +31,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
-class AuthServiceTest {
+class AuthServiceTest extends AbstractBaseTest {
 
   @Inject AuthService authService;
   @Inject UserRepository userRepository;

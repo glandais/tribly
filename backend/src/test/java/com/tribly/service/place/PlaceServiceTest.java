@@ -5,6 +5,7 @@ import static org.geolatte.geom.builder.DSL.point;
 import static org.geolatte.geom.crs.CoordinateReferenceSystems.WGS84;
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.tribly.AbstractBaseTest;
 import com.tribly.common.TsidUtils;
 import com.tribly.common.exception.TriblyException;
 import com.tribly.domain.place.Place;
@@ -29,7 +30,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
-class PlaceServiceTest {
+class PlaceServiceTest extends AbstractBaseTest {
 
   @Inject PlaceService placeService;
   @Inject TestDataService dataService;

@@ -2,6 +2,7 @@ package com.tribly.repository.comment;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.tribly.AbstractBaseTest;
 import com.tribly.domain.comment.Comment;
 import com.tribly.domain.post.Post;
 import com.tribly.domain.team.Team;
@@ -20,7 +21,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
-class CommentRepositoryTest {
+class CommentRepositoryTest extends AbstractBaseTest {
 
   @Inject CommentRepository commentRepository;
   @Inject TestDataService dataService;

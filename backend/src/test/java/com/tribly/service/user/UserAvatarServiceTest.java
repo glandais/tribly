@@ -2,6 +2,7 @@ package com.tribly.service.user;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.tribly.AbstractBaseTest;
 import com.tribly.common.TsidUtils;
 import com.tribly.common.exception.BusinessException;
 import com.tribly.domain.platform.Domain;
@@ -20,7 +21,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
-class UserAvatarServiceTest {
+class UserAvatarServiceTest extends AbstractBaseTest {
 
   @Inject UserAvatarService userAvatarService;
   @Inject UserRepository userRepository;

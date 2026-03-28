@@ -2,6 +2,7 @@ package com.tribly.service.ride;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.tribly.AbstractBaseTest;
 import com.tribly.common.TsidUtils;
 import com.tribly.common.exception.TriblyException;
 import com.tribly.domain.platform.Domain;
@@ -28,7 +29,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
-class RideServiceTest {
+class RideServiceTest extends AbstractBaseTest {
 
   @Inject RideService rideService;
   @Inject TestDataService dataService;

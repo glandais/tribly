@@ -2,6 +2,7 @@ package com.tribly.repository.trip;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.tribly.AbstractBaseTest;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.trip.Trip;
 import com.tribly.domain.trip.TripParticipation;
@@ -22,7 +23,7 @@ import org.junit.jupiter.api.Test;
  * Tests for {@link TripParticipationRepository}.
  */
 @QuarkusTest
-class TripParticipationRepositoryTest {
+class TripParticipationRepositoryTest extends AbstractBaseTest {
 
   @Inject TripParticipationRepository participationRepository;
   @Inject TestDataService dataService;

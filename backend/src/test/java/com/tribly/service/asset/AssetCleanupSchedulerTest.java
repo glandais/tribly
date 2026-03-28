@@ -2,6 +2,7 @@ package com.tribly.service.asset;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.tribly.AbstractBaseTest;
 import com.tribly.domain.asset.Asset;
 import com.tribly.domain.platform.Domain;
 import com.tribly.domain.post.Post;
@@ -21,7 +22,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
-class AssetCleanupSchedulerTest {
+class AssetCleanupSchedulerTest extends AbstractBaseTest {
 
   @Inject AssetCleanupScheduler assetCleanupScheduler;
   @Inject AssetRepository assetRepository;

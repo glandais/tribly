@@ -2,6 +2,7 @@ package com.tribly.service.gps;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.tribly.AbstractBaseTest;
 import com.tribly.common.exception.BusinessException;
 import com.tribly.domain.gps.GpsServiceConnection;
 import com.tribly.domain.platform.Domain;
@@ -22,7 +23,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
-class GpsServiceTest {
+class GpsServiceTest extends AbstractBaseTest {
 
   @Inject GpsService gpsService;
   @Inject GpsServiceConnectionRepository connectionRepository;

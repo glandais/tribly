@@ -2,6 +2,7 @@ package com.tribly.repository.auth;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.tribly.AbstractBaseTest;
 import com.tribly.domain.auth.WebAuthnChallenge;
 import com.tribly.domain.user.User;
 import com.tribly.enums.WebAuthnChallengeType;
@@ -17,7 +18,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
-class WebAuthnChallengeRepositoryTest {
+class WebAuthnChallengeRepositoryTest extends AbstractBaseTest {
 
   @Inject WebAuthnChallengeRepository webAuthnChallengeRepository;
   @Inject TestDataService dataService;

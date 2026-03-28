@@ -2,6 +2,7 @@ package com.tribly.repository.ridetemplate;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.tribly.AbstractBaseTest;
 import com.tribly.domain.ridetemplate.RideTemplate;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
@@ -18,7 +19,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
-class RideTemplateRepositoryTest {
+class RideTemplateRepositoryTest extends AbstractBaseTest {
 
   @Inject RideTemplateRepository templateRepository;
   @Inject TestDataService dataService;

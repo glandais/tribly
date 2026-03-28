@@ -2,6 +2,7 @@ package com.tribly.service.calendar;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.tribly.AbstractBaseTest;
 import com.tribly.domain.platform.Domain;
 import com.tribly.dto.calendar.response.CalendarEventDto;
 import com.tribly.dto.calendar.response.CalendarEventType;
@@ -16,7 +17,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
-class IcsGenerationServiceTest {
+class IcsGenerationServiceTest extends AbstractBaseTest {
 
   @Inject IcsGenerationService icsGenerationService;
   @Inject TestDataService dataService;

@@ -2,6 +2,7 @@ package com.tribly.service.team;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.tribly.AbstractBaseTest;
 import com.tribly.common.exception.BusinessException;
 import com.tribly.common.exception.ConflictException;
 import com.tribly.common.exception.ForbiddenException;
@@ -27,7 +28,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
-class TeamServiceTest {
+class TeamServiceTest extends AbstractBaseTest {
 
   @Inject TeamService teamService;
   @Inject SlugService slugService;

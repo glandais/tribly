@@ -3,6 +3,7 @@ package com.tribly.service.user;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
+import com.tribly.AbstractBaseTest;
 import com.tribly.common.TsidUtils;
 import com.tribly.common.exception.TriblyException;
 import com.tribly.domain.platform.Domain;
@@ -25,7 +26,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
-class UserServiceTest {
+class UserServiceTest extends AbstractBaseTest {
 
   @Inject UserService userService;
   @Inject TestDataService dataService;

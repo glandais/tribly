@@ -2,6 +2,7 @@ package com.tribly.repository.place;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.tribly.AbstractBaseTest;
 import com.tribly.domain.place.Place;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
@@ -21,7 +22,7 @@ import org.junit.jupiter.api.Test;
  * Tests for {@link PlaceRepository}.
  */
 @QuarkusTest
-class PlaceRepositoryTest {
+class PlaceRepositoryTest extends AbstractBaseTest {
 
   @Inject PlaceRepository placeRepository;
   @Inject TestDataService dataService;

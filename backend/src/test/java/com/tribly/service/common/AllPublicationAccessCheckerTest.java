@@ -2,6 +2,7 @@ package com.tribly.service.common;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.tribly.AbstractBaseTest;
 import com.tribly.domain.platform.Domain;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
@@ -22,7 +23,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
-class AllPublicationAccessCheckerTest {
+class AllPublicationAccessCheckerTest extends AbstractBaseTest {
 
   @Inject AllPublicationAccessChecker accessChecker;
   @Inject TestDataService dataService;

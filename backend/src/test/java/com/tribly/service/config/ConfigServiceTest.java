@@ -2,6 +2,7 @@ package com.tribly.service.config;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.tribly.AbstractBaseTest;
 import com.tribly.domain.platform.Domain;
 import com.tribly.dto.config.ConfigDto;
 import com.tribly.service.security.DomainResolver;
@@ -13,7 +14,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
-class ConfigServiceTest {
+class ConfigServiceTest extends AbstractBaseTest {
 
   @Inject ConfigService configService;
   @Inject TestDataService dataService;

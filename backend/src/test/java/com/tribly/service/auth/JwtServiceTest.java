@@ -2,6 +2,7 @@ package com.tribly.service.auth;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.tribly.AbstractBaseTest;
 import com.tribly.domain.platform.Domain;
 import com.tribly.domain.user.User;
 import com.tribly.service.security.DomainResolver;
@@ -13,7 +14,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
-class JwtServiceTest {
+class JwtServiceTest extends AbstractBaseTest {
 
   @Inject JwtService jwtService;
   @Inject TestDataService dataService;

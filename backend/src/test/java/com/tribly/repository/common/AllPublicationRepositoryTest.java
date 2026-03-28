@@ -2,6 +2,7 @@ package com.tribly.repository.common;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.tribly.AbstractBaseTest;
 import com.tribly.domain.common.Publication;
 import com.tribly.domain.platform.Domain;
 import com.tribly.domain.post.Post;
@@ -31,7 +32,7 @@ import org.junit.jupiter.api.Test;
  * Verifies that find() returns both Rides and Posts (but not Routes).
  */
 @QuarkusTest
-class AllPublicationRepositoryTest {
+class AllPublicationRepositoryTest extends AbstractBaseTest {
 
   @Inject AllPublicationRepository publicationRepository;
   @Inject TestDataService dataService;

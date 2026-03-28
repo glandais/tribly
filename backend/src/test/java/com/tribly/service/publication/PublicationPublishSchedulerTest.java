@@ -2,6 +2,7 @@ package com.tribly.service.publication;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.tribly.AbstractBaseTest;
 import com.tribly.domain.post.Post;
 import com.tribly.domain.ride.Ride;
 import com.tribly.domain.team.Team;
@@ -24,7 +25,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
-class PublicationPublishSchedulerTest {
+class PublicationPublishSchedulerTest extends AbstractBaseTest {
 
   @Inject PublicationPublishScheduler publishScheduler;
   @Inject RideRepository rideRepository;

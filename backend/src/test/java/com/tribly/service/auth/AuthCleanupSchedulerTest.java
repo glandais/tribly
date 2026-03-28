@@ -2,6 +2,7 @@ package com.tribly.service.auth;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.tribly.AbstractBaseTest;
 import com.tribly.domain.auth.AuthSession;
 import com.tribly.domain.auth.AuthToken;
 import com.tribly.domain.platform.Domain;
@@ -21,7 +22,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
-class AuthCleanupSchedulerTest {
+class AuthCleanupSchedulerTest extends AbstractBaseTest {
 
   @Inject AuthCleanupScheduler authCleanupScheduler;
   @Inject AuthSessionRepository authSessionRepository;

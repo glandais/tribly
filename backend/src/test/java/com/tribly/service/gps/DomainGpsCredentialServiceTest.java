@@ -2,6 +2,7 @@ package com.tribly.service.gps;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.tribly.AbstractBaseTest;
 import com.tribly.domain.gps.DomainGpsCredential;
 import com.tribly.domain.platform.Domain;
 import com.tribly.enums.GpsServiceType;
@@ -19,7 +20,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
-class DomainGpsCredentialServiceTest {
+class DomainGpsCredentialServiceTest extends AbstractBaseTest {
 
   @Inject DomainGpsCredentialService credentialService;
   @Inject TokenEncryptionService encryptionService;

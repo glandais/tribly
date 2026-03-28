@@ -2,6 +2,7 @@ package com.tribly.repository.team;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.tribly.AbstractBaseTest;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.team.UserTeam;
 import com.tribly.domain.user.User;
@@ -18,7 +19,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
-class UserTeamRepositoryTest {
+class UserTeamRepositoryTest extends AbstractBaseTest {
 
   @Inject UserTeamRepository userTeamRepository;
   @Inject TestDataService dataService;

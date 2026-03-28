@@ -2,6 +2,7 @@ package com.tribly.service.ad;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.tribly.AbstractBaseTest;
 import com.tribly.common.exception.BusinessException;
 import com.tribly.common.exception.ConflictException;
 import com.tribly.common.exception.TriblyException;
@@ -31,7 +32,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
-class AdServiceTest {
+class AdServiceTest extends AbstractBaseTest {
 
   @Inject AdService adService;
   @Inject TestDataService dataService;

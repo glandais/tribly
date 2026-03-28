@@ -2,6 +2,7 @@ package com.tribly.service.comment;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.tribly.AbstractBaseTest;
 import com.tribly.common.TsidUtils;
 import com.tribly.common.exception.BusinessException;
 import com.tribly.common.exception.TriblyException;
@@ -29,7 +30,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
-class CommentServiceTest {
+class CommentServiceTest extends AbstractBaseTest {
 
   @Inject CommentService commentService;
   @Inject TestDataService dataService;

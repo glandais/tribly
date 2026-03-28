@@ -2,6 +2,7 @@ package com.tribly.service.page;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.tribly.AbstractBaseTest;
 import com.tribly.common.TsidUtils;
 import com.tribly.common.exception.BusinessException;
 import com.tribly.common.exception.ForbiddenException;
@@ -29,7 +30,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
-class TeamPageServiceTest {
+class TeamPageServiceTest extends AbstractBaseTest {
 
   @Inject TeamPageService teamPageService;
   @Inject TestDataService dataService;

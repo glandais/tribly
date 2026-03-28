@@ -2,6 +2,7 @@ package com.tribly.service.calendar;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.tribly.AbstractBaseTest;
 import com.tribly.common.exception.ForbiddenException;
 import com.tribly.domain.calendar.CalendarToken;
 import com.tribly.domain.platform.Domain;
@@ -29,7 +30,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
-class CalendarServiceTest {
+class CalendarServiceTest extends AbstractBaseTest {
 
   @Inject CalendarService calendarService;
   @Inject TestDataService dataService;

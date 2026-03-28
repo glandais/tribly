@@ -2,6 +2,7 @@ package com.tribly.repository.calendar;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.tribly.AbstractBaseTest;
 import com.tribly.domain.calendar.CalendarToken;
 import com.tribly.domain.user.User;
 import com.tribly.util.TestDataCleaner;
@@ -13,7 +14,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
-class CalendarTokenRepositoryTest {
+class CalendarTokenRepositoryTest extends AbstractBaseTest {
 
   @Inject CalendarTokenRepository calendarTokenRepository;
   @Inject TestDataService dataService;

@@ -2,6 +2,7 @@ package com.tribly.repository.route;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.tribly.AbstractBaseTest;
 import com.tribly.domain.platform.Domain;
 import com.tribly.domain.route.Route;
 import com.tribly.domain.team.Team;
@@ -19,7 +20,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
-class RouteRepositoryTest {
+class RouteRepositoryTest extends AbstractBaseTest {
 
   @Inject RouteRepository routeRepository;
   @Inject TestDataService dataService;

@@ -1,5 +1,7 @@
 package com.tribly.api;
 
+import com.tribly.AbstractBaseTest;
+import com.tribly.api.comments.AbstractCommentResourceTest;
 import com.tribly.domain.platform.Domain;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
@@ -12,8 +14,7 @@ import com.tribly.util.TestDataService;
 import io.quarkus.test.common.WithTestResource;
 import jakarta.inject.Inject;
 
-@WithTestResource(MinioTestResource.class)
-public abstract class AbstractResourceTest {
+public abstract class AbstractResourceTest extends AbstractBaseTest {
 
   protected static final String USER1 = "user1";
   protected static final String EMAIL1 = "user1@example.com";

@@ -2,6 +2,7 @@ package com.tribly.service.common;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.tribly.AbstractBaseTest;
 import com.tribly.common.exception.ForbiddenException;
 import com.tribly.domain.platform.Domain;
 import com.tribly.domain.ride.Ride;
@@ -27,7 +28,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
-class PublicationServiceTest {
+class PublicationServiceTest extends AbstractBaseTest {
 
   @Inject PublicationService publicationService;
   @Inject TestDataService dataService;

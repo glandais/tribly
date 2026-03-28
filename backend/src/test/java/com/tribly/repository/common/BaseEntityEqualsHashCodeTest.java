@@ -2,6 +2,7 @@ package com.tribly.repository.common;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.tribly.AbstractBaseTest;
 import com.tribly.domain.route.Route;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
@@ -26,7 +27,7 @@ import org.junit.jupiter.api.Test;
  * These tests verify correct behavior with Hibernate proxies, lazy loading, and Set operations.
  */
 @QuarkusTest
-class BaseEntityEqualsHashCodeTest {
+class BaseEntityEqualsHashCodeTest extends AbstractBaseTest {
 
   @Inject RouteRepository routeRepository;
   @Inject EntityManager entityManager;

@@ -2,6 +2,7 @@ package com.tribly.service.route;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.tribly.AbstractBaseTest;
 import com.tribly.common.exception.TriblyException;
 import com.tribly.domain.asset.Asset;
 import com.tribly.domain.platform.Domain;
@@ -31,7 +32,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 @QuarkusTest
-class GpxProcessingServiceTest {
+class GpxProcessingServiceTest extends AbstractBaseTest {
 
   @Inject TriblyQueryContext context;
   @Inject GpxProcessingService gpxProcessingService;
