@@ -12090,9 +12090,9 @@
     }
   },
   "info" : {
-    "title" : "Tribly API",
+    "title" : "Pedalons API",
     "version" : "1.0.0",
-    "description" : "API for Tribly Cycling Team Management Platform"
+    "description" : "API for Pedalons Cycling Team Management Platform"
   },
   "servers" : [ {
     "url" : "http://localhost:8080",

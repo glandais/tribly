@@ -5,14 +5,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'config/router.dart';
 import 'features/auth/providers/auth_provider.dart';
 
-class TriblyApp extends ConsumerStatefulWidget {
-  const TriblyApp({super.key});
+class PedalonsApp extends ConsumerStatefulWidget {
+  const PedalonsApp({super.key});
 
   @override
-  ConsumerState<TriblyApp> createState() => _TriblyAppState();
+  ConsumerState<PedalonsApp> createState() => _PedalonsAppState();
 }
 
-class _TriblyAppState extends ConsumerState<TriblyApp> {
+class _PedalonsAppState extends ConsumerState<PedalonsApp> {
   @override
   void initState() {
     super.initState();
@@ -30,7 +30,7 @@ class _TriblyAppState extends ConsumerState<TriblyApp> {
     // Show loading while initializing
     if (!authState.isInitialized) {
       return MaterialApp(
-        title: 'Tribly',
+        title: 'Pédalons',
         theme: _buildTheme(Brightness.light),
         darkTheme: _buildTheme(Brightness.dark),
         localizationsDelegates: context.localizationDelegates,
@@ -45,7 +45,7 @@ class _TriblyAppState extends ConsumerState<TriblyApp> {
     }
 
     return MaterialApp.router(
-      title: 'Tribly',
+      title: 'Pédalons',
       theme: _buildTheme(Brightness.light),
       darkTheme: _buildTheme(Brightness.dark),
       localizationsDelegates: context.localizationDelegates,

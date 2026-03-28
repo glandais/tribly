@@ -1,6 +1,6 @@
-# Tribly Backend
+# Pedalons Backend
 
-Quarkus REST API backend for the Tribly cycling team management platform.
+Quarkus REST API backend for the Pedalons cycling team management platform.
 
 ## Tech Stack
 
@@ -56,7 +56,7 @@ INSERT INTO domains (id, domain, name, base_url, single_team, active, deleted, c
 VALUES (
     (EXTRACT(EPOCH FROM NOW()) * 1000)::BIGINT * 1000000 + (RANDOM() * 999999)::INT,
     'localhost',
-    'Tribly Dev',
+    'Pedalons Dev',
     'http://localhost:5173',
     false, true, false, NOW(), NOW(), 0
 );
@@ -81,14 +81,14 @@ mvn test
 # Reports generated in target/jacoco-report/ (csv, xml, html)
 
 ./scripts/coverage-report.sh                              # All classes, sorted by coverage
-./scripts/coverage-report.sh 'com.tribly.service'         # Filter by package
-./scripts/coverage-report.sh 'com.tribly.repository' missed  # Sort by missed lines
+./scripts/coverage-report.sh 'fr.pedalons.service'         # Filter by package
+./scripts/coverage-report.sh 'fr.pedalons.repository' missed  # Sort by missed lines
 ```
 
 ## Project Structure
 
 ```
-src/main/java/com/tribly/
+src/main/java/com/pedalons/
 ├── api/               # REST resources organized by domain
 │   ├── admin/         #   Platform admin endpoints
 │   ├── auth/          #   Login, passkeys, magic links

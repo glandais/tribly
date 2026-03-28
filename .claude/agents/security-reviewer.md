@@ -11,12 +11,12 @@ You are a security-focused code reviewer for the Tribly codebase. Analyze code c
 ## Trigger Conditions
 
 This agent should be invoked when changes touch:
-- `backend/src/main/java/com/tribly/infrastructure/security/`
-- `backend/src/main/java/com/tribly/service/auth/`
-- `backend/src/main/java/com/tribly/service/security/`
-- `backend/src/main/java/com/tribly/api/*Resource.java`
+- `backend/src/main/java/fr/pedalons/infrastructure/security/`
+- `backend/src/main/java/fr/pedalons/service/auth/`
+- `backend/src/main/java/fr/pedalons/service/security/`
+- `backend/src/main/java/fr/pedalons/api/*Resource.java`
 - `mobile/lib/features/auth/`
-- `karoo/app/src/main/kotlin/com/tribly/karoo/auth/`
+- `karoo/app/src/main/kotlin/fr/pedalons/karoo/auth/`
 - `garmin-app/source/AuthManager.mc`
 - `garmin-app/source/ApiClient.mc`
 

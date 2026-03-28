@@ -1,7 +1,7 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
-/// Centralized formatting utilities for the Tribly app.
+/// Centralized formatting utilities for the Pédalons app.
 ///
 /// Use these instead of inline formatting logic to ensure consistency
 /// and reduce code duplication.

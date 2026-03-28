@@ -85,7 +85,7 @@ mvn test
 ## Architecture
 
 ```
-backend/src/main/java/com/tribly/
+backend/src/main/java/fr/pedalons/
 ├── api/              # REST resources (thin controllers)
 ├── common/           # Utilities (TsidUtils, exceptions)
 ├── dto/              # Request/response DTOs by domain
@@ -118,7 +118,7 @@ mobile/lib/
 ├── data/             # Models and API clients
 └── core/             # Shared utilities and extensions
 
-karoo/app/src/main/kotlin/com/tribly/karoo/
+karoo/app/src/main/kotlin/fr/pedalons/karoo/
 ├── TriblyExtension.kt    # KarooExtension service (entry point)
 ├── MainActivity.kt       # Route browser (Compose UI)
 ├── auth/

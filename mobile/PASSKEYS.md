@@ -17,7 +17,7 @@ Host this file at: `https://www.pedalons.fr/.well-known/apple-app-site-associati
 ```json
 {
   "webcredentials": {
-    "apps": ["<TeamID>.com.tribly.mobile"]
+    "apps": ["<TeamID>.fr.pedalons.mobile"]
   }
 }
 ```
@@ -68,7 +68,7 @@ Host this file at: `https://www.pedalons.fr/.well-known/assetlinks.json`
     "relation": ["delegate_permission/common.get_login_creds"],
     "target": {
       "namespace": "android_app",
-      "package_name": "com.tribly.mobile",
+      "package_name": "fr.pedalons.mobile",
       "sha256_cert_fingerprints": [
         "<SHA256_FINGERPRINT_DEBUG>",
         "<SHA256_FINGERPRINT_RELEASE>"
@@ -125,7 +125,7 @@ This routes `/.well-known/*` to the backend with priority 200 (higher than both 
 
 Add endpoints to serve these files in the backend:
 
-**File**: `backend/src/main/java/com/tribly/api/WellKnownResource.java`
+**File**: `backend/src/main/java/fr/pedalons/api/WellKnownResource.java`
 
 ```java
 @Path("/.well-known")
@@ -138,7 +138,7 @@ public class WellKnownResource {
         String json = """
             {
               "webcredentials": {
-                "apps": ["TEAMID.com.tribly.mobile"]
+                "apps": ["TEAMID.fr.pedalons.mobile"]
               }
             }
             """;
@@ -155,7 +155,7 @@ public class WellKnownResource {
                 "relation": ["delegate_permission/common.get_login_creds"],
                 "target": {
                   "namespace": "android_app",
-                  "package_name": "com.tribly.mobile",
+                  "package_name": "fr.pedalons.mobile",
                   "sha256_cert_fingerprints": [
                     "SHA256_FINGERPRINT_HERE"
                   ]

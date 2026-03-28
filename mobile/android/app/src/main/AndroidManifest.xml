@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="pedalons"
+        android:label="Pédalons"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
@@ -31,7 +31,7 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <!-- Update host to your domain when deploying -->
-                <data android:scheme="https" android:host="tribly.app" />
+                <data android:scheme="https" android:host="pedalons.fr" />
                 <data android:pathPrefix="/verify-email" />
                 <data android:pathPrefix="/magic-link/verify" />
             </intent-filter>
@@ -41,7 +41,7 @@
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="tribly" android:host="auth" />
+                <data android:scheme="pedalons" android:host="auth" />
             </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.

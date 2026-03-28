@@ -1,6 +1,6 @@
 {
   "app": {
-    "name": "Tribly",
+    "name": "Pédalons",
     "tagline": "Platform for cycling teams"
   },
   "nav": {
@@ -97,7 +97,7 @@
     "greeting": "Hello, {name}!",
     "defaultGreeting": "Cyclist",
     "welcome": "Welcome!",
-    "appInDevelopment": "The Tribly mobile app is under development. Soon, you'll be able to access your teams, rides, routes and more.",
+    "appInDevelopment": "The Pédalons mobile app is under development. Soon, you'll be able to access your teams, rides, routes and more.",
     "myTeams": "My teams",
     "calendar": "Calendar",
     "routes": "Routes",

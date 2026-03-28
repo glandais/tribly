@@ -98,7 +98,7 @@ class PasskeyService {
     final request = RegisterRequestType(
       relyingParty: RelyingPartyType(
         id: rp?['id'] as String? ?? AppConfig.webAuthnRpId,
-        name: rp?['name'] as String? ?? 'Tribly',
+        name: rp?['name'] as String? ?? 'Pédalons',
       ),
       user: UserType(
         id: user['id'] as String,

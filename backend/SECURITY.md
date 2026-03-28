@@ -1,6 +1,6 @@
-# Security Architecture - Tribly Platform
+# Security Architecture - Pedalons Platform
 
-This document describes the security architecture of the Tribly backend, including authentication, authorization, and data access control mechanisms.
+This document describes the security architecture of the Pedalons backend, including authentication, authorization, and data access control mechanisms.
 
 ## Table of Contents
 
@@ -16,7 +16,7 @@ This document describes the security architecture of the Tribly backend, includi
 
 ## Overview
 
-Tribly implements a **defense-in-depth** security model with three layers:
+Pedalons implements a **defense-in-depth** security model with three layers:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -62,7 +62,7 @@ The backend issues and validates JWT tokens on every request.
 **Key Components:**
 - `SecurityIdentity` - Quarkus security context injected from JWT
 - `JsonWebToken` - Contains user claims (email, roles)
-- `TriblyQueryContext` - Resolves JWT to User entity
+- `PedalonsQueryContext` - Resolves JWT to User entity
 
 ### REST Endpoint Annotations
 
@@ -94,7 +94,7 @@ public class RideResource {
 JWT Token → SecurityIdentity → email claim → UserService.lookupUserByEmail() → User entity
 ```
 
-The `TriblyQueryContext` (request-scoped) handles this resolution lazily on first access.
+The `PedalonsQueryContext` (request-scoped) handles this resolution lazily on first access.
 
 ---
 
@@ -111,7 +111,7 @@ Declarative annotation for method-level authorization:
 public RideDto createRide(RideRequest request) { }
 ```
 
-**Location:** `com.tribly.service.security.annotation.CheckAccess`
+**Location:** `fr.pedalons.service.security.annotation.CheckAccess`
 
 #### 2. CheckAccessInterceptor
 
@@ -122,7 +122,7 @@ Jakarta EE interceptor that enforces `@CheckAccess` annotations:
 @Interceptor
 @Priority(Interceptor.Priority.APPLICATION)
 public class CheckAccessInterceptor {
-    @Inject TriblyQueryContext context;
+    @Inject PedalonsQueryContext context;
     @Inject SecurityVerifier securityVerifier;
 
     @AroundInvoke
@@ -141,7 +141,7 @@ public class CheckAccessInterceptor {
 }
 ```
 
-**Location:** `com.tribly.service.security.interceptor.CheckAccessInterceptor`
+**Location:** `fr.pedalons.service.security.interceptor.CheckAccessInterceptor`
 
 #### 3. SecurityVerifier
 
@@ -165,15 +165,15 @@ public class SecurityVerifier {
 }
 ```
 
-**Location:** `com.tribly.service.security.SecurityVerifier`
+**Location:** `fr.pedalons.service.security.SecurityVerifier`
 
-#### 4. TriblyQueryContext
+#### 4. PedalonsQueryContext
 
 Request-scoped bean that resolves security context from JWT and builds `Context` objects:
 
 ```java
 @RequestScoped
-public class TriblyQueryContext {
+public class PedalonsQueryContext {
     // Resolved from JWT email claim (lazily initialized)
     @Nullable User user;
 
@@ -204,7 +204,7 @@ public class TriblyQueryContext {
 }
 ```
 
-**Location:** `com.tribly.service.security.TriblyQueryContext`
+**Location:** `fr.pedalons.service.security.PedalonsQueryContext`
 
 #### 5. Context Record
 
@@ -214,9 +214,9 @@ Immutable value object that packages security context:
 public record Context(@Nullable Team team, @Nullable User user, @Nullable TeamRole teamRole) {}
 ```
 
-**Location:** `com.tribly.service.security.Context`
+**Location:** `fr.pedalons.service.security.Context`
 
-Created by `TriblyQueryContext.getContext()` and used by AccessCheckers to make authorization decisions.
+Created by `PedalonsQueryContext.getContext()` and used by AccessCheckers to make authorization decisions.
 
 ### AccessChecker Interface
 
@@ -230,9 +230,9 @@ public interface AccessChecker {
 }
 ```
 
-**Location:** `com.tribly.service.security.AccessChecker`
+**Location:** `fr.pedalons.service.security.AccessChecker`
 
-AccessCheckers resolve their own security context by injecting `TriblyQueryContext` and calling `getContext(params)`.
+AccessCheckers resolve their own security context by injecting `PedalonsQueryContext` and calling `getContext(params)`.
 
 ### AccessChecker Implementations
 
@@ -294,7 +294,7 @@ teamRole.isOrganizer() // true for ORGANIZER and ADMIN
 
 The `TeamEntityRepository` interface implements SQL-level security filtering for all team entities (Rides, Posts, Trips, Routes, Ads, TeamPages).
 
-**Location:** `com.tribly.repositories.common.TeamEntityRepository`
+**Location:** `fr.pedalons.repositories.common.TeamEntityRepository`
 
 ### Visibility Model
 
@@ -440,7 +440,7 @@ For entities attached to parent entities (Assets, Comments), verify parent acces
 ```java
 @Override
 public boolean hasRights(ActionType action, List<Object> params) {
-    Context context = triblyContext.getContext(params);
+    Context context = pedalonsContext.getContext(params);
     Team team = context.team();
 
     // ... get parent entity
@@ -476,7 +476,7 @@ For participatory actions, verify entity status:
 
 ```java
 case JOIN, LEAVE -> {
-    String slug = triblyContext.getParam(params, 1);
+    String slug = pedalonsContext.getParam(params, 1);
     Ride ride = rideService.findBySlug(team, slug);
     // Only allow joining published rides, must be team member
     yield teamRole != null && ride.getStatus() == Status.PUBLISHED;
@@ -493,7 +493,7 @@ case JOIN, LEAVE -> {
 ```java
 @ApplicationScoped
 public class MyEntityAccessChecker implements AccessChecker {
-    @Inject TriblyQueryContext triblyContext;
+    @Inject PedalonsQueryContext pedalonsContext;
     @Inject MyEntityService myEntityService;
 
     @Override
@@ -503,7 +503,7 @@ public class MyEntityAccessChecker implements AccessChecker {
 
     @Override
     public boolean hasRights(ActionType action, List<Object> params) {
-        Context context = triblyContext.getContext(params);
+        Context context = pedalonsContext.getContext(params);
         Team team = context.team();
         User user = context.user();
         TeamRole teamRole = context.teamRole();
@@ -511,7 +511,7 @@ public class MyEntityAccessChecker implements AccessChecker {
         return switch (action) {
             case CREATE -> teamRole != null && teamRole.isOrganizer();
             case READ -> {
-                String slug = triblyContext.getParam(params, 1);
+                String slug = pedalonsContext.getParam(params, 1);
                 myEntityService.findBySlug(team, slug); // throws 404 if not found
                 yield true; // SQL filtering handles visibility
             }
@@ -522,7 +522,7 @@ public class MyEntityAccessChecker implements AccessChecker {
 }
 ```
 
-2. **Add EntityType enum value** in `com.tribly.enums.EntityType`
+2. **Add EntityType enum value** in `fr.pedalons.enums.EntityType`
 
 3. **Annotate service methods:**
 ```java

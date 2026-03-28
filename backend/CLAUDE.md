@@ -22,7 +22,7 @@ mvn package -DskipTests            # Build + generate contracts/openapi.yaml
 
 - **Resources** (`api/`): Thin REST controllers. OpenAPI annotations only. No business logic. `@RolesAllowed("user")` for auth.
 - **Services** (`service/`): `@ApplicationScoped`. `@Transactional` on write methods. `@CheckAccess` for authorization. Extends `TeamEntityService<Entity, Repository, Dto>` for standard CRUD.
-- **Repositories** (`repository/`): Extends `TeamEntityRepository<T, Q>`. Query builder pattern via `TriblyQuery` with `AndClause`/`OrClause`/`SimpleClause`. All queries filter by `domainId` automatically.
+- **Repositories** (`repository/`): Extends `TeamEntityRepository<T, Q>`. Query builder pattern via `PedalonsQuery` with `AndClause`/`OrClause`/`SimpleClause`. All queries filter by `domainId` automatically.
 
 ## Entity Hierarchy
 
@@ -38,12 +38,12 @@ BaseEntity (TSID id, timestamps, soft delete)
 
 - **JWT**: `JwtService` generates tokens with claims: email, userId, displayName, domainId, groups. 15 min expiry, 30-day refresh tokens.
 - **`@CheckAccess(entityType=..., action=...)`**: Method-level interceptor on services. `CheckAccessInterceptor` extracts parameters (teamSlug, entitySlug) and delegates to `SecurityVerifier`.
-- **Request context**: `TriblyQueryContext` (RequestScoped) holds current user/domain. `DomainResolver` resolves domain from `X-Forwarded-Host` → `Host` header.
+- **Request context**: `PedalonsQueryContext` (RequestScoped) holds current user/domain. `DomainResolver` resolves domain from `X-Forwarded-Host` → `Host` header.
 - **Other annotations**: `@Public` (no login required), `@Admin`, `@Logged`.
 
 ## Query Builder
 
-`TriblyQuery` automatically applies:
+`PedalonsQuery` automatically applies:
 - Domain filtering (multi-tenancy)
 - Visibility rules: PUBLIC (anyone), TEAM (team members), PRIVATE (organizers/admins)
 - Status filtering: PUBLISHED, DRAFT, CANCELLED
@@ -54,7 +54,7 @@ Repository methods follow: `findByTeamAndSlug(domainId, teamId, userId, slug)`, 
 ## Error Handling
 
 Custom exception hierarchy mapped to HTTP responses by `GlobalExceptionMapper`:
-- `TriblyException` (abstract) → `BusinessException`, `ConflictException`, `BadRequestException`
+- `PedalonsException` (abstract) → `BusinessException`, `ConflictException`, `BadRequestException`
 - Each uses `ErrorCode` enum for client-facing error codes
 - Constraint violations → field-level validation errors
 

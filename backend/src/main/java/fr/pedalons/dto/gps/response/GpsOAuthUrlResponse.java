@@ -1,0 +1,10 @@
+package fr.pedalons.dto.gps.response;
+
+import fr.pedalons.dto.validation.ValidateSchema;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+
+@Schema(description = "OAuth authorization URL response")
+@ValidateSchema
+public record GpsOAuthUrlResponse(
+    @Schema(description = "URL to redirect user for OAuth authorization", required = true)
+        String authorizationUrl) {}

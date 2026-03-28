@@ -1,4 +1,4 @@
-/// Animation utilities for Tribly mobile app.
+/// Animation utilities for Pédalons mobile app.
 ///
 /// This library provides reusable animation widgets:
 /// - [AnimatedCard] - Card with tap feedback (scale down on press)

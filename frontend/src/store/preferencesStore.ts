@@ -1,7 +1,7 @@
 import { UnitSystem } from '@/api/dto'
 import { create } from 'zustand'
 
-const STORAGE_KEY = 'tribly-unit-system'
+const STORAGE_KEY = 'pedalons-unit-system'
 
 interface PreferencesState {
   unitSystem: UnitSystem

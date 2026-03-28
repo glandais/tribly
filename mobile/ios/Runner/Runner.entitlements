@@ -6,8 +6,8 @@
 	<!-- Update with your actual domain when deploying -->
 	<key>com.apple.developer.associated-domains</key>
 	<array>
-		<string>applinks:tribly.app</string>
-		<string>webcredentials:tribly.app</string>
+		<string>applinks:pedalons.fr</string>
+		<string>webcredentials:pedalons.fr</string>
 	</array>
 </dict>
 </plist>

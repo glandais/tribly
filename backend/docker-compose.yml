@@ -2,28 +2,28 @@ services:
   postgres:
     image: postgis/postgis:17-3.5-alpine
     platform: linux/x86_64
-    container_name: tribly-dev-postgres
+    container_name: pedalons-dev-postgres
     restart: unless-stopped
     networks:
-      - tribly-dev
+      - pedalons-dev
     environment:
-      POSTGRES_USER: tribly
-      POSTGRES_PASSWORD: tribly_dev_password
-      POSTGRES_DB: tribly
+      POSTGRES_USER: pedalons
+      POSTGRES_PASSWORD: pedalons_dev_password
+      POSTGRES_DB: pedalons
     ports:
       - "127.0.0.1:5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U tribly"]
+      test: ["CMD-SHELL", "pg_isready -U pedalons"]
       interval: 10s
       timeout: 5s
       retries: 5
 
   imgproxy:
     image: ghcr.io/imgproxy/imgproxy:v3.31.1
-    container_name: tribly-dev-imgproxy
+    container_name: pedalons-dev-imgproxy
     restart: unless-stopped
     networks:
-      - tribly-dev
+      - pedalons-dev
     depends_on:
       - minio
     environment:
@@ -35,8 +35,8 @@ services:
       IMGPROXY_MAX_ANIMATION_FRAMES: "100"
       IMGPROXY_USE_ETAG: "true"
       IMGPROXY_USE_S3: "true"
-      AWS_ACCESS_KEY_ID: tribly
-      AWS_SECRET_ACCESS_KEY: tribly_secret
+      AWS_ACCESS_KEY_ID: pedalons
+      AWS_SECRET_ACCESS_KEY: pedalons_secret
       IMGPROXY_S3_ENDPOINT: http://minio:9000
       AWS_REGION: us-east-1
     ports:
@@ -44,10 +44,10 @@ services:
 
   brouter:
     build: ../services/brouter
-    container_name: tribly-dev-brouter
+    container_name: pedalons-dev-brouter
     restart: unless-stopped
     networks:
-      - tribly-dev
+      - pedalons-dev
     ports:
       - "127.0.0.1:17777:17777"
     volumes:
@@ -57,24 +57,24 @@ services:
 
   mailhog:
     image: mailhog/mailhog:latest
-    container_name: tribly-dev-mailhog
+    container_name: pedalons-dev-mailhog
     restart: unless-stopped
     networks:
-      - tribly-dev
+      - pedalons-dev
     ports:
       - "127.0.0.1:1025:1025"   # SMTP
       - "127.0.0.1:8025:8025"   # Web UI
 
   minio:
     image: minio/minio:RELEASE.2025-01-20T14-49-07Z
-    container_name: tribly-dev-minio
+    container_name: pedalons-dev-minio
     command: server /data --console-address ":9001"
     restart: unless-stopped
     networks:
-      - tribly-dev
+      - pedalons-dev
     environment:
-      MINIO_ROOT_USER: tribly
-      MINIO_ROOT_PASSWORD: tribly_secret
+      MINIO_ROOT_USER: pedalons
+      MINIO_ROOT_PASSWORD: pedalons_secret
     ports:
       - "127.0.0.1:9000:9000"   # S3 API
       - "127.0.0.1:9001:9001"   # Console UI
@@ -83,10 +83,10 @@ services:
 
   tileserver:
     image: maptiler/tileserver-gl:v5.5.0
-    container_name: tribly-dev-tileserver
+    container_name: pedalons-dev-tileserver
     restart: unless-stopped
     networks:
-      - tribly-dev
+      - pedalons-dev
     ports:
       - "127.0.0.1:18080:8080"
     volumes:
@@ -96,4 +96,4 @@ volumes:
   minio_data:
 
 networks:
-  tribly-dev:
+  pedalons-dev:

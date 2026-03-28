@@ -31,7 +31,7 @@ void main() async {
         ],
         child: _DeepLinkHandler(
           appLinks: appLinks,
-          child: const TriblyApp(),
+          child: const PedalonsApp(),
         ),
       ),
     ),

@@ -3,7 +3,7 @@ import { useComputedColorScheme } from '@mantine/core'
 import type { StyleSpecification } from 'react-map-gl/maplibre'
 import { MAP_STYLES, type MapStyleId, type MapStyle } from '../components/map/mapStyles'
 
-const STORAGE_KEY = 'tribly-map-style'
+const STORAGE_KEY = 'pedalons-map-style'
 const DEFAULT_LIGHT_STYLE: MapStyleId = 'graybeard'
 const DEFAULT_DARK_STYLE: MapStyleId = 'eclipse'
 
