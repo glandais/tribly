@@ -42,8 +42,7 @@ public class MinioTestResource implements QuarkusTestResourceLifecycleManager {
     imgproxy.start();
 
     String minioEndpoint = minio.getS3URL();
-    String imgproxyUrl =
-        "http://" + imgproxy.getHost() + ":" + imgproxy.getMappedPort(8080);
+    String imgproxyUrl = "http://" + imgproxy.getHost() + ":" + imgproxy.getMappedPort(8080);
 
     return Map.of(
         "quarkus.s3.endpoint-override", minioEndpoint,

@@ -1,17 +1,14 @@
 package com.tribly.api;
 
 import com.tribly.AbstractBaseTest;
-import com.tribly.api.comments.AbstractCommentResourceTest;
 import com.tribly.domain.platform.Domain;
 import com.tribly.domain.team.Team;
 import com.tribly.domain.user.User;
 import com.tribly.enums.TeamRole;
 import com.tribly.enums.Visibility;
 import com.tribly.service.auth.JwtService;
-import com.tribly.util.MinioTestResource;
 import com.tribly.util.TestDataCleaner;
 import com.tribly.util.TestDataService;
-import io.quarkus.test.common.WithTestResource;
 import jakarta.inject.Inject;
 
 public abstract class AbstractResourceTest extends AbstractBaseTest {

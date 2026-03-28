@@ -1,9 +1,9 @@
 package com.tribly;
 
 import com.tribly.util.MinioTestResource;
+import com.tribly.util.TileserverTestResource;
 import io.quarkus.test.common.WithTestResource;
-import io.quarkus.test.junit.QuarkusTest;
 
 @WithTestResource(MinioTestResource.class)
-public abstract class AbstractBaseTest {
-}
+@WithTestResource(TileserverTestResource.class)
+public abstract class AbstractBaseTest {}
