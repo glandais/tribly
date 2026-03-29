@@ -21,14 +21,7 @@ die() { echo "ERROR: $1" >&2; exit 1; }
 # Render SVG to PNG at NxN using inkscape or rsvg-convert (whichever is available)
 svg_to_png() {
   local size="$1" output="$2"
-  if command -v inkscape >/dev/null 2>&1; then
-    inkscape --export-type=png --export-width="$size" --export-height="$size" \
-      --export-filename="$output" "$MASTER_SVG" --batch-process 2>/dev/null
-  elif command -v rsvg-convert >/dev/null 2>&1; then
-    rsvg-convert -w "$size" -h "$size" -o "$output" "$MASTER_SVG"
-  else
-    die "Neither inkscape nor rsvg-convert found. Install one: apt install inkscape OR apt install librsvg2-bin"
-  fi
+  rsvg-convert -w "$size" -h "$size" -o "$output" "$MASTER_SVG"
 }
 
 # --- Per-platform generators -------------------------------------------------
@@ -36,6 +29,8 @@ svg_to_png() {
 generate_web() {
   echo "==> Generating web icons..."
   command -v pnpm >/dev/null 2>&1 || die "pnpm not found"
+  # pwa-assets-generator outputs files next to the source image, so the source must be in public/
+  cp "$MASTER_SVG" "$REPO_ROOT/frontend/public/icon.svg"
   (cd "$REPO_ROOT/frontend" && pnpm generate-icons)
 }
 
