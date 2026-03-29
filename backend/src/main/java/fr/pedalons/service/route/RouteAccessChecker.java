@@ -33,6 +33,14 @@ public class RouteAccessChecker implements AccessChecker {
     User user = context.user();
     TeamRole teamRole = context.teamRole();
 
+    // Check if routes are enabled for the team
+    if (team != null
+        && !team.isEnableRoutes()
+        && action != ActionType.READ
+        && action != ActionType.LIST) {
+      return false;
+    }
+
     return switch (action) {
       // all users can list routes
       // SQL filter will be applied anyway

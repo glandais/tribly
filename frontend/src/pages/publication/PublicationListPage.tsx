@@ -102,44 +102,54 @@ export function PublicationListPage() {
 
   const canCreate = team.role === 'ADMIN' || team.role === 'ORGANIZER'
 
+  const createMenuItems = [
+    ...(team.enableRides && team.enableRoutes
+      ? [{ path: paths.rideNew(teamSlug!), label: t('rides.create.title') }]
+      : []),
+    ...(team.enablePosts
+      ? [{ path: paths.postNew(teamSlug!), label: t('posts.create.title') }]
+      : []),
+    ...(team.enableTrips && team.enableRoutes
+      ? [{ path: paths.tripNew(teamSlug!), label: t('trips.create.title') }]
+      : []),
+    ...(team.enableRoutes
+      ? [{ path: paths.routeNew(teamSlug!), label: t('routes.create.title') }]
+      : []),
+  ]
+
+  const primaryCreate = createMenuItems[0]
+
   return (
     <TeamLayout team={team} currentTab="publications">
       <Stack gap="lg">
         <Group justify="space-between" align="center" wrap="wrap">
           <Title order={2}>{t('teams.publications.list.title')}</Title>
           <Group gap="xs">
-            {canCreate && (
+            {canCreate && primaryCreate && (
               <Button.Group>
                 <Button
                   component={Link}
-                  to={paths.rideNew(teamSlug!)}
+                  to={primaryCreate.path}
                   leftSection={<IconPlus size={16} />}
                 >
-                  {t('rides.create.title')}
+                  {primaryCreate.label}
                 </Button>
-                <Menu position="bottom-end">
-                  <Menu.Target>
-                    <Button px="xs">
-                      <IconChevronDown size={16} />
-                    </Button>
-                  </Menu.Target>
-                  <Menu.Dropdown>
-                    <Menu.Item component={Link} to={paths.rideNew(teamSlug!)}>
-                      {t('rides.create.title')}
-                    </Menu.Item>
-                    <Menu.Item component={Link} to={paths.postNew(teamSlug!)}>
-                      {t('posts.create.title')}
-                    </Menu.Item>
-                    {team.enableTrips && (
-                      <Menu.Item component={Link} to={paths.tripNew(teamSlug!)}>
-                        {t('trips.create.title')}
-                      </Menu.Item>
-                    )}
-                    <Menu.Item component={Link} to={paths.routeNew(teamSlug!)}>
-                      {t('routes.create.title')}
-                    </Menu.Item>
-                  </Menu.Dropdown>
-                </Menu>
+                {createMenuItems.length > 1 && (
+                  <Menu position="bottom-end">
+                    <Menu.Target>
+                      <Button px="xs">
+                        <IconChevronDown size={16} />
+                      </Button>
+                    </Menu.Target>
+                    <Menu.Dropdown>
+                      {createMenuItems.map((item) => (
+                        <Menu.Item key={item.path} component={Link} to={item.path}>
+                          {item.label}
+                        </Menu.Item>
+                      ))}
+                    </Menu.Dropdown>
+                  </Menu>
+                )}
               </Button.Group>
             )}
           </Group>
@@ -169,9 +179,13 @@ export function PublicationListPage() {
               }}
               data={[
                 { value: 'all', label: t('teams.publications.list.filter.all') },
-                { value: 'ride', label: t('teams.publications.list.filter.ride') },
-                { value: 'post', label: t('teams.publications.list.filter.post') },
-                ...(team?.enableTrips
+                ...(team?.enableRides && team?.enableRoutes
+                  ? [{ value: 'ride', label: t('teams.publications.list.filter.ride') }]
+                  : []),
+                ...(team?.enablePosts
+                  ? [{ value: 'post', label: t('teams.publications.list.filter.post') }]
+                  : []),
+                ...(team?.enableTrips && team?.enableRoutes
                   ? [{ value: 'trip', label: t('teams.publications.list.filter.trip') }]
                   : []),
               ]}

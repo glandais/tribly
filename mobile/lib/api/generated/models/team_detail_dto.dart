@@ -39,6 +39,15 @@ abstract class TeamDetailDto with _$TeamDetailDto {
     /// Ads enabled
     required bool enableAds,
 
+    /// Posts enabled
+    required bool enablePosts,
+
+    /// Rides enabled
+    required bool enableRides,
+
+    /// Routes enabled
+    required bool enableRoutes,
+
     /// Number of team members
     required int memberCount,
 

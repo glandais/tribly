@@ -39,7 +39,7 @@ export function EditTripPage() {
     return <LoadingPage message={t('loading')} />
   }
 
-  if (!team || !trip || !team.enableTrips) {
+  if (!team || !trip || !team.enableTrips || !team.enableRoutes) {
     return <Navigate to={paths.team(teamSlug!)} replace />
   }
 

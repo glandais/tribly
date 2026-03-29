@@ -34,6 +34,9 @@ public class RouteRepository implements TeamEntityRepository<Route, RouteQuery> 
 
   @Override
   public PedalonsQuery andSpecific(PedalonsQuery pedalonsQuery, RouteQuery query) {
+    // Routes enabled filter
+    pedalonsQuery = pedalonsQuery.and("te.team.enableRoutes = true", Map.of());
+
     // Distance range filter
     if (query.minDistance() != null) {
       pedalonsQuery =

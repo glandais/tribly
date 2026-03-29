@@ -131,6 +131,9 @@ public class TeamService {
     team.setVisibility(request.visibility());
     team.setEnableTrips(request.enableTrips());
     team.setEnableAds(request.enableAds());
+    team.setEnablePosts(request.enablePosts());
+    team.setEnableRides(request.enableRides());
+    team.setEnableRoutes(request.enableRoutes());
     team.setGeometry(request.geometry());
     assetService.updateAssets(team.getAboutPage(), request.media());
 

@@ -2795,7 +2795,7 @@
       "TeamDetailDto" : {
         "description" : "Detailed team information",
         "type" : "object",
-        "required" : [ "id", "name", "slug", "about", "visibility", "enableTrips", "enableAds", "memberCount", "createdAt" ],
+        "required" : [ "id", "name", "slug", "about", "visibility", "enableTrips", "enableAds", "enablePosts", "enableRides", "enableRoutes", "memberCount", "createdAt" ],
         "properties" : {
           "id" : {
             "type" : "string",
@@ -2834,6 +2834,18 @@
           "enableAds" : {
             "type" : "boolean",
             "description" : "Ads enabled"
+          },
+          "enablePosts" : {
+            "type" : "boolean",
+            "description" : "Posts enabled"
+          },
+          "enableRides" : {
+            "type" : "boolean",
+            "description" : "Rides enabled"
+          },
+          "enableRoutes" : {
+            "type" : "boolean",
+            "description" : "Routes enabled"
           },
           "memberCount" : {
             "type" : "integer",
@@ -3022,7 +3034,7 @@
       "TeamRequest" : {
         "description" : "Team creation request",
         "type" : "object",
-        "required" : [ "name", "media", "visibility", "enableTrips", "enableAds" ],
+        "required" : [ "name", "media", "visibility", "enableTrips", "enableAds", "enablePosts", "enableRides", "enableRoutes" ],
         "properties" : {
           "name" : {
             "type" : "string",
@@ -3051,6 +3063,21 @@
           "enableAds" : {
             "type" : "boolean",
             "description" : "Ads enabled for team",
+            "examples" : [ true ]
+          },
+          "enablePosts" : {
+            "type" : "boolean",
+            "description" : "Posts enabled for team",
+            "examples" : [ true ]
+          },
+          "enableRides" : {
+            "type" : "boolean",
+            "description" : "Rides enabled for team",
+            "examples" : [ true ]
+          },
+          "enableRoutes" : {
+            "type" : "boolean",
+            "description" : "Routes enabled for team",
             "examples" : [ true ]
           },
           "geometry" : {

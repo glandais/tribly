@@ -31,6 +31,9 @@ export function CreateTeamPage() {
     visibility: Visibility.PUBLIC,
     enableTrips: true,
     enableAds: true,
+    enablePosts: true,
+    enableRides: true,
+    enableRoutes: true,
   }
 
   return (

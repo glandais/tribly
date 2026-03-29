@@ -99,7 +99,7 @@ export function TripDetailPage() {
     return <Navigate to={paths.teams()} replace />
   }
 
-  if (team && !team.enableTrips) {
+  if (team && (!team.enableTrips || !team.enableRoutes)) {
     return <Navigate to={paths.team(teamSlug!)} replace />
   }
 

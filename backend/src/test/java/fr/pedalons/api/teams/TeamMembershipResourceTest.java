@@ -30,7 +30,16 @@ class TeamMembershipResourceTest extends AbstractResourceTest {
   void joinTeam_alreadyMember_shouldReturn409() {
     // Create team
     TeamRequest teamRequest =
-        new TeamRequest("Team", MediaDto.builder().build(), Visibility.PUBLIC, true, true, null);
+        new TeamRequest(
+            "Team",
+            MediaDto.builder().build(),
+            Visibility.PUBLIC,
+            true,
+            true,
+            true,
+            true,
+            true,
+            null);
     String slug =
         given()
             .auth()
@@ -70,7 +79,16 @@ class TeamMembershipResourceTest extends AbstractResourceTest {
   void updateMemberRole_asAdmin_shouldSucceed() {
     // Create team
     TeamRequest teamRequest =
-        new TeamRequest("Team", MediaDto.builder().build(), Visibility.PUBLIC, true, true, null);
+        new TeamRequest(
+            "Team",
+            MediaDto.builder().build(),
+            Visibility.PUBLIC,
+            true,
+            true,
+            true,
+            true,
+            true,
+            null);
     String slug =
         given()
             .auth()
@@ -113,7 +131,15 @@ class TeamMembershipResourceTest extends AbstractResourceTest {
 
     TeamRequest teamRequest =
         new TeamRequest(
-            "Role Denied Team", MediaDto.builder().build(), Visibility.PUBLIC, true, true, null);
+            "Role Denied Team",
+            MediaDto.builder().build(),
+            Visibility.PUBLIC,
+            true,
+            true,
+            true,
+            true,
+            true,
+            null);
     String slug =
         given()
             .auth()
@@ -162,7 +188,16 @@ class TeamMembershipResourceTest extends AbstractResourceTest {
   void removeMember_asAdmin_shouldSucceed() {
     // Create team
     TeamRequest teamRequest =
-        new TeamRequest("Team", MediaDto.builder().build(), Visibility.PUBLIC, true, true, null);
+        new TeamRequest(
+            "Team",
+            MediaDto.builder().build(),
+            Visibility.PUBLIC,
+            true,
+            true,
+            true,
+            true,
+            true,
+            null);
     String slug =
         given()
             .auth()
@@ -210,7 +245,16 @@ class TeamMembershipResourceTest extends AbstractResourceTest {
   void removeMember_asMember_shouldBeDenied() {
     // Create team
     TeamRequest teamRequest =
-        new TeamRequest("Team", MediaDto.builder().build(), Visibility.PUBLIC, true, true, null);
+        new TeamRequest(
+            "Team",
+            MediaDto.builder().build(),
+            Visibility.PUBLIC,
+            true,
+            true,
+            true,
+            true,
+            true,
+            null);
     String slug =
         given()
             .auth()
@@ -257,7 +301,16 @@ class TeamMembershipResourceTest extends AbstractResourceTest {
   void removeLastAdmin_shouldBeDenied() {
     // Create team (admin is the only admin)
     TeamRequest teamRequest =
-        new TeamRequest("Team", MediaDto.builder().build(), Visibility.PUBLIC, true, true, null);
+        new TeamRequest(
+            "Team",
+            MediaDto.builder().build(),
+            Visibility.PUBLIC,
+            true,
+            true,
+            true,
+            true,
+            true,
+            null);
     String slug =
         given()
             .auth()
@@ -287,7 +340,16 @@ class TeamMembershipResourceTest extends AbstractResourceTest {
   void demoteLastAdmin_shouldBeDenied() {
     // Create team
     TeamRequest teamRequest =
-        new TeamRequest("Team", MediaDto.builder().build(), Visibility.PUBLIC, true, true, null);
+        new TeamRequest(
+            "Team",
+            MediaDto.builder().build(),
+            Visibility.PUBLIC,
+            true,
+            true,
+            true,
+            true,
+            true,
+            null);
     String slug =
         given()
             .auth()
@@ -318,7 +380,16 @@ class TeamMembershipResourceTest extends AbstractResourceTest {
   void getTeamMembers_withPagination_shouldWork() {
     // Create team
     TeamRequest teamRequest =
-        new TeamRequest("Team", MediaDto.builder().build(), Visibility.PUBLIC, true, true, null);
+        new TeamRequest(
+            "Team",
+            MediaDto.builder().build(),
+            Visibility.PUBLIC,
+            true,
+            true,
+            true,
+            true,
+            true,
+            null);
     String slug =
         given()
             .auth()
@@ -384,7 +455,16 @@ class TeamMembershipResourceTest extends AbstractResourceTest {
   void addMember_byAdmin_shouldSucceed() {
     // Create private team
     TeamRequest teamRequest =
-        new TeamRequest("Team", MediaDto.builder().build(), Visibility.TEAM, true, true, null);
+        new TeamRequest(
+            "Team",
+            MediaDto.builder().build(),
+            Visibility.TEAM,
+            true,
+            true,
+            true,
+            true,
+            true,
+            null);
     String slug =
         given()
             .auth()

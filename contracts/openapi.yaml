@@ -2601,6 +2601,9 @@ components:
       - visibility
       - enableTrips
       - enableAds
+      - enablePosts
+      - enableRides
+      - enableRoutes
       - memberCount
       - createdAt
       properties:
@@ -2634,6 +2637,15 @@ components:
         enableAds:
           type: boolean
           description: Ads enabled
+        enablePosts:
+          type: boolean
+          description: Posts enabled
+        enableRides:
+          type: boolean
+          description: Rides enabled
+        enableRoutes:
+          type: boolean
+          description: Routes enabled
         memberCount:
           type: integer
           format: int64
@@ -2813,6 +2825,9 @@ components:
       - visibility
       - enableTrips
       - enableAds
+      - enablePosts
+      - enableRides
+      - enableRoutes
       properties:
         name:
           type: string
@@ -2840,6 +2855,21 @@ components:
         enableAds:
           type: boolean
           description: Ads enabled for team
+          examples:
+          - true
+        enablePosts:
+          type: boolean
+          description: Posts enabled for team
+          examples:
+          - true
+        enableRides:
+          type: boolean
+          description: Rides enabled for team
+          examples:
+          - true
+        enableRoutes:
+          type: boolean
+          description: Routes enabled for team
           examples:
           - true
         geometry:

@@ -35,7 +35,7 @@ export function CreateTripPage() {
     return <Navigate to={paths.teams()} replace />
   }
 
-  if (!team.enableTrips) {
+  if (!team.enableTrips || !team.enableRoutes) {
     return <Navigate to={paths.team(teamSlug!)} replace />
   }
 

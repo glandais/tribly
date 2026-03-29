@@ -65,6 +65,15 @@ public class Team extends BaseEntity {
   @Column(name = "enable_ads", nullable = false)
   private boolean enableAds = true;
 
+  @Column(name = "enable_posts", nullable = false)
+  private boolean enablePosts = true;
+
+  @Column(name = "enable_rides", nullable = false)
+  private boolean enableRides = true;
+
+  @Column(name = "enable_routes", nullable = false)
+  private boolean enableRoutes = true;
+
   @Column(name = "geometry", columnDefinition = "geometry(Point,4326)")
   @Nullable
   private Point<G2D> geometry;

@@ -21,6 +21,12 @@ export interface TeamRequest {
   enableTrips: boolean
   /** Ads enabled for team */
   enableAds: boolean
+  /** Posts enabled for team */
+  enablePosts: boolean
+  /** Rides enabled for team */
+  enableRides: boolean
+  /** Routes enabled for team */
+  enableRoutes: boolean
   /** Team location coordinates [longitude, latitude] */
   geometry?: TeamRequestGeometry
 }

@@ -33,6 +33,13 @@ public class RideAccessChecker implements AccessChecker {
     User user = context.user();
     TeamRole teamRole = context.teamRole();
 
+    // Check if rides are enabled for the team (also disabled when routes are disabled)
+    if (team != null
+        && (!team.isEnableRides() || !team.isEnableRoutes())
+        && action != ActionType.READ) {
+      return false;
+    }
+
     return switch (action) {
       case CREATE -> teamRole != null && teamRole.isOrganizer();
       case READ, UPDATE, DELETE -> {

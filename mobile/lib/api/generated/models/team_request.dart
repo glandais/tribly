@@ -30,6 +30,15 @@ abstract class TeamRequest with _$TeamRequest {
     /// Ads enabled for team
     required bool enableAds,
 
+    /// Posts enabled for team
+    required bool enablePosts,
+
+    /// Rides enabled for team
+    required bool enableRides,
+
+    /// Routes enabled for team
+    required bool enableRoutes,
+
     /// Team location coordinates [longitude, latitude]
     TeamRequestGeometry? geometry,
   }) = _TeamRequest;

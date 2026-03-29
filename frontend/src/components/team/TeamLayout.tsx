@@ -86,7 +86,7 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
         label: t('teams.publications.list.title'),
         icon: IconNews,
       },
-      ...(isMember
+      ...(isMember && (team.enableRides || team.enableTrips)
         ? [
             {
               id: 'calendar',
@@ -96,12 +96,16 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
             },
           ]
         : []),
-      {
-        id: 'routes',
-        path: paths.routes(team.slug),
-        label: t('teams.detail.tabs.routes'),
-        icon: IconRoute,
-      },
+      ...(team.enableRoutes
+        ? [
+            {
+              id: 'routes',
+              path: paths.routes(team.slug),
+              label: t('teams.detail.tabs.routes'),
+              icon: IconRoute,
+            },
+          ]
+        : []),
       ...(isMember && team.enableAds
         ? [
             {
@@ -133,7 +137,7 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
     }))
 
     return [...baseTabs, ...pageTabs]
-  }, [team.slug, team.pages, team.enableAds, isMember, t])
+  }, [team.slug, team.pages, team.enableAds, team.enableRoutes, team.enableRides, team.enableTrips, isMember, t])
 
   return (
     <Stack>

@@ -22,7 +22,10 @@ mixin _$TeamDetailDto {
  MediaDto get about;/// Whether the team is public
  String get visibility;/// Trips enabled
  bool get enableTrips;/// Ads enabled
- bool get enableAds;/// Number of team members
+ bool get enableAds;/// Posts enabled
+ bool get enablePosts;/// Rides enabled
+ bool get enableRides;/// Routes enabled
+ bool get enableRoutes;/// Number of team members
  int get memberCount;/// Team creation timestamp
  String get createdAt;/// Additional team pages
  List<TeamPageSummaryDto>? get pages;/// Current user's role (null if not a member)
@@ -40,16 +43,16 @@ $TeamDetailDtoCopyWith<TeamDetailDto> get copyWith => _$TeamDetailDtoCopyWithImp
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is TeamDetailDto&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.about, about) || other.about == about)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.enableTrips, enableTrips) || other.enableTrips == enableTrips)&&(identical(other.enableAds, enableAds) || other.enableAds == enableAds)&&(identical(other.memberCount, memberCount) || other.memberCount == memberCount)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&const DeepCollectionEquality().equals(other.pages, pages)&&(identical(other.role, role) || other.role == role)&&(identical(other.geometry, geometry) || other.geometry == geometry));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is TeamDetailDto&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.about, about) || other.about == about)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.enableTrips, enableTrips) || other.enableTrips == enableTrips)&&(identical(other.enableAds, enableAds) || other.enableAds == enableAds)&&(identical(other.enablePosts, enablePosts) || other.enablePosts == enablePosts)&&(identical(other.enableRides, enableRides) || other.enableRides == enableRides)&&(identical(other.enableRoutes, enableRoutes) || other.enableRoutes == enableRoutes)&&(identical(other.memberCount, memberCount) || other.memberCount == memberCount)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&const DeepCollectionEquality().equals(other.pages, pages)&&(identical(other.role, role) || other.role == role)&&(identical(other.geometry, geometry) || other.geometry == geometry));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,slug,about,visibility,enableTrips,enableAds,memberCount,createdAt,const DeepCollectionEquality().hash(pages),role,geometry);
+int get hashCode => Object.hash(runtimeType,id,name,slug,about,visibility,enableTrips,enableAds,enablePosts,enableRides,enableRoutes,memberCount,createdAt,const DeepCollectionEquality().hash(pages),role,geometry);
 
 @override
 String toString() {
-  return 'TeamDetailDto(id: $id, name: $name, slug: $slug, about: $about, visibility: $visibility, enableTrips: $enableTrips, enableAds: $enableAds, memberCount: $memberCount, createdAt: $createdAt, pages: $pages, role: $role, geometry: $geometry)';
+  return 'TeamDetailDto(id: $id, name: $name, slug: $slug, about: $about, visibility: $visibility, enableTrips: $enableTrips, enableAds: $enableAds, enablePosts: $enablePosts, enableRides: $enableRides, enableRoutes: $enableRoutes, memberCount: $memberCount, createdAt: $createdAt, pages: $pages, role: $role, geometry: $geometry)';
 }
 
 
@@ -60,7 +63,7 @@ abstract mixin class $TeamDetailDtoCopyWith<$Res>  {
   factory $TeamDetailDtoCopyWith(TeamDetailDto value, $Res Function(TeamDetailDto) _then) = _$TeamDetailDtoCopyWithImpl;
 @useResult
 $Res call({
- String id, String name, String slug, MediaDto about, String visibility, bool enableTrips, bool enableAds, int memberCount, String createdAt, List<TeamPageSummaryDto>? pages, String? role, TeamDetailDtoGeometry? geometry
+ String id, String name, String slug, MediaDto about, String visibility, bool enableTrips, bool enableAds, bool enablePosts, bool enableRides, bool enableRoutes, int memberCount, String createdAt, List<TeamPageSummaryDto>? pages, String? role, TeamDetailDtoGeometry? geometry
 });
 
 
@@ -77,7 +80,7 @@ class _$TeamDetailDtoCopyWithImpl<$Res>
 
 /// Create a copy of TeamDetailDto
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? slug = null,Object? about = null,Object? visibility = null,Object? enableTrips = null,Object? enableAds = null,Object? memberCount = null,Object? createdAt = null,Object? pages = freezed,Object? role = freezed,Object? geometry = freezed,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? slug = null,Object? about = null,Object? visibility = null,Object? enableTrips = null,Object? enableAds = null,Object? enablePosts = null,Object? enableRides = null,Object? enableRoutes = null,Object? memberCount = null,Object? createdAt = null,Object? pages = freezed,Object? role = freezed,Object? geometry = freezed,}) {
   return _then(_self.copyWith(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -86,6 +89,9 @@ as String,about: null == about ? _self.about : about // ignore: cast_nullable_to
 as MediaDto,visibility: null == visibility ? _self.visibility : visibility // ignore: cast_nullable_to_non_nullable
 as String,enableTrips: null == enableTrips ? _self.enableTrips : enableTrips // ignore: cast_nullable_to_non_nullable
 as bool,enableAds: null == enableAds ? _self.enableAds : enableAds // ignore: cast_nullable_to_non_nullable
+as bool,enablePosts: null == enablePosts ? _self.enablePosts : enablePosts // ignore: cast_nullable_to_non_nullable
+as bool,enableRides: null == enableRides ? _self.enableRides : enableRides // ignore: cast_nullable_to_non_nullable
+as bool,enableRoutes: null == enableRoutes ? _self.enableRoutes : enableRoutes // ignore: cast_nullable_to_non_nullable
 as bool,memberCount: null == memberCount ? _self.memberCount : memberCount // ignore: cast_nullable_to_non_nullable
 as int,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as String,pages: freezed == pages ? _self.pages : pages // ignore: cast_nullable_to_non_nullable
@@ -197,10 +203,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  String slug,  MediaDto about,  String visibility,  bool enableTrips,  bool enableAds,  int memberCount,  String createdAt,  List<TeamPageSummaryDto>? pages,  String? role,  TeamDetailDtoGeometry? geometry)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String name,  String slug,  MediaDto about,  String visibility,  bool enableTrips,  bool enableAds,  bool enablePosts,  bool enableRides,  bool enableRoutes,  int memberCount,  String createdAt,  List<TeamPageSummaryDto>? pages,  String? role,  TeamDetailDtoGeometry? geometry)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _TeamDetailDto() when $default != null:
-return $default(_that.id,_that.name,_that.slug,_that.about,_that.visibility,_that.enableTrips,_that.enableAds,_that.memberCount,_that.createdAt,_that.pages,_that.role,_that.geometry);case _:
+return $default(_that.id,_that.name,_that.slug,_that.about,_that.visibility,_that.enableTrips,_that.enableAds,_that.enablePosts,_that.enableRides,_that.enableRoutes,_that.memberCount,_that.createdAt,_that.pages,_that.role,_that.geometry);case _:
   return orElse();
 
 }
@@ -218,10 +224,10 @@ return $default(_that.id,_that.name,_that.slug,_that.about,_that.visibility,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  String slug,  MediaDto about,  String visibility,  bool enableTrips,  bool enableAds,  int memberCount,  String createdAt,  List<TeamPageSummaryDto>? pages,  String? role,  TeamDetailDtoGeometry? geometry)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String name,  String slug,  MediaDto about,  String visibility,  bool enableTrips,  bool enableAds,  bool enablePosts,  bool enableRides,  bool enableRoutes,  int memberCount,  String createdAt,  List<TeamPageSummaryDto>? pages,  String? role,  TeamDetailDtoGeometry? geometry)  $default,) {final _that = this;
 switch (_that) {
 case _TeamDetailDto():
-return $default(_that.id,_that.name,_that.slug,_that.about,_that.visibility,_that.enableTrips,_that.enableAds,_that.memberCount,_that.createdAt,_that.pages,_that.role,_that.geometry);case _:
+return $default(_that.id,_that.name,_that.slug,_that.about,_that.visibility,_that.enableTrips,_that.enableAds,_that.enablePosts,_that.enableRides,_that.enableRoutes,_that.memberCount,_that.createdAt,_that.pages,_that.role,_that.geometry);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -238,10 +244,10 @@ return $default(_that.id,_that.name,_that.slug,_that.about,_that.visibility,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  String slug,  MediaDto about,  String visibility,  bool enableTrips,  bool enableAds,  int memberCount,  String createdAt,  List<TeamPageSummaryDto>? pages,  String? role,  TeamDetailDtoGeometry? geometry)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String name,  String slug,  MediaDto about,  String visibility,  bool enableTrips,  bool enableAds,  bool enablePosts,  bool enableRides,  bool enableRoutes,  int memberCount,  String createdAt,  List<TeamPageSummaryDto>? pages,  String? role,  TeamDetailDtoGeometry? geometry)?  $default,) {final _that = this;
 switch (_that) {
 case _TeamDetailDto() when $default != null:
-return $default(_that.id,_that.name,_that.slug,_that.about,_that.visibility,_that.enableTrips,_that.enableAds,_that.memberCount,_that.createdAt,_that.pages,_that.role,_that.geometry);case _:
+return $default(_that.id,_that.name,_that.slug,_that.about,_that.visibility,_that.enableTrips,_that.enableAds,_that.enablePosts,_that.enableRides,_that.enableRoutes,_that.memberCount,_that.createdAt,_that.pages,_that.role,_that.geometry);case _:
   return null;
 
 }
@@ -253,7 +259,7 @@ return $default(_that.id,_that.name,_that.slug,_that.about,_that.visibility,_tha
 @JsonSerializable()
 
 class _TeamDetailDto implements TeamDetailDto {
-  const _TeamDetailDto({required this.id, required this.name, required this.slug, required this.about, required this.visibility, required this.enableTrips, required this.enableAds, required this.memberCount, required this.createdAt, final  List<TeamPageSummaryDto>? pages, this.role, this.geometry}): _pages = pages;
+  const _TeamDetailDto({required this.id, required this.name, required this.slug, required this.about, required this.visibility, required this.enableTrips, required this.enableAds, required this.enablePosts, required this.enableRides, required this.enableRoutes, required this.memberCount, required this.createdAt, final  List<TeamPageSummaryDto>? pages, this.role, this.geometry}): _pages = pages;
   factory _TeamDetailDto.fromJson(Map<String, dynamic> json) => _$TeamDetailDtoFromJson(json);
 
 /// Team ID (TSID)
@@ -270,6 +276,12 @@ class _TeamDetailDto implements TeamDetailDto {
 @override final  bool enableTrips;
 /// Ads enabled
 @override final  bool enableAds;
+/// Posts enabled
+@override final  bool enablePosts;
+/// Rides enabled
+@override final  bool enableRides;
+/// Routes enabled
+@override final  bool enableRoutes;
 /// Number of team members
 @override final  int memberCount;
 /// Team creation timestamp
@@ -303,16 +315,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TeamDetailDto&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.about, about) || other.about == about)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.enableTrips, enableTrips) || other.enableTrips == enableTrips)&&(identical(other.enableAds, enableAds) || other.enableAds == enableAds)&&(identical(other.memberCount, memberCount) || other.memberCount == memberCount)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&const DeepCollectionEquality().equals(other._pages, _pages)&&(identical(other.role, role) || other.role == role)&&(identical(other.geometry, geometry) || other.geometry == geometry));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TeamDetailDto&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.slug, slug) || other.slug == slug)&&(identical(other.about, about) || other.about == about)&&(identical(other.visibility, visibility) || other.visibility == visibility)&&(identical(other.enableTrips, enableTrips) || other.enableTrips == enableTrips)&&(identical(other.enableAds, enableAds) || other.enableAds == enableAds)&&(identical(other.enablePosts, enablePosts) || other.enablePosts == enablePosts)&&(identical(other.enableRides, enableRides) || other.enableRides == enableRides)&&(identical(other.enableRoutes, enableRoutes) || other.enableRoutes == enableRoutes)&&(identical(other.memberCount, memberCount) || other.memberCount == memberCount)&&(identical(other.createdAt, createdAt) || other.createdAt == createdAt)&&const DeepCollectionEquality().equals(other._pages, _pages)&&(identical(other.role, role) || other.role == role)&&(identical(other.geometry, geometry) || other.geometry == geometry));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,id,name,slug,about,visibility,enableTrips,enableAds,memberCount,createdAt,const DeepCollectionEquality().hash(_pages),role,geometry);
+int get hashCode => Object.hash(runtimeType,id,name,slug,about,visibility,enableTrips,enableAds,enablePosts,enableRides,enableRoutes,memberCount,createdAt,const DeepCollectionEquality().hash(_pages),role,geometry);
 
 @override
 String toString() {
-  return 'TeamDetailDto(id: $id, name: $name, slug: $slug, about: $about, visibility: $visibility, enableTrips: $enableTrips, enableAds: $enableAds, memberCount: $memberCount, createdAt: $createdAt, pages: $pages, role: $role, geometry: $geometry)';
+  return 'TeamDetailDto(id: $id, name: $name, slug: $slug, about: $about, visibility: $visibility, enableTrips: $enableTrips, enableAds: $enableAds, enablePosts: $enablePosts, enableRides: $enableRides, enableRoutes: $enableRoutes, memberCount: $memberCount, createdAt: $createdAt, pages: $pages, role: $role, geometry: $geometry)';
 }
 
 
@@ -323,7 +335,7 @@ abstract mixin class _$TeamDetailDtoCopyWith<$Res> implements $TeamDetailDtoCopy
   factory _$TeamDetailDtoCopyWith(_TeamDetailDto value, $Res Function(_TeamDetailDto) _then) = __$TeamDetailDtoCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String name, String slug, MediaDto about, String visibility, bool enableTrips, bool enableAds, int memberCount, String createdAt, List<TeamPageSummaryDto>? pages, String? role, TeamDetailDtoGeometry? geometry
+ String id, String name, String slug, MediaDto about, String visibility, bool enableTrips, bool enableAds, bool enablePosts, bool enableRides, bool enableRoutes, int memberCount, String createdAt, List<TeamPageSummaryDto>? pages, String? role, TeamDetailDtoGeometry? geometry
 });
 
 
@@ -340,7 +352,7 @@ class __$TeamDetailDtoCopyWithImpl<$Res>
 
 /// Create a copy of TeamDetailDto
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? slug = null,Object? about = null,Object? visibility = null,Object? enableTrips = null,Object? enableAds = null,Object? memberCount = null,Object? createdAt = null,Object? pages = freezed,Object? role = freezed,Object? geometry = freezed,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? slug = null,Object? about = null,Object? visibility = null,Object? enableTrips = null,Object? enableAds = null,Object? enablePosts = null,Object? enableRides = null,Object? enableRoutes = null,Object? memberCount = null,Object? createdAt = null,Object? pages = freezed,Object? role = freezed,Object? geometry = freezed,}) {
   return _then(_TeamDetailDto(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as String,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
@@ -349,6 +361,9 @@ as String,about: null == about ? _self.about : about // ignore: cast_nullable_to
 as MediaDto,visibility: null == visibility ? _self.visibility : visibility // ignore: cast_nullable_to_non_nullable
 as String,enableTrips: null == enableTrips ? _self.enableTrips : enableTrips // ignore: cast_nullable_to_non_nullable
 as bool,enableAds: null == enableAds ? _self.enableAds : enableAds // ignore: cast_nullable_to_non_nullable
+as bool,enablePosts: null == enablePosts ? _self.enablePosts : enablePosts // ignore: cast_nullable_to_non_nullable
+as bool,enableRides: null == enableRides ? _self.enableRides : enableRides // ignore: cast_nullable_to_non_nullable
+as bool,enableRoutes: null == enableRoutes ? _self.enableRoutes : enableRoutes // ignore: cast_nullable_to_non_nullable
 as bool,memberCount: null == memberCount ? _self.memberCount : memberCount // ignore: cast_nullable_to_non_nullable
 as int,createdAt: null == createdAt ? _self.createdAt : createdAt // ignore: cast_nullable_to_non_nullable
 as String,pages: freezed == pages ? _self._pages : pages // ignore: cast_nullable_to_non_nullable

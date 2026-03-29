@@ -31,6 +31,11 @@ public class PostAccessChecker implements AccessChecker {
     User user = context.user();
     TeamRole teamRole = context.teamRole();
 
+    // Check if posts are enabled for the team
+    if (team != null && !team.isEnablePosts() && action != ActionType.READ) {
+      return false;
+    }
+
     return switch (action) {
       case CREATE -> teamRole != null && teamRole.isOrganizer();
       case READ, UPDATE, DELETE -> {

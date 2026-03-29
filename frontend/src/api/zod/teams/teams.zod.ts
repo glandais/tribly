@@ -197,6 +197,9 @@ export const ListTeamsResponse = zod
             visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Whether the team is public'),
             enableTrips: zod.boolean().describe('Trips enabled'),
             enableAds: zod.boolean().describe('Ads enabled'),
+            enablePosts: zod.boolean().describe('Posts enabled'),
+            enableRides: zod.boolean().describe('Rides enabled'),
+            enableRoutes: zod.boolean().describe('Routes enabled'),
             memberCount: zod.number().describe('Number of team members'),
             role: zod
               .enum(['MEMBER', 'ORGANIZER', 'ADMIN'])
@@ -386,6 +389,9 @@ export const CreateTeamBody = zod
     visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Team visibility'),
     enableTrips: zod.boolean().describe('Trips enabled for team'),
     enableAds: zod.boolean().describe('Ads enabled for team'),
+    enablePosts: zod.boolean().describe('Posts enabled for team'),
+    enableRides: zod.boolean().describe('Rides enabled for team'),
+    enableRoutes: zod.boolean().describe('Routes enabled for team'),
     geometry: zod
       .object({
         type: zod.enum(['Point']),
@@ -566,6 +572,9 @@ export const UpdateTeamBody = zod
     visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Team visibility'),
     enableTrips: zod.boolean().describe('Trips enabled for team'),
     enableAds: zod.boolean().describe('Ads enabled for team'),
+    enablePosts: zod.boolean().describe('Posts enabled for team'),
+    enableRides: zod.boolean().describe('Rides enabled for team'),
+    enableRoutes: zod.boolean().describe('Routes enabled for team'),
     geometry: zod
       .object({
         type: zod.enum(['Point']),
@@ -745,6 +754,9 @@ export const UpdateTeamResponse = zod
     visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Whether the team is public'),
     enableTrips: zod.boolean().describe('Trips enabled'),
     enableAds: zod.boolean().describe('Ads enabled'),
+    enablePosts: zod.boolean().describe('Posts enabled'),
+    enableRides: zod.boolean().describe('Rides enabled'),
+    enableRoutes: zod.boolean().describe('Routes enabled'),
     memberCount: zod.number().describe('Number of team members'),
     role: zod
       .enum(['MEMBER', 'ORGANIZER', 'ADMIN'])
@@ -938,6 +950,9 @@ export const GetTeamResponse = zod
     visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Whether the team is public'),
     enableTrips: zod.boolean().describe('Trips enabled'),
     enableAds: zod.boolean().describe('Ads enabled'),
+    enablePosts: zod.boolean().describe('Posts enabled'),
+    enableRides: zod.boolean().describe('Rides enabled'),
+    enableRoutes: zod.boolean().describe('Routes enabled'),
     memberCount: zod.number().describe('Number of team members'),
     role: zod
       .enum(['MEMBER', 'ORGANIZER', 'ADMIN'])
@@ -1153,6 +1168,9 @@ export const ChangeTeamSlugResponse = zod
     visibility: zod.enum(['TEAM', 'PUBLIC']).describe('Whether the team is public'),
     enableTrips: zod.boolean().describe('Trips enabled'),
     enableAds: zod.boolean().describe('Ads enabled'),
+    enablePosts: zod.boolean().describe('Posts enabled'),
+    enableRides: zod.boolean().describe('Rides enabled'),
+    enableRoutes: zod.boolean().describe('Routes enabled'),
     memberCount: zod.number().describe('Number of team members'),
     role: zod
       .enum(['MEMBER', 'ORGANIZER', 'ADMIN'])

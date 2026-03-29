@@ -61,6 +61,9 @@ class TeamServiceTest extends AbstractBaseTest {
             Visibility.PUBLIC,
             true,
             true,
+            true,
+            true,
+            true,
             null);
 
     queryContext.setUserForTest(user1);
@@ -78,7 +81,16 @@ class TeamServiceTest extends AbstractBaseTest {
   @Test
   void createTeam_shouldCreateAdminMembership() {
     TeamRequest request =
-        new TeamRequest("My Team", MediaDto.builder().build(), Visibility.PUBLIC, true, true, null);
+        new TeamRequest(
+            "My Team",
+            MediaDto.builder().build(),
+            Visibility.PUBLIC,
+            true,
+            true,
+            true,
+            true,
+            true,
+            null);
 
     queryContext.setUserForTest(user1);
     TeamDetailDto result = teamService.createTeam(request);
@@ -90,10 +102,26 @@ class TeamServiceTest extends AbstractBaseTest {
   void createTeam_shouldHandleSlugCollisionWithTimestamp() {
     TeamRequest request1 =
         new TeamRequest(
-            "Test Team", MediaDto.builder().build(), Visibility.PUBLIC, true, true, null);
+            "Test Team",
+            MediaDto.builder().build(),
+            Visibility.PUBLIC,
+            true,
+            true,
+            true,
+            true,
+            true,
+            null);
     TeamRequest request2 =
         new TeamRequest(
-            "Test Team", MediaDto.builder().build(), Visibility.PUBLIC, true, true, null);
+            "Test Team",
+            MediaDto.builder().build(),
+            Visibility.PUBLIC,
+            true,
+            true,
+            true,
+            true,
+            true,
+            null);
 
     queryContext.setUserForTest(user1);
     TeamDetailDto team1 = teamService.createTeam(request1);
@@ -183,6 +211,9 @@ class TeamServiceTest extends AbstractBaseTest {
             Visibility.TEAM,
             true,
             true,
+            true,
+            true,
+            true,
             null);
 
     queryContext.setUserForTest(user1);
@@ -201,6 +232,9 @@ class TeamServiceTest extends AbstractBaseTest {
             "New Name",
             MediaDto.builder().markdown("original").build(),
             Visibility.PUBLIC,
+            true,
+            true,
+            true,
             true,
             true,
             null);
@@ -222,6 +256,9 @@ class TeamServiceTest extends AbstractBaseTest {
             Visibility.PUBLIC,
             true,
             true,
+            true,
+            true,
+            true,
             null);
 
     queryContext.setUserForTest(user1);
@@ -237,7 +274,15 @@ class TeamServiceTest extends AbstractBaseTest {
     dataService.addUserToTeam(user1, team, TeamRole.MEMBER);
     TeamRequest request =
         new TeamRequest(
-            "New Name", MediaDto.builder().build(), Visibility.PUBLIC, true, true, null);
+            "New Name",
+            MediaDto.builder().build(),
+            Visibility.PUBLIC,
+            true,
+            true,
+            true,
+            true,
+            true,
+            null);
 
     queryContext.setUserForTest(user1);
     assertThrows(PedalonsException.class, () -> teamService.updateTeam(team.getSlug(), request));

@@ -140,10 +140,20 @@ public interface TeamEntityRepository<T extends TeamEntity, Q extends TeamEntity
             .and("te.deleted = false", Map.of())
             // team not deleted
             .and("te.team.deleted = false", Map.of())
-            // not trip or trip enabled
-            .and("(TYPE(te) <> Trip OR te.team.enableTrips = true)", Map.of())
+            // not trip or (trip enabled and routes enabled)
+            .and(
+                "(TYPE(te) <> Trip OR (te.team.enableTrips = true AND te.team.enableRoutes ="
+                    + " true))",
+                Map.of())
             // not ad or ad enabled
             .and("(TYPE(te) <> Ad OR te.team.enableAds = true)", Map.of())
+            // not post or post enabled
+            .and("(TYPE(te) <> Post OR te.team.enablePosts = true)", Map.of())
+            // not ride or (ride enabled and routes enabled)
+            .and(
+                "(TYPE(te) <> Ride OR (te.team.enableRides = true AND te.team.enableRoutes ="
+                    + " true))",
+                Map.of())
             .order("dateTime desc");
 
     Set<Long> teamIds = query.teamIds();

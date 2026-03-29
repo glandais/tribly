@@ -32,8 +32,10 @@ public class TripAccessChecker implements AccessChecker {
     User user = context.user();
     TeamRole teamRole = context.teamRole();
 
-    // Check if trips are enabled for the team
-    if (team != null && !team.isEnableTrips() && action != ActionType.READ) {
+    // Check if trips are enabled for the team (also disabled when routes are disabled)
+    if (team != null
+        && (!team.isEnableTrips() || !team.isEnableRoutes())
+        && action != ActionType.READ) {
       return false;
     }
 

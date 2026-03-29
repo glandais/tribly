@@ -155,9 +155,36 @@ export function TeamForm({
         />
 
         <Checkbox
+          label={t('teams.create.form.enableRoutes.label')}
+          description={t('teams.create.form.enableRoutes.hint')}
+          {...form.getInputProps('enableRoutes', { type: 'checkbox' })}
+          onChange={(e) => {
+            form.getInputProps('enableRoutes', { type: 'checkbox' }).onChange(e)
+            if (!e.currentTarget.checked) {
+              form.setFieldValue('enableRides', false)
+              form.setFieldValue('enableTrips', false)
+            }
+          }}
+        />
+
+        <Checkbox
+          label={t('teams.create.form.enableRides.label')}
+          description={t('teams.create.form.enableRides.hint')}
+          {...form.getInputProps('enableRides', { type: 'checkbox' })}
+          disabled={!form.values.enableRoutes}
+        />
+
+        <Checkbox
           label={t('teams.create.form.enableTrips.label')}
           description={t('teams.create.form.enableTrips.hint')}
           {...form.getInputProps('enableTrips', { type: 'checkbox' })}
+          disabled={!form.values.enableRoutes}
+        />
+
+        <Checkbox
+          label={t('teams.create.form.enablePosts.label')}
+          description={t('teams.create.form.enablePosts.hint')}
+          {...form.getInputProps('enablePosts', { type: 'checkbox' })}
         />
 
         <Checkbox

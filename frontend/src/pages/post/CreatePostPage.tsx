@@ -34,6 +34,10 @@ export function CreatePostPage() {
     return <Navigate to={paths.teams()} replace />
   }
 
+  if (!team.enablePosts) {
+    return <Navigate to={paths.team(teamSlug!)} replace />
+  }
+
   const canCreate = team.role === 'ADMIN' || team.role === 'ORGANIZER'
 
   if (!canCreate) {

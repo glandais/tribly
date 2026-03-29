@@ -26,6 +26,12 @@ public record TeamRequest(
         boolean enableTrips,
     @Schema(description = "Ads enabled for team", examples = "true", required = true)
         boolean enableAds,
+    @Schema(description = "Posts enabled for team", examples = "true", required = true)
+        boolean enablePosts,
+    @Schema(description = "Rides enabled for team", examples = "true", required = true)
+        boolean enableRides,
+    @Schema(description = "Routes enabled for team", examples = "true", required = true)
+        boolean enableRoutes,
     @Schema(
             description = "Team location coordinates [longitude, latitude]",
             implementation = GeoJsonPoint.class)

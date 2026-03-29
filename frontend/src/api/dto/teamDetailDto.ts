@@ -25,6 +25,12 @@ export interface TeamDetailDto {
   enableTrips: boolean
   /** Ads enabled */
   enableAds: boolean
+  /** Posts enabled */
+  enablePosts: boolean
+  /** Rides enabled */
+  enableRides: boolean
+  /** Routes enabled */
+  enableRoutes: boolean
   /** Number of team members */
   memberCount: number
   /** Current user's role (null if not a member) */

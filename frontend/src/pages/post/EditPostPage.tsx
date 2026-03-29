@@ -42,6 +42,10 @@ export function EditPostPage() {
     return <Navigate to={paths.team(teamSlug!)} replace />
   }
 
+  if (!team.enablePosts) {
+    return <Navigate to={paths.team(teamSlug!)} replace />
+  }
+
   const canEdit = team.role === 'ADMIN' || team.role === 'ORGANIZER'
 
   if (!canEdit) {

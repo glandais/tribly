@@ -43,6 +43,10 @@ export function EditRidePage() {
     return <Navigate to={paths.team(teamSlug!)} replace />
   }
 
+  if (!team.enableRides || !team.enableRoutes) {
+    return <Navigate to={paths.team(teamSlug!)} replace />
+  }
+
   const canEdit = team.role === 'ADMIN' || team.role === 'ORGANIZER'
 
   if (!canEdit) {
