@@ -52,7 +52,11 @@ generate_karoo() {
     local size="${SIZES[$density]}"
     local out_dir="$RES/mipmap-$density"
     mkdir -p "$out_dir"
-    svg_to_png "$size" "$out_dir/ic_launcher.png"
+    local TMP_KAROO
+    TMP_KAROO=$(mktemp /tmp/icon_karoo_XXXX.png)
+    svg_to_png "$size" "$TMP_KAROO"
+    convert "$TMP_KAROO" -background "#228be6" -alpha remove -alpha off "$out_dir/ic_launcher.png"
+    rm "$TMP_KAROO"
     echo "  mipmap-$density/ic_launcher.png (${size}x${size})"
   done
 }
@@ -64,8 +68,8 @@ generate_garmin() {
   local TMP
   TMP=$(mktemp /tmp/icon_garmin_XXXX.png)
   svg_to_png 60 "$TMP"
-  # Strip alpha, convert to 16-bit RGB as Garmin Connect IQ requires
-  convert "$TMP" -depth 16 -type TrueColor "$DRAWABLES/launcher_icon.png"
+  # Flatten alpha onto brand background color, convert to 16-bit RGB as Garmin Connect IQ requires
+  convert "$TMP" -background "#228be6" -alpha remove -alpha off -depth 16 -type TrueColor "$DRAWABLES/launcher_icon.png"
   rm "$TMP"
   echo "  launcher_icon.png (60x60, 16-bit RGB)"
 }
