@@ -9,25 +9,25 @@ importers:
   .:
     dependencies:
       '@mantine/core':
-        specifier: 9.0.0-alpha.7
+        specifier: ^9.0.0-alpha.7
         version: 9.0.0-alpha.7(@mantine/hooks@9.0.0-alpha.7(react@19.2.4))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@mantine/dates':
-        specifier: 9.0.0-alpha.7
+        specifier: ^9.0.0-alpha.7
         version: 9.0.0-alpha.7(@mantine/core@9.0.0-alpha.7(@mantine/hooks@9.0.0-alpha.7(react@19.2.4))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(@mantine/hooks@9.0.0-alpha.7(react@19.2.4))(dayjs@1.11.20)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@mantine/form':
-        specifier: 9.0.0-alpha.7
+        specifier: ^9.0.0-alpha.7
         version: 9.0.0-alpha.7(react@19.2.4)
       '@mantine/hooks':
-        specifier: 9.0.0-alpha.7
+        specifier: ^9.0.0-alpha.7
         version: 9.0.0-alpha.7(react@19.2.4)
       '@mantine/notifications':
-        specifier: 9.0.0-alpha.7
+        specifier: ^9.0.0-alpha.7
         version: 9.0.0-alpha.7(@mantine/core@9.0.0-alpha.7(@mantine/hooks@9.0.0-alpha.7(react@19.2.4))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(@mantine/hooks@9.0.0-alpha.7(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@mantine/schedule':
-        specifier: 9.0.0-alpha.7
+        specifier: ^9.0.0-alpha.7
         version: 9.0.0-alpha.7(@mantine/core@9.0.0-alpha.7(@mantine/hooks@9.0.0-alpha.7(react@19.2.4))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(@mantine/dates@9.0.0-alpha.7(@mantine/core@9.0.0-alpha.7(@mantine/hooks@9.0.0-alpha.7(react@19.2.4))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(@mantine/hooks@9.0.0-alpha.7(react@19.2.4))(dayjs@1.11.20)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(@mantine/hooks@9.0.0-alpha.7(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@mantine/tiptap':
-        specifier: 9.0.0-alpha.7
+        specifier: ^9.0.0-alpha.7
         version: 9.0.0-alpha.7(@mantine/core@9.0.0-alpha.7(@mantine/hooks@9.0.0-alpha.7(react@19.2.4))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(@mantine/hooks@9.0.0-alpha.7(react@19.2.4))(@tiptap/extension-link@3.21.0(@tiptap/core@3.21.0(@tiptap/pm@3.21.0))(@tiptap/pm@3.21.0))(@tiptap/react@3.21.0(@floating-ui/dom@1.7.6)(@tiptap/core@3.21.0(@tiptap/pm@3.21.0))(@tiptap/pm@3.21.0)(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.4(react@19.2.4))(react@19.2.4))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@simplewebauthn/browser':
         specifier: ^13.3.0
@@ -6172,7 +6172,7 @@ snapshots:
 
   dom-helpers@5.2.1:
     dependencies:
-      '@babel/runtime': 7.28.6
+      '@babel/runtime': 7.29.2
       csstype: 3.2.3
 
   dunder-proto@1.0.1:
@@ -7867,7 +7867,7 @@ snapshots:
 
   react-transition-group@4.4.5(react-dom@19.2.4(react@19.2.4))(react@19.2.4):
     dependencies:
-      '@babel/runtime': 7.28.6
+      '@babel/runtime': 7.29.2
       dom-helpers: 5.2.1
       loose-envify: 1.4.0
       prop-types: 15.8.1
