@@ -20,7 +20,8 @@
     "generate-api": "rm -rf src/api && orval --config orval.config.js && pnpm format",
     "i18n:lint": "i18next-cli lint",
     "i18n:status": "i18next-cli status",
-    "i18n:extract": "i18next-cli extract"
+    "i18n:extract": "i18next-cli extract",
+    "generate-icons": "pwa-assets-generator --config pwa-assets.config.ts"
   },
   "dependencies": {
     "@mantine/schedule": "^9.0.0-alpha.7",
@@ -72,6 +73,7 @@
     "zustand": "^5.0.12"
   },
   "devDependencies": {
+    "@vite-pwa/assets-generator": "^1.0.2",
     "@eslint/js": "^9.39.2",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.2",
