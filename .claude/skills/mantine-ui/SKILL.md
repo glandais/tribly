@@ -59,7 +59,7 @@ const theme = createTheme({
 | `Box` | Generic wrapper | All style props |
 | `SimpleGrid` | Responsive grid | `cols={{ base: 1, sm: 2, lg: 3 }}` |
 | `Center` | Center content | `mih` for min-height |
-| `Collapse` | Collapsible content | `in={isOpen}` |
+| `Collapse` | Collapsible content | `expanded={isOpen}` |
 
 ```tsx
 // Common page layout

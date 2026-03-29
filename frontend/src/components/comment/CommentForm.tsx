@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { useForm } from '@mantine/form'
-import { zod4Resolver } from 'mantine-form-zod-resolver'
+import { zodFormValidator } from '@/lib/formUtils'
 import { z } from 'zod'
 import { Group, Textarea, Button, ActionIcon, Stack, Loader } from '@mantine/core'
 import { IconSend } from '@tabler/icons-react'
@@ -29,7 +29,7 @@ export function CommentForm({
   const { t } = useTranslation()
 
   const form = useForm<CommentFormValues>({
-    validate: zod4Resolver(commentSchema),
+    validate: zodFormValidator(commentSchema),
     initialValues: { content: '' },
     validateInputOnChange: true,
   })

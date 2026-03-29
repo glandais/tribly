@@ -80,7 +80,7 @@ export function RouteFilterPanel({
         )}
       </Group>
 
-      <Collapse in={isOpen}>
+      <Collapse expanded={isOpen}>
         <Paper withBorder p="md" mb="md">
           <SearchInput
             id="routes-search"

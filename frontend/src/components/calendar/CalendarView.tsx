@@ -1,16 +1,10 @@
-import { useCallback, useMemo, useRef } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import FullCalendar from '@fullcalendar/react'
-import dayGridPlugin from '@fullcalendar/daygrid'
-import multimonthPlugin from '@fullcalendar/multimonth'
-import timeGridPlugin from '@fullcalendar/timegrid'
-import interactionPlugin from '@fullcalendar/interaction'
-import classicThemePlugin from '@fullcalendar/theme-classic'
-import type { LocaleInput, EventClickData, DatesSetData } from '@fullcalendar/core'
-import frLocale from '@fullcalendar/core/locales/fr'
-import enLocale from '@fullcalendar/core/locales/en-gb'
+import { Schedule } from '@mantine/schedule'
+import type { ScheduleEventData, ScheduleLabelsOverride, ScheduleViewLevel } from '@mantine/schedule'
 import { LoadingOverlay, Box } from '@mantine/core'
+import dayjs from 'dayjs'
 import { paths } from '@/config/paths'
 import type { CalendarEventDto, CalendarEventType } from '@/api/dto'
 
@@ -25,13 +19,12 @@ const EVENT_COLORS: Record<CalendarEventType, string> = {
   TRIP_STAGE: '#40c057',
 }
 
-const locales: Record<'fr' | 'en', LocaleInput> = {
-  fr: frLocale,
-  en: enLocale,
-}
-
-function getLocale(lang: string): LocaleInput {
-  return lang in locales ? locales[lang as keyof typeof locales] : enLocale
+function getVisibleRange(date: string, view: ScheduleViewLevel): { start: Date; end: Date } {
+  const d = dayjs(date)
+  if (view === 'year') {
+    return { start: d.startOf('year').toDate(), end: d.endOf('year').toDate() }
+  }
+  return { start: d.startOf('month').toDate(), end: d.endOf('month').toDate() }
 }
 
 export function CalendarView({
@@ -40,80 +33,90 @@ export function CalendarView({
   onDateRangeChange,
 }: CalendarViewProps): React.ReactElement {
   const navigate = useNavigate()
-  const { i18n } = useTranslation()
-  const calendarRef = useRef<FullCalendar>(null)
+  const { t, i18n } = useTranslation()
+
+  const labels = useMemo<ScheduleLabelsOverride>(
+    () => ({
+      today: t('calendar.schedule.today'),
+      next: t('calendar.schedule.next'),
+      previous: t('calendar.schedule.previous'),
+      day: t('calendar.schedule.day'),
+      week: t('calendar.schedule.week'),
+      month: t('calendar.schedule.month'),
+      year: t('calendar.schedule.year'),
+      allDay: t('calendar.schedule.allDay'),
+      weekday: t('calendar.schedule.weekday'),
+      timeSlot: t('calendar.schedule.timeSlot'),
+      selectMonth: t('calendar.schedule.selectMonth'),
+      selectYear: t('calendar.schedule.selectYear'),
+      switchToDayView: t('calendar.schedule.switchToDayView'),
+      switchToWeekView: t('calendar.schedule.switchToWeekView'),
+      switchToMonthView: t('calendar.schedule.switchToMonthView'),
+      switchToYearView: t('calendar.schedule.switchToYearView'),
+      viewSelectLabel: t('calendar.schedule.viewSelectLabel'),
+      noEvents: t('calendar.schedule.noEvents'),
+      moreLabel: (count) => t('calendar.schedule.moreLabel', { count }),
+    }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [t, i18n.language]
+  )
+
+  const [view, setView] = useState<ScheduleViewLevel>('month')
+  const [date, setDate] = useState(dayjs().format('YYYY-MM-DD'))
+
+  useEffect(() => {
+    const { start, end } = getVisibleRange(date, view)
+    onDateRangeChange(start, end)
+  }, [date, view]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const scheduleEvents = useMemo<ScheduleEventData[]>(
+    () =>
+      events.map((event) => ({
+        id: event.id,
+        title: event.title,
+        start: dayjs(event.start).format('YYYY-MM-DD HH:mm:ss'),
+        end: dayjs(event.end ?? event.start).format('YYYY-MM-DD HH:mm:ss'),
+        color: EVENT_COLORS[event.type],
+      })),
+    [events]
+  )
+
+  const eventMap = useMemo(
+    () => new Map(events.map((e) => [String(e.id), e])),
+    [events]
+  )
 
   const handleEventClick = useCallback(
-    (info: EventClickData) => {
-      const event = info.event.extendedProps as CalendarEventDto
-      switch (event.type) {
+    (event: ScheduleEventData) => {
+      const original = eventMap.get(String(event.id))
+      if (!original) return
+      switch (original.type) {
         case 'RIDE':
-          navigate(paths.ride(event.teamSlug, event.entitySlug))
+          navigate(paths.ride(original.teamSlug, original.entitySlug))
           break
         case 'TRIP_STAGE':
-          if (event.tripSlug) {
-            navigate(paths.stage(event.teamSlug, event.tripSlug, event.entitySlug))
+          if (original.tripSlug) {
+            navigate(paths.stage(original.teamSlug, original.tripSlug, original.entitySlug))
           }
           break
       }
     },
-    [navigate]
-  )
-
-  const handleDatesSet = useCallback(
-    (arg: DatesSetData) => {
-      onDateRangeChange(arg.start, arg.end)
-    },
-    [onDateRangeChange]
-  )
-
-  const fullCalendarEvents = useMemo(
-    () =>
-      events.map((event) => {
-        const color = EVENT_COLORS[event.type]
-        return {
-          id: event.id,
-          title: event.title,
-          start: event.start,
-          end: event.end ?? undefined,
-          allDay: event.allDay,
-          backgroundColor: color,
-          borderColor: color,
-          extendedProps: event,
-        }
-      }),
-    [events]
+    [eventMap, navigate]
   )
 
   return (
     <Box pos="relative">
       <LoadingOverlay visible={isLoading} />
-      <FullCalendar
-        ref={calendarRef}
-        plugins={[
-          multimonthPlugin,
-          dayGridPlugin,
-          timeGridPlugin,
-          interactionPlugin,
-          classicThemePlugin,
-        ]}
-        initialView="dayGridMonth"
-        headerToolbar={{
-          left: 'prev,today,next',
-          center: 'title',
-          right: 'multiMonthYear,dayGridMonth',
-        }}
-        events={fullCalendarEvents}
-        eventClick={handleEventClick}
-        datesSet={handleDatesSet}
-        locale={getLocale(i18n.language)}
-        firstDay={1}
-        height="auto"
-        eventTimeFormat={{
-          hour: '2-digit',
-          minute: '2-digit',
-          hour12: false,
-        }}
+      <Schedule
+        events={scheduleEvents}
+        view={view}
+        onViewChange={setView}
+        date={date}
+        onDateChange={setDate}
+        onEventClick={handleEventClick}
+        locale={i18n.language}
+        labels={labels}
+        monthViewProps={{ firstDayOfWeek: 1 }}
       />
     </Box>
   )
