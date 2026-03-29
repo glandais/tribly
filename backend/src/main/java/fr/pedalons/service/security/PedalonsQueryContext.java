@@ -10,6 +10,7 @@ import fr.pedalons.domain.team.UserTeam;
 import fr.pedalons.domain.user.User;
 import fr.pedalons.enums.TeamRole;
 import fr.pedalons.repository.auth.AuthSessionRepository;
+import fr.pedalons.repository.platform.DomainRepository;
 import fr.pedalons.repository.team.UserTeamRepository;
 import fr.pedalons.repository.user.UserRepository;
 import fr.pedalons.service.team.TeamService;
@@ -35,7 +36,7 @@ public class PedalonsQueryContext {
 
   @Inject DomainResolver domainResolver;
 
-  @Inject fr.pedalons.repository.platform.DomainRepository domainRepository;
+  @Inject DomainRepository domainRepository;
 
   @Nullable User user;
 

@@ -29,6 +29,9 @@ export default defineConfig({
       client: 'zod',
       target: 'src/api/zod',
       fileExtension: '.zod.ts',
+      override: {
+        header: false,
+      }
     },
   },
 });

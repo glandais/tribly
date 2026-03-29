@@ -2,7 +2,11 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Schedule } from '@mantine/schedule'
-import type { ScheduleEventData, ScheduleLabelsOverride, ScheduleViewLevel } from '@mantine/schedule'
+import type {
+  ScheduleEventData,
+  ScheduleLabelsOverride,
+  ScheduleViewLevel,
+} from '@mantine/schedule'
 import { LoadingOverlay, Box } from '@mantine/core'
 import dayjs from 'dayjs'
 import { paths } from '@/config/paths'
@@ -81,10 +85,7 @@ export function CalendarView({
     [events]
   )
 
-  const eventMap = useMemo(
-    () => new Map(events.map((e) => [String(e.id), e])),
-    [events]
-  )
+  const eventMap = useMemo(() => new Map(events.map((e) => [String(e.id), e])), [events])
 
   const handleEventClick = useCallback(
     (event: ScheduleEventData) => {

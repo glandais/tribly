@@ -137,7 +137,16 @@ export function TeamLayout({ team, currentTab, children }: TeamLayoutProps) {
     }))
 
     return [...baseTabs, ...pageTabs]
-  }, [team.slug, team.pages, team.enableAds, team.enableRoutes, team.enableRides, team.enableTrips, isMember, t])
+  }, [
+    team.slug,
+    team.pages,
+    team.enableAds,
+    team.enableRoutes,
+    team.enableRides,
+    team.enableTrips,
+    isMember,
+    t,
+  ])
 
   return (
     <Stack>
