@@ -1,6 +1,9 @@
 import { useState, useCallback } from 'react'
 import type { ListRoutesParams, ListAllRoutesParams } from '@/api/dto'
-import { DEFAULT_ROUTE_SORT_BY, DEFAULT_ROUTE_SORT_DIR } from '../components/route/RouteFilterPanel'
+import {
+  DEFAULT_ROUTE_SORT_BY,
+  DEFAULT_ROUTE_SORT_DIR,
+} from '../components/route/routeFilterDefaults'
 
 type RouteFilters = ListRoutesParams | ListAllRoutesParams
 

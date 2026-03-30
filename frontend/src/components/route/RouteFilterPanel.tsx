@@ -6,11 +6,9 @@ import { Hilliness, SurfaceType, WindDirection, RouteSortBy, SortDirection } fro
 import type { ListRoutesParams } from '@/api/dto'
 import { SearchInput } from '../common/SearchInput'
 import { useUnits } from '@/hooks/useUnits'
+import { DEFAULT_ROUTE_SORT_BY, DEFAULT_ROUTE_SORT_DIR } from './routeFilterDefaults'
 
 const NONE_VALUE = '_none'
-
-export const DEFAULT_ROUTE_SORT_BY = RouteSortBy.DATE_TIME
-export const DEFAULT_ROUTE_SORT_DIR = SortDirection.DESC
 
 interface RouteFilterPanelProps {
   filters: ListRoutesParams
