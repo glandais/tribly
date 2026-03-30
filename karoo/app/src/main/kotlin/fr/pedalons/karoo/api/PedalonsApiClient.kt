@@ -50,7 +50,7 @@ class PedalonsApiClient(
         if (response.status.isSuccess()) {
             response.body<DeviceCodeResponse>()
         } else {
-            throw ApiException(response.status.value, response.bodyAsText())
+            throw ApiException( response.bodyAsText())
         }
     }
 
@@ -68,10 +68,10 @@ class PedalonsApiClient(
                 when (error.code) {
                     "AUTHORIZATION_PENDING" -> throw AuthorizationPendingException()
                     "TOKEN_EXPIRED" -> throw TokenExpiredException()
-                    else -> throw ApiException(400, error.message ?: "Bad request")
+                    else -> throw ApiException(error.message ?: "Bad request")
                 }
             }
-            else -> throw ApiException(response.status.value, response.bodyAsText())
+            else -> throw ApiException(response.bodyAsText())
         }
     }
 
@@ -85,7 +85,7 @@ class PedalonsApiClient(
         if (response.status.isSuccess()) {
             response.body<TokenResponse>()
         } else {
-            throw ApiException(response.status.value, response.bodyAsText())
+            throw ApiException(response.bodyAsText())
         }
     }
 
@@ -100,7 +100,7 @@ class PedalonsApiClient(
         } else if (response.status.value == 401) {
             throw UnauthorizedException()
         } else {
-            throw ApiException(response.status.value, response.bodyAsText())
+            throw ApiException(response.bodyAsText())
         }
     }
 
@@ -123,7 +123,7 @@ class PedalonsApiClient(
         } else if (response.status.value == 401) {
             throw UnauthorizedException()
         } else {
-            throw ApiException(response.status.value, response.bodyAsText())
+            throw ApiException(response.bodyAsText())
         }
     }
 
@@ -140,7 +140,7 @@ class PedalonsApiClient(
         } else if (response.status.value == 401) {
             throw UnauthorizedException()
         } else {
-            throw ApiException(response.status.value, response.bodyAsText())
+            throw ApiException(response.bodyAsText())
         }
     }
 
@@ -150,7 +150,7 @@ class PedalonsApiClient(
 }
 
 // Exceptions
-class ApiException(val statusCode: Int, message: String) : Exception(message)
+class ApiException(message: String) : Exception(message)
 class AuthorizationPendingException : Exception("Authorization pending")
 class TokenExpiredException : Exception("Token expired")
 class UnauthorizedException : Exception("Unauthorized")

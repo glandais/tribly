@@ -1,11 +1,11 @@
 package fr.pedalons.karoo
 
 import android.content.Context
+import androidx.compose.ui.focus.focusProperties
 import android.content.Intent
 import android.os.Bundle
 import android.text.format.DateFormat
 import android.view.KeyEvent
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
@@ -24,7 +24,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -42,6 +41,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Refresh
+
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.runtime.Composable
@@ -84,6 +84,9 @@ private const val METERS_PER_MILE = 1609.344
 private const val METERS_PER_FOOT = 0.3048
 private const val METERS_PER_KM = 1000.0
 
+// Sync feedback state
+enum class SyncState { IDLE, SYNCING, SUCCESS, ERROR }
+
 // Navigation state machine
 sealed class NavState {
     object Home : NavState()
@@ -116,8 +119,6 @@ class MainActivity : ComponentActivity() {
     private var userProfileConsumerId: String? = null
 
     // Navigation state accessible from key events
-    internal var navState: NavState = NavState.Home
-    internal var selectedIndex: Int = 0
     internal var onNavigationChanged: ((Int) -> Unit)? = null
     internal var onSelectRequested: (() -> Unit)? = null
     internal var onBackRequested: (() -> Unit)? = null
@@ -243,7 +244,7 @@ private fun MainScreen(
     var routesResponse by remember { mutableStateOf<RoutesResponse?>(null) }
     var isLoading by remember { mutableStateOf(true) }
     var error by remember { mutableStateOf<String?>(null) }
-    var syncingRouteId by remember { mutableStateOf<String?>(null) }
+    var syncState by remember { mutableStateOf(SyncState.IDLE) }
 
     // Navigation state
     var navState by remember { mutableStateOf<NavState>(NavState.Home) }
@@ -260,11 +261,13 @@ private fun MainScreen(
         navStack.add(navState)
         navState = target
         selectedIndex = 0
+        syncState = SyncState.IDLE
     }
     val navigateBack: () -> Unit = {
         if (navStack.isNotEmpty()) {
-            navState = navStack.removeLast()
+            navState = navStack.removeAt(navStack.lastIndex)
             selectedIndex = 0
+            syncState = SyncState.IDLE
         } else {
             activity.finish()
         }
@@ -339,10 +342,10 @@ private fun MainScreen(
                     }
                 }
                 is NavState.RouteDetail -> {
-                    // Sync route
-                    scope.launch {
-                        syncRoute(activity, apiClient, authManager, state.teamSlug, state.routeSlug) { syncing ->
-                            syncingRouteId = if (syncing) "${state.teamSlug}/${state.routeSlug}" else null
+                    if (syncState != SyncState.SYNCING) {
+                        scope.launch {
+                            syncState = SyncState.SYNCING
+                            syncState = syncRoute(apiClient, authManager, state.teamSlug, state.routeSlug)
                         }
                     }
                 }
@@ -451,7 +454,6 @@ private fun MainScreen(
             }
             error != null && !isLoading -> {
                 ErrorScreen(
-                    message = error!!,
                     onRetry = {
                         isLoading = true
                         error = null
@@ -484,13 +486,14 @@ private fun MainScreen(
                         listState = listState,
                         response = response,
                         userProfile = userProfile,
-                        syncingRouteId = syncingRouteId,
+                        syncState = syncState,
                         onNavigateTo = navigateTo,
                         onBack = navigateBack,
                         onSync = { teamSlug, routeSlug ->
-                            scope.launch {
-                                syncRoute(activity, apiClient, authManager, teamSlug, routeSlug) { syncing ->
-                                    syncingRouteId = if (syncing) "$teamSlug/$routeSlug" else null
+                            if (syncState != SyncState.SYNCING) {
+                                scope.launch {
+                                    syncState = SyncState.SYNCING
+                                    syncState = syncRoute(apiClient, authManager, teamSlug, routeSlug)
                                 }
                             }
                         },
@@ -533,7 +536,7 @@ private fun NavigationContent(
     listState: LazyListState,
     response: RoutesResponse,
     userProfile: UserProfile?,
-    syncingRouteId: String?,
+    syncState: SyncState,
     onNavigateTo: (NavState) -> Unit,
     onBack: () -> Unit,
     onSync: (String, String) -> Unit,
@@ -616,7 +619,7 @@ private fun NavigationContent(
             RouteDetailScreen(
                 detail = navState,
                 userProfile = userProfile,
-                isSyncing = syncingRouteId == "${navState.teamSlug}/${navState.routeSlug}",
+                syncState = syncState,
                 onSync = { onSync(navState.teamSlug, navState.routeSlug) },
                 onBack = onBack
             )
@@ -739,6 +742,7 @@ private fun HomeMenuItem(
             .fillMaxWidth()
             .padding(horizontal = 8.dp, vertical = 4.dp)
             .then(borderModifier)
+            .focusProperties { canFocus = false }
             .clickable(onClick = onClick),
         color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
         shape = MaterialTheme.shapes.medium
@@ -831,6 +835,7 @@ private fun RideListScreen(
                                 .fillMaxWidth()
                                 .padding(horizontal = 8.dp, vertical = 4.dp)
                                 .then(borderModifier)
+                                .focusProperties { canFocus = false }
                                 .clickable { onSelectRide(ride) },
                             color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
                             shape = MaterialTheme.shapes.medium
@@ -929,6 +934,7 @@ private fun RideEntriesScreen(
                             .fillMaxWidth()
                             .padding(horizontal = 8.dp, vertical = 4.dp)
                             .then(borderModifier)
+                            .focusProperties { canFocus = false }
                             .clickable { onSelectEntry(entry) },
                         color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
                         shape = MaterialTheme.shapes.medium
@@ -1035,6 +1041,7 @@ private fun StandaloneRouteListScreen(
                                 .fillMaxWidth()
                                 .padding(horizontal = 8.dp, vertical = 4.dp)
                                 .then(borderModifier)
+                                .focusProperties { canFocus = false }
                                 .clickable { onSelectRoute(route) },
                             color = if (isSelected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant,
                             shape = MaterialTheme.shapes.medium
@@ -1087,7 +1094,7 @@ private fun StandaloneRouteListScreen(
 private fun RouteDetailScreen(
     detail: NavState.RouteDetail,
     userProfile: UserProfile?,
-    isSyncing: Boolean,
+    syncState: SyncState,
     onSync: () -> Unit,
     onBack: () -> Unit
 ) {
@@ -1142,18 +1149,36 @@ private fun RouteDetailScreen(
                         )
                     }
                     Spacer(modifier = Modifier.height(24.dp))
-                    if (isSyncing) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(32.dp),
-                            strokeWidth = 3.dp,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    } else {
-                        Text(
-                            text = stringResource(R.string.route_detail_sync),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                    when (syncState) {
+                        SyncState.SYNCING -> {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(32.dp),
+                                strokeWidth = 3.dp,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                        SyncState.SUCCESS -> {
+                            Text(
+                                text = stringResource(R.string.route_synced),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.primary,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                        SyncState.ERROR -> {
+                            Text(
+                                text = stringResource(R.string.route_sync_error),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        }
+                        SyncState.IDLE -> {
+                            Text(
+                                text = stringResource(R.string.route_detail_sync),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                 }
             }
@@ -1201,7 +1226,7 @@ private fun ConnectScreen(onConnect: () -> Unit, onBack: () -> Unit) {
 }
 
 @Composable
-private fun ErrorScreen(message: String, onRetry: () -> Unit, onBack: () -> Unit) {
+private fun ErrorScreen(onRetry: () -> Unit, onBack: () -> Unit) {
     ScreenWithOverlay(onBack = onBack) {
         Box(
             modifier = Modifier.fillMaxSize(),
@@ -1251,6 +1276,7 @@ private fun BackButton(
         contentDescription = stringResource(R.string.back),
         modifier = modifier
             .size(54.dp)
+            .focusProperties { canFocus = false }
             .clickable(onClick = onClick)
     )
 }
@@ -1265,6 +1291,7 @@ private fun SyncButton(
         contentDescription = stringResource(R.string.sync),
         modifier = modifier
             .size(54.dp)
+            .focusProperties { canFocus = false }
             .clickable(onClick = onClick)
     )
 }
@@ -1392,7 +1419,7 @@ private fun formatDateTime(context: Context, isoDateTime: String?): String? {
         }
 
         "${localDateTime.format(dateFormatter)} ${localDateTime.format(timeFormatter)}"
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         null
     }
 }
@@ -1446,35 +1473,24 @@ private suspend fun loadRoutesResponse(
         return
     }
 
-    apiClient.getRoutes(accessToken!!)
+    apiClient.getRoutes(accessToken)
         .let { onResult(it) }
 }
 
 private suspend fun syncRoute(
-    context: Context,
     apiClient: PedalonsApiClient,
     authManager: AuthManager,
     teamSlug: String,
-    routeSlug: String,
-    onSyncing: (Boolean) -> Unit
-) {
-    onSyncing(true)
-
+    routeSlug: String
+): SyncState {
     val accessToken = authManager.getValidAccessToken()
-    if (accessToken == null) {
-        onSyncing(false)
-        return
-    }
+        ?: return SyncState.ERROR
 
-    apiClient.syncRoute(accessToken, teamSlug, routeSlug)
-        .onSuccess {
-            Toast.makeText(context, R.string.route_synced, Toast.LENGTH_SHORT).show()
-        }
-        .onFailure {
-            Toast.makeText(context, R.string.route_sync_error, Toast.LENGTH_SHORT).show()
-        }
-
-    onSyncing(false)
+    return apiClient.syncRoute(accessToken, teamSlug, routeSlug)
+        .fold(
+            onSuccess = { SyncState.SUCCESS },
+            onFailure = { SyncState.ERROR }
+        )
 }
 
 private suspend fun checkAndPromptGpsConnection(
@@ -1504,7 +1520,7 @@ private suspend fun checkAndPromptGpsConnection(
         return
     }
 
-    apiClient.getUserStatus(accessToken!!)
+    apiClient.getUserStatus(accessToken)
         .onSuccess { status ->
             if (status.isHammerheadConnected()) {
                 onResult(true)

@@ -2,6 +2,6 @@
 <ExtensionInfo
     id="pedalons"
     displayName="Pédalons"
-    icon="@drawable/ic_pedalons"
+    icon="@mipmap/ic_launcher"
     scansDevices="false">
 </ExtensionInfo>

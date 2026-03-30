@@ -39,8 +39,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.google.zxing.BarcodeFormat
-import com.google.zxing.qrcode.QRCodeWriter
 import fr.pedalons.karoo.R
 import fr.pedalons.karoo.api.PedalonsApiClient
 import fr.pedalons.karoo.api.UnauthorizedException
@@ -151,7 +149,7 @@ private fun GpsConnectScreen(
     val context = LocalContext.current
 
     val qrBitmap = remember(profileUrl) {
-        generateQrCode(profileUrl, 140)
+        generateQrCode(profileUrl)
     }
 
     Surface(
@@ -305,7 +303,7 @@ private suspend fun checkHammerheadConnection(
         return
     }
 
-    apiClient.getUserStatus(accessToken!!)
+    apiClient.getUserStatus(accessToken)
         .onSuccess { status ->
             if (status.isHammerheadConnected()) {
                 onSuccess()
@@ -320,20 +318,4 @@ private suspend fun checkHammerheadConnection(
                 onError()
             }
         }
-}
-
-private fun generateQrCode(content: String, size: Int): Bitmap? {
-    return try {
-        val writer = QRCodeWriter()
-        val bitMatrix = writer.encode(content, BarcodeFormat.QR_CODE, size, size)
-        val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.RGB_565)
-        for (x in 0 until size) {
-            for (y in 0 until size) {
-                bitmap.setPixel(x, y, if (bitMatrix[x, y]) 0xFF000000.toInt() else 0xFFFFFFFF.toInt())
-            }
-        }
-        bitmap
-    } catch (e: Exception) {
-        null
-    }
 }

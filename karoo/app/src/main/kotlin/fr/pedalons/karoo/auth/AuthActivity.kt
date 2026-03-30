@@ -47,6 +47,8 @@ import fr.pedalons.karoo.ui.theme.PedalonsKarooTheme
 import io.hammerhead.karooext.KarooSystemService
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import androidx.core.graphics.createBitmap
+import androidx.core.graphics.set
 
 /**
  * Activity for device code authentication flow.
@@ -198,7 +200,7 @@ private fun LoadingContent() {
 @Composable
 private fun CodeContent(deviceCode: DeviceCodeResponse) {
     val qrBitmap = remember(deviceCode.verificationUriComplete) {
-        generateQrCode(deviceCode.verificationUriComplete, 140)
+        generateQrCode(deviceCode.verificationUriComplete)
     }
 
     Column(
@@ -414,18 +416,19 @@ private suspend fun pollForToken(
     updateState(AuthState.Expired)
 }
 
-private fun generateQrCode(content: String, size: Int): Bitmap? {
+internal fun generateQrCode(content: String): Bitmap? {
     return try {
+        val size = 140
         val writer = QRCodeWriter()
         val bitMatrix = writer.encode(content, BarcodeFormat.QR_CODE, size, size)
-        val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.RGB_565)
+        val bitmap = createBitmap(size, size, Bitmap.Config.RGB_565)
         for (x in 0 until size) {
             for (y in 0 until size) {
-                bitmap.setPixel(x, y, if (bitMatrix[x, y]) 0xFF000000.toInt() else 0xFFFFFFFF.toInt())
+                bitmap[x, y] = if (bitMatrix[x, y]) 0xFF000000.toInt() else 0xFFFFFFFF.toInt()
             }
         }
         bitmap
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         null
     }
 }
