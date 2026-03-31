@@ -1,7 +1,6 @@
 import { useEffect, useState, useRef, useMemo, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
-import Map, { Source, Layer, MapRef, MapMouseEvent, NavigationControl } from 'react-map-gl/maplibre'
-import maplibregl from 'maplibre-gl'
+import { Source, Layer, MapRef, MapMouseEvent } from 'react-map-gl/maplibre'
 import { Line } from 'react-chartjs-2'
 import {
   Chart as ChartJS,
@@ -33,9 +32,7 @@ import {
   findNearestPoint,
   createGradientLineFeatures,
 } from '../map/mapUtils'
-import { MapStyleSwitcher } from '../map/MapStyleSwitcher'
-import { Terrain3D } from '../map/Terrain3D'
-import { useMapStyle } from '../../hooks/useMapStyle'
+import { TriblyMap } from '../map/TriblyMap'
 import { useUnits } from '../../hooks/useUnits'
 import { getOverlayBg } from '@/lib/colors'
 // maplibre-gl CSS is provided by maplibre-theme in index.css
@@ -76,8 +73,6 @@ export function RouteMapView({ route }: RouteMapViewProps) {
   const { t } = useTranslation()
   const colorScheme = useComputedColorScheme('light')
   const theme = useMantineTheme()
-  const { styleId, setStyleId, style, terrain3d, setTerrain3d, hillshade, setHillshade } =
-    useMapStyle()
   const { config, formatDistance, distance: distanceFormat, elevation } = useUnits()
 
   // Chart colors based on color scheme
@@ -344,31 +339,18 @@ export function RouteMapView({ route }: RouteMapViewProps) {
         className={colorScheme === 'dark' ? 'dark' : undefined}
         style={{ zIndex: 0 }}
       >
-        <Map
+        <TriblyMap
           ref={mapRef}
-          mapLib={maplibregl}
-          mapStyle={style}
+          mapStyleSwitcherPosition="top-right"
           initialViewState={{
             longitude: trackPoints[0][0],
             latitude: trackPoints[0][1],
             zoom: 11,
           }}
-          style={{ width: '100%', height: '100%' }}
           onLoad={handleMapLoad}
           onMouseMove={handleMouseMove}
           onMouseLeave={handleMouseLeave}
         >
-          <NavigationControl position="top-left" />
-          <Terrain3D terrain={terrain3d} hillshade={hillshade} />
-          <MapStyleSwitcher
-            position="top-right"
-            currentStyleId={styleId}
-            onStyleChange={setStyleId}
-            terrain3d={terrain3d}
-            onTerrain3DChange={setTerrain3d}
-            hillshade={hillshade}
-            onHillshadeChange={setHillshade}
-          />
           {/* Gradient-colored route line */}
           <Source id="route-segments" type="geojson" data={lineFeatures}>
             <Layer
@@ -407,7 +389,7 @@ export function RouteMapView({ route }: RouteMapViewProps) {
 
           {/* Hover marker */}
           {hoveredPoint && <HoverMarker longitude={hoveredPoint[0]} latitude={hoveredPoint[1]} />}
-        </Map>
+        </TriblyMap>
 
         {/* Elevation chart overlay */}
         <Box

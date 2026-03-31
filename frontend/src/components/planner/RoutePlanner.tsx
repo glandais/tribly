@@ -1,21 +1,17 @@
 import { useCallback, useRef, useMemo, useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import Map, {
+import {
   Source,
   Layer,
   MapRef,
   MapMouseEvent,
-  NavigationControl,
   Marker,
   MarkerDragEvent,
 } from 'react-map-gl/maplibre'
-import maplibregl from 'maplibre-gl'
 import { IconTrash } from '@tabler/icons-react'
 import { ActionIcon, Box, Group, Loader, Stack, Text, useComputedColorScheme } from '@mantine/core'
-import { MapStyleSwitcher } from '../map/MapStyleSwitcher'
-import { Terrain3D } from '../map/Terrain3D'
+import { TriblyMap } from '../map/TriblyMap'
 import { UndoRedoControl } from './UndoRedoControl'
-import { useMapStyle } from '../../hooks/useMapStyle'
 import { useUnits } from '../../hooks/useUnits'
 import { useRoutePlanner, findBboxStartPoint, findBboxEndPoint } from '../../hooks/useRoutePlanner'
 import type { GeoPoint } from '@/api/dto'
@@ -38,8 +34,6 @@ export function RoutePlanner({ onPointsChange, initialTrack, teamLocation }: Rou
   const { t } = useTranslation()
   const { distance, elevation } = useUnits()
   const colorScheme = useComputedColorScheme('light')
-  const { styleId, setStyleId, style, terrain3d, setTerrain3d, hillshade, setHillshade } =
-    useMapStyle()
   const mapRef = useRef<MapRef>(null)
   const mapContainerRef = useRef<HTMLDivElement>(null)
 
@@ -511,12 +505,10 @@ export function RoutePlanner({ onPointsChange, initialTrack, teamLocation }: Rou
         className={colorScheme === 'dark' ? 'dark' : undefined}
         style={{ flex: 1 }}
       >
-        <Map
+        <TriblyMap
           ref={mapRef}
-          mapLib={maplibregl}
-          mapStyle={style}
+          mapStyleSwitcherPosition="top-right"
           initialViewState={initialViewState}
-          style={{ width: '100%', height: '100%' }}
           onClick={handleMapClick}
           onMouseDown={handleMapMouseDown}
           onMouseMove={handleMouseMove}
@@ -525,23 +517,12 @@ export function RoutePlanner({ onPointsChange, initialTrack, teamLocation }: Rou
           interactiveLayerIds={routeGeoJson ? ['route-line'] : []}
           cursor={draggingGhost ? 'grabbing' : hoverPoint ? 'pointer' : 'crosshair'}
         >
-          <NavigationControl position="top-left" />
-          <Terrain3D terrain={terrain3d} hillshade={hillshade} />
           <UndoRedoControl
             position="top-left"
             canUndo={canUndo}
             canRedo={canRedo}
             onUndo={undo}
             onRedo={redo}
-          />
-          <MapStyleSwitcher
-            position="top-right"
-            currentStyleId={styleId}
-            onStyleChange={setStyleId}
-            terrain3d={terrain3d}
-            onTerrain3DChange={setTerrain3d}
-            hillshade={hillshade}
-            onHillshadeChange={setHillshade}
           />
 
           {/* Route line */}
@@ -696,7 +677,7 @@ export function RoutePlanner({ onPointsChange, initialTrack, teamLocation }: Rou
               />
             </Marker>
           )}
-        </Map>
+        </TriblyMap>
 
         {/* Long-press context menu for touch devices */}
         {contextMenu && (
