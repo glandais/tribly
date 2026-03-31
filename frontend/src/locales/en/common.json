@@ -357,6 +357,8 @@
   "map.noTrackData": "No track data available for this route",
   "map.styles.switch": "Change map style",
   "map.styles.title": "Map Style",
+  "map.terrain3d.label": "3D Terrain",
+  "map.hillshade.label": "Hillshade",
   "memberCount_one": "{{count}} member",
   "memberCount_other": "{{count}} members",
   "nav.avatar": "Avatar of {{name}}",

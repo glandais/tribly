@@ -359,6 +359,8 @@
   "map.noTrackData": "Aucune donnée de tracé disponible pour ce parcours",
   "map.styles.switch": "Changer le style",
   "map.styles.title": "Style de carte",
+  "map.terrain3d.label": "Terrain 3D",
+  "map.hillshade.label": "Ombrage",
   "memberCount_one": "{{count}} membre",
   "memberCount_many": "{{count}} membres",
   "memberCount_other": "{{count}} membres",

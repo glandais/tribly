@@ -13,6 +13,7 @@ import maplibregl from 'maplibre-gl'
 import { IconTrash } from '@tabler/icons-react'
 import { ActionIcon, Box, Group, Loader, Stack, Text, useComputedColorScheme } from '@mantine/core'
 import { MapStyleSwitcher } from '../map/MapStyleSwitcher'
+import { Terrain3D } from '../map/Terrain3D'
 import { UndoRedoControl } from './UndoRedoControl'
 import { useMapStyle } from '../../hooks/useMapStyle'
 import { useUnits } from '../../hooks/useUnits'
@@ -37,7 +38,8 @@ export function RoutePlanner({ onPointsChange, initialTrack, teamLocation }: Rou
   const { t } = useTranslation()
   const { distance, elevation } = useUnits()
   const colorScheme = useComputedColorScheme('light')
-  const { styleId, setStyleId, style } = useMapStyle()
+  const { styleId, setStyleId, style, terrain3d, setTerrain3d, hillshade, setHillshade } =
+    useMapStyle()
   const mapRef = useRef<MapRef>(null)
   const mapContainerRef = useRef<HTMLDivElement>(null)
 
@@ -524,6 +526,7 @@ export function RoutePlanner({ onPointsChange, initialTrack, teamLocation }: Rou
           cursor={draggingGhost ? 'grabbing' : hoverPoint ? 'pointer' : 'crosshair'}
         >
           <NavigationControl position="top-left" />
+          <Terrain3D terrain={terrain3d} hillshade={hillshade} />
           <UndoRedoControl
             position="top-left"
             canUndo={canUndo}
@@ -535,6 +538,10 @@ export function RoutePlanner({ onPointsChange, initialTrack, teamLocation }: Rou
             position="top-right"
             currentStyleId={styleId}
             onStyleChange={setStyleId}
+            terrain3d={terrain3d}
+            onTerrain3DChange={setTerrain3d}
+            hillshade={hillshade}
+            onHillshadeChange={setHillshade}
           />
 
           {/* Route line */}

@@ -1,13 +1,27 @@
 import { useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { IconMap, IconX } from '@tabler/icons-react'
-import { Box, Paper, Group, Text, Stack, ActionIcon, UnstyledButton } from '@mantine/core'
+import {
+  Box,
+  Paper,
+  Group,
+  Text,
+  Stack,
+  ActionIcon,
+  UnstyledButton,
+  Switch,
+  Divider,
+} from '@mantine/core'
 import { MAP_STYLES, STYLE_IDS, type MapStyleId } from './mapStyles'
 
 export interface MapStyleSwitcherProps {
   position?: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
   currentStyleId: MapStyleId
   onStyleChange: (styleId: MapStyleId) => void
+  terrain3d?: boolean
+  onTerrain3DChange?: (enabled: boolean) => void
+  hillshade?: boolean
+  onHillshadeChange?: (enabled: boolean) => void
 }
 
 const POSITION_STYLES: Record<string, React.CSSProperties> = {
@@ -21,6 +35,10 @@ export function MapStyleSwitcher({
   position = 'bottom-left',
   currentStyleId,
   onStyleChange,
+  terrain3d = false,
+  onTerrain3DChange,
+  hillshade = false,
+  onHillshadeChange,
 }: MapStyleSwitcherProps) {
   const { t } = useTranslation()
   const [isExpanded, setIsExpanded] = useState(false)
@@ -88,6 +106,29 @@ export function MapStyleSwitcher({
               )
             })}
           </Stack>
+          {(onTerrain3DChange || onHillshadeChange) && (
+            <>
+              <Divider my="xs" />
+              <Stack gap={6}>
+                {onTerrain3DChange && (
+                  <Switch
+                    size="sm"
+                    checked={terrain3d}
+                    onChange={(e) => onTerrain3DChange(e.currentTarget.checked)}
+                    label={t('map.terrain3d.label')}
+                  />
+                )}
+                {onHillshadeChange && (
+                  <Switch
+                    size="sm"
+                    checked={hillshade}
+                    onChange={(e) => onHillshadeChange(e.currentTarget.checked)}
+                    label={t('map.hillshade.label')}
+                  />
+                )}
+              </Stack>
+            </>
+          )}
         </Paper>
       ) : (
         <ActionIcon

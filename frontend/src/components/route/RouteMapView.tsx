@@ -34,6 +34,7 @@ import {
   createGradientLineFeatures,
 } from '../map/mapUtils'
 import { MapStyleSwitcher } from '../map/MapStyleSwitcher'
+import { Terrain3D } from '../map/Terrain3D'
 import { useMapStyle } from '../../hooks/useMapStyle'
 import { useUnits } from '../../hooks/useUnits'
 import { getOverlayBg } from '@/lib/colors'
@@ -75,7 +76,8 @@ export function RouteMapView({ route }: RouteMapViewProps) {
   const { t } = useTranslation()
   const colorScheme = useComputedColorScheme('light')
   const theme = useMantineTheme()
-  const { styleId, setStyleId, style } = useMapStyle()
+  const { styleId, setStyleId, style, terrain3d, setTerrain3d, hillshade, setHillshade } =
+    useMapStyle()
   const { config, formatDistance, distance: distanceFormat, elevation } = useUnits()
 
   // Chart colors based on color scheme
@@ -357,10 +359,15 @@ export function RouteMapView({ route }: RouteMapViewProps) {
           onMouseLeave={handleMouseLeave}
         >
           <NavigationControl position="top-left" />
+          <Terrain3D terrain={terrain3d} hillshade={hillshade} />
           <MapStyleSwitcher
             position="top-right"
             currentStyleId={styleId}
             onStyleChange={setStyleId}
+            terrain3d={terrain3d}
+            onTerrain3DChange={setTerrain3d}
+            hillshade={hillshade}
+            onHillshadeChange={setHillshade}
           />
           {/* Gradient-colored route line */}
           <Source id="route-segments" type="geojson" data={lineFeatures}>

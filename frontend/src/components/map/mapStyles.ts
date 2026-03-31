@@ -1,7 +1,20 @@
+export const TERRAIN_URL = 'https://tiles.mapterhorn.com/tilejson.json'
+export const TERRAIN_MAX_ZOOM = 16
+export const HILLSHADE_SOURCE_ID = 'terrain3d-hillshade'
+export const TERRAIN_SOURCE_ID = 'terrain3d-elevation'
+export const HILLSHADE_LAYER_ID = 'terrain3d-hillshade-layer'
+
 import { colorful, graybeard, eclipse, neutrino, shadow, satellite } from '@versatiles/style'
 import { StyleSpecification } from 'react-map-gl/maplibre'
 
-export type MapStyleId = 'colorful' | 'graybeard' | 'eclipse' | 'neutrino' | 'shadow' | 'satellite'
+export type MapStyleId =
+  | 'colorful'
+  | 'graybeard'
+  | 'eclipse'
+  | 'neutrino'
+  | 'shadow'
+  | 'satellite'
+  | 'ign-vector'
 
 export interface MapStyle {
   id: MapStyleId
@@ -14,6 +27,9 @@ const BASE_URL = 'https://tiles.versatiles.org'
 const layerOptions = {
   baseUrl: BASE_URL,
 }
+
+const IGN_VECTOR_URL =
+  'https://data.geopf.fr/annexes/ressources/vectorTiles/styles/PLAN.IGN/standard.json'
 
 export const MAP_STYLES: Record<MapStyleId, MapStyle> = {
   colorful: {
@@ -45,6 +61,12 @@ export const MAP_STYLES: Record<MapStyleId, MapStyle> = {
     name: 'Shadow',
     style: shadow(layerOptions),
     isDark: true,
+  },
+  'ign-vector': {
+    id: 'ign-vector',
+    name: 'IGN (France)',
+    style: fetch(IGN_VECTOR_URL).then((r) => r.json() as Promise<StyleSpecification>),
+    isDark: false,
   },
   satellite: {
     id: 'satellite',

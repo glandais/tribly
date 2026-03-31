@@ -23,6 +23,7 @@ import type { RouteDetailDto } from '@/api/dto'
 import { StartMarker, EndMarker } from '../map/MapMarkers'
 import { calculateBounds, routeToGeoJSON } from '../map/mapUtils'
 import { MapStyleSwitcher } from '../map/MapStyleSwitcher'
+import { Terrain3D } from '../map/Terrain3D'
 import { useMapStyle } from '../../hooks/useMapStyle'
 import { useUnits } from '../../hooks/useUnits'
 import { getOverlayBg } from '@/lib/colors'
@@ -82,7 +83,8 @@ export function RoutesMapView({
   const mapHeight = responsiveMapHeight[variant]
   const colorScheme = useComputedColorScheme('light')
   const theme = useMantineTheme()
-  const { styleId, setStyleId, style } = useMapStyle()
+  const { styleId, setStyleId, style, terrain3d, setTerrain3d, hillshade, setHillshade } =
+    useMapStyle()
   const { config, distance, formatDistance, elevation } = useUnits()
   const mapRef = useRef<MapRef>(null)
 
@@ -382,10 +384,15 @@ export function RoutesMapView({
           interactiveLayerIds={interactiveLayerIds}
         >
           <NavigationControl position="top-left" />
+          <Terrain3D terrain={terrain3d} hillshade={hillshade} />
           <MapStyleSwitcher
             position="bottom-left"
             currentStyleId={styleId}
             onStyleChange={setStyleId}
+            terrain3d={terrain3d}
+            onTerrain3DChange={setTerrain3d}
+            hillshade={hillshade}
+            onHillshadeChange={setHillshade}
           />
           {/* Render all routes */}
           {routeGeoJSONs.map((route) => {

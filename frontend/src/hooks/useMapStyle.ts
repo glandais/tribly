@@ -1,9 +1,11 @@
-import { useState, useCallback, useMemo, useEffect } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useComputedColorScheme } from '@mantine/core'
 import type { StyleSpecification } from 'react-map-gl/maplibre'
 import { MAP_STYLES, type MapStyleId, type MapStyle } from '../components/map/mapStyles'
 
 const STORAGE_KEY = 'pedalons-map-style'
+const TERRAIN_STORAGE_KEY = 'pedalons-map-terrain3d'
+const HILLSHADE_STORAGE_KEY = 'pedalons-map-hillshade'
 const DEFAULT_LIGHT_STYLE: MapStyleId = 'graybeard'
 const DEFAULT_DARK_STYLE: MapStyleId = 'eclipse'
 
@@ -37,7 +39,25 @@ export function useMapStyle() {
     setSavedStyleId(null)
   }, [])
 
-  const currentStyle: MapStyle = useMemo(() => MAP_STYLES[styleId], [styleId])
+  const [terrain3d, setTerrain3dState] = useState<boolean>(
+    () => localStorage.getItem(TERRAIN_STORAGE_KEY) === 'true'
+  )
+
+  const setTerrain3d = useCallback((enabled: boolean) => {
+    setTerrain3dState(enabled)
+    localStorage.setItem(TERRAIN_STORAGE_KEY, String(enabled))
+  }, [])
+
+  const [hillshade, setHillshadeState] = useState<boolean>(
+    () => localStorage.getItem(HILLSHADE_STORAGE_KEY) === 'true'
+  )
+
+  const setHillshade = useCallback((enabled: boolean) => {
+    setHillshadeState(enabled)
+    localStorage.setItem(HILLSHADE_STORAGE_KEY, String(enabled))
+  }, [])
+
+  const currentStyle: MapStyle = MAP_STYLES[styleId]
 
   // Resolve async styles (e.g. satellite) into a sync value
   const [asyncStyle, setAsyncStyle] = useState<StyleSpecification | undefined>(undefined)
@@ -64,5 +84,9 @@ export function useMapStyle() {
     clearPreference,
     currentStyle,
     style,
+    terrain3d,
+    setTerrain3d,
+    hillshade,
+    setHillshade,
   }
 }
